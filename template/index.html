@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja-JP">
+<head>
+<title>${title}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="webgl" style="background-color:#ccccff"></div>
+<script src="./three.min.js"></script>
+<script src="./TrackballControls.js"></script>
+<script src="${datafile}"></script>
+<script>
+
+  var width  = window.innerWidth;
+  var height = window.innerHeight;
+
+  var renderer = new THREE.WebGLRenderer();
+  renderer.setSize(width, height);
+
+  var scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0xeeeeee));
+
+  var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.set(0, -100, 100);
+
+  var controls = new THREE.TrackballControls(camera);
+
+  var geometry = new THREE.PlaneGeometry(100, 100 * dem.extent.height / dem.extent.width, dem.width - 1, dem.height - 1);
+  for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+    geometry.vertices[i].z = dem.data[i];
+  }
+
+  var image = new Image();
+  image.src = tex;
+  var texture = new THREE.Texture(image);
+  texture.needsUpdate = true;
+
+  var material = new THREE.MeshPhongMaterial({map: texture});
+
+  var plane = new THREE.Mesh(geometry, material);
+  scene.add(plane);
+
+  document.getElementById('webgl').appendChild(renderer.domElement);
+  render();
+
+  function render() {
+    controls.update();  
+    requestAnimationFrame(render);
+    renderer.render(scene, camera);
+  }
+
+</script>
+</body>
+</html>
