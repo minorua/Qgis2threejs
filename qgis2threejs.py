@@ -107,10 +107,10 @@ class Qgis2threejs:
 
     # calculate resolution and size
     width, height = renderer.width(), renderer.height()
-    scaleDenominator = math.floor((width * height / 40000) ** 0.5)
-    if scaleDenominator > 1:
-      width = int(width / scaleDenominator)
-      height = int(height / scaleDenominator)
+    s = (40000. / (width * height)) ** 0.5
+    if s < 1:
+      width = int(width * s)
+      height = int(height * s)
 
     xres = extent.width() / width
     yres = extent.height() / height
