@@ -11,8 +11,8 @@
 [general]
 name=Qgis2threejs
 qgisMinimumVersion=2.0
-description=export terrain and map image into web browser
-version=0.02
+description=Export terrain and map image into web browser
+version=0.03
 author=Minoru Akagi
 email=akaginch@gmail.com
 
