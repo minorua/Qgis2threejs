@@ -185,9 +185,9 @@ class Qgis2threejs:
       return
 
     # copy files from template
-    template_dir = os.path.dirname(QFile.decodeName(__file__)) + "/template"
+    plugin_dir = os.path.dirname(QFile.decodeName(__file__))
+    template_dir = plugin_dir + "/threejs"
     filenames = QDir(template_dir).entryList()
-    filenames.remove("index.html")
     for filename in filenames:
       target = os.path.join(out_dir, filename)
       if not os.path.exists(target):
@@ -200,7 +200,7 @@ class Qgis2threejs:
       return
 
     # generate html file
-    with codecs.open(os.path.join(template_dir, "index.html"), "r", "UTF-8") as f:
+    with codecs.open(plugin_dir + "/template.html", "r", "UTF-8") as f:
       html = f.read()
 
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
