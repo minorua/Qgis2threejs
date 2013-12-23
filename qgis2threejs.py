@@ -27,6 +27,7 @@ from qgis.core import *
 import resources_rc
 # Import the code for the dialog
 from qgis2threejsdialog import Qgis2threejsDialog
+import sys
 import os
 import math
 import codecs
@@ -156,6 +157,7 @@ class Qgis2threejs:
     # generate dem file
     # gdalwarp options
     options = []
+    options.append("--config GDAL_FILENAME_IS_UTF8 NO")
     options.append("-r bilinear")
 
     # calculate extent. note: pixel is area in the output geotiff, but pixel should be handled as point
@@ -177,11 +179,15 @@ class Qgis2threejs:
     options.append('"' + demfilename + '"')
 
     # run gdalwarp command
-    cmd = "gdalwarp " + " ".join(options)
+    cmd = "gdalwarp " + u" ".join(options)
     #QMessageBox.information(None, "Qgis2threejs", "\n".join([htmlfilename, cmd]))
-    os.system(cmd)
+    fsenc = sys.getfilesystemencoding()
+    os.system(cmd.encode(fsenc))
     if not os.path.exists(demfilename):
-      QMessageBox.warning(None, "Qgis2threejs", "Failed to generate a dem file using gdalwarp")
+      hint = ""
+      if os.system("gdalwarp --help-general"):
+        hint = "gdalwarp is not installed."
+      QMessageBox.warning(None, "Qgis2threejs", "Failed to generate a dem file using gdalwarp. " + hint)
       return
 
     # copy files from template
@@ -194,7 +200,7 @@ class Qgis2threejs:
         QFile.copy(os.path.join(template_dir, filename), target)
 
     # generate data file
-    err = gdal2threejs(demfilename, texfilename, jsfilename, filetitle)
+    err = gdal2threejs(demfilename.encode(fsenc), texfilename.encode(fsenc), jsfilename.encode(fsenc), filetitle)
     if err:
       QMessageBox.warning(None, "Qgis2threejs", err)
       return
