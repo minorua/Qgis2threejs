@@ -12,7 +12,7 @@
 name=Qgis2threejs
 qgisMinimumVersion=2.0
 description=export terrain and map image into web browser
-version=0.01
+version=0.02
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,14 +24,14 @@ email=akaginch@gmail.com
 # changelog=
 
 # tags are comma separated with spaces allowed
-tags=
+tags=terrain,WebGL,three.js
 
-homepage=http://
-tracker=http://
-repository=http://
+homepage=https://github.com/minorua/Qgis2threejs
+tracker=https://github.com/minorua/Qgis2threejs
+repository=https://github.com/minorua/Qgis2threejs
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False
