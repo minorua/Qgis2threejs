@@ -34,13 +34,9 @@ class Qgis2threejsDialog(QDialog):
     self.ui.toolButton_Browse.clicked.connect(self.browseClicked)
 
   def accept(self):
-    filename = self.ui.lineEdit_OutputFilename.text()
-    if filename == "":
-      QMessageBox.information(None, "Qgis2threejs", "Please specify output filename")
+    filename = self.ui.lineEdit_OutputFilename.text()   # ""=Temporary file
+    if filename != "" and QFileInfo(filename).exists() and QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
       return
-    if QFileInfo(filename).exists() and QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
-      return
-
     QDialog.accept(self)
 
   def browseClicked(self):

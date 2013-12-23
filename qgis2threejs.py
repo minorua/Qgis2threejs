@@ -73,6 +73,16 @@ class Qgis2threejs:
     self.iface.removePluginMenu(u"&Qgis2threejs", self.action)
     self.iface.removeToolBarIcon(self.action)
 
+    # remove temporary output directory
+    tempOutDir = QDir(self.temporaryOutputDir())
+    if tempOutDir.exists():
+      try:
+        for file in tempOutDir.entryList():
+          tempOutDir.remove(file)
+        QDir().rmdir(self.temporaryOutputDir())
+      except:
+        qDebug("Failed to remove temporary output directory")
+
   def run(self):
     extent = self.iface.mapCanvas().extent()
     renderer = self.iface.mapCanvas().mapRenderer()
@@ -108,6 +118,7 @@ class Qgis2threejs:
     ui.lineEdit_VRes.setText(str(yres))
     ui.lineEdit_Width.setText(str(width))
     ui.lineEdit_Height.setText(str(height))
+    ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
 
     # show dialog
@@ -119,16 +130,24 @@ class Qgis2threejs:
 
     layerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
     layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+    self.lastDEMLayerId = layerid
+
     width = int(ui.lineEdit_Width.text())
     height = int(ui.lineEdit_Height.text())
+
     htmlfilename = ui.lineEdit_OutputFilename.text()
+    if htmlfilename == "":
+      htmlfilename = self.temporaryOutputDir() + "/%s.html" % timestamp
+    else:
+      self.lastOutputFilename = htmlfilename
+
     out_dir, filename = os.path.split(htmlfilename)
+    if not QDir(out_dir).exists():
+      QDir().mkpath(out_dir)
+
     filetitle = os.path.splitext(filename)[0]
     demfilename = os.path.join(temp_dir, "dem%s.tif" % timestamp)
     jsfilename = os.path.splitext(htmlfilename)[0] + ".js"
-
-    self.lastDEMLayerId = layerid
-    self.lastOutputFilename = htmlfilename
 
     # save map canvas image
     texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
@@ -188,10 +207,16 @@ class Qgis2threejs:
       f.write(html.replace("${title}", filetitle).replace("${datafile}", filetitle + ".js"))
 
     # remove temporary files
-    QFile.remove(demfilename)
-    QFile.remove(texfilename)
-    QFile.remove(texfilename + "w")
+    try:
+      QFile.remove(demfilename)
+      QFile.remove(texfilename)
+      QFile.remove(texfilename + "w")
+    except:
+      qDebug("Failed to remove temporary files")
 
     # open webbrowser
     import webbrowser
     webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+
+  def temporaryOutputDir(self):
+    return QDir.tempPath() + "/Qgis2threejs"
