@@ -12,7 +12,10 @@ body { margin: 0; overflow: hidden; }
 <div id="webgl" style="background-color:#ccccff"></div>
 <script src="./three.min.js"></script>
 <script src="./TrackballControls.js"></script>
-<script src="${datafile}"></script>
+<script>
+var dem = [], tex = [];
+</script>
+${scripts}
 <script>
 
   var width  = window.innerWidth;
@@ -29,20 +32,25 @@ body { margin: 0; overflow: hidden; }
 
   var controls = new THREE.TrackballControls(camera);
 
-  var geometry = new THREE.PlaneGeometry(100, 100 * dem.extent.height / dem.extent.width, dem.width - 1, dem.height - 1);
-  for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-    geometry.vertices[i].z = dem.data[i];
+  for (var qi = 0; qi < dem.length; qi++) {
+    var geometry = new THREE.PlaneGeometry(dem[qi].plane.width, dem[qi].plane.height,
+                                           dem[qi].width - 1, dem[qi].height - 1);
+    for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+      geometry.vertices[i].z = dem[qi].data[i];
+    }
+
+    var image = new Image();
+    image.src = tex[qi];
+    var texture = new THREE.Texture(image);
+    texture.needsUpdate = true;
+
+    var material = new THREE.MeshPhongMaterial({map: texture});
+
+    var plane = new THREE.Mesh(geometry, material);
+    if (dem[qi].plane.offsetX != 0) plane.position.x = dem[qi].plane.offsetX
+    if (dem[qi].plane.offsetY != 0) plane.position.y = dem[qi].plane.offsetY
+    scene.add(plane);
   }
-
-  var image = new Image();
-  image.src = tex;
-  var texture = new THREE.Texture(image);
-  texture.needsUpdate = true;
-
-  var material = new THREE.MeshPhongMaterial({map: texture});
-
-  var plane = new THREE.Mesh(geometry, material);
-  scene.add(plane);
 
   document.getElementById('webgl').appendChild(renderer.domElement);
   render();
