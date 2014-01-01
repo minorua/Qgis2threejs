@@ -112,8 +112,8 @@ class Qgis2threejs:
     yres = extent.height() / height
     ui.lineEdit_HRes.setText(str(xres))
     ui.lineEdit_VRes.setText(str(yres))
-    ui.lineEdit_Width.setText(str(width))
-    ui.lineEdit_Height.setText(str(height))
+    ui.lineEdit_Width.setText(str(width + 1))
+    ui.lineEdit_Height.setText(str(height + 1))
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
 
     # show dialog

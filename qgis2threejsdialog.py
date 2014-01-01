@@ -107,7 +107,7 @@ class Qgis2threejsDialog(QDialog):
     suffix = "[0]"
     with open(jsfilename, "w") as f:
       opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
-      f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width + 1, dem_height + 1, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
       f.write('tex%s = "%s";\n' % (suffix, tex))
 
     # copy files from template
@@ -182,9 +182,9 @@ class Qgis2threejsDialog(QDialog):
     if antialias:
       painter.setRenderHint(QPainter.Antialiasing)
 
-    # (currently) dem size should be 2 ^ quadtree.depth * a, where a is larger integer than 0
+    # (currently) dem size should be 2 ^ quadtree.depth * a + 1, where a is larger integer than 0
     # with smooth resolution change, this is not necessary
-    dem_width = dem_height = max(128, 2 ** quadtree.depth)
+    dem_width = dem_height = max(128, 2 ** quadtree.depth) + 1
     terrain_width = 100
     terrain_height = 100 * canvas.extent().height() / canvas.extent().width()
     scale = 1.5
@@ -221,29 +221,29 @@ class Qgis2threejsDialog(QDialog):
         interval = 2 ** (quad.depth - neighbor.depth)
         if interval > 1:
           if direction == QuadTree.UP or direction == QuadTree.DOWN:
-            y = 0 if direction == QuadTree.UP else (dem_height + 1) - 1
-            for x1 in range(interval, (dem_width + 1), interval):
+            y = 0 if direction == QuadTree.UP else dem_height - 1
+            for x1 in range(interval, dem_width, interval):
               x0 = x1 - interval
-              z0 = dem_values[x0 + (dem_width + 1) * y]
-              z1 = dem_values[x1 + (dem_width + 1) * y]
+              z0 = dem_values[x0 + dem_width * y]
+              z1 = dem_values[x1 + dem_width * y]
               for xx in range(1, interval):
                 z = (z0 * (interval - xx) + z1 * xx) / interval
-                dem_values[x0 + xx + (dem_width + 1) * y] = z
+                dem_values[x0 + xx + dem_width * y] = z
           else:   # LEFT or RIGHT
-            x = 0 if direction == QuadTree.LEFT else (dem_width + 1) - 1
-            for y1 in range(interval, (dem_height + 1), interval):
+            x = 0 if direction == QuadTree.LEFT else dem_width - 1
+            for y1 in range(interval, dem_height, interval):
               y0 = y1 - interval
-              z0 = dem_values[x + (dem_width + 1) * y0]
-              z1 = dem_values[x + (dem_width + 1) * y1]
+              z0 = dem_values[x + dem_width * y0]
+              z1 = dem_values[x + dem_width * y1]
               for yy in range(1, interval):
                 z = (z0 * (interval - yy) + z1 * yy) / interval
-                dem_values[x + (dem_width + 1) * (y0 + yy)] = z
+                dem_values[x + dem_width * (y0 + yy)] = z
 
       tex = gdal2threejs.base64image(texfilename)
       suffix = "[%d]" % i
       with open(jsfilename, "w") as f:
         opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
-        f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width + 1, dem_height + 1, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+        f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
         f.write('tex%s = "%s";\n' % (suffix, tex))
 
       tools.removeTemporaryFiles([demfilename, texfilename, texfilename + "w"])

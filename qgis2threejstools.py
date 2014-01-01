@@ -65,9 +65,9 @@ class WarpedMemoryRaster(Raster):
     pass
 
 def warpDEM(layer, crs, extent, width, height, multiplier):
-  # calculate extent. note: pixel is area in the output, but pixel should be handled as point
-  xres = extent.width() / width
-  yres = extent.height() / height
+  # calculate extent. output dem should be handled as points.
+  xres = extent.width() / (width - 1)
+  yres = extent.height() / (height - 1)
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(crs.toWkt())
 
@@ -75,7 +75,7 @@ def warpDEM(layer, crs, extent, width, height, multiplier):
     qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
 
   warped_dem = WarpedMemoryRaster(layer.source())
-  values = warped_dem.read(width + 1, height + 1, wkt, geotransform, multiplier)
+  values = warped_dem.read(width, height, wkt, geotransform, multiplier)
   warped_dem.close()
   return values
 
