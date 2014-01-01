@@ -24,6 +24,7 @@ from PyQt4.QtCore import *
 import sys
 import os
 import struct
+import base64
 
 try:
   from osgeo import gdal
@@ -116,6 +117,9 @@ def generateDEM(layer, crs, extent, width, height, demfilename):
       hint = "gdalwarp is not installed."
     return "Failed to generate a dem file using gdalwarp. " + hint
   return 0
+
+def base64pngImage(ba):
+  return "data:image/png;base64," + base64.b64encode(ba)
 
 def copyThreejsFiles(out_dir):
   template_dir = pluginDir() + "/threejs"

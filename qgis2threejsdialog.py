@@ -55,6 +55,7 @@ class Qgis2threejsDialog(QDialog):
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
     ui.toolButton_PointTool.setVisible(False)
 
+    self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
 
     # set map tool
@@ -83,12 +84,19 @@ class Qgis2threejsDialog(QDialog):
       QDir().mkpath(out_dir)
 
     filetitle = os.path.splitext(filename)[0]
-    demfilename = os.path.join(temp_dir, "dem%s.tif" % timestamp)
     jsfilename = os.path.splitext(htmlfilename)[0] + ".js"
 
     # save map canvas image
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
-    self.iface.mapCanvas().saveAsImage(texfilename)
+    if self.localBrowsingMode:
+      texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
+      self.iface.mapCanvas().saveAsImage(texfilename)
+      tex = gdal2threejs.base64image(texfilename)
+      tools.removeTemporaryFiles([texfilename, texfilename + "w"])
+    else:
+      texfilename = os.path.splitext(htmlfilename)[0] + ".png"
+      self.iface.mapCanvas().saveAsImage(texfilename)
+      tex = os.path.split(texfilename)[1]
+      tools.removeTemporaryFiles([texfilename + "w"])
 
     # calculate multiplier for z coordinate
     terrain_width = 100
@@ -103,7 +111,6 @@ class Qgis2threejsDialog(QDialog):
 
     # generate javascript data file
     offsetX = offsetY = 0
-    tex = gdal2threejs.base64image(texfilename)
     suffix = "[0]"
     with open(jsfilename, "w") as f:
       opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
@@ -119,9 +126,6 @@ class Qgis2threejsDialog(QDialog):
 
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
       f.write(html.replace("${title}", filetitle).replace("${scripts}", '<script src="./%s.js"></script>' % filetitle))
-
-    # remove temporary files
-    tools.removeTemporaryFiles([demfilename, texfilename, texfilename + "w"])
 
     # open webbrowser
     webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
@@ -192,15 +196,22 @@ class Qgis2threejsDialog(QDialog):
 
     for i, quad in enumerate(quads):
       extent = quad.extent
-      demfilename = os.path.join(temp_dir, "%s_%d.tif" % (timestamp, i))
-      texfilename = os.path.join(temp_dir, "%s_%d.png" % (timestamp, i))
       jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % i
 
       # render map image
       image.fill(QColor(255,255,255))
       renderer.setExtent(extent)
       renderer.render(painter)
-      image.save(texfilename)    #TODO: output into memory
+      if self.localBrowsingMode:
+        ba = QByteArray()
+        buffer = QBuffer(ba)
+        buffer.open(QIODevice.WriteOnly)
+        image.save(buffer, "PNG")
+        tex = tools.base64pngImage(ba)
+      else:
+        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % i
+        image.save(texfilename)
+        tex = os.path.split(texfilename)[1]
 
       # warp dem
       dem_values = tools.warpDEM(demlayer, mapSettings.destinationCrs(), extent, dem_width, dem_height, multiplier)
@@ -239,14 +250,11 @@ class Qgis2threejsDialog(QDialog):
                 z = (z0 * (interval - yy) + z1 * yy) / interval
                 dem_values[x + dem_width * (y0 + yy)] = z
 
-      tex = gdal2threejs.base64image(texfilename)
       suffix = "[%d]" % i
       with open(jsfilename, "w") as f:
         opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
         f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
         f.write('tex%s = "%s";\n' % (suffix, tex))
-
-      tools.removeTemporaryFiles([demfilename, texfilename, texfilename + "w"])
 
     # copy files from template
     tools.copyThreejsFiles(out_dir)

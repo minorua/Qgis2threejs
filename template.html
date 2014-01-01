@@ -39,9 +39,13 @@ ${scripts}
       geometry.vertices[i].z = dem[qi].data[i];
     }
 
-    var image = new Image();
-    image.src = tex[qi];
-    var texture = new THREE.Texture(image);
+    if (tex[qi].substr(0, 5) == "data:") {
+      var image = new Image();
+      image.src = tex[qi];
+      var texture = new THREE.Texture(image);
+    } else {
+      var texture = THREE.ImageUtils.loadTexture(tex[qi]);
+    }
     texture.needsUpdate = true;
 
     var material = new THREE.MeshPhongMaterial({map: texture});
