@@ -23,8 +23,61 @@
 from PyQt4.QtCore import *
 import sys
 import os
+import struct
+
+try:
+  from osgeo import gdal
+except ImportError:
+  import gdal
+
+from gdal2threejs import Raster
 
 debug_mode = 1
+
+class WarpedMemoryRaster(Raster):
+  def __init__(self, filename):
+    Raster.__init__(self, filename)
+
+  def read(self, width, height, wkt, geotransform, multiplier=1):
+    # create a memory dataset
+    driver = gdal.GetDriverByName("MEM")
+    warped_ds = driver.Create("", width, height, 1, gdal.GDT_Float32)
+    warped_ds.SetProjection(wkt)
+    warped_ds.SetGeoTransform(geotransform)
+
+    # reproject image
+    gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
+
+    # load values into an array
+    values = []
+    fs = "f" * width
+    band = warped_ds.GetRasterBand(1)
+    for py in range(height):
+      line = struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
+      if multiplier == 1:
+        values += line
+      else:
+        values += map(lambda x: x * multiplier, line)
+    return values
+
+  #TODO: readValue(wkt, x, y) function, which gets value at the position using 1px * 1px memory raster
+  def readValue(filename, wkt, x, y):
+    pass
+
+def warpDEM(layer, crs, extent, width, height, multiplier):
+  # calculate extent. note: pixel is area in the output, but pixel should be handled as point
+  xres = extent.width() / width
+  yres = extent.height() / height
+  geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+  wkt = str(crs.toWkt())
+
+  if debug_mode:
+    qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
+
+  warped_dem = WarpedMemoryRaster(layer.source())
+  values = warped_dem.read(width + 1, height + 1, wkt, geotransform, multiplier)
+  warped_dem.close()
+  return values
 
 def generateDEM(layer, crs, extent, width, height, demfilename):
   # generate dem file
