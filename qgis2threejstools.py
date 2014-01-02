@@ -38,11 +38,11 @@ debug_mode = 1
 class WarpedMemoryRaster(Raster):
   def __init__(self, filename):
     Raster.__init__(self, filename)
+    self.driver = gdal.GetDriverByName("MEM")
 
   def read(self, width, height, wkt, geotransform, multiplier=1):
     # create a memory dataset
-    driver = gdal.GetDriverByName("MEM")
-    warped_ds = driver.Create("", width, height, 1, gdal.GDT_Float32)
+    warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
     warped_ds.SetProjection(wkt)
     warped_ds.SetGeoTransform(geotransform)
 
@@ -61,9 +61,11 @@ class WarpedMemoryRaster(Raster):
         values += map(lambda x: x * multiplier, line)
     return values
 
-  #TODO: readValue(wkt, x, y) function, which gets value at the position using 1px * 1px memory raster
-  def readValue(filename, wkt, x, y):
-    pass
+  def readValue(self, wkt, x, y, multiplier=1):
+    # get value at the position using 1px * 1px memory raster
+    res = self.geotransform[1]
+    geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
+    return self.read(1, 1, wkt, geotransform, multiplier)[0]
 
 def warpDEM(layer, crs, extent, width, height, multiplier):
   # calculate extent. output dem should be handled as points.
