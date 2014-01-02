@@ -186,6 +186,10 @@ class Qgis2threejsDialog(QDialog):
     if antialias:
       painter.setRenderHint(QPainter.Antialiasing)
 
+    fillColor = canvas.canvasColor()
+    if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
+      fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
+
     # (currently) dem size should be 2 ^ quadtree.depth * a + 1, where a is larger integer than 0
     # with smooth resolution change, this is not necessary
     dem_width = dem_height = max(128, 2 ** quadtree.depth) + 1
@@ -199,7 +203,7 @@ class Qgis2threejsDialog(QDialog):
       jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % i
 
       # render map image
-      image.fill(QColor(255,255,255))
+      image.fill(fillColor)
       renderer.setExtent(extent)
       renderer.render(painter)
       if self.localBrowsingMode:
