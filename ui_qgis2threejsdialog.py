@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\lenovo\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Sat Dec 28 16:18:40 2013
+# Created: Fri Jan 03 11:36:09 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(439, 472)
+        Qgis2threejsDialog.resize(439, 496)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -206,6 +206,23 @@ class Ui_Qgis2threejsDialog(object):
         self.horizontalLayout_6.addWidget(self.toolButton_PointTool)
         self.gridLayout_2.addLayout(self.horizontalLayout_6, 4, 0, 1, 1)
         self.gridLayout_4.addWidget(self.groupBox, 1, 0, 1, 1)
+        self.formLayout_3 = QtGui.QFormLayout()
+        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
+        self.label_15 = QtGui.QLabel(self.tabDEM)
+        self.label_15.setObjectName(_fromUtf8("label_15"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_15)
+        self.lineEdit_zFactor = QtGui.QLineEdit(self.tabDEM)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineEdit_zFactor.sizePolicy().hasHeightForWidth())
+        self.lineEdit_zFactor.setSizePolicy(sizePolicy)
+        self.lineEdit_zFactor.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.lineEdit_zFactor.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
+        self.lineEdit_zFactor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.lineEdit_zFactor.setObjectName(_fromUtf8("lineEdit_zFactor"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_zFactor)
+        self.gridLayout_4.addLayout(self.formLayout_3, 2, 0, 1, 1)
         self.tabWidget.addTab(self.tabDEM, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
         self.label_3 = QtGui.QLabel(Qgis2threejsDialog)
@@ -220,17 +237,28 @@ class Ui_Qgis2threejsDialog(object):
         self.toolButton_Browse.setObjectName(_fromUtf8("toolButton_Browse"))
         self.horizontalLayout_2.addWidget(self.toolButton_Browse)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.buttonBox = QtGui.QDialogButtonBox(Qgis2threejsDialog)
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
-        self.verticalLayout.addWidget(self.buttonBox)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        self.progressBar = QtGui.QProgressBar(Qgis2threejsDialog)
+        self.progressBar.setProperty(_fromUtf8("value"), 24)
+        self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBar.setTextVisible(True)
+        self.progressBar.setObjectName(_fromUtf8("progressBar"))
+        self.horizontalLayout_7.addWidget(self.progressBar)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem4)
+        self.pushButton_Run = QtGui.QPushButton(Qgis2threejsDialog)
+        self.pushButton_Run.setDefault(True)
+        self.pushButton_Run.setObjectName(_fromUtf8("pushButton_Run"))
+        self.horizontalLayout_7.addWidget(self.pushButton_Run)
+        self.pushButton_Close = QtGui.QPushButton(Qgis2threejsDialog)
+        self.pushButton_Close.setObjectName(_fromUtf8("pushButton_Close"))
+        self.horizontalLayout_7.addWidget(self.pushButton_Close)
+        self.verticalLayout.addLayout(self.horizontalLayout_7)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
         self.retranslateUi(Qgis2threejsDialog)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Qgis2threejsDialog.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), Qgis2threejsDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Qgis2threejsDialog)
 
     def retranslateUi(self, Qgis2threejsDialog):
@@ -254,7 +282,12 @@ class Ui_Qgis2threejsDialog(object):
         self.label_13.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "x", None, QtGui.QApplication.UnicodeUTF8))
         self.label_14.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "y", None, QtGui.QApplication.UnicodeUTF8))
         self.toolButton_PointTool.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Get point from map canvas", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_15.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical exaggeration", None, QtGui.QApplication.UnicodeUTF8))
+        self.lineEdit_zFactor.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "1.5", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), QtGui.QApplication.translate("Qgis2threejsDialog", "DEM", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Output HTML filename", None, QtGui.QApplication.UnicodeUTF8))
         self.toolButton_Browse.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Browse...", None, QtGui.QApplication.UnicodeUTF8))
+        self.progressBar.setFormat(QtGui.QApplication.translate("Qgis2threejsDialog", "%p%", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_Run.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Run", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_Close.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

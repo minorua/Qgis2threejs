@@ -50,10 +50,14 @@ class Qgis2threejsDialog(QDialog):
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
+    ui.toolButton_PointTool.setVisible(False)
+    ui.progressBar.setVisible(False)
+
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
     ui.radioButton_Simple.toggled.connect(self.samplingModeToggled)
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
-    ui.toolButton_PointTool.setVisible(False)
+    ui.pushButton_Run.clicked.connect(self.run)
+    ui.pushButton_Close.clicked.connect(self.reject)
 
     self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
@@ -97,6 +101,7 @@ class Qgis2threejsDialog(QDialog):
       self.iface.mapCanvas().saveAsImage(texfilename)
       tex = os.path.split(texfilename)[1]
       tools.removeTemporaryFiles([texfilename + "w"])
+    self.progress(20)
 
     # calculate multiplier for z coordinate
     terrain_width = 100
@@ -116,6 +121,7 @@ class Qgis2threejsDialog(QDialog):
       opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
       f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
       f.write('tex%s = "%s";\n' % (suffix, tex))
+    self.progress(80)
 
     # copy files from template
     tools.copyThreejsFiles(out_dir)
@@ -127,8 +133,7 @@ class Qgis2threejsDialog(QDialog):
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
       f.write(html.replace("${title}", filetitle).replace("${scripts}", '<script src="./%s.js"></script>' % filetitle))
 
-    # open webbrowser
-    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    return htmlfilename
 
   def runAdvanced(self):
     ui = self.ui
@@ -181,11 +186,8 @@ class Qgis2threejsDialog(QDialog):
     renderer.setLabelingEngine(labeling)
     renderer.setLayerSet(layerids)
 
-    painter = QPainter(image)
+    painter = QPainter()
     antialias = True
-    if antialias:
-      painter.setRenderHint(QPainter.Antialiasing)
-
     fillColor = canvas.canvasColor()
     if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
       fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
@@ -199,13 +201,19 @@ class Qgis2threejsDialog(QDialog):
     multiplier = 100 * scale / canvas.extent().width()
 
     for i, quad in enumerate(quads):
-      extent = quad.extent
+      self.progress(80 * i / len(quads))
       jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % i
+      extent = quad.extent
+      renderer.setExtent(extent)
 
       # render map image
       image.fill(fillColor)
-      renderer.setExtent(extent)
+      painter.begin(image)
+      if antialias:
+        painter.setRenderHint(QPainter.Antialiasing)
       renderer.render(painter)
+      painter.end()
+
       if self.localBrowsingMode:
         ba = QByteArray()
         buffer = QBuffer(ba)
@@ -259,7 +267,7 @@ class Qgis2threejsDialog(QDialog):
         opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
         f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
         f.write('tex%s = "%s";\n' % (suffix, tex))
-
+    self.progress(80)
     # copy files from template
     tools.copyThreejsFiles(out_dir)
 
@@ -274,21 +282,29 @@ class Qgis2threejsDialog(QDialog):
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
       f.write(html.replace("${title}", filetitle).replace("${scripts}", "\n".join(scripts)))
 
-    # open webbrowser
-    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    return htmlfilename
 
-  def accept(self):
+  def progress(self, percentage):
+    self.ui.progressBar.setValue(percentage)
+    self.ui.progressBar.setVisible(percentage != 100)
+
+  def run(self):
     filename = self.ui.lineEdit_OutputFilename.text()   # ""=Temporary file
     if filename != "" and QFileInfo(filename).exists() and QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
       return
     self.endPointSelection()
-    self.setVisible(False)
+    self.ui.pushButton_Run.setEnabled(False)
+    self.progress(0)
     if self.ui.radioButton_Simple.isChecked():
-      self.runSimple()
+      htmlfilename = self.runSimple()
     else:
-      self.runAdvanced()
+      htmlfilename = self.runAdvanced()
+    self.progress(100)
+    self.ui.pushButton_Run.setEnabled(True)
     self.clearRubberBands()
-    QDialog.accept(self)
+    # open webbrowser
+    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    self.accept()
 
   def reject(self):
     self.endPointSelection()
