@@ -106,8 +106,8 @@ class Qgis2threejsDialog(QDialog):
     # calculate multiplier for z coordinate
     terrain_width = 100
     terrain_height = 100 * extent.height() / extent.width()
-    scale = 1.5
-    multiplier = scale * 100 / extent.width()
+    z_factor = float(ui.lineEdit_zFactor.text())
+    multiplier = 100 * z_factor / extent.width()
 
     # warp dem
     dem_width = int(ui.lineEdit_Width.text())
@@ -197,8 +197,8 @@ class Qgis2threejsDialog(QDialog):
     dem_width = dem_height = max(128, 2 ** quadtree.depth) + 1
     terrain_width = 100
     terrain_height = 100 * canvas.extent().height() / canvas.extent().width()
-    scale = 1.5
-    multiplier = 100 * scale / canvas.extent().width()
+    z_factor = float(ui.lineEdit_zFactor.text())
+    multiplier = 100 * z_factor / canvas.extent().width()
 
     for i, quad in enumerate(quads):
       self.progress(80 * i / len(quads))

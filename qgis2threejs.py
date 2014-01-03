@@ -51,6 +51,7 @@ class Qgis2threejs:
 
     self.lastDEMLayerId = None
     self.lastOutputFilename = ""
+    self.lastZFactor = "1.5"
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -115,9 +116,11 @@ class Qgis2threejs:
     ui.lineEdit_Width.setText(str(width + 1))
     ui.lineEdit_Height.setText(str(height + 1))
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
+    ui.lineEdit_zFactor.setText(self.lastZFactor)
 
     # show dialog
     dialog.show()
     if dialog.exec_():
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
       self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
+      self.lastZFactor = ui.lineEdit_zFactor.text()
