@@ -29,7 +29,7 @@ class QuadNode:
     self.height = height
     self.subNodes = []
 
-  def subdivideRecursively(self, point, maxHeight):
+  def subdivideRecursively(self, rect, maxHeight):
     if maxHeight <= self.height:
       return
     self.subNodes = []
@@ -39,11 +39,11 @@ class QuadNode:
         ymin = self.extent.yMinimum() + 0.5 * (1 - y) * self.extent.height()
         xmax = xmin + 0.5 * self.extent.width()
         ymax = ymin + 0.5 * self.extent.height()
-        rect = QgsRectangle(xmin, ymin, xmax, ymax)
-        node = QuadNode(self, rect, 2 * y + x, self.height + 1)
+        quadrect = QgsRectangle(xmin, ymin, xmax, ymax)
+        node = QuadNode(self, quadrect, 2 * y + x, self.height + 1)
         self.subNodes.append(node)
-        if rect.contains(point):
-          node.subdivideRecursively(point, maxHeight)
+        if quadrect.intersects(rect):
+          node.subdivideRecursively(rect, maxHeight)
 
   def listTopQuads(self, quadlist):
     if len(self.subNodes):
@@ -68,20 +68,21 @@ class QuadTree:
   RIGHT = 2
   DOWN = 3
 
-  def __init__(self, extent=None, point=None, height=0):
+  def __init__(self, extent=None):
     self.extent = extent
     self.root = QuadNode(self, self.extent, 0)
-    if height > 0:
-      self.buildTree(point, height)
 
   def setExtent(self, extent):
     self.extent = extent
 
-  def buildTree(self, point, height):
-    if not point or not self.extent.contains(point):
+  def buildTreeByRect(self, rect, height):
+    if not self.extent.intersects(rect):
       return
     self.height = height
-    self.root.subdivideRecursively(point, height)
+    self.root.subdivideRecursively(rect, height)
+
+  def buildTreeByPoint(self, point, height):
+    self.buildTreeByRect(QgsRectangle(point.x(), point.y(), point.x(), point.y()), height)
 
   def quads(self):
     return self.root.listTopQuads([])

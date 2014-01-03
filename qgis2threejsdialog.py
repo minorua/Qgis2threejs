@@ -8,6 +8,9 @@
         begin                : 2013-12-21
         copyright            : (C) 2013 by Minoru Akagi
         email                : akaginch@gmail.com
+
+ RectangleMapTool class is from extentSelector.py of GdalTools plugin
+        copyright            : (C) 2010 by Giuseppe Sucameli
  ***************************************************************************/
 
 /***************************************************************************
@@ -50,11 +53,14 @@ class Qgis2threejsDialog(QDialog):
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
+    ui.toolButton_switchFocusMode.setVisible(False)
     ui.toolButton_PointTool.setVisible(False)
     ui.progressBar.setVisible(False)
+    self.switchFocusMode(True)
 
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
-    ui.radioButton_Simple.toggled.connect(self.samplingModeToggled)
+    ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
+    ui.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
@@ -64,8 +70,10 @@ class Qgis2threejsDialog(QDialog):
 
     # set map tool
     self.previousMapTool = None
-    self.mapTool = PointMapTool(iface.mapCanvas())
-    QObject.connect(self.mapTool, SIGNAL("pointSelected()"), self.pointSelected)
+    self.mapTool = RectangleMapTool(iface.mapCanvas())
+    self.connect(self.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
+#    self.mapTool = PointMapTool(iface.mapCanvas())
+#    QObject.connect(self.mapTool, SIGNAL("pointSelected()"), self.pointSelected)
     iface.mapCanvas().mapToolSet.connect(self.mapToolSet)
     self.startPointSelection()
 
@@ -155,8 +163,11 @@ class Qgis2threejsDialog(QDialog):
     filetitle = os.path.splitext(filename)[0]
 
     # create quad tree
-    point = QgsPoint(float(ui.lineEdit_CenterX.text()), float(ui.lineEdit_CenterY.text()))
-    quadtree = QuadTree(canvas.extent(), point, ui.spinBox_Height.value())
+    c = map(float, [ui.lineEdit_xmin.text(), ui.lineEdit_ymin.text(), ui.lineEdit_xmax.text(), ui.lineEdit_ymax.text()])
+    rect = QgsRectangle(c[0], c[1], c[2], c[3])
+    point = rect.center()
+    quadtree = QuadTree(canvas.extent())
+    quadtree.buildTreeByRect(rect, self.ui.spinBox_Height.value())
     quads = quadtree.quads()
 
     # create quads and a point on map canvas with rubber bands
@@ -165,10 +176,10 @@ class Qgis2threejsDialog(QDialog):
     # create an image for texture
     hpw = canvas.extent().height() / canvas.extent().width()
     if hpw < 1:
-      image_width = 256
+      image_width = 128
       image_height = round(image_width * hpw)
     else:
-      image_height = 256
+      image_height = 128
       image_width = round(image_height * hpw)
     image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
     self.log("Created image size: %d, %d" % (image_width, image_height))
@@ -194,7 +205,7 @@ class Qgis2threejsDialog(QDialog):
 
     # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
     # with smooth resolution change, this is not necessary
-    dem_width = dem_height = max(128, 2 ** quadtree.height) + 1
+    dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
     terrain_width = 100
     terrain_height = 100 * canvas.extent().height() / canvas.extent().width()
     z_factor = float(ui.lineEdit_zFactor.text())
@@ -318,7 +329,24 @@ class Qgis2threejsDialog(QDialog):
     self.ui.toolButton_PointTool.setVisible(False)
 
   def endPointSelection(self):
+    self.mapTool.reset()
     self.iface.mapCanvas().setMapTool(self.previousMapTool)
+
+  def rectangleSelected(self):
+    ui = self.ui
+    ui.radioButton_Advanced.setChecked(True)
+    rect = self.mapTool.rectangle()
+    toRect = rect.width() and rect.height()
+    self.switchFocusMode(toRect)
+    ui.lineEdit_xmin.setText(str(rect.xMinimum()))
+    ui.lineEdit_ymin.setText(str(rect.yMinimum()))
+    ui.lineEdit_xmax.setText(str(rect.xMaximum()))
+    ui.lineEdit_ymax.setText(str(rect.yMaximum()))
+
+    quadtree = QuadTree(self.iface.mapCanvas().extent())
+    quadtree.buildTreeByRect(rect, self.ui.spinBox_Height.value())
+    self.createRubberBands(quadtree.quads(), rect.center())
+    self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
 
   def pointSelected(self):
     # set values of controls
@@ -328,7 +356,7 @@ class Qgis2threejsDialog(QDialog):
 
     quadtree = QuadTree(self.iface.mapCanvas().extent(), self.mapTool.point, self.ui.spinBox_Height.value())
     self.createRubberBands(quadtree.quads(), self.mapTool.point)
-    self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive);
+    self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
 
   def mapToolSet(self, mapTool):
     if mapTool != self.mapTool:
@@ -375,13 +403,35 @@ class Qgis2threejsDialog(QDialog):
     if filename != "":
       self.ui.lineEdit_OutputFilename.setText(filename)
 
-  def samplingModeToggled(self):
+  def samplingModeChanged(self):
     ui = self.ui
     isSimpleMode = ui.radioButton_Simple.isChecked()
     isAdvancedMode = not isSimpleMode
     ui.spinBox_Height.setEnabled(isAdvancedMode)
-    ui.lineEdit_CenterX.setEnabled(isAdvancedMode)
-    ui.lineEdit_CenterY.setEnabled(isAdvancedMode)
+    ui.lineEdit_xmin.setEnabled(isAdvancedMode)
+    ui.lineEdit_ymin.setEnabled(isAdvancedMode)
+    ui.lineEdit_xmax.setEnabled(isAdvancedMode)
+    ui.lineEdit_ymax.setEnabled(isAdvancedMode)
+    ui.toolButton_switchFocusMode.setEnabled(isAdvancedMode)
+
+  def switchFocusModeClicked(self):
+    self.switchFocusMode(not self.ui.label_xmin.isVisible())
+
+  def switchFocusMode(self, toRect):
+    ui = self.ui
+    toPoint = not toRect
+    ui.label_xmin.setVisible(toRect)
+    ui.label_ymin.setVisible(toRect)
+    ui.lineEdit_xmin.setVisible(toRect)
+    ui.lineEdit_ymin.setVisible(toRect)
+
+    suffix = "max" if toRect else ""
+    ui.label_xmax.setText("x" + suffix)
+    ui.label_ymax.setText("y" + suffix)
+    mode = "point" if toRect else "rectangle"
+    ui.toolButton_switchFocusMode.setText("To " + mode + " selection")
+    selection = "area" if toRect else "point"
+    ui.label_Focus.setText("Focus " + selection)
 
   def log(self, msg):
     if debug_mode:
@@ -396,3 +446,70 @@ class PointMapTool(QgsMapToolEmitPoint):
   def canvasPressEvent(self, e):
     self.point = self.toMapCoordinates(e.pos())
     self.emit(SIGNAL("pointSelected()"))
+
+class RectangleMapTool(QgsMapToolEmitPoint):
+  def __init__(self, canvas):
+    self.canvas = canvas
+    QgsMapToolEmitPoint.__init__(self, self.canvas)
+
+    self.rubberBand = QgsRubberBand(self.canvas, QGis.Polygon)
+    self.rubberBand.setColor(QColor(255, 0, 0, 180))
+    self.rubberBand.setWidth(1)
+    self.reset()
+
+  def reset(self):
+    self.startPoint = self.endPoint = None
+    self.isEmittingPoint = False
+    self.rubberBand.reset(QGis.Polygon)
+
+  def canvasPressEvent(self, e):
+    self.startPoint = self.toMapCoordinates(e.pos())
+    self.endPoint = self.startPoint
+    self.isEmittingPoint = True
+    self.showRect(self.startPoint, self.endPoint)
+
+  def canvasReleaseEvent(self, e):
+    self.isEmittingPoint = False
+    self.emit(SIGNAL("rectangleCreated()"))
+
+  def canvasMoveEvent(self, e):
+    if not self.isEmittingPoint:
+      return
+    self.endPoint = self.toMapCoordinates(e.pos())
+    self.showRect(self.startPoint, self.endPoint)
+
+  def showRect(self, startPoint, endPoint):
+    self.rubberBand.reset(QGis.Polygon)
+    if startPoint.x() == endPoint.x() or startPoint.y() == endPoint.y():
+      return
+
+    point1 = QgsPoint(startPoint.x(), startPoint.y())
+    point2 = QgsPoint(startPoint.x(), endPoint.y())
+    point3 = QgsPoint(endPoint.x(), endPoint.y())
+    point4 = QgsPoint(endPoint.x(), startPoint.y())
+
+    self.rubberBand.addPoint(point1, False)
+    self.rubberBand.addPoint(point2, False)
+    self.rubberBand.addPoint(point3, False)
+    self.rubberBand.addPoint(point4, True)	# true to update canvas
+    self.rubberBand.show()
+
+  def rectangle(self):
+    if self.startPoint == None or self.endPoint == None:
+      return None
+    #elif self.startPoint.x() == self.endPoint.x() or self.startPoint.y() == self.endPoint.y():
+    #  return None
+
+    return QgsRectangle(self.startPoint, self.endPoint)
+
+  def setRectangle(self, rect):
+    if rect == self.rectangle():
+      return False
+
+    if rect == None:
+      self.reset()
+    else:
+      self.startPoint = QgsPoint(rect.xMaximum(), rect.yMaximum())
+      self.endPoint = QgsPoint(rect.xMinimum(), rect.yMinimum())
+      self.showRect(self.startPoint, self.endPoint)
+    return True
