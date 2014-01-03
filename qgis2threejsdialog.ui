@@ -277,12 +277,12 @@
               <item>
                <widget class="QLabel" name="label_11">
                 <property name="text">
-                 <string>Quad tree depth</string>
+                 <string>Quad tree height</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="spinBox_Depth">
+               <widget class="QSpinBox" name="spinBox_Height">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>

@@ -156,7 +156,7 @@ class Qgis2threejsDialog(QDialog):
 
     # create quad tree
     point = QgsPoint(float(ui.lineEdit_CenterX.text()), float(ui.lineEdit_CenterY.text()))
-    quadtree = QuadTree(canvas.extent(), point, ui.spinBox_Depth.value())
+    quadtree = QuadTree(canvas.extent(), point, ui.spinBox_Height.value())
     quads = quadtree.quads()
 
     # create quads and a point on map canvas with rubber bands
@@ -192,9 +192,9 @@ class Qgis2threejsDialog(QDialog):
     if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
       fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
 
-    # (currently) dem size should be 2 ^ quadtree.depth * a + 1, where a is larger integer than 0
+    # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
     # with smooth resolution change, this is not necessary
-    dem_width = dem_height = max(128, 2 ** quadtree.depth) + 1
+    dem_width = dem_height = max(128, 2 ** quadtree.height) + 1
     terrain_width = 100
     terrain_height = 100 * canvas.extent().height() / canvas.extent().width()
     z_factor = float(ui.lineEdit_zFactor.text())
@@ -219,7 +219,7 @@ class Qgis2threejsDialog(QDialog):
         buffer = QBuffer(ba)
         buffer.open(QIODevice.WriteOnly)
         image.save(buffer, "PNG")
-        tex = tools.base64pngImage(ba)
+        tex = tools.base64image(ba)
       else:
         texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % i
         image.save(texfilename)
@@ -236,12 +236,12 @@ class Qgis2threejsDialog(QDialog):
 
       # value resampling on edges for combination with different resolution DEM
       neighbors = quadtree.neighbors(quad)
-      self.log("Output quad (%d %s): depth=%d" % (i, str(quad), quad.depth))
+      self.log("Output quad (%d %s): height=%d" % (i, str(quad), quad.height))
       for direction, neighbor in enumerate(neighbors):
         if neighbor is None:
           continue
-        self.log(" neighbor %d %s: depth=%d" % (direction, str(neighbor), neighbor.depth))
-        interval = 2 ** (quad.depth - neighbor.depth)
+        self.log(" neighbor %d %s: height=%d" % (direction, str(neighbor), neighbor.height))
+        interval = 2 ** (quad.height - neighbor.height)
         if interval > 1:
           if direction == QuadTree.UP or direction == QuadTree.DOWN:
             y = 0 if direction == QuadTree.UP else dem_height - 1
@@ -326,7 +326,7 @@ class Qgis2threejsDialog(QDialog):
     self.ui.lineEdit_CenterY.setText(str(self.mapTool.point.y()))
     self.ui.radioButton_Advanced.setChecked(True)
 
-    quadtree = QuadTree(self.iface.mapCanvas().extent(), self.mapTool.point, self.ui.spinBox_Depth.value())
+    quadtree = QuadTree(self.iface.mapCanvas().extent(), self.mapTool.point, self.ui.spinBox_Height.value())
     self.createRubberBands(quadtree.quads(), self.mapTool.point)
     self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive);
 
@@ -379,7 +379,7 @@ class Qgis2threejsDialog(QDialog):
     ui = self.ui
     isSimpleMode = ui.radioButton_Simple.isChecked()
     isAdvancedMode = not isSimpleMode
-    ui.spinBox_Depth.setEnabled(isAdvancedMode)
+    ui.spinBox_Height.setEnabled(isAdvancedMode)
     ui.lineEdit_CenterX.setEnabled(isAdvancedMode)
     ui.lineEdit_CenterY.setEnabled(isAdvancedMode)
 

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\lenovo\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Fri Jan 03 11:36:09 2014
+# Created: Fri Jan 03 12:18:23 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -154,13 +154,13 @@ class Ui_Qgis2threejsDialog(object):
         self.label_11 = QtGui.QLabel(self.groupBox)
         self.label_11.setObjectName(_fromUtf8("label_11"))
         self.horizontalLayout_5.addWidget(self.label_11)
-        self.spinBox_Depth = QtGui.QSpinBox(self.groupBox)
-        self.spinBox_Depth.setEnabled(False)
-        self.spinBox_Depth.setMinimum(1)
-        self.spinBox_Depth.setMaximum(10)
-        self.spinBox_Depth.setProperty(_fromUtf8("value"), 3)
-        self.spinBox_Depth.setObjectName(_fromUtf8("spinBox_Depth"))
-        self.horizontalLayout_5.addWidget(self.spinBox_Depth)
+        self.spinBox_Height = QtGui.QSpinBox(self.groupBox)
+        self.spinBox_Height.setEnabled(False)
+        self.spinBox_Height.setMinimum(1)
+        self.spinBox_Height.setMaximum(10)
+        self.spinBox_Height.setProperty(_fromUtf8("value"), 3)
+        self.spinBox_Height.setObjectName(_fromUtf8("spinBox_Height"))
+        self.horizontalLayout_5.addWidget(self.spinBox_Height)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem2)
         self.label_10 = QtGui.QLabel(self.groupBox)
@@ -275,7 +275,7 @@ class Ui_Qgis2threejsDialog(object):
         self.label_8.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Horizontal", None, QtGui.QApplication.UnicodeUTF8))
         self.label_9.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_Advanced.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Advanced (Clicking on map canvas activates this mode)", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_11.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad tree depth", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_11.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad tree height", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad size", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "256", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Center coordinates", None, QtGui.QApplication.UnicodeUTF8))

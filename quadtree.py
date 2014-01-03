@@ -22,15 +22,15 @@
 from qgis.core import *
 
 class QuadNode:
-  def __init__(self, parent, extent, location, depth=0):
+  def __init__(self, parent, extent, location, height=0):
     self.parent = parent
     self.extent = extent
     self.location = location
-    self.depth = depth
+    self.height = height
     self.subNodes = []
 
-  def subdivideRecursively(self, point, maxDepth):
-    if maxDepth <= self.depth:
+  def subdivideRecursively(self, point, maxHeight):
+    if maxHeight <= self.height:
       return
     self.subNodes = []
     for y in range(2):
@@ -40,10 +40,10 @@ class QuadNode:
         xmax = xmin + 0.5 * self.extent.width()
         ymax = ymin + 0.5 * self.extent.height()
         rect = QgsRectangle(xmin, ymin, xmax, ymax)
-        node = QuadNode(self, rect, 2 * y + x, self.depth + 1)
+        node = QuadNode(self, rect, 2 * y + x, self.height + 1)
         self.subNodes.append(node)
         if rect.contains(point):
-          node.subdivideRecursively(point, maxDepth)
+          node.subdivideRecursively(point, maxHeight)
 
   def listTopQuads(self, quadlist):
     if len(self.subNodes):
@@ -68,20 +68,20 @@ class QuadTree:
   RIGHT = 2
   DOWN = 3
 
-  def __init__(self, extent=None, point=None, depth=0):
+  def __init__(self, extent=None, point=None, height=0):
     self.extent = extent
     self.root = QuadNode(self, self.extent, 0)
-    if depth > 0:
-      self.buildTree(point, depth)
+    if height > 0:
+      self.buildTree(point, height)
 
   def setExtent(self, extent):
     self.extent = extent
 
-  def buildTree(self, point, depth):
+  def buildTree(self, point, height):
     if not point or not self.extent.contains(point):
       return
-    self.depth = depth
-    self.root.subdivideRecursively(point, depth)
+    self.height = height
+    self.root.subdivideRecursively(point, height)
 
   def quads(self):
     return self.root.listTopQuads([])
@@ -98,7 +98,7 @@ class QuadTree:
       return quads
     extent = quad.extent
     center = extent.center()
-    m = 0.5 ** self.depth
+    m = 0.5 ** self.height
     quads[self.UP] = self.quadByPosition(QgsPoint(center.x(), extent.yMaximum() + m * extent.height()))
     quads[self.LEFT] = self.quadByPosition(QgsPoint(extent.xMinimum() - m * extent.width(), center.y()))
     quads[self.RIGHT] = self.quadByPosition(QgsPoint(extent.xMaximum() + m * extent.width(), center.y()))
