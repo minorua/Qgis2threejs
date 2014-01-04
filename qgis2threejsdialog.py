@@ -61,6 +61,7 @@ class Qgis2threejsDialog(QDialog):
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
     ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     ui.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
+    ui.spinBox_Height.valueChanged.connect(self.updateQuads)
     ui.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
     ui.pushButton_Run.clicked.connect(self.run)
@@ -184,15 +185,14 @@ class Qgis2threejsDialog(QDialog):
     filetitle = os.path.splitext(filename)[0]
 
     # create quad tree
-    c = map(float, [ui.lineEdit_xmin.text(), ui.lineEdit_ymin.text(), ui.lineEdit_xmax.text(), ui.lineEdit_ymax.text()])
-    rect = QgsRectangle(c[0], c[1], c[2], c[3])
-    point = rect.center()
-    quadtree = QuadTree(canvas.extent())
-    quadtree.buildTreeByRect(rect, self.ui.spinBox_Height.value())
+    quadtree = self.createQuadTree()
+    if quadtree is None:
+      QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
+      return
     quads = quadtree.quads()
 
     # create quads and a point on map canvas with rubber bands
-    self.createRubberBands(quads, point)
+    self.createRubberBands(quads, quadtree.focusRect.center())
 
     # create an image for texture
     hpw = canvas.extent().height() / canvas.extent().width()
@@ -333,6 +333,8 @@ class Qgis2threejsDialog(QDialog):
       htmlfilename = self.runAdvanced()
     self.progress(100)
     self.ui.pushButton_Run.setEnabled(True)
+    if htmlfilename is None:
+      return
     self.clearRubberBands()
     # open webbrowser
     webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
@@ -383,6 +385,16 @@ class Qgis2threejsDialog(QDialog):
     if mapTool != self.mapTool:
       self.ui.toolButton_PointTool.setVisible(True)
 
+  def createQuadTree(self):
+    ui = self.ui
+    try:
+      c = map(float, [ui.lineEdit_xmin.text(), ui.lineEdit_ymin.text(), ui.lineEdit_xmax.text(), ui.lineEdit_ymax.text()])
+    except:
+      return None
+    quadtree = QuadTree(self.iface.mapCanvas().extent())
+    quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), ui.spinBox_Height.value())
+    return quadtree
+
   def createRubberBands(self, quads, point=None):
     self.clearRubberBands()
     # create quads with rubber band
@@ -427,14 +439,21 @@ class Qgis2threejsDialog(QDialog):
   def samplingModeChanged(self):
     ui = self.ui
     isSimpleMode = ui.radioButton_Simple.isChecked()
-    ui.horizontalSlider_Resolution.setEnabled(isSimpleMode)
+    simple_widgets = [ui.horizontalSlider_Resolution, ui.lineEdit_Width, ui.lineEdit_Height, ui.lineEdit_HRes, ui.lineEdit_VRes]
+    for w in simple_widgets:
+      w.setEnabled(isSimpleMode)
+
     isAdvancedMode = not isSimpleMode
-    ui.spinBox_Height.setEnabled(isAdvancedMode)
-    ui.lineEdit_xmin.setEnabled(isAdvancedMode)
-    ui.lineEdit_ymin.setEnabled(isAdvancedMode)
-    ui.lineEdit_xmax.setEnabled(isAdvancedMode)
-    ui.lineEdit_ymax.setEnabled(isAdvancedMode)
-    ui.toolButton_switchFocusMode.setEnabled(isAdvancedMode)
+    advanced_widgets = [ui.spinBox_Height, ui.lineEdit_xmin, ui.lineEdit_ymin, ui.lineEdit_xmax, ui.lineEdit_ymax, ui.toolButton_switchFocusMode]
+    for w in advanced_widgets:
+      w.setEnabled(isAdvancedMode)
+
+  def updateQuads(self, v=None):
+    quadtree = self.createQuadTree()
+    if quadtree:
+      self.createRubberBands(quadtree.quads(), quadtree.focusRect.center())
+    else:
+      self.clearRubberBands()
 
   def switchFocusModeClicked(self):
     self.switchFocusMode(not self.ui.label_xmin.isVisible())
@@ -453,7 +472,8 @@ class Qgis2threejsDialog(QDialog):
     mode = "point" if toRect else "rectangle"
     ui.toolButton_switchFocusMode.setText("To " + mode + " selection")
     selection = "area" if toRect else "point"
-    ui.label_Focus.setText("Focus " + selection)
+    action = "Stroke a rectangle" if toRect else "Click"
+    ui.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))
 
   def log(self, msg):
     if debug_mode:

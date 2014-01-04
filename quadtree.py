@@ -71,6 +71,7 @@ class QuadTree:
   def __init__(self, extent=None):
     self.extent = extent
     self.root = QuadNode(self, self.extent, 0)
+    self.focusRect = None
 
   def setExtent(self, extent):
     self.extent = extent
@@ -78,8 +79,9 @@ class QuadTree:
   def buildTreeByRect(self, rect, height):
     if not self.extent.intersects(rect):
       return
+    self.focusRect = QgsRectangle(rect)
     self.height = height
-    self.root.subdivideRecursively(rect, height)
+    self.root.subdivideRecursively(self.focusRect, height)
 
   def buildTreeByPoint(self, point, height):
     self.buildTreeByRect(QgsRectangle(point.x(), point.y(), point.x(), point.y()), height)

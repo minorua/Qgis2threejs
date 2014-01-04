@@ -184,7 +184,10 @@
                 <item>
                  <widget class="QLineEdit" name="lineEdit_Width">
                   <property name="enabled">
-                   <bool>false</bool>
+                   <bool>true</bool>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -211,7 +214,10 @@
                 <item>
                  <widget class="QLineEdit" name="lineEdit_Height">
                   <property name="enabled">
-                   <bool>false</bool>
+                   <bool>true</bool>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -242,13 +248,16 @@
                 <item>
                  <widget class="QLineEdit" name="lineEdit_HRes">
                   <property name="enabled">
-                   <bool>false</bool>
+                   <bool>true</bool>
                   </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -262,7 +271,10 @@
                 <item>
                  <widget class="QLineEdit" name="lineEdit_VRes">
                   <property name="enabled">
-                   <bool>false</bool>
+                   <bool>true</bool>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -273,7 +285,7 @@
             <item row="2" column="0">
              <widget class="QRadioButton" name="radioButton_Advanced">
               <property name="text">
-               <string>Advanced (Clicking on map canvas activates this mode)</string>
+               <string>Advanced (multiple resolutions)</string>
               </property>
              </widget>
             </item>
@@ -422,6 +434,9 @@
                   <property name="inputMethodHints">
                    <set>Qt::ImhDigitsOnly</set>
                   </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -438,6 +453,9 @@
                   </property>
                   <property name="inputMethodHints">
                    <set>Qt::ImhDigitsOnly</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -463,6 +481,9 @@
                   <property name="inputMethodHints">
                    <set>Qt::ImhDigitsOnly</set>
                   </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -479,6 +500,9 @@
                   </property>
                   <property name="inputMethodHints">
                    <set>Qt::ImhDigitsOnly</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
