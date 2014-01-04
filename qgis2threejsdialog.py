@@ -60,6 +60,7 @@ class Qgis2threejsDialog(QDialog):
 
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
     ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
+    ui.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
     ui.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
     ui.pushButton_Run.clicked.connect(self.run)
@@ -76,6 +77,26 @@ class Qgis2threejsDialog(QDialog):
 #    QObject.connect(self.mapTool, SIGNAL("pointSelected()"), self.pointSelected)
     iface.mapCanvas().mapToolSet.connect(self.mapToolSet)
     self.startPointSelection()
+
+  def calculateResolution(self, v=None):
+    extent = self.iface.mapCanvas().extent()
+    renderer = self.iface.mapCanvas().mapRenderer()
+    size = 100 * self.ui.horizontalSlider_Resolution.value()
+    self.ui.label_Resolution.setText("about {0} x {0} px".format(size))
+
+    # calculate resolution and size
+    width, height = renderer.width(), renderer.height()
+    s = (size * size / float(width * height)) ** 0.5
+    if s < 1:
+      width = int(width * s)
+      height = int(height * s)
+
+    xres = extent.width() / width
+    yres = extent.height() / height
+    self.ui.lineEdit_HRes.setText(str(xres))
+    self.ui.lineEdit_VRes.setText(str(yres))
+    self.ui.lineEdit_Width.setText(str(width + 1))
+    self.ui.lineEdit_Height.setText(str(height + 1))
 
   def runSimple(self):
     ui = self.ui
@@ -406,6 +427,7 @@ class Qgis2threejsDialog(QDialog):
   def samplingModeChanged(self):
     ui = self.ui
     isSimpleMode = ui.radioButton_Simple.isChecked()
+    ui.horizontalSlider_Resolution.setEnabled(isSimpleMode)
     isAdvancedMode = not isSimpleMode
     ui.spinBox_Height.setEnabled(isAdvancedMode)
     ui.lineEdit_xmin.setEnabled(isAdvancedMode)

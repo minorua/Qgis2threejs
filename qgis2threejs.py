@@ -52,6 +52,7 @@ class Qgis2threejs:
     self.lastDEMLayerId = None
     self.lastOutputFilename = ""
     self.lastZFactor = "1.5"
+    self.lastResolution = 2
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -102,21 +103,10 @@ class Qgis2threejs:
       if index != -1:
         ui.comboBox_DEMLayer.setCurrentIndex(index)
 
-    # calculate resolution and size
-    width, height = renderer.width(), renderer.height()
-    s = (40000. / (width * height)) ** 0.5
-    if s < 1:
-      width = int(width * s)
-      height = int(height * s)
-
-    xres = extent.width() / width
-    yres = extent.height() / height
-    ui.lineEdit_HRes.setText(str(xres))
-    ui.lineEdit_VRes.setText(str(yres))
-    ui.lineEdit_Width.setText(str(width + 1))
-    ui.lineEdit_Height.setText(str(height + 1))
+    ui.horizontalSlider_Resolution.setValue(self.lastResolution)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
     ui.lineEdit_zFactor.setText(self.lastZFactor)
+    dialog.calculateResolution()
 
     # show dialog
     dialog.show()
@@ -124,3 +114,4 @@ class Qgis2threejs:
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
       self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
       self.lastZFactor = ui.lineEdit_zFactor.text()
+      self.lastResolution = ui.horizontalSlider_Resolution.value()

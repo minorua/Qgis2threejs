@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\lenovo\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Fri Jan 03 16:30:12 2014
+# Created: Sat Jan 04 16:56:51 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(439, 552)
+        Qgis2threejsDialog.resize(439, 557)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -85,19 +85,23 @@ class Ui_Qgis2threejsDialog(object):
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.horizontalSlider = QtGui.QSlider(self.groupBox)
-        self.horizontalSlider.setEnabled(False)
-        self.horizontalSlider.setMinimum(1)
-        self.horizontalSlider.setMaximum(3)
-        self.horizontalSlider.setProperty(_fromUtf8("value"), 2)
-        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider.setObjectName(_fromUtf8("horizontalSlider"))
-        self.horizontalLayout.addWidget(self.horizontalSlider)
-        self.label = QtGui.QLabel(self.groupBox)
-        self.label.setMinimumSize(QtCore.QSize(80, 0))
-        self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.horizontalLayout.addWidget(self.label)
+        self.horizontalSlider_Resolution = QtGui.QSlider(self.groupBox)
+        self.horizontalSlider_Resolution.setEnabled(True)
+        self.horizontalSlider_Resolution.setMinimum(1)
+        self.horizontalSlider_Resolution.setMaximum(6)
+        self.horizontalSlider_Resolution.setSingleStep(1)
+        self.horizontalSlider_Resolution.setPageStep(1)
+        self.horizontalSlider_Resolution.setProperty(_fromUtf8("value"), 2)
+        self.horizontalSlider_Resolution.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSlider_Resolution.setTickPosition(QtGui.QSlider.TicksBelow)
+        self.horizontalSlider_Resolution.setTickInterval(1)
+        self.horizontalSlider_Resolution.setObjectName(_fromUtf8("horizontalSlider_Resolution"))
+        self.horizontalLayout.addWidget(self.horizontalSlider_Resolution)
+        self.label_Resolution = QtGui.QLabel(self.groupBox)
+        self.label_Resolution.setMinimumSize(QtCore.QSize(80, 0))
+        self.label_Resolution.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_Resolution.setObjectName(_fromUtf8("label_Resolution"))
+        self.horizontalLayout.addWidget(self.label_Resolution)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
@@ -161,7 +165,7 @@ class Ui_Qgis2threejsDialog(object):
         self.spinBox_Height = QtGui.QSpinBox(self.groupBox)
         self.spinBox_Height.setEnabled(False)
         self.spinBox_Height.setMinimum(1)
-        self.spinBox_Height.setMaximum(20)
+        self.spinBox_Height.setMaximum(8)
         self.spinBox_Height.setProperty(_fromUtf8("value"), 5)
         self.spinBox_Height.setObjectName(_fromUtf8("spinBox_Height"))
         self.horizontalLayout_5.addWidget(self.spinBox_Height)
@@ -300,7 +304,7 @@ class Ui_Qgis2threejsDialog(object):
         self.label_7.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Size", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM Layer", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Resampling", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "about 200 x 200 px", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_Resolution.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "about 200 x 200 px", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Columns", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Rows", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Horizontal", None, QtGui.QApplication.UnicodeUTF8))
