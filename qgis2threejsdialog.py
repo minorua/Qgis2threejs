@@ -226,12 +226,13 @@ class Qgis2threejsDialog(QDialog):
     self.createRubberBands(quads, quadtree.focusRect.center())
 
     # create an image for texture
+    image_basesize = 128
     hpw = canvas.extent().height() / canvas.extent().width()
     if hpw < 1:
-      image_width = 128
+      image_width = image_basesize
       image_height = round(image_width * hpw)
     else:
-      image_height = 128
+      image_height = image_basesize
       image_width = round(image_height * hpw)
     image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
     self.log("Created image size: %d, %d" % (image_width, image_height))
@@ -263,30 +264,31 @@ class Qgis2threejsDialog(QDialog):
     z_factor = float(ui.lineEdit_zFactor.text())
     multiplier = 100 * z_factor / canvas.extent().width()
 
+    unites_center = True
+    centerQuads = DEMQuadList(dem_width, dem_height)
+    scripts = []
+    script_index = 0
     for i, quad in enumerate(quads):
       self.progress(80 * i / len(quads))
-      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % i
+      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
       extent = quad.extent
-      renderer.setExtent(extent)
 
-      # render map image
-      image.fill(fillColor)
-      painter.begin(image)
-      if antialias:
-        painter.setRenderHint(QPainter.Antialiasing)
-      renderer.render(painter)
-      painter.end()
+      if quad.height < quadtree.height or unites_center == False:
+        renderer.setExtent(extent)
+        # render map image
+        image.fill(fillColor)
+        painter.begin(image)
+        if antialias:
+          painter.setRenderHint(QPainter.Antialiasing)
+        renderer.render(painter)
+        painter.end()
 
-      if self.localBrowsingMode:
-        ba = QByteArray()
-        buffer = QBuffer(ba)
-        buffer.open(QIODevice.WriteOnly)
-        image.save(buffer, "PNG")
-        tex = tools.base64image(ba)
-      else:
-        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % i
-        image.save(texfilename)
-        tex = os.path.split(texfilename)[1]
+        if self.localBrowsingMode:
+          tex = tools.base64image(image)
+        else:
+          texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % script_index
+          image.save(texfilename)
+          tex = os.path.split(texfilename)[1]
 
       # warp dem
       dem_values = tools.warpDEM(demlayer, mapSettings.destinationCrs(), extent, dem_width, dem_height, multiplier)
@@ -325,11 +327,60 @@ class Qgis2threejsDialog(QDialog):
                 z = (z0 * (interval - yy) + z1 * yy) / interval
                 dem_values[x + dem_width * (y0 + yy)] = z
 
-      suffix = "[%d]" % i
+      if quad.height < quadtree.height or unites_center == False:
+        with open(jsfilename, "w") as f:
+          opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
+          f.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (script_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+          f.write('tex[%d] = "%s";\n' % (script_index, tex))
+        scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, script_index))
+        script_index += 1
+      else:
+        centerQuads.addQuad(quad, dem_values)
+
+    if unites_center:
+      extent = centerQuads.extent()
+      if hpw < 1:
+        image_width = image_basesize * centerQuads.width()
+        image_height = round(image_width * hpw)
+      else:
+        image_height = image_basesize * centerQuads.height()
+        image_width = round(image_height * hpw)
+      image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
+      self.log("Created image size: %d, %d" % (image_width, image_height))
+
+      renderer.setOutputSize(image.size(), image.logicalDpiX())
+      renderer.setExtent(extent)
+      # render map image
+      image.fill(fillColor)
+      painter.begin(image)
+      if antialias:
+        painter.setRenderHint(QPainter.Antialiasing)
+      renderer.render(painter)
+      painter.end()
+
+      if self.localBrowsingMode:
+        tex = tools.base64image(image)
+      else:
+        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % script_index
+        image.save(texfilename)
+        tex = os.path.split(texfilename)[1]
+
+      dem_values = centerQuads.unitedDEM()
+      width = terrain_width * extent.width() / canvas.extent().width()
+      height = terrain_height * extent.height() / canvas.extent().height()
+      offsetX = terrain_width * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + width / 2 - terrain_width / 2
+      offsetY = terrain_height * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + height / 2 - terrain_height / 2
+
+      dem_width = (dem_width - 1) * centerQuads.width() + 1
+      dem_height = (dem_height - 1) * centerQuads.height() + 1
+
+      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
       with open(jsfilename, "w") as f:
         opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
-        f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-        f.write('tex%s = "%s";\n' % (suffix, tex))
+        f.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (script_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+        f.write('tex[%d] = "%s";\n' % (script_index, tex))
+      scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, script_index))
+
     self.progress(80)
     # copy files from template
     tools.copyThreejsFiles(out_dir)
@@ -337,10 +388,6 @@ class Qgis2threejsDialog(QDialog):
     # generate html file
     with codecs.open(tools.pluginDir() + "/template.html", "r", "UTF-8") as f:
       html = f.read()
-
-    scripts = []
-    for i in range(len(quads)):
-      scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, i))
 
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
       f.write(html.replace("${title}", filetitle).replace("${scripts}", "\n".join(scripts)))

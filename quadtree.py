@@ -28,6 +28,7 @@ class QuadNode:
     self.location = location
     self.height = height
     self.subNodes = []
+    self.data = None
 
   def subdivideRecursively(self, rect, maxHeight):
     if maxHeight <= self.height:
@@ -107,3 +108,74 @@ class QuadTree:
     quads[self.RIGHT] = self.quadByPosition(QgsPoint(extent.xMaximum() + m * extent.width(), center.y()))
     quads[self.DOWN] = self.quadByPosition(QgsPoint(center.x(), extent.yMinimum() - m * extent.height()))
     return quads
+
+class QuadList:
+  def __init__(self):
+    self.quads = []
+    self.calculatedExtent = None
+    self.sorted = False
+
+  def addQuad(self, quad):
+    self.quads.append(quad)
+    self.calculatedExtent = None
+    self.sorted = False
+
+  def count(self):
+    return len(self.quads)
+
+  def extent(self):
+    if self.calculatedExtent is not None:
+      return self.calculatedExtent
+    if len(self.quads) == 0:
+      return QgsRectangle()
+    extent = QgsRectangle(self.quads[0].extent)
+    for quad in self.quads[1:]:
+      extent.unionRect(quad.extent)
+    self.calculatedExtent = extent
+    return extent
+
+  def width(self):
+    if len(self.quads) == 0:
+      return 0
+    return int(self.extent().width() / self.quads[0].extent.width() + 0.1)
+
+  def height(self):
+    if len(self.quads) == 0:
+      return 0
+    return int(self.extent().height() / self.quads[0].extent.height() + 0.1)
+
+  def sort(self):
+    if self.sorted:
+      return
+    extent = self.extent()
+    sorted_quads = [None] * self.width() * self.height()
+    for quad in self.quads:
+      x = int((quad.extent.xMinimum() - extent.xMinimum()) / quad.extent.width() + 0.1)
+      y = int((extent.yMaximum() - quad.extent.yMaximum()) / quad.extent.height() + 0.1)
+      sorted_quads[x + y * self.width()] = quad
+    self.quads = sorted_quads
+    self.sorted = True
+
+class DEMQuadList(QuadList):
+  def __init__(self, dem_width, dem_height):
+    QuadList.__init__(self)
+    self.dem_width = dem_width
+    self.dem_height = dem_height
+
+  def addQuad(self, quad, dem):
+    quad.data = dem
+    QuadList.addQuad(self, quad)
+
+  def unitedDEM(self):
+    self.sort()
+    width = self.width()
+    height = self.height()
+    dem_values = []
+    for row in range(height):
+      y0 = 0 if row == 0 else 1
+      for y in range(y0, self.dem_height):
+        for col in range(width):
+          x0 = 0 if col == 0 else 1
+          i = y * self.dem_width + x0
+          dem_values += self.quads[col + row * width].data[i:i + self.dem_width - x0]
+    return dem_values

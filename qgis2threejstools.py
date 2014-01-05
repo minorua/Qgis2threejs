@@ -118,8 +118,12 @@ def generateDEM(layer, crs, extent, width, height, demfilename):
     return "Failed to generate a dem file using gdalwarp. " + hint
   return 0
 
-def base64image(ba, subtype="png"):
-  return "data:image/%s;base64," % subtype + base64.b64encode(ba)
+def base64image(image):
+  ba = QByteArray()
+  buffer = QBuffer(ba)
+  buffer.open(QIODevice.WriteOnly)
+  image.save(buffer, "PNG")
+  return "data:image/png;base64," + base64.b64encode(ba)
 
 def copyThreejsFiles(out_dir):
   template_dir = pluginDir() + "/threejs"
