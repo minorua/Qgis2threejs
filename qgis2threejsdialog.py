@@ -67,6 +67,7 @@ class Qgis2threejsDialog(QDialog):
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
 
+    self.bar = None
     self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
 
@@ -78,6 +79,36 @@ class Qgis2threejsDialog(QDialog):
 #    QObject.connect(self.mapTool, SIGNAL("pointSelected()"), self.pointSelected)
     iface.mapCanvas().mapToolSet.connect(self.mapToolSet)
     self.startPointSelection()
+
+  def exec_(self):
+    ui = self.ui
+    messages = []
+    # show message if crs unit is degrees
+    mapSettings = self.iface.mapCanvas().mapSettings() if self.apiChanged22 else self.iface.mapCanvas().mapRenderer()
+    if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
+      self.showMessageBar("The unit of current CRS is degree", "Terrain may not appear well.")
+
+    # show message if there are no dem layer
+    no_demlayer = ui.comboBox_DEMLayer.count() == 0
+    ui.pushButton_Run.setEnabled(not no_demlayer)
+    if no_demlayer:
+      self.showMessageBar("No DEM layer", "Load 1-band raster layer with GDAL provider.", QgsMessageBar.WARNING)
+
+    QDialog.exec_(self)
+
+  def showMessageBar(self, title, text, level=QgsMessageBar.INFO):
+    if self.bar is None:
+      self.bar = QgsMessageBar()
+      self.bar.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
+      ui = self.ui
+      margins = ui.gridLayout.getContentsMargins()
+      vl = ui.gridLayout.takeAt(0)
+      ui.gridLayout.setContentsMargins(0,0,0,0)
+      ui.gridLayout.addWidget(self.bar, 0, 0)
+      ui.gridLayout.addItem(vl, 1, 0)
+      ui.verticalLayout.setContentsMargins(margins[0], margins[1] / 2, margins[2], margins[3])
+    self.bar.pushMessage(title, text, level=level)
 
   def calculateResolution(self, v=None):
     extent = self.iface.mapCanvas().extent()
