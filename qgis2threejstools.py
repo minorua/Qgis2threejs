@@ -75,7 +75,7 @@ def warpDEM(layer, crs, extent, width, height, multiplier):
   if debug_mode:
     qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
 
-  warped_dem = WarpedMemoryRaster(layer.source())
+  warped_dem = WarpedMemoryRaster(layer.source().encode("UTF-8"))
   values = warped_dem.read(width, height, wkt, geotransform, multiplier)
   warped_dem.close()
   return values

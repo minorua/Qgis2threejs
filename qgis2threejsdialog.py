@@ -86,7 +86,7 @@ class Qgis2threejsDialog(QDialog):
     # show message if crs unit is degrees
     mapSettings = self.iface.mapCanvas().mapSettings() if self.apiChanged22 else self.iface.mapCanvas().mapRenderer()
     if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
-      self.showMessageBar("The unit of current CRS is degree", "Terrain may not appear well.")
+      self.showMessageBar("The unit of current CRS is degrees", "Terrain may not appear well.")
 
     # show message if there are no dem layer
     no_demlayer = ui.comboBox_DEMLayer.count() == 0
@@ -94,7 +94,7 @@ class Qgis2threejsDialog(QDialog):
     if no_demlayer:
       self.showMessageBar("No DEM layer", "Load 1-band raster layer with GDAL provider.", QgsMessageBar.WARNING)
 
-    QDialog.exec_(self)
+    return QDialog.exec_(self)
 
   def showMessageBar(self, title, text, level=QgsMessageBar.INFO):
     if self.bar is None:

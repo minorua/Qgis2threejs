@@ -40,7 +40,7 @@ class Qgis2threejs:
     self.plugin_dir = os.path.dirname(QFile.decodeName(__file__))
     # initialize locale
     locale = QSettings().value("locale/userLocale")[0:2]
-    localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{}.qm'.format(locale))
+    localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{0}.qm'.format(locale))
 
     if os.path.exists(localePath):
       self.translator = QTranslator()
@@ -81,7 +81,7 @@ class Qgis2threejs:
       try:
         for file in tempOutDir.entryList():
           tempOutDir.remove(file)
-        QDir().rmdir(self.temporaryOutputDir())
+        QDir().rmdir(tools.temporaryOutputDir())
       except:
         qDebug("Failed to remove temporary output directory")
 
