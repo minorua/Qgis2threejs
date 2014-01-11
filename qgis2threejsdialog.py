@@ -111,10 +111,10 @@ class Qgis2threejsDialog(QDialog):
     self.bar.pushMessage(title, text, level=level)
 
   def initDEMLayerList(self, layerId=None):
-    # list raster layers
+    # list 1 band raster layers
     self.ui.comboBox_DEMLayer.clear()
     for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
-      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal":
+      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
         self.ui.comboBox_DEMLayer.addItem(layer.name(), id)
 
     # select the last selected layer
