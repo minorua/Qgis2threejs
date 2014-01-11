@@ -500,7 +500,7 @@
        </widget>
        <widget class="QWidget" name="tab">
         <attribute name="title">
-         <string>Map canvas (info, deprecated)</string>
+         <string>Information</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
@@ -563,7 +563,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Output HTML filename</string>
+        <string>Output HTML file path</string>
        </property>
       </widget>
      </item>

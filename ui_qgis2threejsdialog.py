@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\lenovo\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Sun Jan 05 10:24:06 2014
+# Created: Sat Jan 11 11:27:29 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -337,8 +337,8 @@ class Ui_Qgis2threejsDialog(object):
         self.groupBox_2.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Current map canvas", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Extent", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Size", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("Qgis2threejsDialog", "Map canvas (info, deprecated)", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Output HTML filename", None, QtGui.QApplication.UnicodeUTF8))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("Qgis2threejsDialog", "Information", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Output HTML file path", None, QtGui.QApplication.UnicodeUTF8))
         self.toolButton_Browse.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Browse...", None, QtGui.QApplication.UnicodeUTF8))
         self.progressBar.setFormat(QtGui.QApplication.translate("Qgis2threejsDialog", "%p%", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_Run.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Run", None, QtGui.QApplication.UnicodeUTF8))

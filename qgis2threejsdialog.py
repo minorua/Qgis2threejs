@@ -110,6 +110,21 @@ class Qgis2threejsDialog(QDialog):
       ui.verticalLayout.setContentsMargins(margins[0], margins[1] / 2, margins[2], margins[3])
     self.bar.pushMessage(title, text, level=level)
 
+  def initDEMLayerList(self, layerId=None):
+    # list raster layers
+    self.ui.comboBox_DEMLayer.clear()
+    for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
+      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal":
+        self.ui.comboBox_DEMLayer.addItem(layer.name(), id)
+
+    # select the last selected layer
+    if layerId is not None:
+      index = self.ui.comboBox_DEMLayer.findData(layerId)
+      if index != -1:
+        self.ui.comboBox_DEMLayer.setCurrentIndex(index)
+      return index
+    return -1
+
   def calculateResolution(self, v=None):
     extent = self.iface.mapCanvas().extent()
     renderer = self.iface.mapCanvas().mapRenderer()
@@ -414,9 +429,17 @@ class Qgis2threejsDialog(QDialog):
     if htmlfilename is None:
       return
     self.clearRubberBands()
-    # open webbrowser
-    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
-    self.accept()
+
+    settings = QSettings()
+    browserPath = settings.value("/Qgis2threejs/browser", "", type=unicode)
+    if browserPath == "":
+      # open default web browser
+      webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    else:
+      if not QProcess.startDetached(browserPath, [QUrl.fromLocalFile(htmlfilename).toString()]):
+        QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
+        return
+    QDialog.accept(self)
 
   def reject(self):
     self.endPointSelection()

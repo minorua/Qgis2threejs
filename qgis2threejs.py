@@ -56,20 +56,24 @@ class Qgis2threejs:
 
   def initGui(self):
     # Create action that will start plugin configuration
-    self.action = QAction(
-      QIcon(":/plugins/qgis2threejs/icon.png"),
-      u"Qgis2threejs", self.iface.mainWindow())
+    icon = QIcon(":/plugins/qgis2threejs/icon.png")
+    self.action = QAction(icon, u"Qgis2threejs", self.iface.mainWindow())
+    self.settingAction = QAction(u"Settings", self.iface.mainWindow())
+
     # connect the action to the run method
     self.action.triggered.connect(self.run)
+    self.settingAction.triggered.connect(self.setting)
 
     # Add toolbar button and menu item
     self.iface.addToolBarIcon(self.action)
     self.iface.addPluginToMenu(u"&Qgis2threejs", self.action)
+    self.iface.addPluginToMenu(u"&Qgis2threejs", self.settingAction)
 
   def unload(self):
     # Remove the plugin menu item and icon
-    self.iface.removePluginMenu(u"&Qgis2threejs", self.action)
     self.iface.removeToolBarIcon(self.action)
+    self.iface.removePluginMenu(u"&Qgis2threejs", self.action)
+    self.iface.removePluginMenu(u"&Qgis2threejs", self.settingAction)
 
     # remove temporary output directory
     tempOutDir = QDir(tools.temporaryOutputDir())
@@ -91,18 +95,7 @@ class Qgis2threejs:
     ui.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
     ui.lineEdit_MapCanvasSize.setText("{0} x {1}".format(renderer.width(), renderer.height()))
 
-    # list raster layers
-    ui.comboBox_DEMLayer.clear()
-    for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
-      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal":
-        ui.comboBox_DEMLayer.addItem(layer.name(), id)
-
-    # select the last selected layer
-    if self.lastDEMLayerId is not None:
-      index = ui.comboBox_DEMLayer.findData(self.lastDEMLayerId)
-      if index != -1:
-        ui.comboBox_DEMLayer.setCurrentIndex(index)
-
+    dialog.initDEMLayerList(self.lastDEMLayerId)
     ui.horizontalSlider_Resolution.setValue(self.lastResolution)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
     ui.lineEdit_zFactor.setText(self.lastZFactor)
@@ -115,3 +108,9 @@ class Qgis2threejs:
       self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
       self.lastZFactor = ui.lineEdit_zFactor.text()
       self.lastResolution = ui.horizontalSlider_Resolution.value()
+
+  def setting(self):
+    from settingsdialog import SettingsDialog
+    dialog = SettingsDialog(self.iface)
+    dialog.show()
+    dialog.exec_()
