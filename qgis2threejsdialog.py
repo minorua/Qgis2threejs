@@ -38,10 +38,14 @@ import webbrowser
 import gdal2threejs
 import qgis2threejstools as tools
 from quadtree import *
+from vectorobject import *
+from vectorstylewidgets import *
 
 debug_mode = 1
 
 class Qgis2threejsDialog(QDialog):
+  STYLE_MAX_COUNT = 3
+
   def __init__(self, iface):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
@@ -53,6 +57,11 @@ class Qgis2threejsDialog(QDialog):
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
+
+    ui.pushButton_Run.clicked.connect(self.run)
+    ui.pushButton_Close.clicked.connect(self.reject)
+
+    # DEM tab
     ui.toolButton_switchFocusMode.setVisible(False)
     ui.toolButton_PointTool.setVisible(False)
     ui.progressBar.setVisible(False)
@@ -64,12 +73,21 @@ class Qgis2threejsDialog(QDialog):
     ui.spinBox_Height.valueChanged.connect(self.updateQuads)
     ui.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
     ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
-    ui.pushButton_Run.clicked.connect(self.run)
-    ui.pushButton_Close.clicked.connect(self.reject)
+
+    # Vector tab
+    ui.treeWidget_VectorLayers.setHeaderLabel("Vector layers")
+    self.initVectorStyleWidgets()
+
+    ui.treeWidget_VectorLayers.currentItemChanged.connect(self.currentVectorLayerChanged)
+    ui.treeWidget_VectorLayers.itemChanged.connect(self.vectorLayerItemChanged)
+    ui.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)
 
     self.bar = None
     self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
+    self.currentVectorLayer = None
+    self.vectorPropertiesDict = {}
+    self.objectTypeManager = ObjectTypeManager()
 
     # set map tool
     self.previousMapTool = None
@@ -124,6 +142,141 @@ class Qgis2threejsDialog(QDialog):
         self.ui.comboBox_DEMLayer.setCurrentIndex(index)
       return index
     return -1
+
+  def initVectorLayerTree(self, vectorPropertiesDict):
+    self.vectorPropertiesDict = vectorPropertiesDict
+    tree = self.ui.treeWidget_VectorLayers
+    tree.clear()
+    # add vector layers into tree widget
+    self.treeTopItems = topItems = {QGis.Point:QTreeWidgetItem(tree, ["Point"]), QGis.Line:QTreeWidgetItem(tree, ["Line"]), QGis.Polygon:QTreeWidgetItem(tree, ["Polygon"])}
+    self.vlItems = {}
+    for layer in self.iface.legendInterface().layers():
+      if layer.type() != QgsMapLayer.VectorLayer:
+        continue
+      geometry_type = layer.geometryType()
+      if geometry_type in [QGis.Point, QGis.Line, QGis.Polygon]:
+        self.vlItems[layer.id()] = item = QTreeWidgetItem(topItems[geometry_type], [layer.name()])
+        if layer.id() in self.vectorPropertiesDict:
+          isVisible = self.vectorPropertiesDict[layer.id()]["visible"]
+        else:
+          isVisible = False   #self.iface.legendInterface().isLayerVisible(layer)
+        check_state = Qt.Checked if isVisible else Qt.Unchecked
+        item.setData(0, Qt.CheckStateRole, check_state)
+        item.setData(0, Qt.UserRole, layer.id())
+        if not geometry_type in [QGis.Point, QGis.Line]:   # currently supports only point and line
+          item.setDisabled(True)
+          item.setData(0, Qt.CheckStateRole, Qt.Unchecked)
+
+    for item in topItems.values():
+      tree.expandItem(item)
+
+    self.setVectorStylesEnabled(False)
+
+  def initVectorStyleWidgets(self):
+    self.colorWidget = ColorWidget()
+    self.ui.verticalLayout_Styles.addWidget(self.colorWidget)
+    self.heightWidget = HeightWidget()
+    self.ui.verticalLayout_zCoordinate.addWidget(self.heightWidget)
+
+    self.styleWidgets = []
+    for i in range(self.STYLE_MAX_COUNT):
+      widget = SizeWidget()
+      widget.setVisible(False)
+      self.ui.verticalLayout_Styles.addWidget(widget)
+      self.styleWidgets.append(widget)
+
+  def currentVectorLayerChanged(self, currentItem, previousItem):
+    # save properties of previous item
+    if previousItem is not None:
+      layerid = previousItem.data(0, Qt.UserRole)
+      if layerid is not None:
+        self.saveVectorProperties(layerid)
+
+    layerid = currentItem.data(0, Qt.UserRole)
+    if layerid is None:
+      self.currentVectorLayer = None
+      return
+    self.currentVectorLayer = layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+    if layer is None:
+      return
+
+    for i in range(self.STYLE_MAX_COUNT):
+      self.styleWidgets[i].hide()
+
+    obj_types = self.objectTypeManager.objectTypeNames(layer.geometryType())
+    ui = self.ui
+    ui.comboBox_ObjectType.blockSignals(True)
+    ui.comboBox_ObjectType.clear()
+    ui.comboBox_ObjectType.addItems(obj_types)
+    ui.comboBox_ObjectType.blockSignals(False)
+
+    # set up property widgets
+    self.objectTypeSelectionChanged()
+
+    if layerid in self.vectorPropertiesDict:
+      # restore properties
+      self.restoreVectorProperties(layerid)
+
+    self.setVectorStylesEnabled(currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+  def vectorLayerItemChanged(self, item, column):
+    # update style form enablement
+    currentItem = self.ui.treeWidget_VectorLayers.currentItem()
+    if currentItem:
+      self.setVectorStylesEnabled(currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+  def objectTypeSelectionChanged(self, idx=None):
+    layer = self.currentVectorLayer
+    try:
+      ve = float(ui.lineEdit_zFactor.text())
+    except:
+      ve = 1
+    mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=ve)
+    self.objectTypeManager.setupForm(self, mapTo3d, layer, layer.geometryType(), self.ui.comboBox_ObjectType.currentText())
+
+  def numericFields(self, layer):
+    # get attributes of a sample feature and create numeric field name list
+    numeric_fields = []
+    f = QgsFeature()
+    layer.getFeatures().nextFeature(f)
+    for field in f.fields():
+      isNumeric = False
+      try:
+        float(f.attribute(field.name()))
+        isNumeric = True
+      except:
+        pass
+      if isNumeric:
+        numeric_fields.append(field.name())
+    return numeric_fields
+
+  def setVectorStylesEnabled(self, enabled):
+    self.ui.comboBox_ObjectType.setEnabled(enabled)
+    self.ui.label_ObjectType.setEnabled(enabled)
+    self.colorWidget.setEnabled(enabled)
+    self.heightWidget.setEnabled(enabled)
+    for i in range(self.STYLE_MAX_COUNT):
+      self.styleWidgets[i].setEnabled(enabled)
+
+  def saveVectorProperties(self, layerid):
+    properties = {}
+    properties["typename"] = self.ui.comboBox_ObjectType.currentText()
+    properties["visible"] = self.vlItems[self.currentVectorLayer.id()].data(0, Qt.CheckStateRole) == Qt.Checked
+    properties["color"] = self.colorWidget.values()
+    properties["height"] = self.heightWidget.values()
+    for i in range(self.STYLE_MAX_COUNT):
+      if self.styleWidgets[i].isVisible():
+        properties[i] = self.styleWidgets[i].values()
+    self.vectorPropertiesDict[layerid] = properties
+
+  def restoreVectorProperties(self, layerid):
+    properties = self.vectorPropertiesDict[layerid]
+    self.ui.comboBox_ObjectType.setCurrentIndex(self.ui.comboBox_ObjectType.findText(properties["typename"]))
+    self.colorWidget.setValues(properties["color"])
+    self.heightWidget.setValues(properties["height"])
+    for i in range(self.STYLE_MAX_COUNT):
+      if i in properties:
+        self.styleWidgets[i].setValues(properties[i])
 
   def calculateResolution(self, v=None):
     extent = self.iface.mapCanvas().extent()
@@ -188,7 +341,17 @@ class Qgis2threejsDialog(QDialog):
     # warp dem
     dem_width = int(ui.lineEdit_Width.text())
     dem_height = int(ui.lineEdit_Height.text())
-    dem_values = tools.warpDEM(demlayer, mapSettings.destinationCrs(), extent, dem_width, dem_height, multiplier)
+
+    # calculate extent. output dem should be handled as points.
+    xres = extent.width() / (dem_width - 1)
+    yres = extent.height() / (dem_height - 1)
+    geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+    wkt = str(mapSettings.destinationCrs().toWkt())
+
+    warped_dem = tools.WarpedMemoryRaster(demlayer.source().encode("UTF-8"))
+    dem_values = warped_dem.read(dem_width, dem_height, wkt, geotransform, multiplier)
+    if debug_mode:
+      qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
     # generate javascript data file
     offsetX = offsetY = 0
@@ -197,6 +360,8 @@ class Qgis2threejsDialog(QDialog):
       opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
       f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
       f.write('tex%s = "%s";\n' % (suffix, tex))
+      # vector data output
+      f.write(self.vectorJS(warped_dem, z_factor))
     self.progress(80)
 
     # copy files from template
@@ -279,6 +444,9 @@ class Qgis2threejsDialog(QDialog):
     z_factor = float(ui.lineEdit_zFactor.text())
     multiplier = 100 * z_factor / canvas.extent().width()
 
+    warped_dem = tools.WarpedMemoryRaster(demlayer.source().encode("UTF-8"))
+    wkt = str(mapSettings.destinationCrs().toWkt())
+
     unites_center = True
     centerQuads = DEMQuadList(dem_width, dem_height)
     scripts = []
@@ -305,8 +473,15 @@ class Qgis2threejsDialog(QDialog):
           image.save(texfilename)
           tex = os.path.split(texfilename)[1]
 
+      # calculate extent. output dem should be handled as points.
+      xres = extent.width() / (dem_width - 1)
+      yres = extent.height() / (dem_height - 1)
+      geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+
       # warp dem
-      dem_values = tools.warpDEM(demlayer, mapSettings.destinationCrs(), extent, dem_width, dem_height, multiplier)
+      dem_values = warped_dem.read(dem_width, dem_height, wkt, geotransform, multiplier)
+      if debug_mode:
+        qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
       # generate javascript data file
       width = terrain_width * extent.width() / canvas.extent().width()
@@ -395,8 +570,17 @@ class Qgis2threejsDialog(QDialog):
         f.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (script_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
         f.write('tex[%d] = "%s";\n' % (script_index, tex))
       scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, script_index))
+      script_index += 1
 
     self.progress(80)
+    # vector data output
+    data = self.vectorJS(warped_dem, z_factor)
+    if data != "":
+      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
+      with open(jsfilename, "w") as f:
+        f.write(data)
+      scripts.append('<script src="./%s"></script>' % os.path.split(jsfilename)[1])
+
     # copy files from template
     tools.copyThreejsFiles(out_dir)
 
@@ -413,11 +597,88 @@ class Qgis2threejsDialog(QDialog):
     self.ui.progressBar.setValue(percentage)
     self.ui.progressBar.setVisible(percentage != 100)
 
+  def vectorJS(self, warped_dem, zFactor):
+    canvas = self.iface.mapCanvas()
+    mapTo3d = MapTo3D(canvas, verticalExaggeration=zFactor)
+    mapSettings = canvas.mapSettings() if self.apiChanged22 else canvas.mapRenderer()
+
+    data = []
+    tcolors = []
+    materials = []
+    js_objects = []
+    for layerid, prop_dict in self.vectorPropertiesDict.items():
+      properties = VectorObjectProperties(prop_dict)
+      if not properties.visible:
+        continue
+      layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+      geom_type = layer.geometryType()
+      obj_mod = self.objectTypeManager.module(geom_type, properties.obj_typename)
+      if obj_mod is None:
+        qDebug("Module for %s not found" % properties.obj_typename)   #TODO: fix for translation (must be UTF-8)
+        continue
+      transform = QgsCoordinateTransform(layer.crs(), mapSettings.destinationCrs())
+      wkt = str(mapSettings.destinationCrs().toWkt())
+      request = QgsFeatureRequest().setFilterRect(transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+      for f in layer.getFeatures(request):
+        geom = f.geometry()
+        geom_type == geom.type()
+        color = properties.color(layer, f)
+        tcolor = str(geom_type) + color
+        if tcolor in tcolors:
+          material_index = tcolors.index(tcolor)
+        else:
+          material_index = len(materials)
+          if geom_type == QGis.Point:
+            materials.append("mat[{0}] = new THREE.MeshLambertMaterial({{color:{1},ambient:{1}}});".format(material_index, color))
+          elif geom_type == QGis.Line:
+            materials.append("mat[{0}] = new THREE.LineBasicMaterial({{color:{1}}});".format(material_index, color))
+          tcolors.append(tcolor)
+
+        if geom_type == QGis.Point:
+          if geom.isMultipart():
+            points = geom.asMultiPoint()
+          else:
+            points = [geom.asPoint()]
+          for point in points:
+            pt = transform.transform(point)
+            if properties.isHeightRelativeToSurface():
+              # get surface elevation at the point and relative height
+              h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+            else:
+              h = properties.relativeHeight(f)
+            js_objects.append(obj_mod.generateJS(mapTo3d, mapTo3d.transform(pt.x(), pt.y(), h), material_index, properties, f))
+        elif geom_type == QGis.Line:
+          if geom.isMultipart():
+            lines = geom.asMultiPolyline()
+          else:
+            lines = [geom.asPolyline()]
+          for line in lines:
+            points = []
+            for pt_orig in line:
+              pt = transform.transform(pt_orig)
+              if properties.isHeightRelativeToSurface():
+                # get surface elevation at the point and relative height
+                h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              else:
+                h = properties.relativeHeight(f)
+              points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+            js_objects.append(obj_mod.generateJS(mapTo3d, points, material_index, properties, f))
+        elif geom_type == QGis.Polygon:
+          pass  #TODO
+    data += materials
+    data += js_objects
+    return "\n".join(data) + "\n"
+
   def run(self):
     filename = self.ui.lineEdit_OutputFilename.text()   # ""=Temporary file
     if filename != "" and QFileInfo(filename).exists() and QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
       return
     self.endPointSelection()
+
+    item = self.ui.treeWidget_VectorLayers.currentItem()
+    if item:
+      self.saveVectorProperties(item.data(0, Qt.UserRole))
+
     self.ui.pushButton_Run.setEnabled(False)
     self.progress(0)
     if self.ui.radioButton_Simple.isChecked():

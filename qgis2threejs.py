@@ -53,6 +53,7 @@ class Qgis2threejs:
     self.lastOutputFilename = ""
     self.lastZFactor = "1.5"
     self.lastResolution = 2
+    self.vectorProperties = {}
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -100,6 +101,7 @@ class Qgis2threejs:
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
     ui.lineEdit_zFactor.setText(self.lastZFactor)
     dialog.calculateResolution()
+    dialog.initVectorLayerTree(self.vectorProperties)
 
     # show dialog
     dialog.show()
@@ -108,6 +110,7 @@ class Qgis2threejs:
       self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
       self.lastZFactor = ui.lineEdit_zFactor.text()
       self.lastResolution = ui.horizontalSlider_Resolution.value()
+      self.vectorProperties = dialog.vectorPropertiesDict
 
   def setting(self):
     from settingsdialog import SettingsDialog

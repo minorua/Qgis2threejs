@@ -13,11 +13,10 @@ body { margin: 0; overflow: hidden; }
 <script src="./three.min.js"></script>
 <script src="./TrackballControls.js"></script>
 <script>
-var dem = [], tex = [];
+var dem = [], tex = [], mat=[], points=[], lines=[];
 </script>
 ${scripts}
 <script>
-
   var width  = window.innerWidth;
   var height = window.innerHeight;
 
@@ -25,37 +24,75 @@ ${scripts}
   renderer.setSize(width, height);
 
   var scene = new THREE.Scene();
-  scene.add(new THREE.AmbientLight(0xffffff));
 
+  // light
+  scene.add(new THREE.AmbientLight(0x999999));
+  var light = new THREE.DirectionalLight(0xffffff, 0.4);
+  light.position.set(0, -0.3, 1);
+  scene.add(light);
+
+  // camera and controls
   var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
   camera.position.set(0, -100, 100);
 
   var controls = new THREE.TrackballControls(camera);
 
-  for (var qi = 0; qi < dem.length; qi++) {
-    var geometry = new THREE.PlaneGeometry(dem[qi].plane.width, dem[qi].plane.height,
-                                           dem[qi].width - 1, dem[qi].height - 1);
-    for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-      geometry.vertices[i].z = dem[qi].data[i];
+  // terrain
+  var geometry, image, texture, material, plane;
+  for (var i = 0, l = dem.length; i < l; i++) {
+    geometry = new THREE.PlaneGeometry(dem[i].plane.width, dem[i].plane.height,
+                                           dem[i].width - 1, dem[i].height - 1);
+    for (var j = 0, m = geometry.vertices.length; j < m; j++) {
+      geometry.vertices[j].z = dem[i].data[j];
     }
 
-    if (tex[qi].substr(0, 5) == "data:") {
-      var image = new Image();
-      image.src = tex[qi];
-      var texture = new THREE.Texture(image);
+    if (tex[i].substr(0, 5) == "data:") {
+      image = new Image();
+      image.src = tex[i];
+      texture = new THREE.Texture(image);
     } else {
-      var texture = THREE.ImageUtils.loadTexture(tex[qi]);
+      texture = THREE.ImageUtils.loadTexture(tex[i]);
     }
     texture.needsUpdate = true;
-
-    var material = new THREE.MeshPhongMaterial({map: texture});
-
-    var plane = new THREE.Mesh(geometry, material);
-    if (dem[qi].plane.offsetX != 0) plane.position.x = dem[qi].plane.offsetX
-    if (dem[qi].plane.offsetY != 0) plane.position.y = dem[qi].plane.offsetY
+    material = new THREE.MeshPhongMaterial({map: texture});
+    plane = new THREE.Mesh(geometry, material);
+    if (dem[i].plane.offsetX != 0) plane.position.x = dem[i].plane.offsetX;
+    if (dem[i].plane.offsetY != 0) plane.position.y = dem[i].plane.offsetY;
     scene.add(plane);
   }
 
+  // vector data
+  // point
+  var point, pt, obj, meshes = [];
+  for (var i = 0, l = points.length; i < l; i++) {
+    point = points[i];
+    if (point.type == "cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
+    else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.r, point.r, point.h);
+    else geometry = new THREE.SphereGeometry(point.r);
+
+    pt = point.pt;
+    obj = new THREE.Mesh(geometry, mat[point.m]);
+    obj.position.set(pt[0], pt[1], pt[2]);
+    if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
+    scene.add(obj);
+    meshes.push(obj)
+  }
+
+  // line
+  var line;
+  for (var i = 0, l = lines.length; i < l; i++) {
+    line = lines[i];
+    geometry = new THREE.Geometry();
+    for (var j = 0, m = line.pts.length; j < m; j++) {
+      pt = line.pts[j];
+      geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+    }
+    obj = new THREE.Line(geometry, mat[line.m]);
+    scene.add(obj);
+  }
+
+  //projector = new THREE.Projector();
+  //renderer.domElement.addEventListener('click', clicked);
   document.getElementById('webgl').appendChild(renderer.domElement);
   render();
 
@@ -65,6 +102,28 @@ ${scripts}
     renderer.render(scene, camera);
   }
 
+  function clicked(e) {
+    var canvasOffset = offset(renderer.domElement);
+    var mx = e.clientX - canvasOffset.left;
+    var my = e.clientY - canvasOffset.top;
+    var x = (mx / renderer.domElement.width) * 2 - 1;
+    var y = -(my / renderer.domElement.height) * 2 + 1;
+    var vector = new THREE.Vector3(x, y, 1);
+    projector.unprojectVector(vector, camera);
+    var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
+    var obj = ray.intersectObjects(meshes);
+    if(obj.length > 0) {
+      alert("Object clicked")
+    }
+  }
+
+  function offset(elm) {
+    var top = left = 0;
+    do {
+      top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
+    } while(elm);
+    return {top: top, left: left};
+  }
 </script>
 </body>
 </html>

@@ -63,7 +63,7 @@ class WarpedMemoryRaster(Raster):
 
   def readValue(self, wkt, x, y, multiplier=1):
     # get value at the position using 1px * 1px memory raster
-    res = self.geotransform[1]
+    res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return self.read(1, 1, wkt, geotransform, multiplier)[0]
 
