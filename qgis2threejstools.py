@@ -35,7 +35,7 @@ from gdal2threejs import Raster
 
 debug_mode = 1
 
-class WarpedMemoryRaster(Raster):
+class MemoryWarpRaster(Raster):
   def __init__(self, filename):
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
@@ -77,7 +77,7 @@ def warpDEM(layer, crs, extent, width, height, multiplier):
   if debug_mode:
     qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
 
-  warped_dem = WarpedMemoryRaster(layer.source().encode("UTF-8"))
+  warped_dem = MemoryWarpRaster(layer.source().encode("UTF-8"))
   values = warped_dem.read(width, height, wkt, geotransform, multiplier)
   warped_dem.close()
   return values

@@ -348,7 +348,7 @@ class Qgis2threejsDialog(QDialog):
     geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
     wkt = str(mapSettings.destinationCrs().toWkt())
 
-    warped_dem = tools.WarpedMemoryRaster(demlayer.source().encode("UTF-8"))
+    warped_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
     dem_values = warped_dem.read(dem_width, dem_height, wkt, geotransform, multiplier)
     if debug_mode:
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
@@ -444,7 +444,7 @@ class Qgis2threejsDialog(QDialog):
     z_factor = float(ui.lineEdit_zFactor.text())
     multiplier = 100 * z_factor / canvas.extent().width()
 
-    warped_dem = tools.WarpedMemoryRaster(demlayer.source().encode("UTF-8"))
+    warped_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
     wkt = str(mapSettings.destinationCrs().toWkt())
 
     unites_center = True
