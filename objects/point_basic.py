@@ -25,7 +25,7 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ("Sphere", "Cylinder", "Cube")
+  return ("Sphere", "Cylinder", "Cube", "Cone")
 
 def setupForm(dialog, mapTo3d, layer, obj_type=""):
   numeric_fields = None
@@ -37,7 +37,7 @@ def setupForm(dialog, mapTo3d, layer, obj_type=""):
   if obj_type == "Sphere":
     dialog.styleWidgets[0].setup("Radius", "Value", defaultValue, layer, numeric_fields)
     styleCount = 1
-  elif obj_type == "Cylinder":
+  elif obj_type in ["Cylinder", "Cone"]:
     dialog.styleWidgets[0].setup("Radius", "Value", defaultValue, layer, numeric_fields)
     dialog.styleWidgets[1].setup("Height", "Value", defaultValueZ, layer, numeric_fields)
     styleCount = 2
@@ -56,11 +56,12 @@ def generateJS(mapTo3d, pt, mat, properties, f=None):
   if properties.obj_typename == "Sphere": #VectorObjectType.SPHERE:
     r = float(vals[0]) * mapTo3d.multiplier
     return 'points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});' % (mat, pt.x, pt.y, pt.z, r)
-  elif properties.obj_typename == "Cylinder": #VectorObjectType.CYLINDER:
-    r = float(vals[0]) * mapTo3d.multiplier
+  elif properties.obj_typename in ["Cylinder", "Cone"]:
+    rb = float(vals[0]) * mapTo3d.multiplier
+    rt = 0 if properties.obj_typename == "Cone" else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    return 'points.push({type:"cylinder",m:%d,pt:[%f,%f,%f],r:%f,h:%f,rotateX:Math.PI*%d/180});' % (mat, pt.x, pt.y, z, r, h, 90)
+    return 'points.push({type:"cylinder",m:%d,pt:[%f,%f,%f],rt:%f,rb:%f,h:%f,rotateX:Math.PI*%d/180});' % (mat, pt.x, pt.y, z, rt, rb, h, 90)
   elif properties.obj_typename == "Cube": #VectorObjectType.CUBE:
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier

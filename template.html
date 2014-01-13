@@ -67,7 +67,7 @@ ${scripts}
   for (var i = 0, l = points.length; i < l; i++) {
     point = points[i];
     if (point.type == "cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
-    else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.r, point.r, point.h);
+    else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
     else geometry = new THREE.SphereGeometry(point.r);
 
     pt = point.pt;
