@@ -163,9 +163,8 @@ class Qgis2threejsDialog(QDialog):
         check_state = Qt.Checked if isVisible else Qt.Unchecked
         item.setData(0, Qt.CheckStateRole, check_state)
         item.setData(0, Qt.UserRole, layer.id())
-        if not geometry_type in [QGis.Point, QGis.Line]:   # currently supports only point and line
-          item.setDisabled(True)
-          item.setData(0, Qt.CheckStateRole, Qt.Unchecked)
+        #item.setDisabled(True)
+        #item.setData(0, Qt.CheckStateRole, Qt.Unchecked)
 
     for item in topItems.values():
       tree.expandItem(item)
@@ -628,7 +627,7 @@ class Qgis2threejsDialog(QDialog):
           material_index = tcolors.index(tcolor)
         else:
           material_index = len(materials)
-          if geom_type == QGis.Point:
+          if geom_type == QGis.Point or geom_type == QGis.Polygon:
             materials.append("mat[{0}] = new THREE.MeshLambertMaterial({{color:{1},ambient:{1}}});".format(material_index, color))
           elif geom_type == QGis.Line:
             materials.append("mat[{0}] = new THREE.LineBasicMaterial({{color:{1}}});".format(material_index, color))
@@ -657,14 +656,54 @@ class Qgis2threejsDialog(QDialog):
             for pt_orig in line:
               pt = transform.transform(pt_orig)
               if properties.isHeightRelativeToSurface():
-                # get surface elevation at the point and relative height
                 h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
               else:
                 h = properties.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             js_objects.append(obj_mod.generateJS(mapTo3d, points, material_index, properties, f))
         elif geom_type == QGis.Polygon:
-          pass  #TODO
+          if geom.isMultipart():
+            polygons = geom.asMultiPolygon()
+          else:
+            polygons = [geom.asPolygon()]
+
+          useCentroidHeight = False
+          if useCentroidHeight:
+            pt = transform.transform(geom.centroid().asPoint())
+            if properties.isHeightRelativeToSurface():
+              centroidHeight = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+            else:
+              centroidHeight = properties.relativeHeight(f)
+
+          for polygon in polygons:
+            boundaries = []
+            points = []
+            # outer boundary
+            for pt_orig in polygon[0]:
+              pt = transform.transform(pt_orig)
+              if useCentroidHeight:
+                h = centroidHeight
+              elif properties.isHeightRelativeToSurface():
+                h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              else:
+                h = properties.relativeHeight(f)
+              points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+            boundaries.append(points)
+            # inner boundaries
+            for inBoundary in polygon[1:]:
+              points = []
+              for pt_orig in inBoundary:
+                pt = transform.transform(pt_orig)
+                if useCentroidHeight:
+                  h = centroidHeight
+                elif properties.isHeightRelativeToSurface():
+                  h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+                else:
+                  h = properties.relativeHeight(f)
+                points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+              points.reverse()    # to counter clockwise direction
+              boundaries.append(points)
+            js_objects.append(obj_mod.generateJS(mapTo3d, boundaries, material_index, properties, f))
     data += materials
     data += js_objects
     return "\n".join(data) + "\n"

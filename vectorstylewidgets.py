@@ -82,7 +82,7 @@ class SizeWidget(FieldValueWidget):
     self.lineEdit.setText(vals[2])
 
 class ColorWidget(QWidget, Ui_ComboEditWidget):
-  LAYERSTYLE = 1
+  CURRENTSTYLE = 1
   RANDOM = 2
   RGB = 3
 
@@ -95,7 +95,7 @@ class ColorWidget(QWidget, Ui_ComboEditWidget):
     self.lineEdit.setVisible(False)
     self.lineEdit.setPlaceholderText("Format: 0xrrggbb")
 
-    self.comboBox.addItem("Layer style", ColorWidget.LAYERSTYLE)
+    self.comboBox.addItem("Current style", ColorWidget.CURRENTSTYLE)
     self.comboBox.addItem("Random", ColorWidget.RANDOM)
     self.comboBox.addItem("RGB value", ColorWidget.RGB)
 

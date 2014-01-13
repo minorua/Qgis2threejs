@@ -13,7 +13,7 @@ body { margin: 0; overflow: hidden; }
 <script src="./three.min.js"></script>
 <script src="./TrackballControls.js"></script>
 <script>
-var dem = [], tex = [], mat=[], points=[], lines=[];
+var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[];
 </script>
 ${scripts}
 <script>
@@ -89,6 +89,29 @@ ${scripts}
     }
     obj = new THREE.Line(geometry, mat[line.m]);
     scene.add(obj);
+  }
+
+  // polygon
+  var polygon, pts, shape;
+  for (var i = 0, l = polygons.length; i < l; i++) {
+    polygon = polygons[i];
+    for (var j = 0, m = polygon.bnds.length; j < m; j++) {
+      pts = [];
+      for (var k = 0, n = polygon.bnds[j].length; k < n; k++) {
+        pt = polygon.bnds[j][k];
+        pts.push(new THREE.Vector2(pt[0], pt[1]));
+      }
+      if (j == 0) {
+        shape = new THREE.Shape(pts);
+      } else {
+        shape.holes.push(new THREE.Shape(pts));
+      }
+    }
+    geometry = new THREE.ExtrudeGeometry(shape, {bevelEnabled:false, amount:polygon.h});
+    obj = new THREE.Mesh(geometry, mat[polygon.m]);
+    obj.position.z = polygon.z;
+    scene.add(obj);
+    meshes.push(obj)
   }
 
   //projector = new THREE.Projector();
