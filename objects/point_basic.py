@@ -25,7 +25,7 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ("Sphere", "Cylinder", "Cube", "Cone")
+  return ["Sphere", "Cylinder", "Cube", "Cone"]
 
 def setupForm(dialog, mapTo3d, layer, obj_type=""):
   numeric_fields = None

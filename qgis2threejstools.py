@@ -21,10 +21,12 @@
 """
 # Import the PyQt and QGIS libraries
 from PyQt4.QtCore import *
+from PyQt4.QtGui import QMessageBox
 import sys
 import os
 import struct
 import base64
+import webbrowser
 
 try:
   from osgeo import gdal
@@ -119,6 +121,18 @@ def generateDEM(layer, crs, extent, width, height, demfilename):
       hint = "gdalwarp is not installed."
     return "Failed to generate a dem file using gdalwarp. " + hint
   return 0
+
+def openHTMLFile(htmlfilename):
+  settings = QSettings()
+  browserPath = settings.value("/Qgis2threejs/browser", "", type=unicode)
+  if browserPath == "":
+    # open default web browser
+    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+  else:
+    if not QProcess.startDetached(browserPath, [QUrl.fromLocalFile(htmlfilename).toString()]):
+      QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
+      return False
+  return True
 
 def base64image(image):
   ba = QByteArray()

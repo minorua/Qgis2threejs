@@ -19,9 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import QVariant
+from PyQt4.QtGui import QWidget
 from ui_widgetComboEdit import Ui_ComboEditWidget
 
 class FieldValueWidget(QWidget, Ui_ComboEditWidget):
@@ -37,6 +36,25 @@ class FieldValueWidget(QWidget, Ui_ComboEditWidget):
   def comboBoxSelectionChanged(self, i):
     pass
 
+  def values(self):
+    return [self.comboBox.itemData(self.comboBox.currentIndex()), self.comboBox.currentText(), self.lineEdit.text()]
+
+  def setValues(self, vals):
+    index = self.comboBox.findText(vals[1])
+    if index != -1:
+      self.comboBox.setCurrentIndex(index)
+    self.lineEdit.setText(vals[2])
+
+  def addFieldNameItems(self, layer, fieldNames=None):
+    fields = layer.pendingFields()
+    if fieldNames is None:
+      for i, field in enumerate(fields):
+        if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
+          self.comboBox.addItem(field.name(), FieldValueWidget.FIRST_ATTRIBUTE + i)
+    else:
+      for fieldName in fieldNames:
+        self.comboBox.addItem(fieldName, FieldValueWidget.FIRST_ATTRIBUTE + fields.indexFromName(fieldName))
+
 class SizeWidget(FieldValueWidget):
   def __init__(self, parent=None):
     FieldValueWidget.__init__(self, parent)
@@ -50,15 +68,7 @@ class SizeWidget(FieldValueWidget):
     self.comboBox.clear()
     self.comboBox.addItem("Fixed value", FieldValueWidget.ABSOLUTE)
     if layer:
-      fields = layer.pendingFields()
-      if fieldNames is not None:
-        for fieldName in fieldNames:
-          self.comboBox.addItem(fieldName, FieldValueWidget.FIRST_ATTRIBUTE + fields.indexFromName(fieldName))
-      else:
-        for i, field in enumerate(fields):
-          if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
-            self.comboBox.addItem(field.name(), FieldValueWidget.FIRST_ATTRIBUTE + i)
-
+      self.addFieldNameItems(layer, fieldNames)
     self.setVisible(True)
 
   def comboBoxSelectionChanged(self, index):
@@ -71,15 +81,6 @@ class SizeWidget(FieldValueWidget):
       defaultValue = 1
     self.label_2.setText(label)
     self.lineEdit.setText(str(defaultValue))
-
-  def values(self):
-    return [self.comboBox.itemData(self.comboBox.currentIndex()), self.comboBox.currentText(), self.lineEdit.text()]
-
-  def setValues(self, vals):
-    index = self.comboBox.findText(vals[1])
-    if index != -1:
-      self.comboBox.setCurrentIndex(index)
-    self.lineEdit.setText(vals[2])
 
 class ColorWidget(QWidget, Ui_ComboEditWidget):
   CURRENTSTYLE = 1
@@ -133,15 +134,7 @@ class HeightWidget(FieldValueWidget):
     self.comboBox.addItem("Fixed value (Relative)", HeightWidget.RELATIVE)
     self.comboBox.addItem("Fixed value (Absolute)", HeightWidget.ABSOLUTE)
     if layer:
-      fields = layer.pendingFields()
-      if fieldNames is not None:
-        for fieldName in fieldNames:
-          self.comboBox.addItem(fieldName, FieldValueWidget.FIRST_ATTRIBUTE + fields.indexFromName(fieldName))
-      else:
-        for i, field in enumerate(fields):
-          if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
-            self.comboBox.addItem(field.name(), FieldValueWidget.FIRST_ATTRIBUTE + i)
-
+      self.addFieldNameItems(layer, fieldNames)
     self.setVisible(True)
 
   def comboBoxSelectionChanged(self, index):
@@ -150,16 +143,7 @@ class HeightWidget(FieldValueWidget):
       label = "Value"
       defaultValue = self.defaultValue
     else:
-      label = "Multiplier"
+      label = "Multiplier"	#TODO: Addend
       defaultValue = 1
     self.label_2.setText(label)
     self.lineEdit.setText(str(defaultValue))
-
-  def values(self):
-    return [self.comboBox.itemData(self.comboBox.currentIndex()), self.comboBox.currentText(), self.lineEdit.text()]
-
-  def setValues(self, vals):
-    index = self.comboBox.findText(vals[1])
-    if index != -1:
-      self.comboBox.setCurrentIndex(index)
-    self.lineEdit.setText(vals[2])

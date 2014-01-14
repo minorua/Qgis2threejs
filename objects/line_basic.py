@@ -25,7 +25,7 @@ def geometryType():
   return QGis.Line
 
 def objectTypeNames():
-  return (["Line"])
+  return ["Line"]
 
 def setupForm(dialog, mapTo3d, layer, obj_type=""):
   numeric_fields = None

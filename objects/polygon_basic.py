@@ -25,7 +25,7 @@ def geometryType():
   return QGis.Polygon
 
 def objectTypeNames():
-  return (["Polygon"])
+  return ["Polygon"]
 
 def setupForm(dialog, mapTo3d, layer, obj_type=""):
   numeric_fields = None
