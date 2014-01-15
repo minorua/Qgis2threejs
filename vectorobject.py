@@ -129,8 +129,8 @@ class VectorObjectProperties:
     lst = self.prop_dict["height"]
     if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE] or f is None:
       return float(lst[2])
-    # use attribute value
-    return float(f.attribute(lst[1])) * float(lst[2])
+    # attribute value + addend
+    return float(f.attribute(lst[1])) + float(lst[2])
 
   def values(self, f=None):
     vals = []
@@ -140,7 +140,7 @@ class VectorObjectProperties:
         if lst[0] == FieldValueWidgetFunc.ABSOLUTE or f is None:
           vals.append(lst[2])
         else:
-          # use attribute value
+          # attribute value * multiplier
           vals.append(str(float(f.attribute(lst[1])) * float(lst[2])))
       else:
         break

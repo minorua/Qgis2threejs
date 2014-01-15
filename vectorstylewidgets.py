@@ -217,7 +217,7 @@ class HeightWidgetFunc(WidgetFuncBase):
       label = "Value"
       defaultValue = self.defaultValue
     else:
-      label = "Multiplier"    #TODO: Addend
-      defaultValue = 1
+      label = "Addend"
+      defaultValue = 0
     self.widget.label_2.setText(label)
     self.widget.lineEdit.setText(str(defaultValue))
