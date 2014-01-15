@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\widgetComboEdit.ui'
 #
-# Created: Tue Jan 14 17:12:33 2014
+# Created: Wed Jan 15 16:38:45 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_ComboEditWidget(object):
     def setupUi(self, ComboEditWidget):
         ComboEditWidget.setObjectName(_fromUtf8("ComboEditWidget"))
-        ComboEditWidget.resize(191, 65)
+        ComboEditWidget.resize(191, 67)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -54,9 +54,15 @@ class Ui_ComboEditWidget(object):
         self.label_2.setIndent(-1)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.lineEdit = QtGui.QLineEdit(ComboEditWidget)
         self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
-        self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.lineEdit)
+        self.horizontalLayout.addWidget(self.lineEdit)
+        self.toolButton = QtGui.QToolButton(ComboEditWidget)
+        self.toolButton.setObjectName(_fromUtf8("toolButton"))
+        self.horizontalLayout.addWidget(self.toolButton)
+        self.formLayout.setLayout(2, QtGui.QFormLayout.FieldRole, self.horizontalLayout)
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
 
         self.retranslateUi(ComboEditWidget)
@@ -66,4 +72,5 @@ class Ui_ComboEditWidget(object):
         ComboEditWidget.setWindowTitle(QtGui.QApplication.translate("ComboEditWidget", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.label_1.setText(QtGui.QApplication.translate("ComboEditWidget", "Name", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("ComboEditWidget", "Size", None, QtGui.QApplication.UnicodeUTF8))
+        self.toolButton.setText(QtGui.QApplication.translate("ComboEditWidget", "...", None, QtGui.QApplication.UnicodeUTF8))
 

@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QVariant
-from PyQt4.QtGui import QWidget
+from PyQt4.QtGui import QWidget, QColor, QColorDialog, QMessageBox
 from ui_widgetComboEdit import Ui_ComboEditWidget
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
@@ -34,6 +34,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)
+    self.toolButton.clicked.connect(self.toolButtonClicked)
     self.defaultValue = 0
     self.funcType = funcType
     self.func = None
@@ -58,9 +59,13 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.func.setup(name, label, defaultValue, layer, fieldNames)
     self.setVisible(True)
 
-  def comboBoxSelectionChanged(self, i):
+  def comboBoxSelectionChanged(self, index):
     if self.func:
-      self.func.comboBoxSelectionChanged(i)
+      self.func.comboBoxSelectionChanged(index)
+
+  def toolButtonClicked(self):
+    if self.func:
+      self.func.toolButtonClicked()
 
   def values(self):
     if self.func:
@@ -93,6 +98,12 @@ class WidgetFuncBase:
     self.widget.lineEdit.setPlaceholderText("")
     self.widget.lineEdit.setVisible(True)
 
+  def comboBoxSelectionChanged(self, index):
+    pass
+
+  def toolButtonClicked(self):
+    pass
+
   def values(self):
     return [self.widget.comboBox.itemData(self.widget.comboBox.currentIndex()), self.widget.comboBox.currentText(), self.widget.lineEdit.text()]
 
@@ -109,6 +120,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self)
     self.widget.label_1.setText(name)
     self.widget.label_2.setText(label)
+    self.widget.toolButton.setVisible(False)
     self.defaultValue = defaultValue
 
     self.widget.comboBox.clear()
@@ -137,6 +149,7 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.label_2.setText("Value")
     self.widget.lineEdit.setVisible(False)
     self.widget.lineEdit.setPlaceholderText("Format: 0xrrggbb")
+    self.widget.toolButton.setVisible(False)
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Current style", ColorWidgetFunc.CURRENTSTYLE)
@@ -148,6 +161,12 @@ class ColorWidgetFunc(WidgetFuncBase):
     isRGB = itemData == ColorWidgetFunc.RGB
     self.widget.label_2.setVisible(isRGB)
     self.widget.lineEdit.setVisible(isRGB)
+    self.widget.toolButton.setVisible(isRGB)
+
+  def toolButtonClicked(self):
+    color = QColorDialog.getColor(QColor(self.widget.lineEdit.text().replace("0x", "#")))
+    if color.isValid():
+      self.widget.lineEdit.setText(color.name().replace("#", "0x"))
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals[0])
@@ -166,6 +185,7 @@ class HeightWidgetFunc(WidgetFuncBase):
   def setup(self, name=None, label=None, defaultValue=0, layer=None, fieldNames=None):
     WidgetFuncBase.setup(self)
     self.widget.label_1.setText("Height")
+    self.widget.toolButton.setVisible(False)
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
     self.widget.comboBox.clear()
