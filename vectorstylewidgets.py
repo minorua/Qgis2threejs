@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QVariant
-from PyQt4.QtGui import QWidget, QColor, QColorDialog, QMessageBox
+from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
 from ui_widgetComboEdit import Ui_ComboEditWidget
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
@@ -116,7 +116,7 @@ class WidgetFuncBase:
 class FieldValueWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
 
-  def setup(self, name, label, defaultValue, layer=None, fieldNames=None):
+  def setup(self, name, label, defaultValue, layer, fieldNames):
     WidgetFuncBase.setup(self)
     self.widget.label_1.setText(name)
     self.widget.label_2.setText(label)
@@ -144,7 +144,7 @@ class ColorWidgetFunc(WidgetFuncBase):
   RANDOM = 2
   RGB = 3
 
-  def setup(self, name=None, label=None, defaultValue="", layer=None, fieldNames=None):
+  def setup(self, name, label, defaultValue, layer, fieldNames):
     self.widget.label_1.setText("Color")
     self.widget.label_2.setText("Value")
     self.widget.lineEdit.setVisible(False)
@@ -176,13 +176,30 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setText(vals[2])
 
 class FilePathWidgetFunc(WidgetFuncBase):
-  pass
+  FILEPATH = 1
+
+  def setup(self, name, label, defaultValue, layer, fieldNames):
+    WidgetFuncBase.setup(self)
+    self.widget.label_1.setText(name)
+    self.widget.label_2.setText(label)
+    self.widget.toolButton.setVisible(True)
+
+    self.widget.comboBox.clear()
+    self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
+
+  def comboBoxSelectionChanged(self, index):
+    pass
+
+  def toolButtonClicked(self):
+    filename = QFileDialog.getOpenFileName()
+    if filename != "":
+      self.widget.lineEdit.setText(filename)
 
 class HeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
   RELATIVE = 2
 
-  def setup(self, name=None, label=None, defaultValue=0, layer=None, fieldNames=None):
+  def setup(self, name, label, defaultValue, layer, fieldNames):
     WidgetFuncBase.setup(self)
     self.widget.label_1.setText("Height")
     self.widget.toolButton.setVisible(False)
