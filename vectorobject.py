@@ -38,7 +38,7 @@ class ObjectTypeModule:
     self.module = module
     self.geometryType = getattr(module, 'geometryType')()
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
-    self.setupForm = getattr(module, 'setupForm')     # setupForm(dialog, mapTo3d, layer, obj_type="")
+    self.setupForm = getattr(module, 'setupForm')     # setupForm(dialog, mapTo3d, layer, type_index=0)
     self.generateJS = getattr(module, 'generateJS')   # generateJS(mapTo3d, pt(s), mat, properties, f=None)
 
   @classmethod
@@ -51,36 +51,48 @@ class ObjectTypeModule:
         module = getattr(module, comp)
     return ObjectTypeModule(module)
 
+class ObjectTypeItem:
+  def __init__(self, name, mod_index, type_index):
+    self.name = name
+    self.mod_index = mod_index
+    self.type_index = type_index
+
 class ObjectTypeManager:
   def __init__(self):
     # load basic object types
     self.modules = []
-    self.objTypes = {QGis.Point: {}, QGis.Line: {}, QGis.Polygon:{}}
+    self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon:[]}    # each list item is ObjectTypeItem object
 
     module_names = ["Qgis2threejs.objects.point_basic", "Qgis2threejs.objects.line_basic", "Qgis2threejs.objects.polygon_basic"]
     for modname in module_names:
       mod = ObjectTypeModule.load(modname)
-      for name in mod.objectTypeNames:
-        self.objTypes[mod.geometryType][name] = mod
+      mod_index = len(self.modules)
       self.modules.append(mod)
+      for type_index, name in enumerate(mod.objectTypeNames):
+        self.objTypes[mod.geometryType].append(ObjectTypeItem(name, mod_index, type_index))
 
     if debug_mode:
       qDebug("ObjectTypeManager: " + str(self.objTypes))
 
   def objectTypeNames(self, geom_type):
     if geom_type in self.objTypes:
-      return self.objTypes[geom_type].keys()
+      return map(lambda x: x.name, self.objTypes[geom_type])
     return []
 
-  def setupForm(self, dialog, mapTo3d, layer, geom_type, obj_name):
+  def objectTypeItem(self, geom_type, item_index):
     if geom_type in self.objTypes:
-      return self.objTypes[geom_type][obj_name].setupForm(dialog, mapTo3d, layer, obj_name)
-    return False
-
-  def module(self, geom_type, obj_name):
-    if geom_type in self.objTypes and obj_name in self.objTypes[geom_type]:
-      return self.objTypes[geom_type][obj_name]
+      return self.objTypes[geom_type][item_index]
     return None
+
+  def module(self, geom_type, item_index):
+    if geom_type in self.objTypes:
+      return self.modules[self.objTypes[geom_type][item_index].mod_index]
+    return None
+
+  def setupForm(self, dialog, mapTo3d, layer, geom_type, item_index):
+    if geom_type in self.objTypes:
+      return self.module(geom_type, item_index).setupForm(dialog, mapTo3d, layer, self.objTypes[geom_type][item_index].type_index)
+    return False
 
 class VectorObjectProperties:
 
@@ -90,16 +102,19 @@ class VectorObjectProperties:
       self.visible = False
     else:
       self.prop_dict = prop_dict
-      self.obj_typename = prop_dict["typename"]
+      self.item_index = prop_dict["itemindex"]
+      typeitem = prop_dict["typeitem"]
+      self.type_name = typeitem.name
+      self.type_index = typeitem.type_index
       self.visible = prop_dict["visible"]
     self.layer = None
 
   def color(self, layer=None, f=None):
     global colorNames
     vals = self.prop_dict["color"]
-    if vals[0] == ColorWidget.RGB:
+    if vals[0] == ColorWidgetFunc.RGB:
       return vals[2]
-    elif vals[0] == ColorWidget.RANDOM or layer is None or f is None:
+    elif vals[0] == ColorWidgetFunc.RANDOM or layer is None or f is None:
       if len(colorNames) == 0:
         colorNames = QColor.colorNames()
       colorName = random.choice(colorNames)
@@ -108,11 +123,11 @@ class VectorObjectProperties:
     return layer.rendererV2().symbolForFeature(f).color().name().replace("#", "0x")
 
   def isHeightRelativeToSurface(self):
-    return self.prop_dict["height"][0] == HeightWidget.RELATIVE
+    return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE
 
   def relativeHeight(self, f=None):
     lst = self.prop_dict["height"]
-    if lst[0] in [HeightWidget.RELATIVE, HeightWidget.ABSOLUTE] or f is None:
+    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE] or f is None:
       return float(lst[2])
     # use attribute value
     return float(f.attribute(lst[1])) * float(lst[2])
@@ -122,7 +137,7 @@ class VectorObjectProperties:
     for i in range(32):   # big number for style count
       if i in self.prop_dict:
         lst = self.prop_dict[i]
-        if lst[0] == FieldValueWidget.ABSOLUTE or f is None:
+        if lst[0] == FieldValueWidgetFunc.ABSOLUTE or f is None:
           vals.append(lst[2])
         else:
           # use attribute value

@@ -171,14 +171,14 @@ class Qgis2threejsDialog(QDialog):
     self.setVectorStylesEnabled(False)
 
   def initVectorStyleWidgets(self):
-    self.colorWidget = ColorWidget()
+    self.colorWidget = StyleWidget(StyleWidget.COLOR)
     self.ui.verticalLayout_Styles.addWidget(self.colorWidget)
-    self.heightWidget = HeightWidget()
+    self.heightWidget = StyleWidget(StyleWidget.HEIGHT)
     self.ui.verticalLayout_zCoordinate.addWidget(self.heightWidget)
 
     self.styleWidgets = []
     for i in range(self.STYLE_MAX_COUNT):
-      widget = SizeWidget()
+      widget = StyleWidget()
       widget.setVisible(False)
       self.ui.verticalLayout_Styles.addWidget(widget)
       self.styleWidgets.append(widget)
@@ -230,7 +230,7 @@ class Qgis2threejsDialog(QDialog):
     except:
       ve = 1
     mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=ve)
-    self.objectTypeManager.setupForm(self, mapTo3d, layer, layer.geometryType(), self.ui.comboBox_ObjectType.currentText())
+    self.objectTypeManager.setupForm(self, mapTo3d, layer, layer.geometryType(), self.ui.comboBox_ObjectType.currentIndex())
 
   def numericFields(self, layer):
     # get attributes of a sample feature and create numeric field name list
@@ -258,7 +258,10 @@ class Qgis2threejsDialog(QDialog):
 
   def saveVectorProperties(self, layerid):
     properties = {}
-    properties["typename"] = self.ui.comboBox_ObjectType.currentText()
+    layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+    itemIndex = self.ui.comboBox_ObjectType.currentIndex()
+    properties["itemindex"] = itemIndex
+    properties["typeitem"] = self.objectTypeManager.objectTypeItem(layer.geometryType(), itemIndex)
     properties["visible"] = self.vlItems[self.currentVectorLayer.id()].data(0, Qt.CheckStateRole) == Qt.Checked
     properties["color"] = self.colorWidget.values()
     properties["height"] = self.heightWidget.values()
@@ -269,7 +272,7 @@ class Qgis2threejsDialog(QDialog):
 
   def restoreVectorProperties(self, layerid):
     properties = self.vectorPropertiesDict[layerid]
-    self.ui.comboBox_ObjectType.setCurrentIndex(self.ui.comboBox_ObjectType.findText(properties["typename"]))
+    self.ui.comboBox_ObjectType.setCurrentIndex(properties["itemindex"])
     self.colorWidget.setValues(properties["color"])
     self.heightWidget.setValues(properties["height"])
     for i in range(self.STYLE_MAX_COUNT):
@@ -610,9 +613,9 @@ class Qgis2threejsDialog(QDialog):
         continue
       layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
       geom_type = layer.geometryType()
-      obj_mod = self.objectTypeManager.module(geom_type, properties.obj_typename)
+      obj_mod = self.objectTypeManager.module(geom_type, properties.type_index)
       if obj_mod is None:
-        qDebug("Module for %s not found" % properties.obj_typename)   #TODO: fix for translation (must be UTF-8)
+        qDebug("Module not found")
         continue
       transform = QgsCoordinateTransform(layer.crs(), mapSettings.destinationCrs())
       wkt = str(mapSettings.destinationCrs().toWkt())

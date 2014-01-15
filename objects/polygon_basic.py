@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
+from Qgis2threejs.vectorstylewidgets import StyleWidget
 
 def geometryType():
   return QGis.Polygon
@@ -27,13 +28,13 @@ def geometryType():
 def objectTypeNames():
   return ["Polygon"]
 
-def setupForm(dialog, mapTo3d, layer, obj_type=""):
+def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
   dialog.colorWidget.setup()
-  dialog.heightWidget.setup(layer, numeric_fields)
+  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
 
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
-  dialog.styleWidgets[0].setup("Height", "Value", defaultValueZ, layer, numeric_fields)
+  dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer, numeric_fields)
   styleCount = 1
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()

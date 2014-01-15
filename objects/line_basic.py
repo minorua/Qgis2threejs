@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
+from Qgis2threejs.vectorstylewidgets import StyleWidget
 
 def geometryType():
   return QGis.Line
@@ -27,10 +28,10 @@ def geometryType():
 def objectTypeNames():
   return ["Line"]
 
-def setupForm(dialog, mapTo3d, layer, obj_type=""):
+def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
   dialog.colorWidget.setup()
-  dialog.heightWidget.setup(layer, numeric_fields)
+  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
   for i in range(dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
