@@ -35,9 +35,9 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def generateJS(mapTo3d, pts, mat, properties, f=None):
+def write(writer, pts, mat, properties, f=None):
   vals = properties.values(f)
   points = []
-  for pt in pts:
+  for pt in pts:    #TODO: map
     points.append("[%f,%f,%f]" % (pt.x, pt.y, pt.z))
-  return "lines.push({m:%d,pts:[%s]});" % (mat, ",".join(points))
+  writer.write("lines.push({m:%d,pts:[%s]});\n" % (mat, ",".join(points)))

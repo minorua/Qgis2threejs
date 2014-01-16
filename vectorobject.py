@@ -39,7 +39,7 @@ class ObjectTypeModule:
     self.geometryType = getattr(module, 'geometryType')()
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
     self.setupForm = getattr(module, 'setupForm')     # setupForm(dialog, mapTo3d, layer, type_index=0)
-    self.generateJS = getattr(module, 'generateJS')   # generateJS(mapTo3d, pt(s), mat, properties, f=None)
+    self.write = getattr(module, 'write')   # write(mapTo3d, pt(s), mat, properties, f=None)
 
   @classmethod
   def load(self, modname):
@@ -145,32 +145,3 @@ class VectorObjectProperties:
       else:
         break
     return vals
-
-class Point:
-  def __init__(self, x, y, z=0):
-    self.x = x
-    self.y = y
-    self.z = z
-
-class MapTo3D:
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1):
-    # map canvas
-    #self.canvasWidth, self.canvasHeight
-    self.mapExtent = mapCanvas.extent()
-
-    # 3d
-    self.planeWidth = planeWidth
-    self.planeHeight = planeWidth * mapCanvas.extent().height() / mapCanvas.extent().width()
-
-    self.verticalExaggeration = verticalExaggeration
-    self.multiplier = planeWidth / mapCanvas.extent().width()
-    self.multiplierZ = self.multiplier * verticalExaggeration
-
-  def transform(self, x, y, z=0):
-    extent = self.mapExtent
-    return Point((x - extent.xMinimum()) * self.multiplier - self.planeWidth / 2,
-                 (y - extent.yMinimum()) * self.multiplier - self.planeHeight / 2,
-                 z * self.multiplierZ)
-
-  def transformPoint(self, pt):
-    return self.transform(pt.x, pt.y, pt.z)

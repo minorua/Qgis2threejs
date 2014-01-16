@@ -206,8 +206,8 @@ class HeightWidgetFunc(WidgetFuncBase):
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Fixed value (Relative)", HeightWidgetFunc.ABSOLUTE)
-    self.widget.comboBox.addItem("Fixed value (Absolute)", HeightWidgetFunc.RELATIVE)
+    self.widget.comboBox.addItem("Fixed value (Relative)", HeightWidgetFunc.RELATIVE)
+    self.widget.comboBox.addItem("Fixed value (Absolute)", HeightWidgetFunc.ABSOLUTE)
     if layer:
       self.widget.addFieldNameItems(layer, fieldNames)
 

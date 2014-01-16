@@ -35,6 +35,7 @@ import codecs
 import datetime
 
 import gdal2threejs
+from qgis2threejsmain import *
 import qgis2threejstools as tools
 from quadtree import *
 from vectorobject import *
@@ -318,7 +319,6 @@ class Qgis2threejsDialog(QDialog):
       QDir().mkpath(out_dir)
 
     filetitle = os.path.splitext(filename)[0]
-    jsfilename = os.path.splitext(htmlfilename)[0] + ".js"
 
     # save map canvas image
     if self.localBrowsingMode:
@@ -354,15 +354,20 @@ class Qgis2threejsDialog(QDialog):
     if debug_mode:
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
-    # generate javascript data file
+    # create JavaScript writer object
+    mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=z_factor)
+    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warped_dem))
+    writer.openFile()
+
+    # write dem data
     offsetX = offsetY = 0
-    suffix = "[0]"
-    with open(jsfilename, "w") as f:
-      opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
-      f.write('dem%s = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (suffix, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-      f.write('tex%s = "%s";\n' % (suffix, tex))
-      # vector data output
-      f.write(self.vectorJS(warped_dem, z_factor))
+    opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (terrain_width, terrain_height, offsetX, offsetY)
+    writer.write('dem[0] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write('tex[0] = "%s";\n' % tex)
+    self.progress(50)
+
+    # write vector data
+    self.vectorJS(writer)
     self.progress(80)
 
     # copy files from template
@@ -373,7 +378,7 @@ class Qgis2threejsDialog(QDialog):
       html = f.read()
 
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
-      f.write(html.replace("${title}", filetitle).replace("${scripts}", '<script src="./%s.js"></script>' % filetitle))
+      f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()))
 
     return htmlfilename
 
@@ -448,13 +453,16 @@ class Qgis2threejsDialog(QDialog):
     warped_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
     wkt = str(mapSettings.destinationCrs().toWkt())
 
+    # create JavaScript writer object
+    mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=z_factor)
+    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warped_dem))
+
     unites_center = True
     centerQuads = DEMQuadList(dem_width, dem_height)
     scripts = []
-    script_index = 0
+    plane_index = 0
     for i, quad in enumerate(quads):
-      self.progress(80 * i / len(quads))
-      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
+      self.progress(50 * i / len(quads))
       extent = quad.extent
 
       if quad.height < quadtree.height or unites_center == False:
@@ -470,7 +478,7 @@ class Qgis2threejsDialog(QDialog):
         if self.localBrowsingMode:
           tex = tools.base64image(image)
         else:
-          texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % script_index
+          texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
           image.save(texfilename)
           tex = os.path.split(texfilename)[1]
 
@@ -519,12 +527,11 @@ class Qgis2threejsDialog(QDialog):
                 dem_values[x + dem_width * (y0 + yy)] = z
 
       if quad.height < quadtree.height or unites_center == False:
-        with open(jsfilename, "w") as f:
-          opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
-          f.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (script_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-          f.write('tex[%d] = "%s";\n' % (script_index, tex))
-        scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, script_index))
-        script_index += 1
+        writer.openFile(True)
+        opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
+        writer.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (plane_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+        writer.write('tex[%d] = "%s";\n' % (plane_index, tex))
+        plane_index += 1
       else:
         centerQuads.addQuad(quad, dem_values)
 
@@ -552,7 +559,7 @@ class Qgis2threejsDialog(QDialog):
       if self.localBrowsingMode:
         tex = tools.base64image(image)
       else:
-        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % script_index
+        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
         image.save(texfilename)
         tex = os.path.split(texfilename)[1]
 
@@ -565,22 +572,17 @@ class Qgis2threejsDialog(QDialog):
       dem_width = (dem_width - 1) * centerQuads.width() + 1
       dem_height = (dem_height - 1) * centerQuads.height() + 1
 
-      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
-      with open(jsfilename, "w") as f:
-        opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
-        f.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (script_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-        f.write('tex[%d] = "%s";\n' % (script_index, tex))
-      scripts.append('<script src="./%s_%d.js"></script>' % (filetitle, script_index))
-      script_index += 1
+      writer.openFile(True)
+      opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (width, height, offsetX, offsetY)
+      writer.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (plane_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      writer.write('tex[%d] = "%s";\n' % (plane_index, tex))
+      plane_index += 1
+    self.progress(50)
 
-    self.progress(80)
     # vector data output
-    data = self.vectorJS(warped_dem, z_factor)
-    if data != "":
-      jsfilename = os.path.splitext(htmlfilename)[0] + "_%d.js" % script_index
-      with open(jsfilename, "w") as f:
-        f.write(data)
-      scripts.append('<script src="./%s"></script>' % os.path.split(jsfilename)[1])
+    writer.prepareNext()
+    self.vectorJS(writer)
+    self.progress(80)
 
     # copy files from template
     tools.copyThreejsFiles(out_dir)
@@ -590,7 +592,7 @@ class Qgis2threejsDialog(QDialog):
       html = f.read()
 
     with codecs.open(htmlfilename, "w", "UTF-8") as f:
-      f.write(html.replace("${title}", filetitle).replace("${scripts}", "\n".join(scripts)))
+      f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()))
 
     return htmlfilename
 
@@ -598,15 +600,13 @@ class Qgis2threejsDialog(QDialog):
     self.ui.progressBar.setValue(percentage)
     self.ui.progressBar.setVisible(percentage != 100)
 
-  def vectorJS(self, warped_dem, zFactor):
+  def vectorJS(self, writer):
     canvas = self.iface.mapCanvas()
-    mapTo3d = MapTo3D(canvas, verticalExaggeration=zFactor)
     mapSettings = canvas.mapSettings() if self.apiChanged22 else canvas.mapRenderer()
-
-    data = []
+    mapTo3d = writer.context.mapTo3d
+    warped_dem = writer.context.warp_dem
     tcolors = []
     materials = []
-    js_objects = []
     for layerid, prop_dict in self.vectorPropertiesDict.items():
       properties = VectorObjectProperties(prop_dict)
       if not properties.visible:
@@ -647,7 +647,7 @@ class Qgis2threejsDialog(QDialog):
               h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
             else:
               h = properties.relativeHeight(f)
-            js_objects.append(obj_mod.generateJS(mapTo3d, mapTo3d.transform(pt.x(), pt.y(), h), material_index, properties, f))
+            obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), material_index, properties, f)
         elif geom_type == QGis.Line:
           if geom.isMultipart():
             lines = geom.asMultiPolyline()
@@ -662,7 +662,7 @@ class Qgis2threejsDialog(QDialog):
               else:
                 h = properties.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            js_objects.append(obj_mod.generateJS(mapTo3d, points, material_index, properties, f))
+            obj_mod.write(writer, points, material_index, properties, f)
         elif geom_type == QGis.Polygon:
           if geom.isMultipart():
             polygons = geom.asMultiPolygon()
@@ -705,10 +705,11 @@ class Qgis2threejsDialog(QDialog):
                 points.append(mapTo3d.transform(pt.x(), pt.y(), h))
               points.reverse()    # to counter clockwise direction
               boundaries.append(points)
-            js_objects.append(obj_mod.generateJS(mapTo3d, boundaries, material_index, properties, f))
-    data += materials
-    data += js_objects
-    return "\n".join(data) + "\n"
+            obj_mod.write(writer, boundaries, material_index, properties, f)
+    # write materials
+    if len(materials) > 0:
+      writer.write("\n".join(materials) + "\n")
+    return 
 
   def run(self):
     filename = self.ui.lineEdit_OutputFilename.text()   # ""=Temporary file

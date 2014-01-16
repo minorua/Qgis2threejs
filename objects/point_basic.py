@@ -52,21 +52,21 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def generateJS(mapTo3d, pt, mat, properties, f=None):
+def write(writer, pt, mat, properties, f=None):
+  mapTo3d = writer.context.mapTo3d
   vals = properties.values(f)
   if properties.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
-    return 'points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});' % (mat, pt.x, pt.y, pt.z, r)
+    writer.write('points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});\n' % (mat, pt.x, pt.y, pt.z, r))
   elif properties.type_index in [1, 3]: # Cylinder, Cone
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if properties.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    return 'points.push({type:"cylinder",m:%d,pt:[%f,%f,%f],rt:%f,rb:%f,h:%f,rotateX:Math.PI*%d/180});' % (mat, pt.x, pt.y, z, rt, rb, h, 90)
+    writer.write('points.push({type:"cylinder",m:%d,pt:[%f,%f,%f],rt:%f,rb:%f,h:%f,rotateX:Math.PI*%d/180});\n' % (mat, pt.x, pt.y, z, rt, rb, h, 90))
   elif properties.type_index == 2:  # Cube
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    return 'points.push({type:"cube",m:%d,pt:[%f,%f,%f],w:%f,d:%f,h:%f,rotateX:Math.PI*%d/180});' % (mat, pt.x, pt.y, z, w, d, h, 90)
-  return ""
+    writer.write('points.push({type:"cube",m:%d,pt:[%f,%f,%f],w:%f,d:%f,h:%f,rotateX:Math.PI*%d/180});\n' % (mat, pt.x, pt.y, z, w, d, h, 90))

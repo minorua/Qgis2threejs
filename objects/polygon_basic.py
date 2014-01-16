@@ -39,18 +39,18 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def generateJS(mapTo3d, boundaries, mat, properties, f=None):
+def write(writer, boundaries, mat, properties, f=None):
   vals = properties.values(f)
-  h = float(vals[0]) * mapTo3d.multiplierZ
+  h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
   bnds = []
   zsum = zcount = 0
   for boundary in boundaries:
     points = []
-    for pt in boundary:
+    for pt in boundary:   #TODO: map
       points.append("[%f,%f]" % (pt.x, pt.y))
       zsum += pt.z
     zsum -= boundary[0].z
     zcount += len(boundary) - 1
     bnds.append("[%s]" % ",".join(points))
   z = zsum / zcount
-  return "polygons.push({m:%d,z:%f,h:%f,bnds:[%s]});" % (mat, z, h, ",".join(bnds))
+  writer.write("polygons.push({m:%d,z:%f,h:%f,bnds:[%s]});\n" % (mat, z, h, ",".join(bnds)))
