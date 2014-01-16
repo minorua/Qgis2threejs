@@ -84,14 +84,15 @@ class ObjectTypeManager:
       return self.objTypes[geom_type][item_index]
     return None
 
-  def module(self, geom_type, item_index):
-    if geom_type in self.objTypes:
-      return self.modules[self.objTypes[geom_type][item_index].mod_index]
+  def module(self, mod_index):
+    if mod_index < len(self.modules):
+      return self.modules[mod_index]
     return None
 
   def setupForm(self, dialog, mapTo3d, layer, geom_type, item_index):
     if geom_type in self.objTypes:
-      return self.module(geom_type, item_index).setupForm(dialog, mapTo3d, layer, self.objTypes[geom_type][item_index].type_index)
+      typeitem = self.objTypes[geom_type][item_index]
+      return self.modules[typeitem.mod_index].setupForm(dialog, mapTo3d, layer, typeitem.type_index)
     return False
 
 class VectorObjectProperties:
@@ -105,6 +106,7 @@ class VectorObjectProperties:
       self.item_index = prop_dict["itemindex"]
       typeitem = prop_dict["typeitem"]
       self.type_name = typeitem.name
+      self.mod_index = typeitem.mod_index
       self.type_index = typeitem.type_index
       self.visible = prop_dict["visible"]
     self.layer = None

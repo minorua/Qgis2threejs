@@ -438,7 +438,7 @@ def writeVectors(writer):
       continue
     layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
     geom_type = layer.geometryType()
-    obj_mod = context.objectTypeManager.module(geom_type, properties.type_index)
+    obj_mod = context.objectTypeManager.module(properties.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
