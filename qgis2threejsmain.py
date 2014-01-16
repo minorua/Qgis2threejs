@@ -79,6 +79,30 @@ class OutputContext:
   def setWarpDem(self, warp_dem):
     self.warp_dem = warp_dem
 
+class MaterialManager:
+  def __init__(self):
+    self.ids = []
+    self.materials = []
+
+  def getMeshLambertIndex(self, color):
+    return self.getIndex("ML" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0}}})".format(color))
+
+  def getLineBasicIndex(self, color):
+    return self.getIndex("LB" + color, "new THREE.LineBasicMaterial({{color:{0}}})".format(color))
+
+  def getIndex(self, id, material):
+    if id in self.ids:
+      return self.ids.index(id)
+    else:
+      index = len(self.ids)
+      self.ids.append(id)
+      self.materials.append(material)
+      return index
+
+  def write(self, f):
+    for index, material in enumerate(self.materials):
+      f.write("mat[{0}] = {1};\n".format(index, material))
+
 class JSWriter:
   def __init__(self, htmlfilename, context):
     self.htmlfilename = htmlfilename
@@ -86,6 +110,7 @@ class JSWriter:
     self.jsfile = None
     self.jsindex = -1
     self.jsfile_count = 0
+    self.materialManager = MaterialManager()
 
   def setContext(self, context):
     self.context = context
@@ -407,8 +432,6 @@ def writeVectors(writer):
   canvas = context.canvas
   mapTo3d = context.mapTo3d
   warp_dem = context.warp_dem
-  tcolors = []
-  materials = []
   for layerid, prop_dict in context.vectorPropertiesDict.items():
     properties = VectorObjectProperties(prop_dict)
     if not properties.visible:
@@ -425,18 +448,6 @@ def writeVectors(writer):
     for f in layer.getFeatures(request):
       geom = f.geometry()
       geom_type == geom.type()
-      color = properties.color(layer, f)
-      tcolor = str(geom_type) + color
-      if tcolor in tcolors:
-        material_index = tcolors.index(tcolor)
-      else:
-        material_index = len(materials)
-        if geom_type == QGis.Point or geom_type == QGis.Polygon:
-          materials.append("mat[{0}] = new THREE.MeshLambertMaterial({{color:{1},ambient:{1}}});".format(material_index, color))
-        elif geom_type == QGis.Line:
-          materials.append("mat[{0}] = new THREE.LineBasicMaterial({{color:{1}}});".format(material_index, color))
-        tcolors.append(tcolor)
-
       if geom_type == QGis.Point:
         if geom.isMultipart():
           points = geom.asMultiPoint()
@@ -449,7 +460,7 @@ def writeVectors(writer):
             h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
           else:
             h = properties.relativeHeight(f)
-          obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), material_index, properties, f)
+          obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), properties, layer, f)
       elif geom_type == QGis.Line:
         if geom.isMultipart():
           lines = geom.asMultiPolyline()
@@ -464,7 +475,7 @@ def writeVectors(writer):
             else:
               h = properties.relativeHeight(f)
             points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-          obj_mod.write(writer, points, material_index, properties, f)
+          obj_mod.write(writer, points, properties, layer, f)
       elif geom_type == QGis.Polygon:
         if geom.isMultipart():
           polygons = geom.asMultiPolygon()
@@ -507,10 +518,9 @@ def writeVectors(writer):
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             points.reverse()    # to counter clockwise direction
             boundaries.append(points)
-          obj_mod.write(writer, boundaries, material_index, properties, f)
+          obj_mod.write(writer, boundaries, properties, layer, f)
   # write materials
-  if len(materials) > 0:
-    writer.write("\n".join(materials) + "\n")
+  writer.materialManager.write(writer)
 
 def dummyProgress(progress):
   pass

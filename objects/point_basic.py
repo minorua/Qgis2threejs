@@ -52,7 +52,8 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def write(writer, pt, mat, properties, f=None):
+def write(writer, pt, properties, layer=None, f=None):
+  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f))
   mapTo3d = writer.context.mapTo3d
   vals = properties.values(f)
   if properties.type_index == 0:  # Sphere

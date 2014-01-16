@@ -39,7 +39,8 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def write(writer, boundaries, mat, properties, f=None):
+def write(writer, boundaries, properties, layer=None, f=None):
+  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f))
   vals = properties.values(f)
   h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
   bnds = []
