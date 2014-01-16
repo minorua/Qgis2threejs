@@ -349,14 +349,16 @@ class Qgis2threejsDialog(QDialog):
     geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
     wkt = str(mapSettings.destinationCrs().toWkt())
 
-    warped_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
-    dem_values = warped_dem.read(dem_width, dem_height, wkt, geotransform, multiplier)
+    warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+    dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    if multiplier != 1:
+      dem_values = map(lambda x: x * multiplier, dem_values)
     if debug_mode:
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
     # create JavaScript writer object
     mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=z_factor)
-    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warped_dem))
+    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warp_dem))
     writer.openFile()
 
     # write dem data
@@ -450,12 +452,12 @@ class Qgis2threejsDialog(QDialog):
     z_factor = float(ui.lineEdit_zFactor.text())
     multiplier = 100 * z_factor / canvas.extent().width()
 
-    warped_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+    warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
     wkt = str(mapSettings.destinationCrs().toWkt())
 
     # create JavaScript writer object
     mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=z_factor)
-    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warped_dem))
+    writer = JSWriter(htmlfilename, OutputContext(mapTo3d, warp_dem))
 
     unites_center = True
     centerQuads = DEMQuadList(dem_width, dem_height)
@@ -488,7 +490,9 @@ class Qgis2threejsDialog(QDialog):
       geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
 
       # warp dem
-      dem_values = warped_dem.read(dem_width, dem_height, wkt, geotransform, multiplier)
+      dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+      if multiplier != 1:
+        dem_values = map(lambda x: x * multiplier, dem_values)
       if debug_mode:
         qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
@@ -604,7 +608,7 @@ class Qgis2threejsDialog(QDialog):
     canvas = self.iface.mapCanvas()
     mapSettings = canvas.mapSettings() if self.apiChanged22 else canvas.mapRenderer()
     mapTo3d = writer.context.mapTo3d
-    warped_dem = writer.context.warp_dem
+    warp_dem = writer.context.warp_dem
     tcolors = []
     materials = []
     for layerid, prop_dict in self.vectorPropertiesDict.items():
@@ -644,7 +648,7 @@ class Qgis2threejsDialog(QDialog):
             pt = transform.transform(point)
             if properties.isHeightRelativeToSurface():
               # get surface elevation at the point and relative height
-              h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
             else:
               h = properties.relativeHeight(f)
             obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), material_index, properties, f)
@@ -658,7 +662,7 @@ class Qgis2threejsDialog(QDialog):
             for pt_orig in line:
               pt = transform.transform(pt_orig)
               if properties.isHeightRelativeToSurface():
-                h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
               else:
                 h = properties.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
@@ -673,7 +677,7 @@ class Qgis2threejsDialog(QDialog):
           if useCentroidHeight:
             pt = transform.transform(geom.centroid().asPoint())
             if properties.isHeightRelativeToSurface():
-              centroidHeight = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
             else:
               centroidHeight = properties.relativeHeight(f)
 
@@ -686,7 +690,7 @@ class Qgis2threejsDialog(QDialog):
               if useCentroidHeight:
                 h = centroidHeight
               elif properties.isHeightRelativeToSurface():
-                h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
               else:
                 h = properties.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
@@ -699,7 +703,7 @@ class Qgis2threejsDialog(QDialog):
                 if useCentroidHeight:
                   h = centroidHeight
                 elif properties.isHeightRelativeToSurface():
-                  h = warped_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+                  h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
                 else:
                   h = properties.relativeHeight(f)
                 points.append(mapTo3d.transform(pt.x(), pt.y(), h))

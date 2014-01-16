@@ -37,7 +37,5 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
 
 def write(writer, pts, mat, properties, f=None):
   vals = properties.values(f)
-  points = []
-  for pt in pts:    #TODO: map
-    points.append("[%f,%f,%f]" % (pt.x, pt.y, pt.z))
+  points = map(lambda pt: "[%f,%f,%f]" % (pt.x, pt.y, pt.z), pts)
   writer.write("lines.push({m:%d,pts:[%s]});\n" % (mat, ",".join(points)))

@@ -45,12 +45,8 @@ def write(writer, boundaries, mat, properties, f=None):
   bnds = []
   zsum = zcount = 0
   for boundary in boundaries:
-    points = []
-    for pt in boundary:   #TODO: map
-      points.append("[%f,%f]" % (pt.x, pt.y))
-      zsum += pt.z
-    zsum -= boundary[0].z
+    bnds.append("[%s]" % ",".join(map(lambda pt: "[%f,%f]" % (pt.x, pt.y), boundary)))
+    zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
     zcount += len(boundary) - 1
-    bnds.append("[%s]" % ",".join(points))
   z = zsum / zcount
   writer.write("polygons.push({m:%d,z:%f,h:%f,bnds:[%s]});\n" % (mat, z, h, ",".join(bnds)))

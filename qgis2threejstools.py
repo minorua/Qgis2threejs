@@ -56,11 +56,7 @@ class MemoryWarpRaster(Raster):
     fs = "f" * width
     band = warped_ds.GetRasterBand(1)
     for py in range(height):
-      line = struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
-      if multiplier == 1:
-        values += line
-      else:
-        values += map(lambda x: x * multiplier, line)
+      values += struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
     return values
 
   def readValue(self, wkt, x, y, multiplier=1):
@@ -80,8 +76,10 @@ def warpDEM(layer, crs, extent, width, height, multiplier):
     qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
 
   warped_dem = MemoryWarpRaster(layer.source().encode("UTF-8"))
-  values = warped_dem.read(width, height, wkt, geotransform, multiplier)
+  values = warped_dem.read(width, height, wkt, geotransform)
   warped_dem.close()
+  if multiplier != 1:
+    values = map(lambda x: x * multiplier, values)
   return values
 
 def generateDEM(layer, crs, extent, width, height, demfilename):

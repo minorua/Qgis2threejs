@@ -104,7 +104,7 @@ ${scripts}
       if (j == 0) {
         shape = new THREE.Shape(pts);
       } else {
-        shape.holes.push(new THREE.Shape(pts));
+        shape.holes.push(new THREE.Path(pts));
       }
     }
     geometry = new THREE.ExtrudeGeometry(shape, {bevelEnabled:false, amount:polygon.h});
