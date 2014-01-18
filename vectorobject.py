@@ -125,12 +125,15 @@ class VectorObjectProperties:
       return QColor(colorName).name().replace("#", "0x")
     return layer.rendererV2().symbolForFeature(f).color().name().replace("#", "0x")
 
+  def useZ(self):
+    return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE_TO_Z
+
   def isHeightRelativeToSurface(self):
     return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE
 
   def relativeHeight(self, f=None):
     lst = self.prop_dict["height"]
-    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE] or f is None:
+    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE_TO_Z] or f is None:
       return float(lst[2])
     # attribute value + addend
     return float(f.attribute(lst[1])) + float(lst[2])

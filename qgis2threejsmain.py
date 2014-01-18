@@ -27,6 +27,11 @@ import os
 import codecs
 import datetime
 
+try:
+  from osgeo import ogr
+except ImportError:
+  import ogr
+
 import gdal2threejs
 import qgis2threejstools as tools
 from quadtree import *
@@ -448,34 +453,48 @@ def writeVectors(writer):
     for f in layer.getFeatures(request):
       geom = f.geometry()
       geom_type == geom.type()
+      wkb_type = geom.wkbType()
       if geom_type == QGis.Point:
-        if geom.isMultipart():
-          points = geom.asMultiPoint()
+        if properties.useZ():
+          for pt in pointsFromWkb25D(geom.asWkb(), transform):
+            h = pt[2] + properties.relativeHeight(f)
+            obj_mod.write(writer, mapTo3d.transform(pt[0], pt[1], h), properties, layer, f)
         else:
-          points = [geom.asPoint()]
-        for point in points:
-          pt = transform.transform(point)
-          if properties.isHeightRelativeToSurface():
-            # get surface elevation at the point and relative height
-            h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+          if geom.isMultipart():
+            points = geom.asMultiPoint()
           else:
-            h = properties.relativeHeight(f)
-          obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), properties, layer, f)
-      elif geom_type == QGis.Line:
-        if geom.isMultipart():
-          lines = geom.asMultiPolyline()
-        else:
-          lines = [geom.asPolyline()]
-        for line in lines:
-          points = []
-          for pt_orig in line:
-            pt = transform.transform(pt_orig)
+            points = [geom.asPoint()]
+          for point in points:
+            pt = transform.transform(point)
             if properties.isHeightRelativeToSurface():
+              # get surface elevation at the point and relative height
               h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
             else:
               h = properties.relativeHeight(f)
-            points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-          obj_mod.write(writer, points, properties, layer, f)
+            obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), properties, layer, f)
+      elif geom_type == QGis.Line:
+        if properties.useZ():
+          for line in linesFromWkb25D(geom.asWkb(), transform):
+            points = []
+            for pt in line:
+              h = pt[2] + properties.relativeHeight(f)
+              points.append(mapTo3d.transform(pt[0], pt[1], h))
+            obj_mod.write(writer, points, properties, layer, f)
+        else:
+          if geom.isMultipart():
+            lines = geom.asMultiPolyline()
+          else:
+            lines = [geom.asPolyline()]
+          for line in lines:
+            points = []
+            for pt_orig in line:
+              pt = transform.transform(pt_orig)
+              if properties.isHeightRelativeToSurface():
+                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              else:
+                h = properties.relativeHeight(f)
+              points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+            obj_mod.write(writer, points, properties, layer, f)
       elif geom_type == QGis.Polygon:
         if geom.isMultipart():
           polygons = geom.asMultiPolygon()
@@ -521,6 +540,52 @@ def writeVectors(writer):
           obj_mod.write(writer, boundaries, properties, layer, f)
   # write materials
   writer.materialManager.write(writer)
+
+def pointsFromWkb25D(wkb, transform):
+  geom25d = ogr.CreateGeometryFromWkb(wkb)
+  geomType = geom25d.GetGeometryType()
+  geoms = []
+  if geomType == ogr.wkbPoint25D:
+    geoms = [geom25d]
+  elif geomType == ogr.wkbMultiPoint25D:
+    for i in range(geom25d.GetGeometryCount()):
+      geoms.append(geom25d.GetGeometryRef(i))
+  points = []
+  for geom in geoms:
+    if hasattr(geom, "GetPoints"):
+      pts = geom.GetPoints()
+    else:
+      pts = []
+      for i in range(geom.GetPointCount()):
+        pts.append(geom.GetPoint(i))
+    for pt_orig in pts:
+      pt = transform.transform(pt_orig[0], pt_orig[1])
+      points.append([pt.x(), pt.y(), pt_orig[2]])
+  return points
+
+def linesFromWkb25D(wkb, transform):
+  geom25d = ogr.CreateGeometryFromWkb(wkb)
+  geomType = geom25d.GetGeometryType()
+  geoms = []
+  if geomType == ogr.wkbLineString25D:
+    geoms = [geom25d]
+  elif geomType == ogr.wkbMultiLineString25D:
+    for i in range(geom25d.GetGeometryCount()):
+      geoms.append(geom25d.GetGeometryRef(i))
+  lines = []
+  for geom in geoms:
+    if hasattr(geom, "GetPoints"):
+      pts = geom.GetPoints()
+    else:
+      pts = []
+      for i in range(geom.GetPointCount()):
+        pts.append(geom.GetPoint(i))
+    points = []
+    for pt_orig in pts:
+      pt = transform.transform(pt_orig[0], pt_orig[1])
+      points.append([pt.x(), pt.y(), pt_orig[2]])
+    lines.append(points)
+  return lines
 
 def dummyProgress(progress):
   pass

@@ -21,6 +21,7 @@
 """
 from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
+from qgis.core import QGis
 from ui_widgetComboEdit import Ui_ComboEditWidget
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
@@ -198,6 +199,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 class HeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
   RELATIVE = 2
+  RELATIVE_TO_Z = 3
 
   def setup(self, name, label, defaultValue, layer, fieldNames):
     WidgetFuncBase.setup(self)
@@ -206,8 +208,10 @@ class HeightWidgetFunc(WidgetFuncBase):
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Fixed value (Relative)", HeightWidgetFunc.RELATIVE)
-    self.widget.comboBox.addItem("Fixed value (Absolute)", HeightWidgetFunc.ABSOLUTE)
+    if layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
+      self.widget.comboBox.addItem("Z value", HeightWidgetFunc.RELATIVE_TO_Z)
+    self.widget.comboBox.addItem("Height from surface", HeightWidgetFunc.RELATIVE)
+    self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
     if layer:
       self.widget.addFieldNameItems(layer, fieldNames)
 
