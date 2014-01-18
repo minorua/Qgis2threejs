@@ -63,8 +63,9 @@ class ObjectTypeManager:
     self.modules = []
     self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon:[]}    # each list item is ObjectTypeItem object
 
-    module_names = ["Qgis2threejs.objects.point_basic", "Qgis2threejs.objects.line_basic", "Qgis2threejs.objects.polygon_basic"]
-    for modname in module_names:
+    module_names = ["point_basic", "line_basic", "polygon_basic"]
+    module_fullnames = map(lambda x: "Qgis2threejs.objects." + x, module_names)
+    for modname in module_fullnames:
       mod = ObjectTypeModule.load(modname)
       mod_index = len(self.modules)
       self.modules.append(mod)

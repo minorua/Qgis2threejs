@@ -213,7 +213,7 @@ class HeightWidgetFunc(WidgetFuncBase):
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
-    if itemData == HeightWidgetFunc.ABSOLUTE:
+    if itemData in [HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE]:
       label = "Value"
       defaultValue = self.defaultValue
     else:
