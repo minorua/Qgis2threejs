@@ -442,6 +442,8 @@ def writeVectors(writer):
     if not properties.visible:
       continue
     layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+    if layer is None:
+      continue
     geom_type = layer.geometryType()
     obj_mod = context.objectTypeManager.module(properties.mod_index)
     if obj_mod is None:
