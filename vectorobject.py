@@ -21,7 +21,7 @@
 """
 from PyQt4.QtCore import qDebug
 from PyQt4.QtGui import QColor
-from qgis.core import QGis
+from qgis.core import QGis, QgsMessageLog
 import sys
 import random
 from vectorstylewidgets import *
@@ -123,7 +123,11 @@ class VectorObjectProperties:
       colorName = random.choice(colorNames)
       colorNames.remove(colorName)
       return QColor(colorName).name().replace("#", "0x")
-    return layer.rendererV2().symbolForFeature(f).color().name().replace("#", "0x")
+    symbol = layer.rendererV2().symbolForFeature(f)
+    if symbol is None:
+      QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
+      symbol = layer.rendererV2().symbols()[0]
+    return symbol.color().name().replace("#", "0x")
 
   def useZ(self):
     return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE_TO_Z
