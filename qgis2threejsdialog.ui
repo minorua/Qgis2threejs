@@ -546,7 +546,7 @@
                  <item row="0" column="0">
                   <widget class="QGroupBox" name="groupBox_zCoordinate">
                    <property name="title">
-                    <string>z coordinate</string>
+                    <string>Z coordinate</string>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_9">
                     <property name="margin">

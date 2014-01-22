@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\lenovo\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Sun Jan 12 15:56:55 2014
+# Created: Wed Jan 22 12:59:49 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -408,7 +408,7 @@ class Ui_Qgis2threejsDialog(object):
         self.label_15.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical exaggeration", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit_zFactor.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "1.5", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), QtGui.QApplication.translate("Qgis2threejsDialog", "DEM", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_zCoordinate.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "z coordinate", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_zCoordinate.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Z coordinate", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_Styles.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Styles", None, QtGui.QApplication.UnicodeUTF8))
         self.label_ObjectType.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Object type", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("Qgis2threejsDialog", "Vector", None, QtGui.QApplication.UnicodeUTF8))
