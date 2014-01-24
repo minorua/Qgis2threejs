@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Wed Jan 22 12:59:49 2014
+# Created: Fri Jan 24 15:43:19 2014
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -391,8 +391,8 @@ class Ui_Qgis2threejsDialog(object):
         self.label_Resolution.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "about 200 x 200 px", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Columns", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Rows", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_8.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Horizontal", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_9.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_8.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "X resolution", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_9.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Y resolution", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_Advanced.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Advanced (multiple resolutions)", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_Simple.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Simple", None, QtGui.QApplication.UnicodeUTF8))
         self.label_11.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad tree height", None, QtGui.QApplication.UnicodeUTF8))

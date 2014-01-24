@@ -188,7 +188,7 @@
                 <item>
                  <widget class="QLabel" name="label_8">
                   <property name="text">
-                   <string>Horizontal</string>
+                   <string>X resolution</string>
                   </property>
                  </widget>
                 </item>
@@ -211,7 +211,7 @@
                 <item>
                  <widget class="QLabel" name="label_9">
                   <property name="text">
-                   <string>Vertical</string>
+                   <string>Y resolution</string>
                   </property>
                  </widget>
                 </item>
