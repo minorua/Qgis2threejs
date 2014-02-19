@@ -203,15 +203,15 @@ ${scripts}
                                                         side: THREE.DoubleSide});
 
     // Sides
-    var side_width;
+    var side_width, side_depth = 3;
     for (var side in altitudes) {
       if (side == 'back' || side == 'front')
         side_width = plane_width;
       else
         side_width = plane_height;
 
-      var geom = new THREE.PlaneGeometry(side_width, 3,
-                                         altitudes[side].length, 1);
+      var geom = new THREE.PlaneGeometry(side_width, side_depth,
+                                         altitudes[side].length -1, 1);
 
       // Filling of the geometry vertices
       for (var i = 0, l = altitudes[side].length; i < l; i++) {
@@ -248,6 +248,7 @@ ${scripts}
     // Bottom
     var geom_bottom = new THREE.PlaneGeometry(plane_width, plane_height, 1, 1);
     var plane_bottom = new THREE.Mesh(geom_bottom, side_material);
+    plane_bottom.position.z = -side_depth/2;
     scene.add(plane_bottom);
 
     // Additional lights
