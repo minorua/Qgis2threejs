@@ -37,15 +37,45 @@ ${scripts}
 
   var controls = new THREE.TrackballControls(camera);
 
-  // terrain
+  /////////////////////////////////////////////////////
+  //    TERRAIN SETTING
+  /////////////////////////////////////////////////////
   var geometry, image, texture, material, plane;
   for (var i = 0, l = dem.length; i < l; i++) {
+ 
     geometry = new THREE.PlaneGeometry(dem[i].plane.width, dem[i].plane.height,
-                                           dem[i].width - 1, dem[i].height - 1);
-    for (var j = 0, m = geometry.vertices.length; j < m; j++) {
-      geometry.vertices[j].z = dem[i].data[j];
+                                       dem[i].width - 1, dem[i].height - 1);
+ 
+    // Altitudes dictionnary
+    var altitudes = {
+      'back': [],
+      'left': [],
+      'front': [],
+      'right': []
     }
 
+    // Filling of the DEM plane and the altitudes dictionnary
+    for (var j = 0, m = geometry.vertices.length; j < m; j++) {
+      geometry.vertices[j].z = dem[i].data[j];
+      var vertex = geometry.vertices[j];
+
+      // vertex is in back side
+      if (vertex.y ==  dem[i].plane.height/2 ) altitudes['back'].push(vertex.z);
+
+      // vertex is in left side
+      if (vertex.x == -dem[i].plane.width/2 )  altitudes['left'].push(vertex.z);
+   
+      // vertex is in front side
+      if (vertex.y == -dem[i].plane.height/2 ) altitudes['front'].push(vertex.z);
+
+      // vertex is in right side
+      if (vertex.x ==  dem[i].plane.width/2 )  altitudes['right'].push(vertex.z);
+    }
+
+    // Building sides and bottom
+    build_sides(scene, altitudes, dem[i].plane.width, dem[i].plane.height);
+ 
+    // Terrain material
     if (tex[i].substr(0, 5) == "data:") {
       image = new Image();
       image.src = tex[i];
@@ -54,14 +84,18 @@ ${scripts}
       texture = THREE.ImageUtils.loadTexture(tex[i]);
     }
     texture.needsUpdate = true;
+
     material = new THREE.MeshPhongMaterial({map: texture});
     plane = new THREE.Mesh(geometry, material);
+ 
     if (dem[i].plane.offsetX != 0) plane.position.x = dem[i].plane.offsetX;
     if (dem[i].plane.offsetY != 0) plane.position.y = dem[i].plane.offsetY;
     scene.add(plane);
   }
 
-  // vector data
+  /////////////////////////////////////////////////////
+  //    VECTOR DATA
+  /////////////////////////////////////////////////////
   // point
   var point, pt, obj, meshes = [];
   for (var i = 0, l = points.length; i < l; i++) {
@@ -120,7 +154,7 @@ ${scripts}
   render();
 
   function render() {
-    controls.update();  
+    controls.update();
     requestAnimationFrame(render);
     renderer.render(scene, camera);
   }
@@ -146,6 +180,85 @@ ${scripts}
       top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
     } while(elm);
     return {top: top, left: left};
+  }
+
+
+
+  /**
+   * build_sides()
+   *   - scene : scene in which we add sides
+   *   - altitudes : dictionnary of sides altitudes
+   *   - plane_width : width of the DEM
+   *   - plane_height : height of the DEM
+   *
+   *  Creates sides and bottom of the DEM to give an impression of "extruding" 
+   *  and increase the 3D aspect.
+   *  It adds also lights to see correctly the meshes created.
+   */
+  function build_sides(scene, altitudes, plane_width, plane_height) {
+
+    // Material
+    var side_material =  new THREE.MeshLambertMaterial({color: 0xc7ac92,
+                                                        ambient: 0xc7ac92,
+                                                        side: THREE.DoubleSide});
+
+    // Sides
+    var side_width, side_depth = 3;
+    for (var side in altitudes) {
+      if (side == 'back' || side == 'front')
+        side_width = plane_width;
+      else
+        side_width = plane_height;
+
+      var geom = new THREE.PlaneGeometry(side_width, side_depth,
+                                         altitudes[side].length -1, 1);
+
+      // Filling of the geometry vertices
+      for (var i = 0, l = altitudes[side].length; i < l; i++) {
+        geom.vertices[i].y = altitudes[side][i];
+      }
+
+      var mesh = new THREE.Mesh(geom, side_material);
+
+      // Rotation(s) and translating(s) according to the side
+      switch (side) {
+        case 'back' :
+          mesh.position.y = plane_height/2;
+          mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+          break;
+        case 'left' :
+          mesh.position.x = -plane_width/2;
+          mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
+          mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+          break;
+        case 'front' :
+          mesh.position.y = -plane_height/2;
+          mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+          break;
+        case 'right' :
+          mesh.position.x = plane_width/2;
+          mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
+          mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+          break;
+      }
+
+      scene.add(mesh);
+    }
+ 
+    // Bottom
+    var geom_bottom = new THREE.PlaneGeometry(plane_width, plane_height, 1, 1);
+    var plane_bottom = new THREE.Mesh(geom_bottom, side_material);
+    plane_bottom.position.z = -side_depth/2;
+    scene.add(plane_bottom);
+
+    // Additional lights
+    var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+    light2.position.set(plane_width,-plane_height/2,-10);
+    scene.add(light2);
+
+    var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
+    light3.position.set(-plane_width,plane_height/2,-10);
+    scene.add(light3);
   }
 </script>
 </body>
