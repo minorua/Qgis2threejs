@@ -54,6 +54,7 @@ class Qgis2threejs:
     self.lastZFactor = "1.5"
     self.lastResolution = 2
     self.vectorProperties = {}
+    self.sidestransp=0
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -100,6 +101,7 @@ class Qgis2threejs:
     ui.horizontalSlider_Resolution.setValue(self.lastResolution)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
     ui.lineEdit_zFactor.setText(self.lastZFactor)
+    ui.spinBox_sidetransp.setValue(self.sidestransp)
     dialog.calculateResolution()
     dialog.initVectorLayerTree(self.vectorProperties)
 
@@ -111,6 +113,7 @@ class Qgis2threejs:
       self.lastZFactor = ui.lineEdit_zFactor.text()
       self.lastResolution = ui.horizontalSlider_Resolution.value()
       self.vectorProperties = dialog.vectorPropertiesDict
+      self.sidestransp=ui.spinBox_sidetransp.value()
 
   def setting(self):
     from settingsdialog import SettingsDialog

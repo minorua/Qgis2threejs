@@ -150,7 +150,7 @@ class JSWriter:
       return '<script src="./%s.js"></script>' % filetitle
     return "\n".join(map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count)))
 
-def runSimple(htmlfilename, context, progress=None):
+def runSimple(htmlfilename, context, progress=None, sidestransp=0):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   extent = canvas.extent()
@@ -215,15 +215,20 @@ def runSimple(htmlfilename, context, progress=None):
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  with codecs.open(tools.pluginDir() + "/template.html", "r", "UTF-8") as f:
+  if sidestransp==100:
+      templatename=r"/template_no_sides.html"
+  else:
+      templatename=r"/template.html"
+      
+  with codecs.open(tools.pluginDir() + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()))
+    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()).replace("REPLACETRANSPARENCY",str(1-float(sidestransp)/100)))
 
   return htmlfilename
 
-def runAdvanced(htmlfilename, context, dialog, progress=None):
+def runAdvanced(htmlfilename, context, dialog, progress=None, sidestransp=0):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   if progress is None:
@@ -424,11 +429,15 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  with codecs.open(tools.pluginDir() + "/template.html", "r", "UTF-8") as f:
+  if sidestransp==100:
+      templatename=r"/template_no_sides.html"
+  else:
+      templatename=r"/template.html"
+  with codecs.open(tools.pluginDir() + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()))
+    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()).replace("REPLACETRANSPARENCY",str(1-float(sidestransp)/100)))
 
   return htmlfilename
 
