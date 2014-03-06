@@ -39,6 +39,7 @@ debug_mode = 1
 
 class MemoryWarpRaster(Raster):
   def __init__(self, filename):
+    self.rasterIsEmpty = (filename==None)
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
 
@@ -47,6 +48,9 @@ class MemoryWarpRaster(Raster):
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
     warped_ds.SetProjection(wkt)
     warped_ds.SetGeoTransform(geotransform)
+
+    if self.rasterIsEmpty:
+      return [0]*width*height
 
     # reproject image
     gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)

@@ -61,6 +61,8 @@ class Qgis2threejsDialog(QDialog):
     ui.progressBar.setVisible(False)
     self.switchFocusMode(True)
 
+    ui.checkBox_useDEM.toggled.connect(self.ui.comboBox_DEMLayer.setEnabled)
+
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
     ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     ui.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
@@ -102,9 +104,9 @@ class Qgis2threejsDialog(QDialog):
 
     # show message if there are no dem layer
     no_demlayer = ui.comboBox_DEMLayer.count() == 0
-    ui.pushButton_Run.setEnabled(not no_demlayer)
     if no_demlayer:
-      self.showMessageBar("No DEM layer", "Load 1-band raster layer with GDAL provider.", QgsMessageBar.WARNING)
+      ui.checkBox_useDEM.setEnabled(False)
+      ui.checkBox_useDEM.setChecked(False)
 
     return QDialog.exec_(self)
 
@@ -316,10 +318,11 @@ class Qgis2threejsDialog(QDialog):
     htmlfilename = ui.lineEdit_OutputFilename.text()
     demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(ui.lineEdit_zFactor.text()))
+    useDem = ui.checkBox_useDEM.isChecked()
     if self.ui.radioButton_Simple.isChecked():
       dem_width = int(ui.lineEdit_Width.text())
       dem_height = int(ui.lineEdit_Height.text())
-      context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
+      context = OutputContext(mapTo3d, canvas, useDem, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
                               dem_width, dem_height)
       htmlfilename = runSimple(htmlfilename, context, self.progress)
     else:
