@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
+# Form implementation generated from reading ui file 'qgis2threejsdialog.ui'
 #
-# Created: Fri Jan 24 15:43:19 2014
-#      by: PyQt4 UI code generator 4.8.3
+# Created: Thu Mar  6 22:57:36 2014
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(485, 471)
+        Qgis2threejsDialog.resize(522, 580)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -65,7 +65,7 @@ class Ui_Qgis2threejsDialog(object):
         self.horizontalSlider_Resolution.setMaximum(6)
         self.horizontalSlider_Resolution.setSingleStep(1)
         self.horizontalSlider_Resolution.setPageStep(1)
-        self.horizontalSlider_Resolution.setProperty(_fromUtf8("value"), 2)
+        self.horizontalSlider_Resolution.setProperty("value", 2)
         self.horizontalSlider_Resolution.setOrientation(QtCore.Qt.Horizontal)
         self.horizontalSlider_Resolution.setTickPosition(QtGui.QSlider.TicksBelow)
         self.horizontalSlider_Resolution.setTickInterval(1)
@@ -144,7 +144,7 @@ class Ui_Qgis2threejsDialog(object):
         self.spinBox_Height.setEnabled(False)
         self.spinBox_Height.setMinimum(1)
         self.spinBox_Height.setMaximum(8)
-        self.spinBox_Height.setProperty(_fromUtf8("value"), 5)
+        self.spinBox_Height.setProperty("value", 5)
         self.spinBox_Height.setObjectName(_fromUtf8("spinBox_Height"))
         self.horizontalLayout_5.addWidget(self.spinBox_Height)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -224,11 +224,11 @@ class Ui_Qgis2threejsDialog(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 3, 0, 1, 1)
         self.gridLayout_4.addWidget(self.groupBox, 1, 0, 1, 1)
-        self.formLayout_3 = QtGui.QFormLayout()
-        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
+        self.horizontalLayout_10 = QtGui.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
         self.label_15 = QtGui.QLabel(self.tabDEM)
         self.label_15.setObjectName(_fromUtf8("label_15"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_15)
+        self.horizontalLayout_10.addWidget(self.label_15)
         self.lineEdit_zFactor = QtGui.QLineEdit(self.tabDEM)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -239,8 +239,20 @@ class Ui_Qgis2threejsDialog(object):
         self.lineEdit_zFactor.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
         self.lineEdit_zFactor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.lineEdit_zFactor.setObjectName(_fromUtf8("lineEdit_zFactor"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_zFactor)
-        self.gridLayout_4.addLayout(self.formLayout_3, 2, 0, 1, 1)
+        self.horizontalLayout_10.addWidget(self.lineEdit_zFactor)
+        self.label_16 = QtGui.QLabel(self.tabDEM)
+        self.label_16.setObjectName(_fromUtf8("label_16"))
+        self.horizontalLayout_10.addWidget(self.label_16)
+        self.spinBox_sidetransp = QtGui.QSpinBox(self.tabDEM)
+        self.spinBox_sidetransp.setEnabled(True)
+        self.spinBox_sidetransp.setPrefix(_fromUtf8(""))
+        self.spinBox_sidetransp.setMinimum(0)
+        self.spinBox_sidetransp.setMaximum(100)
+        self.spinBox_sidetransp.setSingleStep(10)
+        self.spinBox_sidetransp.setProperty("value", 0)
+        self.spinBox_sidetransp.setObjectName(_fromUtf8("spinBox_sidetransp"))
+        self.horizontalLayout_10.addWidget(self.spinBox_sidetransp)
+        self.gridLayout_4.addLayout(self.horizontalLayout_10, 2, 0, 1, 1)
         self.tabWidget.addTab(self.tabDEM, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -264,7 +276,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 325))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 180, 113))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -363,7 +375,7 @@ class Ui_Qgis2threejsDialog(object):
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
         self.progressBar = QtGui.QProgressBar(Qgis2threejsDialog)
-        self.progressBar.setProperty(_fromUtf8("value"), 24)
+        self.progressBar.setProperty("value", 24)
         self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
         self.progressBar.setTextVisible(True)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
@@ -407,6 +419,7 @@ class Ui_Qgis2threejsDialog(object):
         self.label_ymin.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "ymin", None, QtGui.QApplication.UnicodeUTF8))
         self.label_15.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical exaggeration", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit_zFactor.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "1.5", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_16.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Sides transparency (%)", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), QtGui.QApplication.translate("Qgis2threejsDialog", "DEM", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_zCoordinate.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Z coordinate", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_Styles.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Styles", None, QtGui.QApplication.UnicodeUTF8))
@@ -421,4 +434,14 @@ class Ui_Qgis2threejsDialog(object):
         self.progressBar.setFormat(QtGui.QApplication.translate("Qgis2threejsDialog", "%p%", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_Run.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Run", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_Close.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    Qgis2threejsDialog = QtGui.QDialog()
+    ui = Ui_Qgis2threejsDialog()
+    ui.setupUi(Qgis2threejsDialog)
+    Qgis2threejsDialog.show()
+    sys.exit(app.exec_())
 
