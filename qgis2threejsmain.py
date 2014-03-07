@@ -216,16 +216,16 @@ def runSimple(htmlfilename, context, progress=None, sidestransp=0):
   writeVectors(writer)
   progress(80)
 
-  # copy files from template
+  # copy three.js files
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  if sidestransp==100:
-      templatename=r"/template_no_sides.html"
+  if sidestransp == 100:
+      templatename = "template_no_sides.html"
   else:
-      templatename=r"/template.html"
+      templatename = "template.html"
       
-  with codecs.open(tools.pluginDir() + templatename, "r", "UTF-8") as f:
+  with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
@@ -430,15 +430,15 @@ def runAdvanced(htmlfilename, context, dialog, progress=None, sidestransp=0):
   writeVectors(writer)
   progress(80)
 
-  # copy files from template
+  # copy three.js files
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  if sidestransp==100:
-      templatename=r"/template_no_sides.html"
+  if sidestransp == 100:
+      templatename = "template_no_sides.html"
   else:
-      templatename=r"/template.html"
-  with codecs.open(tools.pluginDir() + templatename, "r", "UTF-8") as f:
+      templatename = "template.html"
+  with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
