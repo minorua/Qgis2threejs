@@ -30,7 +30,7 @@ class Raster:
     self.ds = None
     self.filename = filename
     self.width = self.height = 0
-    if filename != "":
+    if filename:
       self.open(filename)
 
   def open(self, filename):

@@ -69,9 +69,10 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0):
+  def __init__(self, mapTo3d, canvas, useDem, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0):
     self.mapTo3d = mapTo3d
     self.canvas = canvas
+    self.useDem = useDem
     self.demlayerid = demlayerid
     self.vectorPropertiesDict = vectorPropertiesDict
     self.objectTypeManager = objectTypeManager
@@ -188,15 +189,19 @@ def runSimple(htmlfilename, context, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+  if context.useDem:
+    warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+  else:
+    warp_dem = tools.MemoryWarpRaster(None)
+
   dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
   if mapTo3d.multiplierZ != 1:
     dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (context.dem_width, context.dem_height, str(geotransform)))
+  context.setWarpDem(warp_dem)
 
   # create JavaScript writer object
-  context.setWarpDem(warp_dem)
   writer = JSWriter(htmlfilename, context)
   writer.openFile()
 
