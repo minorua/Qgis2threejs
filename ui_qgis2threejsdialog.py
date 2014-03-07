@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Fri Mar 07 10:11:31 2014
+# Created: Fri Mar 07 14:41:19 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(522, 580)
+        Qgis2threejsDialog.resize(522, 515)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -268,6 +268,8 @@ class Ui_Qgis2threejsDialog(object):
         self.spinBox_sidetransp.setObjectName(_fromUtf8("spinBox_sidetransp"))
         self.horizontalLayout_10.addWidget(self.spinBox_sidetransp)
         self.gridLayout_4.addLayout(self.horizontalLayout_10, 2, 0, 1, 1)
+        spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_4.addItem(spacerItem4, 3, 0, 1, 1)
         self.tabWidget.addTab(self.tabDEM, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -291,7 +293,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 396))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 369))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -334,8 +336,8 @@ class Ui_Qgis2threejsDialog(object):
         self.verticalLayout_Styles.addLayout(self.formLayout_4)
         self.gridLayout_8.addLayout(self.verticalLayout_Styles, 0, 0, 1, 1)
         self.gridLayout_10.addWidget(self.groupBox_Styles, 1, 0, 1, 1)
-        spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_10.addItem(spacerItem4, 2, 0, 1, 1)
+        spacerItem5 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem5, 2, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_5.addWidget(self.scrollArea)
         self.gridLayout_6.addLayout(self.verticalLayout_5, 0, 1, 1, 1)
@@ -371,8 +373,8 @@ class Ui_Qgis2threejsDialog(object):
         self.formLayout_2.setWidget(1, QtGui.QFormLayout.FieldRole, self.lineEdit_MapCanvasSize)
         self.gridLayout_3.addLayout(self.formLayout_2, 0, 0, 1, 1)
         self.gridLayout_5.addWidget(self.groupBox_2, 0, 0, 1, 1)
-        spacerItem5 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_5.addItem(spacerItem5, 1, 0, 1, 1)
+        spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_5.addItem(spacerItem6, 1, 0, 1, 1)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
         self.label_3 = QtGui.QLabel(Qgis2threejsDialog)
@@ -395,8 +397,8 @@ class Ui_Qgis2threejsDialog(object):
         self.progressBar.setTextVisible(True)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
         self.horizontalLayout_7.addWidget(self.progressBar)
-        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem6)
+        spacerItem7 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem7)
         self.pushButton_Run = QtGui.QPushButton(Qgis2threejsDialog)
         self.pushButton_Run.setDefault(True)
         self.pushButton_Run.setObjectName(_fromUtf8("pushButton_Run"))
