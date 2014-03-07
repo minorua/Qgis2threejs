@@ -39,7 +39,6 @@ debug_mode = 1
 
 class MemoryWarpRaster(Raster):
   def __init__(self, filename):
-    self.rasterIsEmpty = (filename==None)
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
 
@@ -48,9 +47,6 @@ class MemoryWarpRaster(Raster):
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
     warped_ds.SetProjection(wkt)
     warped_ds.SetGeoTransform(geotransform)
-
-    if self.rasterIsEmpty:
-      return [0]*width*height
 
     # reproject image
     gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
@@ -68,6 +64,16 @@ class MemoryWarpRaster(Raster):
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return self.read(1, 1, wkt, geotransform)[0]
+
+class FlatRaster:
+  def __init__(self, value=0):
+    self.value = value
+
+  def read(self, width, height, wkt, geotransform):
+    return [self.value] * width * height
+
+  def readValue(self, wkt, x, y):
+    return self.value
 
 def warpDEM(layer, crs, extent, width, height, multiplier):
   # calculate extent. output dem should be handled as points.

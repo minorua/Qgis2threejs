@@ -61,8 +61,7 @@ class Qgis2threejsDialog(QDialog):
     ui.progressBar.setVisible(False)
     self.switchFocusMode(True)
 
-    ui.checkBox_useDEM.toggled.connect(self.ui.comboBox_DEMLayer.setEnabled)
-
+    ui.checkBox_useDEM.toggled.connect(self.useDemToggled)
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
     ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     ui.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
@@ -316,13 +315,18 @@ class Qgis2threejsDialog(QDialog):
 
     canvas = self.iface.mapCanvas()
     htmlfilename = ui.lineEdit_OutputFilename.text()
-    demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
+    if ui.checkBox_useDEM.isChecked():
+      demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
+    else:
+      demlayerid = None
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(ui.lineEdit_zFactor.text()))
-    useDem = ui.checkBox_useDEM.isChecked()
-    if self.ui.radioButton_Simple.isChecked():
-      dem_width = int(ui.lineEdit_Width.text())
-      dem_height = int(ui.lineEdit_Height.text())
-      context = OutputContext(mapTo3d, canvas, useDem, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
+    if self.ui.radioButton_Simple.isChecked() or demlayerid is None:
+      if demlayerid:
+        dem_width = int(ui.lineEdit_Width.text())
+        dem_height = int(ui.lineEdit_Height.text())
+      else:
+        dem_width = dem_height = 2
+      context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
                               dem_width, dem_height)
       htmlfilename = runSimple(htmlfilename, context, self.progress, ui.spinBox_sidetransp.value())
     else:
@@ -425,6 +429,10 @@ class Qgis2threejsDialog(QDialog):
     if self.rb_point:
       self.iface.mapCanvas().scene().removeItem(self.rb_point)
       self.rb_point = None
+
+  def useDemToggled(self, checked):
+    self.ui.comboBox_DEMLayer.setEnabled(checked)
+    self.ui.groupBox.setEnabled(checked)
 
   def browseClicked(self):
     directory = self.ui.lineEdit_OutputFilename.text()
