@@ -69,7 +69,7 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0):
+  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0):
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.demlayerid = demlayerid
@@ -78,6 +78,7 @@ class OutputContext:
     self.localBrowsingMode = localBrowsingMode
     self.dem_width = dem_width
     self.dem_height = dem_height
+    self.side_transparency = side_transparency
     mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
 
@@ -144,13 +145,24 @@ class JSWriter:
     self.closeFile()
     self.jsindex += 1
 
+  def options(self):
+    options = []
+    if self.context.side_transparency == 100:
+      options.append('option["nosides"] = true;')
+    elif self.context.side_transparency > 0:
+      options.append('option["side_opacity"] = %s;' % str(1.0 - float(self.context.side_transparency) / 100))
+
+    if len(options):
+      return "\n".join(options)
+    return ""
+
   def scripts(self):
     filetitle = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
     if self.jsindex == -1:
       return '<script src="./%s.js"></script>' % filetitle
     return "\n".join(map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count)))
 
-def runSimple(htmlfilename, context, progress=None, sidestransp=0):
+def runSimple(htmlfilename, context, progress=None):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   extent = canvas.extent()
@@ -219,20 +231,16 @@ def runSimple(htmlfilename, context, progress=None, sidestransp=0):
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  if sidestransp == 100:
-      templatename = "template_no_sides.html"
-  else:
-      templatename = "template.html"
-      
+  templatename = "template.html"    #TODO: allow to choose
   with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()).replace("REPLACETRANSPARENCY",str(1-float(sidestransp)/100)))
+    f.write(html.replace("${title}", filetitle).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
 
   return htmlfilename
 
-def runAdvanced(htmlfilename, context, dialog, progress=None, sidestransp=0):
+def runAdvanced(htmlfilename, context, dialog, progress=None):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   if progress is None:
@@ -433,15 +441,12 @@ def runAdvanced(htmlfilename, context, dialog, progress=None, sidestransp=0):
   tools.copyThreejsFiles(out_dir)
 
   # generate html file
-  if sidestransp == 100:
-      templatename = "template_no_sides.html"
-  else:
-      templatename = "template.html"
+  templatename = "template.html"
   with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${scripts}", writer.scripts()).replace("REPLACETRANSPARENCY",str(1-float(sidestransp)/100)))
+    f.write(html.replace("${title}", filetitle).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
 
   return htmlfilename
 

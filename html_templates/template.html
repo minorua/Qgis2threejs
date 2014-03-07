@@ -15,9 +15,7 @@ body { margin: 0; overflow: hidden; }
 <script>
 var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[];
 var option = {nosides: false, side_color:0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0};
-if (typeof(REPLACETRANSPARENCY) != "undefined") {
-  option["side_opacity"] = 1.0 - REPLACETRANSPARENCY;
-}
+${options}
 </script>
 ${scripts}
 <script>

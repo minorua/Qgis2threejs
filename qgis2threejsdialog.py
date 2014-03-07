@@ -327,11 +327,11 @@ class Qgis2threejsDialog(QDialog):
       else:
         dem_width = dem_height = 2
       context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
-                              dem_width, dem_height)
-      htmlfilename = runSimple(htmlfilename, context, self.progress, ui.spinBox_sidetransp.value())
+                              dem_width, dem_height, ui.spinBox_sidetransp.value())
+      htmlfilename = runSimple(htmlfilename, context, self.progress)
     else:
       context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
-      htmlfilename = runAdvanced(htmlfilename, context, self, self.progress, ui.spinBox_sidetransp.value())
+      htmlfilename = runAdvanced(htmlfilename, context, self, self.progress)
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
     if htmlfilename is None:
@@ -445,7 +445,7 @@ class Qgis2threejsDialog(QDialog):
   def samplingModeChanged(self):
     ui = self.ui
     isSimpleMode = ui.radioButton_Simple.isChecked()
-    simple_widgets = [ui.horizontalSlider_Resolution, ui.lineEdit_Width, ui.lineEdit_Height, ui.lineEdit_HRes, ui.lineEdit_VRes]
+    simple_widgets = [ui.horizontalSlider_Resolution, ui.lineEdit_Width, ui.lineEdit_Height, ui.lineEdit_HRes, ui.lineEdit_VRes, ui.spinBox_sidetransp]
     for w in simple_widgets:
       w.setEnabled(isSimpleMode)
 
