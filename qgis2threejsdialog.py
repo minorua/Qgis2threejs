@@ -324,10 +324,10 @@ class Qgis2threejsDialog(QDialog):
       dem_height = int(ui.lineEdit_Height.text())
       context = OutputContext(mapTo3d, canvas, useDem, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
                               dem_width, dem_height)
-      htmlfilename = runSimple(htmlfilename, context, self.progress)
+      htmlfilename = runSimple(htmlfilename, context, self.progress, ui.spinBox_sidetransp.value())
     else:
       context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
-      htmlfilename = runAdvanced(htmlfilename, context, self, self.progress)
+      htmlfilename = runAdvanced(htmlfilename, context, self, self.progress, ui.spinBox_sidetransp.value())
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
     if htmlfilename is None:

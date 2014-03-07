@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\Olivier\.qgis2\python\plugins\Qgis2threejs\qgis2threejsdialog.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Thu Mar  6 01:03:38 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Fri Mar 07 10:11:31 2014
+#      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(485, 541)
+        Qgis2threejsDialog.resize(522, 580)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -239,11 +239,11 @@ class Ui_Qgis2threejsDialog(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 3, 0, 1, 1)
         self.gridLayout_4.addWidget(self.groupBox, 1, 0, 1, 1)
-        self.formLayout_3 = QtGui.QFormLayout()
-        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
+        self.horizontalLayout_10 = QtGui.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
         self.label_15 = QtGui.QLabel(self.tabDEM)
         self.label_15.setObjectName(_fromUtf8("label_15"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_15)
+        self.horizontalLayout_10.addWidget(self.label_15)
         self.lineEdit_zFactor = QtGui.QLineEdit(self.tabDEM)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -254,8 +254,20 @@ class Ui_Qgis2threejsDialog(object):
         self.lineEdit_zFactor.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
         self.lineEdit_zFactor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.lineEdit_zFactor.setObjectName(_fromUtf8("lineEdit_zFactor"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_zFactor)
-        self.gridLayout_4.addLayout(self.formLayout_3, 2, 0, 1, 1)
+        self.horizontalLayout_10.addWidget(self.lineEdit_zFactor)
+        self.label_16 = QtGui.QLabel(self.tabDEM)
+        self.label_16.setObjectName(_fromUtf8("label_16"))
+        self.horizontalLayout_10.addWidget(self.label_16)
+        self.spinBox_sidetransp = QtGui.QSpinBox(self.tabDEM)
+        self.spinBox_sidetransp.setEnabled(True)
+        self.spinBox_sidetransp.setPrefix(_fromUtf8(""))
+        self.spinBox_sidetransp.setMinimum(0)
+        self.spinBox_sidetransp.setMaximum(100)
+        self.spinBox_sidetransp.setSingleStep(10)
+        self.spinBox_sidetransp.setProperty("value", 0)
+        self.spinBox_sidetransp.setObjectName(_fromUtf8("spinBox_sidetransp"))
+        self.horizontalLayout_10.addWidget(self.spinBox_sidetransp)
+        self.gridLayout_4.addLayout(self.horizontalLayout_10, 2, 0, 1, 1)
         self.tabWidget.addTab(self.tabDEM, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -279,7 +291,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 369))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 396))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -422,7 +434,8 @@ class Ui_Qgis2threejsDialog(object):
         self.label_xmin.setText(_translate("Qgis2threejsDialog", "xmin", None))
         self.label_ymin.setText(_translate("Qgis2threejsDialog", "ymin", None))
         self.label_15.setText(_translate("Qgis2threejsDialog", "Vertical exaggeration", None))
-        self.lineEdit_zFactor.setText(_translate("Qgis2threejsDialog", "1.0", None))
+        self.lineEdit_zFactor.setText(_translate("Qgis2threejsDialog", "1.5", None))
+        self.label_16.setText(_translate("Qgis2threejsDialog", "Sides transparency (%)", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), _translate("Qgis2threejsDialog", "DEM", None))
         self.groupBox_zCoordinate.setTitle(_translate("Qgis2threejsDialog", "Z coordinate", None))
         self.groupBox_Styles.setTitle(_translate("Qgis2threejsDialog", "Styles", None))
