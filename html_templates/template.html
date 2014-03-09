@@ -14,7 +14,7 @@ body { margin: 0; overflow: hidden; }
 <script src="./TrackballControls.js"></script>
 <script>
 var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[];
-var option = {nosides: false, side_color:0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
+var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
 ${options}
 </script>
 ${scripts}
@@ -72,25 +72,9 @@ ${scripts}
     scene.add(plane);
   }
 
-  // Sides
+  // Build sides and bottom
   if (option["nosides"] == false && dem.length == 1) {
-    // Altitudes dictionary
-    var altitudes = {
-      'back': [],
-      'left': [],
-      'front': [],
-      'right': []
-    }
-
-    var w = dem[0].width, h = dem[0].height;
-    altitudes['back'] = dem[0].data.slice(0, w);
-    altitudes['front'] = dem[0].data.slice(w * (h - 1));
-    for (var y = 0; y < h; y++) {
-      altitudes['left'].push(dem[0].data[y * w]);
-      altitudes['right'].push(dem[0].data[(y + 1) * w - 1]);
-    }
-    // Build sides and bottom
-    build_sides(scene, altitudes, dem[0].plane.width, dem[0].plane.height);
+    build_sides(scene, dem[0], option["side_color"], option["side_opacity"], option["side_sole_height"]);
   }
 
   /////////////////////////////////////////////////////
@@ -182,37 +166,52 @@ ${scripts}
     return {top: top, left: left};
   }
 
-
-
   /**
    * build_sides()
    *   - scene : scene in which we add sides
-   *   - altitudes : dictionnary of sides altitudes
-   *   - plane_width : width of the DEM
-   *   - plane_height : height of the DEM
+   *   - dem : a dem object
+   *   - color : color of sides
+   *   - opacity : opacity of sides
+   *   - sole_height : depth of bottom under zero
    *
    *  Creates sides and bottom of the DEM to give an impression of "extruding" 
    *  and increase the 3D aspect.
    *  It adds also lights to see correctly the meshes created.
    */
-  function build_sides(scene, altitudes, plane_width, plane_height) {
+  function build_sides(scene, dem, color, opacity, sole_height) {
+
+    // Filling of altitudes dictionary
+    var altitudes = {
+      'back': [],
+      'left': [],
+      'front': [],
+      'right': []
+    };
+
+    var w = dem.width, h = dem.height;
+    altitudes['back'] = dem.data.slice(0, w);
+    altitudes['front'] = dem.data.slice(w * (h - 1));
+    for (var y = 0; y < h; y++) {
+      altitudes['left'].push(dem.data[y * w]);
+      altitudes['right'].push(dem.data[(y + 1) * w - 1]);
+    }
 
     // Material
-    var side_material =  new THREE.MeshLambertMaterial({color: option["side_color"],
-                                                        ambient: option["side_color"],
-                                                        opacity: option["side_opacity"],
-                                                        transparent: (option["side_opacity"] < 1),
+    var side_material =  new THREE.MeshLambertMaterial({color: color,
+                                                        ambient: color,
+                                                        opacity: opacity,
+                                                        transparent: (opacity < 1),
                                                         side: THREE.DoubleSide});
 
     // Sides
     var side_width;
     for (var side in altitudes) {
       if (side == 'back' || side == 'front')
-        side_width = plane_width;
+        side_width = dem.plane.width;
       else
-        side_width = plane_height;
+        side_width = dem.plane.height;
 
-      var geom = new THREE.PlaneGeometry(side_width, option["side_sole_height"] * 2,
+      var geom = new THREE.PlaneGeometry(side_width, 2 * sole_height,
                                          altitudes[side].length -1, 1);
 
       // Filling of the geometry vertices
@@ -225,20 +224,20 @@ ${scripts}
       // Rotation(s) and translating(s) according to the side
       switch (side) {
         case 'back' :
-          mesh.position.y = plane_height/2;
+          mesh.position.y = dem.plane.height/2;
           mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
           break;
         case 'left' :
-          mesh.position.x = -plane_width/2;
+          mesh.position.x = -dem.plane.width/2;
           mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
           mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
           break;
         case 'front' :
-          mesh.position.y = -plane_height/2;
+          mesh.position.y = -dem.plane.height/2;
           mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
           break;
         case 'right' :
-          mesh.position.x = plane_width/2;
+          mesh.position.x = dem.plane.width/2;
           mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
           mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
           break;
@@ -248,18 +247,18 @@ ${scripts}
     }
  
     // Bottom
-    var geom_bottom = new THREE.PlaneGeometry(plane_width, plane_height, 1, 1);
+    var geom_bottom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, 1, 1);
     var plane_bottom = new THREE.Mesh(geom_bottom, side_material);
-    plane_bottom.position.z = -option["side_sole_height"];
+    plane_bottom.position.z = -sole_height;
     scene.add(plane_bottom);
 
     // Additional lights
     var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
-    light2.position.set(plane_width,-plane_height/2,-10);
+    light2.position.set(dem.plane.width, -dem.plane.height / 2, -10);
     scene.add(light2);
 
     var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
-    light3.position.set(-plane_width,plane_height/2,-10);
+    light3.position.set(-dem.plane.width, dem.plane.height / 2, -10);
     scene.add(light3);
   }
 </script>
