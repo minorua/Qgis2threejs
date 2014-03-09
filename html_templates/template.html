@@ -9,7 +9,7 @@ body { margin: 0; overflow: hidden; }
 </style>
 </head>
 <body>
-<div id="webgl" style="background-color:#ccccff"></div>
+<div id="webgl"></div>
 <script src="./three.min.js"></script>
 <script src="./TrackballControls.js"></script>
 <script>
@@ -24,6 +24,7 @@ ${scripts}
 
   var renderer = new THREE.WebGLRenderer();
   renderer.setSize(width, height);
+  renderer.setClearColor(0xccccff, 1);
 
   var scene = new THREE.Scene();
 
