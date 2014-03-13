@@ -14,7 +14,7 @@ body { margin: 0; overflow: hidden; }
 <script src="./TrackballControls.js"></script>
 <script>
 var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[];
-var option = {nosides: false, side_color:0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0};
+var option = {nosides: false, side_color:0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
 ${options}
 </script>
 ${scripts}
@@ -63,7 +63,7 @@ ${scripts}
     }
     texture.needsUpdate = true;
 
-    material = new THREE.MeshPhongMaterial({map: texture});
+    material = new THREE.MeshPhongMaterial({map: texture, opacity: option["dem_opacity"], transparent: (option["dem_opacity"] < 1)});
     plane = new THREE.Mesh(geometry, material);
  
     if (dem[i].plane.offsetX != 0) plane.position.x = dem[i].plane.offsetX;

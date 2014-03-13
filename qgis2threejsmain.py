@@ -69,7 +69,7 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0):
+  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0,dem_transparency=0):
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.demlayerid = demlayerid
@@ -79,6 +79,7 @@ class OutputContext:
     self.dem_width = dem_width
     self.dem_height = dem_height
     self.side_transparency = side_transparency
+    self.dem_transparency = dem_transparency
     mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
 
@@ -151,7 +152,7 @@ class JSWriter:
       options.append('option["nosides"] = true;')
     elif self.context.side_transparency > 0:
       options.append('option["side_opacity"] = %s;' % str(1.0 - float(self.context.side_transparency) / 100))
-
+    options.append('option["dem_opacity"] = %s;' % str(1.0 - float(self.context.dem_transparency) / 100))
     if len(options):
       return "\n".join(options)
     return ""
