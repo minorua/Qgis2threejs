@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qgis2threejsdialog.ui'
 #
-# Created: Thu Mar 13 21:59:34 2014
+# Created: Mon Mar 17 09:37:35 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(533, 622)
+        Qgis2threejsDialog.resize(533, 679)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -64,15 +64,11 @@ class Ui_Qgis2threejsDialog(object):
         self.formLayout_6.setObjectName(_fromUtf8("formLayout_6"))
         self.label_2 = QtGui.QLabel(self.tabDEM)
         self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.formLayout_6.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_2)
-        self.comboBox_DEMLayer = QtGui.QComboBox(self.tabDEM)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_DEMLayer.sizePolicy().hasHeightForWidth())
-        self.comboBox_DEMLayer.setSizePolicy(sizePolicy)
-        self.comboBox_DEMLayer.setObjectName(_fromUtf8("comboBox_DEMLayer"))
-        self.formLayout_6.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_DEMLayer)
+        self.formLayout_6.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.listWidget_DEMLayer = QtGui.QListWidget(self.tabDEM)
+        self.listWidget_DEMLayer.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.listWidget_DEMLayer.setObjectName(_fromUtf8("listWidget_DEMLayer"))
+        self.formLayout_6.setWidget(1, QtGui.QFormLayout.FieldRole, self.listWidget_DEMLayer)
         self.verticalLayout_8.addLayout(self.formLayout_6)
         self.verticalLayout_9.addLayout(self.verticalLayout_8)
         self.groupBox = QtGui.QGroupBox(self.tabDEM)
@@ -309,7 +305,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 435))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 509))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -433,7 +429,8 @@ class Ui_Qgis2threejsDialog(object):
         Qgis2threejsDialog.setWindowTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Qgis2threejs", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_useDEM.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Use a DEM Layer", None, QtGui.QApplication.UnicodeUTF8))
         self.label_17.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM transparency (%)", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM Layers", None, QtGui.QApplication.UnicodeUTF8))
+        self.listWidget_DEMLayer.setSortingEnabled(True)
         self.groupBox.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Resampling", None, QtGui.QApplication.UnicodeUTF8))
         self.label_Resolution.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "about 200 x 200 px", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Columns", None, QtGui.QApplication.UnicodeUTF8))

@@ -59,6 +59,8 @@ ${scripts}
     texture.needsUpdate = true;
     material = new THREE.MeshPhongMaterial({map: texture, opacity: option["dem_opacity"], transparent: (option["dem_opacity"] < 1)});
     plane = new THREE.Mesh(geometry, material);
+    plane.material.side = THREE.DoubleSide;
+    
     if (dem[i].plane.offsetX != 0) plane.position.x = dem[i].plane.offsetX;
     if (dem[i].plane.offsetY != 0) plane.position.y = dem[i].plane.offsetY;
     scene.add(plane);

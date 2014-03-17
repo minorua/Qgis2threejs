@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>533</width>
-    <height>622</height>
+    <height>679</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -88,20 +88,20 @@
              </item>
              <item>
               <layout class="QFormLayout" name="formLayout_6">
-               <item row="0" column="0">
+               <item row="1" column="0">
                 <widget class="QLabel" name="label_2">
                  <property name="text">
-                  <string>DEM Layer</string>
+                  <string>DEM Layers</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
-                <widget class="QComboBox" name="comboBox_DEMLayer">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+               <item row="1" column="1">
+                <widget class="QListWidget" name="listWidget_DEMLayer">
+                 <property name="selectionMode">
+                  <enum>QAbstractItemView::ExtendedSelection</enum>
+                 </property>
+                 <property name="sortingEnabled">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -641,7 +641,7 @@
                   <x>0</x>
                   <y>0</y>
                   <width>238</width>
-                  <height>435</height>
+                  <height>509</height>
                  </rect>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_10">
