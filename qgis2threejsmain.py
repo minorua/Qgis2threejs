@@ -69,10 +69,10 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0,dem_transparency=0):
+  def __init__(self, mapTo3d, canvas, demlayerlist, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0,dem_transparency=0):
     self.mapTo3d = mapTo3d
     self.canvas = canvas
-    self.demlayerid = demlayerid
+    self.demlayerlist = demlayerlist#self.demlayerid = demlayerid#multidem
     self.vectorPropertiesDict = vectorPropertiesDict
     self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
@@ -200,19 +200,6 @@ def runSimple(htmlfilename, context, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
-  if context.demlayerid:
-    demlayer = QgsMapLayerRegistry().instance().mapLayer(context.demlayerid)
-    warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
-  else:
-    warp_dem = tools.FlatRaster()
-
-  dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
-  if mapTo3d.multiplierZ != 1:
-    dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
-  if debug_mode:
-    qDebug("Warped DEM: %d x %d, extent %s" % (context.dem_width, context.dem_height, str(geotransform)))
-  context.setWarpDem(warp_dem)
-
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
   writer.openFile()
@@ -220,8 +207,32 @@ def runSimple(htmlfilename, context, progress=None):
   # write dem data
   offsetX = offsetY = 0
   opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
-  writer.write('dem[0] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (context.dem_width, context.dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-  writer.write('tex[0] = "%s";\n' % tex)
+
+  if len(context.demlayerlist)>0:
+    i=0
+    for item in context.demlayerlist:
+      demlayer = QgsMapLayerRegistry().instance().mapLayer(find_layer(item.text()))
+      warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+      dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
+      if mapTo3d.multiplierZ != 1:
+        dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+      if debug_mode:
+        qDebug("Warped DEM: %d x %d, extent %s" % (context.dem_width, context.dem_height, str(geotransform)))
+      context.setWarpDem(warp_dem)
+      writer.write('dem[%i] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (i,context.dem_width, context.dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      writer.write('tex[%i] = "%s";\n' %(i, tex))
+      i+=1
+  else:
+    warp_dem = tools.FlatRaster()
+    dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
+    if mapTo3d.multiplierZ != 1:
+      dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+    if debug_mode:
+      qDebug("Warped DEM: %d x %d, extent %s" % (context.dem_width, context.dem_height, str(geotransform)))
+    context.setWarpDem(warp_dem)
+    writer.write('dem[0] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (context.dem_width, context.dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write('tex[0] = "%s";\n' % tex)
+
   progress(50)
 
   # write vector data
@@ -246,7 +257,8 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
-  demlayer = QgsMapLayerRegistry().instance().mapLayer(context.demlayerid)
+  for item in context.demlayerlist:
+    demlayer = QgsMapLayerRegistry().instance().mapLayer(find_layer(item.text()))
   temp_dir = QDir.tempPath()
   timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -301,6 +313,7 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
+
 
   warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
   wkt = str(context.crs.toWkt())
@@ -610,3 +623,9 @@ def linesFromWkb25D(wkb, transform):
 
 def dummyProgress(progress):
   pass
+
+def find_layer(layer_name):
+    for name, search_layer in QgsMapLayerRegistry.instance().mapLayers().iteritems():
+        if search_layer.name() == layer_name:
+            return search_layer.id()
+    return None

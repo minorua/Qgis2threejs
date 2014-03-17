@@ -49,7 +49,7 @@ class Qgis2threejs:
       if qVersion() > '4.3.3':
         QCoreApplication.installTranslator(self.translator)
 
-    self.lastDEMLayerId = None
+    self.lastDEMLayerList = None
     self.lastOutputFilename = ""
     self.lastZFactor = "1.5"
     self.lastResolution = 2
@@ -98,7 +98,7 @@ class Qgis2threejs:
     ui.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
     ui.lineEdit_MapCanvasSize.setText("{0} x {1}".format(renderer.width(), renderer.height()))
 
-    dialog.initDEMLayerList(self.lastDEMLayerId)
+    dialog.initDEMLayerList(self.lastDEMLayerList)
     ui.horizontalSlider_Resolution.setValue(self.lastResolution)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
     ui.lineEdit_zFactor.setText(self.lastZFactor)
@@ -111,7 +111,7 @@ class Qgis2threejs:
     dialog.show()
     if dialog.exec_():
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
-      self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
+      self.lastDEMLayerList = ui.listWidget_DEMLayer.selectedItems()
       self.lastZFactor = ui.lineEdit_zFactor.text()
       self.lastResolution = ui.horizontalSlider_Resolution.value()
       self.vectorProperties = dialog.vectorPropertiesDict

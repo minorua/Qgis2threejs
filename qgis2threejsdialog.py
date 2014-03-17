@@ -102,7 +102,7 @@ class Qgis2threejsDialog(QDialog):
       self.showMessageBar("The unit of current CRS is degrees", "Terrain may not appear well.")
 
     # show message if there are no dem layer
-    no_demlayer = ui.comboBox_DEMLayer.count() == 0
+    no_demlayer = ui.listWidget_DEMLayer.count() == 0 
     if no_demlayer:
       ui.checkBox_useDEM.setEnabled(False)
       ui.checkBox_useDEM.setChecked(False)
@@ -123,13 +123,14 @@ class Qgis2threejsDialog(QDialog):
       ui.verticalLayout.setContentsMargins(margins[0], margins[1] / 2, margins[2], margins[3])
     self.bar.pushMessage(title, text, level=level)
 
-  def initDEMLayerList(self, layerId=None):
+  def initDEMLayerList(self, layerList=[]):# TODO:remembar last selection
     # list 1 band raster layers
-    self.ui.comboBox_DEMLayer.clear()
+    self.ui.listWidget_DEMLayer.clear()
     for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
       if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        self.ui.comboBox_DEMLayer.addItem(layer.name(), id)
-
+        self.ui.listWidget_DEMLayer.addItem(layer.name())
+    """
+    #index is not used by listwidgetitem - how to remember selection?
     # select the last selected layer
     if layerId is not None:
       index = self.ui.comboBox_DEMLayer.findData(layerId)
@@ -137,6 +138,7 @@ class Qgis2threejsDialog(QDialog):
         self.ui.comboBox_DEMLayer.setCurrentIndex(index)
       return index
     return -1
+    """
 
   def initVectorLayerTree(self, vectorPropertiesDict):
     self.vectorPropertiesDict = vectorPropertiesDict
@@ -316,21 +318,21 @@ class Qgis2threejsDialog(QDialog):
     canvas = self.iface.mapCanvas()
     htmlfilename = ui.lineEdit_OutputFilename.text()
     if ui.checkBox_useDEM.isChecked():
-      demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
+      demlayerlist = ui.listWidget_DEMLayer.selectedItems()
     else:
-      demlayerid = None
+      demlayerlist=[]
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(ui.lineEdit_zFactor.text()))
-    if self.ui.radioButton_Simple.isChecked() or demlayerid is None:
-      if demlayerid:
+    if self.ui.radioButton_Simple.isChecked() or len(demlayerlist)>0:
+      if len(demlayerlist):
         dem_width = int(ui.lineEdit_Width.text())
         dem_height = int(ui.lineEdit_Height.text())
       else:
         dem_width = dem_height = 2
-      context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
+      context = OutputContext(mapTo3d, canvas, demlayerlist, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
                               dem_width, dem_height, ui.spinBox_sidetransp.value(), ui.spinBox_demtransp.value())
       htmlfilename = runSimple(htmlfilename, context, self.progress)
     else:
-      context = OutputContext(mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
+      context = OutputContext(mapTo3d, canvas, demlayerlist, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
       htmlfilename = runAdvanced(htmlfilename, context, self, self.progress)
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
@@ -431,7 +433,7 @@ class Qgis2threejsDialog(QDialog):
       self.rb_point = None
 
   def useDemToggled(self, checked):
-    self.ui.comboBox_DEMLayer.setEnabled(checked)
+    self.ui.listWidget_DEMLayer.setEnabled(checked)
     self.ui.groupBox.setEnabled(checked)
 
   def browseClicked(self):
