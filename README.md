@@ -34,7 +34,7 @@ There is a list of layers, which are grouped into three: point, line and polygon
 Height from the surface and fixed value are selectable in all cases. In addition, z coordinate of geometry and field are selectable if available. Z coordinate of geometry cannot be used for polygon layer. The unit is that of the project CRS.
 
 * Styles  
-Select a object type from available types for each geometry type. There are some options to set color, size and so on. The unit of size is that of the project CRS. Vertical exggeration in DEM tab will apply for height of object (size).
+Select a object type from available types for each geometry type. There are some options to set color, size and so on. The unit of size is that of the project CRS. Vertical exggeration in DEM tab will apply to height of object (size).
 
 
 ## Plugin settings
@@ -46,7 +46,7 @@ If you want to open web browser other than default browser, use this option.
 * [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data) 
 
 # License
-Three.js is MIT licensed JavaScript library. See threejs/LICENSE.
+Three.js is MIT license JavaScript library. See threejs/LICENSE.
 
 Qgis2threejs is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 

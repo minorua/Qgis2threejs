@@ -6,7 +6,7 @@
  export terrain and map image into web browser
                               -------------------
         begin                : 2014-01-16
-        copyright            : (C) 2014 by Minoru Akagi
+        copyright            : (C) 2014 Minoru Akagi
         email                : akaginch@gmail.com
  ***************************************************************************/
 

@@ -4,7 +4,7 @@
  SettingsDialog
                              -------------------
         begin                : 2014-01-10
-        copyright            : (C) 2014 by Minoru Akagi
+        copyright            : (C) 2014 Minoru Akagi
         email                : akaginch@gmail.com
  ***************************************************************************/
 

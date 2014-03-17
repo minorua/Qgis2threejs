@@ -5,8 +5,8 @@
                                  A QGIS plugin
  export terrain and map image into web browser
                               -------------------
-        begin                : 2013-12-21
-        copyright            : (C) 2013 by Minoru Akagi
+        begin                : 2013-12-29
+        copyright            : (C) 2013 Minoru Akagi
         email                : akaginch@gmail.com
  ***************************************************************************/
 
