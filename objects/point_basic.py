@@ -58,7 +58,8 @@ def write(writer, pt, properties, layer=None, f=None):
   vals = properties.values(f)
   if properties.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
-    writer.write('points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});\n' % (mat, pt.x, pt.y, pt.z, r))
+    if r != 0:
+      writer.write('points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});\n' % (mat, pt.x, pt.y, pt.z, r))
   elif properties.type_index in [1, 3]: # Cylinder, Cone
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if properties.type_index == 3 else rb
