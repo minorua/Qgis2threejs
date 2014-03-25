@@ -13,7 +13,7 @@ body { margin: 0; overflow: hidden; }
 <script src="./three.min.js"></script>
 <script src="./TrackballControls.js"></script>
 <script>
-var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[];
+var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[];
 var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
 ${options}
 </script>
@@ -82,16 +82,34 @@ ${scripts}
   /////////////////////////////////////////////////////
   // point
   var point, pt, obj, meshes = [];
+  var manager, loader, json_objs=[];
   for (var i = 0, l = points.length; i < l; i++) {
     point = points[i];
-    if (point.type == "cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
-    else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
-    else geometry = new THREE.SphereGeometry(point.r);
-
     pt = point.pt;
-    obj = new THREE.Mesh(geometry, mat[point.m]);
-    obj.position.set(pt[0], pt[1], pt[2]);
-    if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
+    if (point.type == "json") {
+      if (manager == undefined) {
+        manager = new THREE.LoadingManager();
+        loader = new THREE.JSONLoader(manager);
+      }
+      if (json_objs[point.json_index] == undefined) {
+        var result = loader.parse(JSON.parse(jsons[point.json_index]));
+        var json_obj = new THREE.Mesh(result.geometry, result.materials[0]);
+        json_objs[point.json_index] = json_obj;
+      }
+      obj = json_objs[point.json_index].clone()
+      obj.position.set(pt[0], pt[1], pt[2]);
+      if (point.rotateX || point.rotateY || point.rotateZ)
+        obj.rotation.set(point.rotateX || 0, point.rotateY || 0, point.rotateZ || 0);
+      if (point.scale) obj.scale.set(point.scale, point.scale, point.scale);
+    } else {
+      if (point.type == "cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
+      else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
+      else geometry = new THREE.SphereGeometry(point.r);
+ 
+      obj = new THREE.Mesh(geometry, mat[point.m]);
+      obj.position.set(pt[0], pt[1], pt[2]);
+      if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
+    }
     scene.add(obj);
     meshes.push(obj)
   }

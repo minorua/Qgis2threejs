@@ -183,6 +183,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self)
     self.widget.label_1.setText(name)
     self.widget.label_2.setText(label)
+    self.widget.lineEdit.setText(str(defaultValue))
     self.widget.toolButton.setVisible(True)
 
     self.widget.comboBox.clear()
