@@ -231,6 +231,11 @@ def runSimple(htmlfilename, context, progress=None):
   # copy three.js files
   tools.copyThreejsFiles(out_dir)
 
+  # copy Qgis2threejs.js
+  target = os.path.join(out_dir, "Qgis2threejs.js")
+  if not os.path.exists(target):
+    QFile.copy(os.path.join(tools.pluginDir(), "js", "Qgis2threejs.js"), target)
+
   # generate html file
   templatename = "template.html"    #TODO: allow to choose
   with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
@@ -440,6 +445,11 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir)
+
+  # copy Qgis2threejs.js
+  target = os.path.join(out_dir, "Qgis2threejs.js")
+  if not os.path.exists(target):
+    QFile.copy(os.path.join(tools.pluginDir(), "js", "Qgis2threejs.js"), target)
 
   # generate html file
   templatename = "template.html"

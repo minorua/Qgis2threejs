@@ -150,7 +150,7 @@ def base64image(image):
   return "data:image/png;base64," + base64.b64encode(ba)
 
 def copyThreejsFiles(out_dir):
-  template_dir = pluginDir() + "/threejs"
+  template_dir = pluginDir() + "/js/threejs"
   filenames = QDir(template_dir).entryList()
   for filename in filenames:
     target = os.path.join(out_dir, filename)
