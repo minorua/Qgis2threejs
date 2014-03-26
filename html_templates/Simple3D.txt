@@ -1,0 +1,5 @@
+[general]
+filename=simple.html
+description=Simple template
+files=js/Qgis2threejs.js
+dirs=js/threejs

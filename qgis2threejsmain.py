@@ -69,7 +69,8 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0,dem_transparency=0):
+  def __init__(self, templateName, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0, dem_transparency=0):
+    self.templateName = templateName
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.demlayerid = demlayerid
@@ -228,17 +229,13 @@ def runSimple(htmlfilename, context, progress=None):
   writeVectors(writer)
   progress(80)
 
-  # copy three.js files
-  tools.copyThreejsFiles(out_dir)
-
-  # copy Qgis2threejs.js
-  target = os.path.join(out_dir, "Qgis2threejs.js")
-  if not os.path.exists(target):
-    QFile.copy(os.path.join(tools.pluginDir(), "js", "Qgis2threejs.js"), target)
+  # copy library files
+  templatePath = os.path.join(tools.templateDir(), context.templateName)
+  metadata = tools.getTemplateMetadata(templatePath)
+  tools.copyLibraries(out_dir, metadata)
 
   # generate html file
-  templatename = "template.html"    #TODO: allow to choose
-  with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
+  with codecs.open(templatePath, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
@@ -443,17 +440,13 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   writeVectors(writer)
   progress(80)
 
-  # copy three.js files
-  tools.copyThreejsFiles(out_dir)
-
-  # copy Qgis2threejs.js
-  target = os.path.join(out_dir, "Qgis2threejs.js")
-  if not os.path.exists(target):
-    QFile.copy(os.path.join(tools.pluginDir(), "js", "Qgis2threejs.js"), target)
+  # copy library files
+  templatePath = os.path.join(tools.templateDir(), context.templateName)
+  metadata = tools.getTemplateMetadata(templatePath)
+  tools.copyLibraries(out_dir, metadata)
 
   # generate html file
-  templatename = "template.html"
-  with codecs.open(tools.pluginDir() + "/html_templates/" + templatename, "r", "UTF-8") as f:
+  with codecs.open(templatePath, "r", "UTF-8") as f:
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'qgis2threejsdialog.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\qgis2threejsdialog.ui'
 #
-# Created: Thu Mar 13 21:59:34 2014
-#      by: PyQt4 UI code generator 4.9.1
+# Created: Wed Mar 26 10:57:07 2014
+#      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,12 +12,21 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(533, 622)
+        Qgis2threejsDialog.resize(533, 542)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -309,7 +318,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 435))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 238, 368))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -423,60 +432,65 @@ class Ui_Qgis2threejsDialog(object):
         self.pushButton_Close.setObjectName(_fromUtf8("pushButton_Close"))
         self.horizontalLayout_7.addWidget(self.pushButton_Close)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
-        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+        self.gridLayout.addLayout(self.verticalLayout, 3, 0, 1, 1)
+        self.formLayout_3 = QtGui.QFormLayout()
+        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
+        self.label = QtGui.QLabel(Qgis2threejsDialog)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label)
+        self.comboBox_Template = QtGui.QComboBox(Qgis2threejsDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBox_Template.sizePolicy().hasHeightForWidth())
+        self.comboBox_Template.setSizePolicy(sizePolicy)
+        self.comboBox_Template.setObjectName(_fromUtf8("comboBox_Template"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Template)
+        self.gridLayout.addLayout(self.formLayout_3, 2, 0, 1, 1)
 
         self.retranslateUi(Qgis2threejsDialog)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Qgis2threejsDialog)
 
     def retranslateUi(self, Qgis2threejsDialog):
-        Qgis2threejsDialog.setWindowTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Qgis2threejs", None, QtGui.QApplication.UnicodeUTF8))
-        self.checkBox_useDEM.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Use a DEM Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_17.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM transparency (%)", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "DEM Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Resampling", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_Resolution.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "about 200 x 200 px", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_4.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Columns", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_5.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Rows", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_8.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "X resolution", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_9.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Y resolution", None, QtGui.QApplication.UnicodeUTF8))
-        self.radioButton_Advanced.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Advanced (multiple resolutions)", None, QtGui.QApplication.UnicodeUTF8))
-        self.radioButton_Simple.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Simple", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_11.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad tree height", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_10.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Quad size", None, QtGui.QApplication.UnicodeUTF8))
-        self.lineEdit.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "64", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_Focus.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Focus point", None, QtGui.QApplication.UnicodeUTF8))
-        self.toolButton_switchFocusMode.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "switch selection mode", None, QtGui.QApplication.UnicodeUTF8))
-        self.toolButton_PointTool.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Get point from map canvas", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_xmax.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "x", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_ymax.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "y", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_xmin.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "xmin", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_ymin.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "ymin", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_15.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Vertical exaggeration", None, QtGui.QApplication.UnicodeUTF8))
-        self.lineEdit_zFactor.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "1.5", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_16.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Sides transparency (%)", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), QtGui.QApplication.translate("Qgis2threejsDialog", "DEM", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_zCoordinate.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Z coordinate", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_Styles.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Styles", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_ObjectType.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Object type", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("Qgis2threejsDialog", "Vector", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_2.setTitle(QtGui.QApplication.translate("Qgis2threejsDialog", "Current map canvas", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_6.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Extent", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_7.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Size", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("Qgis2threejsDialog", "Information", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Output HTML file path", None, QtGui.QApplication.UnicodeUTF8))
-        self.toolButton_Browse.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Browse...", None, QtGui.QApplication.UnicodeUTF8))
-        self.progressBar.setFormat(QtGui.QApplication.translate("Qgis2threejsDialog", "%p%", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_Run.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Run", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_Close.setText(QtGui.QApplication.translate("Qgis2threejsDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    Qgis2threejsDialog = QtGui.QDialog()
-    ui = Ui_Qgis2threejsDialog()
-    ui.setupUi(Qgis2threejsDialog)
-    Qgis2threejsDialog.show()
-    sys.exit(app.exec_())
+        Qgis2threejsDialog.setWindowTitle(_translate("Qgis2threejsDialog", "Qgis2threejs", None))
+        self.checkBox_useDEM.setText(_translate("Qgis2threejsDialog", "Use a DEM Layer", None))
+        self.label_17.setText(_translate("Qgis2threejsDialog", "DEM transparency (%)", None))
+        self.label_2.setText(_translate("Qgis2threejsDialog", "DEM Layer", None))
+        self.groupBox.setTitle(_translate("Qgis2threejsDialog", "Resampling", None))
+        self.label_Resolution.setText(_translate("Qgis2threejsDialog", "about 200 x 200 px", None))
+        self.label_4.setText(_translate("Qgis2threejsDialog", "Columns", None))
+        self.label_5.setText(_translate("Qgis2threejsDialog", "Rows", None))
+        self.label_8.setText(_translate("Qgis2threejsDialog", "X resolution", None))
+        self.label_9.setText(_translate("Qgis2threejsDialog", "Y resolution", None))
+        self.radioButton_Advanced.setText(_translate("Qgis2threejsDialog", "Advanced (multiple resolutions)", None))
+        self.radioButton_Simple.setText(_translate("Qgis2threejsDialog", "Simple", None))
+        self.label_11.setText(_translate("Qgis2threejsDialog", "Quad tree height", None))
+        self.label_10.setText(_translate("Qgis2threejsDialog", "Quad size", None))
+        self.lineEdit.setText(_translate("Qgis2threejsDialog", "64", None))
+        self.label_Focus.setText(_translate("Qgis2threejsDialog", "Focus point", None))
+        self.toolButton_switchFocusMode.setText(_translate("Qgis2threejsDialog", "switch selection mode", None))
+        self.toolButton_PointTool.setText(_translate("Qgis2threejsDialog", "Get point from map canvas", None))
+        self.label_xmax.setText(_translate("Qgis2threejsDialog", "x", None))
+        self.label_ymax.setText(_translate("Qgis2threejsDialog", "y", None))
+        self.label_xmin.setText(_translate("Qgis2threejsDialog", "xmin", None))
+        self.label_ymin.setText(_translate("Qgis2threejsDialog", "ymin", None))
+        self.label_15.setText(_translate("Qgis2threejsDialog", "Vertical exaggeration", None))
+        self.lineEdit_zFactor.setText(_translate("Qgis2threejsDialog", "1.5", None))
+        self.label_16.setText(_translate("Qgis2threejsDialog", "Sides transparency (%)", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDEM), _translate("Qgis2threejsDialog", "DEM", None))
+        self.groupBox_zCoordinate.setTitle(_translate("Qgis2threejsDialog", "Z coordinate", None))
+        self.groupBox_Styles.setTitle(_translate("Qgis2threejsDialog", "Styles", None))
+        self.label_ObjectType.setText(_translate("Qgis2threejsDialog", "Object type", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Qgis2threejsDialog", "Vector", None))
+        self.groupBox_2.setTitle(_translate("Qgis2threejsDialog", "Current map canvas", None))
+        self.label_6.setText(_translate("Qgis2threejsDialog", "Extent", None))
+        self.label_7.setText(_translate("Qgis2threejsDialog", "Size", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Qgis2threejsDialog", "Information", None))
+        self.label_3.setText(_translate("Qgis2threejsDialog", "Output HTML file path", None))
+        self.toolButton_Browse.setText(_translate("Qgis2threejsDialog", "Browse...", None))
+        self.progressBar.setFormat(_translate("Qgis2threejsDialog", "%p%", None))
+        self.pushButton_Run.setText(_translate("Qgis2threejsDialog", "Run", None))
+        self.pushButton_Close.setText(_translate("Qgis2threejsDialog", "Close", None))
+        self.label.setText(_translate("Qgis2threejsDialog", "Template file", None))
 

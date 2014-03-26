@@ -24,6 +24,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import QMessageBox
 import sys
 import os
+import ConfigParser
+import shutil
 import struct
 import base64
 import webbrowser
@@ -149,13 +151,45 @@ def base64image(image):
   image.save(buffer, "PNG")
   return "data:image/png;base64," + base64.b64encode(ba)
 
-def copyThreejsFiles(out_dir):
-  template_dir = pluginDir() + "/js/threejs"
-  filenames = QDir(template_dir).entryList()
-  for filename in filenames:
-    target = os.path.join(out_dir, filename)
-    if not os.path.exists(target):
-      QFile.copy(os.path.join(template_dir, filename), target)
+def getTemplateMetadata(template_path):
+  meta_path = os.path.splitext(template_path)[0] + ".txt"
+  if not os.path.exists(meta_path):
+    return {}
+  parser = ConfigParser.SafeConfigParser()
+  with open(meta_path, "r") as f:
+    parser.readfp(f)
+  metadata = {}
+  for item in parser.items("general"):
+    metadata[item[0]] = item[1]
+  if debug_mode:
+    qDebug("metadata" + str(metadata))
+  return metadata
+
+def copyLibraries(out_dir, metadata):
+  plugin_dir = pluginDir()
+  files = metadata.get("files", "").strip()
+  if files:
+    for f in files.split(","):
+      filepath = os.path.join(plugin_dir, f)
+      filename = os.path.basename(f)
+      target = os.path.join(out_dir, filename)
+      if not os.path.exists(target):
+        if debug_mode:
+          qDebug("Copy file: %s to %s" % (filepath, target))
+        shutil.copy(filepath, target)
+      #TODO: message if already exists
+
+  dirs = metadata.get("dirs", "").strip()
+  if dirs:
+    for d in dirs.split(","):
+      dirpath = os.path.join(plugin_dir, d)
+      dirname = os.path.basename(d)
+      target = os.path.join(out_dir, dirname)
+      if not os.path.exists(target):
+        if debug_mode:
+          qDebug("Copy dir: %s to %s" % (dirpath, target))
+        shutil.copytree(dirpath, target)
+      #TODO: message if already exists
 
 def removeTemporaryFiles(filelist):
   try:
@@ -166,6 +200,9 @@ def removeTemporaryFiles(filelist):
 
 def pluginDir():
   return os.path.dirname(QFile.decodeName(__file__))
+
+def templateDir():
+  return os.path.join(pluginDir(), "html_templates")
 
 def temporaryOutputDir():
   return QDir.tempPath() + "/Qgis2threejs"
