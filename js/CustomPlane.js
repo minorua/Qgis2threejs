@@ -275,7 +275,7 @@ customPlaneHeight.onChange(function(value) {
 customPlaneOpacity.onChange(function(value) {
    if (customPlane) {
      customPlane.material.opacity = value;
-   } 
+   }
 });
 
 function buildVectors(scene) {
