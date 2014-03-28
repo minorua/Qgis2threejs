@@ -1,5 +1,5 @@
 // Variables
-var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[];
+var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[], clickableObjs=[];
 var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
 
 // Function to transform coordinates
@@ -37,6 +37,7 @@ function buildDEM(scene, dem, tex) {
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
   scene.add(plane);
+  clickableObjs.push(plane);
 }
 
 /**

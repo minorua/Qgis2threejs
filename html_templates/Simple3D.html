@@ -38,12 +38,13 @@ ${scripts}
   camera.position.set(0, -100, 100);
 
   var controls = new THREE.TrackballControls(camera);
+  controls.addEventListener('click', canvas_clicked);
+
+  var projector = new THREE.Projector();
 
   // build models
   buildModels(scene);
 
-  //projector = new THREE.Projector();
-  //renderer.domElement.addEventListener('click', clicked);
   document.getElementById('webgl').appendChild(renderer.domElement);
   render();
 
@@ -53,7 +54,13 @@ ${scripts}
     renderer.render(scene, camera);
   }
 
-  function clicked(e) {
+  function object_clicked(obj) {
+    pt = getMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
+    alert("Object clicked\nx: " + pt.x.toFixed(2) + "\ny: " + pt.y.toFixed(2) + "\nz: " + pt.z.toFixed(2));
+  }
+
+  function canvas_clicked(e) {
+    if (object_clicked === undefined) return;
     var canvasOffset = offset(renderer.domElement);
     var mx = e.clientX - canvasOffset.left;
     var my = e.clientY - canvasOffset.top;
@@ -62,10 +69,8 @@ ${scripts}
     var vector = new THREE.Vector3(x, y, 1);
     projector.unprojectVector(vector, camera);
     var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
-    var obj = ray.intersectObjects(meshes);
-    if(obj.length > 0) {
-      alert("Object clicked")
-    }
+    var obj = ray.intersectObjects(clickableObjs);
+    if(obj.length > 0) object_clicked(obj[0]);
   }
 
   function offset(elm) {

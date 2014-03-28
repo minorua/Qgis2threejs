@@ -69,7 +69,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 	var startEvent = { type: 'start'};
 	var endEvent = { type: 'end'};
 
-
 	// methods
 
 	this.handleResize = function () {
@@ -456,6 +455,11 @@ THREE.TrackballControls = function ( object, domElement ) {
 		document.removeEventListener( 'mousemove', mousemove );
 		document.removeEventListener( 'mouseup', mouseup );
 		_this.dispatchEvent( endEvent );
+		if ( event.button == 0 && _rotateStart.equals( _rotateEnd ) ) {
+			var clickEvent = document.createEvent("MouseEvents");
+			clickEvent.initMouseEvent("click", true, true, window, 0, event.screenX, event.screenY, event.clientX, event.clientY, event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
+			_this.dispatchEvent( clickEvent );
+		}
 
 	}
 
@@ -550,6 +554,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		if ( _this.enabled === false ) return;
 
+		//var rotateStart = _rotateStart.clone();
 		switch ( event.touches.length ) {
 
 			case 1:
@@ -568,6 +573,12 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		_state = STATE.NONE;
 		_this.dispatchEvent( endEvent );
+		//if ( event.touches.length == 1 && rotateStart.equals( _rotateEnd ) ) {
+		//	var clickEvent = document.createEvent("MouseEvents");
+		//	var touch = event.touches[ 0 ];
+		//	clickEvent.initMouseEvent("click", true, true, window, 0, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
+		//	_this.dispatchEvent( clickEvent );
+		//}
 
 	}
 
