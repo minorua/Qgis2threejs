@@ -46,7 +46,7 @@ class Point:
     self.z = z
 
 class MapTo3D:
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1):
+  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
     #self.canvasWidth, self.canvasHeight
     self.mapExtent = mapCanvas.extent()
@@ -56,6 +56,8 @@ class MapTo3D:
     self.planeHeight = planeWidth * mapCanvas.extent().height() / mapCanvas.extent().width()
 
     self.verticalExaggeration = verticalExaggeration
+    self.verticalShift = verticalShift
+
     self.multiplier = planeWidth / mapCanvas.extent().width()
     self.multiplierZ = self.multiplier * verticalExaggeration
 
@@ -63,7 +65,7 @@ class MapTo3D:
     extent = self.mapExtent
     return Point((x - extent.xMinimum()) * self.multiplier - self.planeWidth / 2,
                  (y - extent.yMinimum()) * self.multiplier - self.planeHeight / 2,
-                 z * self.multiplierZ)
+                 (z + self.verticalShift) * self.multiplierZ)
 
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
@@ -143,6 +145,18 @@ class JSWriter:
       self.openFile()
     self.jsfile.write(data)
 
+  def writeWorldInfo(self):
+    # write information for coordinates transformation
+    extent = self.context.canvas.extent()
+    mapTo3d = self.context.mapTo3d
+    args = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(), mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift)
+    lines = []
+    lines.append("world = {mapExtent:[%f,%f,%f,%f],width:%f,zExaggeration:%f,zShift:%f};" % args)
+    lines.append("world.height = world.width * (world.mapExtent[3] - world.mapExtent[1]) / (world.mapExtent[2] - world.mapExtent[0]);")
+    lines.append("world.scale = world.width / (world.mapExtent[2] - world.mapExtent[0]);")
+    lines.append("world.zScale = world.scale * world.zExaggeration;")
+    self.write("\n".join(lines) + "\n")
+
   def prepareNext(self):
     self.closeFile()
     self.jsindex += 1
@@ -153,10 +167,9 @@ class JSWriter:
       options.append('option["nosides"] = true;')
     elif self.context.side_transparency > 0:
       options.append('option["side_opacity"] = %s;' % str(1.0 - float(self.context.side_transparency) / 100))
-    options.append('option["dem_opacity"] = %s;' % str(1.0 - float(self.context.dem_transparency) / 100))
-    if len(options):
-      return "\n".join(options)
-    return ""
+    if self.context.dem_transparency > 0:
+      options.append('option["dem_opacity"] = %s;' % str(1.0 - float(self.context.dem_transparency) / 100))
+    return "\n".join(options)
 
   def scripts(self):
     filetitle = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
@@ -208,6 +221,7 @@ def runSimple(htmlfilename, context, progress=None):
     warp_dem = tools.FlatRaster()
 
   dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
+  #TODO: mapTo3d.verticalShift
   if mapTo3d.multiplierZ != 1:
     dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
   if debug_mode:
@@ -217,6 +231,7 @@ def runSimple(htmlfilename, context, progress=None):
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
   writer.openFile()
+  writer.writeWorldInfo()
 
   # write dem data
   offsetX = offsetY = 0
@@ -311,6 +326,8 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   # create JavaScript writer object
   context.setWarpDem(warp_dem)
   writer = JSWriter(htmlfilename, context)
+  writer.openFile(True)
+  writer.writeWorldInfo()
 
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
@@ -344,6 +361,7 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
 
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    #TODO: mapTo3d.verticalShift
     if mapTo3d.multiplierZ != 1:
       dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
     if debug_mode:

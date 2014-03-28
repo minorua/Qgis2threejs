@@ -1,6 +1,13 @@
 // Variables
-var dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[];
+var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[];
 var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
+
+// Function to transform coordinates
+function getMapCoordinates(x, y, z) {
+  return {x : (x + world.width / 2) / world.scale + world.mapExtent[0],
+          y : (y + world.height / 2) / world.scale + world.mapExtent[1],
+          z : z / world.zScale - world.zShift}
+}
 
 // Terrain functions
 function buildDEM(scene, dem, tex) {
