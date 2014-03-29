@@ -1,0 +1,5 @@
+[general]
+filename=plane.html
+description=Custom plane with different Z values
+files=js/CustomPlane.js
+dirs=js/threejs,js/dat-gui

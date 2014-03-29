@@ -221,7 +221,8 @@ def runSimple(htmlfilename, context, progress=None):
   # write dem data
   offsetX = offsetY = 0
   opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
-  writer.write('dem[0] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (context.dem_width, context.dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+  writer.write('dem[0] = {width:%d,height:%d,multiplierZ:%s,plane:%s,data:[%s]};\n' %
+               (context.dem_width, context.dem_height, mapTo3d.multiplierZ, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
   writer.write('tex[0] = "%s";\n' % tex)
   progress(50)
 
