@@ -13,7 +13,7 @@ window.addEventListener("keyup", function(e){
   if (keyPressed == 83) {
     screenShoot = renderer.domElement.toDataURL("image/png");
     imageUrl = screenShoot.replace("image/png", 'data:application/octet-stream');
-    window.open(url);
+    window.open(imageUrl);
   }
 });
 
