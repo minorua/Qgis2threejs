@@ -2,6 +2,22 @@
 var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[], clickableObjs=[];
 var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
 
+//Save as image using the s key
+window.addEventListener("keyup", function(e){
+
+  var screenShoot,
+      keyPressed,
+      imageUrl;
+
+  keyPressed = e.which;
+  if (keyPressed == 83 && e.shiftKey) {
+    screenShoot = renderer.domElement.toDataURL("image/png");
+    imageUrl = screenShoot.replace("image/png", 'data:application/octet-stream');
+    window.open(imageUrl);
+  }
+});
+
+
 // Function to transform coordinates
 function getMapCoordinates(x, y, z) {
   return {x : (x + world.width / 2) / world.scale + world.mapExtent[0],
