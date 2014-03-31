@@ -10,7 +10,7 @@ window.addEventListener("keyup", function(e){
       imageUrl;
 
   keyPressed = e.which;
-  if (keyPressed == 83) {
+  if (keyPressed == 83 && e.shiftKey) {
     screenShoot = renderer.domElement.toDataURL("image/png");
     imageUrl = screenShoot.replace("image/png", 'data:application/octet-stream');
     window.open(imageUrl);
