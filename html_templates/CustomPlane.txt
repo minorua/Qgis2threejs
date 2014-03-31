@@ -2,4 +2,4 @@
 filename=CustomPlane.html
 description=Custom plane with different Z values
 files=js/Qgis2threejs.js,js/CustomPlane.js
-dirs=js/threejs,js/dat-gui
+dirs=js/dat-gui

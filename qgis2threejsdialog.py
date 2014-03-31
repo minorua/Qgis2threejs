@@ -328,6 +328,7 @@ class Qgis2threejsDialog(QDialog):
 
     canvas = self.iface.mapCanvas()
     templateName = ui.comboBox_Template.currentText()
+    controls = "TrackballControls.js"
     htmlfilename = ui.lineEdit_OutputFilename.text()
     if ui.checkBox_useDEM.isChecked():
       demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
@@ -340,11 +341,11 @@ class Qgis2threejsDialog(QDialog):
         dem_height = int(ui.lineEdit_Height.text())
       else:
         dem_width = dem_height = 2
-      context = OutputContext(templateName, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
+      context = OutputContext(templateName, controls, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
                               dem_width, dem_height, ui.spinBox_sidetransp.value(), ui.spinBox_demtransp.value())
       htmlfilename = runSimple(htmlfilename, context, self.progress)
     else:
-      context = OutputContext(templateName, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
+      context = OutputContext(templateName, controls, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
       htmlfilename = runAdvanced(htmlfilename, context, self, self.progress)
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)

@@ -71,8 +71,9 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, templateName, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0, dem_transparency=0):
+  def __init__(self, templateName, controls, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0, dem_transparency=0):
     self.templateName = templateName
+    self.controls = controls
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.demlayerid = demlayerid
@@ -245,7 +246,10 @@ def runSimple(htmlfilename, context, progress=None):
   writeVectors(writer)
   progress(80)
 
-  # copy library files
+  # copy three.js files
+  tools.copyThreejsFiles(out_dir, context.controls)
+
+  # copy additional library files
   templatePath = os.path.join(tools.templateDir(), context.templateName)
   metadata = tools.getTemplateMetadata(templatePath)
   tools.copyLibraries(out_dir, metadata)
@@ -255,7 +259,7 @@ def runSimple(htmlfilename, context, progress=None):
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
+    f.write(html.replace("${title}", filetitle).replace("${controls}", '<script src="./threejs/%s"></script>' % context.controls).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
 
   return htmlfilename
 
@@ -459,7 +463,10 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
   writeVectors(writer)
   progress(80)
 
-  # copy library files
+  # copy three.js files
+  tools.copyThreejsFiles(out_dir, context.controls)
+
+  # copy additional library files
   templatePath = os.path.join(tools.templateDir(), context.templateName)
   metadata = tools.getTemplateMetadata(templatePath)
   tools.copyLibraries(out_dir, metadata)
@@ -469,7 +476,7 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
     html = f.read()
 
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
+    f.write(html.replace("${title}", filetitle).replace("${controls}", '<script src="./threejs/%s"></script>' % context.controls).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
 
   return htmlfilename
 

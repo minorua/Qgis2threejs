@@ -165,7 +165,7 @@ def getTemplateMetadata(template_path):
     qDebug("metadata" + str(metadata))
   return metadata
 
-def copyLibraries(out_dir, metadata):
+def copyLibraries(out_dir, metadata, overwrite=False):
   plugin_dir = pluginDir()
   files = metadata.get("files", "").strip()
   if files:
@@ -173,10 +173,10 @@ def copyLibraries(out_dir, metadata):
       filepath = os.path.join(plugin_dir, f)
       filename = os.path.basename(f)
       target = os.path.join(out_dir, filename)
-      if not os.path.exists(target):
+      if overwrite or not os.path.exists(target):
         if debug_mode:
           qDebug("Copy file: %s to %s" % (filepath, target))
-        shutil.copy(filepath, target)
+        QFile.copy(filepath, target)
       #TODO: message if already exists
 
   dirs = metadata.get("dirs", "").strip()
@@ -185,18 +185,50 @@ def copyLibraries(out_dir, metadata):
       dirpath = os.path.join(plugin_dir, d)
       dirname = os.path.basename(d)
       target = os.path.join(out_dir, dirname)
-      if not os.path.exists(target):
+      if overwrite or not os.path.exists(target):
         if debug_mode:
           qDebug("Copy dir: %s to %s" % (dirpath, target))
         shutil.copytree(dirpath, target)
       #TODO: message if already exists
 
+def copyThreejsFiles(out_dir, controls="TrackballControls.js", overwrite=True):
+  threejs_dir= pluginDir() + "/js/threejs"
+
+  # make directory
+  target_dir = os.path.join(out_dir, "threejs")
+  QDir().mkpath(target_dir)
+
+  # copy files in threejs directory
+  filenames = QDir(threejs_dir).entryList(QDir.Files)
+  for filename in filenames:
+    target = os.path.join(target_dir, filename)
+    if overwrite or not os.path.exists(target):
+      QFile.copy(os.path.join(threejs_dir, filename), target)
+    #TODO: message if already exists
+
+  # copy controls file
+  ctrl_path = os.path.join(threejs_dir, "controls", controls)
+  target = os.path.join(target_dir, controls)
+  if overwrite or not os.path.exists(target):
+    QFile.copy(ctrl_path, target)
+  #TODO: message if already exists
+
 def removeTemporaryFiles(filelist):
-  try:
-    for file in filelist:
-      QFile.remove(file)
-  except:
-    qDebug("Failed to remove temporary files")
+  for file in filelist:
+    QFile.remove(file)
+
+def removeTemporaryOutputDir():
+  removeDir(temporaryOutputDir())
+
+def removeDir(dirName):
+  d = QDir(dirName)
+  if d.exists():
+    for info in d.entryInfoList(QDir.Dirs | QDir.Files | QDir.NoDotAndDotDot):
+      if info.isDir():
+        removeDir(info.absoluteFilePath())
+      else:
+        d.remove(info.fileName())
+    d.rmdir(dirName)
 
 def pluginDir():
   return os.path.dirname(QFile.decodeName(__file__))

@@ -11,7 +11,7 @@ body { margin: 0; overflow: hidden; }
 <body>
 <div id="webgl"></div>
 <script src="./threejs/three.min.js"></script>
-<script src="./threejs/TrackballControls.js"></script>
+${controls}
 <script src="./Qgis2threejs.js"></script>
 <script>
 ${options}
@@ -37,7 +37,7 @@ ${scripts}
   var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
   camera.position.set(0, -100, 100);
 
-  var controls = new THREE.TrackballControls(camera);
+  var controls = createControls(camera, renderer.domElement);
   controls.addEventListener('click', canvas_clicked);
 
   var projector = new THREE.Projector();

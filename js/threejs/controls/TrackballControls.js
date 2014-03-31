@@ -547,3 +547,9 @@ THREE.TrackballControls = function ( object, domElement ) {
 };
 
 THREE.TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+
+function createControls( camera, domElement ) {
+
+	return new THREE.TrackballControls( camera, domElement );
+
+}

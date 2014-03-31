@@ -80,14 +80,7 @@ class Qgis2threejs:
     self.iface.removePluginMenu(u"&Qgis2threejs", self.settingAction)
 
     # remove temporary output directory
-    tempOutDir = QDir(tools.temporaryOutputDir())
-    if tempOutDir.exists():
-      try:
-        for file in tempOutDir.entryList():
-          tempOutDir.remove(file)
-        QDir().rmdir(tools.temporaryOutputDir())
-      except:
-        qDebug("Failed to remove temporary output directory")
+    tools.removeTemporaryOutputDir()
 
   def run(self):
     extent = self.iface.mapCanvas().extent()
