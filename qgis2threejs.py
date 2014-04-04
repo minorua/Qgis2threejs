@@ -30,6 +30,8 @@ from qgis2threejsdialog import Qgis2threejsDialog
 import qgis2threejstools as tools
 import os
 
+debug_mode = 1
+
 class Qgis2threejs:
 
   def __init__(self, iface):
@@ -49,6 +51,7 @@ class Qgis2threejs:
       if qVersion() > '4.3.3':
         QCoreApplication.installTranslator(self.translator)
 
+    self.properties = None
     self.lastTemplateName = ""
     self.lastDEMLayerId = None
     self.lastOutputFilename = ""
@@ -83,36 +86,24 @@ class Qgis2threejs:
     tools.removeTemporaryOutputDir()
 
   def run(self):
-    extent = self.iface.mapCanvas().extent()
-    renderer = self.iface.mapCanvas().mapRenderer()
-
     # create dialog
-    dialog = Qgis2threejsDialog(self.iface)
-    ui = dialog.ui
-    ui.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
-    ui.lineEdit_MapCanvasSize.setText("{0} x {1}".format(renderer.width(), renderer.height()))
+    dialog = Qgis2threejsDialog(self.iface, self.properties)
 
+    ui = dialog.ui
     dialog.initTemplateList(self.lastTemplateName)
-    dialog.initDEMLayerList(self.lastDEMLayerId)
-    ui.horizontalSlider_Resolution.setValue(self.lastResolution)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
-    ui.lineEdit_zFactor.setText(self.lastZFactor)
-    ui.spinBox_sidetransp.setValue(self.sidestransp)
-    ui.spinBox_demtransp.setValue(self.demtransp)
-    dialog.calculateResolution()
-    dialog.initVectorLayerTree(self.vectorProperties)
 
     # show dialog
     dialog.show()
     if dialog.exec_():
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
-      self.lastTemplateName = ui.comboBox_Template.currentText()
-      self.lastDEMLayerId = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
-      self.lastZFactor = ui.lineEdit_zFactor.text()
-      self.lastResolution = ui.horizontalSlider_Resolution.value()
-      self.vectorProperties = dialog.vectorPropertiesDict
-      self.sidestransp=ui.spinBox_sidetransp.value()
-      self.demtransp=ui.spinBox_demtransp.value()
+
+    self.properties = dialog.properties
+    self.lastTemplateName = ui.comboBox_Template.currentText()
+    if debug_mode:
+      qDebug(str(self.properties))
+      #with open("M:/properties.txt", "w") as f:
+      #  f.write(str(self.properties).replace("}", "}\n\n"))
 
   def setting(self):
     from settingsdialog import SettingsDialog

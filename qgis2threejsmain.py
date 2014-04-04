@@ -36,8 +36,21 @@ import gdal2threejs
 import qgis2threejstools as tools
 from quadtree import *
 from vectorobject import *
+from propertyreader import DEMPropertyReader, VectorPropertyReader
 
 apiChanged22 = False
+
+# used for tree widget and properties
+class ObjectTreeItem:
+  topItemNames = ["World", "Controls", "Plane", "Primary DEM", "Additional DEM", "Point", "Line", "Polygon"]
+  ITEM_WORLD = 0
+  ITEM_CONTROLS = 1
+  ITEM_PLANE = 2
+  ITEM_DEM = 3
+  ITEM_OPTDEM = 4
+  ITEM_POINT = 5
+  ITEM_LINE = 6
+  ITEM_POLYGON = 7
 
 class Point:
   def __init__(self, x, y, z=0):
@@ -71,23 +84,28 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, templateName, controls, mapTo3d, canvas, demlayerid, vectorPropertiesDict, objectTypeManager, localBrowsingMode=True, dem_width=0, dem_height=0, side_transparency=0, dem_transparency=0):
+  def __init__(self, templateName, controls, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
     self.templateName = templateName
     self.controls = controls
     self.mapTo3d = mapTo3d
     self.canvas = canvas
-    self.demlayerid = demlayerid
-    self.vectorPropertiesDict = vectorPropertiesDict
+    self.properties = properties
+    self.dialog = dialog
     self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
-    self.dem_width = dem_width
-    self.dem_height = dem_height
-    self.side_transparency = side_transparency
-    self.dem_transparency = dem_transparency
     mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
 
+    self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
+    if demLayerId:
+      layer = QgsMapLayerRegistry().instance().mapLayer(demLayerId)
+      self.warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
+    else:
+      self.warp_dem = tools.FlatRaster()
+
+  # deprecated
   def setWarpDem(self, warp_dem):
+    QMessageBox.information(None, "", "setWarpDem has been deprecated")
     self.warp_dem = warp_dem
 
 class MaterialManager:
@@ -122,6 +140,8 @@ class JSWriter:
     self.jsindex = -1
     self.jsfile_count = 0
     self.materialManager = MaterialManager()
+    #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
+    #TODO: written flag
 
   def setContext(self, context):
     self.context = context
@@ -164,12 +184,6 @@ class JSWriter:
 
   def options(self):
     options = []
-    if self.context.side_transparency == 100:
-      options.append('option["nosides"] = true;')
-    elif self.context.side_transparency > 0:
-      options.append('option["side_opacity"] = %s;' % str(1.0 - float(self.context.side_transparency) / 100))
-    if self.context.dem_transparency > 0:
-      options.append('option["dem_opacity"] = %s;' % str(1.0 - float(self.context.dem_transparency) / 100))
     return "\n".join(options)
 
   def scripts(self):
@@ -178,15 +192,16 @@ class JSWriter:
       return '<script src="./%s.js"></script>' % filetitle
     return "\n".join(map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count)))
 
-def runSimple(htmlfilename, context, progress=None):
+def exportToThreeJS(htmlfilename, context, progress=None):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   extent = canvas.extent()
   if progress is None:
     progress = dummyProgress
   temp_dir = QDir.tempPath()
+  
+  #TODO: do in JSWriter?
   timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
-
   if htmlfilename == "":
     htmlfilename = tools.temporaryOutputDir() + "/%s.html" % timestamp
   out_dir, filename = os.path.split(htmlfilename)
@@ -195,51 +210,27 @@ def runSimple(htmlfilename, context, progress=None):
 
   filetitle = os.path.splitext(filename)[0]
 
-  # save map canvas image
-  if context.localBrowsingMode:
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
-    canvas.saveAsImage(texfilename)
-    tex = gdal2threejs.base64image(texfilename)
-    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
-  else:
-    texfilename = os.path.splitext(htmlfilename)[0] + ".png"
-    canvas.saveAsImage(texfilename)
-    tex = os.path.split(texfilename)[1]
-    tools.removeTemporaryFiles([texfilename + "w"])
-  progress(20)
-
-  # warp dem
-  # calculate extent. output dem should be handled as points.
-  xres = extent.width() / (context.dem_width - 1)
-  yres = extent.height() / (context.dem_height - 1)
-  geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
-  wkt = str(context.crs.toWkt())
-
-  if context.demlayerid:
-    demlayer = QgsMapLayerRegistry().instance().mapLayer(context.demlayerid)
-    warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
-  else:
-    warp_dem = tools.FlatRaster()
-
-  dem_values = warp_dem.read(context.dem_width, context.dem_height, wkt, geotransform)
-  #TODO: mapTo3d.verticalShift
-  if mapTo3d.multiplierZ != 1:
-    dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
-  if debug_mode:
-    qDebug("Warped DEM: %d x %d, extent %s" % (context.dem_width, context.dem_height, str(geotransform)))
-  context.setWarpDem(warp_dem)
+  demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
+  isSimpleMode = demProperties["radioButton_Simple"]
 
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
-  writer.openFile()
+  writer.openFile(not isSimpleMode)
   writer.writeWorldInfo()
 
-  # write dem data
-  offsetX = offsetY = 0
-  opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
-  writer.write('dem[0] = {width:%d,height:%d,multiplierZ:%s,plane:%s,data:[%s]};\n' %
-               (context.dem_width, context.dem_height, mapTo3d.multiplierZ, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-  writer.write('tex[0] = "%s";\n' % tex)
+  #TODO
+  writer.timestamp = timestamp
+
+  # write DEM(s)
+  if isSimpleMode:
+    progress(20)
+    writeSimpleDEM(writer, demProperties)
+  else:
+    writeMultiResDEM(writer, demProperties, progress)
+    writer.prepareNext()
+
+  #TODO: write additional DEM(s)
+
   progress(50)
 
   # write vector data
@@ -263,31 +254,97 @@ def runSimple(htmlfilename, context, progress=None):
 
   return htmlfilename
 
-def runAdvanced(htmlfilename, context, dialog, progress=None):
+def writeSimpleDEM(writer, properties):
+  context = writer.context
+  mapTo3d = context.mapTo3d
+  canvas = context.canvas
+  extent = canvas.extent()
+  temp_dir = QDir.tempPath()
+  timestamp = writer.timestamp
+  htmlfilename = writer.htmlfilename
+
+  dem = DEMPropertyReader(properties)
+  dem_width = dem.width()
+  dem_height = dem.height()
+
+  # save map canvas image
+  #TODO: prepare material(texture) in Material manager (result is tex -> material index)
+  if context.localBrowsingMode:
+    texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
+    canvas.saveAsImage(texfilename)
+    tex = gdal2threejs.base64image(texfilename)
+    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
+  else:
+    texfilename = os.path.splitext(htmlfilename)[0] + ".png"
+    canvas.saveAsImage(texfilename)
+    tex = os.path.split(texfilename)[1]
+    tools.removeTemporaryFiles([texfilename + "w"])
+
+  # warp dem
+  # calculate extent. output dem should be handled as points.
+  xres = extent.width() / (dem_width - 1)
+  yres = extent.height() / (dem_height - 1)
+  geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+  wkt = str(context.crs.toWkt())
+
+  warp_dem = context.warp_dem
+  dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+  #TODO: mapTo3d.verticalShift
+  if mapTo3d.multiplierZ != 1:
+    dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+  if debug_mode:
+    qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
+
+  demTransparency = dem.properties["spinBox_demtransp"]
+  sidesTransparency = dem.properties["spinBox_sidetransp"]
+  demOpacity = str(1.0 - float(demTransparency) / 100)
+  sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
+
+  # write dem data
+  offsetX = offsetY = 0
+  plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
+  #TODO: use str() for float
+
+  options = []
+  if demTransparency > 0:
+    options.append("opacity:%s" % demOpacity)
+  if sidesTransparency == 100:
+    options.append("nosides:true")    #hasSide (default:false)
+  elif sidesTransparency > 0:
+    options.append("side_opacity:%s" % sidesOpacity)
+
+  opt = ""
+  if len(options) > 0:
+    opt = ",".join(options) + ","
+
+  writer.write('dem[0] = {width:%d,height:%d,plane:%s,%sdata:[%s]};\n' %
+               (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+               #TODO: material index
+  writer.write('tex[0] = "%s";\n' % tex)
+
+def writeMultiResDEM(writer, properties, progress=None):
+  context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
-  demlayer = QgsMapLayerRegistry().instance().mapLayer(context.demlayerid)
+  demlayer = QgsMapLayerRegistry().instance().mapLayer(properties["comboBox_DEMLayer"])
   temp_dir = QDir.tempPath()
-  timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
+  timestamp = writer.timestamp
+  htmlfilename = writer.htmlfilename
 
-  if htmlfilename == "":
-    htmlfilename = tools.temporaryOutputDir() + "/%s.html" % timestamp
   out_dir, filename = os.path.split(htmlfilename)
-  if not QDir(out_dir).exists():
-    QDir().mkpath(out_dir)
   filetitle = os.path.splitext(filename)[0]
 
   # create quad tree
-  quadtree = dialog.createQuadTree()
+  quadtree = createQuadTree(canvas.extent(), properties)
   if quadtree is None:
     QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
     return
   quads = quadtree.quads()
 
   # create quads and a point on map canvas with rubber bands
-  dialog.createRubberBands(quads, quadtree.focusRect.center())
+  context.dialog.createRubberBands(quads, quadtree.focusRect.center())
 
   # create an image for texture
   image_basesize = 128
@@ -326,12 +383,6 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
 
   warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
   wkt = str(context.crs.toWkt())
-
-  # create JavaScript writer object
-  context.setWarpDem(warp_dem)
-  writer = JSWriter(htmlfilename, context)
-  writer.openFile(True)
-  writer.writeWorldInfo()
 
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
@@ -456,44 +507,27 @@ def runAdvanced(htmlfilename, context, dialog, progress=None):
     writer.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (plane_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
     writer.write('tex[%d] = "%s";\n' % (plane_index, tex))
     plane_index += 1
-  progress(50)
-
-  # vector data output
-  writer.prepareNext()
-  writeVectors(writer)
-  progress(80)
-
-  # copy three.js files
-  tools.copyThreejsFiles(out_dir, context.controls)
-
-  # copy additional library files
-  templatePath = os.path.join(tools.templateDir(), context.templateName)
-  metadata = tools.getTemplateMetadata(templatePath)
-  tools.copyLibraries(out_dir, metadata)
-
-  # generate html file
-  with codecs.open(templatePath, "r", "UTF-8") as f:
-    html = f.read()
-
-  with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${controls}", '<script src="./threejs/%s"></script>' % context.controls).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
-
-  return htmlfilename
 
 def writeVectors(writer):
   context = writer.context
   canvas = context.canvas
   mapTo3d = context.mapTo3d
   warp_dem = context.warp_dem
-  for layerid, prop_dict in context.vectorPropertiesDict.items():
-    properties = VectorObjectProperties(prop_dict)
-    if not properties.visible:
-      continue
-    layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
+
+  layerProperties = {}
+  for itemType in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
+    for layerId, properties in context.properties[itemType].iteritems():
+      if properties.get("visible", False):
+        layerProperties[layerId] = properties
+
+  for layerId, properties in layerProperties.iteritems():
+    layer = QgsMapLayerRegistry().instance().mapLayer(layerId)
     if layer is None:
       continue
     geom_type = layer.geometryType()
-    obj_mod = context.objectTypeManager.module(properties.mod_index)
+
+    prop = VectorPropertyReader(context.objectTypeManager, layer, properties)
+    obj_mod = context.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
@@ -505,10 +539,10 @@ def writeVectors(writer):
       geom_type == geom.type()
       wkb_type = geom.wkbType()
       if geom_type == QGis.Point:
-        if properties.useZ():
+        if prop.useZ():
           for pt in pointsFromWkb25D(geom.asWkb(), transform):
-            h = pt[2] + properties.relativeHeight(f)
-            obj_mod.write(writer, mapTo3d.transform(pt[0], pt[1], h), properties, layer, f)
+            h = pt[2] + prop.relativeHeight(f)
+            obj_mod.write(writer, mapTo3d.transform(pt[0], pt[1], h), prop, layer, f)
         else:
           if geom.isMultipart():
             points = geom.asMultiPoint()
@@ -516,20 +550,20 @@ def writeVectors(writer):
             points = [geom.asPoint()]
           for point in points:
             pt = transform.transform(point)
-            if properties.isHeightRelativeToSurface():
+            if prop.isHeightRelativeToSurface():
               # get surface elevation at the point and relative height
-              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
-              h = properties.relativeHeight(f)
-            obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), properties, layer, f)
+              h = prop.relativeHeight(f)
+            obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), prop, layer, f)
       elif geom_type == QGis.Line:
-        if properties.useZ():
+        if prop.useZ():
           for line in linesFromWkb25D(geom.asWkb(), transform):
             points = []
             for pt in line:
-              h = pt[2] + properties.relativeHeight(f)
+              h = pt[2] + prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt[0], pt[1], h))
-            obj_mod.write(writer, points, properties, layer, f)
+            obj_mod.write(writer, points, prop, layer, f)
         else:
           if geom.isMultipart():
             lines = geom.asMultiPolyline()
@@ -539,12 +573,12 @@ def writeVectors(writer):
             points = []
             for pt_orig in line:
               pt = transform.transform(pt_orig)
-              if properties.isHeightRelativeToSurface():
-                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              if prop.isHeightRelativeToSurface():
+                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
               else:
-                h = properties.relativeHeight(f)
+                h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            obj_mod.write(writer, points, properties, layer, f)
+            obj_mod.write(writer, points, prop, layer, f)
       elif geom_type == QGis.Polygon:
         if geom.isMultipart():
           polygons = geom.asMultiPolygon()
@@ -554,10 +588,10 @@ def writeVectors(writer):
         useCentroidHeight = False
         if useCentroidHeight:
           pt = transform.transform(geom.centroid().asPoint())
-          if properties.isHeightRelativeToSurface():
-            centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+          if prop.isHeightRelativeToSurface():
+            centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
           else:
-            centroidHeight = properties.relativeHeight(f)
+            centroidHeight = prop.relativeHeight(f)
 
         for polygon in polygons:
           boundaries = []
@@ -567,10 +601,10 @@ def writeVectors(writer):
             pt = transform.transform(pt_orig)
             if useCentroidHeight:
               h = centroidHeight
-            elif properties.isHeightRelativeToSurface():
-              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+            elif prop.isHeightRelativeToSurface():
+              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
-              h = properties.relativeHeight(f)
+              h = prop.relativeHeight(f)
             points.append(mapTo3d.transform(pt.x(), pt.y(), h))
           boundaries.append(points)
           # inner boundaries
@@ -580,14 +614,14 @@ def writeVectors(writer):
               pt = transform.transform(pt_orig)
               if useCentroidHeight:
                 h = centroidHeight
-              elif properties.isHeightRelativeToSurface():
-                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + properties.relativeHeight(f)
+              elif prop.isHeightRelativeToSurface():
+                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
               else:
-                h = properties.relativeHeight(f)
+                h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             points.reverse()    # to counter clockwise direction
             boundaries.append(points)
-          obj_mod.write(writer, boundaries, properties, layer, f)
+          obj_mod.write(writer, boundaries, prop, layer, f)
   # write materials
   writer.materialManager.write(writer)
 
@@ -636,6 +670,16 @@ def linesFromWkb25D(wkb, transform):
       points.append([pt.x(), pt.y(), pt_orig[2]])
     lines.append(points)
   return lines
+
+# createQuadTree(extent, demProperties)
+def createQuadTree(extent, p):
+  try:
+    c = map(float, [p["lineEdit_xmin"], p["lineEdit_ymin"], p["lineEdit_xmax"], p["lineEdit_ymax"]])
+  except:
+    return None
+  quadtree = QuadTree(extent)
+  quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), p["spinBox_Height"])
+  return quadtree
 
 def dummyProgress(progress):
   pass

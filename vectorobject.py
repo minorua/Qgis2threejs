@@ -27,7 +27,6 @@ import random
 from vectorstylewidgets import *
 
 debug_mode = 1
-colorNames = []
 
 def list_modules():
   for nam, mod in sys.modules.items():
@@ -96,63 +95,3 @@ class ObjectTypeManager:
       typeitem = self.objTypes[geom_type][item_index]
       return self.modules[typeitem.mod_index].setupForm(dialog, mapTo3d, layer, typeitem.type_index)
     return False
-
-class VectorObjectProperties:
-
-  def __init__(self, prop_dict=None):
-    if prop_dict is None:
-      self.prop_dict = []
-      self.visible = False
-    else:
-      self.prop_dict = prop_dict
-      self.item_index = prop_dict["itemindex"]
-      typeitem = prop_dict["typeitem"]
-      self.type_name = typeitem.name
-      self.mod_index = typeitem.mod_index
-      self.type_index = typeitem.type_index
-      self.visible = prop_dict["visible"]
-    self.layer = None
-
-  def color(self, layer=None, f=None):
-    global colorNames
-    vals = self.prop_dict["color"]
-    if vals[0] == ColorWidgetFunc.RGB:
-      return vals[2]
-    elif vals[0] == ColorWidgetFunc.RANDOM or layer is None or f is None:
-      if len(colorNames) == 0:
-        colorNames = QColor.colorNames()
-      colorName = random.choice(colorNames)
-      colorNames.remove(colorName)
-      return QColor(colorName).name().replace("#", "0x")
-    symbol = layer.rendererV2().symbolForFeature(f)
-    if symbol is None:
-      QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
-      symbol = layer.rendererV2().symbols()[0]
-    return symbol.color().name().replace("#", "0x")
-
-  def useZ(self):
-    return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE_TO_Z
-
-  def isHeightRelativeToSurface(self):
-    return self.prop_dict["height"][0] == HeightWidgetFunc.RELATIVE
-
-  def relativeHeight(self, f=None):
-    lst = self.prop_dict["height"]
-    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE_TO_Z] or f is None:
-      return float(lst[2])
-    # attribute value + addend
-    return float(f.attribute(lst[1])) + float(lst[2])
-
-  def values(self, f=None):
-    vals = []
-    for i in range(32):   # big number for style count
-      if i in self.prop_dict:
-        lst = self.prop_dict[i]
-        if lst[0] == FieldValueWidgetFunc.ABSOLUTE or f is None:
-          vals.append(lst[2])
-        else:
-          # attribute value * multiplier
-          vals.append(str(float(f.attribute(lst[1])) * float(lst[2])))
-      else:
-        break
-    return vals

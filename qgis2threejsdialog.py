@@ -29,21 +29,32 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 from ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 
-from qgis2threejsmain import *
+from qgis2threejsmain import ObjectTreeItem, MapTo3D, OutputContext, exportToThreeJS
 import qgis2threejstools as tools
 from quadtree import *
 from vectorobject import *
-from vectorstylewidgets import *
+import propertypages as ppages
+
 
 debug_mode = 1
 
 class Qgis2threejsDialog(QDialog):
   STYLE_MAX_COUNT = 3
 
-  def __init__(self, iface):
+  def __init__(self, iface, properties=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
     self.apiChanged22 = False   # not QgsApplication.prefixPath().startswith("C:/OSGeo4W")  # QGis.QGIS_VERSION_INT >= 20200
+
+    self.currentItem = None
+    self.currentPage = None
+    topItemCount = len(ObjectTreeItem.topItemNames)
+    if properties is None:
+      self.properties = [None] * topItemCount
+      for i in range(ObjectTreeItem.ITEM_OPTDEM, topItemCount):
+        self.properties[i] = {}
+    else:
+      self.properties = properties
 
     # Set up the user interface from Designer.
     self.ui = ui = Ui_Qgis2threejsDialog()
@@ -55,43 +66,38 @@ class Qgis2threejsDialog(QDialog):
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
 
-    # DEM tab
-    ui.toolButton_switchFocusMode.setVisible(False)
-    ui.toolButton_PointTool.setVisible(False)
-    ui.progressBar.setVisible(False)
-    self.switchFocusMode(True)
-
-    ui.checkBox_useDEM.toggled.connect(self.useDemToggled)
-    ui.toolButton_Browse.clicked.connect(self.browseClicked)
-    ui.radioButton_Simple.toggled.connect(self.samplingModeChanged)
-    ui.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
-    ui.spinBox_Height.valueChanged.connect(self.updateQuads)
-    ui.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
-    ui.toolButton_PointTool.clicked.connect(self.startPointSelection)
-
-    # Vector tab
-    ui.treeWidget_VectorLayers.setHeaderLabel("Vector layers")
-    self.initVectorStyleWidgets()
-
-    ui.treeWidget_VectorLayers.currentItemChanged.connect(self.currentVectorLayerChanged)
-    ui.treeWidget_VectorLayers.itemChanged.connect(self.vectorLayerItemChanged)
-    ui.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)
-
-    self.bar = None
-    self.localBrowsingMode = True
-    self.rb_quads = self.rb_point = None
-    self.currentVectorLayer = None
-    self.vectorPropertiesDict = {}
-    self.objectTypeManager = ObjectTypeManager()
-
-    # set map tool
+    # set up map tool
     self.previousMapTool = None
     self.mapTool = RectangleMapTool(iface.mapCanvas())
-    self.connect(self.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
-#    self.mapTool = PointMapTool(iface.mapCanvas())
-#    QObject.connect(self.mapTool, SIGNAL("pointSelected()"), self.pointSelected)
-    iface.mapCanvas().mapToolSet.connect(self.mapToolSet)
-    self.startPointSelection()
+    #self.mapTool = PointMapTool(iface.mapCanvas())
+
+    # set up the properties pages
+    self.pages = {}
+    self.pages[ppages.PAGE_WORLD] = ppages.WorldPropertyPage(self)
+    #self.pages[ppages.PAGE_CONTROLS] = ppages.ControlsPropertyPage(self)
+    #self.pages[ppages.PAGE_PLANE] = ppages.PlanePropertyPage(self)
+    self.pages[ppages.PAGE_DEM] = ppages.DEMPropertyPage(self)
+    self.pages[ppages.PAGE_VECTOR] = ppages.VectorPropertyPage(self)
+    container = ui.propertyPagesContainer
+    for page in self.pages.itervalues():
+      page.hide()
+      container.addWidget(page)
+
+    # build object tree
+    self.topItemPages = {ObjectTreeItem.ITEM_WORLD: ppages.PAGE_WORLD, ObjectTreeItem.ITEM_CONTROLS: ppages.PAGE_CONTROLS, ObjectTreeItem.ITEM_PLANE: ppages.PAGE_PLANE, ObjectTreeItem.ITEM_DEM: ppages.PAGE_DEM}
+    self.initObjectTree()
+    self.ui.treeWidget.currentItemChanged.connect(self.currentObjectChanged)
+    self.ui.treeWidget.itemChanged.connect(self.objectItemChanged)
+
+    ui.progressBar.setVisible(False)
+    ui.toolButton_Browse.clicked.connect(self.browseClicked)
+
+    #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
+
+    self.bar = None   # QgsMessageBar
+    self.localBrowsingMode = True
+    self.rb_quads = self.rb_point = None
+    self.objectTypeManager = ObjectTypeManager()
 
   def exec_(self):
     ui = self.ui
@@ -101,11 +107,7 @@ class Qgis2threejsDialog(QDialog):
     if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
       self.showMessageBar("The unit of current CRS is degrees", "Terrain may not appear well.")
 
-    # show message if there are no dem layer
-    no_demlayer = ui.comboBox_DEMLayer.count() == 0
-    if no_demlayer:
-      ui.checkBox_useDEM.setEnabled(False)
-      ui.checkBox_useDEM.setChecked(False)
+    self.ui.treeWidget.setCurrentItem(self.ui.treeWidget.topLevelItem(ObjectTreeItem.ITEM_DEM))
 
     return QDialog.exec_(self)
 
@@ -136,110 +138,132 @@ class Qgis2threejsDialog(QDialog):
       return index
     return -1
 
-  def initDEMLayerList(self, layerId=None):
-    # list 1 band raster layers
-    self.ui.comboBox_DEMLayer.clear()
-    for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
-      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        self.ui.comboBox_DEMLayer.addItem(layer.name(), id)
-
-    # select the last selected layer
-    if layerId is not None:
-      index = self.ui.comboBox_DEMLayer.findData(layerId)
-      if index != -1:
-        self.ui.comboBox_DEMLayer.setCurrentIndex(index)
-      return index
-    return -1
-
-  def initVectorLayerTree(self, vectorPropertiesDict):
-    self.vectorPropertiesDict = vectorPropertiesDict
-    tree = self.ui.treeWidget_VectorLayers
+  def initObjectTree(self):
+    tree = self.ui.treeWidget
     tree.clear()
-    # add vector layers into tree widget
-    self.treeTopItems = topItems = {QGis.Point:QTreeWidgetItem(tree, ["Point"]), QGis.Line:QTreeWidgetItem(tree, ["Line"]), QGis.Polygon:QTreeWidgetItem(tree, ["Polygon"])}
-    self.vlItems = {}
-    for layer in self.iface.legendInterface().layers():
-      if layer.type() != QgsMapLayer.VectorLayer:
-        continue
-      geometry_type = layer.geometryType()
-      if geometry_type in [QGis.Point, QGis.Line, QGis.Polygon]:
-        self.vlItems[layer.id()] = item = QTreeWidgetItem(topItems[geometry_type], [layer.name()])
-        if layer.id() in self.vectorPropertiesDict:
-          isVisible = self.vectorPropertiesDict[layer.id()]["visible"]
-        else:
-          isVisible = False   #self.iface.legendInterface().isLayerVisible(layer)
-        check_state = Qt.Checked if isVisible else Qt.Unchecked
-        item.setData(0, Qt.CheckStateRole, check_state)
-        item.setData(0, Qt.UserRole, layer.id())
-        #item.setDisabled(True)
-        #item.setData(0, Qt.CheckStateRole, Qt.Unchecked)
 
-    for item in topItems.values():
+    # add vector and raster layers into tree widget
+    topItems = []
+    for index, itemName in enumerate(ObjectTreeItem.topItemNames):
+      item = QTreeWidgetItem(tree, [itemName])
+      item.setData(0, Qt.UserRole, index)
+      topItems.append(item)
+
+    for layer in self.iface.legendInterface().layers():
+      layerType = layer.type()
+      if layerType not in (QgsMapLayer.VectorLayer, QgsMapLayer.RasterLayer):
+        continue
+
+      parentId = None
+      if layerType == QgsMapLayer.VectorLayer:
+        geometry_type = layer.geometryType()
+        if geometry_type in [QGis.Point, QGis.Line, QGis.Polygon]:
+          parentId = ObjectTreeItem.ITEM_POINT + geometry_type    # - QGis.Point
+      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+        parentId = ObjectTreeItem.ITEM_OPTDEM
+      if parentId is None:
+        continue
+
+      item = QTreeWidgetItem(topItems[parentId], [layer.name()])
+      isVisible = self.properties[parentId].get(layer.id(), {}).get("visible", False)   #self.iface.legendInterface().isLayerVisible(layer)
+      check_state = Qt.Checked if isVisible else Qt.Unchecked
+      item.setData(0, Qt.CheckStateRole, check_state)
+      item.setData(0, Qt.UserRole, layer.id())
+
+    for item in topItems:
       tree.expandItem(item)
 
-    self.setVectorStylesEnabled(False)
+  def saveProperties(self, item, page):
+    properties = page.properties()
+    parent = item.parent()
+    if parent is None:
+      # top item: properties[topItemIndex]
+      self.properties[item.data(0, Qt.UserRole)] = properties
+    else:
+      # layer item: properties[topItemIndex][layerId]
+      topItemIndex = parent.data(0, Qt.UserRole)
+      self.properties[topItemIndex][item.data(0, Qt.UserRole)] = properties
 
-  def initVectorStyleWidgets(self):
-    self.colorWidget = StyleWidget(StyleWidget.COLOR)
-    self.ui.verticalLayout_Styles.addWidget(self.colorWidget)
-    self.heightWidget = StyleWidget(StyleWidget.HEIGHT)
-    self.ui.verticalLayout_zCoordinate.addWidget(self.heightWidget)
+    if debug_mode:
+      qDebug(str(self.properties))
 
-    self.styleWidgets = []
-    for i in range(self.STYLE_MAX_COUNT):
-      widget = StyleWidget()
-      widget.setVisible(False)
-      self.ui.verticalLayout_Styles.addWidget(widget)
-      self.styleWidgets.append(widget)
-
-  def currentVectorLayerChanged(self, currentItem, previousItem):
+  def currentObjectChanged(self, currentItem, previousItem):
     # save properties of previous item
-    if previousItem is not None:
-      layerid = previousItem.data(0, Qt.UserRole)
-      if layerid is not None:
-        self.saveVectorProperties(layerid)
+    if previousItem and self.currentPage:
+      self.saveProperties(previousItem, self.currentPage)
 
-    layerid = currentItem.data(0, Qt.UserRole)
-    if layerid is None:
-      self.currentVectorLayer = None
+    self.currentItem = currentItem
+    self.currentPage = None
+    # hide all pages
+    for page in self.pages.itervalues():
+      page.hide()
+
+    parent = currentItem.parent()
+    if parent is None:
+      topItemIndex = currentItem.data(0, Qt.UserRole)
+      pageType = self.topItemPages.get(topItemIndex, ppages.PAGE_NONE)
+      page = self.pages.get(pageType, None)
+      if page is None:
+        return
+
+      page.setup(self.properties[topItemIndex])
+      page.show()
+
+    else:
+      parentId = parent.data(0, Qt.UserRole)
+      layerId = currentItem.data(0, Qt.UserRole)
+      if layerId is None:
+        return
+
+      layer = QgsMapLayerRegistry().instance().mapLayer(layerId)
+      if layer is None:
+        return
+
+      layerType = layer.type()
+      if layerType == QgsMapLayer.RasterLayer:
+        page = self.pages[ppages.PAGE_DEM]
+        page.setup(self.properties[parentId].get(layerId, None), layer, False)
+      elif layerType == QgsMapLayer.VectorLayer:
+        page = self.pages[ppages.PAGE_VECTOR]
+        page.setup(self.properties[parentId].get(layerId, None), layer)
+      else:
+        return
+
+      page.show()
+
+    self.currentPage = page
+
+  def objectItemChanged(self, item, column):
+    parent = item.parent()
+    if parent is None:
       return
-    self.currentVectorLayer = layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
-    if layer is None:
-      return
 
-    for i in range(self.STYLE_MAX_COUNT):
-      self.styleWidgets[i].hide()
+    if item == self.currentItem:
+      if self.currentPage:
+        # update enablement of property widgets
+        self.currentPage.itemChanged(item)
+    else:
+      # select changed item
+      self.ui.treeWidget.setCurrentItem(item)
 
-    obj_types = self.objectTypeManager.objectTypeNames(layer.geometryType())
-    ui = self.ui
-    ui.comboBox_ObjectType.blockSignals(True)
-    ui.comboBox_ObjectType.clear()
-    ui.comboBox_ObjectType.addItems(obj_types)
-    ui.comboBox_ObjectType.blockSignals(False)
+      # set visible property
+      #visible = item.data(0, Qt.CheckStateRole) == Qt.Checked
+      #parentId = parent.data(0, Qt.UserRole)
+      #layerId = item.data(0, Qt.UserRole)
+      #self.properties[parentId].get(layerId, {})["visible"] = visible
 
-    # set up property widgets
-    self.objectTypeSelectionChanged()
-
-    if layerid in self.vectorPropertiesDict:
-      # restore properties
-      self.restoreVectorProperties(layerid)
-
-    self.setVectorStylesEnabled(currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
-
-  def vectorLayerItemChanged(self, item, column):
-    # update style form enablement
-    currentItem = self.ui.treeWidget_VectorLayers.currentItem()
-    if currentItem:
-      self.setVectorStylesEnabled(currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
-
-  def objectTypeSelectionChanged(self, idx=None):
-    layer = self.currentVectorLayer
-    try:
-      ve = float(ui.lineEdit_zFactor.text())
-    except:
-      ve = 1
-    mapTo3d = MapTo3D(self.iface.mapCanvas(), verticalExaggeration=ve)
-    self.objectTypeManager.setupForm(self, mapTo3d, layer, layer.geometryType(), self.ui.comboBox_ObjectType.currentIndex())
+  def primaryDEMChanged(self, layerId):
+    #TODO: called twice in dialog loading
+    # first layerId: 0
+    # second       : primaryDEM
+    tree = self.ui.treeWidget
+    parent = tree.topLevelItem(ObjectTreeItem.ITEM_OPTDEM)
+    tree.blockSignals(True)
+    for i in range(parent.childCount()):
+      item = parent.child(i)
+      isPrimary = item.data(0, Qt.UserRole) == layerId
+      item.setDisabled(isPrimary)
+    tree.blockSignals(False)
 
   def numericFields(self, layer):
     # get attributes of a sample feature and create numeric field name list
@@ -257,57 +281,6 @@ class Qgis2threejsDialog(QDialog):
         numeric_fields.append(field.name())
     return numeric_fields
 
-  def setVectorStylesEnabled(self, enabled):
-    self.ui.comboBox_ObjectType.setEnabled(enabled)
-    self.ui.label_ObjectType.setEnabled(enabled)
-    self.colorWidget.setEnabled(enabled)
-    self.heightWidget.setEnabled(enabled)
-    for i in range(self.STYLE_MAX_COUNT):
-      self.styleWidgets[i].setEnabled(enabled)
-
-  def saveVectorProperties(self, layerid):
-    properties = {}
-    layer = QgsMapLayerRegistry().instance().mapLayer(layerid)
-    itemIndex = self.ui.comboBox_ObjectType.currentIndex()
-    properties["itemindex"] = itemIndex
-    properties["typeitem"] = self.objectTypeManager.objectTypeItem(layer.geometryType(), itemIndex)
-    properties["visible"] = self.vlItems[self.currentVectorLayer.id()].data(0, Qt.CheckStateRole) == Qt.Checked
-    properties["color"] = self.colorWidget.values()
-    properties["height"] = self.heightWidget.values()
-    for i in range(self.STYLE_MAX_COUNT):
-      if self.styleWidgets[i].isVisible():
-        properties[i] = self.styleWidgets[i].values()
-    self.vectorPropertiesDict[layerid] = properties
-
-  def restoreVectorProperties(self, layerid):
-    properties = self.vectorPropertiesDict[layerid]
-    self.ui.comboBox_ObjectType.setCurrentIndex(properties["itemindex"])
-    self.colorWidget.setValues(properties["color"])
-    self.heightWidget.setValues(properties["height"])
-    for i in range(self.STYLE_MAX_COUNT):
-      if i in properties:
-        self.styleWidgets[i].setValues(properties[i])
-
-  def calculateResolution(self, v=None):
-    extent = self.iface.mapCanvas().extent()
-    renderer = self.iface.mapCanvas().mapRenderer()
-    size = 100 * self.ui.horizontalSlider_Resolution.value()
-    self.ui.label_Resolution.setText("about {0} x {0} px".format(size))
-
-    # calculate resolution and size
-    width, height = renderer.width(), renderer.height()
-    s = (size * size / float(width * height)) ** 0.5
-    if s < 1:
-      width = int(width * s)
-      height = int(height * s)
-
-    xres = extent.width() / width
-    yres = extent.height() / height
-    self.ui.lineEdit_HRes.setText(str(xres))
-    self.ui.lineEdit_VRes.setText(str(yres))
-    self.ui.lineEdit_Width.setText(str(width + 1))
-    self.ui.lineEdit_Height.setText(str(height + 1))
-
   def progress(self, percentage):
     self.ui.progressBar.setValue(percentage)
     self.ui.progressBar.setVisible(percentage != 100)
@@ -319,9 +292,10 @@ class Qgis2threejsDialog(QDialog):
       return
     self.endPointSelection()
 
-    item = ui.treeWidget_VectorLayers.currentItem()
-    if item:
-      self.saveVectorProperties(item.data(0, Qt.UserRole))
+    # save properties of current object
+    item = self.ui.treeWidget.currentItem()
+    if item and self.currentPage:
+      self.saveProperties(item, self.currentPage)
 
     ui.pushButton_Run.setEnabled(False)
     self.progress(0)
@@ -330,23 +304,11 @@ class Qgis2threejsDialog(QDialog):
     templateName = ui.comboBox_Template.currentText()
     controls = "TrackballControls.js"
     htmlfilename = ui.lineEdit_OutputFilename.text()
-    if ui.checkBox_useDEM.isChecked():
-      demlayerid = ui.comboBox_DEMLayer.itemData(ui.comboBox_DEMLayer.currentIndex())
-    else:
-      demlayerid = None
+
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(ui.lineEdit_zFactor.text()))
-    if self.ui.radioButton_Simple.isChecked() or demlayerid is None:
-      if demlayerid:
-        dem_width = int(ui.lineEdit_Width.text())
-        dem_height = int(ui.lineEdit_Height.text())
-      else:
-        dem_width = dem_height = 2
-      context = OutputContext(templateName, controls, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode,
-                              dem_width, dem_height, ui.spinBox_sidetransp.value(), ui.spinBox_demtransp.value())
-      htmlfilename = runSimple(htmlfilename, context, self.progress)
-    else:
-      context = OutputContext(templateName, controls, mapTo3d, canvas, demlayerid, self.vectorPropertiesDict, self.objectTypeManager, self.localBrowsingMode)
-      htmlfilename = runAdvanced(htmlfilename, context, self, self.progress)
+    context = OutputContext(templateName, controls, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
+    htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
+
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
     if htmlfilename is None:
@@ -358,59 +320,33 @@ class Qgis2threejsDialog(QDialog):
     QDialog.accept(self)
 
   def reject(self):
+    # save properties of current object
+    item = self.ui.treeWidget.currentItem()
+    if item and self.currentPage:
+      self.saveProperties(item, self.currentPage)
+
     self.endPointSelection()
     self.clearRubberBands()
     QDialog.reject(self)
 
   def startPointSelection(self):
     canvas = self.iface.mapCanvas()
-    self.previousMapTool = canvas.mapTool()
+    if self.previousMapTool != self.mapTool:
+      self.previousMapTool = canvas.mapTool()
     canvas.setMapTool(self.mapTool)
-    self.ui.toolButton_PointTool.setVisible(False)
+    self.pages[ppages.PAGE_DEM].toolButton_PointTool.setVisible(False)
 
   def endPointSelection(self):
     self.mapTool.reset()
-    self.iface.mapCanvas().setMapTool(self.previousMapTool)
-
-  def rectangleSelected(self):
-    ui = self.ui
-    ui.radioButton_Advanced.setChecked(True)
-    rect = self.mapTool.rectangle()
-    toRect = rect.width() and rect.height()
-    self.switchFocusMode(toRect)
-    ui.lineEdit_xmin.setText(str(rect.xMinimum()))
-    ui.lineEdit_ymin.setText(str(rect.yMinimum()))
-    ui.lineEdit_xmax.setText(str(rect.xMaximum()))
-    ui.lineEdit_ymax.setText(str(rect.yMaximum()))
-
-    quadtree = QuadTree(self.iface.mapCanvas().extent())
-    quadtree.buildTreeByRect(rect, self.ui.spinBox_Height.value())
-    self.createRubberBands(quadtree.quads(), rect.center())
-    self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-
-  def pointSelected(self):
-    # set values of controls
-    self.ui.lineEdit_CenterX.setText(str(self.mapTool.point.x()))
-    self.ui.lineEdit_CenterY.setText(str(self.mapTool.point.y()))
-    self.ui.radioButton_Advanced.setChecked(True)
-
-    quadtree = QuadTree(self.iface.mapCanvas().extent(), self.mapTool.point, self.ui.spinBox_Height.value())
-    self.createRubberBands(quadtree.quads(), self.mapTool.point)
-    self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+    if self.previousMapTool is not None:
+      self.iface.mapCanvas().setMapTool(self.previousMapTool)
 
   def mapToolSet(self, mapTool):
-    if mapTool != self.mapTool:
-      self.ui.toolButton_PointTool.setVisible(True)
-
-  def createQuadTree(self):
-    ui = self.ui
-    try:
-      c = map(float, [ui.lineEdit_xmin.text(), ui.lineEdit_ymin.text(), ui.lineEdit_xmax.text(), ui.lineEdit_ymax.text()])
-    except:
-      return None
-    quadtree = QuadTree(self.iface.mapCanvas().extent())
-    quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), ui.spinBox_Height.value())
-    return quadtree
+    return
+    #TODO: unstable
+    if mapTool != self.mapTool and self.currentPage is not None:
+      if self.currentPage.pageType == ppages.PAGE_DEM and self.currentPage.isPrimary:
+        self.currentPage.toolButton_PointTool.setVisible(True)
 
   def createRubberBands(self, quads, point=None):
     self.clearRubberBands()
@@ -445,10 +381,6 @@ class Qgis2threejsDialog(QDialog):
       self.iface.mapCanvas().scene().removeItem(self.rb_point)
       self.rb_point = None
 
-  def useDemToggled(self, checked):
-    self.ui.comboBox_DEMLayer.setEnabled(checked)
-    self.ui.groupBox.setEnabled(checked)
-
   def browseClicked(self):
     directory = self.ui.lineEdit_OutputFilename.text()
     if directory == "":
@@ -456,45 +388,6 @@ class Qgis2threejsDialog(QDialog):
     filename = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
     if filename != "":
       self.ui.lineEdit_OutputFilename.setText(filename)
-
-  def samplingModeChanged(self):
-    ui = self.ui
-    isSimpleMode = ui.radioButton_Simple.isChecked()
-    simple_widgets = [ui.horizontalSlider_Resolution, ui.lineEdit_Width, ui.lineEdit_Height, ui.lineEdit_HRes, ui.lineEdit_VRes, ui.spinBox_sidetransp, ui.spinBox_demtransp]
-    for w in simple_widgets:
-      w.setEnabled(isSimpleMode)
-
-    isAdvancedMode = not isSimpleMode
-    advanced_widgets = [ui.spinBox_Height, ui.lineEdit_xmin, ui.lineEdit_ymin, ui.lineEdit_xmax, ui.lineEdit_ymax, ui.toolButton_switchFocusMode]
-    for w in advanced_widgets:
-      w.setEnabled(isAdvancedMode)
-
-  def updateQuads(self, v=None):
-    quadtree = self.createQuadTree()
-    if quadtree:
-      self.createRubberBands(quadtree.quads(), quadtree.focusRect.center())
-    else:
-      self.clearRubberBands()
-
-  def switchFocusModeClicked(self):
-    self.switchFocusMode(not self.ui.label_xmin.isVisible())
-
-  def switchFocusMode(self, toRect):
-    ui = self.ui
-    toPoint = not toRect
-    ui.label_xmin.setVisible(toRect)
-    ui.label_ymin.setVisible(toRect)
-    ui.lineEdit_xmin.setVisible(toRect)
-    ui.lineEdit_ymin.setVisible(toRect)
-
-    suffix = "max" if toRect else ""
-    ui.label_xmax.setText("x" + suffix)
-    ui.label_ymax.setText("y" + suffix)
-    mode = "point" if toRect else "rectangle"
-    ui.toolButton_switchFocusMode.setText("To " + mode + " selection")
-    selection = "area" if toRect else "point"
-    action = "Stroke a rectangle" if toRect else "Click"
-    ui.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))
 
   def log(self, msg):
     if debug_mode:
