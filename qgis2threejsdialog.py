@@ -305,7 +305,13 @@ class Qgis2threejsDialog(QDialog):
     controls = "TrackballControls.js"
     htmlfilename = ui.lineEdit_OutputFilename.text()
 
-    mapTo3d = MapTo3D(canvas, verticalExaggeration=float(ui.lineEdit_zFactor.text()))
+    # world properties
+    world = self.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    verticalExaggeration = world.get("lineEdit_zFactor", 1.5)
+    verticalShift = world.get("lineEdit_zShift", 0)
+
+    # export to javascript (three.js)
+    mapTo3d = MapTo3D(canvas, verticalExaggeration=float(verticalExaggeration), verticalShift=float(verticalShift))
     context = OutputContext(templateName, controls, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
     htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
 

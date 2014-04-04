@@ -127,6 +127,20 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
+    self.setPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift])
+
+  def setup(self, properties=None):
+    canvas = self.dialog.iface.mapCanvas()
+    extent = canvas.extent()
+    renderer = canvas.mapRenderer()
+
+    self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
+    self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(renderer.width(), renderer.height()))
+
+    # restore properties
+    if properties:
+      PropertyPage.setProperties(self, properties)
+
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def __init__(self, dialog, parent=None):
@@ -134,7 +148,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     Ui_DEMPropertiesWidget.setupUi(self, self)
 
     self.isPrimary = False
-    self.layerId = None
+    self.layer = None
 
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp, self.spinBox_sidetransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height]
@@ -151,9 +165,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def setup(self, properties=None, layer=None, isPrimary=True):
     self.isPrimary = isPrimary
-    self.layerId = None   #TODO: layer
-    if layer:
-      self.layerId = layer.id()
+    self.layer = layer
 
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)

@@ -170,9 +170,9 @@ class JSWriter:
     # write information for coordinates transformation
     extent = self.context.canvas.extent()
     mapTo3d = self.context.mapTo3d
-    args = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(), mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift)
+    args = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(), str(mapTo3d.planeWidth), str(mapTo3d.verticalExaggeration), str(mapTo3d.verticalShift))
     lines = []
-    lines.append("world = {mapExtent:[%f,%f,%f,%f],width:%f,zExaggeration:%f,zShift:%f};" % args)
+    lines.append("world = {mapExtent:[%f,%f,%f,%f],width:%s,zExaggeration:%s,zShift:%s};" % args)
     lines.append("world.height = world.width * (world.mapExtent[3] - world.mapExtent[1]) / (world.mapExtent[2] - world.mapExtent[0]);")
     lines.append("world.scale = world.width / (world.mapExtent[2] - world.mapExtent[0]);")
     lines.append("world.zScale = world.scale * world.zExaggeration;")
@@ -289,7 +289,8 @@ def writeSimpleDEM(writer, properties):
 
   warp_dem = context.warp_dem
   dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
-  #TODO: mapTo3d.verticalShift
+  if mapTo3d.verticalShift != 0:
+    dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
   if mapTo3d.multiplierZ != 1:
     dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
   if debug_mode:
@@ -416,7 +417,8 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
-    #TODO: mapTo3d.verticalShift
+    if mapTo3d.verticalShift != 0:
+      dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
     if mapTo3d.multiplierZ != 1:
       dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
     if debug_mode:
