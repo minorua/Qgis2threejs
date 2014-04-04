@@ -113,10 +113,16 @@ class MaterialManager:
     self.ids = []
     self.materials = []
 
-  def getMeshLambertIndex(self, color):
+  def getMeshLambertIndex(self, color, transparency=0):
+    if transparency > 0:
+      opacity = 1.0 - float(transparency) / 100
+      return self.getIndex("ML" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true}})".format(color, opacity))
     return self.getIndex("ML" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0}}})".format(color))
 
-  def getLineBasicIndex(self, color):
+  def getLineBasicIndex(self, color, transparency=0):
+    if transparency > 0:
+      opacity = 1.0 - float(transparency) / 100
+      return self.getIndex("LB" + color + "_" + str(transparency), "new THREE.LineBasicMaterial({{color:{0},opacity:{1},transparent:true}})".format(color, opacity))
     return self.getIndex("LB" + color, "new THREE.LineBasicMaterial({{color:{0}}})".format(color))
 
   def getIndex(self, id, material):
@@ -271,19 +277,6 @@ def writeSimpleDEM(writer, properties):
   dem_width = dem.width()
   dem_height = dem.height()
 
-  # save map canvas image
-  #TODO: prepare material(texture) in Material manager (result is tex -> material index)
-  if context.localBrowsingMode:
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
-    canvas.saveAsImage(texfilename)
-    tex = gdal2threejs.base64image(texfilename)
-    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
-  else:
-    texfilename = os.path.splitext(htmlfilename)[0] + ".png"
-    canvas.saveAsImage(texfilename)
-    tex = os.path.split(texfilename)[1]
-    tools.removeTemporaryFiles([texfilename + "w"])
-
   # warp dem
   # calculate extent. output dem should be handled as points.
   xres = extent.width() / (dem_width - 1)
@@ -307,10 +300,12 @@ def writeSimpleDEM(writer, properties):
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
   # options
+  options = []
+
+  # transparency
   demTransparency = dem.properties["spinBox_demtransp"]
   sidesTransparency = dem.properties["spinBox_sidetransp"]
 
-  options = []
   if demTransparency > 0:
     demOpacity = str(1.0 - float(demTransparency) / 100)
     options.append("opacity:%s" % demOpacity)
@@ -319,6 +314,26 @@ def writeSimpleDEM(writer, properties):
     if sidesTransparency > 0:
       sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
       options.append("side_opacity:%s" % sidesOpacity)
+
+  # display type
+  tex = None
+  if properties.get("radioButton_MapCanvas", False):
+    # save map canvas image
+    #TODO: prepare material(texture) in Material manager (result is tex -> material index)
+    if context.localBrowsingMode:
+      texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
+      canvas.saveAsImage(texfilename)
+      tex = gdal2threejs.base64image(texfilename)
+      tools.removeTemporaryFiles([texfilename, texfilename + "w"])
+    else:
+      texfilename = os.path.splitext(htmlfilename)[0] + ".png"
+      canvas.saveAsImage(texfilename)
+      tex = os.path.split(texfilename)[1]
+      tools.removeTemporaryFiles([texfilename + "w"])
+
+  elif properties.get("radioButton_SolidColor", False):
+    mat = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+    options.append("m:%d" % mat)
 
   opt = ""
   if len(options) > 0:
@@ -332,7 +347,10 @@ def writeSimpleDEM(writer, properties):
   writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' %
                (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
                #TODO: material index
-  writer.write('tex.push("%s");\n' % tex)
+  if tex is None:
+    writer.write('tex.push(null);\n')
+  else:
+    writer.write('tex.push("%s");\n' % tex)
 
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context

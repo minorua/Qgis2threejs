@@ -37,19 +37,23 @@ function buildDEM(scene, dem, tex) {
   }
 
   // Terrain material
-  var texture;
-  if (tex.substr(0, 5) == "data:") {
-    var image = new Image();
-    image.src = tex;
-    texture = new THREE.Texture(image);
-  } else {
-    texture = THREE.ImageUtils.loadTexture(tex);
-  }
-  texture.needsUpdate = true;
-
   if (dem.opacity === undefined) dem.opacity = 1;
 
-  var material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.opacity, transparent: (dem.opacity < 1)});
+  var material;
+  if (dem.m !== undefined) material = mat[dem.m];
+  else {
+    var texture;
+    if (tex.substr(0, 5) == "data:") {
+      var image = new Image();
+      image.src = tex;
+      texture = new THREE.Texture(image);
+    } else {
+      texture = THREE.ImageUtils.loadTexture(tex);
+    }
+    texture.needsUpdate = true;
+    material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.opacity, transparent: (dem.opacity < 1)});
+  }
+
   var plane = new THREE.Mesh(geometry, material);
 
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;

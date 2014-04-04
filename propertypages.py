@@ -86,6 +86,8 @@ class PropertyPage(QWidget):
         else:
           v = w.itemData(index)
       elif isinstance(w, QRadioButton): # subclass of QAbstractButton
+        if not w.isChecked():
+          continue
         v = w.isChecked()
       elif isinstance(w, (QSlider, QSpinBox)):
         v = w.value()
@@ -150,9 +152,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.isPrimary = False
     self.layer = None
 
+    dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp, self.spinBox_sidetransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
+    widgets += dispTypeButtons
+    widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
     self.setPropertyWidgets(widgets)
 
     self.initDEMLayerList()
@@ -161,8 +166,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     self.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
-
     self.spinBox_Height.valueChanged.connect(self.updateQuads)
+    for radioButton in dispTypeButtons:
+      radioButton.toggled.connect(self.dispTypeChanged)
+    self.toolButton_Color.clicked.connect(self.toolButtonColorClicked)
+
     self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
 
   def setup(self, properties=None, layer=None, isPrimary=True):
@@ -174,6 +182,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.setWidgetsVisible([self.toolButton_switchFocusMode, self.toolButton_PointTool], False)
 
     self.groupBox_Resampling.setEnabled(True)
+    self.dispTypeChanged()    # update enablement of widgets in display type group
     self.spinBox_sidetransp.setEnabled(isPrimary)
     self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
 
@@ -244,6 +253,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def switchFocusModeClicked(self):
     self.switchFocusMode(not self.label_xmin.isVisible())
 
+  def toolButtonColorClicked(self):
+    color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
+    if color.isValid():
+      self.lineEdit_Color.setText(color.name().replace("#", "0x"))
+
   def hide(self):
     PropertyPage.hide(self)
     if self.isPrimary:
@@ -307,6 +321,16 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # update quad rubber bands
     self.updateQuads()
+
+  def dispTypeChanged(self, checked=True):
+    if checked:
+      enabled = self.radioButton_ImageFile.isChecked()
+      self.lineEdit_ImageFile.setEnabled(enabled)
+      self.toolButton_ImageFile.setEnabled(enabled)
+
+      enabled = self.radioButton_SolidColor.isChecked() or self.radioButton_Wireframe.isChecked()
+      self.lineEdit_Color.setEnabled(enabled)
+      self.toolButton_Color.setEnabled(enabled)
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
