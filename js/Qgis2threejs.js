@@ -53,7 +53,7 @@ function buildDEM(scene, dem, tex) {
     texture.needsUpdate = true;
     material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.opacity, transparent: (dem.opacity < 1)});
   }
-
+  material.side = THREE.DoubleSide;
   var plane = new THREE.Mesh(geometry, material);
 
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
