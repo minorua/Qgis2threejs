@@ -155,6 +155,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     self.setPropertyWidgets(widgets)
 
+    self.initDEMLayerList()
+
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
@@ -171,10 +173,19 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
     self.setWidgetsVisible([self.toolButton_switchFocusMode, self.toolButton_PointTool], False)
 
-    if isPrimary:
-      self.initDEMLayerList()
-    else:
-      self.comboBox_DEMLayer.clear()
+    self.groupBox_Resampling.setEnabled(True)
+    self.spinBox_sidetransp.setEnabled(isPrimary)
+    self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+    # select dem layer
+    layerId = None
+    if layer is not None:
+      layerId = layer.id()
+
+    self.comboBox_DEMLayer.blockSignals(True)
+    currentIndex = self.selectDEMLayer(layerId)
+    self.comboBox_DEMLayer.blockSignals(False)
+    self.demLayerChanged(currentIndex)
 
     # restore properties for the layer
     if properties:
@@ -191,8 +202,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       # enable map tool to select focus area
       self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
       self.dialog.startPointSelection()
+    else:
+      self.spinBox_sidetransp.setValue(100)   # no sides with additional dem
 
-  def initDEMLayerList(self, layerId=None):
+  def initDEMLayerList(self):
     comboBox = self.comboBox_DEMLayer
     # list 1 band raster layers
     comboBox.clear()
@@ -201,6 +214,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
         comboBox.addItem(layer.name(), id)
 
+  def selectDEMLayer(self, layerId=None):
+    comboBox = self.comboBox_DEMLayer
     if layerId is not None:
       # select the last selected layer
       index = comboBox.findData(layerId)
@@ -211,7 +226,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       # select the first 1 band raster layer
       comboBox.setCurrentIndex(1)
       return 1
-    return -1
+    # combo box has one item "(Flat plane)"
+    return 0
 
   def demLayerChanged(self, index):
     if not self.isPrimary:
@@ -220,6 +236,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     useDEM = comboBox.itemData(index) != 0
     self.groupBox_Resampling.setEnabled(useDEM)
     self.dialog.primaryDEMChanged(comboBox.itemData(index))
+
+  def itemChanged(self, item):
+    if not self.isPrimary:
+      self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def switchFocusModeClicked(self):
     self.switchFocusMode(not self.label_xmin.isVisible())

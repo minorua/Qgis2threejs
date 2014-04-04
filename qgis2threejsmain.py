@@ -221,7 +221,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   #TODO
   writer.timestamp = timestamp
 
-  # write DEM(s)
+  # write primary DEM
   if isSimpleMode:
     progress(20)
     writeSimpleDEM(writer, demProperties)
@@ -229,7 +229,11 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     writeMultiResDEM(writer, demProperties, progress)
     writer.prepareNext()
 
-  #TODO: write additional DEM(s)
+  # write additional DEM(s)
+  primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
+  for layerId, properties in context.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
+    if layerId != primaryDEMLayerId and properties.get("visible", False):
+      writeSimpleDEM(writer, properties)
 
   progress(50)
 
@@ -287,8 +291,14 @@ def writeSimpleDEM(writer, properties):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
-  warp_dem = context.warp_dem
+  demLayerId = properties["comboBox_DEMLayer"]
+  if demLayerId:
+    layer = QgsMapLayerRegistry().instance().mapLayer(demLayerId)
+    warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
+  else:
+    warp_dem = tools.FlatRaster()
   dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+
   if mapTo3d.verticalShift != 0:
     dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
   if mapTo3d.multiplierZ != 1:
@@ -296,32 +306,33 @@ def writeSimpleDEM(writer, properties):
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
+  # options
   demTransparency = dem.properties["spinBox_demtransp"]
   sidesTransparency = dem.properties["spinBox_sidetransp"]
-  demOpacity = str(1.0 - float(demTransparency) / 100)
-  sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
-
-  # write dem data
-  offsetX = offsetY = 0
-  plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
-  #TODO: use str() for float
 
   options = []
   if demTransparency > 0:
+    demOpacity = str(1.0 - float(demTransparency) / 100)
     options.append("opacity:%s" % demOpacity)
-  if sidesTransparency == 100:
-    options.append("nosides:true")    #hasSide (default:false)
-  elif sidesTransparency > 0:
-    options.append("side_opacity:%s" % sidesOpacity)
+  if sidesTransparency < 100:
+    options.append("has_side:true")
+    if sidesTransparency > 0:
+      sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
+      options.append("side_opacity:%s" % sidesOpacity)
 
   opt = ""
   if len(options) > 0:
     opt = ",".join(options) + ","
 
-  writer.write('dem[0] = {width:%d,height:%d,plane:%s,%sdata:[%s]};\n' %
+  # write dem object
+  offsetX = offsetY = 0
+  plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
+  #TODO: use str() for float
+
+  writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' %
                (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
                #TODO: material index
-  writer.write('tex[0] = "%s";\n' % tex)
+  writer.write('tex.push("%s");\n' % tex)
 
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
@@ -336,6 +347,18 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   out_dir, filename = os.path.split(htmlfilename)
   filetitle = os.path.splitext(filename)[0]
+
+  # material options
+  demTransparency = properties["spinBox_demtransp"]
+
+  options = []
+  if demTransparency > 0:
+    demOpacity = str(1.0 - float(demTransparency) / 100)
+    options.append("opacity:%s" % demOpacity)
+
+  opt = ""
+  if len(options) > 0:
+    opt = ",".join(options) + ","
 
   # create quad tree
   quadtree = createQuadTree(canvas.extent(), properties)
@@ -459,10 +482,11 @@ def writeMultiResDEM(writer, properties, progress=None):
               dem_values[x + dem_width * (y0 + yy)] = z
 
     if quad.height < quadtree.height or unites_center == False:
+      # write dem object
       writer.openFile(True)
-      opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
-      writer.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (plane_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-      writer.write('tex[%d] = "%s";\n' % (plane_index, tex))
+      plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
+      writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' % (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      writer.write('tex.push("%s");\n' % tex)
       plane_index += 1
     else:
       centerQuads.addQuad(quad, dem_values)
@@ -504,10 +528,11 @@ def writeMultiResDEM(writer, properties, progress=None):
     dem_width = (dem_width - 1) * centerQuads.width() + 1
     dem_height = (dem_height - 1) * centerQuads.height() + 1
 
+    # write dem object
     writer.openFile(True)
-    opt = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
-    writer.write('dem[%d] = {width:%d,height:%d,plane:%s,data:[%s]};\n' % (plane_index, dem_width, dem_height, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-    writer.write('tex[%d] = "%s";\n' % (plane_index, tex))
+    plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
+    writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' % (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write('tex.push("%s");\n' % tex)
     plane_index += 1
 
 def writeVectors(writer):

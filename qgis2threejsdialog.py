@@ -253,9 +253,6 @@ class Qgis2threejsDialog(QDialog):
       #self.properties[parentId].get(layerId, {})["visible"] = visible
 
   def primaryDEMChanged(self, layerId):
-    #TODO: called twice in dialog loading
-    # first layerId: 0
-    # second       : primaryDEM
     tree = self.ui.treeWidget
     parent = tree.topLevelItem(ObjectTreeItem.ITEM_OPTDEM)
     tree.blockSignals(True)

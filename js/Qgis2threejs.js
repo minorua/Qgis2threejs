@@ -1,6 +1,6 @@
 // Variables
 var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[], clickableObjs=[];
-var option = {nosides: false, side_color: 0xc7ac92, side_sole_height: 1.5, side_opacity: 1.0, dem_opacity: 1.0};
+var option = {side_color: 0xc7ac92, side_sole_height: 1.5};
 
 //Save as image using the s key
 window.addEventListener("keyup", function(e){
@@ -47,7 +47,9 @@ function buildDEM(scene, dem, tex) {
   }
   texture.needsUpdate = true;
 
-  var material = new THREE.MeshPhongMaterial({map: texture, opacity: option["dem_opacity"], transparent: (option["dem_opacity"] < 1)});
+  if (dem.opacity === undefined) dem.opacity = 1;
+
+  var material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.opacity, transparent: (dem.opacity < 1)});
   var plane = new THREE.Mesh(geometry, material);
 
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
@@ -61,14 +63,13 @@ function buildDEM(scene, dem, tex) {
  *   - scene : scene in which we add sides
  *   - dem : a dem object
  *   - color : color of sides
- *   - opacity : opacity of sides
  *   - sole_height : depth of bottom under zero
  *
  *  Creates sides and bottom of the DEM to give an impression of "extruding" 
  *  and increase the 3D aspect.
  *  It adds also lights to see correctly the meshes created.
  */
-function buildSides(scene, dem, color, opacity, sole_height) {
+function buildSides(scene, dem, color, sole_height) {
   // Filling of altitudes dictionary
   var altitudes = {
     'back': [],
@@ -86,10 +87,12 @@ function buildSides(scene, dem, color, opacity, sole_height) {
   }
 
   // Material
+  if (dem.side_opacity === undefined) dem.side_opacity = 1;
+
   var side_material =  new THREE.MeshLambertMaterial({color: color,
                                                       ambient: color,
-                                                      opacity: opacity,
-                                                      transparent: (opacity < 1),
+                                                      opacity: dem.side_opacity,
+                                                      transparent: (dem.side_opacity < 1),
                                                       side: THREE.DoubleSide});
 
   // Sides
@@ -158,8 +161,8 @@ function buildDEMs(scene) {
   }
 
   // Build sides and bottom
-  if (option["nosides"] == false && dem.length == 1) {
-    buildSides(scene, dem[0], option["side_color"], option["side_opacity"], option["side_sole_height"]);
+  if (dem[0].has_side) {
+    buildSides(scene, dem[0], option["side_color"], option["side_sole_height"]);
   }
 }
 
