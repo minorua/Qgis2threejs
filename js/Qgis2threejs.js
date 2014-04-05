@@ -2,21 +2,25 @@
 var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[], clickableObjs=[];
 var option = {side_color: 0xc7ac92, side_sole_height: 1.5};
 
-//Save as image using the s key
-window.addEventListener("keyup", function(e){
+// Add default key event listener
+function addDefaultKeyEventListener() {
+  window.addEventListener("keydown", function(e){
 
-  var screenShoot,
-      keyPressed,
-      imageUrl;
-
-  keyPressed = e.which;
-  if (keyPressed == 83 && e.shiftKey) {
-    screenShoot = renderer.domElement.toDataURL("image/png");
-    imageUrl = screenShoot.replace("image/png", 'data:application/octet-stream');
-    window.open(imageUrl);
-  }
-});
-
+    var keyPressed = e.which;
+    if (keyPressed == 72) { // H
+      var help = (typeof controlHelp === "undefined") ? "* Keys" : controlHelp;
+      help += "\n H : Show help\n Shift + R : Reset\n Shift + S : Save as image";
+      alert(help);
+    } else if (!e.ctrlKey && e.shiftKey) {
+      if (keyPressed == 82) controls.reset();   // Shift + R
+      else if (keyPressed == 83) { // Shift + S
+        var screenShoot = renderer.domElement.toDataURL("image/png");
+        var imageUrl = screenShoot.replace("image/png", 'data:application/octet-stream');
+        window.open(imageUrl);
+      }
+    }
+  });
+}
 
 // Function to transform coordinates
 function getMapCoordinates(x, y, z) {

@@ -1,4 +1,6 @@
 TrackballControls
 
-TODO: description
-
+* Keys
+ H         : Show help
+ Shift + R : Reset
+ Shift + S : Save as image

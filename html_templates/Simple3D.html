@@ -39,6 +39,7 @@ ${scripts}
 
   var controls = createControls(camera, renderer.domElement);
   controls.addEventListener('click', canvas_clicked);
+  addDefaultKeyEventListener();
 
   var projector = new THREE.Projector();
 
