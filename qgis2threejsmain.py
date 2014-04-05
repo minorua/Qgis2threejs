@@ -95,8 +95,11 @@ class OutputContext:
     mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
 
-    p = properties[ObjectTreeItem.ITEM_CONTROLS] or {}
-    self.controls = p.get("comboBox_Controls", "TrackballControls.js")    # 2nd arg: default controls
+    p = properties[ObjectTreeItem.ITEM_CONTROLS]
+    if p is None:
+      self.controls = QSettings().value("/Qgis2threejs/lastControls", "TrackballControls.js", type=unicode)
+    else:
+      self.controls = p["comboBox_Controls"]
 
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:

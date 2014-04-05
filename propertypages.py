@@ -174,7 +174,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 
     self.controlsChanged(comboBox.currentIndex())
 
-  def initControlsList(self, defaultControls="TrackballControls.js"):
+  def initControlsList(self):
     # list controls
     self.comboBox_Controls.clear()
     for entry in QDir(self.controlsDir).entryList(["*.js"]):
