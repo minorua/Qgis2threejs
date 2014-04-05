@@ -19,8 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Import the PyQt and QGIS libraries
-from PyQt4.QtCore import *
+from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
 from PyQt4.QtGui import QMessageBox
 import sys
 import os
@@ -162,22 +161,31 @@ def getTemplateMetadata(template_path):
   for item in parser.items("general"):
     metadata[item[0]] = item[1]
   if debug_mode:
-    qDebug("metadata" + str(metadata))
+    qDebug("metadata: " + str(metadata))
   return metadata
+
+def copyFile(source, dest, overwrite=False):
+  if os.path.exists(dest):
+    if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
+      if debug_mode:
+        qDebug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
+      QFile.remove(dest)
+    else:
+      if debug_mode:
+        qDebug("File already exists: %s" % dest)
+      return False
+
+  if debug_mode:
+    qDebug("File copied: %s to %s" % (source, dest))
+  return QFile.copy(source, dest)
 
 def copyLibraries(out_dir, metadata, overwrite=False):
   plugin_dir = pluginDir()
   files = metadata.get("files", "").strip()
   if files:
     for f in files.split(","):
-      filepath = os.path.join(plugin_dir, f)
       filename = os.path.basename(f)
-      target = os.path.join(out_dir, filename)
-      if overwrite or not os.path.exists(target):
-        if debug_mode:
-          qDebug("Copy file: %s to %s" % (filepath, target))
-        QFile.copy(filepath, target)
-      #TODO: message if already exists
+      copyFile(os.path.join(plugin_dir, f), os.path.join(out_dir, filename), overwrite)
 
   dirs = metadata.get("dirs", "").strip()
   if dirs:
@@ -191,8 +199,8 @@ def copyLibraries(out_dir, metadata, overwrite=False):
         shutil.copytree(dirpath, target)
       #TODO: message if already exists
 
-def copyThreejsFiles(out_dir, controls="TrackballControls.js", overwrite=True):
-  threejs_dir= pluginDir() + "/js/threejs"
+def copyThreejsFiles(out_dir, controls, overwrite=False):
+  threejs_dir = pluginDir() + "/js/threejs"
 
   # make directory
   target_dir = os.path.join(out_dir, "threejs")
@@ -201,17 +209,10 @@ def copyThreejsFiles(out_dir, controls="TrackballControls.js", overwrite=True):
   # copy files in threejs directory
   filenames = QDir(threejs_dir).entryList(QDir.Files)
   for filename in filenames:
-    target = os.path.join(target_dir, filename)
-    if overwrite or not os.path.exists(target):
-      QFile.copy(os.path.join(threejs_dir, filename), target)
-    #TODO: message if already exists
+    copyFile(os.path.join(threejs_dir, filename), os.path.join(target_dir, filename), overwrite)
 
   # copy controls file
-  ctrl_path = os.path.join(threejs_dir, "controls", controls)
-  target = os.path.join(target_dir, controls)
-  if overwrite or not os.path.exists(target):
-    QFile.copy(ctrl_path, target)
-  #TODO: message if already exists
+  copyFile(os.path.join(threejs_dir, "controls", controls), os.path.join(target_dir, controls), overwrite)
 
 def removeTemporaryFiles(filelist):
   for file in filelist:

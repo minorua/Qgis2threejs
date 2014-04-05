@@ -19,17 +19,20 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, qDebug, SIGNAL #QVariant
+from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir #QVariant
 from PyQt4.QtGui import *       #, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import *
+import os
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
+from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
 from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
 from qgis2threejsmain import MapTo3D
 from stylewidget import StyleWidget
 from quadtree import QuadTree
+import qgis2threejstools as tools
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -142,6 +145,49 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     # restore properties
     if properties:
       PropertyPage.setProperties(self, properties)
+
+class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
+
+  def __init__(self, dialog, parent=None):
+    PropertyPage.__init__(self, PAGE_CONTROLS, dialog, parent)
+    Ui_ControlsPropertiesWidget.setupUi(self, self)
+
+    self.controlsDir = os.path.join(tools.pluginDir(), "js", "threejs", "controls")
+
+    self.initControlsList()
+    self.setPropertyWidgets([self.comboBox_Controls])
+
+    self.comboBox_Controls.currentIndexChanged.connect(self.controlsChanged)
+
+  def setup(self, properties=None):
+    # restore properties
+    if properties:
+      self.comboBox_Controls.blockSignals(True)
+      PropertyPage.setProperties(self, properties)
+      self.comboBox_Controls.blockSignals(False)
+
+    self.controlsChanged(self.comboBox_Controls.currentIndex())
+
+  def initControlsList(self, defaultControls="TrackballControls.js"):
+    comboBox = self.comboBox_Controls
+    # list controls
+    comboBox.clear()
+    for entry in QDir(self.controlsDir).entryList(["*.js"]):
+      comboBox.addItem(entry, entry)
+
+    index = comboBox.findText(defaultControls)
+    if index != -1:
+      comboBox.setCurrentIndex(index)
+
+  def controlsChanged(self, index):
+    controls = self.comboBox_Controls.itemText(index)
+    descFile = os.path.splitext(os.path.join(self.controlsDir, controls))[0] + ".txt"
+    if os.path.exists(descFile):
+      with open(descFile) as f:
+        desc = f.read()
+    else:
+      desc = "No description"
+    self.textEdit.setText(desc)
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 

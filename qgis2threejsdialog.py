@@ -74,7 +74,7 @@ class Qgis2threejsDialog(QDialog):
     # set up the properties pages
     self.pages = {}
     self.pages[ppages.PAGE_WORLD] = ppages.WorldPropertyPage(self)
-    #self.pages[ppages.PAGE_CONTROLS] = ppages.ControlsPropertyPage(self)
+    self.pages[ppages.PAGE_CONTROLS] = ppages.ControlsPropertyPage(self)
     #self.pages[ppages.PAGE_PLANE] = ppages.PlanePropertyPage(self)
     self.pages[ppages.PAGE_DEM] = ppages.DEMPropertyPage(self)
     self.pages[ppages.PAGE_VECTOR] = ppages.VectorPropertyPage(self)
@@ -299,7 +299,6 @@ class Qgis2threejsDialog(QDialog):
 
     canvas = self.iface.mapCanvas()
     templateName = ui.comboBox_Template.currentText()
-    controls = "TrackballControls.js"
     htmlfilename = ui.lineEdit_OutputFilename.text()
 
     # world properties
@@ -309,7 +308,7 @@ class Qgis2threejsDialog(QDialog):
 
     # export to javascript (three.js)
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(verticalExaggeration), verticalShift=float(verticalShift))
-    context = OutputContext(templateName, controls, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
+    context = OutputContext(templateName, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
     htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
 
     self.progress(100)

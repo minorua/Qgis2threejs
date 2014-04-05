@@ -84,9 +84,8 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class OutputContext:
-  def __init__(self, templateName, controls, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
+  def __init__(self, templateName, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
     self.templateName = templateName
-    self.controls = controls
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.properties = properties
@@ -95,6 +94,9 @@ class OutputContext:
     self.localBrowsingMode = localBrowsingMode
     mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
+
+    p = properties[ObjectTreeItem.ITEM_CONTROLS] or {}
+    self.controls = p.get("comboBox_Controls", "TrackballControls.js")    # 2nd arg: default controls
 
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:
