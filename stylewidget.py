@@ -22,7 +22,7 @@
 from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import QGis
-from ui_widgetComboEdit import Ui_ComboEditWidget
+from ui.ui_widgetComboEdit import Ui_ComboEditWidget
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
   # function types

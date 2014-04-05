@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
-from Qgis2threejs.vectorstylewidgets import StyleWidget
+from Qgis2threejs.stylewidget import StyleWidget
 
 def geometryType():
   return QGis.Point

@@ -24,7 +24,7 @@ from PyQt4.QtGui import QColor
 from qgis.core import QGis, QgsMessageLog
 import sys
 import random
-from vectorstylewidgets import *
+from stylewidget import *
 
 debug_mode = 1
 

@@ -23,12 +23,12 @@ from PyQt4.QtCore import Qt, qDebug, SIGNAL #QVariant
 from PyQt4.QtGui import *       #, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import *
 
-from ui_worldproperties import Ui_WorldPropertiesWidget
-from ui_demproperties import Ui_DEMPropertiesWidget
-from ui_vectorproperties import Ui_VectorPropertiesWidget
+from ui.ui_worldproperties import Ui_WorldPropertiesWidget
+from ui.ui_demproperties import Ui_DEMPropertiesWidget
+from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
 from qgis2threejsmain import MapTo3D
-from vectorstylewidgets import StyleWidget
+from stylewidget import StyleWidget
 from quadtree import QuadTree
 
 PAGE_NONE = 0

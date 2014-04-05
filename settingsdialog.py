@@ -20,7 +20,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from ui_settingsdialog import Ui_SettingsDialog
+from ui.ui_settingsdialog import Ui_SettingsDialog
 
 class SettingsDialog(QDialog):
   def __init__(self, iface):

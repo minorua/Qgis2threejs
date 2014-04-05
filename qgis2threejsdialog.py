@@ -27,7 +27,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
-from ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
+from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, OutputContext, exportToThreeJS
 import qgis2threejstools as tools
