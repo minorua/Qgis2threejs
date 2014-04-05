@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir #QVariant
+from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings #QVariant
 from PyQt4.QtGui import *       #, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import *
 import os
@@ -161,23 +161,24 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 
   def setup(self, properties=None):
     # restore properties
+    comboBox = self.comboBox_Controls
+    comboBox.blockSignals(True)
     if properties:
-      self.comboBox_Controls.blockSignals(True)
       PropertyPage.setProperties(self, properties)
-      self.comboBox_Controls.blockSignals(False)
+    else:
+      controls = QSettings().value("/Qgis2threejs/lastControls", "TrackballControls.js", type=unicode)
+      index = comboBox.findText(controls)
+      if index != -1:
+        comboBox.setCurrentIndex(index)
+    comboBox.blockSignals(False)
 
-    self.controlsChanged(self.comboBox_Controls.currentIndex())
+    self.controlsChanged(comboBox.currentIndex())
 
   def initControlsList(self, defaultControls="TrackballControls.js"):
-    comboBox = self.comboBox_Controls
     # list controls
-    comboBox.clear()
+    self.comboBox_Controls.clear()
     for entry in QDir(self.controlsDir).entryList(["*.js"]):
-      comboBox.addItem(entry, entry)
-
-    index = comboBox.findText(defaultControls)
-    if index != -1:
-      comboBox.setCurrentIndex(index)
+      self.comboBox_Controls.addItem(entry, entry)
 
   def controlsChanged(self, index):
     controls = self.comboBox_Controls.itemText(index)

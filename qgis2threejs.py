@@ -52,14 +52,7 @@ class Qgis2threejs:
         QCoreApplication.installTranslator(self.translator)
 
     self.properties = None
-    self.lastTemplateName = ""
-    self.lastDEMLayerId = None
     self.lastOutputFilename = ""
-    self.lastZFactor = "1.5"
-    self.lastResolution = 2
-    self.vectorProperties = {}
-    self.sidestransp=0
-    self.demtransp=0
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -88,9 +81,7 @@ class Qgis2threejs:
   def run(self):
     # create dialog
     dialog = Qgis2threejsDialog(self.iface, self.properties)
-
     ui = dialog.ui
-    dialog.initTemplateList(self.lastTemplateName)
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
 
     # show dialog
@@ -99,7 +90,6 @@ class Qgis2threejs:
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
 
     self.properties = dialog.properties
-    self.lastTemplateName = ui.comboBox_Template.currentText()
     if debug_mode:
       qDebug(str(self.properties))
       #with open("M:/properties.txt", "w") as f:

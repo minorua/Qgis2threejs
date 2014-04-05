@@ -71,6 +71,9 @@ class Qgis2threejsDialog(QDialog):
     self.mapTool = RectangleMapTool(iface.mapCanvas())
     #self.mapTool = PointMapTool(iface.mapCanvas())
 
+    # set up the template combo box
+    self.initTemplateList()
+
     # set up the properties pages
     self.pages = {}
     self.pages[ppages.PAGE_WORLD] = ppages.WorldPropertyPage(self)
@@ -125,12 +128,14 @@ class Qgis2threejsDialog(QDialog):
       ui.verticalLayout.setContentsMargins(margins[0], margins[1] / 2, margins[2], margins[3])
     self.bar.pushMessage(title, text, level=level)
 
-  def initTemplateList(self, templateName=""):
+  def initTemplateList(self):
     self.ui.comboBox_Template.clear()
     templateDir = QDir(tools.templateDir())
     for entry in templateDir.entryList(["*.html", "*.htm"]):
       self.ui.comboBox_Template.addItem(entry)
 
+    # select the last used template
+    templateName = QSettings().value("/Qgis2threejs/lastTemplate", "", type=unicode)
     if templateName:
       index = self.ui.comboBox_Template.findText(templateName)
       if index != -1:
@@ -317,6 +322,12 @@ class Qgis2threejsDialog(QDialog):
       return
     self.clearRubberBands()
 
+    # store last selections
+    settings = QSettings()
+    settings.setValue("/Qgis2threejs/lastTemplate", templateName)
+    settings.setValue("/Qgis2threejs/lastControls", context.controls)
+
+    # open browser
     if not tools.openHTMLFile(htmlfilename):
       return
     QDialog.accept(self)
