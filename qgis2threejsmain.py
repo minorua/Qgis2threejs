@@ -114,23 +114,32 @@ class OutputContext:
     self.warp_dem = warp_dem
 
 class MaterialManager:
+
+  ERROR_COLOR = "0"
+
   def __init__(self):
     self.ids = []
     self.materials = []
 
   def getMeshLambertIndex(self, color, transparency=0):
+    if color[0:2] != "0x":
+      color = self.ERROR_COLOR
     if transparency > 0:
       opacity = 1.0 - float(transparency) / 100
       return self.getIndex("ML" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true}})".format(color, opacity))
     return self.getIndex("ML" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0}}})".format(color))
 
   def getLineBasicIndex(self, color, transparency=0):
+    if color[0:2] != "0x":
+      color = self.ERROR_COLOR
     if transparency > 0:
       opacity = 1.0 - float(transparency) / 100
       return self.getIndex("LB" + color + "_" + str(transparency), "new THREE.LineBasicMaterial({{color:{0},opacity:{1},transparent:true}})".format(color, opacity))
     return self.getIndex("LB" + color, "new THREE.LineBasicMaterial({{color:{0}}})".format(color))
 
   def getWireframeIndex(self, color, transparency=0):
+    if color[0:2] != "0x":
+      color = self.ERROR_COLOR
     if transparency > 0:
       opacity = 1.0 - float(transparency) / 100
       return self.getIndex("WF" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true,wireframe:true}})".format(color, opacity))
