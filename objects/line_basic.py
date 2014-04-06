@@ -30,12 +30,13 @@ def objectTypeNames():
 
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
-  dialog.colorWidget.setup()
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
+  dialog.colorWidget.setup()
+  dialog.transparencyWidget.setup()
   for i in range(dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
 def write(writer, pts, properties, layer=None, f=None):
-  mat = writer.materialManager.getLineBasicIndex(properties.color(layer, f))
+  mat = writer.materialManager.getLineBasicIndex(properties.color(layer, f), properties.transparency(layer, f))
   points = map(lambda pt: "[%f,%f,%f]" % (pt.x, pt.y, pt.z), pts)
   writer.write("lines.push({m:%d,pts:[%s]});\n" % (mat, ",".join(points)))

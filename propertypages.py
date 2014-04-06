@@ -425,6 +425,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.colorWidget = StyleWidget(StyleWidget.COLOR)
     self.colorWidget.setObjectName("colorWidget")
     self.verticalLayout_Styles.addWidget(self.colorWidget)
+    self.transparencyWidget = StyleWidget(StyleWidget.TRANSPARENCY)
+    self.transparencyWidget.setObjectName("transparencyWidget")
+    self.verticalLayout_Styles.addWidget(self.transparencyWidget)
 
     self.STYLE_MAX_COUNT = dialog.STYLE_MAX_COUNT
     self.styleWidgets = []
@@ -440,7 +443,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       # assign the widget to property page attribute
       setattr(self, objName, widget)
 
-    widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget] + self.styleWidgets
+    widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
     self.setPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)

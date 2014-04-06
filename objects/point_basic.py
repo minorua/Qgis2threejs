@@ -30,8 +30,9 @@ def objectTypeNames():
 
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
-  dialog.colorWidget.setup()
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
+  dialog.colorWidget.setup()
+  dialog.transparencyWidget.setup()
 
   defaultValue = 0.5 / mapTo3d.multiplier
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
@@ -53,7 +54,7 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
     dialog.styleWidgets[i].hide()
 
 def write(writer, pt, properties, layer=None, f=None):
-  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f))
+  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f), properties.transparency(layer, f))
   mapTo3d = writer.context.mapTo3d
   vals = properties.values(f)
   if properties.type_index == 0:  # Sphere

@@ -26,12 +26,13 @@ def geometryType():
   return QGis.Polygon
 
 def objectTypeNames():
-  return ["Polygon"]
+  return ["Extruded"]
 
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
-  dialog.colorWidget.setup()
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
+  dialog.colorWidget.setup()
+  dialog.transparencyWidget.setup()
 
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
   dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer, numeric_fields)
@@ -40,7 +41,7 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
     dialog.styleWidgets[i].hide()
 
 def write(writer, boundaries, properties, layer=None, f=None):
-  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f))
+  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f), properties.transparency(layer, f))
   vals = properties.values(f)
   h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
   bnds = []

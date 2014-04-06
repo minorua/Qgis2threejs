@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\demproperties.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Fri Apr 04 16:14:18 2014
+# Created: Sun Apr 06 14:57:39 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -237,7 +237,7 @@ class Ui_DEMPropertiesWidget(object):
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.radioButton_ImageFile = QtGui.QRadioButton(self.groupBox_DisplayType)
-        self.radioButton_ImageFile.setEnabled(False)
+        self.radioButton_ImageFile.setEnabled(True)
         self.radioButton_ImageFile.setObjectName(_fromUtf8("radioButton_ImageFile"))
         self.horizontalLayout_2.addWidget(self.radioButton_ImageFile)
         self.lineEdit_ImageFile = QtGui.QLineEdit(self.groupBox_DisplayType)
@@ -255,7 +255,7 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_SolidColor.setObjectName(_fromUtf8("radioButton_SolidColor"))
         self.verticalLayout_3.addWidget(self.radioButton_SolidColor)
         self.radioButton_Wireframe = QtGui.QRadioButton(self.groupBox_DisplayType)
-        self.radioButton_Wireframe.setEnabled(False)
+        self.radioButton_Wireframe.setEnabled(True)
         self.radioButton_Wireframe.setObjectName(_fromUtf8("radioButton_Wireframe"))
         self.verticalLayout_3.addWidget(self.radioButton_Wireframe)
         self.horizontalLayout_7.addLayout(self.verticalLayout_3)

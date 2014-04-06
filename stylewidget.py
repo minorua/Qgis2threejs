@@ -30,6 +30,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   COLOR = 2
   FILEPATH = 3
   HEIGHT = 4
+  TRANSPARENCY = 5
 
   def __init__(self, funcType=None, parent=None):
     QWidget.__init__(self, parent)
@@ -42,7 +43,11 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
 
   def setup(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
     if funcType is None:
+      # use the function type passed to __init__
       funcType = self.funcType
+
+    if self.func:
+      self.func.resetDefault()
 
     if self.func is None or self.funcType != funcType:
       if funcType == StyleWidget.FIELD_VALUE:
@@ -53,6 +58,8 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
         self.func = FilePathWidgetFunc(self)
       elif funcType == StyleWidget.HEIGHT:
         self.func = HeightWidgetFunc(self)
+      elif funcType == StyleWidget.TRANSPARENCY:
+        self.func = TransparencyWidgetFunc(self)
       else:
         self.func = None
         self.setVisible(False)
@@ -99,6 +106,9 @@ class WidgetFuncBase:
     self.widget.lineEdit.setPlaceholderText("")
     self.widget.lineEdit.setVisible(True)
 
+  def resetDefault(self):
+    pass
+
   def comboBoxSelectionChanged(self, index):
     pass
 
@@ -141,7 +151,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setText(str(defaultValue))
 
 class ColorWidgetFunc(WidgetFuncBase):
-  CURRENTSTYLE = 1
+  FEATURE = 1
   RANDOM = 2
   RGB = 3
 
@@ -149,11 +159,11 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.label_1.setText("Color")
     self.widget.label_2.setText("Value")
     self.widget.lineEdit.setVisible(False)
-    self.widget.lineEdit.setPlaceholderText("Format: 0xrrggbb")
+    self.widget.lineEdit.setPlaceholderText("0xrrggbb")
     self.widget.toolButton.setVisible(False)
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Current style", ColorWidgetFunc.CURRENTSTYLE)
+    self.widget.comboBox.addItem("Feature style", ColorWidgetFunc.FEATURE)
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
     self.widget.comboBox.addItem("RGB value", ColorWidgetFunc.RGB)
 
@@ -204,7 +214,7 @@ class HeightWidgetFunc(WidgetFuncBase):
 
   def setup(self, name, label, defaultValue, layer, fieldNames):
     WidgetFuncBase.setup(self)
-    self.widget.label_1.setText("Height")
+    self.widget.label_1.setText("Coordinate")
     self.widget.toolButton.setVisible(False)
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
@@ -226,3 +236,33 @@ class HeightWidgetFunc(WidgetFuncBase):
       defaultValue = 0
     self.widget.label_2.setText(label)
     self.widget.lineEdit.setText(str(defaultValue))
+
+class TransparencyWidgetFunc(WidgetFuncBase):
+  FEATURE = 1
+  LAYER = 2
+  VALUE = 3
+
+  def setup(self, name, label, defaultValue, layer, fieldNames):
+    self.widget.label_1.setText("Transparency")
+    self.widget.label_2.setText("Value (%)")
+    self.widget.lineEdit.setVisible(False)
+    self.widget.lineEdit.setPlaceholderText("0 - 100")
+    self.widget.toolButton.setVisible(False)
+
+    self.widget.comboBox.clear()
+    self.widget.comboBox.addItem("Feature style", TransparencyWidgetFunc.FEATURE)
+    self.widget.comboBox.addItem("Layer style", TransparencyWidgetFunc.LAYER)
+    self.widget.comboBox.addItem("Fixed value", TransparencyWidgetFunc.VALUE)
+
+  def comboBoxSelectionChanged(self, index):
+    itemData = self.widget.comboBox.itemData(index)
+    isValue = itemData == TransparencyWidgetFunc.VALUE
+    self.widget.label_2.setVisible(isValue)
+    self.widget.lineEdit.setVisible(isValue)
+
+  def setValues(self, vals):
+    index = self.widget.comboBox.findData(vals[0])
+    if index != -1:
+      self.widget.comboBox.setCurrentIndex(index)
+      self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
+    self.widget.lineEdit.setText(vals[2])

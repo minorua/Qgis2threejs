@@ -31,8 +31,9 @@ def objectTypeNames():
 
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
-  dialog.colorWidget.hide()
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
+  dialog.colorWidget.hide()
+  dialog.transparencyWidget.hide()
 
   dialog.styleWidgets[0].setup(StyleWidget.FILEPATH, "JSON file", "Path", "", layer, None)
   dialog.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer, numeric_fields)

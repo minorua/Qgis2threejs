@@ -83,16 +83,25 @@
              <layout class="QVBoxLayout" name="verticalLayout_Styles">
               <item>
                <layout class="QFormLayout" name="formLayout_4">
+                <property name="leftMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>2</number>
+                </property>
                 <item row="0" column="0">
                  <widget class="QLabel" name="label_ObjectType">
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>70</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="text">
                    <string>Object type</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>

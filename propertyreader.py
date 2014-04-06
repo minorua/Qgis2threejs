@@ -23,7 +23,7 @@
 from PyQt4.QtGui import QColor, QMessageBox
 from qgis.core import QGis, QgsMessageLog
 import random
-from stylewidget import HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc
+from stylewidget import HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc
 
 debug_mode = 1
 
@@ -74,6 +74,23 @@ class VectorPropertyReader:
       QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
       symbol = layer.rendererV2().symbols()[0]
     return symbol.color().name().replace("#", "0x")
+
+  def transparency(self, layer=None, f=None):
+    vals = self.properties["transparencyWidget"]
+    if vals[0] == TransparencyWidgetFunc.VALUE:
+      try:
+        return int(vals[2])
+      except:
+        return 0
+
+    if vals[0] == TransparencyWidgetFunc.LAYER:
+      return layer.layerTransparency()
+
+    symbol = layer.rendererV2().symbolForFeature(f)
+    if symbol is None:
+      QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
+      symbol = layer.rendererV2().symbols()[0]
+    return int((1.0 - symbol.alpha()) * 100)
 
   def useZ(self):
     return self.properties["heightWidget"][0] == HeightWidgetFunc.RELATIVE_TO_Z

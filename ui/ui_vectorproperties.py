@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\vectorproperties.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Thu Mar 27 11:06:07 2014
+# Created: Sun Apr 06 11:03:14 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -68,9 +68,11 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Styles = QtGui.QVBoxLayout()
         self.verticalLayout_Styles.setObjectName(_fromUtf8("verticalLayout_Styles"))
         self.formLayout_4 = QtGui.QFormLayout()
+        self.formLayout_4.setContentsMargins(2, -1, 2, -1)
         self.formLayout_4.setObjectName(_fromUtf8("formLayout_4"))
         self.label_ObjectType = QtGui.QLabel(self.groupBox_Styles)
-        self.label_ObjectType.setMinimumSize(QtCore.QSize(60, 0))
+        self.label_ObjectType.setMinimumSize(QtCore.QSize(70, 0))
+        self.label_ObjectType.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_ObjectType.setObjectName(_fromUtf8("label_ObjectType"))
         self.formLayout_4.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_ObjectType)
         self.comboBox_ObjectType = QtGui.QComboBox(self.groupBox_Styles)
