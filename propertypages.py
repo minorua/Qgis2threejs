@@ -216,7 +216,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.spinBox_Height.valueChanged.connect(self.updateQuads)
     for radioButton in dispTypeButtons:
       radioButton.toggled.connect(self.dispTypeChanged)
-    self.toolButton_Color.clicked.connect(self.toolButtonColorClicked)
+    self.toolButton_ImageFile.clicked.connect(self.browseClicked)
+    self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
     self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
 
@@ -300,7 +301,15 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def switchFocusModeClicked(self):
     self.switchFocusMode(not self.label_xmin.isVisible())
 
-  def toolButtonColorClicked(self):
+  def browseClicked(self):
+    directory = os.path.split(self.lineEdit_ImageFile.text())[0]
+    if directory == "":
+      directory = QDir.homePath()
+    filename = QFileDialog.getOpenFileName(self, "Select image file", directory, "Images (*.png *.jpeg *.jpg *.tif *.gif *.bmp);;All files (*.*)")
+    if filename:
+      self.lineEdit_ImageFile.setText(filename)
+
+  def colorButtonClicked(self):
     color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
     if color.isValid():
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))

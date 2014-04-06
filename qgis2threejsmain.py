@@ -130,6 +130,12 @@ class MaterialManager:
       return self.getIndex("LB" + color + "_" + str(transparency), "new THREE.LineBasicMaterial({{color:{0},opacity:{1},transparent:true}})".format(color, opacity))
     return self.getIndex("LB" + color, "new THREE.LineBasicMaterial({{color:{0}}})".format(color))
 
+  def getWireframeIndex(self, color, transparency=0):
+    if transparency > 0:
+      opacity = 1.0 - float(transparency) / 100
+      return self.getIndex("WF" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true,wireframe:true}})".format(color, opacity))
+    return self.getIndex("WF" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},wireframe:true}})".format(color))
+
   def getIndex(self, id, material):
     if id in self.ids:
       return self.ids.index(id)
@@ -325,20 +331,33 @@ def writeSimpleDEM(writer, properties):
   if properties.get("radioButton_MapCanvas", False):
     # save map canvas image
     #TODO: prepare material(texture) in Material manager (result is tex -> material index)
-    if context.localBrowsingMode:
+    if 1:   #context.localBrowsingMode:
       texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
       canvas.saveAsImage(texfilename)
       tex = gdal2threejs.base64image(texfilename)
       tools.removeTemporaryFiles([texfilename, texfilename + "w"])
     else:
+      #TODO: multiple DEMs output not in localBrowsingMode
       texfilename = os.path.splitext(htmlfilename)[0] + ".png"
       canvas.saveAsImage(texfilename)
       tex = os.path.split(texfilename)[1]
       tools.removeTemporaryFiles([texfilename + "w"])
 
+  elif properties.get("radioButton_ImageFile", False):
+    filename = properties.get("lineEdit_ImageFile", "")
+    if os.path.exists(filename):
+      tex = gdal2threejs.base64image(filename)
+    else:
+      tex = ""
+      QgsMessageLog.logMessage(u'Image file not found: {0}'.format(filename), "Qgis2threejs")
+
   elif properties.get("radioButton_SolidColor", False):
     mat = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
-    options.append("m:%d" % mat)
+    options.append("m:{0}".format(mat))
+
+  elif properties.get("radioButton_Wireframe", False):
+    mat = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+    options.append("m:{0}".format(mat))
 
   opt = ""
   if len(options) > 0:

@@ -63,6 +63,8 @@ class Raster:
 def base64image(filename):
   with open(filename, "rb") as f:
     subtype = os.path.splitext(filename)[1][1:].lower().replace("jpg", "jpeg")
+    if subtype == "tif":
+      subtype = "tiff"
     tex = "data:image/%s;base64," % subtype
     tex += base64.b64encode(f.read())
   return tex

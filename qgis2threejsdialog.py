@@ -27,6 +27,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
+import os
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, OutputContext, exportToThreeJS
@@ -34,7 +35,6 @@ import qgis2threejstools as tools
 from quadtree import *
 from vectorobject import *
 import propertypages as ppages
-
 
 debug_mode = 1
 
@@ -395,7 +395,7 @@ class Qgis2threejsDialog(QDialog):
       self.rb_point = None
 
   def browseClicked(self):
-    directory = self.ui.lineEdit_OutputFilename.text()
+    directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if directory == "":
       directory = QDir.homePath()
     filename = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
