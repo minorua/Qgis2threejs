@@ -212,7 +212,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
-    self.toolButton_switchFocusMode.clicked.connect(self.switchFocusModeClicked)
     self.spinBox_Height.valueChanged.connect(self.updateQuads)
     for radioButton in dispTypeButtons:
       radioButton.toggled.connect(self.dispTypeChanged)
@@ -226,12 +225,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layer = layer
 
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced], isPrimary)
-    self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
-    self.setWidgetsVisible([self.toolButton_switchFocusMode, self.toolButton_PointTool], False)
+    self.setWidgetsVisible([self.radioButton_Advanced, self.label_sidetransp, self.spinBox_sidetransp], isPrimary)
+    self.setWidgetsVisible([self.toolButton_PointTool], False)
 
     self.groupBox_Resampling.setEnabled(True)
     self.dispTypeChanged()    # update enablement of widgets in display type group
-    self.spinBox_sidetransp.setEnabled(isPrimary)
     self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
 
     # select dem layer
@@ -253,8 +251,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.calculateResolution()
 
     if isPrimary:
-      isRect = (self.lineEdit_xmin.text() != self.lineEdit_xmax.text() or self.lineEdit_ymin.text() != self.lineEdit_ymax.text())
-      self.switchFocusMode(isRect)
+      # set enablement and visibility of widgets
+      self.samplingModeChanged(True)
 
       # enable map tool to select focus area
       self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
@@ -297,9 +295,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def itemChanged(self, item):
     if not self.isPrimary:
       self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
-
-  def switchFocusModeClicked(self):
-    self.switchFocusMode(not self.label_xmin.isVisible())
 
   def browseClicked(self):
     directory = os.path.split(self.lineEdit_ImageFile.text())[0]
@@ -390,31 +385,35 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
-    simple_widgets = [self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_HRes, self.lineEdit_VRes, self.spinBox_sidetransp]
+    simple_widgets = [self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_HRes, self.lineEdit_VRes, self.groupBox_DisplayType]
     for w in simple_widgets:
       w.setEnabled(isSimpleMode)
 
     isAdvancedMode = not isSimpleMode
-    advanced_widgets = [self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax, self.toolButton_switchFocusMode]
+    advanced_widgets = [self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     for w in advanced_widgets:
       w.setEnabled(isAdvancedMode)
 
-  def switchFocusModeClicked(self):
-    self.switchFocusMode(not self.label_xmin.isVisible())
+    if self.isPrimary:
+      self.setWidgetsVisible([self.label_sidetransp, self.spinBox_sidetransp], isSimpleMode)
+      self.setLayoutsVisible([self.horizontalLayout_Advanced1, self.horizontalLayout_Advanced3], isAdvancedMode)
+      self.setWidgetsVisible([self.label_Focus], isAdvancedMode)
+      if isSimpleMode:
+        self.setLayoutVisible(self.horizontalLayout_Advanced4, False)
+      else:
+        isPoint = (self.lineEdit_xmin.text() == self.lineEdit_xmax.text() and self.lineEdit_ymin.text() == self.lineEdit_ymax.text())
+        self.switchFocusMode(not isPoint)
+
+    if isAdvancedMode:
+      self.radioButton_MapCanvas.setChecked(True)
 
   def switchFocusMode(self, toRect):
     toPoint = not toRect
-    #TODO: setWidgetsVisible()
-    self.label_xmin.setVisible(toRect)
-    self.label_ymin.setVisible(toRect)
-    self.lineEdit_xmin.setVisible(toRect)
-    self.lineEdit_ymin.setVisible(toRect)
+    self.setLayoutVisible(self.horizontalLayout_Advanced4, toRect)
 
     suffix = "max" if toRect else ""
     self.label_xmax.setText("x" + suffix)
     self.label_ymax.setText("y" + suffix)
-    mode = "point" if toRect else "rectangle"
-    self.toolButton_switchFocusMode.setText("To " + mode + " selection")
     selection = "area" if toRect else "point"
     action = "Stroke a rectangle" if toRect else "Click"
     self.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))

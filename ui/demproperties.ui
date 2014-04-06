@@ -238,7 +238,7 @@
            <number>10</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <layout class="QHBoxLayout" name="horizontalLayout_Advanced1">
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
@@ -323,21 +323,11 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <layout class="QHBoxLayout" name="horizontalLayout_Advanced2">
             <item>
              <widget class="QLabel" name="label_Focus">
               <property name="text">
                <string>Focus point</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="toolButton_switchFocusMode">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>switch selection mode</string>
               </property>
              </widget>
             </item>
@@ -351,7 +341,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <layout class="QHBoxLayout" name="horizontalLayout_Advanced3">
             <item>
              <widget class="QLabel" name="label_xmax">
               <property name="text">
@@ -395,7 +385,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <layout class="QHBoxLayout" name="horizontalLayout_Advanced4">
             <item>
              <widget class="QLabel" name="label_xmin">
               <property name="enabled">
@@ -607,7 +597,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_18">
        <item>
-        <widget class="QLabel" name="label_16">
+        <widget class="QLabel" name="label_sidetransp">
          <property name="text">
           <string>Sides transparency (%)</string>
          </property>
