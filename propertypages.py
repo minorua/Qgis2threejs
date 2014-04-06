@@ -37,9 +37,8 @@ import qgis2threejstools as tools
 PAGE_NONE = 0
 PAGE_WORLD = 1
 PAGE_CONTROLS = 2
-PAGE_PLANE = 3
-PAGE_DEM = 4
-PAGE_VECTOR = 5
+PAGE_DEM = 3
+PAGE_VECTOR = 4
 
 class PropertyPage(QWidget):
 

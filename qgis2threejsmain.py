@@ -42,15 +42,14 @@ apiChanged22 = False
 
 # used for tree widget and properties
 class ObjectTreeItem:
-  topItemNames = ["World", "Controls", "Plane", "Primary DEM", "Additional DEM", "Point", "Line", "Polygon"]
+  topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
   ITEM_WORLD = 0
   ITEM_CONTROLS = 1
-  ITEM_PLANE = 2
-  ITEM_DEM = 3
-  ITEM_OPTDEM = 4
-  ITEM_POINT = 5
-  ITEM_LINE = 6
-  ITEM_POLYGON = 7
+  ITEM_DEM = 2
+  ITEM_OPTDEM = 3
+  ITEM_POINT = 4
+  ITEM_LINE = 5
+  ITEM_POLYGON = 6
 
 class Point:
   def __init__(self, x, y, z=0):

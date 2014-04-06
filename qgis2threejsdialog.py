@@ -78,7 +78,6 @@ class Qgis2threejsDialog(QDialog):
     self.pages = {}
     self.pages[ppages.PAGE_WORLD] = ppages.WorldPropertyPage(self)
     self.pages[ppages.PAGE_CONTROLS] = ppages.ControlsPropertyPage(self)
-    #self.pages[ppages.PAGE_PLANE] = ppages.PlanePropertyPage(self)
     self.pages[ppages.PAGE_DEM] = ppages.DEMPropertyPage(self)
     self.pages[ppages.PAGE_VECTOR] = ppages.VectorPropertyPage(self)
     container = ui.propertyPagesContainer
@@ -87,7 +86,7 @@ class Qgis2threejsDialog(QDialog):
       container.addWidget(page)
 
     # build object tree
-    self.topItemPages = {ObjectTreeItem.ITEM_WORLD: ppages.PAGE_WORLD, ObjectTreeItem.ITEM_CONTROLS: ppages.PAGE_CONTROLS, ObjectTreeItem.ITEM_PLANE: ppages.PAGE_PLANE, ObjectTreeItem.ITEM_DEM: ppages.PAGE_DEM}
+    self.topItemPages = {ObjectTreeItem.ITEM_WORLD: ppages.PAGE_WORLD, ObjectTreeItem.ITEM_CONTROLS: ppages.PAGE_CONTROLS, ObjectTreeItem.ITEM_DEM: ppages.PAGE_DEM}
     self.initObjectTree()
     self.ui.treeWidget.currentItemChanged.connect(self.currentObjectChanged)
     self.ui.treeWidget.itemChanged.connect(self.objectItemChanged)
@@ -176,7 +175,8 @@ class Qgis2threejsDialog(QDialog):
       item.setData(0, Qt.UserRole, layer.id())
 
     for item in topItems:
-      tree.expandItem(item)
+      if item.data(0, Qt.UserRole) != ObjectTreeItem.ITEM_OPTDEM:
+        tree.expandItem(item)
 
   def saveProperties(self, item, page):
     properties = page.properties()
