@@ -163,6 +163,8 @@ class JSWriter:
     self.jsfile_count = 0
     self.layerCount = 0
     self.currentLayerIndex = 0
+    self.currentFeatureIndex = -1
+    self.attrs = []
     self.materialManager = MaterialManager()
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
@@ -177,7 +179,7 @@ class JSWriter:
       jsfilename = os.path.splitext(self.htmlfilename)[0] + ".js"
     else:
       jsfilename = os.path.splitext(self.htmlfilename)[0] + "_%d.js" % self.jsindex
-    self.jsfile = open(jsfilename, "w")
+    self.jsfile = codecs.open(jsfilename, "w", "UTF-8")
     self.jsfile_count += 1
 
   def closeFile(self):
@@ -202,7 +204,7 @@ class JSWriter:
     lines.append("world.zScale = world.scale * world.zExaggeration;")
     self.write("\n".join(lines) + "\n")
 
-  def obj2js(self, obj):
+  def obj2js(self, obj, escape=False):
     if isinstance(obj, dict):
       items = []
       for k, v in obj.iteritems():
@@ -216,20 +218,31 @@ class JSWriter:
     elif isinstance(obj, bool):
       return "true" if obj else "false"
     elif isinstance(obj, (str, unicode)):
+      if escape:
+        return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
       return '"' + obj + '"'
     return obj
 
-  def writeLayer(self, obj):
+  def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
     self.write("\n" + "lyr[{0}] = {1};\n".format(self.currentLayerIndex, self.obj2js(obj)))
+    if fieldNames is not None:
+      self.write(u"lyr[{0}].a = {1};\n".format(self.currentLayerIndex, self.obj2js(fieldNames)))
     self.layerCount += 1
+    self.currentFeatureIndex = -1
+    self.attrs = []
     return self.currentLayerIndex
 
   def writeFeature(self, f):
-    self.write("lyr[{0}].f.push({1});\n".format(self.currentLayerIndex, self.obj2js(f)))
+    self.currentFeatureIndex += 1
+    self.write("lyr[{0}].f[{1}] = {2};\n".format(self.currentLayerIndex, self.currentFeatureIndex, self.obj2js(f)))
 
-  def writeAttribute(self, attrs):
-    self.write("lyr[{0}].a.push({1});\n".format(self.currentLayerIndex, self.obj2js(attrs)))
+  def addAttributes(self, attrs):
+    self.attrs.append(attrs)
+
+  def writeAttributes(self):
+    for index, attrs in enumerate(self.attrs):
+      self.write(u"lyr[{0}].f[{1}].a = {2};\n".format(self.currentLayerIndex, index, self.obj2js(attrs, True)))
 
   def prepareNext(self):
     self.closeFile()
@@ -664,9 +677,18 @@ def writeVectors(writer):
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
     lyr["objType"] = prop.type_name
-    #TODO: add attributes
     #TODO: add label style
-    writer.writeLayer(lyr)
+
+    # make list of field names
+    writeAttrs = properties.get("checkBox_ExportAttrs", False)
+    fieldNames = None
+    if writeAttrs:
+      fieldNames = []
+      fields = layer.pendingFields()
+      for i in range(fields.count()):
+        fieldNames.append(fields[i].name())
+
+    writer.writeLayer(lyr, fieldNames)
 
     transform = QgsCoordinateTransform(layer.crs(), context.crs)
     wkt = str(context.crs.toWkt())
@@ -759,6 +781,14 @@ def writeVectors(writer):
             points.reverse()    # to counter clockwise direction
             boundaries.append(points)
           obj_mod.write(writer, boundaries, prop, layer, f)
+
+      # stack attributes in writer
+      if writeAttrs:
+        writer.addAttributes(f.attributes())
+    # write attributes
+    if writeAttrs:
+      writer.writeAttributes()
+
   # write materials
   writer.materialManager.write(writer)
 

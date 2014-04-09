@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Sun Apr 06 11:03:14 2014
+# Created: Wed Apr 09 16:30:16 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,10 +27,8 @@ class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName(_fromUtf8("VectorPropertiesWidget"))
         VectorPropertiesWidget.resize(278, 300)
-        self.gridLayout = QtGui.QGridLayout(VectorPropertiesWidget)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.verticalLayout_5 = QtGui.QVBoxLayout()
-        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
+        self.verticalLayout_2 = QtGui.QVBoxLayout(VectorPropertiesWidget)
+        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.scrollArea = QtGui.QScrollArea(VectorPropertiesWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -41,7 +39,7 @@ class Ui_VectorPropertiesWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 256, 278))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 258, 280))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -86,11 +84,22 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Styles.addLayout(self.formLayout_4)
         self.gridLayout_8.addLayout(self.verticalLayout_Styles, 0, 0, 1, 1)
         self.gridLayout_10.addWidget(self.groupBox_Styles, 1, 0, 1, 1)
+        self.groupBox_Attrs = QtGui.QGroupBox(self.scrollAreaWidgetContents)
+        self.groupBox_Attrs.setObjectName(_fromUtf8("groupBox_Attrs"))
+        self.gridLayout = QtGui.QGridLayout(self.groupBox_Attrs)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.verticalLayout = QtGui.QVBoxLayout()
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.checkBox_ExportAttrs = QtGui.QCheckBox(self.groupBox_Attrs)
+        self.checkBox_ExportAttrs.setChecked(True)
+        self.checkBox_ExportAttrs.setObjectName(_fromUtf8("checkBox_ExportAttrs"))
+        self.verticalLayout.addWidget(self.checkBox_ExportAttrs)
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+        self.gridLayout_10.addWidget(self.groupBox_Attrs, 2, 0, 1, 1)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_10.addItem(spacerItem, 2, 0, 1, 1)
+        self.gridLayout_10.addItem(spacerItem, 3, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.verticalLayout_5.addWidget(self.scrollArea)
-        self.gridLayout.addLayout(self.verticalLayout_5, 0, 0, 1, 1)
+        self.verticalLayout_2.addWidget(self.scrollArea)
 
         self.retranslateUi(VectorPropertiesWidget)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)
@@ -100,4 +109,6 @@ class Ui_VectorPropertiesWidget(object):
         self.groupBox_zCoordinate.setTitle(_translate("VectorPropertiesWidget", "Z coordinate", None))
         self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "Styles", None))
         self.label_ObjectType.setText(_translate("VectorPropertiesWidget", "Object type", None))
+        self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "Attributes", None))
+        self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes", None))
 

@@ -87,7 +87,7 @@ class PropertyPage(QWidget):
           v = None
         else:
           v = w.itemData(index)
-      elif isinstance(w, QRadioButton): # subclass of QAbstractButton
+      elif isinstance(w, (QRadioButton, QCheckBox)): # subclass of QAbstractButton
         if not w.isChecked():
           continue
         v = w.isChecked()
@@ -113,7 +113,7 @@ class PropertyPage(QWidget):
           index = w.findData(v)
           if index != -1:
             w.setCurrentIndex(index)
-      elif isinstance(w, QRadioButton): # subclass of QAbstractButton
+      elif isinstance(w, (QRadioButton, QCheckBox)): # subclass of QAbstractButton
         w.setChecked(v)
       elif isinstance(w, (QSlider, QSpinBox)):
         w.setValue(v)
@@ -451,6 +451,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
+    widgets += [self.checkBox_ExportAttrs]
     self.setPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)

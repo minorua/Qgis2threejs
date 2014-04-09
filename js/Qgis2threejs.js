@@ -84,7 +84,9 @@ function buildDEM(scene, layer, dem) {
 
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
+  plane.userData = [layer.index, 0];
   scene.add(plane);
+  layer.obj = plane;
   if (layer.q) queryableObjs.push(plane);
 }
 
@@ -217,7 +219,9 @@ function buildPointLayer(scene, layer) {
       obj.position.set(pt[0], pt[1], pt[2]);
       if (point.rotateX) obj.rotation.x = point.rotateX * deg2rad;
     }
+    obj.userData = [layer.index, i];
     scene.add(obj);
+    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
   }
 }
@@ -232,7 +236,9 @@ function buildLineLayer(scene, layer) {
       geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
     }
     obj = new THREE.Line(geometry, mat[line.m].m);
+    obj.userData = [layer.index, i];
     scene.add(obj);
+    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
   }
 }
@@ -256,7 +262,9 @@ function buildPolygonLayer(scene, layer) {
     geometry = new THREE.ExtrudeGeometry(shape, {bevelEnabled:false, amount:polygon.h});
     obj = new THREE.Mesh(geometry, mat[polygon.m].m);
     obj.position.z = polygon.z;
+    obj.userData = [layer.index, i];
     scene.add(obj);
+    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
   }
 }
@@ -266,6 +274,7 @@ function buildModels(scene) {
 
   for (var i = 0, l = lyr.length; i < l; i++) {
     var layer = lyr[i];
+    layer.index = i;
     if (layer.type == "dem") {
       for (var j = 0, k = layer.dem.length; j < k; j++) {
         buildDEM(scene, layer, layer.dem[j]);

@@ -56,8 +56,28 @@ ${scripts}
   }
 
   function object_clicked(obj) {
-    pt = getMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
-    alert("Object clicked\nx: " + pt.x.toFixed(2) + "\ny: " + pt.y.toFixed(2) + "\nz: " + pt.z.toFixed(2));
+    var object = obj.object;
+    var pt = getMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
+    var r = [];
+    r.push("Clicked coordinates (object surface)");
+    r.push(" X: " + pt.x.toFixed(2));
+    r.push(" Y: " + pt.y.toFixed(2));
+    r.push(" Z: " + pt.z.toFixed(2));
+    if (object.userData !== undefined) {
+      var layer = lyr[object.userData[0]];
+      r.push("");
+      r.push("Layer: " + layer.name);
+
+      if (layer.type != "dem") {
+        var f = layer.f[object.userData[1]];
+        if (f.a !== undefined) {
+          for (var i = 0, l = f.a.length; i < l; i++) {
+            r.push(layer.a[i] + ": " + f.a[i]);
+          }
+        }
+      }
+    }
+    alert(r.join("\n"));
   }
 
   function canvas_clicked(e) {
