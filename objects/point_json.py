@@ -57,4 +57,5 @@ def write(writer, pt, properties, layer=None, f=None):
       json = f.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
-  writer.write('points.push({type:"json",json_index:%d,pt:[%f,%f,%f],rotateX:Math.PI*%d/180,rotateY:Math.PI*%f/180,scale:%f});\n' % (index, pt.x, pt.y, pt.z, 90, rotation, scale))
+
+  writer.writeFeature({"json_index": index, "pt": [pt.x, pt.y, pt.z], "rotateX": "Math.PI*90/180", "rotateY": "Math.PI*{0}/180".format(rotation), "scale": scale})

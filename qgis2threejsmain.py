@@ -154,6 +154,7 @@ class MaterialManager:
       return index
 
   def write(self, f):
+    f.write("\n")
     for index, material in enumerate(self.materials):
       f.write("mat[{0}] = {1};\n".format(index, material))
 
@@ -164,6 +165,8 @@ class JSWriter:
     self.jsfile = None
     self.jsindex = -1
     self.jsfile_count = 0
+    self.layerCount = 0
+    self.currentLayerIndex = 0
     self.materialManager = MaterialManager()
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
@@ -203,6 +206,37 @@ class JSWriter:
     lines.append("world.zScale = world.scale * world.zExaggeration;")
     self.write("\n".join(lines) + "\n")
 
+  def obj2js(self, obj):
+    if isinstance(obj, dict):
+      items = []
+      for k, v in obj.iteritems():
+        items.append("{0}:{1}".format(k, self.obj2js(v)))
+      return "{" + ",".join(items) + "}"
+    elif isinstance(obj, list):
+      items = []
+      for v in obj:
+        items.append(unicode(self.obj2js(v)))
+      return "[" + ",".join(items) + "]"
+    elif isinstance(obj, bool):
+      return "true" if obj else "false"
+    elif isinstance(obj, (str, unicode)):
+      if "Math.PI" in obj:
+        return obj
+      return '"' + obj + '"'
+    return obj
+
+  def writeLayer(self, obj):
+    self.currentLayerIndex = self.layerCount
+    self.write("\n" + "lyr[{0}] = {1};\n".format(self.currentLayerIndex, self.obj2js(obj)))
+    self.layerCount += 1
+    return self.currentLayerIndex
+
+  def writeFeature(self, f):
+    self.write("lyr[{0}].f.push({1});\n".format(self.currentLayerIndex, self.obj2js(f)))
+
+  def writeAttribute(self, attrs):
+    self.write("lyr[{0}].a.push({1});\n".format(self.currentLayerIndex, self.obj2js(attrs)))
+
   def prepareNext(self):
     self.closeFile()
     self.jsindex += 1
@@ -236,7 +270,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   filetitle = os.path.splitext(filename)[0]
 
   demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
-  isSimpleMode = demProperties["radioButton_Simple"]
+  isSimpleMode = demProperties.get("radioButton_Simple", False)
 
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
@@ -292,9 +326,9 @@ def writeSimpleDEM(writer, properties):
   timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
 
-  dem = DEMPropertyReader(properties)
-  dem_width = dem.width()
-  dem_height = dem.height()
+  prop = DEMPropertyReader(properties)
+  dem_width = prop.width()
+  dem_height = prop.height()
 
   # warp dem
   # calculate extent. output dem should be handled as points.
@@ -303,9 +337,11 @@ def writeSimpleDEM(writer, properties):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
+  layerName = ""
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
     layer = QgsMapLayerRegistry().instance().mapLayer(demLayerId)
+    layerName = layer.name()
     warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
   else:
     warp_dem = tools.FlatRaster()
@@ -318,71 +354,69 @@ def writeSimpleDEM(writer, properties):
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
-  # options
-  options = []
-
   # transparency
-  demTransparency = dem.properties["spinBox_demtransp"]
-  sidesTransparency = dem.properties["spinBox_sidetransp"]
+  demTransparency = prop.properties["spinBox_demtransp"]
+  sidesTransparency = prop.properties["spinBox_sidetransp"]
 
-  if demTransparency > 0:
-    demOpacity = str(1.0 - float(demTransparency) / 100)
-    options.append("opacity:%s" % demOpacity)
-  if sidesTransparency < 100:
-    options.append("has_side:true")
-    if sidesTransparency > 0:
-      sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
-      options.append("side_opacity:%s" % sidesOpacity)
+  # layer dict
+  lyr = {"type": "dem", "name": layerName}
+  lyr["q"] = 1    #queryable
+  dem = {"width": dem_width, "height": dem_height}
+  dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
+  lyr["dem"] = [dem]
 
   # display type
-  tex = None
+  texData = texSrc = None
   if properties.get("radioButton_MapCanvas", False):
     # save map canvas image
     #TODO: prepare material(texture) in Material manager (result is tex -> material index)
     if 1:   #context.localBrowsingMode:
       texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
       canvas.saveAsImage(texfilename)
-      tex = gdal2threejs.base64image(texfilename)
+      texData = gdal2threejs.base64image(texfilename)
       tools.removeTemporaryFiles([texfilename, texfilename + "w"])
     else:
       #TODO: multiple DEMs output not in localBrowsingMode
       texfilename = os.path.splitext(htmlfilename)[0] + ".png"
       canvas.saveAsImage(texfilename)
-      tex = os.path.split(texfilename)[1]
+      texSrc = os.path.split(texfilename)[1]
       tools.removeTemporaryFiles([texfilename + "w"])
 
   elif properties.get("radioButton_ImageFile", False):
     filename = properties.get("lineEdit_ImageFile", "")
     if os.path.exists(filename):
-      tex = gdal2threejs.base64image(filename)
+      texData = gdal2threejs.base64image(filename)
     else:
-      tex = ""
+      texData = ""  #
       QgsMessageLog.logMessage(u'Image file not found: {0}'.format(filename), "Qgis2threejs")
 
   elif properties.get("radioButton_SolidColor", False):
-    mat = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
-    options.append("m:{0}".format(mat))
+    dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
 
   elif properties.get("radioButton_Wireframe", False):
-    mat = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
-    options.append("m:{0}".format(mat))
+    dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
-  opt = ""
-  if len(options) > 0:
-    opt = ",".join(options) + ","
+  if texData is not None or texSrc is not None:
+    tex = {}
+    if texSrc is not None:
+      tex["src"] = texSrc
+    if demTransparency > 0:
+      demOpacity = 1.0 - float(demTransparency) / 100
+      tex["o"] = demOpacity
+      tex["t"] = demOpacity < 1  #
+    dem["t"] = tex
 
-  # write dem object
-  offsetX = offsetY = 0
-  plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (mapTo3d.planeWidth, mapTo3d.planeHeight, offsetX, offsetY)
-  #TODO: use str() for float
+  if sidesTransparency < 100:
+    side = {}
+    if sidesTransparency > 0:
+      sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
+      side["o"] = sidesOpacity
+    dem["s"] = side
 
-  writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' %
-               (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-               #TODO: material index
-  if tex is None:
-    writer.write('tex.push(null);\n')
-  else:
-    writer.write('tex.push("%s");\n' % tex)
+  idx = writer.writeLayer(lyr)
+  writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(idx, ",".join(map(gdal2threejs.formatValue, dem_values))))
+  if texData is not None:
+    writer.write('lyr[{0}].dem[0].t.data = "{1}";\n'.format(idx, texData))
 
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
@@ -401,14 +435,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   # material options
   demTransparency = properties["spinBox_demtransp"]
 
-  options = []
-  if demTransparency > 0:
-    demOpacity = str(1.0 - float(demTransparency) / 100)
-    options.append("opacity:%s" % demOpacity)
-
-  opt = ""
-  if len(options) > 0:
-    opt = ",".join(options) + ","
+  # layer dict
+  lyr = {"type": "dem", "name": demlayer.name(), "dem": []}
+  lyr["q"] = 1    #queryable
+  lyrIdx = writer.writeLayer(lyr)
 
   # create quad tree
   quadtree = createQuadTree(canvas.extent(), properties)
@@ -466,6 +496,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     progress(50 * i / len(quads))
     extent = quad.extent
 
+    texData = texSrc = None
     if quad.height < quadtree.height or unites_center == False:
       renderer.setExtent(extent)
       # render map image
@@ -477,11 +508,11 @@ def writeMultiResDEM(writer, properties, progress=None):
       painter.end()
 
       if context.localBrowsingMode:
-        tex = tools.base64image(image)
+        texData = tools.base64image(image)
       else:
         texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
         image.save(texfilename)
-        tex = os.path.split(texfilename)[1]
+        texSrc = os.path.split(texfilename)[1]
 
     # calculate extent. output dem should be handled as points.
     xres = extent.width() / (dem_width - 1)
@@ -534,9 +565,22 @@ def writeMultiResDEM(writer, properties, progress=None):
     if quad.height < quadtree.height or unites_center == False:
       # write dem object
       writer.openFile(True)
-      plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
-      writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' % (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-      writer.write('tex.push("%s");\n' % tex)
+
+      tex = {}
+      if texSrc is not None:
+        tex["src"] = texSrc
+      if demTransparency > 0:
+        demOpacity = 1.0 - float(demTransparency) / 100
+        tex["o"] = demOpacity
+        tex["t"] = demOpacity < 1  #
+
+      dem = {"width": dem_width, "height": dem_height, "t": tex}
+      dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+
+      writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+      writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      if texData is not None:
+        writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
       plane_index += 1
     else:
       centerQuads.addQuad(quad, dem_values)
@@ -562,12 +606,13 @@ def writeMultiResDEM(writer, properties, progress=None):
     renderer.render(painter)
     painter.end()
 
+    texData = texSrc = None
     if context.localBrowsingMode:
-      tex = tools.base64image(image)
+      texData = tools.base64image(image)
     else:
       texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
       image.save(texfilename)
-      tex = os.path.split(texfilename)[1]
+      texSrc = os.path.split(texfilename)[1]
 
     dem_values = centerQuads.unitedDEM()
     planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
@@ -580,9 +625,21 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # write dem object
     writer.openFile(True)
-    plane = "{width:%f,height:%f,offsetX:%f,offsetY:%f}" % (planeWidth, planeHeight, offsetX, offsetY)
-    writer.write('dem.push({width:%d,height:%d,plane:%s,%sdata:[%s]});\n' % (dem_width, dem_height, plane, opt, ",".join(map(gdal2threejs.formatValue, dem_values))))
-    writer.write('tex.push("%s");\n' % tex)
+    tex = {}
+    if texSrc is not None:
+      tex["src"] = texSrc
+    if demTransparency > 0:
+      demOpacity = str(1.0 - float(demTransparency) / 100)
+      tex["o"] = demOpacity
+      tex["t"] = demOpacity < 1  #
+
+    dem = {"width": dem_width, "height": dem_height, "t": tex}
+    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+
+    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+    writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    if texData is not None:
+      writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
     plane_index += 1
 
 def writeVectors(writer):
@@ -602,12 +659,21 @@ def writeVectors(writer):
     if layer is None:
       continue
     geom_type = layer.geometryType()
-
     prop = VectorPropertyReader(context.objectTypeManager, layer, properties)
     obj_mod = context.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
+
+    # write layer object
+    lyr = {"name": layer.name(), "f": []}
+    lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
+    lyr["q"] = 1    #queryable
+    lyr["objType"] = prop.type_name
+    #TODO: add attributes
+    #TODO: add label style
+    writer.writeLayer(lyr)
+
     transform = QgsCoordinateTransform(layer.crs(), context.crs)
     wkt = str(context.crs.toWkt())
     request = QgsFeatureRequest().setFilterRect(transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))

@@ -1,5 +1,6 @@
 // Variables
-var world = {}, dem = [], tex = [], mat=[], points=[], lines=[], polygons=[], jsons=[], clickableObjs=[];
+var world = {};
+var lyr = [], mat = [], tex = [], jsons=[], queryableObjs = [];
 var option = {side_color: 0xc7ac92, side_sole_height: 1.5};
 
 // Add default key event listener
@@ -30,7 +31,7 @@ function getMapCoordinates(x, y, z) {
 }
 
 // Terrain functions
-function buildDEM(scene, dem, tex) {
+function buildDEM(scene, layer, dem) {
 
   var geometry = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height,
                                      dem.width - 1, dem.height - 1);
@@ -41,21 +42,20 @@ function buildDEM(scene, dem, tex) {
   }
 
   // Terrain material
-  if (dem.opacity === undefined) dem.opacity = 1;
-
   var material;
   if (dem.m !== undefined) material = mat[dem.m];
   else {
     var texture;
-    if (tex.substr(0, 5) == "data:") {
+    if (dem.t.src === undefined) {
       var image = new Image();
-      image.src = tex;
+      image.src = dem.t.data;
       texture = new THREE.Texture(image);
     } else {
-      texture = THREE.ImageUtils.loadTexture(tex);
+      texture = THREE.ImageUtils.loadTexture(dem.t.src);
     }
     texture.needsUpdate = true;
-    material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.opacity, transparent: (dem.opacity < 1)});
+    if (dem.t.o === undefined) dem.t.o = 1;
+    material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.t.o, transparent: (dem.t.o < 1)});
   }
   material.side = THREE.DoubleSide;
   var plane = new THREE.Mesh(geometry, material);
@@ -63,7 +63,7 @@ function buildDEM(scene, dem, tex) {
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
   scene.add(plane);
-  clickableObjs.push(plane);
+  if (layer.q) queryableObjs.push(plane);
 }
 
 /**
@@ -162,27 +162,15 @@ function buildSides(scene, dem, color, sole_height) {
   scene.add(light3);
 }
 
-function buildDEMs(scene) {
-
-  for (var i = 0, l = dem.length; i < l; i++) {
-    buildDEM(scene, dem[i], tex[i])
-  }
-
-  // Build sides and bottom
-  if (dem[0].has_side) {
-    buildSides(scene, dem[0], option["side_color"], option["side_sole_height"]);
-  }
-}
-
 
 // Vector functions
-function buildPoints(scene) {
+function buildPointLayer(scene, layer) {
   var point, pt, obj, meshes = [];
   var manager, loader, json_objs=[];
-  for (var i = 0, l = points.length; i < l; i++) {
-    point = points[i];
+  for (var i = 0, l = layer.f.length; i < l; i++) {
+    point = layer.f[i];
     pt = point.pt;
-    if (point.type == "json") {
+    if (layer.objType == "JSON model") {
       if (manager == undefined) {
         manager = new THREE.LoadingManager();
         loader = new THREE.JSONLoader(manager);
@@ -198,8 +186,8 @@ function buildPoints(scene) {
         obj.rotation.set(point.rotateX || 0, point.rotateY || 0, point.rotateZ || 0);
       if (point.scale) obj.scale.set(point.scale, point.scale, point.scale);
     } else {
-      if (point.type == "cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
-      else if (point.type == "cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
+      if (layer.objType == "Cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
+      else if (layer.objType == "Cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
       else geometry = new THREE.SphereGeometry(point.r);
  
       obj = new THREE.Mesh(geometry, mat[point.m]);
@@ -207,14 +195,14 @@ function buildPoints(scene) {
       if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
     }
     scene.add(obj);
-    // meshes.push(obj)  // for click event
+    if (layer.q) queryableObjs.push(obj);
   }
 }
 
-function buildLines(scene) {
+function buildLineLayer(scene, layer) {
   var line, geometry, pt, obj;
-  for (var i = 0, l = lines.length; i < l; i++) {
-    line = lines[i];
+  for (var i = 0, l = layer.f.length; i < l; i++) {
+    line = layer.f[i];
     geometry = new THREE.Geometry();
     for (var j = 0, m = line.pts.length; j < m; j++) {
       pt = line.pts[j];
@@ -222,13 +210,14 @@ function buildLines(scene) {
     }
     obj = new THREE.Line(geometry, mat[line.m]);
     scene.add(obj);
+    if (layer.q) queryableObjs.push(obj);
   }
 }
 
-function buildPolygons(scene) {
+function buildPolygonLayer(scene, layer) {
   var polygon, pts, pt, shape, geometry, obj;
-  for (var i = 0, l = polygons.length; i < l; i++) {
-    polygon = polygons[i];
+  for (var i = 0, l = layer.f.length; i < l; i++) {
+    polygon = layer.f[i];
     for (var j = 0, m = polygon.bnds.length; j < m; j++) {
       pts = [];
       for (var k = 0, n = polygon.bnds[j].length; k < n; k++) {
@@ -245,17 +234,30 @@ function buildPolygons(scene) {
     obj = new THREE.Mesh(geometry, mat[polygon.m]);
     obj.position.z = polygon.z;
     scene.add(obj);
-    // meshes.push(obj)
+    if (layer.q) queryableObjs.push(obj);
   }
 }
 
-function buildVectors(scene) {
-  buildPoints(scene);
-  buildLines(scene);
-  buildPolygons(scene);
-}
-
 function buildModels(scene) {
-  buildDEMs(scene);
-  buildVectors(scene);
+  for (var i = 0, l = lyr.length; i < l; i++) {
+    var layer = lyr[i];
+    if (layer.type == "dem") {
+      for (var j = 0, k = layer.dem.length; j < k; j++) {
+        buildDEM(scene, layer, layer.dem[j]);
+        if (layer.dem[j].s !== undefined) {
+          // Build sides and bottom
+          buildSides(scene, layer.dem[j], option["side_color"], option["side_sole_height"]);
+        }
+      }
+    }
+    else if (layer.type == "point") {
+      buildPointLayer(scene, layer);
+    }
+    else if (layer.type == "line") {
+      buildLineLayer(scene, layer);
+    }
+    else if (layer.type == "polygon") {
+      buildPolygonLayer(scene, layer);
+    }
+  }
 }

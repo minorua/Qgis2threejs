@@ -9,9 +9,7 @@ var customPlane;
  */
 
 function addPlane(color) {
-  var customPlaneGeometry = new THREE.PlaneGeometry(
-                                    dem[0].plane.width, dem[0].plane.height,
-                                     dem[0].width - 1, dem[0].height - 1);
+  var customPlaneGeometry = new THREE.PlaneGeometry(world.width, world.height, 1, 1);
   var customPlaneMaterial = new THREE.MeshLambertMaterial(
     {
       color:color,

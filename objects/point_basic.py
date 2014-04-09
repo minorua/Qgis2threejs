@@ -60,16 +60,16 @@ def write(writer, pt, properties, layer=None, f=None):
   if properties.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
     if r != 0:
-      writer.write('points.push({type:"sphere",m:%d,pt:[%f,%f,%f],r:%f});\n' % (mat, pt.x, pt.y, pt.z, r))
+      writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, pt.z],"r": r})
   elif properties.type_index in [1, 3]: # Cylinder, Cone
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if properties.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    writer.write('points.push({type:"cylinder",m:%d,pt:[%f,%f,%f],rt:%f,rb:%f,h:%f,rotateX:Math.PI*%d/180});\n' % (mat, pt.x, pt.y, z, rt, rb, h, 90))
+    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "rt": rt, "rb": rb, "h": h, "rotateX": "Math.PI*90/180"})
   elif properties.type_index == 2:  # Cube
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    writer.write('points.push({type:"cube",m:%d,pt:[%f,%f,%f],w:%f,d:%f,h:%f,rotateX:Math.PI*%d/180});\n' % (mat, pt.x, pt.y, z, w, d, h, 90))
+    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "w": w, "d": d, "h": h, "rotateX": "Math.PI*90/180"})

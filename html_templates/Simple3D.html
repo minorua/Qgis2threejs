@@ -70,7 +70,7 @@ ${scripts}
     var vector = new THREE.Vector3(x, y, 1);
     projector.unprojectVector(vector, camera);
     var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
-    var obj = ray.intersectObjects(clickableObjs);
+    var obj = ray.intersectObjects(queryableObjs);
     if(obj.length > 0) object_clicked(obj[0]);
   }
 

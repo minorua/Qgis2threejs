@@ -47,8 +47,8 @@ def write(writer, boundaries, properties, layer=None, f=None):
   bnds = []
   zsum = zcount = 0
   for boundary in boundaries:
-    bnds.append("[%s]" % ",".join(map(lambda pt: "[%f,%f]" % (pt.x, pt.y), boundary)))
+    bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
     zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
     zcount += len(boundary) - 1
   z = zsum / zcount
-  writer.write("polygons.push({m:%d,z:%f,h:%f,bnds:[%s]});\n" % (mat, z, h, ",".join(bnds)))
+  writer.writeFeature({"m": mat, "z": z, "h": h, "bnds": bnds})
