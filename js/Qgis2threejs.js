@@ -86,8 +86,8 @@ function buildDEM(scene, layer, dem) {
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
   plane.userData = [layer.index, 0];
   scene.add(plane);
-  layer.obj = plane;
   if (layer.q) queryableObjs.push(plane);
+  dem.obj = plane;
 }
 
 /**
@@ -221,8 +221,8 @@ function buildPointLayer(scene, layer) {
     }
     obj.userData = [layer.index, i];
     scene.add(obj);
-    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
+    point.obj = obj;
   }
 }
 
@@ -238,8 +238,8 @@ function buildLineLayer(scene, layer) {
     obj = new THREE.Line(geometry, mat[line.m].m);
     obj.userData = [layer.index, i];
     scene.add(obj);
-    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
+    line.obj = obj;
   }
 }
 
@@ -264,8 +264,8 @@ function buildPolygonLayer(scene, layer) {
     obj.position.z = polygon.z;
     obj.userData = [layer.index, i];
     scene.add(obj);
-    layer.obj = obj;
     if (layer.q) queryableObjs.push(obj);
+    polygon.obj = obj;
   }
 }
 

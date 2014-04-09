@@ -42,7 +42,7 @@ apiChanged22 = False
 
 # used for tree widget and properties
 class ObjectTreeItem:
-  topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
+  topItemNames = ["World", "Controls", "DEM", "Optional DEM", "Point", "Line", "Polygon"]
   ITEM_WORLD = 0
   ITEM_CONTROLS = 1
   ITEM_DEM = 2
