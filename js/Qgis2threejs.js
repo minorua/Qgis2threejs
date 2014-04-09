@@ -30,6 +30,28 @@ function getMapCoordinates(x, y, z) {
           z : z / world.zScale - world.zShift}
 }
 
+// Call this once to create materials
+function createMaterials() {
+  var material;
+  for (var i = 0, l = mat.length; i < l; i++) {
+    var m = mat[i];
+    if (m.type == 0) {
+      material = new THREE.MeshLambertMaterial({color:m.c, ambient:m.c});
+    }
+    else if (m.type == 1) {
+      material = new THREE.LineBasicMaterial({color:m.c});
+    }
+    else {    // type == 2
+      material = new THREE.MeshLambertMaterial({color:m.c, ambient:m.c, wireframe:true});
+    }
+    if (m.o !== undefined && m.o < 1) {
+      material.opacity = m.o;
+      material.transparent = true;
+    }
+    mat[i].m = material;
+  }
+}
+
 // Terrain functions
 function buildDEM(scene, layer, dem) {
 
@@ -43,7 +65,7 @@ function buildDEM(scene, layer, dem) {
 
   // Terrain material
   var material;
-  if (dem.m !== undefined) material = mat[dem.m];
+  if (dem.m !== undefined) material = mat[dem.m].m;
   else {
     var texture;
     if (dem.t.src === undefined) {
@@ -190,7 +212,7 @@ function buildPointLayer(scene, layer) {
       else if (layer.objType == "Cylinder") geometry = new THREE.CylinderGeometry(point.rt, point.rb, point.h);
       else geometry = new THREE.SphereGeometry(point.r);
  
-      obj = new THREE.Mesh(geometry, mat[point.m]);
+      obj = new THREE.Mesh(geometry, mat[point.m].m);
       obj.position.set(pt[0], pt[1], pt[2]);
       if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
     }
@@ -208,7 +230,7 @@ function buildLineLayer(scene, layer) {
       pt = line.pts[j];
       geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
     }
-    obj = new THREE.Line(geometry, mat[line.m]);
+    obj = new THREE.Line(geometry, mat[line.m].m);
     scene.add(obj);
     if (layer.q) queryableObjs.push(obj);
   }
@@ -231,7 +253,7 @@ function buildPolygonLayer(scene, layer) {
       }
     }
     geometry = new THREE.ExtrudeGeometry(shape, {bevelEnabled:false, amount:polygon.h});
-    obj = new THREE.Mesh(geometry, mat[polygon.m]);
+    obj = new THREE.Mesh(geometry, mat[polygon.m].m);
     obj.position.z = polygon.z;
     scene.add(obj);
     if (layer.q) queryableObjs.push(obj);
@@ -239,6 +261,8 @@ function buildPolygonLayer(scene, layer) {
 }
 
 function buildModels(scene) {
+  createMaterials();
+
   for (var i = 0, l = lyr.length; i < l; i++) {
     var layer = lyr[i];
     if (layer.type == "dem") {

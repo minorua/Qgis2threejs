@@ -114,49 +114,45 @@ class OutputContext:
 
 class MaterialManager:
 
+  MESH_LAMBERT = 0
+  LINE_BASIC = 1
+  WIREFRAME = 2
+
   ERROR_COLOR = "0"
 
   def __init__(self):
-    self.ids = []
     self.materials = []
 
   def getMeshLambertIndex(self, color, transparency=0):
-    if color[0:2] != "0x":
-      color = self.ERROR_COLOR
-    if transparency > 0:
-      opacity = 1.0 - float(transparency) / 100
-      return self.getIndex("ML" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true}})".format(color, opacity))
-    return self.getIndex("ML" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0}}})".format(color))
+    return self.getIndex(self.MESH_LAMBERT, color, transparency)
 
   def getLineBasicIndex(self, color, transparency=0):
-    if color[0:2] != "0x":
-      color = self.ERROR_COLOR
-    if transparency > 0:
-      opacity = 1.0 - float(transparency) / 100
-      return self.getIndex("LB" + color + "_" + str(transparency), "new THREE.LineBasicMaterial({{color:{0},opacity:{1},transparent:true}})".format(color, opacity))
-    return self.getIndex("LB" + color, "new THREE.LineBasicMaterial({{color:{0}}})".format(color))
+    return self.getIndex(self.LINE_BASIC, color, transparency)
 
   def getWireframeIndex(self, color, transparency=0):
+    return self.getIndex(self.WIREFRAME, color, transparency)
+
+  def getIndex(self, type, color, transparency=0):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
-    if transparency > 0:
-      opacity = 1.0 - float(transparency) / 100
-      return self.getIndex("WF" + color + "_" + str(transparency), "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},opacity:{1},transparent:true,wireframe:true}})".format(color, opacity))
-    return self.getIndex("WF" + color, "new THREE.MeshLambertMaterial({{color:{0},ambient:{0},wireframe:true}})".format(color))
 
-  def getIndex(self, id, material):
-    if id in self.ids:
-      return self.ids.index(id)
-    else:
-      index = len(self.ids)
-      self.ids.append(id)
-      self.materials.append(material)
-      return index
+    mat = (type, color, transparency)
+    if mat in self.materials:
+      return self.materials.index(mat)
+
+    index = len(self.materials)
+    self.materials.append(mat)
+    return index
 
   def write(self, f):
     f.write("\n")
-    for index, material in enumerate(self.materials):
-      f.write("mat[{0}] = {1};\n".format(index, material))
+    for index, mat in enumerate(self.materials):
+      transparency = mat[2]
+      if transparency > 0:
+        opacity = 1.0 - float(transparency) / 100
+        f.write("mat[{0}] = {{type:{1},c:{2},o:{3}}};\n".format(index, mat[0], mat[1], opacity))
+      else:
+        f.write("mat[{0}] = {{type:{1},c:{2}}};\n".format(index, mat[0], mat[1]))
 
 class JSWriter:
   def __init__(self, htmlfilename, context):
