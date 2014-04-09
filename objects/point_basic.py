@@ -66,10 +66,10 @@ def write(writer, pt, properties, layer=None, f=None):
     rt = 0 if properties.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "rt": rt, "rb": rb, "h": h, "rotateX": "Math.PI*90/180"})
+    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "rt": rt, "rb": rb, "h": h, "rotateX": 90})
   elif properties.type_index == 2:  # Cube
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ
     z = pt.z + h / 2
-    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "w": w, "d": d, "h": h, "rotateX": "Math.PI*90/180"})
+    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "w": w, "d": d, "h": h, "rotateX": 90})

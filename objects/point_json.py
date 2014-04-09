@@ -58,4 +58,4 @@ def write(writer, pt, properties, layer=None, f=None):
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
 
-  writer.writeFeature({"json_index": index, "pt": [pt.x, pt.y, pt.z], "rotateX": "Math.PI*90/180", "rotateY": "Math.PI*{0}/180".format(rotation), "scale": scale})
+  writer.writeFeature({"json_index": index, "pt": [pt.x, pt.y, pt.z], "rotateX": 90, "rotateY": rotation, "scale": scale})

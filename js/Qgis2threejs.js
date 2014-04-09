@@ -189,6 +189,7 @@ function buildSides(scene, dem, color, sole_height) {
 function buildPointLayer(scene, layer) {
   var point, pt, obj, meshes = [];
   var manager, loader, json_objs=[];
+  var deg2rad = Math.PI / 180;
   for (var i = 0, l = layer.f.length; i < l; i++) {
     point = layer.f[i];
     pt = point.pt;
@@ -205,7 +206,7 @@ function buildPointLayer(scene, layer) {
       obj = json_objs[point.json_index].clone()
       obj.position.set(pt[0], pt[1], pt[2]);
       if (point.rotateX || point.rotateY || point.rotateZ)
-        obj.rotation.set(point.rotateX || 0, point.rotateY || 0, point.rotateZ || 0);
+        obj.rotation.set((point.rotateX || 0) * deg2rad, (point.rotateY || 0) * deg2rad, (point.rotateZ || 0) * deg2rad);
       if (point.scale) obj.scale.set(point.scale, point.scale, point.scale);
     } else {
       if (layer.objType == "Cube") geometry = new THREE.CubeGeometry(point.w, point.h, point.d);
@@ -214,7 +215,7 @@ function buildPointLayer(scene, layer) {
  
       obj = new THREE.Mesh(geometry, mat[point.m].m);
       obj.position.set(pt[0], pt[1], pt[2]);
-      if (point.rotateX != undefined) obj.rotation.x = point.rotateX;
+      if (point.rotateX) obj.rotation.x = point.rotateX * deg2rad;
     }
     scene.add(obj);
     if (layer.q) queryableObjs.push(obj);

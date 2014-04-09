@@ -216,8 +216,6 @@ class JSWriter:
     elif isinstance(obj, bool):
       return "true" if obj else "false"
     elif isinstance(obj, (str, unicode)):
-      if "Math.PI" in obj:
-        return obj
       return '"' + obj + '"'
     return obj
 
