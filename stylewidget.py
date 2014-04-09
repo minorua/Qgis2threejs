@@ -40,6 +40,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.defaultValue = 0
     self.funcType = funcType
     self.func = None
+    self.hasValues = False
 
   def setup(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
     if funcType is None:
@@ -63,9 +64,11 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
       else:
         self.func = None
         self.setVisible(False)
+        self.hasValues = False
         return
     self.func.setup(name, label, defaultValue, layer, fieldNames)
     self.setVisible(True)
+    self.hasValues = True
 
   def comboBoxSelectionChanged(self, index):
     if self.func:
@@ -75,8 +78,12 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     if self.func:
       self.func.toolButtonClicked()
 
+  def hide(self):
+    self.hasValues = False
+    QWidget.hide(self)
+
   def values(self):
-    if self.func:
+    if self.func and self.hasValues:
       return self.func.values()
     else:
       return []
