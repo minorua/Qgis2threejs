@@ -3,6 +3,9 @@ var world = {};
 var lyr = [], mat = [], tex = [], jsons=[], queryableObjs = [];
 var option = {side_color: 0xc7ac92, side_sole_height: 1.5};
 
+var ua = window.navigator.userAgent.toLowerCase();
+var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
+
 // Add default key event listener
 function addDefaultKeyEventListener() {
   window.addEventListener("keydown", function(e){
@@ -80,7 +83,8 @@ function buildDEM(scene, layer, dem) {
     if (dem.t.o === undefined) dem.t.o = 1;
     material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.t.o, transparent: (dem.t.o < 1)});
   }
-  material.side = THREE.DoubleSide;
+  if (!isIE) material.side = THREE.DoubleSide;
+
   var plane = new THREE.Mesh(geometry, material);
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
@@ -121,11 +125,20 @@ function buildSides(scene, dem, color, sole_height) {
   // Material
   if (dem.side_opacity === undefined) dem.side_opacity = 1;
 
-  var side_material =  new THREE.MeshLambertMaterial({color: color,
-                                                      ambient: color,
-                                                      opacity: dem.side_opacity,
-                                                      transparent: (dem.side_opacity < 1),
-                                                      side: THREE.DoubleSide});
+  var front_material =  new THREE.MeshLambertMaterial({color: color,
+                                                       ambient: color,
+                                                       opacity: dem.side_opacity,
+                                                       transparent: (dem.side_opacity < 1)});
+
+  var back_material;
+  if (isIE) {   // Shader compilation error occurs with double sided material on IE11
+    back_material = front_material.clone();
+    back_material.side = THREE.BackSide;
+  }
+  else {
+    front_material.side = THREE.DoubleSide;
+    back_material = front_material;
+  }
 
   // Sides
   var side_width;
@@ -143,24 +156,27 @@ function buildSides(scene, dem, color, sole_height) {
       geom.vertices[i].y = altitudes[side][i];
     }
 
-    var mesh = new THREE.Mesh(geom, side_material);
-
     // Rotation(s) and translating(s) according to the side
+    var mesh;
     switch (side) {
       case 'back' :
+        mesh = new THREE.Mesh(geom, back_material);
         mesh.position.y = dem.plane.height/2;
         mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
         break;
       case 'left' :
+        mesh = new THREE.Mesh(geom, front_material);
         mesh.position.x = -dem.plane.width/2;
         mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
         mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
         break;
       case 'front' :
+        mesh = new THREE.Mesh(geom, front_material);
         mesh.position.y = -dem.plane.height/2;
         mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
         break;
       case 'right' :
+        mesh = new THREE.Mesh(geom, back_material);
         mesh.position.x = dem.plane.width/2;
         mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
         mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
@@ -172,7 +188,7 @@ function buildSides(scene, dem, color, sole_height) {
 
   // Bottom
   var geom_bottom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, 1, 1);
-  var plane_bottom = new THREE.Mesh(geom_bottom, side_material);
+  var plane_bottom = new THREE.Mesh(geom_bottom, back_material);
   plane_bottom.position.z = -sole_height;
   scene.add(plane_bottom);
 
