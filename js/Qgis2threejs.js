@@ -70,18 +70,18 @@ function buildDEM(scene, layer, dem) {
     var texture;
     if (dem.t.src === undefined) {
       var image = new Image();
+      image.onload = function () { texture.needsUpdate = true; };
       image.src = dem.t.data;
       texture = new THREE.Texture(image);
     } else {
       texture = THREE.ImageUtils.loadTexture(dem.t.src);
+      texture.needsUpdate = true;
     }
-    texture.needsUpdate = true;
     if (dem.t.o === undefined) dem.t.o = 1;
     material = new THREE.MeshPhongMaterial({map: texture, opacity: dem.t.o, transparent: (dem.t.o < 1)});
   }
   material.side = THREE.DoubleSide;
   var plane = new THREE.Mesh(geometry, material);
-
   if (dem.plane.offsetX != 0) plane.position.x = dem.plane.offsetX;
   if (dem.plane.offsetY != 0) plane.position.y = dem.plane.offsetY;
   plane.userData = [layer.index, 0];
