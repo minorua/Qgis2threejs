@@ -500,9 +500,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		mouseUpPoint.set( event.clientX, event.clientY );
 		if ( event.button == 0 && mouseDownPoint.equals( mouseUpPoint ) ) {
-			var clickEvent = document.createEvent("MouseEvents");
-			clickEvent.initMouseEvent("click", true, true, window, 0, event.screenX, event.screenY, event.clientX, event.clientY, event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
-			scope.dispatchEvent( clickEvent );
+
+			if (canvas_clicked !== undefined) canvas_clicked( event );
+
 		}
 
 	}

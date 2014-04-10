@@ -407,9 +407,9 @@ THREE.TrackballControls = function ( object, domElement ) {
 		document.removeEventListener( 'mousemove', mousemove );
 		document.removeEventListener( 'mouseup', mouseup );
 		if ( event.button == 0 && _rotateStart.equals( _rotateEnd ) ) {
-			var clickEvent = document.createEvent("MouseEvents");
-			clickEvent.initMouseEvent("click", true, true, window, 0, event.screenX, event.screenY, event.clientX, event.clientY, event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
-			_this.dispatchEvent( clickEvent );
+
+			if (canvas_clicked !== undefined) canvas_clicked( event );
+
 		}
 
 	}
