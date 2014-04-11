@@ -361,7 +361,7 @@ function updateLabels() {
     idx_dist.push([i, camera.position.distanceTo(labels[i].pt)]);
   }
 
-  // sort label indexes in ascending order of distances
+  // sort label indexes in descending order of distances
   idx_dist.sort(function(a, b){
     if (a[1] < b[1]) return 1;
     if (a[1] > b[1]) return -1;
