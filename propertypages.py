@@ -79,7 +79,6 @@ class PropertyPage(QWidget):
   def properties(self):
     p = {}
     for w in self.propertyWidgets:
-      qDebug(str(w) + ":" + str(w.objectName()))
       v = None
       if isinstance(w, QComboBox):
         index = w.currentIndex()
@@ -451,10 +450,11 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
-    widgets += [self.checkBox_ExportAttrs]
+    widgets += [self.checkBox_ExportAttrs, self.comboBox_Label]
     self.setPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)
+    self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
   def setup(self, properties=None, layer=None):
     self.layer = layer
@@ -465,6 +465,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     obj_types = self.dialog.objectTypeManager.objectTypeNames(layer.geometryType())
 
+    # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
     self.comboBox_ObjectType.clear()
     for index, obj_type in enumerate(obj_types):
@@ -476,6 +477,16 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up property widgets for selected object type
     self.objectTypeSelectionChanged()
+
+    # set up label combo box
+    isPoint = (layer.geometryType() == QGis.Point)
+    self.setLayoutVisible(self.formLayout_Label, isPoint)
+    self.comboBox_Label.clear()
+    if isPoint:
+      self.comboBox_Label.addItem("(No label)")
+      fields = self.layer.pendingFields()
+      for i in range(fields.count()):
+        self.comboBox_Label.addItem(fields[i].name(), i)
 
     # restore other properties for the layer
     if properties:
@@ -494,6 +505,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+  def exportAttrsToggled(self, checked):
+    self.comboBox_Label.setEnabled(checked)
 
   def properties(self):
     p = PropertyPage.properties(self)

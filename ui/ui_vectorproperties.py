@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Wed Apr 09 16:30:16 2014
+# Created: Fri Apr 11 17:08:24 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -95,6 +95,22 @@ class Ui_VectorPropertiesWidget(object):
         self.checkBox_ExportAttrs.setObjectName(_fromUtf8("checkBox_ExportAttrs"))
         self.verticalLayout.addWidget(self.checkBox_ExportAttrs)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+        self.formLayout_Label = QtGui.QFormLayout()
+        self.formLayout_Label.setObjectName(_fromUtf8("formLayout_Label"))
+        self.label = QtGui.QLabel(self.groupBox_Attrs)
+        self.label.setMinimumSize(QtCore.QSize(70, 0))
+        self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.formLayout_Label.setWidget(0, QtGui.QFormLayout.LabelRole, self.label)
+        self.comboBox_Label = QtGui.QComboBox(self.groupBox_Attrs)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBox_Label.sizePolicy().hasHeightForWidth())
+        self.comboBox_Label.setSizePolicy(sizePolicy)
+        self.comboBox_Label.setObjectName(_fromUtf8("comboBox_Label"))
+        self.formLayout_Label.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Label)
+        self.gridLayout.addLayout(self.formLayout_Label, 1, 0, 1, 1)
         self.gridLayout_10.addWidget(self.groupBox_Attrs, 2, 0, 1, 1)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout_10.addItem(spacerItem, 3, 0, 1, 1)
@@ -111,4 +127,5 @@ class Ui_VectorPropertiesWidget(object):
         self.label_ObjectType.setText(_translate("VectorPropertiesWidget", "Object type", None))
         self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "Attributes", None))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes", None))
+        self.label.setText(_translate("VectorPropertiesWidget", "Label", None))
 

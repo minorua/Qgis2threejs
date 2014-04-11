@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
 body { margin: 0; overflow: hidden; }
+.label { background: rgba(255, 255, 255, 0.95); border: solid 1px black; padding: 2px; position: absolute; }
 </style>
 </head>
 <body>
@@ -40,8 +41,6 @@ ${scripts}
   var controls = createControls(camera, renderer.domElement);
   addDefaultKeyEventListener();
 
-  var projector = new THREE.Projector();
-
   // build models
   buildModels(scene);
 
@@ -52,6 +51,7 @@ ${scripts}
     controls.update();
     requestAnimationFrame(render);
     renderer.render(scene, camera);
+    updateLabels();
   }
 
   function object_clicked(obj) {

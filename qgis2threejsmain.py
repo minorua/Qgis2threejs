@@ -677,7 +677,6 @@ def writeVectors(writer):
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
     lyr["objType"] = prop.type_name
-    #TODO: add label style
 
     # make list of field names
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
@@ -688,6 +687,13 @@ def writeVectors(writer):
       for i in range(fields.count()):
         fieldNames.append(fields[i].name())
 
+    if writeAttrs:
+      attIdx = properties.get("comboBox_Label", None)
+      if attIdx is not None:
+        lyr["l"] = attIdx
+    #TODO: label style (height from object)
+
+    # wreite layer object
     writer.writeLayer(lyr, fieldNames)
 
     transform = QgsCoordinateTransform(layer.crs(), context.crs)
