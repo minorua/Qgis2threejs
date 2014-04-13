@@ -357,16 +357,15 @@ def writeSimpleDEM(writer, properties):
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
-  # transparency
-  demTransparency = prop.properties["spinBox_demtransp"]
-  sidesTransparency = prop.properties["spinBox_sidetransp"]
-
   # layer dict
   lyr = {"type": "dem", "name": layerName}
   lyr["q"] = 1    #queryable
   dem = {"width": dem_width, "height": dem_height}
   dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
   lyr["dem"] = [dem]
+
+  # DEM transparency
+  demTransparency = prop.properties["spinBox_demtransp"]
 
   # display type
   texData = texSrc = None
@@ -409,13 +408,18 @@ def writeSimpleDEM(writer, properties):
       tex["t"] = demOpacity < 1  #
     dem["t"] = tex
 
-  if sidesTransparency < 100:
+  if properties.get("checkBox_Sides", False):
     side = {}
+    sidesTransparency = prop.properties["spinBox_sidetransp"]
     if sidesTransparency > 0:
       sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
       side["o"] = sidesOpacity
     dem["s"] = side
 
+  if properties.get("checkBox_Frame", False):
+    dem["frame"] = True
+
+  # write layer
   idx = writer.writeLayer(lyr)
   writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(idx, ",".join(map(gdal2threejs.formatValue, dem_values))))
   if texData is not None:

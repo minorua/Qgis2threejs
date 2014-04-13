@@ -1,7 +1,11 @@
 // Variables
 var world = {};
 var lyr = [], mat = [], tex = [], jsons=[], labels=[], queryableObjs = [];
-var option = {side_color: 0xc7ac92, side_sole_height: 1.5, label_pointer_color: 0x6666cc, label_autosize: true};
+var option = {
+  sole_height: 1.5,
+  side: {color: 0xc7ac92},
+  frame: {color: 0},
+  label: {pointer_color: 0x6666cc, autosize: true}};
 
 var ua = window.navigator.userAgent.toLowerCase();
 var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
@@ -165,8 +169,6 @@ function buildDEM(scene, layer, dem) {
  *  It adds also lights to see correctly the meshes created.
  */
 function buildSides(scene, dem, color, sole_height) {
-  dem.aObjs = [];
-
   // Filling of altitudes dictionary
   var altitudes = {
     'back': [],
@@ -184,12 +186,12 @@ function buildSides(scene, dem, color, sole_height) {
   }
 
   // Material
-  if (dem.side_opacity === undefined) dem.side_opacity = 1;
+  if (dem.s.o === undefined) dem.s.o = 1;
 
   var front_material =  new THREE.MeshLambertMaterial({color: color,
                                                        ambient: color,
-                                                       opacity: dem.side_opacity,
-                                                       transparent: (dem.side_opacity < 1)});
+                                                       opacity: dem.s.o,
+                                                       transparent: (dem.s.o < 1)});
 
   var back_material;
   if (isIE) {   // Shader compilation error occurs with double sided material on IE11
@@ -265,6 +267,38 @@ function buildSides(scene, dem, color, sole_height) {
   scene.add(light3);
 }
 
+function buildFrame(scene, dem, color, sole_height) {
+  var line_mat = new THREE.LineBasicMaterial({color:color});
+
+  // horizontal rectangle at bottom
+  var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(new THREE.Vector3(-hw, -hh, z));
+  geometry.vertices.push(new THREE.Vector3(hw, -hh, z));
+  geometry.vertices.push(new THREE.Vector3(hw, hh, z));
+  geometry.vertices.push(new THREE.Vector3(-hw, hh, z));
+  geometry.vertices.push(new THREE.Vector3(-hw, -hh, z));
+
+  var obj = new THREE.Line(geometry, line_mat);
+  scene.add(obj);
+  dem.aObjs.push(obj);
+
+  // vertical lines at corners
+  var pts = [[-hw, -hh, dem.data[dem.data.length - dem.width]],
+             [hw, -hh, dem.data[dem.data.length - 1]],
+             [hw, hh, dem.data[dem.width-1]],
+             [-hw, hh, dem.data[0]]];
+  for (var i = 0; i < 4; i++) {
+    var pt = pts[i];
+    geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+    geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], z));
+
+    obj = new THREE.Line(geometry, line_mat);
+    scene.add(obj);
+    dem.aObjs.push(obj);
+  }
+}
 
 // Vector functions
 function buildPointLayer(scene, layer) {
@@ -350,7 +384,7 @@ function buildPolygonLayer(scene, layer) {
 
 function buildLabels(scene) {
   var f, e, pt, geometry;
-  var line_mat = new THREE.LineBasicMaterial({color:option.label_pointer_color});
+  var line_mat = new THREE.LineBasicMaterial({color:option.label.pointer_color});
   for (var i = 0, l = lyr.length; i < l; i++) {
     if (lyr[i].l === undefined) continue;
 
@@ -389,10 +423,11 @@ function buildModels(scene) {
     if (layer.type == "dem") {
       for (var j = 0, k = layer.dem.length; j < k; j++) {
         buildDEM(scene, layer, layer.dem[j]);
-        if (layer.dem[j].s !== undefined) {
-          // Build sides and bottom
-          buildSides(scene, layer.dem[j], option["side_color"], option["side_sole_height"]);
-        }
+        layer.dem[j].aObjs = [];
+
+        // Build sides, bottom and frame
+        if (layer.dem[j].s !== undefined) buildSides(scene, layer.dem[j], option.side.color, option.sole_height);
+        if (layer.dem[j].frame) buildFrame(scene, layer.dem[j], option.frame.color, option.sole_height);
       }
     }
     else if (layer.type == "point") {
@@ -426,7 +461,7 @@ function updateLabels() {
   });
 
   var widthHalf = width / 2, heightHalf = height / 2;
-  var autosize = option.label_autosize;
+  var autosize = option.label.autosize;
   var label, dist, x, y, e, fontSize;
   var vector = new THREE.Vector3();
   for (var i = 0, l = labels.length; i < l; i++) {

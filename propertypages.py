@@ -203,6 +203,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
     widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
+    widgets += [self.checkBox_Sides, self.checkBox_Frame]
     self.setPropertyWidgets(widgets)
 
     self.initDEMLayerList()
@@ -215,6 +216,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       radioButton.toggled.connect(self.dispTypeChanged)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
+    self.checkBox_Sides.toggled.connect(self.sidesToggled)
 
     self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
 
@@ -223,7 +225,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layer = layer
 
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced], isPrimary)
-    self.setWidgetsVisible([self.radioButton_Advanced, self.label_sidetransp, self.spinBox_sidetransp], isPrimary)
+    self.setWidgetsVisible([self.radioButton_Advanced, self.groupBox_Accessories], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
 
     self.groupBox_Resampling.setEnabled(True)
@@ -249,6 +251,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.calculateResolution()
 
     if isPrimary:
+      if properties:
+        # to uncheck check box checked by default
+        self.checkBox_Sides.setChecked(properties.get("checkBox_Sides", False))
+
       # set enablement and visibility of widgets
       self.samplingModeChanged(True)
 
@@ -256,7 +262,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
       self.dialog.startPointSelection()
     else:
-      self.spinBox_sidetransp.setValue(100)   # no sides with additional dem
+      self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
   def initDEMLayerList(self):
     comboBox = self.comboBox_DEMLayer
@@ -306,6 +312,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
     if color.isValid():
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
+
+  def sidesToggled(self, checked):
+    self.label_sidetransp.setEnabled(checked)
+    self.spinBox_sidetransp.setEnabled(checked)
 
   def hide(self):
     PropertyPage.hide(self)
