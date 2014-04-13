@@ -5,7 +5,7 @@ var option = {
   sole_height: 1.5,
   side: {color: 0xc7ac92},
   frame: {color: 0},
-  label: {pointer_color: 0x6666cc, autosize: true}};
+  label: {pointer_color: 0x6666cc, autosize: true, height: 10}};
 
 var ua = window.navigator.userAgent.toLowerCase();
 var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
@@ -383,12 +383,13 @@ function buildPolygonLayer(scene, layer) {
 }
 
 function buildLabels(scene) {
-  var f, e, pt, geometry;
+  var f, e, pt0, pt1, geometry;
   var line_mat = new THREE.LineBasicMaterial({color:option.label.pointer_color});
+  var height = option.label.height;
   for (var i = 0, l = lyr.length; i < l; i++) {
     if (lyr[i].l === undefined) continue;
 
-    var attr_idx = lyr[i].l, height = 10;
+    var attr_idx = lyr[i].l;
     for (var j = 0, m = lyr[i].f.length; j < m; j++) {
       // create div element for label
       f = lyr[i].f[j];
@@ -398,14 +399,14 @@ function buildLabels(scene) {
       document.getElementById("webgl").appendChild(e);
       f.aElem = e;
 
-      pt = f.obj.position.clone();
-      pt.z += height;
-      labels.push({e:e, pt:pt, obj:f.obj});
+      pt0 = new THREE.Vector3(f.pt[0], f.pt[1], f.pt[2]);
+      pt1 = new THREE.Vector3(f.pt[0], f.pt[1], f.pt[2] + height);
+      labels.push({e:e, pt:pt1, obj:f.obj});
 
       // create pointer
       geometry = new THREE.Geometry();
-      geometry.vertices.push(f.obj.position.clone());
-      geometry.vertices.push(pt.clone());
+      geometry.vertices.push(pt1);
+      geometry.vertices.push(pt0);
       obj = new THREE.Line(geometry, line_mat);
       obj.userData = [i, j];
       scene.add(obj);

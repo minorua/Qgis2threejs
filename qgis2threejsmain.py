@@ -82,6 +82,34 @@ class MapTo3D:
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
 
+class Feature:
+  def __init__(self, layer=None, prop=None, f=None):
+    self.layer = layer
+    self.prop = prop
+    self.f = f
+
+  def setPoint(self, qFeat, point):
+    self.f = qFeat
+    self.pt = point
+
+  def setLine(self, qFeat, line):
+    self.f = qFeat
+    self.pts = line
+
+  def setPolygon(self, qFeat, polygon, centroid=None):
+    self.f = qFeat
+    self.boundaries = polygon
+    self.centroid = centroid
+
+  def color(self):
+    return self.prop.color(self.layer, self.f)
+
+  def transparency(self):
+    return self.prop.transparency(self.layer, self.f)
+
+  def propValues(self):
+    return self.prop.values(self.f)
+
 class OutputContext:
   def __init__(self, templateName, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
     self.templateName = templateName
@@ -687,15 +715,18 @@ def writeVectors(writer):
       for i in range(fields.count()):
         fieldNames.append(fields[i].name())
 
+    hasLabel = False
     if writeAttrs:
       attIdx = properties.get("comboBox_Label", None)
       if attIdx is not None:
         lyr["l"] = attIdx
+        hasLabel = True
     #TODO: label style (height from object)
 
     # wreite layer object
     writer.writeLayer(lyr, fieldNames)
 
+    feat = Feature(layer, prop)
     transform = QgsCoordinateTransform(layer.crs(), context.crs)
     wkt = str(context.crs.toWkt())
     request = QgsFeatureRequest().setFilterRect(transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
@@ -706,8 +737,8 @@ def writeVectors(writer):
       if geom_type == QGis.Point:
         if prop.useZ():
           for pt in pointsFromWkb25D(geom.asWkb(), transform):
-            h = pt[2] + prop.relativeHeight(f)
-            obj_mod.write(writer, mapTo3d.transform(pt[0], pt[1], h), prop, layer, f)
+            feat.setPoint(f, mapTo3d.transform(pt[0], pt[1], pt[2] + prop.relativeHeight(f)))
+            obj_mod.write(writer, feat)
         else:
           if geom.isMultipart():
             points = geom.asMultiPoint()
@@ -720,7 +751,9 @@ def writeVectors(writer):
               h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
               h = prop.relativeHeight(f)
-            obj_mod.write(writer, mapTo3d.transform(pt.x(), pt.y(), h), prop, layer, f)
+            feat.setPoint(f, mapTo3d.transform(pt[0], pt[1], h))
+            obj_mod.write(writer, feat)
+
       elif geom_type == QGis.Line:
         if prop.useZ():
           for line in linesFromWkb25D(geom.asWkb(), transform):
@@ -728,7 +761,8 @@ def writeVectors(writer):
             for pt in line:
               h = pt[2] + prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt[0], pt[1], h))
-            obj_mod.write(writer, points, prop, layer, f)
+            feat.setLine(f, points)
+            obj_mod.write(writer, feat)
         else:
           if geom.isMultipart():
             lines = geom.asMultiPolyline()
@@ -743,7 +777,9 @@ def writeVectors(writer):
               else:
                 h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            obj_mod.write(writer, points, prop, layer, f)
+            feat.setLine(f, points)
+            obj_mod.write(writer, feat)
+
       elif geom_type == QGis.Polygon:
         if geom.isMultipart():
           polygons = geom.asMultiPolygon()
@@ -751,12 +787,17 @@ def writeVectors(writer):
           polygons = [geom.asPolygon()]
 
         useCentroidHeight = False
-        if useCentroidHeight:
+        centroid = None
+        if useCentroidHeight or hasLabel:
           pt = transform.transform(geom.centroid().asPoint())
-          if prop.isHeightRelativeToSurface():
-            centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-          else:
-            centroidHeight = prop.relativeHeight(f)
+          centroidHeight = 0
+          if useCentroidHeight:
+            if prop.isHeightRelativeToSurface():
+              centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+            else:
+              centroidHeight = prop.relativeHeight(f)
+          if hasLabel:
+            centroid = mapTo3d.transform(pt.x(), pt.y(), centroidHeight)
 
         for polygon in polygons:
           boundaries = []
@@ -786,7 +827,8 @@ def writeVectors(writer):
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             points.reverse()    # to counter clockwise direction
             boundaries.append(points)
-          obj_mod.write(writer, boundaries, prop, layer, f)
+          feat.setPolygon(f, boundaries, centroid)
+          obj_mod.write(writer, feat)
 
       # stack attributes in writer
       if writeAttrs:

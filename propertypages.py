@@ -489,10 +489,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.objectTypeSelectionChanged()
 
     # set up label combo box
-    isPoint = (layer.geometryType() == QGis.Point)
-    self.setLayoutVisible(self.formLayout_Label, isPoint)
+    hasPoint = (layer.geometryType() in (QGis.Point, QGis.Polygon))
+    self.setLayoutVisible(self.formLayout_Label, hasPoint)
     self.comboBox_Label.clear()
-    if isPoint:
+    if hasPoint:
       self.comboBox_Label.addItem("(No label)")
       fields = self.layer.pendingFields()
       for i in range(fields.count()):

@@ -40,15 +40,18 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def write(writer, boundaries, properties, layer=None, f=None):
-  mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f), properties.transparency(layer, f))
-  vals = properties.values(f)
+def write(writer, feat):
+  mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+  vals = feat.propValues()
   h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
   bnds = []
   zsum = zcount = 0
-  for boundary in boundaries:
+  for boundary in feat.boundaries:
     bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
     zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
     zcount += len(boundary) - 1
   z = zsum / zcount
-  writer.writeFeature({"m": mat, "z": z, "h": h, "bnds": bnds})
+  d = {"m": mat, "z": z, "h": h, "bnds": bnds}
+  if feat.centroid is not None:
+    d["pt"] = [feat.centroid.x, feat.centroid.y, z]
+  writer.writeFeature(d)

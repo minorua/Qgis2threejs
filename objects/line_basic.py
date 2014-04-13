@@ -36,6 +36,6 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def write(writer, pts, properties, layer=None, f=None):
-  mat = writer.materialManager.getLineBasicIndex(properties.color(layer, f), properties.transparency(layer, f))
-  writer.writeFeature({"m": mat, "pts": map(lambda pt: [pt.x, pt.y, pt.z], pts)})
+def write(writer, feat):
+  mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+  writer.writeFeature({"m": mat, "pts": map(lambda pt: [pt.x, pt.y, pt.z], feat.pts)})

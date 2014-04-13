@@ -42,10 +42,9 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
-def write(writer, pt, properties, layer=None, f=None):
-  #mat = writer.materialManager.getMeshLambertIndex(properties.color(layer, f))
+def write(writer, feat):
   mapTo3d = writer.context.mapTo3d
-  vals = properties.values(f)
+  vals = feat.propValues()
   json_path = vals[0]
   scale = float(vals[1])
   rotation = float(vals[2])
@@ -58,4 +57,5 @@ def write(writer, pt, properties, layer=None, f=None):
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
 
+  pt = feat.pt
   writer.writeFeature({"json_index": index, "pt": [pt.x, pt.y, pt.z], "rotateX": 90, "rotateY": rotation, "scale": scale})
