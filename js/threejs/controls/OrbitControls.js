@@ -185,7 +185,12 @@ THREE.OrbitControls = function ( object, domElement ) {
 	// pass in distance in world space to move up
 	this.panUp = function ( distance ) {
 
-		panOffset.set( 0, 0, distance );
+		var te = this.object.matrix.elements;
+
+		// get Y column of matrix
+		panOffset.set( te[ 4 ], te[ 5 ], te[ 6 ] );
+		panOffset.multiplyScalar( distance );
+		
 		pan.add( panOffset );
 
 	};
