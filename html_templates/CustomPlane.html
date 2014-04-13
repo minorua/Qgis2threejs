@@ -58,7 +58,7 @@ ${scripts}
 
   function object_clicked(obj) {
     var object = obj.object;
-    var pt = getMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
+    var pt = world.toMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
     var r = [];
     r.push("Clicked coordinates (object surface)");
     r.push(" X: " + pt.x.toFixed(2));

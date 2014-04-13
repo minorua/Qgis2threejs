@@ -8,6 +8,64 @@ var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
 
 var projector = new THREE.Projector();
 
+// World class
+World = function ( mapExtent, width, zExaggeration, zShift ) {
+  this.mapExtent = mapExtent;
+  this.width = width;
+  this.height = width * (mapExtent[3] - mapExtent[1]) / (mapExtent[2] - mapExtent[0]);
+  this.scale = width / (mapExtent[2] - mapExtent[0]);
+  this.zExaggeration = zExaggeration;
+  this.zScale = this.scale * zExaggeration;
+  this.zShift = zShift;
+};
+
+World.prototype = {
+
+  constructor: World,
+
+  toMapCoordinates: function (x, y, z) {
+    return {x : (x + this.width / 2) / this.scale + this.mapExtent[0],
+            y : (y + this.height / 2) / this.scale + this.mapExtent[1],
+            z : z / this.zScale - this.zShift};
+  }
+
+};
+
+// MapLayer class
+MapLayer = function ( params ) {
+  for (var k in params) {
+    this[k] = params[k];
+  }
+};
+
+MapLayer.prototype = {
+
+  constructor: MapLayer,
+
+  setVisible: function (visible) {
+    if (this.type == "dem") {
+      for (var i = 0, l = this.dem.length; i < l; i++) {
+        this.dem[i].obj.visible = visible;
+
+        var aObjs = this.dem[i].aObjs;
+        if (aObjs !== undefined) {
+          for (var j = 0, m = aObjs.length; j < m; j++) {
+            aObjs[j].visible = visible;
+          }
+        }
+      }
+    } else {
+      for (var i = 0, l = this.f.length; i < l; i++) {
+        var f = this.f[i];
+        f.obj.visible = visible;
+        if (f.aObj !== undefined) f.aObj.visible = visible;
+        if (f.aElem !== undefined) f.aElem.style.display = (visible) ? "block": "none";
+      }
+    }
+  }
+
+};
+
 // Add default key event listener
 function addDefaultKeyEventListener() {
   window.addEventListener("keydown", function(e){
@@ -26,13 +84,6 @@ function addDefaultKeyEventListener() {
       }
     }
   });
-}
-
-// Function to transform coordinates
-function getMapCoordinates(x, y, z) {
-  return {x : (x + world.width / 2) / world.scale + world.mapExtent[0],
-          y : (y + world.height / 2) / world.scale + world.mapExtent[1],
-          z : z / world.zScale - world.zShift}
 }
 
 // Call this once to create materials
@@ -114,6 +165,8 @@ function buildDEM(scene, layer, dem) {
  *  It adds also lights to see correctly the meshes created.
  */
 function buildSides(scene, dem, color, sole_height) {
+  dem.aObjs = [];
+
   // Filling of altitudes dictionary
   var altitudes = {
     'back': [],
@@ -192,6 +245,7 @@ function buildSides(scene, dem, color, sole_height) {
     }
 
     scene.add(mesh);
+    dem.aObjs.push(mesh);
   }
 
   // Bottom
@@ -199,6 +253,7 @@ function buildSides(scene, dem, color, sole_height) {
   var plane_bottom = new THREE.Mesh(geom_bottom, back_material);
   plane_bottom.position.z = -sole_height;
   scene.add(plane_bottom);
+  dem.aObjs.push(plane_bottom);
 
   // Additional lights
   var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
@@ -307,6 +362,7 @@ function buildLabels(scene) {
       e.appendChild(document.createTextNode(f.a[attr_idx]));
       e.className = "label";
       document.getElementById("webgl").appendChild(e);
+      f.aElem = e;
 
       pt = f.obj.position.clone();
       pt.z += height;
@@ -319,6 +375,7 @@ function buildLabels(scene) {
       obj = new THREE.Line(geometry, line_mat);
       obj.userData = [i, j];
       scene.add(obj);
+      f.aObj = obj;
     }
   }
 }

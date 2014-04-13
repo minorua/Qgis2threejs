@@ -196,13 +196,9 @@ class JSWriter:
     # write information for coordinates transformation
     extent = self.context.canvas.extent()
     mapTo3d = self.context.mapTo3d
-    args = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(), str(mapTo3d.planeWidth), str(mapTo3d.verticalExaggeration), str(mapTo3d.verticalShift))
-    lines = []
-    lines.append("world = {mapExtent:[%f,%f,%f,%f],width:%s,zExaggeration:%s,zShift:%s};" % args)
-    lines.append("world.height = world.width * (world.mapExtent[3] - world.mapExtent[1]) / (world.mapExtent[2] - world.mapExtent[0]);")
-    lines.append("world.scale = world.width / (world.mapExtent[2] - world.mapExtent[0]);")
-    lines.append("world.zScale = world.scale * world.zExaggeration;")
-    self.write("\n".join(lines) + "\n")
+    fmt = "world = new World([{0},{1},{2},{3}],{4},{5},{6});\n"
+    self.write(fmt.format(extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
+                          mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift))
 
   def obj2js(self, obj, escape=False):
     if isinstance(obj, dict):
@@ -225,7 +221,7 @@ class JSWriter:
 
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
-    self.write("\n" + "lyr[{0}] = {1};\n".format(self.currentLayerIndex, self.obj2js(obj)))
+    self.write("\n" + "lyr[{0}] = new MapLayer({1});\n".format(self.currentLayerIndex, self.obj2js(obj)))
     if fieldNames is not None:
       self.write(u"lyr[{0}].a = {1};\n".format(self.currentLayerIndex, self.obj2js(fieldNames)))
     self.layerCount += 1
