@@ -245,16 +245,15 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # restore properties for the layer
     if properties:
       PropertyPage.setProperties(self, properties)
+      if isPrimary:
+        # restore status of check box checked by default
+        self.checkBox_Sides.setChecked(properties.get("checkBox_Sides", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
     self.calculateResolution()
 
     if isPrimary:
-      if properties:
-        # to uncheck check box checked by default
-        self.checkBox_Sides.setChecked(properties.get("checkBox_Sides", False))
-
       # set enablement and visibility of widgets
       self.samplingModeChanged(True)
 
@@ -501,6 +500,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # restore other properties for the layer
     if properties:
       PropertyPage.setProperties(self, properties)
+
+      # restore status of check box checked by default
+      self.checkBox_ExportAttrs.setChecked(properties.get("checkBox_ExportAttrs", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
