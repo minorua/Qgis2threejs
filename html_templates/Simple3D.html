@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
 body { margin: 0; overflow: hidden; }
+#webgl { background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%); }
 .label { background: rgba(255, 255, 255, 0.95); border: solid 1px black; padding: 2px; position: absolute; pointer-events: none; }
 </style>
 </head>
@@ -22,16 +23,16 @@ ${scripts}
   var width  = window.innerWidth;
   var height = window.innerHeight;
 
-  var renderer = new THREE.WebGLRenderer();
+  var renderer = new THREE.WebGLRenderer({alpha: (option.bgcolor === undefined)});
   renderer.setSize(width, height);
-  renderer.setClearColor(0xccccff, 1);
+  renderer.setClearColor(option.bgcolor || 0, (option.bgcolor === undefined) ? 0 : 1);
 
   var scene = new THREE.Scene();
 
   // light
   scene.add(new THREE.AmbientLight(0x999999));
   var light = new THREE.DirectionalLight(0xffffff, 0.4);
-  light.position.set(0, -0.3, 1);
+  light.position.set(-0.1, -0.3, 1);
   scene.add(light);
 
   // camera and controls

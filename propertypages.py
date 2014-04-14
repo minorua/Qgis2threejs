@@ -130,7 +130,9 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
-    self.setPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift])
+    self.setPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color])
+    self.radioButton_Color.toggled.connect(self.backgroundToggled)
+    self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
     canvas = self.dialog.iface.mapCanvas()
@@ -143,6 +145,16 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     # restore properties
     if properties:
       PropertyPage.setProperties(self, properties)
+
+  def backgroundToggled(self, checked):
+    isColor = self.radioButton_Color.isChecked()
+    self.lineEdit_Color.setEnabled(isColor)
+    self.toolButton_Color.setEnabled(isColor)
+
+  def colorButtonClicked(self):
+    color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
+    if color.isValid():
+      self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
 class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 

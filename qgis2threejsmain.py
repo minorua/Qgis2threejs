@@ -303,6 +303,11 @@ class JSWriter:
 
   def options(self):
     options = []
+    properties = self.context.properties
+    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
+    if world.get("radioButton_Color", False):
+      options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+
     return "\n".join(options)
 
   def scripts(self):
