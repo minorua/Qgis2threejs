@@ -87,19 +87,46 @@ class Feature:
     self.layer = layer
     self.prop = prop
     self.f = f
+    self.clearGeometry()
 
-  def setPoint(self, qFeat, point):
-    self.f = qFeat
-    self.pt = point
+  def clearGeometry(self):
+    self.pts = []
+    self.lines = []
+    self.polygons = []
+    self.centroids = []
 
-  def setLine(self, qFeat, line):
+  def setQgsFeature(self, qFeat):
     self.f = qFeat
-    self.pts = line
 
-  def setPolygon(self, qFeat, polygon, centroid=None):
-    self.f = qFeat
-    self.boundaries = polygon
-    self.centroid = centroid
+  def addPoint(self, point):
+    self.pts.append(point)
+
+  def addLine(self, line):
+    self.lines.append(line)
+
+  def addPolygon(self, polygon):
+    self.polygons.append(polygon)
+
+  def addCentroid(self, centroid):
+    self.centroids.append(centroid)
+
+  def pointsAsList(self):
+    return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
+
+  def linesAsList(self):
+    l = []
+    for line in self.lines:
+      l.append(map(lambda pt: [pt.x, pt.y, pt.z], line))
+    return l
+
+  def polygonsAsList(self):
+    p = []
+    for boundaries in self.polygons:
+      b = []
+      for boundary in boundaries:
+        b.append(map(lambda pt: [pt.x, pt.y, pt.z], boundary))
+      p.append(b)
+    return p
 
   def color(self):
     return self.prop.color(self.layer, self.f)
@@ -245,7 +272,9 @@ class JSWriter:
       if escape:
         return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
       return '"' + obj + '"'
-    return obj
+    elif isinstance(obj, (int, float)):
+      return obj
+    return '"' + str(obj) + '"'
 
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
@@ -731,19 +760,23 @@ def writeVectors(writer):
     wkt = str(context.crs.toWkt())
     request = QgsFeatureRequest().setFilterRect(transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
     for f in layer.getFeatures(request):
+      feat.clearGeometry()
+      feat.setQgsFeature(f)
+
       geom = f.geometry()
       geom_type == geom.type()
       wkb_type = geom.wkbType()
       if geom_type == QGis.Point:
         if prop.useZ():
           for pt in pointsFromWkb25D(geom.asWkb(), transform):
-            feat.setPoint(f, mapTo3d.transform(pt[0], pt[1], pt[2] + prop.relativeHeight(f)))
-            obj_mod.write(writer, feat)
+            feat.addPoint(mapTo3d.transform(pt[0], pt[1], pt[2] + prop.relativeHeight(f)))
+          obj_mod.write(writer, feat)
         else:
           if geom.isMultipart():
             points = geom.asMultiPoint()
           else:
             points = [geom.asPoint()]
+
           for point in points:
             pt = transform.transform(point)
             if prop.isHeightRelativeToSurface():
@@ -751,8 +784,8 @@ def writeVectors(writer):
               h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
               h = prop.relativeHeight(f)
-            feat.setPoint(f, mapTo3d.transform(pt[0], pt[1], h))
-            obj_mod.write(writer, feat)
+            feat.addPoint(mapTo3d.transform(pt[0], pt[1], h))
+          obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Line:
         if prop.useZ():
@@ -761,8 +794,8 @@ def writeVectors(writer):
             for pt in line:
               h = pt[2] + prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt[0], pt[1], h))
-            feat.setLine(f, points)
-            obj_mod.write(writer, feat)
+            feat.addLine(points)
+          obj_mod.write(writer, feat)
         else:
           if geom.isMultipart():
             lines = geom.asMultiPolyline()
@@ -777,29 +810,39 @@ def writeVectors(writer):
               else:
                 h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            feat.setLine(f, points)
-            obj_mod.write(writer, feat)
+            feat.addLine(points)
+          obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Polygon:
+        useCentroidHeight = False
+        labelPerPolygon = True
+
         if geom.isMultipart():
           polygons = geom.asMultiPolygon()
         else:
           polygons = [geom.asPolygon()]
 
-        useCentroidHeight = False
-        centroid = None
-        if useCentroidHeight or hasLabel:
-          pt = transform.transform(geom.centroid().asPoint())
+        if hasLabel and not labelPerPolygon:
           centroidHeight = 0
-          if useCentroidHeight:
-            if prop.isHeightRelativeToSurface():
-              centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-            else:
-              centroidHeight = prop.relativeHeight(f)
-          if hasLabel:
-            centroid = mapTo3d.transform(pt.x(), pt.y(), centroidHeight)
+          pt = transform.transform(geom.centroid().asPoint())
+          if prop.isHeightRelativeToSurface():
+            centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+          else:
+            centroidHeight = prop.relativeHeight(f)
+          feat.addCentroid(mapTo3d.transform(pt.x(), pt.y(), centroidHeight))
 
         for polygon in polygons:
+          if useCentroidHeight or hasLabel:
+            centroidHeight = 0
+            pt = transform.transform(QgsGeometry.fromPolygon(polygon).centroid().asPoint())
+            if useCentroidHeight:
+              if prop.isHeightRelativeToSurface():
+                centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+              else:
+                centroidHeight = prop.relativeHeight(f)
+            if hasLabel and labelPerPolygon:
+              feat.addCentroid(mapTo3d.transform(pt.x(), pt.y(), centroidHeight))
+
           boundaries = []
           points = []
           # outer boundary
@@ -827,8 +870,8 @@ def writeVectors(writer):
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             points.reverse()    # to counter clockwise direction
             boundaries.append(points)
-          feat.setPolygon(f, boundaries, centroid)
-          obj_mod.write(writer, feat)
+          feat.addPolygon(boundaries)
+        obj_mod.write(writer, feat)
 
       # stack attributes in writer
       if writeAttrs:

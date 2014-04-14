@@ -56,6 +56,4 @@ def write(writer, feat):
       json = f.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
-
-  pt = feat.pt
-  writer.writeFeature({"json_index": index, "pt": [pt.x, pt.y, pt.z], "rotateX": 90, "rotateY": rotation, "scale": scale})
+  writer.writeFeature({"json_index": index, "pts": feat.pointsAsList(), "rotateX": 90, "rotateY": rotation, "scale": scale})

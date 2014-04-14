@@ -44,14 +44,18 @@ def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   vals = feat.propValues()
   h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
-  bnds = []
-  zsum = zcount = 0
-  for boundary in feat.boundaries:
-    bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
-    zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
-    zcount += len(boundary) - 1
-  z = zsum / zcount
-  d = {"m": mat, "z": z, "h": h, "bnds": bnds}
-  if feat.centroid is not None:
-    d["pt"] = [feat.centroid.x, feat.centroid.y, z]
+  polygons = []
+  zs = []
+  for polygon in feat.polygons:
+    bnds = []
+    zsum = zcount = 0
+    for boundary in polygon:
+      bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
+      zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
+      zcount += len(boundary) - 1
+    polygons.append(bnds)
+    zs.append(zsum / zcount)
+  d = {"m": mat, "h": h, "zs": zs, "polygons": polygons}
+  if len(feat.centroids):
+    d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.centroids)
   writer.writeFeature(d)

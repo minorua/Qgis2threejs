@@ -57,20 +57,22 @@ def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   mapTo3d = writer.context.mapTo3d
   vals = feat.propValues()
-  pt = feat.pt
+  pts = feat.pointsAsList()
   if feat.prop.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
     if r != 0:
-      writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, pt.z],"r": r})
+      writer.writeFeature({"m": mat, "pts": pts,"r": r})
   elif feat.prop.type_index in [1, 3]: # Cylinder, Cone
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
-    z = pt.z + h / 2
-    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "rt": rt, "rb": rb, "h": h, "rotateX": 90})
+    for pt in pts:
+      pt[2] += h / 2
+    writer.writeFeature({"m": mat, "pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90})
   elif feat.prop.type_index == 2:  # Cube
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ
-    z = pt.z + h / 2
-    writer.writeFeature({"m": mat, "pt": [pt.x, pt.y, z], "w": w, "d": d, "h": h, "rotateX": 90})
+    for pt in pts:
+      pt[2] += h / 2
+    writer.writeFeature({"m": mat, "pts": pts, "w": w, "d": d, "h": h, "rotateX": 90})

@@ -38,4 +38,4 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
 
 def write(writer, feat):
   mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
-  writer.writeFeature({"m": mat, "pts": map(lambda pt: [pt.x, pt.y, pt.z], feat.pts)})
+  writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
