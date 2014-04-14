@@ -477,8 +477,16 @@ function buildModels(scene) {
   buildLabels(scene);
 }
 
+
 function updateLabels() {
   if (labels.length == 0) return;
+
+  var widthHalf = width / 2, heightHalf = height / 2;
+  var autosize = option.label.autosize;
+
+  var c2t = controls.target.clone().sub(camera.position);
+  var c2l = new THREE.Vector3();
+  var v = new THREE.Vector3();
 
   // make a list of [label index, distance to camera]
   var idx_dist = [];
@@ -493,31 +501,35 @@ function updateLabels() {
     return 0;
   });
 
-  var widthHalf = width / 2, heightHalf = height / 2;
-  var autosize = option.label.autosize;
-  var label, dist, x, y, e, fontSize;
-  var vector = new THREE.Vector3();
+  var label, e, x, y, dist, fontSize;
   for (var i = 0, l = labels.length; i < l; i++) {
     label = labels[idx_dist[i][0]];
-
-    // calculate label position
-    projector.projectVector( vector.copy(label.pt), camera );
-    x = ( vector.x * widthHalf ) + widthHalf;
-    y = - ( vector.y * heightHalf ) + heightHalf;
-
-    // set label position
     e = label.e;
-    e.style.left = (x - (e.offsetWidth / 2)) + "px";
-    e.style.top = (y - (e.offsetHeight / 2)) + "px";
-    e.style.zIndex = i + 1;
+    if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {
+      // label is in front
+      // calculate label position
+      projector.projectVector(v.copy(label.pt), camera);
+      x = (v.x * widthHalf) + widthHalf;
+      y = -(v.y * heightHalf) + heightHalf;
 
-    if (autosize) {
-      // set font size
-      dist = idx_dist[i][1];
-      if (dist < 10) dist = 10;
-      fontSize = Math.round(1000 / dist);
-      if (fontSize < 10) fontSize = 10;
-      e.style.fontSize = fontSize + "px";
+      // set label position
+      e.style.display = "block";
+      e.style.left = (x - (e.offsetWidth / 2)) + "px";
+      e.style.top = (y - (e.offsetHeight / 2)) + "px";
+      e.style.zIndex = i + 1;
+
+      if (autosize) {
+        // set font size
+        dist = idx_dist[i][1];
+        if (dist < 10) dist = 10;
+        fontSize = Math.round(1000 / dist);
+        if (fontSize < 10) fontSize = 10;
+        e.style.fontSize = fontSize + "px";
+      }
+    }
+    else {
+      // label is in back
+      e.style.display = "none";
     }
   }
 }
