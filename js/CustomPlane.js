@@ -29,11 +29,13 @@ var parameters = {
     d: 0,
     o: 1
 }
+//Max value for the plane
+var zMax = lyr[0].stats.max;
 
 //Crete the GUI for the plane
 var maingui = gui.addFolder('Custom Plane');
 var customPlaneColor = maingui.addColor(parameters,'c').name('Color');
-var customPlaneHeight = maingui.add(parameters,'d').min(0).max(5000).name('Plane height (m)');
+var customPlaneHeight = maingui.add(parameters,'d').min(0).max(zMax).name('Plane height (m)');
 var customPlaneOpacity = maingui.add(parameters,'o').min(0).max(1).name('Opacity (0-1)');
 
 //Change plane color
