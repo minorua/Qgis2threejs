@@ -410,8 +410,13 @@ def writeSimpleDEM(writer, properties):
     warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
   else:
     warp_dem = tools.FlatRaster()
+  # warp dem
   dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
 
+  # calculate statistics
+  stats = {"max": max(dem_values), "min": min(dem_values)}
+
+  # shift and scale
   if mapTo3d.verticalShift != 0:
     dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
   if mapTo3d.multiplierZ != 1:
@@ -420,7 +425,7 @@ def writeSimpleDEM(writer, properties):
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
   # layer dict
-  lyr = {"type": "dem", "name": layerName}
+  lyr = {"type": "dem", "name": layerName, "stats": stats}
   lyr["q"] = 1    #queryable
   dem = {"width": dem_width, "height": dem_height}
   dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
@@ -560,6 +565,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
   scripts = []
+  stats = None
   plane_index = 0
   for i, quad in enumerate(quads):
     progress(50 * i / len(quads))
@@ -590,6 +596,13 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    if stats is None:
+      stats = {"max": max(dem_values), "min": min(dem_values)}
+    else:
+      stats["max"] = max(max(dem_values), stats["max"])
+      stats["min"] = min(min(dem_values), stats["min"])
+
+    # shift and scale
     if mapTo3d.verticalShift != 0:
       dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
     if mapTo3d.multiplierZ != 1:
@@ -710,6 +723,8 @@ def writeMultiResDEM(writer, properties, progress=None):
     if texData is not None:
       writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
     plane_index += 1
+
+  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
 
 def writeVectors(writer):
   context = writer.context
