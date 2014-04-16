@@ -5,7 +5,8 @@ var option = {
   sole_height: 1.5,
   side: {color: 0xc7ac92},
   frame: {color: 0},
-  label: {pointer_color: 0x6666cc, autosize: true, height: 10}};
+  label: {pointer_color: 0x6666cc, autosize: true, height: 10},
+  qmarker: {r: 0.25, c:0xffff00, o:0.8}};
 
 var ua = window.navigator.userAgent.toLowerCase();
 var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
@@ -75,11 +76,9 @@ function addDefaultKeyEventListener() {
   window.addEventListener("keydown", function(e){
 
     var keyPressed = e.which;
-    if (keyPressed == 72) { // H
-      var help = (typeof controlHelp === "undefined") ? "* Keys" : controlHelp;
-      help += "\n H : Show help\n Shift + R : Reset\n Shift + S : Save as image";
-      alert(help);
-    } else if (!e.ctrlKey && e.shiftKey) {
+    if (keyPressed == 27) closeClicked(); // ESC
+    else if (keyPressed == 73) showInfo();  // I
+    else if (!e.ctrlKey && e.shiftKey) {
       if (keyPressed == 82) controls.reset();   // Shift + R
       else if (keyPressed == 83) { // Shift + S
         var screenShoot = renderer.domElement.toDataURL("image/png");
@@ -477,7 +476,7 @@ function buildModels(scene) {
   buildLabels(scene);
 }
 
-
+// update label positions
 function updateLabels() {
   if (labels.length == 0) return;
 
@@ -532,4 +531,27 @@ function updateLabels() {
       e.style.display = "none";
     }
   }
+}
+
+// Called from *Controls.js when canvas is clicked
+function canvas_clicked(e) {
+  if (object_clicked === undefined) return;
+  var canvasOffset = offset(renderer.domElement);
+  var mx = e.clientX - canvasOffset.left;
+  var my = e.clientY - canvasOffset.top;
+  var x = (mx / renderer.domElement.width) * 2 - 1;
+  var y = -(my / renderer.domElement.height) * 2 + 1;
+  var vector = new THREE.Vector3(x, y, 1);
+  projector.unprojectVector(vector, camera);
+  var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
+  var objs = ray.intersectObjects(queryableObjs);
+  if(objs.length > 0) object_clicked(objs);
+}
+
+function offset(elm) {
+  var top = left = 0;
+  do {
+    top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
+  } while(elm);
+  return {top: top, left: left};
 }

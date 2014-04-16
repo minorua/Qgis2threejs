@@ -9,6 +9,6 @@ OrbitControls
  R         : Auto rotate on / off
  U         : Switch upside down (also controls are reversed)
 
- H         : Show help
+ I         : Show page information
  Shift + R : Reset
  Shift + S : Save as image

@@ -1,6 +1,6 @@
 TrackballControls
 
 * Keys
- H         : Show help
+ I         : Show page information
  Shift + R : Reset
  Shift + S : Save as image

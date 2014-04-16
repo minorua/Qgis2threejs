@@ -8,9 +8,19 @@
 body { margin: 0; overflow: hidden; }
 #webgl { background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%); }
 .label { background: rgba(255, 255, 255, 0.95); border: solid 1px black; padding: 2px; position: absolute; pointer-events: none; }
+#popup { background: rgba(255, 255, 255, 0.95); border-top: 1px solid gray; border-bottom: 1px solid gray; position: absolute; left: 3px; top: 3px; max-width: 35%; z-index: 9999; }
+#popupbar { background: rgba(140, 140, 140, 0.7); font-size: 16px; text-align: right; padding: 2px; }
+#popupcontent { border-top: 1px solid gray; padding: 0px 10px 15px; }
+#closebtn { background: rgba(140, 140, 140, 0.5); border: 1px solid gray; padding: 2px 8px; font-weight: bold; cursor: pointer; }
+#footer { position: absolute; left: 5px; bottom: 5px; }
+#infobtn { color: white; background: rgba(152, 200, 246, 0.8); border: solid 4px rgba(255, 255, 255, 0.8); border-radius: 20px; box-shadow: 0 0 0 2px rgba(152, 200, 246, 0.3); width: 24px; height: 24px; text-align: center; font-weight: bold; font-size: 24px; cursor: pointer; }
+#popup h1 { font-size: large; font-weight: bold; margin: 5px; }
+#popup ui { list-style-type: circle; }
+#popup li { margin-left: 13px; }
+.license { font-size: xx-small; }
 </style>
 </head>
-<body>
+<body onLoad="onLoad()">
 <div id="webgl"></div>
 <script src="./threejs/three.min.js"></script>
 ${controls}
@@ -44,6 +54,12 @@ ${scripts}
   var controls = createControls(camera, renderer.domElement);
   addDefaultKeyEventListener();
 
+  // marker at queried point
+  var queryMarker = new THREE.Mesh(new THREE.SphereGeometry(option.qmarker.r),
+                                   new THREE.MeshLambertMaterial({color: option.qmarker.c, ambient: option.qmarker.c, opacity: option.qmarker.o, transparent: (option.qmarker.o < 1)}));
+  queryMarker.visible = false;
+  scene.add(queryMarker);
+
   // build models
   buildModels(scene);
 
@@ -57,11 +73,14 @@ ${scripts}
     updateLabels();
   }
 
-  function object_clicked(obj) {
+  function object_clicked(objs) {
+    var obj = objs[0];
+    queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
+    queryMarker.visible = true;
     var object = obj.object;
     var pt = world.toMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
     var r = [];
-    r.push("Clicked coordinates (object surface)");
+    r.push("Clicked coordinates");
     r.push(" X: " + pt.x.toFixed(2));
     r.push(" Y: " + pt.y.toFixed(2));
     r.push(" Z: " + pt.z.toFixed(2));
@@ -79,30 +98,43 @@ ${scripts}
         }
       }
     }
-    alert(r.join("\n"));
+    document.getElementById("popupcontent").innerHTML = r.join("<br>");
+    document.getElementById("popup").style.display = "block";
   }
 
-  function canvas_clicked(e) {
-    if (object_clicked === undefined) return;
-    var canvasOffset = offset(renderer.domElement);
-    var mx = e.clientX - canvasOffset.left;
-    var my = e.clientY - canvasOffset.top;
-    var x = (mx / renderer.domElement.width) * 2 - 1;
-    var y = -(my / renderer.domElement.height) * 2 + 1;
-    var vector = new THREE.Vector3(x, y, 1);
-    projector.unprojectVector(vector, camera);
-    var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
-    var obj = ray.intersectObjects(queryableObjs);
-    if(obj.length > 0) object_clicked(obj[0]);
+  function onLoad() {
+    document.getElementById("infobtn").onclick = showInfo;
+    document.getElementById("closebtn").onclick = closeClicked;
   }
 
-  function offset(elm) {
-    var top = left = 0;
-    do {
-      top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
-    } while(elm);
-    return {top: top, left: left};
+  function showInfo() {
+    var help = "<h1>Controls usage</h1>";
+    help += (typeof controlHelp === "undefined") ? "* Keys" : controlHelp.split("\n").join("<br>");
+    help += "<br> I : Show page information<br> Shift + R : Reset<br> Shift + S : Save as image";
+    document.getElementById("popupcontent").innerHTML = help + "<hr>" + document.getElementById("about").innerHTML;
+    document.getElementById("popup").style.display = "block";
+  }
+
+  function closeClicked() {
+    document.getElementById("popup").style.display = "none";
+    queryMarker.visible = false;
   }
 </script>
+
+<div id="about" style="display:none;">
+<h1>About</h1>
+<div>This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
+and uses the following library:</div>
+<ui>
+<li>thres.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="./threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+<li>dat-gui <a href="https://code.google.com/p/dat-gui/" target="_blank">https://code.google.com/p/dat-gui/</a> <a href="./dat-gui/license.txt" target="_blank" class="license">(LICENSE)</a></li>
+</ui>
+</div>
+
+<div id="popup" style="display:none;">
+<div id="popupbar"><span id="closebtn">X</span></div>
+<div id="popupcontent"></div>
+</div>
+<div id="footer"><div id="infobtn">i</div></div>
 </body>
 </html>
