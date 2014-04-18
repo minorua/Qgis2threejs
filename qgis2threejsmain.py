@@ -347,8 +347,10 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
   # write primary DEM
   if isSimpleMode:
-    progress(20)
     writeSimpleDEM(writer, demProperties)
+    progress(10)
+    if demProperties.get("checkBox_Surroundings", False):
+      writeSurroundingDEM(writer, demProperties, progress)
   else:
     writeMultiResDEM(writer, demProperties, progress)
     writer.prepareNext()
@@ -424,6 +426,10 @@ def writeSimpleDEM(writer, properties):
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
+  surroundings = properties.get("checkBox_Surroundings", False)
+  if surroundings:
+    roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
+
   # layer dict
   lyr = {"type": "dem", "name": layerName, "stats": stats}
   lyr["q"] = 1    #queryable
@@ -475,7 +481,7 @@ def writeSimpleDEM(writer, properties):
       tex["t"] = demOpacity < 1  #
     dem["t"] = tex
 
-  if properties.get("checkBox_Sides", False):
+  if not surroundings and properties.get("checkBox_Sides", False):
     side = {}
     sidesTransparency = prop.properties["spinBox_sidetransp"]
     if sidesTransparency > 0:
@@ -483,7 +489,7 @@ def writeSimpleDEM(writer, properties):
       side["o"] = sidesOpacity
     dem["s"] = side
 
-  if properties.get("checkBox_Frame", False):
+  if not surroundings and properties.get("checkBox_Frame", False):
     dem["frame"] = True
 
   # write layer
@@ -491,6 +497,170 @@ def writeSimpleDEM(writer, properties):
   writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(idx, ",".join(map(gdal2threejs.formatValue, dem_values))))
   if texData is not None:
     writer.write('lyr[{0}].dem[0].t.data = "{1}";\n'.format(idx, texData))
+
+def roughenEdges(width, height, values, interval):
+  if interval == 1:
+    return
+
+  for y in [0, height - 1]:
+    for x1 in range(interval, width, interval):
+      x0 = x1 - interval
+      z0 = values[x0 + width * y]
+      z1 = values[x1 + width * y]
+      for xx in range(1, interval):
+        z = (z0 * (interval - xx) + z1 * xx) / interval
+        values[x0 + xx + width * y] = z
+
+  for x in [0, width - 1]:
+    for y1 in range(interval, height, interval):
+      y0 = y1 - interval
+      z0 = values[x + width * y0]
+      z1 = values[x + width * y1]
+      for yy in range(1, interval):
+        z = (z0 * (interval - yy) + z1 * yy) / interval
+        values[x + width * (y0 + yy)] = z
+
+def writeSurroundingDEM(writer, properties, progress=None):
+  context = writer.context
+  mapTo3d = context.mapTo3d
+  canvas = context.canvas
+  if progress is None:
+    progress = dummyProgress
+  demlayer = QgsMapLayerRegistry().instance().mapLayer(properties["comboBox_DEMLayer"])
+  temp_dir = QDir.tempPath()
+  timestamp = writer.timestamp
+  htmlfilename = writer.htmlfilename
+
+  out_dir, filename = os.path.split(htmlfilename)
+  filetitle = os.path.splitext(filename)[0]
+
+  # options
+  size = properties["spinBox_Size"]
+  roughening = properties["spinBox_Roughening"]
+  demTransparency = properties["spinBox_demtransp"]
+
+  prop = DEMPropertyReader(properties)
+  dem_width = (prop.width() - 1) / roughening + 1
+  dem_height = (prop.height() - 1) / roughening + 1
+
+  # layer dict
+  lyr = {"type": "dem", "name": demlayer.name(), "dem": []}
+  lyr["q"] = 1    #queryable
+  lyrIdx = writer.writeLayer(lyr)
+
+  # create an image for texture
+  image_basesize = 128
+  hpw = canvas.extent().height() / canvas.extent().width()
+  if hpw < 1:
+    image_width = image_basesize
+    image_height = round(image_width * hpw)
+    #image_height = image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
+  else:
+    image_height = image_basesize
+    image_width = round(image_height / hpw)
+  image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
+
+  layerids = []
+  for layer in canvas.layers():
+    layerids.append(unicode(layer.id()))
+
+  # set up a renderer
+  labeling = QgsPalLabeling()
+  renderer = QgsMapRenderer()
+  renderer.setOutputSize(image.size(), image.logicalDpiX())
+  renderer.setDestinationCrs(context.crs)
+  renderer.setProjectionsEnabled(True)
+  renderer.setLabelingEngine(labeling)
+  renderer.setLayerSet(layerids)
+
+  painter = QPainter()
+  antialias = True
+  fillColor = canvas.canvasColor()
+  if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
+    fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
+
+  warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+  wkt = str(context.crs.toWkt())
+
+  scripts = []
+  stats = None
+  plane_index = 0
+  size2 = size * size
+  for i in range(size2):
+    progress(40 * i / size2 + 10)
+    if i == (size2 - 1) / 2:    # center (map canvas)
+      continue
+    sx = i % size - (size - 1) / 2
+    sy = i / size - (size - 1) / 2
+
+    # calculate extent
+    e = canvas.extent()
+    extent = QgsRectangle(e.xMinimum() + sx * e.width(), e.yMinimum() + sy * e.height(),
+                          e.xMaximum() + sx * e.width(), e.yMaximum() + sy * e.height())
+
+    texData = texSrc = None
+    renderer.setExtent(extent)
+    # render map image
+    image.fill(fillColor)
+    painter.begin(image)
+    if antialias:
+      painter.setRenderHint(QPainter.Antialiasing)
+    renderer.render(painter)
+    painter.end()
+
+    if context.localBrowsingMode:
+      texData = tools.base64image(image)
+    else:
+      texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
+      image.save(texfilename)
+      texSrc = os.path.split(texfilename)[1]
+
+    # calculate extent. output dem should be handled as points.
+    xres = extent.width() / (dem_width - 1)
+    yres = extent.height() / (dem_height - 1)
+    geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+
+    # warp dem
+    dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    if stats is None:
+      stats = {"max": max(dem_values), "min": min(dem_values)}
+    else:
+      stats["max"] = max(max(dem_values), stats["max"])
+      stats["min"] = min(min(dem_values), stats["min"])
+
+    # shift and scale
+    if mapTo3d.verticalShift != 0:
+      dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
+    if mapTo3d.multiplierZ != 1:
+      dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+    if debug_mode:
+      qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
+
+    # generate javascript data file
+    planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
+    planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
+    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
+    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+
+    # write dem object
+    tex = {}
+    if texSrc is not None:
+      tex["src"] = texSrc
+    if demTransparency > 0:
+      demOpacity = 1.0 - float(demTransparency) / 100
+      tex["o"] = demOpacity
+      tex["t"] = demOpacity < 1  #
+
+    dem = {"width": dem_width, "height": dem_height, "t": tex}
+    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+
+    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+    writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    if texData is not None:
+      writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
+    plane_index += 1
+
+  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
 
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
@@ -532,7 +702,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     image_height = round(image_width * hpw)
   else:
     image_height = image_basesize
-    image_width = round(image_height * hpw)
+    image_width = round(image_height / hpw)
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
   #qDebug("Created image size: %d, %d" % (image_width, image_height))
 
@@ -674,7 +844,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       image_height = round(image_width * hpw)
     else:
       image_height = image_basesize * centerQuads.height()
-      image_width = round(image_height * hpw)
+      image_width = round(image_height / hpw)
     image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
     #qDebug("Created image size: %d, %d" % (image_width, image_height))
 

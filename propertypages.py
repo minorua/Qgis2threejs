@@ -71,6 +71,22 @@ class PropertyPage(QWidget):
     for w in widgets:
       w.setVisible(visible)
 
+  def setLayoutEnabled(self, layout, enabled):
+    for i in range(layout.count()):
+      item = layout.itemAt(i)
+      w = item.widget()
+      if w is not None:
+        w.setEnabled(enabled)
+        continue
+      l = item.layout()
+      if l is not None:
+        self.setLayoutEnabled(l, enabled)
+
+  def setLayoutsEnabled(self, layouts, enabled):
+    for layout in layouts:
+      self.setLayoutEnabled(layout, enabled)
+
+
   def setPropertyWidgets(self, widgets):
     self.propertyWidgets = widgets
     # save default properties
@@ -206,12 +222,17 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     PropertyPage.__init__(self, PAGE_DEM, dialog, parent)
     Ui_DEMPropertiesWidget.setupUi(self, self)
 
+    # set read only to line edits of spin boxes
+    self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
+    self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
+
     self.isPrimary = False
     self.layer = None
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp, self.spinBox_sidetransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height]
+    widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
     widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
@@ -223,6 +244,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
+    self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
+    self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
     self.spinBox_Height.valueChanged.connect(self.updateQuads)
     for radioButton in dispTypeButtons:
       radioButton.toggled.connect(self.dispTypeChanged)
@@ -236,7 +259,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.isPrimary = isPrimary
     self.layer = layer
 
-    self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced], isPrimary)
+    self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced, self.groupBox_Accessories], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
 
@@ -258,8 +281,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if properties:
       PropertyPage.setProperties(self, properties)
       if isPrimary:
-        # restore status of check box checked by default
+        # restore status of check box
+        self.checkBox_Surroundings.setChecked(properties.get("checkBox_Surroundings", False))
         self.checkBox_Sides.setChecked(properties.get("checkBox_Sides", False))
+        self.checkBox_Frame.setChecked(properties.get("checkBox_Frame", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
@@ -268,6 +293,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if isPrimary:
       # set enablement and visibility of widgets
       self.samplingModeChanged(True)
+      self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
 
       # enable map tool to select focus area
       self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
@@ -324,6 +350,17 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if color.isValid():
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
+  def surroundingsToggled(self, checked):
+    self.calculateResolution()
+    self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
+    self.groupBox_Accessories.setEnabled(not checked)
+
+  def rougheningChanged(self, v):
+    self.calculateResolution()
+    # possible value is a power of 2
+    self.spinBox_Roughening.setSingleStep(v)
+    self.spinBox_Roughening.setMinimum(max(v / 2, 1))
+
   def sidesToggled(self, checked):
     self.label_sidetransp.setEnabled(checked)
     self.spinBox_sidetransp.setEnabled(checked)
@@ -347,6 +384,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if s < 1:
       width = int(width * s)
       height = int(height * s)
+
+    if self.checkBox_Surroundings.isChecked():
+      roughening = self.spinBox_Roughening.value()
+      if width % roughening != 0:
+        width = int(float(width) / roughening + 0.9) * roughening
+      if height % roughening != 0:
+        height = int(float(height) / roughening + 0.9) * roughening
 
     xres = extent.width() / width
     yres = extent.height() / height
@@ -404,14 +448,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
-    simple_widgets = [self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_HRes, self.lineEdit_VRes, self.groupBox_DisplayType]
-    for w in simple_widgets:
-      w.setEnabled(isSimpleMode)
-
+    self.setLayoutEnabled(self.verticalLayout_Simple, isSimpleMode)
     isAdvancedMode = not isSimpleMode
-    advanced_widgets = [self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
-    for w in advanced_widgets:
-      w.setEnabled(isAdvancedMode)
 
     if self.isPrimary:
       self.setWidgetsVisible([self.label_sidetransp, self.spinBox_sidetransp], isSimpleMode)
@@ -513,7 +551,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     if properties:
       PropertyPage.setProperties(self, properties)
 
-      # restore status of check box checked by default
+      # restore status of check box
       self.checkBox_ExportAttrs.setChecked(properties.get("checkBox_ExportAttrs", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
