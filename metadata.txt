@@ -11,7 +11,7 @@
 [general]
 name=Qgis2threejs
 qgisMinimumVersion=2.0
-description=Qgis2threejs plugin exports terrain data, map canvas image and optionally vector data into your web browser. You can view 3D map image in web browser which supports WebGL. This plugin makes use of Three.js library.
+description=Qgis2threejs plugin exports terrain data, map canvas image and vector data into your web browser. You can view 3D map image in web browser which supports WebGL. This plugin makes use of three.js library.
 version=0.6.1
 author=Minoru Akagi
 email=akaginch@gmail.com
@@ -21,7 +21,17 @@ email=akaginch@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=allow no DEM
+changelog=
+    - export with no DEM and multiple DEMs
+    - add options for DEM: vertical shift, sides, frame and transparency
+    - add object type: JSON model
+    - add template: custom plane
+    - add controls: OrbitControls
+    - attribute export and labeling
+    - make objects queryable
+    - integrate DEM and Vector tabs
+    - DEM display types: map canvas, image file, solid color and wireframe
+    - fix texture loading
 
 # tags are comma separated with spaces allowed
 tags=terrain,WebGL,3D,three.js

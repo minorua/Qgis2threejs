@@ -1,7 +1,7 @@
 # Qgis2threejs plugin
 **version 0.6**
 
-Qgis2threejs plugin exports terrain data, map canvas image and optionally vector data into your web browser. You can view 3D map image in web browser which supports WebGL. This plugin makes use of Three.js library (http://threejs.org)
+Qgis2threejs plugin exports terrain data, map canvas image and vector data into your web browser. You can view 3D map image in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org)
 
 # Usage
 
@@ -46,8 +46,11 @@ If you want to open web browser other than default browser, use this option.
 * [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data) 
 
 # License
-Three.js is MIT license JavaScript library. See threejs/LICENSE.
+Python modules of Qgis2threejs are released under the GNU Public License (GPL) Version 2.
 
-Qgis2threejs is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+This software includes the following JavaScript libraries:
+
+* [three.js](http://threejs.org)
+* [dat-gui](https://code.google.com/p/dat-gui/)
 
 _Copyright (c) 2013 Minoru Akagi_
