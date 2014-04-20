@@ -416,6 +416,7 @@ class PointMapTool(QgsMapToolEmitPoint):
     self.point = self.toMapCoordinates(e.pos())
     self.emit(SIGNAL("pointSelected()"))
 
+# first changed on 2014-01-03 (last changed on 2014-04-20)
 class RectangleMapTool(QgsMapToolEmitPoint):
   def __init__(self, canvas):
     self.canvas = canvas
@@ -466,9 +467,6 @@ class RectangleMapTool(QgsMapToolEmitPoint):
   def rectangle(self):
     if self.startPoint == None or self.endPoint == None:
       return None
-    #elif self.startPoint.x() == self.endPoint.x() or self.startPoint.y() == self.endPoint.y():
-    #  return None
-
     return QgsRectangle(self.startPoint, self.endPoint)
 
   def setRectangle(self, rect):
