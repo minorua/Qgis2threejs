@@ -23,15 +23,15 @@ email=akaginch@gmail.com
 # Uncomment the following line and add your changelog entries:
 changelog=
     - export with no DEM and multiple DEMs
-    - add options for DEM: vertical shift, sides, frame and transparency
+    - add options for DEM: vertical shift, sides, frame, transparency, display type and surroundings
     - add object type: JSON model
     - add template: custom plane
     - add controls: OrbitControls
     - attribute export and labeling
     - make objects queryable
     - integrate DEM and Vector tabs
-    - DEM display types: map canvas, image file, solid color and wireframe
     - fix texture loading
+    - move plugin items into web menu/toolbar
 
 # tags are comma separated with spaces allowed
 tags=terrain,WebGL,3D,three.js

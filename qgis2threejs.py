@@ -64,16 +64,16 @@ class Qgis2threejs:
     self.action.triggered.connect(self.run)
     self.settingAction.triggered.connect(self.setting)
 
-    # Add toolbar button and menu item
-    self.iface.addToolBarIcon(self.action)
-    self.iface.addPluginToMenu(u"&Qgis2threejs", self.action)
-    self.iface.addPluginToMenu(u"&Qgis2threejs", self.settingAction)
+    # Add toolbar button and web menu items
+    self.iface.addWebToolBarIcon(self.action)
+    self.iface.addPluginToWebMenu(u"Qgis2threejs", self.action)
+    self.iface.addPluginToWebMenu(u"Qgis2threejs", self.settingAction)
 
   def unload(self):
-    # Remove the plugin menu item and icon
-    self.iface.removeToolBarIcon(self.action)
-    self.iface.removePluginMenu(u"&Qgis2threejs", self.action)
-    self.iface.removePluginMenu(u"&Qgis2threejs", self.settingAction)
+    # Remove the web menu items and icon
+    self.iface.removeWebToolBarIcon(self.action)
+    self.iface.removePluginWebMenu(u"Qgis2threejs", self.action)
+    self.iface.removePluginWebMenu(u"Qgis2threejs", self.settingAction)
 
     # remove temporary output directory
     tools.removeTemporaryOutputDir()

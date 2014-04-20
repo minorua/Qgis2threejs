@@ -6,7 +6,7 @@ Qgis2threejs plugin exports terrain data, map canvas image and vector data into 
 # Usage
 
 ## Short guide
-Load a DEM layer and any other layers into QGIS, and set the project CRS to a projected coordinate system (the unit should be the same as that of DEM values). Next, zoom to your favorite place, and click the button in the plugin toolbar. Select the DEM layer and click Run button in the dialog. Then 3D terrain appears in your web browser!
+Load a DEM layer and any other layers into QGIS, and set the project CRS to a projected coordinate system (the unit should be the same as that of DEM values). Next, zoom to your favorite place, and click the button in the web toolbar. Select the DEM layer and click Run button in the dialog. Then 3D terrain appears in your web browser!
 
 ## Export settings
 ### General
