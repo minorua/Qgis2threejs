@@ -353,7 +353,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def surroundingsToggled(self, checked):
     self.calculateResolution()
     self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
+    self.setLayoutEnabled(self.horizontalLayout_ImageFile, not checked)
     self.groupBox_Accessories.setEnabled(not checked)
+
+    if checked and self.radioButton_ImageFile.isChecked():
+      self.radioButton_MapCanvas.setChecked(True)
 
   def rougheningChanged(self, v):
     self.calculateResolution()
@@ -465,7 +469,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         isPoint = (self.lineEdit_xmin.text() == self.lineEdit_xmax.text() and self.lineEdit_ymin.text() == self.lineEdit_ymax.text())
         self.switchFocusMode(not isPoint)
 
-    if isAdvancedMode:
+    if isAdvancedMode and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
 
   def switchFocusMode(self, toRect):

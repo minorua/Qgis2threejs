@@ -598,23 +598,6 @@ def writeSurroundingDEM(writer, properties, progress=None):
     extent = QgsRectangle(e.xMinimum() + sx * e.width(), e.yMinimum() + sy * e.height(),
                           e.xMaximum() + sx * e.width(), e.yMaximum() + sy * e.height())
 
-    texData = texSrc = None
-    renderer.setExtent(extent)
-    # render map image
-    image.fill(fillColor)
-    painter.begin(image)
-    if antialias:
-      painter.setRenderHint(QPainter.Antialiasing)
-    renderer.render(painter)
-    painter.end()
-
-    if context.localBrowsingMode:
-      texData = tools.base64image(image)
-    else:
-      texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-      image.save(texfilename)
-      texSrc = os.path.split(texfilename)[1]
-
     # calculate extent. output dem should be handled as points.
     xres = extent.width() / (dem_width - 1)
     yres = extent.height() / (dem_height - 1)
@@ -641,19 +624,43 @@ def writeSurroundingDEM(writer, properties, progress=None):
     planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
     offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
-
-    # write dem object
-    tex = {}
-    if texSrc is not None:
-      tex["src"] = texSrc
-    if demTransparency > 0:
-      demOpacity = 1.0 - float(demTransparency) / 100
-      tex["o"] = demOpacity
-      tex["t"] = demOpacity < 1  #
-
-    dem = {"width": dem_width, "height": dem_height, "t": tex}
+    dem = {"width": dem_width, "height": dem_height}
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
+    # display type
+    texData = None
+    if properties.get("radioButton_MapCanvas", False):
+      renderer.setExtent(extent)
+      # render map image
+      image.fill(fillColor)
+      painter.begin(image)
+      if antialias:
+        painter.setRenderHint(QPainter.Antialiasing)
+      renderer.render(painter)
+      painter.end()
+
+      tex = {}
+      if context.localBrowsingMode:
+        texData = tools.base64image(image)
+      else:
+        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
+        image.save(texfilename)
+        texSrc = os.path.split(texfilename)[1]
+        tex["src"] = texSrc
+
+      if demTransparency > 0:
+        demOpacity = 1.0 - float(demTransparency) / 100
+        tex["o"] = demOpacity
+        tex["t"] = demOpacity < 1  #
+      dem["t"] = tex
+
+    elif properties.get("radioButton_SolidColor", False):
+      dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+
+    elif properties.get("radioButton_Wireframe", False):
+      dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+
+    # write dem object
     writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
     writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
@@ -741,24 +748,6 @@ def writeMultiResDEM(writer, properties, progress=None):
     progress(50 * i / len(quads))
     extent = quad.extent
 
-    texData = texSrc = None
-    if quad.height < quadtree.height or unites_center == False:
-      renderer.setExtent(extent)
-      # render map image
-      image.fill(fillColor)
-      painter.begin(image)
-      if antialias:
-        painter.setRenderHint(QPainter.Antialiasing)
-      renderer.render(painter)
-      painter.end()
-
-      if context.localBrowsingMode:
-        texData = tools.base64image(image)
-      else:
-        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-        image.save(texfilename)
-        texSrc = os.path.split(texfilename)[1]
-
     # calculate extent. output dem should be handled as points.
     xres = extent.width() / (dem_width - 1)
     yres = extent.height() / (dem_height - 1)
@@ -815,20 +804,44 @@ def writeMultiResDEM(writer, properties, progress=None):
               dem_values[x + dem_width * (y0 + yy)] = z
 
     if quad.height < quadtree.height or unites_center == False:
-      # write dem object
-      writer.openFile(True)
-
-      tex = {}
-      if texSrc is not None:
-        tex["src"] = texSrc
-      if demTransparency > 0:
-        demOpacity = 1.0 - float(demTransparency) / 100
-        tex["o"] = demOpacity
-        tex["t"] = demOpacity < 1  #
-
-      dem = {"width": dem_width, "height": dem_height, "t": tex}
+      dem = {"width": dem_width, "height": dem_height}
       dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
+      # display type
+      texData = None
+      if properties.get("radioButton_MapCanvas", False):
+        renderer.setExtent(extent)
+        # render map image
+        image.fill(fillColor)
+        painter.begin(image)
+        if antialias:
+          painter.setRenderHint(QPainter.Antialiasing)
+        renderer.render(painter)
+        painter.end()
+
+        tex = {}
+        if context.localBrowsingMode:
+          texData = tools.base64image(image)
+        else:
+          texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
+          image.save(texfilename)
+          texSrc = os.path.split(texfilename)[1]
+          tex["src"] = texSrc
+
+        if demTransparency > 0:
+          demOpacity = 1.0 - float(demTransparency) / 100
+          tex["o"] = demOpacity
+          tex["t"] = demOpacity < 1  #
+        dem["t"] = tex
+
+      elif properties.get("radioButton_SolidColor", False):
+        dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+
+      elif properties.get("radioButton_Wireframe", False):
+        dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+
+      # write dem object
+      writer.openFile(True)
       writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
       writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
       if texData is not None:
@@ -839,55 +852,62 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   if unites_center:
     extent = centerQuads.extent()
-    if hpw < 1:
-      image_width = image_basesize * centerQuads.width()
-      image_height = round(image_width * hpw)
-    else:
-      image_height = image_basesize * centerQuads.height()
-      image_width = round(image_height / hpw)
-    image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
-    #qDebug("Created image size: %d, %d" % (image_width, image_height))
-
-    renderer.setOutputSize(image.size(), image.logicalDpiX())
-    renderer.setExtent(extent)
-    # render map image
-    image.fill(fillColor)
-    painter.begin(image)
-    if antialias:
-      painter.setRenderHint(QPainter.Antialiasing)
-    renderer.render(painter)
-    painter.end()
-
-    texData = texSrc = None
-    if context.localBrowsingMode:
-      texData = tools.base64image(image)
-    else:
-      texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-      image.save(texfilename)
-      texSrc = os.path.split(texfilename)[1]
-
+    dem_width = (dem_width - 1) * centerQuads.width() + 1
+    dem_height = (dem_height - 1) * centerQuads.height() + 1
     dem_values = centerQuads.unitedDEM()
     planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
     planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
     offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+    dem = {"width": dem_width, "height": dem_height}
+    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
-    dem_width = (dem_width - 1) * centerQuads.width() + 1
-    dem_height = (dem_height - 1) * centerQuads.height() + 1
+    # display type
+    texData = None
+    if properties.get("radioButton_MapCanvas", False):
+      if hpw < 1:
+        image_width = image_basesize * centerQuads.width()
+        image_height = round(image_width * hpw)
+      else:
+        image_height = image_basesize * centerQuads.height()
+        image_width = round(image_height / hpw)
+      image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
+      #qDebug("Created image size: %d, %d" % (image_width, image_height))
+
+      renderer.setOutputSize(image.size(), image.logicalDpiX())
+      renderer.setExtent(extent)
+
+      # render map image
+      image.fill(fillColor)
+      painter.begin(image)
+      if antialias:
+        painter.setRenderHint(QPainter.Antialiasing)
+      renderer.render(painter)
+      painter.end()
+
+      tex = {}
+      if context.localBrowsingMode:
+        texData = tools.base64image(image)
+      else:
+        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
+        image.save(texfilename)
+        texSrc = os.path.split(texfilename)[1]
+        tex["src"] = texSrc
+
+      if demTransparency > 0:
+        demOpacity = str(1.0 - float(demTransparency) / 100)
+        tex["o"] = demOpacity
+        tex["t"] = demOpacity < 1  #
+      dem["t"] = tex
+
+    elif properties.get("radioButton_SolidColor", False):
+      dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+
+    elif properties.get("radioButton_Wireframe", False):
+      dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
     # write dem object
     writer.openFile(True)
-    tex = {}
-    if texSrc is not None:
-      tex["src"] = texSrc
-    if demTransparency > 0:
-      demOpacity = str(1.0 - float(demTransparency) / 100)
-      tex["o"] = demOpacity
-      tex["t"] = demOpacity < 1  #
-
-    dem = {"width": dem_width, "height": dem_height, "t": tex}
-    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
-
     writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
     writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
