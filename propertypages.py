@@ -102,9 +102,11 @@ class PropertyPage(QWidget):
           v = None
         else:
           v = w.itemData(index)
-      elif isinstance(w, (QRadioButton, QCheckBox)): # subclass of QAbstractButton
+      elif isinstance(w, QRadioButton):
         if not w.isChecked():
           continue
+        v = w.isChecked()
+      elif isinstance(w, QCheckBox):
         v = w.isChecked()
       elif isinstance(w, (QSlider, QSpinBox)):
         v = w.value()
@@ -228,10 +230,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     self.isPrimary = False
     self.layer = None
+    self.demWidth = self.demHeight = 0
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp, self.spinBox_sidetransp]
-    widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution, self.lineEdit_Width, self.lineEdit_Height]
+    widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
@@ -280,11 +283,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # restore properties for the layer
     if properties:
       PropertyPage.setProperties(self, properties)
-      if isPrimary:
-        # restore status of check box
-        self.checkBox_Surroundings.setChecked(properties.get("checkBox_Surroundings", False))
-        self.checkBox_Sides.setChecked(properties.get("checkBox_Sides", False))
-        self.checkBox_Frame.setChecked(properties.get("checkBox_Frame", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
@@ -331,6 +329,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     comboBox = self.comboBox_DEMLayer
     useDEM = comboBox.itemData(index) != 0
     self.groupBox_Resampling.setEnabled(useDEM)
+    if not useDEM:
+      self.checkBox_Surroundings.setChecked(False)
     self.dialog.primaryDEMChanged(comboBox.itemData(index))
 
   def itemChanged(self, item):
@@ -376,7 +376,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     extent = canvas.extent()
     renderer = canvas.mapRenderer()
     size = 100 * self.horizontalSlider_Resolution.value()
-    self.label_Resolution.setText("about {0} x {0} px".format(size))
 
     # calculate resolution and size
     width, height = renderer.width(), renderer.height()
@@ -392,18 +391,22 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       if height % roughening != 0:
         height = int(float(height) / roughening + 0.9) * roughening
 
+    self.demWidth = width + 1
+    self.demHeight = height + 1
+    self.label_Resolution.setText("{0} x {1} px".format(self.demWidth, self.demHeight))
+
     xres = extent.width() / width
     yres = extent.height() / height
     self.lineEdit_HRes.setText(str(xres))
     self.lineEdit_VRes.setText(str(yres))
-    self.lineEdit_Width.setText(str(width + 1))
-    self.lineEdit_Height.setText(str(height + 1))
 
   def properties(self):
     p = PropertyPage.properties(self)
     item = self.dialog.currentItem
     if item is not None:
       p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
+    p["dem_Width"] = self.demWidth
+    p["dem_Height"] = self.demHeight
     return p
 
   def updateQuads(self, v=None):
@@ -448,11 +451,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
-    self.setLayoutEnabled(self.verticalLayout_Simple, isSimpleMode)
+    self.setLayoutsEnabled([self.verticalLayout_Simple, self.horizontalLayout_ImageFile], isSimpleMode)
+    self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and self.checkBox_Surroundings.isChecked())
     isAdvancedMode = not isSimpleMode
 
     if self.isPrimary:
-      self.setWidgetsVisible([self.label_sidetransp, self.spinBox_sidetransp], isSimpleMode)
+      self.setWidgetsVisible([self.groupBox_Accessories], isSimpleMode)
       self.setLayoutsVisible([self.horizontalLayout_Advanced1, self.horizontalLayout_Advanced3], isAdvancedMode)
       self.setWidgetsVisible([self.label_Focus], isAdvancedMode)
       if isSimpleMode:
@@ -550,9 +554,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # restore other properties for the layer
     if properties:
       PropertyPage.setProperties(self, properties)
-
-      # restore status of check box
-      self.checkBox_ExportAttrs.setChecked(properties.get("checkBox_ExportAttrs", False))
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 

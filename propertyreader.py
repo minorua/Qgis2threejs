@@ -35,12 +35,12 @@ class DEMPropertyReader:
 
   def width(self):
     if self.properties["comboBox_DEMLayer"]:
-      return int(self.properties["lineEdit_Width"])
+      return self.properties["dem_Width"]
     return 2
 
   def height(self):
     if self.properties["comboBox_DEMLayer"]:
-      return int(self.properties["lineEdit_Height"])
+      return self.properties["dem_Height"]
     return 2
 
 class VectorPropertyReader:

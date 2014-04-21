@@ -153,6 +153,7 @@ class Qgis2threejsDialog(QDialog):
       item.setData(0, Qt.UserRole, index)
       topItems.append(item)
 
+    optDEMChecked = False
     for layer in self.iface.legendInterface().layers():
       layerType = layer.type()
       if layerType not in (QgsMapLayer.VectorLayer, QgsMapLayer.RasterLayer):
@@ -173,9 +174,11 @@ class Qgis2threejsDialog(QDialog):
       check_state = Qt.Checked if isVisible else Qt.Unchecked
       item.setData(0, Qt.CheckStateRole, check_state)
       item.setData(0, Qt.UserRole, layer.id())
+      if parentId == ObjectTreeItem.ITEM_OPTDEM and isVisible:
+        optDEMChecked = True
 
     for item in topItems:
-      if item.data(0, Qt.UserRole) != ObjectTreeItem.ITEM_OPTDEM:
+      if item.data(0, Qt.UserRole) != ObjectTreeItem.ITEM_OPTDEM or optDEMChecked:
         tree.expandItem(item)
 
   def saveProperties(self, item, page):

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>437</width>
-    <height>598</height>
+    <height>604</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -102,70 +102,6 @@
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Columns</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_Width">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Rows</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_Height">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </item>
@@ -568,7 +504,7 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_ImageFile">
             <item>
              <widget class="QRadioButton" name="radioButton_ImageFile">
               <property name="enabled">
