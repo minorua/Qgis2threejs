@@ -265,9 +265,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced, self.groupBox_Accessories], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
-
-    self.groupBox_Resampling.setEnabled(True)
-    self.dispTypeChanged()    # update enablement of widgets in display type group
     self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
 
     # select dem layer
@@ -278,6 +275,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.comboBox_DEMLayer.blockSignals(True)
     currentIndex = self.selectDEMLayer(layerId)
     self.comboBox_DEMLayer.blockSignals(False)
+    self.groupBox_Resampling.setEnabled(True)
     self.demLayerChanged(currentIndex)
 
     # restore properties for the layer
@@ -288,11 +286,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     self.calculateResolution()
 
+    # set enablement and visibility of widgets
     if isPrimary:
-      # set enablement and visibility of widgets
       self.samplingModeChanged(True)
       self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
+    self.dispTypeChanged()
 
+    if isPrimary:
       # enable map tool to select focus area
       self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
       self.dialog.startPointSelection()
@@ -353,7 +353,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def surroundingsToggled(self, checked):
     self.calculateResolution()
     self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
-    self.setLayoutEnabled(self.horizontalLayout_ImageFile, not checked)
+    self.radioButton_ImageFile.setEnabled(not checked)
     self.groupBox_Accessories.setEnabled(not checked)
 
     if checked and self.radioButton_ImageFile.isChecked():
