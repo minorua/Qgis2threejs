@@ -341,6 +341,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   writer = JSWriter(htmlfilename, context)
   writer.openFile(not isSimpleMode)
   writer.writeWorldInfo()
+  progress(5)
 
   #TODO
   writer.timestamp = timestamp
@@ -745,7 +746,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   stats = None
   plane_index = 0
   for i, quad in enumerate(quads):
-    progress(50 * i / len(quads))
+    progress(45 * i / len(quads) + 5)
     extent = quad.extent
 
     # calculate extent. output dem should be handled as points.
