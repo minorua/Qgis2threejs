@@ -44,7 +44,6 @@ class Qgis2threejsDialog(QDialog):
   def __init__(self, iface, properties=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
-    self.apiChanged22 = False   # not QgsApplication.prefixPath().startswith("C:/OSGeo4W")  # QGis.QGIS_VERSION_INT >= 20200
 
     self.currentItem = None
     self.currentPage = None
@@ -105,7 +104,7 @@ class Qgis2threejsDialog(QDialog):
     ui = self.ui
     messages = []
     # show message if crs unit is degrees
-    mapSettings = self.iface.mapCanvas().mapSettings() if self.apiChanged22 else self.iface.mapCanvas().mapRenderer()
+    mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
     if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
       self.showMessageBar("The unit of current CRS is degrees", "Terrain may not appear well.")
 

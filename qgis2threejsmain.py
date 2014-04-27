@@ -38,7 +38,7 @@ from quadtree import *
 from vectorobject import *
 from propertyreader import DEMPropertyReader, VectorPropertyReader
 
-apiChanged22 = False
+apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
 # used for tree widget and properties
 class ObjectTreeItem:
@@ -146,7 +146,7 @@ class OutputContext:
     self.dialog = dialog
     self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
-    mapSettings = canvas.mapSettings() if apiChanged22 else canvas.mapRenderer()
+    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
 
     p = properties[ObjectTreeItem.ITEM_CONTROLS]
@@ -922,6 +922,7 @@ def writeVectors(writer):
   canvas = context.canvas
   mapTo3d = context.mapTo3d
   warp_dem = context.warp_dem
+  renderer = QgsMapRenderer()
 
   layerProperties = {}
   for itemType in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
@@ -965,6 +966,9 @@ def writeVectors(writer):
 
     # wreite layer object
     writer.writeLayer(lyr, fieldNames)
+
+    # initialize symbol rendering
+    layer.rendererV2().startRender(renderer.rendererContext(), layer.pendingFields() if apiChanged23 else layer)
 
     feat = Feature(layer, prop)
     transform = QgsCoordinateTransform(layer.crs(), context.crs)
@@ -1090,6 +1094,8 @@ def writeVectors(writer):
     # write attributes
     if writeAttrs:
       writer.writeAttributes()
+
+    layer.rendererV2().stopRender(renderer.rendererContext())
 
   # write materials
   writer.materialManager.write(writer)

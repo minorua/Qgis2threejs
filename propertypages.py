@@ -155,10 +155,10 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
   def setup(self, properties=None):
     canvas = self.dialog.iface.mapCanvas()
     extent = canvas.extent()
-    renderer = canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
 
     self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
-    self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(renderer.width(), renderer.height()))
+    self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(outsize.width(), outsize.height()))
 
     # restore properties
     if properties:
@@ -377,12 +377,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def calculateResolution(self, v=None):
     canvas = self.dialog.iface.mapCanvas()
-    extent = canvas.extent()
-    renderer = canvas.mapRenderer()
     size = 100 * self.horizontalSlider_Resolution.value()
 
     # calculate resolution and size
-    width, height = renderer.width(), renderer.height()
+    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    width, height = outsize.width(), outsize.height()
     s = (size * size / float(width * height)) ** 0.5
     if s < 1:
       width = int(width * s)
@@ -399,6 +398,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.demHeight = height + 1
     self.label_Resolution.setText("{0} x {1} px".format(self.demWidth, self.demHeight))
 
+    extent = canvas.extent()
     xres = extent.width() / width
     yres = extent.height() / height
     self.lineEdit_HRes.setText(str(xres))
