@@ -134,7 +134,7 @@
                <string>Export attributes</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -160,6 +160,9 @@
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="comboBox_Label">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>

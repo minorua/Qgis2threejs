@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Fri Apr 11 17:08:24 2014
+# Created: Sun Apr 27 10:32:39 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -91,7 +91,7 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.checkBox_ExportAttrs = QtGui.QCheckBox(self.groupBox_Attrs)
-        self.checkBox_ExportAttrs.setChecked(True)
+        self.checkBox_ExportAttrs.setChecked(False)
         self.checkBox_ExportAttrs.setObjectName(_fromUtf8("checkBox_ExportAttrs"))
         self.verticalLayout.addWidget(self.checkBox_ExportAttrs)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
@@ -103,6 +103,7 @@ class Ui_VectorPropertiesWidget(object):
         self.label.setObjectName(_fromUtf8("label"))
         self.formLayout_Label.setWidget(0, QtGui.QFormLayout.LabelRole, self.label)
         self.comboBox_Label = QtGui.QComboBox(self.groupBox_Attrs)
+        self.comboBox_Label.setEnabled(False)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
