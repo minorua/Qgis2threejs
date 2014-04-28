@@ -21,6 +21,7 @@
 """
 from qgis.core import QGis
 from Qgis2threejs.stylewidget import StyleWidget
+import os
 json_pathes = []  #TODO: move into writer. moduleData["json_pathes"]?
 
 def geometryType():
@@ -44,7 +45,6 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
     dialog.styleWidgets[i].hide()
 
 def write(writer, feat):
-  mapTo3d = writer.context.mapTo3d
   vals = feat.propValues()
   json_path = vals[0]
   scale = float(vals[1])
@@ -52,10 +52,12 @@ def write(writer, feat):
   rotationZ = float(vals[3])
   if json_path in json_pathes:
     index = json_pathes.index(json_path)
-  else:
+  elif os.path.exists(json_path):
     index = len(json_pathes)
     with open(json_path) as f:
       json = f.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
+  else:
+    return  #TODO: error message log
   writer.writeFeature({"json_index": index, "pts": feat.pointsAsList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})
