@@ -1,6 +1,7 @@
 // Variables
 var world = {};
 var lyr = [], mat = [], tex = [], jsons=[], labels=[], queryableObjs = [];
+var labelVisible = true;
 var option = {
   sole_height: 1.5,
   side: {color: 0xc7ac92},
@@ -78,6 +79,7 @@ function addDefaultKeyEventListener() {
     var keyPressed = e.which;
     if (keyPressed == 27) closeClicked(); // ESC
     else if (keyPressed == 73) showInfo();  // I
+    else if (keyPressed == 76) toggleLabelVisibility();  // L
     else if (!e.ctrlKey && e.shiftKey) {
       if (keyPressed == 82) controls.reset();   // Shift + R
       else if (keyPressed == 83) { // Shift + S
@@ -428,7 +430,6 @@ function buildLabels(scene) {
 
         pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);
         pt1 = new THREE.Vector3(pt[0], pt[1], pt[2] + height);
-        labels.push({e:e, pt:pt1, l:i, f:j});
 
         // create pointer
         geometry = new THREE.Geometry();
@@ -440,6 +441,8 @@ function buildLabels(scene) {
 
         f.aElems.push(e);
         f.aObjs.push(obj);
+
+        labels.push({e:e, obj:obj, pt:pt1, l:i, f:j});
       });
     }
   }
@@ -478,7 +481,7 @@ function buildModels(scene) {
 
 // update label positions
 function updateLabels() {
-  if (labels.length == 0) return;
+  if (labels.length == 0 || !labelVisible) return;
 
   var widthHalf = width / 2, heightHalf = height / 2;
   var autosize = option.label.autosize;
@@ -531,6 +534,15 @@ function updateLabels() {
       e.style.display = "none";
     }
   }
+}
+
+function toggleLabelVisibility() {
+  labelVisible = !labelVisible;
+  if (labels.length == 0) return;
+  labels.forEach(function (label) {
+    if (!labelVisible) label.e.style.display = "none";
+    label.obj.visible = labelVisible;
+  });
 }
 
 // Called from *Controls.js when canvas is clicked
