@@ -37,8 +37,9 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
 
   dialog.styleWidgets[0].setup(StyleWidget.FILEPATH, "JSON file", "Path", "", layer, None)
   dialog.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer, numeric_fields)
-  dialog.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Rotation", "Value (Degrees)", 0, layer, numeric_fields)
-  styleCount = 3
+  dialog.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer, numeric_fields)
+  dialog.styleWidgets[3].setup(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer, numeric_fields)
+  styleCount = 4
   for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
@@ -47,7 +48,8 @@ def write(writer, feat):
   vals = feat.propValues()
   json_path = vals[0]
   scale = float(vals[1])
-  rotation = float(vals[2])
+  rotationX = float(vals[2])
+  rotationZ = float(vals[3])
   if json_path in json_pathes:
     index = json_pathes.index(json_path)
   else:
@@ -56,4 +58,4 @@ def write(writer, feat):
       json = f.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
     writer.write("jsons[%d] = '%s';\n" % (index, json))
     json_pathes.append(json_path)
-  writer.writeFeature({"json_index": index, "pts": feat.pointsAsList(), "rotateX": 90, "rotateY": rotation, "scale": scale})
+  writer.writeFeature({"json_index": index, "pts": feat.pointsAsList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})

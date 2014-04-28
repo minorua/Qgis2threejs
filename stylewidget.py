@@ -23,6 +23,7 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import QGis
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
+import os
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
   # function types
@@ -210,7 +211,8 @@ class FilePathWidgetFunc(WidgetFuncBase):
     pass
 
   def toolButtonClicked(self):
-    filename = QFileDialog.getOpenFileName()
+    directory = os.path.split(self.widget.lineEdit.text())[0]
+    filename = QFileDialog.getOpenFileName(None, "Select a file", directory)
     if filename != "":
       self.widget.lineEdit.setText(filename)
 

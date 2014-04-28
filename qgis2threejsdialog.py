@@ -39,7 +39,7 @@ import propertypages as ppages
 debug_mode = 1
 
 class Qgis2threejsDialog(QDialog):
-  STYLE_MAX_COUNT = 3
+  STYLE_MAX_COUNT = 4
 
   def __init__(self, iface, properties=None):
     QDialog.__init__(self, iface.mainWindow())
