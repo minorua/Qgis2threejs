@@ -539,8 +539,8 @@ function canvas_clicked(e) {
   var canvasOffset = offset(renderer.domElement);
   var mx = e.clientX - canvasOffset.left;
   var my = e.clientY - canvasOffset.top;
-  var x = (mx / renderer.domElement.width) * 2 - 1;
-  var y = -(my / renderer.domElement.height) * 2 + 1;
+  var x = (mx / width) * 2 - 1;
+  var y = -(my / height) * 2 + 1;
   var vector = new THREE.Vector3(x, y, 1);
   projector.unprojectVector(vector, camera);
   var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
