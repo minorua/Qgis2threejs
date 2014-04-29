@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>278</width>
-    <height>300</height>
+    <height>271</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
         <x>0</x>
         <y>0</y>
         <width>258</width>
-        <height>280</height>
+        <height>251</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_10">
@@ -81,6 +81,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_Styles">
             <item>
              <layout class="QFormLayout" name="formLayout_4">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+              </property>
               <property name="leftMargin">
                <number>2</number>
               </property>
@@ -114,6 +117,28 @@
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ObjectTypeMessage">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>This type is experimental. JSON model loading fails with some files.</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

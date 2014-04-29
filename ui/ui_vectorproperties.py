@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Sun Apr 27 10:32:39 2014
+# Created: Tue Apr 29 11:31:57 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName(_fromUtf8("VectorPropertiesWidget"))
-        VectorPropertiesWidget.resize(278, 300)
+        VectorPropertiesWidget.resize(278, 271)
         self.verticalLayout_2 = QtGui.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.scrollArea = QtGui.QScrollArea(VectorPropertiesWidget)
@@ -39,7 +39,7 @@ class Ui_VectorPropertiesWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 258, 280))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 258, 251))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
@@ -66,6 +66,7 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Styles = QtGui.QVBoxLayout()
         self.verticalLayout_Styles.setObjectName(_fromUtf8("verticalLayout_Styles"))
         self.formLayout_4 = QtGui.QFormLayout()
+        self.formLayout_4.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
         self.formLayout_4.setContentsMargins(2, -1, 2, -1)
         self.formLayout_4.setObjectName(_fromUtf8("formLayout_4"))
         self.label_ObjectType = QtGui.QLabel(self.groupBox_Styles)
@@ -82,6 +83,16 @@ class Ui_VectorPropertiesWidget(object):
         self.comboBox_ObjectType.setObjectName(_fromUtf8("comboBox_ObjectType"))
         self.formLayout_4.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_ObjectType)
         self.verticalLayout_Styles.addLayout(self.formLayout_4)
+        self.label_ObjectTypeMessage = QtGui.QLabel(self.groupBox_Styles)
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_ObjectTypeMessage.setFont(font)
+        self.label_ObjectTypeMessage.setStyleSheet(_fromUtf8("font-weight: bold;"))
+        self.label_ObjectTypeMessage.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_ObjectTypeMessage.setWordWrap(True)
+        self.label_ObjectTypeMessage.setObjectName(_fromUtf8("label_ObjectTypeMessage"))
+        self.verticalLayout_Styles.addWidget(self.label_ObjectTypeMessage)
         self.gridLayout_8.addLayout(self.verticalLayout_Styles, 0, 0, 1, 1)
         self.gridLayout_10.addWidget(self.groupBox_Styles, 1, 0, 1, 1)
         self.groupBox_Attrs = QtGui.QGroupBox(self.scrollAreaWidgetContents)
@@ -126,6 +137,7 @@ class Ui_VectorPropertiesWidget(object):
         self.groupBox_zCoordinate.setTitle(_translate("VectorPropertiesWidget", "Z coordinate", None))
         self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "Styles", None))
         self.label_ObjectType.setText(_translate("VectorPropertiesWidget", "Object type", None))
+        self.label_ObjectTypeMessage.setText(_translate("VectorPropertiesWidget", "This type is experimental. JSON model loading fails with some files.", None))
         self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "Attributes", None))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes", None))
         self.label.setText(_translate("VectorPropertiesWidget", "Label", None))

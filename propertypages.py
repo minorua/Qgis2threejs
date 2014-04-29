@@ -29,7 +29,7 @@ from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
 from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
-from qgis2threejsmain import MapTo3D
+from qgis2threejsmain import MapTo3D, ObjectTreeItem
 from stylewidget import StyleWidget
 from quadtree import QuadTree
 import qgis2threejstools as tools
@@ -562,13 +562,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       PropertyPage.setProperties(self, self.defaultProperties)
 
   def objectTypeSelectionChanged(self, idx=None):
-    layer = self.layer
-    try:
-      ve = float(ui.lineEdit_zFactor.text())
-    except:
-      ve = 1
-    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve)
-    self.dialog.objectTypeManager.setupForm(self, mapTo3d, layer, layer.geometryType(), self.comboBox_ObjectType.currentIndex())
+    # notice JSON model is experimental
+    self.label_ObjectTypeMessage.setVisible(self.comboBox_ObjectType.currentText() == "JSON model")
+
+    # setup widgets
+    world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    ve = world.get("lineEdit_zFactor", 1.5)
+    vs = world.get("lineEdit_zShift", 0)
+    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
+    self.dialog.objectTypeManager.setupForm(self, mapTo3d, self.layer, self.layer.geometryType(), self.comboBox_ObjectType.currentIndex())
 
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
