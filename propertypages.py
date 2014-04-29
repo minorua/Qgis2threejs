@@ -40,6 +40,13 @@ PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
 
+def is_number(val):
+  try:
+    float(val)
+    return True
+  except:
+    return False
+
 class PropertyPage(QWidget):
 
   def __init__(self, pageType, dialog, parent=None):
@@ -85,7 +92,6 @@ class PropertyPage(QWidget):
   def setLayoutsEnabled(self, layouts, enabled):
     for layout in layouts:
       self.setLayoutEnabled(layout, enabled)
-
 
   def setPropertyWidgets(self, widgets):
     self.propertyWidgets = widgets
@@ -173,6 +179,15 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
     if color.isValid():
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
+
+  def properties(self):
+    p = PropertyPage.properties(self)
+    # check validity
+    if not is_number(self.lineEdit_zFactor.text()):
+      p["lineEdit_zFactor"] = "1.5"
+    if not is_number(self.lineEdit_zShift.text()):
+      p["lineEdit_zShift"] = "0"
+    return p
 
 class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 
@@ -567,8 +582,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # setup widgets
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    ve = world.get("lineEdit_zFactor", 1.5)
-    vs = world.get("lineEdit_zShift", 0)
+    ve = float(world.get("lineEdit_zFactor", 1.5))
+    vs = float(world.get("lineEdit_zShift", 0))
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
     self.dialog.objectTypeManager.setupForm(self, mapTo3d, self.layer, self.layer.geometryType(), self.comboBox_ObjectType.currentIndex())
 
