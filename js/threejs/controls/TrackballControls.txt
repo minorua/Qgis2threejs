@@ -1,5 +1,10 @@
 TrackballControls
 
+* Mouse
+ Left button   : Rotate
+ Middle button : Zoom
+ Right button  : Pan
+
 * Keys
  I         : Show page information
  Shift + R : Reset

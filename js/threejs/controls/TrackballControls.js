@@ -2,6 +2,8 @@
  * @author Eberhard Graether / http://egraether.com/
  */
 
+var controlHelp = "* Mouse\n Left button : Rotate\n Middle button : Zoom\n Right button : Pan\n";
+
 THREE.TrackballControls = function ( object, domElement ) {
 
 	var _this = this;

@@ -3,7 +3,7 @@
 /***************************************************************************
  Qgis2threejs
                                  A QGIS plugin
- export terrain and map image into web browser
+ export terrain data, map canvas image and vector data to web browser
                               -------------------
         begin                : 2013-12-29
         copyright            : (C) 2013 Minoru Akagi

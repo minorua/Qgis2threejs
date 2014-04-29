@@ -3,7 +3,7 @@
 /***************************************************************************
  Qgis2threejs
                                  A QGIS plugin
- export terrain and map image into web browser
+ export terrain data, map canvas image and vector data to web browser
                               -------------------
         begin                : 2014-01-16
         copyright            : (C) 2014 Minoru Akagi
@@ -42,7 +42,7 @@ apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
 # used for tree widget and properties
 class ObjectTreeItem:
-  topItemNames = ["World", "Controls", "DEM", "Optional DEM", "Point", "Line", "Polygon"]
+  topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
   ITEM_WORLD = 0
   ITEM_CONTROLS = 1
   ITEM_DEM = 2

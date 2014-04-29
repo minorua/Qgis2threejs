@@ -28,7 +28,7 @@
 // TODO: controls should not reversed when upside is down
 // TODO: a target object that is visible while rotating/zooming
 
-var controlHelp = "* Keys\n Arrow keys : Move horizontally\n Shift + Arrow keys : Rotate\n Ctrl + Arrow keys : Rotate around camera target\n Shift + Ctrl + Up / Down : Zoom in / out\n\n R : Auto rotate on / off\n U : Switch upside down (also controls are reversed)\n";
+var controlHelp = "* Mouse\n Left button : Orbit\n Middle button : Zoom\n Right button : Pan\n\n* Keys\n Arrow keys : Move horizontally\n Shift + Arrow keys : Orbit\n Ctrl + Arrow keys : Rotate\n Shift + Ctrl + Up / Down : Zoom in / out\n\n R : Auto rotate on / off\n U : Switch upside down (also controls are reversed)\n";
 
 THREE.OrbitControls = function ( object, domElement ) {
 

@@ -1,9 +1,14 @@
 OrbitControls
 
+* Mouse
+ Left button   : Orbit
+ Middle button : Zoom
+ Right button  : Pan
+
 * Keys
  Arrow keys               : Move horizontally
- Shift + Arrow keys       : Rotate
- Ctrl  + Arrow keys       : Rotate around camera target
+ Shift + Arrow keys       : Orbit
+ Ctrl  + Arrow keys       : Rotate
  Shift + Ctrl + Up / Down : Zoom in / out
 
  R         : Auto rotate on / off

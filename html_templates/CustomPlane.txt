@@ -1,5 +1,6 @@
 [general]
 filename=CustomPlane.html
 description=Custom plane with different Z values
+author=Luca Casagrande
 files=js/Qgis2threejs.js,js/CustomPlane.js
 dirs=js/dat-gui

@@ -1,56 +1,114 @@
-# Qgis2threejs plugin
-**version 0.6**
+Qgis2threejs plugin (version 0.7 dev)
+=====================================
 
-Qgis2threejs plugin exports terrain data, map canvas image and vector data into your web browser. You can view 3D map image in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org)
+Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org).
 
-# Usage
+Usage
+=====
 
-## Short guide
-Load a DEM layer and any other layers into QGIS, and set the project CRS to a projected coordinate system (the unit should be the same as that of DEM values). Next, zoom to your favorite place, and click the button in the web toolbar. Select the DEM layer and click Run button in the dialog. Then 3D terrain appears in your web browser!
+Check WebGL support
+-------------------
+Visit [here](http://get.webgl.org/) to check whether your web browser supports WebGL.
 
-## Export settings
-### General
+
+Short guide
+-----------
+Load a DEM layer and any other layers into QGIS, and set the project CRS to a projected coordinate system (the unit should be the same as that of DEM values). Next, zoom to your favorite place, and click the plugin button in the web toolbar. Select the DEM layer and click Run button in the dialog. Then 3D terrain appears in your web browser!
+
+
+Export settings
+---------------
+Settings for DEM and Vector layers had been splitted into two tab pages until version 0.6. Since version 0.7, layer items and objects for settings have been integrated into a tree widget. You can change their properties with widgets displayed on the right side. There is a combo box to select a template at the top of the dialog. An edit box to select output HTML file path is above the buttons at the bottom. Exporting is done when you press the Run button.
+
+* Template combo box  
+There are two available templates: Simple3D.html and CustomPlane.html. If you select CustomPlane template, A plane is added to scene. With the control panel on the browser you can change elevation, color and transparency of the plane.
+
+* Object and layer tree, and property widgets  
+Items with check box are optional. When the current item is optional and not checked, widgets on the right side are disabled. See "General settings and Layer settings" below for details.
+
 * Output HTML file path  
 Some JavaScript files will be output into the same directory as the HTML file. You can leave this empty to output into temporary directory.
 
-### DEM tab
-* DEM Layer  
-Select a DEM layer for terrain data from 1-band rasters.
-
+### General settings and Layer settings
+#### World
 * Vertical exaggeration  
-Vertical exaggeration of terrain. This will also affect height of some vector objects.
+Exaggeration degree of terrain. This value also affects height of some 3D objects such as cylinder and extruded polygon. The default value is 1.5.
 
-##### Resampling
+* Vertical shift  
+Vertical shift of objects. If you want to export terrain of narrow range and high altitude, you should adjust the object positions to be displayed at the center of browser by changing this value. If you set the value to -1000, all objects are shifted down by 1000 (meters).
+
+* Background  
+Sky-like gradient background is selected by default. You can change it to a solid color.
+
+#### Controls
+There are two available controls: TrackballControls and OrbitControls. With OrbitControls, you can move and rotate camera with arrow keys on keyboard. Usage of each control is displayed below the combo box. On the web browser showing exported page, clicking the i button on the bottom left corner or pressing i key shows the usage.
+
+#### DEM
+Selected DEM layer is used as a reference for z positions of vector objects. You can select DEM layer from 1-band rasters loaded in QGIS. You can also select a flat plane at zero altitude.
+
+##### * Resampling
 * Simple  
-Select DEM resolution from several levels. This resolution is used to resample the DEM, but is not for texture. The map canvas image is used as it is for texture.
+Select DEM resolution from several levels. This resolution is used to resample the DEM, but is not for texture.
 
-* Advanced (multiple resolutions)  
-Multiple resolution export of terrain and texture. Area you want to focus is output in high resolution and the surroundings are output in low resolution. Draw a rectangle on the map canvas to set focus area. Specifying with a point is also possible. Resolution of the focus area varies depending on the QuadTree height. DEM grid size of each quadrangle will be 65 x 65.
+ * Surroundings option  
+This option enlarges output terrain by placing terrain blocks around the extent of the map canvas. Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks (a center block and 8 surrounding blocks) will be output. Roughening can be selected from powers of 2 in the range of 1 to 64. If you select 2, grid point spacing is doubled. It means that the number of grid points in the same area becomes 1/4. If map canvas image is selected as the display type, texture image size of each block is maximum 256 x 256.
 
-### Vector tab
-There is a list of layers, which are grouped into three: point, line and polygon. The right-side setting widgets get enabled when you select a layer item. Checked layers will be exported.
+* Advanced (quad tree)  
+Multiple resolution export of terrain and texture. Area you want to focus is output in high resolution and the surroundings are output in low resolution. Draw a rectangle on the map canvas to set focus area. Specifying a point is also possible. Resolution of the focus area varies depending on the value of QuadTree height. Grid size of each quadrangle is 64 x 64.
+
+##### * Display type
+You can choose from map canvas image, image file, solid color and wireframe.
+
+* Map canvas image  
+Map canvas image is used as it is to texture terrain of main block in simple resampling mode. Each block of surroundings (in simple resampling mode) and quads (in advanced resampling mode) is textured with image rendered with the current layer settings.
+
+* Image file  
+Existing image file such as PNG or JPEG file is used to texture DEM. To enable transmission of transparent PNG, the transparency value should be set to a small non-zero number (e.g. 1).
+
+* Solid color or Wireframe  
+Press the button on the right side of the color box and select a color.
+
+You can set transparency with the transparency spinbox. 0 is opaque, and 100 is transparent.
+
+##### * Sides and frame
+Options to add sides and/or frame. Transparency can be changed. If you want to change their colors. please edit the output JS file directly.
+
+#### Additional DEM
+If you want to export more than one DEM, check the checkbox on the left of child items. For example of usage, it may be possible to cover the terrain with a summit level map surface, or make 3D heat map.
+Some options that are available in (primary) DEM cannot be used. Resampling mode is limited to simple. Surroundings, sides and frame options are not available.
+
+#### Point, Line and Polygon
+Vector layers are grouped into three types: Point, Line and Polygon.
 
 * Z coordinate  
-Height from the surface and fixed value are selectable in all cases. In addition, z coordinate of geometry and field are selectable if available. Z coordinate of geometry cannot be used for polygon layer. The unit is that of the project CRS.
+Height from the surface and fixed value are selectable in all cases. In addition, z coordinate of geometry and field are selectable if available. Z coordinates of polygons cannot be used. The unit is that of the project CRS.
 
 * Styles  
-Select a object type from available types for each geometry type. There are some options to set color, size and so on. The unit of size is that of the project CRS. Vertical exggeration in DEM tab will apply to height of object (size).
+Select a object type from available types of each geometry type. There are some options to set color, transparency, size and so on. The unit of size is that of the project CRS.
 
+* Attributes  
+If the export attributes option is checked, attributes of each feature are exported. Attributes are displayed when you click an object on web browser.  
+If a field in the label combobox is selected, a label is displayed above each object and is connected to the object with a line. On web browser, you can hide the labels by pressing L key.
 
-## Plugin settings
+Plugin settings
+---------------
 * Browser path  
 If you want to open web browser other than default browser, use this option.
 
 
-# Sample
+Sample
+======
 * [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data) 
 
-# License
+
+JavaScript libraries used by exported pages
+===========================================
+* All exports use: [three.js](http://threejs.org)
+* Exports based on custom plane template use: [dat-gui](https://code.google.com/p/dat-gui/)
+
+
+License
+=======
 Python modules of Qgis2threejs are released under the GNU Public License (GPL) Version 2.
-
-This software includes the following JavaScript libraries:
-
-* [three.js](http://threejs.org)
-* [dat-gui](https://code.google.com/p/dat-gui/)
 
 _Copyright (c) 2013 Minoru Akagi_

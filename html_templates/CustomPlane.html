@@ -107,7 +107,7 @@ ${scripts}
   }
 
   function showInfo() {
-    var help = "<h1>Controls usage</h1>";
+    var help = "<h1>Usage</h1>";
     help += (typeof controlHelp === "undefined") ? "* Keys" : controlHelp.split("\n").join("<br>");
     help += "<br> L : Toggle label visibility<br> I : Show page information<br> Shift + R : Reset<br> Shift + S : Save as image";
     document.getElementById("popupcontent").innerHTML = help + "<hr>" + document.getElementById("about").innerHTML;
