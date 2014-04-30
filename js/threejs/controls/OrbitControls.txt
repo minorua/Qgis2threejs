@@ -15,5 +15,6 @@ OrbitControls
  U         : Switch upside down (also controls are reversed)
 
  I         : Show page information
+ L         : Toggle label visibility
  Shift + R : Reset
  Shift + S : Save as image

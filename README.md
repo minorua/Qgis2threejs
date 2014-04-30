@@ -1,4 +1,4 @@
-Qgis2threejs plugin (version 0.7 dev)
+Qgis2threejs plugin (version 0.7)
 =====================================
 
 Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org).
@@ -21,7 +21,7 @@ Export settings
 Settings for DEM and Vector layers had been splitted into two tab pages until version 0.6. Since version 0.7, layer items and objects for settings have been integrated into a tree widget. You can change their properties with widgets displayed on the right side. There is a combo box to select a template at the top of the dialog. An edit box to select output HTML file path is above the buttons at the bottom. Exporting is done when you press the Run button.
 
 * Template combo box  
-There are two available templates: Simple3D.html and CustomPlane.html. If you select CustomPlane template, A plane is added to scene. With the control panel on the browser you can change elevation, color and transparency of the plane.
+There are two available templates: Simple3D.html and CustomPlane.html. If you select CustomPlane template, A plane is added to scene. With the control panel on the browser you can change elevation, color and opacity of the plane.
 
 * Object and layer tree, and property widgets  
 Items with check box are optional. When the current item is optional and not checked, widgets on the right side are disabled. See "General settings and Layer settings" below for details.
@@ -41,7 +41,7 @@ Vertical shift of objects. If you want to export terrain of narrow range and hig
 Sky-like gradient background is selected by default. You can change it to a solid color.
 
 #### Controls
-There are two available controls: TrackballControls and OrbitControls. With OrbitControls, you can move and rotate camera with arrow keys on keyboard. Usage of each control is displayed below the combo box. On the web browser showing exported page, clicking the i button on the bottom left corner or pressing i key shows the usage.
+There are two available controls: TrackballControls and OrbitControls. With OrbitControls, you can move and rotate the camera with arrow keys on keyboard. The usage of each control is displayed below the combo box. On the web browser showing exported page, clicking the i button on the bottom left corner or pressing i key shows the usage.
 
 #### DEM
 Selected DEM layer is used as a reference for z positions of vector objects. You can select DEM layer from 1-band rasters loaded in QGIS. You can also select a flat plane at zero altitude.
@@ -74,7 +74,7 @@ You can set transparency with the transparency spinbox. 0 is opaque, and 100 is 
 Options to add sides and/or frame. Transparency can be changed. If you want to change their colors. please edit the output JS file directly.
 
 #### Additional DEM
-If you want to export more than one DEM, check the checkbox on the left of child items. For example of usage, it may be possible to cover the terrain with a summit level map surface, or make 3D heat map.
+If you want to export more than one DEM, check the checkbox on the left of child items. For example of usage, it may be possible to cover the terrain with supposed terrain surface of a summit level map, or make a 3D heat map.
 Some options that are available in (primary) DEM cannot be used. Resampling mode is limited to simple. Surroundings, sides and frame options are not available.
 
 #### Point, Line and Polygon
@@ -96,10 +96,11 @@ Plugin settings
 If you want to open web browser other than default browser, use this option.
 
 
-Sample
-======
-* [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data) 
-
+Samples
+=======
+* [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data)
+* [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Color relief map made with SRTM3 data)
+* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom template. Color relief map made with SRTM3 data)
 
 JavaScript libraries used by exported pages
 ===========================================

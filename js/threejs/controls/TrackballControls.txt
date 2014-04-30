@@ -7,5 +7,6 @@ TrackballControls
 
 * Keys
  I         : Show page information
+ L         : Toggle label visibility
  Shift + R : Reset
  Shift + S : Save as image
