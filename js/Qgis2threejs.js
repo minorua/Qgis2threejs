@@ -48,6 +48,25 @@ MapLayer.prototype = {
 
   constructor: MapLayer,
 
+  meshes: function () {
+    var m = [];
+    if (this.type == "dem") {
+      for (var i = 0, l = this.dem.length; i < l; i++) {
+        m.push(this.dem[i].obj);
+
+        //var aObjs = this.dem[i].aObjs || [];
+        //for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
+      }
+    } else {
+      for (var i = 0, l = this.f.length; i < l; i++) {
+        this.f[i].objs.forEach(function (mesh) {
+          m.push(mesh);
+        });
+      }
+    }
+    return m;
+  },
+
   setVisible: function (visible) {
     if (this.type == "dem") {
       for (var i = 0, l = this.dem.length; i < l; i++) {
@@ -63,7 +82,7 @@ MapLayer.prototype = {
     } else {
       for (var i = 0, l = this.f.length; i < l; i++) {
         var f = this.f[i];
-        f.obj.visible = visible;
+        f.obj.visible = visible;  // TODO: objs
         if (f.aObj !== undefined) f.aObj.visible = visible;
         if (f.aElem !== undefined) f.aElem.style.display = (visible) ? "block": "none";
       }

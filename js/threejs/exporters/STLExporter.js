@@ -40,7 +40,10 @@ THREE.STLExporter.prototype = {
 		for (i = 0; i < meshes.length; i++) {
 			mesh = meshes[i];
 			
-			geometry = mesh.geometry;
+			geometry = mesh.geometry.clone();
+			if (mesh.rotation.x) geometry.applyMatrix(new THREE.Matrix4().makeRotationX(mesh.rotation.x));
+			if (mesh.rotation.y) geometry.applyMatrix(new THREE.Matrix4().makeRotationY(mesh.rotation.y));
+			if (mesh.rotation.z) geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(mesh.rotation.z));
 			matrix = mesh.matrixWorld;
 			position = mesh.position;
 			

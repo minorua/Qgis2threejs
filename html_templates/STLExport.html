@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body { margin: 5%; }
+.license { font-size: xx-small; }
+#olLayers { margin: 0px; }
+#olLayers li { padding: 10px; }
+.btn { color: #fff; font-weight: bold; background-color: #1bbb9b; border:solid gray 1px; text-decoration: none; padding: 3px; position: relative; cursor: pointer; border-radius: 4px; box-shadow: 0 3px 0 #0c8b72; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); }
+.btn:hover { background-color: #30c9a8; box-shadow: 0 3px 0 #23a188; }
+.btn:active { top: 3px; box-shadow: none; }
+.thumbnail { width: 32px; height: 32px; margin-left: 5px; vertical-align: middle; }
+</style>
+</head>
+<body onLoad="onLoad()">
+<script src="./threejs/three.min.js"></script>
+<script src="./exporters/STLExporter.js"></script>
+<script src="./jszip/jszip.min.js"></script>
+<script src="./FileSaverjs/FileSaver.js"></script>
+<script src="./Qgis2threejs.js"></script>
+<script>
+${options}
+</script>
+${scripts}
+<script>
+  var scene = new THREE.Scene();
+
+  // build models
+  buildModels(scene);
+
+  // create an exporter
+  var exporter = new THREE.STLExporter();
+
+  function exportLayersSTLZip() {
+    var zip = new JSZip();
+    for (var i = 0, l = lyr.length; i < l; i++) {
+      var layer = lyr[i];
+      if (layer.type == "dem") {
+        for (var j = 0, k = layer.dem.length; j < k; j++) {
+          var dem = layer.dem[j];
+          var filetitle = i + "_" + layer.name + "_" + j;
+          // mesh
+          exporter.clearContent();
+          var stlData = exporter.exportMesh(dem.obj);
+          zip.file(filetitle + ".stl", stlData);
+
+          //var aObjs = this.dem[i].aObjs || [];
+          //for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
+
+          if (dem.t === undefined) continue;
+          // image: data begins with "data:image/***;base64,"
+          var ext = "." + dem.t.data.match(/^data:image\/(.*);/)[1];
+          zip.file(filetitle + ext, dem.t.data.replace(/^.*,/, ""), {base64: true});
+        }
+      } else {
+        // meshes
+        exporter.clearContent();
+        var stlData = exporter.exportMeshes(layer.meshes());
+        zip.file(i + "_" + layer.name + ".stl", stlData);
+      }
+    }
+    var content = zip.generate({type:"blob"});
+    saveAs(content, document.title + ".zip");
+  }
+
+  function exportLayerSTL(index) {
+    exporter.clearContent();
+    var stlData = exporter.exportMeshes(lyr[index].meshes());
+    saveTextAs(lyr[index].name + ".stl", stlData);
+  }
+
+  function saveTextAs(filename, data) {
+    var blob = new Blob([data], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, filename);
+  }
+
+  function listLayers() {
+    var ol = document.getElementById("olLayers");
+    var addLayer = function (index) {
+      var layer = lyr[i];
+      var e = document.createElement("li");
+      e.appendChild(document.createTextNode(layer.name + " "));
+
+      // STL download button
+      var btn = document.createElement("a");
+      btn.href = "#";
+      btn.className = "btn";
+      btn.appendChild(document.createTextNode("STL"));
+      btn.onclick = function () { exportLayerSTL(index); return false; };
+      e.appendChild(btn);
+
+      // images
+      if (layer.type == "dem") {
+        for (var j = 0, k = layer.dem.length; j < k; j++) {
+          if (layer.dem[j].t === undefined) continue;
+          var img = document.createElement("img");
+          img.className = "thumbnail";
+          img.src = layer.dem[j].t.data;
+          e.appendChild(img);
+        }
+      }
+      ol.appendChild(e);
+    };
+
+    for (var i = 0, l = lyr.length; i < l; i++) {
+      addLayer(i);
+    }
+  }
+
+  function onLoad() {
+    listLayers();
+  }
+
+</script>
+
+<div>You can save 3D models exported from <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a></div>
+<hr>
+<br>
+<div><a class="btn" style="font-size:x-large;" href="#" onclick="exportLayersSTLZip();return false;">Zip all layers</a></div>
+<br><br><br>
+
+<div>Layers</div>
+<ol id="olLayers"></ol>
+
+<br><br><br><br>
+<hr>
+
+<div id="about">
+<h4>About</h4>
+<div>This page uses the following library:</div>
+<ui>
+<li>thres.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+<li>JSZip <a href="http://stuk.github.io/jszip/" target="_blank">http://stuk.github.io/jszip/</a> <a href="jszip/LICENSE.markdown" target="_blank" class="license">(LICENSE)</a></li>
+<li>FileSaver.js <a href="https://github.com/eligrey/FileSaver.js/" target="_blank">https://github.com/eligrey/FileSaver.js/</a> <a href="FileSaverjs/LICENSE.md" target="_blank" class="license">(LICENSE)</a></li>
+</ui>
+</div>
+</body>
+</html>
