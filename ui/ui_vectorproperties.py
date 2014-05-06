@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Tue Apr 29 11:31:57 2014
+# Created: Tue May 06 13:26:15 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,21 +29,7 @@ class Ui_VectorPropertiesWidget(object):
         VectorPropertiesWidget.resize(278, 271)
         self.verticalLayout_2 = QtGui.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
-        self.scrollArea = QtGui.QScrollArea(VectorPropertiesWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
-        self.scrollArea.setSizePolicy(sizePolicy)
-        self.scrollArea.setMinimumSize(QtCore.QSize(240, 0))
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
-        self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 258, 251))
-        self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
-        self.gridLayout_10 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
-        self.gridLayout_10.setObjectName(_fromUtf8("gridLayout_10"))
-        self.groupBox_zCoordinate = QtGui.QGroupBox(self.scrollAreaWidgetContents)
+        self.groupBox_zCoordinate = QtGui.QGroupBox(VectorPropertiesWidget)
         self.groupBox_zCoordinate.setObjectName(_fromUtf8("groupBox_zCoordinate"))
         self.gridLayout_9 = QtGui.QGridLayout(self.groupBox_zCoordinate)
         self.gridLayout_9.setMargin(3)
@@ -51,8 +37,8 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_zCoordinate = QtGui.QVBoxLayout()
         self.verticalLayout_zCoordinate.setObjectName(_fromUtf8("verticalLayout_zCoordinate"))
         self.gridLayout_9.addLayout(self.verticalLayout_zCoordinate, 1, 0, 1, 1)
-        self.gridLayout_10.addWidget(self.groupBox_zCoordinate, 0, 0, 1, 1)
-        self.groupBox_Styles = QtGui.QGroupBox(self.scrollAreaWidgetContents)
+        self.verticalLayout_2.addWidget(self.groupBox_zCoordinate)
+        self.groupBox_Styles = QtGui.QGroupBox(VectorPropertiesWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -94,8 +80,8 @@ class Ui_VectorPropertiesWidget(object):
         self.label_ObjectTypeMessage.setObjectName(_fromUtf8("label_ObjectTypeMessage"))
         self.verticalLayout_Styles.addWidget(self.label_ObjectTypeMessage)
         self.gridLayout_8.addLayout(self.verticalLayout_Styles, 0, 0, 1, 1)
-        self.gridLayout_10.addWidget(self.groupBox_Styles, 1, 0, 1, 1)
-        self.groupBox_Attrs = QtGui.QGroupBox(self.scrollAreaWidgetContents)
+        self.verticalLayout_2.addWidget(self.groupBox_Styles)
+        self.groupBox_Attrs = QtGui.QGroupBox(VectorPropertiesWidget)
         self.groupBox_Attrs.setObjectName(_fromUtf8("groupBox_Attrs"))
         self.gridLayout = QtGui.QGridLayout(self.groupBox_Attrs)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
@@ -123,11 +109,9 @@ class Ui_VectorPropertiesWidget(object):
         self.comboBox_Label.setObjectName(_fromUtf8("comboBox_Label"))
         self.formLayout_Label.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Label)
         self.gridLayout.addLayout(self.formLayout_Label, 1, 0, 1, 1)
-        self.gridLayout_10.addWidget(self.groupBox_Attrs, 2, 0, 1, 1)
+        self.verticalLayout_2.addWidget(self.groupBox_Attrs)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_10.addItem(spacerItem, 3, 0, 1, 1)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.verticalLayout_2.addWidget(self.scrollArea)
+        self.verticalLayout_2.addItem(spacerItem)
 
         self.retranslateUi(VectorPropertiesWidget)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)
