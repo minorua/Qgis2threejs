@@ -35,7 +35,7 @@ Some JavaScript files will be output into the same directory as the HTML file. Y
 Exaggeration degree of terrain. This value also affects height of some 3D objects such as cylinder and extruded polygon. The default value is 1.5.
 
 * Vertical shift  
-Vertical shift of objects. If you want to export terrain of narrow range and high altitude, you should adjust the object positions to be displayed at the center of browser by changing this value. If you set the value to -1000, all objects are shifted down by 1000 (meters).
+Vertical shift of objects. If you want to export terrain of narrow area and high altitude, you should adjust the object positions to be displayed at the center of browser by changing this value. If you set the value to -1000, all objects are shifted down by 1000 (meters).
 
 * Background  
 Sky-like gradient background is selected by default. You can change it to a solid color.
@@ -98,9 +98,9 @@ If you want to open web browser other than default browser, use this option.
 
 Samples
 =======
-* [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Color relief map made with SRTM3 data)
-* [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Color relief map made with SRTM3 data)
-* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom template. Color relief map made with SRTM3 data)
+* [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Shaded relief map made with SRTM3 data)
+* [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Shaded relief map made with SRTM3 data)
+* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom template. Shaded relief map made with SRTM3 data)
 
 JavaScript libraries used by exported pages
 ===========================================
