@@ -348,10 +348,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
   # write primary DEM
   if isSimpleMode:
-    writeSimpleDEM(writer, demProperties)
-    progress(10)
-    if demProperties.get("checkBox_Surroundings", False):
-      writeSurroundingDEM(writer, demProperties, progress)
+    writeSimpleDEM(writer, demProperties, progress)
   else:
     writeMultiResDEM(writer, demProperties, progress)
     writer.prepareNext()
@@ -385,7 +382,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
   return htmlfilename
 
-def writeSimpleDEM(writer, properties):
+def writeSimpleDEM(writer, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
@@ -393,6 +390,8 @@ def writeSimpleDEM(writer, properties):
   temp_dir = QDir.tempPath()
   timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
+  if progress is None:
+    progress = dummyProgress
 
   prop = DEMPropertyReader(properties)
   dem_width = prop.width()
@@ -493,11 +492,17 @@ def writeSimpleDEM(writer, properties):
   if not surroundings and properties.get("checkBox_Frame", False):
     dem["frame"] = True
 
-  # write layer
-  idx = writer.writeLayer(lyr)
-  writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(idx, ",".join(map(gdal2threejs.formatValue, dem_values))))
+  # write layer and central dem
+  lyrIdx = writer.writeLayer(lyr)
+  writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(lyrIdx, ",".join(map(gdal2threejs.formatValue, dem_values))))
   if texData is not None:
-    writer.write('lyr[{0}].dem[0].t.data = "{1}";\n'.format(idx, texData))
+    writer.write('lyr[{0}].dem[0].t.data = "{1}";\n'.format(lyrIdx, texData))
+
+  # write surrounding dems
+  if surroundings:
+    writeSurroundingDEM(writer, lyrIdx, stats, properties, progress)
+    # overwrite stats
+    writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:
@@ -521,19 +526,14 @@ def roughenEdges(width, height, values, interval):
         z = (z0 * (interval - yy) + z1 * yy) / interval
         values[x + width * (y0 + yy)] = z
 
-def writeSurroundingDEM(writer, properties, progress=None):
+def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
   demlayer = QgsMapLayerRegistry().instance().mapLayer(properties["comboBox_DEMLayer"])
-  temp_dir = QDir.tempPath()
-  timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
-
-  out_dir, filename = os.path.split(htmlfilename)
-  filetitle = os.path.splitext(filename)[0]
 
   # options
   size = properties["spinBox_Size"]
@@ -543,11 +543,6 @@ def writeSurroundingDEM(writer, properties, progress=None):
   prop = DEMPropertyReader(properties)
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
-
-  # layer dict
-  lyr = {"type": "dem", "name": demlayer.name(), "dem": []}
-  lyr["q"] = 1    #queryable
-  lyrIdx = writer.writeLayer(lyr)
 
   # create an image for texture
   image_basesize = 128
@@ -584,8 +579,7 @@ def writeSurroundingDEM(writer, properties, progress=None):
   wkt = str(context.crs.toWkt())
 
   scripts = []
-  stats = None
-  plane_index = 0
+  plane_index = 1
   size2 = size * size
   for i in range(size2):
     progress(40 * i / size2 + 10)
@@ -667,8 +661,6 @@ def writeSurroundingDEM(writer, properties, progress=None):
     if texData is not None:
       writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
     plane_index += 1
-
-  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
 
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
