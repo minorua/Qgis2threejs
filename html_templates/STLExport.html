@@ -33,8 +33,13 @@ ${scripts}
 
   // create an exporter
   var exporter = new THREE.STLExporter();
+  exporter.header = "Exported from Qgis2threejs";
 
-  function exportLayersSTLZip() {
+  function exportLayersSTLZip(isBinary) {
+    exporter.isBinary = isBinary;
+    var zipStlOption = {};
+    if (isBinary) zipStlOption = {type: "arraybuffer"};
+
     var zip = new JSZip();
     for (var i = 0, l = lyr.length; i < l; i++) {
       var layer = lyr[i];
@@ -45,7 +50,7 @@ ${scripts}
           // mesh
           exporter.clearContent();
           var stlData = exporter.exportMesh(dem.obj);
-          zip.file(filetitle + ".stl", stlData);
+          zip.file(filetitle + ".stl", stlData, zipStlOption);
 
           //var aObjs = this.dem[i].aObjs || [];
           //for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
@@ -59,7 +64,7 @@ ${scripts}
         // meshes
         exporter.clearContent();
         var stlData = exporter.exportMeshes(layer.meshes());
-        zip.file(i + "_" + layer.name + ".stl", stlData);
+        zip.file(i + "_" + layer.name + ".stl", stlData, zipStlOption);
       }
     }
     var content = zip.generate({type:"blob"});
@@ -67,6 +72,7 @@ ${scripts}
   }
 
   function exportLayerSTL(index) {
+    exporter.isBinary = true;
     exporter.clearContent();
     var stlData = exporter.exportMeshes(lyr[index].meshes());
     saveTextAs(lyr[index].name + ".stl", stlData);
@@ -119,7 +125,10 @@ ${scripts}
 <div>You can save 3D models exported from <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a></div>
 <hr>
 <br>
-<div><a class="btn" style="font-size:x-large;" href="#" onclick="exportLayersSTLZip();return false;">Zip all layers</a></div>
+<div>
+<a class="btn" style="font-size:x-large;" href="#" onclick="exportLayersSTLZip(true);return false;">Zip all layers</a>
+<a class="btn" style="font-size:small;" href="#" onclick="exportLayersSTLZip(false);return false;">ASCII</a>
+</div>
 <br><br><br>
 
 <div>Layers</div>
