@@ -586,3 +586,12 @@ function offset(elm) {
   } while(elm);
   return {top: top, left: left};
 }
+
+function parseParams() {
+  var p, vars = {};
+  window.location.search.substring(1).split('&').forEach(function (param) {
+    p = param.split('=');
+    vars[p[0]] = p[1];
+  });
+  return vars;
+}

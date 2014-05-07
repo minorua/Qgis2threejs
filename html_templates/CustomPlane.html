@@ -31,8 +31,24 @@ ${options}
 </script>
 ${scripts}
 <script>
-  var width  = window.innerWidth;
-  var height = window.innerHeight;
+  var container = document.getElementById('webgl');
+  var width = window.innerWidth, height = window.innerHeight;
+
+  // parse URL parameters
+  var vars = parseParams();
+
+  if ("popup" in vars) {
+    // open popup window
+    var url = window.location.href.replace(/&*popup/, "");
+    window.open(url, "popup", "width=" + vars.width + ",height=" + vars.height);
+  }
+  if (vars.width && vars.height) {
+    // set canvas size
+    container.style.width = vars.width + "px";
+    container.style.height = vars.height + "px";
+    width = vars.width;
+    height = vars.height;
+  }
 
   var renderer = new THREE.WebGLRenderer({alpha: (option.bgcolor === undefined)});
   renderer.setSize(width, height);
@@ -62,7 +78,7 @@ ${scripts}
   // build models
   buildModels(scene);
 
-  document.getElementById('webgl').appendChild(renderer.domElement);
+  container.appendChild(renderer.domElement);
   render();
 
   function render() {
@@ -104,6 +120,7 @@ ${scripts}
   function onLoad() {
     document.getElementById("infobtn").onclick = showInfo;
     document.getElementById("closebtn").onclick = closeClicked;
+    if ("hidebutton" in vars) document.getElementById("infobtn").style.display = "none";
   }
 
   function showInfo() {
