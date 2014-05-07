@@ -24,8 +24,8 @@ ${scripts}
 
   if ("popup" in vars) {
     // open popup window
-    var url = window.location.href.replace(/&*popup/, "");
-    window.open(url, "popup", "width=" + vars.width + ",height=" + vars.height);
+    var c = window.location.href.split("?");
+    window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + vars.width + ",height=" + vars.height);
   }
   if (vars.width && vars.height) {
     // set canvas size
