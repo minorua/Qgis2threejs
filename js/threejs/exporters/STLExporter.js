@@ -40,14 +40,22 @@ THREE.STLExporter.prototype = {
 		this.addLineToContent ('solid exported');
 		
 		var i, j, mesh, geometry, face, matrix, position;
+		var m = new THREE.Matrix4(), m1 = new THREE.Matrix4(), m2 = new THREE.Matrix4(), m3 = new THREE.Matrix4();
 		var normal, vertex1, vertex2, vertex3;
 		for (i = 0; i < meshes.length; i++) {
 			mesh = meshes[i];
-			
-			geometry = mesh.geometry.clone();
-			if (mesh.rotation.x) geometry.applyMatrix(new THREE.Matrix4().makeRotationX(mesh.rotation.x));
-			if (mesh.rotation.y) geometry.applyMatrix(new THREE.Matrix4().makeRotationY(mesh.rotation.y));
-			if (mesh.rotation.z) geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(mesh.rotation.z));
+			if (mesh.rotation.x || mesh.rotation.y || mesh.rotation.z) {
+				geometry = mesh.geometry.clone();
+				m1.makeRotationX(mesh.rotation.x || 0);
+				m2.makeRotationY(mesh.rotation.y || 0);
+				m3.makeRotationZ(mesh.rotation.z || 0);
+				m.multiplyMatrices(m1, m2);
+				m.multiply(m3);
+				geometry.applyMatrix(m);
+			}
+			else {
+				geometry = mesh.geometry;
+			}
 			matrix = mesh.matrixWorld;
 			position = mesh.position;
 			
