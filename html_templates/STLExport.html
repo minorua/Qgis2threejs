@@ -26,6 +26,9 @@ ${options}
 </script>
 ${scripts}
 <script>
+  // options
+  option.exportSides = true;
+
   var scene = new THREE.Scene();
 
   // build models
@@ -52,13 +55,21 @@ ${scripts}
           var stlData = exporter.exportMesh(dem.obj);
           zip.file(filetitle + ".stl", stlData, zipStlOption);
 
-          //var aObjs = this.dem[i].aObjs || [];
-          //for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
-
           if (dem.t === undefined) continue;
           // image: data begins with "data:image/***;base64,"
           var ext = "." + dem.t.data.match(/^data:image\/(.*);/)[1];
           zip.file(filetitle + ext, dem.t.data.replace(/^.*,/, ""), {base64: true});
+        }
+
+        // export sides and bottom
+        if (option.exportSides) {
+          var aObjs = layer.dem[0].aObjs || [];
+          if (aObjs.length > 0) {
+            var filetitle = i + "_" + layer.name + "_sides";
+            exporter.clearContent();
+            var stlData = exporter.exportMeshes(aObjs);
+            zip.file(filetitle + ".stl", stlData, zipStlOption);
+          }
         }
       } else {
         // meshes
