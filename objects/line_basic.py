@@ -26,16 +26,34 @@ def geometryType():
   return QGis.Line
 
 def objectTypeNames():
-  return ["Line"]
+  return ["Line", "Pipe", "Cone"]
 
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
   dialog.colorWidget.setup()
   dialog.transparencyWidget.setup()
-  for i in range(dialog.STYLE_MAX_COUNT):
+
+  defaultValue = 0.5 / mapTo3d.multiplier
+  if type_index in [1, 2]:  # Pipe or Cone
+    dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer, numeric_fields)
+    styleCount = 1
+  else:
+    styleCount = 0
+  for i in range(styleCount, dialog.STYLE_MAX_COUNT):
     dialog.styleWidgets[i].hide()
 
 def write(writer, feat):
-  mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
-  writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
+  mapTo3d = writer.context.mapTo3d
+  if feat.prop.type_index == 0:   # Line
+    mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+    writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
+    return
+
+  # Pipe or Cone
+  vals = feat.propValues()
+  rb = float(vals[0]) * mapTo3d.multiplier
+  if rb != 0:
+    mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+    rt = 0 if feat.prop.type_index == 2 else rb
+    writer.writeFeature({"m": mat, "lines": feat.linesAsList(), "rt": rt, "rb": rb})

@@ -13,6 +13,7 @@ var ua = window.navigator.userAgent.toLowerCase();
 var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
 
 var projector = new THREE.Projector();
+var xAxis = new THREE.Vector3(1, 0, 0), zAxis = new THREE.Vector3(0, 0, 1);
 
 // World class
 World = function ( mapExtent, width, zExaggeration, zShift ) {
@@ -373,22 +374,59 @@ function buildJSONPointLayer(scene, layer) {
 }
 
 function buildLineLayer(scene, layer) {
-  var f, geometry, obj;
+  var f, geometry, obj, userData;
   for (var i = 0, l = layer.f.length; i < l; i++) {
     // each feature in the layer
     f = layer.f[i];
     f.objs = [];
-    f.lines.forEach(function (line) {
-      geometry = new THREE.Geometry();
-      line.forEach(function (pt) {
-        geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+    userData = [layer.index, i];
+
+    if (layer.objType == "Line") {
+      f.lines.forEach(function (line) {
+        geometry = new THREE.Geometry();
+        line.forEach(function (pt) {
+          geometry.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+        });
+        obj = new THREE.Line(geometry, mat[f.m].m);
+        obj.userData = userData;
+        scene.add(obj);
+        if (layer.q) queryableObjs.push(obj);
+        f.objs.push(obj);
       });
-      obj = new THREE.Line(geometry, mat[f.m].m);
-      obj.userData = [layer.index, i];
-      scene.add(obj);
-      if (layer.q) queryableObjs.push(obj);
-      f.objs.push(obj);
-    });
+    }
+    else if (layer.objType == "Pipe" || layer.objType == "Cone") {
+      var hasJoints = (layer.objType == "Pipe");
+      var pt, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
+      f.lines.forEach(function (line) {
+        for (var j = 0, m = line.length; j < m; j++) {
+          pt = line[j];
+          pt1.set(pt[0], pt[1], pt[2]);
+
+          if (hasJoints) {
+            geometry = new THREE.SphereGeometry(f.rb);
+            obj = new THREE.Mesh(geometry, mat[f.m].m);
+            obj.position.copy(pt1);
+            obj.userData = userData;
+            scene.add(obj);
+            if (layer.q) queryableObjs.push(obj);
+            f.objs.push(obj);
+          }
+
+          if (j) {
+            sub.subVectors(pt1, pt0);
+            geometry = new THREE.CylinderGeometry(f.rt, f.rb, pt0.distanceTo(pt1));
+            obj = new THREE.Mesh(geometry, mat[f.m].m);
+            obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
+            obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
+            obj.userData = userData;
+            scene.add(obj);
+            if (layer.q) queryableObjs.push(obj);
+            f.objs.push(obj);
+          }
+          pt0.copy(pt1);
+        }
+      });
+    }
   }
 }
 
