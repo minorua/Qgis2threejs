@@ -1042,11 +1042,10 @@ def writeVectors(writer):
           if useCentroidHeight or hasLabel:
             centroidHeight = 0
             pt = transform.transform(QgsGeometry.fromPolygon(polygon).centroid().asPoint())
-            if useCentroidHeight:
-              if prop.isHeightRelativeToSurface():
-                centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-              else:
-                centroidHeight = prop.relativeHeight(f)
+            if prop.isHeightRelativeToSurface():
+              centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+            else:
+              centroidHeight = prop.relativeHeight(f)
             if hasLabel and labelPerPolygon:
               feat.addCentroid(mapTo3d.transform(pt.x(), pt.y(), centroidHeight))
 
