@@ -33,6 +33,7 @@ def objectTypeNames():
 def setupForm(dialog, mapTo3d, layer, type_index=0):
   numeric_fields = None
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
+  dialog.labelHeightWidget.setup(layer=layer, defaultValue=10/mapTo3d.multiplierZ, fieldNames=numeric_fields)
   dialog.colorWidget.hide()
   dialog.transparencyWidget.hide()
 

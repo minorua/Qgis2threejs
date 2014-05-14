@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Tue May 06 13:26:15 2014
+# Created: Wed May 14 16:02:28 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -84,17 +84,13 @@ class Ui_VectorPropertiesWidget(object):
         self.groupBox_Attrs = QtGui.QGroupBox(VectorPropertiesWidget)
         self.groupBox_Attrs.setObjectName(_fromUtf8("groupBox_Attrs"))
         self.gridLayout = QtGui.QGridLayout(self.groupBox_Attrs)
+        self.gridLayout.setMargin(3)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.checkBox_ExportAttrs = QtGui.QCheckBox(self.groupBox_Attrs)
-        self.checkBox_ExportAttrs.setChecked(False)
-        self.checkBox_ExportAttrs.setObjectName(_fromUtf8("checkBox_ExportAttrs"))
-        self.verticalLayout.addWidget(self.checkBox_ExportAttrs)
-        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.formLayout_Label = QtGui.QFormLayout()
+        self.formLayout_Label.setContentsMargins(2, -1, 2, -1)
         self.formLayout_Label.setObjectName(_fromUtf8("formLayout_Label"))
         self.label = QtGui.QLabel(self.groupBox_Attrs)
+        self.label.setEnabled(False)
         self.label.setMinimumSize(QtCore.QSize(70, 0))
         self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label.setObjectName(_fromUtf8("label"))
@@ -108,7 +104,18 @@ class Ui_VectorPropertiesWidget(object):
         self.comboBox_Label.setSizePolicy(sizePolicy)
         self.comboBox_Label.setObjectName(_fromUtf8("comboBox_Label"))
         self.formLayout_Label.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Label)
-        self.gridLayout.addLayout(self.formLayout_Label, 1, 0, 1, 1)
+        self.gridLayout.addLayout(self.formLayout_Label, 5, 0, 1, 1)
+        self.verticalLayout_Label = QtGui.QVBoxLayout()
+        self.verticalLayout_Label.setObjectName(_fromUtf8("verticalLayout_Label"))
+        self.gridLayout.addLayout(self.verticalLayout_Label, 6, 0, 1, 1)
+        self.verticalLayout = QtGui.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(6, -1, -1, -1)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.checkBox_ExportAttrs = QtGui.QCheckBox(self.groupBox_Attrs)
+        self.checkBox_ExportAttrs.setChecked(False)
+        self.checkBox_ExportAttrs.setObjectName(_fromUtf8("checkBox_ExportAttrs"))
+        self.verticalLayout.addWidget(self.checkBox_ExportAttrs)
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.verticalLayout_2.addWidget(self.groupBox_Attrs)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
@@ -119,10 +126,10 @@ class Ui_VectorPropertiesWidget(object):
     def retranslateUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setWindowTitle(_translate("VectorPropertiesWidget", "Form", None))
         self.groupBox_zCoordinate.setTitle(_translate("VectorPropertiesWidget", "Z coordinate", None))
-        self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "Styles", None))
+        self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "Style", None))
         self.label_ObjectType.setText(_translate("VectorPropertiesWidget", "Object type", None))
         self.label_ObjectTypeMessage.setText(_translate("VectorPropertiesWidget", "This type is experimental. JSON model loading fails with some files.", None))
-        self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "Attributes", None))
+        self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "Attribute and label", None))
+        self.label.setText(_translate("VectorPropertiesWidget", "Label field", None))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes", None))
-        self.label.setText(_translate("VectorPropertiesWidget", "Label", None))
 

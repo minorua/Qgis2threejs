@@ -6,7 +6,7 @@ var option = {
   sole_height: 1.5,
   side: {color: 0xc7ac92},
   frame: {color: 0},
-  label: {pointer_color: 0x6666cc, autosize: true, height: 10},
+  label: {pointer_color: 0x6666cc, autosize: true},
   qmarker: {r: 0.25, c:0xffff00, o:0.8}};
 
 var ua = window.navigator.userAgent.toLowerCase();
@@ -462,14 +462,13 @@ function buildPolygonLayer(scene, layer) {
 }
 
 function buildLabels(scene) {
-  var f, pts, e, pt0, pt1, geometry;
-  var height = option.label.height;
+  var f, pts, e, h, pt0, pt1, geometry;
   var container = document.getElementById("webgl");
   var line_mat = new THREE.LineBasicMaterial({color:option.label.pointer_color});
   for (var i = 0, l = lyr.length; i < l; i++) {
-    if (lyr[i].l === undefined) continue;
+    var label = lyr[i].l;
+    if (label === undefined) continue;
 
-    var attr_idx = lyr[i].l;
     for (var j = 0, m = lyr[i].f.length; j < m; j++) {
       f = lyr[i].f[j];
       if (lyr[i].type == "point") pts = f.pts;
@@ -481,12 +480,17 @@ function buildLabels(scene) {
       pts.forEach(function (pt) {
         // create div element for label
         e = document.createElement("div");
-        e.appendChild(document.createTextNode(f.a[attr_idx]));
+        e.appendChild(document.createTextNode(f.a[label.i]));
         e.className = "label";
         container.appendChild(e);
 
+        if (label.ht == 1) h = label.v;  // fixed height
+        else if (label.ht == 2) h = pt[2] + label.v;  // height from point / bottom
+        else if (label.ht == 3) h = pt[2] + f.h + label.v;  // height from top (extruded polygon)
+        else h = (f.a[label.ht - 100] + world.zShift) * world.zScale + label.v;  // data-defined + addend
+
         pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);
-        pt1 = new THREE.Vector3(pt[0], pt[1], pt[2] + height);
+        pt1 = new THREE.Vector3(pt[0], pt[1], h);
 
         // create pointer
         geometry = new THREE.Geometry();

@@ -516,6 +516,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.transparencyWidget = StyleWidget(StyleWidget.TRANSPARENCY)
     self.transparencyWidget.setObjectName("transparencyWidget")
     self.verticalLayout_Styles.addWidget(self.transparencyWidget)
+    self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
+    self.labelHeightWidget.setObjectName("labelHeightWidget")
+    self.verticalLayout_Label.addWidget(self.labelHeightWidget)
+    self.labelHeightWidget.setEnabled(False)
 
     self.STYLE_MAX_COUNT = dialog.STYLE_MAX_COUNT
     self.styleWidgets = []
@@ -532,7 +536,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
-    widgets += [self.checkBox_ExportAttrs, self.comboBox_Label]
+    widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.setPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)
@@ -591,7 +595,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def exportAttrsToggled(self, checked):
-    self.comboBox_Label.setEnabled(checked)
+    self.setLayoutEnabled(self.formLayout_Label, checked)
+    self.labelHeightWidget.setEnabled(checked)
 
   def properties(self):
     p = PropertyPage.properties(self)

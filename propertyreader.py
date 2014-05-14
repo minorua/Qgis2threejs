@@ -23,7 +23,7 @@
 from PyQt4.QtGui import QColor, QMessageBox
 from qgis.core import QGis, QgsMessageLog
 import random
-from stylewidget import HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc
+from stylewidget import HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc
 
 debug_mode = 1
 

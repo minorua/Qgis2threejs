@@ -33,6 +33,7 @@ def setupForm(dialog, mapTo3d, layer, type_index=0):
   dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
   dialog.colorWidget.setup()
   dialog.transparencyWidget.setup()
+  dialog.labelHeightWidget.hide()
 
   defaultValue = 0.5 / mapTo3d.multiplier
   if type_index in [1, 2]:  # Pipe or Cone

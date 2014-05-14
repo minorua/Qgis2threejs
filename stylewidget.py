@@ -32,6 +32,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   FILEPATH = 3
   HEIGHT = 4
   TRANSPARENCY = 5
+  LABEL_HEIGHT = 6
 
   def __init__(self, funcType=None, parent=None):
     QWidget.__init__(self, parent)
@@ -60,6 +61,8 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
         self.func = FilePathWidgetFunc(self)
       elif funcType == StyleWidget.HEIGHT:
         self.func = HeightWidgetFunc(self)
+      elif funcType == StyleWidget.LABEL_HEIGHT:
+        self.func = LabelHeightWidgetFunc(self)
       elif funcType == StyleWidget.TRANSPARENCY:
         self.func = TransparencyWidgetFunc(self)
       else:
@@ -238,6 +241,39 @@ class HeightWidgetFunc(WidgetFuncBase):
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
     if itemData in [HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE]:
+      label = "Value"
+      defaultValue = self.defaultValue
+    else:
+      label = "Addend"
+      defaultValue = 0
+    self.widget.label_2.setText(label)
+    self.widget.lineEdit.setText(str(defaultValue))
+
+class LabelHeightWidgetFunc(WidgetFuncBase):
+  ABSOLUTE = 1
+  RELATIVE = 2
+  RELATIVE_TO_TOP = 3
+
+  def setup(self, name, label, defaultValue, layer, fieldNames):
+    WidgetFuncBase.setup(self)
+    self.widget.label_1.setText("Label height")
+    self.widget.toolButton.setVisible(False)
+    self.defaultValue = 0 if defaultValue is None else defaultValue
+
+    self.widget.comboBox.clear()
+    if layer.geometryType() == QGis.Point:
+      self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
+    elif layer.geometryType() == QGis.Polygon:
+      self.widget.comboBox.addItem("Height from top", LabelHeightWidgetFunc.RELATIVE_TO_TOP)
+      self.widget.comboBox.addItem("Height from bottom", LabelHeightWidgetFunc.RELATIVE)
+    else:
+      return
+    self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
+    if layer:
+      self.widget.addFieldNameItems(layer, fieldNames)
+
+  def comboBoxSelectionChanged(self, index):
+    if self.widget.comboBox.itemData(index) < HeightWidgetFunc.FIRST_ATTRIBUTE:
       label = "Value"
       defaultValue = self.defaultValue
     else:

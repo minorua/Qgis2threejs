@@ -952,9 +952,9 @@ def writeVectors(writer):
     if writeAttrs:
       attIdx = properties.get("comboBox_Label", None)
       if attIdx is not None:
-        lyr["l"] = attIdx
+        labelHeight = properties.get("labelHeightWidget", [0] * 3)
+        lyr["l"] = {"i": attIdx, "ht": int(labelHeight[0]), "v": float(labelHeight[2]) * mapTo3d.multiplierZ}
         hasLabel = True
-    #TODO: label style (height from object)
 
     # wreite layer object
     writer.writeLayer(lyr, fieldNames)
