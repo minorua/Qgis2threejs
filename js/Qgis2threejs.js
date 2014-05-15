@@ -6,7 +6,7 @@ var option = {
   sole_height: 1.5,
   side: {color: 0xc7ac92},
   frame: {color: 0},
-  label: {pointer_color: 0x6666cc, autosize: true},
+  label: {pointerColor: 0xc0c0d0, autoSize: false, fontSize: "10px"},
   qmarker: {r: 0.25, c:0xffff00, o:0.8}};
 
 var ua = window.navigator.userAgent.toLowerCase();
@@ -464,7 +464,7 @@ function buildPolygonLayer(scene, layer) {
 function buildLabels(scene) {
   var f, pts, e, h, pt0, pt1, geometry;
   var container = document.getElementById("webgl");
-  var line_mat = new THREE.LineBasicMaterial({color:option.label.pointer_color});
+  var line_mat = new THREE.LineBasicMaterial({color:option.label.pointerColor});
   for (var i = 0, l = lyr.length; i < l; i++) {
     var label = lyr[i].l;
     if (label === undefined) continue;
@@ -545,7 +545,7 @@ function updateLabels() {
   if (labels.length == 0 || !labelVisible) return;
 
   var widthHalf = width / 2, heightHalf = height / 2;
-  var autosize = option.label.autosize;
+  var autosize = option.label.autoSize;
 
   var c2t = controls.target.clone().sub(camera.position);
   var c2l = new THREE.Vector3();
@@ -581,13 +581,16 @@ function updateLabels() {
       e.style.top = (y - (e.offsetHeight / 2)) + "px";
       e.style.zIndex = i + 1;
 
+      // set font size
       if (autosize) {
-        // set font size
         dist = idx_dist[i][1];
         if (dist < 10) dist = 10;
         fontSize = Math.round(1000 / dist);
         if (fontSize < 10) fontSize = 10;
         e.style.fontSize = fontSize + "px";
+      }
+      else {
+        e.style.fontSize = option.label.fontSize;
       }
     }
     else {

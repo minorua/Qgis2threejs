@@ -1,6 +1,5 @@
 body { margin: 0; overflow: hidden; }
 #webgl { background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%); }
-.label { background: rgba(255, 255, 255, 0.95); border: solid 1px black; padding: 2px; position: absolute; pointer-events: none; }
 #popup { background: rgba(255, 255, 255, 0.95); border: 1px solid gray; position: absolute; left: 3px; top: 3px; max-width: 35%; z-index: 9999; }
 #popupbar { background: rgba(140, 140, 140, 0.7); font-size: 16px; text-align: right; padding: 2px; }
 #popupcontent { border-top: 1px solid gray; padding: 0px 10px 15px; overflow: auto; }
@@ -11,3 +10,4 @@ body { margin: 0; overflow: hidden; }
 #popup ui { list-style-type: circle; }
 #popup li { margin-left: 13px; }
 .license { font-size: xx-small; }
+.label { padding: 2px; text-shadow: 1px 1px #FFF, -1px 1px #FFF, 1px -1px #FFF, -1px -1px #FFF; position: absolute; pointer-events: none; }
