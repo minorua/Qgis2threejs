@@ -1021,7 +1021,7 @@ def writeVectors(writer):
           obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Polygon:
-        useCentroidHeight = False
+        useCentroidHeight = True
         labelPerPolygon = True
 
         if geom.isMultipart():
