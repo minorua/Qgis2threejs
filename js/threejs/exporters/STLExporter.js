@@ -46,9 +46,9 @@ THREE.STLExporter.prototype = {
 			mesh = meshes[i];
 			if (mesh.rotation.x || mesh.rotation.y || mesh.rotation.z) {
 				geometry = mesh.geometry.clone();
-				m1.makeRotationX(mesh.rotation.x || 0);
-				m2.makeRotationY(mesh.rotation.y || 0);
-				m3.makeRotationZ(mesh.rotation.z || 0);
+				m1.makeRotationX(mesh.rotation.x);
+				m2.makeRotationY(mesh.rotation.y);
+				m3.makeRotationZ(mesh.rotation.z);
 				m.multiplyMatrices(m1, m2);
 				m.multiply(m3);
 				geometry.applyMatrix(m);
@@ -93,7 +93,7 @@ THREE.STLExporter.prototype = {
 	clearContent : function ()
 	{
 		this.stlContent = '';
-		this.binTriangleList = []
+		this.binTriangleList = [];
 	},
 	
 	addLineToContent : function (line) {
