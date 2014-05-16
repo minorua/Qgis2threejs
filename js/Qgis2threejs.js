@@ -624,6 +624,14 @@ function canvas_clicked(e) {
   if(objs.length > 0) object_clicked(objs);
 }
 
+function currentViewUrl() {
+  var c = controls.object.position, t = controls.target, u = controls.object.up;
+  var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
+  if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
+  if (u && (u.x || u.y || u.z != 1)) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
+  return window.location.href.split("#")[0] + hash;
+}
+
 function offset(elm) {
   var top = left = 0;
   do {
@@ -638,5 +646,17 @@ function parseParams() {
     p = param.split('=');
     vars[p[0]] = p[1];
   });
+  window.location.hash.substring(1).split('&').forEach(function (param) {
+    p = param.split('=');
+    vars[p[0]] = p[1];
+  });
   return vars;
+}
+
+// Restore camera position and target position
+function restoreView(controls, vars) {
+  if (vars === undefined) return;
+  if (vars.tx !== undefined) controls.target.set(vars.tx, vars.ty, vars.tz);
+  if (vars.cx !== undefined) controls.object.position.set(vars.cx, vars.cy, vars.cz);
+  if (vars.ux !== undefined) controls.object.up.set(vars.ux, vars.uy, vars.uz);
 }

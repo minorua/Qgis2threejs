@@ -52,6 +52,8 @@ ${scripts}
   camera.position.set(0, -100, 100);
 
   var controls = createControls(camera, renderer.domElement);
+  restoreView(controls, vars);
+
   addDefaultKeyEventListener();
 
   // marker at queried point
@@ -98,21 +100,25 @@ ${scripts}
         }
       }
     }
-    document.getElementById("popupcontent").innerHTML = r.join("<br>");
+    document.getElementById("queryresult").innerHTML = r.join("<br>");
+    document.getElementById("queryresult").style.display = "block";
+    document.getElementById("pageinfo").style.display = "none";
     document.getElementById("popup").style.display = "block";
   }
 
   function onLoad() {
     document.getElementById("infobtn").onclick = showInfo;
     document.getElementById("closebtn").onclick = closeClicked;
-    if ("hidebutton" in vars) document.getElementById('infobtn').style.display = "none";
+    if ("hidebutton" in vars) document.getElementById("infobtn").style.display = "none";
   }
 
   function showInfo() {
-    var help = "<h1>Usage</h1>";
-    help += (typeof controlHelp === "undefined") ? "* Keys" : controlHelp.split("\n").join("<br>");
+    document.getElementById("urlbox").value = currentViewUrl();
+    var help = (typeof controlHelp === "undefined") ? "* Keys" : controlHelp.split("\n").join("<br>");
     help += "<br> I : Show page information<br> L : Toggle label visibility<br> Shift + R : Reset<br> Shift + S : Save as image";
-    document.getElementById("popupcontent").innerHTML = help + "<hr>" + document.getElementById("about").innerHTML;
+    document.getElementById("usage").innerHTML = help;
+    document.getElementById("pageinfo").style.display = "block";
+    document.getElementById("queryresult").style.display = "none";
     document.getElementById("popup").style.display = "block";
   }
 
@@ -122,19 +128,22 @@ ${scripts}
   }
 </script>
 
-<div id="about" style="display:none;">
-<h1>About</h1>
-<div>This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
+<div id="popup" style="display:none;"><div id="popupbar"><span id="closebtn">X</span></div><div id="popupcontent">
+<div id="queryresult"></div>
+<div id="pageinfo">
+ <h1>Current view URL</h1>
+ <div><input id="urlbox" type="text"></div>
+ <hr>
+ <h1>Usage</h1>
+ <div id="usage"></div>
+ <hr>
+ <h1>About</h1>
+ <div id="about">This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
 and uses the following library:</div>
-<ui>
-<li>thres.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
-</ui>
-</div>
-
-<div id="popup" style="display:none;">
-<div id="popupbar"><span id="closebtn">X</span></div>
-<div id="popupcontent"></div>
-</div>
+ <ui>
+ <li>thres.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="./threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+ </ui>
+</div></div></div>
 <div id="footer"><div id="infobtn">i</div></div>
 </body>
 </html>
