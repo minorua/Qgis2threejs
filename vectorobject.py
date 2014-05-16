@@ -20,10 +20,8 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import qDebug
-from PyQt4.QtGui import QColor
 from qgis.core import QGis, QgsMessageLog
 import sys
-import random
 from stylewidget import *
 
 debug_mode = 1
@@ -44,11 +42,15 @@ class ObjectTypeModule:
   def load(self, modname):
     if modname in sys.modules:
       module = reload(sys.modules[modname])
-    else:
-      module = __import__(modname)
+      return ObjectTypeModule(module)
+
+    module = __import__(modname)
+    try:
       for comp in modname.split(".")[1:]:
         module = getattr(module, comp)
-    return ObjectTypeModule(module)
+      return ObjectTypeModule(module)
+    except:
+      return None
 
 class ObjectTypeItem:
   def __init__(self, name, mod_index, type_index):
@@ -58,7 +60,7 @@ class ObjectTypeItem:
 
 class ObjectTypeManager:
   def __init__(self):
-    # load basic object types
+    # load object types
     self.modules = []
     self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon:[]}    # each list item is ObjectTypeItem object
 
@@ -67,6 +69,9 @@ class ObjectTypeManager:
     module_fullnames = map(lambda x: "Qgis2threejs.objects." + x, module_names)
     for modname in module_fullnames:
       mod = ObjectTypeModule.load(modname)
+      if mod is None:
+        QMessageBox.warning(None, "Qgis2threejs", "Failed to load the module: {0}\nIf you have just upgraded this plugin, please restart QGIS.".format(modname))
+        return
       mod_index = len(self.modules)
       self.modules.append(mod)
       for type_index, name in enumerate(mod.objectTypeNames):
@@ -91,7 +96,9 @@ class ObjectTypeManager:
     return None
 
   def setupForm(self, dialog, mapTo3d, layer, geom_type, item_index):
-    if geom_type in self.objTypes:
+    try:
       typeitem = self.objTypes[geom_type][item_index]
       return self.modules[typeitem.mod_index].setupForm(dialog, mapTo3d, layer, typeitem.type_index)
-    return False
+    except:
+      qDebug("Qgis2threejs: Failed to setup form")
+      return False
