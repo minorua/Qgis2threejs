@@ -2,6 +2,8 @@
 
 ### Version 0.8-dev
 
+### Version 0.7.1
+
 * add template: STLExport
 * add object type: Pipe and Cone (line)
 * add URL parameters
