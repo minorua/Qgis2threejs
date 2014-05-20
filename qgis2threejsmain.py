@@ -26,6 +26,7 @@ from qgis.core import *
 import os
 import codecs
 import datetime
+import re
 
 try:
   from osgeo import ogr
@@ -178,8 +179,8 @@ class MaterialManager:
   def __init__(self):
     self.materials = []
 
-  def getMeshLambertIndex(self, color, transparency=0):
-    return self.getIndex(self.MESH_LAMBERT, color, transparency)
+  def getMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self.getIndex(self.MESH_LAMBERT, color, transparency, doubleSide)
 
   def getLineBasicIndex(self, color, transparency=0):
     return self.getIndex(self.LINE_BASIC, color, transparency)
@@ -187,11 +188,11 @@ class MaterialManager:
   def getWireframeIndex(self, color, transparency=0):
     return self.getIndex(self.WIREFRAME, color, transparency)
 
-  def getIndex(self, type, color, transparency=0):
+  def getIndex(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
 
-    mat = (type, color, transparency)
+    mat = (type, color, transparency, doubleSide)
     if mat in self.materials:
       return self.materials.index(mat)
 
@@ -202,12 +203,14 @@ class MaterialManager:
   def write(self, f):
     f.write("\n")
     for index, mat in enumerate(self.materials):
+      m = {"type": mat[0], "c": mat[1]}
       transparency = mat[2]
       if transparency > 0:
         opacity = 1.0 - float(transparency) / 100
-        f.write("mat[{0}] = {{type:{1},c:{2},o:{3}}};\n".format(index, mat[0], mat[1], opacity))
-      else:
-        f.write("mat[{0}] = {{type:{1},c:{2}}};\n".format(index, mat[0], mat[1]))
+        m["o"] = opacity
+      if mat[3]:
+        m["ds"] = 1
+      f.write("mat[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
 
 class JSWriter:
   def __init__(self, htmlfilename, context):
@@ -255,32 +258,11 @@ class JSWriter:
     self.write(fmt.format(extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
                           mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift))
 
-  def obj2js(self, obj, escape=False):
-    if isinstance(obj, dict):
-      items = []
-      for k, v in obj.iteritems():
-        items.append("{0}:{1}".format(k, self.obj2js(v)))
-      return "{" + ",".join(items) + "}"
-    elif isinstance(obj, list):
-      items = []
-      for v in obj:
-        items.append(unicode(self.obj2js(v)))
-      return "[" + ",".join(items) + "]"
-    elif isinstance(obj, bool):
-      return "true" if obj else "false"
-    elif isinstance(obj, (str, unicode)):
-      if escape:
-        return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
-      return '"' + obj + '"'
-    elif isinstance(obj, (int, float)):
-      return obj
-    return '"' + str(obj) + '"'
-
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
-    self.write("\n" + "lyr[{0}] = new MapLayer({1});\n".format(self.currentLayerIndex, self.obj2js(obj)))
+    self.write("\n" + "lyr[{0}] = new MapLayer({1});\n".format(self.currentLayerIndex, pyobj2js(obj)))
     if fieldNames is not None:
-      self.write(u"lyr[{0}].a = {1};\n".format(self.currentLayerIndex, self.obj2js(fieldNames)))
+      self.write(u"lyr[{0}].a = {1};\n".format(self.currentLayerIndex, pyobj2js(fieldNames)))
     self.layerCount += 1
     self.currentFeatureIndex = -1
     self.attrs = []
@@ -288,14 +270,14 @@ class JSWriter:
 
   def writeFeature(self, f):
     self.currentFeatureIndex += 1
-    self.write("lyr[{0}].f[{1}] = {2};\n".format(self.currentLayerIndex, self.currentFeatureIndex, self.obj2js(f)))
+    self.write("lyr[{0}].f[{1}] = {2};\n".format(self.currentLayerIndex, self.currentFeatureIndex, pyobj2js(f)))
 
   def addAttributes(self, attrs):
     self.attrs.append(attrs)
 
   def writeAttributes(self):
     for index, attrs in enumerate(self.attrs):
-      self.write(u"lyr[{0}].f[{1}].a = {2};\n".format(self.currentLayerIndex, index, self.obj2js(attrs, True)))
+      self.write(u"lyr[{0}].f[{1}].a = {2};\n".format(self.currentLayerIndex, index, pyobj2js(attrs, True)))
 
   def prepareNext(self):
     self.closeFile()
@@ -502,7 +484,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   if surroundings:
     writeSurroundingDEM(writer, lyrIdx, stats, properties, progress)
     # overwrite stats
-    writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
+    writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, pyobj2js(stats)))
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:
@@ -656,7 +638,7 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
       dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
     # write dem object
-    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
     writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
       writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
@@ -835,7 +817,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
       # write dem object
       writer.openFile(True)
-      writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+      writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
       writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
       if texData is not None:
         writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
@@ -901,13 +883,13 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # write dem object
     writer.openFile(True)
-    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, writer.obj2js(dem)))
+    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
     writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
       writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
     plane_index += 1
 
-  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, writer.obj2js(stats)))
+  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, pyobj2js(stats)))
 
 def writeVectors(writer):
   context = writer.context
@@ -1136,6 +1118,29 @@ def linesFromWkb25D(wkb, transform):
       points.append([pt.x(), pt.y(), pt_orig[2]])
     lines.append(points)
   return lines
+
+def pyobj2js(obj, escape=False, quoteHex=True):
+  if isinstance(obj, dict):
+    items = []
+    for k, v in obj.iteritems():
+      items.append("{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)))
+    return "{" + ",".join(items) + "}"
+  elif isinstance(obj, list):
+    items = []
+    for v in obj:
+      items.append(unicode(pyobj2js(v, escape, quoteHex)))
+    return "[" + ",".join(items) + "]"
+  elif isinstance(obj, bool):
+    return "true" if obj else "false"
+  elif isinstance(obj, (str, unicode)):
+    if escape:
+      return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
+      return obj
+    return '"' + obj + '"'
+  elif isinstance(obj, (int, float)):
+    return obj
+  return '"' + str(obj) + '"'
 
 # createQuadTree(extent, demProperties)
 def createQuadTree(extent, p):

@@ -83,13 +83,18 @@ MapLayer.prototype = {
     } else {
       for (var i = 0, l = this.f.length; i < l; i++) {
         var f = this.f[i];
-        f.obj.visible = visible;  // TODO: objs
-        if (f.aObj !== undefined) f.aObj.visible = visible;
-        if (f.aElem !== undefined) f.aElem.style.display = (visible) ? "block": "none";
+        for (var j = 0, m = f.objs.length; j < m; j++) {
+          f.objs[j].visible = visible;
+        }
+        for (var j = 0, m = (f.aObjs) ? f.aObjs.length : 0; j < m; j++) {
+          f.aObjs[j].visible = visible;
+        }
+        for (var j = 0, m = (f.aElems) ? f.aElems.length : 0; j < m; j++) {
+          f.aElems[j].style.display = (visible) ? "block": "none";
+        }
       }
     }
   }
-
 };
 
 // Add default key event listener
@@ -129,6 +134,7 @@ function createMaterials() {
       material.opacity = m.o;
       material.transparent = true;
     }
+    if (m.ds) material.side = THREE.DoubleSide;
     mat[i].m = material;
   }
 }
@@ -323,7 +329,7 @@ function buildFrame(scene, dem, color, sole_height) {
 
 // Vector functions
 function buildPointLayer(scene, layer) {
-  var f, geometry, obj;
+  var f, geometry, mesh;
   var deg2rad = Math.PI / 180;
   for (var i = 0, l = layer.f.length; i < l; i++) {
     // each feature in the layer
@@ -334,13 +340,13 @@ function buildPointLayer(scene, layer) {
       else if (layer.objType == "Cylinder" || layer.objType == "Cone") geometry = new THREE.CylinderGeometry(f.rt, f.rb, f.h);
       else geometry = new THREE.SphereGeometry(f.r);
 
-      obj = new THREE.Mesh(geometry, mat[f.m].m);
-      obj.position.set(pt[0], pt[1], pt[2]);
-      if (f.rotateX) obj.rotation.x = f.rotateX * deg2rad;
-      obj.userData = [layer.index, i];
-      scene.add(obj);
-      if (layer.q) queryableObjs.push(obj);
-      f.objs.push(obj);
+      mesh = new THREE.Mesh(geometry, mat[f.m].m);
+      mesh.position.set(pt[0], pt[1], pt[2]);
+      if (f.rotateX) mesh.rotation.x = f.rotateX * deg2rad;
+      mesh.userData = [layer.index, i];
+      scene.add(mesh);
+      if (layer.q) queryableObjs.push(mesh);
+      f.objs.push(mesh);
     });
   }
 }
@@ -348,27 +354,27 @@ function buildPointLayer(scene, layer) {
 function buildJSONPointLayer(scene, layer) {
   var manager = new THREE.LoadingManager();
   var loader = new THREE.JSONLoader(manager);
-  var f, obj, json_objs=[];
+  var f, mesh, json_meshes=[];
   var deg2rad = Math.PI / 180;
 
   for (var i = 0, l = layer.f.length; i < l; i++) {
     // each feature in the layer
     f = layer.f[i];
     f.objs = [];
-    if (json_objs[f.json_index] === undefined) {
+    if (json_meshes[f.json_index] === undefined) {
       var result = loader.parse(JSON.parse(jsons[f.json_index]));
-      json_objs[f.json_index] = new THREE.Mesh(result.geometry, result.materials[0]);
+      json_meshes[f.json_index] = new THREE.Mesh(result.geometry, result.materials[0]);
     }
     f.pts.forEach(function (pt) {
-      obj = json_objs[f.json_index].clone();
-      obj.position.set(pt[0], pt[1], pt[2]);
+      mesh = json_meshes[f.json_index].clone();
+      mesh.position.set(pt[0], pt[1], pt[2]);
       if (f.rotateX || f.rotateY || f.rotateZ)
-        obj.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
-      if (f.scale) obj.scale.set(f.scale, f.scale, f.scale);
-      obj.userData = [layer.index, i];
-      scene.add(obj);
-      if (layer.q) queryableObjs.push(obj);
-      f.objs.push(obj);
+        mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
+      if (f.scale) mesh.scale.set(f.scale, f.scale, f.scale);
+      mesh.userData = [layer.index, i];
+      scene.add(mesh);
+      if (layer.q) queryableObjs.push(mesh);
+      f.objs.push(mesh);
     });
   }
 }
@@ -427,11 +433,28 @@ function buildLineLayer(scene, layer) {
         }
       });
     }
+    else if (layer.objType == "Wall") {
+      var pt;
+      f.lines.forEach(function (line) {
+        geometry = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
+        for (var j = 0, m = line.length; j < m; j++) {
+          pt = line[j];
+          geometry.vertices[j].x = geometry.vertices[j + m].x = pt[0];
+          geometry.vertices[j].y = geometry.vertices[j + m].y = pt[1];
+          geometry.vertices[j].z = pt[2];
+        }
+        obj = new THREE.Mesh(geometry, mat[f.m].m);
+        obj.userData = userData;
+        scene.add(obj);
+        if (layer.q) queryableObjs.push(obj);
+        f.objs.push(obj);
+      });
+    }
   }
 }
 
 function buildPolygonLayer(scene, layer) {
-  var f, polygon, boundary, pts, shape, geometry, obj;
+  var f, polygon, boundary, pts, shape, geometry, mesh;
   for (var i = 0, l = layer.f.length; i < l; i++) {
     // each feature in the layer
     f = layer.f[i];
@@ -451,12 +474,12 @@ function buildPolygonLayer(scene, layer) {
         }
       }
       geometry = new THREE.ExtrudeGeometry(shape, {bevelEnabled:false, amount:f.h});
-      obj = new THREE.Mesh(geometry, mat[f.m].m);
-      obj.position.z = f.zs[j];
-      obj.userData = [layer.index, i];
-      scene.add(obj);
-      if (layer.q) queryableObjs.push(obj);
-      f.objs.push(obj);
+      mesh = new THREE.Mesh(geometry, mat[f.m].m);
+      mesh.position.z = f.zs[j];
+      mesh.userData = [layer.index, i];
+      scene.add(mesh);
+      if (layer.q) queryableObjs.push(mesh);
+      f.objs.push(mesh);
     }
   }
 }
@@ -628,7 +651,7 @@ function currentViewUrl() {
   var c = controls.object.position, t = controls.target, u = controls.object.up;
   var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
   if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
-  if (u && (u.x || u.y || u.z != 1)) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
+  if (u.x || u.y || u.z != 1) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
   return window.location.href.split("#")[0] + hash;
 }
 

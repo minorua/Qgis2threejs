@@ -26,7 +26,7 @@ def geometryType():
   return QGis.Line
 
 def objectTypeNames():
-  return ["Line", "Pipe", "Cone"]
+  return ["Line", "Pipe", "Cone", "Wall"]
 
 def setupForm(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.5 / mapTo3d.multiplier
@@ -44,8 +44,11 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
 
 def write(writer, feat):
   mapTo3d = writer.context.mapTo3d
-  if feat.prop.type_index == 0:   # Line
-    mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+  if feat.prop.type_index in [0, 3]:   # Line or Wall
+    if feat.prop.type_index == 0:
+      mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+    else:
+      mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
     writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
     return
 
