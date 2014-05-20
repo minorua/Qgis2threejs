@@ -2,6 +2,8 @@
 
 ### Version 0.8-dev
 
+* add object type: Profile (line)
+
 ### Version 0.7.1
 
 * add template: STLExport

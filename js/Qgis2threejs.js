@@ -433,7 +433,7 @@ function buildLineLayer(scene, layer) {
         }
       });
     }
-    else if (layer.objType == "Wall") {
+    else if (layer.objType == "Profile") {
       var pt;
       f.lines.forEach(function (line) {
         geometry = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
