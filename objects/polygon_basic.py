@@ -28,18 +28,15 @@ def geometryType():
 def objectTypeNames():
   return ["Extruded"]
 
-def setupForm(dialog, mapTo3d, layer, type_index=0):
-  numeric_fields = None
-  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
-  dialog.labelHeightWidget.setup(layer=layer, defaultValue=10/mapTo3d.multiplierZ, fieldNames=numeric_fields)
-  dialog.colorWidget.setup()
-  dialog.transparencyWidget.setup()
-
+def setupForm(ppage, mapTo3d, layer, type_index=0):
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
-  dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer, numeric_fields)
+
+  ppage.colorWidget.setup()
+  ppage.transparencyWidget.setup()
+  ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
   styleCount = 1
-  for i in range(styleCount, dialog.STYLE_MAX_COUNT):
-    dialog.styleWidgets[i].hide()
+  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
+    ppage.styleWidgets[i].hide()
 
 def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())

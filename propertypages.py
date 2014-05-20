@@ -539,7 +539,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.setPropertyWidgets(widgets)
 
-    self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeSelectionChanged)
+    self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeChanged)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
   def setup(self, properties=None, layer=None):
@@ -561,8 +561,22 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       self.comboBox_ObjectType.setCurrentIndex(properties.get("comboBox_ObjectType", 0))
     self.comboBox_ObjectType.blockSignals(False)
 
-    # set up property widgets for selected object type
-    self.objectTypeSelectionChanged()
+    # create MapTo3d object to calculate default values
+    world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    ve = float(world.get("lineEdit_zFactor", 1.5))
+    vs = float(world.get("lineEdit_zShift", 0))
+    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
+
+    # set up height widget and label height widget
+    self.heightWidget.setup(layer=layer)
+    if layer.geometryType() != QGis.Line:
+      defaultLabelHeight = 5
+      self.labelHeightWidget.setup(layer=layer, defaultValue=defaultLabelHeight/mapTo3d.multiplierZ)
+    else:
+      self.labelHeightWidget.hide()
+
+    # set up style widgets for selected object type
+    self.objectTypeChanged()
 
     # set up label combo box
     hasPoint = (layer.geometryType() in (QGis.Point, QGis.Polygon))
@@ -580,15 +594,17 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
-  def objectTypeSelectionChanged(self, idx=None):
+  def objectTypeChanged(self, idx=None):
     # notice JSON model is experimental
     self.label_ObjectTypeMessage.setVisible(self.comboBox_ObjectType.currentText() == "JSON model")
 
-    # setup widgets
+    # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
     ve = float(world.get("lineEdit_zFactor", 1.5))
     vs = float(world.get("lineEdit_zShift", 0))
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
+
+    # setup widgets
     self.dialog.objectTypeManager.setupForm(self, mapTo3d, self.layer, self.layer.geometryType(), self.comboBox_ObjectType.currentIndex())
 
   def itemChanged(self, item):

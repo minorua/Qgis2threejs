@@ -30,20 +30,16 @@ def geometryType():
 def objectTypeNames():
   return ["JSON model"]
 
-def setupForm(dialog, mapTo3d, layer, type_index=0):
-  numeric_fields = None
-  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
-  dialog.labelHeightWidget.setup(layer=layer, defaultValue=10/mapTo3d.multiplierZ, fieldNames=numeric_fields)
-  dialog.colorWidget.hide()
-  dialog.transparencyWidget.hide()
-
-  dialog.styleWidgets[0].setup(StyleWidget.FILEPATH, "JSON file", "Path", "", layer, None)
-  dialog.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer, numeric_fields)
-  dialog.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer, numeric_fields)
-  dialog.styleWidgets[3].setup(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer, numeric_fields)
+def setupForm(ppage, mapTo3d, layer, type_index=0):
+  ppage.colorWidget.hide()
+  ppage.transparencyWidget.hide()
+  ppage.styleWidgets[0].setup(StyleWidget.FILEPATH, "JSON file", "Path", "", layer)
+  ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer)
+  ppage.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer)
+  ppage.styleWidgets[3].setup(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer)
   styleCount = 4
-  for i in range(styleCount, dialog.STYLE_MAX_COUNT):
-    dialog.styleWidgets[i].hide()
+  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
+    ppage.styleWidgets[i].hide()
 
 def write(writer, feat):
   vals = feat.propValues()

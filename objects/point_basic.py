@@ -28,31 +28,29 @@ def geometryType():
 def objectTypeNames():
   return ["Sphere", "Cylinder", "Cube", "Cone"]
 
-def setupForm(dialog, mapTo3d, layer, type_index=0):
-  numeric_fields = None
-  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
-  dialog.labelHeightWidget.setup(layer=layer, defaultValue=10/mapTo3d.multiplierZ, fieldNames=numeric_fields)
-  dialog.colorWidget.setup()
-  dialog.transparencyWidget.setup()
-
+def setupForm(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.5 / mapTo3d.multiplier
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
+
+  ppage.colorWidget.setup()
+  ppage.transparencyWidget.setup()
+
   if type_index == 0:  # Sphere
-    dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer, numeric_fields)
+    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
     styleCount = 1
   elif type_index in [1, 3]: # Cylinder, Cone
-    dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer, numeric_fields)
-    dialog.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer, numeric_fields)
+    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
+    ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
     styleCount = 2
   elif type_index == 2:  # Cube
-    dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Width", "Value", defaultValue, layer, numeric_fields)
-    dialog.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Depth", "Value", defaultValue, layer, numeric_fields)
-    dialog.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer, numeric_fields)
+    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Width", "Value", defaultValue, layer)
+    ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Depth", "Value", defaultValue, layer)
+    ppage.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
     styleCount = 3
   else:
     styleCount = 0
-  for i in range(styleCount, dialog.STYLE_MAX_COUNT):
-    dialog.styleWidgets[i].hide()
+  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
+    ppage.styleWidgets[i].hide()
 
 def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())

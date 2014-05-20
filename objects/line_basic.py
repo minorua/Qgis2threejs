@@ -28,21 +28,19 @@ def geometryType():
 def objectTypeNames():
   return ["Line", "Pipe", "Cone"]
 
-def setupForm(dialog, mapTo3d, layer, type_index=0):
-  numeric_fields = None
-  dialog.heightWidget.setup(layer=layer, fieldNames=numeric_fields)
-  dialog.colorWidget.setup()
-  dialog.transparencyWidget.setup()
-  dialog.labelHeightWidget.hide()
-
+def setupForm(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.5 / mapTo3d.multiplier
+
+  ppage.colorWidget.setup()
+  ppage.transparencyWidget.setup()
+
   if type_index in [1, 2]:  # Pipe or Cone
-    dialog.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer, numeric_fields)
+    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
     styleCount = 1
   else:
     styleCount = 0
-  for i in range(styleCount, dialog.STYLE_MAX_COUNT):
-    dialog.styleWidgets[i].hide()
+  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
+    ppage.styleWidgets[i].hide()
 
 def write(writer, feat):
   mapTo3d = writer.context.mapTo3d
