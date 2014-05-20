@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings #QVariant
+from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings, QPoint #QVariant
 from PyQt4.QtGui import *       #, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import *
 import os
@@ -260,7 +260,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.initDEMLayerList()
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
-    self.horizontalSlider_Resolution.valueChanged.connect(self.calculateResolution)
+    self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
     self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
@@ -347,6 +347,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if not useDEM:
       self.checkBox_Surroundings.setChecked(False)
     self.dialog.primaryDEMChanged(comboBox.itemData(index))
+
+  def resolutionSliderChanged(self, v):
+    self.calculateResolution()
+    size = 100 * self.horizontalSlider_Resolution.value()
+    QToolTip.showText(self.horizontalSlider_Resolution.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_Resolution)
 
   def itemChanged(self, item):
     if not self.isPrimary:

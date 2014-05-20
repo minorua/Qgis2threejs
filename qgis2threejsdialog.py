@@ -127,17 +127,24 @@ class Qgis2threejsDialog(QDialog):
     self.bar.pushMessage(title, text, level=level)
 
   def initTemplateList(self):
-    self.ui.comboBox_Template.clear()
+    cbox = self.ui.comboBox_Template
+    cbox.clear()
     templateDir = QDir(tools.templateDir())
-    for entry in templateDir.entryList(["*.html", "*.htm"]):
-      self.ui.comboBox_Template.addItem(entry)
+    for i, entry in enumerate(templateDir.entryList(["*.html", "*.htm"])):
+      cbox.addItem(entry)
+
+      # set tool tip text
+      meta = tools.getTemplateMetadata(templateDir.filePath(entry))
+      desc = meta.get("description", "")
+      if desc:
+        cbox.setItemData(i, desc, Qt.ToolTipRole)
 
     # select the last used template
     templateName = QSettings().value("/Qgis2threejs/lastTemplate", "", type=unicode)
     if templateName:
-      index = self.ui.comboBox_Template.findText(templateName)
+      index = cbox.findText(templateName)
       if index != -1:
-        self.ui.comboBox_Template.setCurrentIndex(index)
+        cbox.setCurrentIndex(index)
       return index
     return -1
 
