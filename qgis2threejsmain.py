@@ -527,7 +527,7 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
   dem_height = (prop.height() - 1) / roughening + 1
 
   # create an image for texture
-  image_basesize = 128
+  image_basesize = 256
   hpw = canvas.extent().height() / canvas.extent().width()
   if hpw < 1:
     image_width = image_basesize
@@ -677,7 +677,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   context.dialog.createRubberBands(quads, quadtree.focusRect.center())
 
   # create an image for texture
-  image_basesize = 128
+  image_basesize = 256
   hpw = canvas.extent().height() / canvas.extent().width()
   if hpw < 1:
     image_width = image_basesize
