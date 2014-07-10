@@ -48,7 +48,7 @@ def write(writer, feat):
     if feat.prop.type_index == 0:
       mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
     else:
-      mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
+      mat = writer.materialManager.getFlatMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
     writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
     return
 

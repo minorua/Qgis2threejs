@@ -173,6 +173,8 @@ class MaterialManager:
   MESH_LAMBERT = 0
   LINE_BASIC = 1
   WIREFRAME = 2
+  MESH_LAMBERT_SMOOTH = 0
+  MESH_LAMBERT_FLAT = 3
 
   ERROR_COLOR = "0"
 
@@ -181,6 +183,12 @@ class MaterialManager:
 
   def getMeshLambertIndex(self, color, transparency=0, doubleSide=False):
     return self.getIndex(self.MESH_LAMBERT, color, transparency, doubleSide)
+
+  def getSmoothMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self.getIndex(self.MESH_LAMBERT_SMOOTH, color, transparency, doubleSide)
+
+  def getFlatMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self.getIndex(self.MESH_LAMBERT_FLAT, color, transparency, doubleSide)
 
   def getLineBasicIndex(self, color, transparency=0):
     return self.getIndex(self.LINE_BASIC, color, transparency)

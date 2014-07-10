@@ -121,8 +121,9 @@ function createMaterials() {
   var material;
   for (var i = 0, l = mat.length; i < l; i++) {
     var m = mat[i];
-    if (m.type == 0) {
+    if (m.type == 0 || m.type == 3) {
       material = new THREE.MeshLambertMaterial({color:m.c, ambient:m.c});
+      if (m.type == 3) material.shading = THREE.FlatShading;
     }
     else if (m.type == 1) {
       material = new THREE.LineBasicMaterial({color:m.c});
@@ -450,7 +451,6 @@ function buildLineLayer(scene, layer) {
           geometry.vertices[j].z = pt[2];
         }
         geometry.computeFaceNormals();
-        geometry.computeVertexNormals();
 
         obj = new THREE.Mesh(geometry, mat[f.m].m);
         obj.userData = userData;
