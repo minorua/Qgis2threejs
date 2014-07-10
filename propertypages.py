@@ -254,7 +254,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
     widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
-    widgets += [self.checkBox_Sides, self.checkBox_Frame]
+    widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
     self.setPropertyWidgets(widgets)
 
     self.initDEMLayerList()

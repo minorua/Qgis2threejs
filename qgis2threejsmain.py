@@ -463,6 +463,9 @@ def writeSimpleDEM(writer, properties, progress=None):
       tex["t"] = demOpacity < 1  #
     dem["t"] = tex
 
+  if properties.get("checkBox_Shading", True):
+    dem["shading"] = True
+
   if not surroundings and properties.get("checkBox_Sides", False):
     side = {}
     sidesTransparency = prop.properties["spinBox_sidetransp"]
@@ -636,6 +639,9 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
 
     elif properties.get("radioButton_Wireframe", False):
       dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+
+    if properties.get("checkBox_Shading", True):
+      dem["shading"] = True
 
     # write dem object
     writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
@@ -814,6 +820,9 @@ def writeMultiResDEM(writer, properties, progress=None):
 
       elif properties.get("radioButton_Wireframe", False):
         dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+
+      if properties.get("checkBox_Shading", True):
+        dem["shading"] = True
 
       # write dem object
       writer.openFile(True)

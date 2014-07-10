@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Mon Apr 21 10:25:33 2014
+# Created: Thu Jul 10 09:26:28 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -289,6 +289,12 @@ class Ui_DEMPropertiesWidget(object):
         self.gridLayout_3.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.horizontalLayout_10 = QtGui.QHBoxLayout()
         self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
+        self.checkBox_Shading = QtGui.QCheckBox(self.groupBox_DisplayType)
+        self.checkBox_Shading.setChecked(True)
+        self.checkBox_Shading.setObjectName(_fromUtf8("checkBox_Shading"))
+        self.horizontalLayout_10.addWidget(self.checkBox_Shading)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_10.addItem(spacerItem4)
         self.label_17 = QtGui.QLabel(self.groupBox_DisplayType)
         self.label_17.setObjectName(_fromUtf8("label_17"))
         self.horizontalLayout_10.addWidget(self.label_17)
@@ -306,8 +312,8 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_demtransp.setProperty("value", 0)
         self.spinBox_demtransp.setObjectName(_fromUtf8("spinBox_demtransp"))
         self.horizontalLayout_10.addWidget(self.spinBox_demtransp)
-        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_10.addItem(spacerItem4)
+        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_10.addItem(spacerItem5)
         self.gridLayout_3.addLayout(self.horizontalLayout_10, 1, 0, 1, 1)
         self.verticalLayout_9.addWidget(self.groupBox_DisplayType)
         self.groupBox_Accessories = QtGui.QGroupBox(DEMPropertiesWidget)
@@ -343,8 +349,8 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Frame.setObjectName(_fromUtf8("checkBox_Frame"))
         self.gridLayout_4.addWidget(self.checkBox_Frame, 1, 0, 1, 1)
         self.verticalLayout_9.addWidget(self.groupBox_Accessories)
-        spacerItem5 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_9.addItem(spacerItem5)
+        spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_9.addItem(spacerItem6)
         self.gridLayout.addLayout(self.verticalLayout_9, 0, 0, 1, 1)
 
         self.retranslateUi(DEMPropertiesWidget)
@@ -380,6 +386,7 @@ class Ui_DEMPropertiesWidget(object):
         self.label.setText(_translate("DEMPropertiesWidget", "Color", None))
         self.lineEdit_Color.setPlaceholderText(_translate("DEMPropertiesWidget", "0xrrggbb", None))
         self.toolButton_Color.setText(_translate("DEMPropertiesWidget", "...", None))
+        self.checkBox_Shading.setText(_translate("DEMPropertiesWidget", "Enable shading", None))
         self.label_17.setText(_translate("DEMPropertiesWidget", "Transparency (%)", None))
         self.groupBox_Accessories.setTitle(_translate("DEMPropertiesWidget", "Sides and frame", None))
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides", None))

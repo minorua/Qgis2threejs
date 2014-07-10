@@ -159,6 +159,12 @@ function buildDEM(scene, layer, dem) {
     geometry.vertices[j].z = dem.data[j];
   }
 
+  // Calculate normals
+  if (dem.shading) {
+    geometry.computeFaceNormals();
+    geometry.computeVertexNormals();
+  }
+
   // Terrain material
   var material;
   if (dem.m !== undefined) material = mat[dem.m].m;
@@ -443,6 +449,9 @@ function buildLineLayer(scene, layer) {
           geometry.vertices[j].y = geometry.vertices[j + m].y = pt[1];
           geometry.vertices[j].z = pt[2];
         }
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+
         obj = new THREE.Mesh(geometry, mat[f.m].m);
         obj.userData = userData;
         scene.add(obj);
