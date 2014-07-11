@@ -76,13 +76,16 @@ ${scripts}
     updateLabels();
   }
 
-  function object_clicked(objs) {
+  // Called from *Controls.js when canvas is clicked
+  function canvas_clicked(e) {
+    var objs = intersectObjects(e.clientX, e.clientY);
     for (var i = 0, l = objs.length; i < l; i++) {
       if (objs[i].object.visible) {
         showQueryResult(objs[i]);
         return;
       }
     }
+    closePopup();
   }
 
   function showQueryResult(obj) {
@@ -116,7 +119,7 @@ ${scripts}
   }
 
   function onLoad() {
-    document.getElementById("closebtn").onclick = closeClicked;
+    document.getElementById("closebtn").onclick = closePopup;
   }
 
   function showInfo() {
@@ -129,7 +132,7 @@ ${scripts}
     document.getElementById("popup").style.display = "block";
   }
 
-  function closeClicked() {
+  function closePopup() {
     document.getElementById("popup").style.display = "none";
     queryMarker.visible = false;
   }

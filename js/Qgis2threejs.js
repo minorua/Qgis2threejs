@@ -102,7 +102,7 @@ function addDefaultKeyEventListener() {
   window.addEventListener("keydown", function(e){
 
     var keyPressed = e.which;
-    if (keyPressed == 27) closeClicked(); // ESC
+    if (keyPressed == 27) closePopup(); // ESC
     else if (keyPressed == 73) showInfo();  // I
     else if (keyPressed == 76) toggleLabelVisibility();  // L
     else if (!e.ctrlKey && e.shiftKey) {
@@ -641,19 +641,16 @@ function toggleLabelVisibility() {
   });
 }
 
-// Called from *Controls.js when canvas is clicked
-function canvas_clicked(e) {
-  if (object_clicked === undefined) return;
+function intersectObjects(clientX, clientY) {
   var canvasOffset = offset(renderer.domElement);
-  var mx = e.clientX - canvasOffset.left;
-  var my = e.clientY - canvasOffset.top;
+  var mx = clientX - canvasOffset.left;
+  var my = clientY - canvasOffset.top;
   var x = (mx / width) * 2 - 1;
   var y = -(my / height) * 2 + 1;
   var vector = new THREE.Vector3(x, y, 1);
   projector.unprojectVector(vector, camera);
   var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize())
-  var objs = ray.intersectObjects(queryableObjs);
-  if(objs.length > 0) object_clicked(objs);
+  return ray.intersectObjects(queryableObjs);
 }
 
 function currentViewUrl() {
