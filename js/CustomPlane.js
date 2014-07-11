@@ -21,41 +21,65 @@ function addPlane(color) {
 
 }
 
-//GUI
+// GUI
 var gui = new dat.GUI();
 
 var parameters = {
+  lyr: [],
+  cp: {
     c: "#ffffff",
     d: 0,
     o: 1
+  },
+  i: showInfo
 }
-//Max value for the plane
-var zMax = lyr[0].stats.max;
 
-//Crete the GUI for the plane
-var maingui = gui.addFolder('Custom Plane');
-var customPlaneColor = maingui.addColor(parameters,'c').name('Color');
-var customPlaneHeight = maingui.add(parameters,'d').min(0).max(zMax).name('Plane height (m)');
-var customPlaneOpacity = maingui.add(parameters,'o').min(0).max(1).name('Opacity (0-1)');
+initGUI();
 
-//Change plane color
-customPlaneColor.onChange(function(value) {
-  if (customPlane) {
-    customPlane.material.color.setStyle(value);
-  } else {
-    addPlane(value);
+function initGUI() {
+
+  // Create Layers folder
+  var layersFolder = gui.addFolder('Layers');
+  var folder;
+  for (var i = 0, l = lyr.length; i < l; i++) {
+    folder = layersFolder.addFolder(lyr[i].name);
+    parameters.lyr[i] = {i: i, v: true, o: 1};
+    folder.add(parameters.lyr[i], 'v').name('Visible').onChange(function(value) {
+      lyr[this.object.i].setVisible(value);
+    });
   }
-});
 
-//Change plane Z
-customPlaneHeight.onChange(function(value) {
-  if (customPlane === undefined) addPlane(parameters.c);
-  customPlane.position.z = (value + world.zShift) * world.zScale;
-});
+  // Max value for the plane
+  var zMax = lyr[0].stats.max;
 
-//Change plane Opacity
-customPlaneOpacity.onChange(function(value) {
-   if (customPlane) {
-     customPlane.material.opacity = value;
-   }
-});
+  // Create Custom Plane folder
+  var maingui = gui.addFolder('Custom Plane');
+  var customPlaneColor = maingui.addColor(parameters.cp, 'c').name('Color');
+  var customPlaneHeight = maingui.add(parameters.cp, 'd').min(0).max(zMax).name('Plane height (m)');
+  var customPlaneOpacity = maingui.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)');
+
+  // Change plane color
+  customPlaneColor.onChange(function(value) {
+    if (customPlane) {
+      customPlane.material.color.setStyle(value);
+    } else {
+      addPlane(value);
+    }
+  });
+
+  // Change plane Z
+  customPlaneHeight.onChange(function(value) {
+    if (customPlane === undefined) addPlane(parameters.cp.c);
+    customPlane.position.z = (value + world.zShift) * world.zScale;
+  });
+
+  // Change plane Opacity
+  customPlaneOpacity.onChange(function(value) {
+     if (customPlane) {
+       customPlane.material.opacity = value;
+     }
+  });
+
+  // Add Help button
+  gui.add(parameters, 'i').name('Help');
+}

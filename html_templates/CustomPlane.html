@@ -77,7 +77,15 @@ ${scripts}
   }
 
   function object_clicked(objs) {
-    var obj = objs[0];
+    for (var i = 0, l = objs.length; i < l; i++) {
+      if (objs[i].object.visible) {
+        showQueryResult(objs[i]);
+        return;
+      }
+    }
+  }
+
+  function showQueryResult(obj) {
     queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
     queryMarker.visible = true;
     var object = obj.object;
@@ -108,9 +116,7 @@ ${scripts}
   }
 
   function onLoad() {
-    document.getElementById("infobtn").onclick = showInfo;
     document.getElementById("closebtn").onclick = closeClicked;
-    if ("hidebutton" in vars) document.getElementById("infobtn").style.display = "none";
   }
 
   function showInfo() {
@@ -147,6 +153,6 @@ and uses the following library:</div>
  <li>dat-gui <a href="https://code.google.com/p/dat-gui/" target="_blank">https://code.google.com/p/dat-gui/</a> <a href="./dat-gui/license.txt" target="_blank" class="license">(LICENSE)</a></li>
  </ui>
 </div></div></div>
-<div id="footer"><div id="infobtn">i</div></div>
+<div id="footer"></div>
 </body>
 </html>
