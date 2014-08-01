@@ -23,9 +23,9 @@ from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer,
 from PyQt4.QtGui import QMessageBox
 import sys
 import os
+import numpy
 import ConfigParser
 import shutil
-import struct
 import base64
 import webbrowser
 
@@ -53,11 +53,8 @@ class MemoryWarpRaster(Raster):
     gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
 
     # load values into an array
-    values = []
-    fs = "f" * width
-    band = warped_ds.GetRasterBand(1)
-    for py in range(height):
-      values += struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
+    ba = warped_ds.GetRasterBand(1).ReadRaster(0, 0, width, height, width, height, gdal.GDT_Float32)
+    values = numpy.fromstring(ba, dtype=numpy.float32, count=width * height)
     return values
 
   def readValue(self, wkt, x, y):
@@ -71,7 +68,9 @@ class FlatRaster:
     self.value = value
 
   def read(self, width, height, wkt, geotransform):
-    return [self.value] * width * height
+    array = numpy.empty(width * height, dtype=numpy.float32)
+    array.fill(self.value)
+    return array
 
   def readValue(self, wkt, x, y):
     return self.value

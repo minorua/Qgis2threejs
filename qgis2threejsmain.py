@@ -406,13 +406,13 @@ def writeSimpleDEM(writer, properties, progress=None):
   dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
 
   # calculate statistics
-  stats = {"max": max(dem_values), "min": min(dem_values)}
+  stats = {"max": dem_values.max(), "min": dem_values.min()}
 
   # shift and scale
   if mapTo3d.verticalShift != 0:
-    dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
+    dem_values += mapTo3d.verticalShift
   if mapTo3d.multiplierZ != 1:
-    dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+    dem_values *= mapTo3d.multiplierZ
   if debug_mode:
     qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
@@ -594,16 +594,16 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
     if stats is None:
-      stats = {"max": max(dem_values), "min": min(dem_values)}
+      stats = {"max": dem_values.max(), "min": dem_values.min()}
     else:
-      stats["max"] = max(max(dem_values), stats["max"])
-      stats["min"] = min(min(dem_values), stats["min"])
+      stats["max"] = max(dem_values.max(), stats["max"])
+      stats["min"] = min(dem_values.min(), stats["min"])
 
     # shift and scale
     if mapTo3d.verticalShift != 0:
-      dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
+      dem_values += mapTo3d.verticalShift
     if mapTo3d.multiplierZ != 1:
-      dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+      dem_values *= mapTo3d.multiplierZ
     if debug_mode:
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
@@ -745,16 +745,16 @@ def writeMultiResDEM(writer, properties, progress=None):
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
     if stats is None:
-      stats = {"max": max(dem_values), "min": min(dem_values)}
+      stats = {"max": dem_values.max(), "min": dem_values.min()}
     else:
-      stats["max"] = max(max(dem_values), stats["max"])
-      stats["min"] = min(min(dem_values), stats["min"])
+      stats["max"] = max(dem_values.max(), stats["max"])
+      stats["min"] = min(dem_values.min(), stats["min"])
 
     # shift and scale
     if mapTo3d.verticalShift != 0:
-      dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
+      dem_values += mapTo3d.verticalShift
     if mapTo3d.multiplierZ != 1:
-      dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+      dem_values *= mapTo3d.multiplierZ
     if debug_mode:
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
