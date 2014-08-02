@@ -17,8 +17,8 @@
 """
 import os
 import sys
+import struct
 import base64
-import numpy
 
 try:
   from osgeo import gdal
@@ -49,13 +49,15 @@ class Raster:
   def read(self, multiplier=1):
     if self.ds is None:
       return None
-    # For now, Band.ReadAsArray and Band.WriteArray sometimes crash the app at the end of the app in OSGeo4W environment.
-    # Maybe it is due to the version mismatch of linked msvcr.dll between gdal and its python bindings.
-    # So I use Band.ReadRaster and numpy.fromstring.
-    ba = self.ds.GetRasterBand(1).ReadRaster(0, 0, self.width, self.height, self.width, self.height, gdal.GDT_Float32)
-    values = numpy.fromstring(ba, dtype=numpy.float32, count=self.width * self.height)
-    if multiplier != 1:
-      values = values * multiplier
+    values = []
+    fs = "f" * self.width
+    band = self.ds.GetRasterBand(1)
+    for py in range(self.height):
+      line = struct.unpack(fs, band.ReadRaster(0, py, self.width, 1, self.width, 1, gdal.GDT_Float32))
+      if multiplier == 1:
+        values += line
+      else:
+        values += map(lambda x: x * multiplier, line)
     return values
 
 def base64image(filename):

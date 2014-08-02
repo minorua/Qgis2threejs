@@ -20,7 +20,6 @@
  ***************************************************************************/
 """
 from qgis.core import *
-import numpy
 
 class QuadNode:
   def __init__(self, parent, extent, location, height=0):
@@ -171,12 +170,12 @@ class DEMQuadList(QuadList):
     self.sort()
     width = self.width()
     height = self.height()
-    dem_values = numpy.array([], dtype=numpy.float32)
+    dem_values = []
     for row in range(height):
       y0 = 0 if row == 0 else 1
       for y in range(y0, self.dem_height):
         for col in range(width):
           x0 = 0 if col == 0 else 1
           i = y * self.dem_width + x0
-          dem_values = numpy.append(dem_values, self.quads[col + row * width].data[i:i + self.dem_width - x0])
+          dem_values += self.quads[col + row * width].data[i:i + self.dem_width - x0]
     return dem_values
