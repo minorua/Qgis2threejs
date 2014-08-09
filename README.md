@@ -1,4 +1,4 @@
-Qgis2threejs plugin (version 0.7)
+Qgis2threejs plugin (version 0.7.1)
 =====================================
 
 Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org).
@@ -21,7 +21,12 @@ Export settings
 Settings for DEM and Vector layers had been splitted into two tab pages until version 0.6. Since version 0.7, layer items and objects for settings have been integrated into a tree widget. You can change their properties with widgets displayed on the right side. There is a combo box to select a template at the top of the dialog. An edit box to select output HTML file path is above the buttons at the bottom. Exporting is done when you press the Run button.
 
 * Template combo box  
-There are two available templates: Simple3D.html and CustomPlane.html. If you select CustomPlane template, A plane is added to scene. With the control panel on the browser you can change elevation, color and opacity of the plane.
+There are three available templates:
+ * Simple3D.html  
+ * CustomPlane.html  
+  A plane is added to scene. You can change elevation, color and opacity of the plane with the control panel on the web browser.
+ * STLExport.html  
+  You can save 3D objects in STL format on the web browser. [STL format](http://en.wikipedia.org/wiki/STL_%28file_format%29) is a format that can be used in 3DCG softwares such as [Blender](http://www.blender.org/).
 
 * Object and layer tree, and property widgets  
 Items with check box are optional. When the current item is optional and not checked, widgets on the right side are disabled. See "General settings and Layer settings" below for details.
@@ -100,13 +105,13 @@ Samples
 =======
 * [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Shaded relief map made with SRTM3 data)
 * [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Shaded relief map made with SRTM3 data)
-* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom template. Shaded relief map made with SRTM3 data)
+* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom plane template. Shaded relief map made with SRTM3 data)
 
 JavaScript libraries used by exported pages
 ===========================================
-* All exports use: [three.js](http://threejs.org)
-* Exports based on custom plane template use: [dat-gui](https://code.google.com/p/dat-gui/)
-
+* All exports use [three.js](http://threejs.org)
+* Exports based on CustomPlane template use [dat-gui](https://code.google.com/p/dat-gui/)
+* Exports based on STLExport template use [JSZip](http://stuk.github.io/jszip/) and [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
 
 License
 =======
