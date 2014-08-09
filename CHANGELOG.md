@@ -3,6 +3,8 @@
 ### Version 0.8-dev
 
 * add object type: Profile (line)
+* add shading option to DEM
+* 3D print compatible STL export
 
 ### Version 0.7.1
 

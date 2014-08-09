@@ -28,6 +28,7 @@ ${options}
 ${scripts}
 <script>
   // options
+  option.exportMode = true;
   option.exportSides = true;
 
   var scene = new THREE.Scene();
@@ -137,20 +138,25 @@ ${scripts}
 <div>You can save 3D models exported from <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a></div>
 <hr>
 <br>
+<h4>Save all layers:</h4>
 <div>
 <a class="btn" style="font-size:x-large;" href="#" onclick="exportLayersSTLZip(true);return false;">Zip all layers</a>
 <a class="btn" style="font-size:small;" href="#" onclick="exportLayersSTLZip(false);return false;">ASCII</a>
 </div>
 <br><br><br>
 
-<div>Layers</div>
+<h4>Save each of layers:</h4>
 <ol id="olLayers"></ol>
 
 <br><br><br><br>
 <hr>
 
 <div id="about">
-<h4>About</h4>
+<h4>About output of DEM layer with sides and bottom</h4>
+When you press the Zip all layers button, DEM and sides + bottom are output to separate files in zip archive --> for 3DCG software.<br>
+When you press the STL button of the DEM layer, DEM and sides + bottom are joined and output to a single file --> for 3D printing.
+
+<h4>About this page</h4>
 <div>This page uses the following libraries:</div>
 <ul>
 <li>three.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>

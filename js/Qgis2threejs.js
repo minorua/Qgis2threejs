@@ -7,7 +7,8 @@ var option = {
   side: {color: 0xc7ac92},
   frame: {color: 0},
   label: {pointerColor: 0xc0c0d0, autoSize: false, fontSize: "10px"},
-  qmarker: {r: 0.25, c:0xffff00, o:0.8}};
+  qmarker: {r: 0.25, c:0xffff00, o:0.8},
+  exportMode: false};
 
 var ua = window.navigator.userAgent.toLowerCase();
 var isIE = (ua.indexOf("msie") != -1 || ua.indexOf("trident") != -1);
@@ -55,8 +56,8 @@ MapLayer.prototype = {
       for (var i = 0, l = this.dem.length; i < l; i++) {
         m.push(this.dem[i].obj);
 
-        //var aObjs = this.dem[i].aObjs || [];
-        //for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
+        var aObjs = this.dem[i].aObjs || [];
+        for (var j = 0, k = aObjs.length; j < k; j++) m.push(aObjs[j]);
       }
     } else {
       for (var i = 0, l = this.f.length; i < l; i++) {
@@ -203,93 +204,85 @@ function buildDEM(scene, layer, dem) {
  *  It adds also lights to see correctly the meshes created.
  */
 function buildSides(scene, dem, color, sole_height) {
-  // Filling of altitudes dictionary
-  var altitudes = {
-    'back': [],
-    'left': [],
-    'front': [],
-    'right': []
-  };
-
-  var w = dem.width, h = dem.height;
-  altitudes['back'] = dem.data.slice(0, w);
-  altitudes['front'] = dem.data.slice(w * (h - 1));
-  for (var y = 0; y < h; y++) {
-    altitudes['left'].push(dem.data[y * w]);
-    altitudes['right'].push(dem.data[(y + 1) * w - 1]);
-  }
 
   // Material
   if (dem.s.o === undefined) dem.s.o = 1;
 
-  var front_material =  new THREE.MeshLambertMaterial({color: color,
-                                                       ambient: color,
-                                                       opacity: dem.s.o,
-                                                       transparent: (dem.s.o < 1)});
+  var material =  new THREE.MeshLambertMaterial({color: color,
+                                                 ambient: color,
+                                                 opacity: dem.s.o,
+                                                 transparent: (dem.s.o < 1)});
 
-  var back_material;
-  if (isIE) {   // Shader compilation error occurs with double sided material on IE11
-    back_material = front_material.clone();
-    back_material.side = THREE.BackSide;
-  }
-  else {
-    front_material.side = THREE.DoubleSide;
-    back_material = front_material;
-  }
+  // if (!isIE) {   // Shader compilation error occurs with double sided material on IE11
+  //   material.side = THREE.DoubleSide;
+  // }
 
   // Sides
-  var side_width;
-  for (var side in altitudes) {
-    if (side == 'back' || side == 'front')
-      side_width = dem.plane.width;
-    else
-      side_width = dem.plane.height;
+  var w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
+  var i, geom, mesh;
 
-    var geom = new THREE.PlaneGeometry(side_width, 2 * sole_height,
-                                       altitudes[side].length -1, 1);
-
-    // Filling of the geometry vertices
-    for (var i = 0, l = altitudes[side].length; i < l; i++) {
-      geom.vertices[i].y = altitudes[side][i];
-    }
-
-    // Rotation(s) and translating(s) according to the side
-    var mesh;
-    switch (side) {
-      case 'back' :
-        mesh = new THREE.Mesh(geom, back_material);
-        mesh.position.y = dem.plane.height/2;
-        mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
-        break;
-      case 'left' :
-        mesh = new THREE.Mesh(geom, front_material);
-        mesh.position.x = -dem.plane.width/2;
-        mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
-        mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
-        break;
-      case 'front' :
-        mesh = new THREE.Mesh(geom, front_material);
-        mesh.position.y = -dem.plane.height/2;
-        mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
-        break;
-      case 'right' :
-        mesh = new THREE.Mesh(geom, back_material);
-        mesh.position.x = dem.plane.width/2;
-        mesh.rotateOnAxis(new THREE.Vector3(0,0,1), -Math.PI/2);
-        mesh.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
-        break;
-    }
-
-    scene.add(mesh);
-    dem.aObjs.push(mesh);
+  // front
+  geom = new THREE.PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+  for (i = 0; i < w; i++) {
+    geom.vertices[i].y = dem.data[w * (h - 1) + i];
   }
+  mesh = new THREE.Mesh(geom, material);
+  mesh.position.y = -dem.plane.height / 2;
+  mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), HALF_PI);
+  scene.add(mesh);
+  dem.aObjs.push(mesh);
+
+  // back
+  geom = new THREE.PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+  for (i = 0; i < w; i++) {
+    geom.vertices[i].y = dem.data[w - 1 - i];
+  }
+  mesh = new THREE.Mesh(geom, material);
+  mesh.position.y = dem.plane.height / 2;
+  mesh.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI);
+  mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), HALF_PI);
+  scene.add(mesh);
+  dem.aObjs.push(mesh);
+
+  // left
+  geom = new THREE.PlaneGeometry(dem.plane.height, 2 * sole_height, h - 1, 1);
+  for (i = 0; i < h; i++) {
+    geom.vertices[i].y = dem.data[w * i];
+  }
+  mesh = new THREE.Mesh(geom, material);
+  mesh.position.x = -dem.plane.width / 2;
+  mesh.rotateOnAxis(new THREE.Vector3(0, 0, 1), -HALF_PI);
+  mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), HALF_PI);
+  scene.add(mesh);
+  dem.aObjs.push(mesh);
+
+  // right
+  geom = new THREE.PlaneGeometry(dem.plane.height, 2 * sole_height, h - 1, 1);
+  for (i = 0; i < h; i++) {
+    geom.vertices[i + h].y = -dem.data[w * (i + 1) - 1];  // This seems to be a bit strange, but good for STL export.
+    // geom.vertices[i].y = dem.data[w * (h - i) - 1];
+  }
+  mesh = new THREE.Mesh(geom, material);
+  mesh.position.x = dem.plane.width / 2;
+  mesh.rotateOnAxis(new THREE.Vector3(0, 0, 1), -HALF_PI);
+  mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), -HALF_PI);
+  // mesh.rotateOnAxis(new THREE.Vector3(0, 0, 1), HALF_PI);
+  // mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), HALF_PI);
+  scene.add(mesh);
+  dem.aObjs.push(mesh);
 
   // Bottom
-  var geom_bottom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, 1, 1);
-  var plane_bottom = new THREE.Mesh(geom_bottom, back_material);
-  plane_bottom.position.z = -sole_height;
-  scene.add(plane_bottom);
-  dem.aObjs.push(plane_bottom);
+  if (option.exportMode) {
+    geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, w - 1, h - 1);
+  }
+  else {
+    geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, 1, 1);
+  }
+  mesh = new THREE.Mesh(geom, material);
+  mesh.position.z = -sole_height;
+  mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI);
+  scene.add(mesh);
+  dem.aObjs.push(mesh);
 
   // Additional lights
   var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
