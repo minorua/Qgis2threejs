@@ -18,7 +18,7 @@ Load a DEM layer and any other layers into QGIS, and set the project CRS to a pr
 
 Export settings
 ---------------
-Settings for DEM and Vector layers had been splitted into two tab pages until version 0.6. Since version 0.7, layer items and objects for settings have been integrated into a tree widget. You can change their properties with widgets displayed on the right side. There is a combo box to select a template at the top of the dialog. An edit box to select output HTML file path is above the buttons at the bottom. Exporting is done when you press the Run button.
+Settings for DEM and Vector layers had been splitted into two tab pages until version 0.6. Since version 0.7, they have been integrated into a tree widget. You can change their properties with widgets displayed on the right side. There is a combo box to select a template at the top of the dialog. An edit box to select output HTML file path is above the buttons at the bottom. Exporting is done when you press the Run button.
 
 * Template combo box  
 There are three available templates:
@@ -28,7 +28,7 @@ There are three available templates:
  * STLExport.html  
   You can save 3D objects in STL format on the web browser. [STL format](http://en.wikipedia.org/wiki/STL_%28file_format%29) is a format that can be used in 3DCG softwares such as [Blender](http://www.blender.org/).
 
-* Object and layer tree, and property widgets  
+* Tree for settings and property widgets  
 Items with check box are optional. When the current item is optional and not checked, widgets on the right side are disabled. See "General settings and Layer settings" below for details.
 
 * Output HTML file path  
@@ -40,7 +40,7 @@ Some JavaScript files will be output into the same directory as the HTML file. Y
 Exaggeration degree of terrain. This value also affects height of some 3D objects such as cylinder and extruded polygon. The default value is 1.5.
 
 * Vertical shift  
-Vertical shift of objects. If you want to export terrain of narrow area and high altitude, you should adjust the object positions to be displayed at the center of browser by changing this value. If you set the value to -1000, all objects are shifted down by 1000 (meters).
+Vertical shift for objects. If you want to export terrain of narrow area and high altitude, you should adjust the object positions to be displayed at the center of browser by changing this value. If you set the value to -1000, all objects are shifted down by 1000 (meters).
 
 * Background  
 Sky-like gradient background is selected by default. You can change it to a solid color.

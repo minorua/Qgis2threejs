@@ -61,7 +61,6 @@ class Point:
 class MapTo3D:
   def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
-    #self.canvasWidth, self.canvasHeight
     self.mapExtent = mapCanvas.extent()
 
     # 3d
@@ -329,12 +328,10 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
+  writer.timestamp = timestamp
   writer.openFile(not isSimpleMode)
   writer.writeWorldInfo()
   progress(5)
-
-  #TODO
-  writer.timestamp = timestamp
 
   # write primary DEM
   if isSimpleMode:
@@ -974,8 +971,9 @@ def writeVectors(writer):
       wkb_type = geom.wkbType()
       if geom_type == QGis.Point:
         if prop.useZ():
-          for pt in pointsFromWkb25D(geom.asWkb(), transform):
-            feat.addPoint(mapTo3d.transform(pt[0], pt[1], pt[2] + prop.relativeHeight(f)))
+          for point in pointsFromWkb25D(geom.asWkb()):
+            pt = transform.transform(point[0], point[1])
+            feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
           obj_mod.write(writer, feat)
         else:
           if geom.isMultipart():
@@ -990,16 +988,16 @@ def writeVectors(writer):
               h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
               h = prop.relativeHeight(f)
-            feat.addPoint(mapTo3d.transform(pt[0], pt[1], h))
+            feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), h))
           obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Line:
         if prop.useZ():
-          for line in linesFromWkb25D(geom.asWkb(), transform):
+          for line in linesFromWkb25D(geom.asWkb()):
             points = []
-            for pt in line:
-              h = pt[2] + prop.relativeHeight(f)
-              points.append(mapTo3d.transform(pt[0], pt[1], h))
+            for point in line:
+              pt = transform.transform(point[0], point[1])
+              points.append(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
             feat.addLine(points)
           obj_mod.write(writer, feat)
         else:
@@ -1090,7 +1088,7 @@ def writeVectors(writer):
   # write materials
   writer.materialManager.write(writer)
 
-def pointsFromWkb25D(wkb, transform):
+def pointsFromWkb25D(wkb):
   geom25d = ogr.CreateGeometryFromWkb(wkb)
   geomType = geom25d.GetGeometryType()
   geoms = []
@@ -1099,20 +1097,16 @@ def pointsFromWkb25D(wkb, transform):
   elif geomType == ogr.wkbMultiPoint25D:
     for i in range(geom25d.GetGeometryCount()):
       geoms.append(geom25d.GetGeometryRef(i))
-  points = []
+  pts = []
   for geom in geoms:
     if hasattr(geom, "GetPoints"):
-      pts = geom.GetPoints()
+      pts += geom.GetPoints()
     else:
-      pts = []
       for i in range(geom.GetPointCount()):
         pts.append(geom.GetPoint(i))
-    for pt_orig in pts:
-      pt = transform.transform(pt_orig[0], pt_orig[1])
-      points.append([pt.x(), pt.y(), pt_orig[2]])
-  return points
+  return pts
 
-def linesFromWkb25D(wkb, transform):
+def linesFromWkb25D(wkb):
   geom25d = ogr.CreateGeometryFromWkb(wkb)
   geomType = geom25d.GetGeometryType()
   geoms = []
@@ -1129,11 +1123,7 @@ def linesFromWkb25D(wkb, transform):
       pts = []
       for i in range(geom.GetPointCount()):
         pts.append(geom.GetPoint(i))
-    points = []
-    for pt_orig in pts:
-      pt = transform.transform(pt_orig[0], pt_orig[1])
-      points.append([pt.x(), pt.y(), pt_orig[2]])
-    lines.append(points)
+    lines.append(pts)
   return lines
 
 def pyobj2js(obj, escape=False, quoteHex=True):
