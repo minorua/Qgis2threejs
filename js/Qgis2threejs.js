@@ -201,7 +201,6 @@ function buildDEM(scene, layer, dem) {
  *
  *  Creates sides and bottom of the DEM to give an impression of "extruding" 
  *  and increase the 3D aspect.
- *  It adds also lights to see correctly the meshes created.
  */
 function buildSides(scene, dem, color, sole_height) {
 
@@ -283,15 +282,6 @@ function buildSides(scene, dem, color, sole_height) {
   mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI);
   scene.add(mesh);
   dem.aObjs.push(mesh);
-
-  // Additional lights
-  var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
-  light2.position.set(dem.plane.width, -dem.plane.height / 2, -10);
-  scene.add(light2);
-
-  var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
-  light3.position.set(-dem.plane.width, dem.plane.height / 2, -10);
-  scene.add(light3);
 }
 
 function buildFrame(scene, dem, color, sole_height) {
@@ -632,6 +622,24 @@ function toggleLabelVisibility() {
     if (!labelVisible) label.e.style.display = "none";
     label.obj.visible = labelVisible;
   });
+}
+
+function buildLights(scene) {
+  // ambient light
+  scene.add(new THREE.AmbientLight(0x999999));
+
+  // directional lights
+  var light1 = new THREE.DirectionalLight(0xffffff, 0.4);
+  light1.position.set(-0.1, -0.3, 1);
+  scene.add(light1);
+
+  var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light2.position.set(world.width, -world.height / 2, -10);
+  scene.add(light2);
+
+  var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light3.position.set(-world.width, world.height / 2, -10);
+  scene.add(light3);
 }
 
 function intersectObjects(clientX, clientY) {

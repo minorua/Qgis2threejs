@@ -42,10 +42,7 @@ ${scripts}
   var scene = new THREE.Scene();
 
   // light
-  scene.add(new THREE.AmbientLight(0x999999));
-  var light = new THREE.DirectionalLight(0xffffff, 0.4);
-  light.position.set(-0.1, -0.3, 1);
-  scene.add(light);
+  buildLights(scene);
 
   // camera and controls
   var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
