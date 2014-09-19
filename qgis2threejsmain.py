@@ -138,8 +138,9 @@ class Feature:
     return self.prop.values(self.f)
 
 class OutputContext:
-  def __init__(self, templateName, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
+  def __init__(self, templateName, templateType, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
     self.templateName = templateName
+    self.templateType = templateType
     self.mapTo3d = mapTo3d
     self.canvas = canvas
     self.properties = properties
@@ -154,6 +155,10 @@ class OutputContext:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "TrackballControls.js", type=unicode)
     else:
       self.controls = p["comboBox_Controls"]
+
+    self.demLayerId = None
+    if templateType == "sphere":
+      return
 
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:
@@ -312,7 +317,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   if progress is None:
     progress = dummyProgress
   temp_dir = QDir.tempPath()
-  
+
   #TODO: do in JSWriter?
   timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
   if htmlfilename == "":
@@ -321,49 +326,56 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   if not QDir(out_dir).exists():
     QDir().mkpath(out_dir)
 
-  filetitle = os.path.splitext(filename)[0]
-
-  demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
-  isSimpleMode = demProperties.get("radioButton_Simple", False)
-
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
   writer.timestamp = timestamp
-  writer.openFile(not isSimpleMode)
-  writer.writeWorldInfo()
-  progress(5)
 
-  # write primary DEM
-  if isSimpleMode:
-    writeSimpleDEM(writer, demProperties, progress)
+  # read configuration of the template
+  templatePath = os.path.join(tools.templateDir(), context.templateName)
+  templateConfig = tools.getTemplateConfig(templatePath)
+  templateType = templateConfig.get("type", "plain")
+  if templateType == "sphere":
+    writer.openFile(False)
+    # render texture for sphere and write it
+    writeSphereTexture(writer)
   else:
-    writeMultiResDEM(writer, demProperties, progress)
-    writer.prepareNext()
+    # plain type
+    demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
+    isSimpleMode = demProperties.get("radioButton_Simple", False)
+    writer.openFile(not isSimpleMode)
+    writer.writeWorldInfo()
+    progress(5)
 
-  # write additional DEM(s)
-  primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
-  for layerId, properties in context.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
-    if layerId != primaryDEMLayerId and properties.get("visible", False):
-      writeSimpleDEM(writer, properties)
+    # write primary DEM
+    if isSimpleMode:
+      writeSimpleDEM(writer, demProperties, progress)
+    else:
+      writeMultiResDEM(writer, demProperties, progress)
+      writer.prepareNext()
 
-  progress(50)
+    # write additional DEM(s)
+    primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
+    for layerId, properties in context.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
+      if layerId != primaryDEMLayerId and properties.get("visible", False):
+        writeSimpleDEM(writer, properties)
 
-  # write vector data
-  writeVectors(writer)
-  progress(80)
+    progress(50)
+
+    # write vector data
+    writeVectors(writer)
+    progress(80)
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir, context.controls)
 
   # copy additional library files
-  templatePath = os.path.join(tools.templateDir(), context.templateName)
-  metadata = tools.getTemplateMetadata(templatePath)
-  tools.copyLibraries(out_dir, metadata)
+  tools.copyLibraries(out_dir, templateConfig)
 
   # generate html file
   with codecs.open(templatePath, "r", "UTF-8") as f:
     html = f.read()
 
+  filetitle = os.path.splitext(filename)[0]
   with codecs.open(htmlfilename, "w", "UTF-8") as f:
     f.write(html.replace("${title}", filetitle).replace("${controls}", '<script src="./threejs/%s"></script>' % context.controls).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
 
@@ -1087,6 +1099,49 @@ def writeVectors(writer):
 
   # write materials
   writer.materialManager.write(writer)
+
+def writeSphereTexture(writer):
+  #context = writer.context
+  canvas = writer.context.canvas
+  antialias = True
+
+  image_width = 1024
+  image_height = 512
+  image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
+
+  # fill image with canvas color
+  fillColor = canvas.canvasColor()
+  if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
+    fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
+  image.fill(fillColor)
+
+  # set up a renderer
+  renderer = QgsMapRenderer()
+  renderer.setOutputSize(image.size(), image.logicalDpiX())
+
+  crs = QgsCoordinateReferenceSystem(4326)
+  renderer.setDestinationCrs(crs)
+  renderer.setProjectionsEnabled(True)
+
+  layerids = []
+  for layer in canvas.layers():
+    layerids.append(unicode(layer.id()))
+  renderer.setLayerSet(layerids)
+
+  extent = QgsRectangle(-180, -90, 180, 90)
+  renderer.setExtent(extent)
+
+  # render map image
+  painter = QPainter()
+  painter.begin(image)
+  if antialias:
+    painter.setRenderHint(QPainter.Antialiasing)
+  renderer.render(painter)
+  painter.end()
+
+  #if context.localBrowsingMode:
+  texData = tools.base64image(image)
+  writer.write('tex = "{0}";\n'.format(texData))
 
 def pointsFromWkb25D(wkb):
   geom25d = ogr.CreateGeometryFromWkb(wkb)

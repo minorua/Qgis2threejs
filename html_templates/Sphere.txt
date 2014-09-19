@@ -1,0 +1,6 @@
+[general]
+filename=Sphere.html
+description=Spherical Earth. Texture is rendered in EPSG:4326.
+type=sphere
+files=js/Qgis2threejs.js,js/Sphere.js,css/Qgis2threejs.css
+dirs=js/dat-gui

@@ -45,6 +45,7 @@ class Qgis2threejsDialog(QDialog):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
 
+    self.templateType = None
     self.currentItem = None
     self.currentPage = None
     topItemCount = len(ObjectTreeItem.topItemNames)
@@ -72,6 +73,7 @@ class Qgis2threejsDialog(QDialog):
 
     # set up the template combo box
     self.initTemplateList()
+    self.ui.comboBox_Template.currentIndexChanged.connect(self.currentTemplateChanged)
 
     # set up the properties pages
     self.pages = {}
@@ -89,6 +91,7 @@ class Qgis2threejsDialog(QDialog):
     self.initObjectTree()
     self.ui.treeWidget.currentItemChanged.connect(self.currentObjectChanged)
     self.ui.treeWidget.itemChanged.connect(self.objectItemChanged)
+    self.currentTemplateChanged()   # update item visibility
 
     ui.progressBar.setVisible(False)
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
@@ -101,14 +104,17 @@ class Qgis2threejsDialog(QDialog):
     self.objectTypeManager = ObjectTypeManager()
 
   def exec_(self):
-    ui = self.ui
+    if self.templateType == "sphere":
+      return
+
+    # TODO: show message under output path textbox
+    return QDialog.exec_(self)
+
     messages = []
     # show message if crs unit is degrees
     mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
     if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
-      self.showMessageBar("The unit of current CRS is degrees", "Terrain may not appear well.")
-
-    self.ui.treeWidget.setCurrentItem(self.ui.treeWidget.topLevelItem(ObjectTreeItem.ITEM_DEM))
+      self.showMessageBar("Terrain will not appear well", "The unit of current CRS is degrees")
 
     return QDialog.exec_(self)
 
@@ -133,9 +139,13 @@ class Qgis2threejsDialog(QDialog):
     for i, entry in enumerate(templateDir.entryList(["*.html", "*.htm"])):
       cbox.addItem(entry)
 
+      config = tools.getTemplateConfig(templateDir.filePath(entry))
+      # get template type
+      templateType = config.get("type", "plain")
+      cbox.setItemData(i, templateType, Qt.UserRole)
+
       # set tool tip text
-      meta = tools.getTemplateMetadata(templateDir.filePath(entry))
-      desc = meta.get("description", "")
+      desc = config.get("description", "")
       if desc:
         cbox.setItemData(i, desc, Qt.ToolTipRole)
 
@@ -200,6 +210,21 @@ class Qgis2threejsDialog(QDialog):
 
     if debug_mode:
       qDebug(str(self.properties))
+
+  def currentTemplateChanged(self, index=None):
+    cbox = self.ui.comboBox_Template
+    templateType = cbox.itemData(cbox.currentIndex(), Qt.UserRole)
+    if templateType == self.templateType:
+      return
+
+    tree = self.ui.treeWidget
+    for i, name in enumerate(ObjectTreeItem.topItemNames):
+      hidden = (templateType == "sphere" and name != "Controls")
+      tree.topLevelItem(i).setHidden(hidden)
+
+    itemToBeSelected = ObjectTreeItem.ITEM_CONTROLS if templateType == "sphere" else ObjectTreeItem.ITEM_DEM
+    tree.setCurrentItem(tree.topLevelItem(itemToBeSelected))
+    self.templateType = templateType
 
   def currentObjectChanged(self, currentItem, previousItem):
     # save properties of previous item
@@ -312,7 +337,9 @@ class Qgis2threejsDialog(QDialog):
     self.progress(0)
 
     canvas = self.iface.mapCanvas()
-    templateName = ui.comboBox_Template.currentText()
+    cbox = self.ui.comboBox_Template
+    templateName = cbox.currentText()
+    templateType = cbox.itemData(cbox.currentIndex(), Qt.UserRole)
     htmlfilename = ui.lineEdit_OutputFilename.text()
 
     # world properties
@@ -322,7 +349,7 @@ class Qgis2threejsDialog(QDialog):
 
     # export to javascript (three.js)
     mapTo3d = MapTo3D(canvas, verticalExaggeration=float(verticalExaggeration), verticalShift=float(verticalShift))
-    context = OutputContext(templateName, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
+    context = OutputContext(templateName, templateType, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
     htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
 
     self.progress(100)

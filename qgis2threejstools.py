@@ -150,19 +150,19 @@ def base64image(image):
   image.save(buffer, "PNG")
   return "data:image/png;base64," + base64.b64encode(ba)
 
-def getTemplateMetadata(template_path):
+def getTemplateConfig(template_path):
   meta_path = os.path.splitext(template_path)[0] + ".txt"
   if not os.path.exists(meta_path):
     return {}
   parser = ConfigParser.SafeConfigParser()
   with open(meta_path, "r") as f:
     parser.readfp(f)
-  metadata = {}
+  config = {}
   for item in parser.items("general"):
-    metadata[item[0]] = item[1]
+    config[item[0]] = item[1]
   if debug_mode:
-    qDebug("metadata: " + str(metadata))
-  return metadata
+    qDebug("config: " + str(config))
+  return config
 
 def copyFile(source, dest, overwrite=False):
   if os.path.exists(dest):
@@ -179,15 +179,15 @@ def copyFile(source, dest, overwrite=False):
     qDebug("File copied: %s to %s" % (source, dest))
   return QFile.copy(source, dest)
 
-def copyLibraries(out_dir, metadata, overwrite=False):
+def copyLibraries(out_dir, config, overwrite=False):
   plugin_dir = pluginDir()
-  files = metadata.get("files", "").strip()
+  files = config.get("files", "").strip()
   if files:
     for f in files.split(","):
       filename = os.path.basename(f)
       copyFile(os.path.join(plugin_dir, f), os.path.join(out_dir, filename), overwrite)
 
-  dirs = metadata.get("dirs", "").strip()
+  dirs = config.get("dirs", "").strip()
   if dirs:
     for d in dirs.split(","):
       dirpath = os.path.join(plugin_dir, d)

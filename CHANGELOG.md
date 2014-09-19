@@ -5,6 +5,7 @@
 * add object type: Profile (line)
 * add shading option to DEM
 * 3D print compatible STL export
+* add template: Sphere
 
 ### Version 0.7.1
 
