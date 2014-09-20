@@ -62,6 +62,8 @@ class Qgis2threejsDialog(QDialog):
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
+    ui.progressBar.setVisible(False)
+    ui.label_MessageIcon.setVisible(False)
 
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
@@ -93,44 +95,40 @@ class Qgis2threejsDialog(QDialog):
     self.ui.treeWidget.itemChanged.connect(self.objectItemChanged)
     self.currentTemplateChanged()   # update item visibility
 
-    ui.progressBar.setVisible(False)
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
 
     #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
 
-    self.bar = None   # QgsMessageBar
     self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
     self.objectTypeManager = ObjectTypeManager()
 
-  def exec_(self):
-    if self.templateType == "sphere":
-      return
+  def showMessageBar(self, text, level=QgsMessageBar.INFO):
+    # from src/gui/qgsmessagebaritem.cpp
+    if level == QgsMessageBar.CRITICAL:
+      msgIcon = "/mIconCritical.png"
+      bgColor = "#d65253"
+    elif level == QgsMessageBar.WARNING:
+      msgIcon = "/mIconWarn.png"
+      bgColor = "#ffc800"
+    else:
+      msgIcon = "/mIconInfo.png"
+      bgColor = "#e7f5fe"
+    stylesheet = "QLabel {{ background-color:{0}; }}".format(bgColor)
 
-    # TODO: show message under output path textbox
-    return QDialog.exec_(self)
+    label = self.ui.label_MessageIcon
+    label.setPixmap(QgsApplication.getThemeIcon(msgIcon).pixmap(24))
+    label.setStyleSheet(stylesheet)
+    label.setVisible(True)
 
-    messages = []
-    # show message if crs unit is degrees
-    mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
-    if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
-      self.showMessageBar("Terrain will not appear well", "The unit of current CRS is degrees")
+    label = self.ui.label_Status
+    label.setText(text)
+    label.setStyleSheet(stylesheet)
 
-    return QDialog.exec_(self)
-
-  def showMessageBar(self, title, text, level=QgsMessageBar.INFO):
-    if self.bar is None:
-      self.bar = QgsMessageBar()
-      self.bar.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-
-      ui = self.ui
-      margins = ui.gridLayout.getContentsMargins()
-      vl = ui.gridLayout.takeAt(0)
-      ui.gridLayout.setContentsMargins(0,0,0,0)
-      ui.gridLayout.addWidget(self.bar, 0, 0)
-      ui.gridLayout.addItem(vl, 1, 0)
-      ui.verticalLayout.setContentsMargins(margins[0], margins[1] / 2, margins[2], margins[3])
-    self.bar.pushMessage(title, text, level=level)
+  def clearMessageBar(self):
+    self.ui.label_MessageIcon.setVisible(False)
+    self.ui.label_Status.setText("")
+    self.ui.label_Status.setStyleSheet("QLabel { background-color: rgba(0, 0, 0, 0); }")
 
   def initTemplateList(self):
     cbox = self.ui.comboBox_Template
@@ -224,6 +222,14 @@ class Qgis2threejsDialog(QDialog):
 
     itemToBeSelected = ObjectTreeItem.ITEM_CONTROLS if templateType == "sphere" else ObjectTreeItem.ITEM_DEM
     tree.setCurrentItem(tree.topLevelItem(itemToBeSelected))
+
+    self.clearMessageBar()
+    if templateType != "sphere":
+      # show message if crs unit is degrees
+      mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
+      if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
+        self.showMessageBar("The unit of current CRS is degrees, so terrain will not appear well.", QgsMessageBar.WARNING)
+
     self.templateType = templateType
 
   def currentObjectChanged(self, currentItem, previousItem):
@@ -334,6 +340,7 @@ class Qgis2threejsDialog(QDialog):
       self.saveProperties(item, self.currentPage)
 
     ui.pushButton_Run.setEnabled(False)
+    self.clearMessageBar()
     self.progress(0)
 
     canvas = self.iface.mapCanvas()
