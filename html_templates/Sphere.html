@@ -37,7 +37,7 @@ ${scripts}
     height = vars.height;
   }
 
-  var renderer = new THREE.WebGLRenderer({alpha: (option.bgcolor === undefined)});
+  var renderer = new THREE.WebGLRenderer();
   renderer.setSize(width, height);
   renderer.setClearColor(guiParams.c, 1);
 

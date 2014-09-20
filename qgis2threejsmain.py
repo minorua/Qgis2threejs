@@ -1107,8 +1107,8 @@ def writeSphereTexture(writer):
   canvas = writer.context.canvas
   antialias = True
 
-  image_width = 1024
-  image_height = 512
+  image_height = 1024
+  image_width = 2 * image_height
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
 
   # fill image with canvas color
