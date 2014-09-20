@@ -337,6 +337,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   if templateType == "sphere":
     writer.openFile(False)
     # render texture for sphere and write it
+    progress(5, "rendering texture...")
     writeSphereTexture(writer)
   else:
     # plain type
@@ -344,7 +345,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     isSimpleMode = demProperties.get("radioButton_Simple", False)
     writer.openFile(not isSimpleMode)
     writer.writeWorldInfo()
-    progress(5)
+    progress(5, "writing DEM...")
 
     # write primary DEM
     if isSimpleMode:
@@ -359,11 +360,12 @@ def exportToThreeJS(htmlfilename, context, progress=None):
       if layerId != primaryDEMLayerId and properties.get("visible", False):
         writeSimpleDEM(writer, properties)
 
-    progress(50)
+    progress(50, "writing vector data...")
 
     # write vector data
     writeVectors(writer)
-    progress(80)
+
+  progress(80, "")
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir, context.controls)
@@ -1214,5 +1216,5 @@ def createQuadTree(extent, p):
   quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), p["spinBox_Height"])
   return quadtree
 
-def dummyProgress(progress):
+def dummyProgress(progress, statusMsg=None):
   pass
