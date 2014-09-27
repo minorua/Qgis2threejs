@@ -162,7 +162,7 @@ class OutputContext:
 
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:
-      layer = QgsMapLayerRegistry().instance().mapLayer(demLayerId)
+      layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
       self.warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
     else:
       self.warp_dem = tools.FlatRaster()
@@ -408,7 +408,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   layerName = ""
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
-    layer = QgsMapLayerRegistry().instance().mapLayer(demLayerId)
+    layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
     layerName = layer.name()
     warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
   else:
@@ -536,7 +536,7 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
-  demlayer = QgsMapLayerRegistry().instance().mapLayer(properties["comboBox_DEMLayer"])
+  demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
   htmlfilename = writer.htmlfilename
 
   # options
@@ -675,7 +675,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
-  demlayer = QgsMapLayerRegistry().instance().mapLayer(properties["comboBox_DEMLayer"])
+  demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
   temp_dir = QDir.tempPath()
   timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
@@ -933,7 +933,7 @@ def writeVectors(writer):
         layerProperties[layerId] = properties
 
   for layerId, properties in layerProperties.iteritems():
-    layer = QgsMapLayerRegistry().instance().mapLayer(layerId)
+    layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if layer is None:
       continue
     geom_type = layer.geometryType()

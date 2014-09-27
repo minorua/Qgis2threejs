@@ -319,7 +319,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # list 1 band raster layers
     comboBox.clear()
     comboBox.addItem("Flat plane (no DEM used)", 0)
-    for id, layer in QgsMapLayerRegistry().instance().mapLayers().items():
+    for id, layer in QgsMapLayerRegistry.instance().mapLayers().items():
       if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
         comboBox.addItem(layer.name(), id)
 

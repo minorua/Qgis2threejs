@@ -260,7 +260,7 @@ class Qgis2threejsDialog(QDialog):
       if layerId is None:
         return
 
-      layer = QgsMapLayerRegistry().instance().mapLayer(layerId)
+      layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
       if layer is None:
         return
 
