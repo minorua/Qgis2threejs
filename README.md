@@ -1,4 +1,4 @@
-Qgis2threejs plugin (version 0.7.1)
+Qgis2threejs plugin - version 0.7.2
 =====================================
 
 Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org).
@@ -26,7 +26,7 @@ There are three available templates:
  * CustomPlane.html  
   A plane is added to scene. You can change elevation, color and opacity of the plane with the control panel on the web browser.
  * STLExport.html  
-  You can save 3D objects in STL format on the web browser. [STL format](http://en.wikipedia.org/wiki/STL_%28file_format%29) is a format that can be used in 3DCG softwares such as [Blender](http://www.blender.org/).
+  This template builds 3D models on the web browser, but doesn't render them. Instead, it has ability to save 3D models in [STL format](http://en.wikipedia.org/wiki/STL_%28file_format%29). You can also save the texture image. The STL format is commonly supported by 3DCG softwares such as [Blender](http://www.blender.org/).
 
 * Tree for settings and property widgets  
 Items with check box are optional. When the current item is optional and not checked, widgets on the right side are disabled. See "General settings and Layer settings" below for details.

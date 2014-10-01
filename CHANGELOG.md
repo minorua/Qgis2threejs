@@ -2,10 +2,12 @@
 
 ### Version 0.8-dev
 
+### Version 0.7.2
+
 * add object type: Profile (line)
 * add shading option to DEM
 * 3D print compatible STL export
-* add template: Sphere
+* fix for QGIS 2.5
 
 ### Version 0.7.1
 
