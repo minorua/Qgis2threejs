@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -16,123 +16,122 @@ body { margin: 5%; }
 #about ul { margin: 5px; margin-left: 20px; padding: 0px; }
 </style>
 </head>
-<body onLoad="onLoad()">
+<body onLoad="listLayers()">
+<div id="webgl" style="display: none;"></div>
+
 <script src="./threejs/three.min.js"></script>
 <script src="./exporters/STLExporter.js"></script>
 <script src="./jszip/jszip.min.js"></script>
 <script src="./FileSaverjs/FileSaver.js"></script>
 <script src="./Qgis2threejs.js"></script>
 <script>
+var option = Q3D.Options;
+option.exportMode = true;
+option.exportSides = true;
 ${options}
 </script>
 ${scripts}
 <script>
-  // options
-  option.exportMode = true;
-  option.exportSides = true;
 
-  var scene = new THREE.Scene();
+var container = document.getElementById("webgl");
+var app = Q3D.application;
+app.init(container);
 
-  // build models
-  buildModels(scene);
+// load the project
+app.loadProject(project);
 
-  // create an exporter
-  var exporter = new THREE.STLExporter();
-  exporter.header = "Exported from Qgis2threejs";
+// create an exporter
+var exporter = new THREE.STLExporter();
+exporter.header = "Exported from Qgis2threejs";
 
-  function exportLayersSTLZip(isBinary) {
-    exporter.isBinary = isBinary;
-    var zipStlOption = {};
-    if (isBinary) zipStlOption = {type: "arraybuffer"};
+function exportLayersSTLZip(isBinary) {
+  exporter.isBinary = isBinary;
+  var zipStlOption = {};
+  if (isBinary) zipStlOption = {type: "arraybuffer"};
 
-    var zip = new JSZip();
-    for (var i = 0, l = lyr.length; i < l; i++) {
-      var layer = lyr[i];
-      if (layer.type == "dem") {
-        for (var j = 0, k = layer.dem.length; j < k; j++) {
-          var dem = layer.dem[j];
-          var filetitle = i + "_" + layer.name + "_" + j;
-          // mesh
-          exporter.clearContent();
-          var stlData = exporter.exportMesh(dem.obj);
-          zip.file(filetitle + ".stl", stlData, zipStlOption);
-
-          if (dem.t === undefined) continue;
-          // image: data begins with "data:image/***;base64,"
-          var ext = "." + dem.t.data.match(/^data:image\/(.*);/)[1];
-          zip.file(filetitle + ext, dem.t.data.replace(/^.*,/, ""), {base64: true});
-        }
-
-        // export sides and bottom
-        if (option.exportSides) {
-          var aObjs = layer.dem[0].aObjs || [];
-          if (aObjs.length > 0) {
-            var filetitle = i + "_" + layer.name + "_sides";
-            exporter.clearContent();
-            var stlData = exporter.exportMeshes(aObjs);
-            zip.file(filetitle + ".stl", stlData, zipStlOption);
-          }
-        }
-      } else {
-        // meshes
+  var zip = new JSZip();
+  project.layers.forEach(function (layer, layer_index) {
+    if (layer.type == Q3D.LayerType.DEM) {
+      for (var j = 0, k = layer.dem.length; j < k; j++) {
+        var dem = layer.dem[j];
+        var filetitle = layer_index + "_" + layer.name + "_" + j;
+        // mesh
         exporter.clearContent();
-        var stlData = exporter.exportMeshes(layer.meshes());
-        zip.file(i + "_" + layer.name + ".stl", stlData, zipStlOption);
+        var stlData = exporter.exportMesh(dem.obj);
+        zip.file(filetitle + ".stl", stlData, zipStlOption);
+
+        if (dem.t === undefined) continue;
+        // image: data begins with "data:image/***;base64,"
+        var ext = "." + dem.t.data.match(/^data:image\/(.*);/)[1];
+        zip.file(filetitle + ext, dem.t.data.replace(/^.*,/, ""), {base64: true});
       }
-    }
-    var content = zip.generate({type:"blob"});
-    saveAs(content, document.title + ".zip");
-  }
 
-  function exportLayerSTL(index) {
-    exporter.isBinary = true;
-    exporter.clearContent();
-    var stlData = exporter.exportMeshes(lyr[index].meshes());
-    saveTextAs(lyr[index].name + ".stl", stlData);
-  }
-
-  function saveTextAs(filename, data) {
-    var blob = new Blob([data], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, filename);
-  }
-
-  function listLayers() {
-    var ol = document.getElementById("olLayers");
-    var addLayer = function (index) {
-      var layer = lyr[i];
-      var e = document.createElement("li");
-      e.appendChild(document.createTextNode(layer.name + " "));
-
-      // STL download button
-      var btn = document.createElement("a");
-      btn.href = "#";
-      btn.className = "btn";
-      btn.appendChild(document.createTextNode("STL"));
-      btn.onclick = function () { exportLayerSTL(index); return false; };
-      e.appendChild(btn);
-
-      // images
-      if (layer.type == "dem") {
-        for (var j = 0, k = layer.dem.length; j < k; j++) {
-          if (layer.dem[j].t === undefined) continue;
-          var img = document.createElement("img");
-          img.className = "thumbnail";
-          img.src = layer.dem[j].t.data;
-          e.appendChild(img);
+      // export sides and bottom
+      if (option.exportSides) {
+        var aObjs = layer.dem[0].aObjs || [];
+        if (aObjs.length > 0) {
+          var filetitle = layer_index + "_" + layer.name + "_sides";
+          exporter.clearContent();
+          var stlData = exporter.exportMeshes(aObjs);
+          zip.file(filetitle + ".stl", stlData, zipStlOption);
         }
       }
-      ol.appendChild(e);
-    };
-
-    for (var i = 0, l = lyr.length; i < l; i++) {
-      addLayer(i);
+    } else {
+      // meshes
+      exporter.clearContent();
+      var stlData = exporter.exportMeshes(layer.meshes());
+      zip.file(layer_index + "_" + layer.name + ".stl", stlData, zipStlOption);
     }
-  }
+  });
+  var content = zip.generate({type: "blob"});
+  saveAs(content, document.title + ".zip");
+}
 
-  function onLoad() {
-    listLayers();
-  }
+function exportLayerSTL(index) {
+  exporter.isBinary = true;
+  exporter.clearContent();
+  var layer = project.layers[index];
+  var stlData = exporter.exportMeshes(layer.meshes());
+  saveTextAs(layer.name + ".stl", stlData);
+}
 
+function saveTextAs(filename, data) {
+  var blob = new Blob([data], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, filename);
+}
+
+function listLayers() {
+  var ol = document.getElementById("olLayers");
+  var addLayer = function (index) {
+    var layer = project.layers[index];
+    var e = document.createElement("li");
+    e.appendChild(document.createTextNode(layer.name + " "));
+
+    // STL download button
+    var btn = document.createElement("a");
+    btn.href = "#";
+    btn.className = "btn";
+    btn.appendChild(document.createTextNode("STL"));
+    btn.onclick = function () { exportLayerSTL(index); return false; };
+    e.appendChild(btn);
+
+    // images
+    if (layer.type == Q3D.LayerType.DEM) {
+      for (var j = 0, k = layer.dem.length; j < k; j++) {
+        if (layer.dem[j].t === undefined) continue;
+        var img = document.createElement("img");
+        img.className = "thumbnail";
+        img.src = layer.dem[j].t.data;
+        e.appendChild(img);
+      }
+    }
+    ol.appendChild(e);
+  };
+
+  project.layers.forEach(function (layer, layer_index) {
+    addLayer(layer_index);
+  });
+}
 </script>
 
 <div>You can save 3D models exported from <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a></div>

@@ -2,7 +2,17 @@
  * @author Eberhard Graether / http://egraether.com/
  */
 
-var controlHelp = "* Mouse\n Left button : Rotate\n Middle button : Zoom\n Right button : Pan\n";
+
+Q3D.Controls = {
+
+  usage: "* Mouse\n Left button : Rotate\n Middle button : Zoom\n Right button : Pan\n",
+
+  create: function (camera, domElement) {
+    return new THREE.TrackballControls(camera, domElement);
+  }
+
+};
+
 
 THREE.TrackballControls = function ( object, domElement ) {
 
@@ -410,7 +420,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 		document.removeEventListener( 'mouseup', mouseup );
 		if ( event.button == 0 && _rotateStart.equals( _rotateEnd ) ) {
 
-			if (canvas_clicked !== undefined) canvas_clicked( event );
+			Q3D.application.canvasClicked( event );
 
 		}
 
@@ -549,9 +559,3 @@ THREE.TrackballControls = function ( object, domElement ) {
 };
 
 THREE.TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
-
-function createControls( camera, domElement ) {
-
-	return new THREE.TrackballControls( camera, domElement );
-
-}

@@ -9,15 +9,15 @@ var customPlane;
  */
 
 function addPlane(color) {
-  var customPlaneGeometry = new THREE.PlaneGeometry(world.width, world.height, 1, 1);
+  var customPlaneGeometry = new THREE.PlaneGeometry(project.width, project.height, 1, 1);
   var customPlaneMaterial = new THREE.MeshLambertMaterial(
     {
-      color:color,
-      transparent:true
+      color: color,
+      transparent: true
     });
 
-  customPlane = new THREE.Mesh(customPlaneGeometry,customPlaneMaterial);
-  scene.add(customPlane);
+  customPlane = new THREE.Mesh(customPlaneGeometry, customPlaneMaterial);
+  Q3D.application.scene.add(customPlane);
 
 }
 
@@ -31,8 +31,8 @@ var parameters = {
     d: 0,
     o: 1
   },
-  i: showInfo
-}
+  i: Q3D.application.showInfo.bind(Q3D.application)
+};
 
 initGUI();
 
@@ -41,44 +41,50 @@ function initGUI() {
   // Create Layers folder
   var layersFolder = gui.addFolder('Layers');
   var folder;
-  for (var i = 0, l = lyr.length; i < l; i++) {
-    folder = layersFolder.addFolder(lyr[i].name);
+  
+  var visibleChanged = function (value) {
+      project.layers[this.object.i].setVisible(value);
+  };
+  
+  project.layers.forEach(function (layer, i) {
     parameters.lyr[i] = {i: i, v: true, o: 1};
-    folder.add(parameters.lyr[i], 'v').name('Visible').onChange(function(value) {
-      lyr[this.object.i].setVisible(value);
+    folder = layersFolder.addFolder(layer.name);
+    folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
+  });
+
+
+  if (project.layers[0].type == Q3D.LayerType.DEM) {
+    // Max value for the plane
+    var zMax = project.layers[0].stats.max;
+
+    // Create Custom Plane folder
+    var maingui = gui.addFolder('Custom Plane');
+    var customPlaneColor = maingui.addColor(parameters.cp, 'c').name('Color');
+    var customPlaneHeight = maingui.add(parameters.cp, 'd').min(0).max(zMax).name('Plane height (m)');
+    var customPlaneOpacity = maingui.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)');
+
+    // Change plane color
+    customPlaneColor.onChange(function (value) {
+      if (customPlane) {
+        customPlane.material.color.setStyle(value);
+      } else {
+        addPlane(value);
+      }
+    });
+
+    // Change plane Z
+    customPlaneHeight.onChange(function (value) {
+      if (customPlane === undefined) addPlane(parameters.cp.c);
+      customPlane.position.z = (value + project.zShift) * project.zScale;
+    });
+
+    // Change plane Opacity
+    customPlaneOpacity.onChange(function (value) {
+       if (customPlane) {
+         customPlane.material.opacity = value;
+       }
     });
   }
-
-  // Max value for the plane
-  var zMax = lyr[0].stats.max;
-
-  // Create Custom Plane folder
-  var maingui = gui.addFolder('Custom Plane');
-  var customPlaneColor = maingui.addColor(parameters.cp, 'c').name('Color');
-  var customPlaneHeight = maingui.add(parameters.cp, 'd').min(0).max(zMax).name('Plane height (m)');
-  var customPlaneOpacity = maingui.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)');
-
-  // Change plane color
-  customPlaneColor.onChange(function(value) {
-    if (customPlane) {
-      customPlane.material.color.setStyle(value);
-    } else {
-      addPlane(value);
-    }
-  });
-
-  // Change plane Z
-  customPlaneHeight.onChange(function(value) {
-    if (customPlane === undefined) addPlane(parameters.cp.c);
-    customPlane.position.z = (value + world.zShift) * world.zScale;
-  });
-
-  // Change plane Opacity
-  customPlaneOpacity.onChange(function(value) {
-     if (customPlane) {
-       customPlane.material.opacity = value;
-     }
-  });
 
   // Add Help button
   gui.add(parameters, 'i').name('Help');

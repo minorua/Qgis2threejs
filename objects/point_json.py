@@ -22,7 +22,7 @@
 from qgis.core import QGis
 from Qgis2threejs.stylewidget import StyleWidget
 import os
-json_pathes = []  #TODO: move into writer. moduleData["json_pathes"]?
+json_pathes = []  #TODO: JSONManager
 
 def geometryType():
   return QGis.Point
@@ -53,7 +53,7 @@ def write(writer, feat):
     index = len(json_pathes)
     with open(json_path) as f:
       json = f.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
-    writer.write("jsons[%d] = '%s';\n" % (index, json))
+    writer.write("project.jsons[%d] = {data:'%s'};\n" % (index, json))    # TODO: JSONManager
     json_pathes.append(json_path)
   else:
     return  #TODO: error message log

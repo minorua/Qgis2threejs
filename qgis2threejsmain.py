@@ -213,7 +213,10 @@ class MaterialManager:
     return index
 
   def write(self, f):
-    f.write("\n")
+    if not len(self.materials):
+      return
+    f.write("\n// Materials\n")
+    f.write("mat = project.materials;\n")
     for index, mat in enumerate(self.materials):
       m = {"type": mat[0], "c": mat[1]}
       transparency = mat[2]
@@ -262,19 +265,25 @@ class JSWriter:
       self.openFile()
     self.jsfile.write(data)
 
-  def writeWorldInfo(self):
-    # write information for coordinates transformation
+  def writeProject(self):
+    # write project information
+    self.write("// Qgis2threejs Project\n")
     extent = self.context.canvas.extent()
     mapTo3d = self.context.mapTo3d
-    fmt = "world = new World([{0},{1},{2},{3}],{4},{5},{6});\n"
-    self.write(fmt.format(extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
+    fmt = 'project = new Q3D.Project("{0}","{1}",[{2},{3},{4},{5}],{6},{7},{8});\n'
+    self.write(fmt.format("no title", "no crs defined",
+                          extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
                           mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift))
 
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
-    self.write("\n" + "lyr[{0}] = new MapLayer({1});\n".format(self.currentLayerIndex, pyobj2js(obj)))
+    type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
+    self.write("\n// Layer {0}\n".format(self.currentLayerIndex))
+    self.write("lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
+    # del obj["type"]
+
     if fieldNames is not None:
-      self.write(u"lyr[{0}].a = {1};\n".format(self.currentLayerIndex, pyobj2js(fieldNames)))
+      self.write(u"lyr.a = {0};\n".format(pyobj2js(fieldNames)))
     self.layerCount += 1
     self.currentFeatureIndex = -1
     self.attrs = []
@@ -282,14 +291,14 @@ class JSWriter:
 
   def writeFeature(self, f):
     self.currentFeatureIndex += 1
-    self.write("lyr[{0}].f[{1}] = {2};\n".format(self.currentLayerIndex, self.currentFeatureIndex, pyobj2js(f)))
+    self.write("lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
 
   def addAttributes(self, attrs):
     self.attrs.append(attrs)
 
   def writeAttributes(self):
     for index, attrs in enumerate(self.attrs):
-      self.write(u"lyr[{0}].f[{1}].a = {2};\n".format(self.currentLayerIndex, index, pyobj2js(attrs, True)))
+      self.write(u"lyr.f[{0}].a = {1};\n".format(index, pyobj2js(attrs, True)))
 
   def prepareNext(self):
     self.closeFile()
@@ -344,7 +353,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
     isSimpleMode = demProperties.get("radioButton_Simple", False)
     writer.openFile(not isSimpleMode)
-    writer.writeWorldInfo()
+    writer.writeProject()
     progress(5, "writing DEM...")
 
     # write primary DEM
@@ -498,15 +507,15 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # write layer and central dem
   lyrIdx = writer.writeLayer(lyr)
-  writer.write("lyr[{0}].dem[0].data = [{1}];\n".format(lyrIdx, ",".join(map(gdal2threejs.formatValue, dem_values))))
+  writer.write("lyr.dem[0].data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
   if texData is not None:
-    writer.write('lyr[{0}].dem[0].t.data = "{1}";\n'.format(lyrIdx, texData))
+    writer.write('lyr.dem[0].t.data = "{0}";\n'.format(texData))
 
   # write surrounding dems
   if surroundings:
     writeSurroundingDEM(writer, lyrIdx, stats, properties, progress)
     # overwrite stats
-    writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, pyobj2js(stats)))
+    writer.write("lyr.stats = {1};\n".format(pyobj2js(stats)))
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:
@@ -663,10 +672,10 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
       dem["shading"] = True
 
     # write dem object
-    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
-    writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
+    writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
-      writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
+      writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
     plane_index += 1
 
 def writeMultiResDEM(writer, properties, progress=None):
@@ -845,10 +854,10 @@ def writeMultiResDEM(writer, properties, progress=None):
 
       # write dem object
       writer.openFile(True)
-      writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
-      writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
+      writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
       if texData is not None:
-        writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
+        writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
       plane_index += 1
     else:
       centerQuads.addQuad(quad, dem_values)
@@ -911,13 +920,13 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # write dem object
     writer.openFile(True)
-    writer.write("lyr[{0}].dem[{1}] = {2};\n".format(lyrIdx, plane_index, pyobj2js(dem)))
-    writer.write("lyr[{0}].dem[{1}].data = [{2}];\n".format(lyrIdx, plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
+    writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
-      writer.write('lyr[{0}].dem[{1}].t.data = "{2}";\n'.format(lyrIdx, plane_index, texData))
+      writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
     plane_index += 1
 
-  writer.write("lyr[{0}].stats = {1};\n".format(lyrIdx, pyobj2js(stats)))
+  writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
 def writeVectors(writer):
   context = writer.context
@@ -1143,7 +1152,7 @@ def writeSphereTexture(writer):
 
   #if context.localBrowsingMode:
   texData = tools.base64image(image)
-  writer.write('tex = "{0}";\n'.format(texData))
+  writer.write('var tex = "{0}";\n'.format(texData))
 
 def pointsFromWkb25D(wkb):
   geom25d = ogr.CreateGeometryFromWkb(wkb)

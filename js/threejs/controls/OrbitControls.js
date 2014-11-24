@@ -28,7 +28,17 @@
 // TODO: controls should not reversed when upside is down
 // TODO: a target object that is visible while rotating/zooming
 
-var controlHelp = "* Mouse\n Left button : Orbit\n Middle button : Zoom\n Right button : Pan\n\n* Keys\n Arrow keys : Move horizontally\n Shift + Arrow keys : Orbit\n Ctrl + Arrow keys : Rotate\n Shift + Ctrl + Up / Down : Zoom in / out\n\n R : Auto rotate on / off\n U : Switch upside down (also controls are reversed)\n";
+
+Q3D.Controls = {
+
+  usage: "* Mouse\n Left button : Orbit\n Middle button : Zoom\n Right button : Pan\n\n* Keys\n Arrow keys : Move horizontally\n Shift + Arrow keys : Orbit\n Ctrl + Arrow keys : Rotate\n Shift + Ctrl + Up / Down : Zoom in / out\n\n R : Auto rotate on / off\n U : Switch upside down (also controls are reversed)\n",
+
+  create: function (camera, domElement) {
+    return new THREE.OrbitControls(camera, domElement);
+  }
+
+};
+
 
 THREE.OrbitControls = function ( object, domElement ) {
 
@@ -506,7 +516,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		mouseUpPoint.set( event.clientX, event.clientY );
 		if ( event.button == 0 && mouseDownPoint.equals( mouseUpPoint ) ) {
 
-			if (canvas_clicked !== undefined) canvas_clicked( event );
+			Q3D.application.canvasClicked( event );
 
 		}
 
@@ -795,9 +805,3 @@ THREE.OrbitControls = function ( object, domElement ) {
 };
 
 THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
-
-function createControls( camera, domElement ) {
-
-  	return new THREE.OrbitControls( camera, domElement );
-
-}
