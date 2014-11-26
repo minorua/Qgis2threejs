@@ -197,6 +197,7 @@ Q3D.application = {
 
   addEventListeners: function () {
     window.addEventListener("keydown", this.eventListener.keydown.bind(this));
+    window.addEventListener("resize", this.eventListener.resize.bind(this));
 
     var e = Q3D.$("closebtn");
     if (e) e.addEventListener("click", this.closePopup.bind(this));
@@ -217,8 +218,18 @@ Q3D.application = {
           window.open(imageUrl);
         }
       }
+    },
+
+    resize: function () {
+      if (!this._fullWindow) return;
+
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
+      this.camera.aspect = this.width / this.height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(this.width, this.height);
     }
-  
+
   },
 
   buildDefaultLights: function () {
