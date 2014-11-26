@@ -440,14 +440,11 @@ def writeSimpleDEM(writer, properties, progress=None):
   if surroundings:
     roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
 
-  # layer dict
-  lyr = {"type": "dem", "name": layerName, "stats": stats}
-  lyr["q"] = 1    #queryable
+  # dem block
   dem = {"width": dem_width, "height": dem_height}
   dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
-  lyr["dem"] = [dem]
 
-  # DEM transparency
+  # transparency
   demTransparency = prop.properties["spinBox_demtransp"]
 
   # display type
@@ -505,17 +502,24 @@ def writeSimpleDEM(writer, properties, progress=None):
   if not surroundings and properties.get("checkBox_Frame", False):
     dem["frame"] = True
 
-  # write layer and central dem
+  # layer
+  lyr = {"type": "dem", "name": layerName, "stats": stats}
+  lyr["q"] = 1    #queryable
+
+  # write layer
   lyrIdx = writer.writeLayer(lyr)
-  writer.write("lyr.dem[0].data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
+
+  # write central block
+  writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+  writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
   if texData is not None:
-    writer.write('lyr.dem[0].t.data = "{0}";\n'.format(texData))
+    writer.write('bl.t.data = "{0}";\n'.format(texData))
 
   # write surrounding dems
   if surroundings:
-    writeSurroundingDEM(writer, lyrIdx, stats, properties, progress)
+    writeSurroundingDEM(writer, stats, properties, progress)
     # overwrite stats
-    writer.write("lyr.stats = {1};\n".format(pyobj2js(stats)))
+    writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:
@@ -539,7 +543,7 @@ def roughenEdges(width, height, values, interval):
         z = (z0 * (interval - yy) + z1 * yy) / interval
         values[x + width * (y0 + yy)] = z
 
-def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
+def writeSurroundingDEM(writer, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
@@ -632,6 +636,8 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
     planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
     offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+
+    # dem block
     dem = {"width": dem_width, "height": dem_height}
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
@@ -671,11 +677,12 @@ def writeSurroundingDEM(writer, lyrIdx, stats, properties, progress=None):
     if properties.get("checkBox_Shading", True):
       dem["shading"] = True
 
-    # write dem object
-    writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
-    writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    # write block
+    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+    writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
-      writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
+      writer.write('bl.t.data = "{0}";\n'.format(texData))
+
     plane_index += 1
 
 def writeMultiResDEM(writer, properties, progress=None):
@@ -695,8 +702,8 @@ def writeMultiResDEM(writer, properties, progress=None):
   # material options
   demTransparency = properties["spinBox_demtransp"]
 
-  # layer dict
-  lyr = {"type": "dem", "name": demlayer.name(), "dem": []}
+  # layer
+  lyr = {"type": "dem", "name": demlayer.name()}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
 
@@ -852,12 +859,12 @@ def writeMultiResDEM(writer, properties, progress=None):
       if properties.get("checkBox_Shading", True):
         dem["shading"] = True
 
-      # write dem object
+      # write block
       writer.openFile(True)
-      writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
-      writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+      writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+      writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
       if texData is not None:
-        writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
+        writer.write('bl.t.data = "{0}";\n'.format(texData))
       plane_index += 1
     else:
       centerQuads.addQuad(quad, dem_values)
@@ -918,12 +925,12 @@ def writeMultiResDEM(writer, properties, progress=None):
     elif properties.get("radioButton_Wireframe", False):
       dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
-    # write dem object
+    # write block
     writer.openFile(True)
-    writer.write("lyr.dem[{0}] = {1};\n".format(plane_index, pyobj2js(dem)))
-    writer.write("lyr.dem[{0}].data = [{1}];\n".format(plane_index, ",".join(map(gdal2threejs.formatValue, dem_values))))
+    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+    writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
     if texData is not None:
-      writer.write('lyr.dem[{0}].t.data = "{1}";\n'.format(plane_index, texData))
+      writer.write('bl.t.data = "{0}";\n'.format(texData))
     plane_index += 1
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))

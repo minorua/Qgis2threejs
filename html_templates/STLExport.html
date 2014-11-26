@@ -52,23 +52,23 @@ function exportLayersSTLZip(isBinary) {
   var zip = new JSZip();
   project.layers.forEach(function (layer, layer_index) {
     if (layer.type == Q3D.LayerType.DEM) {
-      for (var j = 0, k = layer.dem.length; j < k; j++) {
-        var dem = layer.dem[j];
+      for (var j = 0, k = layer.blocks.length; j < k; j++) {
+        var block = layer.blocks[j];
         var filetitle = layer_index + "_" + layer.name + "_" + j;
         // mesh
         exporter.clearContent();
-        var stlData = exporter.exportMesh(dem.obj);
+        var stlData = exporter.exportMesh(block.obj);
         zip.file(filetitle + ".stl", stlData, zipStlOption);
 
-        if (dem.t === undefined) continue;
+        if (block.t === undefined) continue;
         // image: data begins with "data:image/***;base64,"
-        var ext = "." + dem.t.data.match(/^data:image\/(.*);/)[1];
-        zip.file(filetitle + ext, dem.t.data.replace(/^.*,/, ""), {base64: true});
+        var ext = "." + block.t.data.match(/^data:image\/(.*);/)[1];
+        zip.file(filetitle + ext, block.t.data.replace(/^.*,/, ""), {base64: true});
       }
 
       // export sides and bottom
       if (option.exportSides) {
-        var aObjs = layer.dem[0].aObjs || [];
+        var aObjs = layer.blocks[0].aObjs || [];
         if (aObjs.length > 0) {
           var filetitle = layer_index + "_" + layer.name + "_sides";
           exporter.clearContent();
@@ -117,11 +117,11 @@ function listLayers() {
 
     // images
     if (layer.type == Q3D.LayerType.DEM) {
-      for (var j = 0, k = layer.dem.length; j < k; j++) {
-        if (layer.dem[j].t === undefined) continue;
+      for (var j = 0, k = layer.blocks.length; j < k; j++) {
+        if (layer.blocks[j].t === undefined) continue;
         var img = document.createElement("img");
         img.className = "thumbnail";
-        img.src = layer.dem[j].t.data;
+        img.src = layer.blocks[j].t.data;
         e.appendChild(img);
       }
     }

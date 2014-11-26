@@ -306,13 +306,15 @@ Q3D.application = {
       var label = layer.l;
       if (label === undefined) return;
 
+      var getPoints;
+      if (layer.type == Q3D.LayerType.Point) getPoints = function (f) { return f.pts; };
+      else if (layer.type == Q3D.LayerType.Polygon) getPoints = function (f) { return f.centroids; };
+      else return;
+
       var f, pts;
       for (var i = 0, l = layer.f.length; i < l; i++) {
         f = layer.f[i];
-        if (layer.type == Q3D.LayerType.Point) pts = f.pts;
-        else if (layer.type == Q3D.LayerType.Polygon) pts = f.centroids;
-        else continue;
-
+        pts = getPoints(f);
         f.aElems = [];
         f.aObjs = [];
         var pt, h;
@@ -334,8 +336,7 @@ Q3D.application = {
 
           // create connector
           var geom = new THREE.Geometry();
-          geom.vertices.push(pt1);
-          geom.vertices.push(pt0);
+          geom.vertices.push(pt1, pt0);
           var conn = new THREE.Line(geom, line_mat);
           conn.userData = [layer_index, i];
           this.labelConnectorGroup.add(conn);
@@ -561,6 +562,61 @@ Q3D.Popup.prototype = {
 
 
 /*
+DEMBlock class
+*/
+Q3D.DEMBlock = function (params) {
+  for (var k in params) {
+    this[k] = params[k];
+  }
+  this.aObjs = [];
+};
+
+Q3D.DEMBlock.prototype = {
+
+  constructor: Q3D.DEMBlock,
+
+  build: function (layer) {
+    var geom = new THREE.PlaneGeometry(this.plane.width, this.plane.height,
+                                       this.width - 1, this.height - 1);
+
+    // Filling of the DEM plane
+    for (var i = 0, l = geom.vertices.length; i < l; i++) {
+      geom.vertices[i].z = this.data[i];
+    }
+
+    // Calculate normals
+    if (this.shading) {
+      geom.computeFaceNormals();
+      geom.computeVertexNormals();
+    }
+
+    // Terrain material
+    var mat;
+    if (this.m !== undefined) mat = layer.project.materials[this.m].m;
+    else {
+      var texture;
+      if (this.t.src === undefined) {
+        texture = Q3D.Utils.loadTextureData(this.t.data);
+      } else {
+        texture = THREE.ImageUtils.loadTexture(this.t.src);
+        texture.needsUpdate = true;
+      }
+      if (this.t.o === undefined) this.t.o = 1;
+      mat = new THREE.MeshPhongMaterial({map: texture, opacity: this.t.o, transparent: (this.t.o < 1)});
+    }
+    if (!Q3D.isIE) mat.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
+
+    var mesh = new THREE.Mesh(geom, mat);
+    if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
+    if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
+    mesh.userData = [layer.index, 0];
+    this.obj = mesh;
+    layer.addObject(mesh);
+  }
+};
+
+
+/*
 MapLayer class
 */
 Q3D.MapLayer = function (params) {
@@ -609,64 +665,32 @@ Q3D.DEMLayer class --> Q3D.MapLayer
 Q3D.DEMLayer = function (params) {
   Q3D.MapLayer.call(this, params);
   this.type = Q3D.LayerType.DEM;
+  this.blocks = [];
 };
 
 Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 
+Q3D.DEMLayer.prototype.addBlock = function (params) {
+  var block = new Q3D.DEMBlock(params);
+  this.blocks.push(block);
+  return block;
+};
+
 Q3D.DEMLayer.prototype.build = function () {
   var opt = Q3D.Options;
-  this.dem.forEach(function (dem) {
-    dem.aObjs = [];
-
-    this.buildDEM(dem);
+  this.blocks.forEach(function (block) {
+    block.build(this);
 
     // Build sides, bottom and frame
-    if (dem.s !== undefined) this.buildSides(dem, opt.side.color, opt.sole_height);
-    if (dem.frame) this.buildFrame(dem, opt.frame.color, opt.sole_height);
+    if (block.s !== undefined) this.buildSides(block, opt.side.color, opt.sole_height);
+    if (block.frame) this.buildFrame(block, opt.frame.color, opt.sole_height);
   }, this);
 };
 
-Q3D.DEMLayer.prototype.buildDEM = function (dem) {
-  var geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height,
-                                     dem.width - 1, dem.height - 1);
-
-  // Filling of the DEM plane
-  for (var i = 0, l = geom.vertices.length; i < l; i++) {
-    geom.vertices[i].z = dem.data[i];
-  }
-
-  // Calculate normals
-  if (dem.shading) {
-    geom.computeFaceNormals();
-    geom.computeVertexNormals();
-  }
-
-  // Terrain material
-  var mat;
-  if (dem.m !== undefined) mat = this.project.materials[dem.m].m;
-  else {
-    var texture;
-    if (dem.t.src === undefined) {
-      texture = Q3D.Utils.loadTextureData(dem.t.data);
-    } else {
-      texture = THREE.ImageUtils.loadTexture(dem.t.src);
-      texture.needsUpdate = true;
-    }
-    if (dem.t.o === undefined) dem.t.o = 1;
-    mat = new THREE.MeshPhongMaterial({map: texture, opacity: dem.t.o, transparent: (dem.t.o < 1)});
-  }
-  if (!Q3D.isIE) mat.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
-
-  var mesh = new THREE.Mesh(geom, mat);
-  if (dem.plane.offsetX != 0) mesh.position.x = dem.plane.offsetX;
-  if (dem.plane.offsetY != 0) mesh.position.y = dem.plane.offsetY;
-  mesh.userData = [this.index, 0];
-  this.addObject(mesh);
-  dem.obj = mesh;
-};
-
 // Creates sides and bottom of the DEM to give an impression of "extruding" and increase the 3D aspect.
-Q3D.DEMLayer.prototype.buildSides = function (dem, color, sole_height) {
+Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
+  var dem = block;
+
   // Material
   if (dem.s.o === undefined) dem.s.o = 1;
 
@@ -743,17 +767,18 @@ Q3D.DEMLayer.prototype.buildSides = function (dem, color, sole_height) {
   dem.aObjs.push(mesh);
 };
 
-Q3D.DEMLayer.prototype.buildFrame = function (dem, color, sole_height) {
+Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
+  var dem = block;
   var line_mat = new THREE.LineBasicMaterial({color: color});
 
   // horizontal rectangle at bottom
   var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
   var geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(-hw, -hh, z));
-  geom.vertices.push(new THREE.Vector3(hw, -hh, z));
-  geom.vertices.push(new THREE.Vector3(hw, hh, z));
-  geom.vertices.push(new THREE.Vector3(-hw, hh, z));
-  geom.vertices.push(new THREE.Vector3(-hw, -hh, z));
+  geom.vertices.push(new THREE.Vector3(-hw, -hh, z),
+                     new THREE.Vector3(hw, -hh, z),
+                     new THREE.Vector3(hw, hh, z),
+                     new THREE.Vector3(-hw, hh, z),
+                     new THREE.Vector3(-hw, -hh, z));
 
   var obj = new THREE.Line(geom, line_mat);
   this.addObject(obj, false);
@@ -766,8 +791,8 @@ Q3D.DEMLayer.prototype.buildFrame = function (dem, color, sole_height) {
              [-hw, hh, dem.data[0]]];
   pts.forEach(function (pt) {
     var geom = new THREE.Geometry();
-    geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
-    geom.vertices.push(new THREE.Vector3(pt[0], pt[1], z));
+    geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
+                       new THREE.Vector3(pt[0], pt[1], z));
 
     var obj = new THREE.Line(geom, line_mat);
     this.addObject(obj, false);
@@ -778,9 +803,9 @@ Q3D.DEMLayer.prototype.buildFrame = function (dem, color, sole_height) {
 
 Q3D.DEMLayer.prototype.meshes = function () {
   var m = [];
-  this.dem.forEach(function (dem) {
-    m.push(dem.obj);
-    (dem.aObjs || []).forEach(function (obj) {
+  this.blocks.forEach(function (block) {
+    m.push(block.obj);
+    (block.aObjs || []).forEach(function (obj) {
       m.push(obj);
     });
   });
@@ -1060,7 +1085,7 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
   for (var i = 0, l = object.children.length; i < l; i++) {
     this.setObjectVisibility(object.children[i], visible);
   }
-}
+};
 
 // Create a texture with image data and update texture when the image has been loaded
 Q3D.Utils.loadTextureData = function (imageData) {
