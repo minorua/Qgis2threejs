@@ -439,12 +439,9 @@ Q3D.application = {
     this.render();
   },
 
-  intersectObjects: function (clientX, clientY) {
-    var canvasOffset = this._offset(this.renderer.domElement);
-    var mx = clientX - canvasOffset.left;
-    var my = clientY - canvasOffset.top;
-    var x = (mx / this.width) * 2 - 1;
-    var y = -(my / this.height) * 2 + 1;
+  intersectObjects: function (offsetX, offsetY) {
+    var x = (offsetX / this.width) * 2 - 1;
+    var y = -(offsetY / this.height) * 2 + 1;
     var vector = new THREE.Vector3(x, y, 1);
     Q3D.projector.unprojectVector(vector, this.camera);
     var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
@@ -503,7 +500,8 @@ Q3D.application = {
 
   // Called from *Controls.js when canvas is clicked
   canvasClicked: function (e) {
-    var objs = this.intersectObjects(e.clientX, e.clientY);
+    var canvasOffset = this._offset(this.renderer.domElement);
+    var objs = this.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
     for (var i = 0, l = objs.length; i < l; i++) {
       if (objs[i].object.visible) {
         this.showQueryResult(objs[i]);
