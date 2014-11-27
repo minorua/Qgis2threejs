@@ -124,7 +124,10 @@ class Feature:
     for boundaries in self.polygons:
       b = []
       for boundary in boundaries:
-        b.append(map(lambda pt: [pt.x, pt.y, pt.z], boundary))
+        pts = map(lambda pt: [pt.x, pt.y, pt.z], boundary)
+        if GeometryUtils.isClockwise(boundary):
+          pts.reverse()   # to counter clockwise
+        b.append(pts)
       p.append(b)
     return p
 
@@ -1088,6 +1091,8 @@ def writeVectors(writer):
             else:
               h = prop.relativeHeight(f)
             points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+          if GeometryUtils.isClockwise(points):
+            points.reverse()    # to counter clockwise
           boundaries.append(points)
           # inner boundaries
           for inBoundary in polygon[1:]:
@@ -1101,7 +1106,8 @@ def writeVectors(writer):
               else:
                 h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            points.reverse()    # to counter clockwise direction
+            if GeometryUtils.isClockwise(points):
+              points.reverse()    # to counter clockwise
             boundaries.append(points)
           feat.addPolygon(boundaries)
         obj_mod.write(writer, feat)
@@ -1160,6 +1166,23 @@ def writeSphereTexture(writer):
   #if context.localBrowsingMode:
   texData = tools.base64image(image)
   writer.write('var tex = "{0}";\n'.format(texData))
+
+
+class GeometryUtils:
+
+  @classmethod
+  def _signedArea(cls, p):
+    """Calculates signed area of polygon."""
+    area = 0
+    for i in range(len(p) - 1):
+      area += (p[i].x - p[i + 1].x) * (p[i].y + p[i + 1].y)
+    return area / 2
+
+  @classmethod
+  def isClockwise(cls, linearRing):
+    """Returns whether given linear ring is clockwise."""
+    return cls._signedArea(linearRing) < 0
+
 
 def pointsFromWkb25D(wkb):
   geom25d = ogr.CreateGeometryFromWkb(wkb)
