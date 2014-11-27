@@ -32,13 +32,10 @@ ${options}
 </script>
 ${scripts}
 <script>
-
-var container = document.getElementById("webgl");
-var app = Q3D.application;
-app.init(container);
-
-// load the project
-app.loadProject(project);
+// build models
+project.layers.forEach(function (layer) {
+  layer.build();
+});
 
 // create an exporter
 var exporter = new THREE.STLExporter();

@@ -1092,7 +1092,7 @@ Q3D.Utils.loadTextureData = function (imageData) {
   var texture, image = new Image();
   image.onload = function () {
     texture.needsUpdate = true;
-    if (!Q3D.application.running) Q3D.application.render();
+    if (!Q3D.Options.exportMode && !Q3D.application.running) Q3D.application.render();
   };
   image.src = imageData;
   texture = new THREE.Texture(image);

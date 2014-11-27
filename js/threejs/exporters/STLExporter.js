@@ -44,6 +44,10 @@ THREE.STLExporter.prototype = {
 		var normal, vertex1, vertex2, vertex3;
 		for (i = 0; i < meshes.length; i++) {
 			mesh = meshes[i];
+			if (!mesh.geometry) {
+				continue;
+			}
+
 			if (mesh.rotation.x || mesh.rotation.y || mesh.rotation.z) {
 				geometry = mesh.geometry.clone();
 				m1.makeRotationX(mesh.rotation.x);
@@ -56,9 +60,10 @@ THREE.STLExporter.prototype = {
 			else {
 				geometry = mesh.geometry;
 			}
+
 			matrix = mesh.matrixWorld;
 			position = mesh.position;
-			
+
 			for (j = 0; j < geometry.faces.length; j++) {
 				face = geometry.faces[j];
 				normal = face.normal;
