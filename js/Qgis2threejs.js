@@ -133,16 +133,15 @@ Q3D.application = {
     this.popup = new Q3D.Popup();
 
     // label
-    this.labels = [];
-    this.labelVisibility = Q3D.Options.label.visible;
     this.labelConnectorGroup = new THREE.Object3D();
+    this.labelVisibility = Q3D.Options.label.visible;
+    this.labels = [];
 
-    // parent element for labels
+    // root element for labels
     var e = document.createElement("div");
-    e.id = "labelparent";
     e.style.display = (this.labelVisibility) ? "block" : "none";
     this.container.appendChild(e);
-    this._labelParentElement = e;
+    this.labelRootElement = e;
 
     // TODO:
     this.actions = [];
@@ -179,10 +178,16 @@ Q3D.application = {
       layer.build();
       this.scene.add(layer.objectGroup);
       if (layer.queryableObjects.length) this.queryableObjects = this.queryableObjects.concat(layer.queryableObjects);
+
+      // build labels
+      if (layer.l) {
+        layer.buildLabels(this.labelRootElement);
+        this.labelConnectorGroup.add(layer.labelConnectorGroup);
+        this.labels = this.labels.concat(layer.labels);
+      }
     }, this);
 
-    // build labels
-    this._buildLabels();
+    if (this.labels.length) this.scene.add(this.labelConnectorGroup);
 
     // restore view from URL parameters
     this._restoreViewFromUrl();
@@ -209,7 +214,7 @@ Q3D.application = {
       var keyPressed = e.which;
       if (keyPressed == 27) this.closePopup(); // ESC
       else if (keyPressed == 73) this.showInfo();  // I
-      else if (keyPressed == 76) this.toggleLabelVisibility();  // L
+      else if (keyPressed == 76) this.setLabelVisibility(!this.labelVisibility);  // L
       else if (!e.ctrlKey && e.shiftKey) {
         if (keyPressed == 82) this.controls.reset();   // Shift + R
         else if (keyPressed == 83) { // Shift + S
@@ -298,59 +303,6 @@ Q3D.application = {
     if (vars.ux !== undefined) this.controls.object.up.set(vars.ux, vars.uy, vars.uz);
   },
 
-  _buildLabels: function () {
-    var zShift = this.project.zShift, zScale = this.project.zScale;
-    var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
-
-    this.project.layers.forEach(function (layer, layer_index) {
-      var label = layer.l;
-      if (label === undefined) return;
-
-      var getPoints;
-      if (layer.type == Q3D.LayerType.Point) getPoints = function (f) { return f.pts; };
-      else if (layer.type == Q3D.LayerType.Polygon) getPoints = function (f) { return f.centroids; };
-      else return;
-
-      var f, pts;
-      for (var i = 0, l = layer.f.length; i < l; i++) {
-        f = layer.f[i];
-        pts = getPoints(f);
-        f.aElems = [];
-        f.aObjs = [];
-        var pt, h;
-        for (var j = 0, m = pts.length; j < m; j++) {
-          pt = pts[j];
-          // create div element for label
-          var e = document.createElement("div");
-          e.appendChild(document.createTextNode(f.a[label.i]));
-          e.className = "label";
-          this._labelParentElement.appendChild(e);
-
-          if (label.ht == 1) h = label.v;  // fixed height
-          else if (label.ht == 2) h = pt[2] + label.v;  // height from point / bottom
-          else if (label.ht == 3) h = pt[2] + f.h + label.v;  // height from top (extruded polygon)
-          else h = (f.a[label.ht - 100] + zShift) * zScale + label.v;  // data-defined + addend
-
-          var pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);
-          var pt1 = new THREE.Vector3(pt[0], pt[1], h);
-
-          // create connector
-          var geom = new THREE.Geometry();
-          geom.vertices.push(pt1, pt0);
-          var conn = new THREE.Line(geom, line_mat);
-          conn.userData = [layer_index, i];
-          this.labelConnectorGroup.add(conn);
-
-          f.aElems.push(e);
-          f.aObjs.push(conn);
-          this.labels.push({e: e, obj: conn, pt: pt1, l: layer_index, f: i});
-        }
-      }
-    }, this);
-
-    this.scene.add(this.labelConnectorGroup);
-  },
-
   // start rendering loop
   start: function () {
     this.running = true;
@@ -375,7 +327,7 @@ Q3D.application = {
 
   // update label positions
   updateLabels: function () {
-    if (this.labels.length == 0 || !this.labelVisibility) return;
+    if (!this.labelVisibility || this.labels.length == 0) return;
 
     var widthHalf = this.width / 2, heightHalf = this.height / 2;
     var autosize = Q3D.Options.label.autoSize;
@@ -430,13 +382,26 @@ Q3D.application = {
     }
   },
 
-  toggleLabelVisibility: function () {
-    var visible = !this.labelVisibility;
+  labelVisibilityChanged: function () {
+    this.labels = [];
+    this.project.layers.forEach(function (layer) {
+      if (!layer.l) return;
+      this.labels = this.labels.concat(layer.labels);
+    }, this);
+  },
+
+  setLabelVisibility: function (visible) {
     this.labelVisibility = visible;
     if (this.labels.length == 0) return;
 
-    this._labelParentElement.style.display = (visible) ? "block" : "none";
-    Q3D.Utils.setObjectVisibility(this.labelConnectorGroup, visible);
+    this.labelRootElement.style.display = (visible) ? "block" : "none";
+    this.labelConnectorGroup.visible = visible;
+    this.labelConnectorGroup.children.forEach(function (group) {
+      var layer = this.project.layers[group.userData];
+      if (!layer.visible && visible) return;
+      Q3D.Utils.setObjectVisibility(group, visible);
+    }, this);
+
     this.render();
   },
 
@@ -622,6 +587,7 @@ MapLayer class
 Q3D.MapLayer = function (params) {
 
   this.objectGroup = new THREE.Object3D();
+  this.visible = true;
   this.queryableObjects = [];
   for (var k in params) {
     this[k] = params[k];
@@ -820,11 +786,69 @@ Q3D.VectorLayer class --> Q3D.MapLayer
 */
 Q3D.VectorLayer = function (params) {
   Q3D.MapLayer.call(this, params);
+  this.labels = [];
 };
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 
 Q3D.VectorLayer.prototype.build = function () {};
+
+Q3D.VectorLayer.prototype.buildLabels = function (parentElement) {
+  // Layer must belong to a project
+  var label = this.l;
+  if (label === undefined || this.project === undefined) return;
+
+  // Line layer is not supported
+  var getPoints;
+  if (this.type == Q3D.LayerType.Point) getPoints = function (f) { return f.pts; };
+  else if (this.type == Q3D.LayerType.Polygon) getPoints = function (f) { return f.centroids; };
+  else return;
+
+  var zShift = this.project.zShift, zScale = this.project.zScale;
+  var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
+  this.labelConnectorGroup = new THREE.Object3D();
+  this.labelConnectorGroup.userData = this.index;
+
+  // create parent element for labels
+  var e = document.createElement("div");
+  parentElement.appendChild(e);
+  this.labelParentElement = e;
+
+  for (var i = 0, l = this.f.length; i < l; i++) {
+    var f = this.f[i];
+    var pts = getPoints(f);
+    f.aElems = [];
+    f.aObjs = [];
+    for (var j = 0, m = pts.length; j < m; j++) {
+      var pt = pts[j];
+      // create div element for label
+      var e = document.createElement("div");
+      e.appendChild(document.createTextNode(f.a[label.i]));
+      e.className = "label";
+      this.labelParentElement.appendChild(e);
+
+      var h;
+      if (label.ht == 1) h = label.v;  // fixed height
+      else if (label.ht == 2) h = pt[2] + label.v;  // height from point / bottom
+      else if (label.ht == 3) h = pt[2] + f.h + label.v;  // height from top (extruded polygon)
+      else h = (f.a[label.ht - 100] + zShift) * zScale + label.v;  // data-defined + addend
+
+      var pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);
+      var pt1 = new THREE.Vector3(pt[0], pt[1], h);
+
+      // create connector
+      var geom = new THREE.Geometry();
+      geom.vertices.push(pt1, pt0);
+      var conn = new THREE.Line(geom, line_mat);
+      conn.userData = [this.index, i];
+      this.labelConnectorGroup.add(conn);
+
+      f.aElems.push(e);
+      f.aObjs.push(conn);
+      this.labels.push({e: e, obj: conn, pt: pt1});
+    }
+  }
+};
 
 Q3D.VectorLayer.prototype.meshes = function () {
   var meshes = [];
@@ -839,14 +863,13 @@ Q3D.VectorLayer.prototype.meshes = function () {
 
 Q3D.VectorLayer.prototype.setVisible = function (visible) {
   Q3D.MapLayer.prototype.setVisible.call(this, visible);
+  if (this.labels.length == 0) return;
 
-  var display = (visible) ? "block": "none";
-  for (var i = 0, l = this.f.length; i < l; i++) {
-    var f = this.f[i];
-    for (var j = 0, m = (f.aElems) ? f.aElems.length : 0; j < m; j++) {
-      f.aElems[j].style.display = display;
-    }
+  this.labelParentElement.style.display = (visible) ? "block" : "none";
+  if (this.labelConnectorGroup.parent.visible) {
+    Q3D.Utils.setObjectVisibility(this.labelConnectorGroup, visible);
   }
+  Q3D.application.labelVisibilityChanged();
 };
 
 
