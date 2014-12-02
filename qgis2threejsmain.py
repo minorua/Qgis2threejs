@@ -155,7 +155,7 @@ class OutputContext:
 
     p = properties[ObjectTreeItem.ITEM_CONTROLS]
     if p is None:
-      self.controls = QSettings().value("/Qgis2threejs/lastControls", "TrackballControls.js", type=unicode)
+      self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
     else:
       self.controls = p["comboBox_Controls"]
 
