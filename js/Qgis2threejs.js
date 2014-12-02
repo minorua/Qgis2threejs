@@ -1107,10 +1107,9 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
 Q3D.Utils = {};
 
 Q3D.Utils.setObjectVisibility = function (object, visible) {
-  object.visible = visible;
-  for (var i = 0, l = object.children.length; i < l; i++) {
-    this.setObjectVisibility(object.children[i], visible);
-  }
+  object.traverse(function (obj) {
+    obj.visible = visible;
+  });
 };
 
 // Create a texture with image data and update texture when the image has been loaded
