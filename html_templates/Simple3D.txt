@@ -1,5 +1,0 @@
-[general]
-filename=Simple3D.html
-description=Simple template
-files=js/Qgis2threejs.js,css/Qgis2threejs.css
-dirs=

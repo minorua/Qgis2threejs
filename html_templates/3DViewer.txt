@@ -1,0 +1,5 @@
+[general]
+filename=3DViewer.html
+description=This template is a 3D viewer without any additional library.
+files=js/Qgis2threejs.js,css/Qgis2threejs.css
+dirs=
