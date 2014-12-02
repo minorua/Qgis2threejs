@@ -72,9 +72,9 @@ Q3D.Project.prototype = {
             z : z / this.zScale - this.zShift};
   }
 
-  // buildCustomLights: function (application) {},
+  // buildCustomLights: function (parent) {},
 
-  // buildCustomCamera: function (application) {}
+  // buildCustomCamera: function () {}
 };
 
 
@@ -124,13 +124,13 @@ Q3D.application = {
     this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     this.container.appendChild(this.renderer.domElement);
 
+    // popup window
+    this.popup = new Q3D.Popup();
+
     // scene
     this.scene = new THREE.Scene();
 
     this.queryableObjects = [];
-
-    // popup window
-    this.popup = new Q3D.Popup();
 
     // label
     this.labelConnectorGroup = new THREE.Object3D();
@@ -161,11 +161,11 @@ Q3D.application = {
     this.project = project;
 
     // light
-    if (project.buildCustomLights) project.buildCustomLights(this);
-    else this.buildDefaultLights();
+    if (project.buildCustomLights) project.buildCustomLights(this.scene);
+    else this.buildDefaultLights(this.scene);
 
     // camera
-    if (project.buildCustomCamera) project.buildCustomCamera(this);
+    if (project.buildCustomCamera) project.buildCustomCamera();
     else this.buildDefaultCamera();
 
     // controls
@@ -175,14 +175,12 @@ Q3D.application = {
     this._createMaterials();
 
     project.layers.forEach(function (layer) {
-      layer.build();
-      this.scene.add(layer.objectGroup);
+      layer.build(this.scene);
       if (layer.queryableObjects.length) this.queryableObjects = this.queryableObjects.concat(layer.queryableObjects);
 
       // build labels
       if (layer.l) {
-        layer.buildLabels(this.labelRootElement);
-        this.labelConnectorGroup.add(layer.labelConnectorGroup);
+        layer.buildLabels(this.labelConnectorGroup, this.labelRootElement);
         this.labels = this.labels.concat(layer.labels);
       }
     }, this);
@@ -237,24 +235,24 @@ Q3D.application = {
 
   },
 
-  buildDefaultLights: function () {
+  buildDefaultLights: function (parent) {
     // ambient light
-    this.scene.add(new THREE.AmbientLight(0x999999));
+    parent.add(new THREE.AmbientLight(0x999999));
 
     // directional lights
     var light1 = new THREE.DirectionalLight(0xffffff, 0.4);
     light1.position.set(-0.1, -0.3, 1);
-    this.scene.add(light1);
+    parent.add(light1);
 
     if (!this.project) return;
     
     var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
     light2.position.set(this.project.width, -this.project.height / 2, -10);
-    this.scene.add(light2);
+    parent.add(light2);
 
     var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
     light3.position.set(-this.project.width, this.project.height / 2, -10);
-    this.scene.add(light3);
+    parent.add(light3);
   },
 
   buildDefaultCamera: function () {
@@ -322,11 +320,11 @@ Q3D.application = {
 
   render: function () {
     this.renderer.render(this.scene, this.camera);
-    this.updateLabels();
+    this.updateLabelPosition();
   },
 
-  // update label positions
-  updateLabels: function () {
+  // update label position
+  updateLabelPosition: function () {
     if (!this.labelVisibility || this.labels.length == 0) return;
 
     var widthHalf = this.width / 2, heightHalf = this.height / 2;
@@ -620,7 +618,7 @@ Q3D.MapLayer.prototype = {
 };
 
 /*
-Q3D.MapLayer.prototype.build = function () {};
+Q3D.MapLayer.prototype.build = function (parent) {};
 Q3D.MapLayer.prototype.meshes = function () {};
 */
 
@@ -642,7 +640,7 @@ Q3D.DEMLayer.prototype.addBlock = function (params) {
   return block;
 };
 
-Q3D.DEMLayer.prototype.build = function () {
+Q3D.DEMLayer.prototype.build = function (parent) {
   var opt = Q3D.Options;
   this.blocks.forEach(function (block) {
     block.build(this);
@@ -651,6 +649,8 @@ Q3D.DEMLayer.prototype.build = function () {
     if (block.s !== undefined) this.buildSides(block, opt.side.color, opt.sole_height);
     if (block.frame) this.buildFrame(block, opt.frame.color, opt.sole_height);
   }, this);
+
+  if (parent) parent.add(this.objectGroup);
 };
 
 // Creates sides and bottom of the DEM to give an impression of "extruding" and increase the 3D aspect.
@@ -791,9 +791,9 @@ Q3D.VectorLayer = function (params) {
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 
-Q3D.VectorLayer.prototype.build = function () {};
+Q3D.VectorLayer.prototype.build = function (parent) {};
 
-Q3D.VectorLayer.prototype.buildLabels = function (parentElement) {
+Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement) {
   // Layer must belong to a project
   var label = this.l;
   if (label === undefined || this.project === undefined) return;
@@ -808,6 +808,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parentElement) {
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
   this.labelConnectorGroup = new THREE.Object3D();
   this.labelConnectorGroup.userData = this.index;
+  if (parent) parent.add(this.labelConnectorGroup);
 
   // create parent element for labels
   var e = document.createElement("div");
@@ -883,9 +884,9 @@ Q3D.PointLayer = function (params) {
 
 Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
-Q3D.PointLayer.prototype.build = function () {
+Q3D.PointLayer.prototype.build = function (parent) {
   if (this.objType == "JSON model") {
-    Q3D._JSONPointLayer.build.call(this);
+    this.buildJSONModels(parent);
     return;
   }
 
@@ -921,15 +922,11 @@ Q3D.PointLayer.prototype.build = function () {
       f.objs.push(mesh);
     }
   }, this);
+
+  if (parent) parent.add(this.objectGroup);
 };
 
-
-/*
-Q3D._JSONPointLayer
-*/
-Q3D._JSONPointLayer = {};
-
-Q3D._JSONPointLayer.build = function () {
+Q3D.PointLayer.prototype.buildJSONModels = function (parent) {
   var manager = new THREE.LoadingManager();
   var loader = new THREE.JSONLoader(manager);
   var jsons = this.project.jsons;
@@ -962,6 +959,8 @@ Q3D._JSONPointLayer.build = function () {
       f.objs.push(mesh);
     }
   }, this);
+
+  if (parent) parent.add(this.objectGroup);
 };
 
 
@@ -975,7 +974,7 @@ Q3D.LineLayer = function (params) {
 
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
-Q3D.LineLayer.prototype.build = function () {
+Q3D.LineLayer.prototype.build = function (parent) {
   var materials = this.project.materials;
   var pt;
   if (this.objType == "Line") {
@@ -1050,6 +1049,8 @@ Q3D.LineLayer.prototype.build = function () {
       f.objs.push(obj);
     }
   }, this);
+
+  if (parent) parent.add(this.objectGroup);
 };
 
 
@@ -1063,7 +1064,7 @@ Q3D.PolygonLayer = function (params) {
 
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
-Q3D.PolygonLayer.prototype.build = function () {
+Q3D.PolygonLayer.prototype.build = function (parent) {
   var materials = this.project.materials;
 
   var bnd2pts = function (boundary) {
@@ -1097,6 +1098,8 @@ Q3D.PolygonLayer.prototype.build = function () {
       f.objs.push(obj);
     }
   }, this);
+
+  if (parent) parent.add(this.objectGroup);
 };
 
 
