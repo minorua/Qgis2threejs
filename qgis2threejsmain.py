@@ -1000,6 +1000,9 @@ def writeVectors(writer):
       feat.setQgsFeature(f)
 
       geom = f.geometry()
+      if geom is None:
+        qDebug("null geometry skipped")
+        continue
       geom_type == geom.type()
       wkb_type = geom.wkbType()
       if geom_type == QGis.Point:
