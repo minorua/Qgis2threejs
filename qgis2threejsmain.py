@@ -1246,6 +1246,8 @@ def pyobj2js(obj, escape=False, quoteHex=True):
     return '"' + obj + '"'
   elif isinstance(obj, (int, float)):
     return obj
+  elif obj == NULL:   # qgis.core.NULL
+    return "null"
   return '"' + str(obj) + '"'
 
 # createQuadTree(extent, demProperties)

@@ -135,7 +135,7 @@ Q3D.application = {
     // label
     this.labelConnectorGroup = new THREE.Object3D();
     this.labelVisibility = Q3D.Options.label.visible;
-    this.labels = [];
+    this.labels = [];     // labels of visible layers
 
     // root element for labels
     var e = document.createElement("div");
@@ -817,14 +817,17 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement) {
 
   for (var i = 0, l = this.f.length; i < l; i++) {
     var f = this.f[i];
-    var pts = getPoints(f);
     f.aElems = [];
     f.aObjs = [];
+    var text = f.a[label.i];
+    if (text === null || text === "") continue;
+
+    var pts = getPoints(f);
     for (var j = 0, m = pts.length; j < m; j++) {
       var pt = pts[j];
       // create div element for label
       var e = document.createElement("div");
-      e.appendChild(document.createTextNode(f.a[label.i]));
+      e.appendChild(document.createTextNode(text));
       e.className = "label";
       this.labelParentElement.appendChild(e);
 
