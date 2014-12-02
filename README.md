@@ -105,6 +105,7 @@ Samples
 =======
 * [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Shaded relief map made with SRTM3 data)
 * [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Shaded relief map made with SRTM3 data)
+* [Mt.Fuji (with vector data)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html) (Test data)
 * [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom plane template. Shaded relief map made with SRTM3 data)
 
 JavaScript libraries used by exported pages
