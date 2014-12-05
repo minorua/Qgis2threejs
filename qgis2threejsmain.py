@@ -125,8 +125,12 @@ class Feature:
       b = []
       for boundary in boundaries:
         pts = map(lambda pt: [pt.x, pt.y, pt.z], boundary)
-        if GeometryUtils.isClockwise(boundary):
-          pts.reverse()   # to counter clockwise
+        if len(b) == 0:
+          if not GeometryUtils.isClockwise(boundary):
+            pts.reverse()   # to clockwise
+        else:
+          if GeometryUtils.isClockwise(boundary):
+            pts.reverse()   # to counter-clockwise
         b.append(pts)
       p.append(b)
     return p
@@ -1094,8 +1098,8 @@ def writeVectors(writer):
             else:
               h = prop.relativeHeight(f)
             points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-          if GeometryUtils.isClockwise(points):
-            points.reverse()    # to counter clockwise
+          if not GeometryUtils.isClockwise(points):
+            points.reverse()    # to clockwise
           boundaries.append(points)
           # inner boundaries
           for inBoundary in polygon[1:]:
@@ -1110,7 +1114,7 @@ def writeVectors(writer):
                 h = prop.relativeHeight(f)
               points.append(mapTo3d.transform(pt.x(), pt.y(), h))
             if GeometryUtils.isClockwise(points):
-              points.reverse()    # to counter clockwise
+              points.reverse()    # to counter-clockwise
             boundaries.append(points)
           feat.addPolygon(boundaries)
         obj_mod.write(writer, feat)
