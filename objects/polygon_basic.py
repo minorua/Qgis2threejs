@@ -26,22 +26,26 @@ def geometryType():
   return QGis.Polygon
 
 def objectTypeNames():
-  return ["Extruded"]
+  return ["Extruded", "Overlay"]
 
 def setupForm(ppage, mapTo3d, layer, type_index=0):
   defaultValueZ = 0.5 / mapTo3d.multiplierZ
 
   ppage.colorWidget.setup()
   ppage.transparencyWidget.setup()
-  ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
-  styleCount = 1
+
+  styleCount = 0
+  if type_index == 0:   # Extruded
+    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
+    styleCount = 1
+
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
 def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   vals = feat.propValues()
-  h = float(vals[0]) * writer.context.mapTo3d.multiplierZ
+
   polygons = []
   zs = []
   for polygon in feat.polygons:
@@ -53,7 +57,15 @@ def write(writer, feat):
       zcount += len(boundary) - 1
     polygons.append(bnds)
     zs.append(zsum / zcount)
-  d = {"m": mat, "h": h, "zs": zs, "polygons": polygons}
+  d = {"m": mat, "polygons": polygons}
+
+  if feat.prop.type_index == 0:  # Extruded
+    d["zs"] = zs
+    d["h"] = float(vals[0]) * writer.context.mapTo3d.multiplierZ
+
+  else:   # Overlay
+    d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
+
   if len(feat.centroids):
     d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.centroids)
   writer.writeFeature(d)

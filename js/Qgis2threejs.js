@@ -575,7 +575,22 @@ Q3D.DEMBlock.prototype = {
     mesh.userData = [layer.index, 0];
     this.obj = mesh;
     layer.addObject(mesh);
+  },
+    
+  getValue: function (x, y) {
+    if (0 <= x && x < this.width && 0 <= y && y < this.height) return this.data[x + this.width * y];
+    return null;
+  },
+
+  contains: function (x, y) {
+    var xmin = this.plane.offsetX - this.plane.width / 2,
+        xmax = this.plane.offsetX + this.plane.width / 2,
+        ymin = this.plane.offsetY - this.plane.height / 2,
+        ymax = this.plane.offsetY + this.plane.height / 2;
+    if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
+    return false;
   }
+
 };
 
 
@@ -778,7 +793,42 @@ Q3D.DEMLayer.prototype.meshes = function () {
   return m;
 };
 
-// TODO: Q3D.DEMLayer.prototype.getZ(x, y)    // calculate elevation at the coordinates (x, y) on triangle face
+// calculate elevation at the coordinates (x, y) on triangle face
+Q3D.DEMLayer.prototype.getZ = function (x, y) {
+  var xmin = -this.project.width / 2,
+      ymax = this.project.height / 2;
+
+  for (var i = 0, l = this.blocks.length; i < l; i++) {
+    var block = this.blocks[i];
+    if (!block.contains(x, y)) continue;
+
+    var ix = block.plane.width / (block.width - 1),
+        iy = block.plane.height / (block.height - 1);
+
+    var xmin = block.plane.offsetX - block.plane.width / 2,
+        ymax = block.plane.offsetY + block.plane.height / 2;
+
+    var mx0 = Math.floor((x - xmin) / ix),
+        my0 = Math.floor((ymax - y) / iy);
+
+    var z = [block.getValue(mx0, my0),
+             block.getValue(mx0 + 1, my0),
+             block.getValue(mx0, my0 + 1),
+             block.getValue(mx0 + 1, my0 + 1)];
+
+    var px0 = xmin + ix * mx0,
+        py0 = ymax - iy * my0;
+
+    var sdx = (x - px0) / ix,
+        sdy = (py0 - y) / iy;
+
+    // console.log(x, y, mx0, my0, sdx, sdy);
+
+    if (sdx <= 1 - sdy) return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * sdy;
+    else return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * (1 - sdy);
+  }
+  return null;
+};
 
 
 /*
@@ -1070,37 +1120,117 @@ Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PolygonLayer.prototype.build = function (parent) {
   var materials = this.project.materials;
 
-  var bnd2pts = function (boundary) {
+  var arrayToVec2Array = function (points) {
     var pt, pts = [];
-    for (var i = 0, l = boundary.length; i < l; i++) {
-      pt = boundary[i];
+    for (var i = 0, l = points.length; i < l; i++) {
+      pt = points[i];
       pts.push(new THREE.Vector2(pt[0], pt[1]));
     }
     return pts;
   };
 
-  var createObject = function (f, polygon, z) {
-    var shape = new THREE.Shape(bnd2pts(polygon[0]));
-    for (var i = 1, l = polygon.length; i < l; i++) {
-      shape.holes.push(new THREE.Path(bnd2pts(polygon[i])));
+  var arrayToVec3Array = function (points, zFunc) {
+    if (zFunc === undefined) zFunc = function () { return 0; };
+    var pt, pts = [];
+    for (var i = 0, l = points.length; i < l; i++) {
+      pt = points[i];
+      pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
     }
-    var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h});
-    var mesh = new THREE.Mesh(geom, materials[f.m].m);
-    mesh.position.z = z;
-    return mesh;
+    return pts;
   };
 
-  // each feature in this layer
-  this.f.forEach(function (f, fid) {
-    f.objs = [];
-    var userData = [this.index, fid];
-    for (var i = 0, l = f.polygons.length; i < l; i++) {
-      var obj = createObject(f, f.polygons[i], f.zs[i]);
-      obj.userData = userData;
+  if (this.objType == "Extruded") {
+    var createObject = function (f, polygon, z) {
+      var shape = new THREE.Shape(arrayToVec2Array(polygon[0]));
+      for (var i = 1, l = polygon.length; i < l; i++) {
+        shape.holes.push(new THREE.Path(arrayToVec2Array(polygon[i])));
+      }
+      var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h});
+      var mesh = new THREE.Mesh(geom, materials[f.m].m);
+      mesh.position.z = z;
+      return mesh;
+    };
+
+    // each feature in this layer
+    this.f.forEach(function (f, fid) {
+      f.objs = [];
+      var userData = [this.index, fid];
+      for (var i = 0, l = f.polygons.length; i < l; i++) {
+        var obj = createObject(f, f.polygons[i], f.zs[i]);
+        obj.userData = userData;
+        this.addObject(obj);
+        f.objs.push(obj);
+      }
+    }, this);
+  }
+  else {    // this.objType == "Overlay"
+    var relativeToDEM = (this.am == "relative");    // altitude mode
+    if (relativeToDEM) {
+      var dem = this.project.layers[0];
+    }
+    var face012 = new THREE.Face3(0, 1, 2);
+    var createObject = function (f) {
+      var zFunc;
+      if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
+      else zFunc = function (x, y) { return f.h; };
+
+      var j, m, geom = new THREE.Geometry();
+      for (var i = 0, l = f.polygons.length; i < l; i++) {
+        var polygon = f.polygons[i];
+        if (polygon[0].length == 4) {
+          var triangle = new THREE.Geometry();
+          // vertex order of outer boundary is clockwise. use first 3 points.
+          for (j = 2; j >= 0; j--) {
+            var x = polygon[0][j][0],
+                y = polygon[0][j][1];
+            triangle.vertices.push(new THREE.Vector3(x, y, zFunc(x, y)));
+          }
+          triangle.faces.push(face012);
+          triangle.computeFaceNormals();
+          THREE.GeometryUtils.merge(geom, triangle, 0);
+        }
+        else {
+          var triangles = new THREE.Geometry(),
+              holes = [];
+
+          // make Vector3 arrays
+          triangles.vertices = arrayToVec3Array(polygon[0], zFunc);
+          for (j = 1, m = polygon.length; j < m; j++) {
+            holes.push(arrayToVec3Array(polygon[j], zFunc));
+          }
+
+          // triangulate polygon
+          var faces = THREE.Shape.Utils.triangulateShape(triangles.vertices, holes);
+
+          // append points of holes to vertices
+          for (j = 0, m = holes.length; j < m; j++) {
+            Array.prototype.push.apply(triangles.vertices, holes[j]);
+          }
+
+          // element of faces is [index1, index2, index3]
+          for (j = 0, m = faces.length; j < m; j++) {
+            var face = faces[j];
+            triangles.faces.push(new THREE.Face3(face[0], face[1], face[2]));
+          }
+
+          triangles.computeFaceNormals();
+          THREE.GeometryUtils.merge(geom, triangles, 0);
+        }
+      }
+      geom.computeBoundingBox();
+      var mesh = new THREE.Mesh(geom, materials[f.m].m);
+      return mesh;
+    };
+
+    // each feature in this layer
+    this.f.forEach(function (f, fid) {
+      f.objs = [];
+      var obj = createObject(f);
+      obj.userData = [this.index, fid];
       this.addObject(obj);
       f.objs.push(obj);
-    }
-  }, this);
+    }, this);
+  }
 
   if (parent) parent.add(this.objectGroup);
 };

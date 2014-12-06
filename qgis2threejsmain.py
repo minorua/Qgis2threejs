@@ -83,7 +83,7 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class Feature:
-  def __init__(self, layer=None, prop=None, f=None):
+  def __init__(self, layer, prop, f=None):
     self.layer = layer
     self.prop = prop
     self.f = f
@@ -134,6 +134,9 @@ class Feature:
         b.append(pts)
       p.append(b)
     return p
+
+  def relativeHeight(self):
+    return self.prop.relativeHeight(self.f)
 
   def color(self):
     return self.prop.color(self.layer, self.f)
@@ -942,6 +945,46 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
+
+# create TIN from DEM
+# return list of features and spatial index
+def createTIN(context):
+  prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
+  dem_width = prop.width()
+  dem_height = prop.height()
+
+  extent = context.canvas.extent()
+  xres = extent.width() / (dem_width - 1)
+  yres = extent.height() / (dem_height - 1)
+  xmin = extent.xMinimum()
+  ymax = extent.yMaximum()
+
+  fid = 0
+  triangles = []
+  sindex = QgsSpatialIndex()
+  for y in range(dem_height):
+    for x in range(dem_width):
+      # 0 - 1
+      # |   |
+      # 2 - 3
+      pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
+      pt1 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
+      pt2 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
+      pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+
+      f = QgsFeature(fid)
+      f.setGeometry(QgsGeometry.fromPolygon([[pt0, pt2, pt1, pt0]]))
+      triangles.append(f)
+      sindex.insertFeature(f)
+      fid += 1
+
+      f = QgsFeature(fid)
+      f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt1]]))
+      triangles.append(f)
+      sindex.insertFeature(f)
+      fid += 1
+  return triangles, sindex
+
 def writeVectors(writer):
   context = writer.context
   canvas = context.canvas
@@ -955,6 +998,7 @@ def writeVectors(writer):
       if properties.get("visible", False):
         layerProperties[layerId] = properties
 
+  triangles = sindex = None
   for layerId, properties in layerProperties.iteritems():
     layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if layer is None:
@@ -971,6 +1015,9 @@ def writeVectors(writer):
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
     lyr["objType"] = prop.type_name
+
+    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
+      lyr["am"] = "relative" if prop.isHeightRelativeToSurface() else "absolute"    # altitude mode
 
     # make list of field names
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
@@ -1061,14 +1108,32 @@ def writeVectors(writer):
         useCentroidHeight = True
         labelPerPolygon = True
 
-        if geom.isMultipart():
-          polygons = geom.asMultiPolygon()
-        else:
-          polygons = [geom.asPolygon()]
+        geom.transform(transform) # TODO: use geom.transform() also with point and line
+
+        if feat.prop.type_index == 0:     # Extruded
+          if geom.isMultipart():
+            polygons = geom.asMultiPolygon()
+          else:
+            polygons = [geom.asPolygon()]
+        else:   # Overlay: floating terrain overlay
+          if sindex is None:
+            triangles, sindex = createTIN(context)
+
+          polygons = []
+          for fid in sindex.intersects(geom.boundingBox()):
+            tri = triangles[fid].geometry()
+            if geom.intersects(tri):
+              poly = geom.intersection(tri)
+              if poly.isMultipart():
+                polygons += poly.asMultiPolygon()
+              else:
+                polygons.append(poly.asPolygon())
+          useCentroidHeight = False
+          labelPerPolygon = False
 
         if hasLabel and not labelPerPolygon:
           centroidHeight = 0
-          pt = transform.transform(geom.centroid().asPoint())
+          pt = geom.centroid().asPoint()
           if prop.isHeightRelativeToSurface():
             centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
           else:
@@ -1078,7 +1143,7 @@ def writeVectors(writer):
         for polygon in polygons:
           if useCentroidHeight or hasLabel:
             centroidHeight = 0
-            pt = transform.transform(QgsGeometry.fromPolygon(polygon).centroid().asPoint())
+            pt = QgsGeometry.fromPolygon(polygon).centroid().asPoint()
             if prop.isHeightRelativeToSurface():
               centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
             else:
@@ -1089,9 +1154,10 @@ def writeVectors(writer):
           boundaries = []
           points = []
           # outer boundary
-          for pt_orig in polygon[0]:
-            pt = transform.transform(pt_orig)
-            if useCentroidHeight:
+          for pt in polygon[0]:
+            if feat.prop.type_index == 1:   # Overlay
+              h = 0
+            elif useCentroidHeight:
               h = centroidHeight
             elif prop.isHeightRelativeToSurface():
               h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
@@ -1104,9 +1170,10 @@ def writeVectors(writer):
           # inner boundaries
           for inBoundary in polygon[1:]:
             points = []
-            for pt_orig in inBoundary:
-              pt = transform.transform(pt_orig)
-              if useCentroidHeight:
+            for pt in inBoundary:
+              if feat.prop.type_index == 1:   # Overlay
+                h = 0
+              elif useCentroidHeight:
                 h = centroidHeight
               elif prop.isHeightRelativeToSurface():
                 h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
