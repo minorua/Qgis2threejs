@@ -1054,29 +1054,29 @@ def writeVectors(writer):
       if geom is None:
         qDebug("null geometry skipped")
         continue
-      geom_type == geom.type()
-      wkb_type = geom.wkbType()
+
       if geom_type == QGis.Point:
         if prop.useZ():
           for point in pointsFromWkb25D(geom.asWkb()):
             pt = transform.transform(point[0], point[1])
             feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
           obj_mod.write(writer, feat)
-        else:
-          if geom.isMultipart():
-            points = geom.asMultiPoint()
-          else:
-            points = [geom.asPoint()]
+          continue
 
-          for point in points:
-            pt = transform.transform(point)
-            if prop.isHeightRelativeToSurface():
-              # get surface elevation at the point and relative height
-              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-            else:
-              h = prop.relativeHeight(f)
-            feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), h))
-          obj_mod.write(writer, feat)
+        geom.transform(transform)
+        if geom.isMultipart():
+          points = geom.asMultiPoint()
+        else:
+          points = [geom.asPoint()]
+
+        for pt in points:
+          if prop.isHeightRelativeToSurface():
+            # get surface elevation at the point and relative height
+            h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+          else:
+            h = prop.relativeHeight(f)
+          feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), h))
+        obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Line:
         if prop.useZ():
@@ -1087,29 +1087,30 @@ def writeVectors(writer):
               points.append(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
             feat.addLine(points)
           obj_mod.write(writer, feat)
+          continue
+
+        geom.transform(transform)
+        if geom.isMultipart():
+          lines = geom.asMultiPolyline()
         else:
-          if geom.isMultipart():
-            lines = geom.asMultiPolyline()
-          else:
-            lines = [geom.asPolyline()]
-          for line in lines:
-            points = []
-            for pt_orig in line:
-              pt = transform.transform(pt_orig)
-              if prop.isHeightRelativeToSurface():
-                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-              else:
-                h = prop.relativeHeight(f)
-              points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            feat.addLine(points)
-          obj_mod.write(writer, feat)
+          lines = [geom.asPolyline()]
+
+        for line in lines:
+          points = []
+          for pt in line:
+            if prop.isHeightRelativeToSurface():
+              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
+            else:
+              h = prop.relativeHeight(f)
+            points.append(mapTo3d.transform(pt.x(), pt.y(), h))
+          feat.addLine(points)
+        obj_mod.write(writer, feat)
 
       elif geom_type == QGis.Polygon:
         useCentroidHeight = True
         labelPerPolygon = True
 
-        geom.transform(transform) # TODO: use geom.transform() also with point and line
-
+        geom.transform(transform)
         if feat.prop.type_index == 0:     # Extruded
           if geom.isMultipart():
             polygons = geom.asMultiPolygon()
