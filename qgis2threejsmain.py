@@ -945,45 +945,51 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
+class TriangleMesh:
+  def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
+    self.flen = 0
+    self.triangles = []
+    self.spatial_index = QgsSpatialIndex()
 
-# create TIN from DEM
-# return list of features and spatial index
-def createTIN(context):
-  prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
-  dem_width = prop.width()
-  dem_height = prop.height()
+    xres = (xmax - xmin) / x_segments
+    yres = (ymax - ymin) / y_segments
+    for y in range(y_segments):
+      for x in range(x_segments):
+        # 0 - 1
+        # | / |
+        # 2 - 3
+        pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
+        pt1 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
+        pt2 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
+        pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
 
-  extent = context.canvas.extent()
-  xres = extent.width() / (dem_width - 1)
-  yres = extent.height() / (dem_height - 1)
-  xmin = extent.xMinimum()
-  ymax = extent.yMaximum()
+        self._addTriangle(pt0, pt2, pt1)
+        self._addTriangle(pt1, pt2, pt3)
 
-  fid = 0
-  triangles = []
-  sindex = QgsSpatialIndex()
-  for y in range(dem_height):
-    for x in range(dem_width):
-      # 0 - 1
-      # |   |
-      # 2 - 3
-      pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
-      pt1 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
-      pt2 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
-      pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+  def _addTriangle(self, pt1, pt2, pt3):
+    f = QgsFeature(self.flen)
+    f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt1]]))
+    self.triangles.append(f)
+    self.spatial_index.insertFeature(f)
+    self.flen += 1
 
-      f = QgsFeature(fid)
-      f.setGeometry(QgsGeometry.fromPolygon([[pt0, pt2, pt1, pt0]]))
-      triangles.append(f)
-      sindex.insertFeature(f)
-      fid += 1
+  def intersects(self, geom):
+    for fid in self.spatial_index.intersects(geom.boundingBox()):
+      tri = self.triangles[fid].geometry()
+      if tri.intersects(geom):
+        yield tri
 
-      f = QgsFeature(fid)
-      f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt1]]))
-      triangles.append(f)
-      sindex.insertFeature(f)
-      fid += 1
-  return triangles, sindex
+  @classmethod
+  def createFromContext(cls, context):
+    prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
+    dem_width = prop.width()
+    dem_height = prop.height()
+    extent = context.canvas.extent()
+    triMesh = TriangleMesh(extent.xMinimum(), extent.yMinimum(),
+                           extent.xMaximum(), extent.yMaximum(),
+                           dem_width - 1, dem_height - 1)
+    return triMesh
+
 
 def writeVectors(writer, progress=None):
   context = writer.context
@@ -1001,7 +1007,7 @@ def writeVectors(writer, progress=None):
         layerProperties[layerId] = properties
 
   finishedLayers = 0
-  triangles = sindex = None
+  triMesh = None
   for layerId, properties in layerProperties.iteritems():
     layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if layer is None:
@@ -1121,20 +1127,18 @@ def writeVectors(writer, progress=None):
           else:
             polygons = [geom.asPolygon()]
         else:   # Overlay: floating terrain overlay
-          if sindex is None:
-            progress(None, "Creating TIN for overlay polygons")
-            triangles, sindex = createTIN(context)
+          if triMesh is None:
+            progress(None, "Creating triangle mesh for overlay polygons")
+            triMesh = TriangleMesh.createFromContext(context)
             progress(None, "Writing overlay polygons")
 
           polygons = []
-          for fid in sindex.intersects(geom.boundingBox()):
-            tri = triangles[fid].geometry()
-            if geom.intersects(tri):
-              poly = geom.intersection(tri)
-              if poly.isMultipart():
-                polygons += poly.asMultiPolygon()
-              else:
-                polygons.append(poly.asPolygon())
+          for tri in triMesh.intersects(geom):
+            poly = geom.intersection(tri)
+            if poly.isMultipart():
+              polygons += poly.asMultiPolygon()
+            else:
+              polygons.append(poly.asPolygon())
           useCentroidHeight = False
           labelPerPolygon = False
 
