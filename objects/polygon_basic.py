@@ -46,7 +46,7 @@ class Triangles:
   def __init__(self):
     self.vertices = []
     self.faces = []
-    #self.vdict = {}
+    self.vdict = {}   # dict to find whether a vertex already exists: [y][x] = vertex index
 
   def addTriangle(self, v1, v2, v3):
     vi1 = self._vertexIndex(v1)
@@ -55,10 +55,18 @@ class Triangles:
     self.faces.append([vi1, vi2, vi3])
 
   def _vertexIndex(self, v):
-    if v in self.vertices:
-      return self.vertices.index(v)
+    x_dict = self.vdict.get(v.y)
+    if x_dict:
+      vi = x_dict.get(v.x)
+      if vi is not None:
+        return vi
+    vi = len(self.vertices)
     self.vertices.append(v)
-    return len(self.vertices) - 1
+    if x_dict:
+      x_dict[v.x] = vi
+    else:
+      self.vdict[v.y] = {v.x: vi}
+    return vi
 
 
 def write(writer, feat):
