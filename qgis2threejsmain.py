@@ -356,7 +356,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   if templateType == "sphere":
     writer.openFile(False)
     # render texture for sphere and write it
-    progress(5, "rendering texture...")
+    progress(5, "Rendering texture")
     writeSphereTexture(writer)
   else:
     # plain type
@@ -364,7 +364,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     isSimpleMode = demProperties.get("radioButton_Simple", False)
     writer.openFile(not isSimpleMode)
     writer.writeProject()
-    progress(5, "writing DEM...")
+    progress(5, "Writing DEM")
 
     # write primary DEM
     if isSimpleMode:
@@ -379,12 +379,12 @@ def exportToThreeJS(htmlfilename, context, progress=None):
       if layerId != primaryDEMLayerId and properties.get("visible", False):
         writeSimpleDEM(writer, properties)
 
-    progress(50, "writing vector data...")
+    progress(50, "Writing vector data")
 
     # write vector data
-    writeVectors(writer)
+    writeVectors(writer, progress)
 
-  progress(80, "")
+  progress(90, "Copying library files")
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir, context.controls)
@@ -985,12 +985,14 @@ def createTIN(context):
       fid += 1
   return triangles, sindex
 
-def writeVectors(writer):
+def writeVectors(writer, progress=None):
   context = writer.context
   canvas = context.canvas
   mapTo3d = context.mapTo3d
   warp_dem = context.warp_dem
   renderer = QgsMapRenderer()
+  if progress is None:
+    progress = dummyProgress
 
   layerProperties = {}
   for itemType in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
@@ -998,11 +1000,13 @@ def writeVectors(writer):
       if properties.get("visible", False):
         layerProperties[layerId] = properties
 
+  finishedLayers = 0
   triangles = sindex = None
   for layerId, properties in layerProperties.iteritems():
     layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if layer is None:
       continue
+    progress(50 + 30 * finishedLayers / len(layerProperties), u"Writing layer: {0}".format(layer.name()))
     geom_type = layer.geometryType()
     prop = VectorPropertyReader(context.objectTypeManager, layer, properties)
     obj_mod = context.objectTypeManager.module(prop.mod_index)
@@ -1118,7 +1122,9 @@ def writeVectors(writer):
             polygons = [geom.asPolygon()]
         else:   # Overlay: floating terrain overlay
           if sindex is None:
+            progress(None, "Creating TIN for overlay polygons")
             triangles, sindex = createTIN(context)
+            progress(None, "Writing overlay polygons")
 
           polygons = []
           for fid in sindex.intersects(geom.boundingBox()):
@@ -1195,8 +1201,10 @@ def writeVectors(writer):
       writer.writeAttributes()
 
     layer.rendererV2().stopRender(renderer.rendererContext())
+    finishedLayers += 1
 
   # write materials
+  progress(80, u"Writing materials")
   writer.materialManager.write(writer)
 
 def writeSphereTexture(writer):
@@ -1332,5 +1340,5 @@ def createQuadTree(extent, p):
   quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), p["spinBox_Height"])
   return quadtree
 
-def dummyProgress(progress, statusMsg=None):
+def dummyProgress(progress=None, statusMsg=None):
   pass

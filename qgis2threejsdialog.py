@@ -323,14 +323,15 @@ class Qgis2threejsDialog(QDialog):
         numeric_fields.append(field.name())
     return numeric_fields
 
-  def progress(self, percentage, statusMsg=None):
+  def progress(self, percentage=None, statusMsg=None):
     ui = self.ui
-    ui.progressBar.setValue(percentage)
-    if percentage == 100:
-      ui.progressBar.setVisible(False)
-      ui.label_Status.setText("")
-    else:
-      ui.progressBar.setVisible(True)
+    if percentage is not None:
+      ui.progressBar.setValue(percentage)
+      if percentage == 100:
+        ui.progressBar.setVisible(False)
+        ui.label_Status.setText("")
+      else:
+        ui.progressBar.setVisible(True)
 
     if statusMsg is not None:
       ui.label_Status.setText(statusMsg)
