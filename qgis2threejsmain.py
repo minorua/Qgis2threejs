@@ -58,6 +58,13 @@ class Point:
     self.y = y
     self.z = z
 
+  def __eq__(self, other):
+    return self.x == other.x and self.y == other.y and self.z == other.z
+
+  def __ne__(self, other):
+    return self.x != other.x or self.y != other.y or self.z != other.z
+
+
 class MapTo3D:
   def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas

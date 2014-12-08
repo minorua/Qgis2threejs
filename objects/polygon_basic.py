@@ -42,13 +42,47 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
+class Triangles:
+  def __init__(self):
+    self.vertices = []
+    self.faces = []
+    #self.vdict = {}
+
+  def addTriangle(self, v1, v2, v3):
+    vi1 = self._vertexIndex(v1)
+    vi2 = self._vertexIndex(v2)
+    vi3 = self._vertexIndex(v3)
+    self.faces.append([vi1, vi2, vi3])
+
+  def _vertexIndex(self, v):
+    if v in self.vertices:
+      return self.vertices.index(v)
+    self.vertices.append(v)
+    return len(self.vertices) - 1
+
+
 def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   vals = feat.propValues()
+  d = {"m": mat}
+
+  if feat.prop.type_index == 1:  # Overlay
+    gons = []
+    triangles = Triangles()
+    for polygon in feat.polygons:
+      boundary = polygon[0]
+      if len(polygon) == 1 and len(boundary) == 4:
+        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
+      else:
+        gons.append(polygon)
+    if len(triangles.vertices):
+      d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+  else:
+    gons = feat.polygons
 
   polygons = []
   zs = []
-  for polygon in feat.polygons:
+  for polygon in gons:
     bnds = []
     zsum = zcount = 0
     for boundary in polygon:
@@ -57,7 +91,7 @@ def write(writer, feat):
       zcount += len(boundary) - 1
     polygons.append(bnds)
     zs.append(zsum / zcount)
-  d = {"m": mat, "polygons": polygons}
+  d["polygons"] = polygons
 
   if feat.prop.type_index == 0:  # Extruded
     d["zs"] = zs

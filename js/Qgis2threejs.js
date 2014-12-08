@@ -1139,6 +1139,15 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     return pts;
   };
 
+  var arrayToFace3Array = function (faces) {
+    var f, fs = [];
+    for (var i = 0, l = faces.length; i < l; i++) {
+      f = faces[i];
+      fs.push(new THREE.Face3(f[0], f[1], f[2]));
+    }
+    return fs;
+  };
+
   if (this.objType == "Extruded") {
     var createObject = function (f, polygon, z) {
       var shape = new THREE.Shape(arrayToVec2Array(polygon[0]));
@@ -1174,48 +1183,40 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
       else zFunc = function (x, y) { return f.h; };
 
-      var j, m, geom = new THREE.Geometry();
+      var geom = new THREE.Geometry();
+
+      // vertices and faces
+      if (f.triangles !== undefined) {
+        geom.vertices = arrayToVec3Array(f.triangles.v, zFunc);
+        geom.faces = arrayToFace3Array(f.triangles.f);
+        geom.computeFaceNormals();
+      }
+
+      // polygons (number of vertices > 3)
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
-        if (polygon[0].length == 4) {
-          var triangle = new THREE.Geometry();
-          // vertex order of outer boundary is clockwise. use first 3 points.
-          for (j = 2; j >= 0; j--) {
-            var x = polygon[0][j][0],
-                y = polygon[0][j][1];
-            triangle.vertices.push(new THREE.Vector3(x, y, zFunc(x, y)));
-          }
-          triangle.faces.push(face012);
-          triangle.computeFaceNormals();
-          THREE.GeometryUtils.merge(geom, triangle, 0);
+        var triangles = new THREE.Geometry(),
+            holes = [];
+
+        // make Vector3 arrays
+        triangles.vertices = arrayToVec3Array(polygon[0], zFunc);
+        for (var j = 1, m = polygon.length; j < m; j++) {
+          holes.push(arrayToVec3Array(polygon[j], zFunc));
         }
-        else {
-          var triangles = new THREE.Geometry(),
-              holes = [];
 
-          // make Vector3 arrays
-          triangles.vertices = arrayToVec3Array(polygon[0], zFunc);
-          for (j = 1, m = polygon.length; j < m; j++) {
-            holes.push(arrayToVec3Array(polygon[j], zFunc));
-          }
+        // triangulate polygon
+        var faces = THREE.Shape.Utils.triangulateShape(triangles.vertices, holes);
 
-          // triangulate polygon
-          var faces = THREE.Shape.Utils.triangulateShape(triangles.vertices, holes);
-
-          // append points of holes to vertices
-          for (j = 0, m = holes.length; j < m; j++) {
-            Array.prototype.push.apply(triangles.vertices, holes[j]);
-          }
-
-          // element of faces is [index1, index2, index3]
-          for (j = 0, m = faces.length; j < m; j++) {
-            var face = faces[j];
-            triangles.faces.push(new THREE.Face3(face[0], face[1], face[2]));
-          }
-
-          triangles.computeFaceNormals();
-          THREE.GeometryUtils.merge(geom, triangles, 0);
+        // append points of holes to vertices
+        for (var j = 0, m = holes.length; j < m; j++) {
+          Array.prototype.push.apply(triangles.vertices, holes[j]);
         }
+
+        // element of faces is [index1, index2, index3]
+        triangles.faces = arrayToFace3Array(faces);
+
+        triangles.computeFaceNormals();
+        THREE.GeometryUtils.merge(geom, triangles, 0);
       }
       geom.computeBoundingBox();
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
