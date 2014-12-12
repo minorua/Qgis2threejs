@@ -74,23 +74,9 @@ def write(writer, feat):
   vals = feat.propValues()
   d = {"m": mat}
 
-  if feat.prop.type_index == 1:  # Overlay
-    gons = []
-    triangles = Triangles()
-    for polygon in feat.geom.polygons:
-      boundary = polygon[0]
-      if len(polygon) == 1 and len(boundary) == 4:
-        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
-      else:
-        gons.append(polygon)
-    if len(triangles.vertices):
-      d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
-  else:
-    gons = feat.geom.polygons
-
   polygons = []
   zs = []
-  for polygon in gons:
+  for polygon in feat.geom.polygons:
     bnds = []
     zsum = zcount = 0
     for boundary in polygon:
@@ -106,8 +92,23 @@ def write(writer, feat):
     d["h"] = float(vals[0]) * writer.context.mapTo3d.multiplierZ
 
   else:   # Overlay
+    polygons = []
+    triangles = Triangles()
+    for polygon in feat.geom.split_polygons:
+      boundary = polygon[0]
+      if len(polygon) == 1 and len(boundary) == 4:
+        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
+      else:
+        bnds = [map(lambda pt: [pt.x, pt.y], bnd) for bnd in polygon]
+        polygons.append(bnds)
+
+    if triangles.vertices:
+      d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+    if polygons:
+      d["split_polygons"] = polygons
     d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
 
-  if len(feat.geom.centroids):
+  if feat.geom.centroids:
     d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.geom.centroids)
+
   writer.writeFeature(d)

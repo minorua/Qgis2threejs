@@ -1192,9 +1192,10 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
         geom.computeFaceNormals();
       }
 
-      // polygons (number of vertices > 3)
-      for (var i = 0, l = f.polygons.length; i < l; i++) {
-        var polygon = f.polygons[i];
+      // split polygons (number of vertices > 3)
+      var l = (f.split_polygons === undefined) ? 0 : f.split_polygons.length;
+      for (var i = 0; i < l; i++) {
+        var polygon = f.split_polygons[i];
         var triangles = new THREE.Geometry(),
             holes = [];
 
