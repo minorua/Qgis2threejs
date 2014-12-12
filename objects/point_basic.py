@@ -56,7 +56,7 @@ def write(writer, feat):
   mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   mapTo3d = writer.context.mapTo3d
   vals = feat.propValues()
-  pts = feat.pointsAsList()
+  pts = feat.geom.asList()
   if feat.prop.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
     if r != 0:

@@ -77,7 +77,7 @@ def write(writer, feat):
   if feat.prop.type_index == 1:  # Overlay
     gons = []
     triangles = Triangles()
-    for polygon in feat.polygons:
+    for polygon in feat.geom.polygons:
       boundary = polygon[0]
       if len(polygon) == 1 and len(boundary) == 4:
         triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
@@ -86,7 +86,7 @@ def write(writer, feat):
     if len(triangles.vertices):
       d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
   else:
-    gons = feat.polygons
+    gons = feat.geom.polygons
 
   polygons = []
   zs = []
@@ -108,6 +108,6 @@ def write(writer, feat):
   else:   # Overlay
     d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
 
-  if len(feat.centroids):
-    d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.centroids)
+  if len(feat.geom.centroids):
+    d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.geom.centroids)
   writer.writeFeature(d)

@@ -89,70 +89,6 @@ class MapTo3D:
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
 
-class Feature:
-  def __init__(self, layer, prop, f=None):
-    self.layer = layer
-    self.prop = prop
-    self.f = f
-    self.clearGeometry()
-
-  def clearGeometry(self):
-    self.pts = []
-    self.lines = []
-    self.polygons = []
-    self.centroids = []
-
-  def setQgsFeature(self, qFeat):
-    self.f = qFeat
-
-  def addPoint(self, point):
-    self.pts.append(point)
-
-  def addLine(self, line):
-    self.lines.append(line)
-
-  def addPolygon(self, polygon):
-    self.polygons.append(polygon)
-
-  def addCentroid(self, centroid):
-    self.centroids.append(centroid)
-
-  def pointsAsList(self):
-    return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
-
-  def linesAsList(self):
-    l = []
-    for line in self.lines:
-      l.append(map(lambda pt: [pt.x, pt.y, pt.z], line))
-    return l
-
-  def polygonsAsList(self):
-    p = []
-    for boundaries in self.polygons:
-      b = []
-      for boundary in boundaries:
-        pts = map(lambda pt: [pt.x, pt.y, pt.z], boundary)
-        if len(b) == 0:
-          if not GeometryUtils.isClockwise(boundary):
-            pts.reverse()   # to clockwise
-        else:
-          if GeometryUtils.isClockwise(boundary):
-            pts.reverse()   # to counter-clockwise
-        b.append(pts)
-      p.append(b)
-    return p
-
-  def relativeHeight(self):
-    return self.prop.relativeHeight(self.f)
-
-  def color(self):
-    return self.prop.color(self.layer, self.f)
-
-  def transparency(self):
-    return self.prop.transparency(self.layer, self.f)
-
-  def propValues(self):
-    return self.prop.values(self.f)
 
 class OutputContext:
   def __init__(self, templateName, templateType, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
@@ -183,6 +119,13 @@ class OutputContext:
       self.warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
     else:
       self.warp_dem = tools.FlatRaster()
+
+    self.triMesh = None
+
+  def triangleMesh(self):
+    if self.triMesh is None:
+      self.triMesh = TriangleMesh.createFromContext(self)
+    return self.triMesh
 
   # deprecated
   def setWarpDem(self, warp_dem):
@@ -986,6 +929,16 @@ class TriangleMesh:
       if tri.intersects(geom):
         yield tri
 
+  def splitPolygon(self, geom):
+    polygons = []
+    for tri in self.intersects(geom):
+      poly = geom.intersection(tri)
+      if poly.isMultipart():
+        polygons += poly.asMultiPolygon()
+      else:
+        polygons.append(poly.asPolygon())
+    return polygons
+
   @classmethod
   def createFromContext(cls, context):
     prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
@@ -998,11 +951,238 @@ class TriangleMesh:
     return triMesh
 
 
+# Geometry classes
+
+class PointGeometry:
+  def __init__(self):
+    self.pts = []
+
+  def asList(self):
+    return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
+
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func):
+    geom = PointGeometry()
+    for pt in geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]:
+      geom.pts.append(transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+    return geom
+
+  @classmethod
+  def fromWkb25D(cls, wkb, transform_func):
+    geom = ogr.CreateGeometryFromWkb(wkb)
+    geomType = geom.GetGeometryType()
+
+    if geomType == ogr.wkbPoint25D:
+      geoms = [geom]
+    elif geomType == ogr.wkbMultiPoint25D:
+      geoms = [geom.GetGeometryRef(i) for i in range(geom.GetGeometryCount())]
+    else:
+      geoms = []
+
+    pts = []
+    for geom25d in geoms:
+      if hasattr(geom25d, "GetPoints"):
+        pts += geom25d.GetPoints()
+      else:
+        pts += [geom25d.GetPoint(i) for i in range(geom25d.GetPointCount())]
+
+    point_geom = PointGeometry()
+    for pt in pts:
+      point_geom.pts.append(transform_func(pt[0], pt[1], pt[2]))
+    return point_geom
+
+
+class LineGeometry:
+  def __init__(self):
+    self.lines = []
+
+  def asList(self):
+    lst = []
+    for line in self.lines:
+      lst.append(map(lambda pt: [pt.x, pt.y, pt.z], line))
+    return lst
+
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func):
+    geom = LineGeometry()
+    for line in geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]:
+      pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line]
+      geom.lines.append(pts)
+    return geom
+
+  @classmethod
+  def fromWkb25D(cls, wkb, transform_func):
+    geom = ogr.CreateGeometryFromWkb(wkb)
+    geomType = geom.GetGeometryType()
+
+    if geomType == ogr.wkbLineString25D:
+      geoms = [geom]
+    elif geomType == ogr.wkbMultiLineString25D:
+      geoms = [geom.GetGeometryRef(i) for i in range(geom.GetGeometryCount())]
+    else:
+      geoms = []
+
+    line_geom = LineGeometry()
+    for geom25d in geoms:
+      if hasattr(geom25d, "GetPoints"):
+        pts = geom25d.GetPoints()
+      else:
+        pts = [geom25d.GetPoint(i) for i in range(geom25d.GetPointCount())]
+
+      points = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
+      line_geom.lines.append(points)
+
+    return line_geom
+
+
+class PolygonGeometry:
+  def __init__(self):
+    self.polygons = []
+    self.centroids = []
+
+  def asList(self):
+    p = []
+    for boundaries in self.polygons:
+      # outer boundary
+      pts = map(lambda pt: [pt.x, pt.y, pt.z], boundaries[0])
+      if not GeometryUtils.isClockwise(boundary):
+        pts.reverse()   # to clockwise
+      b = [pts]
+
+      # inner boundaries
+      for boundary in boundaries[1:]:
+        pts = map(lambda pt: [pt.x, pt.y, pt.z], boundary)
+        if GeometryUtils.isClockwise(boundary):
+          pts.reverse()   # to counter-clockwise
+        b.append(pts)
+      p.append(b)
+    return p
+
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, triMesh=None):
+
+    useCentroidHeight = True
+    centroidPerPolygon = True
+
+    if triMesh is None:
+      polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
+    else:
+      polygons = triMesh.splitPolygon(geometry)
+      useCentroidHeight = False
+      centroidPerPolygon = False
+
+    geom = PolygonGeometry()
+    if calcCentroid and not centroidPerPolygon:
+      pt = geometry.centroid().asPoint()
+      centroidHeight = z_func(pt.x(), pt.y())
+      geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+
+    for polygon in polygons:
+      if useCentroidHeight or calcCentroid:
+        pt = QgsGeometry.fromPolygon(polygon).centroid().asPoint()
+        centroidHeight = z_func(pt.x(), pt.y())
+        if calcCentroid and centroidPerPolygon:
+          geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+
+      boundaries = []
+      # outer boundary
+      points = []
+      for pt in polygon[0]:
+        h = centroidHeight if useCentroidHeight else z_func(pt.x(), pt.y())
+        points.append(transform_func(pt.x(), pt.y(), h))
+
+      if not GeometryUtils.isClockwise(points):
+        points.reverse()    # to clockwise
+      boundaries.append(points)
+
+      # inner boundaries
+      for inBoundary in polygon[1:]:
+        points = []
+        for pt in inBoundary:
+          h = centroidHeight if useCentroidHeight else z_func(pt.x(), pt.y())
+          points.append(transform_func(pt.x(), pt.y(), h))
+
+        if GeometryUtils.isClockwise(points):
+          points.reverse()    # to counter-clockwise
+        boundaries.append(points)
+
+      geom.polygons.append(boundaries)
+    return geom
+
+#  @classmethod
+#  def fromWkb25D(cls, wkb):
+#    pass
+
+
+class Feature:
+
+  geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
+
+  def __init__(self, context, layer, prop):
+    self.context = context
+    self.layer = layer
+    self.prop = prop
+
+    self.wkt = str(context.crs.toWkt())
+    self.transform = QgsCoordinateTransform(layer.crs(), context.crs)
+    self.geomType = layer.geometryType()
+    self.geomClass = self.geomType2Class.get(self.geomType)
+    self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
+
+    self.feat = None
+    self.geom = None
+
+  def setQgsFeature(self, feat):
+    self.feat = feat
+    self.geom = None
+
+    geom = feat.geometry()
+    if geom is None:
+      return
+
+    # coordinate transformation - layer crs to project crs
+    geom.transform(self.transform)
+
+    # z_func: function to get z coordinate at given point (x, y)
+    if self.prop.isHeightRelativeToSurface():
+      # calculate elevation with dem
+      z_func = lambda x, y: self.context.warp_dem.readValue(self.wkt, x, y)
+    else:
+      z_func = lambda x, y: 0
+
+    # transform_func: function to transform the map coordinates to 3d coordinates
+    relativeHeight = self.prop.relativeHeight(feat)
+    def transform_func(x, y, z):
+      return self.context.mapTo3d.transform(x, y, z + relativeHeight)
+
+    if self.geomType == QGis.Polygon:
+      triMesh = None
+      if self.prop.type_index == 1:   # Overlay
+        z_func = lambda x, y: 0
+        triMesh = self.context.triangleMesh()
+      self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel, triMesh)
+    elif self.prop.useZ():
+      self.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
+    else:
+      self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
+
+  def relativeHeight(self):
+    return self.prop.relativeHeight(self.feat)
+
+  def color(self):
+    return self.prop.color(self.layer, self.feat)
+
+  def transparency(self):
+    return self.prop.transparency(self.layer, self.feat)
+
+  def propValues(self):
+    return self.prop.values(self.feat)
+
+
 def writeVectors(writer, progress=None):
   context = writer.context
   canvas = context.canvas
   mapTo3d = context.mapTo3d
-  warp_dem = context.warp_dem
   renderer = QgsMapRenderer()
   if progress is None:
     progress = dummyProgress
@@ -1014,7 +1194,6 @@ def writeVectors(writer, progress=None):
         layerProperties[layerId] = properties
 
   finishedLayers = 0
-  triMesh = None
   for layerId, properties in layerProperties.iteritems():
     layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if layer is None:
@@ -1053,160 +1232,33 @@ def writeVectors(writer, progress=None):
         lyr["l"] = {"i": attIdx, "ht": int(labelHeight[0]), "v": float(labelHeight[2]) * mapTo3d.multiplierZ}
         hasLabel = True
 
-    # wreite layer object
+    # write layer object
     writer.writeLayer(lyr, fieldNames)
+
+    # prepare triangle mesh
+    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
+      progress(None, "Creating triangle mesh for overlay polygons")
+      context.triangleMesh()
+      progress(None, "Writing overlay polygons")
 
     # initialize symbol rendering
     layer.rendererV2().startRender(renderer.rendererContext(), layer.pendingFields() if apiChanged23 else layer)
 
-    feat = Feature(layer, prop)
-    transform = QgsCoordinateTransform(layer.crs(), context.crs)
-    wkt = str(context.crs.toWkt())
-    request = QgsFeatureRequest().setFilterRect(transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+    feat = Feature(context, layer, prop)
+    request = QgsFeatureRequest().setFilterRect(feat.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
     for f in layer.getFeatures(request):
-      feat.clearGeometry()
       feat.setQgsFeature(f)
-
-      geom = f.geometry()
-      if geom is None:
+      if feat.geom is None:
         qDebug("null geometry skipped")
         continue
 
-      if geom_type == QGis.Point:
-        if prop.useZ():
-          for point in pointsFromWkb25D(geom.asWkb()):
-            pt = transform.transform(point[0], point[1])
-            feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
-          obj_mod.write(writer, feat)
-          continue
-
-        geom.transform(transform)
-        if geom.isMultipart():
-          points = geom.asMultiPoint()
-        else:
-          points = [geom.asPoint()]
-
-        for pt in points:
-          if prop.isHeightRelativeToSurface():
-            # get surface elevation at the point and relative height
-            h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-          else:
-            h = prop.relativeHeight(f)
-          feat.addPoint(mapTo3d.transform(pt.x(), pt.y(), h))
-        obj_mod.write(writer, feat)
-
-      elif geom_type == QGis.Line:
-        if prop.useZ():
-          for line in linesFromWkb25D(geom.asWkb()):
-            points = []
-            for point in line:
-              pt = transform.transform(point[0], point[1])
-              points.append(mapTo3d.transform(pt.x(), pt.y(), point[2] + prop.relativeHeight(f)))
-            feat.addLine(points)
-          obj_mod.write(writer, feat)
-          continue
-
-        geom.transform(transform)
-        if geom.isMultipart():
-          lines = geom.asMultiPolyline()
-        else:
-          lines = [geom.asPolyline()]
-
-        for line in lines:
-          points = []
-          for pt in line:
-            if prop.isHeightRelativeToSurface():
-              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-            else:
-              h = prop.relativeHeight(f)
-            points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-          feat.addLine(points)
-        obj_mod.write(writer, feat)
-
-      elif geom_type == QGis.Polygon:
-        useCentroidHeight = True
-        labelPerPolygon = True
-
-        geom.transform(transform)
-        if feat.prop.type_index == 0:     # Extruded
-          if geom.isMultipart():
-            polygons = geom.asMultiPolygon()
-          else:
-            polygons = [geom.asPolygon()]
-        else:   # Overlay: floating terrain overlay
-          if triMesh is None:
-            progress(None, "Creating triangle mesh for overlay polygons")
-            triMesh = TriangleMesh.createFromContext(context)
-            progress(None, "Writing overlay polygons")
-
-          polygons = []
-          for tri in triMesh.intersects(geom):
-            poly = geom.intersection(tri)
-            if poly.isMultipart():
-              polygons += poly.asMultiPolygon()
-            else:
-              polygons.append(poly.asPolygon())
-          useCentroidHeight = False
-          labelPerPolygon = False
-
-        if hasLabel and not labelPerPolygon:
-          centroidHeight = 0
-          pt = geom.centroid().asPoint()
-          if prop.isHeightRelativeToSurface():
-            centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-          else:
-            centroidHeight = prop.relativeHeight(f)
-          feat.addCentroid(mapTo3d.transform(pt.x(), pt.y(), centroidHeight))
-
-        for polygon in polygons:
-          if useCentroidHeight or hasLabel:
-            centroidHeight = 0
-            pt = QgsGeometry.fromPolygon(polygon).centroid().asPoint()
-            if prop.isHeightRelativeToSurface():
-              centroidHeight = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-            else:
-              centroidHeight = prop.relativeHeight(f)
-            if hasLabel and labelPerPolygon:
-              feat.addCentroid(mapTo3d.transform(pt.x(), pt.y(), centroidHeight))
-
-          boundaries = []
-          points = []
-          # outer boundary
-          for pt in polygon[0]:
-            if feat.prop.type_index == 1:   # Overlay
-              h = 0
-            elif useCentroidHeight:
-              h = centroidHeight
-            elif prop.isHeightRelativeToSurface():
-              h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-            else:
-              h = prop.relativeHeight(f)
-            points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-          if not GeometryUtils.isClockwise(points):
-            points.reverse()    # to clockwise
-          boundaries.append(points)
-          # inner boundaries
-          for inBoundary in polygon[1:]:
-            points = []
-            for pt in inBoundary:
-              if feat.prop.type_index == 1:   # Overlay
-                h = 0
-              elif useCentroidHeight:
-                h = centroidHeight
-              elif prop.isHeightRelativeToSurface():
-                h = warp_dem.readValue(wkt, pt.x(), pt.y()) + prop.relativeHeight(f)
-              else:
-                h = prop.relativeHeight(f)
-              points.append(mapTo3d.transform(pt.x(), pt.y(), h))
-            if GeometryUtils.isClockwise(points):
-              points.reverse()    # to counter-clockwise
-            boundaries.append(points)
-          feat.addPolygon(boundaries)
-        obj_mod.write(writer, feat)
+      # write geometry
+      obj_mod.write(writer, feat)
 
       # stack attributes in writer
       if writeAttrs:
         writer.addAttributes(f.attributes())
+
     # write attributes
     if writeAttrs:
       writer.writeAttributes()
@@ -1277,44 +1329,6 @@ class GeometryUtils:
     """Returns whether given linear ring is clockwise."""
     return cls._signedArea(linearRing) < 0
 
-
-def pointsFromWkb25D(wkb):
-  geom25d = ogr.CreateGeometryFromWkb(wkb)
-  geomType = geom25d.GetGeometryType()
-  geoms = []
-  if geomType == ogr.wkbPoint25D:
-    geoms = [geom25d]
-  elif geomType == ogr.wkbMultiPoint25D:
-    for i in range(geom25d.GetGeometryCount()):
-      geoms.append(geom25d.GetGeometryRef(i))
-  pts = []
-  for geom in geoms:
-    if hasattr(geom, "GetPoints"):
-      pts += geom.GetPoints()
-    else:
-      for i in range(geom.GetPointCount()):
-        pts.append(geom.GetPoint(i))
-  return pts
-
-def linesFromWkb25D(wkb):
-  geom25d = ogr.CreateGeometryFromWkb(wkb)
-  geomType = geom25d.GetGeometryType()
-  geoms = []
-  if geomType == ogr.wkbLineString25D:
-    geoms = [geom25d]
-  elif geomType == ogr.wkbMultiLineString25D:
-    for i in range(geom25d.GetGeometryCount()):
-      geoms.append(geom25d.GetGeometryRef(i))
-  lines = []
-  for geom in geoms:
-    if hasattr(geom, "GetPoints"):
-      pts = geom.GetPoints()
-    else:
-      pts = []
-      for i in range(geom.GetPointCount()):
-        pts.append(geom.GetPoint(i))
-    lines.append(pts)
-  return lines
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):

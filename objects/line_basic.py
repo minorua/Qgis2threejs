@@ -49,7 +49,7 @@ def write(writer, feat):
       mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
     else:
       mat = writer.materialManager.getFlatMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
-    writer.writeFeature({"m": mat, "lines": feat.linesAsList()})
+    writer.writeFeature({"m": mat, "lines": feat.geom.asList()})
     return
 
   # Pipe or Cone
@@ -58,4 +58,4 @@ def write(writer, feat):
   if rb != 0:
     mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
     rt = 0 if feat.prop.type_index == 2 else rb
-    writer.writeFeature({"m": mat, "lines": feat.linesAsList(), "rt": rt, "rb": rb})
+    writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "rt": rt, "rb": rb})

@@ -57,4 +57,4 @@ def write(writer, feat):
     json_pathes.append(json_path)
   else:
     return  #TODO: error message log
-  writer.writeFeature({"json_index": index, "pts": feat.pointsAsList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})
+  writer.writeFeature({"json_index": index, "pts": feat.geom.asList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})
