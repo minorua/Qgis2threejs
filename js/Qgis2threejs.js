@@ -830,6 +830,67 @@ Q3D.DEMLayer.prototype.getZ = function (x, y) {
   return null;
 };
 
+Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
+  // does not support multiple blocks
+  if (zFunc === undefined) zFunc = function () { return 0; };
+  var width = this.project.width, height = this.project.height;
+  var xmin = -width / 2, ymax = height / 2;
+  var block = this.blocks[0];
+  var x_segments = block.width - 1,
+      y_segments = block.height - 1;
+  var ix = width / x_segments,
+      iy = height / y_segments;
+
+  var pts = [];
+  for (var i = 1, l = lineString.length; i < l; i++) {
+    var pt1 = lineString[i - 1], pt2 = lineString[i];
+    var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1];
+    var nx1 = (x1 - xmin) / ix,
+        nx2 = (x2 - xmin) / ix;
+    var ny1 = (ymax - y1) / iy,
+        ny2 = (ymax - y2) / iy;
+    var ns1 = Math.abs(ny1 + nx1),
+        ns2 = Math.abs(ny2 + nx2);
+
+    var p = [0], nvp = [[nx1, nx2], [ny1, ny2], [ns1, ns2]];
+    for (var j = 0; j < 3; j++) {
+      var v1 = nvp[j][0], v2 = nvp[j][1];
+      if (v1 == v2) continue;
+      var k = Math.ceil(Math.min(v1, v2));
+      var n = Math.floor(Math.max(v1, v2));
+      for (; k <= n; k++) {
+        p.push((k - v1) / (v2 - v1));
+      }
+    }
+
+    p.sort(function (a, b) { return a - b; });
+
+    var x, y, lp = null;
+    for (var j = 0, m = p.length; j < m; j++) {
+      if (lp === p[j]) continue;
+      if (p[j] == 1) break;
+
+      x = x1 + (x2 - x1) * p[j];
+      y = y1 + (y2 - y1) * p[j];
+      pts.push(new THREE.Vector3(x, y, zFunc(x, y)));
+      // Q3D.Utils.putStick(x, y, zFunc);
+
+      lp = p[j];
+    }
+  }
+  // last point (= the first point)
+  var pt = lineString[lineString.length - 1];
+  pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
+
+  /*
+  for (var i = 0, l = lineString.length - 1; i < l; i++) {
+    Q3D.Utils.putStick(lineString[i][0], lineString[i][1], zFunc, 0.8);
+  }
+  */
+
+  return pts;
+};
+
 
 /*
 Q3D.VectorLayer class --> Q3D.MapLayer
@@ -1177,6 +1238,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     if (relativeToDEM) {
       var dem = this.project.layers[0];
     }
+    var border_mat = new THREE.LineBasicMaterial({color: 0}); // TODO: option to select color
     var face012 = new THREE.Face3(0, 1, 2);
     var createObject = function (f) {
       var zFunc;
@@ -1221,6 +1283,22 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       }
       geom.computeBoundingBox();
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
+
+      //if (f.b === undefined) return mesh;   // TODO
+      // border
+      for (var i = 0, l = f.polygons.length; i < l; i++) {
+        var polygon = f.polygons[i];
+        for (var j = 0, m = polygon.length; j < m; j++) {
+          var geom = new THREE.Geometry();
+          if (relativeToDEM) {
+            geom.vertices = dem.segmentizeLineString(polygon[j], zFunc);
+          }
+          else {
+            geom.vertices = arrayToVec3Array(polygon[j], zFunc);
+          }
+          mesh.add(new THREE.Line(geom, border_mat));
+        }
+      }
       return mesh;
     };
 
@@ -1257,4 +1335,18 @@ Q3D.Utils.loadTextureData = function (imageData) {
   image.src = imageData;
   texture = new THREE.Texture(image);
   return texture;
+};
+
+// Put a stick to given position (for debug)
+Q3D.Utils.putStick = function (x, y, zFunc, h) {
+  if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
+  if (h === undefined) h = 0.2;
+  if (zFunc === undefined) {
+    zFunc = function (x, y) { return Q3D.application.project.layers[0].getZ(x, y); }
+  }
+  var z = zFunc(x, y);
+  var geom = new THREE.Geometry();
+  geom.vertices.push(new THREE.Vector3(x, y, z + h), new THREE.Vector3(x, y, z));
+  var stick = new THREE.Line(geom, Q3D.Utils._stick_mat);
+  Q3D.application.scene.add(stick);
 };
