@@ -69,10 +69,23 @@ class VectorPropertyReader:
       colorName = random.choice(colorNames)
       colorNames.remove(colorName)
       return QColor(colorName).name().replace("#", "0x")
+
     symbol = layer.rendererV2().symbolForFeature(f)
     if symbol is None:
       QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
       symbol = layer.rendererV2().symbols()[0]
+    else:
+      sl = symbol.symbolLayer(0)
+      if sl:    # and sl.hasDataDefinedProperties():  # needs >= 2.2
+        expr = sl.dataDefinedProperty("color")
+        if expr:
+          # data defined color
+          cs_rgb = expr.evaluate(f, f.fields())
+
+          # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
+          rgb = map(int, cs_rgb.split(",")[0:3])
+          return "0x" + "".join(map(chr, rgb)).encode("hex")
+
     return symbol.color().name().replace("#", "0x")
 
   def transparency(self, layer=None, f=None):
@@ -90,6 +103,17 @@ class VectorPropertyReader:
     if symbol is None:
       QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
       symbol = layer.rendererV2().symbols()[0]
+    else:
+      sl = symbol.symbolLayer(0)
+      if sl:    # and sl.hasDataDefinedProperties():
+        expr = sl.dataDefinedProperty("color")
+        if expr:
+          # data defined color
+          cs_rgba = expr.evaluate(f, f.fields())
+          rgba = cs_rgba.split(",")
+          if len(rgba) == 4:
+            return int((1.0 - (float(rgba[3]) / 255)) * 100)
+
     return int((1.0 - symbol.alpha()) * 100)
 
   def useZ(self):
