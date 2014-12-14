@@ -533,9 +533,7 @@ def writeSurroundingDEM(writer, stats, properties, progress=None):
     image_width = round(image_height / hpw)
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
 
-  layerids = []
-  for layer in canvas.layers():
-    layerids.append(unicode(layer.id()))
+  layerids = [unicode(layer.id()) for layer in canvas.layers()]
 
   # set up a renderer
   labeling = QgsPalLabeling()
@@ -689,9 +687,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
   #qDebug("Created image size: %d, %d" % (image_width, image_height))
 
-  layerids = []
-  for layer in canvas.layers():
-    layerids.append(unicode(layer.id()))
+  layerids = [unicode(layer.id()) for layer in canvas.layers()]
 
   # set up a renderer
   labeling = QgsPalLabeling()
@@ -960,15 +956,15 @@ class PointGeometry:
   def asList(self):
     return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
 
-  @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func):
+  @staticmethod
+  def fromQgsGeometry(geometry, z_func, transform_func):
     geom = PointGeometry()
-    for pt in geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]:
-      geom.pts.append(transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+    pts = geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]
+    geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
     return geom
 
-  @classmethod
-  def fromWkb25D(cls, wkb, transform_func):
+  @staticmethod
+  def fromWkb25D(wkb, transform_func):
     geom = ogr.CreateGeometryFromWkb(wkb)
     geomType = geom.GetGeometryType()
 
@@ -987,8 +983,7 @@ class PointGeometry:
         pts += [geom25d.GetPoint(i) for i in range(geom25d.GetPointCount())]
 
     point_geom = PointGeometry()
-    for pt in pts:
-      point_geom.pts.append(transform_func(pt[0], pt[1], pt[2]))
+    point_geom.pts = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
     return point_geom
 
 
@@ -997,21 +992,17 @@ class LineGeometry:
     self.lines = []
 
   def asList(self):
-    lst = []
-    for line in self.lines:
-      lst.append(map(lambda pt: [pt.x, pt.y, pt.z], line))
-    return lst
+    return [map(lambda pt: [pt.x, pt.y, pt.z], line) for line in self.lines]
 
-  @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func):
+  @staticmethod
+  def fromQgsGeometry(geometry, z_func, transform_func):
     geom = LineGeometry()
-    for line in geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]:
-      pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line]
-      geom.lines.append(pts)
+    lines = geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]
+    geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
     return geom
 
-  @classmethod
-  def fromWkb25D(cls, wkb, transform_func):
+  @staticmethod
+  def fromWkb25D(wkb, transform_func):
     geom = ogr.CreateGeometryFromWkb(wkb)
     geomType = geom.GetGeometryType()
 
@@ -1059,8 +1050,8 @@ class PolygonGeometry:
       p.append(b)
     return p
 
-  @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, triMesh=None):
+  @staticmethod
+  def fromQgsGeometry(geometry, z_func, transform_func, calcCentroid=False, triMesh=None):
 
     useCentroidHeight = True
     centroidPerPolygon = True
@@ -1124,8 +1115,8 @@ class PolygonGeometry:
 
     return geom
 
-#  @classmethod
-#  def fromWkb25D(cls, wkb):
+#  @staticmethod
+#  def fromWkb25D(wkb):
 #    pass
 
 
@@ -1234,10 +1225,7 @@ def writeVectors(writer, progress=None):
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
     fieldNames = None
     if writeAttrs:
-      fieldNames = []
-      fields = layer.pendingFields()
-      for i in range(fields.count()):
-        fieldNames.append(fields[i].name())
+      fieldNames = [field.name() for field in layer.pendingFields()]
 
     hasLabel = False
     if writeAttrs:
@@ -1308,9 +1296,7 @@ def writeSphereTexture(writer):
   renderer.setDestinationCrs(crs)
   renderer.setProjectionsEnabled(True)
 
-  layerids = []
-  for layer in canvas.layers():
-    layerids.append(unicode(layer.id()))
+  layerids = [unicode(layer.id()) for layer in canvas.layers()]
   renderer.setLayerSet(layerids)
 
   extent = QgsRectangle(-180, -90, 180, 90)
@@ -1347,14 +1333,10 @@ class GeometryUtils:
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
-    items = []
-    for k, v in obj.iteritems():
-      items.append("{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)))
+    items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
     return "{" + ",".join(items) + "}"
   elif isinstance(obj, list):
-    items = []
-    for v in obj:
-      items.append(unicode(pyobj2js(v, escape, quoteHex)))
+    items = [unicode(pyobj2js(v, escape, quoteHex)) for v in obj]
     return "[" + ",".join(items) + "]"
   elif isinstance(obj, bool):
     return "true" if obj else "false"
