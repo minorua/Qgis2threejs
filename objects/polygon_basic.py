@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
-from Qgis2threejs.stylewidget import StyleWidget
+from Qgis2threejs.stylewidget import StyleWidget, HeightWidgetFunc, LabelHeightWidgetFunc
 
 def geometryType():
   return QGis.Polygon
@@ -41,6 +41,20 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
 
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
+
+  if type_index == 0:
+    item_text = ["Height from top", "Height from bottom"]
+  else:
+    item_text = ["Height from overlay", "Height from DEM"]
+
+  comboBox = ppage.labelHeightWidget.comboBox
+  comboBox.clear()
+  comboBox.addItem(item_text[0], LabelHeightWidgetFunc.RELATIVE_TO_TOP)
+  comboBox.addItem(item_text[1], LabelHeightWidgetFunc.RELATIVE)
+  comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
+  if layer:
+    ppage.labelHeightWidget.addFieldNameItems(layer)
+
 
 class Triangles:
   def __init__(self):

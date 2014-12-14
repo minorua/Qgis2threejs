@@ -904,18 +904,28 @@ Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 
 Q3D.VectorLayer.prototype.build = function (parent) {};
 
-Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement) {
+Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPointsFunc, zFunc) {
   // Layer must belong to a project
   var label = this.l;
-  if (label === undefined || this.project === undefined) return;
+  if (label === undefined || this.project === undefined || getPointsFunc === undefined) return;
 
-  // Line layer is not supported
-  var getPoints;
-  if (this.type == Q3D.LayerType.Point) getPoints = function (f) { return f.pts; };
-  else if (this.type == Q3D.LayerType.Polygon) getPoints = function (f) { return f.centroids; };
-  else return;
-
+  // function to get height for both ends of label connector
+  // label.ht
+  //  1: fixed height
+  //  2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
+  //  3: height from top of extruded polygon / from overlay
+  //  >= 100: data-defined + addend
   var zShift = this.project.zShift, zScale = this.project.zScale;
+  var labelHeightFunc = function (f, pt) {
+    var z0 = (zFunc === undefined) ? pt[2] : zFunc(pt[0], pt[1]);
+
+    if (label.ht == 1) return [z0, label.v];
+    if (label.ht >= 100) return [z0, (f.a[label.ht - 100] + zShift) * zScale + label.v];
+
+    if (label.ht == 3) z0 += f.h;
+    return [z0, z0 + label.v];
+  };
+
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
   this.labelConnectorGroup = new THREE.Object3D();
   this.labelConnectorGroup.userData = this.index;
@@ -933,7 +943,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement) {
     var text = f.a[label.i];
     if (text === null || text === "") continue;
 
-    var pts = getPoints(f);
+    var pts = getPointsFunc(f);
     for (var j = 0, m = pts.length; j < m; j++) {
       var pt = pts[j];
       // create div element for label
@@ -942,14 +952,9 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement) {
       e.className = "label";
       this.labelParentElement.appendChild(e);
 
-      var h;
-      if (label.ht == 1) h = label.v;  // fixed height
-      else if (label.ht == 2) h = pt[2] + label.v;  // height from point / bottom
-      else if (label.ht == 3) h = pt[2] + f.h + label.v;  // height from top (extruded polygon)
-      else h = (f.a[label.ht - 100] + zShift) * zScale + label.v;  // data-defined + addend
-
-      var pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);
-      var pt1 = new THREE.Vector3(pt[0], pt[1], h);
+      var z = labelHeightFunc(f, pt);
+      var pt0 = new THREE.Vector3(pt[0], pt[1], z[0]);    // bottom
+      var pt1 = new THREE.Vector3(pt[0], pt[1], z[1]);    // top
 
       // create connector
       var geom = new THREE.Geometry();
@@ -1077,6 +1082,10 @@ Q3D.PointLayer.prototype.buildJSONModels = function (parent) {
   if (parent) parent.add(this.objectGroup);
 };
 
+Q3D.PointLayer.prototype.buildLabels = function (parent, parentElement) {
+  Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, function (f) { return f.pts; });
+};
+
 
 /*
 Q3D.LineLayer class --> Q3D.VectorLayer
@@ -1165,6 +1174,11 @@ Q3D.LineLayer.prototype.build = function (parent) {
   }, this);
 
   if (parent) parent.add(this.objectGroup);
+};
+
+Q3D.LineLayer.prototype.buildLabels = function (parent, parentElement) {
+  // Line layer doesn't support label
+  // Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement);
 };
 
 
@@ -1313,6 +1327,17 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   }
 
   if (parent) parent.add(this.objectGroup);
+};
+
+Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
+  var zFunc, getPointsFunc = function (f) { return f.centroids; };
+  var relativeToDEM = (this.am == "relative");    // altitude mode
+  if (relativeToDEM) {
+    var dem = this.project.layers[0];
+    zFunc = dem.getZ.bind(dem);
+  }
+
+  Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, getPointsFunc, zFunc);
 };
 
 

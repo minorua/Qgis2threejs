@@ -233,7 +233,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.clear()
     if layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
       self.widget.comboBox.addItem("Z value", HeightWidgetFunc.RELATIVE_TO_Z)
-    self.widget.comboBox.addItem("Height from surface", HeightWidgetFunc.RELATIVE)
+    self.widget.comboBox.addItem("Height from DEM", HeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
     if layer:
       self.widget.addFieldNameItems(layer, fieldNames)
@@ -261,13 +261,9 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
     self.widget.comboBox.clear()
-    if layer.geometryType() == QGis.Point:
-      self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
-    elif layer.geometryType() == QGis.Polygon:
-      self.widget.comboBox.addItem("Height from top", LabelHeightWidgetFunc.RELATIVE_TO_TOP)
-      self.widget.comboBox.addItem("Height from bottom", LabelHeightWidgetFunc.RELATIVE)
-    else:
-      return
+    if layer.geometryType() != QGis.Point:
+      return  # Will be initialized in obj_mod.setupForm() if polygon. Line layer cannot have labels.
+    self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
     if layer:
       self.widget.addFieldNameItems(layer, fieldNames)
