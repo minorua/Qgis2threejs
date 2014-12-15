@@ -708,29 +708,24 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   dem.aObjs.push(mesh);
 
   // left
-  geom = new THREE.PlaneGeometry(dem.plane.height, 2 * sole_height, h - 1, 1);
+  geom = new THREE.PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
   for (i = 0; i < h; i++) {
-    geom.vertices[i].y = dem.data[w * i];
+    geom.vertices[i * 2 + 1].x = dem.data[w * i];
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.x = -dem.plane.width / 2;
-  mesh.rotateOnAxis(Q3D.uv.k, -HALF_PI);
-  mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+  mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
   this.addObject(mesh, false);
   dem.aObjs.push(mesh);
 
   // right
-  geom = new THREE.PlaneGeometry(dem.plane.height, 2 * sole_height, h - 1, 1);
+  geom = new THREE.PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
   for (i = 0; i < h; i++) {
-    geom.vertices[i + h].y = -dem.data[w * (i + 1) - 1];  // This seems to be a bit strange, but good for STL export.
-    // geom.vertices[i].y = dem.data[w * (h - i) - 1];
+    geom.vertices[i * 2].x = -dem.data[w * (i + 1) - 1];
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.x = dem.plane.width / 2;
-  mesh.rotateOnAxis(Q3D.uv.k, -HALF_PI);
-  mesh.rotateOnAxis(Q3D.uv.i, -HALF_PI);
-  // mesh.rotateOnAxis(Q3D.uv.k, HALF_PI);
-  // mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+  mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
   this.addObject(mesh, false);
   dem.aObjs.push(mesh);
 
