@@ -1138,7 +1138,7 @@ class Feature:
     self.feat = None
     self.geom = None
 
-  def setQgsFeature(self, feat):
+  def setQgsFeature(self, feat, clipGeom=None):
     self.feat = feat
     self.geom = None
 
@@ -1148,6 +1148,10 @@ class Feature:
 
     # coordinate transformation - layer crs to project crs
     geom.transform(self.transform)
+
+    # clip geometry
+    if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
+      geom = geom.intersection(clipGeom)
 
     # z_func: function to get z coordinate at given point (x, y)
     if self.prop.isHeightRelativeToSurface():
@@ -1248,9 +1252,17 @@ def writeVectors(writer, progress=None):
     layer.rendererV2().startRender(renderer.rendererContext(), layer.pendingFields() if apiChanged23 else layer)
 
     feat = Feature(context, layer, prop)
-    request = QgsFeatureRequest().setFilterRect(feat.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+
+    request = QgsFeatureRequest()
+    # features to export
+    clipGeom = None
+    if properties.get("radioButton_IntersectingFeatures", False):
+      request.setFilterRect(feat.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+      if properties.get("checkBox_Clip"):
+        clipGeom = QgsGeometry.fromRect(canvas.extent())
+
     for f in layer.getFeatures(request):
-      feat.setQgsFeature(f)
+      feat.setQgsFeature(f, clipGeom)
       if feat.geom is None:
         qDebug("null geometry skipped")
         continue

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Fri Aug 22 18:04:42 2014
+# Created: Mon Dec 15 15:47:22 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -53,6 +53,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_Resampling = QtGui.QGroupBox(DEMPropertiesWidget)
         self.groupBox_Resampling.setObjectName(_fromUtf8("groupBox_Resampling"))
         self.gridLayout_2 = QtGui.QGridLayout(self.groupBox_Resampling)
+        self.gridLayout_2.setContentsMargins(-1, 6, -1, 6)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.verticalLayout_Simple = QtGui.QVBoxLayout()
         self.verticalLayout_Simple.setContentsMargins(10, -1, -1, -1)
@@ -242,6 +243,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_DisplayType = QtGui.QGroupBox(DEMPropertiesWidget)
         self.groupBox_DisplayType.setObjectName(_fromUtf8("groupBox_DisplayType"))
         self.gridLayout_3 = QtGui.QGridLayout(self.groupBox_DisplayType)
+        self.gridLayout_3.setContentsMargins(-1, 6, -1, 6)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
@@ -319,6 +321,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_Accessories = QtGui.QGroupBox(DEMPropertiesWidget)
         self.groupBox_Accessories.setObjectName(_fromUtf8("groupBox_Accessories"))
         self.gridLayout_4 = QtGui.QGridLayout(self.groupBox_Accessories)
+        self.gridLayout_4.setContentsMargins(-1, 6, -1, 6)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
         self.horizontalLayout_18 = QtGui.QHBoxLayout()
         self.horizontalLayout_18.setObjectName(_fromUtf8("horizontalLayout_18"))

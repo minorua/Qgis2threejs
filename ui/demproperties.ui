@@ -49,6 +49,12 @@
         <string>Resampling</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
+        <property name="topMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
         <item row="1" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_Simple">
           <property name="leftMargin">
@@ -491,6 +497,12 @@
         <string>Display type</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
+        <property name="topMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -672,6 +684,12 @@
         <string>Sides and frame</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
+        <property name="topMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_18">
           <item>

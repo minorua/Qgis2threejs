@@ -541,11 +541,19 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
+    widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.setPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeChanged)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
+    for radioButton in [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures]:
+      radioButton.toggled.connect(self.featuresToExportChanged)
+
+  def featuresToExportChanged(self, checked=True):
+    if checked:
+      enabled = self.radioButton_IntersectingFeatures.isChecked()
+      self.checkBox_Clip.setEnabled(enabled)
 
   def setup(self, properties=None, layer=None):
     self.layer = layer
