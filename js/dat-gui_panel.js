@@ -23,6 +23,7 @@ function addPlane(color) {
 
 // GUI
 var gui = new dat.GUI();
+gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
 
 var parameters = {
   lyr: [],
