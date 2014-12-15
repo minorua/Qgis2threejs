@@ -19,16 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Import the PyQt and QGIS libraries
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-# Initialize Qt resources from file resources.py
-import resources_rc
-# Import the code for the dialog
-from qgis2threejsdialog import Qgis2threejsDialog
-import qgis2threejstools as tools
 import os
+
+from PyQt4.QtCore import QCoreApplication, QFile, qDebug    #, QSettings, QTranslator, qVersion
+from PyQt4.QtGui import QAction, QIcon
+
+from qgis2threejstools import removeTemporaryOutputDir
 
 debug_mode = 1
 
@@ -40,23 +36,24 @@ class Qgis2threejs:
 
     # initialize plugin directory
     self.plugin_dir = os.path.dirname(QFile.decodeName(__file__))
+
     # initialize locale
-    locale = QSettings().value("locale/userLocale")[0:2]
-    localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{0}.qm'.format(locale))
+    #locale = QSettings().value("locale/userLocale")[0:2]
+    #localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{0}.qm'.format(locale))
 
-    if os.path.exists(localePath):
-      self.translator = QTranslator()
-      self.translator.load(localePath)
+    #if os.path.exists(localePath):
+    #  self.translator = QTranslator()
+    #  self.translator.load(localePath)
 
-      if qVersion() > '4.3.3':
-        QCoreApplication.installTranslator(self.translator)
+    #  if qVersion() > '4.3.3':
+    #    QCoreApplication.installTranslator(self.translator)
 
     self.properties = None
     self.lastOutputFilename = ""
 
   def initGui(self):
     # Create action that will start plugin configuration
-    icon = QIcon(":/plugins/qgis2threejs/icon.png")
+    icon = QIcon(os.path.join(self.plugin_dir, "icon.png"))
     self.action = QAction(icon, u"Qgis2threejs", self.iface.mainWindow())
     self.settingAction = QAction(u"Settings", self.iface.mainWindow())
 
@@ -76,10 +73,10 @@ class Qgis2threejs:
     self.iface.removePluginWebMenu(u"Qgis2threejs", self.settingAction)
 
     # remove temporary output directory
-    tools.removeTemporaryOutputDir()
+    removeTemporaryOutputDir()
 
   def run(self):
-    # create dialog
+    from qgis2threejsdialog import Qgis2threejsDialog
     dialog = Qgis2threejsDialog(self.iface, self.properties)
     ui = dialog.ui
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
