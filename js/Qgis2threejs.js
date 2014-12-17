@@ -171,10 +171,9 @@ Q3D.application = {
     // controls
     if (Q3D.Controls) this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
 
-    // create materials and build models
-    this._createMaterials();
-
+    // build models
     project.layers.forEach(function (layer) {
+      layer.initMaterials();
       layer.build(this.scene);
       if (layer.queryableObjects.length) this.queryableObjects = this.queryableObjects.concat(layer.queryableObjects);
 
@@ -258,30 +257,6 @@ Q3D.application = {
   buildDefaultCamera: function () {
     this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 1000);
     this.camera.position.set(0, -100, 100);
-  },
-
-  // Call this once to create materials
-  _createMaterials: function () {
-    var mat, materials = this.project.materials;
-    for (var i = 0, l = materials.length; i < l; i++) {
-      var m = materials[i];
-      if (m.type == 0 || m.type == 3) {
-        mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c});
-        if (m.type == 3) mat.shading = THREE.FlatShading;
-      }
-      else if (m.type == 1) {
-        mat = new THREE.LineBasicMaterial({color: m.c});
-      }
-      else {    // type == 2
-        mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
-      }
-      if (m.o !== undefined && m.o < 1) {
-        mat.opacity = m.o;
-        mat.transparent = true;
-      }
-      if (m.ds) mat.side = THREE.DoubleSide;
-      m.m = mat;
-    }
   },
 
   currentViewUrl: function () {
@@ -555,7 +530,7 @@ Q3D.DEMBlock.prototype = {
 
     // Terrain material
     var mat;
-    if (this.m !== undefined) mat = layer.project.materials[this.m].m;
+    if (this.m !== undefined) mat = layer.materials[this.m].m;
     else {
       var texture;
       if (this.t.src === undefined) {
@@ -599,12 +574,17 @@ MapLayer class
 */
 Q3D.MapLayer = function (params) {
 
-  this.objectGroup = new THREE.Object3D();
   this.visible = true;
-  this.queryableObjects = [];
+
+  this.m = [];
   for (var k in params) {
     this[k] = params[k];
   }
+
+  // this.materials = undefined;
+  this.objectGroup = new THREE.Object3D();
+  this.queryableObjects = [];
+
 };
 
 Q3D.MapLayer.prototype = {
@@ -623,6 +603,10 @@ Q3D.MapLayer.prototype = {
     for (var i = 0, l = object.children.length; i < l; i++) {
       this._addQueryableObject(object.children[i]);
     }
+  },
+
+  initMaterials: function () {
+    this.materials = Q3D.Utils.createMaterials(this.m);
   },
 
   setVisible: function (visible) {
@@ -891,7 +875,9 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
 Q3D.VectorLayer class --> Q3D.MapLayer
 */
 Q3D.VectorLayer = function (params) {
+  this.f = [];
   Q3D.MapLayer.call(this, params);
+
   this.labels = [];
 };
 
@@ -1004,7 +990,7 @@ Q3D.PointLayer.prototype.build = function (parent) {
     return;
   }
 
-  var materials = this.project.materials;
+  var materials = this.materials;
   var type2int = {
     "Sphere": 0,
     "Cube": 1,
@@ -1093,7 +1079,7 @@ Q3D.LineLayer = function (params) {
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
 Q3D.LineLayer.prototype.build = function (parent) {
-  var materials = this.project.materials;
+  var materials = this.materials;
   var pt;
   if (this.objType == "Line") {
     var createObject = function (f, line, userData) {
@@ -1188,7 +1174,7 @@ Q3D.PolygonLayer = function (params) {
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
 Q3D.PolygonLayer.prototype.build = function (parent) {
-  var materials = this.project.materials;
+  var materials = this.materials;
 
   var arrayToVec2Array = function (points) {
     var pt, pts = [];
@@ -1338,6 +1324,32 @@ Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
 
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
+
+Q3D.Utils.createMaterials = function (m_list) {
+  var mat, materials = [];
+
+  for (var i = 0, l = m_list.length; i < l; i++) {
+    var m = m_list[i];
+    if (m.type == 0 || m.type == 3) {
+      mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c});
+      if (m.type == 3) mat.shading = THREE.FlatShading;
+    }
+    else if (m.type == 1) {
+      mat = new THREE.LineBasicMaterial({color: m.c});
+    }
+    else {    // type == 2
+      mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
+    }
+    if (m.o !== undefined && m.o < 1) {
+      mat.opacity = m.o;
+      mat.transparent = true;
+    }
+    if (m.ds) mat.side = THREE.DoubleSide;    // TODO: ie
+    m.m = mat;
+    materials.push(m);
+  }
+  return materials;
+};
 
 Q3D.Utils.setObjectVisibility = function (object, visible) {
   object.traverse(function (obj) {

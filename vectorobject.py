@@ -36,7 +36,7 @@ class ObjectTypeModule:
     self.geometryType = getattr(module, 'geometryType')()
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
     self.setupForm = getattr(module, 'setupForm')     # setupForm(dialog, mapTo3d, layer, type_index=0)
-    self.write = getattr(module, 'write')   # write(mapTo3d, pt(s), properties, layer=None, f=None)
+    self.write = getattr(module, 'write')             # write(writer, layer, feat)
 
   @classmethod
   def load(self, modname):

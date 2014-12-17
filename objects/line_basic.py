@@ -42,13 +42,13 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
-def write(writer, feat):
+def write(writer, layer, feat):
   mapTo3d = writer.context.mapTo3d
   if feat.prop.type_index in [0, 3]:   # Line or Profile
     if feat.prop.type_index == 0:
-      mat = writer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+      mat = layer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
     else:
-      mat = writer.materialManager.getFlatMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
+      mat = layer.materialManager.getFlatMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
     writer.writeFeature({"m": mat, "lines": feat.geom.asList()})
     return
 
@@ -56,6 +56,6 @@ def write(writer, feat):
   vals = feat.propValues()
   rb = float(vals[0]) * mapTo3d.multiplier
   if rb != 0:
-    mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+    mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
     rt = 0 if feat.prop.type_index == 2 else rb
     writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "rt": rt, "rb": rb})

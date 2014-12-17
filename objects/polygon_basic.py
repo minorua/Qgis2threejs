@@ -83,8 +83,8 @@ class Triangles:
     return vi
 
 
-def write(writer, feat):
-  mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+def write(writer, layer, feat):
+  mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   vals = feat.propValues()
   d = {"m": mat}
 

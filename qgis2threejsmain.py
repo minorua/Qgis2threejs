@@ -175,8 +175,6 @@ class MaterialManager:
   def write(self, f):
     if not len(self.materials):
       return
-    f.write("\n// Materials\n")
-    f.write("mat = project.materials;\n")
     for index, mat in enumerate(self.materials):
       m = {"type": mat[0], "c": mat[1]}
       transparency = mat[2]
@@ -185,7 +183,7 @@ class MaterialManager:
         m["o"] = opacity
       if mat[3]:
         m["ds"] = 1
-      f.write("mat[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
+      f.write("lyr.m[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
 
 class JSWriter:
   def __init__(self, htmlfilename, context):
@@ -198,7 +196,6 @@ class JSWriter:
     self.currentLayerIndex = 0
     self.currentFeatureIndex = -1
     self.attrs = []
-    self.materialManager = MaterialManager()
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
 
@@ -259,6 +256,9 @@ class JSWriter:
   def writeAttributes(self):
     for index, attrs in enumerate(self.attrs):
       self.write(u"lyr.f[{0}].a = {1};\n".format(index, pyobj2js(attrs, True)))
+
+  def writeMaterials(self, materialManager):
+    materialManager.write(self)
 
   def prepareNext(self):
     self.closeFile()
@@ -377,11 +377,13 @@ def writeSimpleDEM(writer, properties, progress=None):
   layerName = ""
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
-    layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
-    layerName = layer.name()
-    warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
+    mapLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+    layerName = mapLayer.name()
+    warp_dem = tools.MemoryWarpRaster(mapLayer.source().encode("UTF-8"))
   else:
+    mapLayer = None
     warp_dem = tools.FlatRaster()
+
   # warp dem
   dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
 
@@ -400,7 +402,11 @@ def writeSimpleDEM(writer, properties, progress=None):
   if surroundings:
     roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
 
+  # layer
+  layer = DEMLayer(context, mapLayer, prop)
+
   # dem block
+  #TODO: rename this to block
   dem = {"width": dem_width, "height": dem_height}
   dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
 
@@ -433,10 +439,10 @@ def writeSimpleDEM(writer, properties, progress=None):
       QgsMessageLog.logMessage(u'Image file not found: {0}'.format(filename), "Qgis2threejs")
 
   elif properties.get("radioButton_SolidColor", False):
-    dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
 
   elif properties.get("radioButton_Wireframe", False):
-    dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+    dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
   if texData is not None or texSrc is not None:
     tex = {}
@@ -477,9 +483,12 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # write surrounding dems
   if surroundings:
-    writeSurroundingDEM(writer, stats, properties, progress)
+    writeSurroundingDEM(writer, layer, stats, properties, progress)
     # overwrite stats
     writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
+
+  writer.writeMaterials(layer.materialManager)
+
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:
@@ -503,7 +512,7 @@ def roughenEdges(width, height, values, interval):
         z = (z0 * (interval - yy) + z1 * yy) / interval
         values[x + width * (y0 + yy)] = z
 
-def writeSurroundingDEM(writer, stats, properties, progress=None):
+def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
@@ -533,7 +542,7 @@ def writeSurroundingDEM(writer, stats, properties, progress=None):
     image_width = round(image_height / hpw)
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
 
-  layerids = [unicode(layer.id()) for layer in canvas.layers()]
+  layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
 
   # set up a renderer
   labeling = QgsPalLabeling()
@@ -596,6 +605,7 @@ def writeSurroundingDEM(writer, stats, properties, progress=None):
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
 
     # dem block
+    #TODO: rename this to block
     dem = {"width": dem_width, "height": dem_height}
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
@@ -627,10 +637,10 @@ def writeSurroundingDEM(writer, stats, properties, progress=None):
       dem["t"] = tex
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
     if properties.get("checkBox_Shading", True):
       dem["shading"] = True
@@ -649,7 +659,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   canvas = context.canvas
   if progress is None:
     progress = dummyProgress
+  prop = DEMPropertyReader(properties)
   demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
+  if demlayer is None:
+    return
   temp_dir = QDir.tempPath()
   timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
@@ -661,6 +674,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   demTransparency = properties["spinBox_demtransp"]
 
   # layer
+  layer = DEMLayer(context, demlayer, prop)
   lyr = {"type": "dem", "name": demlayer.name()}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
@@ -687,7 +701,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
   #qDebug("Created image size: %d, %d" % (image_width, image_height))
 
-  layerids = [unicode(layer.id()) for layer in canvas.layers()]
+  layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
 
   # set up a renderer
   labeling = QgsPalLabeling()
@@ -807,10 +821,10 @@ def writeMultiResDEM(writer, properties, progress=None):
         dem["t"] = tex
 
       elif properties.get("radioButton_SolidColor", False):
-        dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
 
       elif properties.get("radioButton_Wireframe", False):
-        dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+        dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
       if properties.get("checkBox_Shading", True):
         dem["shading"] = True
@@ -890,6 +904,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     plane_index += 1
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
+  writer.writeMaterials(layer.materialManager)
 
 class TriangleMesh:
   def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
@@ -1122,18 +1137,16 @@ class PolygonGeometry:
 
 class Feature:
 
-  geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
-
-  def __init__(self, context, layer, prop):
-    self.context = context
+  def __init__(self, layer):
     self.layer = layer
-    self.prop = prop
 
-    self.wkt = str(context.crs.toWkt())
-    self.transform = QgsCoordinateTransform(layer.crs(), context.crs)
-    self.geomType = layer.geometryType()
-    self.geomClass = self.geomType2Class.get(self.geomType)
-    self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
+    self.context = layer.context
+    self.prop = layer.prop
+    self.wkt = layer.wkt
+    self.transform = layer.transform
+    self.geomType = layer.geomType
+    self.geomClass = layer.geomClass
+    self.hasLabel = layer.hasLabel
 
     self.feat = None
     self.geom = None
@@ -1180,13 +1193,41 @@ class Feature:
     return self.prop.relativeHeight(self.feat)
 
   def color(self):
-    return self.prop.color(self.layer, self.feat)
+    return self.prop.color(self.layer.layer, self.feat)
 
   def transparency(self):
-    return self.prop.transparency(self.layer, self.feat)
+    return self.prop.transparency(self.layer.layer, self.feat)
 
   def propValues(self):
     return self.prop.values(self.feat)
+
+
+class Layer:
+
+  def __init__(self, context, layer, prop):
+    self.context = context
+    self.layer = layer
+    self.prop = prop
+
+    self.materialManager = MaterialManager()
+
+
+class DEMLayer(Layer):
+  pass
+
+
+class VectorLayer(Layer):
+
+  geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
+
+  def __init__(self, context, layer, prop):
+    Layer.__init__(self, context, layer, prop)
+
+    self.wkt = str(context.crs.toWkt())
+    self.transform = QgsCoordinateTransform(layer.crs(), context.crs)
+    self.geomType = layer.geometryType()
+    self.geomClass = self.geomType2Class.get(self.geomType)
+    self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
 
 
 def writeVectors(writer, progress=None):
@@ -1205,19 +1246,22 @@ def writeVectors(writer, progress=None):
 
   finishedLayers = 0
   for layerId, properties in layerProperties.iteritems():
-    layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
-    if layer is None:
+    mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+    if mapLayer is None:
       continue
-    progress(50 + 30 * finishedLayers / len(layerProperties), u"Writing layer: {0}".format(layer.name()))
-    geom_type = layer.geometryType()
-    prop = VectorPropertyReader(context.objectTypeManager, layer, properties)
+    progress(50 + 30 * finishedLayers / len(layerProperties), u"Writing layer: {0}".format(mapLayer.name()))
+    geom_type = mapLayer.geometryType()
+    prop = VectorPropertyReader(context.objectTypeManager, mapLayer, properties)
     obj_mod = context.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
 
-    # write layer object
-    lyr = {"name": layer.name(), "f": []}
+    # layer object
+    layer = VectorLayer(context, mapLayer, prop)
+
+    # TODO: do these in VectorLayer.__init__()
+    lyr = {"name": mapLayer.name(), "f": []}
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
     lyr["objType"] = prop.type_name
@@ -1229,7 +1273,7 @@ def writeVectors(writer, progress=None):
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
     fieldNames = None
     if writeAttrs:
-      fieldNames = [field.name() for field in layer.pendingFields()]
+      fieldNames = [field.name() for field in mapLayer.pendingFields()]
 
     hasLabel = False
     if writeAttrs:
@@ -1240,7 +1284,9 @@ def writeVectors(writer, progress=None):
         hasLabel = True
 
     # write layer object
-    writer.writeLayer(lyr, fieldNames)
+    writer.writeLayer(lyr, fieldNames)    #TODO: writer.writeLayer(layer) or writer.write(layer.obj)
+
+    feat = Feature(layer)
 
     # prepare triangle mesh
     if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
@@ -1249,27 +1295,25 @@ def writeVectors(writer, progress=None):
       progress(None, "Writing overlay polygons")
 
     # initialize symbol rendering
-    layer.rendererV2().startRender(renderer.rendererContext(), layer.pendingFields() if apiChanged23 else layer)
-
-    feat = Feature(context, layer, prop)
+    mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
 
     request = QgsFeatureRequest()
     # features to export
     clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
-      request.setFilterRect(feat.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+      request.setFilterRect(layer.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
       if properties.get("checkBox_Clip"):
         clipGeom = QgsGeometry.fromRect(canvas.extent())
 
-    for f in layer.getFeatures(request):
+    for f in mapLayer.getFeatures(request):
       feat.setQgsFeature(f, clipGeom)
       if feat.geom is None:
         qDebug("null geometry skipped")
         continue
 
       # write geometry
-      obj_mod.write(writer, feat)
-
+      obj_mod.write(writer, layer, feat)   #TODO: writer.writeFeature(layer, feat, obj_mod)
+                                           #      obj_mod.feature(writer, layer, feat)
       # stack attributes in writer
       if writeAttrs:
         writer.addAttributes(f.attributes())
@@ -1278,12 +1322,12 @@ def writeVectors(writer, progress=None):
     if writeAttrs:
       writer.writeAttributes()
 
-    layer.rendererV2().stopRender(renderer.rendererContext())
+    # write materials
+    writer.writeMaterials(layer.materialManager)
+
+    mapLayer.rendererV2().stopRender(renderer.rendererContext())
     finishedLayers += 1
 
-  # write materials
-  progress(80, u"Writing materials")
-  writer.materialManager.write(writer)
 
 def writeSphereTexture(writer):
   #context = writer.context

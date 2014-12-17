@@ -41,7 +41,7 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
-def write(writer, feat):
+def write(writer, layer, feat):
   vals = feat.propValues()
   json_path = vals[0]
   scale = float(vals[1])

@@ -52,8 +52,8 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
-def write(writer, feat):
-  mat = writer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+def write(writer, layer, feat):
+  mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   mapTo3d = writer.context.mapTo3d
   vals = feat.propValues()
   pts = feat.geom.asList()
