@@ -458,12 +458,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     dem["shading"] = True
 
   if not surroundings and properties.get("checkBox_Sides", False):
-    side = {}
-    sidesTransparency = prop.properties["spinBox_sidetransp"]
-    if sidesTransparency > 0:
-      sidesOpacity = str(1.0 - float(sidesTransparency) / 100)
-      side["o"] = sidesOpacity
-    dem["s"] = side
+    dem["s"] = True
 
   if not surroundings and properties.get("checkBox_Frame", False):
     dem["frame"] = True

@@ -248,7 +248,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.demWidth = self.demHeight = 0
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
-    widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp, self.spinBox_sidetransp]
+    widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
@@ -269,7 +269,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       radioButton.toggled.connect(self.dispTypeChanged)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
-    self.checkBox_Sides.toggled.connect(self.sidesToggled)
 
     self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
 
@@ -384,10 +383,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # possible value is a power of 2
     self.spinBox_Roughening.setSingleStep(v)
     self.spinBox_Roughening.setMinimum(max(v / 2, 1))
-
-  def sidesToggled(self, checked):
-    self.label_sidetransp.setEnabled(checked)
-    self.spinBox_sidetransp.setEnabled(checked)
 
   def hide(self):
     PropertyPage.hide(self)

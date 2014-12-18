@@ -674,12 +674,12 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   var dem = block;
 
   // Material
-  if (dem.s.o === undefined) dem.s.o = 1;
-
+  var opacity = (block.m !== undefined) ? this.materials[block.m].o : block.t.o;
+  if (opacity === undefined) opacity = 1;
   var mat = new THREE.MeshLambertMaterial({color: color,
                                            ambient: color,
-                                           opacity: dem.s.o,
-                                           transparent: (dem.s.o < 1)});
+                                           opacity: opacity,
+                                           transparent: (opacity < 1)});
   this.materials.push({m: mat});
 
   // Sides
@@ -747,8 +747,12 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
 
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   var dem = block;
-  var line_mat = new THREE.LineBasicMaterial({color: color});
-  this.materials.push({m: line_mat});
+  var opacity = (block.m !== undefined) ? this.materials[block.m].o : block.t.o;
+  if (opacity === undefined) opacity = 1;
+  var mat = new THREE.LineBasicMaterial({color: color,
+                                         opacity: opacity,
+                                         transparent: (opacity < 1)});
+  this.materials.push({m: mat});
 
   // horizontal rectangle at bottom
   var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
@@ -759,7 +763,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
                      new THREE.Vector3(-hw, hh, z),
                      new THREE.Vector3(-hw, -hh, z));
 
-  var obj = new THREE.Line(geom, line_mat);
+  var obj = new THREE.Line(geom, mat);
   this.addObject(obj, false);
   dem.aObjs.push(obj);
 
@@ -773,7 +777,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
     geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
                        new THREE.Vector3(pt[0], pt[1], z));
 
-    var obj = new THREE.Line(geom, line_mat);
+    var obj = new THREE.Line(geom, mat);
     this.addObject(obj, false);
     dem.aObjs.push(obj);
   }, this);
