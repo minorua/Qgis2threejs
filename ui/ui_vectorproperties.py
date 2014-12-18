@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Mon Dec 15 15:47:17 2014
+# Created: Thu Dec 18 10:58:36 2014
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -93,15 +93,14 @@ class Ui_VectorPropertiesWidget(object):
         self.radioButton_IntersectingFeatures.setChecked(True)
         self.radioButton_IntersectingFeatures.setObjectName(_fromUtf8("radioButton_IntersectingFeatures"))
         self.verticalLayout_3.addWidget(self.radioButton_IntersectingFeatures)
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        spacerItem = QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
+        self.verticalLayout_Feature = QtGui.QVBoxLayout()
+        self.verticalLayout_Feature.setContentsMargins(20, -1, -1, -1)
+        self.verticalLayout_Feature.setObjectName(_fromUtf8("verticalLayout_Feature"))
         self.checkBox_Clip = QtGui.QCheckBox(self.groupBox_Features)
         self.checkBox_Clip.setChecked(True)
         self.checkBox_Clip.setObjectName(_fromUtf8("checkBox_Clip"))
-        self.horizontalLayout.addWidget(self.checkBox_Clip)
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.verticalLayout_Feature.addWidget(self.checkBox_Clip)
+        self.verticalLayout_3.addLayout(self.verticalLayout_Feature)
         self.verticalLayout_2.addWidget(self.groupBox_Features)
         self.groupBox_Attrs = QtGui.QGroupBox(VectorPropertiesWidget)
         self.groupBox_Attrs.setObjectName(_fromUtf8("groupBox_Attrs"))
@@ -135,8 +134,8 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Label.setObjectName(_fromUtf8("verticalLayout_Label"))
         self.verticalLayout_4.addLayout(self.verticalLayout_Label)
         self.verticalLayout_2.addWidget(self.groupBox_Attrs)
-        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
 
         self.retranslateUi(VectorPropertiesWidget)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)

@@ -171,23 +171,10 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout_Feature">
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
         <item>
          <widget class="QCheckBox" name="checkBox_Clip">
           <property name="text">

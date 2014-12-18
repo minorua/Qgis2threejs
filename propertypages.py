@@ -588,6 +588,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     else:
       self.labelHeightWidget.hide()
 
+    # point layer has no geometry clip option
+    self.checkBox_Clip.setVisible(layer.geometryType() != QGis.Point)
+
     # set up style widgets for selected object type
     self.objectTypeChanged()
 
