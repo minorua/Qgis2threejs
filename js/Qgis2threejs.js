@@ -39,7 +39,6 @@ Q3D.Project = function (title, crs, baseExtent, width, zExaggeration, zShift) {
   this.zShift = zShift;
 
   this.layers = [];
-  this.materials = [];
   this.jsons = [];
 };
 
@@ -541,6 +540,7 @@ Q3D.DEMBlock.prototype = {
       }
       if (this.t.o === undefined) this.t.o = 1;
       mat = new THREE.MeshPhongMaterial({map: texture, opacity: this.t.o, transparent: (this.t.o < 1)});
+      layer.materials.push({m: mat});
     }
     if (!Q3D.isIE) mat.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
 
@@ -575,6 +575,7 @@ MapLayer class
 Q3D.MapLayer = function (params) {
 
   this.visible = true;
+  this.opacity = 1;
 
   this.m = [];
   for (var k in params) {
@@ -607,6 +608,22 @@ Q3D.MapLayer.prototype = {
 
   initMaterials: function () {
     this.materials = Q3D.Utils.createMaterials(this.m);
+
+    // layer opacity is the average opacity of materials.
+    var sum = 0, l = this.materials.length;
+    if (l == 0) return;
+    for (var i = 0; i < l; i++) {
+      sum += this.materials[i].m.opacity;
+    }
+    this.opacity = sum / l;
+  },
+
+  setOpacity: function (opacity) {
+    this.opacity = opacity;
+    this.materials.forEach(function (mat) {
+      mat.m.transparent = (opacity < 1);
+      mat.m.opacity = opacity;
+    });
   },
 
   setVisible: function (visible) {
@@ -663,6 +680,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
                                            ambient: color,
                                            opacity: dem.s.o,
                                            transparent: (dem.s.o < 1)});
+  this.materials.push({m: mat});
 
   // Sides
   var w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
@@ -730,6 +748,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   var dem = block;
   var line_mat = new THREE.LineBasicMaterial({color: color});
+  this.materials.push({m: line_mat});
 
   // horizontal rectangle at bottom
   var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
@@ -760,6 +779,15 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   }, this);
 };
 
+Q3D.DEMLayer.prototype.initMaterials = function () {
+  Q3D.MapLayer.prototype.initMaterials.call(this);
+
+  // overwrite opacity if layer has texture.
+  var t = this.blocks[0].t;
+  if (t !== undefined && t.o !== undefined) {
+    this.opacity = t.o;
+  }
+};
 
 Q3D.DEMLayer.prototype.meshes = function () {
   var m = [];
@@ -1234,6 +1262,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       var dem = this.project.layers[0];
     }
     var border_mat = new THREE.LineBasicMaterial({color: 0}); // TODO: option to select color
+    this.materials.push({m: border_mat});
     var face012 = new THREE.Face3(0, 1, 2);
     var createObject = function (f) {
       var zFunc;

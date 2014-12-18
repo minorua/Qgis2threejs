@@ -46,11 +46,16 @@ function initGUI() {
   var visibleChanged = function (value) {
       project.layers[this.object.i].setVisible(value);
   };
-  
+
+  var opacityChanged = function (value) {
+      project.layers[this.object.i].setOpacity(value);
+  }
+
   project.layers.forEach(function (layer, i) {
-    parameters.lyr[i] = {i: i, v: true, o: 1};
+    parameters.lyr[i] = {i: i, v: layer.visible, o: layer.opacity};
     folder = layersFolder.addFolder(layer.name);
     folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
+    folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
   });
 
 
