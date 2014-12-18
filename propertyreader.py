@@ -116,19 +116,36 @@ class VectorPropertyReader:
 
     return int((1.0 - symbol.alpha()) * 100)
 
-  def useZ(self):
-    return self.properties["heightWidget"][0] == HeightWidgetFunc.RELATIVE_TO_Z
+  @classmethod
+  def toFloat(cls, val):
+    try:
+      return float(val)
+    except Exception as e:
+      QgsMessageLog.logMessage(u'{0} {1}'.format(e.message, unicode(val)), "Qgis2threejs")
+      return 0
 
-  def isHeightRelativeToSurface(self):
-    return self.properties["heightWidget"][0] == HeightWidgetFunc.RELATIVE
+  # functions to read values from height widget (z coordinate)
+  def useZ(self):
+    return self.properties["heightWidget"][0] == HeightWidgetFunc.Z_VALUE
+
+  def isHeightRelativeToDEM(self):
+    v0 = self.properties["heightWidget"][0]
+    return  v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
 
   def relativeHeight(self, f=None):
     lst = self.properties["heightWidget"]
-    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE_TO_Z] or f is None:
-      return float(lst[2])
-    # attribute value + addend
-    return float(f.attribute(lst[1])) + float(lst[2])
+    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
+      return self.toFloat(lst[2])
 
+    # attribute value + addend
+    fieldName = lst[1].lstrip("+").strip(' "')
+    return self.toFloat(f.attribute(fieldName)) + self.toFloat(lst[2])
+
+    #if lst[0] >= HeightWidgetFunc.FIRST_ATTR_REL:
+    #  return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_REL]) + float(lst[2])
+    #return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_ABS]) + float(lst[2])
+
+  # read values from style widgets
   def values(self, f=None):
     vals = []
     for i in range(32):   # big number for style count
@@ -141,7 +158,9 @@ class VectorPropertyReader:
           vals.append(lst[2])
         else:
           # attribute value * multiplier
-          vals.append(str(float(f.attribute(lst[1])) * float(lst[2])))
+          fieldName = lst[1].strip('"')
+          val = self.toFloat(f.attribute(fieldName)) * self.toFloat(lst[2])
+          vals.append(str(val))
       else:
         break
     return vals

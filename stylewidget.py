@@ -19,92 +19,13 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
+
 from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
 from qgis.core import QGis
+
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
-import os
-
-class StyleWidget(QWidget, Ui_ComboEditWidget):
-  # function types
-  FIELD_VALUE = 1
-  COLOR = 2
-  FILEPATH = 3
-  HEIGHT = 4
-  TRANSPARENCY = 5
-  LABEL_HEIGHT = 6
-
-  def __init__(self, funcType=None, parent=None):
-    QWidget.__init__(self, parent)
-    self.setupUi(self)
-    self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)
-    self.toolButton.clicked.connect(self.toolButtonClicked)
-    self.defaultValue = 0
-    self.funcType = funcType
-    self.func = None
-    self.hasValues = False
-
-  def setup(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
-    if funcType is None:
-      # use the function type passed to __init__
-      funcType = self.funcType
-
-    if self.func:
-      self.func.resetDefault()
-
-    if self.func is None or self.funcType != funcType:
-      if funcType == StyleWidget.FIELD_VALUE:
-        self.func = FieldValueWidgetFunc(self)
-      elif funcType == StyleWidget.COLOR:
-        self.func = ColorWidgetFunc(self)
-      elif funcType == StyleWidget.FILEPATH:
-        self.func = FilePathWidgetFunc(self)
-      elif funcType == StyleWidget.HEIGHT:
-        self.func = HeightWidgetFunc(self)
-      elif funcType == StyleWidget.LABEL_HEIGHT:
-        self.func = LabelHeightWidgetFunc(self)
-      elif funcType == StyleWidget.TRANSPARENCY:
-        self.func = TransparencyWidgetFunc(self)
-      else:
-        self.func = None
-        self.setVisible(False)
-        self.hasValues = False
-        return
-    self.func.setup(name, label, defaultValue, layer, fieldNames)
-    self.setVisible(True)
-    self.hasValues = True
-
-  def comboBoxSelectionChanged(self, index):
-    if self.func:
-      self.func.comboBoxSelectionChanged(index)
-
-  def toolButtonClicked(self):
-    if self.func:
-      self.func.toolButtonClicked()
-
-  def hide(self):
-    self.hasValues = False
-    QWidget.hide(self)
-
-  def values(self):
-    if self.func and self.hasValues:
-      return self.func.values()
-    else:
-      return []
-
-  def setValues(self, vals):
-    if self.func:
-      self.func.setValues(vals)
-
-  def addFieldNameItems(self, layer, fieldNames=None):
-    fields = layer.pendingFields()
-    if fieldNames is None:
-      for i, field in enumerate(fields):
-        if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
-          self.comboBox.addItem(field.name(), WidgetFuncBase.FIRST_ATTRIBUTE + i)
-    else:
-      for fieldName in fieldNames:
-        self.comboBox.addItem(fieldName, WidgetFuncBase.FIRST_ATTRIBUTE + fields.indexFromName(fieldName))
 
 class WidgetFuncBase:
   FIRST_ATTRIBUTE = 100
@@ -134,6 +55,19 @@ class WidgetFuncBase:
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
     self.widget.lineEdit.setText(vals[2])
+
+  @classmethod
+  def numericalFields(cls, layer, fieldNames=None):
+    numeric_fields = []
+    fields = layer.pendingFields()
+    if fieldNames is None:
+      for i, field in enumerate(fields):
+        if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
+          numeric_fields.append([i, field.name()])
+    else:
+      for fieldName in fieldNames:
+        numeric_fields.append([fields.indexFromName(fieldName), fieldName])
+    return numeric_fields
 
 class FieldValueWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
@@ -222,21 +156,41 @@ class FilePathWidgetFunc(WidgetFuncBase):
 class HeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
   RELATIVE = 2
-  RELATIVE_TO_Z = 3
+  Z_VALUE = 3
+  FIRST_ATTR_ABS = WidgetFuncBase.FIRST_ATTRIBUTE
+  FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
   def setup(self, name, label, defaultValue, layer, fieldNames):
     WidgetFuncBase.setup(self)
-    self.widget.label_1.setText("Coordinate")
+    self.widget.label_1.setText("Altitude mode")
     self.widget.toolButton.setVisible(False)
     self.defaultValue = 0 if defaultValue is None else defaultValue
 
-    self.widget.comboBox.clear()
+    comboBox = self.widget.comboBox
+    comboBox.clear()
+
+    # z value if layer has
     if layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
-      self.widget.comboBox.addItem("Z value", HeightWidgetFunc.RELATIVE_TO_Z)
-    self.widget.comboBox.addItem("Height from DEM", HeightWidgetFunc.RELATIVE)
-    self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
+      comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
+      comboBox.insertSeparator(1)
+
+    # relative to DEM
+    comboBox.addItem("Relative to DEM", HeightWidgetFunc.RELATIVE)
     if layer:
-      self.widget.addFieldNameItems(layer, fieldNames)
+      index_fieldName = self.numericalFields(layer, fieldNames)
+      for index, fieldName in index_fieldName:
+        comboBox.addItem('+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
+            # note: VectorPropertyReader.relativeHeight() uses item name to get field name
+
+      if index_fieldName:
+        comboBox.insertSeparator(comboBox.count())
+
+    # absolute
+    comboBox.addItem("Absolute value", HeightWidgetFunc.ABSOLUTE)
+    if layer:
+      for index, fieldName in index_fieldName:
+        comboBox.addItem(' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
+            # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
@@ -264,12 +218,12 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     if layer.geometryType() != QGis.Point:
       return  # Will be initialized in obj_mod.setupForm() if polygon. Line layer cannot have labels.
     self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
-    self.widget.comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
+    self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)
     if layer:
       self.widget.addFieldNameItems(layer, fieldNames)
 
   def comboBoxSelectionChanged(self, index):
-    if self.widget.comboBox.itemData(index) < HeightWidgetFunc.FIRST_ATTRIBUTE:
+    if self.widget.comboBox.itemData(index) < LabelHeightWidgetFunc.FIRST_ATTRIBUTE:
       label = "Value"
       defaultValue = self.defaultValue
     else:
@@ -307,3 +261,78 @@ class TransparencyWidgetFunc(WidgetFuncBase):
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
     self.widget.lineEdit.setText(vals[2])
+
+
+class StyleWidget(QWidget, Ui_ComboEditWidget):
+  # function types
+  FIELD_VALUE = 1
+  COLOR = 2
+  FILEPATH = 3
+  HEIGHT = 4
+  TRANSPARENCY = 5
+  LABEL_HEIGHT = 6
+
+  type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
+                    COLOR: ColorWidgetFunc,
+                    FILEPATH: FilePathWidgetFunc,
+                    HEIGHT: HeightWidgetFunc,
+                    LABEL_HEIGHT: LabelHeightWidgetFunc,
+                    TRANSPARENCY: TransparencyWidgetFunc}
+
+  def __init__(self, funcType=None, parent=None):
+    QWidget.__init__(self, parent)
+    self.setupUi(self)
+    self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)
+    self.toolButton.clicked.connect(self.toolButtonClicked)
+    self.defaultValue = 0
+    self.funcType = funcType
+    self.func = None
+    self.hasValues = False
+
+  def setup(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
+    if funcType is None:
+      # use the function type passed to __init__
+      funcType = self.funcType
+
+    if self.func:
+      self.func.resetDefault()
+
+    if self.func is None or self.funcType != funcType:
+      funcClass = self.type2funcClass.get(funcType)
+      if funcClass is None:
+        self.func = None
+        self.setVisible(False)
+        self.hasValues = False
+        return
+      self.func = funcClass(self)
+
+    self.func.setup(name, label, defaultValue, layer, fieldNames)
+    self.setVisible(True)
+    self.hasValues = True
+
+  def comboBoxSelectionChanged(self, index):
+    if self.func:
+      self.func.comboBoxSelectionChanged(index)
+
+  def toolButtonClicked(self):
+    if self.func:
+      self.func.toolButtonClicked()
+
+  def hide(self):
+    self.hasValues = False
+    QWidget.hide(self)
+
+  def values(self):
+    if self.func and self.hasValues:
+      return self.func.values()
+    else:
+      return []
+
+  def setValues(self, vals):
+    if self.func:
+      self.func.setValues(vals)
+
+  def addFieldNameItems(self, layer, fieldNames=None):
+    for index, fieldName in WidgetFuncBase.numericalFields(layer, fieldNames):
+      self.comboBox.addItem('"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
+          # note: VectorPropertyReader.values() uses item name to get field name

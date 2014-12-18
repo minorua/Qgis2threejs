@@ -1162,7 +1162,7 @@ class Feature:
       geom = geom.intersection(clipGeom)
 
     # z_func: function to get z coordinate at given point (x, y)
-    if self.prop.isHeightRelativeToSurface():
+    if self.prop.isHeightRelativeToDEM():
       # calculate elevation with dem
       z_func = lambda x, y: self.context.warp_dem.readValue(self.wkt, x, y)
     else:
@@ -1262,7 +1262,7 @@ def writeVectors(writer, progress=None):
     lyr["objType"] = prop.type_name
 
     if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
-      lyr["am"] = "relative" if prop.isHeightRelativeToSurface() else "absolute"    # altitude mode
+      lyr["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
 
     # make list of field names
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
