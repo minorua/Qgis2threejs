@@ -29,7 +29,7 @@ def objectTypeNames():
   return ["Extruded", "Overlay"]
 
 def setupForm(ppage, mapTo3d, layer, type_index=0):
-  defaultValueZ = 0.5 / mapTo3d.multiplierZ
+  defaultValueZ = 0.6 / mapTo3d.multiplierZ
 
   ppage.colorWidget.setup()
   ppage.transparencyWidget.setup()

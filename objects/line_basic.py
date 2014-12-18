@@ -29,7 +29,7 @@ def objectTypeNames():
   return ["Line", "Pipe", "Cone", "Profile"]
 
 def setupForm(ppage, mapTo3d, layer, type_index=0):
-  defaultValue = 0.5 / mapTo3d.multiplier
+  defaultValue = 0.6 / mapTo3d.multiplier
 
   ppage.colorWidget.setup()
   ppage.transparencyWidget.setup()

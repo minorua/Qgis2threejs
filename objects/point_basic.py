@@ -29,8 +29,8 @@ def objectTypeNames():
   return ["Sphere", "Cylinder", "Cube", "Cone"]
 
 def setupForm(ppage, mapTo3d, layer, type_index=0):
-  defaultValue = 0.5 / mapTo3d.multiplier
-  defaultValueZ = 0.5 / mapTo3d.multiplierZ
+  defaultValue = 0.6 / mapTo3d.multiplier
+  defaultValueZ = 0.6 / mapTo3d.multiplierZ
 
   ppage.colorWidget.setup()
   ppage.transparencyWidget.setup()
