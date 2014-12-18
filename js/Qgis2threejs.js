@@ -789,6 +789,13 @@ Q3D.DEMLayer.prototype.initMaterials = function () {
   }
 };
 
+Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
+  var block = this.blocks[0];
+  block.aObjs.forEach(function (obj) {
+    obj.visible = visible;
+  });
+};
+
 Q3D.DEMLayer.prototype.meshes = function () {
   var m = [];
   this.blocks.forEach(function (block) {

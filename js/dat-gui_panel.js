@@ -44,17 +44,27 @@ function initGUI() {
   var folder;
   
   var visibleChanged = function (value) {
-      project.layers[this.object.i].setVisible(value);
+    project.layers[this.object.i].setVisible(value);
   };
 
   var opacityChanged = function (value) {
-      project.layers[this.object.i].setOpacity(value);
-  }
+    project.layers[this.object.i].setOpacity(value);
+  };
+
+  var sideVisibleChanged = function (value) {
+    project.layers[this.object.i].setSideVisibility(value);
+  };
 
   project.layers.forEach(function (layer, i) {
     parameters.lyr[i] = {i: i, v: layer.visible, o: layer.opacity};
     folder = layersFolder.addFolder(layer.name);
     folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
+
+    if (layer.type == Q3D.LayerType.DEM && layer.blocks[0].s !== undefined) {
+      parameters.lyr[i].sv = true;
+      folder.add(parameters.lyr[i], 'sv').name('Sides and bottom').onChange(sideVisibleChanged);
+    };
+
     folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
   });
 
