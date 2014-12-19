@@ -405,30 +405,39 @@ Q3D.application = {
   },
 
   showQueryResult: function (obj) {
+    // query marker
     this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
     this.queryMarker.visible = true;
-    var object = obj.object;
-    var pt = this.project.toMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
-    var r = [];
-    r.push("Clicked coordinates");
-    r.push(" X: " + pt.x.toFixed(2));
-    r.push(" Y: " + pt.y.toFixed(2));
-    r.push(" Z: " + pt.z.toFixed(2));
-    if (object.userData !== undefined) {
-      var layer = this.project.layers[object.userData[0]];
-      r.push("");
-      r.push("Layer: " + layer.name);
 
-      if (layer.type != Q3D.LayerType.DEM) {
-        var f = layer.f[object.userData[1]];
-        if (f.a !== undefined) {
-          for (var i = 0, l = f.a.length; i < l; i++) {
-            r.push(layer.a[i] + ": " + f.a[i]);
-          }
-        }
-      }
+    var userData = obj.object.userData, layer, r = [];
+    if (userData !== undefined) {
+      // layer name
+      layer = this.project.layers[userData[0]];
+      r.push('<table class="layer">');
+      r.push("<caption>Layer name</caption>");
+      r.push("<tr><td>" + layer.name + "</td></tr>");
+      r.push("</table>");
     }
-    this.popup.showQueryResult(r.join("<br>"));
+
+    // clicked coordinates
+    var pt = this.project.toMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
+    r.push('<table class="coords">');
+    r.push("<caption>Clicked coordinates</caption>");
+    r.push("<tr><td>");
+    r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
+    r.push("</td></tr></table>");
+
+    if (layer !== undefined && layer.type != Q3D.LayerType.DEM && layer.a !== undefined) {
+      // attributes
+      r.push('<table class="attrs">');
+      r.push("<caption>Attributes</caption>");
+      var f = layer.f[userData[1]];
+      for (var i = 0, l = layer.a.length; i < l; i++) {
+        r.push("<tr><td>" + layer.a[i] + "</td><td>" + f.a[i] + "</td></tr>");
+      }
+      r.push("</table>");
+    }
+    this.popup.showQueryResult(r.join(""));
   },
 
   closePopup: function () {
