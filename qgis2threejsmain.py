@@ -1298,7 +1298,10 @@ def writeVectors(writer, progress=None):
     if properties.get("radioButton_IntersectingFeatures", False):
       request.setFilterRect(layer.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
       if properties.get("checkBox_Clip"):
-        clipGeom = QgsGeometry.fromRect(canvas.extent())
+        rect = canvas.extent()    # get a copy
+        rect.scale(0.999999)    # clip with slightly smaller extent than map canvas extent
+        clipGeom = QgsGeometry.fromRect(rect)
+        #clipGeom = QgsGeometry.fromRect(canvas.extent())
 
     for f in mapLayer.getFeatures(request):
       feat.setQgsFeature(f, clipGeom)
