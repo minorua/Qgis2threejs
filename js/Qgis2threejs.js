@@ -375,7 +375,7 @@ Q3D.application = {
     this.labelRootElement.style.display = (visible) ? "block" : "none";
     this.labelConnectorGroup.visible = visible;
     this.labelConnectorGroup.children.forEach(function (group) {
-      var layer = this.project.layers[group.userData];
+      var layer = this.project.layers[group.userData.layerId];
       if (!layer.visible && visible) return;
       Q3D.Utils.setObjectVisibility(group, visible);
     }, this);
@@ -412,9 +412,9 @@ Q3D.application = {
 
   showQueryResult: function (obj) {
     var userData = obj.object.userData, layer, r = [];
-    if (userData !== undefined) {
+    if (userData.layerId !== undefined) {
       // layer name
-      layer = this.project.layers[userData[0]];
+      layer = this.project.layers[userData.layerId];
       r.push('<table class="layer">');
       r.push("<caption>Layer name</caption>");
       r.push("<tr><td>" + layer.name + "</td></tr>");
@@ -429,11 +429,11 @@ Q3D.application = {
     r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
     r.push("</td></tr></table>");
 
-    if (layer !== undefined && layer.type != Q3D.LayerType.DEM && layer.a !== undefined) {
+    if (userData.layerId !== undefined && userData.featureId !== undefined && layer.a !== undefined) {
       // attributes
       r.push('<table class="attrs">');
       r.push("<caption>Attributes</caption>");
-      var f = layer.f[userData[1]];
+      var f = layer.f[userData.featureId];
       for (var i = 0, l = layer.a.length; i < l; i++) {
         r.push("<tr><td>" + layer.a[i] + "</td><td>" + f.a[i] + "</td></tr>");
       }
@@ -499,19 +499,8 @@ Q3D.application = {
 
         // highlight clicked object
         var userData = obj.object.userData;
-        if (userData !== undefined) {
-          var layerId = userData[0];
-          var layer = this.project.layers[layerId];
-          if (layer !== undefined) {
-            if (layer.type != Q3D.LayerType.DEM) {
-              var featureId = userData[1];
-              this.highlightFeature(layerId, featureId);
-            }
-            else {
-              this.highlightFeature(layerId, null);
-            }
-          }
-        }
+        this.highlightFeature((userData.layerId === undefined) ? null : userData.layerId,
+                              (userData.featureId === undefined) ? null : userData.featureId);
 
         this.showQueryResult(obj);
         return;
@@ -618,7 +607,7 @@ Q3D.DEMBlock.prototype = {
     var mesh = new THREE.Mesh(geom, mat);
     if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
     if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
-    mesh.userData = [layer.index, 0];
+    mesh.userData.layerId = layer.index;
     this.obj = mesh;
     layer.addObject(mesh);
   },
@@ -1019,7 +1008,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
   this.labelConnectorGroup = new THREE.Object3D();
-  this.labelConnectorGroup.userData = this.index;
+  this.labelConnectorGroup.userData.layerId = this.index;
   if (parent) parent.add(this.labelConnectorGroup);
 
   // create parent element for labels
@@ -1051,7 +1040,8 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
       var geom = new THREE.Geometry();
       geom.vertices.push(pt1, pt0);
       var conn = new THREE.Line(geom, line_mat);
-      conn.userData = [this.index, i];
+      conn.userData.layerId = this.index;
+      conn.userData.featureId = i;
       this.labelConnectorGroup.add(conn);
 
       f.aElems.push(e);
@@ -1126,7 +1116,8 @@ Q3D.PointLayer.prototype.build = function (parent) {
       var pt = f.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2]);
       if (f.rotateX) mesh.rotation.x = f.rotateX * deg2rad;
-      mesh.userData = [this.index, fid];
+      mesh.userData.layerId = this.index;
+      mesh.userData.featureId = fid;
 
       this.addObject(mesh);
       f.objs.push(mesh);
@@ -1163,7 +1154,8 @@ Q3D.PointLayer.prototype.buildJSONModels = function (parent) {
       if (f.rotateX || f.rotateY || f.rotateZ)
         mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
       if (f.scale) mesh.scale.set(f.scale, f.scale, f.scale);
-      mesh.userData = [this.index, fid];
+      mesh.userData.layerId = this.index;
+      mesh.userData.featureId = fid;
 
       this.addObject(mesh);
       f.objs.push(mesh);
@@ -1256,7 +1248,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
   // each feature in this layer
   this.f.forEach(function (f, fid) {
     f.objs = [];
-    var userData = [this.index, fid];
+    var userData = {layerId: this.index, featureId: fid};
     for (var i = 0, l = f.lines.length; i < l; i++) {
       var obj = createObject(f, f.lines[i], userData);
       this.addObject(obj);
@@ -1329,7 +1321,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     // each feature in this layer
     this.f.forEach(function (f, fid) {
       f.objs = [];
-      var userData = [this.index, fid];
+      var userData = {layerId: this.index, featureId: fid};
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var obj = createObject(f, f.polygons[i], f.zs[i]);
         obj.userData = userData;
@@ -1412,7 +1404,8 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     this.f.forEach(function (f, fid) {
       f.objs = [];
       var obj = createObject(f);
-      obj.userData = [this.index, fid];
+      obj.userData.layerId = this.index;
+      obj.userData.featureId = fid;
       this.addObject(obj);
       f.objs.push(obj);
     }, this);
