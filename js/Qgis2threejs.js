@@ -194,6 +194,12 @@ Q3D.application = {
                                       new THREE.MeshLambertMaterial({color: opt.c, ambient: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
     this.queryMarker.visible = false;
     this.scene.add(this.queryMarker);
+
+    this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x666600});
+
+    this.selectedLayerId = null;
+    this.selectedFeatureId = null;
+    this._originalMaterial = null;
   },
 
   addEventListeners: function () {
@@ -405,10 +411,6 @@ Q3D.application = {
   },
 
   showQueryResult: function (obj) {
-    // query marker
-    this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
-    this.queryMarker.visible = true;
-
     var userData = obj.object.userData, layer, r = [];
     if (userData !== undefined) {
       // layer name
@@ -443,15 +445,75 @@ Q3D.application = {
   closePopup: function () {
     this.popup.hide();
     this.queryMarker.visible = false;
+    this.highlightFeature(null, null);
+  },
+
+  highlightFeature: function (layerId, featureId) {
+    if (this.selectedLayerId !== null && this.selectedFeatureId !== null) {
+      var f = this.project.layers[this.selectedLayerId].f[this.selectedFeatureId];
+      var orig_mat = this._originalMaterial;
+      var setMaterial = function (obj) {
+        obj.material = orig_mat;
+      };
+      for (var i = 0, l = f.objs.length; i < l; i++) {
+        f.objs[i].traverse(setMaterial);
+      }
+      this.selectedLayerId = null;
+      this.selectedFeatureId = null;
+      this._originalMaterial = null;
+    }
+
+    if (layerId === null || featureId === null) return;
+
+    var layer = this.project.layers[layerId];
+    if (layer === undefined) return;
+
+    var f = layer.f[featureId];
+    if (f === undefined || f.objs.length == 0) return;
+
+    this._originalMaterial = layer.materials[f.m].m;
+    var high_mat = this.highlightMaterial;
+    high_mat.color = layer.materials[f.m].m.color;
+    //high_mat.ambient = layer.materials[f.m].m.ambient;
+    var setMaterial = function (obj) {
+      obj.material = high_mat;
+    };
+    for (var i = 0, l = f.objs.length; i < l; i++) {
+      f.objs[i].traverse(setMaterial);
+    }
+    this.selectedLayerId = layerId;
+    this.selectedFeatureId = featureId;
   },
 
   // Called from *Controls.js when canvas is clicked
   canvasClicked: function (e) {
     var canvasOffset = this._offset(this.renderer.domElement);
     var objs = this.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
+
     for (var i = 0, l = objs.length; i < l; i++) {
-      if (objs[i].object.visible) {
-        this.showQueryResult(objs[i]);
+      var obj = objs[i];
+      if (obj.object.visible) {
+        // query marker
+        this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
+        this.queryMarker.visible = true;
+
+        // highlight clicked object
+        var userData = obj.object.userData;
+        if (userData !== undefined) {
+          var layerId = userData[0];
+          var layer = this.project.layers[layerId];
+          if (layer !== undefined) {
+            if (layer.type != Q3D.LayerType.DEM) {
+              var featureId = userData[1];
+              this.highlightFeature(layerId, featureId);
+            }
+            else {
+              this.highlightFeature(layerId, null);
+            }
+          }
+        }
+
+        this.showQueryResult(obj);
         return;
       }
     }
