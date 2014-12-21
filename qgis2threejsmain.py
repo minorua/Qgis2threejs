@@ -1188,10 +1188,10 @@ class Feature:
     return self.prop.relativeHeight(self.feat)
 
   def color(self):
-    return self.prop.color(self.layer.layer, self.feat)
+    return self.prop.color(self.feat)
 
   def transparency(self):
-    return self.prop.transparency(self.layer.layer, self.feat)
+    return self.prop.transparency(self.feat)
 
   def propValues(self):
     return self.prop.values(self.feat)
@@ -1274,8 +1274,8 @@ def writeVectors(writer, progress=None):
     if writeAttrs:
       attIdx = properties.get("comboBox_Label", None)
       if attIdx is not None:
-        labelHeight = properties.get("labelHeightWidget", [0] * 3)
-        lyr["l"] = {"i": attIdx, "ht": int(labelHeight[0]), "v": float(labelHeight[2]) * mapTo3d.multiplierZ}
+        widgetValues = properties.get("labelHeightWidget", {})
+        lyr["l"] = {"i": attIdx, "ht": int(widgetValues.get("comboData", 0)), "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
         hasLabel = True
 
     # write layer object

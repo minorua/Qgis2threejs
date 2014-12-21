@@ -37,8 +37,9 @@ def setupForm(ppage, mapTo3d, layer, type_index=0):
   styleCount = 0
   if type_index == 0:   # Extruded
     ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
-    styleCount = 1
-
+  else:   # Overlay
+    ppage.styleWidgets[0].setup(StyleWidget.BORDER_COLOR)
+  styleCount = 1
   for i in range(styleCount, ppage.STYLE_MAX_COUNT):
     ppage.styleWidgets[i].hide()
 
@@ -84,10 +85,8 @@ class Triangles:
 
 
 def write(writer, layer, feat):
-  mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   vals = feat.propValues()
-  d = {"m": mat}
-
+  d = {"m": layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())}
   polygons = []
   zs = []
   for polygon in feat.geom.polygons:
@@ -121,6 +120,8 @@ def write(writer, layer, feat):
     if polygons:
       d["split_polygons"] = polygons
     d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
+    if vals[0] is not None:
+      d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
 
   if feat.geom.centroids:
     d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.geom.centroids)

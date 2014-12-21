@@ -48,13 +48,16 @@ class WidgetFuncBase:
     pass
 
   def values(self):
-    return [self.widget.comboBox.itemData(self.widget.comboBox.currentIndex()), self.widget.comboBox.currentText(), self.widget.lineEdit.text()]
+    return {"type": self.widget.funcType,
+            "comboData": self.widget.comboBox.itemData(self.widget.comboBox.currentIndex()),
+            "comboText": self.widget.comboBox.currentText(),
+            "editText": self.widget.lineEdit.text()}
 
   def setValues(self, vals):
-    index = self.widget.comboBox.findData(vals[0])
+    index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
-    self.widget.lineEdit.setText(vals[2])
+    self.widget.lineEdit.setText(vals["editText"])
 
   @classmethod
   def numericalFields(cls, layer, fieldNames=None):
@@ -112,6 +115,10 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
     self.widget.comboBox.addItem("RGB value", ColorWidgetFunc.RGB)
 
+    if defaultValue is None:
+      defaultValue = ""
+    self.widget.lineEdit.setText(defaultValue)
+
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
     isRGB = itemData == ColorWidgetFunc.RGB
@@ -125,11 +132,11 @@ class ColorWidgetFunc(WidgetFuncBase):
       self.widget.lineEdit.setText(color.name().replace("#", "0x"))
 
   def setValues(self, vals):
-    index = self.widget.comboBox.findData(vals[0])
+    index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
-    self.widget.lineEdit.setText(vals[2])
+    self.widget.lineEdit.setText(vals["editText"])
 
 class FilePathWidgetFunc(WidgetFuncBase):
   FILEPATH = 1
@@ -256,11 +263,20 @@ class TransparencyWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setVisible(isValue)
 
   def setValues(self, vals):
-    index = self.widget.comboBox.findData(vals[0])
+    index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
-    self.widget.lineEdit.setText(vals[2])
+    self.widget.lineEdit.setText(vals["editText"])
+
+class BorderColorWidgetFunc(ColorWidgetFunc):
+  NO_BORDER = 0
+
+  def setup(self, name, label, defaultValue, layer, fieldNames):
+    ColorWidgetFunc.setup(self, name, label, defaultValue, layer, fieldNames)
+    self.widget.label_1.setText("Border color")
+
+    self.widget.comboBox.insertItem(0, "(No border)", BorderColorWidgetFunc.NO_BORDER)
 
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
@@ -271,13 +287,15 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   HEIGHT = 4
   TRANSPARENCY = 5
   LABEL_HEIGHT = 6
+  BORDER_COLOR = 7
 
   type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
                     COLOR: ColorWidgetFunc,
                     FILEPATH: FilePathWidgetFunc,
                     HEIGHT: HeightWidgetFunc,
                     LABEL_HEIGHT: LabelHeightWidgetFunc,
-                    TRANSPARENCY: TransparencyWidgetFunc}
+                    TRANSPARENCY: TransparencyWidgetFunc,
+                    BORDER_COLOR: BorderColorWidgetFunc}
 
   def __init__(self, funcType=None, parent=None):
     QWidget.__init__(self, parent)
@@ -300,12 +318,14 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     if self.func is None or self.funcType != funcType:
       funcClass = self.type2funcClass.get(funcType)
       if funcClass is None:
+        self.funcType = None
         self.func = None
         self.setVisible(False)
         self.hasValues = False
         return
       self.func = funcClass(self)
 
+    self.funcType = funcType
     self.func.setup(name, label, defaultValue, layer, fieldNames)
     self.setVisible(True)
     self.hasValues = True
@@ -326,7 +346,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     if self.func and self.hasValues:
       return self.func.values()
     else:
-      return []
+      return {}
 
   def setValues(self, vals):
     if self.func:

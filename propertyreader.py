@@ -23,7 +23,7 @@
 from PyQt4.QtGui import QColor, QMessageBox
 from qgis.core import QGis, QgsMessageLog
 import random
-from stylewidget import HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc
+from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
 
 debug_mode = 1
 
@@ -45,6 +45,7 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
   def __init__(self, objectTypeManager, layer, properties=None):
+    self.layer = layer
     self.properties = properties
     if properties is None:
       self.properties = {}
@@ -58,24 +59,37 @@ class VectorPropertyReader:
       self.type_index = typeitem.type_index #
       self.visible = properties["visible"]
 
-  def color(self, layer=None, f=None):
+  def color(self, f=None):
+    return self._readColor(self.properties["colorWidget"], f)
+
+  # read color from COLOR or BORDER_COLOR widget
+  def _readColor(self, widgetValues, f=None, isBorder=False):
     global colorNames   #TODO: add function to material manager
-    vals = self.properties["colorWidget"]
-    if vals[0] == ColorWidgetFunc.RGB:
-      return vals[2]
-    elif vals[0] == ColorWidgetFunc.RANDOM or layer is None or f is None:
+
+    mode = widgetValues["comboData"]
+    if mode == BorderColorWidgetFunc.NO_BORDER:
+      return None
+
+    if mode == ColorWidgetFunc.RGB:
+      return widgetValues["editText"]
+
+    if mode == ColorWidgetFunc.RANDOM or f is None:
       if len(colorNames) == 0:
         colorNames = QColor.colorNames()
       colorName = random.choice(colorNames)
       colorNames.remove(colorName)
       return QColor(colorName).name().replace("#", "0x")
 
-    symbol = layer.rendererV2().symbolForFeature(f)
+    # feature color
+    symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
-      symbol = layer.rendererV2().symbols()[0]
+      QgsMessageLog.logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()), "Qgis2threejs")
+      symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
+      if sl and isBorder:
+        return sl.outlineColor().name().replace("#", "0x")
+
       if sl:    # and sl.hasDataDefinedProperties():  # needs >= 2.2
         expr = sl.dataDefinedProperty("color")
         if expr:
@@ -88,21 +102,21 @@ class VectorPropertyReader:
 
     return symbol.color().name().replace("#", "0x")
 
-  def transparency(self, layer=None, f=None):
+  def transparency(self, f=None):
     vals = self.properties["transparencyWidget"]
-    if vals[0] == TransparencyWidgetFunc.VALUE:
+    if vals["comboData"] == TransparencyWidgetFunc.VALUE:
       try:
-        return int(vals[2])
+        return int(vals["editText"])
       except:
         return 0
 
-    if vals[0] == TransparencyWidgetFunc.LAYER:
-      return layer.layerTransparency()
+    if vals["comboData"] == TransparencyWidgetFunc.LAYER:
+      return self.layer.layerTransparency()
 
-    symbol = layer.rendererV2().symbolForFeature(f)
+    symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      QgsMessageLog.logMessage(u'Symbol for feature is not found. Once try to show layer: {0}'.format(layer.name()), "Qgis2threejs")
-      symbol = layer.rendererV2().symbols()[0]
+      QgsMessageLog.logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()), "Qgis2threejs")
+      symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
       if sl:    # and sl.hasDataDefinedProperties():
@@ -126,20 +140,20 @@ class VectorPropertyReader:
 
   # functions to read values from height widget (z coordinate)
   def useZ(self):
-    return self.properties["heightWidget"][0] == HeightWidgetFunc.Z_VALUE
+    return self.properties["heightWidget"]["comboData"] == HeightWidgetFunc.Z_VALUE
 
   def isHeightRelativeToDEM(self):
-    v0 = self.properties["heightWidget"][0]
+    v0 = self.properties["heightWidget"]["comboData"]
     return  v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
 
   def relativeHeight(self, f=None):
-    lst = self.properties["heightWidget"]
-    if lst[0] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
-      return self.toFloat(lst[2])
+    vals = self.properties["heightWidget"]
+    if vals["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
+      return self.toFloat(vals["editText"])
 
     # attribute value + addend
-    fieldName = lst[1].lstrip("+").strip(' "')
-    return self.toFloat(f.attribute(fieldName)) + self.toFloat(lst[2])
+    fieldName = vals["comboText"].lstrip("+").strip(' "')
+    return self.toFloat(f.attribute(fieldName)) + self.toFloat(vals["editText"])
 
     #if lst[0] >= HeightWidgetFunc.FIRST_ATTR_REL:
     #  return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_REL]) + float(lst[2])
@@ -150,17 +164,20 @@ class VectorPropertyReader:
     vals = []
     for i in range(32):   # big number for style count
       p = "styleWidget" + str(i)
-      if p in self.properties:
-        lst = self.properties[p]
-        if len(lst) == 0:
-          break
-        if lst[0] == FieldValueWidgetFunc.ABSOLUTE or f is None:
-          vals.append(lst[2])
+      if p not in self.properties:
+        break
+      widgetValues = self.properties[p]
+      if len(widgetValues) == 0:
+        break
+      widgetType = widgetValues["type"]
+      if widgetType in [StyleWidget.COLOR, StyleWidget.BORDER_COLOR]:
+        vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.BORDER_COLOR))
+      else:
+        if widgetValues["comboData"] == FieldValueWidgetFunc.ABSOLUTE or f is None:
+          vals.append(widgetValues["editText"])
         else:
           # attribute value * multiplier
-          fieldName = lst[1].strip('"')
-          val = self.toFloat(f.attribute(fieldName)) * self.toFloat(lst[2])
+          fieldName = widgetValues["comboText"].strip('"')
+          val = self.toFloat(f.attribute(fieldName)) * self.toFloat(widgetValues["editText"])
           vals.append(str(val))
-      else:
-        break
     return vals

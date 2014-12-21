@@ -1335,8 +1335,6 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     if (relativeToDEM) {
       var dem = this.project.layers[0];
     }
-    var border_mat = new THREE.LineBasicMaterial({color: 0}); // TODO: option to select color
-    this.materials.push({m: border_mat});
     var face012 = new THREE.Face3(0, 1, 2);
     var createObject = function (f) {
       var zFunc;
@@ -1382,7 +1380,8 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       geom.computeBoundingBox();
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
 
-      //if (f.b === undefined) return mesh;   // TODO
+      if (f.b === undefined) return mesh;
+
       // border
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
@@ -1394,7 +1393,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
           else {
             geom.vertices = arrayToVec3Array(polygon[j], zFunc);
           }
-          mesh.add(new THREE.Line(geom, border_mat));
+          mesh.add(new THREE.Line(geom, materials[f.b].m));
         }
       }
       return mesh;
