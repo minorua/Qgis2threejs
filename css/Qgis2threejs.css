@@ -42,20 +42,22 @@ body {
 
 #popupbar {
   background: rgba(0, 0, 0, 0);
-  height: 5px;
-  text-align: right;
+  height: 14px;
 }
 
 #closebtn {
-  background: rgba(211, 211, 211, 0.7);
+  background: lightgray;
   border: 2px solid gray;
-  border-radius: 45%;
-  font-size: 12px;
+  border-radius: 4px;
+  font-size: 10px;
   font-weight: bold;
-  padding: 1px 1px;
-  width: 14px;
-  height: 14px;
-  margin-right: 1px;
+  opacity: 0.5;
+  width: 10px;
+  height: 10px;
+  text-align: center;
+  float: right;
+  margin-bottom: -14px;
+  margin-right: -14px;
   cursor: pointer;
 }
 
