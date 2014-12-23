@@ -35,7 +35,7 @@ class ObjectTypeModule:
     self.module = module
     self.geometryType = getattr(module, 'geometryType')()
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
-    self.setupForm = getattr(module, 'setupForm')     # setupForm(dialog, mapTo3d, layer, type_index=0)
+    self.setupWidgets = getattr(module, 'setupWidgets')     # setupWidgets(dialog, mapTo3d, layer, type_index=0)
     self.write = getattr(module, 'write')             # write(writer, layer, feat)
 
   @classmethod
@@ -95,10 +95,10 @@ class ObjectTypeManager:
       return self.modules[mod_index]
     return None
 
-  def setupForm(self, dialog, mapTo3d, layer, geom_type, item_index):
+  def setupWidgets(self, dialog, mapTo3d, layer, geom_type, item_index):
     try:
       typeitem = self.objTypes[geom_type][item_index]
-      return self.modules[typeitem.mod_index].setupForm(dialog, mapTo3d, layer, typeitem.type_index)
+      return self.modules[typeitem.mod_index].setupWidgets(dialog, mapTo3d, layer, typeitem.type_index)
     except:
       qDebug("Qgis2threejs: Failed to setup form")
       return False

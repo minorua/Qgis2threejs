@@ -28,21 +28,17 @@ def geometryType():
 def objectTypeNames():
   return ["Extruded", "Overlay"]
 
-def setupForm(ppage, mapTo3d, layer, type_index=0):
+def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValueZ = 0.6 / mapTo3d.multiplierZ
 
-  ppage.colorWidget.setup()
-  ppage.transparencyWidget.setup()
-
-  styleCount = 0
+  # style widgets
+  ppage.initStyleWidgets()
   if type_index == 0:   # Extruded
-    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
   else:   # Overlay
-    ppage.styleWidgets[0].setup(StyleWidget.BORDER_COLOR)
-  styleCount = 1
-  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
-    ppage.styleWidgets[i].hide()
+    ppage.addStyleWidget(StyleWidget.BORDER_COLOR)
 
+  # label height widget
   if type_index == 0:
     item_text = ["Height from top", "Height from bottom"]
   else:

@@ -223,7 +223,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
 
     self.widget.comboBox.clear()
     if layer.geometryType() != QGis.Point:
-      return  # Will be initialized in obj_mod.setupForm() if polygon. Line layer cannot have labels.
+      return  # Will be initialized in obj_mod.setupWidgets() if polygon. Line layer cannot have labels.
     self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)
     if layer:

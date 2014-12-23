@@ -30,16 +30,12 @@ def geometryType():
 def objectTypeNames():
   return ["JSON model"]
 
-def setupForm(ppage, mapTo3d, layer, type_index=0):
-  ppage.colorWidget.hide()
-  ppage.transparencyWidget.hide()
-  ppage.styleWidgets[0].setup(StyleWidget.FILEPATH, "JSON file", "Path", "", layer)
-  ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer)
-  ppage.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer)
-  ppage.styleWidgets[3].setup(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer)
-  styleCount = 4
-  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
-    ppage.styleWidgets[i].hide()
+def setupWidgets(ppage, mapTo3d, layer, type_index=0):
+  ppage.initStyleWidgets(color=False, transparency=False)
+  ppage.addStyleWidget(StyleWidget.FILEPATH, "JSON file", "Path", "", layer)
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer)
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer)
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer)
 
 def write(writer, layer, feat):
   vals = feat.propValues()

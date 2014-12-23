@@ -28,29 +28,20 @@ def geometryType():
 def objectTypeNames():
   return ["Sphere", "Cylinder", "Cube", "Cone"]
 
-def setupForm(ppage, mapTo3d, layer, type_index=0):
+def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
   defaultValueZ = 0.6 / mapTo3d.multiplierZ
 
-  ppage.colorWidget.setup()
-  ppage.transparencyWidget.setup()
-
+  ppage.initStyleWidgets()
   if type_index == 0:  # Sphere
-    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
-    styleCount = 1
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
   elif type_index in [1, 3]: # Cylinder, Cone
-    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
-    ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
-    styleCount = 2
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
   elif type_index == 2:  # Cube
-    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Width", "Value", defaultValue, layer)
-    ppage.styleWidgets[1].setup(StyleWidget.FIELD_VALUE, "Depth", "Value", defaultValue, layer)
-    ppage.styleWidgets[2].setup(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
-    styleCount = 3
-  else:
-    styleCount = 0
-  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
-    ppage.styleWidgets[i].hide()
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Width", "Value", defaultValue, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Depth", "Value", defaultValue, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
 
 def write(writer, layer, feat):
   mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())

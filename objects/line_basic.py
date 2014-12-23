@@ -28,19 +28,12 @@ def geometryType():
 def objectTypeNames():
   return ["Line", "Pipe", "Cone", "Profile"]
 
-def setupForm(ppage, mapTo3d, layer, type_index=0):
+def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
 
-  ppage.colorWidget.setup()
-  ppage.transparencyWidget.setup()
-
+  ppage.initStyleWidgets()
   if type_index in [1, 2]:  # Pipe or Cone
-    ppage.styleWidgets[0].setup(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
-    styleCount = 1
-  else:
-    styleCount = 0
-  for i in range(styleCount, ppage.STYLE_MAX_COUNT):
-    ppage.styleWidgets[i].hide()
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
 
 def write(writer, layer, feat):
   mapTo3d = writer.context.mapTo3d

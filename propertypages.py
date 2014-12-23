@@ -500,6 +500,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
+  STYLE_MAX_COUNT = 4
+
   def __init__(self, dialog, parent=None):
     PropertyPage.__init__(self, PAGE_VECTOR, dialog, parent)
     Ui_VectorPropertiesWidget.setupUi(self, self)
@@ -510,18 +512,21 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.heightWidget = StyleWidget(StyleWidget.HEIGHT)
     self.heightWidget.setObjectName("heightWidget")
     self.verticalLayout_zCoordinate.addWidget(self.heightWidget)
+
     self.colorWidget = StyleWidget(StyleWidget.COLOR)
     self.colorWidget.setObjectName("colorWidget")
     self.verticalLayout_Styles.addWidget(self.colorWidget)
+
     self.transparencyWidget = StyleWidget(StyleWidget.TRANSPARENCY)
     self.transparencyWidget.setObjectName("transparencyWidget")
     self.verticalLayout_Styles.addWidget(self.transparencyWidget)
+
     self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
     self.labelHeightWidget.setObjectName("labelHeightWidget")
-    self.verticalLayout_Label.addWidget(self.labelHeightWidget)
     self.labelHeightWidget.setEnabled(False)
+    self.verticalLayout_Label.addWidget(self.labelHeightWidget)
 
-    self.STYLE_MAX_COUNT = dialog.STYLE_MAX_COUNT
+    self.styleWidgetCount = 0
     self.styleWidgets = []
     for i in range(self.STYLE_MAX_COUNT):
       objName = "styleWidget" + str(i)
@@ -540,7 +545,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.setPropertyWidgets(widgets)
 
-    self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeChanged)
+    self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
     for radioButton in [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures]:
       radioButton.toggled.connect(self.featuresToExportChanged)
@@ -587,7 +592,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.checkBox_Clip.setVisible(layer.geometryType() != QGis.Point)
 
     # set up style widgets for selected object type
-    self.objectTypeChanged()
+    self.setupStyleWidgets()
 
     # set up label combo box
     hasPoint = (layer.geometryType() in (QGis.Point, QGis.Polygon))
@@ -605,7 +610,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
 
-  def objectTypeChanged(self, idx=None):
+  def setupStyleWidgets(self, index=None):
+    index = self.comboBox_ObjectType.currentIndex()
+
     # notice JSON model is experimental
     self.label_ObjectTypeMessage.setVisible(self.comboBox_ObjectType.currentText() == "JSON model")
 
@@ -616,7 +623,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
 
     # setup widgets
-    self.dialog.objectTypeManager.setupForm(self, mapTo3d, self.layer, self.layer.geometryType(), self.comboBox_ObjectType.currentIndex())
+    self.dialog.objectTypeManager.setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
 
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
@@ -631,3 +638,22 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     if item is not None:
       p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
     return p
+
+  def initStyleWidgets(self, color=True, transparency=True):
+    if color:
+      self.colorWidget.setup()
+    else:
+      self.colorWidget.hide()
+
+    if transparency:
+      self.transparencyWidget.setup()
+    else:
+      self.transparencyWidget.hide()
+
+    self.styleWidgetCount = 0
+    for i in range(0, self.STYLE_MAX_COUNT):
+      self.styleWidgets[i].hide()
+
+  def addStyleWidget(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
+    self.styleWidgets[self.styleWidgetCount].setup(funcType, name, label, defaultValue, layer, fieldNames)
+    self.styleWidgetCount += 1
