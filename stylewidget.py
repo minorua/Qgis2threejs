@@ -22,7 +22,7 @@
 import os
 
 from PyQt4.QtCore import QVariant
-from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
+from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
 from qgis.core import QGis
 
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget

@@ -19,10 +19,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings, QPoint #QVariant
-from PyQt4.QtGui import *       #, QColor, QColorDialog, QFileDialog, QMessageBox
-from qgis.core import *
 import os
+
+from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings, QPoint
+from PyQt4.QtGui import *   #QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
 from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget

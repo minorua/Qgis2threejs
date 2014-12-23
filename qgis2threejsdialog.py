@@ -22,19 +22,17 @@
  *                                                                         *
  ***************************************************************************/
 """
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 import os
-from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 
+from PyQt4.QtCore import Qt, QDir, QFileInfo, QSettings, qDebug, SIGNAL
+from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem
+from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
+from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
+
+from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, OutputContext, exportToThreeJS
-import qgis2threejstools as tools
-from quadtree import *
-from vectorobject import *
 import propertypages as ppages
+import qgis2threejstools as tools
 
 debug_mode = 1
 

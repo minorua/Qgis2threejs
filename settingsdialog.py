@@ -17,9 +17,9 @@
  *                                                                         *
  ***************************************************************************/
 """
+from PyQt4.QtCore import QSettings
+from PyQt4.QtGui import QDialog, QFileDialog
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from ui.ui_settingsdialog import Ui_SettingsDialog
 
 class SettingsDialog(QDialog):

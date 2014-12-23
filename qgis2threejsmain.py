@@ -19,14 +19,14 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Import the PyQt and QGIS libraries
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
 import os
 import codecs
 import datetime
 import re
+
+from PyQt4.QtCore import QDir, QSettings, qDebug, QT_VERSION_STR
+from PyQt4.QtGui import QImage, QPainter, QMessageBox
+from qgis.core import *
 
 try:
   from osgeo import ogr
@@ -35,10 +35,10 @@ except ImportError:
 
 import gdal2threejs
 import qgis2threejstools as tools
-from quadtree import *
-from vectorobject import *
 from propertyreader import DEMPropertyReader, VectorPropertyReader
+from quadtree import QuadTree, DEMQuadList
 
+debug_mode = 1
 apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
 # used for tree widget and properties

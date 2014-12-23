@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import *
+from qgis.core import QgsPoint, QgsRectangle
 
 class QuadNode:
   def __init__(self, parent, extent, location, height=0):

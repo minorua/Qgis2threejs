@@ -19,12 +19,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import qDebug
-from qgis.core import QGis, QgsMessageLog
 import sys
-from stylewidget import *
 
-debug_mode = 1
+from PyQt4.QtCore import qDebug
+from PyQt4.QtGui import QMessageBox
+from qgis.core import QGis
 
 def list_modules():
   for nam, mod in sys.modules.items():
@@ -76,9 +75,6 @@ class ObjectTypeManager:
       self.modules.append(mod)
       for type_index, name in enumerate(mod.objectTypeNames):
         self.objTypes[mod.geometryType].append(ObjectTypeItem(name, mod_index, type_index))
-
-    if debug_mode:
-      qDebug("ObjectTypeManager: " + str(self.objTypes))
 
   def objectTypeNames(self, geom_type):
     if geom_type in self.objTypes:
