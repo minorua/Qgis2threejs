@@ -40,9 +40,10 @@ debug_mode = 1
 
 class Qgis2threejsDialog(QDialog):
 
-  def __init__(self, iface, properties=None):
+  def __init__(self, iface, objectTypeManager, properties=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
+    self.objectTypeManager = objectTypeManager
 
     self.templateType = None
     self.currentItem = None
@@ -100,7 +101,6 @@ class Qgis2threejsDialog(QDialog):
 
     self.localBrowsingMode = True
     self.rb_quads = self.rb_point = None
-    self.objectTypeManager = ObjectTypeManager()
 
   def showMessageBar(self, text, level=QgsMessageBar.INFO):
     # from src/gui/qgsmessagebaritem.cpp

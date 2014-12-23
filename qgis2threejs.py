@@ -48,6 +48,7 @@ class Qgis2threejs:
     #  if qVersion() > '4.3.3':
     #    QCoreApplication.installTranslator(self.translator)
 
+    self.objectTypeManager = None
     self.properties = None
     self.lastOutputFilename = ""
 
@@ -76,8 +77,13 @@ class Qgis2threejs:
     removeTemporaryOutputDir()
 
   def run(self):
+    from vectorobject import ObjectTypeManager
     from qgis2threejsdialog import Qgis2threejsDialog
-    dialog = Qgis2threejsDialog(self.iface, self.properties)
+
+    if self.objectTypeManager is None:
+      self.objectTypeManager = ObjectTypeManager()
+    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.properties)
+
     ui = dialog.ui
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
 
