@@ -93,7 +93,7 @@ class PropertyPage(QWidget):
     for layout in layouts:
       self.setLayoutEnabled(layout, enabled)
 
-  def setPropertyWidgets(self, widgets):
+  def registerPropertyWidgets(self, widgets):
     self.propertyWidgets = widgets
     # save default properties
     self.defaultProperties = self.properties()
@@ -154,7 +154,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
-    self.setPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color])
+    self.registerPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color])
     self.radioButton_Color.toggled.connect(self.backgroundToggled)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
@@ -198,7 +198,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     self.controlsDir = os.path.join(tools.pluginDir(), "js", "threejs", "controls")
 
     self.initControlsList()
-    self.setPropertyWidgets([self.comboBox_Controls])
+    self.registerPropertyWidgets([self.comboBox_Controls])
 
     self.comboBox_Controls.currentIndexChanged.connect(self.controlsChanged)
 
@@ -255,7 +255,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += dispTypeButtons
     widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
     widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
-    self.setPropertyWidgets(widgets)
+    self.registerPropertyWidgets(widgets)
 
     self.initDEMLayerList()
 
@@ -543,7 +543,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
-    self.setPropertyWidgets(widgets)
+    self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
