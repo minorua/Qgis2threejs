@@ -1347,7 +1347,6 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       if (f.triangles !== undefined) {
         geom.vertices = arrayToVec3Array(f.triangles.v, zFunc);
         geom.faces = arrayToFace3Array(f.triangles.f);
-        geom.computeFaceNormals();
       }
 
       // split polygons (number of vertices > 3)
@@ -1374,10 +1373,11 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
         // element of faces is [index1, index2, index3]
         triangles.faces = arrayToFace3Array(faces);
 
-        triangles.computeFaceNormals();
         THREE.GeometryUtils.merge(geom, triangles, 0);
       }
-      geom.computeBoundingBox();
+      geom.mergeVertices();
+      geom.computeFaceNormals();
+      geom.computeVertexNormals();
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
 
       if (f.b === undefined) return mesh;
