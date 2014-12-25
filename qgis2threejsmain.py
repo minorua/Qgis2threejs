@@ -938,11 +938,14 @@ class TriangleMesh:
   def splitPolygon(self, geom):
     polygons = []
     for tri in self.intersects(geom):
-      poly = geom.intersection(tri)
-      if poly.isMultipart():
-        polygons += poly.asMultiPolygon()
+      if geom.contains(tri):
+        polygons.append(tri.asPolygon())
       else:
-        polygons.append(poly.asPolygon())
+        poly = geom.intersection(tri)
+        if poly.isMultipart():
+          polygons += poly.asMultiPolygon()
+        else:
+          polygons.append(poly.asPolygon())
     return polygons
 
   @classmethod
