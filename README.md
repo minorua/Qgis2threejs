@@ -6,15 +6,12 @@ Qgis2threejs plugin exports terrain data, map canvas image and vector data to yo
 
 Check WebGL support
 -------------------
-Visit [here](http://get.webgl.org/) to check whether your web browser supports WebGL.
+Visit http://get.webgl.org/ to check whether your web browser supports WebGL.
 
 
 Samples
 -------
-* [Mt.Fuji](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html) (Shaded relief map made with SRTM3 data)
-* [Mt.Fuji (large area)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html) (With surroundings option. Shaded relief map made with SRTM3 data)
-* [Mt.Fuji (with vector data)](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html) (Test data)
-* [Seto Inland Sea](https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html) (Custom plane template. Shaded relief map made with SRTM3 data)
+Visit [Samples](https://github.com/minorua/Qgis2threejs/wiki/Samples) page in GitHub Wiki.
 
 
 Usage
