@@ -116,7 +116,7 @@ class OutputContext:
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:
       layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
-      self.warp_dem = tools.MemoryWarpRaster(layer.source().encode("UTF-8"))
+      self.warp_dem = tools.MemoryWarpRaster(layer.source())
     else:
       self.warp_dem = tools.FlatRaster()
 
@@ -379,7 +379,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   if demLayerId:
     mapLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
     layerName = mapLayer.name()
-    warp_dem = tools.MemoryWarpRaster(mapLayer.source().encode("UTF-8"))
+    warp_dem = tools.MemoryWarpRaster(mapLayer.source())
   else:
     mapLayer = None
     warp_dem = tools.FlatRaster()
@@ -554,7 +554,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
     fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+  warp_dem = tools.MemoryWarpRaster(demlayer.source())
   wkt = str(context.crs.toWkt())
 
   scripts = []
@@ -717,7 +717,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source().encode("UTF-8"))
+  warp_dem = tools.MemoryWarpRaster(demlayer.source())
   wkt = str(context.crs.toWkt())
 
   unites_center = True

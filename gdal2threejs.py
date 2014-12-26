@@ -34,7 +34,8 @@ class Raster:
       self.open(filename)
 
   def open(self, filename):
-    self.ds = ds = gdal.Open(filename, gdal.GA_ReadOnly)
+    filename_utf8 = filename.encode("UTF-8") if isinstance(filename, unicode) else filename
+    self.ds = ds = gdal.Open(filename_utf8, gdal.GA_ReadOnly)
     if ds is None:
       return "Cannot open dem file: " + filename
     self.width = ds.RasterXSize
