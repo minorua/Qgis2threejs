@@ -904,7 +904,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 class TriangleMesh:
   def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
     self.flen = 0
-    self.triangles = []
+    self.quadrangles = []
     self.spatial_index = QgsSpatialIndex()
 
     xres = (xmax - xmin) / x_segments
@@ -919,33 +919,38 @@ class TriangleMesh:
         pt2 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
         pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
 
-        self._addTriangle(pt0, pt2, pt1)
-        self._addTriangle(pt1, pt2, pt3)
+        self._addQuadrangle(pt0, pt2, pt3, pt1)
 
-  def _addTriangle(self, pt1, pt2, pt3):
+  def _addQuadrangle(self, pt1, pt2, pt3, pt4):
     f = QgsFeature(self.flen)
-    f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt1]]))
-    self.triangles.append(f)
+    f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt4, pt1]]))
+    self.quadrangles.append(f)
     self.spatial_index.insertFeature(f)
     self.flen += 1
 
-  def intersects(self, geom):
+  def intersectingQuads(self, geom):
     for fid in self.spatial_index.intersects(geom.boundingBox()):
-      tri = self.triangles[fid].geometry()
-      if tri.intersects(geom):
-        yield tri
+      quad = self.quadrangles[fid].geometry()
+      if quad.intersects(geom):
+        yield quad
 
   def splitPolygon(self, geom):
     polygons = []
-    for tri in self.intersects(geom):
-      if geom.contains(tri):
-        polygons.append(tri.asPolygon())
+    for quad in self.intersects(geom):
+      pts = quad.asPolygon()[0]
+      tris = [[[pts[0], pts[1], pts[3], pts[0]]], [[pts[3], pts[1], pts[2], pts[3]]]]
+      if geom.contains(quad):
+        polygons += tris
       else:
-        poly = geom.intersection(tri)
-        if poly.isMultipart():
-          polygons += poly.asMultiPolygon()
-        else:
-          polygons.append(poly.asPolygon())
+        for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
+          if geom.contains(tri):
+            polygons.append(tris[i])
+          elif geom.intersects(tri):
+            poly = geom.intersection(tri)
+            if poly.isMultipart():
+              polygons += poly.asMultiPolygon()
+            else:
+              polygons.append(poly.asPolygon())
     return polygons
 
   @classmethod
@@ -1288,7 +1293,7 @@ def writeVectors(writer, progress=None):
 
     # prepare triangle mesh
     if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
-      progress(None, "Creating triangle mesh for overlay polygons")
+      progress(None, "Initializing triangle mesh for overlay polygons")
       context.triangleMesh()
       progress(None, "Writing overlay polygons")
 
