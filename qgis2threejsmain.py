@@ -183,7 +183,7 @@ class MaterialManager:
         m["o"] = opacity
       if mat[3]:
         m["ds"] = 1
-      f.write("lyr.m[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
+      f.write(u"lyr.m[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
 
 class JSWriter:
   def __init__(self, htmlfilename, context):
@@ -224,10 +224,10 @@ class JSWriter:
 
   def writeProject(self):
     # write project information
-    self.write("// Qgis2threejs Project\n")
+    self.write(u"// Qgis2threejs Project\n")
     extent = self.context.canvas.extent()
     mapTo3d = self.context.mapTo3d
-    fmt = 'project = new Q3D.Project("{0}","{1}",[{2},{3},{4},{5}],{6},{7},{8});\n'
+    fmt = u'project = new Q3D.Project("{0}","{1}",[{2},{3},{4},{5}],{6},{7},{8});\n'
     self.write(fmt.format("no title", "no crs defined",
                           extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
                           mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift))
@@ -235,8 +235,8 @@ class JSWriter:
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
     type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
-    self.write("\n// Layer {0}\n".format(self.currentLayerIndex))
-    self.write("lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
+    self.write(u"\n// Layer {0}\n".format(self.currentLayerIndex))
+    self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
     # del obj["type"]
 
     if fieldNames is not None:
@@ -248,7 +248,7 @@ class JSWriter:
 
   def writeFeature(self, f):
     self.currentFeatureIndex += 1
-    self.write("lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
+    self.write(u"lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
 
   def addAttributes(self, attrs):
     self.attrs.append(attrs)
@@ -1390,7 +1390,7 @@ class GeometryUtils:
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
-    items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
+    items = [u"{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
     return "{" + ",".join(items) + "}"
   elif isinstance(obj, list):
     items = [unicode(pyobj2js(v, escape, quoteHex)) for v in obj]
