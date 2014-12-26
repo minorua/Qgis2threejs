@@ -5,6 +5,12 @@
 var Q3D = {};
 Q3D.Options = {
   bgcolor: null,
+  light: {
+    directional: {
+      azimuth: 220,   // note: default light azimuth of gdaldem hillshade is 315.
+      altitude: 45    // altitude angle
+    }
+  },
   sole_height: 1.5,
   side: {color: 0xc7ac92},
   frame: {color: 0},
@@ -240,23 +246,28 @@ Q3D.application = {
   },
 
   buildDefaultLights: function (parent) {
+    var deg2rad = Math.PI / 180;
+
     // ambient light
     parent.add(new THREE.AmbientLight(0x999999));
 
     // directional lights
-    var light1 = new THREE.DirectionalLight(0xffffff, 0.4);
-    light1.position.set(-0.1, -0.3, 1);
+    var opt = Q3D.Options.light.directional;
+    var lambda = (90 - opt.azimuth) * deg2rad;
+    var phi = opt.altitude * deg2rad;
+
+    var x = Math.cos(phi) * Math.cos(lambda),
+        y = Math.cos(phi) * Math.sin(lambda),
+        z = Math.sin(phi);
+
+    var light1 = new THREE.DirectionalLight(0xffffff, 0.5);
+    light1.position.set(x, y, z);
     parent.add(light1);
 
-    if (!this.project) return;
-    
-    var light2 = new THREE.DirectionalLight(0xffffff, 0.3);
-    light2.position.set(this.project.width, -this.project.height / 2, -10);
+    // thin light from the opposite direction
+    var light2 = new THREE.DirectionalLight(0xffffff, 0.1);
+    light2.position.set(-x, -y, -z);
     parent.add(light2);
-
-    var light3 = new THREE.DirectionalLight(0xffffff, 0.3);
-    light3.position.set(-this.project.width, this.project.height / 2, -10);
-    parent.add(light3);
   },
 
   buildDefaultCamera: function () {
