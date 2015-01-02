@@ -34,6 +34,7 @@ ${scripts}
 <script>
 // build models
 project.layers.forEach(function (layer) {
+  layer.initMaterials();
   layer.build();
 });
 
