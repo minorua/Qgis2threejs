@@ -582,10 +582,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
 
     # set up height widget and label height widget
-    self.heightWidget.setup(layer=layer)
+    self.heightWidget.setup(options={"layer": layer})
     if layer.geometryType() != QGis.Line:
       defaultLabelHeight = 5
-      self.labelHeightWidget.setup(layer=layer, defaultValue=defaultLabelHeight/mapTo3d.multiplierZ)
+      self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
     else:
       self.labelHeightWidget.hide()
 
@@ -655,6 +655,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     for i in range(0, self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
 
-  def addStyleWidget(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
-    self.styleWidgets[self.styleWidgetCount].setup(funcType, name, label, defaultValue, layer, fieldNames)
+  def addStyleWidget(self, funcType=None, options=None):
+    self.styleWidgets[self.styleWidgetCount].setup(funcType, options)
     self.styleWidgetCount += 1

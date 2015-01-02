@@ -32,10 +32,10 @@ def objectTypeNames():
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.initStyleWidgets(color=False, transparency=False)
-  ppage.addStyleWidget(StyleWidget.FILEPATH, "JSON file", "Path", "", layer)
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Scale", "Value", 1, layer)
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Rotation (x)", "Value (Degrees)", 90, layer)
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Rotation (z)", "Value (Degrees)", 0, layer)
+  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "JSON file", "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 90, "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 def write(writer, layer, feat):
   vals = feat.propValues()

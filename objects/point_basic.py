@@ -34,14 +34,14 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
   ppage.initStyleWidgets()
   if type_index == 0:  # Sphere
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
   elif type_index in [1, 3]: # Cylinder, Cone
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   elif type_index == 2:  # Cube
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Width", "Value", defaultValue, layer)
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Depth", "Value", defaultValue, layer)
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": defaultValue, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Depth", "defaultValue": defaultValue, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
 
 def write(writer, layer, feat):
   mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())

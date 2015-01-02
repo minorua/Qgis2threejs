@@ -75,17 +75,21 @@ class WidgetFuncBase:
 class FieldValueWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
+    """ options: name, label, defaultValue, layer, fieldNames """
     WidgetFuncBase.setup(self)
-    self.widget.label_1.setText(name)
-    self.widget.label_2.setText(label)
+    options = options or {}
+    self.widget.label_1.setText(options.get("name", ""))
+    self.widget.label_2.setText(options.get("label", "Value"))
     self.widget.toolButton.setVisible(False)
-    self.defaultValue = defaultValue
+    self.defaultValue = options.get("defaultValue")
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Fixed value", FieldValueWidgetFunc.ABSOLUTE)
+
+    layer = options.get("layer")
     if layer:
-      self.widget.addFieldNameItems(layer, fieldNames)
+      self.widget.addFieldNameItems(layer, options.get("fieldNames"))
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
@@ -96,14 +100,16 @@ class FieldValueWidgetFunc(WidgetFuncBase):
       label = "Multiplier"
       defaultValue = 1
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.lineEdit.setText(unicode(defaultValue))
 
 class ColorWidgetFunc(WidgetFuncBase):
   FEATURE = 1
   RANDOM = 2
   RGB = 3
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
+    """ options: defaultValue """
+    options = options or {}
     self.widget.label_1.setText("Color")
     self.widget.label_2.setText("Value")
     self.widget.lineEdit.setVisible(False)
@@ -115,9 +121,7 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
     self.widget.comboBox.addItem("RGB value", ColorWidgetFunc.RGB)
 
-    if defaultValue is None:
-      defaultValue = ""
-    self.widget.lineEdit.setText(defaultValue)
+    self.widget.lineEdit.setText(options.get("defaultValue", ""))
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
@@ -141,11 +145,13 @@ class ColorWidgetFunc(WidgetFuncBase):
 class FilePathWidgetFunc(WidgetFuncBase):
   FILEPATH = 1
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
+    """ options: name, label, defaultValue """
     WidgetFuncBase.setup(self)
-    self.widget.label_1.setText(name)
-    self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    options = options or {}
+    self.widget.label_1.setText(options.get("name", ""))
+    self.widget.label_2.setText(options.get("label", "Path"))
+    self.widget.lineEdit.setText(unicode(options.get("defaultValue", "")))
     self.widget.toolButton.setVisible(True)
 
     self.widget.comboBox.clear()
@@ -167,17 +173,22 @@ class HeightWidgetFunc(WidgetFuncBase):
   FIRST_ATTR_ABS = WidgetFuncBase.FIRST_ATTRIBUTE
   FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
+    """ options: defaultValue, layer, fieldNames """
     WidgetFuncBase.setup(self)
+    options = options or {}
     self.widget.label_1.setText("Altitude mode")
     self.widget.toolButton.setVisible(False)
-    self.defaultValue = 0 if defaultValue is None else defaultValue
+    self.defaultValue = options.get("defaultValue", 0)
+
+    layer = options.get("layer")
+    fieldNames = options.get("fieldNames")
 
     comboBox = self.widget.comboBox
     comboBox.clear()
 
     # z value if layer has
-    if layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
+    if layer and layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
       comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
       comboBox.insertSeparator(1)
 
@@ -208,26 +219,31 @@ class HeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.lineEdit.setText(unicode(defaultValue))
 
 class LabelHeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
   RELATIVE = 2
   RELATIVE_TO_TOP = 3
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
+    """ options: defaultValue, layer, fieldNames """
     WidgetFuncBase.setup(self)
+    options = options or {}
     self.widget.label_1.setText("Label height")
     self.widget.toolButton.setVisible(False)
-    self.defaultValue = 0 if defaultValue is None else defaultValue
+    self.defaultValue = options.get("defaultValue", 0)
+
+    layer = options.get("layer")
 
     self.widget.comboBox.clear()
-    if layer.geometryType() != QGis.Point:
+    if layer and layer.geometryType() != QGis.Point:
       return  # Will be initialized in obj_mod.setupWidgets() if polygon. Line layer cannot have labels.
     self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)
+
     if layer:
-      self.widget.addFieldNameItems(layer, fieldNames)
+      self.widget.addFieldNameItems(layer, options.get("fieldNames"))
 
   def comboBoxSelectionChanged(self, index):
     if self.widget.comboBox.itemData(index) < LabelHeightWidgetFunc.FIRST_ATTRIBUTE:
@@ -237,14 +253,14 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.lineEdit.setText(unicode(defaultValue))
 
 class TransparencyWidgetFunc(WidgetFuncBase):
   FEATURE = 1
   LAYER = 2
   VALUE = 3
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
+  def setup(self, options=None):
     self.widget.label_1.setText("Transparency")
     self.widget.label_2.setText("Value (%)")
     self.widget.lineEdit.setVisible(False)
@@ -272,8 +288,8 @@ class TransparencyWidgetFunc(WidgetFuncBase):
 class BorderColorWidgetFunc(ColorWidgetFunc):
   NO_BORDER = 0
 
-  def setup(self, name, label, defaultValue, layer, fieldNames):
-    ColorWidgetFunc.setup(self, name, label, defaultValue, layer, fieldNames)
+  def setup(self, options=None):
+    ColorWidgetFunc.setup(self, options)
     self.widget.label_1.setText("Border color")
 
     self.widget.comboBox.insertItem(0, "(No border)", BorderColorWidgetFunc.NO_BORDER)
@@ -302,12 +318,11 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.setupUi(self)
     self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)
     self.toolButton.clicked.connect(self.toolButtonClicked)
-    self.defaultValue = 0
     self.funcType = funcType
     self.func = None
     self.hasValues = False
 
-  def setup(self, funcType=None, name=None, label=None, defaultValue=None, layer=None, fieldNames=None):
+  def setup(self, funcType=None, options=None):
     if funcType is None:
       # use the function type passed to __init__
       funcType = self.funcType
@@ -326,7 +341,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
       self.func = funcClass(self)
 
     self.funcType = funcType
-    self.func.setup(name, label, defaultValue, layer, fieldNames)
+    self.func.setup(options)
     self.setVisible(True)
     self.hasValues = True
 

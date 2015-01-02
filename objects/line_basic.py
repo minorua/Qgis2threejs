@@ -33,7 +33,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
   ppage.initStyleWidgets()
   if type_index in [1, 2]:  # Pipe or Cone
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Radius", "Value", defaultValue, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
 
 def write(writer, layer, feat):
   mapTo3d = writer.context.mapTo3d

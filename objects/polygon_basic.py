@@ -34,7 +34,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   # style widgets
   ppage.initStyleWidgets()
   if type_index == 0:   # Extruded
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, "Height", "Value", defaultValueZ, layer)
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   else:   # Overlay
     ppage.addStyleWidget(StyleWidget.BORDER_COLOR)
 
