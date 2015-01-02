@@ -26,7 +26,7 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ["Sphere", "Cylinder", "Cube", "Cone"]
+  return ["Sphere", "Cylinder", "Cube", "Cone", "Disk"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
@@ -42,6 +42,10 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Depth", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
+  elif type_index == 4:  # Disk
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 def write(writer, layer, feat):
   mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
@@ -66,3 +70,8 @@ def write(writer, layer, feat):
     for pt in pts:
       pt[2] += h / 2
     writer.writeFeature({"m": mat, "pts": pts, "w": w, "d": d, "h": h, "rotateX": 90})
+  elif feat.prop.type_index == 4:  # Disk
+    r = float(vals[0]) * mapTo3d.multiplier
+    d = float(vals[1])
+    dd = float(vals[2])
+    writer.writeFeature({"m": mat, "pts": pts, "r": r, "d": d, "dd": dd})

@@ -1102,21 +1102,20 @@ Q3D.PointLayer.prototype.build = function (parent) {
   }
 
   var materials = this.materials;
-  var type2int = {
-    "Sphere": 0,
-    "Cube": 1,
-    "Cylinder": 2,
-    "Cone": 2
-  };
-  var typeInt = type2int[this.objType];
-
-  var createGeometry = function (f) {
-    if (typeInt == 1) return new THREE.CubeGeometry(f.w, f.h, f.d);
-    if (typeInt == 2) return new THREE.CylinderGeometry(f.rt, f.rb, f.h);
-    return new THREE.SphereGeometry(f.r);
-  };
-
   var deg2rad = Math.PI / 180;
+  var createGeometry, scaleZ = 1;
+  if (this.objType == "Sphere") createGeometry = function (f) { return new THREE.SphereGeometry(f.r); };
+  else if (this.objType == "Cube") createGeometry = function (f) { return new THREE.CubeGeometry(f.w, f.h, f.d); };
+  else if (this.objType == "Disk") {
+    createGeometry = function (f) {
+      var geom = new THREE.CylinderGeometry(f.r, f.r, 0, 32), m = new THREE.Matrix4();
+      if (90 - f.d) geom.applyMatrix(m.makeRotationX((90 - f.d) * deg2rad));
+      if (f.dd) geom.applyMatrix(m.makeRotationZ(-f.dd * deg2rad));
+      return geom;
+    };
+    if (this.ns === undefined || this.ns == false) scaleZ = this.project.zExaggeration;
+  }
+  else createGeometry = function (f) { return new THREE.CylinderGeometry(f.rt, f.rb, f.h); };   // Cylinder or Cone
 
   // each feature in this layer
   this.f.forEach(function (f, fid) {
@@ -1127,6 +1126,7 @@ Q3D.PointLayer.prototype.build = function (parent) {
       var pt = f.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2]);
       if (f.rotateX) mesh.rotation.x = f.rotateX * deg2rad;
+      if (scaleZ != 1) mesh.scale.z = scaleZ;
       mesh.userData.layerId = this.index;
       mesh.userData.featureId = fid;
 
