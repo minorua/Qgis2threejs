@@ -680,15 +680,43 @@ Q3D.MapLayer.prototype = {
   },
 
   initMaterials: function () {
-    this.materials = Q3D.Utils.createMaterials(this.m);
+    this.materials = [];
+    if (this.m.length == 0) return;
 
-    // layer opacity is the average opacity of materials.
-    var sum = 0, l = this.materials.length;
-    if (l == 0) return;
-    for (var i = 0; i < l; i++) {
-      sum += this.materials[i].m.opacity;
+    var mat, sum_opacity = 0;
+    for (var i = 0, l = this.m.length; i < l; i++) {
+      var m = this.m[i];
+      if (m.type == 0 || m.type == 3) {
+        mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c});
+        if (m.type == 3) mat.shading = THREE.FlatShading;
+      }
+      else if (m.type == 1) {
+        mat = new THREE.LineBasicMaterial({color: m.c});
+      }
+      else if (m.type == 2) {
+        mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
+      }
+      else {    // type == 4
+        var image = this.project.images[m.i];
+        if (image.texture === undefined) {
+          if (image.src !== undefined) image.texture = THREE.ImageUtils.loadTexture(image.src);
+          else image.texture = Q3D.Utils.loadTextureData(image.data);
+        }
+        mat = new THREE.SpriteMaterial({map: image.texture, color: 0xffffff});
+      }
+
+      if (m.o !== undefined && m.o < 1) {
+        mat.opacity = m.o;
+        mat.transparent = true;
+      }
+      if (m.ds) mat.side = THREE.DoubleSide;    // TODO: ie
+      m.m = mat;
+      this.materials.push(m);
+      sum_opacity += mat.opacity;
     }
-    this.opacity = sum / l;
+
+    // layer opacity is the average opacity of materials
+    this.opacity = sum_opacity / this.materials.length;
   },
 
   setOpacity: function (opacity) {
@@ -1458,41 +1486,6 @@ Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
 
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
-
-Q3D.Utils.createMaterials = function (m_list) {
-  var mat, materials = [];
-
-  for (var i = 0, l = m_list.length; i < l; i++) {
-    var m = m_list[i];
-    if (m.type == 0 || m.type == 3) {
-      mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c});
-      if (m.type == 3) mat.shading = THREE.FlatShading;
-    }
-    else if (m.type == 1) {
-      mat = new THREE.LineBasicMaterial({color: m.c});
-    }
-    else if (m.type == 2) {
-      mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
-    }
-    else {    // type == 4
-      var image = project.images[m.i];
-      if (image.texture === undefined) {
-        if (image.src !== undefined) image.texture = THREE.ImageUtils.loadTexture(image.src);
-        else image.texture = Q3D.Utils.loadTextureData(image.data);
-      }
-      mat = new THREE.SpriteMaterial({map: image.texture, color: 0xffffff});
-    }
-
-    if (m.o !== undefined && m.o < 1) {
-      mat.opacity = m.o;
-      mat.transparent = true;
-    }
-    if (m.ds) mat.side = THREE.DoubleSide;    // TODO: ie
-    m.m = mat;
-    materials.push(m);
-  }
-  return materials;
-};
 
 Q3D.Utils.setObjectVisibility = function (object, visible) {
   object.traverse(function (obj) {
