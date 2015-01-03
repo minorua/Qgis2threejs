@@ -50,7 +50,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   comboBox.addItem(item_text[1], LabelHeightWidgetFunc.RELATIVE)
   comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
   if layer:
-    ppage.labelHeightWidget.addFieldNameItems(layer)
+    ppage.labelHeightWidget.addFieldNames(layer)
 
 
 class Triangles:

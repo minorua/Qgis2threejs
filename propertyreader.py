@@ -19,11 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 #from PyQt4.QtCore import qDebug
 from PyQt4.QtGui import QColor, QMessageBox
 from qgis.core import QGis, QgsMessageLog
 import random
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
+from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
 
 debug_mode = 1
 
@@ -166,12 +167,23 @@ class VectorPropertyReader:
       p = "styleWidget" + str(i)
       if p not in self.properties:
         break
+
       widgetValues = self.properties[p]
       if len(widgetValues) == 0:
         break
+
       widgetType = widgetValues["type"]
       if widgetType in [StyleWidget.COLOR, StyleWidget.BORDER_COLOR]:
         vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.BORDER_COLOR))
+
+      elif widgetType == StyleWidget.FILEPATH:
+        if widgetValues["comboData"] == FilePathWidgetFunc.FILEPATH or f is None:
+          vals.append(widgetValues["editText"])
+        else:
+          # prefix + attribute
+          fieldName = widgetValues["comboText"].strip('"')
+          vals.append(os.path.join(widgetValues["editText"], f.attribute(fieldName).strip('"')))
+
       else:
         if widgetValues["comboData"] == FieldValueWidgetFunc.ABSOLUTE or f is None:
           vals.append(widgetValues["editText"])

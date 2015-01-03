@@ -60,23 +60,31 @@ class WidgetFuncBase:
     self.widget.lineEdit.setText(vals["editText"])
 
   @classmethod
-  def numericalFields(cls, layer, fieldNames=None):
+  def fields(cls, layer):
+    return [[i, field.name()] for i, field in enumerate(layer.pendingFields())]
+
+  @classmethod
+  def numericalFields(cls, layer):
     numeric_fields = []
-    fields = layer.pendingFields()
-    if fieldNames is None:
-      for i, field in enumerate(fields):
-        if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
-          numeric_fields.append([i, field.name()])
-    else:
-      for fieldName in fieldNames:
-        numeric_fields.append([fields.indexFromName(fieldName), fieldName])
+    for i, field in enumerate(layer.pendingFields()):
+      if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
+        numeric_fields.append([i, field.name()])
     return numeric_fields
+
+  @classmethod
+  def stringFields(cls, layer):
+    string_fields = []
+    for i, field in enumerate(layer.pendingFields()):
+      if field.type() == QVariant.String:
+        string_fields.append([i, field.name()])
+    return string_fields
+
 
 class FieldValueWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
 
   def setup(self, options=None):
-    """ options: name, label, defaultValue, layer, fieldNames """
+    """ options: name, label, defaultValue, layer """
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText(options.get("name", ""))
@@ -92,7 +100,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
 
     layer = options.get("layer")
     if layer:
-      self.widget.addFieldNameItems(layer, options.get("fieldNames"))
+      self.widget.addFieldNames(layer)
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
@@ -160,15 +168,24 @@ class FilePathWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText(options.get("name", ""))
-    self.widget.label_2.setText(options.get("label", "Path"))
+    self.lineEditLabel = options.get("label", "Path")
+    self.widget.label_2.setText(self.lineEditLabel)
     self.widget.lineEdit.setText(unicode(options.get("defaultValue", "")))
     self.widget.toolButton.setVisible(True)
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
 
+    layer = options.get("layer")
+    if layer:
+      self.widget.addFieldNames(layer, StyleWidget.FIELDTYPE_STRING)
+
   def comboBoxSelectionChanged(self, index):
-    pass
+    if self.widget.comboBox.itemData(index) == FilePathWidgetFunc.FILEPATH:
+      label = self.lineEditLabel
+    else:
+      label = "[PREFIX]"    #TODO: directory select dialog
+    self.widget.label_2.setText(label)
 
   def toolButtonClicked(self):
     directory = os.path.split(self.widget.lineEdit.text())[0]
@@ -184,15 +201,13 @@ class HeightWidgetFunc(WidgetFuncBase):
   FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
   def setup(self, options=None):
-    """ options: defaultValue, layer, fieldNames """
+    """ options: defaultValue, layer """
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText("Altitude mode")
     self.widget.toolButton.setVisible(False)
     self.defaultValue = options.get("defaultValue", 0)
-
     layer = options.get("layer")
-    fieldNames = options.get("fieldNames")
 
     comboBox = self.widget.comboBox
     comboBox.clear()
@@ -205,7 +220,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     # relative to DEM
     comboBox.addItem("Relative to DEM", HeightWidgetFunc.RELATIVE)
     if layer:
-      index_fieldName = self.numericalFields(layer, fieldNames)
+      index_fieldName = self.numericalFields(layer)
       for index, fieldName in index_fieldName:
         comboBox.addItem('+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
             # note: VectorPropertyReader.relativeHeight() uses item name to get field name
@@ -237,7 +252,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
   RELATIVE_TO_TOP = 3
 
   def setup(self, options=None):
-    """ options: defaultValue, layer, fieldNames """
+    """ options: defaultValue, layer """
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText("Label height")
@@ -253,7 +268,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)
 
     if layer:
-      self.widget.addFieldNameItems(layer, options.get("fieldNames"))
+      self.widget.addFieldNames(layer)
 
   def comboBoxSelectionChanged(self, index):
     if self.widget.comboBox.itemData(index) < LabelHeightWidgetFunc.FIRST_ATTRIBUTE:
@@ -323,6 +338,10 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                     TRANSPARENCY: TransparencyWidgetFunc,
                     BORDER_COLOR: BorderColorWidgetFunc}
 
+  FIELDTYPE_ALL = 0
+  FIELDTYPE_NUMBER = 1
+  FIELDTYPE_STRING = 2
+
   def __init__(self, funcType=None, parent=None):
     QWidget.__init__(self, parent)
     self.setupUi(self)
@@ -377,7 +396,14 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     if self.func:
       self.func.setValues(vals)
 
-  def addFieldNameItems(self, layer, fieldNames=None):
-    for index, fieldName in WidgetFuncBase.numericalFields(layer, fieldNames):
+  def addFieldNames(self, layer, fieldType=FIELDTYPE_NUMBER):
+    if fieldType == StyleWidget.FIELDTYPE_NUMBER:
+      index_fieldName = WidgetFuncBase.numericalFields(layer)
+    elif fieldType == StyleWidget.FIELDTYPE_STRING:
+      index_fieldName = WidgetFuncBase.stringFields(layer)
+    else:
+      index_fieldName = WidgetFuncBase.fields(layer)
+
+    for index, fieldName in index_fieldName:
       self.comboBox.addItem('"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
           # note: VectorPropertyReader.values() uses item name to get field name
