@@ -64,7 +64,7 @@ class ObjectTypeManager:
     self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon:[]}    # each list item is ObjectTypeItem object
 
     module_names = ["point_basic", "line_basic", "polygon_basic"]
-    module_names += ["point_json"]
+    module_names += ["point_icon", "point_json"]
     module_fullnames = map(lambda x: "Qgis2threejs.objects." + x, module_names)
     for modname in module_fullnames:
       mod = ObjectTypeModule.load(modname)

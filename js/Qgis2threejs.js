@@ -46,6 +46,7 @@ Q3D.Project = function (title, crs, baseExtent, width, zExaggeration, zShift) {
 
   this.layers = [];
   this.jsons = [];
+  this.images = [];
 };
 
 Q3D.Project.prototype = {
@@ -478,6 +479,7 @@ Q3D.application = {
 
     var layer = this.project.layers[layerId];
     if (layer === undefined) return;
+    if (layer.objType == "Icon" || layer.objType == "JSON model") return;
 
     var f = layer.f[featureId];
     if (f === undefined || f.objs.length == 0) return;
@@ -1096,10 +1098,8 @@ Q3D.PointLayer = function (params) {
 Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
 Q3D.PointLayer.prototype.build = function (parent) {
-  if (this.objType == "JSON model") {
-    this.buildJSONModels(parent);
-    return;
-  }
+  if (this.objType == "Icon") { this.buildIcons(parent); return; }
+  if (this.objType == "JSON model") { this.buildJSONModels(parent); return; }
 
   var materials = this.materials;
   var deg2rad = Math.PI / 180;
@@ -1132,6 +1132,26 @@ Q3D.PointLayer.prototype.build = function (parent) {
 
       this.addObject(mesh);
       f.objs.push(mesh);
+    }
+  }, this);
+
+  if (parent) parent.add(this.objectGroup);
+};
+
+Q3D.PointLayer.prototype.buildIcons = function (parent) {
+  // each feature in this layer
+  this.f.forEach(function (f, fid) {
+    f.objs = [];
+    for (var i = 0, l = f.pts.length; i < l; i++) {
+      var pt = f.pts[i];
+      var sprite = new THREE.Sprite(this.materials[f.m].m);
+      sprite.position.set(pt[0], pt[1], pt[2]);
+      if (f.scale) sprite.scale.set(f.scale, f.scale, f.scale);
+      sprite.userData.layerId = this.index;
+      sprite.userData.featureId = fid;
+
+      this.addObject(sprite);
+      f.objs.push(sprite);
     }
   }, this);
 
@@ -1451,9 +1471,18 @@ Q3D.Utils.createMaterials = function (m_list) {
     else if (m.type == 1) {
       mat = new THREE.LineBasicMaterial({color: m.c});
     }
-    else {    // type == 2
+    else if (m.type == 2) {
       mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
     }
+    else {    // type == 4
+      var image = project.images[m.i];
+      if (image.texture === undefined) {
+        if (image.src !== undefined) image.texture = THREE.ImageUtils.loadTexture(image.src);
+        else image.texture = Q3D.Utils.loadTextureData(image.data);
+      }
+      mat = new THREE.SpriteMaterial({map: image.texture, color: 0xffffff});
+    }
+
     if (m.o !== undefined && m.o < 1) {
       mat.opacity = m.o;
       mat.transparent = true;

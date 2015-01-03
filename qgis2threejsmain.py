@@ -132,6 +132,27 @@ class OutputContext:
     QMessageBox.information(None, "", "setWarpDem has been deprecated")
     self.warp_dem = warp_dem
 
+class ImageManager:
+
+  def __init__(self):
+    self.image_paths = []
+
+  def imageIndex(self, path):
+    if path in self.image_paths:
+      return self.image_paths.index(path)
+
+    index = len(self.image_paths)
+    self.image_paths.append(path)
+    return index
+
+  def write(self, f):   #TODO: separated image files
+    if len(self.image_paths) == 0:
+      return
+    from Qgis2threejs.gdal2threejs import base64image
+    f.write(u'\n// Base64 encoded images\n')
+    for index, image_path in enumerate(self.image_paths):
+      f.write(u'project.images[%d] = {data:"%s"};\n' % (index, base64image(image_path)))
+
 class MaterialManager:
 
   MESH_LAMBERT = 0
@@ -139,6 +160,7 @@ class MaterialManager:
   WIREFRAME = 2
   MESH_LAMBERT_SMOOTH = 0
   MESH_LAMBERT_FLAT = 3
+  SPRITE = 4
 
   ERROR_COLOR = "0"
 
@@ -160,6 +182,16 @@ class MaterialManager:
   def getWireframeIndex(self, color, transparency=0):
     return self.getIndex(self.WIREFRAME, color, transparency)
 
+  def getSpriteIndex(self, path, transparency=0):
+    type = self.SPRITE
+    mat = (type, path, transparency, False)
+    if mat in self.materials:
+      return self.materials.index(mat)
+
+    index = len(self.materials)
+    self.materials.append(mat)
+    return index
+
   def getIndex(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
@@ -172,11 +204,17 @@ class MaterialManager:
     self.materials.append(mat)
     return index
 
-  def write(self, f):
+  def write(self, f, imageManager):
     if not len(self.materials):
       return
     for index, mat in enumerate(self.materials):
-      m = {"type": mat[0], "c": mat[1]}
+      m = {"type": mat[0]}
+
+      if mat[0] == self.SPRITE:
+        m["i"] = imageManager.imageIndex(mat[1])
+      else:
+        m["c"] = mat[1]
+
       transparency = mat[2]
       if transparency > 0:
         opacity = 1.0 - float(transparency) / 100
@@ -196,6 +234,7 @@ class JSWriter:
     self.currentLayerIndex = 0
     self.currentFeatureIndex = -1
     self.attrs = []
+    self.imageManager = ImageManager()
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
 
@@ -258,7 +297,10 @@ class JSWriter:
       self.write(u"lyr.f[{0}].a = {1};\n".format(index, pyobj2js(attrs, True)))
 
   def writeMaterials(self, materialManager):
-    materialManager.write(self)
+    materialManager.write(self, self.imageManager)
+
+  def writeImages(self):
+    self.imageManager.write(self)
 
   def prepareNext(self):
     self.closeFile()
@@ -333,6 +375,9 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
     # write vector data
     writeVectors(writer, progress)
+
+  # write images
+  writer.writeImages()
 
   progress(90, "Copying library files")
 
