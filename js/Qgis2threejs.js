@@ -1169,12 +1169,20 @@ Q3D.PointLayer.prototype.build = function (parent) {
 Q3D.PointLayer.prototype.buildIcons = function (parent) {
   // each feature in this layer
   this.f.forEach(function (f, fid) {
+    var mat = this.materials[f.m];
+    var image = this.project.images[mat.i];
+
+    // base size is 64 x 64
+    var scale = (f.scale === undefined) ? 1 : f.scale;
+    var sx = image.width / 64 * scale,
+        sy = image.height / 64 * scale;
+
     f.objs = [];
     for (var i = 0, l = f.pts.length; i < l; i++) {
       var pt = f.pts[i];
-      var sprite = new THREE.Sprite(this.materials[f.m].m);
+      var sprite = new THREE.Sprite(mat.m);
       sprite.position.set(pt[0], pt[1], pt[2]);
-      if (f.scale) sprite.scale.set(f.scale, f.scale, f.scale);
+      sprite.scale.set(sx, sy, scale);
       sprite.userData.layerId = this.index;
       sprite.userData.featureId = fid;
 

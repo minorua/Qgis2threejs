@@ -25,7 +25,7 @@ import datetime
 import re
 
 from PyQt4.QtCore import QDir, QSettings, qDebug, QT_VERSION_STR
-from PyQt4.QtGui import QImage, QPainter, QMessageBox
+from PyQt4.QtGui import QImage, QImageReader, QPainter, QMessageBox
 from qgis.core import *
 
 try:
@@ -151,7 +151,11 @@ class ImageManager:
     from Qgis2threejs.gdal2threejs import base64image
     f.write(u'\n// Base64 encoded images\n')
     for index, image_path in enumerate(self.image_paths):
-      f.write(u'project.images[%d] = {data:"%s"};\n' % (index, base64image(image_path)))
+      if os.path.exists(image_path):
+        size = QImageReader(image_path).size()
+        f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % (index, size.width(), size.height(), base64image(image_path)))
+      else:
+        f.write(u"project.images[%d] = {data:null};\n" % index)
 
 class MaterialManager:
 
