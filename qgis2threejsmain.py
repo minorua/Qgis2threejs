@@ -156,6 +156,7 @@ class ImageManager:
         f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % (index, size.width(), size.height(), base64image(image_path)))
       else:
         f.write(u"project.images[%d] = {data:null};\n" % index)
+        QgsMessageLog.logMessage(u'Image file not found: {0}'.format(image_path), "Qgis2threejs")
 
 class MaterialManager:
 
@@ -325,6 +326,9 @@ class JSWriter:
       return '<script src="./%s.js"></script>' % filetitle
     return "\n".join(map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count)))
 
+  def log(self, message):
+    QgsMessageLog.logMessage(message, "Qgis2threejs")
+
 def exportToThreeJS(htmlfilename, context, progress=None):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
@@ -484,8 +488,8 @@ def writeSimpleDEM(writer, properties, progress=None):
     if os.path.exists(filename):
       texData = gdal2threejs.base64image(filename)
     else:
-      texData = ""  #
-      QgsMessageLog.logMessage(u'Image file not found: {0}'.format(filename), "Qgis2threejs")
+      texData = ""  #TODO
+      writer.log(u'Image file not found: {0}'.format(filename))
 
   elif properties.get("radioButton_SolidColor", False):
     dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
