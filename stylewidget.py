@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt4.QtCore import QVariant
+from PyQt4.QtCore import QDir, QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
 from qgis.core import QGis
 
@@ -186,14 +186,23 @@ class FilePathWidgetFunc(WidgetFuncBase):
     if self.widget.comboBox.itemData(index) == FilePathWidgetFunc.FILEPATH:
       label = self.lineEditLabel
     else:
-      label = "[PREFIX]"    #TODO: directory select dialog
+      label = "Prefix"
     self.widget.label_2.setText(label)
 
   def toolButtonClicked(self):
-    directory = os.path.split(self.widget.lineEdit.text())[0]
-    filename = QFileDialog.getOpenFileName(None, "Select a file", directory, self.filterString)
-    if filename != "":
-      self.widget.lineEdit.setText(filename)
+    workdir = os.path.split(self.widget.lineEdit.text())[0]
+    if not workdir:
+      workdir = QDir.homePath()
+
+    comboBox = self.widget.comboBox
+    if comboBox.itemData(comboBox.currentIndex()) == FilePathWidgetFunc.FILEPATH:
+      filepath = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
+      if filepath != "":
+        self.widget.lineEdit.setText(filepath)
+    else:
+      directory = QFileDialog.getExistingDirectory(None, "Select a directory", workdir)
+      if directory != "":
+        self.widget.lineEdit.setText(directory)
 
 class HeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
