@@ -29,8 +29,10 @@ def objectTypeNames():
   return ["Icon"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
+  filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
+
   ppage.initStyleWidgets(color=False)
-  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer})  #TODO: extensions
+  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
 
 def write(writer, layer, feat):

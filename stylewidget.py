@@ -164,7 +164,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
   FILEPATH = 1
 
   def setup(self, options=None):
-    """ options: name, label, defaultValue """
+    """ options: name, label, defaultValue, filterString """
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText(options.get("name", ""))
@@ -180,6 +180,8 @@ class FilePathWidgetFunc(WidgetFuncBase):
     if layer:
       self.widget.addFieldNames(layer, StyleWidget.FIELDTYPE_STRING)
 
+    self.filterString = options.get("filterString", "")
+
   def comboBoxSelectionChanged(self, index):
     if self.widget.comboBox.itemData(index) == FilePathWidgetFunc.FILEPATH:
       label = self.lineEditLabel
@@ -189,7 +191,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 
   def toolButtonClicked(self):
     directory = os.path.split(self.widget.lineEdit.text())[0]
-    filename = QFileDialog.getOpenFileName(None, "Select a file", directory)
+    filename = QFileDialog.getOpenFileName(None, "Select a file", directory, self.filterString)
     if filename != "":
       self.widget.lineEdit.setText(filename)
 

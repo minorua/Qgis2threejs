@@ -31,8 +31,10 @@ def objectTypeNames():
   return ["JSON model"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
+  filterString = "JSON files (*.json);;All files (*.*)"
+
   ppage.initStyleWidgets(color=False, transparency=False)
-  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "JSON file", "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "JSON file", "layer": layer, "filterString": filterString})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 90, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
