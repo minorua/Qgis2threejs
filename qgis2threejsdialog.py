@@ -254,10 +254,7 @@ class Qgis2threejsDialog(QDialog):
     else:
       parentId = parent.data(0, Qt.UserRole)
       layerId = currentItem.data(0, Qt.UserRole)
-      if layerId is None:
-        return
-
-      layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+      layer = QgsMapLayerRegistry.instance().mapLayer(unicode(layerId))
       if layer is None:
         return
 

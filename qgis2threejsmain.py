@@ -96,6 +96,7 @@ class OutputContext:
     self.templateType = templateType
     self.mapTo3d = mapTo3d
     self.canvas = canvas
+    self.baseExtent = canvas.extent()
     self.properties = properties
     self.dialog = dialog
     self.objectTypeManager = objectTypeManager
@@ -103,6 +104,7 @@ class OutputContext:
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
     self.image_basesize = 256
+    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
     p = properties[ObjectTreeItem.ITEM_CONTROLS]
     if p is None:
@@ -167,7 +169,7 @@ class ImageManager:
   def mapCanvasImage(self):
     """ returns base64 encoded map canvas image """
     canvas = self.context.canvas
-    temp_dir = QDir.tempPath()    #
+    temp_dir = QDir.tempPath()
     texfilename = os.path.join(temp_dir, "tex%s.png" % (self.context.timestamp))
     canvas.saveAsImage(texfilename)
     texData = gdal2threejs.base64image(texfilename)
@@ -400,7 +402,7 @@ class JSWriter:
   def writeProject(self):
     # write project information
     self.write(u"// Qgis2threejs Project\n")
-    extent = self.context.canvas.extent()
+    extent = self.context.baseExtent
     mapTo3d = self.context.mapTo3d
     fmt = u'project = new Q3D.Project("{0}","{1}",[{2},{3},{4},{5}],{6},{7},{8});\n'
     self.write(fmt.format("no title", "no crs defined",
@@ -463,25 +465,20 @@ class JSWriter:
 def exportToThreeJS(htmlfilename, context, progress=None):
   mapTo3d = context.mapTo3d
   canvas = context.canvas
-  extent = canvas.extent()
+  extent = context.baseExtent
   if progress is None:
     progress = dummyProgress
-  temp_dir = QDir.tempPath()
 
-  #TODO: do in OutputContext.__init__
-  timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
   if htmlfilename == "":
-    htmlfilename = tools.temporaryOutputDir() + "/%s.html" % timestamp
+    htmlfilename = tools.temporaryOutputDir() + "/%s.html" % context.timestamp
   out_dir, filename = os.path.split(htmlfilename)
   if not QDir(out_dir).exists():
     QDir().mkpath(out_dir)
 
-  context.timestamp = timestamp
   context.htmlfilename = htmlfilename
 
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
-  writer.timestamp = timestamp
 
   # read configuration of the template
   templatePath = os.path.join(tools.templateDir(), context.templateName)
@@ -543,9 +540,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
-  extent = canvas.extent()
-  temp_dir = QDir.tempPath()
-  timestamp = writer.timestamp
+  extent = context.baseExtent
   htmlfilename = writer.htmlfilename
   if progress is None:
     progress = dummyProgress
@@ -670,6 +665,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
+  baseExtent = context.baseExtent
   if progress is None:
     progress = dummyProgress
   demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
@@ -688,7 +684,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   wkt = str(context.crs.toWkt())
 
   # texture image size
-  hpw = canvas.extent().height() / canvas.extent().width()
+  hpw = baseExtent.height() / baseExtent.width()
   if hpw < 1:
     image_width = context.image_basesize
     image_height = round(image_width * hpw)
@@ -708,9 +704,8 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
     sy = i / size - (size - 1) / 2
 
     # calculate extent
-    e = canvas.extent()
-    extent = QgsRectangle(e.xMinimum() + sx * e.width(), e.yMinimum() + sy * e.height(),
-                          e.xMaximum() + sx * e.width(), e.yMaximum() + sy * e.height())
+    extent = QgsRectangle(baseExtent.xMinimum() + sx * baseExtent.width(), baseExtent.yMinimum() + sy * baseExtent.height(),
+                          baseExtent.xMaximum() + sx * baseExtent.width(), baseExtent.yMaximum() + sy * baseExtent.height())
 
     # calculate extent. output dem should be handled as points.
     xres = extent.width() / (dem_width - 1)
@@ -734,10 +729,10 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
     # generate javascript data file
-    planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
+    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
+    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
+    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
 
     # dem block
     #TODO: rename this to block
@@ -767,14 +762,13 @@ def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   canvas = context.canvas
+  baseExtent = context.baseExtent
   if progress is None:
     progress = dummyProgress
   prop = DEMPropertyReader(properties)
   demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
   if demlayer is None:
     return
-  temp_dir = QDir.tempPath()
-  timestamp = writer.timestamp
   htmlfilename = writer.htmlfilename
 
   out_dir, filename = os.path.split(htmlfilename)
@@ -790,7 +784,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   lyrIdx = writer.writeLayer(lyr)
 
   # create quad tree
-  quadtree = createQuadTree(canvas.extent(), properties)
+  quadtree = createQuadTree(baseExtent, properties)
   if quadtree is None:
     QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
     return
@@ -800,7 +794,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   context.dialog.createRubberBands(quads, quadtree.focusRect.center())
 
   # image size
-  hpw = canvas.extent().height() / canvas.extent().width()
+  hpw = baseExtent.height() / baseExtent.width()
   if hpw < 1:
     image_width = context.image_basesize
     image_height = round(image_width * hpw)
@@ -846,10 +840,10 @@ def writeMultiResDEM(writer, properties, progress=None):
       qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
     # generate javascript data file
-    planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
+    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
+    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
+    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
 
     # value resampling on edges for combination with different resolution DEM
     neighbors = quadtree.neighbors(quad)
@@ -910,10 +904,10 @@ def writeMultiResDEM(writer, properties, progress=None):
     dem_width = (dem_width - 1) * centerQuads.width() + 1
     dem_height = (dem_height - 1) * centerQuads.height() + 1
     dem_values = centerQuads.unitedDEM()
-    planeWidth = mapTo3d.planeWidth * extent.width() / canvas.extent().width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / canvas.extent().height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - canvas.extent().xMinimum()) / canvas.extent().width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - canvas.extent().yMinimum()) / canvas.extent().height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
+    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
+    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
+    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
     dem = {"width": dem_width, "height": dem_height}
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
@@ -999,7 +993,7 @@ class TriangleMesh:
     prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
     dem_width = prop.width()
     dem_height = prop.height()
-    extent = context.canvas.extent()
+    extent = context.baseExtent
     triMesh = TriangleMesh(extent.xMinimum(), extent.yMinimum(),
                            extent.xMaximum(), extent.yMaximum(),
                            dem_width - 1, dem_height - 1)
@@ -1277,6 +1271,7 @@ class VectorLayer(Layer):
 def writeVectors(writer, progress=None):
   context = writer.context
   canvas = context.canvas
+  baseExtent = context.baseExtent
   mapTo3d = context.mapTo3d
   renderer = QgsMapRenderer()
   if progress is None:
@@ -1345,9 +1340,9 @@ def writeVectors(writer, progress=None):
     # features to export
     clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
-      request.setFilterRect(layer.transform.transformBoundingBox(canvas.extent(), QgsCoordinateTransform.ReverseTransform))
+      request.setFilterRect(layer.transform.transformBoundingBox(baseExtent, QgsCoordinateTransform.ReverseTransform))
       if properties.get("checkBox_Clip"):
-        rect = canvas.extent()    # get a copy
+        rect = QgsRectangle(baseExtent)
         rect.scale(0.999999)    # clip with slightly smaller extent than map canvas extent
         clipGeom = QgsGeometry.fromRect(rect)
         #clipGeom = QgsGeometry.fromRect(canvas.extent())
