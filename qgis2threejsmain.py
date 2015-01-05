@@ -102,6 +102,7 @@ class OutputContext:
     self.localBrowsingMode = localBrowsingMode
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
+    self.image_basesize = 256
 
     p = properties[ObjectTreeItem.ITEM_CONTROLS]
     if p is None:
@@ -134,29 +135,132 @@ class OutputContext:
 
 class ImageManager:
 
-  def __init__(self):
-    self.image_paths = []
+  IMAGE_FILE = 1
+  CANVAS_IMAGE = 2
+  MAP_IMAGE = 3
 
-  def imageIndex(self, path):
-    if path in self.image_paths:
-      return self.image_paths.index(path)
+  def __init__(self, context):
+    self.context = context
+    self.images = []
+    self.renderer = None
 
-    index = len(self.image_paths)
-    self.image_paths.append(path)
+  def _index(self, image):
+    if image in self.images:
+      return self.images.index(image)
+
+    index = len(self.images)
+    self.images.append(image)
     return index
 
-  def write(self, f):   #TODO: separated image files
-    if len(self.image_paths) == 0:
+  def imageIndex(self, path):
+    img = (self.IMAGE_FILE, path)
+    return self._index(img)
+
+  def canvasImageIndex(self):
+    img = (self.CANVAS_IMAGE, None)
+    return self._index(img)
+
+  def mapImageIndex(self, width, height, extent):
+    img = (self.MAP_IMAGE, (width, height, extent))
+    return self._index(img)
+
+  def mapCanvasImage(self):
+    """ returns base64 encoded map canvas image """
+    canvas = self.context.canvas
+    temp_dir = QDir.tempPath()    #
+    texfilename = os.path.join(temp_dir, "tex%s.png" % (self.context.timestamp))
+    canvas.saveAsImage(texfilename)
+    texData = gdal2threejs.base64image(texfilename)
+    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
+    return texData
+
+  def saveMapCanvasImage(self):
+    texfilename = os.path.splitext(self.context.htmlfilename)[0] + ".png"
+    self.context.canvas.saveAsImage(texfilename)
+    texSrc = os.path.split(texfilename)[1]
+    tools.removeTemporaryFiles([texfilename + "w"])
+
+  def _initRenderer(self):
+    canvas = self.context.canvas
+
+    # set up a renderer
+    layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
+    labeling = QgsPalLabeling()
+    renderer = QgsMapRenderer()
+    renderer.setDestinationCrs(self.context.crs)
+    renderer.setProjectionsEnabled(True)
+    renderer.setLabelingEngine(labeling)
+    renderer.setLayerSet(layerids)
+
+    # save renderer
+    self._labeling = labeling
+    self.renderer = renderer
+
+    # fill color
+    fillColor = canvas.canvasColor()
+    if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
+      fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
+    self.fillColor = fillColor
+
+  def renderedImage(self, width, height, extent):
+    antialias = True
+
+    if self.renderer is None:
+      self._initRenderer()
+
+    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+    image.fill(self.fillColor)
+
+    renderer = self.renderer
+    renderer.setOutputSize(image.size(), image.logicalDpiX())
+    renderer.setExtent(extent)
+
+    painter = QPainter()
+    painter.begin(image)
+    if antialias:
+      painter.setRenderHint(QPainter.Antialiasing)
+    renderer.render(painter)
+    painter.end()
+
+    return tools.base64image(image)
+
+    #if context.localBrowsingMode:
+    #else:
+    #  texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index    #TODO: index
+    #  image.save(texfilename)
+    #  texSrc = os.path.split(texfilename)[1]
+    #  tex["src"] = texSrc
+
+  def write(self, f):   #TODO: separated image files (not in localBrowsingMode)
+    if len(self.images) == 0:
       return
-    from Qgis2threejs.gdal2threejs import base64image
+
+    canvas = self.context.canvas
+    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+
     f.write(u'\n// Base64 encoded images\n')
-    for index, image_path in enumerate(self.image_paths):
-      if os.path.exists(image_path):
-        size = QImageReader(image_path).size()
-        f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % (index, size.width(), size.height(), base64image(image_path)))
-      else:
-        f.write(u"project.images[%d] = {data:null};\n" % index)
-        QgsMessageLog.logMessage(u'Image file not found: {0}'.format(image_path), "Qgis2threejs")
+    for index, image in enumerate(self.images):
+      imageType = image[0]
+      if imageType == self.IMAGE_FILE:
+        image_path = image[1]
+        if os.path.exists(image_path):
+          size = QImageReader(image_path).size()
+          args = (index, size.width(), size.height(), gdal2threejs.base64image(image_path))
+        else:
+          f.write(u"project.images[%d] = {data:null};\n" % index)
+          QgsMessageLog.logMessage(u'Image file not found: {0}'.format(image_path), "Qgis2threejs")
+          continue
+
+      elif imageType == self.MAP_IMAGE:
+        width, height, extent = image[1]
+        args = (index, width, height, self.renderedImage(width, height, extent))
+
+      else:   #imageType == self.CANVAS_IMAGE:
+        size = mapSettings.outputSize()
+        args = (index, size.width(), size.height(), self.mapCanvasImage())
+
+      f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
+
 
 class MaterialManager:
 
@@ -166,57 +270,81 @@ class MaterialManager:
   MESH_LAMBERT_SMOOTH = 0
   MESH_LAMBERT_FLAT = 3
   SPRITE = 4
+  MESH_PHONG = 5
+
+  CANVAS_IMAGE = 10
+  MAP_IMAGE = 11
+  IMAGE_FILE = 12
 
   ERROR_COLOR = "0"
 
   def __init__(self):
     self.materials = []
 
-  def getMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self.getIndex(self.MESH_LAMBERT, color, transparency, doubleSide)
-
-  def getSmoothMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self.getIndex(self.MESH_LAMBERT_SMOOTH, color, transparency, doubleSide)
-
-  def getFlatMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self.getIndex(self.MESH_LAMBERT_FLAT, color, transparency, doubleSide)
-
-  def getLineBasicIndex(self, color, transparency=0):
-    return self.getIndex(self.LINE_BASIC, color, transparency)
-
-  def getWireframeIndex(self, color, transparency=0):
-    return self.getIndex(self.WIREFRAME, color, transparency)
-
-  def getSpriteIndex(self, path, transparency=0):
-    type = self.SPRITE
-    mat = (type, path, transparency, False)
-    if mat in self.materials:
-      return self.materials.index(mat)
+  def _index(self, material):
+    if material in self.materials:
+      return self.materials.index(material)
 
     index = len(self.materials)
-    self.materials.append(mat)
+    self.materials.append(material)
     return index
 
-  def getIndex(self, type, color, transparency=0, doubleSide=False):
+  def _indexCol(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
-
     mat = (type, color, transparency, doubleSide)
-    if mat in self.materials:
-      return self.materials.index(mat)
+    return self._index(mat)
 
-    index = len(self.materials)
-    self.materials.append(mat)
-    return index
+  def getMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT, color, transparency, doubleSide)
+
+  def getSmoothMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT_SMOOTH, color, transparency, doubleSide)
+
+  def getFlatMeshLambertIndex(self, color, transparency=0, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT_FLAT, color, transparency, doubleSide)
+
+  def getLineBasicIndex(self, color, transparency=0):
+    return self._indexCol(self.LINE_BASIC, color, transparency)
+
+  def getWireframeIndex(self, color, transparency=0):
+    return self._indexCol(self.WIREFRAME, color, transparency)
+
+  def getCanvasImageIndex(self, transparency=0):
+    mat = (self.CANVAS_IMAGE, None, transparency, True)
+    return self._index(mat)
+
+  def getMapImageIndex(self, width, height, extent, transparency=0):
+    mat = (self.MAP_IMAGE, (width, height, extent), transparency, True)
+    return self._index(mat)
+
+  def getImageFileIndex(self, path, transparency=0, doubleSide=False):
+    mat = (self.IMAGE_FILE, path, transparency, doubleSide)
+    return self._index(mat)
+
+  def getSpriteIndex(self, path, transparency=0):
+    mat = (self.SPRITE, path, transparency, False)
+    return self._index(mat)
 
   def write(self, f, imageManager):
     if not len(self.materials):
       return
-    for index, mat in enumerate(self.materials):
-      m = {"type": mat[0]}
 
-      if mat[0] == self.SPRITE:
-        m["i"] = imageManager.imageIndex(mat[1])
+    toMaterialType = {self.CANVAS_IMAGE: self.MESH_PHONG,
+                      self.MAP_IMAGE: self.MESH_PHONG,
+                      self.IMAGE_FILE: self.MESH_PHONG}
+
+    for index, mat in enumerate(self.materials):
+      m = {"type": toMaterialType.get(mat[0], mat[0])}
+
+      if mat[0] == self.CANVAS_IMAGE:
+        m["i"] = imageManager.canvasImageIndex()
+      elif mat[0] == self.MAP_IMAGE:
+        width, height, extent = mat[1]
+        m["i"] = imageManager.mapImageIndex(width, height, extent)
+      elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
+        filepath = mat[1]
+        m["i"] = imageManager.imageIndex(filepath)
       else:
         m["c"] = mat[1]
 
@@ -224,8 +352,11 @@ class MaterialManager:
       if transparency > 0:
         opacity = 1.0 - float(transparency) / 100
         m["o"] = opacity
+
+      # double sides
       if mat[3]:
         m["ds"] = 1
+
       f.write(u"lyr.m[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
 
 class JSWriter:
@@ -239,7 +370,7 @@ class JSWriter:
     self.currentLayerIndex = 0
     self.currentFeatureIndex = -1
     self.attrs = []
-    self.imageManager = ImageManager()
+    self.imageManager = ImageManager(context)
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
 
@@ -337,13 +468,16 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     progress = dummyProgress
   temp_dir = QDir.tempPath()
 
-  #TODO: do in JSWriter?
+  #TODO: do in OutputContext.__init__
   timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
   if htmlfilename == "":
     htmlfilename = tools.temporaryOutputDir() + "/%s.html" % timestamp
   out_dir, filename = os.path.split(htmlfilename)
   if not QDir(out_dir).exists():
     QDir().mkpath(out_dir)
+
+  context.timestamp = timestamp
+  context.htmlfilename = htmlfilename
 
   # create JavaScript writer object
   writer = JSWriter(htmlfilename, context)
@@ -467,29 +601,12 @@ def writeSimpleDEM(writer, properties, progress=None):
   demTransparency = prop.properties["spinBox_demtransp"]
 
   # display type
-  texData = texSrc = None
   if properties.get("radioButton_MapCanvas", False):
-    # save map canvas image
-    #TODO: prepare material(texture) in Material manager (result is tex -> material index)
-    if 1:   #context.localBrowsingMode:
-      texfilename = os.path.join(temp_dir, "tex%s.png" % (timestamp))
-      canvas.saveAsImage(texfilename)
-      texData = gdal2threejs.base64image(texfilename)
-      tools.removeTemporaryFiles([texfilename, texfilename + "w"])
-    else:
-      #TODO: multiple DEMs output not in localBrowsingMode
-      texfilename = os.path.splitext(htmlfilename)[0] + ".png"
-      canvas.saveAsImage(texfilename)
-      texSrc = os.path.split(texfilename)[1]
-      tools.removeTemporaryFiles([texfilename + "w"])
+    dem["m"] = layer.materialManager.getCanvasImageIndex(demTransparency)
 
   elif properties.get("radioButton_ImageFile", False):
-    filename = properties.get("lineEdit_ImageFile", "")
-    if os.path.exists(filename):
-      texData = gdal2threejs.base64image(filename)
-    else:
-      texData = ""  #TODO
-      writer.log(u'Image file not found: {0}'.format(filename))
+    filepath = properties.get("lineEdit_ImageFile", "")
+    dem["m"] = layer.materialManager.getImageFileIndex(filepath, demTransparency, True)
 
   elif properties.get("radioButton_SolidColor", False):
     dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
@@ -497,16 +614,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   elif properties.get("radioButton_Wireframe", False):
     dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
-  if texData is not None or texSrc is not None:
-    tex = {}
-    if texSrc is not None:
-      tex["src"] = texSrc
-    if demTransparency > 0:
-      demOpacity = 1.0 - float(demTransparency) / 100
-      tex["o"] = demOpacity
-      tex["t"] = demOpacity < 1  #
-    dem["t"] = tex
-
+  # shading (whether compute normals)
   if properties.get("checkBox_Shading", True):
     dem["shading"] = True
 
@@ -526,8 +634,6 @@ def writeSimpleDEM(writer, properties, progress=None):
   # write central block
   writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
   writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-  if texData is not None:
-    writer.write('bl.t.data = "{0}";\n'.format(texData))
 
   # write surrounding dems
   if surroundings:
@@ -578,37 +684,18 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
 
-  # create an image for texture
-  image_basesize = 256
-  hpw = canvas.extent().height() / canvas.extent().width()
-  if hpw < 1:
-    image_width = image_basesize
-    image_height = round(image_width * hpw)
-    #image_height = image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
-  else:
-    image_height = image_basesize
-    image_width = round(image_height / hpw)
-  image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
-
-  layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
-
-  # set up a renderer
-  labeling = QgsPalLabeling()
-  renderer = QgsMapRenderer()
-  renderer.setOutputSize(image.size(), image.logicalDpiX())
-  renderer.setDestinationCrs(context.crs)
-  renderer.setProjectionsEnabled(True)
-  renderer.setLabelingEngine(labeling)
-  renderer.setLayerSet(layerids)
-
-  painter = QPainter()
-  antialias = True
-  fillColor = canvas.canvasColor()
-  if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
-    fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
-
   warp_dem = tools.MemoryWarpRaster(demlayer.source())
   wkt = str(context.crs.toWkt())
+
+  # texture image size
+  hpw = canvas.extent().height() / canvas.extent().width()
+  if hpw < 1:
+    image_width = context.image_basesize
+    image_height = round(image_width * hpw)
+    #image_height = context.image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
+  else:
+    image_height = context.image_basesize
+    image_width = round(image_height / hpw)
 
   scripts = []
   plane_index = 1
@@ -658,31 +745,8 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
     # display type
-    texData = None
     if properties.get("radioButton_MapCanvas", False):
-      renderer.setExtent(extent)
-      # render map image
-      image.fill(fillColor)
-      painter.begin(image)
-      if antialias:
-        painter.setRenderHint(QPainter.Antialiasing)
-      renderer.render(painter)
-      painter.end()
-
-      tex = {}
-      if context.localBrowsingMode:
-        texData = tools.base64image(image)
-      else:
-        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-        image.save(texfilename)
-        texSrc = os.path.split(texfilename)[1]
-        tex["src"] = texSrc
-
-      if demTransparency > 0:
-        demOpacity = 1.0 - float(demTransparency) / 100
-        tex["o"] = demOpacity
-        tex["t"] = demOpacity < 1  #
-      dem["t"] = tex
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
     elif properties.get("radioButton_SolidColor", False):
       dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
@@ -690,15 +754,13 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
     elif properties.get("radioButton_Wireframe", False):
       dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
+    # shading (whether compute normals)
     if properties.get("checkBox_Shading", True):
       dem["shading"] = True
 
     # write block
     writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-    if texData is not None:
-      writer.write('bl.t.data = "{0}";\n'.format(texData))
-
     plane_index += 1
 
 def writeMultiResDEM(writer, properties, progress=None):
@@ -737,34 +799,14 @@ def writeMultiResDEM(writer, properties, progress=None):
   # create quads and a point on map canvas with rubber bands
   context.dialog.createRubberBands(quads, quadtree.focusRect.center())
 
-  # create an image for texture
-  image_basesize = 256
+  # image size
   hpw = canvas.extent().height() / canvas.extent().width()
   if hpw < 1:
-    image_width = image_basesize
+    image_width = context.image_basesize
     image_height = round(image_width * hpw)
   else:
-    image_height = image_basesize
+    image_height = context.image_basesize
     image_width = round(image_height / hpw)
-  image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
-  #qDebug("Created image size: %d, %d" % (image_width, image_height))
-
-  layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
-
-  # set up a renderer
-  labeling = QgsPalLabeling()
-  renderer = QgsMapRenderer()
-  renderer.setOutputSize(image.size(), image.logicalDpiX())
-  renderer.setDestinationCrs(context.crs)
-  renderer.setProjectionsEnabled(True)
-  renderer.setLabelingEngine(labeling)
-  renderer.setLayerSet(layerids)
-
-  painter = QPainter()
-  antialias = True
-  fillColor = canvas.canvasColor()
-  if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
-    fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
 
   # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
   # with smooth resolution change, this is not necessary
@@ -842,31 +884,8 @@ def writeMultiResDEM(writer, properties, progress=None):
       dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
       # display type
-      texData = None
       if properties.get("radioButton_MapCanvas", False):
-        renderer.setExtent(extent)
-        # render map image
-        image.fill(fillColor)
-        painter.begin(image)
-        if antialias:
-          painter.setRenderHint(QPainter.Antialiasing)
-        renderer.render(painter)
-        painter.end()
-
-        tex = {}
-        if context.localBrowsingMode:
-          texData = tools.base64image(image)
-        else:
-          texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-          image.save(texfilename)
-          texSrc = os.path.split(texfilename)[1]
-          tex["src"] = texSrc
-
-        if demTransparency > 0:
-          demOpacity = 1.0 - float(demTransparency) / 100
-          tex["o"] = demOpacity
-          tex["t"] = demOpacity < 1  #
-        dem["t"] = tex
+        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
       elif properties.get("radioButton_SolidColor", False):
         dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
@@ -874,6 +893,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       elif properties.get("radioButton_Wireframe", False):
         dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
+      # shading (whether compute normals)
       if properties.get("checkBox_Shading", True):
         dem["shading"] = True
 
@@ -881,8 +901,6 @@ def writeMultiResDEM(writer, properties, progress=None):
       writer.openFile(True)
       writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
       writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-      if texData is not None:
-        writer.write('bl.t.data = "{0}";\n'.format(texData))
       plane_index += 1
     else:
       centerQuads.addQuad(quad, dem_values)
@@ -900,55 +918,25 @@ def writeMultiResDEM(writer, properties, progress=None):
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
     # display type
-    texData = None
     if properties.get("radioButton_MapCanvas", False):
       if hpw < 1:
-        image_width = image_basesize * centerQuads.width()
+        image_width = context.image_basesize * centerQuads.width()
         image_height = round(image_width * hpw)
       else:
-        image_height = image_basesize * centerQuads.height()
+        image_height = context.image_basesize * centerQuads.height()
         image_width = round(image_height / hpw)
-      image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
-      #qDebug("Created image size: %d, %d" % (image_width, image_height))
-
-      renderer.setOutputSize(image.size(), image.logicalDpiX())
-      renderer.setExtent(extent)
-
-      # render map image
-      image.fill(fillColor)
-      painter.begin(image)
-      if antialias:
-        painter.setRenderHint(QPainter.Antialiasing)
-      renderer.render(painter)
-      painter.end()
-
-      tex = {}
-      if context.localBrowsingMode:
-        texData = tools.base64image(image)
-      else:
-        texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-        image.save(texfilename)
-        texSrc = os.path.split(texfilename)[1]
-        tex["src"] = texSrc
-
-      if demTransparency > 0:
-        demOpacity = str(1.0 - float(demTransparency) / 100)
-        tex["o"] = demOpacity
-        tex["t"] = demOpacity < 1  #
-      dem["t"] = tex
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = writer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = writer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
 
     # write block
     writer.openFile(True)
     writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-    if texData is not None:
-      writer.write('bl.t.data = "{0}";\n'.format(texData))
     plane_index += 1
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))

@@ -600,24 +600,7 @@ Q3D.DEMBlock.prototype = {
       geom.computeVertexNormals();
     }
 
-    // Terrain material
-    var mat;
-    if (this.m !== undefined) mat = layer.materials[this.m].m;
-    else {
-      var texture;
-      if (this.t.src === undefined) {
-        texture = Q3D.Utils.loadTextureData(this.t.data);
-      } else {
-        texture = THREE.ImageUtils.loadTexture(this.t.src);
-        texture.needsUpdate = true;
-      }
-      if (this.t.o === undefined) this.t.o = 1;
-      mat = new THREE.MeshPhongMaterial({map: texture, opacity: this.t.o, transparent: (this.t.o < 1)});
-      layer.materials.push({m: mat});
-    }
-    if (!Q3D.isIE) mat.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
-
-    var mesh = new THREE.Mesh(geom, mat);
+    var mesh = new THREE.Mesh(geom, layer.materials[this.m].m);
     if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
     if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
     mesh.userData.layerId = layer.index;
@@ -696,20 +679,21 @@ Q3D.MapLayer.prototype = {
       else if (m.type == 2) {
         mat = new THREE.MeshLambertMaterial({color: m.c, ambient: m.c, wireframe: true});
       }
-      else {    // type == 4
+      else {    // type == 4 || type == 5
         var image = this.project.images[m.i];
         if (image.texture === undefined) {
           if (image.src !== undefined) image.texture = THREE.ImageUtils.loadTexture(image.src);
           else image.texture = Q3D.Utils.loadTextureData(image.data);
         }
-        mat = new THREE.SpriteMaterial({map: image.texture, color: 0xffffff});
+        if (m.type == 4) mat = new THREE.SpriteMaterial({map: image.texture, color: 0xffffff});
+        else mat = new THREE.MeshPhongMaterial({map: image.texture});
       }
 
       if (m.o !== undefined && m.o < 1) {
         mat.opacity = m.o;
         mat.transparent = true;
       }
-      if (m.ds) mat.side = THREE.DoubleSide;    // TODO: ie
+      if (m.ds && !Q3D.isIE) mat.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
       m.m = mat;
       this.materials.push(m);
       sum_opacity += mat.opacity;
