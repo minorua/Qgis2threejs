@@ -101,8 +101,14 @@ class OutputContext:
     self.dialog = dialog
     self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
+
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.crs = mapSettings.destinationCrs()
+
+    wgs84 = QgsCoordinateReferenceSystem(4326)
+    transform = QgsCoordinateTransform(self.crs, wgs84)
+    self.wgs84Center = transform.transform(self.baseExtent.center())
+
     self.image_basesize = 256
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -402,12 +408,20 @@ class JSWriter:
   def writeProject(self):
     # write project information
     self.write(u"// Qgis2threejs Project\n")
+    title = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
     extent = self.context.baseExtent
     mapTo3d = self.context.mapTo3d
-    fmt = u'project = new Q3D.Project("{0}","{1}",[{2},{3},{4},{5}],{6},{7},{8});\n'
-    self.write(fmt.format("no title", "no crs defined",
-                          extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum(),
-                          mapTo3d.planeWidth, mapTo3d.verticalExaggeration, mapTo3d.verticalShift))
+    wgs84Center = self.context.wgs84Center
+
+    opt = {"title": title,
+           "crs": unicode(self.context.crs.authid()),
+           "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
+           "width": mapTo3d.planeWidth,
+           "zExaggeration": mapTo3d.verticalExaggeration,
+           "zShift": mapTo3d.verticalShift,
+           "wgs84Center": {"lat": wgs84Center.y(), "lon": wgs84Center.x()}}
+
+    self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(opt)))
 
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount

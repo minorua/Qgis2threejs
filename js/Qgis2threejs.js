@@ -32,17 +32,17 @@ Q3D.$ = function (elementId) {
 
 /*
 Project class - Project data holder
+
+params: title, crs, baseExtent, width, zExaggeration, zShift, wgs84Center
 */
-Q3D.Project = function (title, crs, baseExtent, width, zExaggeration, zShift) {
-  this.title = title;
-  this.crs = crs;
-  this.baseExtent = baseExtent;
-  this.width = width;
-  this.height = width * (baseExtent[3] - baseExtent[1]) / (baseExtent[2] - baseExtent[0]);
-  this.scale = width / (baseExtent[2] - baseExtent[0]);
-  this.zExaggeration = zExaggeration;
-  this.zScale = this.scale * zExaggeration;
-  this.zShift = zShift;
+Q3D.Project = function (params) {
+  for (var k in params) {
+    this[k] = params[k];
+  }
+
+  this.height = this.width * (this.baseExtent[3] - this.baseExtent[1]) / (this.baseExtent[2] - this.baseExtent[0]);
+  this.scale = this.width / (this.baseExtent[2] - this.baseExtent[0]);
+  this.zScale = this.scale * this.zExaggeration;
 
   this.layers = [];
   this.jsons = [];
