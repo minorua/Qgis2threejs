@@ -88,12 +88,11 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self)
     options = options or {}
     self.widget.label_1.setText(options.get("name", ""))
-    self.label_absolute = options.get("label", "Value")
-    #self.widget.label_2.setText(self.label_absolute)
     self.widget.toolButton.setVisible(False)
 
+    self.label_absolute = options.get("label", "Value")
     self.label_field = options.get("label_field", "Multiplier")
-    self.defaultValue = options.get("defaultValue")
+    self.defaultValue = options.get("defaultValue", 0)
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Fixed value", FieldValueWidgetFunc.ABSOLUTE)
@@ -105,20 +104,17 @@ class FieldValueWidgetFunc(WidgetFuncBase):
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
     if itemData == FieldValueWidgetFunc.ABSOLUTE:
-      label = self.label_absolute
       defaultValue = self.defaultValue
+      label = self.label_absolute
     else:
-      label = self.label_field
       defaultValue = 1
+      label = self.label_field
 
-    if label is None:
-      self.widget.label_2.setVisible(False)
-      self.widget.lineEdit.setVisible(False)
-    else:
+    self.widget.lineEdit.setText(unicode(defaultValue))
+    if label:
       self.widget.label_2.setText(label)
-      self.widget.label_2.setVisible(True)
-      self.widget.lineEdit.setText(unicode(defaultValue))
-      self.widget.lineEdit.setVisible(True)
+    self.widget.label_2.setVisible(bool(label))
+    self.widget.lineEdit.setVisible(bool(label))
 
 class ColorWidgetFunc(WidgetFuncBase):
   FEATURE = 1
