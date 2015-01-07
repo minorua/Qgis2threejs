@@ -273,16 +273,17 @@ class ImageManager:
 class MaterialManager:
 
   MESH_LAMBERT = 0
-  LINE_BASIC = 1
-  WIREFRAME = 2
-  MESH_LAMBERT_SMOOTH = 0
-  MESH_LAMBERT_FLAT = 3
-  SPRITE = 4
-  MESH_PHONG = 5
+  MESH_PHONG = 1
+  LINE_BASIC = 2
+  SPRITE = 3
 
-  CANVAS_IMAGE = 10
-  MAP_IMAGE = 11
-  IMAGE_FILE = 12
+  WIREFRAME = 10
+  MESH_LAMBERT_SMOOTH = 0
+  MESH_LAMBERT_FLAT = 11
+
+  CANVAS_IMAGE = 20
+  MAP_IMAGE = 21
+  IMAGE_FILE = 22
 
   ERROR_COLOR = "0"
 
@@ -338,7 +339,9 @@ class MaterialManager:
     if not len(self.materials):
       return
 
-    toMaterialType = {self.CANVAS_IMAGE: self.MESH_PHONG,
+    toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
+                      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
+                      self.CANVAS_IMAGE: self.MESH_PHONG,
                       self.MAP_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
@@ -355,6 +358,12 @@ class MaterialManager:
         m["i"] = imageManager.imageIndex(filepath)
       else:
         m["c"] = mat[1]
+
+      if mat[0] == self.WIREFRAME:
+        m["w"] = 1
+
+      if mat[0] == self.MESH_LAMBERT_FLAT:
+        m["flat"] = 1
 
       transparency = mat[2]
       if transparency > 0:
@@ -618,7 +627,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     dem["m"] = layer.materialManager.getImageFileIndex(filepath, demTransparency, True)
 
   elif properties.get("radioButton_SolidColor", False):
-    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
   elif properties.get("radioButton_Wireframe", False):
     dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
@@ -758,7 +767,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
       dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
       dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
@@ -896,7 +905,7 @@ def writeMultiResDEM(writer, properties, progress=None):
         dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
       elif properties.get("radioButton_SolidColor", False):
-        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
       elif properties.get("radioButton_Wireframe", False):
         dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
@@ -936,7 +945,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
       dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
