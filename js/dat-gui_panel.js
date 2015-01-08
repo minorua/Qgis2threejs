@@ -7,7 +7,8 @@ Q3D.gui = {
     cp: {
       c: "#ffffff",
       d: 0,
-      o: 1
+      o: 1,
+      l: false
     },
     i: Q3D.application.showInfo.bind(Q3D.application)
   },
@@ -82,6 +83,13 @@ Q3D.gui = {
     folder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.material.opacity = value;
+    });
+
+    // Enlarge plane option
+    folder.add(parameters.cp, 'l').name('Enlarge').onChange(function (value) {
+      if (customPlane === undefined) addPlane(parameters.cp.c);
+      if (value) customPlane.scale.set(10, 10, 1);
+      else customPlane.scale.set(1, 1, 1);
     });
   },
 
