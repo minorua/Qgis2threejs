@@ -1,107 +1,91 @@
-var customPlane;
+Q3D.gui = {
 
-/**
- * addPlane()
- *   - color : color of sides
- *
- *  Add a new plane in the current scene
- *  TODO: add a dropdown menu if using multiple DEM
- */
+  type: "dat-gui",
 
-function addPlane(color) {
-  var customPlaneGeometry = new THREE.PlaneGeometry(project.width, project.height, 1, 1);
-  var customPlaneMaterial = new THREE.MeshLambertMaterial(
-    {
-      color: color,
-      transparent: true
-    });
-
-  customPlane = new THREE.Mesh(customPlaneGeometry, customPlaneMaterial);
-  Q3D.application.scene.add(customPlane);
-
-}
-
-// GUI
-var gui = new dat.GUI();
-gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
-
-var parameters = {
-  lyr: [],
-  cp: {
-    c: "#ffffff",
-    d: 0,
-    o: 1
+  parameters: {
+    lyr: [],
+    cp: {
+      c: "#ffffff",
+      d: 0,
+      o: 1
+    },
+    i: Q3D.application.showInfo.bind(Q3D.application)
   },
-  i: Q3D.application.showInfo.bind(Q3D.application)
-};
 
-initGUI();
+  // initialize gui
+  // - setupDefaultItems: default is true
+  init: function (setupDefaultItems) {
+    this.gui = new dat.GUI();
+    this.gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
+    if (setupDefaultItems === undefined || setupDefaultItems == true) {
+      this.addLayersFolder();
+      this.addCustomPlaneFolder();
+      this.addHelpButton();
+    }
+  },
 
-function initGUI() {
+  addLayersFolder: function () {
+    var parameters = this.parameters;
+    var layersFolder = this.gui.addFolder('Layers');
 
-  // Create Layers folder
-  var layersFolder = gui.addFolder('Layers');
-  var folder;
-  
-  var visibleChanged = function (value) {
-    project.layers[this.object.i].setVisible(value);
-  };
+    var visibleChanged = function (value) { project.layers[this.object.i].setVisible(value); };
+    var opacityChanged = function (value) { project.layers[this.object.i].setOpacity(value); };
+    var sideVisibleChanged = function (value) { project.layers[this.object.i].setSideVisibility(value); };
 
-  var opacityChanged = function (value) {
-    project.layers[this.object.i].setOpacity(value);
-  };
+    project.layers.forEach(function (layer, i) {
+      parameters.lyr[i] = {i: i, v: layer.visible, o: layer.opacity};
+      var folder = layersFolder.addFolder(layer.name);
+      folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
 
-  var sideVisibleChanged = function (value) {
-    project.layers[this.object.i].setSideVisibility(value);
-  };
+      if (layer.type == Q3D.LayerType.DEM && layer.blocks[0].s !== undefined) {
+        parameters.lyr[i].sv = true;
+        folder.add(parameters.lyr[i], 'sv').name('Sides and bottom').onChange(sideVisibleChanged);
+      };
 
-  project.layers.forEach(function (layer, i) {
-    parameters.lyr[i] = {i: i, v: layer.visible, o: layer.opacity};
-    folder = layersFolder.addFolder(layer.name);
-    folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
+      folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+    });
+  },
 
-    if (layer.type == Q3D.LayerType.DEM && layer.blocks[0].s !== undefined) {
-      parameters.lyr[i].sv = true;
-      folder.add(parameters.lyr[i], 'sv').name('Sides and bottom').onChange(sideVisibleChanged);
+  addCustomPlaneFolder: function () {
+    var customPlane;
+    var parameters = this.parameters;
+    var addPlane = function (color) {
+      // Add a new plane in the current scene
+      var geometry = new THREE.PlaneGeometry(project.width, project.height, 1, 1),
+          material = new THREE.MeshLambertMaterial({color: color, transparent: true});
+      if (!Q3D.isIE) material.side = THREE.DoubleSide;
+      customPlane = new THREE.Mesh(geometry, material);
+      Q3D.application.scene.add(customPlane);
     };
 
-    folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
-  });
-
-
-  if (project.layers[0].type == Q3D.LayerType.DEM) {
-    // Max value for the plane
-    var zMax = project.layers[0].stats.max;
+    // Min/Max value for the plane
+    var zMin = (project.layers[0].type == Q3D.LayerType.DEM) ? project.layers[0].stats.min - 500 : 0,
+        zMax = (project.layers[0].type == Q3D.LayerType.DEM) ? project.layers[0].stats.max + 1000 : 9000;
+    parameters.cp.d = zMin;
 
     // Create Custom Plane folder
-    var maingui = gui.addFolder('Custom Plane');
-    var customPlaneColor = maingui.addColor(parameters.cp, 'c').name('Color');
-    var customPlaneHeight = maingui.add(parameters.cp, 'd').min(0).max(zMax).name('Plane height (m)');
-    var customPlaneOpacity = maingui.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)');
+    var folder = this.gui.addFolder('Custom Plane');
 
-    // Change plane color
-    customPlaneColor.onChange(function (value) {
-      if (customPlane) {
-        customPlane.material.color.setStyle(value);
-      } else {
-        addPlane(value);
-      }
+    // Plane color
+    folder.addColor(parameters.cp, 'c').name('Color').onChange(function (value) {
+      if (customPlane === undefined) addPlane(parameters.cp.c);
+      customPlane.material.color.setStyle(value);
     });
 
-    // Change plane Z
-    customPlaneHeight.onChange(function (value) {
+    // Plane height
+    folder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Plane height').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.position.z = (value + project.zShift) * project.zScale;
     });
 
-    // Change plane Opacity
-    customPlaneOpacity.onChange(function (value) {
-       if (customPlane) {
-         customPlane.material.opacity = value;
-       }
+    // Plane opacity
+    folder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
+      if (customPlane === undefined) addPlane(parameters.cp.c);
+      customPlane.material.opacity = value;
     });
-  }
+  },
 
-  // Add Help button
-  gui.add(parameters, 'i').name('Help');
-}
+  addHelpButton: function () {
+    this.gui.add(this.parameters, 'i').name('Help');
+  }
+};
