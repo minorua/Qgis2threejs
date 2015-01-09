@@ -1,0 +1,8 @@
+[general]
+filename=3DViewer(sunlight).html
+description=[Experimental] This template can simulate sunlight. Buildings and terrain cast shadow behind them.
+    NOTE: Use an appropriate CRS, otherwise you cannot get correct result. Ideally,
+    - North-south direction and (horizontally) up-down direction should be equal throughout the extent.
+    - Scale along horizontal direction and scale along vertical direction should be equal.
+files=js/Qgis2threejs.js,js/dat-gui_panel.js,css/Qgis2threejs.css
+dirs=js/suncalc,js/dat-gui

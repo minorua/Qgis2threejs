@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="./Qgis2threejs.css">
+</head>
+<body>
+<div id="webgl"></div>
+
+<!-- popup -->
+<div id="popup" style="display:none;">
+<div id="closebtn">&times;</div>
+<div id="popupbar"></div>
+<div id="popupcontent">
+ <div id="queryresult"></div>
+ <div id="pageinfo">
+  <h1>Current view URL</h1>
+  <div><input id="urlbox" type="text"></div>
+
+  <h1>Usage</h1>
+  <div id="usage"></div>
+
+  <h1>About</h1>
+  <div id="about">This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
+and uses the following library:
+  <ul>
+  <li>three.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="./threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+  <li>SunCalc <a href="https://github.com/mourner/suncalc" target="_blank">https://github.com/mourner/suncalc</a> <a href="./suncalc/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+  <li>dat-gui <a href="https://code.google.com/p/dat-gui/" target="_blank">https://code.google.com/p/dat-gui/</a> <a href="./dat-gui/license.txt" target="_blank" class="license">(LICENSE)</a></li>
+  </ul>
+  </div>
+ </div>
+</div></div>
+
+<!-- footer -->
+<div id="footer"></div>
+
+<script src="./threejs/three.min.js"></script>
+<script src="./Qgis2threejs.js"></script>
+${controls}
+<script>
+var option = Q3D.Options;
+${options}
+</script>
+${scripts}
+<script>
+// initialize application
+var container = document.getElementById("webgl");
+var app = Q3D.application;
+app.init(container);
+
+// variables
+var sun_light,
+    sun_datetime,
+    sun_altitude = 0,
+    race_button,
+    timerId = null,
+    latLon = project.wgs84Center,
+    deg2rad = Math.PI / 180;
+
+if (app.urlParams.lat !== undefined) latLon.lat = app.urlParams.lat;
+if (app.urlParams.lon !== undefined) latLon.lon = app.urlParams.lon;
+
+// show latitude and longitude at center of base extent, in URL bar
+appendKVPToHash({lat: latLon.lat, lon: latLon.lon});
+
+project.buildCustomLights = function (parent) {
+  // ambient light
+  parent.add(new THREE.AmbientLight(0x999999));
+
+  // directional light
+  sun_light = new THREE.DirectionalLight(0xffffff, 0.5);
+  sun_light.castShadow = true;
+  sun_light.shadowMapWidth = 512 * 8;
+  sun_light.shadowMapHeight = 512 * 8;
+  sun_light.shadowDarkness = 0.5;
+
+  parent.add(sun_light);
+};
+
+// load the project
+app.loadProject(project);
+
+// set up shadow
+option.shadow = true;
+if (option.shadow) {
+  app.renderer.shadowMapEnabled = true;
+  app.renderer.shadowMapType = THREE.PCFSoftShadowMap;
+
+  var enableShadow = function (obj) { obj.castShadow = obj.receiveShadow = true; };
+  var enableCastShadow = function (obj) { obj.castShadow = true; };
+  var enableReceiveShadow = function (obj) { obj.receiveShadow = true; };
+  project.layers.forEach(function (layer) {
+    layer.objectGroup.traverse(enableShadow);
+
+    //if (layer.type == Q3D.LayerType.DEM) layer.objectGroup.traverse(enableReceiveShadow);
+    //else layer.objectGroup.traverse(enableShadow);
+  });
+}
+
+// start application
+app.addEventListeners();
+app.start();
+
+function appendKVPToHash(kv_pairs) {
+  var p, kv_list = [], params = {};
+  window.location.hash.substring(1).split('&').forEach(function (exp) {
+    if (exp == "") return;
+    p = exp.split('=');
+    if (p[0] in kv_pairs) p[1] = kv_pairs[p[0]];
+    kv_list.push((p[1] === undefined || p[1] === null) ? p[0] : p[0] + "=" + p[1]);
+    params[p[0]] = p[1];
+  });
+  for (var k in kv_pairs) {
+    if (k in params) continue;
+    kv_list.push((kv_pairs[k] === undefined || kv_pairs[k] === null) ? k : k + "=" + kv_pairs[k]);
+  }
+  location.hash = "#" + kv_list.join("&");
+}
+</script>
+<script src="./dat-gui/dat.gui.min.js"></script>
+<script src="./dat-gui_panel.js"></script>
+<script src="./suncalc/suncalc.js"></script>
+<script>
+
+var DateTimeController = function (gui_folder, onChange) {
+  var now = new Date();
+  now.setSeconds(0);
+  now.setMilliseconds(0);
+  this.tz = -now.getTimezoneOffset() / 60;
+  this.setDate(now);
+
+  this._controllers = [
+    gui_folder.add(this, "tz").min(-12).max(12).step(1).name("UTC offset"),
+    gui_folder.add(this, "y").min(1900).max(2100).name("Year"),
+    gui_folder.add(this, "m").min(1).max(12).step(1).name("Month"),
+    gui_folder.add(this, "d").min(1).max(31).step(1).name("Day"),
+    gui_folder.add(this, "h").min(1).max(23).step(1).name("Hour"),
+    gui_folder.add(this, "i").min(0).max(59).step(1).name("Minute")];
+  if (onChange) {
+    for (var i in this._controllers) {
+      this._controllers[i].onChange(onChange);
+    }
+  }
+};
+
+DateTimeController.prototype = {
+
+  constructor: DateTimeController,
+
+  getDate: function () {
+    return new Date(Date.UTC(this.y, this.m - 1, this.d, this.h, this.i) - this.tz * 3600 * 1000);
+  },
+
+  setDate: function (date) {
+    var date = new Date(date.getTime() + this.tz * 3600 * 1000);
+    this.y = date.getUTCFullYear();
+    this.m = date.getUTCMonth() + 1;
+    this.d = date.getUTCDate();
+    this.h = date.getUTCHours();
+    this.i = date.getUTCMinutes();
+    this.updateDisplay();
+  },
+
+  addMinutes: function (minutes) {
+    var date = this.getDate();
+    date.setMinutes(date.getMinutes() + minutes);
+    this.setDate(date);
+  },
+
+  updateDisplay: function () {
+    for (var i in this._controllers) {
+      this._controllers[i].updateDisplay();
+    }
+  },
+
+  toISOString: function () {
+    var datetime = new Date(Date.UTC(this.y, this.m - 1, this.d, this.h, this.i));
+    var str = datetime.toISOString();
+    if (this.tz == 0) return str;   //.slice(0, -5) + "Z";
+
+    var dm = Math.abs(60 * this.tz);
+    var hours = Math.floor(dm / 60),
+        minutes = dm % 60;
+    return str.slice(0, -1) + ((this.tz > 0) ? "+" : "-") + ("0" + hours).slice(-2) + ":" + ("0" + minutes).slice(-2);
+  }
+
+};
+
+function start_race () {
+  timerId = setInterval(function () {
+    var delta = (sun_altitude > -10) ? 2 : 30;
+    sun_datetime.addMinutes(delta);
+    updateSunlight();
+  }, 50);
+  race_button.name("Stop race");
+}
+
+function stop_race () {
+  clearInterval(timerId);
+  timerId = null;
+  race_button.name("Start race");
+}
+
+function updateSunlight() {
+  var datetime = sun_datetime.getDate();
+  var pos = SunCalc.getPosition(datetime, latLon.lat, latLon.lon);
+  var lambda = -Math.PI / 2 - pos.azimuth,
+      phi = pos.altitude;
+  var x = Math.cos(phi) * Math.cos(lambda),
+      y = Math.cos(phi) * Math.sin(lambda),
+      z = Math.sin(phi),
+      s = Math.max(project.width, project.height);
+  sun_light.position.set(x * s, y * s, z * project.zExaggeration * s);
+  Q3D.$("footer").innerHTML = sun_datetime.toISOString() +
+                              ", Azimuth from south: " + (pos.azimuth / deg2rad).toFixed(1) +
+                              ", Altitude: " + (pos.altitude / deg2rad).toFixed(1);
+  sun_altitude = pos.altitude / deg2rad;
+}
+
+// initialize dat-gui panel
+var gui = Q3D.gui;
+gui.init(false);
+gui.parameters.sun = {
+  r: function () {
+    if (timerId == null) start_race();
+    else stop_race();
+  }
+// delta: 0
+};
+
+// add Sunlight folder
+var sun_folder = gui.gui.addFolder("Sunlight");
+race_button = sun_folder.add(Q3D.gui.parameters.sun, "r").name("Start race");
+sun_datetime = new DateTimeController(sun_folder, updateSunlight);
+
+// add Layers folder and Help button
+gui.addLayersFolder();
+gui.addHelpButton();
+
+// initial light update
+updateSunlight();
+
+</script>
+</body>
+</html>
