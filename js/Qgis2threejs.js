@@ -1,8 +1,8 @@
 // Qgis2threejs.js
-// MIT License
-// (C) 2014 Minoru Akagi
+// (C) 2014 Minoru Akagi | MIT License
+// https://github.com/minorua/Qgis2threejs
 
-var Q3D = {};
+var Q3D = {VERSION: "1.0dev"};
 Q3D.Options = {
   bgcolor: null,
   light: {
