@@ -149,6 +149,8 @@ Q3D.application = {
     this.container.appendChild(e);
     this.labelRootElement = e;
 
+    this.jsonObjectBuilders = [];
+
     // TODO:
     this.actions = [];
   },
@@ -176,6 +178,14 @@ Q3D.application = {
 
     // controls
     if (Q3D.Controls) this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
+
+    // load JSON models
+    if (project.jsons.length > 0) {
+      this._jsonLoader = new THREE.JSONLoader(true);
+      project.jsons.forEach(function (json, index) {
+        this.jsonObjectBuilders[index] = new Q3D.JSONObjectBuilder(this._jsonLoader, this.project, json);
+      }, this);
+    }
 
     // build models
     project.layers.forEach(function (layer) {
@@ -1189,38 +1199,9 @@ Q3D.PointLayer.prototype.buildIcons = function (parent) {
 };
 
 Q3D.PointLayer.prototype.buildJSONModels = function (parent) {
-  var manager = new THREE.LoadingManager();
-  var loader = new THREE.JSONLoader(manager);
-  var jsons = this.project.jsons;
-  var json_meshes = [];
-  var jsonMesh = function (json_index) {
-    if (json_meshes[json_index] === undefined) {
-      var result = loader.parse(JSON.parse(jsons[json_index].data));
-      json_meshes[json_index] = new THREE.Mesh(result.geometry, result.materials[0]);
-    }
-    return json_meshes[json_index];
-  };
-
-  var deg2rad = Math.PI / 180;
-
   // each feature in this layer
   this.f.forEach(function (f, fid) {
-    f.objs = [];
-
-    var orig_mesh = jsonMesh(f.json_index);
-    for (var i = 0, l = f.pts.length; i < l; i++) {
-      var pt = f.pts[i];
-      var mesh = orig_mesh.clone();
-      mesh.position.set(pt[0], pt[1], pt[2]);
-      if (f.rotateX || f.rotateY || f.rotateZ)
-        mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
-      if (f.scale) mesh.scale.set(f.scale, f.scale, f.scale);
-      mesh.userData.layerId = this.index;
-      mesh.userData.featureId = fid;
-
-      this.addObject(mesh);
-      f.objs.push(mesh);
-    }
+    Q3D.application.jsonObjectBuilders[f.json_index].addFeature(this.index, fid);
   }, this);
 
   if (parent) parent.add(this.objectGroup);
@@ -1483,6 +1464,68 @@ Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
   }
 
   Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, getPointsFunc, zFunc);
+};
+
+
+// load JSON data and build JSON models
+Q3D.JSONObjectBuilder = function (loader, project, json_obj) {
+  this.loader = loader;
+  this.project = project;
+  this.features = [];
+
+  if (json_obj.src !== undefined) {
+    loader.load(json_obj.src, this.onLoad.bind(this));
+  }
+  else if (json_obj.data) {
+    var result = loader.parse(JSON.parse(json_obj.data));
+    this._buildMesh(result.geometry, result.materials);
+  }
+};
+
+Q3D.JSONObjectBuilder.prototype = {
+
+  constructor: Q3D.JSONObjectBuilder,
+
+  addFeature: function (layerId, featureId) {
+    this.features.push({layerId: layerId, featureId: featureId});
+    this.buildObjects();
+  },
+
+  _buildMesh: function (geometry, materials) {
+    this.object = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+  },
+
+  buildObjects: function () {
+    if (this.object === undefined) return;
+
+    var deg2rad = Math.PI / 180;
+    this.features.forEach(function (fet) {
+      var layer = this.project.layers[fet.layerId],
+          f = layer.f[fet.featureId];
+      f.objs = [];
+
+      for (var i = 0, l = f.pts.length; i < l; i++) {
+        var pt = f.pts[i],
+            mesh = this.object.clone();
+        mesh.position.set(pt[0], pt[1], pt[2]);
+        if (f.rotateX || f.rotateY || f.rotateZ)
+          mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
+        if (f.scale) mesh.scale.set(f.scale, f.scale, f.scale);
+        mesh.userData.layerId = fet.layerId;
+        mesh.userData.featureId = fet.featureId;
+
+        layer.addObject(mesh);
+        f.objs.push(mesh);
+      }
+    }, this);
+    this.features = [];
+  },
+
+  onLoad: function (geometry, materials) {
+    this._buildMesh(geometry, materials);
+    this.buildObjects();
+  }
+
 };
 
 
