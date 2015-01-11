@@ -136,11 +136,6 @@ class OutputContext:
       self.triMesh = TriangleMesh.createFromContext(self)
     return self.triMesh
 
-  # deprecated
-  def setWarpDem(self, warp_dem):
-    QMessageBox.information(None, "", "setWarpDem has been deprecated")
-    self.warp_dem = warp_dem
-
 class DataManager:
   """ manages a list of unique items """
 
@@ -986,6 +981,11 @@ def writeMultiResDEM(writer, properties, progress=None):
   writer.writeMaterials(layer.materialManager)
 
 class TriangleMesh:
+
+  # 0 - 3
+  # | / |
+  # 1 - 2
+
   def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
     self.flen = 0
     self.quadrangles = []
@@ -995,24 +995,20 @@ class TriangleMesh:
     yres = (ymax - ymin) / y_segments
     for y in range(y_segments):
       for x in range(x_segments):
-        # 0 - 1
-        # | / |
-        # 2 - 3
         pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
-        pt1 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
-        pt2 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
-        pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+        pt1 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
+        pt2 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+        pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
+        self._addQuadrangle(pt0, pt1, pt2, pt3)
 
-        self._addQuadrangle(pt0, pt2, pt3, pt1)
-
-  def _addQuadrangle(self, pt1, pt2, pt3, pt4):
+  def _addQuadrangle(self, pt0, pt1, pt2, pt3):
     f = QgsFeature(self.flen)
-    f.setGeometry(QgsGeometry.fromPolygon([[pt1, pt2, pt3, pt4, pt1]]))
+    f.setGeometry(QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
     self.quadrangles.append(f)
     self.spatial_index.insertFeature(f)
     self.flen += 1
 
-  def intersectingQuads(self, geom):
+  def intersects(self, geom):
     for fid in self.spatial_index.intersects(geom.boundingBox()):
       quad = self.quadrangles[fid].geometry()
       if quad.intersects(geom):
@@ -1349,7 +1345,7 @@ def writeVectors(writer, progress=None):
     layer = VectorLayer(context, mapLayer, prop)
 
     # TODO: do these in VectorLayer.__init__()
-    lyr = {"name": mapLayer.name(), "f": []}
+    lyr = {"name": mapLayer.name()}
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
     lyr["objType"] = prop.type_name
