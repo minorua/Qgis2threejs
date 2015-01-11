@@ -141,24 +141,30 @@ class OutputContext:
     QMessageBox.information(None, "", "setWarpDem has been deprecated")
     self.warp_dem = warp_dem
 
-class ImageManager:
+class DataManager:
+  """ manages a list of unique items """
+
+  def __init__(self):
+    self._list = []
+
+  def _index(self, image):
+    if image in self._list:
+      return self._list.index(image)
+
+    index = len(self._list)
+    self._list.append(image)
+    return index
+
+class ImageManager(DataManager):
 
   IMAGE_FILE = 1
   CANVAS_IMAGE = 2
   MAP_IMAGE = 3
 
   def __init__(self, context):
+    DataManager.__init__(self)
     self.context = context
-    self.images = []
     self.renderer = None
-
-  def _index(self, image):
-    if image in self.images:
-      return self.images.index(image)
-
-    index = len(self.images)
-    self.images.append(image)
-    return index
 
   def imageIndex(self, path):
     img = (self.IMAGE_FILE, path)
@@ -240,14 +246,14 @@ class ImageManager:
     #  tex["src"] = texSrc
 
   def write(self, f):   #TODO: separated image files (not in localBrowsingMode)
-    if len(self.images) == 0:
+    if len(self._list) == 0:
       return
 
     canvas = self.context.canvas
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
 
     f.write(u'\n// Base64 encoded images\n')
-    for index, image in enumerate(self.images):
+    for index, image in enumerate(self._list):
       imageType = image[0]
       if imageType == self.IMAGE_FILE:
         image_path = image[1]
@@ -270,7 +276,7 @@ class ImageManager:
       f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
 
-class MaterialManager:
+class MaterialManager(DataManager):
 
   MESH_LAMBERT = 0
   MESH_PHONG = 1
@@ -288,15 +294,7 @@ class MaterialManager:
   ERROR_COLOR = "0"
 
   def __init__(self):
-    self.materials = []
-
-  def _index(self, material):
-    if material in self.materials:
-      return self.materials.index(material)
-
-    index = len(self.materials)
-    self.materials.append(material)
-    return index
+    DataManager.__init__(self)
 
   def _indexCol(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
@@ -336,7 +334,7 @@ class MaterialManager:
     return self._index(mat)
 
   def write(self, f, imageManager):
-    if not len(self.materials):
+    if not len(self._list):
       return
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
@@ -345,7 +343,7 @@ class MaterialManager:
                       self.MAP_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
-    for index, mat in enumerate(self.materials):
+    for index, mat in enumerate(self._list):
       m = {"type": toMaterialType.get(mat[0], mat[0])}
 
       if mat[0] == self.CANVAS_IMAGE:
@@ -376,6 +374,29 @@ class MaterialManager:
 
       f.write(u"lyr.m[{0}] = {1};\n".format(index, pyobj2js(m, quoteHex=False)))
 
+class JSONManager(DataManager):
+
+  def __init__(self):
+    DataManager.__init__(self)
+
+  def jsonIndex(self, path):
+    return self._index(path)
+
+  def write(self, f):
+    if len(self._list) == 0:
+      return
+
+    f.write(u'\n// JSON data\n')
+    for index, path in enumerate(self._list):
+      if os.path.exists(path):
+        with open(path) as json:
+          data = json.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
+        f.write(u"project.jsons[%d] = {data:'%s'};\n" % (index, data))
+        continue
+      f.write(u"project.jsons[%d] = {data:null};\n" % index)
+      QgsMessageLog.logMessage(u'JSON file not found: {0}'.format(path), "Qgis2threejs")
+
+
 class JSWriter:
   def __init__(self, htmlfilename, context):
     self.htmlfilename = htmlfilename
@@ -388,6 +409,7 @@ class JSWriter:
     self.currentFeatureIndex = -1
     self.attrs = []
     self.imageManager = ImageManager(context)
+    self.jsonManager = JSONManager()
     #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
     #TODO: written flag
 
@@ -462,6 +484,9 @@ class JSWriter:
 
   def writeImages(self):
     self.imageManager.write(self)
+
+  def writeJSONData(self):
+    self.jsonManager.write(self)
 
   def prepareNext(self):
     self.closeFile()
@@ -538,8 +563,9 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     # write vector data
     writeVectors(writer, progress)
 
-  # write images
+  # write images and JSON data
   writer.writeImages()
+  writer.writeJSONData()
 
   progress(90, "Copying library files")
 
