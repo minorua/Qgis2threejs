@@ -603,7 +603,6 @@ def writeSimpleDEM(writer, properties, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
-  layerName = ""
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
     mapLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
@@ -611,6 +610,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     warp_dem = tools.MemoryWarpRaster(mapLayer.source())
   else:
     mapLayer = None
+    layerName = "Flat plane"
     warp_dem = tools.FlatRaster()
 
   # warp dem

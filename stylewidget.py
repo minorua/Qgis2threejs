@@ -211,7 +211,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     """ options: defaultValue, layer """
     WidgetFuncBase.setup(self)
     options = options or {}
-    self.widget.label_1.setText("Altitude mode")
+    self.widget.label_1.setText("Mode")
     self.widget.toolButton.setVisible(False)
     self.defaultValue = options.get("defaultValue", 0)
     layer = options.get("layer")
@@ -245,7 +245,7 @@ class HeightWidgetFunc(WidgetFuncBase):
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
     if itemData in [HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE]:
-      label = "Value"
+      label = "Height"
       defaultValue = self.defaultValue
     else:
       label = "Addend"
