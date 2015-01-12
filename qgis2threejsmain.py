@@ -176,6 +176,8 @@ class ImageManager(DataManager):
   def mapCanvasImage(self):
     """ returns base64 encoded map canvas image """
     canvas = self.context.canvas
+    if QGis.QGIS_VERSION_INT >= 20400:
+     return tools.base64image(canvas.map().contentImage())
     temp_dir = QDir.tempPath()
     texfilename = os.path.join(temp_dir, "tex%s.png" % (self.context.timestamp))
     canvas.saveAsImage(texfilename)

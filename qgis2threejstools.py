@@ -26,7 +26,6 @@ import os
 import ConfigParser
 import shutil
 import struct
-import base64
 import webbrowser
 
 try:
@@ -148,7 +147,7 @@ def base64image(image):
   buffer = QBuffer(ba)
   buffer.open(QIODevice.WriteOnly)
   image.save(buffer, "PNG")
-  return "data:image/png;base64," + base64.b64encode(ba)
+  return "data:image/png;base64," + ba.toBase64().data()
 
 def getTemplateConfig(template_path):
   meta_path = os.path.splitext(template_path)[0] + ".txt"
