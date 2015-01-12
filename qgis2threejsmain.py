@@ -1243,6 +1243,7 @@ class Feature:
 
     geom = feat.geometry()
     if geom is None:
+      qDebug("null geometry skipped")
       return
 
     # coordinate transformation - layer crs to project crs
@@ -1251,6 +1252,11 @@ class Feature:
     # clip geometry
     if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
       geom = geom.intersection(clipGeom)
+
+    # check if geometry is empty
+    if geom.isGeosEmpty():
+      qDebug("empty geometry skipped")
+      return
 
     # z_func: function to get z coordinate at given point (x, y)
     if self.prop.isHeightRelativeToDEM():
@@ -1399,7 +1405,6 @@ def writeVectors(writer, progress=None):
     for f in mapLayer.getFeatures(request):
       feat.setQgsFeature(f, clipGeom)
       if feat.geom is None:
-        qDebug("null geometry skipped")
         continue
 
       # write geometry
