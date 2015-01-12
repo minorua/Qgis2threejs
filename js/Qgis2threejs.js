@@ -230,11 +230,14 @@ Q3D.application = {
   eventListener: {
 
     keydown: function (e) {
+      if (e.ctrlKey || e.altKey) return;
       var keyPressed = e.which;
-      if (keyPressed == 27) this.closePopup(); // ESC
-      else if (keyPressed == 73) this.showInfo();  // I
-      else if (keyPressed == 76) this.setLabelVisibility(!this.labelVisibility);  // L
-      else if (!e.ctrlKey && e.shiftKey) {
+      if (!e.shiftKey) {
+        if (keyPressed == 27) this.closePopup(); // ESC
+        else if (keyPressed == 73) this.showInfo();  // I
+        else if (keyPressed == 76) this.setLabelVisibility(!this.labelVisibility);  // L
+      }
+      else {
         if (keyPressed == 82) this.controls.reset();   // Shift + R
         else if (keyPressed == 83) { // Shift + S
           var screenshot = this.renderer.domElement.toDataURL("image/png");
