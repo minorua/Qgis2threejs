@@ -195,7 +195,7 @@ class ImageManager(DataManager):
     canvas = self.context.canvas
 
     # set up a renderer
-    layerids = [unicode(mapLayer.id()) for mapLayer in canvas.layers()]
+    layerids = [mapLayer.id() for mapLayer in canvas.layers()]
     labeling = QgsPalLabeling()
     renderer = QgsMapRenderer()
     renderer.setDestinationCrs(self.context.crs)
@@ -555,12 +555,13 @@ def exportToThreeJS(htmlfilename, context, progress=None):
       if layerId != primaryDEMLayerId and properties.get("visible", False):
         writeSimpleDEM(writer, properties)
 
-    progress(50, "Writing vector data")
+    progress(30, "Writing vector data")
 
     # write vector data
     writeVectors(writer, progress)
 
   # write images and JSON data
+  progress(60, "Writing texture images")
   writer.writeImages()
   writer.writeJSONData()
 
@@ -743,7 +744,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   plane_index = 1
   size2 = size * size
   for i in range(size2):
-    progress(40 * i / size2 + 10)
+    progress(20 * i / size2 + 10)
     if i == (size2 - 1) / 2:    # center (map canvas)
       continue
     sx = i % size - (size - 1) / 2
@@ -861,7 +862,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   stats = None
   plane_index = 0
   for i, quad in enumerate(quads):
-    progress(45 * i / len(quads) + 5)
+    progress(30 * i / len(quads) + 5)
     extent = quad.extent
 
     # calculate extent. output dem should be handled as points.
@@ -1335,13 +1336,20 @@ def writeVectors(writer, progress=None):
     mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if mapLayer is None:
       continue
-    progress(50 + 30 * finishedLayers / len(layerProperties), u"Writing layer: {0}".format(mapLayer.name()))
-    geom_type = mapLayer.geometryType()
+
     prop = VectorPropertyReader(context.objectTypeManager, mapLayer, properties)
     obj_mod = context.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
+
+    # prepare triangle mesh
+    geom_type = mapLayer.geometryType()
+    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
+      progress(None, "Initializing triangle mesh for overlay polygons")
+      context.triangleMesh()
+
+    progress(30 + 30 * finishedLayers / len(layerProperties), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layerProperties), mapLayer.name()))
 
     # layer object
     layer = VectorLayer(context, mapLayer, prop)
@@ -1373,12 +1381,6 @@ def writeVectors(writer, progress=None):
     writer.writeLayer(lyr, fieldNames)    #TODO: writer.writeLayer(layer) or writer.write(layer.obj)
 
     feat = Feature(layer)
-
-    # prepare triangle mesh
-    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
-      progress(None, "Initializing triangle mesh for overlay polygons")
-      context.triangleMesh()
-      progress(None, "Writing overlay polygons")
 
     # initialize symbol rendering
     mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
@@ -1441,7 +1443,7 @@ def writeSphereTexture(writer):
   renderer.setDestinationCrs(crs)
   renderer.setProjectionsEnabled(True)
 
-  layerids = [unicode(layer.id()) for layer in canvas.layers()]
+  layerids = [layer.id() for layer in canvas.layers()]
   renderer.setLayerSet(layerids)
 
   extent = QgsRectangle(-180, -90, 180, 90)

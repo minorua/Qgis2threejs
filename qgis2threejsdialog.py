@@ -24,7 +24,7 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QFileInfo, QSettings, qDebug, SIGNAL
+from PyQt4.QtCore import Qt, QDir, QFileInfo, QSettings, qDebug, QEventLoop, SIGNAL
 from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
@@ -330,6 +330,8 @@ class Qgis2threejsDialog(QDialog):
     if statusMsg is not None:
       ui.label_Status.setText(statusMsg)
       ui.label_Status.repaint()
+    QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+    #qDebug("{0}: {1}".format(percentage, statusMsg))
 
   def run(self):
     ui = self.ui
