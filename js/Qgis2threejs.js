@@ -451,7 +451,13 @@ Q3D.application = {
     r.push('<table class="coords">');
     r.push("<caption>Clicked coordinates</caption>");
     r.push("<tr><td>");
-    r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
+
+    if (typeof proj4 === "undefined") r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
+    else {
+      var lonLat = proj4(this.project.proj).inverse([pt.x, pt.y]);
+      r.push(Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2));
+    }
+
     r.push("</td></tr></table>");
 
     if (userData.layerId !== undefined && userData.featureId !== undefined && layer.a !== undefined) {
@@ -1565,4 +1571,19 @@ Q3D.Utils.putStick = function (x, y, zFunc, h) {
   geom.vertices.push(new THREE.Vector3(x, y, z + h), new THREE.Vector3(x, y, z));
   var stick = new THREE.Line(geom, Q3D.Utils._stick_mat);
   Q3D.application.scene.add(stick);
+};
+
+// convert latitude and longitude in degrees to the following format
+// Ndd°mm′ss.ss″, Eddd°mm′ss.ss″
+Q3D.Utils.convertToDMS = function (lat, lon) {
+  function toDMS (degrees) {
+    var deg = Math.floor(degrees),
+        m = (degrees - deg) * 60,
+        min = Math.floor(m),
+        sec = (m - min) * 60;
+    return deg + "°" + ("0" + min).slice(-2) + "′" + ((sec < 10) ? "0" : "") + sec.toFixed(2) + "″";
+  }
+
+  return ((lat < 0) ? "S" : "N") + toDMS(Math.abs(lat)) + ", " +
+         ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };

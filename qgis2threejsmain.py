@@ -112,6 +112,9 @@ class OutputContext:
     self.image_basesize = 256
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
+    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
+    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
+
     p = properties[ObjectTreeItem.ITEM_CONTROLS]
     if p is None:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
@@ -443,6 +446,7 @@ class JSWriter:
 
     opt = {"title": title,
            "crs": unicode(self.context.crs.authid()),
+           "proj": self.context.crs.toProj4(),
            "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
            "width": mapTo3d.planeWidth,
            "zExaggeration": mapTo3d.verticalExaggeration,
@@ -499,10 +503,18 @@ class JSWriter:
     return "\n".join(options)
 
   def scripts(self):
+    lines = []
+
+    if self.context.coordsInWGS84:
+      # display coordinates in latitude and longitude
+      lines.append('<script src="./proj4js/proj4.js"></script>')
+
     filetitle = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
     if self.jsindex == -1:
-      return '<script src="./%s.js"></script>' % filetitle
-    return "\n".join(map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count)))
+      lines.append('<script src="./%s.js"></script>' % filetitle)
+    else:
+      lines += map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
+    return "\n".join(lines)
 
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
@@ -569,6 +581,10 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir, context.controls)
+
+  # copy proj4js files
+  if context.coordsInWGS84:
+    tools.copyProj4js(out_dir)
 
   # copy additional library files
   tools.copyLibraries(out_dir, templateConfig)

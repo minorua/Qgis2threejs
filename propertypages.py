@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 import os
+import re
 
 from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import *   #QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
@@ -155,14 +156,16 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
-    self.registerPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color])
+    self.registerPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color, self.radioButton_WGS84])
     self.radioButton_Color.toggled.connect(self.backgroundToggled)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
+    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
+
     canvas = self.dialog.iface.mapCanvas()
     extent = canvas.extent()
-    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize() if apiChanged23 else canvas.mapRenderer()
 
     self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
     self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(outsize.width(), outsize.height()))
@@ -170,6 +173,19 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     # restore properties
     if properties:
       PropertyPage.setProperties(self, properties)
+
+    # Supported projection classes
+    # http://trac.osgeo.org/proj4js/wiki/UserGuide#Supportedprojectionclasses
+    projs = ["utm", "lcc", "tmerc", "merc", "somerc", "stere", "gauss", "sterea", "aea", "cea", "laea", "sinu"]
+
+    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    proj = mapSettings.destinationCrs().toProj4()
+    m = re.search("\+proj=(\w+)", proj)
+    proj_supported = bool(m and m.group(1) in projs)
+
+    if not proj_supported:
+      self.radioButton_ProjectCRS.setChecked(True)
+    self.radioButton_WGS84.setEnabled(proj_supported)
 
   def backgroundToggled(self, checked):
     isColor = self.radioButton_Color.isChecked()
