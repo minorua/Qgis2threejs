@@ -31,42 +31,40 @@ body {
 
 /* popup */
 #popup {
-  background: rgba(255, 255, 255, 0);
+  /* background: rgba(255, 255, 255, 0);*/
   position: absolute;
-  left: 3px;
-  top: 3px;
+  left: 2px;
+  top: 2px;
   max-width: 480px;
   min-width: 300px;
   z-index: 9999;
+  border: solid gray;
+  border-width: 1px 2px 2px;
+  border-radius: 3px;
 }
 
 #popupbar {
-  background: rgba(0, 0, 0, 0);
-  height: 14px;
+  background: dimgray;
+  height: 18px;
 }
 
 #closebtn {
-  background: lightgray;
-  border: 2px solid gray;
+  color: rgb(220, 220, 220);
+  background: gray;
+  border: 1px solid darkgray;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: bold;
-  opacity: 0.5;
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
   text-align: center;
   float: right;
-  margin-bottom: -14px;
-  margin-right: -14px;
   cursor: pointer;
 }
 
 #popupcontent {
   background-color: white;
-  border: solid gray;
-  border-width: 1px 2px 1px;
-  border-radius: 3px;
-  padding: 4px 5px 2px;
+  padding: 2px 5px 2px;
   max-height: 500px;
   overflow: auto;
 }
