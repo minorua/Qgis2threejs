@@ -82,7 +82,6 @@ class Triangles:
 
 def write(writer, layer, feat):
   vals = feat.propValues()
-  d = {"m": layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())}
   polygons = []
   zs = []
   for polygon in feat.geom.polygons:
@@ -94,13 +93,21 @@ def write(writer, layer, feat):
       zcount += len(boundary) - 1
     polygons.append(bnds)
     zs.append(zsum / zcount)
-  d["polygons"] = polygons
+
+  d = {"polygons": polygons}
 
   if feat.prop.type_index == 0:  # Extruded
+    d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
     d["zs"] = zs
     d["h"] = float(vals[0]) * writer.context.mapTo3d.multiplierZ
 
   else:   # Overlay
+    d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), True)
+    if vals[0] is not None:
+      d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
+
+    d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
+
     polygons = []
     triangles = Triangles()
     for polygon in feat.geom.split_polygons:
@@ -113,11 +120,9 @@ def write(writer, layer, feat):
 
     if triangles.vertices:
       d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+
     if polygons:
       d["split_polygons"] = polygons
-    d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
-    if vals[0] is not None:
-      d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
 
   if feat.geom.centroids:
     d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.geom.centroids)
