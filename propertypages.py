@@ -270,7 +270,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
-    widgets += [self.lineEdit_ImageFile, self.lineEdit_Color]
+    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color]
     widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
     self.registerPropertyWidgets(widgets)
 
@@ -477,6 +477,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def dispTypeChanged(self, checked=True):
     if checked:
+      enabled = self.radioButton_MapCanvas.isChecked()
+      self.checkBox_TransparentBackground.setEnabled(enabled)
+
       enabled = self.radioButton_ImageFile.isChecked()
       self.lineEdit_ImageFile.setEnabled(enabled)
       self.toolButton_ImageFile.setEnabled(enabled)

@@ -24,7 +24,7 @@ import codecs
 import datetime
 import re
 
-from PyQt4.QtCore import QDir, QSettings, qDebug, QT_VERSION_STR
+from PyQt4.QtCore import QDir, QSettings, Qt, qDebug, QT_VERSION_STR
 from PyQt4.QtGui import QImage, QImageReader, QPainter, QMessageBox
 from qgis.core import *
 
@@ -168,17 +168,22 @@ class ImageManager(DataManager):
     img = (self.IMAGE_FILE, path)
     return self._index(img)
 
-  def canvasImageIndex(self):
-    img = (self.CANVAS_IMAGE, None)
+  def canvasImageIndex(self, transp_background):
+    img = (self.CANVAS_IMAGE, transp_background)
     return self._index(img)
 
-  def mapImageIndex(self, width, height, extent):
-    img = (self.MAP_IMAGE, (width, height, extent))
+  def mapImageIndex(self, width, height, extent, transp_background):
+    img = (self.MAP_IMAGE, (width, height, extent, transp_background))
     return self._index(img)
 
-  def mapCanvasImage(self):
+  def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
     canvas = self.context.canvas
+    if transp_background:
+      mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+      size = mapSettings.outputSize()
+      return self.renderedImage(size.width(), size.height(), canvas.extent(), transp_background)
+
     if QGis.QGIS_VERSION_INT >= 20400:
      return tools.base64image(canvas.map().contentImage())
     temp_dir = QDir.tempPath()
@@ -210,20 +215,25 @@ class ImageManager(DataManager):
     self._labeling = labeling
     self.renderer = renderer
 
-    # fill color
-    fillColor = canvas.canvasColor()
+    # canvas color
+    canvasColor = canvas.canvasColor()
     if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
-      fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
-    self.fillColor = fillColor
+      # QImage::fill ( const QColor & color ) was introduced in Qt 4.8.
+      # http://qt-project.org/doc/qt-4.8/qimage.html#fill-3
+      canvasColor = qRgb(canvasColor.red(), canvasColor.green(), canvasColor.blue())
+    self.canvasColor = canvasColor
 
-  def renderedImage(self, width, height, extent):
+  def renderedImage(self, width, height, extent, transp_background=False):
     antialias = True
 
     if self.renderer is None:
       self._initRenderer()
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-    image.fill(self.fillColor)
+    if transp_background:
+      image.fill(Qt.transparent)
+    else:
+      image.fill(self.canvasColor)
 
     renderer = self.renderer
     renderer.setOutputSize(image.size(), image.logicalDpiX())
@@ -266,12 +276,13 @@ class ImageManager(DataManager):
           continue
 
       elif imageType == self.MAP_IMAGE:
-        width, height, extent = image[1]
-        args = (index, width, height, self.renderedImage(width, height, extent))
+        width, height, extent, transp_background = image[1]
+        args = (index, width, height, self.renderedImage(width, height, extent, transp_background))
 
       else:   #imageType == self.CANVAS_IMAGE:
+        transp_background = image[1]
         size = mapSettings.outputSize()
-        args = (index, size.width(), size.height(), self.mapCanvasImage())
+        args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
 
       f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
@@ -317,12 +328,12 @@ class MaterialManager(DataManager):
   def getWireframeIndex(self, color, transparency=0):
     return self._indexCol(self.WIREFRAME, color, transparency)
 
-  def getCanvasImageIndex(self, transparency=0):
-    mat = (self.CANVAS_IMAGE, None, transparency, True)
+  def getCanvasImageIndex(self, transparency=0, transp_background=False):
+    mat = (self.CANVAS_IMAGE, transp_background, transparency, True)
     return self._index(mat)
 
-  def getMapImageIndex(self, width, height, extent, transparency=0):
-    mat = (self.MAP_IMAGE, (width, height, extent), transparency, True)
+  def getMapImageIndex(self, width, height, extent, transparency=0, transp_background=False):
+    mat = (self.MAP_IMAGE, (width, height, extent, transp_background), transparency, True)
     return self._index(mat)
 
   def getImageFileIndex(self, path, transparency=0, doubleSide=False):
@@ -347,10 +358,11 @@ class MaterialManager(DataManager):
       m = {"type": toMaterialType.get(mat[0], mat[0])}
 
       if mat[0] == self.CANVAS_IMAGE:
-        m["i"] = imageManager.canvasImageIndex()
+        transp_background = mat[1]
+        m["i"] = imageManager.canvasImageIndex(transp_background)
       elif mat[0] == self.MAP_IMAGE:
-        width, height, extent = mat[1]
-        m["i"] = imageManager.mapImageIndex(width, height, extent)
+        width, height, extent, transp_background = mat[1]
+        m["i"] = imageManager.mapImageIndex(width, height, extent, transp_background)
       elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
         filepath = mat[1]
         m["i"] = imageManager.imageIndex(filepath)
@@ -660,7 +672,8 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # display type
   if properties.get("radioButton_MapCanvas", False):
-    dem["m"] = layer.materialManager.getCanvasImageIndex(demTransparency)
+    transp_background = properties.get("checkBox_TransparentBackground", False)
+    dem["m"] = layer.materialManager.getCanvasImageIndex(demTransparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
@@ -804,7 +817,8 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
+      transp_background = properties.get("checkBox_TransparentBackground", False)
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
       dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
@@ -839,6 +853,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   # material options
   demTransparency = properties["spinBox_demtransp"]
+  transp_background = properties.get("checkBox_TransparentBackground", False)
 
   # layer
   layer = DEMLayer(context, demlayer, prop)
@@ -942,7 +957,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
       # display type
       if properties.get("radioButton_MapCanvas", False):
-        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
+        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
 
       elif properties.get("radioButton_SolidColor", False):
         dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
@@ -982,7 +997,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       else:
         image_height = context.image_basesize * centerQuads.height()
         image_width = round(image_height / hpw)
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency)
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
       dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)

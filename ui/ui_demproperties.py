@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Thu Dec 18 11:08:29 2014
+# Created: Wed Jan 14 10:13:02 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -241,10 +241,17 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(0, -1, -1, -1)
+        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         self.radioButton_MapCanvas = QtGui.QRadioButton(self.groupBox_DisplayType)
         self.radioButton_MapCanvas.setChecked(True)
         self.radioButton_MapCanvas.setObjectName(_fromUtf8("radioButton_MapCanvas"))
-        self.verticalLayout.addWidget(self.radioButton_MapCanvas)
+        self.horizontalLayout_3.addWidget(self.radioButton_MapCanvas)
+        self.checkBox_TransparentBackground = QtGui.QCheckBox(self.groupBox_DisplayType)
+        self.checkBox_TransparentBackground.setObjectName(_fromUtf8("checkBox_TransparentBackground"))
+        self.horizontalLayout_3.addWidget(self.checkBox_TransparentBackground)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_ImageFile = QtGui.QHBoxLayout()
         self.horizontalLayout_ImageFile.setObjectName(_fromUtf8("horizontalLayout_ImageFile"))
         self.radioButton_ImageFile = QtGui.QRadioButton(self.groupBox_DisplayType)
@@ -352,6 +359,7 @@ class Ui_DEMPropertiesWidget(object):
         self.label_ymin.setText(_translate("DEMPropertiesWidget", "ymin", None))
         self.groupBox_DisplayType.setTitle(_translate("DEMPropertiesWidget", "Display type", None))
         self.radioButton_MapCanvas.setText(_translate("DEMPropertiesWidget", "Map canvas image", None))
+        self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
         self.radioButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file", None))
         self.toolButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Browse...", None))
         self.radioButton_SolidColor.setText(_translate("DEMPropertiesWidget", "Solid color", None))
