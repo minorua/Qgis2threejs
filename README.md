@@ -74,9 +74,9 @@ You can choose from map canvas image, image file, solid color and wireframe.
 Map canvas image is used as it is to texture terrain of main block in simple resampling mode. Each block of surroundings (in simple resampling mode) and quads (in advanced resampling mode) is textured with image rendered with the current layer settings.
 
 * Image file  
-Existing image file such as PNG or JPEG file is used to texture DEM. To enable transmission of transparent PNG, the transparency value should be set to a small non-zero number (e.g. 1).
+Texture with existing image file such as PNG and JPEG file. TIFF is not supported by some browser. See http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support for details.
 
-* Solid color or Wireframe  
+* Solid color, Wireframe  
 Press the button on the right side of the color box and select a color.
 
 You can set transparency with the transparency spinbox. 0 is opaque, and 100 is transparent.
