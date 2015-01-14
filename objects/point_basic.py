@@ -62,15 +62,11 @@ def write(writer, layer, feat):
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
-    for pt in pts:
-      pt[2] += h / 2
     writer.writeFeature({"m": mat, "pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90})
   elif feat.prop.type_index == 2:  # Cube
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ
-    for pt in pts:
-      pt[2] += h / 2
     writer.writeFeature({"m": mat, "pts": pts, "w": w, "d": d, "h": h, "rotateX": 90})
   elif feat.prop.type_index == 4:  # Disk
     r = float(vals[0]) * mapTo3d.multiplier

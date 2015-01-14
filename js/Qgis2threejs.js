@@ -1217,8 +1217,9 @@ Q3D.PointLayer.prototype.build = function (parent) {
     for (var i = 0, l = f.pts.length; i < l; i++) {
       var mesh = new THREE.Mesh(createGeometry(f), materials[f.m].m);
 
-      var pt = f.pts[i];
-      mesh.position.set(pt[0], pt[1], pt[2]);
+      var pt = f.pts[i],
+          z = pt[2] + ((f.h) ? f.h / 2 : 0);
+      mesh.position.set(pt[0], pt[1], z);
       if (f.rotateX) mesh.rotation.x = f.rotateX * deg2rad;
       if (scaleZ != 1) mesh.scale.z = scaleZ;
       mesh.userData.layerId = this.index;
