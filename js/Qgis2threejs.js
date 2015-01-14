@@ -1453,10 +1453,10 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
         geom.faces = arrayToFace3Array(f.triangles.f);
       }
 
-      // split polygons (number of vertices > 3)
-      var l = (f.split_polygons === undefined) ? 0 : f.split_polygons.length;
-      for (var i = 0; i < l; i++) {
-        var polygon = f.split_polygons[i];
+      // polygons (number of vertices > 3)
+      var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
+      for (var i = 0, l = polygons.length; i < l; i++) {
+        var polygon = polygons[i];
         var triangles = new THREE.Geometry(),
             holes = [];
 

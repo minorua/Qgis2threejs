@@ -1303,7 +1303,7 @@ class Feature:
 
     if self.geomType == QGis.Polygon:
       triMesh = None
-      if self.prop.type_index == 1:   # Overlay
+      if self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
         z_func = lambda x, y: 0
         triMesh = self.context.triangleMesh()
       self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel, triMesh)
@@ -1382,7 +1382,7 @@ def writeVectors(writer, progress=None):
 
     # prepare triangle mesh
     geom_type = mapLayer.geometryType()
-    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
+    if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
       progress(None, "Initializing triangle mesh for overlay polygons")
       context.triangleMesh()
 
