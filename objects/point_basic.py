@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QGis
+from qgis.core import QGis, QgsMessageLog
 from Qgis2threejs.stylewidget import StyleWidget
 
 def geometryType():
@@ -54,8 +54,10 @@ def write(writer, layer, feat):
   pts = feat.geom.asList()
   if feat.prop.type_index == 0:  # Sphere
     r = float(vals[0]) * mapTo3d.multiplier
-    if r != 0:
+    if r:
       writer.writeFeature({"m": mat, "pts": pts,"r": r})
+    else:
+      QgsMessageLog.logMessage(u"Sphere with zero radius not exported", "Qgis2threejs")
   elif feat.prop.type_index in [1, 3]: # Cylinder, Cone
     rb = float(vals[0]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
