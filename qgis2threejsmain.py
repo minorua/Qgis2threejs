@@ -25,7 +25,7 @@ import datetime
 import re
 
 from PyQt4.QtCore import QDir, QSettings, Qt, qDebug, QT_VERSION_STR
-from PyQt4.QtGui import QImage, QImageReader, QPainter, QMessageBox
+from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter, QMessageBox
 from qgis.core import *
 
 try:
@@ -216,12 +216,7 @@ class ImageManager(DataManager):
     self.renderer = renderer
 
     # canvas color
-    canvasColor = canvas.canvasColor()
-    if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
-      # QImage::fill ( const QColor & color ) was introduced in Qt 4.8.
-      # http://qt-project.org/doc/qt-4.8/qimage.html#fill-3
-      canvasColor = qRgb(canvasColor.red(), canvasColor.green(), canvasColor.blue())
-    self.canvasColor = canvasColor
+    self.canvasColor = canvas.canvasColor()
 
   def renderedImage(self, width, height, extent, transp_background=False):
     antialias = True
@@ -230,10 +225,13 @@ class ImageManager(DataManager):
       self._initRenderer()
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+
+    # QImage::fill ( const QColor & color ) was introduced in Qt 4.8.
+    # http://qt-project.org/doc/qt-4.8/qimage.html#fill-3
     if transp_background:
-      image.fill(Qt.transparent)
+      image.fill(QColor(Qt.transparent).rgba())   # though image.fill(Qt.transparent) seems to work in Qt 4.7.1
     else:
-      image.fill(self.canvasColor)
+      image.fill(self.canvasColor.rgba())
 
     renderer = self.renderer
     renderer.setOutputSize(image.size(), image.logicalDpiX())
@@ -1466,10 +1464,7 @@ def writeSphereTexture(writer):
   image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
 
   # fill image with canvas color
-  fillColor = canvas.canvasColor()
-  if float(".".join(QT_VERSION_STR.split(".")[0:2])) < 4.8:
-    fillColor = qRgb(fillColor.red(), fillColor.green(), fillColor.blue())
-  image.fill(fillColor)
+  image.fill(canvas.canvasColor().rgba())
 
   # set up a renderer
   renderer = QgsMapRenderer()
