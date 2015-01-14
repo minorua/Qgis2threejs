@@ -62,7 +62,7 @@ body {
   cursor: pointer;
 }
 
-#popupcontent {
+#popupbody {
   background-color: white;
   padding: 2px 5px 2px;
   max-height: 500px;
@@ -70,13 +70,13 @@ body {
 }
 
 /* identify result */
-#popupcontent table {
+#popupbody table {
   margin-top: 5px;
   margin-bottom: 8px;
   width: 100%;
 }
 
-#popupcontent table caption {
+#popupbody table caption {
   background-color: gray;
   color: white;
   font-size: small;
@@ -85,7 +85,7 @@ body {
   text-align: left;
 }
 
-#popupcontent table td {
+#popupbody table td {
   padding-left: 5px;
 }
 
@@ -130,6 +130,12 @@ table.attrs tr td:first-child {
   margin: 5px;
   margin-left: 20px;
   padding: 0px;
+}
+
+.download-link {
+  font-size: large;
+  display: inline-block;
+  padding: 10px;
 }
 
 .license {

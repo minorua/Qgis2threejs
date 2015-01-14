@@ -239,11 +239,7 @@ Q3D.application = {
       }
       else {
         if (keyPressed == 82) this.controls.reset();   // Shift + R
-        else if (keyPressed == 83) { // Shift + S
-          var screenshot = this.renderer.domElement.toDataURL("image/png");
-          var imageUrl = screenshot.replace("image/png", 'data:application/octet-stream');
-          window.open(imageUrl);
-        }
+        else if (keyPressed == 83) this.saveCanvasImage();    // Shift + S
       }
     },
 
@@ -435,6 +431,10 @@ Q3D.application = {
     this.popup.showInfo({"urlbox": this.currentViewUrl(), "usage": this.help()});
   },
 
+  showPopupMessage: function (html) {
+    this.popup.showHTML(html);
+  },
+
   showQueryResult: function (obj) {
     var userData = obj.object.userData, layer, r = [];
     if (userData.layerId !== undefined) {
@@ -470,13 +470,17 @@ Q3D.application = {
       }
       r.push("</table>");
     }
-    this.popup.showQueryResult(r.join(""));
+    this.popup.showHTML(r.join(""));
   },
 
   closePopup: function () {
     this.popup.hide();
     this.queryMarker.visible = false;
     this.highlightFeature(null, null);
+    if (this._canvasImageUrl) {
+      URL.revokeObjectURL(this._canvasImageUrl);
+      this._canvasImageUrl = null;
+    }
   },
 
   highlightFeature: function (layerId, featureId) {
@@ -539,6 +543,55 @@ Q3D.application = {
       }
     }
     this.closePopup();
+  },
+
+  // limitations:
+  // - background of image is white if background is sky-like
+  // - labels are not rendered
+  saveCanvasImage: function () {
+    function saveBlob (blob) {
+      var filename = "image.png";
+
+      // ie
+      if (window.navigator.msSaveBlob !== undefined) {
+        window.navigator.msSaveBlob(blob, filename);
+        return;
+      }
+
+      // create object url
+      if (this._canvasImageUrl) URL.revokeObjectURL(this._canvasImageUrl);
+      this._canvasImageUrl = URL.createObjectURL(blob);
+
+      // display a link to save the image
+      var e = document.createElement("a");
+      e.className = "download-link";
+      e.href = this._canvasImageUrl;
+      e.download = filename;
+      e.innerHTML = "Click here to save the image";
+      this.showPopupMessage(e.outerHTML);
+    }
+
+    // render for canvas.toDataURL()
+    this.renderer.preserveDrawingBuffer = true;
+    this.render();
+
+    // to blob
+    var canvas = this.renderer.domElement;
+    if (canvas.toBlob !== undefined) {
+      canvas.toBlob(saveBlob.bind(this));
+    }
+    else {    // !HTMLCanvasElement.prototype.toBlob
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
+      var binStr = atob(canvas.toDataURL("image/png").split(',')[1]),
+          len = binStr.length,
+          arr = new Uint8Array(len);
+
+      for (var i = 0; i < len; i++) {
+        arr[i] = binStr.charCodeAt(i);
+      }
+
+      saveBlob.call(this, new Blob([arr], {type: "image/png"}));
+    }
   }
 
   // TODO: addActionToObject(object, action)
@@ -570,14 +623,14 @@ Q3D.Popup.prototype = {
     if (Q3D.$("urlbox")) Q3D.$("urlbox").value = params.urlbox;
     if (Q3D.$("usage")) Q3D.$("usage").innerHTML = params.usage;
 
-    if (Q3D.$("queryresult")) Q3D.$("queryresult").style.display = "none";
+    if (Q3D.$("popupcontent")) Q3D.$("popupcontent").style.display = "none";
     if (Q3D.$("pageinfo")) Q3D.$("pageinfo").style.display = "block";
     this.show();
   },
 
-  showQueryResult: function (html) {
+  showHTML: function (html) {
     if (Q3D.$("pageinfo")) Q3D.$("pageinfo").style.display = "none";
-    var e = Q3D.$("queryresult");
+    var e = Q3D.$("popupcontent");
     if (e) {
       e.style.display = "block";
       e.innerHTML = html;
