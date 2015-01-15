@@ -477,6 +477,9 @@
       </property>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>4</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <property name="leftMargin">
@@ -496,6 +499,24 @@
            <widget class="QCheckBox" name="checkBox_TransparentBackground">
             <property name="text">
              <string>Transparent background</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QRadioButton" name="radioButton_LayerImage">
+            <property name="text">
+             <string>Layer image</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox_ImageLayer">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
            </widget>
           </item>

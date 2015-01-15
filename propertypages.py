@@ -264,17 +264,18 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layer = None
     self.demWidth = self.demHeight = 0
 
-    dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
+    dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
     widgets += dispTypeButtons
-    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color]
+    widgets += [self.checkBox_TransparentBackground, self.comboBox_ImageLayer, self.lineEdit_ImageFile, self.lineEdit_Color]
     widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
     self.registerPropertyWidgets(widgets)
 
     self.initDEMLayerList()
+    self.initLayerList(self.comboBox_ImageLayer)
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
@@ -329,6 +330,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.startPointSelection()
     else:
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
+
+  def initLayerList(self, comboBox):
+    comboBox.clear()
+    for id, layer in QgsMapLayerRegistry.instance().mapLayers().items():
+      comboBox.addItem(layer.name(), id)
 
   def initDEMLayerList(self):
     comboBox = self.comboBox_DEMLayer
@@ -479,6 +485,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if checked:
       enabled = self.radioButton_MapCanvas.isChecked()
       self.checkBox_TransparentBackground.setEnabled(enabled)
+
+      enabled = self.radioButton_LayerImage.isChecked()
+      self.comboBox_ImageLayer.setEnabled(enabled)
 
       enabled = self.radioButton_ImageFile.isChecked()
       self.lineEdit_ImageFile.setEnabled(enabled)

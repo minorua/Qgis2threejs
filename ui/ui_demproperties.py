@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Wed Jan 14 10:13:02 2015
+# Created: Thu Jan 15 13:57:34 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -240,6 +240,7 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout_4.setContentsMargins(-1, 6, -1, 6)
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
         self.verticalLayout = QtGui.QVBoxLayout()
+        self.verticalLayout.setSpacing(4)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setContentsMargins(0, -1, -1, -1)
@@ -252,6 +253,16 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_TransparentBackground.setObjectName(_fromUtf8("checkBox_TransparentBackground"))
         self.horizontalLayout_3.addWidget(self.checkBox_TransparentBackground)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_5 = QtGui.QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
+        self.radioButton_LayerImage = QtGui.QRadioButton(self.groupBox_DisplayType)
+        self.radioButton_LayerImage.setObjectName(_fromUtf8("radioButton_LayerImage"))
+        self.horizontalLayout_5.addWidget(self.radioButton_LayerImage)
+        self.comboBox_ImageLayer = QtGui.QComboBox(self.groupBox_DisplayType)
+        self.comboBox_ImageLayer.setEnabled(False)
+        self.comboBox_ImageLayer.setObjectName(_fromUtf8("comboBox_ImageLayer"))
+        self.horizontalLayout_5.addWidget(self.comboBox_ImageLayer)
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
         self.horizontalLayout_ImageFile = QtGui.QHBoxLayout()
         self.horizontalLayout_ImageFile.setObjectName(_fromUtf8("horizontalLayout_ImageFile"))
         self.radioButton_ImageFile = QtGui.QRadioButton(self.groupBox_DisplayType)
@@ -360,6 +371,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_DisplayType.setTitle(_translate("DEMPropertiesWidget", "Display type", None))
         self.radioButton_MapCanvas.setText(_translate("DEMPropertiesWidget", "Map canvas image", None))
         self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
+        self.radioButton_LayerImage.setText(_translate("DEMPropertiesWidget", "Layer image", None))
         self.radioButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file", None))
         self.toolButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Browse...", None))
         self.radioButton_SolidColor.setText(_translate("DEMPropertiesWidget", "Solid color", None))

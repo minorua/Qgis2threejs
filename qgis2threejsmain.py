@@ -158,6 +158,7 @@ class ImageManager(DataManager):
   IMAGE_FILE = 1
   CANVAS_IMAGE = 2
   MAP_IMAGE = 3
+  LAYER_IMAGE = 4
 
   def __init__(self, context):
     DataManager.__init__(self)
@@ -174,6 +175,10 @@ class ImageManager(DataManager):
 
   def mapImageIndex(self, width, height, extent, transp_background):
     img = (self.MAP_IMAGE, (width, height, extent, transp_background))
+    return self._index(img)
+
+  def layerImageIndex(self, layerid, width, height, extent):
+    img = (self.LAYER_IMAGE, (layerid, width, height, extent))
     return self._index(img)
 
   def mapCanvasImage(self, transp_background=False):
@@ -203,26 +208,33 @@ class ImageManager(DataManager):
     canvas = self.context.canvas
 
     # set up a renderer
-    layerids = [mapLayer.id() for mapLayer in canvas.layers()]
     labeling = QgsPalLabeling()
     renderer = QgsMapRenderer()
     renderer.setDestinationCrs(self.context.crs)
     renderer.setProjectionsEnabled(True)
     renderer.setLabelingEngine(labeling)
-    renderer.setLayerSet(layerids)
 
     # save renderer
     self._labeling = labeling
     self.renderer = renderer
 
+    # layer list
+    self._layerids = [mapLayer.id() for mapLayer in canvas.layers()]
+
     # canvas color
     self.canvasColor = canvas.canvasColor()
 
-  def renderedImage(self, width, height, extent, transp_background=False):
+  def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
     antialias = True
 
     if self.renderer is None:
       self._initRenderer()
+
+    renderer = self.renderer
+    if layerids is None:
+      renderer.setLayerSet(self._layerids)
+    else:
+      renderer.setLayerSet(layerids)
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
 
@@ -233,7 +245,6 @@ class ImageManager(DataManager):
     else:
       image.fill(self.canvasColor.rgba())
 
-    renderer = self.renderer
     renderer.setOutputSize(image.size(), image.logicalDpiX())
     renderer.setExtent(extent)
 
@@ -277,6 +288,10 @@ class ImageManager(DataManager):
         width, height, extent, transp_background = image[1]
         args = (index, width, height, self.renderedImage(width, height, extent, transp_background))
 
+      elif imageType == self.LAYER_IMAGE:
+        layerid, width, height, extent = image[1]
+        args = (index, width, height, self.renderedImage(width, height, extent, True, [layerid]))
+
       else:   #imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
         size = mapSettings.outputSize()
@@ -298,7 +313,8 @@ class MaterialManager(DataManager):
 
   CANVAS_IMAGE = 20
   MAP_IMAGE = 21
-  IMAGE_FILE = 22
+  LAYER_IMAGE = 22
+  IMAGE_FILE = 23
 
   ERROR_COLOR = "0"
 
@@ -334,6 +350,10 @@ class MaterialManager(DataManager):
     mat = (self.MAP_IMAGE, (width, height, extent, transp_background), transparency, True)
     return self._index(mat)
 
+  def getLayerImageIndex(self, layerid, width, height, extent, transparency=0):
+    mat = (self.LAYER_IMAGE, (layerid, width, height, extent), transparency, True)
+    return self._index(mat)
+
   def getImageFileIndex(self, path, transparency=0, doubleSide=False):
     mat = (self.IMAGE_FILE, path, transparency, doubleSide)
     return self._index(mat)
@@ -350,6 +370,7 @@ class MaterialManager(DataManager):
                       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
                       self.CANVAS_IMAGE: self.MESH_PHONG,
                       self.MAP_IMAGE: self.MESH_PHONG,
+                      self.LAYER_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
     for index, mat in enumerate(self._list):
@@ -361,6 +382,9 @@ class MaterialManager(DataManager):
       elif mat[0] == self.MAP_IMAGE:
         width, height, extent, transp_background = mat[1]
         m["i"] = imageManager.mapImageIndex(width, height, extent, transp_background)
+      elif mat[0] == self.LAYER_IMAGE:
+        layerid, width, height, extent = mat[1]
+        m["i"] = imageManager.layerImageIndex(layerid, width, height, extent)
       elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
         filepath = mat[1]
         m["i"] = imageManager.imageIndex(filepath)
@@ -673,6 +697,12 @@ def writeSimpleDEM(writer, properties, progress=None):
     transp_background = properties.get("checkBox_TransparentBackground", False)
     dem["m"] = layer.materialManager.getCanvasImageIndex(demTransparency, transp_background)
 
+  elif properties.get("radioButton_LayerImage", False):
+    layerid = properties.get("comboBox_ImageLayer")
+    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()    #TODO: context.mapSettings
+    size = mapSettings.outputSize()
+    dem["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, demTransparency)
+
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
     dem["m"] = layer.materialManager.getImageFileIndex(filepath, demTransparency, True)
@@ -818,6 +848,10 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
       transp_background = properties.get("checkBox_TransparentBackground", False)
       dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
 
+    elif properties.get("radioButton_LayerImage", False):
+      layerid = properties.get("comboBox_ImageLayer")
+      dem["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, demTransparency)
+
     elif properties.get("radioButton_SolidColor", False):
       dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
@@ -852,6 +886,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   # material options
   demTransparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
+  imageLayerId = properties.get("comboBox_ImageLayer")
 
   # layer
   layer = DEMLayer(context, demlayer, prop)
@@ -957,6 +992,9 @@ def writeMultiResDEM(writer, properties, progress=None):
       if properties.get("radioButton_MapCanvas", False):
         dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
 
+      elif properties.get("radioButton_LayerImage", False):
+        dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, demTransparency)
+
       elif properties.get("radioButton_SolidColor", False):
         dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
 
@@ -987,15 +1025,19 @@ def writeMultiResDEM(writer, properties, progress=None):
     dem = {"width": dem_width, "height": dem_height}
     dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
+    if hpw < 1:
+      image_width = context.image_basesize * centerQuads.width()
+      image_height = round(image_width * hpw)
+    else:
+      image_height = context.image_basesize * centerQuads.height()
+      image_width = round(image_height / hpw)
+
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      if hpw < 1:
-        image_width = context.image_basesize * centerQuads.width()
-        image_height = round(image_width * hpw)
-      else:
-        image_height = context.image_basesize * centerQuads.height()
-        image_width = round(image_height / hpw)
       dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
+
+    elif properties.get("radioButton_LayerImage", False):
+      dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, demTransparency)
 
     elif properties.get("radioButton_SolidColor", False):
       dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
