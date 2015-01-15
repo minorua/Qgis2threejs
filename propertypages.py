@@ -383,7 +383,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     directory = os.path.split(self.lineEdit_ImageFile.text())[0]
     if directory == "":
       directory = QDir.homePath()
-    filename = QFileDialog.getOpenFileName(self, "Select image file", directory, "Images (*.png *.jpeg *.jpg *.tif *.gif *.bmp);;All files (*.*)")
+    filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
+    filename = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
     if filename:
       self.lineEdit_ImageFile.setText(filename)
 
