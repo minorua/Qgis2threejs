@@ -800,9 +800,18 @@ Q3D.MapLayer.prototype = {
 
   setOpacity: function (opacity) {
     this.opacity = opacity;
-    this.materials.forEach(function (mat) {
-      mat.m.transparent = (opacity < 1);
-      mat.m.opacity = opacity;
+    this.materials.forEach(function (m) {
+      if (m.type == Q3D.MaterialType.MeshFace) {
+        var materials = m.m.materials;
+        for (var i = 0, l = materials.length; i < l; i++) {
+          materials[i].transparent = (opacity < 1);
+          materials[i].opacity = opacity;
+        }
+      }
+      else {
+        m.m.transparent = (opacity < 1);
+        m.m.opacity = opacity;
+      }
     });
   },
 
@@ -1561,13 +1570,15 @@ Q3D.JSONObjectBuilder = function (loader, project, json_obj) {
   this.loader = loader;
   this.project = project;
   this.features = [];
+  this.meshFaceMaterials = {};
 
   if (json_obj.src !== undefined) {
     loader.load(json_obj.src, this.onLoad.bind(this));
   }
   else if (json_obj.data) {
     var result = loader.parse(JSON.parse(json_obj.data));
-    this._buildMesh(result.geometry, result.materials);
+    this.geometry = result.geometry;
+    this.materials = result.materials;
   }
 };
 
@@ -1580,12 +1591,28 @@ Q3D.JSONObjectBuilder.prototype = {
     this.buildObjects();
   },
 
-  _buildMesh: function (geometry, materials) {
-    this.object = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+  cloneObject: function (layerId) {
+    if (this.geometry === undefined) return null;
+
+    // material is created for each layer
+    if (!(layerId in this.meshFaceMaterials)) {
+      var mat;
+      if (this._origMeshFaceMaterial === undefined) {
+        mat = new THREE.MeshFaceMaterial(this.materials);
+        this._origMeshFaceMaterial = mat;
+      }
+      else {
+        mat = this._origMeshFaceMaterial.clone();
+      }
+
+      this.meshFaceMaterials[layerId] = mat;
+      this.project.layers[layerId].materials.push({type: Q3D.MaterialType.MeshFace, m: mat});
+    }
+    return new THREE.Mesh(this.geometry, this.meshFaceMaterials[layerId]);
   },
 
   buildObjects: function () {
-    if (this.object === undefined) return;
+    if (this.geometry === undefined) return;
 
     var deg2rad = Math.PI / 180;
     this.features.forEach(function (fet) {
@@ -1595,7 +1622,7 @@ Q3D.JSONObjectBuilder.prototype = {
 
       for (var i = 0, l = f.pts.length; i < l; i++) {
         var pt = f.pts[i],
-            mesh = this.object.clone();
+            mesh = this.cloneObject(fet.layerId);
         mesh.position.set(pt[0], pt[1], pt[2]);
         if (f.rotateX || f.rotateY || f.rotateZ)
           mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
@@ -1611,7 +1638,8 @@ Q3D.JSONObjectBuilder.prototype = {
   },
 
   onLoad: function (geometry, materials) {
-    this._buildMesh(geometry, materials);
+    this.geometry = geometry;
+    this.materials = materials;
     this.buildObjects();
   }
 
