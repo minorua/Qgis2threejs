@@ -150,6 +150,7 @@ Q3D.application = {
     this.labelRootElement = e;
 
     this.jsonObjectBuilders = [];
+    this._wireframeMode = false;
 
     // TODO:
     this.actions = [];
@@ -236,6 +237,7 @@ Q3D.application = {
         if (keyPressed == 27) this.closePopup(); // ESC
         else if (keyPressed == 73) this.showInfo();  // I
         else if (keyPressed == 76) this.setLabelVisibility(!this.labelVisibility);  // L
+        else if (keyPressed == 87) this.setWireframeMode(!this._wireframeMode);    // W
       }
       else {
         if (keyPressed == 82) this.controls.reset();   // Shift + R
@@ -402,6 +404,16 @@ Q3D.application = {
     }, this);
 
     this.render();
+  },
+
+  setWireframeMode: function (wireframe) {
+    if (wireframe == this._wireframeMode) return;
+
+    this.project.layers.forEach(function (layer) {
+      layer.setWireframeMode(wireframe);
+    });
+
+    this._wireframeMode = wireframe;
   },
 
   intersectObjects: function (offsetX, offsetY) {
@@ -796,6 +808,19 @@ Q3D.MapLayer.prototype = {
   setVisible: function (visible) {
     this.visible = visible;
     Q3D.Utils.setObjectVisibility(this.objectGroup, visible);
+  },
+
+  setWireframeMode: function (wireframe) {
+    this.materials.forEach(function (m) {
+      if (m.w) return;
+      if (m.type == 9) {     // TODO: MeshFace
+        var materials = m.m.materials;
+        for (var i = 0, l = materials.length; i < l; i++) {
+          materials[i].wireframe = wireframe;
+        }
+      }
+      else if (m.type != 2) m.m.wireframe = wireframe;
+    });
   }
 
 };
@@ -847,7 +872,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
                                            ambient: color,
                                            opacity: opacity,
                                            transparent: (opacity < 1)});
-  this.materials.push({m: mat});
+  this.materials.push({type: 0, m: mat});
 
   // Sides
   var w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
@@ -919,7 +944,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   var mat = new THREE.LineBasicMaterial({color: color,
                                          opacity: opacity,
                                          transparent: (opacity < 1)});
-  this.materials.push({m: mat});
+  this.materials.push({type: 2, m: mat});
 
   // horizontal rectangle at bottom
   var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
