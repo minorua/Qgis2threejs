@@ -91,6 +91,7 @@ class MapTo3D:
 
 
 class OutputContext:
+
   def __init__(self, templateName, templateType, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
     self.templateName = templateName
     self.templateType = templateType
@@ -102,8 +103,8 @@ class OutputContext:
     self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
 
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-    self.crs = mapSettings.destinationCrs()
+    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    self.crs = self.mapSettings.destinationCrs()
 
     wgs84 = QgsCoordinateReferenceSystem(4326)
     transform = QgsCoordinateTransform(self.crs, wgs84)
@@ -185,8 +186,7 @@ class ImageManager(DataManager):
     """ returns base64 encoded map canvas image """
     canvas = self.context.canvas
     if transp_background:
-      mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-      size = mapSettings.outputSize()
+      size = self.context.mapSettings.outputSize()
       return self.renderedImage(size.width(), size.height(), canvas.extent(), transp_background)
 
     if QGis.QGIS_VERSION_INT >= 20400:
@@ -268,9 +268,6 @@ class ImageManager(DataManager):
     if len(self._list) == 0:
       return
 
-    canvas = self.context.canvas
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-
     f.write(u'\n// Base64 encoded images\n')
     for index, image in enumerate(self._list):
       imageType = image[0]
@@ -294,7 +291,7 @@ class ImageManager(DataManager):
 
       else:   #imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
-        size = mapSettings.outputSize()
+        size = self.context.mapSettings.outputSize()
         args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
 
       f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
@@ -554,9 +551,6 @@ class JSWriter:
     QgsMessageLog.logMessage(message, "Qgis2threejs")
 
 def exportToThreeJS(htmlfilename, context, progress=None):
-  mapTo3d = context.mapTo3d
-  canvas = context.canvas
-  extent = context.baseExtent
   if progress is None:
     progress = dummyProgress
 
@@ -636,7 +630,6 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 def writeSimpleDEM(writer, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
-  canvas = context.canvas
   extent = context.baseExtent
   htmlfilename = writer.htmlfilename
   if progress is None:
@@ -689,29 +682,28 @@ def writeSimpleDEM(writer, properties, progress=None):
   dem = {"width": dem_width, "height": dem_height}
   dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
 
-  # transparency
-  demTransparency = prop.properties["spinBox_demtransp"]
+  # material option
+  transparency = prop.properties["spinBox_demtransp"]
 
   # display type
   if properties.get("radioButton_MapCanvas", False):
     transp_background = properties.get("checkBox_TransparentBackground", False)
-    dem["m"] = layer.materialManager.getCanvasImageIndex(demTransparency, transp_background)
+    dem["m"] = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
 
   elif properties.get("radioButton_LayerImage", False):
     layerid = properties.get("comboBox_ImageLayer")
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()    #TODO: context.mapSettings
-    size = mapSettings.outputSize()
-    dem["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, demTransparency)
+    size = context.mapSettings.outputSize()
+    dem["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, transparency)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
-    dem["m"] = layer.materialManager.getImageFileIndex(filepath, demTransparency, True)
+    dem["m"] = layer.materialManager.getImageFileIndex(filepath, transparency, True)
 
   elif properties.get("radioButton_SolidColor", False):
-    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
+    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
   elif properties.get("radioButton_Wireframe", False):
-    dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+    dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
   # shading (whether compute normals)
   if properties.get("checkBox_Shading", True):
@@ -768,7 +760,6 @@ def roughenEdges(width, height, values, interval):
 def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
-  canvas = context.canvas
   baseExtent = context.baseExtent
   if progress is None:
     progress = dummyProgress
@@ -778,7 +769,7 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   # options
   size = properties["spinBox_Size"]
   roughening = properties["spinBox_Roughening"]
-  demTransparency = properties["spinBox_demtransp"]
+  transparency = properties["spinBox_demtransp"]
 
   prop = DEMPropertyReader(properties)
   dem_width = (prop.width() - 1) / roughening + 1
@@ -846,17 +837,17 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
     # display type
     if properties.get("radioButton_MapCanvas", False):
       transp_background = properties.get("checkBox_TransparentBackground", False)
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
       layerid = properties.get("comboBox_ImageLayer")
-      dem["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, demTransparency)
+      dem["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, transparency)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # shading (whether compute normals)
     if properties.get("checkBox_Shading", True):
@@ -870,7 +861,6 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
 def writeMultiResDEM(writer, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
-  canvas = context.canvas
   baseExtent = context.baseExtent
   if progress is None:
     progress = dummyProgress
@@ -884,7 +874,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   filetitle = os.path.splitext(filename)[0]
 
   # material options
-  demTransparency = properties["spinBox_demtransp"]
+  transparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
   imageLayerId = properties.get("comboBox_ImageLayer")
 
@@ -990,16 +980,16 @@ def writeMultiResDEM(writer, properties, progress=None):
 
       # display type
       if properties.get("radioButton_MapCanvas", False):
-        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
+        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
       elif properties.get("radioButton_LayerImage", False):
-        dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, demTransparency)
+        dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency)
 
       elif properties.get("radioButton_SolidColor", False):
-        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
+        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
       elif properties.get("radioButton_Wireframe", False):
-        dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+        dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
       # shading (whether compute normals)
       if properties.get("checkBox_Shading", True):
@@ -1034,16 +1024,16 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, demTransparency, transp_background)
+      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
-      dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, demTransparency)
+      dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], demTransparency, True)
+      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], demTransparency)
+      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # write block
     writer.openFile(True)
@@ -1395,7 +1385,6 @@ class VectorLayer(Layer):
 
 def writeVectors(writer, progress=None):
   context = writer.context
-  canvas = context.canvas
   baseExtent = context.baseExtent
   mapTo3d = context.mapTo3d
   renderer = QgsMapRenderer()

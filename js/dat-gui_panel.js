@@ -41,7 +41,7 @@ Q3D.gui = {
       if (layer.type == Q3D.LayerType.DEM && layer.blocks[0].s !== undefined) {
         parameters.lyr[i].sv = true;
         folder.add(parameters.lyr[i], 'sv').name('Sides and bottom').onChange(sideVisibleChanged);
-      };
+      }
 
       folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
     });
