@@ -20,6 +20,7 @@ Q3D.Options = {
 };
 
 Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
+Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, MeshFace: 9};
 Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new THREE.Vector3(0, 0, 1)};
 Q3D.projector = new THREE.Projector();
 
@@ -771,15 +772,15 @@ Q3D.MapLayer.prototype = {
       }
       if (m.w) opt.wireframe = true;
 
-      if (m.type == 0) {
+      if (m.type == Q3D.MaterialType.MeshLambert) {
         if (m.c !== undefined) opt.color = opt.ambient = m.c;
         mat = new THREE.MeshLambertMaterial(opt);
       }
-      else if (m.type == 1) {
+      else if (m.type == Q3D.MaterialType.MeshPhong) {
         if (m.c !== undefined) opt.color = opt.ambient = m.c;
         mat = new THREE.MeshPhongMaterial(opt);
       }
-      else if (m.type == 2) {
+      else if (m.type == Q3D.MaterialType.LineBasic) {
         opt.color = m.c;
         mat = new THREE.LineBasicMaterial(opt);
       }
@@ -813,13 +814,13 @@ Q3D.MapLayer.prototype = {
   setWireframeMode: function (wireframe) {
     this.materials.forEach(function (m) {
       if (m.w) return;
-      if (m.type == 9) {     // TODO: MeshFace
+      if (m.type == Q3D.MaterialType.MeshFace) {
         var materials = m.m.materials;
         for (var i = 0, l = materials.length; i < l; i++) {
           materials[i].wireframe = wireframe;
         }
       }
-      else if (m.type != 2) m.m.wireframe = wireframe;
+      else if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
     });
   }
 
@@ -872,7 +873,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
                                            ambient: color,
                                            opacity: opacity,
                                            transparent: (opacity < 1)});
-  this.materials.push({type: 0, m: mat});
+  this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
 
   // Sides
   var w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
@@ -944,7 +945,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   var mat = new THREE.LineBasicMaterial({color: color,
                                          opacity: opacity,
                                          transparent: (opacity < 1)});
-  this.materials.push({type: 2, m: mat});
+  this.materials.push({type: Q3D.MaterialType.LineBasic, m: mat});
 
   // horizontal rectangle at bottom
   var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
