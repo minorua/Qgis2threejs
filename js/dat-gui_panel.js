@@ -38,9 +38,15 @@ Q3D.gui = {
       var folder = layersFolder.addFolder(layer.name);
       folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
 
-      if (layer.type == Q3D.LayerType.DEM && layer.blocks[0].s !== undefined) {
-        parameters.lyr[i].sv = true;
-        folder.add(parameters.lyr[i], 'sv').name('Sides and bottom').onChange(sideVisibleChanged);
+      if (layer.type == Q3D.LayerType.DEM) {
+        var itemName = '';
+        if (layer.blocks[0].s) itemName = 'Sides and bottom';
+        else if (layer.blocks[0].frame) itemName = 'Frame';
+
+        if (itemName) {
+          parameters.lyr[i].sv = true;
+          folder.add(parameters.lyr[i], 'sv').name(itemName).onChange(sideVisibleChanged);
+        }
       }
 
       folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);

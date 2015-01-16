@@ -864,8 +864,14 @@ Q3D.DEMLayer.prototype.build = function (parent) {
     block.build(this);
 
     // Build sides, bottom and frame
-    if (block.s !== undefined) this.buildSides(block, opt.side.color, opt.sole_height);
-    if (block.frame) this.buildFrame(block, opt.frame.color, opt.sole_height);
+    if (block.s) {
+      this.buildSides(block, opt.side.color, opt.sole_height);
+      this.sideVisible = true;
+    }
+    if (block.frame) {
+      this.buildFrame(block, opt.frame.color, opt.sole_height);
+      this.sideVisible = true;
+    }
   }, this);
 
   if (parent) parent.add(this.objectGroup);
@@ -995,13 +1001,6 @@ Q3D.DEMLayer.prototype.initMaterials = function () {
   }
 };
 
-Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
-  var block = this.blocks[0];
-  block.aObjs.forEach(function (obj) {
-    obj.visible = visible;
-  });
-};
-
 Q3D.DEMLayer.prototype.meshes = function () {
   var m = [];
   this.blocks.forEach(function (block) {
@@ -1109,6 +1108,18 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   */
 
   return pts;
+};
+
+Q3D.DEMLayer.prototype.setVisible = function (visible) {
+  Q3D.MapLayer.prototype.setVisible.call(this, visible);
+  if (visible && this.sideVisible === false) this.setSideVisibility(false);
+};
+
+Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
+  this.sideVisible = visible;
+  this.blocks[0].aObjs.forEach(function (obj) {
+    obj.visible = visible;
+  });
 };
 
 
