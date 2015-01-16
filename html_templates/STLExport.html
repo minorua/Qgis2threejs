@@ -20,9 +20,10 @@ body { margin: 5%; }
 <div id="webgl" style="display: none;"></div>
 
 <script src="./threejs/three.min.js"></script>
+<script src="./exporters/STLBinaryExporter.js"></script>
 <script src="./exporters/STLExporter.js"></script>
 <script src="./jszip/jszip.min.js"></script>
-<script src="./FileSaverjs/FileSaver.js"></script>
+<script src="./FileSaverjs/FileSaver.min.js"></script>
 <script src="./Qgis2threejs.js"></script>
 <script>
 var option = Q3D.Options;
@@ -36,72 +37,66 @@ ${scripts}
 project.layers.forEach(function (layer) {
   layer.initMaterials();
   layer.build();
+  layer.objectGroup.updateMatrixWorld();
 });
 
 // create an exporter
-var exporter = new THREE.STLExporter();
-exporter.header = "Exported from Qgis2threejs";
+var binaryExporter = new THREE.STLBinaryExporter(),
+    asciiExporter = new THREE.STLExporter();
 
 function exportLayersSTLZip(isBinary) {
-  exporter.isBinary = isBinary;
-  var zipStlOption = {};
-  if (isBinary) zipStlOption = {type: "arraybuffer"};
 
-  var zip = new JSZip();
+  var zip = new JSZip(), toSTL;
+  if (isBinary) toSTL = function (object) { return binaryExporter.parse(object).buffer; };
+  else toSTL = function (object) { return asciiExporter.parse(object); };
+
+  function zipDEMBlock(filetitle, layer, block) {
+    zip.file(filetitle + ".stl", toSTL(block.obj));
+
+    var m = layer.materials[block.m];
+    if (m.i === undefined) return;
+
+    var image = project.images[m.i];
+    var ext = "." + image.data.match(/^data:image\/(.*);/)[1];  // image: data begins with "data:image/***;base64,"
+    zip.file(filetitle + ext, image.data.replace(/^.*,/, ""), {base64: true});
+  }
+
   project.layers.forEach(function (layer, layer_index) {
     if (layer.type == Q3D.LayerType.DEM) {
-      for (var j = 0, k = layer.blocks.length; j < k; j++) {
-        var block = layer.blocks[j];
-        var filetitle = layer_index + "_" + layer.name + "_" + j;
-        // mesh
-        exporter.clearContent();
-        var stlData = exporter.exportMesh(block.obj);
-        zip.file(filetitle + ".stl", stlData, zipStlOption);
-
-        if (block.t === undefined) continue;
-        // image: data begins with "data:image/***;base64,"
-        var ext = "." + block.t.data.match(/^data:image\/(.*);/)[1];
-        zip.file(filetitle + ext, block.t.data.replace(/^.*,/, ""), {base64: true});
-      }
+      // export blocks
+      layer.blocks.forEach(function (block, index) {
+        var filetitle = layer_index + "_" + layer.name + "_" + index;
+        zipDEMBlock(filetitle, layer, block);
+      });
 
       // export sides and bottom
-      if (option.exportSides) {
-        var aObjs = layer.blocks[0].aObjs || [];
-        if (aObjs.length > 0) {
-          var filetitle = layer_index + "_" + layer.name + "_sides";
-          exporter.clearContent();
-          var stlData = exporter.exportMeshes(aObjs);
-          zip.file(filetitle + ".stl", stlData, zipStlOption);
+      var aObjs = layer.blocks[0].aObjs;
+      if (option.exportSides && aObjs) {
+        var group = new THREE.Object3D();
+        for (var i = 0, l = aObjs.length; i < l; i++) {
+          group.add(aObjs[i]);
         }
+        var filename = layer_index + "_" + layer.name + "_sides.stl";
+        zip.file(filename, toSTL(group));
       }
     } else {
-      // meshes
-      exporter.clearContent();
-      var stlData = exporter.exportMeshes(layer.meshes());
-      zip.file(layer_index + "_" + layer.name + ".stl", stlData, zipStlOption);
+      var filename = layer_index + "_" + layer.name + ".stl";
+      zip.file(filename, toSTL(layer.objectGroup));
     }
   });
   var content = zip.generate({type: "blob"});
-  saveAs(content, document.title + ".zip");
+  saveAs(content, project.title + ".zip");
 }
 
-function exportLayerSTL(index) {
-  exporter.isBinary = true;
-  exporter.clearContent();
+function exportLayerToBinarySTL(index) {
   var layer = project.layers[index];
-  var stlData = exporter.exportMeshes(layer.meshes());
-  saveTextAs(layer.name + ".stl", stlData);
-}
-
-function saveTextAs(filename, data) {
-  var blob = new Blob([data], {type: "text/plain;charset=utf-8"});
-  saveAs(blob, filename);
+  var stlData = binaryExporter.parse(layer.objectGroup).buffer;
+  saveAs(new Blob([stlData]), layer.name + ".stl");
 }
 
 function listLayers() {
   var ol = document.getElementById("olLayers");
-  var addLayer = function (index) {
-    var layer = project.layers[index];
+  project.layers.forEach(function (layer, index) {
     var e = document.createElement("li");
     e.appendChild(document.createTextNode(layer.name + " "));
 
@@ -110,7 +105,7 @@ function listLayers() {
     btn.href = "#";
     btn.className = "btn";
     btn.appendChild(document.createTextNode("STL"));
-    btn.onclick = function () { exportLayerSTL(index); return false; };
+    btn.onclick = function () { exportLayerToBinarySTL(index); return false; };
     e.appendChild(btn);
 
     // images
@@ -124,10 +119,6 @@ function listLayers() {
       }
     }
     ol.appendChild(e);
-  };
-
-  project.layers.forEach(function (layer, layer_index) {
-    addLayer(layer_index);
   });
 }
 </script>
