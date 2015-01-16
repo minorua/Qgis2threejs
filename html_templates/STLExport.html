@@ -33,10 +33,15 @@ ${options}
 </script>
 ${scripts}
 <script>
-// build models
+var container = document.getElementById("webgl");
+var app = Q3D.application;
+app.init(container);
+
+// load the project
+app.loadProject(project);
+
+// update matrices
 project.layers.forEach(function (layer) {
-  layer.initMaterials();
-  layer.build();
   layer.objectGroup.updateMatrixWorld();
 });
 
