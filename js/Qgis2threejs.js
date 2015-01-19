@@ -131,9 +131,6 @@ Q3D.application = {
     this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     this.container.appendChild(this.renderer.domElement);
 
-    // popup window
-    this.popup = new Q3D.Popup();
-
     // scene
     this.scene = new THREE.Scene();
 
@@ -435,17 +432,60 @@ Q3D.application = {
   },
 
   help: function () {
-    var help = (Q3D.Controls === undefined) ? "* Keys" : Q3D.Controls.usage.split("\n").join("<br>");
-    help += "<br> I : Show page information<br> L : Toggle label visibility<br> Shift + R : Reset<br> Shift + S : Save as image";
-    return help;
+    var lines = (Q3D.Controls === undefined) ? [] : Q3D.Controls.keyList;
+    if (lines.indexOf("* Keys") == -1) lines.push("* Keys");
+    lines = lines.concat([
+      "I : Show Information About Page",
+      "L : Toggle Label Visibility",
+      "W : Wireframe Mode",
+      "Shift + R : Reset View",
+      "Shift + S : Save Image As File"
+    ]);
+    var html = '<table>';
+    lines.forEach(function (line) {
+      if (line.trim() == "") return;
+
+      if (line[0] == "*") {
+        html += '<tr><td colspan="2" class="star">' + line.substr(1).trim() + "</td></tr>";
+      }
+      else if (line.indexOf(":") == -1) {
+        html += '<tr><td colspan="2">' + line.trim() + "</td></tr>";
+      }
+      else {
+        var p = line.split(":");
+        html += "<tr><td>" + p[0].trim() + "</td><td>" + p[1].trim() + "</td></tr>";
+      }
+    });
+    html += "</table>";
+    return html;
+  },
+
+  popup: {
+
+    show: function (html) {
+      if (html === undefined) {
+        // show page info
+        Q3D.$("popupcontent").style.display = "none";
+        Q3D.$("pageinfo").style.display = "block";
+      }
+      else {
+        Q3D.$("pageinfo").style.display = "none";
+        Q3D.$("popupcontent").style.display = "block";
+        Q3D.$("popupcontent").innerHTML = html;
+      }
+      Q3D.$("popup").style.display = "block";
+    },
+
+    hide: function () {
+      Q3D.$("popup").style.display = "none";
+    }
+
   },
 
   showInfo: function () {
-    this.popup.showInfo({"urlbox": this.currentViewUrl(), "usage": this.help()});
-  },
-
-  showPopupMessage: function (html) {
-    this.popup.showHTML(html);
+    Q3D.$("urlbox").value = this.currentViewUrl();
+    Q3D.$("usage").innerHTML = this.help();
+    this.popup.show();
   },
 
   showQueryResult: function (obj) {
@@ -483,7 +523,7 @@ Q3D.application = {
       }
       r.push("</table>");
     }
-    this.popup.showHTML(r.join(""));
+    this.popup.show(r.join(""));
   },
 
   closePopup: function () {
@@ -581,7 +621,7 @@ Q3D.application = {
       e.href = this._canvasImageUrl;
       e.download = filename;
       e.innerHTML = "Click here to save the image";
-      this.showPopupMessage(e.outerHTML);
+      this.popup.show(e.outerHTML);
     }
 
     // render for canvas.toDataURL()
@@ -608,51 +648,6 @@ Q3D.application = {
   }
 
   // TODO: addActionToObject(object, action)
-};
-
-
-/*
-Popup class
-*/
-Q3D.Popup = function (popupId) {
-
-  this.popupId = (popupId === undefined) ? "popup" : popupId;
-
-};
-
-Q3D.Popup.prototype = {
-
-  constructor: Q3D.Popup,
-
-  show: function () {
-    Q3D.$(this.popupId).style.display = "block";
-  },
-
-  hide: function () {
-    Q3D.$(this.popupId).style.display = "none";
-  },
-
-  showInfo: function (params) {
-    if (Q3D.$("urlbox")) Q3D.$("urlbox").value = params.urlbox;
-    if (Q3D.$("usage")) Q3D.$("usage").innerHTML = params.usage;
-
-    if (Q3D.$("popupcontent")) Q3D.$("popupcontent").style.display = "none";
-    if (Q3D.$("pageinfo")) Q3D.$("pageinfo").style.display = "block";
-    this.show();
-  },
-
-  showHTML: function (html) {
-    if (Q3D.$("pageinfo")) Q3D.$("pageinfo").style.display = "none";
-    var e = Q3D.$("popupcontent");
-    if (e) {
-      e.style.display = "block";
-      e.innerHTML = html;
-    }
-    this.show();
-  }
-
-  // TODO: result table
-
 };
 
 

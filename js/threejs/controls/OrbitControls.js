@@ -33,7 +33,19 @@ Q3D.Controls = {
 
   type: "OrbitControls",
 
-  usage: "* Mouse\n Left button : Orbit\n Middle button : Zoom\n Right button : Pan\n\n* Keys\n Arrow keys : Move horizontally\n Shift + Arrow keys : Orbit\n Ctrl + Arrow keys : Rotate\n Shift + Ctrl + Up / Down : Zoom in / out\n\n R : Auto rotate on / off\n U : Switch upside down (also controls are reversed)\n",
+  keyList: [
+    "* Mouse",
+    "Left button : Orbit",
+    "Middle button : Zoom",
+    "Right button : Pan",
+    "* Keys",
+    "Arrow keys : Move Horizontally",
+    "Shift + Arrow keys : Orbit",
+    "Ctrl + Arrow keys : Rotate",
+    "Shift + Ctrl + Up / Down : Zoom In / Out",
+    "R : Auto Rotate On / Off",
+    "U : Switch Upside Down"
+  ],
 
   create: function (camera, domElement) {
     return new THREE.OrbitControls(camera, domElement);

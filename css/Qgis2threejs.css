@@ -107,8 +107,8 @@ table.attrs tr td:first-child {
 }
 
 /* pageinfo */
-#urlbox {
-  width: 100%;
+#pageinfo {
+  font-size: small;
 }
 
 #pageinfo h1 {
@@ -122,24 +122,36 @@ table.attrs tr td:first-child {
   padding-left: 6px;
 }
 
+#urlbox {
+  width: 100%;
+}
+
 #usage, #about {
   margin-left: 5px;
 }
 
-#pageinfo ul {
+#usage tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+#usage td.star {
+  font-weight: bold;
+}
+
+#about ul {
   margin: 5px;
   margin-left: 20px;
   padding: 0px;
+}
+
+.license {
+  font-size: xx-small;
 }
 
 .download-link {
   font-size: large;
   display: inline-block;
   padding: 10px;
-}
-
-.license {
-  font-size: xx-small;
 }
 
 /* label */

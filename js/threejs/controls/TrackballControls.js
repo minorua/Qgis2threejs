@@ -7,7 +7,12 @@ Q3D.Controls = {
 
   type: "TrackballControls",
 
-  usage: "* Mouse\n Left button : Rotate\n Middle button : Zoom\n Right button : Pan\n",
+  keyList: [
+    "* Mouse",
+    "Left button : Rotate",
+    "Middle button : Zoom",
+    "Right button : Pan"
+  ],
 
   create: function (camera, domElement) {
     return new THREE.TrackballControls(camera, domElement);
