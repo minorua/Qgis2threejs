@@ -93,13 +93,20 @@ class Qgis2threejs:
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
 
     self.properties = dialog.properties
-    if debug_mode:
-      qDebug(str(self.properties))
-      #with open("M:/properties.txt", "w") as f:
-      #  f.write(str(self.properties).replace("}", "}\n\n"))
 
   def setting(self):
     from settingsdialog import SettingsDialog
     dialog = SettingsDialog(self.iface)
     dialog.show()
     dialog.exec_()
+
+  def loadProperties(self, filename):
+    import json
+    with open(filename) as f:
+      self.properties = json.load(f)
+
+  def saveProperties(self, filename):
+    import codecs
+    import json
+    with codecs.open(filename, "w", "UTF-8") as f:
+      json.dump(self.properties, f, ensure_ascii=False)
