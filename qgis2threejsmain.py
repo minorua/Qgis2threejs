@@ -127,8 +127,11 @@ class OutputContext:
       return
 
     self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
+    layer = None
     if demLayerId:
       layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+
+    if layer:
       self.warp_dem = tools.MemoryWarpRaster(layer.source())
     else:
       self.warp_dem = tools.FlatRaster()
@@ -643,13 +646,15 @@ def writeSimpleDEM(writer, properties, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(context.crs.toWkt())
 
+  mapLayer = None
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
     mapLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+
+  if mapLayer:
     layerName = mapLayer.name()
     warp_dem = tools.MemoryWarpRaster(mapLayer.source())
   else:
-    mapLayer = None
     layerName = "Flat plane"
     warp_dem = tools.FlatRaster()
 
@@ -725,7 +730,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # write surrounding dems
   if surroundings:
-    writeSurroundingDEM(writer, layer, stats, properties, progress)
+    writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress)
     # overwrite stats
     writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
@@ -754,14 +759,12 @@ def roughenEdges(width, height, values, interval):
         z = (z0 * (interval - yy) + z1 * yy) / interval
         values[x + width * (y0 + yy)] = z
 
-def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
+def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=None):
   context = writer.context
   mapTo3d = context.mapTo3d
   baseExtent = context.baseExtent
   if progress is None:
     progress = dummyProgress
-  demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
-  htmlfilename = writer.htmlfilename
 
   # options
   size = properties["spinBox_Size"]
@@ -772,7 +775,6 @@ def writeSurroundingDEM(writer, layer, stats, properties, progress=None):
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source())
   wkt = str(context.crs.toWkt())
 
   # texture image size
