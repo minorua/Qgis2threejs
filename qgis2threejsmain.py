@@ -237,13 +237,10 @@ class ImageManager(DataManager):
       renderer.setLayerSet(layerids)
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-
-    # QImage::fill ( const QColor & color ) was introduced in Qt 4.8.
-    # http://qt-project.org/doc/qt-4.8/qimage.html#fill-3
     if transp_background:
-      image.fill(QColor(Qt.transparent).rgba())   # though image.fill(Qt.transparent) seems to work in Qt 4.7.1
+      image.fill(QColor(Qt.transparent).rgba())   #
     else:
-      image.fill(self.canvasColor.rgba())
+      image.fill(self.canvasColor.rgba())   #
 
     renderer.setOutputSize(image.size(), image.logicalDpiX())
     renderer.setExtent(extent)
