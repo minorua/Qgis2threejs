@@ -38,9 +38,11 @@ from gdal2threejs import Raster
 debug_mode = 1
 
 class MemoryWarpRaster(Raster):
-  def __init__(self, filename):
+  def __init__(self, filename, wkt=None):
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
+    if wkt:
+      self.ds.SetProjection(str(wkt))
 
   def read(self, width, height, wkt, geotransform):
     # create a memory dataset

@@ -132,7 +132,7 @@ class OutputContext:
       layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
 
     if layer:
-      self.warp_dem = tools.MemoryWarpRaster(layer.source())
+      self.warp_dem = tools.MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()))
     else:
       self.warp_dem = tools.FlatRaster()
 
@@ -653,7 +653,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   if mapLayer:
     layerName = mapLayer.name()
-    warp_dem = tools.MemoryWarpRaster(mapLayer.source())
+    warp_dem = tools.MemoryWarpRaster(mapLayer.source(), str(mapLayer.crs().toWkt()))
   else:
     layerName = "Flat plane"
     warp_dem = tools.FlatRaster()
@@ -906,7 +906,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source())
+  warp_dem = tools.MemoryWarpRaster(demlayer.source(), str(demlayer.crs().toWkt()))
   wkt = str(context.crs.toWkt())
 
   unites_center = True
