@@ -683,11 +683,13 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # layer
   layer = DEMLayer(context, mapLayer, prop)
+  lyr = {"type": "dem", "name": layerName, "stats": stats}
+  lyr["q"] = 1    #queryable
+  lyrIdx = writer.writeLayer(lyr)
 
   # dem block
-  #TODO: rename this to block
-  dem = {"width": dem_width, "height": dem_height}
-  dem["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
+  block = {"width": dem_width, "height": dem_height}
+  block["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
 
   # material option
   transparency = properties["spinBox_demtransp"]
@@ -695,42 +697,35 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # display type
   if properties.get("radioButton_MapCanvas", False):
-    dem["m"] = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
+    block["m"] = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
 
   elif properties.get("radioButton_LayerImage", False):
     layerid = properties.get("comboBox_ImageLayer")
     size = context.mapSettings.outputSize()
-    dem["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, transparency, transp_background)
+    block["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
-    dem["m"] = layer.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
+    block["m"] = layer.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
 
   elif properties.get("radioButton_SolidColor", False):
-    dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+    block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
   elif properties.get("radioButton_Wireframe", False):
-    dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+    block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
   # shading (whether compute normals)
   if properties.get("checkBox_Shading", True):
-    dem["shading"] = True
+    block["shading"] = True
 
   if not surroundings and properties.get("checkBox_Sides", False):
-    dem["s"] = True
+    block["s"] = True
 
   if not surroundings and properties.get("checkBox_Frame", False):
-    dem["frame"] = True
-
-  # layer
-  lyr = {"type": "dem", "name": layerName, "stats": stats}
-  lyr["q"] = 1    #queryable
-
-  # write layer
-  lyrIdx = writer.writeLayer(lyr)
+    block["frame"] = True
 
   # write central block
-  writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+  writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
   writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
 
   # write surrounding dems
@@ -835,30 +830,29 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
 
     # dem block
-    #TODO: rename this to block
-    dem = {"width": dem_width, "height": dem_height}
-    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+    block = {"width": dem_width, "height": dem_height}
+    block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
       layerid = properties.get("comboBox_ImageLayer")
-      dem["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+      block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+      block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # shading (whether compute normals)
     if properties.get("checkBox_Shading", True):
-      dem["shading"] = True
+      block["shading"] = True
 
     # write block
-    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
     plane_index += 1
 
@@ -979,29 +973,29 @@ def writeMultiResDEM(writer, properties, progress=None):
               dem_values[x + dem_width * (y0 + yy)] = z
 
     if quad.height < quadtree.height or unites_center == False:
-      dem = {"width": dem_width, "height": dem_height}
-      dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+      block = {"width": dem_width, "height": dem_height}
+      block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
       # display type
       if properties.get("radioButton_MapCanvas", False):
-        dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
+        block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
       elif properties.get("radioButton_LayerImage", False):
-        dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
+        block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
 
       elif properties.get("radioButton_SolidColor", False):
-        dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+        block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
       elif properties.get("radioButton_Wireframe", False):
-        dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+        block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
       # shading (whether compute normals)
       if properties.get("checkBox_Shading", True):
-        dem["shading"] = True
+        block["shading"] = True
 
       # write block
       writer.openFile(True)
-      writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+      writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
       writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
       plane_index += 1
     else:
@@ -1016,8 +1010,8 @@ def writeMultiResDEM(writer, properties, progress=None):
     planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
     offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
     offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
-    dem = {"width": dem_width, "height": dem_height}
-    dem["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+    block = {"width": dem_width, "height": dem_height}
+    block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
     if hpw < 1:
       image_width = context.image_basesize * centerQuads.width()
@@ -1028,20 +1022,20 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      dem["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
-      dem["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
-      dem["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+      block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     elif properties.get("radioButton_Wireframe", False):
-      dem["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+      block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # write block
     writer.openFile(True)
-    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(dem)))
+    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
     plane_index += 1
 

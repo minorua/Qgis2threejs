@@ -32,7 +32,7 @@ Q3D.$ = function (elementId) {
 };
 
 /*
-Project class - Project data holder
+Q3D.Project - Project data holder
 
 params: title, crs, baseExtent, width, zExaggeration, zShift, wgs84Center
 */
@@ -652,7 +652,7 @@ Q3D.application = {
 
 
 /*
-DEMBlock class
+Q3D.DEMBlock
 */
 Q3D.DEMBlock = function (params) {
   for (var k in params) {
@@ -706,7 +706,7 @@ Q3D.DEMBlock.prototype = {
 
 
 /*
-MapLayer class
+Q3D.MapLayer
 */
 Q3D.MapLayer = function (params) {
 
@@ -838,7 +838,7 @@ Q3D.MapLayer.prototype.meshes = function () {};
 
 
 /*
-Q3D.DEMLayer class --> Q3D.MapLayer
+Q3D.DEMLayer --> Q3D.MapLayer
 */
 Q3D.DEMLayer = function (params) {
   Q3D.MapLayer.call(this, params);
@@ -878,7 +878,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   var dem = block;
 
   // Material
-  var opacity = (block.m !== undefined) ? this.materials[block.m].o : block.t.o;
+  var opacity = this.materials[block.m].o;
   if (opacity === undefined) opacity = 1;
   var mat = new THREE.MeshLambertMaterial({color: color,
                                            ambient: color,
@@ -951,7 +951,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
 
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   var dem = block;
-  var opacity = (block.m !== undefined) ? this.materials[block.m].o : block.t.o;
+  var opacity = this.materials[block.m].o;
   if (opacity === undefined) opacity = 1;
   var mat = new THREE.LineBasicMaterial({color: color,
                                          opacity: opacity,
@@ -985,16 +985,6 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
     this.addObject(obj, false);
     dem.aObjs.push(obj);
   }, this);
-};
-
-Q3D.DEMLayer.prototype.initMaterials = function () {
-  Q3D.MapLayer.prototype.initMaterials.call(this);
-
-  // overwrite opacity if layer has texture.
-  var t = this.blocks[0].t;
-  if (t !== undefined && t.o !== undefined) {
-    this.opacity = t.o;
-  }
 };
 
 Q3D.DEMLayer.prototype.meshes = function () {
@@ -1120,7 +1110,7 @@ Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
 
 
 /*
-Q3D.VectorLayer class --> Q3D.MapLayer
+Q3D.VectorLayer --> Q3D.MapLayer
 */
 Q3D.VectorLayer = function (params) {
   this.f = [];
@@ -1224,7 +1214,7 @@ Q3D.VectorLayer.prototype.setVisible = function (visible) {
 
 
 /*
-Q3D.PointLayer class --> Q3D.VectorLayer
+Q3D.PointLayer --> Q3D.VectorLayer
 */
 Q3D.PointLayer = function (params) {
   Q3D.VectorLayer.call(this, params);
@@ -1318,7 +1308,7 @@ Q3D.PointLayer.prototype.buildLabels = function (parent, parentElement) {
 
 
 /*
-Q3D.LineLayer class --> Q3D.VectorLayer
+Q3D.LineLayer --> Q3D.VectorLayer
 */
 Q3D.LineLayer = function (params) {
   Q3D.VectorLayer.call(this, params);
@@ -1413,7 +1403,7 @@ Q3D.LineLayer.prototype.buildLabels = function (parent, parentElement) {
 
 
 /*
-Q3D.PolygonLayer class --> Q3D.VectorLayer
+Q3D.PolygonLayer --> Q3D.VectorLayer
 */
 Q3D.PolygonLayer = function (params) {
   Q3D.VectorLayer.call(this, params);
