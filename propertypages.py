@@ -333,17 +333,17 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def initLayerList(self, comboBox):
     comboBox.clear()
-    for id, layer in QgsMapLayerRegistry.instance().mapLayers().items():
-      comboBox.addItem(layer.name(), id)
+    for layer in self.dialog.iface.legendInterface().layers():
+      comboBox.addItem(layer.name(), layer.id())
 
   def initDEMLayerList(self):
     comboBox = self.comboBox_DEMLayer
     # list 1 band raster layers
     comboBox.clear()
     comboBox.addItem("Flat plane (no DEM used)", 0)
-    for id, layer in QgsMapLayerRegistry.instance().mapLayers().items():
+    for layer in self.dialog.iface.legendInterface().layers():
       if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        comboBox.addItem(layer.name(), id)
+        comboBox.addItem(layer.name(), layer.id())
 
   def selectDEMLayer(self, layerId=None):
     comboBox = self.comboBox_DEMLayer
