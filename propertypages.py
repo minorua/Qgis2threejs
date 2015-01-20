@@ -484,17 +484,29 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def dispTypeChanged(self, checked=True):
     if checked:
-      enabled = self.radioButton_MapCanvas.isChecked()
-      self.checkBox_TransparentBackground.setEnabled(enabled)
+      if self.radioButton_MapCanvas.isChecked():
+        t = 0
+      elif self.radioButton_LayerImage.isChecked():
+        t = 1
+      elif self.radioButton_ImageFile.isChecked():
+        t = 2
+      elif self.radioButton_SolidColor.isChecked():
+        t = 3
+      else:   # self.radioButton_Wireframe.isChecked()
+        t = 4
 
-      enabled = self.radioButton_LayerImage.isChecked()
-      self.comboBox_ImageLayer.setEnabled(enabled)
+      self.checkBox_TransparentBackground.setEnabled(t in [0, 1, 2])
+      if t in [0, 1]:
+        self.checkBox_TransparentBackground.setText("Transparent background")
+      elif t == 2:
+        self.checkBox_TransparentBackground.setText("Enable transparency")
 
-      enabled = self.radioButton_ImageFile.isChecked()
-      self.lineEdit_ImageFile.setEnabled(enabled)
-      self.toolButton_ImageFile.setEnabled(enabled)
+      self.comboBox_ImageLayer.setEnabled(t == 1)
 
-      enabled = self.radioButton_SolidColor.isChecked() or self.radioButton_Wireframe.isChecked()
+      self.lineEdit_ImageFile.setEnabled(t == 2)
+      self.toolButton_ImageFile.setEnabled(t == 2)
+
+      enabled = t in [3, 4]
       self.lineEdit_Color.setEnabled(enabled)
       self.toolButton_Color.setEnabled(enabled)
 

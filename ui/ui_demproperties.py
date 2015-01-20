@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Thu Jan 15 13:57:34 2015
+# Created: Tue Jan 20 10:09:04 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_DEMPropertiesWidget(object):
     def setupUi(self, DEMPropertiesWidget):
         DEMPropertiesWidget.setObjectName(_fromUtf8("DEMPropertiesWidget"))
-        DEMPropertiesWidget.resize(437, 604)
+        DEMPropertiesWidget.resize(437, 616)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -113,8 +113,6 @@ class Ui_DEMPropertiesWidget(object):
         self.formLayout_Surroundings.setWidget(1, QtGui.QFormLayout.LabelRole, self.checkBox_Surroundings)
         self.horizontalLayout_Surroundings = QtGui.QHBoxLayout()
         self.horizontalLayout_Surroundings.setObjectName(_fromUtf8("horizontalLayout_Surroundings"))
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_Surroundings.addItem(spacerItem)
         self.label_2 = QtGui.QLabel(self.groupBox_Resampling)
         self.label_2.setEnabled(False)
         self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
@@ -242,17 +240,10 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setSpacing(4)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.horizontalLayout_3 = QtGui.QHBoxLayout()
-        self.horizontalLayout_3.setContentsMargins(0, -1, -1, -1)
-        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         self.radioButton_MapCanvas = QtGui.QRadioButton(self.groupBox_DisplayType)
         self.radioButton_MapCanvas.setChecked(True)
         self.radioButton_MapCanvas.setObjectName(_fromUtf8("radioButton_MapCanvas"))
-        self.horizontalLayout_3.addWidget(self.radioButton_MapCanvas)
-        self.checkBox_TransparentBackground = QtGui.QCheckBox(self.groupBox_DisplayType)
-        self.checkBox_TransparentBackground.setObjectName(_fromUtf8("checkBox_TransparentBackground"))
-        self.horizontalLayout_3.addWidget(self.checkBox_TransparentBackground)
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.verticalLayout.addWidget(self.radioButton_MapCanvas)
         self.horizontalLayout_5 = QtGui.QHBoxLayout()
         self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
         self.radioButton_LayerImage = QtGui.QRadioButton(self.groupBox_DisplayType)
@@ -288,8 +279,8 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_Wireframe.setObjectName(_fromUtf8("radioButton_Wireframe"))
         self.verticalLayout_3.addWidget(self.radioButton_Wireframe)
         self.horizontalLayout_7.addLayout(self.verticalLayout_3)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem1)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem)
         self.label = QtGui.QLabel(self.groupBox_DisplayType)
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout_7.addWidget(self.label)
@@ -320,9 +311,12 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_demtransp.setProperty("value", 0)
         self.spinBox_demtransp.setObjectName(_fromUtf8("spinBox_demtransp"))
         self.horizontalLayout_2.addWidget(self.spinBox_demtransp)
-        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem2)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem1)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+        self.checkBox_TransparentBackground = QtGui.QCheckBox(self.groupBox_DisplayType)
+        self.checkBox_TransparentBackground.setObjectName(_fromUtf8("checkBox_TransparentBackground"))
+        self.verticalLayout_4.addWidget(self.checkBox_TransparentBackground)
         self.checkBox_Shading = QtGui.QCheckBox(self.groupBox_DisplayType)
         self.checkBox_Shading.setChecked(False)
         self.checkBox_Shading.setObjectName(_fromUtf8("checkBox_Shading"))
@@ -341,8 +335,8 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Frame.setObjectName(_fromUtf8("checkBox_Frame"))
         self.verticalLayout_5.addWidget(self.checkBox_Frame)
         self.verticalLayout_2.addWidget(self.groupBox_Accessories)
-        spacerItem3 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem3)
+        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem2)
 
         self.retranslateUi(DEMPropertiesWidget)
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
@@ -370,7 +364,6 @@ class Ui_DEMPropertiesWidget(object):
         self.label_ymin.setText(_translate("DEMPropertiesWidget", "ymin", None))
         self.groupBox_DisplayType.setTitle(_translate("DEMPropertiesWidget", "Display type", None))
         self.radioButton_MapCanvas.setText(_translate("DEMPropertiesWidget", "Map canvas image", None))
-        self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
         self.radioButton_LayerImage.setText(_translate("DEMPropertiesWidget", "Layer image", None))
         self.radioButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file", None))
         self.toolButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Browse...", None))
@@ -380,6 +373,7 @@ class Ui_DEMPropertiesWidget(object):
         self.lineEdit_Color.setPlaceholderText(_translate("DEMPropertiesWidget", "0xrrggbb", None))
         self.toolButton_Color.setText(_translate("DEMPropertiesWidget", "...", None))
         self.label_17.setText(_translate("DEMPropertiesWidget", "Transparency (%)", None))
+        self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
         self.checkBox_Shading.setText(_translate("DEMPropertiesWidget", "Enable shading", None))
         self.groupBox_Accessories.setTitle(_translate("DEMPropertiesWidget", "Sides and frame", None))
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides", None))

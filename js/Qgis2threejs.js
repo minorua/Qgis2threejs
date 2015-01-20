@@ -765,6 +765,7 @@ Q3D.MapLayer.prototype = {
         opt.opacity = m.o;
         opt.transparent = true;
       }
+      if (m.t) opt.transparent = true;
       if (m.w) opt.wireframe = true;
 
       if (m.type == Q3D.MaterialType.MeshLambert) {
@@ -799,12 +800,12 @@ Q3D.MapLayer.prototype = {
       if (m.type == Q3D.MaterialType.MeshFace) {
         var materials = m.m.materials;
         for (var i = 0, l = materials.length; i < l; i++) {
-          materials[i].transparent = (opacity < 1);
+          materials[i].transparent = Boolean(m.t) || (opacity < 1);
           materials[i].opacity = opacity;
         }
       }
       else {
-        m.m.transparent = (opacity < 1);
+        m.m.transparent = Boolean(m.t) || (opacity < 1);
         m.m.opacity = opacity;
       }
     });
