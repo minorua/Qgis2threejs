@@ -204,6 +204,9 @@ Q3D.application = {
     // restore view from URL parameters
     this._restoreViewFromUrl();
 
+    // wireframe mode setting
+    if ("wireframe" in this.urlParams) this.setWireframeMode(true);
+
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
     this.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.r),
