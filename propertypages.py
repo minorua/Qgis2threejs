@@ -266,7 +266,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layer = None
     self.demWidth = self.demHeight = 0
 
-    dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor, self.radioButton_Wireframe]
+    dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
@@ -492,10 +492,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         t = 1
       elif self.radioButton_ImageFile.isChecked():
         t = 2
-      elif self.radioButton_SolidColor.isChecked():
+      else:   # self.radioButton_SolidColor.isChecked():
         t = 3
-      else:   # self.radioButton_Wireframe.isChecked()
-        t = 4
 
       self.checkBox_TransparentBackground.setEnabled(t in [0, 1, 2])
       if t in [0, 1]:
@@ -508,9 +506,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.lineEdit_ImageFile.setEnabled(t == 2)
       self.toolButton_ImageFile.setEnabled(t == 2)
 
-      enabled = t in [3, 4]
-      self.lineEdit_Color.setEnabled(enabled)
-      self.toolButton_Color.setEnabled(enabled)
+      self.lineEdit_Color.setEnabled(t == 3)
+      self.toolButton_Color.setEnabled(t == 3)
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()

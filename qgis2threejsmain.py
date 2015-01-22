@@ -711,8 +711,8 @@ def writeSimpleDEM(writer, properties, progress=None):
   elif properties.get("radioButton_SolidColor", False):
     block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
-  elif properties.get("radioButton_Wireframe", False):
-    block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+  #elif properties.get("radioButton_Wireframe", False):
+  #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
   # shading (whether compute normals)
   if properties.get("checkBox_Shading", True):
@@ -843,9 +843,6 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
 
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
-
-    elif properties.get("radioButton_Wireframe", False):
-      block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # shading (whether compute normals)
     if properties.get("checkBox_Shading", True):
@@ -986,9 +983,6 @@ def writeMultiResDEM(writer, properties, progress=None):
       elif properties.get("radioButton_SolidColor", False):
         block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
-      elif properties.get("radioButton_Wireframe", False):
-        block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
-
       # shading (whether compute normals)
       if properties.get("checkBox_Shading", True):
         block["shading"] = True
@@ -1029,9 +1023,6 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
-
-    elif properties.get("radioButton_Wireframe", False):
-      block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
     # write block
     writer.openFile(True)

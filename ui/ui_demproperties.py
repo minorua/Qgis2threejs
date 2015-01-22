@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Tue Jan 20 10:09:04 2015
+# Created: Thu Jan 22 16:02:16 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -269,16 +269,9 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout.addLayout(self.horizontalLayout_ImageFile)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
-        self.verticalLayout_3 = QtGui.QVBoxLayout()
-        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.radioButton_SolidColor = QtGui.QRadioButton(self.groupBox_DisplayType)
         self.radioButton_SolidColor.setObjectName(_fromUtf8("radioButton_SolidColor"))
-        self.verticalLayout_3.addWidget(self.radioButton_SolidColor)
-        self.radioButton_Wireframe = QtGui.QRadioButton(self.groupBox_DisplayType)
-        self.radioButton_Wireframe.setEnabled(True)
-        self.radioButton_Wireframe.setObjectName(_fromUtf8("radioButton_Wireframe"))
-        self.verticalLayout_3.addWidget(self.radioButton_Wireframe)
-        self.horizontalLayout_7.addLayout(self.verticalLayout_3)
+        self.horizontalLayout_7.addWidget(self.radioButton_SolidColor)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_7.addItem(spacerItem)
         self.label = QtGui.QLabel(self.groupBox_DisplayType)
@@ -368,7 +361,6 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file", None))
         self.toolButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Browse...", None))
         self.radioButton_SolidColor.setText(_translate("DEMPropertiesWidget", "Solid color", None))
-        self.radioButton_Wireframe.setText(_translate("DEMPropertiesWidget", "Wireframe", None))
         self.label.setText(_translate("DEMPropertiesWidget", "Color", None))
         self.lineEdit_Color.setPlaceholderText(_translate("DEMPropertiesWidget", "0xrrggbb", None))
         self.toolButton_Color.setText(_translate("DEMPropertiesWidget", "...", None))

@@ -522,25 +522,11 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QRadioButton" name="radioButton_SolidColor">
-              <property name="text">
-               <string>Solid color</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_Wireframe">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Wireframe</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QRadioButton" name="radioButton_SolidColor">
+            <property name="text">
+             <string>Solid color</string>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_7">
