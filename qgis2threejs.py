@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt4.QtCore import QCoreApplication, QFile, qDebug    #, QSettings, QTranslator, qVersion
+from PyQt4.QtCore import QCoreApplication, QFile, Qt, qDebug    #, QSettings, QTranslator, qVersion
 from PyQt4.QtGui import QAction, QIcon
 
 from qgis2threejstools import removeTemporaryOutputDir
@@ -50,6 +50,7 @@ class Qgis2threejs:
 
     self.objectTypeManager = None
     self.properties = None
+    self.lastTreeItemData = None
     self.lastOutputFilename = ""
 
   def initGui(self):
@@ -82,7 +83,7 @@ class Qgis2threejs:
 
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
-    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.properties)
+    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.properties, self.lastTreeItemData)
 
     ui = dialog.ui
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
@@ -92,6 +93,8 @@ class Qgis2threejs:
     if dialog.exec_():
       self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
 
+    item = ui.treeWidget.currentItem()
+    self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None
     self.properties = dialog.properties
 
   def setting(self):

@@ -25,7 +25,7 @@
 import os
 
 from PyQt4.QtCore import Qt, QDir, QFileInfo, QSettings, qDebug, QEventLoop, SIGNAL
-from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem
+from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem, QTreeWidgetItemIterator
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
@@ -38,10 +38,11 @@ debug_mode = 1
 
 class Qgis2threejsDialog(QDialog):
 
-  def __init__(self, iface, objectTypeManager, properties=None):
+  def __init__(self, iface, objectTypeManager, properties=None, lastTreeItemData=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
     self.objectTypeManager = objectTypeManager
+    self.lastTreeItemData = lastTreeItemData
 
     self.templateType = None
     self.currentItem = None
@@ -206,20 +207,34 @@ class Qgis2threejsDialog(QDialog):
     if debug_mode:
       qDebug(str(self.properties))
 
+  def setCurrentTreeItemByData(self, data):
+    it = QTreeWidgetItemIterator(self.ui.treeWidget)
+    while it.value():
+      if it.value().data(0, Qt.UserRole) == data:
+        self.ui.treeWidget.setCurrentItem(it.value())
+        return True
+      it += 1
+    return False
+
   def currentTemplateChanged(self, index=None):
     cbox = self.ui.comboBox_Template
     templateType = cbox.itemData(cbox.currentIndex(), Qt.UserRole)
     if templateType == self.templateType:
       return
 
+    # hide items unsupported by template
     tree = self.ui.treeWidget
     for i, name in enumerate(ObjectTreeItem.topItemNames):
       hidden = (templateType == "sphere" and name != "Controls")
       tree.topLevelItem(i).setHidden(hidden)
 
-    itemToBeSelected = ObjectTreeItem.ITEM_CONTROLS if templateType == "sphere" else ObjectTreeItem.ITEM_DEM
-    tree.setCurrentItem(tree.topLevelItem(itemToBeSelected))
+    # set current tree item
+    if templateType == "sphere":
+      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.ITEM_CONTROLS))
+    elif self.lastTreeItemData is None or not self.setCurrentTreeItemByData(self.lastTreeItemData):   # restore selection
+      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.ITEM_DEM))   # default selection for plain is DEM
 
+    # display messages
     self.clearMessageBar()
     if templateType != "sphere":
       # show message if crs unit is degrees
@@ -277,6 +292,7 @@ class Qgis2threejsDialog(QDialog):
     if parent is None:
       return
 
+    # checkbox of optional layer checked/unchecked
     if item == self.currentItem:
       if self.currentPage:
         # update enablement of property widgets
