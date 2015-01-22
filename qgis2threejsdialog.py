@@ -357,11 +357,12 @@ class Qgis2threejsDialog(QDialog):
 
     # world properties
     world = self.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    baseSize = world.get("lineEdit_BaseSize", 100)
     verticalExaggeration = world.get("lineEdit_zFactor", 1.5)
     verticalShift = world.get("lineEdit_zShift", 0)
 
     # export to javascript (three.js)
-    mapTo3d = MapTo3D(canvas, verticalExaggeration=float(verticalExaggeration), verticalShift=float(verticalShift))
+    mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
     context = OutputContext(templateName, templateType, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
     htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
 

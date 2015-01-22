@@ -156,7 +156,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
-    self.registerPropertyWidgets([self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color, self.radioButton_WGS84])
+    self.registerPropertyWidgets([self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color, self.radioButton_WGS84])
     self.radioButton_Color.toggled.connect(self.backgroundToggled)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
@@ -200,6 +200,8 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
   def properties(self):
     p = PropertyPage.properties(self)
     # check validity
+    if not is_number(self.lineEdit_BaseSize.text()):
+      p["lineEdit_BaseSize"] = "100"
     if not is_number(self.lineEdit_zFactor.text()):
       p["lineEdit_zFactor"] = "1.5"
     if not is_number(self.lineEdit_zShift.text()):
@@ -618,9 +620,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    ba = float(world.get("lineEdit_BaseSize", 100))
     ve = float(world.get("lineEdit_zFactor", 1.5))
     vs = float(world.get("lineEdit_zShift", 0))
-    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
+    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), ba, ve, vs)
 
     # set up height widget and label height widget
     self.heightWidget.setup(options={"layer": layer})
@@ -660,9 +663,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
+    bs = float(world.get("lineEdit_BaseSize", 100))
     ve = float(world.get("lineEdit_zFactor", 1.5))
     vs = float(world.get("lineEdit_zShift", 0))
-    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), verticalExaggeration=ve, verticalShift=vs)
+    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), bs, ve, vs)
 
     # setup widgets
     self.dialog.objectTypeManager.setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)

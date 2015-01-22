@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\worldproperties.ui'
 #
-# Created: Tue Jan 13 14:11:54 2015
+# Created: Thu Jan 22 14:15:32 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WorldPropertiesWidget(object):
     def setupUi(self, WorldPropertiesWidget):
         WorldPropertiesWidget.setObjectName(_fromUtf8("WorldPropertiesWidget"))
-        WorldPropertiesWidget.resize(286, 366)
+        WorldPropertiesWidget.resize(286, 376)
         self.gridLayout = QtGui.QGridLayout(WorldPropertiesWidget)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
@@ -75,7 +75,7 @@ class Ui_WorldPropertiesWidget(object):
         self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
         self.label = QtGui.QLabel(self.groupBox_2)
         self.label.setObjectName(_fromUtf8("label"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label)
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.label)
         self.lineEdit_zFactor = QtGui.QLineEdit(self.groupBox_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -86,13 +86,20 @@ class Ui_WorldPropertiesWidget(object):
         self.lineEdit_zFactor.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
         self.lineEdit_zFactor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.lineEdit_zFactor.setObjectName(_fromUtf8("lineEdit_zFactor"))
-        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_zFactor)
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.lineEdit_zFactor)
         self.label_2 = QtGui.QLabel(self.groupBox_2)
         self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.formLayout_3.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_2)
         self.lineEdit_zShift = QtGui.QLineEdit(self.groupBox_2)
         self.lineEdit_zShift.setObjectName(_fromUtf8("lineEdit_zShift"))
-        self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.lineEdit_zShift)
+        self.formLayout_3.setWidget(2, QtGui.QFormLayout.FieldRole, self.lineEdit_zShift)
+        self.label_3 = QtGui.QLabel(self.groupBox_2)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_3)
+        self.lineEdit_BaseSize = QtGui.QLineEdit(self.groupBox_2)
+        self.lineEdit_BaseSize.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
+        self.lineEdit_BaseSize.setObjectName(_fromUtf8("lineEdit_BaseSize"))
+        self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_BaseSize)
         self.gridLayout.addWidget(self.groupBox_2, 1, 0, 1, 1)
         self.groupBox_1 = QtGui.QGroupBox(WorldPropertiesWidget)
         self.groupBox_1.setObjectName(_fromUtf8("groupBox_1"))
@@ -137,6 +144,8 @@ class Ui_WorldPropertiesWidget(object):
         self.lineEdit_zFactor.setText(_translate("WorldPropertiesWidget", "1.5", None))
         self.label_2.setText(_translate("WorldPropertiesWidget", "Vertical shift", None))
         self.lineEdit_zShift.setText(_translate("WorldPropertiesWidget", "0", None))
+        self.label_3.setText(_translate("WorldPropertiesWidget", "Base size", None))
+        self.lineEdit_BaseSize.setText(_translate("WorldPropertiesWidget", "100", None))
         self.groupBox_1.setTitle(_translate("WorldPropertiesWidget", "Map canvas", None))
         self.label_6.setText(_translate("WorldPropertiesWidget", "Extent", None))
         self.label_7.setText(_translate("WorldPropertiesWidget", "Size", None))
