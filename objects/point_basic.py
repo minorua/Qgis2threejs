@@ -49,7 +49,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
 def write(writer, layer, feat):
   mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
-  mapTo3d = writer.context.mapTo3d
+  mapTo3d = writer.settings.mapTo3d
   vals = feat.propValues()
   pts = feat.geom.asList()
   if feat.prop.type_index == 0:  # Sphere

@@ -158,7 +158,7 @@ def getTemplateConfig(template_path):
   parser = ConfigParser.SafeConfigParser()
   with open(meta_path, "r") as f:
     parser.readfp(f)
-  config = {}
+  config = {"path": template_path}
   for item in parser.items("general"):
     config[item[0]] = item[1]
   if debug_mode:

@@ -99,14 +99,14 @@ def write(writer, layer, feat):
   if feat.prop.type_index == 0:  # Extruded
     d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
     d["zs"] = zs
-    d["h"] = float(vals[0]) * writer.context.mapTo3d.multiplierZ
+    d["h"] = float(vals[0]) * writer.settings.mapTo3d.multiplierZ
 
   else:   # Overlay
     d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), True)
     if vals[0] is not None:
       d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
 
-    d["h"] = feat.relativeHeight() * writer.context.mapTo3d.multiplierZ
+    d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
 
     polygons = []
     triangles = Triangles()

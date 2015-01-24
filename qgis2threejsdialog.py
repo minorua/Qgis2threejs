@@ -30,7 +30,7 @@ from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, Qg
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
-from qgis2threejsmain import ObjectTreeItem, MapTo3D, OutputContext, exportToThreeJS
+from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToThreeJS
 import propertypages as ppages
 import qgis2threejstools as tools
 
@@ -365,37 +365,39 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     self.progress(0)
 
-    canvas = self.iface.mapCanvas()
-    cbox = self.ui.comboBox_Template
-    templateName = cbox.currentText()
-    templateType = cbox.itemData(cbox.currentIndex(), Qt.UserRole)
     htmlfilename = ui.lineEdit_OutputFilename.text()
 
-    # world properties
-    world = self.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    baseSize = world.get("lineEdit_BaseSize", 100)
-    verticalExaggeration = world.get("lineEdit_zFactor", 1.5)
-    verticalShift = world.get("lineEdit_zShift", 0)
+    # read configuration of the template
+    templateName = self.ui.comboBox_Template.currentText()
+    templatePath = os.path.join(tools.templateDir(), templateName)
+    templateConfig = tools.getTemplateConfig(templatePath)
 
-    # export to javascript (three.js)
-    mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
-    context = OutputContext(templateName, templateType, mapTo3d, canvas, self.properties, self, self.objectTypeManager, self.localBrowsingMode)
-    htmlfilename = exportToThreeJS(htmlfilename, context, self.progress)
+    canvas = self.iface.mapCanvas()
+
+    # export to web (three.js)
+    export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
+                                     self.properties, self, self.objectTypeManager,
+                                     self.localBrowsingMode)
+    ret = exportToThreeJS(export_settings, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
-    if htmlfilename is None:
+
+    if not ret:
       return
+
     self.clearRubberBands()
 
     # store last selections
     settings = QSettings()
     settings.setValue("/Qgis2threejs/lastTemplate", templateName)
-    settings.setValue("/Qgis2threejs/lastControls", context.controls)
+    settings.setValue("/Qgis2threejs/lastControls", export_settings.controls)
 
     # open browser
-    if not tools.openHTMLFile(htmlfilename):
+    if not tools.openHTMLFile(export_settings.htmlfilename):
       return
+
+    # close dialog
     QDialog.accept(self)
 
   def reject(self):

@@ -90,59 +90,6 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 
-class OutputContext:
-
-  def __init__(self, templateName, templateType, mapTo3d, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
-    self.templateName = templateName
-    self.templateType = templateType
-    self.mapTo3d = mapTo3d
-    self.canvas = canvas
-    self.baseExtent = canvas.extent()
-    self.properties = properties
-    self.dialog = dialog
-    self.objectTypeManager = objectTypeManager
-    self.localBrowsingMode = localBrowsingMode
-
-    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-    self.crs = self.mapSettings.destinationCrs()
-
-    wgs84 = QgsCoordinateReferenceSystem(4326)
-    transform = QgsCoordinateTransform(self.crs, wgs84)
-    self.wgs84Center = transform.transform(self.baseExtent.center())
-
-    self.image_basesize = 256
-    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
-
-    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
-    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
-
-    p = properties[ObjectTreeItem.ITEM_CONTROLS]
-    if p is None:
-      self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
-    else:
-      self.controls = p["comboBox_Controls"]
-
-    self.demLayerId = None
-    if templateType == "sphere":
-      return
-
-    self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
-    layer = None
-    if demLayerId:
-      layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
-
-    if layer:
-      self.warp_dem = tools.MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()))
-    else:
-      self.warp_dem = tools.FlatRaster()
-
-    self.triMesh = None
-
-  def triangleMesh(self):
-    if self.triMesh is None:
-      self.triMesh = TriangleMesh.createFromContext(self)
-    return self.triMesh
-
 class DataManager:
   """ manages a list of unique items """
 
@@ -167,7 +114,7 @@ class ImageManager(DataManager):
   def __init__(self, context):
     DataManager.__init__(self)
     self.context = context
-    self.renderer = None
+    self._renderer = None
 
   def imageIndex(self, path):
     img = (self.IMAGE_FILE, path)
@@ -202,7 +149,7 @@ class ImageManager(DataManager):
     return texData
 
   def saveMapCanvasImage(self):
-    texfilename = os.path.splitext(self.context.htmlfilename)[0] + ".png"
+    texfilename = self.context.path_root + ".png"
     self.context.canvas.saveAsImage(texfilename)
     texSrc = os.path.split(texfilename)[1]
     tools.removeTemporaryFiles([texfilename + "w"])
@@ -219,7 +166,7 @@ class ImageManager(DataManager):
 
     # save renderer
     self._labeling = labeling
-    self.renderer = renderer
+    self._renderer = renderer
 
     # layer list
     self._layerids = [mapLayer.id() for mapLayer in canvas.layers()]
@@ -230,10 +177,10 @@ class ImageManager(DataManager):
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
     antialias = True
 
-    if self.renderer is None:
+    if self._renderer is None:
       self._initRenderer()
 
-    renderer = self.renderer
+    renderer = self._renderer
     if layerids is None:
       renderer.setLayerSet(self._layerids)
     else:
@@ -433,32 +380,97 @@ class JSONManager(DataManager):
       QgsMessageLog.logMessage(u'JSON file not found: {0}'.format(path), "Qgis2threejs")
 
 
-class JSWriter:
-  def __init__(self, htmlfilename, context):
+class ExportSettings:
+
+  #TODO: remove dialog
+  #TODO: move objectTypeManager to writer
+  def __init__(self, htmlfilename, templateConfig, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
+
+    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
+
+    if not htmlfilename:
+      htmlfilename = tools.temporaryOutputDir() + "/%s.html" % self.timestamp
     self.htmlfilename = htmlfilename
-    self.context = context
+    self.path_root = os.path.splitext(htmlfilename)[0]
+    self.htmlfiletitle = os.path.basename(self.path_root)
+    self.title = self.htmlfiletitle
+
+    self.templateConfig = templateConfig
+
+    # MapTo3D object
+    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
+    baseSize = world.get("lineEdit_BaseSize", 100)
+    verticalExaggeration = world.get("lineEdit_zFactor", 1.5)
+    verticalShift = world.get("lineEdit_zShift", 0)
+    self.mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
+
+    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
+
+    self.canvas = canvas
+    self.baseExtent = canvas.extent()
+
+    self.properties = properties
+
+    self.dialog = dialog
+    self.objectTypeManager = objectTypeManager
+    self.localBrowsingMode = localBrowsingMode
+
+    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    self.crs = self.mapSettings.destinationCrs()
+
+    wgs84 = QgsCoordinateReferenceSystem(4326)
+    transform = QgsCoordinateTransform(self.crs, wgs84)
+    self.wgs84Center = transform.transform(self.baseExtent.center())
+
+    self.image_basesize = 256
+
+    controls = properties[ObjectTreeItem.ITEM_CONTROLS] or {}
+    self.controls = controls.get("comboBox_Controls")
+    if not self.controls:
+      self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
+
+    self.demLayerId = None
+    if templateConfig.get("type") == "sphere":
+      return
+
+    self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
+    layer = None
+    if demLayerId:
+      layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+
+    # TODO: move to writer
+    if layer:
+      self.warp_dem = tools.MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()))
+    else:
+      self.warp_dem = tools.FlatRaster()
+
+    # TODO: move to writer
+    self.triMesh = None
+
+  def triangleMesh(self):
+    if self.triMesh is None:
+      self.triMesh = TriangleMesh.createFromContext(self)
+    return self.triMesh
+
+
+class JSWriter:
+
+  def __init__(self, path_root):
+    self.path_root = path_root
     self.jsfile = None
     self.jsindex = -1
     self.jsfile_count = 0
-    self.layerCount = 0
-    self.currentLayerIndex = 0
-    self.currentFeatureIndex = -1
-    self.attrs = []
-    self.imageManager = ImageManager(context)
-    self.jsonManager = JSONManager()
-    #TODO: integrate OutputContext and JSWriter => ThreeJSExporter
-    #TODO: written flag
 
-  def setContext(self, context):
-    self.context = context
+  def __del__(self):
+    self.closeFile()
 
   def openFile(self, newfile=False):
     if newfile:
       self.prepareNext()
     if self.jsindex == -1:
-      jsfilename = os.path.splitext(self.htmlfilename)[0] + ".js"
+      jsfilename = self.path_root + ".js"
     else:
-      jsfilename = os.path.splitext(self.htmlfilename)[0] + "_%d.js" % self.jsindex
+      jsfilename = self.path_root + "_%d.js" % self.jsindex
     self.jsfile = codecs.open(jsfilename, "w", "UTF-8")
     self.jsfile_count += 1
 
@@ -467,22 +479,41 @@ class JSWriter:
       self.jsfile.close()
       self.jsfile = None
 
+  def prepareNext(self):
+    self.closeFile()
+    self.jsindex += 1
+
   def write(self, data):
     if self.jsfile is None:
       self.openFile()
     self.jsfile.write(data)
 
+
+class ThreejsJSWriter(JSWriter):
+
+  def __init__(self, settings):
+    JSWriter.__init__(self, settings.path_root)
+
+    self.settings = settings
+
+    self.layerCount = 0
+    self.currentLayerIndex = 0
+    self.currentFeatureIndex = -1
+    self.attrs = []
+
+    self.imageManager = ImageManager(settings)
+    self.jsonManager = JSONManager()
+
   def writeProject(self):
     # write project information
     self.write(u"// Qgis2threejs Project\n")
-    title = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
-    extent = self.context.baseExtent
-    mapTo3d = self.context.mapTo3d
-    wgs84Center = self.context.wgs84Center
+    extent = self.settings.baseExtent
+    mapTo3d = self.settings.mapTo3d
+    wgs84Center = self.settings.wgs84Center
 
-    opt = {"title": title,
-           "crs": unicode(self.context.crs.authid()),
-           "proj": self.context.crs.toProj4(),
+    opt = {"title": self.settings.title,
+           "crs": unicode(self.settings.crs.authid()),
+           "proj": self.settings.crs.toProj4(),
            "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
            "width": mapTo3d.planeWidth,
            "zExaggeration": mapTo3d.verticalExaggeration,
@@ -525,54 +556,31 @@ class JSWriter:
   def writeJSONData(self):
     self.jsonManager.write(self)
 
-  def prepareNext(self):
-    self.closeFile()
-    self.jsindex += 1
-
-  def options(self):
-    options = []
-    properties = self.context.properties
-    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
-    if world.get("radioButton_Color", False):
-      options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
-
-    return "\n".join(options)
-
   def scripts(self):
-    lines = []
-
-    if self.context.coordsInWGS84:
-      # display coordinates in latitude and longitude
-      lines.append('<script src="./proj4js/proj4.js"></script>')
-
-    filetitle = os.path.splitext(os.path.split(self.htmlfilename)[1])[0]
+    filetitle = self.settings.htmlfiletitle
     if self.jsindex == -1:
-      lines.append('<script src="./%s.js"></script>' % filetitle)
+      lines = ['<script src="./%s.js"></script>' % filetitle]
     else:
-      lines += map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
-    return "\n".join(lines)
+      lines = map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
+    return lines
 
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
 
-def exportToThreeJS(htmlfilename, context, progress=None):
+def exportToThreeJS(settings, progress=None):
   if progress is None:
     progress = dummyProgress
 
-  if htmlfilename == "":
-    htmlfilename = tools.temporaryOutputDir() + "/%s.html" % context.timestamp
-  out_dir, filename = os.path.split(htmlfilename)
+  out_dir = os.path.split(settings.htmlfilename)[0]
   if not QDir(out_dir).exists():
     QDir().mkpath(out_dir)
 
-  context.htmlfilename = htmlfilename
-
-  # create JavaScript writer object
-  writer = JSWriter(htmlfilename, context)
+  # ThreejsJSWriter object
+  writer = ThreejsJSWriter(settings)
 
   # read configuration of the template
-  templatePath = os.path.join(tools.templateDir(), context.templateName)
-  templateConfig = tools.getTemplateConfig(templatePath)
+  templateConfig = settings.templateConfig
+  templatePath = templateConfig["path"]
   templateType = templateConfig.get("type", "plain")
   if templateType == "sphere":
     writer.openFile(False)
@@ -581,7 +589,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
     writeSphereTexture(writer)
   else:
     # plain type
-    demProperties = context.properties[ObjectTreeItem.ITEM_DEM]
+    demProperties = settings.properties[ObjectTreeItem.ITEM_DEM]
     isSimpleMode = demProperties.get("radioButton_Simple", False)
     writer.openFile(not isSimpleMode)
     writer.writeProject()
@@ -596,7 +604,7 @@ def exportToThreeJS(htmlfilename, context, progress=None):
 
     # write additional DEM(s)
     primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
-    for layerId, properties in context.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
+    for layerId, properties in settings.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
       if layerId != primaryDEMLayerId and properties.get("visible", False):
         writeSimpleDEM(writer, properties)
 
@@ -609,34 +617,51 @@ def exportToThreeJS(htmlfilename, context, progress=None):
   progress(60, "Writing texture images")
   writer.writeImages()
   writer.writeJSONData()
+  writer.closeFile()
 
   progress(90, "Copying library files")
 
   # copy three.js files
-  tools.copyThreejsFiles(out_dir, context.controls)
+  tools.copyThreejsFiles(out_dir, settings.controls)
 
   # copy proj4js files
-  if context.coordsInWGS84:
+  if settings.coordsInWGS84:
     tools.copyProj4js(out_dir)
 
   # copy additional library files
   tools.copyLibraries(out_dir, templateConfig)
 
   # generate html file
+  options = []
+  world = settings.properties[ObjectTreeItem.ITEM_WORLD] or {}
+  if world.get("radioButton_Color", False):
+    options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+
+  scripts = []
+  if settings.coordsInWGS84:
+    # display coordinates in latitude and longitude
+    scripts.append('<script src="./proj4js/proj4.js"></script>')
+  scripts += writer.scripts()
+
+  # read html template
   with codecs.open(templatePath, "r", "UTF-8") as f:
     html = f.read()
 
-  filetitle = os.path.splitext(filename)[0]
-  with codecs.open(htmlfilename, "w", "UTF-8") as f:
-    f.write(html.replace("${title}", filetitle).replace("${controls}", '<script src="./threejs/%s"></script>' % context.controls).replace("${options}", writer.options()).replace("${scripts}", writer.scripts()))
+  html = html.replace("${title}", settings.title)
+  html = html.replace("${controls}", '<script src="./threejs/%s"></script>' % settings.controls)
+  html = html.replace("${options}", "\n".join(options))
+  html = html.replace("${scripts}", "\n".join(scripts))
 
-  return htmlfilename
+  # write html
+  with codecs.open(settings.htmlfilename, "w", "UTF-8") as f:
+    f.write(html)
+
+  return True
 
 def writeSimpleDEM(writer, properties, progress=None):
-  context = writer.context
-  mapTo3d = context.mapTo3d
-  extent = context.baseExtent
-  htmlfilename = writer.htmlfilename
+  settings = writer.settings
+  mapTo3d = settings.mapTo3d
+  extent = settings.baseExtent
   if progress is None:
     progress = dummyProgress
 
@@ -649,7 +674,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   xres = extent.width() / (dem_width - 1)
   yres = extent.height() / (dem_height - 1)
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
-  wkt = str(context.crs.toWkt())
+  wkt = str(settings.crs.toWkt())
 
   mapLayer = None
   demLayerId = properties["comboBox_DEMLayer"]
@@ -682,7 +707,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
 
   # layer
-  layer = DEMLayer(context, mapLayer, prop)
+  layer = DEMLayer(settings, mapLayer, prop)
   lyr = {"type": "dem", "name": layerName, "stats": stats}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
@@ -701,7 +726,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   elif properties.get("radioButton_LayerImage", False):
     layerid = properties.get("comboBox_ImageLayer")
-    size = context.mapSettings.outputSize()
+    size = settings.mapSettings.outputSize()
     block["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
@@ -760,9 +785,9 @@ def roughenEdges(width, height, values, interval):
         values[x + width * (y0 + yy)] = z
 
 def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=None):
-  context = writer.context
-  mapTo3d = context.mapTo3d
-  baseExtent = context.baseExtent
+  settings = writer.settings
+  mapTo3d = settings.mapTo3d
+  baseExtent = settings.baseExtent
   if progress is None:
     progress = dummyProgress
 
@@ -776,19 +801,18 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
 
-  wkt = str(context.crs.toWkt())
+  wkt = str(settings.crs.toWkt())
 
   # texture image size
   hpw = baseExtent.height() / baseExtent.width()
   if hpw < 1:
-    image_width = context.image_basesize
+    image_width = settings.image_basesize
     image_height = round(image_width * hpw)
-    #image_height = context.image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
+    #image_height = settings.image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
   else:
-    image_height = context.image_basesize
+    image_height = settings.image_basesize
     image_width = round(image_height / hpw)
 
-  scripts = []
   plane_index = 1
   size2 = size * size
   for i in range(size2):
@@ -854,19 +878,15 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     plane_index += 1
 
 def writeMultiResDEM(writer, properties, progress=None):
-  context = writer.context
-  mapTo3d = context.mapTo3d
-  baseExtent = context.baseExtent
+  settings = writer.settings
+  mapTo3d = settings.mapTo3d
+  baseExtent = settings.baseExtent
   if progress is None:
     progress = dummyProgress
   prop = DEMPropertyReader(properties)
   demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
   if demlayer is None:
     return
-  htmlfilename = writer.htmlfilename
-
-  out_dir, filename = os.path.split(htmlfilename)
-  filetitle = os.path.splitext(filename)[0]
 
   # material options
   transparency = properties["spinBox_demtransp"]
@@ -874,12 +894,12 @@ def writeMultiResDEM(writer, properties, progress=None):
   imageLayerId = properties.get("comboBox_ImageLayer")
 
   # layer
-  layer = DEMLayer(context, demlayer, prop)
+  layer = DEMLayer(settings, demlayer, prop)
   lyr = {"type": "dem", "name": demlayer.name()}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
 
-  # create quad tree
+  # create quad tree    #TODO: move to dialog/settings
   quadtree = createQuadTree(baseExtent, properties)
   if quadtree is None:
     QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
@@ -887,15 +907,15 @@ def writeMultiResDEM(writer, properties, progress=None):
   quads = quadtree.quads()
 
   # create quads and a point on map canvas with rubber bands
-  context.dialog.createRubberBands(quads, quadtree.focusRect.center())
+  settings.dialog.createRubberBands(quads, quadtree.focusRect.center())
 
   # image size
   hpw = baseExtent.height() / baseExtent.width()
   if hpw < 1:
-    image_width = context.image_basesize
+    image_width = settings.image_basesize
     image_height = round(image_width * hpw)
   else:
-    image_height = context.image_basesize
+    image_height = settings.image_basesize
     image_width = round(image_height / hpw)
 
   # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
@@ -903,11 +923,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
   warp_dem = tools.MemoryWarpRaster(demlayer.source(), str(demlayer.crs().toWkt()))
-  wkt = str(context.crs.toWkt())
+  wkt = str(settings.crs.toWkt())
 
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
-  scripts = []
   stats = None
   plane_index = 0
   for i, quad in enumerate(quads):
@@ -1008,10 +1027,10 @@ def writeMultiResDEM(writer, properties, progress=None):
     block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
 
     if hpw < 1:
-      image_width = context.image_basesize * centerQuads.width()
+      image_width = settings.image_basesize * centerQuads.width()
       image_height = round(image_width * hpw)
     else:
-      image_height = context.image_basesize * centerQuads.height()
+      image_height = settings.image_basesize * centerQuads.height()
       image_width = round(image_height / hpw)
 
     # display type
@@ -1373,16 +1392,16 @@ class VectorLayer(Layer):
 
 
 def writeVectors(writer, progress=None):
-  context = writer.context
-  baseExtent = context.baseExtent
-  mapTo3d = context.mapTo3d
+  settings = writer.settings
+  baseExtent = settings.baseExtent
+  mapTo3d = settings.mapTo3d
   renderer = QgsMapRenderer()
   if progress is None:
     progress = dummyProgress
 
   layerProperties = {}
   for itemType in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
-    for layerId, properties in context.properties[itemType].iteritems():
+    for layerId, properties in settings.properties[itemType].iteritems():
       if properties.get("visible", False):
         layerProperties[layerId] = properties
 
@@ -1392,8 +1411,8 @@ def writeVectors(writer, progress=None):
     if mapLayer is None:
       continue
 
-    prop = VectorPropertyReader(context.objectTypeManager, mapLayer, properties)
-    obj_mod = context.objectTypeManager.module(prop.mod_index)
+    prop = VectorPropertyReader(settings.objectTypeManager, mapLayer, properties)
+    obj_mod = settings.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
@@ -1402,12 +1421,12 @@ def writeVectors(writer, progress=None):
     geom_type = mapLayer.geometryType()
     if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
       progress(None, "Initializing triangle mesh for overlay polygons")
-      context.triangleMesh()
+      settings.triangleMesh()
 
     progress(30 + 30 * finishedLayers / len(layerProperties), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layerProperties), mapLayer.name()))
 
     # layer object
-    layer = VectorLayer(context, mapLayer, prop)
+    layer = VectorLayer(settings, mapLayer, prop)
 
     # TODO: do these in VectorLayer.__init__()
     lyr = {"name": mapLayer.name()}
@@ -1475,8 +1494,7 @@ def writeVectors(writer, progress=None):
 
 
 def writeSphereTexture(writer):
-  #context = writer.context
-  canvas = writer.context.canvas
+  canvas = writer.settings.canvas
   antialias = True
 
   image_height = 1024
@@ -1508,7 +1526,7 @@ def writeSphereTexture(writer):
   renderer.render(painter)
   painter.end()
 
-  #if context.localBrowsingMode:
+  #if settings.localBrowsingMode:
   texData = tools.base64image(image)
   writer.write('var tex = "{0}";\n'.format(texData))
 

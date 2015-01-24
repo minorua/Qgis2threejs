@@ -36,7 +36,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
 
 def write(writer, layer, feat):
-  mapTo3d = writer.context.mapTo3d
+  mapTo3d = writer.settings.mapTo3d
   if feat.prop.type_index in [0, 3]:   # Line or Profile
     if feat.prop.type_index == 0:
       mat = layer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
