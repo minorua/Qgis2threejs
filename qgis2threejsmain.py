@@ -382,8 +382,12 @@ class JSONManager(DataManager):
 
 class ExportSettings:
 
-  #TODO: remove dialog
-  def __init__(self, htmlfilename, templateConfig, canvas, properties, dialog, localBrowsingMode=True):
+  # export mode
+  PLAIN_SIMPLE = 0
+  PLAIN_MULTI_RES = 1
+  SPHERE = 2
+
+  def __init__(self, htmlfilename, templateConfig, canvas, properties, localBrowsingMode=True):
 
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -410,7 +414,6 @@ class ExportSettings:
 
     self.properties = properties
 
-    self.dialog = dialog
     self.localBrowsingMode = localBrowsingMode
 
     self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
@@ -428,12 +431,22 @@ class ExportSettings:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
 
     self.demLayer = None
+    self.quadtree = None
     if templateConfig.get("type") == "sphere":
+      self.exportMode = ExportSettings.SPHERE
       return
 
-    demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
+    demProperties = properties[ObjectTreeItem.ITEM_DEM]
+    demLayerId = demProperties["comboBox_DEMLayer"]
     if demLayerId:
       self.demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+
+    if demProperties.get("radioButton_Simple", False):
+      self.exportMode = ExportSettings.PLAIN_SIMPLE
+    else:
+      self.exportMode = ExportSettings.PLAIN_MULTI_RES
+      self.quadtree = createQuadTree(self.baseExtent, demProperties)
+
 
 class JSWriter:
 
@@ -575,21 +588,22 @@ def exportToThreeJS(settings, objectTypeManager, progress=None):
   # read configuration of the template
   templateConfig = settings.templateConfig
   templatePath = templateConfig["path"]
-  templateType = templateConfig.get("type", "plain")
-  if templateType == "sphere":
+
+  if settings.exportMode == ExportSettings.SPHERE:
     writer.openFile(False)
     # render texture for sphere and write it
     progress(5, "Rendering texture")
     writeSphereTexture(writer)
   else:
     # plain type
-    demProperties = settings.properties[ObjectTreeItem.ITEM_DEM]
-    isSimpleMode = demProperties.get("radioButton_Simple", False)
+    isSimpleMode = bool(settings.exportMode == ExportSettings.PLAIN_SIMPLE)
+
     writer.openFile(not isSimpleMode)
     writer.writeProject()
     progress(5, "Writing DEM")
 
     # write primary DEM
+    demProperties = settings.properties[ObjectTreeItem.ITEM_DEM]
     if isSimpleMode:
       writeSimpleDEM(writer, demProperties, progress)
     else:
@@ -878,7 +892,6 @@ def writeMultiResDEM(writer, properties, progress=None):
   if progress is None:
     progress = dummyProgress
   prop = DEMPropertyReader(properties)
-
   demLayerId = properties["comboBox_DEMLayer"]
   demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
   if demLayer is None:
@@ -897,16 +910,6 @@ def writeMultiResDEM(writer, properties, progress=None):
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
 
-  # create quad tree    #TODO: move to dialog/settings
-  quadtree = createQuadTree(baseExtent, properties)
-  if quadtree is None:
-    QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
-    return
-  quads = quadtree.quads()
-
-  # create quads and a point on map canvas with rubber bands
-  settings.dialog.createRubberBands(quads, quadtree.focusRect.center())
-
   # image size
   hpw = baseExtent.height() / baseExtent.width()
   if hpw < 1:
@@ -915,6 +918,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   else:
     image_height = settings.image_basesize
     image_width = round(image_height / hpw)
+
+  # quad tree
+  quadtree = settings.quadtree
+  quads = quadtree.quads()
 
   # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
   # with smooth resolution change, this is not necessary

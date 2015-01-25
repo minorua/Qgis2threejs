@@ -352,8 +352,9 @@ class Qgis2threejsDialog(QDialog):
   def run(self):
     ui = self.ui
     filename = ui.lineEdit_OutputFilename.text()   # ""=Temporary file
-    if filename != "" and QFileInfo(filename).exists() and QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
-      return
+    if filename and QFileInfo(filename).exists():
+      if QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+        return
     self.endPointSelection()
 
     # save properties of current object
@@ -376,7 +377,19 @@ class Qgis2threejsDialog(QDialog):
 
     # export to web (three.js)
     export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
-                                     self.properties, self, self.localBrowsingMode)
+                                     self.properties, self.localBrowsingMode)
+
+    # check validity of settings
+    if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
+      quadtree = export_settings.quadtree
+      if quadtree is None:
+        QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
+        return
+
+      # update quads and point on map canvas
+      self.createRubberBands(quadtree.quads(), quadtree.focusRect.center())
+
+    # export
     ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
 
     self.progress(100)
