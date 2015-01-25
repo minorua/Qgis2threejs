@@ -1494,41 +1494,8 @@ def writeVectors(writer, progress=None):
 
 
 def writeSphereTexture(writer):
-  canvas = writer.settings.canvas
-  antialias = True
-
-  image_height = 1024
-  image_width = 2 * image_height
-  image = QImage(image_width, image_height, QImage.Format_ARGB32_Premultiplied)
-
-  # fill image with canvas color
-  image.fill(canvas.canvasColor().rgba())
-
-  # set up a renderer
-  renderer = QgsMapRenderer()
-  renderer.setOutputSize(image.size(), image.logicalDpiX())
-
-  crs = QgsCoordinateReferenceSystem(4326)
-  renderer.setDestinationCrs(crs)
-  renderer.setProjectionsEnabled(True)
-
-  layerids = [layer.id() for layer in canvas.layers()]
-  renderer.setLayerSet(layerids)
-
-  extent = QgsRectangle(-180, -90, 180, 90)
-  renderer.setExtent(extent)
-
-  # render map image
-  painter = QPainter()
-  painter.begin(image)
-  if antialias:
-    painter.setRenderHint(QPainter.Antialiasing)
-  renderer.render(painter)
-  painter.end()
-
-  #if settings.localBrowsingMode:
-  texData = tools.base64image(image)
-  writer.write('var tex = "{0}";\n'.format(texData))
+  # removed (moved to exp_sphere branch)
+  pass
 
 
 class GeometryUtils:
