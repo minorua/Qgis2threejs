@@ -376,9 +376,8 @@ class Qgis2threejsDialog(QDialog):
 
     # export to web (three.js)
     export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
-                                     self.properties, self, self.objectTypeManager,
-                                     self.localBrowsingMode)
-    ret = exportToThreeJS(export_settings, self.progress)
+                                     self.properties, self, self.localBrowsingMode)
+    ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)

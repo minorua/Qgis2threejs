@@ -383,8 +383,7 @@ class JSONManager(DataManager):
 class ExportSettings:
 
   #TODO: remove dialog
-  #TODO: move objectTypeManager to writer
-  def __init__(self, htmlfilename, templateConfig, canvas, properties, dialog, objectTypeManager, localBrowsingMode=True):
+  def __init__(self, htmlfilename, templateConfig, canvas, properties, dialog, localBrowsingMode=True):
 
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -412,7 +411,6 @@ class ExportSettings:
     self.properties = properties
 
     self.dialog = dialog
-    self.objectTypeManager = objectTypeManager
     self.localBrowsingMode = localBrowsingMode
 
     self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
@@ -429,29 +427,13 @@ class ExportSettings:
     if not self.controls:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
 
-    self.demLayerId = None
+    self.demLayer = None
     if templateConfig.get("type") == "sphere":
       return
 
-    self.demLayerId = demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
-    layer = None
+    demLayerId = properties[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"]
     if demLayerId:
-      layer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
-
-    # TODO: move to writer
-    if layer:
-      self.warp_dem = tools.MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()))
-    else:
-      self.warp_dem = tools.FlatRaster()
-
-    # TODO: move to writer
-    self.triMesh = None
-
-  def triangleMesh(self):
-    if self.triMesh is None:
-      self.triMesh = TriangleMesh.createFromContext(self)
-    return self.triMesh
-
+      self.demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
 
 class JSWriter:
 
@@ -491,18 +473,25 @@ class JSWriter:
 
 class ThreejsJSWriter(JSWriter):
 
-  def __init__(self, settings):
+  def __init__(self, settings, objectTypeManager):
     JSWriter.__init__(self, settings.path_root)
 
     self.settings = settings
+    self.objectTypeManager = objectTypeManager
 
     self.layerCount = 0
     self.currentLayerIndex = 0
     self.currentFeatureIndex = -1
     self.attrs = []
 
+    if settings.demLayer:
+      self.warp_dem = tools.MemoryWarpRaster(settings.demLayer.source(), str(settings.demLayer.crs().toWkt()))
+    else:
+      self.warp_dem = tools.FlatRaster()
+
     self.imageManager = ImageManager(settings)
     self.jsonManager = JSONManager()
+    self.triMesh = None
 
   def writeProject(self):
     # write project information
@@ -564,10 +553,15 @@ class ThreejsJSWriter(JSWriter):
       lines = map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
     return lines
 
+  def triangleMesh(self):
+    if self.triMesh is None:
+      self.triMesh = TriangleMesh.createFromExportSettings(self.settings)
+    return self.triMesh
+
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
 
-def exportToThreeJS(settings, progress=None):
+def exportToThreeJS(settings, objectTypeManager, progress=None):
   if progress is None:
     progress = dummyProgress
 
@@ -576,7 +570,7 @@ def exportToThreeJS(settings, progress=None):
     QDir().mkpath(out_dir)
 
   # ThreejsJSWriter object
-  writer = ThreejsJSWriter(settings)
+  writer = ThreejsJSWriter(settings, objectTypeManager)
 
   # read configuration of the template
   templateConfig = settings.templateConfig
@@ -676,14 +670,14 @@ def writeSimpleDEM(writer, properties, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(settings.crs.toWkt())
 
-  mapLayer = None
+  demLayer = None
   demLayerId = properties["comboBox_DEMLayer"]
   if demLayerId:
-    mapLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+    demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
 
-  if mapLayer:
-    layerName = mapLayer.name()
-    warp_dem = tools.MemoryWarpRaster(mapLayer.source(), str(mapLayer.crs().toWkt()))
+  if demLayer:
+    layerName = demLayer.name()
+    warp_dem = tools.MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()))
   else:
     layerName = "Flat plane"
     warp_dem = tools.FlatRaster()
@@ -707,7 +701,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
 
   # layer
-  layer = DEMLayer(settings, mapLayer, prop)
+  layer = DEMLayer(writer, demLayer, prop)
   lyr = {"type": "dem", "name": layerName, "stats": stats}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
@@ -884,9 +878,13 @@ def writeMultiResDEM(writer, properties, progress=None):
   if progress is None:
     progress = dummyProgress
   prop = DEMPropertyReader(properties)
-  demlayer = QgsMapLayerRegistry.instance().mapLayer(properties["comboBox_DEMLayer"])
-  if demlayer is None:
+
+  demLayerId = properties["comboBox_DEMLayer"]
+  demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+  if demLayer is None:
     return
+
+  warp_dem = tools.MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()))
 
   # material options
   transparency = properties["spinBox_demtransp"]
@@ -894,8 +892,8 @@ def writeMultiResDEM(writer, properties, progress=None):
   imageLayerId = properties.get("comboBox_ImageLayer")
 
   # layer
-  layer = DEMLayer(settings, demlayer, prop)
-  lyr = {"type": "dem", "name": demlayer.name()}
+  layer = DEMLayer(writer, demLayer, prop)
+  lyr = {"type": "dem", "name": demLayer.name()}
   lyr["q"] = 1    #queryable
   lyrIdx = writer.writeLayer(lyr)
 
@@ -922,7 +920,6 @@ def writeMultiResDEM(writer, properties, progress=None):
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
-  warp_dem = tools.MemoryWarpRaster(demlayer.source(), str(demlayer.crs().toWkt()))
   wkt = str(settings.crs.toWkt())
 
   unites_center = True
@@ -1106,11 +1103,11 @@ class TriangleMesh:
     return polygons
 
   @classmethod
-  def createFromContext(cls, context):
-    prop = DEMPropertyReader(context.properties[ObjectTreeItem.ITEM_DEM])
+  def createFromExportSettings(cls, settings):
+    prop = DEMPropertyReader(settings.properties[ObjectTreeItem.ITEM_DEM])
     dem_width = prop.width()
     dem_height = prop.height()
-    extent = context.baseExtent
+    extent = settings.baseExtent
     triMesh = TriangleMesh(extent.xMinimum(), extent.yMinimum(),
                            extent.xMaximum(), extent.yMaximum(),
                            dem_width - 1, dem_height - 1)
@@ -1292,10 +1289,10 @@ class PolygonGeometry:
 
 class Feature:
 
-  def __init__(self, layer):
+  def __init__(self, writer, layer):
+    self.writer = writer
     self.layer = layer
 
-    self.context = layer.context
     self.prop = layer.prop
     self.wkt = layer.wkt
     self.transform = layer.transform
@@ -1330,20 +1327,21 @@ class Feature:
     # z_func: function to get z coordinate at given point (x, y)
     if self.prop.isHeightRelativeToDEM():
       # calculate elevation with dem
-      z_func = lambda x, y: self.context.warp_dem.readValue(self.wkt, x, y)
+      z_func = lambda x, y: self.writer.warp_dem.readValue(self.wkt, x, y)
     else:
       z_func = lambda x, y: 0
 
     # transform_func: function to transform the map coordinates to 3d coordinates
+    mapTo3d = self.writer.settings.mapTo3d
     relativeHeight = self.prop.relativeHeight(feat)
     def transform_func(x, y, z):
-      return self.context.mapTo3d.transform(x, y, z + relativeHeight)
+      return mapTo3d.transform(x, y, z + relativeHeight)
 
     if self.geomType == QGis.Polygon:
       triMesh = None
       if self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
         z_func = lambda x, y: 0
-        triMesh = self.context.triangleMesh()
+        triMesh = self.writer.triangleMesh()
       self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel, triMesh)
     elif self.prop.useZ():
       self.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
@@ -1365,8 +1363,8 @@ class Feature:
 
 class Layer:
 
-  def __init__(self, context, layer, prop):
-    self.context = context
+  def __init__(self, writer, layer, prop):
+    self.writer = writer
     self.layer = layer
     self.prop = prop
 
@@ -1381,11 +1379,12 @@ class VectorLayer(Layer):
 
   geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
 
-  def __init__(self, context, layer, prop):
-    Layer.__init__(self, context, layer, prop)
+  def __init__(self, writer, layer, prop):
+    Layer.__init__(self, writer, layer, prop)
 
-    self.wkt = str(context.crs.toWkt())
-    self.transform = QgsCoordinateTransform(layer.crs(), context.crs)
+    crs = writer.settings.crs
+    self.wkt = str(crs.toWkt())
+    self.transform = QgsCoordinateTransform(layer.crs(), crs)
     self.geomType = layer.geometryType()
     self.geomClass = self.geomType2Class.get(self.geomType)
     self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
@@ -1411,8 +1410,8 @@ def writeVectors(writer, progress=None):
     if mapLayer is None:
       continue
 
-    prop = VectorPropertyReader(settings.objectTypeManager, mapLayer, properties)
-    obj_mod = settings.objectTypeManager.module(prop.mod_index)
+    prop = VectorPropertyReader(writer.objectTypeManager, mapLayer, properties)
+    obj_mod = writer.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
       qDebug("Module not found")
       continue
@@ -1421,12 +1420,12 @@ def writeVectors(writer, progress=None):
     geom_type = mapLayer.geometryType()
     if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
       progress(None, "Initializing triangle mesh for overlay polygons")
-      settings.triangleMesh()
+      writer.triangleMesh()
 
     progress(30 + 30 * finishedLayers / len(layerProperties), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layerProperties), mapLayer.name()))
 
     # layer object
-    layer = VectorLayer(settings, mapLayer, prop)
+    layer = VectorLayer(writer, mapLayer, prop)
 
     # TODO: do these in VectorLayer.__init__()
     lyr = {"name": mapLayer.name()}
@@ -1454,7 +1453,7 @@ def writeVectors(writer, progress=None):
     # write layer object
     writer.writeLayer(lyr, fieldNames)    #TODO: writer.writeLayer(layer) or writer.write(layer.obj)
 
-    feat = Feature(layer)
+    feat = Feature(writer, layer)
 
     # initialize symbol rendering
     mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
