@@ -21,116 +21,34 @@
 """
 from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
 from PyQt4.QtGui import QMessageBox
-import sys
 import os
 import ConfigParser
+import re
 import shutil
-import struct
 import webbrowser
-
-try:
-  from osgeo import gdal
-except ImportError:
-  import gdal
-
-from gdal2threejs import Raster
 
 debug_mode = 1
 
-class MemoryWarpRaster(Raster):
-  def __init__(self, filename, wkt=None):
-    Raster.__init__(self, filename)
-    self.driver = gdal.GetDriverByName("MEM")
-    if wkt:
-      self.ds.SetProjection(str(wkt))
-
-  def read(self, width, height, wkt, geotransform):
-    # create a memory dataset
-    warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(wkt)
-    warped_ds.SetGeoTransform(geotransform)
-
-    # reproject image
-    gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
-
-    # load values into an array
-    values = []
-    fs = "f" * width
-    band = warped_ds.GetRasterBand(1)
-    for py in range(height):
-      values += struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
-    return values
-
-  def readValue(self, wkt, x, y):
-    # get value at the position using 1px * 1px memory raster
-    res = 0.1
-    geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self.read(1, 1, wkt, geotransform)[0]
-
-class FlatRaster:
-  def __init__(self, value=0):
-    self.value = value
-
-  def read(self, width, height, wkt, geotransform):
-    return [self.value] * width * height
-
-  def readValue(self, wkt, x, y):
-    return self.value
-
-def warpDEM(layer, crs, extent, width, height, multiplier):
-  # calculate extent. output dem should be handled as points.
-  xres = extent.width() / (width - 1)
-  yres = extent.height() / (height - 1)
-  geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
-  wkt = str(crs.toWkt())
-
-  if debug_mode:
-    qDebug("warpDEM: %d x %d, extent %s" % (width, height, str(geotransform)))
-
-  warped_dem = MemoryWarpRaster(layer.source().encode("UTF-8"))
-  values = warped_dem.read(width, height, wkt, geotransform)
-  warped_dem.close()
-  if multiplier != 1:
-    values = map(lambda x: x * multiplier, values)
-  return values
-
-def generateDEM(layer, crs, extent, width, height, demfilename):
-  # generate dem file
-  # gdalwarp options
-  options = []
-  options.append("--config GDAL_FILENAME_IS_UTF8 NO")
-  options.append("-r bilinear")
-
-  # calculate extent. note: pixel is area in the output geotiff, but pixel should be handled as point
-  xres = extent.width() / width
-  yres = extent.height() / height
-  ext = (extent.xMinimum() - xres / 2, extent.yMinimum() - yres / 2, extent.xMaximum() + xres / 2, extent.yMaximum() + yres / 2)
-  options.append("-te %f %f %f %f" % ext)
-  options.append("-ts %d %d" % (width + 1, height + 1))
-
-  # target crs
-  authid = crs.authid()
-  if authid.startswith("EPSG:"):
-    options.append("-t_srs %s" % authid)
-  else:
-    options.append('-t_srs "%s"' % crs.toProj4())
-
-  options.append('"' + layer.source() + '"')
-  options.append('"' + demfilename + '"')
-
-  # run gdalwarp command
-  cmd = "gdalwarp " + u" ".join(options)
-  if debug_mode:
-    qDebug(cmd.encode("UTF-8"))
-  process = QProcess()
-  process.start(cmd)
-  process.waitForFinished()
-  if not os.path.exists(demfilename):
-    hint = ""
-    if os.system("gdalwarp --help-general"):
-      hint = "gdalwarp is not installed."
-    return "Failed to generate a dem file using gdalwarp. " + hint
-  return 0
+def pyobj2js(obj, escape=False, quoteHex=True):
+  if isinstance(obj, dict):
+    items = [u"{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
+    return "{" + ",".join(items) + "}"
+  elif isinstance(obj, list):
+    items = [unicode(pyobj2js(v, escape, quoteHex)) for v in obj]
+    return "[" + ",".join(items) + "]"
+  elif isinstance(obj, bool):
+    return "true" if obj else "false"
+  elif isinstance(obj, (str, unicode)):
+    if escape:
+      return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
+      return obj
+    return '"' + obj + '"'
+  elif isinstance(obj, (int, float)):
+    return obj
+  elif obj == NULL:   # qgis.core.NULL
+    return "null"
+  return '"' + str(obj) + '"'
 
 def openHTMLFile(htmlfilename):
   settings = QSettings()
