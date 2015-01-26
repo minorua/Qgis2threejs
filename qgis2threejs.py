@@ -22,7 +22,8 @@
 import os
 
 from PyQt4.QtCore import QCoreApplication, QFile, Qt, qDebug    #, QSettings, QTranslator, qVersion
-from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QAction, QIcon, QMessageBox
+from qgis.core import QGis
 
 from qgis2threejstools import removeTemporaryOutputDir
 
@@ -83,6 +84,10 @@ class Qgis2threejs:
   def run(self):
     from vectorobject import ObjectTypeManager
     from qgis2threejsdialog import Qgis2threejsDialog
+
+    if QGis.QGIS_VERSION_INT >= 20700 and self.iface.mapCanvas().rotation() != 0:
+      QMessageBox.warning(None, "Qgis2threejs", "Current version doesn't support map canvas rotation. Please set rotation to zero and try again!")
+      return
 
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
