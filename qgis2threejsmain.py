@@ -194,22 +194,21 @@ class ExportSettings:
 
 class JSWriter:
 
-  def __init__(self, path_root):
+  def __init__(self, path_root, multiple_files=False):
     self.path_root = path_root
+    self.multiple_files = multiple_files
     self.jsfile = None
-    self.jsindex = -1
+    self.jsindex = 0
     self.jsfile_count = 0
 
   def __del__(self):
     self.closeFile()
 
-  def openFile(self, newfile=False):
-    if newfile:
-      self.prepareNext()
-    if self.jsindex == -1:
-      jsfilename = self.path_root + ".js"
-    else:
+  def openFile(self):
+    if self.multiple_files:
       jsfilename = self.path_root + "_%d.js" % self.jsindex
+    else:
+      jsfilename = self.path_root + ".js"
     self.jsfile = codecs.open(jsfilename, "w", "UTF-8")
     self.jsfile_count += 1
 
@@ -218,9 +217,13 @@ class JSWriter:
       self.jsfile.close()
       self.jsfile = None
 
-  def prepareNext(self):
+  def nextFile(self, open_file=False):
+    if not self.multiple_files:
+      return
     self.closeFile()
     self.jsindex += 1
+    if open_file:
+      self.openFile()
 
   def write(self, data):
     if self.jsfile is None:
@@ -230,8 +233,8 @@ class JSWriter:
 
 class ThreejsJSWriter(JSWriter):
 
-  def __init__(self, settings, objectTypeManager):
-    JSWriter.__init__(self, settings.path_root)
+  def __init__(self, settings, objectTypeManager, multiple_files=False):
+    JSWriter.__init__(self, settings.path_root, multiple_files)
 
     self.settings = settings
     self.objectTypeManager = objectTypeManager
@@ -304,10 +307,10 @@ class ThreejsJSWriter(JSWriter):
 
   def scripts(self):
     filetitle = self.settings.htmlfiletitle
-    if self.jsindex == -1:
-      lines = ['<script src="./%s.js"></script>' % filetitle]
-    else:
+    if self.multiple_files:
       lines = map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
+    else:
+      lines = ['<script src="./%s.js"></script>' % filetitle]
     return lines
 
   def triangleMesh(self):
@@ -327,32 +330,29 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
     QDir().mkpath(out_dir)
 
   # ThreejsJSWriter object
-  writer = ThreejsJSWriter(settings, objectTypeManager)
+  writer = ThreejsJSWriter(settings, objectTypeManager, bool(settings.exportMode == ExportSettings.PLAIN_MULTI_RES))
+  writer.openFile()
 
   # read configuration of the template
   templateConfig = settings.templateConfig
   templatePath = templateConfig["path"]
 
   if settings.exportMode == ExportSettings.SPHERE:
-    writer.openFile(False)
     # render texture for sphere and write it
     progress(5, "Rendering texture")
     writeSphereTexture(writer)
   else:
     # plain type
-    isSimpleMode = bool(settings.exportMode == ExportSettings.PLAIN_SIMPLE)
-
-    writer.openFile(not isSimpleMode)
     writer.writeProject()
     progress(5, "Writing DEM")
 
     # write primary DEM
     demProperties = settings.properties[ObjectTreeItem.ITEM_DEM]
-    if isSimpleMode:
+    if settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       writeSimpleDEM(writer, demProperties, progress)
     else:
       writeMultiResDEM(writer, demProperties, progress)
-      writer.prepareNext()
+      writer.nextFile()
 
     # write additional DEM(s)
     primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
@@ -748,7 +748,7 @@ def writeMultiResDEM(writer, properties, progress=None):
         block["shading"] = True
 
       # write block
-      writer.openFile(True)
+      writer.nextFile(True)
       writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
       writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
       plane_index += 1
@@ -785,7 +785,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     # write block
-    writer.openFile(True)
+    writer.nextFile(True)
     writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
     plane_index += 1
