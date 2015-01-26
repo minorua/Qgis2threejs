@@ -44,7 +44,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_Resampling">
      <property name="title">
-      <string>Resampling</string>
+      <string>&amp;Resampling</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <property name="topMargin">
@@ -453,7 +453,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_DisplayType">
      <property name="title">
-      <string>Display type</string>
+      <string>&amp;Display type</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="topMargin">
@@ -641,7 +641,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_Accessories">
      <property name="title">
-      <string>Sides and frame</string>
+      <string>&amp;Sides and frame</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <property name="topMargin">

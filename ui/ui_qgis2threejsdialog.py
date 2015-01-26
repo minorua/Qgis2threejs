@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\qgis2threejsdialog.ui'
 #
-# Created: Sat Sep 20 20:34:20 2014
+# Created: Mon Jan 26 14:47:54 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -32,10 +32,8 @@ class Ui_Qgis2threejsDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Qgis2threejsDialog.sizePolicy().hasHeightForWidth())
         Qgis2threejsDialog.setSizePolicy(sizePolicy)
-        self.gridLayout = QtGui.QGridLayout(Qgis2threejsDialog)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.verticalLayout_2 = QtGui.QVBoxLayout(Qgis2threejsDialog)
+        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.formLayout_3 = QtGui.QFormLayout()
         self.formLayout_3.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
         self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
@@ -50,7 +48,7 @@ class Ui_Qgis2threejsDialog(object):
         self.comboBox_Template.setSizePolicy(sizePolicy)
         self.comboBox_Template.setObjectName(_fromUtf8("comboBox_Template"))
         self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Template)
-        self.verticalLayout.addLayout(self.formLayout_3)
+        self.verticalLayout_2.addLayout(self.formLayout_3)
         self.splitter = QtGui.QSplitter(Qgis2threejsDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -79,7 +77,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 437, 386))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 439, 388))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -93,10 +91,10 @@ class Ui_Qgis2threejsDialog(object):
         self.propertyPagesContainer.setObjectName(_fromUtf8("propertyPagesContainer"))
         self.gridLayout_13.addLayout(self.propertyPagesContainer, 0, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.verticalLayout.addWidget(self.splitter)
+        self.verticalLayout_2.addWidget(self.splitter)
         self.label_3 = QtGui.QLabel(Qgis2threejsDialog)
         self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.verticalLayout.addWidget(self.label_3)
+        self.verticalLayout_2.addWidget(self.label_3)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.lineEdit_OutputFilename = QtGui.QLineEdit(Qgis2threejsDialog)
@@ -105,7 +103,7 @@ class Ui_Qgis2threejsDialog(object):
         self.toolButton_Browse = QtGui.QToolButton(Qgis2threejsDialog)
         self.toolButton_Browse.setObjectName(_fromUtf8("toolButton_Browse"))
         self.horizontalLayout_2.addWidget(self.toolButton_Browse)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
         self.progressBar = QtGui.QProgressBar(Qgis2threejsDialog)
@@ -154,8 +152,7 @@ class Ui_Qgis2threejsDialog(object):
         self.pushButton_Close.setSizePolicy(sizePolicy)
         self.pushButton_Close.setObjectName(_fromUtf8("pushButton_Close"))
         self.horizontalLayout_7.addWidget(self.pushButton_Close)
-        self.verticalLayout.addLayout(self.horizontalLayout_7)
-        self.gridLayout.addLayout(self.verticalLayout, 3, 0, 1, 1)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_7)
 
         self.retranslateUi(Qgis2threejsDialog)
         QtCore.QMetaObject.connectSlotsByName(Qgis2threejsDialog)
