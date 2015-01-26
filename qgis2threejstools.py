@@ -116,7 +116,6 @@ def copyLibraries(out_dir, config, overwrite=False):
         if debug_mode:
           qDebug("Copy dir: %s to %s" % (dirpath, target))
         shutil.copytree(dirpath, target)
-      #TODO: message if already exists
 
 def copyProj4js(out_dir, overwrite=False):
   plugin_dir = pluginDir()
@@ -128,7 +127,6 @@ def copyProj4js(out_dir, overwrite=False):
     if debug_mode:
       qDebug("Copy dir: %s to %s" % (dirpath, target))
     shutil.copytree(dirpath, target)
-  #TODO: message if already exists
 
 def copyThreejsFiles(out_dir, controls, overwrite=False):
   threejs_dir = pluginDir() + "/js/threejs"

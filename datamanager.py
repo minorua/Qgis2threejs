@@ -145,7 +145,7 @@ class ImageManager(DataManager):
 
     #if context.localBrowsingMode:
     #else:
-    #  texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index    #TODO: index
+    #  texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
     #  image.save(texfilename)
     #  texSrc = os.path.split(texfilename)[1]
     #  tex["src"] = texSrc

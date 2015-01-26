@@ -31,20 +31,22 @@ debug_mode = 1
 colorNames = []
 
 class DEMPropertyReader:
+
   def __init__(self, properties=None):
     self.properties = properties
+    self.layerId = properties["comboBox_DEMLayer"]
+    self._width = properties["dem_Width"] if self.layerId else 2
+    self._height = properties["dem_Height"] if self.layerId else 2
 
   def width(self):
-    if self.properties["comboBox_DEMLayer"]:
-      return self.properties["dem_Width"]
-    return 2
+    return self._width
 
   def height(self):
-    if self.properties["comboBox_DEMLayer"]:
-      return self.properties["dem_Height"]
-    return 2
+    return self._height
+
 
 class VectorPropertyReader:
+
   def __init__(self, objectTypeManager, layer, properties=None):
     self.layer = layer
     self.properties = properties
@@ -65,7 +67,7 @@ class VectorPropertyReader:
 
   # read color from COLOR or BORDER_COLOR widget
   def _readColor(self, widgetValues, f=None, isBorder=False):
-    global colorNames   #TODO: add function to material manager
+    global colorNames
 
     mode = widgetValues["comboData"]
     if mode == BorderColorWidgetFunc.NO_BORDER:

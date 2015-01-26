@@ -104,7 +104,7 @@ Q3D.application = {
       // open popup window
       var c = window.location.href.split("?");
       window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + this.urlParams.width + ",height=" + this.urlParams.height);
-      // TODO: show message "another window has been opened".
+      this.popup.show("Another window has been opened.");
       return;
     }
 
@@ -149,9 +149,6 @@ Q3D.application = {
 
     this.jsonObjectBuilders = [];
     this._wireframeMode = false;
-
-    // TODO:
-    this.actions = [];
   },
 
   parseUrlParameters: function () {
@@ -319,7 +316,7 @@ Q3D.application = {
   animate: function () {
     if (this.running) requestAnimationFrame(this.animate.bind(this));
     if (this.controls) this.controls.update();
-    if (true) this.render();   // TODO: if something is changed.
+    this.render();
   },
 
   render: function () {
@@ -650,7 +647,6 @@ Q3D.application = {
     }
   }
 
-  // TODO: addActionToObject(object, action)
 };
 
 

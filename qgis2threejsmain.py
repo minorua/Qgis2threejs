@@ -58,6 +58,7 @@ class ObjectTreeItem:
   ITEM_LINE = 5
   ITEM_POLYGON = 6
 
+
 class MapTo3D:
   def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
@@ -317,9 +318,9 @@ class ThreejsJSWriter(JSWriter):
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
 
+
 def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None):
-  if progress is None:
-    progress = dummyProgress
+  progress = progress or dummyProgress
 
   out_dir = os.path.split(settings.htmlfilename)[0]
   if not QDir(out_dir).exists():
@@ -413,8 +414,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   settings = writer.settings
   mapTo3d = settings.mapTo3d
   extent = settings.baseExtent
-  if progress is None:
-    progress = dummyProgress
+  progress = progress or dummyProgress
 
   prop = DEMPropertyReader(properties)
   dem_width = prop.width()
@@ -427,11 +427,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(settings.crs.toWkt())
 
-  demLayer = None
-  demLayerId = properties["comboBox_DEMLayer"]
-  if demLayerId:
-    demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
-
+  demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId) if prop.layerId else None
   if demLayer:
     layerName = demLayer.name()
     warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()))
@@ -512,7 +508,6 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   writer.writeMaterials(layer.materialManager)
 
-
 def roughenEdges(width, height, values, interval):
   if interval == 1:
     return
@@ -535,12 +530,12 @@ def roughenEdges(width, height, values, interval):
         z = (z0 * (interval - yy) + z1 * yy) / interval
         values[x + width * (y0 + yy)] = z
 
+
 def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=None):
   settings = writer.settings
   mapTo3d = settings.mapTo3d
   baseExtent = settings.baseExtent
-  if progress is None:
-    progress = dummyProgress
+  progress = progress or dummyProgress
 
   # options
   size = properties["spinBox_Size"]
@@ -632,11 +627,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   settings = writer.settings
   mapTo3d = settings.mapTo3d
   baseExtent = settings.baseExtent
-  if progress is None:
-    progress = dummyProgress
+  progress = progress or dummyProgress
+
   prop = DEMPropertyReader(properties)
-  demLayerId = properties["comboBox_DEMLayer"]
-  demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+  demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
   if demLayer is None:
     return
 
@@ -971,9 +965,8 @@ def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
   mapTo3d = settings.mapTo3d
+  progress = progress or dummyProgress
   renderer = QgsMapRenderer()
-  if progress is None:
-    progress = dummyProgress
 
   layers = []
   for layer in legendInterface.layers():
@@ -1007,8 +1000,6 @@ def writeVectors(writer, legendInterface, progress=None):
 
     # layer object
     layer = VectorLayer(writer, mapLayer, prop)
-
-    # TODO: do these in VectorLayer.__init__()
     lyr = {"name": mapLayer.name()}
     lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
     lyr["q"] = 1    #queryable
@@ -1032,7 +1023,7 @@ def writeVectors(writer, legendInterface, progress=None):
         hasLabel = True
 
     # write layer object
-    writer.writeLayer(lyr, fieldNames)    #TODO: writer.writeLayer(layer) or writer.write(layer.obj)
+    writer.writeLayer(lyr, fieldNames)
 
     feat = Feature(writer, layer)
 
@@ -1056,8 +1047,8 @@ def writeVectors(writer, legendInterface, progress=None):
         continue
 
       # write geometry
-      obj_mod.write(writer, layer, feat)   #TODO: writer.writeFeature(layer, feat, obj_mod)
-                                           #      obj_mod.feature(writer, layer, feat)
+      obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
+
       # stack attributes in writer
       if writeAttrs:
         writer.addAttributes(f.attributes())

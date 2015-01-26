@@ -24,7 +24,7 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QFileInfo, QSettings, qDebug, QEventLoop, SIGNAL
+from PyQt4.QtCore import Qt, QDir, QSettings, qDebug, QEventLoop, SIGNAL
 from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem, QTreeWidgetItemIterator
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
@@ -352,7 +352,7 @@ class Qgis2threejsDialog(QDialog):
   def run(self):
     ui = self.ui
     filename = ui.lineEdit_OutputFilename.text()   # ""=Temporary file
-    if filename and QFileInfo(filename).exists():
+    if filename and os.path.exists(filename):
       if QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
     self.endPointSelection()

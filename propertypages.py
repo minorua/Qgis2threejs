@@ -22,9 +22,9 @@
 import os
 import re
 
-from PyQt4.QtCore import Qt, qDebug, SIGNAL, QDir, QSettings, QPoint
+from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import *   #QWidget, QColor, QColorDialog, QFileDialog, QMessageBox
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle, QgsMessageLog
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
 from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
@@ -122,8 +122,8 @@ class PropertyPage(QWidget):
         v = w.text()
       elif isinstance(w, StyleWidget):
         v = w.values()
-      else:   #TODO
-        QMessageBox.information(None, "propertypages.py", "Not recognized widget type: " + str(type(w)))
+      else:
+        QgsMessageLog.logMessage("[propertypages.py] Not recognized widget type: " + unicode(type(w)), "Qgis2threejs")
 
       p[w.objectName()] = v
     return p
@@ -147,8 +147,8 @@ class PropertyPage(QWidget):
       elif isinstance(w, StyleWidget):
         if len(v):
           w.setValues(v)
-      else:     #TODO
-        QMessageBox.information(None, "propertypages.py", "Cannot restore %s property" % n)
+      else:
+        QgsMessageLog.logMessage("[propertypages.py] Cannot restore %s property" % n, "Qgis2threejs")
 
 class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
 
