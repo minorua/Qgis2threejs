@@ -57,7 +57,10 @@ class Qgis2threejs:
     # Create action that will start plugin configuration
     icon = QIcon(os.path.join(self.plugin_dir, "icon.png"))
     self.action = QAction(icon, u"Qgis2threejs", self.iface.mainWindow())
+    self.action.setObjectName("Qgis2threejs")
+
     self.settingAction = QAction(u"Settings", self.iface.mainWindow())
+    self.settingAction.setObjectName("Qgis2threejsSettings")
 
     # connect the action to the run method
     self.action.triggered.connect(self.run)
