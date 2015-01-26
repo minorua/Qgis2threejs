@@ -251,7 +251,9 @@ class Qgis2threejsDialog(QDialog):
 
     self.currentItem = currentItem
     self.currentPage = None
-    # hide all pages
+
+    # hide text browser and all pages
+    self.ui.textBrowser.hide()
     for page in self.pages.itervalues():
       page.hide()
 
@@ -261,6 +263,7 @@ class Qgis2threejsDialog(QDialog):
       pageType = self.topItemPages.get(topItemIndex, ppages.PAGE_NONE)
       page = self.pages.get(pageType, None)
       if page is None:
+        self.showDescription(topItemIndex)
         return
 
       page.setup(self.properties[topItemIndex])
@@ -316,6 +319,17 @@ class Qgis2threejsDialog(QDialog):
       isPrimary = item.data(0, Qt.UserRole) == layerId
       item.setDisabled(isPrimary)
     tree.blockSignals(False)
+
+  def showDescription(self, topItemIndex):
+    url = "https://github.com/minorua/Qgis2threejs/wiki"
+    if topItemIndex == ObjectTreeItem.ITEM_OPTDEM:
+      html = 'Help: <a href="{0}">{0}</a>'.format(url)
+    elif topItemIndex in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
+      html = 'Help: <a href="{0}">{0}</a>'.format(url)
+    else:
+      return
+    self.ui.textBrowser.setHtml(html)
+    self.ui.textBrowser.show()
 
   def numericFields(self, layer):
     # get attributes of a sample feature and create numeric field name list

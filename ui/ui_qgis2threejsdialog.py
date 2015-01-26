@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\qgis2threejsdialog.ui'
 #
-# Created: Mon Jan 26 14:47:54 2015
+# Created: Mon Jan 26 15:59:17 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -89,6 +89,12 @@ class Ui_Qgis2threejsDialog(object):
         self.gridLayout_13.setObjectName(_fromUtf8("gridLayout_13"))
         self.propertyPagesContainer = QtGui.QVBoxLayout()
         self.propertyPagesContainer.setObjectName(_fromUtf8("propertyPagesContainer"))
+        self.textBrowser = QtGui.QTextBrowser(self.scrollAreaWidgetContents)
+        self.textBrowser.setStyleSheet(_fromUtf8("background-color:rgba(0, 0, 0, 0);"))
+        self.textBrowser.setFrameShape(QtGui.QFrame.NoFrame)
+        self.textBrowser.setOpenExternalLinks(True)
+        self.textBrowser.setObjectName(_fromUtf8("textBrowser"))
+        self.propertyPagesContainer.addWidget(self.textBrowser)
         self.gridLayout_13.addLayout(self.propertyPagesContainer, 0, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_2.addWidget(self.splitter)
