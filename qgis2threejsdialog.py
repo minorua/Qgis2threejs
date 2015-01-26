@@ -390,7 +390,7 @@ class Qgis2threejsDialog(QDialog):
       self.createRubberBands(quadtree.quads(), quadtree.focusRect.center())
 
     # export
-    ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
+    ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)

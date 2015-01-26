@@ -317,7 +317,7 @@ class ThreejsJSWriter(JSWriter):
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
 
-def exportToThreeJS(settings, objectTypeManager, progress=None):
+def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None):
   if progress is None:
     progress = dummyProgress
 
@@ -362,7 +362,7 @@ def exportToThreeJS(settings, objectTypeManager, progress=None):
     progress(30, "Writing vector data")
 
     # write vector data
-    writeVectors(writer, progress)
+    writeVectors(writer, legendInterface, progress)
 
   # write images and JSON data
   progress(60, "Writing texture images")
@@ -967,7 +967,7 @@ class VectorLayer(Layer):
     self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
 
 
-def writeVectors(writer, progress=None):
+def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
   mapTo3d = settings.mapTo3d
@@ -975,14 +975,18 @@ def writeVectors(writer, progress=None):
   if progress is None:
     progress = dummyProgress
 
-  layerProperties = {}
-  for itemType in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
-    for layerId, properties in settings.properties[itemType].iteritems():
-      if properties.get("visible", False):
-        layerProperties[layerId] = properties
+  layers = []
+  for layer in legendInterface.layers():
+    if layer.type() != QgsMapLayer.VectorLayer or layer.geometryType() not in [QGis.Point, QGis.Line, QGis.Polygon]:
+      continue
+
+    parentId = ObjectTreeItem.ITEM_POINT + layer.geometryType()
+    properties = settings.properties[parentId].get(layer.id(), {})
+    if properties.get("visible", False):
+      layers.append([layer.id(), properties])
 
   finishedLayers = 0
-  for layerId, properties in layerProperties.iteritems():
+  for layerId, properties in layers:
     mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
     if mapLayer is None:
       continue
@@ -999,7 +1003,7 @@ def writeVectors(writer, progress=None):
       progress(None, "Initializing triangle mesh for overlay polygons")
       writer.triangleMesh()
 
-    progress(30 + 30 * finishedLayers / len(layerProperties), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layerProperties), mapLayer.name()))
+    progress(30 + 30 * finishedLayers / len(layers), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
 
     # layer object
     layer = VectorLayer(writer, mapLayer, prop)
