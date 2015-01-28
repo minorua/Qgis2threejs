@@ -113,9 +113,7 @@ class VectorPropertyReader:
       except:
         return 0
 
-    if vals["comboData"] == TransparencyWidgetFunc.LAYER:
-      return self.layer.layerTransparency()
-
+    alpha = None
     symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
       QgsMessageLog.logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()), "Qgis2threejs")
@@ -125,13 +123,18 @@ class VectorPropertyReader:
       if sl:    # and sl.hasDataDefinedProperties():
         expr = sl.dataDefinedProperty("color")
         if expr:
-          # data defined color
+          # data defined transparency
           cs_rgba = expr.evaluate(f, f.fields())
           rgba = cs_rgba.split(",")
           if len(rgba) == 4:
-            return int((1.0 - (float(rgba[3]) / 255)) * 100)
+            alpha = float(rgba[3]) / 255
 
-    return int((1.0 - symbol.alpha()) * 100)
+    if alpha is None:
+      alpha = symbol.alpha()
+
+    opacity = float(100 - self.layer.layerTransparency()) / 100
+    opacity *= alpha      # opacity = layer_opacity * feature_opacity
+    return int((1.0 - opacity) * 100)
 
   @classmethod
   def toFloat(cls, val):

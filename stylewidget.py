@@ -289,8 +289,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
 
 class TransparencyWidgetFunc(WidgetFuncBase):
   FEATURE = 1
-  LAYER = 2
-  VALUE = 3
+  VALUE = 2
 
   def setup(self, options=None):
     self.widget.label_1.setText("Transparency")
@@ -301,7 +300,6 @@ class TransparencyWidgetFunc(WidgetFuncBase):
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", TransparencyWidgetFunc.FEATURE)
-    self.widget.comboBox.addItem("Layer style", TransparencyWidgetFunc.LAYER)
     self.widget.comboBox.addItem("Fixed value", TransparencyWidgetFunc.VALUE)
 
   def comboBoxSelectionChanged(self, index):
