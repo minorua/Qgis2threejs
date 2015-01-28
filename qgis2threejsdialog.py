@@ -43,6 +43,9 @@ class Qgis2threejsDialog(QDialog):
     self.iface = iface
     self.objectTypeManager = objectTypeManager
     self.lastTreeItemData = lastTreeItemData
+    self.localBrowsingMode = True
+
+    self.rb_quads = self.rb_point = None
 
     self.templateType = None
     self.currentItem = None
@@ -97,9 +100,6 @@ class Qgis2threejsDialog(QDialog):
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
 
     #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
-
-    self.localBrowsingMode = True
-    self.rb_quads = self.rb_point = None
 
   def showMessageBar(self, text, level=QgsMessageBar.INFO):
     # from src/gui/qgsmessagebaritem.cpp

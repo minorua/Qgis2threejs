@@ -313,10 +313,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.demLayerChanged(currentIndex)
 
     # restore properties for the layer
+    self.spinBox_Height.blockSignals(True)
     if properties:
       PropertyPage.setProperties(self, properties)
     else:
       PropertyPage.setProperties(self, self.defaultProperties)
+    self.spinBox_Height.blockSignals(False)
 
     self.calculateResolution()
 
@@ -455,6 +457,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     return p
 
   def updateQuads(self, v=None):
+    isSimpleMode = self.radioButton_Simple.isChecked()
+    if isSimpleMode:
+      self.dialog.clearRubberBands()
+      return
+
     isValid = True
     try:
       c = map(float, [self.lineEdit_xmin.text(), self.lineEdit_ymin.text(), self.lineEdit_xmax.text(), self.lineEdit_ymax.text()])
@@ -527,6 +534,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     if isAdvancedMode and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
+
+    # update quad rubber bands
+    self.updateQuads()
 
   def switchFocusMode(self, toRect):
     toPoint = not toRect
