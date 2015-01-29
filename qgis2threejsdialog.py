@@ -24,7 +24,7 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QSettings, qDebug, QEventLoop, SIGNAL
+from PyQt4.QtCore import Qt, QDir, QFile, QSettings, qDebug, QEventLoop, SIGNAL
 from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem, QTreeWidgetItemIterator
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
@@ -69,6 +69,7 @@ class Qgis2threejsDialog(QDialog):
 
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
+    ui.pushButton_Help.clicked.connect(self.help)
 
     # set up map tool
     self.previousMapTool = None
@@ -435,6 +436,10 @@ class Qgis2threejsDialog(QDialog):
     self.endPointSelection()
     self.clearRubberBands()
     QDialog.reject(self)
+
+  def help(self):
+    plugin_dir = os.path.dirname(__file__)
+    tools.openHTMLFile(os.path.join(plugin_dir, "docs", "index.html"))
 
   def startPointSelection(self):
     canvas = self.iface.mapCanvas()

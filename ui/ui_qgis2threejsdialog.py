@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\qgis2threejsdialog.ui'
 #
-# Created: Mon Jan 26 15:59:17 2015
+# Created: Wed Jan 28 16:28:44 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -158,6 +158,14 @@ class Ui_Qgis2threejsDialog(object):
         self.pushButton_Close.setSizePolicy(sizePolicy)
         self.pushButton_Close.setObjectName(_fromUtf8("pushButton_Close"))
         self.horizontalLayout_7.addWidget(self.pushButton_Close)
+        self.pushButton_Help = QtGui.QPushButton(Qgis2threejsDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pushButton_Help.sizePolicy().hasHeightForWidth())
+        self.pushButton_Help.setSizePolicy(sizePolicy)
+        self.pushButton_Help.setObjectName(_fromUtf8("pushButton_Help"))
+        self.horizontalLayout_7.addWidget(self.pushButton_Help)
         self.verticalLayout_2.addLayout(self.horizontalLayout_7)
 
         self.retranslateUi(Qgis2threejsDialog)
@@ -171,4 +179,5 @@ class Ui_Qgis2threejsDialog(object):
         self.progressBar.setFormat(_translate("Qgis2threejsDialog", "%p%", None))
         self.pushButton_Run.setText(_translate("Qgis2threejsDialog", "Run", None))
         self.pushButton_Close.setText(_translate("Qgis2threejsDialog", "Close", None))
+        self.pushButton_Help.setText(_translate("Qgis2threejsDialog", "Help", None))
 
