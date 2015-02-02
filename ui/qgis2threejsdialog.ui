@@ -246,6 +246,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>Open local help file with default browser.</string>
+       </property>
        <property name="text">
         <string>Help</string>
        </property>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\qgis2threejsdialog.ui'
 #
-# Created: Wed Jan 28 16:28:44 2015
+# Created: Mon Feb 02 15:02:57 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -179,5 +179,6 @@ class Ui_Qgis2threejsDialog(object):
         self.progressBar.setFormat(_translate("Qgis2threejsDialog", "%p%", None))
         self.pushButton_Run.setText(_translate("Qgis2threejsDialog", "Run", None))
         self.pushButton_Close.setText(_translate("Qgis2threejsDialog", "Close", None))
+        self.pushButton_Help.setToolTip(_translate("Qgis2threejsDialog", "Open local help file with default browser.", None))
         self.pushButton_Help.setText(_translate("Qgis2threejsDialog", "Help", None))
 
