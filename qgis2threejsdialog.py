@@ -322,13 +322,16 @@ class Qgis2threejsDialog(QDialog):
     tree.blockSignals(False)
 
   def showDescription(self, topItemIndex):
-    url = "https://github.com/minorua/Qgis2threejs/wiki"
-    if topItemIndex == ObjectTreeItem.ITEM_OPTDEM:
-      html = 'Help: <a href="{0}">{0}</a>'.format(url)
-    elif topItemIndex in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
-      html = 'Help: <a href="{0}">{0}</a>'.format(url)
-    else:
-      return
+    fragment = {ObjectTreeItem.ITEM_OPTDEM: "AdditionalDEM",
+                ObjectTreeItem.ITEM_POINT: "Point",
+                ObjectTreeItem.ITEM_LINE: "Line",
+                ObjectTreeItem.ITEM_POLYGON: "Polygon"}.get(topItemIndex)
+
+    url = "https://github.com/minorua/Qgis2threejs/wiki/ExportSettings"
+    if fragment:
+      url += "#" + fragment
+
+    html = 'Online help about this item (open with default browser):<br><br><a href="{0}">{0}</a>'.format(url)
     self.ui.textBrowser.setHtml(html)
     self.ui.textBrowser.show()
 
@@ -439,7 +442,10 @@ class Qgis2threejsDialog(QDialog):
 
   def help(self):
     plugin_dir = os.path.dirname(__file__)
-    tools.openHTMLFile(os.path.join(plugin_dir, "docs", "index.html"))
+    htmlfilename = os.path.join(plugin_dir, "docs", "index.html")
+
+    import webbrowser
+    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
 
   def startPointSelection(self):
     canvas = self.iface.mapCanvas()
