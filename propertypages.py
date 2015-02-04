@@ -174,9 +174,11 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     if properties:
       PropertyPage.setProperties(self, properties)
 
-    # Supported projection classes
-    # http://trac.osgeo.org/proj4js/wiki/UserGuide#Supportedprojectionclasses
-    projs = ["utm", "lcc", "tmerc", "merc", "somerc", "stere", "gauss", "sterea", "aea", "cea", "laea", "sinu"]
+    # Supported projections
+    # https://github.com/proj4js/proj4js
+    projs = ["longlat", "merc"]
+    projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
+              "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     proj = mapSettings.destinationCrs().toProj4()
