@@ -889,6 +889,8 @@ class Feature:
     # clip geometry
     if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
       geom = geom.intersection(clipGeom)
+      if geom is None:
+        return
 
     # check if geometry is empty
     if geom.isGeosEmpty():
