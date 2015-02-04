@@ -331,7 +331,7 @@ class Qgis2threejsDialog(QDialog):
     if fragment:
       url += "#" + fragment
 
-    html = 'Online help about this item (open with default browser):<br><br><a href="{0}">{0}</a>'.format(url)
+    html = '<a href="{0}">Online Help</a> about this item'.format(url)
     self.ui.textBrowser.setHtml(html)
     self.ui.textBrowser.show()
 
