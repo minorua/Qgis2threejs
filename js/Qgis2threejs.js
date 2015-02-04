@@ -1366,6 +1366,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
     };
   }
   else if (this.objType == "Profile") {
+    var z0 = this.project.zShift * this.project.zScale;
     var createObject = function (f, line, userData) {
       var geom = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
       for (var i = 0, l = line.length; i < l; i++) {
@@ -1373,6 +1374,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
         geom.vertices[i].x = geom.vertices[i + l].x = pt[0];
         geom.vertices[i].y = geom.vertices[i + l].y = pt[1];
         geom.vertices[i].z = pt[2];
+        geom.vertices[i + l].z = z0;
       }
       geom.computeFaceNormals();
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
