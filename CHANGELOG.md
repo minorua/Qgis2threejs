@@ -1,6 +1,15 @@
 ## CHANGELOG
 
-### Version 0.8-dev
+### Version 1.0
+* layer opacity sliders in dat-gui panel
+* wireframe mode
+* popup style update
+* new object types: Disk (Point), Icon (Point), Overlay (Polygon)
+* base size option (World)
+* option to display coordinates in WGS84 lat/lon (World)
+* layer image option (DEM)
+* clip geometries option (Vector)
+* code refactoring (more oo code)
 
 ### Version 0.7.2
 
