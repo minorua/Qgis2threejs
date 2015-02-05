@@ -241,7 +241,7 @@ class Qgis2threejsDialog(QDialog):
       # show message if crs unit is degrees
       mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
       if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
-        self.showMessageBar("The unit of current CRS is degrees, so terrain will not appear well.", QgsMessageBar.WARNING)
+        self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
 
     self.templateType = templateType
 

@@ -229,7 +229,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     if layer:
       index_fieldName = self.numericalFields(layer)
       for index, fieldName in index_fieldName:
-        comboBox.addItem('+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
+        comboBox.addItem(u'+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
             # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
       if index_fieldName:
@@ -239,7 +239,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     comboBox.addItem("Absolute value", HeightWidgetFunc.ABSOLUTE)
     if layer:
       for index, fieldName in index_fieldName:
-        comboBox.addItem(' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
+        comboBox.addItem(u' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
             # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
   def comboBoxSelectionChanged(self, index):
@@ -410,5 +410,5 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
       index_fieldName = WidgetFuncBase.fields(layer)
 
     for index, fieldName in index_fieldName:
-      self.comboBox.addItem('"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
+      self.comboBox.addItem(u'"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
           # note: VectorPropertyReader.values() uses item name to get field name
