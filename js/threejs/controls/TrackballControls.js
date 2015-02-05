@@ -9,9 +9,9 @@ Q3D.Controls = {
 
   keyList: [
     "* Mouse",
-    "Left button : Rotate",
-    "Middle button : Zoom",
-    "Right button : Pan"
+    "Left button + Move : Rotate",
+    "Middle button + Move : Zoom",
+    "Right button + Move : Pan"
   ],
 
   create: function (camera, domElement) {

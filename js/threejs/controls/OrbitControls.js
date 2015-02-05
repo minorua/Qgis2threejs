@@ -35,9 +35,9 @@ Q3D.Controls = {
 
   keyList: [
     "* Mouse",
-    "Left button : Orbit",
-    "Middle button : Zoom",
-    "Right button : Pan",
+    "Left button + Move : Orbit",
+    "Middle button + Move : Zoom",
+    "Right button + Move : Pan",
     "* Keys",
     "Arrow keys : Move Horizontally",
     "Shift + Arrow keys : Orbit",

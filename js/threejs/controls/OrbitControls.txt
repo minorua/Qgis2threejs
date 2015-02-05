@@ -1,20 +1,21 @@
 OrbitControls
 
 * Mouse
- Left button   : Orbit
- Middle button : Zoom
- Right button  : Pan
+ Left button + Move   : Orbit
+ Middle button + Move : Zoom
+ Right button + Move  : Pan
 
 * Keys
- Arrow keys               : Move horizontally
+ Arrow keys               : Move Horizontally
  Shift + Arrow keys       : Orbit
  Ctrl  + Arrow keys       : Rotate
- Shift + Ctrl + Up / Down : Zoom in / out
+ Shift + Ctrl + Up / Down : Zoom In / Out
 
- R         : Auto rotate on / off
- U         : Switch upside down (also controls are reversed)
+ R         : Auto Rotate On / Off
+ U         : Switch Upside Down (controls are also reversed)
 
- I         : Show page information
- L         : Toggle label visibility
- Shift + R : Reset
- Shift + S : Save as image
+ I         : Show Information About Page
+ L         : Toggle Label Visibility
+ W         : Wireframe Mode
+ Shift + R : Reset View
+ Shift + S : Save Image As File
