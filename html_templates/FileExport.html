@@ -16,12 +16,14 @@ body { margin: 5%; }
 #about ul { margin: 5px; margin-left: 20px; padding: 0px; }
 </style>
 </head>
-<body onLoad="listLayers()">
+<body onLoad="listLayers(); listExportAll();">
 <div id="webgl" style="display: none;"></div>
 
 <script src="./threejs/three.min.js"></script>
 <script src="./exporters/STLBinaryExporter.js"></script>
 <script src="./exporters/STLExporter.js"></script>
+<script src="./FileExporters/DAEExporter.js"></script>
+<script src="./FileExporters/OBJExporter.js"></script>
 <script src="./jszip/jszip.min.js"></script>
 <script src="./FileSaverjs/FileSaver.min.js"></script>
 <script src="./Qgis2threejs.js"></script>
@@ -46,17 +48,36 @@ project.layers.forEach(function (layer) {
 });
 
 // create an exporter
-var binaryExporter = new THREE.STLBinaryExporter(),
-    asciiExporter = new THREE.STLExporter();
+var parsers = {
+  'stl_binary': {
+    f: new THREE.STLBinaryExporter().parse,
+    ext: '.stl',
+    name: 'STL (binary)',
+    desc: 'This will only export the geometries.'},
+  'stl_ascii': {
+    f: new THREE.STLExporter().parse,
+    ext: '.stl',
+    name: 'STL (ascii)',
+    desc: 'This will only export the geometries.'},
+  'dae': {
+    f: new THREE.DAEExporter().parse,
+    ext: '.dae',
+    name: 'COLLADA (.dae)',
+    desc: 'This will export the geometries and the diffuse color.'},
+  'obj': {
+    f: new THREE.OBJExporter().parse,
+    ext: '.obj',
+    name: 'Wavefront (.obj)',
+    desc: 'This will export the geometries with reference to a material, but you\'ll have to redefine the material.'}
+};
 
-function exportLayersSTLZip(isBinary) {
 
-  var zip = new JSZip(), toSTL;
-  if (isBinary) toSTL = function (object) { return binaryExporter.parse(object).buffer; };
-  else toSTL = function (object) { return asciiExporter.parse(object); };
+function exportLayersZip(mode) {
 
-  function zipDEMBlock(filetitle, layer, block) {
-    zip.file(filetitle + ".stl", toSTL(block.obj));
+  var zip = new JSZip();
+
+  function zipDEMBlock(filetitle, layer, block) {    
+    zip.file(filetitle + parsers[mode].ext, parsers[mode].f(block.obj));
 
     var m = layer.materials[block.m];
     if (m.i === undefined) return;
@@ -67,10 +88,13 @@ function exportLayersSTLZip(isBinary) {
   }
 
   project.layers.forEach(function (layer, layer_index) {
+
+    var filetitle = layer_index + "_" + layer.name;
+
     if (layer.type == Q3D.LayerType.DEM) {
       // export blocks
       layer.blocks.forEach(function (block, index) {
-        var filetitle = layer_index + "_" + layer.name + "_" + index;
+        filetitle = filetitle + "_" + index;
         zipDEMBlock(filetitle, layer, block);
       });
 
@@ -81,22 +105,22 @@ function exportLayersSTLZip(isBinary) {
         for (var i = 0, l = aObjs.length; i < l; i++) {
           group.add(aObjs[i]);
         }
-        var filename = layer_index + "_" + layer.name + "_sides.stl";
-        zip.file(filename, toSTL(group));
+
+        filetitle = filetitle + "_sides" ;
+        zip.file(filetitle + parsers[mode].ext, parsers[mode].f(group));
       }
     } else {
-      var filename = layer_index + "_" + layer.name + ".stl";
-      zip.file(filename, toSTL(layer.objectGroup));
+      zip.file(filetitle + parsers[mode].ext, parsers[mode].f(layer.objectGroup));
     }
   });
   var content = zip.generate({type: "blob"});
   saveAs(content, project.title + ".zip");
 }
 
-function exportLayerToBinarySTL(index) {
+function exportLayer(index, mode) {
   var layer = project.layers[index];
-  var stlData = binaryExporter.parse(layer.objectGroup).buffer;
-  saveAs(new Blob([stlData]), layer.name + ".stl");
+  var filetitle = layer.name;
+  saveAs(new Blob([parsers[mode].f(layer.objectGroup)]), filetitle + parsers[mode].ext);  
 }
 
 function listLayers() {
@@ -105,13 +129,15 @@ function listLayers() {
     var e = document.createElement("li");
     e.appendChild(document.createTextNode(layer.name + " "));
 
-    // STL download button
-    var btn = document.createElement("a");
-    btn.href = "#";
-    btn.className = "btn";
-    btn.appendChild(document.createTextNode("STL"));
-    btn.onclick = function () { exportLayerToBinarySTL(index); return false; };
-    e.appendChild(btn);
+    Object.keys(parsers).forEach(function(k, i) {
+      var btn = document.createElement("a");
+      btn.href = "#";
+      btn.className = "btn";
+      btn.title = parsers[k].desc;
+      btn.appendChild(document.createTextNode(parsers[k].name));
+      btn.onclick = function () { exportLayer(index, k); return false; };
+      e.appendChild(btn);   
+    });
 
     // images
     if (layer.type == Q3D.LayerType.DEM) {
@@ -126,15 +152,29 @@ function listLayers() {
     ol.appendChild(e);
   });
 }
+
+function listExportAll(){
+
+  var div = document.getElementById("exportAll");
+
+  Object.keys(parsers).forEach(function(k, i) {
+      var btn = document.createElement("a");
+      btn.href = "#";
+      btn.className = "btn";
+      btn.title = parsers[k].desc;
+      btn.appendChild(document.createTextNode(parsers[k].name));
+      btn.onclick = function () { exportLayersZip(k); return false; };
+      div.appendChild(btn);   
+    });
+
+}
 </script>
 
 <div>You can save 3D models exported from <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a></div>
 <hr>
 <br>
 <h4>Save all layers:</h4>
-<div>
-<a class="btn" style="font-size:x-large;" href="#" onclick="exportLayersSTLZip(true);return false;">Zip all layers</a>
-<a class="btn" style="font-size:small;" href="#" onclick="exportLayersSTLZip(false);return false;">ASCII</a>
+<div id="exportAll">
 </div>
 <br><br><br>
 
@@ -146,8 +186,8 @@ function listLayers() {
 
 <div id="about">
 <h4>About output of DEM layer with sides and bottom</h4>
-When you press the Zip all layers button, DEM and sides + bottom are output to separate files in zip archive --> for 3DCG software.<br>
-When you press the STL button of the DEM layer, DEM and sides + bottom are joined and output to a single file --> for 3D printing.
+When you export all layers at once, DEM and sides/bottom are output to separate files in the zip archive --> for 3DCG software.<br>
+When you export the DEM layer only, DEM and sides/bottom are joined and output to a single file --> for 3D printing.
 
 <h4>About this page</h4>
 <div>This page uses the following libraries:</div>

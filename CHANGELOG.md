@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 1.1
+* updated the STLExporter to support other file formats (collada, obj) and is easier to extend (by Olivier Dalang)
+
 ### Version 1.0
 * layer opacity sliders in dat-gui panel
 * wireframe mode

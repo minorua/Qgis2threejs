@@ -1,5 +1,0 @@
-[general]
-filename=STLExport.html
-description=This template has ability to save exported models in STL format
-files=js/Qgis2threejs.js
-dirs=js/threejs/exporters,js/FileSaverjs,js/jszip
