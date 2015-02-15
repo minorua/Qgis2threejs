@@ -24,6 +24,7 @@ body { margin: 5%; }
 <script src="./exporters/STLExporter.js"></script>
 <script src="./FileExporters/DAEExporter.js"></script>
 <script src="./FileExporters/OBJExporter.js"></script>
+<script src="./FileExporters/OBJMaterialExporter.js"></script>
 <script src="./jszip/jszip.min.js"></script>
 <script src="./FileSaverjs/FileSaver.min.js"></script>
 <script src="./Qgis2threejs.js"></script>
@@ -68,7 +69,12 @@ var parsers = {
     f: new THREE.OBJExporter().parse,
     ext: '.obj',
     name: 'Wavefront (.obj)',
-    desc: 'This will export the geometries with reference to a material, but you\'ll have to redefine the material.'}
+    desc: 'This will export the geometries with reference to a material, but you\'ll have to redefine the material.'},
+  'objmtl': {
+    f: new THREE.OBJMaterialExporter().parse,
+    ext: '.mtl',
+    name: 'Wavefront material library (.mtl)',
+    desc: 'This will export the material library to be used with the .obj export. You must place this file alongside the .obj files for it to work.'}
 };
 
 
@@ -77,7 +83,7 @@ function exportLayersZip(mode) {
   var zip = new JSZip();
 
   function zipDEMBlock(filetitle, layer, block) {    
-    zip.file(filetitle + parsers[mode].ext, parsers[mode].f(block.obj));
+    zip.file(filetitle + parsers[mode].ext, parsers[mode].f(block.obj, filetitle));
 
     var m = layer.materials[block.m];
     if (m.i === undefined) return;
@@ -107,10 +113,10 @@ function exportLayersZip(mode) {
         }
 
         filetitle = filetitle + "_sides" ;
-        zip.file(filetitle + parsers[mode].ext, parsers[mode].f(group));
+        zip.file(filetitle + parsers[mode].ext, parsers[mode].f(group, filetitle));
       }
     } else {
-      zip.file(filetitle + parsers[mode].ext, parsers[mode].f(layer.objectGroup));
+      zip.file(filetitle + parsers[mode].ext, parsers[mode].f(layer.objectGroup, filetitle));
     }
   });
   var content = zip.generate({type: "blob"});
@@ -120,7 +126,7 @@ function exportLayersZip(mode) {
 function exportLayer(index, mode) {
   var layer = project.layers[index];
   var filetitle = layer.name;
-  saveAs(new Blob([parsers[mode].f(layer.objectGroup)]), filetitle + parsers[mode].ext);  
+  saveAs(new Blob([parsers[mode].f(layer.objectGroup, filetitle)]), filetitle + parsers[mode].ext);  
 }
 
 function listLayers() {

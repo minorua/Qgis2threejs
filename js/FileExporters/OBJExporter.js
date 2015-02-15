@@ -9,7 +9,7 @@ THREE.OBJExporter.prototype = {
 
 	constructor: THREE.OBJExporter,
 
-	parse: ( function ( scene ) {
+	parse: ( function ( scene, filetitle ) {
 
 			var vector = new THREE.Vector3();
 			var normalMatrixWorld = new THREE.Matrix3();
@@ -17,6 +17,8 @@ THREE.OBJExporter.prototype = {
 			var output = '';
 			var v_index = 1;
 			var o_index = 1;
+
+			output += 'mtllib '+ filetitle + '.mtl' + '\n';
 
 			scene.traverse( function ( object ) {
 
@@ -51,7 +53,7 @@ THREE.OBJExporter.prototype = {
 
 								vector.copy( vertices[ indices[ j ] ] ).applyMatrix4( matrixWorld );
 
-								output += 'v ' + vector.x + ' ' + vector.z + ' ' + vector.y + '\n';
+								output += 'v ' + -vector.x + ' ' + vector.z + ' ' + vector.y + '\n';
 
 							}
 							output += 'f ' + (v_index+2) + ' ' + (v_index+1) + ' ' + (v_index) + '\n';
