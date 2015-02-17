@@ -2,7 +2,7 @@
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
 
-var Q3D = {VERSION: "1.0"};
+var Q3D = {VERSION: "1.1"};
 Q3D.Options = {
   bgcolor: null,
   light: {
