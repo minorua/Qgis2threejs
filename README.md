@@ -1,4 +1,4 @@
-Qgis2threejs plugin - version 1.0
+Qgis2threejs plugin - version 1.1
 =================================
 
   Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in web browser which supports WebGL. This plugin makes use of three.js library (http://threejs.org).
@@ -33,7 +33,7 @@ Exported Pages Use These JavaScript Libraries
 
 * Exports based on 3DViewer(dat-gui) template use [dat-gui](https://code.google.com/p/dat-gui/)
 
-* Exports based on STLExport template use [JSZip](http://stuk.github.io/jszip/) and [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
+* Exports based on FileExport template use [JSZip](http://stuk.github.io/jszip/) and [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
 
 
 License
