@@ -70,7 +70,8 @@ THREE.STLBinaryExporter.prototype = {
 
 			} );
 			
-			return output;
+			//return output;
+			return output.buffer; // Qgis2threegis : we return the buffer directly so that this exporter can be used the same way than the others in the calling code
 
 		};
 

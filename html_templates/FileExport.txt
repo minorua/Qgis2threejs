@@ -1,0 +1,5 @@
+[general]
+filename=FileExport.html
+description=This template has ability to save exported models in various 3D formats
+files=js/Qgis2threejs.js
+dirs=js/threejs/exporters,js/FileExporters,js/FileSaverjs,js/jszip
