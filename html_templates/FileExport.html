@@ -9,7 +9,7 @@ body { margin: 5%; }
 .license { font-size: xx-small; }
 #olLayers { margin: 0px; }
 #olLayers li { padding: 10px; }
-.btn { color: #fff; font-weight: bold; background-color: #1bbb9b; border:solid gray 1px; text-decoration: none; padding: 3px; position: relative; cursor: pointer; border-radius: 4px; box-shadow: 0 3px 0 #0c8b72; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); }
+.btn { color: #fff; font-weight: bold; background-color: #1bbb9b; border:solid gray 1px; text-decoration: none; margin-right: 4px; padding: 3px; position: relative; cursor: pointer; border-radius: 4px; box-shadow: 0 3px 0 #0c8b72; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); }
 .btn:hover { background-color: #30c9a8; box-shadow: 0 3px 0 #23a188; }
 .btn:active { top: 3px; box-shadow: none; }
 .thumbnail { width: 32px; height: 32px; margin-left: 5px; vertical-align: middle; }
@@ -95,27 +95,28 @@ function exportLayersZip(mode) {
 
   project.layers.forEach(function (layer, layer_index) {
 
-    var filetitle = layer_index + "_" + layer.name;
+    var li_name = layer_index + "_" + layer.name;
 
     if (layer.type == Q3D.LayerType.DEM) {
       // export blocks
       layer.blocks.forEach(function (block, index) {
-        filetitle = filetitle + "_" + index;
+        var filetitle = li_name + "_" + index;
         zipDEMBlock(filetitle, layer, block);
       });
 
       // export sides and bottom
       var aObjs = layer.blocks[0].aObjs;
-      if (option.exportSides && aObjs) {
+      if (option.exportSides && aObjs && aObjs.length > 0) {
         var group = new THREE.Object3D();
         for (var i = 0, l = aObjs.length; i < l; i++) {
           group.add(aObjs[i]);
         }
 
-        filetitle = filetitle + "_sides" ;
+        var filetitle = li_name + "_sides";
         zip.file(filetitle + parsers[mode].ext, parsers[mode].f(group, filetitle));
       }
     } else {
+      var filetitle = li_name;
       zip.file(filetitle + parsers[mode].ext, parsers[mode].f(layer.objectGroup, filetitle));
     }
   });
