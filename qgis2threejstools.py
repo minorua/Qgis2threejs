@@ -21,6 +21,7 @@
 """
 from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
 from PyQt4.QtGui import QMessageBox
+from qgis.core import NULL
 import os
 import ConfigParser
 import re
