@@ -242,7 +242,8 @@ class MaterialManager(DataManager):
     return self._index(mat)
 
   def getSpriteIndex(self, path, transparency=0):
-    mat = (self.SPRITE, path, transparency, False)
+    transp_background = True
+    mat = (self.SPRITE, (path, transp_background), transparency, False)
     return self._index(mat)
 
   def write(self, f, imageManager):
