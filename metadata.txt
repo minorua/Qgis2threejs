@@ -13,7 +13,7 @@ name=Qgis2threejs
 qgisMinimumVersion=2.0
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view exported 3D objects on web browser which supports WebGL. This plugin makes use of three.js library.
-version=1.1
+version=1.1.1
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -23,6 +23,9 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
+  1.1.1
+    - bug fixes (icon and attribute export)
+  1.1
     - updated the STLExporter to support other file formats (collada, obj) and is easier to extend (by Olivier Dalang)
 
 # tags are comma separated with spaces allowed

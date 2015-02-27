@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 1.1.1
+* bug fixes (icon and attribute export)
+
 ### Version 1.1
 * updated the STLExporter to support other file formats (collada, obj) and is easier to extend (by Olivier Dalang)
 
