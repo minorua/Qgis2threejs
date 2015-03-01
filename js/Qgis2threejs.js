@@ -182,7 +182,9 @@ Q3D.application = {
           this.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(this.project, model);
         }
         else {
-          this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
+          //TODO: add combo box to select either JSONLoader or ObjectLoader in the export dialog.
+          //this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
+          this.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(this.project, model);
         }
       }, this);
     }
@@ -1639,9 +1641,7 @@ Q3D.ModelBuilder.JSON = function (project, model) {
   }
   else if (model.data) {
     var result = this.loader.parse(JSON.parse(model.data));
-    this.geometry = result.geometry;
-    this.materials = result.materials;
-    this.loaded = true;
+    this.onLoad(result.geometry, result.materials);
   }
 };
 
@@ -1678,6 +1678,40 @@ Q3D.ModelBuilder.JSON.prototype.onLoad = function (geometry, materials) {
 // TODO: layer should hold materials (for opacity)
 
 /*
+Q3D.ModelBuilder.JSONObject --> Q3D.ModelBuilder.Base
+*/
+Q3D.ModelBuilder.JSONObject = function (project, model) {
+  Q3D.ModelBuilder.Base.call(this, project, model);
+
+  var loaders = Q3D.ModelBuilder._loaders;
+  if (loaders.jsonObjectLoader === undefined) loaders.jsonObjectLoader = new THREE.ObjectLoader();
+  this.loader = loaders.jsonObjectLoader;
+
+  if (model.src !== undefined) {
+    this.loader.load(model.src, this.onLoad.bind(this));
+  }
+  else if (model.data) {
+    this.onLoad(this.loader.parse(JSON.parse(model.data)));
+  }
+};
+
+Q3D.ModelBuilder.JSONObject.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+
+Q3D.ModelBuilder.JSONObject.prototype.cloneObject = function (layerId) {
+  if (this.object === undefined) return null;
+  return this.object.clone();
+};
+
+Q3D.ModelBuilder.JSONObject.prototype.onLoad = function (object) {
+  this.object = object;
+  this.loaded = true;
+  this.buildObjects();
+};
+
+
+// TODO: layer should hold materials (for opacity)
+
+/*
 Q3D.ModelBuilder.COLLADA --> Q3D.ModelBuilder.Base
 */
 Q3D.ModelBuilder.COLLADA = function (project, model) {
@@ -1694,8 +1728,7 @@ Q3D.ModelBuilder.COLLADA = function (project, model) {
     var xmlParser = new DOMParser(),
         responseXML = xmlParser.parseFromString(model.data, "application/xml"),
         url = "./";
-    this.collada = this.loader.parse(responseXML, undefined, url);
-    this.loaded = true;
+    this.onLoad(this.loader.parse(responseXML, undefined, url));
   }
 };
 
