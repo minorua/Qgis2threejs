@@ -65,7 +65,7 @@
       <string notr="true">font-weight: bold;</string>
      </property>
      <property name="text">
-      <string>This type is experimental. JSON model loading fails with some files.</string>
+      <string>This type is experimental. Some 3D model files fail to be loaded.</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

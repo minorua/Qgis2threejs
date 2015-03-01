@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Mon Jan 26 14:53:03 2015
+# Created: Sun Mar 01 14:21:52 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -143,7 +143,7 @@ class Ui_VectorPropertiesWidget(object):
     def retranslateUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setWindowTitle(_translate("VectorPropertiesWidget", "Form", None))
         self.label_ObjectType.setText(_translate("VectorPropertiesWidget", "Object type", None))
-        self.label_ObjectTypeMessage.setText(_translate("VectorPropertiesWidget", "This type is experimental. JSON model loading fails with some files.", None))
+        self.label_ObjectTypeMessage.setText(_translate("VectorPropertiesWidget", "This type is experimental. Some 3D model files fail to be loaded.", None))
         self.groupBox_zCoordinate.setTitle(_translate("VectorPropertiesWidget", "&Z coordinate", None))
         self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "&Style", None))
         self.groupBox_Features.setTitle(_translate("VectorPropertiesWidget", "&Feature", None))

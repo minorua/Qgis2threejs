@@ -667,8 +667,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def setupStyleWidgets(self, index=None):
     index = self.comboBox_ObjectType.currentIndex()
 
-    # notice JSON model is experimental
-    self.label_ObjectTypeMessage.setVisible(self.comboBox_ObjectType.currentText() == "JSON model")
+    # notice 3D model is experimental
+    is_experimental = self.comboBox_ObjectType.currentText() in ["JSON model", "COLLADA model"]
+    self.label_ObjectTypeMessage.setVisible(is_experimental)
 
     # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}

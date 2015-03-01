@@ -46,7 +46,7 @@ Q3D.Project = function (params) {
   this.zScale = this.scale * this.zExaggeration;
 
   this.layers = [];
-  this.jsons = [];
+  this.models = [];
   this.images = [];
 };
 
@@ -147,7 +147,7 @@ Q3D.application = {
     this.container.appendChild(e);
     this.labelRootElement = e;
 
-    this.jsonObjectBuilders = [];
+    this.modelBuilders = [];
     this._wireframeMode = false;
   },
 
@@ -175,11 +175,15 @@ Q3D.application = {
     // controls
     if (Q3D.Controls) this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
 
-    // load JSON models
-    if (project.jsons.length > 0) {
-      this._jsonLoader = new THREE.JSONLoader(true);
-      project.jsons.forEach(function (json, index) {
-        this.jsonObjectBuilders[index] = new Q3D.JSONObjectBuilder(this._jsonLoader, this.project, json);
+    // load models
+    if (project.models.length > 0) {
+      project.models.forEach(function (model, index) {
+        if (model.type == "COLLADA") {
+          this.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(this.project, model);
+        }
+        else {
+          this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
+        }
       }, this);
     }
 
@@ -555,7 +559,7 @@ Q3D.application = {
 
     var layer = this.project.layers[layerId];
     if (layer === undefined) return;
-    if (layer.objType == "Icon" || layer.objType == "JSON model") return;
+    if (["Icon", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
 
     var f = layer.f[featureId];
     if (f === undefined || f.objs.length == 0) return;
@@ -1224,7 +1228,7 @@ Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 
 Q3D.PointLayer.prototype.build = function (parent) {
   if (this.objType == "Icon") { this.buildIcons(parent); return; }
-  if (this.objType == "JSON model") { this.buildJSONModels(parent); return; }
+  if (this.objType == "JSON model" || this.objType == "COLLADA model") { this.buildModels(parent); return; }
 
   var materials = this.materials;
   var deg2rad = Math.PI / 180;
@@ -1292,10 +1296,10 @@ Q3D.PointLayer.prototype.buildIcons = function (parent) {
   if (parent) parent.add(this.objectGroup);
 };
 
-Q3D.PointLayer.prototype.buildJSONModels = function (parent) {
+Q3D.PointLayer.prototype.buildModels = function (parent) {
   // each feature in this layer
   this.f.forEach(function (f, fid) {
-    Q3D.application.jsonObjectBuilders[f.json_index].addFeature(this.index, fid);
+    Q3D.application.modelBuilders[f.model_index].addFeature(this.index, fid);
   }, this);
 
   if (parent) parent.add(this.objectGroup);
@@ -1563,54 +1567,31 @@ Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
 };
 
 
-// load JSON data and build JSON models
-Q3D.JSONObjectBuilder = function (loader, project, json_obj) {
-  this.loader = loader;
+// Q3D.ModelBuilder
+Q3D.ModelBuilder = {};
+Q3D.ModelBuilder._loaders = {};
+
+
+/*
+Q3D.ModelBuilder.Base
+*/
+Q3D.ModelBuilder.Base = function (project, obj) {
   this.project = project;
   this.features = [];
-  this.meshFaceMaterials = {};
-
-  if (json_obj.src !== undefined) {
-    loader.load(json_obj.src, this.onLoad.bind(this));
-  }
-  else if (json_obj.data) {
-    var result = loader.parse(JSON.parse(json_obj.data));
-    this.geometry = result.geometry;
-    this.materials = result.materials;
-  }
+  this.loaded = false;
 };
 
-Q3D.JSONObjectBuilder.prototype = {
+Q3D.ModelBuilder.Base.prototype = {
 
-  constructor: Q3D.JSONObjectBuilder,
+  constructor: Q3D.ModelBuilder.Base,
 
   addFeature: function (layerId, featureId) {
     this.features.push({layerId: layerId, featureId: featureId});
     this.buildObjects();
   },
 
-  cloneObject: function (layerId) {
-    if (this.geometry === undefined) return null;
-
-    // material is created for each layer
-    if (!(layerId in this.meshFaceMaterials)) {
-      var mat;
-      if (this._origMeshFaceMaterial === undefined) {
-        mat = new THREE.MeshFaceMaterial(this.materials);
-        this._origMeshFaceMaterial = mat;
-      }
-      else {
-        mat = this._origMeshFaceMaterial.clone();
-      }
-
-      this.meshFaceMaterials[layerId] = mat;
-      this.project.layers[layerId].materials.push({type: Q3D.MaterialType.MeshFace, m: mat});
-    }
-    return new THREE.Mesh(this.geometry, this.meshFaceMaterials[layerId]);
-  },
-
   buildObjects: function () {
-    if (this.geometry === undefined) return;
+    if (!this.loaded) return;
 
     var deg2rad = Math.PI / 180;
     this.features.forEach(function (fet) {
@@ -1633,14 +1614,102 @@ Q3D.JSONObjectBuilder.prototype = {
       }
     }, this);
     this.features = [];
-  },
-
-  onLoad: function (geometry, materials) {
-    this.geometry = geometry;
-    this.materials = materials;
-    this.buildObjects();
   }
+  // cloneObject: function () {},
+  // onLoad: function () {}
+};
 
+
+/*
+Q3D.ModelBuilder.JSON --> Q3D.ModelBuilder.Base
+
+ load JSON data and build JSON models
+*/
+Q3D.ModelBuilder.JSON = function (project, model) {
+  Q3D.ModelBuilder.Base.call(this, project, model);
+
+  var loaders = Q3D.ModelBuilder._loaders;
+  if (loaders.jsonLoader === undefined) loaders.jsonLoader = new THREE.JSONLoader(true);
+  this.loader = loaders.jsonLoader;
+
+  this.meshFaceMaterials = {};
+
+  if (model.src !== undefined) {
+    this.loader.load(model.src, this.onLoad.bind(this));
+  }
+  else if (model.data) {
+    var result = this.loader.parse(JSON.parse(model.data));
+    this.geometry = result.geometry;
+    this.materials = result.materials;
+    this.loaded = true;
+  }
+};
+
+Q3D.ModelBuilder.JSON.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+
+Q3D.ModelBuilder.JSON.prototype.cloneObject = function (layerId) {
+  if (this.geometry === undefined) return null;
+
+  // material is created for each layer
+  if (!(layerId in this.meshFaceMaterials)) {
+    var mat;
+    if (this._origMeshFaceMaterial === undefined) {
+      mat = new THREE.MeshFaceMaterial(this.materials);
+      this._origMeshFaceMaterial = mat;
+    }
+    else {
+      mat = this._origMeshFaceMaterial.clone();
+    }
+
+    this.meshFaceMaterials[layerId] = mat;
+    this.project.layers[layerId].materials.push({type: Q3D.MaterialType.MeshFace, m: mat});
+  }
+  return new THREE.Mesh(this.geometry, this.meshFaceMaterials[layerId]);
+};
+
+Q3D.ModelBuilder.JSON.prototype.onLoad = function (geometry, materials) {
+  this.geometry = geometry;
+  this.materials = materials;
+  this.loaded = true;
+  this.buildObjects();
+};
+
+
+// TODO: layer should hold materials (for opacity)
+
+/*
+Q3D.ModelBuilder.COLLADA --> Q3D.ModelBuilder.Base
+*/
+Q3D.ModelBuilder.COLLADA = function (project, model) {
+  Q3D.ModelBuilder.Base.call(this, project, model);
+
+  var loaders = Q3D.ModelBuilder._loaders;
+  if (loaders.colladaLoader === undefined) loaders.colladaLoader = new THREE.ColladaLoader();
+  this.loader = loaders.colladaLoader;
+
+  if (model.src !== undefined) {
+    this.loader.load(model.src, this.onLoad.bind(this));
+  }
+  else if (model.data) {
+    var xmlParser = new DOMParser(),
+        responseXML = xmlParser.parseFromString(model.data, "application/xml"),
+        url = "./";
+    this.collada = this.loader.parse(responseXML, undefined, url);
+    this.loaded = true;
+  }
+};
+
+Q3D.ModelBuilder.COLLADA.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+
+Q3D.ModelBuilder.COLLADA.prototype.cloneObject = function (layerId) {
+  if (this.collada === undefined) return null;
+  return this.collada.scene.clone();
+};
+
+Q3D.ModelBuilder.COLLADA.prototype.onLoad = function (collada) {
+  this.collada = collada;
+  this.loaded = true;
+  this.buildObjects();
 };
 
 

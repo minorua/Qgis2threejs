@@ -95,9 +95,65 @@ def copyFile(source, dest, overwrite=False):
         qDebug("File already exists: %s" % dest)
       return False
 
+  ret = QFile.copy(source, dest)
   if debug_mode:
-    qDebug("File copied: %s to %s" % (source, dest))
-  return QFile.copy(source, dest)
+    if ret:
+      qDebug("File copied: %s to %s" % (source, dest))
+    else:
+      qDebug("Failed to copy file: %s to %s" % (source, dest))
+  return ret
+
+def copyDir(source, dest, overwrite=False):
+  if os.path.exists(dest):
+    if overwrite:
+      if debug_mode:
+        qDebug("Existing dir removed: %s" % dest)
+      shutil.rmtree(dest)
+    else:
+      if debug_mode:
+        qDebug("Dir already exists: %s" % dest)
+      return False
+
+  shutil.copytree(source, dest)
+  if debug_mode:
+    qDebug("Dir copied: %s to %s" % (source, dest))
+  return True
+
+def copyFiles(filesToCopy, out_dir):
+  plugin_dir = pluginDir()
+  for item in filesToCopy:
+    dest_dir = os.path.join(out_dir, item.get("dest", ""))
+    subdirs = item.get("subdirs", False)
+    overwrite = item.get("overwrite", False)
+
+    if debug_mode:
+      qDebug(str(item))
+      qDebug("dest dir: %s" % dest_dir)
+
+    # make destination directory
+    QDir().mkpath(dest_dir)
+
+    # copy files
+    for f in item.get("files", []):
+      fi = QFileInfo(f)
+      dest = os.path.join(dest_dir, fi.fileName())
+      if fi.isRelative():
+        copyFile(os.path.join(plugin_dir, f), dest, overwrite)
+      else:
+        copyFile(f, dest, overwrite)
+
+    # copy directories
+    for d in item.get("dirs", []):
+      fi = QFileInfo(d)
+      source = os.path.join(plugin_dir, d) if fi.isRelative() else d
+      dest = os.path.join(dest_dir, fi.fileName())
+      if subdirs:
+        copyDir(source, dest, overwrite)
+      else:
+        # copy files in the directory
+        filenames = QDir(source).entryList(QDir.Files)
+        for filename in filenames:
+          copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
 def copyLibraries(out_dir, config, overwrite=False):
   plugin_dir = pluginDir()

@@ -26,22 +26,36 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ["JSON model"]
+  return ["JSON model", "COLLADA model"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
-  filterString = "JSON files (*.json *.js);;All files (*.*)"
+
+  if type_index == 0:
+    name = "JSON file"
+    filterString = "JSON files (*.json *.js);;All files (*.*)"
+    rotationX = 90
+  else:
+    name = "COLLADA file"
+    filterString = "COLLADA files (*.dae);;All files (*.*)"
+    rotationX = 0
 
   ppage.initStyleWidgets(color=False, transparency=False)
-  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "JSON file", "layer": layer, "filterString": filterString})
+  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": name, "layer": layer, "filterString": filterString})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 90, "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": rotationX, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 def write(writer, layer, feat):
   vals = feat.propValues()
-  json_path = vals[0]
-  index = writer.jsonManager.jsonIndex(json_path)
+  model_path = vals[0]
+
+  if feat.prop.type_index == 0:
+    model_type = "JSON"
+  else:
+    model_type = "COLLADA"
+
+  index = writer.modelManager.modelIndex(model_path, model_type)
   scale = float(vals[1])
   rotationX = float(vals[2])
   rotationZ = float(vals[3])
-  writer.writeFeature({"json_index": index, "pts": feat.geom.asList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})
+  writer.writeFeature({"model_index": index, "pts": feat.geom.asList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})

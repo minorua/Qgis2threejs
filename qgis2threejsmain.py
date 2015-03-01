@@ -34,7 +34,7 @@ except ImportError:
   import gdal
 
 from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry
-from datamanager import ImageManager, JSONManager, MaterialManager
+from datamanager import ImageManager, ModelManager, MaterialManager
 from propertyreader import DEMPropertyReader, VectorPropertyReader
 from quadtree import QuadTree, DEMQuadList
 
@@ -250,7 +250,7 @@ class ThreejsJSWriter(JSWriter):
       self.warp_dem = FlatRaster()
 
     self.imageManager = ImageManager(settings)
-    self.jsonManager = JSONManager()
+    self.modelManager = ModelManager()
     self.triMesh = None
 
   def writeProject(self):
@@ -302,16 +302,22 @@ class ThreejsJSWriter(JSWriter):
   def writeImages(self):
     self.imageManager.write(self)
 
-  def writeJSONData(self):
-    self.jsonManager.write(self)
+  def writeModelData(self):
+    self.modelManager.write(self)
+
+  def filesToCopy(self):
+    files = []
+    files += self.modelManager.filesToCopy()
+    return files
 
   def scripts(self):
+    files = self.modelManager.scripts()
     filetitle = self.settings.htmlfiletitle
     if self.multiple_files:
-      lines = map(lambda x: '<script src="./%s_%s.js"></script>' % (filetitle, x), range(self.jsfile_count))
+      files += map(lambda x: "%s_%s.js" % (filetitle, x), range(self.jsfile_count))
     else:
-      lines = ['<script src="./%s.js"></script>' % filetitle]
-    return lines
+      files.append("%s.js" % filetitle)
+    return map(lambda fn: '<script src="./%s"></script>' % fn, files)
 
   def triangleMesh(self):
     if self.triMesh is None:
@@ -365,13 +371,17 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
     # write vector data
     writeVectors(writer, legendInterface, progress)
 
-  # write images and JSON data
+  # write images and model data
   progress(60, "Writing texture images")
   writer.writeImages()
-  writer.writeJSONData()
+  writer.writeModelData()
   writer.closeFile()
 
   progress(90, "Copying library files")
+
+  tools.copyFiles(writer.filesToCopy(), out_dir)
+
+  # TODO: add the following files to file list in writer.filesToCopy()
 
   # copy three.js files
   tools.copyThreejsFiles(out_dir, settings.controls)
@@ -390,7 +400,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
     options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
   scripts = []
-  if settings.coordsInWGS84:
+  if settings.coordsInWGS84:    #TODO: move to writer.scripts
     # display coordinates in latitude and longitude
     scripts.append('<script src="./proj4js/proj4.js"></script>')
   scripts += writer.scripts()

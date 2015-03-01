@@ -297,24 +297,42 @@ class MaterialManager(DataManager):
 
       f.write(u"lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
 
-class JSONManager(DataManager):
+class ModelManager(DataManager):
 
   def __init__(self):
     DataManager.__init__(self)
+    self._collada = False
 
-  def jsonIndex(self, path):
-    return self._index(path)
+  def modelIndex(self, path, model_type="JSON"):
+    if model_type == "COLLADA":
+      self._collada = True
+
+    model = (model_type, path)
+    return self._index(model)
+
+  def filesToCopy(self):
+    f = []
+    if self._collada:
+      f.append({"files": ["js/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
+    return f
+
+  def scripts(self):
+    s = []
+    if self._collada:
+      s.append("threejs/loaders/ColladaLoader.js")
+    return s
 
   def write(self, f):
     if len(self._list) == 0:
       return
 
-    f.write(u'\n// JSON data\n')
-    for index, path in enumerate(self._list):
+    f.write(u'\n// 3D model data\n')
+    for index, model in enumerate(self._list):
+      model_type, path = model
       if os.path.exists(path):
-        with open(path) as json:
-          data = json.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
-        f.write(u"project.jsons[%d] = {data:'%s'};\n" % (index, data))
+        with open(path) as model_file:
+          data = model_file.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
+        f.write(u"project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
         continue
-      f.write(u"project.jsons[%d] = {data:null};\n" % index)
-      QgsMessageLog.logMessage(u'JSON file not found: {0}'.format(path), "Qgis2threejs")
+      f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
+      QgsMessageLog.logMessage(u'3D model file not found: {0}'.format(path), "Qgis2threejs")
