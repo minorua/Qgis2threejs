@@ -316,13 +316,19 @@ class ThreejsJSWriter(JSWriter):
     # template specific libraries (files)
     config = self.settings.templateConfig
 
-    file_list = config.get("files", "").strip().split(",")
-    if file_list:
-      files.append({"files": file_list})
+    for f in config.get("files", "").strip().split(","):
+      p = f.split(">")
+      fs = {"files": [p[0]]}
+      if len(p) > 1:
+        fs["dest"] = p[1]
+      files.append(fs)
 
-    dir_list = config.get("dirs", "").strip().split(",")
-    if dir_list:
-      files.append({"dirs": dir_list, "subdirs": True})
+    for d in config.get("dirs", "").strip().split(","):
+      p = d.split(">")
+      ds = {"dirs": [p[0]], "subdirs": True}
+      if len(p) > 1:
+        ds["dest"] = p[1]
+      files.append(ds)
 
     # proj4js
     if self.settings.coordsInWGS84:
