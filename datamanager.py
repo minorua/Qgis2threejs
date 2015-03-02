@@ -335,4 +335,4 @@ class ModelManager(DataManager):
         f.write(u"project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
         continue
       f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
-      QgsMessageLog.logMessage(u'3D model file not found: {0}'.format(path), "Qgis2threejs")
+      QgsMessageLog.logMessage(u'3D model file not found: {0} ({1})'.format(path, model_type), "Qgis2threejs")

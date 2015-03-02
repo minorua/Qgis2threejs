@@ -22,7 +22,7 @@
 import os
 #from PyQt4.QtCore import qDebug
 from PyQt4.QtGui import QColor, QMessageBox
-from qgis.core import QGis, QgsMessageLog
+from qgis.core import QGis, QgsMessageLog, NULL
 import random
 from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
 from settings import debug_mode
@@ -140,7 +140,7 @@ class VectorPropertyReader:
     try:
       return float(val)
     except Exception as e:
-      QgsMessageLog.logMessage(u'{0} {1}'.format(e.message, unicode(val)), "Qgis2threejs")
+      QgsMessageLog.logMessage(u'{0} (value: {1})'.format(e.message, unicode(val)), "Qgis2threejs")
       return 0
 
   # functions to read values from height widget (z coordinate)
@@ -186,7 +186,11 @@ class VectorPropertyReader:
         else:
           # prefix + attribute
           fieldName = widgetValues["comboText"].strip('"')
-          vals.append(os.path.join(widgetValues["editText"], f.attribute(fieldName).strip('"')))
+          value = f.attribute(fieldName)
+          if value == NULL:
+            value = ""
+            QgsMessageLog.logMessage(u"Empty attribute value in the field '{0}'".format(fieldName), "Qgis2threejs")
+          vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
       else:
         if widgetValues["comboData"] == FieldValueWidgetFunc.ABSOLUTE or f is None:
