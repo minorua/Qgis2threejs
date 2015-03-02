@@ -1,3 +1,5 @@
+"use strict";
+
 // Qgis2threejs.js
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
