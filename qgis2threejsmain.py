@@ -306,17 +306,47 @@ class ThreejsJSWriter(JSWriter):
     self.modelManager.write(self)
 
   def filesToCopy(self):
-    files = []
+    # three.js library
+    files = [{"dirs": ["js/threejs"]}]
+
+    #TODO: if not export_mode:
+    # controls
+    files.append({"files": ["js/threejs/controls/" + self.settings.controls], "dest": "threejs"})
+
+    # template specific libraries (files)
+    config = self.settings.templateConfig
+
+    file_list = config.get("files", "").strip().split(",")
+    if file_list:
+      files.append({"files": file_list})
+
+    dir_list = config.get("dirs", "").strip().split(",")
+    if dir_list:
+      files.append({"dirs": dir_list, "subdirs": True})
+
+    # proj4js
+    if self.settings.coordsInWGS84:
+      files.append({"dirs": ["js/proj4js"]})
+
+    # model importer
     files += self.modelManager.filesToCopy()
+
     return files
 
   def scripts(self):
     files = self.modelManager.scripts()
+
+    # proj4.js
+    if self.settings.coordsInWGS84:    # display coordinates in latitude and longitude
+      files.append("proj4js/proj4.js")
+
+    # data files
     filetitle = self.settings.htmlfiletitle
     if self.multiple_files:
       files += map(lambda x: "%s_%s.js" % (filetitle, x), range(self.jsfile_count))
     else:
       files.append("%s.js" % filetitle)
+
     return map(lambda fn: '<script src="./%s"></script>' % fn, files)
 
   def triangleMesh(self):
@@ -379,19 +409,8 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 
   progress(90, "Copying library files")
 
+  # copy files
   tools.copyFiles(writer.filesToCopy(), out_dir)
-
-  # TODO: add the following files to file list in writer.filesToCopy()
-
-  # copy three.js files
-  tools.copyThreejsFiles(out_dir, settings.controls)
-
-  # copy proj4js files
-  if settings.coordsInWGS84:
-    tools.copyProj4js(out_dir)
-
-  # copy additional library files
-  tools.copyLibraries(out_dir, templateConfig)
 
   # generate html file
   options = []
@@ -399,20 +418,14 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
   if world.get("radioButton_Color", False):
     options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
-  scripts = []
-  if settings.coordsInWGS84:    #TODO: move to writer.scripts
-    # display coordinates in latitude and longitude
-    scripts.append('<script src="./proj4js/proj4.js"></script>')
-  scripts += writer.scripts()
-
   # read html template
   with codecs.open(templatePath, "r", "UTF-8") as f:
     html = f.read()
 
   html = html.replace("${title}", settings.title)
-  html = html.replace("${controls}", '<script src="./threejs/%s"></script>' % settings.controls)
+  html = html.replace("${controls}", '<script src="./threejs/%s"></script>' % settings.controls)    #TODO: move to writer.scripts()
   html = html.replace("${options}", "\n".join(options))
-  html = html.replace("${scripts}", "\n".join(scripts))
+  html = html.replace("${scripts}", "\n".join(writer.scripts()))
 
   # write html
   with codecs.open(settings.htmlfilename, "w", "UTF-8") as f:

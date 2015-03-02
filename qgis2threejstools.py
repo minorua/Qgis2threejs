@@ -150,55 +150,13 @@ def copyFiles(filesToCopy, out_dir):
       if subdirs:
         copyDir(source, dest, overwrite)
       else:
-        # copy files in the directory
+        # make destination directory
+        QDir().mkpath(dest)
+
+        # copy files in the source directory
         filenames = QDir(source).entryList(QDir.Files)
         for filename in filenames:
           copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
-
-def copyLibraries(out_dir, config, overwrite=False):
-  plugin_dir = pluginDir()
-  files = config.get("files", "").strip()
-  if files:
-    for f in files.split(","):
-      filename = os.path.basename(f)
-      copyFile(os.path.join(plugin_dir, f), os.path.join(out_dir, filename), overwrite)
-
-  dirs = config.get("dirs", "").strip()
-  if dirs:
-    for d in dirs.split(","):
-      dirpath = os.path.join(plugin_dir, d)
-      dirname = os.path.basename(d)
-      target = os.path.join(out_dir, dirname)
-      if overwrite or not os.path.exists(target):
-        if debug_mode:
-          qDebug("Copy dir: %s to %s" % (dirpath, target))
-        shutil.copytree(dirpath, target)
-
-def copyProj4js(out_dir, overwrite=False):
-  plugin_dir = pluginDir()
-  d = "js/proj4js"
-  dirpath = os.path.join(plugin_dir, d)
-  dirname = os.path.basename(d)
-  target = os.path.join(out_dir, dirname)
-  if overwrite or not os.path.exists(target):
-    if debug_mode:
-      qDebug("Copy dir: %s to %s" % (dirpath, target))
-    shutil.copytree(dirpath, target)
-
-def copyThreejsFiles(out_dir, controls, overwrite=False):
-  threejs_dir = pluginDir() + "/js/threejs"
-
-  # make directory
-  target_dir = os.path.join(out_dir, "threejs")
-  QDir().mkpath(target_dir)
-
-  # copy files in threejs directory
-  filenames = QDir(threejs_dir).entryList(QDir.Files)
-  for filename in filenames:
-    copyFile(os.path.join(threejs_dir, filename), os.path.join(target_dir, filename), overwrite)
-
-  # copy controls file
-  copyFile(os.path.join(threejs_dir, "controls", controls), os.path.join(target_dir, controls), overwrite)
 
 def removeTemporaryFiles(filelist):
   for file in filelist:
