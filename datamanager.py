@@ -159,12 +159,19 @@ class ImageManager(DataManager):
       imageType = image[0]
       if imageType == self.IMAGE_FILE:
         image_path = image[1]
-        if os.path.exists(image_path):
+
+        exists = os.path.exists(image_path)
+        if exists and os.path.isfile(image_path):
           size = QImageReader(image_path).size()
           args = (index, size.width(), size.height(), gdal2threejs.base64image(image_path))
         else:
           f.write(u"project.images[%d] = {data:null};\n" % index)
-          QgsMessageLog.logMessage(u'Image file not found: {0}'.format(image_path), "Qgis2threejs")
+
+          if exists:
+            err_msg = u"Not image file path"
+          else:
+            err_msg = u"Image file not found"
+          QgsMessageLog.logMessage(u"{0}: {1}".format(err_msg, image_path), "Qgis2threejs")
           continue
 
       elif imageType == self.MAP_IMAGE:
@@ -329,10 +336,16 @@ class ModelManager(DataManager):
     f.write(u'\n// 3D model data\n')
     for index, model in enumerate(self._list):
       model_type, path = model
-      if os.path.exists(path):
+      exists = os.path.exists(path)
+      if exists and os.path.isfile(path):
         with open(path) as model_file:
           data = model_file.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
         f.write(u"project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
-        continue
-      f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
-      QgsMessageLog.logMessage(u'3D model file not found: {0} ({1})'.format(path, model_type), "Qgis2threejs")
+      else:
+        f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
+
+        if exists:
+          err_msg = u"Not 3D model file path"
+        else:
+          err_msg = u"3D model file not found"
+        QgsMessageLog.logMessage(u"{0}: {1} ({2})".format(err_msg, path, model_type), "Qgis2threejs")
