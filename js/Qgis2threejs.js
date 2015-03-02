@@ -24,7 +24,6 @@ Q3D.Options = {
 Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
 Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, MeshFace: 9};
 Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new THREE.Vector3(0, 0, 1)};
-Q3D.projector = new THREE.Projector();
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
@@ -364,7 +363,7 @@ Q3D.application = {
       if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {
         // label is in front
         // calculate label position
-        Q3D.projector.projectVector(v.copy(label.pt), camera);
+        v.copy(label.pt).project(camera);
         x = (v.x * widthHalf) + widthHalf;
         y = -(v.y * heightHalf) + heightHalf;
 
@@ -426,7 +425,7 @@ Q3D.application = {
     var x = (offsetX / this.width) * 2 - 1;
     var y = -(offsetY / this.height) * 2 + 1;
     var vector = new THREE.Vector3(x, y, 1);
-    Q3D.projector.unprojectVector(vector, this.camera);
+    vector.unproject(this.camera);
     var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
     return ray.intersectObjects(this.queryableObjects);
   },
