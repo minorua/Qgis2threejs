@@ -43,8 +43,8 @@ from gdal2threejs import Raster
 
 import qgis2threejstools as tools
 from qgis2threejstools import pyobj2js
+from settings import debug_mode, def_vals
 
-debug_mode = 1
 apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
 # used for tree widget and properties
@@ -146,9 +146,9 @@ class ExportSettings:
 
     # MapTo3D object
     world = properties[ObjectTreeItem.ITEM_WORLD] or {}
-    baseSize = world.get("lineEdit_BaseSize", 100)
-    verticalExaggeration = world.get("lineEdit_zFactor", 1.5)
-    verticalShift = world.get("lineEdit_zShift", 0)
+    baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
+    verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
+    verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
     self.mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
 
     self.coordsInWGS84 = world.get("radioButton_WGS84", False)

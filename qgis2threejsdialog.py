@@ -33,8 +33,7 @@ from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToThreeJS
 import propertypages as ppages
 import qgis2threejstools as tools
-
-debug_mode = 1
+from settings import debug_mode
 
 class Qgis2threejsDialog(QDialog):
 

@@ -35,6 +35,7 @@ from qgis2threejsmain import MapTo3D, ObjectTreeItem
 from stylewidget import StyleWidget
 from quadtree import QuadTree
 import qgis2threejstools as tools
+from settings import def_vals
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -173,6 +174,10 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     # restore properties
     if properties:
       PropertyPage.setProperties(self, properties)
+    else:
+      self.lineEdit_BaseSize.setText(str(def_vals.baseSize))
+      self.lineEdit_zFactor.setText(str(def_vals.zExaggeration))
+      self.lineEdit_zShift.setText(str(def_vals.zShift))
 
     # Supported projections
     # https://github.com/proj4js/proj4js
@@ -203,11 +208,11 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     p = PropertyPage.properties(self)
     # check validity
     if not is_number(self.lineEdit_BaseSize.text()):
-      p["lineEdit_BaseSize"] = "100"
+      p["lineEdit_BaseSize"] = str(def_vals.baseSize)
     if not is_number(self.lineEdit_zFactor.text()):
-      p["lineEdit_zFactor"] = "1.5"
+      p["lineEdit_zFactor"] = str(def_vals.zExaggeration)
     if not is_number(self.lineEdit_zShift.text()):
-      p["lineEdit_zShift"] = "0"
+      p["lineEdit_zShift"] = str(def_vals.zShift)
     return p
 
 class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
@@ -629,9 +634,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    ba = float(world.get("lineEdit_BaseSize", 100))
-    ve = float(world.get("lineEdit_zFactor", 1.5))
-    vs = float(world.get("lineEdit_zShift", 0))
+    ba = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
+    ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
+    vs = float(world.get("lineEdit_zShift", def_vals.zShift))
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), ba, ve, vs)
 
     # set up height widget and label height widget
@@ -673,9 +678,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # create MapTo3d object to calculate default values
     world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    bs = float(world.get("lineEdit_BaseSize", 100))
-    ve = float(world.get("lineEdit_zFactor", 1.5))
-    vs = float(world.get("lineEdit_zShift", 0))
+    bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
+    ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
+    vs = float(world.get("lineEdit_zShift", def_vals.zShift))
     mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), bs, ve, vs)
 
     # setup widgets

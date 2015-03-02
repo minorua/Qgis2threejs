@@ -26,8 +26,7 @@ from PyQt4.QtGui import QAction, QIcon, QMessageBox
 from qgis.core import QGis
 
 from qgis2threejstools import removeTemporaryOutputDir
-
-debug_mode = 1
+from settings import debug_mode
 
 class Qgis2threejs:
 

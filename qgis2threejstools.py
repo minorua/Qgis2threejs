@@ -28,7 +28,7 @@ import re
 import shutil
 import webbrowser
 
-debug_mode = 1
+from settings import debug_mode
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):

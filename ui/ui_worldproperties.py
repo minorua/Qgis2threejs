@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\worldproperties.ui'
 #
-# Created: Mon Jan 26 15:24:12 2015
+# Created: Mon Mar 02 10:47:36 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_WorldPropertiesWidget(object):
     def setupUi(self, WorldPropertiesWidget):
         WorldPropertiesWidget.setObjectName(_fromUtf8("WorldPropertiesWidget"))
-        WorldPropertiesWidget.resize(297, 370)
+        WorldPropertiesWidget.resize(297, 382)
         self.verticalLayout_3 = QtGui.QVBoxLayout(WorldPropertiesWidget)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.groupBox_1 = QtGui.QGroupBox(WorldPropertiesWidget)
@@ -135,11 +135,8 @@ class Ui_WorldPropertiesWidget(object):
         self.label_7.setText(_translate("WorldPropertiesWidget", "Size", None))
         self.groupBox_2.setTitle(_translate("WorldPropertiesWidget", "&Scale and shift", None))
         self.label_3.setText(_translate("WorldPropertiesWidget", "Base size", None))
-        self.lineEdit_BaseSize.setText(_translate("WorldPropertiesWidget", "100", None))
         self.label.setText(_translate("WorldPropertiesWidget", "Vertical exaggeration", None))
-        self.lineEdit_zFactor.setText(_translate("WorldPropertiesWidget", "1.5", None))
         self.label_2.setText(_translate("WorldPropertiesWidget", "Vertical shift", None))
-        self.lineEdit_zShift.setText(_translate("WorldPropertiesWidget", "0", None))
         self.groupBox_3.setTitle(_translate("WorldPropertiesWidget", "&Background", None))
         self.radioButton_Sky.setText(_translate("WorldPropertiesWidget", "Sky", None))
         self.radioButton_Color.setText(_translate("WorldPropertiesWidget", "Solid color", None))
