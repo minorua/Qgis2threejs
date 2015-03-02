@@ -26,7 +26,7 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ["Sphere", "Cylinder", "Cube", "Cone", "Disk"]
+  return ["Sphere", "Cylinder", "Box", "Cone", "Disk"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
@@ -38,7 +38,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   elif type_index in [1, 3]: # Cylinder, Cone
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
-  elif type_index == 2:  # Cube
+  elif type_index == 2:  # Box
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Depth", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
@@ -63,7 +63,7 @@ def write(writer, layer, feat):
     rt = 0 if feat.prop.type_index == 3 else rb
     h = float(vals[1]) * mapTo3d.multiplierZ
     writer.writeFeature({"m": mat, "pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90})
-  elif feat.prop.type_index == 2:  # Cube
+  elif feat.prop.type_index == 2:  # Box
     w = float(vals[0]) * mapTo3d.multiplier
     d = float(vals[1]) * mapTo3d.multiplier
     h = float(vals[2]) * mapTo3d.multiplierZ

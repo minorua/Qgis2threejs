@@ -1238,7 +1238,7 @@ Q3D.PointLayer.prototype.build = function (parent) {
   var deg2rad = Math.PI / 180;
   var createGeometry, scaleZ = 1;
   if (this.objType == "Sphere") createGeometry = function (f) { return new THREE.SphereGeometry(f.r); };
-  else if (this.objType == "Cube") createGeometry = function (f) { return new THREE.CubeGeometry(f.w, f.h, f.d); };
+  else if (this.objType == "Box") createGeometry = function (f) { return new THREE.BoxGeometry(f.w, f.h, f.d); };
   else if (this.objType == "Disk") {
     createGeometry = function (f) {
       var geom = new THREE.CylinderGeometry(f.r, f.r, 0, 32), m = new THREE.Matrix4();
