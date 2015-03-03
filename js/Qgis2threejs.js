@@ -853,6 +853,7 @@ Q3D.DEMLayer = function (params) {
 };
 
 Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
+Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.addBlock = function (params) {
   var block = new Q3D.DEMBlock(params);
@@ -1126,6 +1127,7 @@ Q3D.VectorLayer = function (params) {
 };
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
+Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
 Q3D.VectorLayer.prototype.build = function (parent) {};
 
@@ -1228,6 +1230,7 @@ Q3D.PointLayer = function (params) {
 };
 
 Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
+Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
 Q3D.PointLayer.prototype.build = function (parent) {
   if (this.objType == "Icon") { this.buildIcons(parent); return; }
@@ -1322,6 +1325,7 @@ Q3D.LineLayer = function (params) {
 };
 
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
+Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
 Q3D.LineLayer.prototype.build = function (parent) {
   var materials = this.materials;
@@ -1419,6 +1423,7 @@ Q3D.PolygonLayer = function (params) {
 };
 
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
+Q3D.PolygonLayer.prototype.constructor = Q3D.PolygonLayer;
 
 Q3D.PolygonLayer.prototype.build = function (parent) {
   var materials = this.materials;
@@ -1647,6 +1652,7 @@ Q3D.ModelBuilder.JSON = function (project, model) {
 };
 
 Q3D.ModelBuilder.JSON.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+Q3D.ModelBuilder.JSON.prototype.constructor = Q3D.ModelBuilder.JSON;
 
 Q3D.ModelBuilder.JSON.prototype.cloneObject = function (layerId) {
   if (this.geometry === undefined) return null;
@@ -1697,6 +1703,7 @@ Q3D.ModelBuilder.JSONObject = function (project, model) {
 };
 
 Q3D.ModelBuilder.JSONObject.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+Q3D.ModelBuilder.JSONObject.prototype.constructor = Q3D.ModelBuilder.JSONObject;
 
 Q3D.ModelBuilder.JSONObject.prototype.cloneObject = function (layerId) {
   if (this.object === undefined) return null;
@@ -1734,6 +1741,7 @@ Q3D.ModelBuilder.COLLADA = function (project, model) {
 };
 
 Q3D.ModelBuilder.COLLADA.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
+Q3D.ModelBuilder.COLLADA.prototype.constructor = Q3D.ModelBuilder.COLLADA;
 
 Q3D.ModelBuilder.COLLADA.prototype.cloneObject = function (layerId) {
   if (this.collada === undefined) return null;
