@@ -138,7 +138,7 @@ Q3D.application = {
     this.queryableObjects = [];
 
     // label
-    this.labelConnectorGroup = new THREE.Object3D();
+    this.labelConnectorGroup = new THREE.Group();
     this.labelVisibility = Q3D.Options.label.visible;
     this.labels = [];     // labels of visible layers
 
@@ -725,7 +725,7 @@ Q3D.MapLayer = function (params) {
   }
 
   // this.materials = undefined;
-  this.objectGroup = new THREE.Object3D();
+  this.objectGroup = new THREE.Group();
   this.queryableObjects = [];
 
 };
@@ -1154,7 +1154,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
   };
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
-  this.labelConnectorGroup = new THREE.Object3D();
+  this.labelConnectorGroup = new THREE.Group();
   this.labelConnectorGroup.userData.layerId = this.index;
   if (parent) parent.add(this.labelConnectorGroup);
 
@@ -1345,7 +1345,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
   else if (this.objType == "Pipe" || this.objType == "Cone") {
     var hasJoints = (this.objType == "Pipe");
     var createObject = function (f, line, userData) {
-      var group = new THREE.Object3D();
+      var group = new THREE.Group();
       group.userData = userData;
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
