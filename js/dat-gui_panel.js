@@ -58,7 +58,7 @@ Q3D.gui = {
     var parameters = this.parameters;
     var addPlane = function (color) {
       // Add a new plane in the current scene
-      var geometry = new THREE.PlaneGeometry(project.width, project.height, 1, 1),
+      var geometry = new THREE.PlaneBufferGeometry(project.width, project.height, 1, 1),
           material = new THREE.MeshLambertMaterial({color: color, transparent: true});
       if (!Q3D.isIE) material.side = THREE.DoubleSide;
       customPlane = new THREE.Mesh(geometry, material);

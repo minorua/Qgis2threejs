@@ -672,12 +672,21 @@ Q3D.DEMBlock.prototype = {
   constructor: Q3D.DEMBlock,
 
   build: function (layer) {
-    var geom = new THREE.PlaneGeometry(this.plane.width, this.plane.height,
-                                       this.width - 1, this.height - 1);
+    var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
+        geom = new PlaneGeometry(this.plane.width, this.plane.height, this.width - 1, this.height - 1),
+        dem_data = this.data;
 
     // Filling of the DEM plane
-    for (var i = 0, l = geom.vertices.length; i < l; i++) {
-      geom.vertices[i].z = this.data[i];
+    if (Q3D.Options.exportMode) {
+      for (var i = 0, l = geom.vertices.length; i < l; i++) {
+        geom.vertices[i].z = dem_data[i];
+      }
+    }
+    else {
+      var vertices = geom.attributes.position.array;
+      for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+        vertices[j + 2] = dem_data[i];
+      }
     }
 
     // Calculate normals
@@ -894,13 +903,22 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
 
   // Sides
-  var w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
-  var i, geom, mesh;
+  var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
+  var dem_data = dem.data, w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
+  var i, geom, vertices, mesh;
 
   // front
-  geom = new THREE.PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
-  for (i = 0; i < w; i++) {
-    geom.vertices[i].y = dem.data[w * (h - 1) + i];
+  geom = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+  if (Q3D.Options.exportMode) {
+    for (i = 0; i < w; i++) {
+      geom.vertices[i].y = dem_data[w * (h - 1) + i];
+    }
+  }
+  else {
+    vertices = geom.attributes.position.array;
+    for (i = 0; i < w; i++) {
+      vertices[i * 3 + 1] = dem_data[w * (h - 1) + i];
+    }
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.y = -dem.plane.height / 2;
@@ -909,9 +927,17 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   dem.aObjs.push(mesh);
 
   // back
-  geom = new THREE.PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
-  for (i = 0; i < w; i++) {
-    geom.vertices[i].y = dem.data[w - 1 - i];
+  geom = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+  if (Q3D.Options.exportMode) {
+    for (i = 0; i < w; i++) {
+      geom.vertices[i].y = dem_data[w - 1 - i];
+    }
+  }
+  else {
+    vertices = geom.attributes.position.array;
+    for (i = 0; i < w; i++) {
+      vertices[i * 3 + 1] = dem_data[w - 1 - i];
+    }
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.y = dem.plane.height / 2;
@@ -921,9 +947,17 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   dem.aObjs.push(mesh);
 
   // left
-  geom = new THREE.PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
-  for (i = 0; i < h; i++) {
-    geom.vertices[i * 2 + 1].x = dem.data[w * i];
+  geom = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
+  if (Q3D.Options.exportMode) {
+    for (i = 0; i < h; i++) {
+      geom.vertices[i * 2 + 1].x = dem_data[w * i];
+    }
+  }
+  else {
+    vertices = geom.attributes.position.array;
+    for (i = 0; i < h; i++) {
+      vertices[(i * 2 + 1) * 3] = dem_data[w * i];
+    }
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.x = -dem.plane.width / 2;
@@ -932,9 +966,17 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   dem.aObjs.push(mesh);
 
   // right
-  geom = new THREE.PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
-  for (i = 0; i < h; i++) {
-    geom.vertices[i * 2].x = -dem.data[w * (i + 1) - 1];
+  geom = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
+  if (Q3D.Options.exportMode) {
+    for (i = 0; i < h; i++) {
+      geom.vertices[i * 2].x = -dem_data[w * (i + 1) - 1];
+    }
+  }
+  else {
+    vertices = geom.attributes.position.array;
+    for (i = 0; i < h; i++) {
+      vertices[i * 2 * 3] = -dem_data[w * (i + 1) - 1];
+    }
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.x = dem.plane.width / 2;
@@ -947,7 +989,7 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
     geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, w - 1, h - 1);
   }
   else {
-    geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, 1, 1);
+    geom = new THREE.PlaneBufferGeometry(dem.plane.width, dem.plane.height, 1, 1);
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.z = -sole_height;
