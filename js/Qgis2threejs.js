@@ -941,80 +941,67 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
   // Sides
   var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
   var dem_data = dem.data, w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
-  var i, geom, vertices, mesh;
+  var i, mesh;
 
-  // front
-  geom = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+  // front and back
+  var geom_fr = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1),
+      geom_ba = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
+
+  var k = w * (h - 1);
   if (Q3D.Options.exportMode) {
     for (i = 0; i < w; i++) {
-      geom.vertices[i].y = dem_data[w * (h - 1) + i];
+      geom_fr.vertices[i].y = dem_data[k + i];
+      geom_ba.vertices[i].y = dem_data[w - 1 - i];
     }
   }
   else {
-    vertices = geom.attributes.position.array;
+    var vertices_fr = geom_fr.attributes.position.array,
+        vertices_ba = geom_ba.attributes.position.array;
+
     for (i = 0; i < w; i++) {
-      vertices[i * 3 + 1] = dem_data[w * (h - 1) + i];
+      vertices_fr[i * 3 + 1] = dem_data[k + i];
+      vertices_ba[i * 3 + 1] = dem_data[w - 1 - i];
     }
   }
-  mesh = new THREE.Mesh(geom, mat);
+  mesh = new THREE.Mesh(geom_fr, mat);
   mesh.position.y = -dem.plane.height / 2;
   mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
   this.addObject(mesh, false);
   dem.aObjs.push(mesh);
 
-  // back
-  geom = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
-  if (Q3D.Options.exportMode) {
-    for (i = 0; i < w; i++) {
-      geom.vertices[i].y = dem_data[w - 1 - i];
-    }
-  }
-  else {
-    vertices = geom.attributes.position.array;
-    for (i = 0; i < w; i++) {
-      vertices[i * 3 + 1] = dem_data[w - 1 - i];
-    }
-  }
-  mesh = new THREE.Mesh(geom, mat);
+  mesh = new THREE.Mesh(geom_ba, mat);
   mesh.position.y = dem.plane.height / 2;
   mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
   mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
   this.addObject(mesh, false);
   dem.aObjs.push(mesh);
 
-  // left
-  geom = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
+  // left and right
+  var geom_le = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1),
+      geom_ri = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
+
   if (Q3D.Options.exportMode) {
     for (i = 0; i < h; i++) {
-      geom.vertices[i * 2 + 1].x = dem_data[w * i];
+      geom_le.vertices[i * 2 + 1].x = dem_data[w * i];
+      geom_ri.vertices[i * 2].x = -dem_data[w * (i + 1) - 1];
     }
   }
   else {
-    vertices = geom.attributes.position.array;
+    var vertices_le = geom_le.attributes.position.array,
+        vertices_ri = geom_ri.attributes.position.array;
+
     for (i = 0; i < h; i++) {
-      vertices[(i * 2 + 1) * 3] = dem_data[w * i];
+      vertices_le[(i * 2 + 1) * 3] = dem_data[w * i];
+      vertices_ri[i * 2 * 3] = -dem_data[w * (i + 1) - 1];
     }
   }
-  mesh = new THREE.Mesh(geom, mat);
+  mesh = new THREE.Mesh(geom_le, mat);
   mesh.position.x = -dem.plane.width / 2;
   mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
   this.addObject(mesh, false);
   dem.aObjs.push(mesh);
 
-  // right
-  geom = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
-  if (Q3D.Options.exportMode) {
-    for (i = 0; i < h; i++) {
-      geom.vertices[i * 2].x = -dem_data[w * (i + 1) - 1];
-    }
-  }
-  else {
-    vertices = geom.attributes.position.array;
-    for (i = 0; i < h; i++) {
-      vertices[i * 2 * 3] = -dem_data[w * (i + 1) - 1];
-    }
-  }
-  mesh = new THREE.Mesh(geom, mat);
+  mesh = new THREE.Mesh(geom_ri, mat);
   mesh.position.x = dem.plane.width / 2;
   mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
   this.addObject(mesh, false);
@@ -1022,10 +1009,10 @@ Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
 
   // Bottom
   if (Q3D.Options.exportMode) {
-    geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, w - 1, h - 1);
+    var geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, w - 1, h - 1);
   }
   else {
-    geom = new THREE.PlaneBufferGeometry(dem.plane.width, dem.plane.height, 1, 1);
+    var geom = new THREE.PlaneBufferGeometry(dem.plane.width, dem.plane.height, 1, 1);
   }
   mesh = new THREE.Mesh(geom, mat);
   mesh.position.z = -sole_height;
