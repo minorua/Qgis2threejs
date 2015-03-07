@@ -31,7 +31,8 @@ from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
 from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
-from qgis2threejsmain import MapTo3D, ObjectTreeItem
+from rotatedrect import RotatedRect
+from qgis2threejsmain import MapTo3D, ObjectTreeItem, createQuadTree
 from stylewidget import StyleWidget
 from quadtree import QuadTree
 import qgis2threejstools as tools
@@ -469,18 +470,20 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.clearRubberBands()
       return
 
-    isValid = True
-    try:
-      c = map(float, [self.lineEdit_xmin.text(), self.lineEdit_ymin.text(), self.lineEdit_xmax.text(), self.lineEdit_ymax.text()])
-    except:
-      isValid = False
+    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
+    canvas = self.dialog.iface.mapCanvas()
+    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
 
-    if isValid:
-      # create quad rubber bands
-      rect = QgsRectangle(c[0], c[1], c[2], c[3])
-      quadtree = QuadTree(self.dialog.iface.mapCanvas().extent())
-      quadtree.buildTreeByRect(rect, self.spinBox_Height.value())
-      self.dialog.createRubberBands(quadtree.quads(), rect.center())
+    baseExtent = RotatedRect.fromMapSettings(mapSettings)
+    p = {"lineEdit_xmin": self.lineEdit_xmin.text(),
+         "lineEdit_ymin": self.lineEdit_ymin.text(),
+         "lineEdit_xmax": self.lineEdit_xmax.text(),
+         "lineEdit_ymax": self.lineEdit_ymax.text(),
+         "spinBox_Height": self.spinBox_Height.value()}
+
+    quadtree = createQuadTree(baseExtent, p)
+    if quadtree:
+      self.dialog.createRubberBands(baseExtent, quadtree)
       self.dialog.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
     else:
       self.dialog.clearRubberBands()

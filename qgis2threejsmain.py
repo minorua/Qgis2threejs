@@ -33,6 +33,7 @@ try:
 except ImportError:
   import gdal
 
+from rotatedrect import RotatedRect
 from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry
 from datamanager import ImageManager, ModelManager, MaterialManager
 from propertyreader import DEMPropertyReader, VectorPropertyReader
@@ -60,31 +61,35 @@ class ObjectTreeItem:
 
 
 class MapTo3D:
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
+  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):   #TODO: mapSettings
+    mapSettings = mapCanvas.mapSettings() if apiChanged23 else mapCanvas.mapRenderer()
+
     # map canvas
-    self.mapExtent = mapCanvas.extent()
+    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    self.mapExtent = RotatedRect.fromMapSettings(mapSettings)
 
     # 3d
+    canvas_size = mapSettings.outputSize()
     self.planeWidth = planeWidth
-    self.planeHeight = planeWidth * mapCanvas.extent().height() / mapCanvas.extent().width()
+    self.planeHeight = planeWidth * canvas_size.height() / float(canvas_size.width())
 
     self.verticalExaggeration = verticalExaggeration
     self.verticalShift = verticalShift
 
-    self.multiplier = planeWidth / mapCanvas.extent().width()
+    self.multiplier = planeWidth / self.mapExtent.width()
     self.multiplierZ = self.multiplier * verticalExaggeration
 
   def transform(self, x, y, z=0):
-    extent = self.mapExtent
-    return Point((x - extent.xMinimum()) * self.multiplier - self.planeWidth / 2,
-                 (y - extent.yMinimum()) * self.multiplier - self.planeHeight / 2,
+    n = self.mapExtent.normalizePoint(x, y)
+    return Point((n.x() - 0.5) * self.planeWidth,
+                 (n.y() - 0.5) * self.planeHeight,
                  (z + self.verticalShift) * self.multiplierZ)
 
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
 
 class MemoryWarpRaster(Raster):
-  def __init__(self, filename, wkt=None):
+  def __init__(self, filename, wkt=None):   #TODO: source_wkt and dest_wkt
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
     if wkt:
@@ -154,13 +159,13 @@ class ExportSettings:
     self.coordsInWGS84 = world.get("radioButton_WGS84", False)
 
     self.canvas = canvas
-    self.baseExtent = canvas.extent()
+    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    self.baseExtent = RotatedRect.fromMapSettings(self.mapSettings)
 
     self.properties = properties
 
     self.localBrowsingMode = localBrowsingMode
 
-    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.crs = self.mapSettings.destinationCrs()
 
     wgs84 = QgsCoordinateReferenceSystem(4326)
@@ -256,20 +261,22 @@ class ThreejsJSWriter(JSWriter):
   def writeProject(self):
     # write project information
     self.write(u"// Qgis2threejs Project\n")
+    settings = self.settings
     extent = self.settings.baseExtent
     mapTo3d = self.settings.mapTo3d
     wgs84Center = self.settings.wgs84Center
 
-    opt = {"title": self.settings.title,
-           "crs": unicode(self.settings.crs.authid()),
-           "proj": self.settings.crs.toProj4(),
-           "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
-           "width": mapTo3d.planeWidth,
-           "zExaggeration": mapTo3d.verticalExaggeration,
-           "zShift": mapTo3d.verticalShift,
-           "wgs84Center": {"lat": wgs84Center.y(), "lon": wgs84Center.x()}}
+    args = {"title": settings.title,
+            "crs": unicode(settings.crs.authid()),
+            "proj": settings.crs.toProj4(),
+            "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
+            "rotation": extent.rotation(),
+            "width": mapTo3d.planeWidth,
+            "zExaggeration": mapTo3d.verticalExaggeration,
+            "zShift": mapTo3d.verticalShift,
+            "wgs84Center": {"lat": wgs84Center.y(), "lon": wgs84Center.x()}}
 
-    self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(opt)))
+    self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
 
   def writeLayer(self, obj, fieldNames=None):
     self.currentLayerIndex = self.layerCount
@@ -442,7 +449,6 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 def writeSimpleDEM(writer, properties, progress=None):
   settings = writer.settings
   mapTo3d = settings.mapTo3d
-  extent = settings.baseExtent
   progress = progress or dummyProgress
 
   prop = DEMPropertyReader(properties)
@@ -450,10 +456,6 @@ def writeSimpleDEM(writer, properties, progress=None):
   dem_height = prop.height()
 
   # warp dem
-  # calculate extent. output dem should be handled as points.
-  xres = extent.width() / (dem_width - 1)
-  yres = extent.height() / (dem_height - 1)
-  geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
   wkt = str(settings.crs.toWkt())
 
   demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId) if prop.layerId else None
@@ -464,8 +466,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     layerName = "Flat plane"
     warp_dem = FlatRaster()
 
-  # warp dem
-  dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+  dem_values = warp_dem.read(dem_width, dem_height, wkt, settings.baseExtent.geotransform(dem_width, dem_height))
 
   # calculate statistics
   stats = {"max": max(dem_values), "min": min(dem_values)}
@@ -475,8 +476,6 @@ def writeSimpleDEM(writer, properties, progress=None):
     dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
   if mapTo3d.multiplierZ != 1:
     dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
-  if debug_mode:
-    qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
   surroundings = properties.get("checkBox_Surroundings", False)
   if surroundings:
@@ -503,7 +502,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   elif properties.get("radioButton_LayerImage", False):
     layerid = properties.get("comboBox_ImageLayer")
     size = settings.mapSettings.outputSize()
-    block["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), extent, transparency, transp_background)
+    block["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
@@ -562,6 +561,7 @@ def roughenEdges(width, height, values, interval):
 
 def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=None):
   settings = writer.settings
+  mapSettings = settings.mapSettings
   mapTo3d = settings.mapTo3d
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
@@ -579,7 +579,8 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   wkt = str(settings.crs.toWkt())
 
   # texture image size
-  hpw = baseExtent.height() / baseExtent.width()
+  canvas_size = mapSettings.outputSize()
+  hpw = float(canvas_size.height()) / canvas_size.width()
   if hpw < 1:
     image_width = settings.image_basesize
     image_height = round(image_width * hpw)
@@ -588,26 +589,25 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     image_height = settings.image_basesize
     image_width = round(image_height / hpw)
 
+  center = baseExtent.center()
+  rotation = baseExtent.rotation()
+
   plane_index = 1
   size2 = size * size
   for i in range(size2):
     progress(20 * i / size2 + 10)
     if i == (size2 - 1) / 2:    # center (map canvas)
       continue
+
+    # block extent
     sx = i % size - (size - 1) / 2
     sy = i / size - (size - 1) / 2
-
-    # calculate extent
-    extent = QgsRectangle(baseExtent.xMinimum() + sx * baseExtent.width(), baseExtent.yMinimum() + sy * baseExtent.height(),
-                          baseExtent.xMaximum() + sx * baseExtent.width(), baseExtent.yMaximum() + sy * baseExtent.height())
-
-    # calculate extent. output dem should be handled as points.
-    xres = extent.width() / (dem_width - 1)
-    yres = extent.height() / (dem_height - 1)
-    geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+    block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
+    extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
 
     # warp dem
-    dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    dem_values = warp_dem.read(dem_width, dem_height, wkt, extent.geotransform(dem_width, dem_height))
+
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}
     else:
@@ -619,18 +619,12 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
       dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
     if mapTo3d.multiplierZ != 1:
       dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
-    if debug_mode:
-      qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
     # generate javascript data file
-    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
-
     # dem block
     block = {"width": dem_width, "height": dem_height}
-    block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+    block["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight,
+                      "offsetX": mapTo3d.planeWidth * sx, "offsetY": mapTo3d.planeHeight * sy}
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
@@ -654,6 +648,7 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
 
 def writeMultiResDEM(writer, properties, progress=None):
   settings = writer.settings
+  mapSettings = settings.mapSettings
   mapTo3d = settings.mapTo3d
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
@@ -670,6 +665,10 @@ def writeMultiResDEM(writer, properties, progress=None):
   transp_background = properties.get("checkBox_TransparentBackground", False)
   imageLayerId = properties.get("comboBox_ImageLayer")
 
+  # TODO:
+  def writeBlock(quad_rect, image_width, image_height):
+    pass
+
   # layer
   layer = DEMLayer(writer, demLayer, prop)
   lyr = {"type": "dem", "name": demLayer.name()}
@@ -677,7 +676,8 @@ def writeMultiResDEM(writer, properties, progress=None):
   lyrIdx = writer.writeLayer(lyr)
 
   # image size
-  hpw = baseExtent.height() / baseExtent.width()
+  canvas_size = mapSettings.outputSize()
+  hpw = float(canvas_size.height()) / canvas_size.width()
   if hpw < 1:
     image_width = settings.image_basesize
     image_height = round(image_width * hpw)
@@ -701,15 +701,13 @@ def writeMultiResDEM(writer, properties, progress=None):
   plane_index = 0
   for i, quad in enumerate(quads):
     progress(30 * i / len(quads) + 5)
-    extent = quad.extent
 
-    # calculate extent. output dem should be handled as points.
-    xres = extent.width() / (dem_width - 1)
-    yres = extent.height() / (dem_height - 1)
-    geotransform = [extent.xMinimum() - xres / 2, xres, 0, extent.yMaximum() + yres / 2, 0, -yres]
+    # block extent
+    rect = quad.rect
+    extent = baseExtent.subdivide(rect)
 
     # warp dem
-    dem_values = warp_dem.read(dem_width, dem_height, wkt, geotransform)
+    dem_values = warp_dem.read(dem_width, dem_height, wkt, extent.geotransform(dem_width, dem_height))
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}
     else:
@@ -721,22 +719,12 @@ def writeMultiResDEM(writer, properties, progress=None):
       dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
     if mapTo3d.multiplierZ != 1:
       dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
-    if debug_mode:
-      qDebug("Warped DEM: %d x %d, extent %s" % (dem_width, dem_height, str(geotransform)))
 
-    # generate javascript data file
-    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
-
-    # value resampling on edges for combination with different resolution DEM
+    # calculate DEM values on edges to combine with next DEM block with different resolution
     neighbors = quadtree.neighbors(quad)
-    #qDebug("Output quad (%d %s): height=%d" % (i, str(quad), quad.height))
     for direction, neighbor in enumerate(neighbors):
       if neighbor is None:
         continue
-      #qDebug(" neighbor %d %s: height=%d" % (direction, str(neighbor), neighbor.height))
       interval = 2 ** (quad.height - neighbor.height)
       if interval > 1:
         if direction == QuadTree.UP or direction == QuadTree.DOWN:
@@ -758,9 +746,15 @@ def writeMultiResDEM(writer, properties, progress=None):
               z = (z0 * (interval - yy) + z1 * yy) / interval
               dem_values[x + dem_width * (y0 + yy)] = z
 
-    if quad.height < quadtree.height or unites_center == False:
+    if unites_center and quad.height == quadtree.height:
+      centerQuads.addQuad(quad, dem_values)
+    else:
+      npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
       block = {"width": dem_width, "height": dem_height}
-      block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+      block["plane"] = {"width": rect.width() * mapTo3d.planeWidth,
+                        "height": rect.height() * mapTo3d.planeHeight,
+                        "offsetX": (npt.x() - 0.5) * mapTo3d.planeWidth,
+                        "offsetY": (npt.y() - 0.5) * mapTo3d.planeHeight}
 
       # display type
       if properties.get("radioButton_MapCanvas", False):
@@ -781,20 +775,22 @@ def writeMultiResDEM(writer, properties, progress=None):
       writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
       writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
       plane_index += 1
-    else:
-      centerQuads.addQuad(quad, dem_values)
 
   if unites_center:
-    extent = centerQuads.extent()
     dem_width = (dem_width - 1) * centerQuads.width() + 1
     dem_height = (dem_height - 1) * centerQuads.height() + 1
     dem_values = centerQuads.unitedDEM()
-    planeWidth = mapTo3d.planeWidth * extent.width() / baseExtent.width()
-    planeHeight = mapTo3d.planeHeight * extent.height() / baseExtent.height()
-    offsetX = mapTo3d.planeWidth * (extent.xMinimum() - baseExtent.xMinimum()) / baseExtent.width() + planeWidth / 2 - mapTo3d.planeWidth / 2
-    offsetY = mapTo3d.planeHeight * (extent.yMinimum() - baseExtent.yMinimum()) / baseExtent.height() + planeHeight / 2 - mapTo3d.planeHeight / 2
+
+    # block extent
+    rect = centerQuads.rect()
+    extent = baseExtent.subdivide(rect)
+    npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
+
     block = {"width": dem_width, "height": dem_height}
-    block["plane"] = {"width": planeWidth, "height": planeHeight, "offsetX": offsetX, "offsetY": offsetY}
+    block["plane"] = {"width": rect.width() * mapTo3d.planeWidth,
+                      "height": rect.height() * mapTo3d.planeHeight,
+                      "offsetX": (npt.x() - 0.5) * mapTo3d.planeWidth,
+                      "offsetY": (npt.y() - 0.5) * mapTo3d.planeHeight}
 
     if hpw < 1:
       image_width = settings.image_basesize * centerQuads.width()
@@ -1065,14 +1061,15 @@ def writeVectors(writer, legendInterface, progress=None):
     # features to export
     clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
-      request.setFilterRect(layer.transform.transformBoundingBox(baseExtent, QgsCoordinateTransform.ReverseTransform))
-      if properties.get("checkBox_Clip"):
+      request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+      if False and properties.get("checkBox_Clip"):   #TODO: clip with rotated rect
         rect = QgsRectangle(baseExtent)
         rect.scale(0.999999)    # clip with slightly smaller extent than map canvas extent
         clipGeom = QgsGeometry.fromRect(rect)
         #clipGeom = QgsGeometry.fromRect(canvas.extent())
 
     for f in mapLayer.getFeatures(request):
+      #TODO: if rotated, check intersections with the rect
       feat.setQgsFeature(f, clipGeom)
       if feat.geom is None:
         continue
@@ -1099,15 +1096,22 @@ def writeSphereTexture(writer):
   # removed (moved to exp_sphere branch)
   pass
 
-
-# createQuadTree(extent, demProperties)
 def createQuadTree(extent, p):
+  """
+  args:
+    p -- demProperties
+  """
   try:
     c = map(float, [p["lineEdit_xmin"], p["lineEdit_ymin"], p["lineEdit_xmax"], p["lineEdit_ymax"]])
   except:
     return None
-  quadtree = QuadTree(extent)
-  quadtree.buildTreeByRect(QgsRectangle(c[0], c[1], c[2], c[3]), p["spinBox_Height"])
+
+  # normalize
+  ll = extent.normalizePoint(c[0], c[1])
+  ur = extent.normalizePoint(c[2], c[3])
+
+  quadtree = QuadTree()
+  quadtree.buildTreeByRect(QgsRectangle(ll.x(), ll.y(), ur.x(), ur.y()), p["spinBox_Height"])
   return quadtree
 
 def dummyProgress(progress=None, statusMsg=None):

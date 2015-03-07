@@ -404,7 +404,7 @@ class Qgis2threejsDialog(QDialog):
         return
 
       # update quads and point on map canvas
-      self.createRubberBands(quadtree.quads(), quadtree.focusRect.center())
+      self.createRubberBands(export_settings.baseExtent, quadtree)
 
     # export
     ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
@@ -465,29 +465,29 @@ class Qgis2threejsDialog(QDialog):
       if self.currentPage.pageType == ppages.PAGE_DEM and self.currentPage.isPrimary:
         self.currentPage.toolButton_PointTool.setVisible(True)
 
-  def createRubberBands(self, quads, point=None):
+  def createRubberBands(self, baseExtent, quadtree):
     self.clearRubberBands()
     # create quads with rubber band
     self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QGis.Line)
     self.rb_quads.setColor(Qt.blue)
     self.rb_quads.setWidth(1)
 
+    quads = quadtree.quads()
     for quad in quads:
-      points = []
-      extent = quad.extent
-      points.append(QgsPoint(extent.xMinimum(), extent.yMinimum()))
-      points.append(QgsPoint(extent.xMinimum(), extent.yMaximum()))
-      points.append(QgsPoint(extent.xMaximum(), extent.yMaximum()))
-      points.append(QgsPoint(extent.xMaximum(), extent.yMinimum()))
+      points = baseExtent.subdivide(quad.rect).vertices()
+      points.append(points[0])
       self.rb_quads.addGeometry(QgsGeometry.fromPolygon([points]), None)
-      self.log(extent.toString())
     self.log("Quad count: %d" % len(quads))
 
+    if not quadtree.focusRect:
+      return
+
     # create a point with rubber band
-    if point:
+    if quadtree.focusRect.width() == 0 or quadtree.focusRect.height() == 0:
+      npt = quadtree.focusRect.center()
       self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QGis.Point)
       self.rb_point.setColor(Qt.red)
-      self.rb_point.addPoint(point)
+      self.rb_point.addPoint(baseExtent.point(npt))
 
   def clearRubberBands(self):
     # clear quads and point
@@ -519,6 +519,9 @@ class PointMapTool(QgsMapToolEmitPoint):
   def canvasPressEvent(self, e):
     self.point = self.toMapCoordinates(e.pos())
     self.emit(SIGNAL("pointSelected()"))
+
+#RectangleMapTool
+#TODO: map rotation support
 
 # first changed on 2014-01-03 (last changed on 2014-04-20)
 class RectangleMapTool(QgsMapToolEmitPoint):

@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt4.QtCore import QDir, Qt
+from PyQt4.QtCore import Qt, QDir, QSize
 from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
 from qgis.core import QGis, QgsMapRenderer, QgsPalLabeling, QgsMessageLog
 
@@ -73,11 +73,11 @@ class ImageManager(DataManager):
 
   def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
-    canvas = self.context.canvas
     if transp_background:
       size = self.context.mapSettings.outputSize()
-      return self.renderedImage(size.width(), size.height(), canvas.extent(), transp_background)
+      return self.renderedImage(size.width(), size.height(), self.context.baseExtent, transp_background)
 
+    canvas = self.context.canvas
     if QGis.QGIS_VERSION_INT >= 20400:
      return tools.base64image(canvas.map().contentImage())
     temp_dir = QDir.tempPath()
@@ -94,8 +94,6 @@ class ImageManager(DataManager):
     tools.removeTemporaryFiles([texfilename + "w"])
 
   def _initRenderer(self):
-    canvas = self.context.canvas
-
     # set up a renderer
     labeling = QgsPalLabeling()
     renderer = QgsMapRenderer()
@@ -107,32 +105,61 @@ class ImageManager(DataManager):
     self._labeling = labeling
     self._renderer = renderer
 
-    # layer list
-    self._layerids = [mapLayer.id() for mapLayer in canvas.layers()]
-
-    # canvas color
-    self.canvasColor = canvas.canvasColor()
-
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
+    if QGis.QGIS_VERSION_INT < 20700:
+      return self._renderedImage2(self, width, height, extent, transp_background, layerids)
+
+    from qgis.core import QgsMapRendererCustomPainterJob
+    antialias = True
+
+    # render map image with QgsMapRendererCustomPainterJob
+    settings = self.context.canvas.mapSettings()
+    settings.setOutputSize(QSize(width, height))
+    settings.setExtent(extent.unrotatedRect())
+    settings.setRotation(extent.rotation())
+
+    if layerids:
+      settings.setLayers(layerids)
+
+    if transp_background:
+      settings.setBackgroundColor(QColor(Qt.transparent))
+    #else:    #TODO: remove
+      #settings.setBackgroundColor(self.context.canvas.canvasColor())
+ 
+    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+    painter = QPainter()
+    painter.begin(image)
+    if antialias:
+      painter.setRenderHint(QPainter.Antialiasing)
+
+    job = QgsMapRendererCustomPainterJob(settings, painter)
+    job.start()
+    job.waitForFinished()
+    painter.end()
+
+    return tools.base64image(image)
+
+  def _renderedImage2(self, width, height, extent, transp_background=False, layerids=None):
     antialias = True
 
     if self._renderer is None:
       self._initRenderer()
 
-    renderer = self._renderer
+    canvas = self.context.canvas
     if layerids is None:
-      renderer.setLayerSet(self._layerids)
-    else:
-      renderer.setLayerSet(layerids)
+      layerids = [mapLayer.id() for mapLayer in canvas.layers()]
+
+    renderer = self._renderer
+    renderer.setLayerSet(layerids)
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
     if transp_background:
       image.fill(QColor(Qt.transparent).rgba())   #
     else:
-      image.fill(self.canvasColor.rgba())   #
+      image.fill(canvas.canvasColor().rgba())   #
 
     renderer.setOutputSize(image.size(), image.logicalDpiX())
-    renderer.setExtent(extent)
+    renderer.setExtent(extent.unrotatedRect())
 
     painter = QPainter()
     painter.begin(image)

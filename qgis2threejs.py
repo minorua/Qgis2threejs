@@ -84,10 +84,6 @@ class Qgis2threejs:
     from vectorobject import ObjectTypeManager
     from qgis2threejsdialog import Qgis2threejsDialog
 
-    if QGis.QGIS_VERSION_INT >= 20700 and self.iface.mapCanvas().rotation() != 0:
-      QMessageBox.warning(None, "Qgis2threejs", "Current version doesn't support map canvas rotation. Please set rotation to zero and try again!")
-      return
-
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
     dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.properties, self.lastTreeItemData)

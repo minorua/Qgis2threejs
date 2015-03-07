@@ -35,16 +35,23 @@ Q3D.$ = function (elementId) {
 /*
 Q3D.Project - Project data holder
 
-params: title, crs, baseExtent, width, zExaggeration, zShift, wgs84Center
+params: title, crs, proj, baseExtent, rotation, width, zExaggeration, zShift, wgs84Center
 */
 Q3D.Project = function (params) {
   for (var k in params) {
     this[k] = params[k];
   }
 
-  this.height = this.width * (this.baseExtent[3] - this.baseExtent[1]) / (this.baseExtent[2] - this.baseExtent[0]);
-  this.scale = this.width / (this.baseExtent[2] - this.baseExtent[0]);
+  var w = (this.baseExtent[2] - this.baseExtent[0]),
+      h = (this.baseExtent[3] - this.baseExtent[1]);
+
+  this.height = this.width * h / w;
+  this.scale = this.width / w;
   this.zScale = this.scale * this.zExaggeration;
+
+  this.origin = {x: this.baseExtent[0] + w / 2,
+                 y: this.baseExtent[1] + h / 2,
+                 z: -this.zShift};
 
   this.layers = [];
   this.models = [];
@@ -74,10 +81,39 @@ Q3D.Project.prototype = {
     return null;
   },
 
+  _rotatePoint: function (point, degrees, origin) {
+    // Rotate point around the origin
+    var theta = degrees * Math.PI / 180,
+        c = Math.cos(theta),
+        s = Math.sin(theta),
+        x = point.x,
+        y = point.y;
+
+    if (origin) {
+      x -= origin.x;
+      y -= origin.y;
+    }
+
+    // rotate counter-clockwise
+    var xd = x * c - y * s,
+        yd = x * s + y * c;
+
+    if (origin) {
+      xd += origin.x;
+      yd += origin.y;
+    }
+    return {x: xd, y: yd};
+  },
+
   toMapCoordinates: function (x, y, z) {
-    return {x : (x + this.width / 2) / this.scale + this.baseExtent[0],
-            y : (y + this.height / 2) / this.scale + this.baseExtent[1],
-            z : z / this.zScale - this.zShift};
+    if (this.rotation) {
+      var pt = this._rotatePoint({x: x, y: y}, this.rotation);
+      x = pt.x;
+      y = pt.y;
+    }
+    return {x: x / this.scale + this.origin.x,
+            y: y / this.scale + this.origin.y,
+            z: z / this.zScale + this.origin.z};
   }
 
   // buildCustomLights: function (parent) {},
