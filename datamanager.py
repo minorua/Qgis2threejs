@@ -107,7 +107,7 @@ class ImageManager(DataManager):
 
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
     if QGis.QGIS_VERSION_INT < 20700:
-      return self._renderedImage2(self, width, height, extent, transp_background, layerids)
+      return self._renderedImage2(width, height, extent, transp_background, layerids)
 
     from qgis.core import QgsMapRendererCustomPainterJob
     antialias = True

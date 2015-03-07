@@ -593,7 +593,6 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   center = baseExtent.center()
   rotation = baseExtent.rotation()
 
-  plane_index = 1
   size2 = size * size
   for i in range(size2):
     progress(20 * i / size2 + 10)
@@ -645,7 +644,6 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     # write block
     writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-    plane_index += 1
 
 def writeMultiResDEM(writer, properties, progress=None):
   settings = writer.settings
@@ -659,22 +657,55 @@ def writeMultiResDEM(writer, properties, progress=None):
   if demLayer is None:
     return
 
+  # layer
+  layer = DEMLayer(writer, demLayer, prop)
+  lyr = {"type": "dem", "name": demLayer.name()}
+  lyr["q"] = 1    #queryable
+  lyrIdx = writer.writeLayer(lyr)
+
   warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
+
+  # quad tree
+  quadtree = settings.quadtree
+  quads = quadtree.quads()
+
+  # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
+  # with smooth resolution change, this is not necessary
+  dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
   # material options
   transparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
   imageLayerId = properties.get("comboBox_ImageLayer")
 
-  # TODO:
-  def writeBlock(quad_rect, image_width, image_height):
-    pass
+  # writeBlock function
+  def writeBlock(quad_rect, extent, dem_values, image_width, image_height):
+    # extent = baseExtent.subdivide(rect)
+    npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
+    block = {"width": dem_width, "height": dem_height}
+    block["plane"] = {"width": quad_rect.width() * mapTo3d.planeWidth,
+                      "height": quad_rect.height() * mapTo3d.planeHeight,
+                      "offsetX": (npt.x() - 0.5) * mapTo3d.planeWidth,
+                      "offsetY": (npt.y() - 0.5) * mapTo3d.planeHeight}
 
-  # layer
-  layer = DEMLayer(writer, demLayer, prop)
-  lyr = {"type": "dem", "name": demLayer.name()}
-  lyr["q"] = 1    #queryable
-  lyrIdx = writer.writeLayer(lyr)
+    # display type
+    if properties.get("radioButton_MapCanvas", False):
+      block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
+
+    elif properties.get("radioButton_LayerImage", False):
+      block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
+
+    elif properties.get("radioButton_SolidColor", False):
+      block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+
+    # shading (whether compute normals)
+    if properties.get("checkBox_Shading", True):
+      block["shading"] = True
+
+    # write block
+    writer.nextFile(True)
+    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
+    writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
 
   # image size
   canvas_size = mapSettings.outputSize()
@@ -686,18 +717,9 @@ def writeMultiResDEM(writer, properties, progress=None):
     image_height = settings.image_basesize
     image_width = round(image_height / hpw)
 
-  # quad tree
-  quadtree = settings.quadtree
-  quads = quadtree.quads()
-
-  # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
-  # with smooth resolution change, this is not necessary
-  dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
-
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
   stats = None
-  plane_index = 0
   for i, quad in enumerate(quads):
     progress(30 * i / len(quads) + 5)
 
@@ -748,48 +770,12 @@ def writeMultiResDEM(writer, properties, progress=None):
     if unites_center and quad.height == quadtree.height:
       centerQuads.addQuad(quad, dem_values)
     else:
-      npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
-      block = {"width": dem_width, "height": dem_height}
-      block["plane"] = {"width": rect.width() * mapTo3d.planeWidth,
-                        "height": rect.height() * mapTo3d.planeHeight,
-                        "offsetX": (npt.x() - 0.5) * mapTo3d.planeWidth,
-                        "offsetY": (npt.y() - 0.5) * mapTo3d.planeHeight}
-
-      # display type
-      if properties.get("radioButton_MapCanvas", False):
-        block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
-
-      elif properties.get("radioButton_LayerImage", False):
-        block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
-
-      elif properties.get("radioButton_SolidColor", False):
-        block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
-
-      # shading (whether compute normals)
-      if properties.get("checkBox_Shading", True):
-        block["shading"] = True
-
-      # write block
-      writer.nextFile(True)
-      writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
-      writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-      plane_index += 1
+      writeBlock(rect, extent, dem_values, image_width, image_height)
 
   if unites_center:
     dem_width = (dem_width - 1) * centerQuads.width() + 1
     dem_height = (dem_height - 1) * centerQuads.height() + 1
     dem_values = centerQuads.unitedDEM()
-
-    # block extent
-    rect = centerQuads.rect()
-    extent = baseExtent.subdivide(rect)
-    npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
-
-    block = {"width": dem_width, "height": dem_height}
-    block["plane"] = {"width": rect.width() * mapTo3d.planeWidth,
-                      "height": rect.height() * mapTo3d.planeHeight,
-                      "offsetX": (npt.x() - 0.5) * mapTo3d.planeWidth,
-                      "offsetY": (npt.y() - 0.5) * mapTo3d.planeHeight}
 
     if hpw < 1:
       image_width = settings.image_basesize * centerQuads.width()
@@ -798,21 +784,10 @@ def writeMultiResDEM(writer, properties, progress=None):
       image_height = settings.image_basesize * centerQuads.height()
       image_width = round(image_height / hpw)
 
-    # display type
-    if properties.get("radioButton_MapCanvas", False):
-      block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
-
-    elif properties.get("radioButton_LayerImage", False):
-      block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
-
-    elif properties.get("radioButton_SolidColor", False):
-      block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
-
-    # write block
-    writer.nextFile(True)
-    writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
-    writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
-    plane_index += 1
+    # block extent
+    rect = centerQuads.rect()
+    extent = baseExtent.subdivide(rect)
+    writeBlock(rect, extent, dem_values, image_width, image_height)
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
   writer.writeMaterials(layer.materialManager)
