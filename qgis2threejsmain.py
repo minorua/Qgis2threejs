@@ -991,6 +991,8 @@ class VectorLayer(Layer):
 def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
+  baseExtentGeom = baseExtent.geometry()
+  rotation = baseExtent.rotation()
   mapTo3d = settings.mapTo3d
   progress = progress or dummyProgress
   renderer = QgsMapRenderer()
@@ -1062,14 +1064,22 @@ def writeVectors(writer, legendInterface, progress=None):
     clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
       request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
-      if False and properties.get("checkBox_Clip"):   #TODO: clip with rotated rect
-        rect = QgsRectangle(baseExtent)
-        rect.scale(0.999999)    # clip with slightly smaller extent than map canvas extent
-        clipGeom = QgsGeometry.fromRect(rect)
-        #clipGeom = QgsGeometry.fromRect(canvas.extent())
+      if properties.get("checkBox_Clip"):
+        extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
+        clipGeom = extent.geometry()
 
     for f in mapLayer.getFeatures(request):
-      #TODO: if rotated, check intersections with the rect
+      if rotation:
+        # check if geometry intersects with the base extent (rotated rect)
+        geom = f.geometry()
+        if geom is None:
+          qDebug("null geometry skipped (rotation is not zero)")
+          continue
+        geom.transform(layer.transform)
+        if not baseExtentGeom.intersects(geom):
+          continue
+
+      # set feature
       feat.setQgsFeature(f, clipGeom)
       if feat.geom is None:
         continue
