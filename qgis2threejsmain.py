@@ -89,16 +89,21 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class MemoryWarpRaster(Raster):
-  def __init__(self, filename, wkt=None):   #TODO: source_wkt and dest_wkt
+  def __init__(self, filename, source_wkt=None, dest_wkt=None):
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
-    if wkt:
-      self.ds.SetProjection(str(wkt))
+    self.source_wkt = source_wkt
+    self.dest_wkt = dest_wkt
+    if source_wkt:
+      self.ds.SetProjection(str(source_wkt))
 
-  def read(self, width, height, wkt, geotransform):
+  def read(self, width, height, geotransform, dest_wkt=None):
+    if dest_wkt is None:
+      dest_wkt = self.dest_wkt
+
     # create a memory dataset
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(wkt)
+    warped_ds.SetProjection(dest_wkt)
     warped_ds.SetGeoTransform(geotransform)
 
     # reproject image
@@ -112,20 +117,20 @@ class MemoryWarpRaster(Raster):
       values += struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
     return values
 
-  def readValue(self, wkt, x, y):
-    # get value at the position using 1px * 1px memory raster
+  def readValue(self, x, y, dest_wkt=None):
+    """get value at the position using 1px * 1px memory raster"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self.read(1, 1, wkt, geotransform)[0]
+    return self.read(1, 1, geotransform, dest_wkt)[0]
 
 class FlatRaster:
   def __init__(self, value=0):
     self.value = value
 
-  def read(self, width, height, wkt, geotransform):
+  def read(self, width, height, geotransform, wkt=None):
     return [self.value] * width * height
 
-  def readValue(self, wkt, x, y):
+  def readValue(self, x, y, wkt=None):
     return self.value
 
 
@@ -250,7 +255,7 @@ class ThreejsJSWriter(JSWriter):
     self.attrs = []
 
     if settings.demLayer:
-      self.warp_dem = MemoryWarpRaster(settings.demLayer.source(), str(settings.demLayer.crs().toWkt()))
+      self.warp_dem = MemoryWarpRaster(settings.demLayer.source(), str(settings.demLayer.crs().toWkt()), str(settings.crs.toWkt()))
     else:
       self.warp_dem = FlatRaster()
 
@@ -456,17 +461,15 @@ def writeSimpleDEM(writer, properties, progress=None):
   dem_height = prop.height()
 
   # warp dem
-  wkt = str(settings.crs.toWkt())
-
   demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId) if prop.layerId else None
   if demLayer:
     layerName = demLayer.name()
-    warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()))
+    warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
   else:
     layerName = "Flat plane"
     warp_dem = FlatRaster()
 
-  dem_values = warp_dem.read(dem_width, dem_height, wkt, settings.baseExtent.geotransform(dem_width, dem_height))
+  dem_values = warp_dem.read(dem_width, dem_height, settings.baseExtent.geotransform(dem_width, dem_height))
 
   # calculate statistics
   stats = {"max": max(dem_values), "min": min(dem_values)}
@@ -576,8 +579,6 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
 
-  wkt = str(settings.crs.toWkt())
-
   # texture image size
   canvas_size = mapSettings.outputSize()
   hpw = float(canvas_size.height()) / canvas_size.width()
@@ -606,7 +607,7 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
 
     # warp dem
-    dem_values = warp_dem.read(dem_width, dem_height, wkt, extent.geotransform(dem_width, dem_height))
+    dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
 
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}
@@ -658,7 +659,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   if demLayer is None:
     return
 
-  warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()))
+  warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
 
   # material options
   transparency = properties["spinBox_demtransp"]
@@ -693,8 +694,6 @@ def writeMultiResDEM(writer, properties, progress=None):
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
-  wkt = str(settings.crs.toWkt())
-
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
   stats = None
@@ -707,7 +706,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     extent = baseExtent.subdivide(rect)
 
     # warp dem
-    dem_values = warp_dem.read(dem_width, dem_height, wkt, extent.geotransform(dem_width, dem_height))
+    dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}
     else:
@@ -890,7 +889,6 @@ class Feature:
     self.layer = layer
 
     self.prop = layer.prop
-    self.wkt = layer.wkt
     self.transform = layer.transform
     self.geomType = layer.geomType
     self.geomClass = layer.geomClass
@@ -926,7 +924,7 @@ class Feature:
     # z_func: function to get z coordinate at given point (x, y)
     if self.prop.isHeightRelativeToDEM():
       # calculate elevation with dem
-      z_func = lambda x, y: self.writer.warp_dem.readValue(self.wkt, x, y)
+      z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
     else:
       z_func = lambda x, y: 0
 
@@ -981,9 +979,7 @@ class VectorLayer(Layer):
   def __init__(self, writer, layer, prop):
     Layer.__init__(self, writer, layer, prop)
 
-    crs = writer.settings.crs
-    self.wkt = str(crs.toWkt())
-    self.transform = QgsCoordinateTransform(layer.crs(), crs)
+    self.transform = QgsCoordinateTransform(layer.crs(), writer.settings.crs)
     self.geomType = layer.geometryType()
     self.geomClass = self.geomType2Class.get(self.geomType)
     self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
