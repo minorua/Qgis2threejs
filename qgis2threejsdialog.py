@@ -474,9 +474,8 @@ class Qgis2threejsDialog(QDialog):
 
     quads = quadtree.quads()
     for quad in quads:
-      points = baseExtent.subdivide(quad.rect).vertices()
-      points.append(points[0])
-      self.rb_quads.addGeometry(QgsGeometry.fromPolygon([points]), None)
+      geom = baseExtent.subdivide(quad.rect).geometry()
+      self.rb_quads.addGeometry(geom, None)
     self.log("Quad count: %d" % len(quads))
 
     if not quadtree.focusRect:

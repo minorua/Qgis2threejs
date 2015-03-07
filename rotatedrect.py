@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 import math
-from qgis.core import QGis, QgsMapSettings, QgsPoint, QgsRectangle
+from qgis.core import QGis, QgsMapSettings, QgsPoint, QgsRectangle, QgsGeometry
 
 
 class RotatedRect:
@@ -79,6 +79,12 @@ class RotatedRect:
     rect = self._unrotated_rect
     return QgsPoint((pt.x() - rect.xMinimum()) / rect.width(),
                     (pt.y() - rect.yMinimum()) / rect.height())
+
+  def scale(self, s):
+    self._width *= s
+    self._height *= s
+    self._updateDerived()
+    return self
 
   def rotate(self, degrees, origin=None):
     """Rotate the center of extent around the origin
@@ -220,15 +226,23 @@ class RotatedRect:
   def yMaximum(self):
     return self._unrotated_rect.yMaximum()
 
+  def geometry(self):
+    pts = self.vertices()
+    pts.append(pts[0])
+    return QgsGeometry.fromPolygon([pts])
+
   def vertices(self):
     """return vertices of the rect clockwise"""
-    center = self._center
-    rotation = self._rotation
-    ur_rect = self._unrotated_rect
-    return [self.rotatePoint(QgsPoint(ur_rect.xMinimum(), ur_rect.yMaximum()), rotation, center),
-            self.rotatePoint(QgsPoint(ur_rect.xMaximum(), ur_rect.yMaximum()), rotation, center),
-            self.rotatePoint(QgsPoint(ur_rect.xMaximum(), ur_rect.yMinimum()), rotation, center),
-            self.rotatePoint(QgsPoint(ur_rect.xMinimum(), ur_rect.yMinimum()), rotation, center)]
+    rect = self._unrotated_rect
+    pts = [QgsPoint(rect.xMinimum(), rect.yMaximum()),
+           QgsPoint(rect.xMaximum(), rect.yMaximum()),
+           QgsPoint(rect.xMaximum(), rect.yMinimum()),
+           QgsPoint(rect.xMinimum(), rect.yMinimum())]
+
+    if self._rotation:
+      return map(lambda pt: self.rotatePoint(pt, self._rotation, self._center), pts)
+
+    return pts
 
   def __repr__(self):
     return "RotatedRect(c:{0}, w:{1}, h:{2}, r:{3})".format(self._center.toString(), self._width, self._height, self._rotation)
