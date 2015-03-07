@@ -909,6 +909,7 @@ class Feature:
       return
 
     # coordinate transformation - layer crs to project crs
+    geom = QgsGeometry(geom)
     geom.transform(self.transform)
 
     # clip geometry
@@ -1075,6 +1076,7 @@ def writeVectors(writer, legendInterface, progress=None):
         if geom is None:
           qDebug("null geometry skipped (rotation is not zero)")
           continue
+        geom = QgsGeometry(geom)
         geom.transform(layer.transform)
         if not baseExtentGeom.intersects(geom):
           continue
