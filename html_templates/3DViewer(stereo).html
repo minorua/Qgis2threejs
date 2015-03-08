@@ -38,6 +38,7 @@ and uses the following library:
 <div id="footer"></div>
 
 <script src="./threejs/three.min.js"></script>
+<script src="./threejs/StereoEffect.js"></script>
 <script src="./Qgis2threejs.js"></script>
 ${controls}
 <script>
@@ -57,6 +58,20 @@ app.init(container);
 app.loadProject(project);
 
 app.addEventListeners();
+
+// StereoEffect
+var effect = new THREE.StereoEffect(app.renderer);
+effect.setSize(window.innerWidth, window.innerHeight);
+
+// overwrite render function of the application object
+app.render = function () {
+  effect.render(this.scene, this.camera);
+  this.updateLabelPosition();
+};
+
+// TODO: window.resize
+// effect.setSize( window.innerWidth, window.innerHeight );
+
 app.start();
 
 </script>
@@ -65,6 +80,7 @@ app.start();
 <script>
 // initialize dat-gui panel
 Q3D.gui.init();
+Q3D.gui.gui.close();
 </script>
 </body>
 </html>
