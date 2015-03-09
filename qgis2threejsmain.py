@@ -1085,16 +1085,17 @@ def createQuadTree(extent, p):
     p -- demProperties
   """
   try:
-    c = map(float, [p["lineEdit_xmin"], p["lineEdit_ymin"], p["lineEdit_xmax"], p["lineEdit_ymax"]])
-  except:
+    cx, cy, w, h = map(float, [p["lineEdit_centerX"], p["lineEdit_centerY"], p["lineEdit_rectWidth"], p["lineEdit_rectHeight"]])
+  except ValueError:
     return None
 
   # normalize
-  ll = extent.normalizePoint(c[0], c[1])
-  ur = extent.normalizePoint(c[2], c[3])
+  c = extent.normalizePoint(cx, cy)
+  hw = 0.5 * w / extent.width()
+  hh = 0.5 * h / extent.height()
 
   quadtree = QuadTree()
-  quadtree.buildTreeByRect(QgsRectangle(ll.x(), ll.y(), ur.x(), ur.y()), p["spinBox_Height"])
+  quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"])
   return quadtree
 
 def dummyProgress(progress=None, statusMsg=None):

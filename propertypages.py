@@ -278,7 +278,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
     widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
-    widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_xmin, self.lineEdit_ymin, self.lineEdit_xmax, self.lineEdit_ymax]
+    widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
     widgets += [self.checkBox_TransparentBackground, self.comboBox_ImageLayer, self.lineEdit_ImageFile, self.lineEdit_Color]
     widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
@@ -475,10 +475,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
 
     baseExtent = RotatedRect.fromMapSettings(mapSettings)
-    p = {"lineEdit_xmin": self.lineEdit_xmin.text(),
-         "lineEdit_ymin": self.lineEdit_ymin.text(),
-         "lineEdit_xmax": self.lineEdit_xmax.text(),
-         "lineEdit_ymax": self.lineEdit_ymax.text(),
+    p = {"lineEdit_centerX": self.lineEdit_centerX.text(),
+         "lineEdit_centerY": self.lineEdit_centerY.text(),
+         "lineEdit_rectWidth": self.lineEdit_rectWidth.text(),
+         "lineEdit_rectHeight": self.lineEdit_rectHeight.text(),
          "spinBox_Height": self.spinBox_Height.value()}
 
     quadtree = createQuadTree(baseExtent, p)
@@ -493,10 +493,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     rect = self.dialog.mapTool.rectangle()    # RotatedRect object
     toRect = rect.width() and rect.height()
     self.switchFocusMode(toRect)
-    self.lineEdit_xmin.setText(str(rect.xMinimum()))
-    self.lineEdit_ymin.setText(str(rect.yMinimum()))
-    self.lineEdit_xmax.setText(str(rect.xMaximum()))
-    self.lineEdit_ymax.setText(str(rect.yMaximum()))
+
+    center = rect.center()
+    self.lineEdit_centerX.setText(str(center.x()))
+    self.lineEdit_centerY.setText(str(center.y()))
+    self.lineEdit_rectWidth.setText(str(rect.width()))
+    self.lineEdit_rectHeight.setText(str(rect.height()))
 
     # update quad rubber bands
     self.updateQuads()
@@ -539,7 +541,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       if isSimpleMode:
         self.setLayoutVisible(self.horizontalLayout_Advanced4, False)
       else:
-        isPoint = (self.lineEdit_xmin.text() == self.lineEdit_xmax.text() and self.lineEdit_ymin.text() == self.lineEdit_ymax.text())
+        try:
+          isPoint = (float(self.lineEdit_rectWidth.text()) == 0 and float(self.lineEdit_rectHeight.text()) == 0)
+        except ValueError:
+          isPoint = True
         self.switchFocusMode(not isPoint)
 
     if isAdvancedMode and self.radioButton_ImageFile.isChecked():
@@ -552,9 +557,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     toPoint = not toRect
     self.setLayoutVisible(self.horizontalLayout_Advanced4, toRect)
 
-    suffix = "max" if toRect else ""
-    self.label_xmax.setText("x" + suffix)
-    self.label_ymax.setText("y" + suffix)
     selection = "area" if toRect else "point"
     action = "Stroke a rectangle" if toRect else "Click"
     self.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))

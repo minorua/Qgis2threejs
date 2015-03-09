@@ -357,14 +357,20 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_Advanced3">
           <item>
-           <widget class="QLabel" name="label_xmax">
+           <widget class="QLabel" name="label_centerX">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>x</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_xmax">
+           <widget class="QLineEdit" name="lineEdit_centerX">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -377,14 +383,20 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_ymax">
+           <widget class="QLabel" name="label_centerY">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>y</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_ymax">
+           <widget class="QLineEdit" name="lineEdit_centerY">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -401,17 +413,23 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_Advanced4">
           <item>
-           <widget class="QLabel" name="label_xmin">
+           <widget class="QLabel" name="label_rectWidth">
             <property name="enabled">
              <bool>true</bool>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
-             <string>xmin</string>
+             <string>Width</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_xmin">
+           <widget class="QLineEdit" name="lineEdit_rectWidth">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -424,14 +442,20 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_ymin">
+           <widget class="QLabel" name="label_rectHeight">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
-             <string>ymin</string>
+             <string>Height</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_ymin">
+           <widget class="QLineEdit" name="lineEdit_rectHeight">
             <property name="enabled">
              <bool>true</bool>
             </property>
