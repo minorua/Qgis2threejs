@@ -109,7 +109,7 @@ class VectorPropertyReader:
     if vals["comboData"] == TransparencyWidgetFunc.VALUE:
       try:
         return int(vals["editText"])
-      except:
+      except ValueError:
         return 0
 
     alpha = None

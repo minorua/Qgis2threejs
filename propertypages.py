@@ -48,7 +48,7 @@ def is_number(val):
   try:
     float(val)
     return True
-  except:
+  except ValueError:
     return False
 
 class PropertyPage(QWidget):

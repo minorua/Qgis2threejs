@@ -345,7 +345,7 @@ class Qgis2threejsDialog(QDialog):
       try:
         float(f.attribute(field.name()))
         isNumeric = True
-      except:
+      except ValueError:
         pass
       if isNumeric:
         numeric_fields.append(field.name())
