@@ -33,6 +33,7 @@ from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToThreeJS
 import propertypages as ppages
 import qgis2threejstools as tools
+from rotatedrect import RotatedRect
 from settings import debug_mode
 
 class Qgis2threejsDialog(QDialog):
@@ -519,70 +520,72 @@ class PointMapTool(QgsMapToolEmitPoint):
     self.point = self.toMapCoordinates(e.pos())
     self.emit(SIGNAL("pointSelected()"))
 
-#RectangleMapTool
-#TODO: map rotation support
 
-# first changed on 2014-01-03 (last changed on 2014-04-20)
+# first changed on 2014-01-03 (last changed on 2015-03-09)
 class RectangleMapTool(QgsMapToolEmitPoint):
   def __init__(self, canvas):
-    self.canvas = canvas
-    QgsMapToolEmitPoint.__init__(self, self.canvas)
+    QgsMapToolEmitPoint.__init__(self, canvas)
 
-    self.rubberBand = QgsRubberBand(self.canvas, QGis.Polygon)
+    self.canvas = canvas
+    self.rubberBand = QgsRubberBand(canvas, QGis.Polygon)
     self.rubberBand.setColor(QColor(255, 0, 0, 180))
     self.rubberBand.setWidth(1)
     self.reset()
 
   def reset(self):
     self.startPoint = self.endPoint = None
-    self.isEmittingPoint = False
+    self.isDrawing = False
     self.rubberBand.reset(QGis.Polygon)
 
   def canvasPressEvent(self, e):
     self.startPoint = self.toMapCoordinates(e.pos())
     self.endPoint = self.startPoint
-    self.isEmittingPoint = True
+
+    mapSettings = self.canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.canvas.mapRenderer()
+    self.mupp = mapSettings.mapUnitsPerPixel()
+    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+
+    self.isDrawing = True
     self.showRect(self.startPoint, self.endPoint)
 
   def canvasReleaseEvent(self, e):
-    self.isEmittingPoint = False
+    self.isDrawing = False
     self.emit(SIGNAL("rectangleCreated()"))
 
   def canvasMoveEvent(self, e):
-    if not self.isEmittingPoint:
+    if not self.isDrawing:
       return
     self.endPoint = self.toMapCoordinates(e.pos())
     self.showRect(self.startPoint, self.endPoint)
 
   def showRect(self, startPoint, endPoint):
     self.rubberBand.reset(QGis.Polygon)
-    if startPoint.x() == endPoint.x() or startPoint.y() == endPoint.y():
+    if startPoint.x() == endPoint.x() and startPoint.y() == endPoint.y():
       return
 
-    point1 = QgsPoint(startPoint.x(), startPoint.y())
-    point2 = QgsPoint(startPoint.x(), endPoint.y())
-    point3 = QgsPoint(endPoint.x(), endPoint.y())
-    point4 = QgsPoint(endPoint.x(), startPoint.y())
-
-    self.rubberBand.addPoint(point1, False)
-    self.rubberBand.addPoint(point2, False)
-    self.rubberBand.addPoint(point3, False)
-    self.rubberBand.addPoint(point4, True)	# true to update canvas
+    for i, pt in enumerate(self._rect(startPoint, endPoint).vertices()):
+      self.rubberBand.addPoint(pt, bool(i == 3))
     self.rubberBand.show()
 
-  def rectangle(self):
-    if self.startPoint == None or self.endPoint == None:
+  def _rect(self, startPoint, endPoint):
+    if startPoint is None or endPoint is None:
       return None
-    return QgsRectangle(self.startPoint, self.endPoint)
+
+    p0 = self.toCanvasCoordinates(startPoint)
+    p1 = self.toCanvasCoordinates(endPoint)
+    canvas_rect = QgsRectangle(QgsPoint(p0.x(), p0.y()), QgsPoint(p1.x(), p1.y()))
+    center = QgsPoint((startPoint.x() + endPoint.x()) / 2, (startPoint.y() + endPoint.y()) / 2)
+    return RotatedRect(center, self.mupp * canvas_rect.width(), self.mupp * canvas_rect.height()).rotate(self.rotation, center)
+
+  def rectangle(self):
+    return self._rect(self.startPoint, self.endPoint)
 
   def setRectangle(self, rect):
-    if rect == self.rectangle():
+    if rect == self._rect(self.startPoint, self.endPoint):
       return False
 
-    if rect == None:
-      self.reset()
-    else:
-      self.startPoint = QgsPoint(rect.xMaximum(), rect.yMaximum())
-      self.endPoint = QgsPoint(rect.xMinimum(), rect.yMinimum())
-      self.showRect(self.startPoint, self.endPoint)
+    v = rect.vertices()
+    self.startPoint = v[3]
+    self.endPoint = v[1]
+    self.showRect(self.startPoint, self.endPoint)
     return True

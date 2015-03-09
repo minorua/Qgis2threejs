@@ -490,7 +490,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def rectangleSelected(self):
     self.radioButton_Advanced.setChecked(True)
-    rect = self.dialog.mapTool.rectangle()
+    rect = self.dialog.mapTool.rectangle()    # RotatedRect object
     toRect = rect.width() and rect.height()
     self.switchFocusMode(toRect)
     self.lineEdit_xmin.setText(str(rect.xMinimum()))
