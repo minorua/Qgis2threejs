@@ -114,7 +114,7 @@ class RotatedRect:
       y = ur_rect.yMinimum() + norm_point.y() * ur_rect.height()
     return self.rotatePoint(QgsPoint(x, y), self._rotation, self._center)
 
-  def subdivide(self, norm_rect, y_inverted=False):
+  def subrectangle(self, norm_rect, y_inverted=False):
     """
     args:
       norm_rect  -- QgsRectangle (0 <= xmin, 0 <= ymin, xmax <= 1, ymax <= 1)
@@ -200,9 +200,6 @@ class RotatedRect:
 
     return geotransform
 
-#  def __attr__(self, name):
-#    self.unrotated_extent.hasattr(name):
-
   def center(self):
     return self._center
 
@@ -217,18 +214,6 @@ class RotatedRect:
 
   def unrotatedRect(self):
     return self._unrotated_rect
-
-  def xMinimum(self):
-    return self._unrotated_rect.xMinimum()
-
-  def yMinimum(self):
-    return self._unrotated_rect.yMinimum()
-
-  def xMaximum(self):
-    return self._unrotated_rect.xMaximum()
-
-  def yMaximum(self):
-    return self._unrotated_rect.yMaximum()
 
   def geometry(self):
     pts = self.vertices()

@@ -475,7 +475,7 @@ class Qgis2threejsDialog(QDialog):
 
     quads = quadtree.quads()
     for quad in quads:
-      geom = baseExtent.subdivide(quad.rect).geometry()
+      geom = baseExtent.subrectangle(quad.rect).geometry()
       self.rb_quads.addGeometry(geom, None)
     self.log("Quad count: %d" % len(quads))
 

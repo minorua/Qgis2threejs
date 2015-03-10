@@ -268,13 +268,14 @@ class ThreejsJSWriter(JSWriter):
     self.write(u"// Qgis2threejs Project\n")
     settings = self.settings
     extent = self.settings.baseExtent
+    rect = extent.unrotatedRect()
     mapTo3d = self.settings.mapTo3d
     wgs84Center = self.settings.wgs84Center
 
     args = {"title": settings.title,
             "crs": unicode(settings.crs.authid()),
             "proj": settings.crs.toProj4(),
-            "baseExtent": [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()],
+            "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
             "rotation": extent.rotation(),
             "width": mapTo3d.planeWidth,
             "zExaggeration": mapTo3d.verticalExaggeration,
@@ -680,7 +681,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   # writeBlock function
   def writeBlock(quad_rect, extent, dem_values, image_width, image_height):
-    # extent = baseExtent.subdivide(rect)
+    # extent = baseExtent.subrectangle(rect)
     npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
     block = {"width": dem_width, "height": dem_height}
     block["plane"] = {"width": quad_rect.width() * mapTo3d.planeWidth,
@@ -725,7 +726,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # block extent
     rect = quad.rect
-    extent = baseExtent.subdivide(rect)
+    extent = baseExtent.subrectangle(rect)
 
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
@@ -786,12 +787,13 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # block extent
     rect = centerQuads.rect()
-    extent = baseExtent.subdivide(rect)
+    extent = baseExtent.subrectangle(rect)
     writeBlock(rect, extent, dem_values, image_width, image_height)
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
   writer.writeMaterials(layer.materialManager)
 
+#TODO: map rotation support
 class TriangleMesh:
 
   # 0 - 3
@@ -851,8 +853,10 @@ class TriangleMesh:
     dem_width = prop.width()
     dem_height = prop.height()
     extent = settings.baseExtent
-    triMesh = TriangleMesh(extent.xMinimum(), extent.yMinimum(),
-                           extent.xMaximum(), extent.yMaximum(),
+    #TODO: map rotation support
+    rect = extent.unrotatedRect()
+    triMesh = TriangleMesh(rect.xMinimum(), rect.yMinimum(),
+                           rect.xMaximum(), rect.yMaximum(),
                            dem_width - 1, dem_height - 1)
     return triMesh
 
