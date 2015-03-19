@@ -157,7 +157,7 @@ class PolygonGeometry:
   def splitPolygon(self, triMesh):
     """split polygon for overlay"""
     self.split_polygons = []
-    for polygon in triMesh.splitPolygon(self.toQgsGeometry()):
+    for polygon in triMesh.splitPolygons(self.toQgsGeometry()):
       boundaries = []
       # outer boundary
       points = [Point(pt.x(), pt.y(), 0) for pt in polygon[0]]
@@ -301,21 +301,21 @@ class TriangleMesh:
       if quad.intersects(geom):
         yield quad
 
-  def splitPolygon(self, geom):
-    polygons = []
+  def splitPolygons(self, geom):
     for quad in self.intersects(geom):
       pts = quad.asPolygon()[0]
       tris = [[[pts[0], pts[1], pts[3], pts[0]]], [[pts[3], pts[1], pts[2], pts[3]]]]
       if geom.contains(quad):
-        polygons += tris
+        yield tris[0]
+        yield tris[1]
       else:
         for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
           if geom.contains(tri):
-            polygons.append(tris[i])
+            yield tris[i]
           elif geom.intersects(tri):
             poly = geom.intersection(tri)
             if poly.isMultipart():
-              polygons += poly.asMultiPolygon()
+              for sp in poly.asMultiPolygon():
+                yield sp
             else:
-              polygons.append(poly.asPolygon())
-    return polygons
+              yield poly.asPolygon()

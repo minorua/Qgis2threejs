@@ -905,7 +905,8 @@ class VectorLayer(Layer):
     self.geomClass = self.geomType2Class.get(self.geomType)
     self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
 
-
+from stopwatch import clockit
+@clockit
 def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
