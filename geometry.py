@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsGeometry, QgsPoint
+from qgis.core import QgsGeometry, QgsPoint, QgsFeature, QgsSpatialIndex
 
 try:
   from osgeo import ogr
@@ -265,3 +265,57 @@ class GeometryUtils:
   def isClockwise(cls, linearRing):
     """Returns whether given linear ring is clockwise."""
     return cls._signedArea(linearRing) < 0
+
+
+class TriangleMesh:
+
+  # 0 - 3
+  # | / |
+  # 1 - 2
+
+  def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
+    self.flen = 0
+    self.quadrangles = []
+    self.spatial_index = QgsSpatialIndex()
+
+    xres = (xmax - xmin) / x_segments
+    yres = (ymax - ymin) / y_segments
+    for y in range(y_segments):
+      for x in range(x_segments):
+        pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
+        pt1 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
+        pt2 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+        pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
+        self._addQuadrangle(pt0, pt1, pt2, pt3)
+
+  def _addQuadrangle(self, pt0, pt1, pt2, pt3):
+    f = QgsFeature(self.flen)
+    f.setGeometry(QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
+    self.quadrangles.append(f)
+    self.spatial_index.insertFeature(f)
+    self.flen += 1
+
+  def intersects(self, geom):
+    for fid in self.spatial_index.intersects(geom.boundingBox()):
+      quad = self.quadrangles[fid].geometry()
+      if quad.intersects(geom):
+        yield quad
+
+  def splitPolygon(self, geom):
+    polygons = []
+    for quad in self.intersects(geom):
+      pts = quad.asPolygon()[0]
+      tris = [[[pts[0], pts[1], pts[3], pts[0]]], [[pts[3], pts[1], pts[2], pts[3]]]]
+      if geom.contains(quad):
+        polygons += tris
+      else:
+        for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
+          if geom.contains(tri):
+            polygons.append(tris[i])
+          elif geom.intersects(tri):
+            poly = geom.intersection(tri)
+            if poly.isMultipart():
+              polygons += poly.asMultiPolygon()
+            else:
+              polygons.append(poly.asPolygon())
+    return polygons
