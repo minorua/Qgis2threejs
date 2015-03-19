@@ -793,7 +793,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
   writer.writeMaterials(layer.materialManager)
 
-#TODO: map rotation support
+
 class TriangleMesh:
 
   # 0 - 3
@@ -852,12 +852,11 @@ class TriangleMesh:
     prop = DEMPropertyReader(settings.properties[ObjectTreeItem.ITEM_DEM])
     dem_width = prop.width()
     dem_height = prop.height()
-    extent = settings.baseExtent
-    #TODO: map rotation support
-    rect = extent.unrotatedRect()
-    triMesh = TriangleMesh(rect.xMinimum(), rect.yMinimum(),
-                           rect.xMaximum(), rect.yMaximum(),
-                           dem_width - 1, dem_height - 1)
+
+    mapTo3d = settings.mapTo3d
+    hw = 0.5 * mapTo3d.planeWidth
+    hh = 0.5 * mapTo3d.planeHeight
+    triMesh = TriangleMesh(-hw, -hh, hw, hh, dem_width - 1, dem_height - 1)
     return triMesh
 
 
