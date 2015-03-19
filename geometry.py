@@ -155,7 +155,7 @@ class PolygonGeometry:
     self.split_polygons = []
 
   def splitPolygon(self, triMesh):
-    """split polygon for overlay"""
+    """split polygon by TriangleMesh"""
     self.split_polygons = []
     for polygon in triMesh.splitPolygons(self.toQgsGeometry()):
       boundaries = []
