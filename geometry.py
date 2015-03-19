@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsGeometry
+from qgis.core import QgsGeometry, QgsPoint
 
 try:
   from osgeo import ogr
@@ -39,12 +39,33 @@ class Point:
     return self.x != other.x or self.y != other.y or self.z != other.z
 
 
+def pointToQgsPoint(point):
+  return QgsPoint(point.x, point.y)
+
+def lineToQgsPolyline(line):
+  return map(pointToQgsPoint, line)
+
+def polygonToQgsPolygon(polygon):
+  return map(lineToQgsPolyline, polygon)
+
+
 class PointGeometry:
   def __init__(self):
     self.pts = []
 
   def asList(self):
     return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
+
+  def toQgsGeometry(self):
+    count = len(self.pts)
+    if count > 1:
+      pts = map(pointToQgsPoint, self.pts)
+      return QgsGeometry.fromMultiPoint(pts)
+
+    if count == 1:
+      return QgsGeometry.fromPoint(pointToQgsPoint(self.pts[0]))
+
+    return QgsGeometry()
 
   @staticmethod
   def fromQgsGeometry(geometry, z_func, transform_func):
@@ -83,6 +104,17 @@ class LineGeometry:
 
   def asList(self):
     return [map(lambda pt: [pt.x, pt.y, pt.z], line) for line in self.lines]
+
+  def toQgsGeometry(self):
+    count = len(self.lines)
+    if count > 1:
+      lines = map(lineToQgsPolyline, self.lines)
+      return QgsGeometry.fromMultiPolyline(lines)
+
+    if count == 1:
+      return QgsGeometry.fromPolyline(lineToQgsPolyline(self.lines[0]))
+
+    return QgsGeometry()
 
   @staticmethod
   def fromQgsGeometry(geometry, z_func, transform_func):
@@ -139,6 +171,17 @@ class PolygonGeometry:
         b.append(pts)
       p.append(b)
     return p
+
+  def toQgsGeometry(self):
+    count = len(self.polygons)
+    if count > 1:
+      polys = map(polygonToQgsPolygon, self.polygons)
+      return QgsGeometry.fromMultiPolygon(polys)
+
+    if count == 1:
+      return QgsGeometry.fromPolygon(polygonToQgsPolygon(self.polygons[0]))
+
+    return QgsGeometry()
 
   @staticmethod
   def fromQgsGeometry(geometry, z_func, transform_func, calcCentroid=False, triMesh=None):
