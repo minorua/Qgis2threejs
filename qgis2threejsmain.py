@@ -913,11 +913,13 @@ class Feature:
       return mapTo3d.transform(x, y, z + relativeHeight)
 
     if self.geomType == QGis.Polygon:
-      triMesh = None
       if self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
         z_func = lambda x, y: 0
-        triMesh = self.writer.triangleMesh()
-      self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel, triMesh)
+        self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+        self.geom.splitPolygon(self.writer.triangleMesh())
+      else:
+        self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+
     elif self.prop.useZ():
       self.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
     else:

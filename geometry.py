@@ -154,6 +154,26 @@ class PolygonGeometry:
     self.centroids = []
     self.split_polygons = []
 
+  def splitPolygon(self, triMesh):
+    """split polygon for overlay"""
+    self.split_polygons = []
+    for polygon in triMesh.splitPolygon(self.toQgsGeometry()):
+      boundaries = []
+      # outer boundary
+      points = [Point(pt.x(), pt.y(), 0) for pt in polygon[0]]
+      if not GeometryUtils.isClockwise(points):
+        points.reverse()    # to clockwise
+      boundaries.append(points)
+
+      # inner boundaries
+      for boundary in polygon[1:]:
+        points = [Point(pt.x(), pt.y(), 0) for pt in boundary]
+        if GeometryUtils.isClockwise(points):
+          points.reverse()    # to counter-clockwise
+        boundaries.append(points)
+
+      self.split_polygons.append(boundaries)
+
   def asList(self):
     p = []
     for boundaries in self.polygons:
@@ -224,27 +244,6 @@ class PolygonGeometry:
         boundaries.append(points)
 
       geom.polygons.append(boundaries)
-
-    if triMesh is None:
-      return geom
-
-    # split polygon for overlay
-    for polygon in triMesh.splitPolygon(geometry):
-      boundaries = []
-      # outer boundary
-      points = [transform_func(pt.x(), pt.y(), 0) for pt in polygon[0]]
-      if not GeometryUtils.isClockwise(points):
-        points.reverse()    # to clockwise
-      boundaries.append(points)
-
-      # inner boundaries
-      for boundary in polygon[1:]:
-        points = [transform_func(pt.x(), pt.y(), 0) for pt in boundary]
-        if GeometryUtils.isClockwise(points):
-          points.reverse()    # to counter-clockwise
-        boundaries.append(points)
-
-      geom.split_polygons.append(boundaries)
 
     return geom
 
