@@ -864,14 +864,14 @@ class VectorLayer(Layer):
     properties = prop.properties
     self.writeAttrs = properties.get("checkBox_ExportAttrs", False)
     self.fieldNames = None
-    self.attIdx = None        #TODO: labelAttrIndex
-    self.hasLabel = False     #
+    self.labelAttrIndex = None
 
     if self.writeAttrs:
       self.fieldNames = [field.name() for field in layer.pendingFields()]
-      self.attIdx = properties.get("comboBox_Label", None)
-      if self.attIdx is not None:
-        self.hasLabel = True
+      self.labelAttrIndex = properties.get("comboBox_Label", None)
+
+  def hasLabel(self):
+    return bool(self.labelAttrIndex is not None)
 
   def layerObject(self):
     mapTo3d = self.writer.settings.mapTo3d
@@ -885,9 +885,9 @@ class VectorLayer(Layer):
     if self.geomType == QGis.Polygon and prop.type_index == 1:   # Overlay
       obj["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
 
-    if self.hasLabel:
+    if self.hasLabel():
       widgetValues = properties.get("labelHeightWidget", {})
-      obj["l"] = {"i": self.attIdx,
+      obj["l"] = {"i": self.labelAttrIndex,
                   "ht": int(widgetValues.get("comboData", 0)),
                   "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
     return obj
@@ -945,7 +945,7 @@ class VectorLayer(Layer):
         return mapTo3d.transform(x, y, z + relativeHeight)
 
       if self.geomType == QGis.Polygon:
-        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel())
         if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
           feat.geom.splitPolygon(self.writer.triangleMesh())
 
