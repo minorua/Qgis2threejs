@@ -32,7 +32,7 @@ colorNames = []
 class DEMPropertyReader:
 
   def __init__(self, properties=None):
-    self.properties = properties
+    self.properties = properties or {}
     self.layerId = properties["comboBox_DEMLayer"]
     self._width = properties["dem_Width"] if self.layerId else 2
     self._height = properties["dem_Height"] if self.layerId else 2
@@ -48,18 +48,17 @@ class VectorPropertyReader:
 
   def __init__(self, objectTypeManager, layer, properties=None):
     self.layer = layer
-    self.properties = properties
-    if properties is None:
-      self.properties = {}
-      self.visible = False
-    else:
-      self.properties = properties
+    self.properties = properties or {}
+
+    if properties:
       self.item_index = properties["comboBox_ObjectType"]
       typeitem = objectTypeManager.objectTypeItem(layer.geometryType(), self.item_index)  #
       self.type_name = typeitem.name
       self.mod_index = typeitem.mod_index
       self.type_index = typeitem.type_index #
       self.visible = properties["visible"]
+    else:
+      self.visible = False
 
   def color(self, f=None):
     return self._readColor(self.properties["colorWidget"], f)

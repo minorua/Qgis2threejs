@@ -494,8 +494,8 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
-  lyr = {"type": "dem", "name": layerName, "stats": stats}
-  lyr["q"] = 1    #queryable
+  lyr = layer.layerObject()
+  lyr.update({"name": layerName, "stats": stats})
   lyrIdx = writer.writeLayer(lyr)
 
   # dem block
@@ -667,9 +667,7 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
-  lyr = {"type": "dem", "name": demLayer.name()}
-  lyr["q"] = 1    #queryable
-  lyrIdx = writer.writeLayer(lyr)
+  lyrIdx = writer.writeLayer(layer.layerObject())
 
   warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
 
@@ -836,9 +834,19 @@ class Layer:
 
     self.materialManager = MaterialManager()
 
+  def layerObject(self):
+    obj = {"q": 1}  #queryable
+    if self.layer:
+      obj["name"] = self.layer.name()
+    return obj
+
 
 class DEMLayer(Layer):
-  pass
+
+  def layerObject(self):
+    obj = Layer.layerObject(self)
+    obj["type"] = "dem"
+    return obj
 
 
 class VectorLayer(Layer):
@@ -851,7 +859,38 @@ class VectorLayer(Layer):
     self.transform = QgsCoordinateTransform(layer.crs(), writer.settings.crs)
     self.geomType = layer.geometryType()
     self.geomClass = self.geomType2Class.get(self.geomType)
-    self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
+
+    # attributes
+    properties = prop.properties
+    self.writeAttrs = properties.get("checkBox_ExportAttrs", False)
+    self.fieldNames = None
+    self.attIdx = None        #TODO: labelAttrIndex
+    self.hasLabel = False     #
+
+    if self.writeAttrs:
+      self.fieldNames = [field.name() for field in layer.pendingFields()]
+      self.attIdx = properties.get("comboBox_Label", None)
+      if self.attIdx is not None:
+        self.hasLabel = True
+
+  def layerObject(self):
+    mapTo3d = self.writer.settings.mapTo3d
+    prop = self.prop
+    properties = prop.properties
+
+    obj = Layer.layerObject(self)
+    obj["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(self.geomType, "")
+    obj["objType"] = prop.type_name
+
+    if self.geomType == QGis.Polygon and prop.type_index == 1:   # Overlay
+      obj["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
+
+    if self.hasLabel:
+      widgetValues = properties.get("labelHeightWidget", {})
+      obj["l"] = {"i": self.attIdx,
+                  "ht": int(widgetValues.get("comboData", 0)),
+                  "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
+    return obj
 
   def features(self, request=None, clipGeom=None):
     settings = self.writer.settings
@@ -925,7 +964,6 @@ class VectorLayer(Layer):
 def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
-  mapTo3d = settings.mapTo3d
   progress = progress or dummyProgress
   renderer = QgsMapRenderer()
 
@@ -959,32 +997,9 @@ def writeVectors(writer, legendInterface, progress=None):
 
     progress(30 + 30 * finishedLayers / len(layers), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
 
-    # layer object
-    layer = VectorLayer(writer, mapLayer, prop)
-    lyr = {"name": mapLayer.name()}
-    lyr["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(geom_type, "")
-    lyr["q"] = 1    #queryable
-    lyr["objType"] = prop.type_name
-
-    if geom_type == QGis.Polygon and prop.type_index == 1:   # Overlay
-      lyr["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
-
-    # make list of field names
-    writeAttrs = properties.get("checkBox_ExportAttrs", False)
-    fieldNames = None
-    if writeAttrs:
-      fieldNames = [field.name() for field in mapLayer.pendingFields()]
-
-    hasLabel = False
-    if writeAttrs:
-      attIdx = properties.get("comboBox_Label", None)
-      if attIdx is not None:
-        widgetValues = properties.get("labelHeightWidget", {})
-        lyr["l"] = {"i": attIdx, "ht": int(widgetValues.get("comboData", 0)), "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
-        hasLabel = True
-
     # write layer object
-    writer.writeLayer(lyr, fieldNames)
+    layer = VectorLayer(writer, mapLayer, prop)
+    writer.writeLayer(layer.layerObject(), layer.fieldNames)
 
     # initialize symbol rendering
     mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
@@ -1003,11 +1018,11 @@ def writeVectors(writer, legendInterface, progress=None):
       obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
 
       # stack attributes in writer
-      if writeAttrs:
+      if layer.writeAttrs:
         writer.addAttributes(feat.attributes())
 
     # write attributes
-    if writeAttrs:
+    if layer.writeAttrs:
       writer.writeAttributes()
 
     # write materials
