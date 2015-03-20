@@ -803,77 +803,25 @@ def writeMultiResDEM(writer, properties, progress=None):
 
 class Feature:
 
-  def __init__(self, writer, layer):
+  def __init__(self, writer, layer, feat):
     self.writer = writer
     self.layer = layer
-
-    self.prop = layer.prop
-    self.transform = layer.transform
-    self.geomType = layer.geomType
-    self.geomClass = layer.geomClass
-    self.hasLabel = layer.hasLabel
-
-    self.feat = None
-    self.geom = None
-
-  def setQgsFeature(self, feat, clipGeom=None):
     self.feat = feat
     self.geom = None
 
-    geom = feat.geometry()
-    if geom is None:
-      qDebug("null geometry skipped")
-      return
+    self.prop = layer.prop
 
-    # coordinate transformation - layer crs to project crs
-    geom = QgsGeometry(geom)
-    geom.transform(self.transform)
-
-    # clip geometry
-    if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
-      geom = geom.intersection(clipGeom)
-      if geom is None:
-        return
-
-    # check if geometry is empty
-    if geom.isGeosEmpty():
-      qDebug("empty geometry skipped")
-      return
-
-    # z_func: function to get z coordinate at given point (x, y)
-    if self.prop.isHeightRelativeToDEM():
-      # calculate elevation with dem
-      z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
-    else:
-      z_func = lambda x, y: 0
-
-    # transform_func: function to transform the map coordinates to 3d coordinates
-    mapTo3d = self.writer.settings.mapTo3d
-    relativeHeight = self.prop.relativeHeight(feat)
-    def transform_func(x, y, z):
-      return mapTo3d.transform(x, y, z + relativeHeight)
-
-    if self.geomType == QGis.Polygon:
-      if self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
-        z_func = lambda x, y: 0
-        self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
-        self.geom.splitPolygon(self.writer.triangleMesh())
-      else:
-        self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
-
-    elif self.prop.useZ():
-      self.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
-    else:
-      self.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
-
-  def relativeHeight(self):
-    return self.prop.relativeHeight(self.feat)
+  def attributes(self):
+    return self.feat.attributes()
 
   def color(self):
     return self.prop.color(self.feat)
 
   def transparency(self):
     return self.prop.transparency(self.feat)
+
+  def relativeHeight(self):
+    return self.prop.relativeHeight(self.feat)
 
   def propValues(self):
     return self.prop.values(self.feat)
@@ -905,11 +853,78 @@ class VectorLayer(Layer):
     self.geomClass = self.geomType2Class.get(self.geomType)
     self.hasLabel = prop.properties.get("checkBox_ExportAttrs", False) and prop.properties.get("comboBox_Label") is not None
 
+  def features(self, request=None, clipGeom=None):
+    settings = self.writer.settings
+    mapTo3d = settings.mapTo3d
+    baseExtent = settings.baseExtent
+    baseExtentGeom = baseExtent.geometry()
+    rotation = baseExtent.rotation()
+    prop = self.prop
+
+    # z_func: function to get z coordinate at given point (x, y)
+    if prop.isHeightRelativeToDEM():
+      if self.geomType == QGis.Polygon and prop.type_index == 1:  # Overlay
+        z_func = lambda x, y: 0
+      else:
+        # get elevation from DEM
+        z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
+    else:
+      z_func = lambda x, y: 0
+
+    request = request or QgsFeatureRequest()
+    for f in self.layer.getFeatures(request):
+      geom = f.geometry()
+      if geom is None:
+        qDebug("null geometry skipped")
+        continue
+
+      # coordinate transformation - layer crs to project crs
+      geom = QgsGeometry(geom)
+      geom.transform(self.transform)
+
+      # check if geometry intersects with the base extent (rotated rect)
+      if rotation and not baseExtentGeom.intersects(geom):
+        continue
+
+      # clip geometry
+      if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
+        geom = geom.intersection(clipGeom)
+        if geom is None:
+          continue
+
+      # check if geometry is empty
+      if geom.isGeosEmpty():
+        qDebug("empty geometry skipped")
+        continue
+
+      # create feature
+      feat = Feature(self.writer, self, f)
+
+      # transform_func: function to transform the map coordinates to 3d coordinates
+      relativeHeight = prop.relativeHeight(f)
+      def transform_func(x, y, z):
+        return mapTo3d.transform(x, y, z + relativeHeight)
+
+      if self.geomType == QGis.Polygon:
+        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+        if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
+          feat.geom.splitPolygon(self.writer.triangleMesh())
+
+      elif prop.useZ():
+        feat.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
+
+      else:
+        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
+
+      if feat.geom is None:
+        continue
+
+      yield feat
+
+
 def writeVectors(writer, legendInterface, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
-  baseExtentGeom = baseExtent.geometry()
-  rotation = baseExtent.rotation()
   mapTo3d = settings.mapTo3d
   progress = progress or dummyProgress
   renderer = QgsMapRenderer()
@@ -971,13 +986,11 @@ def writeVectors(writer, legendInterface, progress=None):
     # write layer object
     writer.writeLayer(lyr, fieldNames)
 
-    feat = Feature(writer, layer)
-
     # initialize symbol rendering
     mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
 
-    request = QgsFeatureRequest()
     # features to export
+    request = QgsFeatureRequest()
     clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
       request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
@@ -985,29 +998,13 @@ def writeVectors(writer, legendInterface, progress=None):
         extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
         clipGeom = extent.geometry()
 
-    for f in mapLayer.getFeatures(request):
-      if rotation:
-        # check if geometry intersects with the base extent (rotated rect)
-        geom = f.geometry()
-        if geom is None:
-          qDebug("null geometry skipped (rotation is not zero)")
-          continue
-        geom = QgsGeometry(geom)
-        geom.transform(layer.transform)
-        if not baseExtentGeom.intersects(geom):
-          continue
-
-      # set feature
-      feat.setQgsFeature(f, clipGeom)
-      if feat.geom is None:
-        continue
-
+    for feat in layer.features(request, clipGeom):
       # write geometry
       obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
 
       # stack attributes in writer
       if writeAttrs:
-        writer.addAttributes(f.attributes())
+        writer.addAttributes(feat.attributes())
 
     # write attributes
     if writeAttrs:
