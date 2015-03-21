@@ -102,7 +102,7 @@ class Qgis2threejs:
 
   def setting(self):
     from settingsdialog import SettingsDialog
-    dialog = SettingsDialog(self.iface)
+    dialog = SettingsDialog(self.iface.mainWindow())
     dialog.show()
     dialog.exec_()
 
