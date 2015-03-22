@@ -235,6 +235,13 @@ class ExportSettings:
   def get(self, key, default=None):
     return self.data.get(key, default)
 
+  def checkValidity(self):
+    """return valid as bool, err_msg as str"""
+    # check validity of settings
+    if self.exportMode == ExportSettings.PLAIN_MULTI_RES and self.quadtree is None:
+      return False, u"Focus point/area is not selected."
+    return True, ""
+
 
 class JSWriter:
 

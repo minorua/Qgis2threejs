@@ -478,14 +478,12 @@ class Qgis2threejsDialog(QDialog):
     # export to web (three.js)
     export_settings = ExportSettings(self.settings(), canvas, self.localBrowsingMode)
 
-    # TODO: move into ExportSettings.isValid(), which returns bool, msg
-    # check validity of settings
-    if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
-      quadtree = export_settings.quadtree
-      if quadtree is None:
-        QMessageBox.warning(None, "Qgis2threejs", "Focus point/area is not selected.")
-        return
+    valid, err_msg = export_settings.checkValidity()
+    if not valid:
+      QMessageBox.warning(None, "Qgis2threejs", err_msg or "Invalid settings")    #TODO: set parent
+      return
 
+    if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
       # update quads and point on map canvas
       self.createRubberBands(export_settings.baseExtent, quadtree)
 
