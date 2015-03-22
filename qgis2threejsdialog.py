@@ -124,21 +124,38 @@ class Qgis2threejsDialog(QDialog):
     #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
 
   def settings(self):
+    # save settings of current panel
     item = self.ui.treeWidget.currentItem()
     if item and self.currentPage:
       self.saveProperties(item, self.currentPage)
+
+    # template and output html file path
+    self._settings["Template"] = self.ui.comboBox_Template.currentText()
+    self._settings["OutputFilename"] = self.ui.lineEdit_OutputFilename.text()
+
     return self._settings
 
   def setSettings(self, settings):
     self._settings = settings
 
-    # TODO: template and output html file path
+    # template and output html file path
+    templateName = settings.get("Template")
+    if templateName:
+      cbox = self.ui.comboBox_Template
+      index = cbox.findText(templateName)
+      if index != -1:
+        cbox.setCurrentIndex(index)
+
+    filename = settings.get("OutputFilename")
+    if filename:
+      self.ui.lineEdit_OutputFilename.setText(filename)
 
     # update object tree
     self.ui.treeWidget.blockSignals(True)
     self.initObjectTree()
     self.ui.treeWidget.blockSignals(False)
 
+    # update tree item visibility
     self.templateType = None
     self.currentTemplateChanged()
 
@@ -160,7 +177,7 @@ class Qgis2threejsDialog(QDialog):
     self.setSettings(settings)
 
   def saveSettings(self):
-    # save settings in current panel
+    """save settings in current panel"""
 
     # file save dialog
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
@@ -169,8 +186,6 @@ class Qgis2threejsDialog(QDialog):
     filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
     if not filename:
       return
-
-    # TODO: template and output html file path
 
     # save settings to file (.json)
     import codecs
