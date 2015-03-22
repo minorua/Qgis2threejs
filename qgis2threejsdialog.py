@@ -473,19 +473,10 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     self.progress(0)
 
-    #TODO: put this into object of settings()
-    htmlfilename = ui.lineEdit_OutputFilename.text()
-
-    # read configuration of the template
-    templateName = self.ui.comboBox_Template.currentText()
-    templatePath = os.path.join(tools.templateDir(), templateName)
-    templateConfig = tools.getTemplateConfig(templatePath)
-
     canvas = self.iface.mapCanvas()
 
     # export to web (three.js)
-    export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
-                                     self.settings(), self.localBrowsingMode)
+    export_settings = ExportSettings(self.settings(), canvas, self.localBrowsingMode)
 
     # TODO: move into ExportSettings.isValid(), which returns bool, msg
     # check validity of settings
@@ -511,7 +502,7 @@ class Qgis2threejsDialog(QDialog):
 
     # store last selections
     settings = QSettings()
-    settings.setValue("/Qgis2threejs/lastTemplate", templateName)
+    settings.setValue("/Qgis2threejs/lastTemplate", export_settings.templateName)
     settings.setValue("/Qgis2threejs/lastControls", export_settings.controls)
 
     # open browser

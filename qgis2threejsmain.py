@@ -168,12 +168,13 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
-  def __init__(self, htmlfilename, templateConfig, canvas, settings, localBrowsingMode=True):
+  def __init__(self, settings, canvas, localBrowsingMode=True):
     #TODO: canvas -> mapSettings
-    #TODO: include htmlfilename and template in settings
     self.data = settings
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
+    # output html file path
+    htmlfilename = settings.get("OutputFilename")
     if not htmlfilename:
       htmlfilename = tools.temporaryOutputDir() + "/%s.html" % self.timestamp
     self.htmlfilename = htmlfilename
@@ -181,8 +182,10 @@ class ExportSettings:
     self.htmlfiletitle = os.path.basename(self.path_root)
     self.title = self.htmlfiletitle
 
-    #TODO: get config from template name
-    self.templateConfig = templateConfig
+    # load configuration of the template
+    self.templateName = settings.get("Template", "")
+    templatePath = os.path.join(tools.templateDir(), self.templateName)
+    self.templateConfig = tools.getTemplateConfig(templatePath)
 
     # MapTo3D object
     world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
@@ -214,7 +217,7 @@ class ExportSettings:
 
     self.demLayer = None
     self.quadtree = None
-    if templateConfig.get("type") == "sphere":
+    if self.templateConfig.get("type") == "sphere":
       self.exportMode = ExportSettings.SPHERE
       return
 
