@@ -34,14 +34,15 @@ from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToTh
 import propertypages as ppages
 import qgis2threejstools as tools
 from rotatedrect import RotatedRect
-from settings import debug_mode
+from settings import debug_mode, def_vals
 
 class Qgis2threejsDialog(QDialog):
 
-  def __init__(self, iface, objectTypeManager, properties=None, lastTreeItemData=None):
+  def __init__(self, iface, objectTypeManager, exportSettings=None, lastTreeItemData=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
     self.objectTypeManager = objectTypeManager
+    self._settings = exportSettings or {}
     self.lastTreeItemData = lastTreeItemData
     self.localBrowsingMode = True
 
@@ -50,14 +51,6 @@ class Qgis2threejsDialog(QDialog):
     self.templateType = None
     self.currentItem = None
     self.currentPage = None
-    topItemCount = len(ObjectTreeItem.topItemNames)
-
-    if properties is None:
-      self.properties = [None] * topItemCount
-      for i in range(ObjectTreeItem.ITEM_OPTDEM, topItemCount):
-        self.properties[i] = {}
-    else:
-      self.properties = properties
 
     # Set up the user interface from Designer.
     self.ui = ui = Ui_Qgis2threejsDialog()
@@ -134,7 +127,7 @@ class Qgis2threejsDialog(QDialog):
     item = self.ui.treeWidget.currentItem()
     if item and self.currentPage:
       self.saveProperties(item, self.currentPage)
-    return self.properties
+    return self._settings
 
   def setSettings(self, settings):
     self._settings = settings
@@ -250,53 +243,42 @@ class Qgis2threejsDialog(QDialog):
     tree.clear()
 
     # add vector and raster layers into tree widget
-    topItems = []
-    for index, itemName in enumerate(ObjectTreeItem.topItemNames):
-      item = QTreeWidgetItem(tree, [itemName])
-      item.setData(0, Qt.UserRole, index)
-      topItems.append(item)
+    topItems = {}
+    for id, name in zip(ObjectTreeItem.topItemIds, ObjectTreeItem.topItemNames):
+      item = QTreeWidgetItem(tree, [name])
+      item.setData(0, Qt.UserRole, id)
+      topItems[id] = item
 
     optDEMChecked = False
     for layer in self.iface.legendInterface().layers():
-      layerType = layer.type()
-      if layerType not in (QgsMapLayer.VectorLayer, QgsMapLayer.RasterLayer):
-        continue
-
-      parentId = None
-      if layerType == QgsMapLayer.VectorLayer:
-        geometry_type = layer.geometryType()
-        if geometry_type in [QGis.Point, QGis.Line, QGis.Polygon]:
-          parentId = ObjectTreeItem.ITEM_POINT + geometry_type    # - QGis.Point
-      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        parentId = ObjectTreeItem.ITEM_OPTDEM
+      parentId = ObjectTreeItem.parentIdByLayer(layer)
       if parentId is None:
         continue
 
       item = QTreeWidgetItem(topItems[parentId], [layer.name()])
-      isVisible = self.properties[parentId].get(layer.id(), {}).get("visible", False)   #self.iface.legendInterface().isLayerVisible(layer)
+      isVisible = self._settings.get(parentId, {}).get(layer.id(), {}).get("visible", False)   #self.iface.legendInterface().isLayerVisible(layer)
       check_state = Qt.Checked if isVisible else Qt.Unchecked
       item.setData(0, Qt.CheckStateRole, check_state)
       item.setData(0, Qt.UserRole, layer.id())
       if parentId == ObjectTreeItem.ITEM_OPTDEM and isVisible:
         optDEMChecked = True
 
-    for item in topItems:
-      if item.data(0, Qt.UserRole) != ObjectTreeItem.ITEM_OPTDEM or optDEMChecked:
+    for id, item in topItems.iteritems():
+      if id != ObjectTreeItem.ITEM_OPTDEM or optDEMChecked:
         tree.expandItem(item)
 
   def saveProperties(self, item, page):
     properties = page.properties()
     parent = item.parent()
     if parent is None:
-      # top item: properties[topItemIndex]
-      self.properties[item.data(0, Qt.UserRole)] = properties
+      # top level item
+      self._settings[item.data(0, Qt.UserRole)] = properties
     else:
-      # layer item: properties[topItemIndex][layerId]
-      topItemIndex = parent.data(0, Qt.UserRole)
-      self.properties[topItemIndex][item.data(0, Qt.UserRole)] = properties
-
-    if debug_mode:
-      qDebug(str(self.properties))
+      # layer item
+      parentId = parent.data(0, Qt.UserRole)
+      if not hasattr(self._settings, parentId):
+        self._settings[parentId] = {}
+      self._settings[parentId][item.data(0, Qt.UserRole)] = properties
 
   def setCurrentTreeItemByData(self, data):
     it = QTreeWidgetItemIterator(self.ui.treeWidget)
@@ -315,15 +297,15 @@ class Qgis2threejsDialog(QDialog):
 
     # hide items unsupported by template
     tree = self.ui.treeWidget
-    for i, name in enumerate(ObjectTreeItem.topItemNames):
-      hidden = (templateType == "sphere" and name != "Controls")
+    for i, id in enumerate(ObjectTreeItem.topItemIds):
+      hidden = (templateType == "sphere" and id != ObjectTreeItem.ITEM_CONTROLS)
       tree.topLevelItem(i).setHidden(hidden)
 
     # set current tree item
     if templateType == "sphere":
-      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.ITEM_CONTROLS))
+      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.topItemIndex(ObjectTreeItem.ITEM_CONTROLS)))
     elif self.lastTreeItemData is None or not self.setCurrentTreeItemByData(self.lastTreeItemData):   # restore selection
-      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.ITEM_DEM))   # default selection for plain is DEM
+      tree.setCurrentItem(tree.topLevelItem(ObjectTreeItem.topItemIndex(ObjectTreeItem.ITEM_DEM)))   # default selection for plain is DEM
 
     # display messages
     self.clearMessageBar()
@@ -357,7 +339,7 @@ class Qgis2threejsDialog(QDialog):
         self.showDescription(topItemIndex)
         return
 
-      page.setup(self.properties[topItemIndex])
+      page.setup(self._settings.get(topItemIndex))
       page.show()
 
     else:
@@ -370,10 +352,10 @@ class Qgis2threejsDialog(QDialog):
       layerType = layer.type()
       if layerType == QgsMapLayer.RasterLayer:
         page = self.pages[ppages.PAGE_DEM]
-        page.setup(self.properties[parentId].get(layerId, None), layer, False)
+        page.setup(self._settings.get(parentId, {}).get(layerId, None), layer, False)
       elif layerType == QgsMapLayer.VectorLayer:
         page = self.pages[ppages.PAGE_VECTOR]
-        page.setup(self.properties[parentId].get(layerId, None), layer)
+        page.setup(self._settings.get(parentId, {}).get(layerId, None), layer)
       else:
         return
 
@@ -399,11 +381,11 @@ class Qgis2threejsDialog(QDialog):
       #visible = item.data(0, Qt.CheckStateRole) == Qt.Checked
       #parentId = parent.data(0, Qt.UserRole)
       #layerId = item.data(0, Qt.UserRole)
-      #self.properties[parentId].get(layerId, {})["visible"] = visible
+      #self._settings.get(parentId, {}).get(layerId, {})["visible"] = visible
 
   def primaryDEMChanged(self, layerId):
     tree = self.ui.treeWidget
-    parent = tree.topLevelItem(ObjectTreeItem.ITEM_OPTDEM)
+    parent = tree.topLevelItem(ObjectTreeItem.topItemIndex(ObjectTreeItem.ITEM_OPTDEM))
     tree.blockSignals(True)
     for i in range(parent.childCount()):
       item = parent.child(i)
@@ -441,6 +423,13 @@ class Qgis2threejsDialog(QDialog):
         numeric_fields.append(field.name())
     return numeric_fields
 
+  def mapTo3d(self):
+    world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
+    bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
+    ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
+    vs = float(world.get("lineEdit_zShift", def_vals.zShift))
+    return MapTo3D(self.iface.mapCanvas(), bs, ve, vs)
+
   def progress(self, percentage=None, statusMsg=None):
     ui = self.ui
     if percentage is not None:
@@ -469,6 +458,7 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     self.progress(0)
 
+    #TODO: put this into object of settings()
     htmlfilename = ui.lineEdit_OutputFilename.text()
 
     # read configuration of the template
@@ -482,6 +472,7 @@ class Qgis2threejsDialog(QDialog):
     export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
                                      self.settings(), self.localBrowsingMode)
 
+    # TODO: move into ExportSettings.isValid(), which returns bool, msg
     # check validity of settings
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
       quadtree = export_settings.quadtree

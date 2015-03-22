@@ -32,7 +32,7 @@ from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
 from rotatedrect import RotatedRect
-from qgis2threejsmain import MapTo3D, ObjectTreeItem, createQuadTree
+from qgis2threejsmain import ObjectTreeItem, createQuadTree
 from stylewidget import StyleWidget
 from quadtree import QuadTree
 import qgis2threejstools as tools
@@ -637,12 +637,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       self.comboBox_ObjectType.setCurrentIndex(properties.get("comboBox_ObjectType", 0))
     self.comboBox_ObjectType.blockSignals(False)
 
-    # create MapTo3d object to calculate default values
-    world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    ba = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
-    ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
-    vs = float(world.get("lineEdit_zShift", def_vals.zShift))
-    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), ba, ve, vs)
+    # get MapTo3D object to calculate default values
+    mapTo3d = self.dialog.mapTo3d()
 
     # set up height widget and label height widget
     self.heightWidget.setup(options={"layer": layer})
@@ -681,12 +677,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     is_experimental = self.comboBox_ObjectType.currentText() in ["JSON model", "COLLADA model"]
     self.label_ObjectTypeMessage.setVisible(is_experimental)
 
-    # create MapTo3d object to calculate default values
-    world = self.dialog.properties[ObjectTreeItem.ITEM_WORLD] or {}
-    bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
-    ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
-    vs = float(world.get("lineEdit_zShift", def_vals.zShift))
-    mapTo3d = MapTo3D(self.dialog.iface.mapCanvas(), bs, ve, vs)
+    # get MapTo3D object to calculate default values
+    mapTo3d = self.dialog.mapTo3d()
 
     # setup widgets
     self.dialog.objectTypeManager.setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)

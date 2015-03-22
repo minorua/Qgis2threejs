@@ -48,16 +48,43 @@ from settings import debug_mode, def_vals
 
 apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
-# used for tree widget and properties
 class ObjectTreeItem:
+  ITEM_WORLD = "WORLD"
+  ITEM_CONTROLS = "CTRL"
+  ITEM_DEM = "DEM"
+  ITEM_OPTDEM = "OPTDEM"
+  ITEM_POINT = "POINT"
+  ITEM_LINE = "LINE"
+  ITEM_POLYGON = "POLYGON"
+  topItemIds = [ITEM_WORLD, ITEM_CONTROLS, ITEM_DEM, ITEM_OPTDEM, ITEM_POINT, ITEM_LINE, ITEM_POLYGON]
   topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
-  ITEM_WORLD = 0
-  ITEM_CONTROLS = 1
-  ITEM_DEM = 2
-  ITEM_OPTDEM = 3
-  ITEM_POINT = 4
-  ITEM_LINE = 5
-  ITEM_POLYGON = 6
+  geomType2id = {QGis.Point: ITEM_POINT, QGis.Line: ITEM_LINE, QGis.Polygon: ITEM_POLYGON}
+
+  @classmethod
+  def topItemIndex(cls, id):
+    return cls.topItemIds.index(id)
+
+  @classmethod
+  def idByGeomType(cls, geomType):
+    return cls.geomType2id.get(geomType)
+
+  @classmethod
+  def geomTypeById(cls, id):
+    for geomType in cls.geomType2id:
+      if cls.geomType2id[geomType] == id:
+        return geomType
+    return None
+
+  @classmethod
+  def parentIdByLayer(cls, layer):
+    layerType = layer.type()
+    if layerType == QgsMapLayer.VectorLayer:
+      return cls.idByGeomType(layer.geometryType())
+
+    if layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+      return cls.ITEM_OPTDEM
+
+    return None
 
 
 class MapTo3D:
@@ -141,8 +168,10 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
-  def __init__(self, htmlfilename, templateConfig, canvas, properties, localBrowsingMode=True):
-
+  def __init__(self, htmlfilename, templateConfig, canvas, settings, localBrowsingMode=True):
+    #TODO: canvas -> mapSettings
+    #TODO: include htmlfilename and template in settings
+    self.data = settings
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
     if not htmlfilename:
@@ -152,10 +181,11 @@ class ExportSettings:
     self.htmlfiletitle = os.path.basename(self.path_root)
     self.title = self.htmlfiletitle
 
+    #TODO: get config from template name
     self.templateConfig = templateConfig
 
     # MapTo3D object
-    world = properties[ObjectTreeItem.ITEM_WORLD] or {}
+    world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
     baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
     verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
     verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
@@ -167,8 +197,6 @@ class ExportSettings:
     self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.baseExtent = RotatedRect.fromMapSettings(self.mapSettings)
 
-    self.properties = properties
-
     self.localBrowsingMode = localBrowsingMode
 
     self.crs = self.mapSettings.destinationCrs()
@@ -179,7 +207,7 @@ class ExportSettings:
 
     self.image_basesize = 256
 
-    controls = properties[ObjectTreeItem.ITEM_CONTROLS] or {}
+    controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
     self.controls = controls.get("comboBox_Controls")
     if not self.controls:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
@@ -190,7 +218,7 @@ class ExportSettings:
       self.exportMode = ExportSettings.SPHERE
       return
 
-    demProperties = properties[ObjectTreeItem.ITEM_DEM]
+    demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
     demLayerId = demProperties["comboBox_DEMLayer"]
     if demLayerId:
       self.demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
@@ -200,6 +228,9 @@ class ExportSettings:
     else:
       self.exportMode = ExportSettings.PLAIN_MULTI_RES
       self.quadtree = createQuadTree(self.baseExtent, demProperties)
+
+  def get(self, key, default=None):
+    return self.data.get(key, default)
 
 
 class JSWriter:
@@ -370,7 +401,7 @@ class ThreejsJSWriter(JSWriter):
 
   def triangleMesh(self):
     if self.triMesh is None:
-      prop = DEMPropertyReader(self.settings.properties[ObjectTreeItem.ITEM_DEM])
+      prop = DEMPropertyReader(self.settings.get(ObjectTreeItem.ITEM_DEM))
       dem_width = prop.width()
       dem_height = prop.height()
 
@@ -409,7 +440,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
     progress(5, "Writing DEM")
 
     # write primary DEM
-    demProperties = settings.properties[ObjectTreeItem.ITEM_DEM]
+    demProperties = settings.get(ObjectTreeItem.ITEM_DEM)
     if settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       writeSimpleDEM(writer, demProperties, progress)
     else:
@@ -418,7 +449,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 
     # write additional DEM(s)
     primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
-    for layerId, properties in settings.properties[ObjectTreeItem.ITEM_OPTDEM].iteritems():
+    for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).iteritems():
       if layerId != primaryDEMLayerId and properties.get("visible", False):
         writeSimpleDEM(writer, properties)
 
@@ -440,7 +471,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 
   # generate html file
   options = []
-  world = settings.properties[ObjectTreeItem.ITEM_WORLD] or {}
+  world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
   if world.get("radioButton_Color", False):
     options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
@@ -969,11 +1000,11 @@ def writeVectors(writer, legendInterface, progress=None):
 
   layers = []
   for layer in legendInterface.layers():
-    if layer.type() != QgsMapLayer.VectorLayer or layer.geometryType() not in [QGis.Point, QGis.Line, QGis.Polygon]:
+    if layer.type() != QgsMapLayer.VectorLayer:
       continue
 
-    parentId = ObjectTreeItem.ITEM_POINT + layer.geometryType()
-    properties = settings.properties[parentId].get(layer.id(), {})
+    parentId = ObjectTreeItem.parentIdByLayer(layer)
+    properties = settings.get(parentId, {}).get(layer.id(), {})
     if properties.get("visible", False):
       layers.append([layer.id(), properties])
 

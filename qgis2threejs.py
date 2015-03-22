@@ -49,9 +49,9 @@ class Qgis2threejs:
     #    QCoreApplication.installTranslator(self.translator)
 
     self.objectTypeManager = None
-    self.properties = None
+    self.exportSettings = {}
     self.lastTreeItemData = None
-    self.lastOutputFilename = ""
+    self.lastOutputFilename = ""    #TODO: into exportSettings
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -86,7 +86,7 @@ class Qgis2threejs:
 
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
-    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.properties, self.lastTreeItemData)
+    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.exportSettings, self.lastTreeItemData)
 
     ui = dialog.ui
     ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
@@ -98,7 +98,7 @@ class Qgis2threejs:
 
     item = ui.treeWidget.currentItem()
     self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None
-    self.properties = dialog.properties
+    self.exportSettings = dialog.settings()
 
   def setting(self):
     from settingsdialog import SettingsDialog
@@ -106,13 +106,13 @@ class Qgis2threejs:
     dialog.show()
     dialog.exec_()
 
-  def loadProperties(self, filename):
+  def loadExportSettings(self, filename):
     import json
     with open(filename) as f:
-      self.properties = json.load(f)
+      self.exportSettings = json.load(f)
 
-  def saveProperties(self, filename):
+  def saveExportSettings(self, filename):
     import codecs
     import json
     with codecs.open(filename, "w", "UTF-8") as f:
-      json.dump(self.properties, f, ensure_ascii=False)
+      json.dump(self.exportSettings, f, ensure_ascii=False)
