@@ -460,7 +460,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
     # write additional DEM(s)
     primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
     for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).iteritems():
-      if layerId != primaryDEMLayerId and properties.get("visible", False):
+      if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsMapLayerRegistry.instance().mapLayer(layerId):
         writeSimpleDEM(writer, properties)
 
     progress(30, "Writing vector data")
