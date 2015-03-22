@@ -204,7 +204,7 @@ class PolygonGeometry:
     return QgsGeometry()
 
   @staticmethod
-  def fromQgsGeometry(geometry, z_func, transform_func, calcCentroid=False, triMesh=None):
+  def fromQgsGeometry(geometry, z_func, transform_func, calcCentroid=False):
 
     useCentroidHeight = True
     centroidPerPolygon = True

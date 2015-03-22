@@ -88,7 +88,7 @@ class ObjectTreeItem:
 
 
 class MapTo3D:
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):   #TODO: mapSettings
+  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     mapSettings = mapCanvas.mapSettings() if apiChanged23 else mapCanvas.mapRenderer()
 
     # map canvas
@@ -169,7 +169,6 @@ class ExportSettings:
   SPHERE = 2
 
   def __init__(self, settings, canvas, localBrowsingMode=True):
-    #TODO: canvas -> mapSettings
     self.data = settings
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -716,7 +715,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   quadtree = settings.quadtree
   quads = quadtree.quads()
 
-  # (currently) dem size should be 2 ^ quadtree.height * a + 1, where a is larger integer than 0
+  # (currently) dem size is 2 ^ quadtree.height * a + 1, where a is larger integer than 0
   # with smooth resolution change, this is not necessary
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
@@ -941,7 +940,7 @@ class VectorLayer(Layer):
     rotation = baseExtent.rotation()
     prop = self.prop
 
-    # z_func: function to get z coordinate at given point (x, y)
+    # z_func: function to get elevation at given point (x, y) on surface
     if prop.isHeightRelativeToDEM():
       if self.geomType == QGis.Polygon and prop.type_index == 1:  # Overlay
         z_func = lambda x, y: 0
