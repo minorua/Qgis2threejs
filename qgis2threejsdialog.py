@@ -57,6 +57,9 @@ class Qgis2threejsDialog(QDialog):
     ui.setupUi(self)
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
+
+    # output html filename
+    ui.lineEdit_OutputFilename.setText(self._settings.get("OutputFilename", ""))
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
 
     # settings button

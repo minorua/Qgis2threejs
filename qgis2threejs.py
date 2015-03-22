@@ -51,7 +51,6 @@ class Qgis2threejs:
     self.objectTypeManager = None
     self.exportSettings = {}
     self.lastTreeItemData = None
-    self.lastOutputFilename = ""    #TODO: into exportSettings
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -86,19 +85,17 @@ class Qgis2threejs:
 
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
-    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.exportSettings, self.lastTreeItemData)
 
-    ui = dialog.ui
-    ui.lineEdit_OutputFilename.setText(self.lastOutputFilename)
+    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.exportSettings, self.lastTreeItemData)
 
     # show dialog
     dialog.show()
-    if dialog.exec_():
-      self.lastOutputFilename = ui.lineEdit_OutputFilename.text()
+    dialog.exec_()
 
-    item = ui.treeWidget.currentItem()
-    self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None
     self.exportSettings = dialog.settings()
+
+    item = dialog.ui.treeWidget.currentItem()
+    self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None
 
   def setting(self):
     from settingsdialog import SettingsDialog
