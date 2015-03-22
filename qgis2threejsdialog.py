@@ -25,8 +25,8 @@
 import os
 
 from PyQt4.QtCore import Qt, QDir, QFile, QSettings, qDebug, QEventLoop, SIGNAL
-from PyQt4.QtGui import QColor, QDialog, QFileDialog, QMessageBox, QTreeWidgetItem, QTreeWidgetItemIterator
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle
+from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBox, QMenu, QPixmap, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
+from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle, QgsMessageLog
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -51,6 +51,7 @@ class Qgis2threejsDialog(QDialog):
     self.currentItem = None
     self.currentPage = None
     topItemCount = len(ObjectTreeItem.topItemNames)
+
     if properties is None:
       self.properties = [None] * topItemCount
       for i in range(ObjectTreeItem.ITEM_OPTDEM, topItemCount):
@@ -64,9 +65,36 @@ class Qgis2threejsDialog(QDialog):
 
     self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint)
     ui.lineEdit_OutputFilename.setPlaceholderText("[Temporary file]")
+
+    # settings button
+    icon = QIcon(os.path.join(tools.pluginDir(), "icons", "settings.png"))
+    ui.toolButton_Settings.setIcon(icon)
+
+    # popup menu displayed when settings button is pressed
+    items = [["Load Settings...", self.loadSettings],
+             ["Save Settings...", self.saveSettings],
+             [None, None],
+             ["Plugin Settings...", self.pluginSettings]]
+
+    self.menu = QMenu()
+    self.menu_actions = []
+    for text, slot in items:
+      if text:
+        action = QAction(text, iface.mainWindow())
+        action.triggered.connect(slot)
+        self.menu.addAction(action)
+        self.menu_actions.append(action)
+      else:
+        self.menu.addSeparator()
+
+    ui.toolButton_Settings.setMenu(self.menu)
+    ui.toolButton_Settings.setPopupMode(QToolButton.InstantPopup)
+
+    # progress bar and message label
     ui.progressBar.setVisible(False)
     ui.label_MessageIcon.setVisible(False)
 
+    # buttons
     ui.pushButton_Run.clicked.connect(self.run)
     ui.pushButton_Close.clicked.connect(self.reject)
     ui.pushButton_Help.clicked.connect(self.help)
@@ -101,6 +129,68 @@ class Qgis2threejsDialog(QDialog):
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
 
     #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
+
+  def settings(self):
+    item = self.ui.treeWidget.currentItem()
+    if item and self.currentPage:
+      self.saveProperties(item, self.currentPage)
+    return self.properties
+
+  def setSettings(self, settings):
+    self._settings = settings
+
+    # TODO: template and output html file path
+
+    # update object tree
+    self.ui.treeWidget.blockSignals(True)
+    self.initObjectTree()
+    self.ui.treeWidget.blockSignals(False)
+
+    self.templateType = None
+    self.currentTemplateChanged()
+
+  def loadSettings(self):
+    # file open dialog
+    directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
+    if not directory:
+      directory = QDir.homePath()
+    filterString = "Settings files (*.json);;All files (*.*)"
+    filename = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+    if not filename:
+      return
+
+    # load settings from file (.json)
+    import json
+    with open(filename) as f:
+      settings = json.load(f)
+
+    self.setSettings(settings)
+
+  def saveSettings(self):
+    # save settings in current panel
+
+    # file save dialog
+    directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
+    if not directory:
+      directory = QDir.homePath()
+    filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
+    if not filename:
+      return
+
+    # TODO: template and output html file path
+
+    # save settings to file (.json)
+    import codecs
+    import json
+    with codecs.open(filename, "w", "UTF-8") as f:
+      json.dump(self.settings(), f, ensure_ascii=False)
+
+    QgsMessageLog.logMessage(u"Settings saved: {0}".format(filename), "Qgis2threejs")
+
+  def pluginSettings(self):
+    from settingsdialog import SettingsDialog
+    dialog = SettingsDialog(self)
+    dialog.exec_()
 
   def showMessageBar(self, text, level=QgsMessageBar.INFO):
     # from src/gui/qgsmessagebaritem.cpp
@@ -375,11 +465,6 @@ class Qgis2threejsDialog(QDialog):
         return
     self.endPointSelection()
 
-    # save properties of current object
-    item = self.ui.treeWidget.currentItem()
-    if item and self.currentPage:
-      self.saveProperties(item, self.currentPage)
-
     ui.pushButton_Run.setEnabled(False)
     self.clearMessageBar()
     self.progress(0)
@@ -395,7 +480,7 @@ class Qgis2threejsDialog(QDialog):
 
     # export to web (three.js)
     export_settings = ExportSettings(htmlfilename, templateConfig, canvas,
-                                     self.properties, self.localBrowsingMode)
+                                     self.settings(), self.localBrowsingMode)
 
     # check validity of settings
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
