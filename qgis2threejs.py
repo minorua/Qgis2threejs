@@ -22,7 +22,7 @@
 import os
 
 from PyQt4.QtCore import QCoreApplication, QFile, Qt, qDebug    #, QSettings, QTranslator, qVersion
-from PyQt4.QtGui import QAction, QIcon, QMessageBox
+from PyQt4.QtGui import QAction, QIcon
 from qgis.core import QGis
 
 from qgis2threejstools import removeTemporaryOutputDir

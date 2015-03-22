@@ -465,7 +465,7 @@ class Qgis2threejsDialog(QDialog):
     ui = self.ui
     filename = ui.lineEdit_OutputFilename.text()   # ""=Temporary file
     if filename and os.path.exists(filename):
-      if QMessageBox.question(None, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+      if QMessageBox.question(self, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
     self.endPointSelection()
 
@@ -480,7 +480,7 @@ class Qgis2threejsDialog(QDialog):
 
     valid, err_msg = export_settings.checkValidity()
     if not valid:
-      QMessageBox.warning(None, "Qgis2threejs", err_msg or "Invalid settings")    #TODO: set parent
+      QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
       return
 
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:

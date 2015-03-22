@@ -21,7 +21,7 @@
 """
 import os
 #from PyQt4.QtCore import qDebug
-from PyQt4.QtGui import QColor, QMessageBox
+from PyQt4.QtGui import QColor
 from qgis.core import QGis, QgsMessageLog, NULL
 import random
 from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
