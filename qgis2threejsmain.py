@@ -29,9 +29,9 @@ from PyQt4.QtGui import QImage, QPainter
 from qgis.core import *
 
 try:
-  from osgeo import gdal
+  from osgeo import gdal, ogr, osr
 except ImportError:
-  import gdal
+  import gdal, ogr, osr
 
 from rotatedrect import RotatedRect
 from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
@@ -940,40 +940,43 @@ class VectorLayer(Layer):
     rotation = baseExtent.rotation()
     prop = self.prop
 
-    # z_func: function to get elevation at given point (x, y) on surface
-    if prop.isHeightRelativeToDEM():
-      if self.geomType == QGis.Polygon and prop.type_index == 1:  # Overlay
-        z_func = lambda x, y: 0
-      else:
-        # get elevation from DEM
-        z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
+    useZ = prop.useZ()
+    if useZ:
+      srs_from = osr.SpatialReference()
+      srs_from.ImportFromProj4(str(self.layer.crs().toProj4()))
+      srs_to = osr.SpatialReference()
+      srs_to.ImportFromProj4(str(self.writer.settings.crs.toProj4()))
+
+      ogr_transform = osr.CreateCoordinateTransformation(srs_from, srs_to)
+      clipGeomWkb = clipGeom.asWkb() if clipGeom else None
+      ogr_clipGeom = ogr.CreateGeometryFromWkb(clipGeomWkb) if clipGeomWkb else None
+
     else:
-      z_func = lambda x, y: 0
+      # z_func: function to get elevation at given point (x, y) on surface
+      if prop.isHeightRelativeToDEM():
+        if self.geomType == QGis.Polygon and prop.type_index == 1:  # Overlay
+          z_func = lambda x, y: 0
+        else:
+          # get elevation from DEM
+          z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
+      else:
+        z_func = lambda x, y: 0
 
     request = request or QgsFeatureRequest()
     for f in self.layer.getFeatures(request):
-      geom = f.geometry()
-      if geom is None:
+      geometry = f.geometry()
+      if geometry is None:
         qDebug("null geometry skipped")
         continue
 
       # coordinate transformation - layer crs to project crs
-      geom = QgsGeometry(geom)
-      geom.transform(self.transform)
+      geom = QgsGeometry(geometry)
+      if geom.transform(self.transform) != 0:
+        qDebug("Failed to transform geometry")
+        continue
 
       # check if geometry intersects with the base extent (rotated rect)
       if rotation and not baseExtentGeom.intersects(geom):
-        continue
-
-      # clip geometry
-      if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
-        geom = geom.intersection(clipGeom)
-        if geom is None:
-          continue
-
-      # check if geometry is empty
-      if geom.isGeosEmpty():
-        qDebug("empty geometry skipped")
         continue
 
       # create feature
@@ -984,16 +987,46 @@ class VectorLayer(Layer):
       def transform_func(x, y, z):
         return mapTo3d.transform(x, y, z + relativeHeight)
 
-      if self.geomType == QGis.Polygon:
-        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel())
-        if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
-          feat.geom.splitPolygon(self.writer.triangleMesh())
+      if useZ:
+        ogr_geom = ogr.CreateGeometryFromWkb(geometry.asWkb())
 
-      elif prop.useZ():
-        feat.geom = self.geomClass.fromWkb25D(geom.asWkb(), transform_func)
+        # transform geometry from layer CRS to project CRS
+        if ogr_geom.Transform(ogr_transform) != 0:
+          qDebug("Failed to transform geometry")
+          continue
+
+        # clip geometry
+        if ogr_clipGeom and self.geomType == QGis.Line:
+          ogr_geom = ogr_geom.Intersection(ogr_clipGeom)
+          if ogr_geom is None:
+            continue
+
+        # check if geometry is empty
+        if ogr_geom.IsEmpty():
+          qDebug("empty geometry skipped")
+          continue
+
+        feat.geom = self.geomClass.fromOgrGeometry25D(ogr_geom, transform_func)
 
       else:
-        feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
+        # clip geometry
+        if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
+          geom = geom.intersection(clipGeom)
+          if geom is None:
+            continue
+
+        # check if geometry is empty
+        if geom.isGeosEmpty():
+          qDebug("empty geometry skipped")
+          continue
+
+        if self.geomType == QGis.Polygon:
+          feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel())
+          if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
+            feat.geom.splitPolygon(self.writer.triangleMesh())
+
+        else:
+          feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
 
       if feat.geom is None:
         continue

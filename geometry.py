@@ -75,23 +75,22 @@ class PointGeometry:
     return geom
 
   @staticmethod
-  def fromWkb25D(wkb, transform_func):
-    geom = ogr.CreateGeometryFromWkb(wkb)
-    geomType = geom.GetGeometryType()
+  def fromOgrGeometry25D(geometry, transform_func):
+    geomType = geometry.GetGeometryType()
 
     if geomType == ogr.wkbPoint25D:
-      geoms = [geom]
+      geoms = [geometry]
     elif geomType == ogr.wkbMultiPoint25D:
-      geoms = [geom.GetGeometryRef(i) for i in range(geom.GetGeometryCount())]
+      geoms = [geometry.GetGeometryRef(i) for i in range(geometry.GetGeometryCount())]
     else:
-      geoms = []
+      return None
 
     pts = []
-    for geom25d in geoms:
-      if hasattr(geom25d, "GetPoints"):
-        pts += geom25d.GetPoints()
+    for geom in geoms:
+      if hasattr(geom, "GetPoints"):
+        pts += geom.GetPoints()
       else:
-        pts += [geom25d.GetPoint(i) for i in range(geom25d.GetPointCount())]
+        pts += [geom.GetPoint(i) for i in range(geom.GetPointCount())]
 
     point_geom = PointGeometry()
     point_geom.pts = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
@@ -124,23 +123,21 @@ class LineGeometry:
     return geom
 
   @staticmethod
-  def fromWkb25D(wkb, transform_func):
-    geom = ogr.CreateGeometryFromWkb(wkb)
-    geomType = geom.GetGeometryType()
-
+  def fromOgrGeometry25D(geometry, transform_func):
+    geomType = geometry.GetGeometryType()
     if geomType == ogr.wkbLineString25D:
-      geoms = [geom]
+      geoms = [geometry]
     elif geomType == ogr.wkbMultiLineString25D:
-      geoms = [geom.GetGeometryRef(i) for i in range(geom.GetGeometryCount())]
+      geoms = [geometry.GetGeometryRef(i) for i in range(geometry.GetGeometryCount())]
     else:
-      geoms = []
+      return None
 
     line_geom = LineGeometry()
-    for geom25d in geoms:
-      if hasattr(geom25d, "GetPoints"):
-        pts = geom25d.GetPoints()
+    for geom in geoms:
+      if hasattr(geom, "GetPoints"):
+        pts = geom.GetPoints()
       else:
-        pts = [geom25d.GetPoint(i) for i in range(geom25d.GetPointCount())]
+        pts = [geom.GetPoint(i) for i in range(geom.GetPointCount())]
 
       points = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
       line_geom.lines.append(points)
@@ -248,7 +245,7 @@ class PolygonGeometry:
     return geom
 
 #  @staticmethod
-#  def fromWkb25D(wkb):
+#  def fromOgrGeometry25D(geometry, transform_func):
 #    pass
 
 class GeometryUtils:
