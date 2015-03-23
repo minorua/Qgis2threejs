@@ -34,7 +34,7 @@ from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToTh
 import propertypages as ppages
 import qgis2threejstools as tools
 from rotatedrect import RotatedRect
-from settings import debug_mode, def_vals
+from settings import debug_mode, def_vals, plugin_version
 
 class Qgis2threejsDialog(QDialog):
 
@@ -132,6 +132,9 @@ class Qgis2threejsDialog(QDialog):
     if item and self.currentPage:
       self.saveProperties(item, self.currentPage)
 
+    # plugin version
+    self._settings["PluginVersion"] = plugin_version
+
     # template and output html file path
     self._settings["Template"] = self.ui.comboBox_Template.currentText()
     self._settings["OutputFilename"] = self.ui.lineEdit_OutputFilename.text()
@@ -180,8 +183,6 @@ class Qgis2threejsDialog(QDialog):
     self.setSettings(settings)
 
   def saveSettings(self):
-    """save settings in current panel"""
-
     # file save dialog
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
