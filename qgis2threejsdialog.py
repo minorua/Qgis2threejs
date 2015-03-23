@@ -294,7 +294,7 @@ class Qgis2threejsDialog(QDialog):
     else:
       # layer item
       parentId = parent.data(0, Qt.UserRole)
-      if not hasattr(self._settings, parentId):
+      if parentId not in self._settings:
         self._settings[parentId] = {}
       self._settings[parentId][item.data(0, Qt.UserRole)] = properties
 
