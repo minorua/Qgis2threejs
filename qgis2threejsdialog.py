@@ -465,26 +465,27 @@ class Qgis2threejsDialog(QDialog):
     #qDebug("{0}: {1}".format(percentage, statusMsg))
 
   def run(self):
+    self.endPointSelection()
+
     ui = self.ui
     filename = ui.lineEdit_OutputFilename.text()   # ""=Temporary file
     if filename and os.path.exists(filename):
       if QMessageBox.question(self, "Qgis2threejs", "Output file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
-    self.endPointSelection()
-
-    ui.pushButton_Run.setEnabled(False)
-    self.clearMessageBar()
-    self.progress(0)
-
-    canvas = self.iface.mapCanvas()
 
     # export to web (three.js)
+    canvas = self.iface.mapCanvas()
     export_settings = ExportSettings(self.settings(), canvas, self.localBrowsingMode)
 
     valid, err_msg = export_settings.checkValidity()
     if not valid:
       QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
       return
+
+    ui.pushButton_Run.setEnabled(False)
+    ui.toolButton_Settings.setVisible(False)
+    self.clearMessageBar()
+    self.progress(0)
 
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
       # update quads and point on map canvas
