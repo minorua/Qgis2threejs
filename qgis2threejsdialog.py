@@ -490,7 +490,7 @@ class Qgis2threejsDialog(QDialog):
 
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
       # update quads and point on map canvas
-      self.createRubberBands(export_settings.baseExtent, quadtree)
+      self.createRubberBands(export_settings.baseExtent, export_settings.quadtree)
 
     # export
     ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
