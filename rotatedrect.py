@@ -136,7 +136,7 @@ class RotatedRect:
 
   @classmethod
   def fromMapSettings(cls, mapSettings):
-    extent = mapSettings.extent()
+    extent = mapSettings.visibleExtent() if QGis.QGIS_VERSION_INT >= 20300 else mapSettings.extent()
     rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
     if rotation == 0:
       return cls(extent.center(), extent.width(), extent.height())
