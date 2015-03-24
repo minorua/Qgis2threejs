@@ -22,7 +22,7 @@ Q3D.Options = {
 };
 
 Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
-Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, MeshFace: 9, Unknown: -1};
+Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, Unknown: -1};
 Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new THREE.Vector3(0, 0, 1)};
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
@@ -848,17 +848,8 @@ Q3D.MapLayer.prototype = {
   setOpacity: function (opacity) {
     this.opacity = opacity;
     this.materials.forEach(function (m) {
-      if (m.type == Q3D.MaterialType.MeshFace) {
-        var materials = m.m.materials;
-        for (var i = 0, l = materials.length; i < l; i++) {
-          materials[i].transparent = Boolean(m.t) || (opacity < 1);
-          materials[i].opacity = opacity;
-        }
-      }
-      else {
-        m.m.transparent = Boolean(m.t) || (opacity < 1);
-        m.m.opacity = opacity;
-      }
+      m.m.transparent = Boolean(m.t) || (opacity < 1);
+      m.m.opacity = opacity;
     });
   },
 
@@ -870,13 +861,7 @@ Q3D.MapLayer.prototype = {
   setWireframeMode: function (wireframe) {
     this.materials.forEach(function (m) {
       if (m.w) return;
-      if (m.type == Q3D.MaterialType.MeshFace) {
-        var materials = m.m.materials;
-        for (var i = 0, l = materials.length; i < l; i++) {
-          materials[i].wireframe = wireframe;
-        }
-      }
-      else if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
+      if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
     });
   }
 
