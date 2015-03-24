@@ -22,7 +22,7 @@ Q3D.Options = {
 };
 
 Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
-Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, MeshFace: 9};
+Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, MeshFace: 9, Unknown: -1};
 Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new THREE.Vector3(0, 0, 1)};
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
@@ -1651,6 +1651,8 @@ Q3D.ModelBuilder.Base
 Q3D.ModelBuilder.Base = function (project, obj) {
   this.project = project;
   this.features = [];
+  this._objects = {};
+
   this.loaded = false;
 };
 
@@ -1687,9 +1689,45 @@ Q3D.ModelBuilder.Base.prototype = {
       }
     }, this);
     this.features = [];
+  },
+
+  cloneObject: function (layerId) {
+    if (this.object === undefined) return null;
+
+    // each layer has own copies of materials
+    if (!(layerId in this._objects)) {
+      var layer = this.project.layers[layerId];
+
+      // clone the object
+      var object = this.object.clone();
+
+      if (Object.keys(this._objects).length) {
+        // if this is not the first layer which uses this model, clone materials
+        // and append cloned materials to material list of the layer
+        object.traverse(function (obj) {
+          if (obj instanceof THREE.Mesh === false) return;
+          obj.material = obj.material.clone();
+          layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+        });
+      }
+      else {
+        // if this is the first, append original materials to material list of the layer
+        object.traverse(function (obj) {
+          if (obj instanceof THREE.Mesh === false) return;
+          layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+        });
+      }
+      this._objects[layerId] = object;
+      return object;
+    }
+    return this._objects[layerId].clone();
+  },
+
+  onLoad: function (object) {
+    this.object = object;
+    this.loaded = true;
+    this.buildObjects();
   }
-  // cloneObject: function () {},
-  // onLoad: function () {}
 };
 
 
@@ -1719,35 +1757,12 @@ Q3D.ModelBuilder.JSON = function (project, model) {
 Q3D.ModelBuilder.JSON.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
 Q3D.ModelBuilder.JSON.prototype.constructor = Q3D.ModelBuilder.JSON;
 
-Q3D.ModelBuilder.JSON.prototype.cloneObject = function (layerId) {
-  if (this.geometry === undefined) return null;
-
-  // material is created for each layer
-  if (!(layerId in this.meshFaceMaterials)) {
-    var mat;
-    if (this._origMeshFaceMaterial === undefined) {
-      mat = new THREE.MeshFaceMaterial(this.materials);
-      this._origMeshFaceMaterial = mat;
-    }
-    else {
-      mat = this._origMeshFaceMaterial.clone();
-    }
-
-    this.meshFaceMaterials[layerId] = mat;
-    this.project.layers[layerId].materials.push({type: Q3D.MaterialType.MeshFace, m: mat});
-  }
-  return new THREE.Mesh(this.geometry, this.meshFaceMaterials[layerId]);
-};
-
 Q3D.ModelBuilder.JSON.prototype.onLoad = function (geometry, materials) {
   this.geometry = geometry;
-  this.materials = materials;
-  this.loaded = true;
-  this.buildObjects();
+  this.material = new THREE.MeshFaceMaterial(materials);
+  Q3D.ModelBuilder.Base.prototype.onLoad.call(this, new THREE.Mesh(this.geometry, this.material));
 };
 
-
-// TODO: layer should hold materials (for opacity)
 
 /*
 Q3D.ModelBuilder.JSONObject --> Q3D.ModelBuilder.Base
@@ -1770,19 +1785,6 @@ Q3D.ModelBuilder.JSONObject = function (project, model) {
 Q3D.ModelBuilder.JSONObject.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
 Q3D.ModelBuilder.JSONObject.prototype.constructor = Q3D.ModelBuilder.JSONObject;
 
-Q3D.ModelBuilder.JSONObject.prototype.cloneObject = function (layerId) {
-  if (this.object === undefined) return null;
-  return this.object.clone();
-};
-
-Q3D.ModelBuilder.JSONObject.prototype.onLoad = function (object) {
-  this.object = object;
-  this.loaded = true;
-  this.buildObjects();
-};
-
-
-// TODO: layer should hold materials (for opacity)
 
 /*
 Q3D.ModelBuilder.COLLADA --> Q3D.ModelBuilder.Base
@@ -1808,15 +1810,9 @@ Q3D.ModelBuilder.COLLADA = function (project, model) {
 Q3D.ModelBuilder.COLLADA.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
 Q3D.ModelBuilder.COLLADA.prototype.constructor = Q3D.ModelBuilder.COLLADA;
 
-Q3D.ModelBuilder.COLLADA.prototype.cloneObject = function (layerId) {
-  if (this.collada === undefined) return null;
-  return this.collada.scene.clone();
-};
-
 Q3D.ModelBuilder.COLLADA.prototype.onLoad = function (collada) {
   this.collada = collada;
-  this.loaded = true;
-  this.buildObjects();
+  Q3D.ModelBuilder.Base.prototype.onLoad.call(this, collada.scene);
 };
 
 
