@@ -1679,33 +1679,32 @@ Q3D.ModelBuilder.Base.prototype = {
   cloneObject: function (layerId) {
     if (this.object === undefined) return null;
 
-    // each layer has own copies of materials
-    if (!(layerId in this._objects)) {
-      var layer = this.project.layers[layerId];
+    // if there is already the object for the layer, return a clone of the object
+    if (layerId in this._objects) return this._objects[layerId].clone();
 
-      // clone the object
-      var object = this.object.clone();
+    var layer = this.project.layers[layerId];
 
-      if (Object.keys(this._objects).length) {
-        // if this is not the first layer which uses this model, clone materials
-        // and append cloned materials to material list of the layer
-        object.traverse(function (obj) {
-          if (obj instanceof THREE.Mesh === false) return;
-          obj.material = obj.material.clone();
-          layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
-        });
-      }
-      else {
-        // if this is the first, append original materials to material list of the layer
-        object.traverse(function (obj) {
-          if (obj instanceof THREE.Mesh === false) return;
-          layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
-        });
-      }
-      this._objects[layerId] = object;
-      return object;
+    // clone the original object
+    var object = this.object.clone();
+
+    if (Object.keys(this._objects).length) {
+      // if this is not the first layer which uses this model, clone materials
+      // and append cloned materials to material list of the layer
+      object.traverse(function (obj) {
+        if (obj instanceof THREE.Mesh === false) return;
+        obj.material = obj.material.clone();
+        layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+      });
     }
-    return this._objects[layerId].clone();
+    else {
+      // if this is the first, append original materials to material list of the layer
+      object.traverse(function (obj) {
+        if (obj instanceof THREE.Mesh === false) return;
+        layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+      });
+    }
+    this._objects[layerId] = object;
+    return object;
   },
 
   onLoad: function (object) {
@@ -1727,8 +1726,6 @@ Q3D.ModelBuilder.JSON = function (project, model) {
   var loaders = Q3D.ModelBuilder._loaders;
   if (loaders.jsonLoader === undefined) loaders.jsonLoader = new THREE.JSONLoader(true);
   this.loader = loaders.jsonLoader;
-
-  this.meshFaceMaterials = {};
 
   if (model.src !== undefined) {
     this.loader.load(model.src, this.onLoad.bind(this));
