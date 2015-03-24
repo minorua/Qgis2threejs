@@ -23,7 +23,7 @@ import os
 import re
 
 from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
-from PyQt4.QtGui import *   #QWidget, QColor, QColorDialog, QFileDialog
+from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle, QgsMessageLog
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
