@@ -195,6 +195,10 @@ class Qgis2threejsDialog(QDialog):
     if not filename:
       return
 
+    # append .json extension if filename doesn't have
+    if filename[-5:].lower() != ".json":
+      filename += ".json"
+
     # save settings to file (.json)
     import codecs
     import json
@@ -589,11 +593,17 @@ class Qgis2threejsDialog(QDialog):
 
   def browseClicked(self):
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
-    if directory == "":
+    if not directory:
       directory = QDir.homePath()
     filename = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
-    if filename != "":
-      self.ui.lineEdit_OutputFilename.setText(filename)
+    if not filename:
+      return
+
+    # append .html extension if filename doesn't have either .html or .htm
+    if filename[-5:].lower() != ".html" and filename[-4:].lower() != ".htm":
+      filename += ".html"
+
+    self.ui.lineEdit_OutputFilename.setText(filename)
 
   def log(self, msg):
     if debug_mode:
