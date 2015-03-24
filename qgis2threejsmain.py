@@ -725,7 +725,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   imageLayerId = properties.get("comboBox_ImageLayer")
 
   # writeBlock function
-  def writeBlock(quad_rect, extent, dem_values, image_width, image_height):
+  def writeBlock(quad_rect, extent, dem_width, dem_height, dem_values, image_width, image_height):
     # extent = baseExtent.subrectangle(rect)
     npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
     block = {"width": dem_width, "height": dem_height}
@@ -816,7 +816,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     if unites_center and quad.height == quadtree.height:
       centerQuads.addQuad(quad, dem_values)
     else:
-      writeBlock(rect, extent, dem_values, image_width, image_height)
+      writeBlock(rect, extent, dem_width, dem_height, dem_values, image_width, image_height)
 
   if unites_center:
     dem_width = (dem_width - 1) * centerQuads.width() + 1
@@ -833,7 +833,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     # block extent
     rect = centerQuads.rect()
     extent = baseExtent.subrectangle(rect)
-    writeBlock(rect, extent, dem_values, image_width, image_height)
+    writeBlock(rect, extent, dem_width, dem_height, dem_values, image_width, image_height)
 
   writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
   writer.writeMaterials(layer.materialManager)
