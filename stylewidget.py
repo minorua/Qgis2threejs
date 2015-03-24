@@ -23,7 +23,7 @@ import os
 
 from PyQt4.QtCore import QDir, QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
-from qgis.core import QGis
+from qgis.core import QGis, QgsProject
 
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
 
@@ -187,6 +187,8 @@ class FilePathWidgetFunc(WidgetFuncBase):
 
   def toolButtonClicked(self):
     workdir = os.path.split(self.widget.lineEdit.text())[0]
+    if not workdir:
+      workdir = QgsProject.instance().homePath()
     if not workdir:
       workdir = QDir.homePath()
 
