@@ -26,7 +26,7 @@ import os
 
 from PyQt4.QtCore import Qt, QDir, QFile, QSettings, qDebug, QEventLoop, SIGNAL
 from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBox, QMenu, QPixmap, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle, QgsMessageLog
+from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle, QgsMessageLog, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -167,7 +167,9 @@ class Qgis2threejsDialog(QDialog):
 
   def loadSettings(self):
     # file open dialog
-    directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
+    directory = QgsProject.instance().homePath()
+    if not directory:
+      directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
       directory = QDir.homePath()
     filterString = "Settings files (*.json);;All files (*.*)"
@@ -184,7 +186,9 @@ class Qgis2threejsDialog(QDialog):
 
   def saveSettings(self):
     # file save dialog
-    directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
+    directory = QgsProject.instance().homePath()
+    if not directory:
+      directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
       directory = QDir.homePath()
     filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
