@@ -1713,7 +1713,9 @@ Q3D.ModelBuilder.Base.prototype = {
       });
     }
     this._objects[layerId] = object;
-    return object;
+
+    // as properties of the object will be changed, clone the object to keep the original for the layer
+    return object.clone();
   },
 
   onLoad: function (object) {
