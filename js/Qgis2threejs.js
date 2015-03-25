@@ -533,11 +533,11 @@ Q3D.application = {
     this.popup.show();
   },
 
-  showQueryResult: function (obj) {
-    var userData = obj.object.userData, layer, r = [];
-    if (userData.layerId !== undefined) {
+  showQueryResult: function (point, layerId, featureId) {
+    var layer, r = [];
+    if (layerId !== undefined) {
       // layer name
-      layer = this.project.layers[userData.layerId];
+      layer = this.project.layers[layerId];
       r.push('<table class="layer">');
       r.push("<caption>Layer name</caption>");
       r.push("<tr><td>" + layer.name + "</td></tr>");
@@ -545,7 +545,7 @@ Q3D.application = {
     }
 
     // clicked coordinates
-    var pt = this.project.toMapCoordinates(obj.point.x, obj.point.y, obj.point.z);
+    var pt = this.project.toMapCoordinates(point.x, point.y, point.z);
     r.push('<table class="coords">');
     r.push("<caption>Clicked coordinates</caption>");
     r.push("<tr><td>");
@@ -558,11 +558,11 @@ Q3D.application = {
 
     r.push("</td></tr></table>");
 
-    if (userData.layerId !== undefined && userData.featureId !== undefined && layer.a !== undefined) {
+    if (layerId !== undefined && featureId !== undefined && layer.a !== undefined) {
       // attributes
       r.push('<table class="attrs">');
       r.push("<caption>Attributes</caption>");
-      var f = layer.f[userData.featureId];
+      var f = layer.f[featureId];
       for (var i = 0, l = layer.a.length; i < l; i++) {
         r.push("<tr><td>" + layer.a[i] + "</td><td>" + f.a[i] + "</td></tr>");
       }
@@ -626,19 +626,27 @@ Q3D.application = {
 
     for (var i = 0, l = objs.length; i < l; i++) {
       var obj = objs[i];
-      if (obj.object.visible) {
-        // query marker
-        this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
-        this.queryMarker.visible = true;
+      if (!obj.object.visible) continue;
 
-        // highlight clicked object
-        var userData = obj.object.userData;
-        this.highlightFeature((userData.layerId === undefined) ? null : userData.layerId,
-                              (userData.featureId === undefined) ? null : userData.featureId);
+      // query marker
+      this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
+      this.queryMarker.visible = true;
 
-        this.showQueryResult(obj);
-        return;
+      // get layerId and featureId of clicked object
+      var object = obj.object, layerId, featureId;
+      while (object) {
+        layerId = object.userData.layerId,
+        featureId = object.userData.featureId;
+        if (layerId !== undefined) break;
+        object = object.parent;
       }
+
+      // highlight clicked object
+      this.highlightFeature((layerId === undefined) ? null : layerId,
+                            (featureId === undefined) ? null : featureId);
+
+      this.showQueryResult(obj.point, layerId, featureId);
+      return;
     }
     this.closePopup();
   },
@@ -1383,22 +1391,19 @@ Q3D.LineLayer.prototype.build = function (parent) {
   var materials = this.materials;
   var pt;
   if (this.objType == "Line") {
-    var createObject = function (f, line, userData) {
+    var createObject = function (f, line) {
       var geom = new THREE.Geometry();
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
         geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
       }
-      var line = new THREE.Line(geom, materials[f.m].m);
-      line.userData = userData;
-      return line;
+      return new THREE.Line(geom, materials[f.m].m);
     };
   }
   else if (this.objType == "Pipe" || this.objType == "Cone") {
     var hasJoints = (this.objType == "Pipe");
-    var createObject = function (f, line, userData) {
+    var createObject = function (f, line) {
       var group = new THREE.Group();
-      group.userData = userData;
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
       var geom, obj;
@@ -1410,7 +1415,6 @@ Q3D.LineLayer.prototype.build = function (parent) {
           geom = new THREE.SphereGeometry(f.rb, 8, 8);
           obj = new THREE.Mesh(geom, materials[f.m].m);
           obj.position.copy(pt1);
-          obj.userData = userData;
           group.add(obj);
         }
 
@@ -1420,7 +1424,6 @@ Q3D.LineLayer.prototype.build = function (parent) {
           obj = new THREE.Mesh(geom, materials[f.m].m);
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
           obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
-          obj.userData = userData;
           group.add(obj);
         }
         pt0.copy(pt1);
@@ -1430,7 +1433,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
   }
   else if (this.objType == "Profile") {
     var z0 = this.project.zShift * this.project.zScale;
-    var createObject = function (f, line, userData) {
+    var createObject = function (f, line) {
       var geom = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
@@ -1440,18 +1443,17 @@ Q3D.LineLayer.prototype.build = function (parent) {
         geom.vertices[i + l].z = z0;
       }
       geom.computeFaceNormals();
-      var mesh = new THREE.Mesh(geom, materials[f.m].m);
-      mesh.userData = userData;
-      return mesh;
+      return new THREE.Mesh(geom, materials[f.m].m);
     };
   }
 
   // each feature in this layer
   this.f.forEach(function (f, fid) {
     f.objs = [];
-    var userData = {layerId: this.index, featureId: fid};
     for (var i = 0, l = f.lines.length; i < l; i++) {
-      var obj = createObject(f, f.lines[i], userData);
+      var obj = createObject(f, f.lines[i]);
+      obj.userData.layerId = this.index;
+      obj.userData.featureId = fid;
       this.addObject(obj);
       f.objs.push(obj);
     }
@@ -1523,10 +1525,10 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     // each feature in this layer
     this.f.forEach(function (f, fid) {
       f.objs = [];
-      var userData = {layerId: this.index, featureId: fid};
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var obj = createObject(f, f.polygons[i], f.zs[i]);
-        obj.userData = userData;
+        obj.userData.layerId = this.index;
+        obj.userData.featureId = fid;
         this.addObject(obj);
         f.objs.push(obj);
       }
