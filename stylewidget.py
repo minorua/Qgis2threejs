@@ -195,11 +195,13 @@ class FilePathWidgetFunc(WidgetFuncBase):
     comboBox = self.widget.comboBox
     if comboBox.itemData(comboBox.currentIndex()) == FilePathWidgetFunc.FILEPATH:
       filepath = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
-      if filepath != "":
+      if filepath:
         self.widget.lineEdit.setText(filepath)
     else:
       directory = QFileDialog.getExistingDirectory(None, "Select a directory", workdir)
-      if directory != "":
+      if directory:
+        if directory[-1] not in ["/", "\\"]:
+          directory += os.sep
         self.widget.lineEdit.setText(directory)
 
 class HeightWidgetFunc(WidgetFuncBase):
