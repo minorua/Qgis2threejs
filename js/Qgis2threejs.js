@@ -1405,7 +1405,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
         pt1.set(pt[0], pt[1], pt[2]);
 
         if (hasJoints) {
-          geom = new THREE.SphereGeometry(f.rb);
+          geom = new THREE.SphereGeometry(f.rb, 8, 8);
           obj = new THREE.Mesh(geom, materials[f.m].m);
           obj.position.copy(pt1);
           obj.userData = userData;
@@ -1414,7 +1414,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
 
         if (i) {
           sub.subVectors(pt1, pt0);
-          geom = new THREE.CylinderGeometry(f.rt, f.rb, pt0.distanceTo(pt1));
+          geom = new THREE.CylinderGeometry(f.rt, f.rb, pt0.distanceTo(pt1), 8);
           obj = new THREE.Mesh(geom, materials[f.m].m);
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
           obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
