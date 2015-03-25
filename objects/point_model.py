@@ -33,16 +33,15 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   if type_index == 0:
     name = "JSON file"
     filterString = "JSON files (*.json *.js);;All files (*.*)"
-    rotationX = 90
   else:
     name = "COLLADA file"
     filterString = "COLLADA files (*.dae);;All files (*.*)"
-    rotationX = 0
 
   ppage.initStyleWidgets(color=False, transparency=False)
   ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": name, "layer": layer, "filterString": filterString})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": rotationX, "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 def write(writer, layer, feat):
@@ -56,6 +55,7 @@ def write(writer, layer, feat):
 
   index = writer.modelManager.modelIndex(model_path, model_type)
   scale = float(vals[1])
-  rotationX = float(vals[2])
-  rotationZ = float(vals[3])
-  writer.writeFeature({"model_index": index, "pts": feat.geom.asList(), "rotateX": rotationX, "rotateY": rotationZ, "scale": scale})
+  rx = float(vals[2])
+  ry = float(vals[3])
+  rz = float(vals[4])
+  writer.writeFeature({"model_index": index, "pts": feat.geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale})

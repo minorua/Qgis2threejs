@@ -1653,19 +1653,26 @@ Q3D.ModelBuilder.Base.prototype = {
   buildObjects: function () {
     if (!this.loaded) return;
 
-    var deg2rad = Math.PI / 180;
+    var deg2rad = Math.PI / 180,
+        m = new THREE.Matrix4();
     this.features.forEach(function (fet) {
       var layer = this.project.layers[fet.layerId],
           f = layer.f[fet.featureId];
-      f.objs = [];
 
+      f.objs = [];
       for (var i = 0, l = f.pts.length; i < l; i++) {
         var pt = f.pts[i],
             mesh = this.cloneObject(fet.layerId);
+
+        // rotation
+        if (f.rotateX) mesh.applyMatrix(m.makeRotationX(f.rotateX * deg2rad));
+        if (f.rotateY) mesh.applyMatrix(m.makeRotationY(f.rotateY * deg2rad));
+        if (f.rotateZ) mesh.applyMatrix(m.makeRotationZ(f.rotateZ * deg2rad));
+
+        // scale and position
+        if (f.scale !== undefined) mesh.scale.set(f.scale, f.scale, f.scale);
         mesh.position.set(pt[0], pt[1], pt[2]);
-        if (f.rotateX || f.rotateY || f.rotateZ)
-          mesh.rotation.set((f.rotateX || 0) * deg2rad, (f.rotateY || 0) * deg2rad, (f.rotateZ || 0) * deg2rad);
-        if (f.scale) mesh.scale.set(f.scale, f.scale, f.scale);
+
         mesh.userData.layerId = fet.layerId;
         mesh.userData.featureId = fet.featureId;
 
