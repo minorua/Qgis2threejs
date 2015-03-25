@@ -18,7 +18,8 @@ Q3D.Options = {
   frame: {color: 0},
   label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
   qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
-  exportMode: false
+  exportMode: false,
+  jsonLoader: "JSONLoader"  // JSONLoader or ObjectLoader
 };
 
 Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
@@ -218,10 +219,11 @@ Q3D.application = {
         if (model.type == "COLLADA") {
           this.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(this.project, model);
         }
-        else {
-          //TODO: add combo box to select either JSONLoader or ObjectLoader in the export dialog.
-          //this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
+        else if (Q3D.Options.jsonLoader == "ObjectLoader") {
           this.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(this.project, model);
+        }
+        else {
+          this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
         }
       }, this);
     }
