@@ -93,10 +93,12 @@ def gdal2threejs(demfile, texfile, outfile="data.js", title="no title", suffix="
 
   return 0
 
-def formatValue(val, dap=6):
-  if int(val) == val:
-    return "%d" % val
-  return ("%%.%df" % dap) % val
+def formatValue(val, fmt="%.6f"):
+  try:
+    int(val)      # to filter invalid value (e.g. nan, inf. supposed type of val is float)
+    return (fmt % val).rstrip("0").rstrip(".")
+  except:
+    return "-0"   # return -0 so that we can distinguish between 0 and error
 
 if __name__=="__main__":
   argv = sys.argv
