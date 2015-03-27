@@ -408,8 +408,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def surroundingsToggled(self, checked):
     self.calculateResolution()
     self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
-    self.radioButton_ImageFile.setEnabled(not checked)
-    self.groupBox_Accessories.setEnabled(not checked)
+
+    if self.radioButton_Simple.isChecked():
+      self.radioButton_ImageFile.setEnabled(not checked)
+      self.groupBox_Accessories.setEnabled(not checked)
 
     if checked and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
@@ -530,8 +532,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
-    self.setLayoutsEnabled([self.verticalLayout_Simple, self.horizontalLayout_ImageFile], isSimpleMode)
-    self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and self.checkBox_Surroundings.isChecked())
+    surroundings = self.checkBox_Surroundings.isChecked()
+
+    self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
+    self.setLayoutsEnabled([self.horizontalLayout_ImageFile], isSimpleMode and not surroundings)
+    self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and surroundings)
     isAdvancedMode = not isSimpleMode
 
     if self.isPrimary:
