@@ -294,6 +294,11 @@ class Qgis2threejsDialog(QDialog):
       if id != ObjectTreeItem.ITEM_OPTDEM or optDEMChecked:
         tree.expandItem(item)
 
+    # disable additional DEM item which is selected as main DEM
+    layerId = self._settings.get(ObjectTreeItem.ITEM_DEM, {}).get("comboBox_DEMLayer")
+    if layerId:
+      self.primaryDEMChanged(layerId)
+
   def saveProperties(self, item, page):
     properties = page.properties()
     parent = item.parent()
