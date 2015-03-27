@@ -45,6 +45,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 def write(writer, layer, feat):
+  mapTo3d = writer.settings.mapTo3d
   vals = feat.propValues()
   model_path = vals[0]
 
@@ -54,7 +55,7 @@ def write(writer, layer, feat):
     model_type = "COLLADA"
 
   index = writer.modelManager.modelIndex(model_path, model_type)
-  scale = float(vals[1])
+  scale = float(vals[1]) * mapTo3d.multiplier
   rx = float(vals[2])
   ry = float(vals[3])
   rz = float(vals[4])
