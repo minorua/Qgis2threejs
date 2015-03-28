@@ -10,9 +10,7 @@
 <div id="content">
 <h1>Object Types for Point Layer</h1>
 
-<p>This page has a list of object types for point layer.</p>
-
-<p><a href="#Sphere">Sphere</a> | <a href="#Cylinder">Cylinder</a> | <a href="#Cube">Cube</a> | <a href="#Cone">Cone</a> | <a href="#Disk">Disk</a> | <a href="#Icon">Icon</a> | <a href="#JSON">JSON model</a></p>
+<p><a href="#Sphere">Sphere</a> | <a href="#Cylinder">Cylinder</a> | <a href="#Box">Box</a> | <a href="#Cone">Cone</a> | <a href="#Disk">Disk</a> | <a href="#Icon">Icon</a> | <a href="#JSON">JSON model</a> | <a href="#COLLADA">COLLADA model</a></p>
 
 <hr />
 
@@ -56,9 +54,9 @@
 
 <p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a></p>
 
-<h2><a name="Cube"/> Cube</h2>
+<h2><a name="Box"/> Box</h2>
 
-<p>Cube with specified width, depth, height, color and transparency</p>
+<p>Box with specified width, depth, height, color and transparency</p>
 
 <p><strong>Specific settings</strong>:</p>
 
@@ -77,7 +75,7 @@
 
 <p><strong>three.js geometry class:</strong></p>
 
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CubeGeometry">CubeGeometry</a></p>
+<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry">BoxGeometry</a></p>
 
 <h2><a name="Cone"/> Cone</h2>
 
@@ -155,6 +153,29 @@
 <p>Numerical value.</p></li>
 <li><p>Rotation (x)</p>
 <p>In degrees.</p></li>
+<li><p>Rotation (y)</p>
+<p>In degrees.</p></li>
+<li><p>Rotation (z)</p>
+<p>In degrees.</p></li>
+</ul>
+
+<p><strong>Origin</strong>:</p>
+
+<p>origin of model</p>
+
+<h2><a name="COLLADA"/> COLLADA model</h2>
+
+<p><strong>Specific settings</strong>:</p>
+
+<ul>
+<li><p>COLLADA file</p>
+<p>File path (.dae). If the model has texture images, they need to be copied to the destination directory manually.</p></li>
+<li><p>Scale</p>
+<p>Numerical value.</p></li>
+<li><p>Rotation (x)</p>
+<p>In degrees.</p></li>
+<li><p>Rotation (y)</p>
+<p>In degrees.</p></li>
 <li><p>Rotation (z)</p>
 <p>In degrees.</p></li>
 </ul>
@@ -165,7 +186,7 @@
 
 <hr />
 
-<p>Back to <a href="ExportSettings.html">Export Settings</a> | Qgis2threejs plugin version 1.1</p>
+<p>Back to <a href="ExportSettings.html">Export Settings</a> | Qgis2threejs plugin version 1.2</p>
 
 </div>
 </body>
