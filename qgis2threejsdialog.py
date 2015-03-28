@@ -512,6 +512,7 @@ class Qgis2threejsDialog(QDialog):
     ui.pushButton_Run.setEnabled(True)
 
     if not ret:
+      ui.toolButton_Settings.setVisible(True)
       return
 
     self.clearRubberBands()
@@ -523,6 +524,7 @@ class Qgis2threejsDialog(QDialog):
 
     # open browser
     if not tools.openHTMLFile(export_settings.htmlfilename):
+      ui.toolButton_Settings.setVisible(True)
       return
 
     # close dialog
