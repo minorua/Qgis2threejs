@@ -18,8 +18,8 @@
  ***************************************************************************/
 """
 
-plugin_version = "1.2-dev"
-debug_mode = 1
+plugin_version = "1.2"
+debug_mode = 0
 
 class DefaultSettings:
 
