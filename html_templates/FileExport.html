@@ -125,9 +125,25 @@ function exportLayersZip(mode) {
 }
 
 function exportLayer(index, mode) {
-  var layer = project.layers[index];
-  var filetitle = layer.name;
-  saveAs(new Blob([parsers[mode].f(layer.objectGroup, filetitle)]), filetitle + parsers[mode].ext);  
+  var layer = project.layers[index],
+      filetitle = layer.name,
+      group;
+
+  if (layer.type == Q3D.LayerType.DEM && option.exportSides) {
+    // export terrain, sides and bottom together
+    group = new THREE.Object3D();
+    group.add(layer.objectGroup);
+
+    var aObjs = layer.blocks[0].aObjs;
+    if (aObjs && aObjs.length > 0) {
+      for (var i = 0, l = aObjs.length; i < l; i++) {
+        group.add(aObjs[i]);
+      }
+    }
+  } else {
+    group = layer.objectGroup;
+  }
+  saveAs(new Blob([parsers[mode].f(group, filetitle)]), filetitle + parsers[mode].ext);  
 }
 
 function listLayers() {
