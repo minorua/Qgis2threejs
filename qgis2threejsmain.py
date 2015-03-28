@@ -528,7 +528,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   if mapTo3d.multiplierZ != 1:
     dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
 
-  surroundings = properties.get("checkBox_Surroundings", False)
+  surroundings = properties.get("checkBox_Surroundings", False) if demLayer else False
   if surroundings:
     roughenEdges(dem_width, dem_height, dem_values, properties["spinBox_Roughening"])
 
