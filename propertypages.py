@@ -451,9 +451,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.demHeight = height + 1
     self.label_Resolution.setText("{0} x {1} px".format(self.demWidth, self.demHeight))
 
-    extent = canvas.extent()
-    xres = extent.width() / width
-    yres = extent.height() / height
+    mupp = canvas.mapUnitsPerPixel()
+    xres = (mupp * outsize.width()) / width
+    yres = (mupp * outsize.height()) / height
     self.lineEdit_HRes.setText(str(xres))
     self.lineEdit_VRes.setText(str(yres))
 
