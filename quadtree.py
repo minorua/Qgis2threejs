@@ -75,16 +75,18 @@ class QuadTree:
     self.rect = rect
     self.root = QuadNode(self, rect, 0)
     self.focusRect = None
+    self.height = 0
 
   def buildTreeByRect(self, rect, height):
     if not self.rect.intersects(rect):
-      return
+      return False
     self.focusRect = QgsRectangle(rect)
     self.height = height
     self.root.subdivideRecursively(self.focusRect, height)
+    return True
 
   def buildTreeByPoint(self, point, height):
-    self.buildTreeByRect(QgsRectangle(point.x(), point.y(), point.x(), point.y()), height)
+    return self.buildTreeByRect(QgsRectangle(point.x(), point.y(), point.x(), point.y()), height)
 
   def quads(self):
     return self.root.listTopQuads([])

@@ -713,6 +713,8 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   # quad tree
   quadtree = settings.quadtree
+  if quadtree is None:
+    return
   quads = quadtree.quads()
 
   # (currently) dem size is 2 ^ quadtree.height * a + 1, where a is larger integer than 0
@@ -1125,7 +1127,9 @@ def createQuadTree(extent, p):
   hh = 0.5 * h / extent.height()
 
   quadtree = QuadTree()
-  quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"])
+  if not quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"]):
+    return None
+
   return quadtree
 
 def dummyProgress(progress=None, statusMsg=None):
