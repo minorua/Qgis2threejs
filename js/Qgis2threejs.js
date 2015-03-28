@@ -257,6 +257,7 @@ Q3D.application = {
     this.scene.add(this.queryMarker);
 
     this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x666600});
+    if (!Q3D.isIE) this.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
 
     this.selectedLayerId = null;
     this.selectedFeatureId = null;
@@ -812,7 +813,7 @@ Q3D.MapLayer.prototype = {
       var m = this.m[i];
 
       var opt = {};
-      if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
+      if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
       if (m.flat) opt.shading = THREE.FlatShading;
       if (m.i !== undefined) {
         var image = this.project.images[m.i];
