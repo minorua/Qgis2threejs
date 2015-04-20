@@ -48,6 +48,26 @@ Q3D.gui = {
           folder.add(parameters.lyr[i], 'sv').name(itemName).onChange(sideVisibleChanged);
         }
       }
+      else if (layer.type == Q3D.LayerType.Polygon && layer.objType == 'Overlay') {
+        var j, f = layer.f, m = f.length;
+        for (j = 0; j < m; j++) {
+          if (f[j].mb === undefined) continue;
+          parameters.lyr[i].border = true;
+          folder.add(parameters.lyr[i], 'border').name('Borders').onChange(function (value) {
+            project.layers[this.object.i].setBorderVisibility(value);
+          });
+          break;
+        }
+
+        for (j = 0; j < m; j++) {
+          if (f[j].ms === undefined) continue;
+          parameters.lyr[i].side = true;
+          folder.add(parameters.lyr[i], 'side').name('Sides').onChange(function (value) {
+            project.layers[this.object.i].setSideVisibility(value);
+          });
+          break;
+        }
+      }
 
       folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
     });

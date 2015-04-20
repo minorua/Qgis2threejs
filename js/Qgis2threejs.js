@@ -1475,6 +1475,10 @@ Q3D.PolygonLayer --> Q3D.VectorLayer
 Q3D.PolygonLayer = function (params) {
   Q3D.VectorLayer.call(this, params);
   this.type = Q3D.LayerType.Polygon;
+
+  // for overlay
+  this.borderVisible = true;
+  this.sideVisible = true;
 };
 
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
@@ -1605,7 +1609,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
 
       if (f.mb === undefined && f.ms === undefined) return mesh;
 
-      // border and sides
+      // borders and sides
       var geom, vertices, z0 = project.zShift * project.zScale;
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
@@ -1655,6 +1659,30 @@ Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
   }
 
   Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, getPointsFunc, zFunc);
+};
+
+Q3D.PolygonLayer.prototype.setBorderVisibility = function (visible) {
+  if (this.objType != "Overlay") return;
+
+  this.objectGroup.children.forEach(function (parent) {
+    for (var i = 0, l = parent.children.length; i < l; i++) {
+      var obj = parent.children[i];
+      if (obj instanceof THREE.Line) obj.visible = visible;
+    }
+  });
+  this.borderVisible = visible;
+};
+
+Q3D.PolygonLayer.prototype.setSideVisibility = function (visible) {
+  if (this.objType != "Overlay") return;
+
+  this.objectGroup.children.forEach(function (parent) {
+    for (var i = 0, l = parent.children.length; i < l; i++) {
+      var obj = parent.children[i];
+      if (obj instanceof THREE.Mesh) obj.visible = visible;
+    }
+  });
+  this.sideVisible = visible;
 };
 
 
