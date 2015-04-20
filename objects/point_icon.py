@@ -37,7 +37,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
 def write(writer, layer, feat):
   vals = feat.propValues()
-  image_path = vals[0]
-  scale = float(vals[1])
-  mat = layer.materialManager.getSpriteIndex(image_path, feat.transparency())
+  image_path = vals[1]
+  scale = float(vals[2])
+  mat = layer.materialManager.getSpriteIndex(image_path, vals[0])
   writer.writeFeature({"m": mat, "pts": feat.geom.asList(), "scale": scale})

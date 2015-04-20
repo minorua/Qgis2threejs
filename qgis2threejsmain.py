@@ -854,12 +854,6 @@ class Feature:
   def attributes(self):
     return self.feat.attributes()
 
-  def color(self):
-    return self.prop.color(self.feat)
-
-  def transparency(self):
-    return self.prop.transparency(self.feat)
-
   def relativeHeight(self):
     return self.prop.relativeHeight(self.feat)
 

@@ -48,28 +48,28 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
 
 def write(writer, layer, feat):
-  mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
   mapTo3d = writer.settings.mapTo3d
   vals = feat.propValues()
+  mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
   pts = feat.geom.asList()
   if feat.prop.type_index == 0:  # Sphere
-    r = float(vals[0]) * mapTo3d.multiplier
+    r = float(vals[2]) * mapTo3d.multiplier
     if r:
       writer.writeFeature({"m": mat, "pts": pts,"r": r})
     else:
       QgsMessageLog.logMessage(u"Sphere with zero radius not exported", "Qgis2threejs")
   elif feat.prop.type_index in [1, 3]: # Cylinder, Cone
-    rb = float(vals[0]) * mapTo3d.multiplier
+    rb = float(vals[2]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
-    h = float(vals[1]) * mapTo3d.multiplierZ
+    h = float(vals[3]) * mapTo3d.multiplierZ
     writer.writeFeature({"m": mat, "pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90})
   elif feat.prop.type_index == 2:  # Box
-    w = float(vals[0]) * mapTo3d.multiplier
-    d = float(vals[1]) * mapTo3d.multiplier
-    h = float(vals[2]) * mapTo3d.multiplierZ
+    w = float(vals[2]) * mapTo3d.multiplier
+    d = float(vals[3]) * mapTo3d.multiplier
+    h = float(vals[4]) * mapTo3d.multiplierZ
     writer.writeFeature({"m": mat, "pts": pts, "w": w, "d": d, "h": h, "rotateX": 90})
   elif feat.prop.type_index == 4:  # Disk
-    r = float(vals[0]) * mapTo3d.multiplier
-    d = float(vals[1])
-    dd = float(vals[2])
+    r = float(vals[2]) * mapTo3d.multiplier
+    d = float(vals[3])
+    dd = float(vals[4])
     writer.writeFeature({"m": mat, "pts": pts, "r": r, "d": d, "dd": dd})

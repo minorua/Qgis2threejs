@@ -37,18 +37,18 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
 def write(writer, layer, feat):
   mapTo3d = writer.settings.mapTo3d
+  vals = feat.propValues()
   if feat.prop.type_index in [0, 3]:   # Line or Profile
     if feat.prop.type_index == 0:
-      mat = layer.materialManager.getLineBasicIndex(feat.color(), feat.transparency())
+      mat = layer.materialManager.getLineBasicIndex(vals[0], vals[1])
     else:
-      mat = layer.materialManager.getFlatMeshLambertIndex(feat.color(), feat.transparency(), doubleSide=True)
+      mat = layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)
     writer.writeFeature({"m": mat, "lines": feat.geom.asList()})
     return
 
   # Pipe or Cone
-  vals = feat.propValues()
-  rb = float(vals[0]) * mapTo3d.multiplier
+  rb = float(vals[2]) * mapTo3d.multiplier
   if rb != 0:
-    mat = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+    mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
     rt = 0 if feat.prop.type_index == 2 else rb
     writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "rt": rt, "rb": rb})

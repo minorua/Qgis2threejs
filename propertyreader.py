@@ -60,9 +60,6 @@ class VectorPropertyReader:
     else:
       self.visible = False
 
-  def color(self, f=None):
-    return self._readColor(self.properties["colorWidget"], f)
-
   # read color from COLOR or OPTIONAL_COLOR widget
   def _readColor(self, widgetValues, f=None, isBorder=False):
     global colorNames
@@ -103,8 +100,9 @@ class VectorPropertyReader:
 
     return symbol.color().name().replace("#", "0x")
 
-  def transparency(self, f=None):
-    vals = self.properties["transparencyWidget"]
+  def _readTransparency(self, widgetValues, f=None):
+    vals = widgetValues
+
     if vals["comboData"] == TransparencyWidgetFunc.VALUE:
       try:
         return int(vals["editText"])
@@ -164,6 +162,7 @@ class VectorPropertyReader:
     #return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_ABS]) + float(lst[2])
 
   # read values from style widgets
+  #TODO: rename this to styles
   def values(self, f=None):
     vals = []
     for i in range(32):   # big number for style count
@@ -179,7 +178,8 @@ class VectorPropertyReader:
       if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
         vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
 
-      #TODO: TransparencyWidget
+      elif widgetType == StyleWidget.TRANSPARENCY:
+        vals.append(self._readTransparency(widgetValues, f))
 
       elif widgetType == StyleWidget.FILEPATH:
         if widgetValues["comboData"] == FilePathWidgetFunc.FILEPATH or f is None:

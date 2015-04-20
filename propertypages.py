@@ -581,14 +581,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.heightWidget.setObjectName("heightWidget")
     self.verticalLayout_zCoordinate.addWidget(self.heightWidget)
 
-    self.colorWidget = StyleWidget(StyleWidget.COLOR)
-    self.colorWidget.setObjectName("colorWidget")
-    self.verticalLayout_Styles.addWidget(self.colorWidget)
-
-    self.transparencyWidget = StyleWidget(StyleWidget.TRANSPARENCY)
-    self.transparencyWidget.setObjectName("transparencyWidget")
-    self.verticalLayout_Styles.addWidget(self.transparencyWidget)
-
     self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
     self.labelHeightWidget.setObjectName("labelHeightWidget")
     self.labelHeightWidget.setEnabled(False)
@@ -608,7 +600,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       # assign the widget to property page attribute
       setattr(self, objName, widget)
 
-    widgets = [self.comboBox_ObjectType, self.heightWidget, self.colorWidget, self.transparencyWidget] + self.styleWidgets
+    widgets = [self.comboBox_ObjectType, self.heightWidget] + self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.registerPropertyWidgets(widgets)
@@ -703,18 +695,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     return p
 
   def initStyleWidgets(self, color=True, transparency=True):
+    self.styleWidgetCount = 0
+
     if color:
-      self.colorWidget.setup()
-    else:
-      self.colorWidget.hide()
+      self.addStyleWidget(StyleWidget.COLOR)
 
     if transparency:
-      self.transparencyWidget.setup()
-    else:
-      self.transparencyWidget.hide()
+      self.addStyleWidget(StyleWidget.TRANSPARENCY)
 
-    self.styleWidgetCount = 0
-    for i in range(0, self.STYLE_MAX_COUNT):
+    for i in range(self.styleWidgetCount, self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
 
   def addStyleWidget(self, funcType=None, options=None):

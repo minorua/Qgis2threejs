@@ -105,18 +105,18 @@ def write(writer, layer, feat):
   d = {"polygons": polygons}
 
   if feat.prop.type_index == 0:  # Extruded
-    d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency())
+    d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
     d["zs"] = zs
-    d["h"] = float(vals[0]) * writer.settings.mapTo3d.multiplierZ
+    d["h"] = float(vals[2]) * writer.settings.mapTo3d.multiplierZ
 
   else:   # Overlay
-    d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), True)
+    d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
-    if vals[0] is not None:
-      d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
+    if vals[2] is not None:
+      d["b"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
-    if vals[1] is not None:
-      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[1], feat.transparency(), True)
+    if vals[3] is not None:
+      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], True)
 
     d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
 
