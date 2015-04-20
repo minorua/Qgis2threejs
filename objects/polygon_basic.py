@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
-from Qgis2threejs.stylewidget import StyleWidget, HeightWidgetFunc, LabelHeightWidgetFunc
+from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc
 
 def geometryType():
   return QGis.Polygon
@@ -36,7 +36,10 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   if type_index == 0:   # Extruded
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   else:   # Overlay
-    ppage.addStyleWidget(StyleWidget.BORDER_COLOR)
+    opt = {"name": "Border color",
+           "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+           "defaultItem": ColorWidgetFunc.FEATURE}
+    ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
   # label height widget
   if type_index == 0:

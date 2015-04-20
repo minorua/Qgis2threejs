@@ -319,14 +319,26 @@ class TransparencyWidgetFunc(WidgetFuncBase):
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
     self.widget.lineEdit.setText(vals["editText"])
 
-class BorderColorWidgetFunc(ColorWidgetFunc):
-  NO_BORDER = 0
+class OptionalColorWidgetFunc(ColorWidgetFunc):
+
+  NONE = 0
 
   def setup(self, options=None):
+    """ options: name, itemText, defaultItem """
+    options = options or {}
     ColorWidgetFunc.setup(self, options)
-    self.widget.label_1.setText("Border color")
+    self.widget.label_1.setText(options.get("name", "Color"))
 
-    self.widget.comboBox.insertItem(0, "(No border)", BorderColorWidgetFunc.NO_BORDER)
+    self.widget.comboBox.insertItem(0, "None", OptionalColorWidgetFunc.NONE)
+
+    for id, text in options.get("itemText", {}).iteritems():
+      index = self.widget.comboBox.findData(id)
+      if index != -1:
+        self.widget.comboBox.setItemText(index, text)
+
+    index = self.widget.comboBox.findData(options.get("defaultItem", OptionalColorWidgetFunc.NONE))
+    if index != -1:
+      self.widget.comboBox.setCurrentIndex(index)
 
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
@@ -337,7 +349,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   HEIGHT = 4
   TRANSPARENCY = 5
   LABEL_HEIGHT = 6
-  BORDER_COLOR = 7
+  OPTIONAL_COLOR = 7
 
   type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
                     COLOR: ColorWidgetFunc,
@@ -345,7 +357,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                     HEIGHT: HeightWidgetFunc,
                     LABEL_HEIGHT: LabelHeightWidgetFunc,
                     TRANSPARENCY: TransparencyWidgetFunc,
-                    BORDER_COLOR: BorderColorWidgetFunc}
+                    OPTIONAL_COLOR: OptionalColorWidgetFunc}
 
   FIELDTYPE_ALL = 0
   FIELDTYPE_NUMBER = 1

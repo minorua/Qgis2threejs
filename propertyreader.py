@@ -24,7 +24,7 @@ import os
 from PyQt4.QtGui import QColor
 from qgis.core import QGis, QgsMessageLog, NULL
 import random
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, BorderColorWidgetFunc
+from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc
 from settings import debug_mode
 
 colorNames = []
@@ -63,12 +63,12 @@ class VectorPropertyReader:
   def color(self, f=None):
     return self._readColor(self.properties["colorWidget"], f)
 
-  # read color from COLOR or BORDER_COLOR widget
+  # read color from COLOR or OPTIONAL_COLOR widget
   def _readColor(self, widgetValues, f=None, isBorder=False):
     global colorNames
 
     mode = widgetValues["comboData"]
-    if mode == BorderColorWidgetFunc.NO_BORDER:
+    if mode == OptionalColorWidgetFunc.NONE:
       return None
 
     if mode == ColorWidgetFunc.RGB:
@@ -176,8 +176,10 @@ class VectorPropertyReader:
         break
 
       widgetType = widgetValues["type"]
-      if widgetType in [StyleWidget.COLOR, StyleWidget.BORDER_COLOR]:
-        vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.BORDER_COLOR))
+      if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
+        vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
+
+      #TODO: TransparencyWidget
 
       elif widgetType == StyleWidget.FILEPATH:
         if widgetValues["comboData"] == FilePathWidgetFunc.FILEPATH or f is None:
