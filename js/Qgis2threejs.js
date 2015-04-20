@@ -1603,9 +1603,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
 
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
 
-      // TODO: f.b -> f.mb
-
-      if (f.b === undefined && f.ms === undefined) return mesh;
+      if (f.mb === undefined && f.ms === undefined) return mesh;
 
       // border and sides
       var geom, vertices, z0 = project.zShift * project.zScale;
@@ -1619,10 +1617,10 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
             vertices = arrayToVec3Array(polygon[j], zFunc);
           }
 
-          if (f.b) {
+          if (f.mb) {
             geom = new THREE.Geometry();
             geom.vertices = vertices;
-            mesh.add(new THREE.Line(geom, materials[f.b].m));
+            mesh.add(new THREE.Line(geom, materials[f.mb].m));
           }
 
           if (f.ms) {

@@ -120,7 +120,7 @@ def write(writer, layer, feat):
       d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
     if vals[2] is not None:
-      d["b"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
+      d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
     if vals[3] is not None:
       d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], True)
