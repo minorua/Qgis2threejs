@@ -444,7 +444,7 @@ Q3D.application = {
     this.labelConnectorGroup.children.forEach(function (group) {
       var layer = this.project.layers[group.userData.layerId];
       if (!layer.visible && visible) return;
-      Q3D.Utils.setObjectVisibility(group, visible);
+      group.visible = visible;
     }, this);
 
     this.render();
@@ -866,7 +866,7 @@ Q3D.MapLayer.prototype = {
 
   setVisible: function (visible) {
     this.visible = visible;
-    Q3D.Utils.setObjectVisibility(this.objectGroup, visible);
+    this.objectGroup.visible = visible;
   },
 
   setWireframeMode: function (wireframe) {
@@ -1276,7 +1276,7 @@ Q3D.VectorLayer.prototype.setVisible = function (visible) {
 
   this.labelParentElement.style.display = (visible) ? "block" : "none";
   if (this.labelConnectorGroup.parent.visible) {
-    Q3D.Utils.setObjectVisibility(this.labelConnectorGroup, visible);
+    this.labelConnectorGroup.visible = visible;
   }
   Q3D.application.labelVisibilityChanged();
 };
@@ -1871,6 +1871,7 @@ Q3D.ModelBuilder.COLLADA.prototype.onLoad = function (collada) {
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
 
+// [NOT USED]
 Q3D.Utils.setObjectVisibility = function (object, visible) {
   object.traverse(function (obj) {
     obj.visible = visible;
