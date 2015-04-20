@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
-from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc
+from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 def geometryType():
   return QGis.Polygon
@@ -32,10 +32,14 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValueZ = 0.6 / mapTo3d.multiplierZ
 
   # style widgets
-  ppage.initStyleWidgets()
   if type_index == 0:   # Extruded
+    ppage.initStyleWidgets()
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   else:   # Overlay
+    ppage.initStyleWidgets(color=False, transparency=False)
+    ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE)
+    ppage.addStyleWidget(StyleWidget.TRANSPARENCY)
+
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
            "defaultItem": ColorWidgetFunc.FEATURE}
@@ -110,7 +114,10 @@ def write(writer, layer, feat):
     d["h"] = float(vals[2]) * writer.settings.mapTo3d.multiplierZ
 
   else:   # Overlay
-    d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
+    if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
+      d["m"] = layer.materialManager.getCanvasImageIndex(vals[1])
+    else:
+      d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
     if vals[2] is not None:
       d["b"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])

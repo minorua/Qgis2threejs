@@ -24,7 +24,7 @@ import os
 from PyQt4.QtGui import QColor
 from qgis.core import QGis, QgsMessageLog, NULL
 import random
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc
+from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from settings import debug_mode
 
 colorNames = []
@@ -177,6 +177,12 @@ class VectorPropertyReader:
       widgetType = widgetValues["type"]
       if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
         vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
+
+      elif widgetType == StyleWidget.COLOR_TEXTURE:
+        if widgetValues["comboData"] == ColorTextureWidgetFunc.MAP_CANVAS:
+          vals.append(ColorTextureWidgetFunc.MAP_CANVAS)
+        else:
+          vals.append(self._readColor(widgetValues, f))
 
       elif widgetType == StyleWidget.TRANSPARENCY:
         vals.append(self._readTransparency(widgetValues, f))

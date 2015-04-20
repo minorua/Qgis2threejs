@@ -340,6 +340,20 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
 
+class ColorTextureWidgetFunc(ColorWidgetFunc):
+
+  MAP_CANVAS = 10
+  LAYER = 11
+
+  def setup(self, options=None):
+    options = options or {}
+    ColorWidgetFunc.setup(self, options)
+    self.widget.label_1.setText("Color/Texture")
+
+    comboBox = self.widget.comboBox
+    comboBox.insertSeparator(comboBox.count())
+    comboBox.addItem("Map canvas image", ColorTextureWidgetFunc.MAP_CANVAS)
+
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
   # function types
@@ -350,6 +364,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   TRANSPARENCY = 5
   LABEL_HEIGHT = 6
   OPTIONAL_COLOR = 7
+  COLOR_TEXTURE = 8
 
   type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
                     COLOR: ColorWidgetFunc,
@@ -357,7 +372,8 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                     HEIGHT: HeightWidgetFunc,
                     LABEL_HEIGHT: LabelHeightWidgetFunc,
                     TRANSPARENCY: TransparencyWidgetFunc,
-                    OPTIONAL_COLOR: OptionalColorWidgetFunc}
+                    OPTIONAL_COLOR: OptionalColorWidgetFunc,
+                    COLOR_TEXTURE: ColorTextureWidgetFunc}
 
   FIELDTYPE_ALL = 0
   FIELDTYPE_NUMBER = 1

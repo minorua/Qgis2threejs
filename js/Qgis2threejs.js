@@ -1481,7 +1481,8 @@ Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PolygonLayer.prototype.constructor = Q3D.PolygonLayer;
 
 Q3D.PolygonLayer.prototype.build = function (parent) {
-  var materials = this.materials;
+  var materials = this.materials,
+      project = this.project;
 
   var arrayToVec2Array = function (points) {
     var pt, pts = [];
@@ -1538,9 +1539,10 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   else {    // this.objType == "Overlay"
     var relativeToDEM = (this.am == "relative");    // altitude mode
     if (relativeToDEM) {
-      var dem = this.project.layers[0];
+      var dem = project.layers[0];
     }
     var face012 = new THREE.Face3(0, 1, 2);
+
     var createObject = function (f) {
       var zFunc;
       if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
@@ -1583,22 +1585,50 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       geom.mergeVertices();
       geom.computeFaceNormals();
       geom.computeVertexNormals();
+
+      if (materials[f.m].i !== undefined) {
+        // set UVs
+        var w = project.width, h = project.height, face, v, uvs = [];
+        for (var i = 0, l = geom.vertices.length; i < l; i++) {
+          v = geom.vertices[i];
+          uvs.push(new THREE.Vector2(v.x / w + 0.5, v.y / h + 0.5));
+        }
+
+        geom.faceVertexUvs[0] = [];
+        for (var i = 0, l = geom.faces.length; i < l; i++) {
+          face = geom.faces[i];
+          geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
+        }
+      }
+
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
 
-      if (f.b === undefined) return mesh;
+      // TODO: f.b -> f.mb
 
-      // border
+      if (f.b === undefined && f.ms === undefined) return mesh;
+
+      // border and sides
+      var geom, vertices, z0 = project.zShift * project.zScale;
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
         for (var j = 0, m = polygon.length; j < m; j++) {
-          var geom = new THREE.Geometry();
           if (relativeToDEM) {
-            geom.vertices = dem.segmentizeLineString(polygon[j], zFunc);
+            vertices = dem.segmentizeLineString(polygon[j], zFunc);
           }
           else {
-            geom.vertices = arrayToVec3Array(polygon[j], zFunc);
+            vertices = arrayToVec3Array(polygon[j], zFunc);
           }
-          mesh.add(new THREE.Line(geom, materials[f.b].m));
+
+          if (f.b) {
+            geom = new THREE.Geometry();
+            geom.vertices = vertices;
+            mesh.add(new THREE.Line(geom, materials[f.b].m));
+          }
+
+          if (f.ms) {
+            geom = Q3D.Utils.createWallGeometry(vertices, z0);
+            mesh.add(new THREE.Mesh(geom, materials[f.ms].m));
+          }
         }
       }
       return mesh;
@@ -1860,4 +1890,32 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
 
   return ((lat < 0) ? "S" : "N") + toDMS(Math.abs(lat)) + ", " +
          ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
+};
+
+Q3D.Utils.createWallGeometry = function (vertices, z0) {
+  var geom, pt, v;
+  if (Q3D.Options.exportMode) {
+    geom = new THREE.PlaneGeometry(0, 0, vertices.length - 1, 1);
+    v = geom.vertices;
+    for (var i = 0, l = vertices.length; i < l; i++) {
+      pt = vertices[i];
+      v[i].x = v[i + l].x = pt.x;
+      v[i].y = v[i + l].y = pt.y;
+      v[i].z = z0;
+      v[i + l].z = pt.z;
+    }
+  }
+  else {
+    geom = new THREE.PlaneBufferGeometry(0, 0, vertices.length - 1, 1);
+    v = geom.attributes.position.array;
+    for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k+=3) {
+      pt = vertices[i];
+      v[k] = v[k + l3] = pt.x;
+      v[k + 1] = v[k + l3 + 1] = pt.y;
+      v[k + 2] = z0;
+      v[k + l3 + 2] = pt.z;
+    }
+  }
+  geom.computeFaceNormals();
+  return geom;
 };
