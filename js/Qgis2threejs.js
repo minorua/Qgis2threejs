@@ -256,12 +256,12 @@ Q3D.application = {
     this.queryMarker.visible = false;
     this.scene.add(this.queryMarker);
 
-    this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x666600});
+    this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
     if (!Q3D.isIE) this.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
 
     this.selectedLayerId = null;
     this.selectedFeatureId = null;
-    this._originalMaterial = null;
+    this.highlightObject = null;
   },
 
   addEventListeners: function () {
@@ -583,18 +583,12 @@ Q3D.application = {
   },
 
   highlightFeature: function (layerId, featureId) {
-    if (this.selectedLayerId !== null && this.selectedFeatureId !== null) {
-      var f = this.project.layers[this.selectedLayerId].f[this.selectedFeatureId];
-      var orig_mat = this._originalMaterial;
-      var setMaterial = function (obj) {
-        obj.material = orig_mat;
-      };
-      for (var i = 0, l = f.objs.length; i < l; i++) {
-        f.objs[i].traverse(setMaterial);
-      }
+    if (this.highlightObject) {
+      // remove highlight object from the scene
+      this.scene.remove(this.highlightObject);
       this.selectedLayerId = null;
       this.selectedFeatureId = null;
-      this._originalMaterial = null;
+      this.highlightObject = null;
     }
 
     if (layerId === null || featureId === null) return;
@@ -606,18 +600,27 @@ Q3D.application = {
     var f = layer.f[featureId];
     if (f === undefined || f.objs.length == 0) return;
 
-    this._originalMaterial = layer.materials[f.m].m;
     var high_mat = this.highlightMaterial;
-    high_mat.color = layer.materials[f.m].m.color;
-    //high_mat.ambient = layer.materials[f.m].m.ambient;
     var setMaterial = function (obj) {
       obj.material = high_mat;
     };
+
+    // create a highlight object slightly bigger than the object
+    var highlightObject = new THREE.Group();
+    var clone, s = 1.01;
     for (var i = 0, l = f.objs.length; i < l; i++) {
-      f.objs[i].traverse(setMaterial);
+      clone = f.objs[i].clone();
+      clone.traverse(setMaterial);
+      clone.scale.set(clone.scale.x * s, clone.scale.y * s, clone.scale.z * s);
+      highlightObject.add(clone);
     }
+
+    // add the highlight object to the scene
+    this.scene.add(highlightObject);
+
     this.selectedLayerId = layerId;
     this.selectedFeatureId = featureId;
+    this.highlightObject = highlightObject;
   },
 
   // Called from *Controls.js when canvas is clicked
