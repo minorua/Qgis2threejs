@@ -92,9 +92,5 @@ class ObjectTypeManager:
     return None
 
   def setupWidgets(self, dialog, mapTo3d, layer, geom_type, item_index):
-    try:
-      typeitem = self.objTypes[geom_type][item_index]
-      return self.modules[typeitem.mod_index].setupWidgets(dialog, mapTo3d, layer, typeitem.type_index)
-    except:
-      qDebug("Qgis2threejs: Failed to setup form")
-      return False
+    typeitem = self.objTypes[geom_type][item_index]
+    return self.modules[typeitem.mod_index].setupWidgets(dialog, mapTo3d, layer, typeitem.type_index)
