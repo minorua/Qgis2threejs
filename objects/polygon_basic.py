@@ -41,6 +41,11 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
            "defaultItem": ColorWidgetFunc.FEATURE}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
+    opt = {"name": "Side color",
+           "itemText": {OptionalColorWidgetFunc.NONE: "(No side)",
+                        ColorWidgetFunc.FEATURE: "Border color of feature style"}}
+    ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
+
   # label height widget
   if type_index == 0:
     item_text = ["Height from top", "Height from bottom"]
@@ -106,8 +111,12 @@ def write(writer, layer, feat):
 
   else:   # Overlay
     d["m"] = layer.materialManager.getMeshLambertIndex(feat.color(), feat.transparency(), True)
+
     if vals[0] is not None:
       d["b"] = layer.materialManager.getLineBasicIndex(vals[0], feat.transparency())
+
+    if vals[1] is not None:
+      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[1], feat.transparency(), True)
 
     d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
 
