@@ -67,8 +67,8 @@ class ImageManager(DataManager):
     img = (self.MAP_IMAGE, (width, height, extent, transp_background))
     return self._index(img)
 
-  def layerImageIndex(self, layerid, width, height, extent, transp_background):
-    img = (self.LAYER_IMAGE, (layerid, width, height, extent, transp_background))
+  def layerImageIndex(self, layerids, width, height, extent, transp_background):
+    img = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background))
     return self._index(img)
 
   def mapCanvasImage(self, transp_background=False):
@@ -206,8 +206,8 @@ class ImageManager(DataManager):
         args = (index, width, height, self.renderedImage(width, height, extent, transp_background))
 
       elif imageType == self.LAYER_IMAGE:
-        layerid, width, height, extent, transp_background = image[1]
-        args = (index, width, height, self.renderedImage(width, height, extent, transp_background, [layerid]))
+        layerids, width, height, extent, transp_background = image[1]
+        args = (index, width, height, self.renderedImage(width, height, extent, transp_background, layerids))
 
       else:   #imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
@@ -267,8 +267,8 @@ class MaterialManager(DataManager):
     mat = (self.MAP_IMAGE, (width, height, extent, transp_background), transparency, True)
     return self._index(mat)
 
-  def getLayerImageIndex(self, layerid, width, height, extent, transparency=0, transp_background=False):
-    mat = (self.LAYER_IMAGE, (layerid, width, height, extent, transp_background), transparency, True)
+  def getLayerImageIndex(self, layerids, width, height, extent, transparency=0, transp_background=False):
+    mat = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background), transparency, True)
     return self._index(mat)
 
   def getImageFileIndex(self, path, transparency=0, transp_background=False, doubleSide=False):
@@ -303,8 +303,8 @@ class MaterialManager(DataManager):
         width, height, extent, transp_background = mat[1]
         m["i"] = imageManager.mapImageIndex(width, height, extent, transp_background)
       elif mat[0] == self.LAYER_IMAGE:
-        layerid, width, height, extent, transp_background = mat[1]
-        m["i"] = imageManager.layerImageIndex(layerid, width, height, extent, transp_background)
+        layerids, width, height, extent, transp_background = mat[1]
+        m["i"] = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
       elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
         filepath, transp_background = mat[1]
         m["i"] = imageManager.imageIndex(filepath)

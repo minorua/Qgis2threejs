@@ -116,6 +116,10 @@ def write(writer, layer, feat):
   else:   # Overlay
     if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
       d["m"] = layer.materialManager.getCanvasImageIndex(vals[1])
+    elif isinstance(vals[0], list):   # LAYER
+      size = writer.settings.mapSettings.outputSize()
+      extent = writer.settings.baseExtent
+      d["m"] = layer.materialManager.getLayerImageIndex(vals[0], size.width(), size.height(), extent, vals[1])
     else:
       d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 

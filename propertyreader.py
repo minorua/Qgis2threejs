@@ -175,12 +175,15 @@ class VectorPropertyReader:
         break
 
       widgetType = widgetValues["type"]
+      comboData = widgetValues["comboData"]
       if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
         vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
 
       elif widgetType == StyleWidget.COLOR_TEXTURE:
-        if widgetValues["comboData"] == ColorTextureWidgetFunc.MAP_CANVAS:
-          vals.append(ColorTextureWidgetFunc.MAP_CANVAS)
+        if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
+          vals.append(comboData)
+        elif comboData == ColorTextureWidgetFunc.LAYER:
+          vals.append(widgetValues["layerIds"])
         else:
           vals.append(self._readColor(widgetValues, f))
 
@@ -188,7 +191,7 @@ class VectorPropertyReader:
         vals.append(self._readTransparency(widgetValues, f))
 
       elif widgetType == StyleWidget.FILEPATH:
-        if widgetValues["comboData"] == FilePathWidgetFunc.FILEPATH or f is None:
+        if comboData == FilePathWidgetFunc.FILEPATH or f is None:
           vals.append(widgetValues["editText"])
         else:
           # prefix + attribute
@@ -200,7 +203,7 @@ class VectorPropertyReader:
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
       else:
-        if widgetValues["comboData"] == FieldValueWidgetFunc.ABSOLUTE or f is None:
+        if comboData == FieldValueWidgetFunc.ABSOLUTE or f is None:
           vals.append(widgetValues["editText"])
         else:
           # attribute value * multiplier

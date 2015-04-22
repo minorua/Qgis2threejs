@@ -553,7 +553,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   elif properties.get("radioButton_LayerImage", False):
     layerid = properties.get("comboBox_ImageLayer")
     size = settings.mapSettings.outputSize()
-    block["m"] = layer.materialManager.getLayerImageIndex(layerid, size.width(), size.height(), settings.baseExtent, transparency, transp_background)
+    block["m"] = layer.materialManager.getLayerImageIndex([layerid], size.width(), size.height(), settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
@@ -680,7 +680,7 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
 
     elif properties.get("radioButton_LayerImage", False):
       layerid = properties.get("comboBox_ImageLayer")
-      block["m"] = layer.materialManager.getLayerImageIndex(layerid, image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getLayerImageIndex([layerid], image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
@@ -741,7 +741,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       block["m"] = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
-      block["m"] = layer.materialManager.getLayerImageIndex(imageLayerId, image_width, image_height, extent, transparency, transp_background)
+      block["m"] = layer.materialManager.getLayerImageIndex([imageLayerId], image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
