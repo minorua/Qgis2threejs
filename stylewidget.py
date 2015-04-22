@@ -23,20 +23,26 @@ import os
 
 from PyQt4.QtCore import QDir, QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
-from qgis.core import QGis, QgsProject
+from qgis.core import QGis, QgsMapLayerRegistry, QgsProject
 
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
 
 class WidgetFuncBase:
+
   FIRST_ATTRIBUTE = 100
 
   def __init__(self, widget):
     self.widget = widget
 
-  def setup(self):
+  def setup(self, name, editLabel="Value", lineEdit="", placeholderText="", readOnly=False, toolButton=False):
     # initialize widgets
-    self.widget.lineEdit.setPlaceholderText("")
-    self.widget.lineEdit.setVisible(True)
+    self.widget.label_1.setText(name)
+    self.widget.label_2.setText(editLabel)
+    self.widget.lineEdit.setPlaceholderText(placeholderText)
+    self.widget.lineEdit.setReadOnly(readOnly)
+    self.widget.lineEdit.setText(lineEdit or "")
+    self.widget.lineEdit.setVisible(lineEdit is not False)
+    self.widget.toolButton.setVisible(toolButton)
 
   def resetDefault(self):
     pass
@@ -81,14 +87,13 @@ class WidgetFuncBase:
 
 
 class FieldValueWidgetFunc(WidgetFuncBase):
+
   ABSOLUTE = 1
 
   def setup(self, options=None):
     """ options: name, label, defaultValue, layer """
-    WidgetFuncBase.setup(self)
+    WidgetFuncBase.setup(self, options.get("name", ""))
     options = options or {}
-    self.widget.label_1.setText(options.get("name", ""))
-    self.widget.toolButton.setVisible(False)
 
     self.label_absolute = options.get("label", "Value")
     self.label_field = options.get("label_field", "Multiplier")
@@ -117,18 +122,15 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setVisible(bool(label))
 
 class ColorWidgetFunc(WidgetFuncBase):
+
   FEATURE = 1
   RANDOM = 2
   RGB = 3
 
   def setup(self, options=None):
     """ options: defaultValue """
+    WidgetFuncBase.setup(self, "Color", lineEdit=False, placeholderText="0xrrggbb")
     options = options or {}
-    self.widget.label_1.setText("Color")
-    self.widget.label_2.setText("Value")
-    self.widget.lineEdit.setVisible(False)
-    self.widget.lineEdit.setPlaceholderText("0xrrggbb")
-    self.widget.toolButton.setVisible(False)
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", ColorWidgetFunc.FEATURE)
@@ -157,17 +159,15 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setText(vals["editText"])
 
 class FilePathWidgetFunc(WidgetFuncBase):
+
   FILEPATH = 1
 
   def setup(self, options=None):
     """ options: name, label, defaultValue, filterString """
-    WidgetFuncBase.setup(self)
     options = options or {}
-    self.widget.label_1.setText(options.get("name", ""))
     self.lineEditLabel = options.get("label", "Path")
-    self.widget.label_2.setText(self.lineEditLabel)
+    WidgetFuncBase.setup(self, options.get("name", ""), editLabel=self.lineEditLabel, toolButton=True)
     self.widget.lineEdit.setText(unicode(options.get("defaultValue", "")))
-    self.widget.toolButton.setVisible(True)
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
@@ -213,10 +213,8 @@ class HeightWidgetFunc(WidgetFuncBase):
 
   def setup(self, options=None):
     """ options: defaultValue, layer """
-    WidgetFuncBase.setup(self)
+    WidgetFuncBase.setup(self, "Mode")
     options = options or {}
-    self.widget.label_1.setText("Mode")
-    self.widget.toolButton.setVisible(False)
     self.defaultValue = options.get("defaultValue", 0)
     layer = options.get("layer")
 
@@ -264,10 +262,8 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
 
   def setup(self, options=None):
     """ options: defaultValue, layer """
-    WidgetFuncBase.setup(self)
+    WidgetFuncBase.setup(self, "Label height")
     options = options or {}
-    self.widget.label_1.setText("Label height")
-    self.widget.toolButton.setVisible(False)
     self.defaultValue = options.get("defaultValue", 0)
 
     layer = options.get("layer")
@@ -292,15 +288,12 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setText(unicode(defaultValue))
 
 class TransparencyWidgetFunc(WidgetFuncBase):
+
   FEATURE = 1
   VALUE = 2
 
   def setup(self, options=None):
-    self.widget.label_1.setText("Transparency")
-    self.widget.label_2.setText("Value (%)")
-    self.widget.lineEdit.setVisible(False)
-    self.widget.lineEdit.setPlaceholderText("0 - 100")
-    self.widget.toolButton.setVisible(False)
+    WidgetFuncBase.setup(self, "Transparency", editLabel="Value (%)", lineEdit=False, placeholderText="0 - 100")
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", TransparencyWidgetFunc.FEATURE)
@@ -345,14 +338,71 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
   MAP_CANVAS = 10
   LAYER = 11
 
+  def __init__(self, widget):
+    ColorWidgetFunc.__init__(self, widget)
+    self.layerIds = []
+
   def setup(self, options=None):
     options = options or {}
     ColorWidgetFunc.setup(self, options)
     self.widget.label_1.setText("Color/Texture")
+    self.widget.label_2.setText("Layers")
+    self.widget.lineEdit.setReadOnly(True)
+    self.widget.lineEdit.setPlaceholderText("")
 
     comboBox = self.widget.comboBox
     comboBox.insertSeparator(comboBox.count())
     comboBox.addItem("Map canvas image", ColorTextureWidgetFunc.MAP_CANVAS)
+
+    if QGis.QGIS_VERSION_INT >= 20400:
+      comboBox.addItem("Layer image", ColorTextureWidgetFunc.LAYER)
+
+    self.updateLineEdit()
+
+  def comboBoxSelectionChanged(self, index):
+    itemData = self.widget.comboBox.itemData(index)
+    visible = (itemData == ColorTextureWidgetFunc.LAYER)
+    self.widget.label_2.setVisible(visible)
+    self.widget.lineEdit.setVisible(visible)
+    self.widget.toolButton.setVisible(visible)
+
+  def toolButtonClicked(self):
+    from layerselectdialog import LayerSelectDialog
+    dialog = LayerSelectDialog(self.widget)
+    dialog.initTree(self.layerIds)
+    if not dialog.exec_():
+      return
+
+    layers = dialog.visibleLayers()
+    self.layerIds = [layer.id() for layer in layers]
+    self.updateLineEdit()
+
+  def updateLineEdit(self):
+    count = len(self.layerIds)
+    if count:
+      layer = QgsMapLayerRegistry.instance().mapLayer(self.layerIds[0])
+      if layer:
+        text = '"{0}"'.format(layer.name())
+        if count > 1:
+          text += " and {0} layer".format(count - 1)
+        if count > 2:
+          text += "s"
+      else:
+        text = "Layer not found"
+    else:
+      text = "Select layer(s)..."
+
+    self.widget.lineEdit.setText(text)
+
+  def values(self):
+    v = ColorWidgetFunc.values(self)
+    if self.layerIds:
+      v["layerIds"] = self.layerIds
+    return v
+
+  def setValues(self, vals):
+    self.layerIds = vals.get("layerIds", [])
+    ColorWidgetFunc.setValues(self, vals)
 
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
