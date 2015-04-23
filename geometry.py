@@ -271,48 +271,75 @@ class TriangleMesh:
   # 1 - 2
 
   def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
-    self.flen = 0
-    self.quadrangles = []
-    self.spatial_index = QgsSpatialIndex()
+    self.vbands = []
+    self.hbands = []
+    self.vidx = QgsSpatialIndex()
+    self.hidx = QgsSpatialIndex()
 
     xres = (xmax - xmin) / x_segments
     yres = (ymax - ymin) / y_segments
+    self.xmin, self.ymax, self.xres, self.yres = xmin, ymax, xres, yres
+
+    def addVBand(idx, geom):
+      f = QgsFeature(idx)
+      f.setGeometry(geom)
+      self.vbands.append(f)
+      self.vidx.insertFeature(f)
+
+    def addHBand(idx, geom):
+      f = QgsFeature(idx)
+      f.setGeometry(geom)
+      self.hbands.append(f)
+      self.hidx.insertFeature(f)
+
+    for x in range(x_segments):
+      pt0 = QgsPoint(xmin + x * xres, ymax)
+      pt1 = QgsPoint(xmin + x * xres, ymin)
+      pt2 = QgsPoint(xmin + (x + 1) * xres, ymin)
+      pt3 = QgsPoint(xmin + (x + 1) * xres, ymax)
+      addVBand(x, QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
+
     for y in range(y_segments):
-      for x in range(x_segments):
+      pt0 = QgsPoint(xmin, ymax - y * yres)
+      pt1 = QgsPoint(xmin, ymax - (y + 1) * yres)
+      pt2 = QgsPoint(xmax, ymax - (y + 1) * yres)
+      pt3 = QgsPoint(xmax, ymax - y * yres)
+      addHBand(y, QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
+
+  def vSplit(self, geom):
+    """split polygon vertically"""
+    for idx in self.vidx.intersects(geom.boundingBox()):
+      yield idx, geom.intersection(self.vbands[idx].geometry())
+
+  def hIntersects(self, geom):
+    """indices of horizontal bands that intersect with geom"""
+    for idx in self.hidx.intersects(geom.boundingBox()):
+      if geom.intersects(self.hbands[idx].geometry()):
+        yield idx
+
+  def splitPolygons(self, geom):
+    xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
+
+    for x, vi in self.vSplit(geom):
+      for y in self.hIntersects(vi):
         pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
         pt1 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
         pt2 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
         pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
-        self._addQuadrangle(pt0, pt1, pt2, pt3)
+        quad = QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]])
+        tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
 
-  def _addQuadrangle(self, pt0, pt1, pt2, pt3):
-    f = QgsFeature(self.flen)
-    f.setGeometry(QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
-    self.quadrangles.append(f)
-    self.spatial_index.insertFeature(f)
-    self.flen += 1
-
-  def intersects(self, geom):
-    for fid in self.spatial_index.intersects(geom.boundingBox()):
-      quad = self.quadrangles[fid].geometry()
-      if quad.intersects(geom):
-        yield quad
-
-  def splitPolygons(self, geom):
-    for quad in self.intersects(geom):
-      pts = quad.asPolygon()[0]
-      tris = [[[pts[0], pts[1], pts[3], pts[0]]], [[pts[3], pts[1], pts[2], pts[3]]]]
-      if geom.contains(quad):
-        yield tris[0]
-        yield tris[1]
-      else:
-        for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
-          if geom.contains(tri):
-            yield tris[i]
-          elif geom.intersects(tri):
-            poly = geom.intersection(tri)
-            if poly.isMultipart():
-              for sp in poly.asMultiPolygon():
-                yield sp
-            else:
-              yield poly.asPolygon()
+        if geom.contains(quad):
+          yield tris[0]
+          yield tris[1]
+        else:
+          for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
+            if geom.contains(tri):
+              yield tris[i]
+            elif geom.intersects(tri):
+              poly = geom.intersection(tri)
+              if poly.isMultipart():
+                for sp in poly.asMultiPolygon():
+                  yield sp
+              else:
+                yield poly.asPolygon()
