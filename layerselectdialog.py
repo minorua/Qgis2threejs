@@ -19,7 +19,12 @@
 """
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QDialog, QFileDialog
-from qgis.core import QgsLayerTreeModel, QgsProject
+from qgis.core import QGis, QgsProject
+
+if QGis.QGIS_VERSION_INT >= 20600:
+  from qgis.core import QgsLayerTreeModel
+else:   # 2.4
+  from qgis.gui import QgsLayerTreeModel
 
 from ui.ui_layerselectdialog import Ui_LayerSelectDialog
 
