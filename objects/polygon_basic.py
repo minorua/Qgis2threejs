@@ -37,7 +37,9 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   else:   # Overlay
     ppage.initStyleWidgets(color=False, transparency=False)
-    ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE)
+
+    mapSettings = ppage.dialog.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else None
+    ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE, {"mapSettings": mapSettings})
     ppage.addStyleWidget(StyleWidget.TRANSPARENCY)
 
     opt = {"name": "Border color",

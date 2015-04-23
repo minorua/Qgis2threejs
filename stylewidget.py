@@ -342,9 +342,12 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
   def __init__(self, widget):
     ColorWidgetFunc.__init__(self, widget)
     self.layerIds = []
+    self.mapSettings = None
 
   def setup(self, options=None):
+    """ options: mapSettings """
     options = options or {}
+    self.mapSettings = options.get("mapSettings")
     ColorWidgetFunc.setup(self, options)
     self.widget.label_1.setText("Color/Texture")
     self.widget.label_2.setText("Layers")
@@ -371,6 +374,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     from layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self.widget)
     dialog.initTree(self.layerIds)
+    dialog.setMapSettings(self.mapSettings)
     if not dialog.exec_():
       return
 

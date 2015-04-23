@@ -393,6 +393,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     from layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
+    dialog.setMapSettings(self.dialog.iface.mapCanvas().mapSettings())
     if not dialog.exec_():
       return
 

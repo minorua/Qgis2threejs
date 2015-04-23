@@ -91,6 +91,6 @@ class ObjectTypeManager:
       return self.modules[mod_index]
     return None
 
-  def setupWidgets(self, dialog, mapTo3d, layer, geom_type, item_index):
+  def setupWidgets(self, ppage, mapTo3d, layer, geom_type, item_index):
     typeitem = self.objTypes[geom_type][item_index]
-    return self.modules[typeitem.mod_index].setupWidgets(dialog, mapTo3d, layer, typeitem.type_index)
+    return self.modules[typeitem.mod_index].setupWidgets(ppage, mapTo3d, layer, typeitem.type_index)
