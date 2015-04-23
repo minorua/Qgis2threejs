@@ -21,7 +21,7 @@
 """
 from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
 from PyQt4.QtGui import QMessageBox
-from qgis.core import NULL
+from qgis.core import NULL, QgsMapLayerRegistry
 import os
 import ConfigParser
 import re
@@ -50,6 +50,25 @@ def pyobj2js(obj, escape=False, quoteHex=True):
   elif obj == NULL:   # qgis.core.NULL
     return "null"
   return '"' + str(obj) + '"'
+
+def shortTextFromSelectedLayerIds(layerIds):
+  count = len(layerIds)
+  return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
+
+  #
+  if count == 0:
+    return "0 layer"
+
+  layer = QgsMapLayerRegistry.instance().mapLayer(layerIds[0])
+  if layer is None:
+    return "Layer not found"
+
+  text = u'"{0}"'.format(layer.name())
+  if count > 1:
+    text += " and {0} layer".format(count - 1)
+  if count > 2:
+    text += "s"
+  return text
 
 def openHTMLFile(htmlfilename):
   settings = QSettings()

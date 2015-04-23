@@ -511,9 +511,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_ImageLayer">
-            <property name="enabled">
-             <bool>false</bool>
+           <widget class="QLabel" name="label_LayerImage">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButton_SelectLayer">
+            <property name="text">
+             <string>Select layer(s)...</string>
             </property>
            </widget>
           </item>

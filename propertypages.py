@@ -23,7 +23,7 @@ import os
 import re
 
 from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
-from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle, QgsMessageLog
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
@@ -174,7 +174,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
 
     # restore properties
     if properties:
-      PropertyPage.setProperties(self, properties)
+      self.setProperties(properties)
     else:
       self.lineEdit_BaseSize.setText(str(def_vals.baseSize))
       self.lineEdit_zFactor.setText(str(def_vals.zExaggeration))
@@ -234,7 +234,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     comboBox = self.comboBox_Controls
     comboBox.blockSignals(True)
     if properties:
-      PropertyPage.setProperties(self, properties)
+      self.setProperties(properties)
     else:
       controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
       index = comboBox.findText(controls)
@@ -273,6 +273,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.isPrimary = False
     self.layer = None
     self.demWidth = self.demHeight = 0
+    self.layerImageIds = []
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
@@ -280,12 +281,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
-    widgets += [self.checkBox_TransparentBackground, self.comboBox_ImageLayer, self.lineEdit_ImageFile, self.lineEdit_Color]
+    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color]
     widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
     self.registerPropertyWidgets(widgets)
 
     self.initDEMLayerList()
-    self.initLayerList(self.comboBox_ImageLayer)
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
@@ -295,6 +295,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.spinBox_Height.valueChanged.connect(self.updateQuads)
     for radioButton in dispTypeButtons:
       radioButton.toggled.connect(self.dispTypeChanged)
+    self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
@@ -322,13 +323,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # restore properties for the layer
     self.spinBox_Height.blockSignals(True)
-    if properties:
-      PropertyPage.setProperties(self, properties)
-    else:
-      PropertyPage.setProperties(self, self.defaultProperties)
+    self.setProperties(properties or self.defaultProperties)
     self.spinBox_Height.blockSignals(False)
 
     self.calculateResolution()
+    self.updateLayerImageLabel()
 
     # set enablement and visibility of widgets
     if isPrimary:
@@ -342,11 +341,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.startPointSelection()
     else:
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
-
-  def initLayerList(self, comboBox):
-    comboBox.clear()
-    for layer in self.dialog.iface.legendInterface().layers():
-      comboBox.addItem(layer.name(), layer.id())
 
   def initDEMLayerList(self):
     comboBox = self.comboBox_DEMLayer
@@ -390,6 +384,24 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def itemChanged(self, item):
     if not self.isPrimary:
       self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+  def selectLayerClicked(self):
+    if QGis.QGIS_VERSION_INT < 20400:
+      QMessageBox.warning(self, "Qgis2threejs", "Sorry, newer QGIS version (>= 2.4) is required.")
+      return
+
+    from layerselectdialog import LayerSelectDialog
+    dialog = LayerSelectDialog(self)
+    dialog.initTree(self.layerImageIds)
+    if not dialog.exec_():
+      return
+
+    layers = dialog.visibleLayers()
+    self.layerImageIds = [layer.id() for layer in layers]
+    self.updateLayerImageLabel()
+
+  def updateLayerImageLabel(self):
+    self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(self.layerImageIds))
 
   def browseClicked(self):
     directory = os.path.split(self.lineEdit_ImageFile.text())[0]
@@ -464,7 +476,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
     p["dem_Width"] = self.demWidth
     p["dem_Height"] = self.demHeight
+    if self.layerImageIds:
+      p["layerImageIds"] = self.layerImageIds
     return p
+
+  def setProperties(self, properties):
+    PropertyPage.setProperties(self, properties)
+    self.layerImageIds = properties.get("layerImageIds", [])
 
   def updateQuads(self, v=None):
     isSimpleMode = self.radioButton_Simple.isChecked()
@@ -522,7 +540,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       elif t == 2:
         self.checkBox_TransparentBackground.setText("Enable transparency")
 
-      self.comboBox_ImageLayer.setEnabled(t == 1)
+      self.label_LayerImage.setEnabled(t == 1)
+      self.toolButton_SelectLayer.setEnabled(t == 1)
 
       self.lineEdit_ImageFile.setEnabled(t == 2)
       self.toolButton_ImageFile.setEnabled(t == 2)
@@ -662,10 +681,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboBox_Label.addItem(fields[i].name(), i)
 
     # restore other properties for the layer
-    if properties:
-      PropertyPage.setProperties(self, properties)
-    else:
-      PropertyPage.setProperties(self, self.defaultProperties)
+    self.setProperties(properties or self.defaultProperties)
 
   def setupStyleWidgets(self, index=None):
     index = self.comboBox_ObjectType.currentIndex()

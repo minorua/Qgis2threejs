@@ -26,6 +26,7 @@ from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
 from qgis.core import QGis, QgsMapLayerRegistry, QgsProject
 
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
+from qgis2threejstools import shortTextFromSelectedLayerIds
 
 class WidgetFuncBase:
 
@@ -378,21 +379,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     self.updateLineEdit()
 
   def updateLineEdit(self):
-    count = len(self.layerIds)
-    if count:
-      layer = QgsMapLayerRegistry.instance().mapLayer(self.layerIds[0])
-      if layer:
-        text = '"{0}"'.format(layer.name())
-        if count > 1:
-          text += " and {0} layer".format(count - 1)
-        if count > 2:
-          text += "s"
-      else:
-        text = "Layer not found"
-    else:
-      text = "Select layer(s)..."
-
-    self.widget.lineEdit.setText(text)
+    self.widget.lineEdit.setText(shortTextFromSelectedLayerIds(self.layerIds))
 
   def values(self):
     v = ColorWidgetFunc.values(self)

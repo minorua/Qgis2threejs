@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Mon Mar 09 10:57:54 2015
+# Created: Thu Apr 23 10:13:02 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -253,10 +253,14 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_LayerImage = QtGui.QRadioButton(self.groupBox_DisplayType)
         self.radioButton_LayerImage.setObjectName(_fromUtf8("radioButton_LayerImage"))
         self.horizontalLayout_5.addWidget(self.radioButton_LayerImage)
-        self.comboBox_ImageLayer = QtGui.QComboBox(self.groupBox_DisplayType)
-        self.comboBox_ImageLayer.setEnabled(False)
-        self.comboBox_ImageLayer.setObjectName(_fromUtf8("comboBox_ImageLayer"))
-        self.horizontalLayout_5.addWidget(self.comboBox_ImageLayer)
+        self.label_LayerImage = QtGui.QLabel(self.groupBox_DisplayType)
+        self.label_LayerImage.setText(_fromUtf8(""))
+        self.label_LayerImage.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_LayerImage.setObjectName(_fromUtf8("label_LayerImage"))
+        self.horizontalLayout_5.addWidget(self.label_LayerImage)
+        self.toolButton_SelectLayer = QtGui.QToolButton(self.groupBox_DisplayType)
+        self.toolButton_SelectLayer.setObjectName(_fromUtf8("toolButton_SelectLayer"))
+        self.horizontalLayout_5.addWidget(self.toolButton_SelectLayer)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
         self.horizontalLayout_ImageFile = QtGui.QHBoxLayout()
         self.horizontalLayout_ImageFile.setObjectName(_fromUtf8("horizontalLayout_ImageFile"))
@@ -362,6 +366,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_DisplayType.setTitle(_translate("DEMPropertiesWidget", "&Display type", None))
         self.radioButton_MapCanvas.setText(_translate("DEMPropertiesWidget", "Map canvas image", None))
         self.radioButton_LayerImage.setText(_translate("DEMPropertiesWidget", "Layer image", None))
+        self.toolButton_SelectLayer.setText(_translate("DEMPropertiesWidget", "Select layer(s)...", None))
         self.radioButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file", None))
         self.toolButton_ImageFile.setText(_translate("DEMPropertiesWidget", "Browse...", None))
         self.radioButton_SolidColor.setText(_translate("DEMPropertiesWidget", "Solid color", None))
