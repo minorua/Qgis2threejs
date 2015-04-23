@@ -2005,6 +2005,7 @@ Q3D.Utils.createWallGeometry = function (vertices, z0) {
     }
   }
   geom.computeFaceNormals();
+  geom.computeVertexNormals();
   return geom;
 };
 

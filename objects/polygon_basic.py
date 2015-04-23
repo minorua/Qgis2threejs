@@ -98,11 +98,13 @@ def write(writer, layer, feat):
     else:
       d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
+    # borders
     if vals[2] is not None:
       d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
+    # sides
     if vals[3] is not None:
-      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], True)
+      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], doubleSide=True)
 
     d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
 
