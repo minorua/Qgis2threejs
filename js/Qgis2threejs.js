@@ -172,7 +172,8 @@ Q3D.application = {
     // scene
     this.scene = new THREE.Scene();
 
-    this.queryableObjects = [];
+    this._queryableObjects = [];
+    this.queryObjNeedsUpdate = true;
 
     // label
     this.labelConnectorGroup = new THREE.Group();
@@ -232,7 +233,6 @@ Q3D.application = {
     project.layers.forEach(function (layer) {
       layer.initMaterials();
       layer.build(this.scene);
-      if (layer.queryableObjects.length) this.queryableObjects = this.queryableObjects.concat(layer.queryableObjects);
 
       // build labels
       if (layer.l) {
@@ -460,13 +460,23 @@ Q3D.application = {
     this._wireframeMode = wireframe;
   },
 
+  queryableObjects: function () {
+    if (this.queryObjNeedsUpdate) {
+      this._queryableObjects = [];
+      this.project.layers.forEach(function (layer) {
+        if (layer.visible && layer.queryableObjects.length) this._queryableObjects = this._queryableObjects.concat(layer.queryableObjects);
+      }, this);
+    }
+    return this._queryableObjects;
+  },
+
   intersectObjects: function (offsetX, offsetY) {
     var x = (offsetX / this.width) * 2 - 1;
     var y = -(offsetY / this.height) * 2 + 1;
     var vector = new THREE.Vector3(x, y, 1);
     vector.unproject(this.camera);
     var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
-    return ray.intersectObjects(this.queryableObjects);
+    return ray.intersectObjects(this.queryableObjects());
   },
 
   _offset: function (elm) {
@@ -870,6 +880,7 @@ Q3D.MapLayer.prototype = {
   setVisible: function (visible) {
     this.visible = visible;
     this.objectGroup.visible = visible;
+    Q3D.application.queryObjNeedsUpdate = true;
   },
 
   setWireframeMode: function (wireframe) {
