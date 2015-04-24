@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsGeometry, QgsPoint, QgsFeature, QgsSpatialIndex
+from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex
 
 try:
   from osgeo import ogr
@@ -293,18 +293,10 @@ class TriangleMesh:
       self.hidx.insertFeature(f)
 
     for x in range(x_segments):
-      pt0 = QgsPoint(xmin + x * xres, ymax)
-      pt1 = QgsPoint(xmin + x * xres, ymin)
-      pt2 = QgsPoint(xmin + (x + 1) * xres, ymin)
-      pt3 = QgsPoint(xmin + (x + 1) * xres, ymax)
-      addVBand(x, QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
+      addVBand(x, QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin, xmin + (x + 1) * xres, ymax)))
 
     for y in range(y_segments):
-      pt0 = QgsPoint(xmin, ymax - y * yres)
-      pt1 = QgsPoint(xmin, ymax - (y + 1) * yres)
-      pt2 = QgsPoint(xmax, ymax - (y + 1) * yres)
-      pt3 = QgsPoint(xmax, ymax - y * yres)
-      addHBand(y, QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]]))
+      addHBand(y, QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres, xmax, ymax - y * yres)))
 
   def vSplit(self, geom):
     """split polygon vertically"""
