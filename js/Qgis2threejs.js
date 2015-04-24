@@ -18,6 +18,7 @@ Q3D.Options = {
   frame: {color: 0},
   label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
   qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
+  debugMode: false,
   exportMode: false,
   jsonLoader: "JSONLoader"  // JSONLoader or ObjectLoader
 };
@@ -661,6 +662,21 @@ Q3D.application = {
                             (featureId === undefined) ? null : featureId);
 
       this.showQueryResult(obj.point, layerId, featureId);
+
+      if (Q3D.Options.debugMode && object instanceof THREE.Mesh) {
+        var face = obj.face,
+            geom = object.geometry;
+        if (face) {
+          if (geom instanceof THREE.Geometry) {
+            var v = object.geometry.vertices;
+            console.log(v[face.a], v[face.b], v[face.c]);
+          }
+          else {
+            console.log("Qgis2threejs: [DEBUG] THREE.BufferGeometry");
+          }
+        }
+      }
+
       return;
     }
     this.closePopup();
