@@ -615,13 +615,14 @@ Q3D.application = {
       obj.material = high_mat;
     };
 
-    // create a highlight object slightly bigger than the object
+    // create a highlight object (if layer type is Point, slightly bigger than the object)
     var highlightObject = new THREE.Group();
-    var clone, s = 1.01;
+    var clone, s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
+
     for (var i = 0, l = f.objs.length; i < l; i++) {
       clone = f.objs[i].clone();
       clone.traverse(setMaterial);
-      clone.scale.set(clone.scale.x * s, clone.scale.y * s, clone.scale.z * s);
+      if (s != 1) clone.scale.set(clone.scale.x * s, clone.scale.y * s, clone.scale.z * s);
       highlightObject.add(clone);
     }
 
