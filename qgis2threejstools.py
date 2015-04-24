@@ -71,13 +71,14 @@ def shortTextFromSelectedLayerIds(layerIds):
   return text
 
 def openHTMLFile(htmlfilename):
+  url = QUrl.fromLocalFile(htmlfilename).toString()
   settings = QSettings()
   browserPath = settings.value("/Qgis2threejs/browser", "", type=unicode)
   if browserPath == "":
     # open default web browser
-    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    webbrowser.open(url, new=2)    # new=2: new tab if possible
   else:
-    if not QProcess.startDetached(browserPath, [QUrl.fromLocalFile(htmlfilename).toString()]):
+    if not QProcess.startDetached(browserPath, [url]):
       QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
       return False
   return True
