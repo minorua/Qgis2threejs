@@ -1595,39 +1595,11 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   var materials = this.materials,
       project = this.project;
 
-  var arrayToVec2Array = function (points) {
-    var pt, pts = [];
-    for (var i = 0, l = points.length; i < l; i++) {
-      pt = points[i];
-      pts.push(new THREE.Vector2(pt[0], pt[1]));
-    }
-    return pts;
-  };
-
-  var arrayToVec3Array = function (points, zFunc) {
-    if (zFunc === undefined) zFunc = function () { return 0; };
-    var pt, pts = [];
-    for (var i = 0, l = points.length; i < l; i++) {
-      pt = points[i];
-      pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
-    }
-    return pts;
-  };
-
-  var arrayToFace3Array = function (faces) {
-    var f, fs = [];
-    for (var i = 0, l = faces.length; i < l; i++) {
-      f = faces[i];
-      fs.push(new THREE.Face3(f[0], f[1], f[2]));
-    }
-    return fs;
-  };
-
   if (this.objType == "Extruded") {
     var createObject = function (f, polygon, z) {
-      var shape = new THREE.Shape(arrayToVec2Array(polygon[0]));
+      var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
       for (var i = 1, l = polygon.length; i < l; i++) {
-        shape.holes.push(new THREE.Path(arrayToVec2Array(polygon[i])));
+        shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
       }
       var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h});
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
@@ -1652,8 +1624,6 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     if (relativeToDEM) {
       var dem = project.layers[0];
     }
-    var face012 = new THREE.Face3(0, 1, 2);
-
     var createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
 
@@ -1679,7 +1649,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
             vertices = dem.segmentizeLineString(polygon[j], zFunc);
           }
           else {
-            vertices = arrayToVec3Array(polygon[j], zFunc);
+            vertices = Q3D.Utils.arrayToVec3Array(polygon[j], zFunc);
           }
 
           if (f.mb) {
