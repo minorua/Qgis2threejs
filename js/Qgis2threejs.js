@@ -779,7 +779,92 @@ Q3D.DEMBlock.prototype = {
     this.obj = mesh;
     layer.addObject(mesh);
   },
-    
+
+  buildSides: function (layer, material, z0) {
+    var sole_height = -z0;
+
+    var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
+    var dem_data = this.data, w = this.width, h = this.height, HALF_PI = Math.PI / 2;
+    var i, mesh;
+
+    // front and back
+    var geom_fr = new PlaneGeometry(this.plane.width, 2 * sole_height, w - 1, 1),
+        geom_ba = new PlaneGeometry(this.plane.width, 2 * sole_height, w - 1, 1);
+
+    var k = w * (h - 1);
+    if (Q3D.Options.exportMode) {
+      for (i = 0; i < w; i++) {
+        geom_fr.vertices[i].y = dem_data[k + i];
+        geom_ba.vertices[i].y = dem_data[w - 1 - i];
+      }
+    }
+    else {
+      var vertices_fr = geom_fr.attributes.position.array,
+          vertices_ba = geom_ba.attributes.position.array;
+
+      for (i = 0; i < w; i++) {
+        vertices_fr[i * 3 + 1] = dem_data[k + i];
+        vertices_ba[i * 3 + 1] = dem_data[w - 1 - i];
+      }
+    }
+    mesh = new THREE.Mesh(geom_fr, material);
+    mesh.position.y = -this.plane.height / 2;
+    mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+    layer.addObject(mesh, false);
+    this.aObjs.push(mesh);
+
+    mesh = new THREE.Mesh(geom_ba, material);
+    mesh.position.y = this.plane.height / 2;
+    mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
+    mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+    layer.addObject(mesh, false);
+    this.aObjs.push(mesh);
+
+    // left and right
+    var geom_le = new PlaneGeometry(2 * sole_height, this.plane.height, 1, h - 1),
+        geom_ri = new PlaneGeometry(2 * sole_height, this.plane.height, 1, h - 1);
+
+    if (Q3D.Options.exportMode) {
+      for (i = 0; i < h; i++) {
+        geom_le.vertices[i * 2 + 1].x = dem_data[w * i];
+        geom_ri.vertices[i * 2].x = -dem_data[w * (i + 1) - 1];
+      }
+    }
+    else {
+      var vertices_le = geom_le.attributes.position.array,
+          vertices_ri = geom_ri.attributes.position.array;
+
+      for (i = 0; i < h; i++) {
+        vertices_le[(i * 2 + 1) * 3] = dem_data[w * i];
+        vertices_ri[i * 2 * 3] = -dem_data[w * (i + 1) - 1];
+      }
+    }
+    mesh = new THREE.Mesh(geom_le, material);
+    mesh.position.x = -this.plane.width / 2;
+    mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
+    layer.addObject(mesh, false);
+    this.aObjs.push(mesh);
+
+    mesh = new THREE.Mesh(geom_ri, material);
+    mesh.position.x = this.plane.width / 2;
+    mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
+    layer.addObject(mesh, false);
+    this.aObjs.push(mesh);
+
+    // bottom
+    if (Q3D.Options.exportMode) {
+      var geom = new THREE.PlaneGeometry(this.plane.width, this.plane.height, w - 1, h - 1);
+    }
+    else {
+      var geom = new THREE.PlaneBufferGeometry(this.plane.width, this.plane.height, 1, 1);
+    }
+    mesh = new THREE.Mesh(geom, material);
+    mesh.position.z = -sole_height;
+    mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
+    layer.addObject(mesh, false);
+    this.aObjs.push(mesh);
+  },
+
   getValue: function (x, y) {
     if (0 <= x && x < this.width && 0 <= y && y < this.height) return this.data[x + this.width * y];
     return null;
@@ -1021,20 +1106,16 @@ Q3D.DEMLayer.prototype.build = function (parent) {
 
     // Build sides, bottom and frame
     if (block.s) {
-      if (block instanceof Q3D.ClippedDEMBlock) {
-        // material
-        var opacity = this.materials[block.m].o;
-        if (opacity === undefined) opacity = 1;
-        var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
-                                                 ambient: opt.side.color,
-                                                 opacity: opacity,
-                                                 transparent: (opacity < 1)});
-        this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
+      // material
+      var opacity = this.materials[block.m].o;
+      if (opacity === undefined) opacity = 1;
+      var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
+                                               ambient: opt.side.color,
+                                               opacity: opacity,
+                                               transparent: (opacity < 1)});
+      this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
 
-        block.buildSides(this, mat, -opt.sole_height);    // z0 = project.zShift * project.zScale;
-      }
-      else this.buildSides(block, opt.side.color, opt.sole_height);   // TODO: move to Q3D.DEMBlock
-
+      block.buildSides(this, mat, -opt.sole_height);    // z0 = project.zShift * project.zScale;
       this.sideVisible = true;
     }
     if (block.frame) {
@@ -1044,102 +1125,6 @@ Q3D.DEMLayer.prototype.build = function (parent) {
   }, this);
 
   if (parent) parent.add(this.objectGroup);
-};
-
-// Creates sides and bottom of the DEM to give an impression of "extruding" and increase the 3D aspect.
-Q3D.DEMLayer.prototype.buildSides = function (block, color, sole_height) {
-  var dem = block;
-
-  // Material
-  var opacity = this.materials[block.m].o;
-  if (opacity === undefined) opacity = 1;
-  var mat = new THREE.MeshLambertMaterial({color: color,
-                                           ambient: color,
-                                           opacity: opacity,
-                                           transparent: (opacity < 1)});
-  this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
-
-  // Sides
-  var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
-  var dem_data = dem.data, w = dem.width, h = dem.height, HALF_PI = Math.PI / 2;
-  var i, mesh;
-
-  // front and back
-  var geom_fr = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1),
-      geom_ba = new PlaneGeometry(dem.plane.width, 2 * sole_height, w - 1, 1);
-
-  var k = w * (h - 1);
-  if (Q3D.Options.exportMode) {
-    for (i = 0; i < w; i++) {
-      geom_fr.vertices[i].y = dem_data[k + i];
-      geom_ba.vertices[i].y = dem_data[w - 1 - i];
-    }
-  }
-  else {
-    var vertices_fr = geom_fr.attributes.position.array,
-        vertices_ba = geom_ba.attributes.position.array;
-
-    for (i = 0; i < w; i++) {
-      vertices_fr[i * 3 + 1] = dem_data[k + i];
-      vertices_ba[i * 3 + 1] = dem_data[w - 1 - i];
-    }
-  }
-  mesh = new THREE.Mesh(geom_fr, mat);
-  mesh.position.y = -dem.plane.height / 2;
-  mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
-  this.addObject(mesh, false);
-  dem.aObjs.push(mesh);
-
-  mesh = new THREE.Mesh(geom_ba, mat);
-  mesh.position.y = dem.plane.height / 2;
-  mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
-  mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
-  this.addObject(mesh, false);
-  dem.aObjs.push(mesh);
-
-  // left and right
-  var geom_le = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1),
-      geom_ri = new PlaneGeometry(2 * sole_height, dem.plane.height, 1, h - 1);
-
-  if (Q3D.Options.exportMode) {
-    for (i = 0; i < h; i++) {
-      geom_le.vertices[i * 2 + 1].x = dem_data[w * i];
-      geom_ri.vertices[i * 2].x = -dem_data[w * (i + 1) - 1];
-    }
-  }
-  else {
-    var vertices_le = geom_le.attributes.position.array,
-        vertices_ri = geom_ri.attributes.position.array;
-
-    for (i = 0; i < h; i++) {
-      vertices_le[(i * 2 + 1) * 3] = dem_data[w * i];
-      vertices_ri[i * 2 * 3] = -dem_data[w * (i + 1) - 1];
-    }
-  }
-  mesh = new THREE.Mesh(geom_le, mat);
-  mesh.position.x = -dem.plane.width / 2;
-  mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
-  this.addObject(mesh, false);
-  dem.aObjs.push(mesh);
-
-  mesh = new THREE.Mesh(geom_ri, mat);
-  mesh.position.x = dem.plane.width / 2;
-  mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
-  this.addObject(mesh, false);
-  dem.aObjs.push(mesh);
-
-  // Bottom
-  if (Q3D.Options.exportMode) {
-    var geom = new THREE.PlaneGeometry(dem.plane.width, dem.plane.height, w - 1, h - 1);
-  }
-  else {
-    var geom = new THREE.PlaneBufferGeometry(dem.plane.width, dem.plane.height, 1, 1);
-  }
-  mesh = new THREE.Mesh(geom, mat);
-  mesh.position.z = -sole_height;
-  mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
-  this.addObject(mesh, false);
-  dem.aObjs.push(mesh);
 };
 
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
