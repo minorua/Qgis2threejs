@@ -828,9 +828,17 @@ Q3D.ClippedDEMBlock.prototype = {
   buildSides: function (layer, material, z0) {
     var polygons = this.clip.polygons,
         zFunc = layer.getZ.bind(layer);
-    var geom, mesh, vertices;
+
+    // make back-side material for bottom
+    var mat_back = material.clone();
+    mat_back.side = THREE.BackSide;
+    layer.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat_back});
+
+    var geom, mesh, shape, vertices;
     for (var i = 0, l = polygons.length; i < l; i++) {
       var polygon = polygons[i];
+
+      // sides
       for (var j = 0, m = polygon.length; j < m; j++) {
         vertices = layer.segmentizeLineString(polygon[j], zFunc);
         geom = Q3D.Utils.createWallGeometry(vertices, z0);
@@ -838,8 +846,18 @@ Q3D.ClippedDEMBlock.prototype = {
         layer.addObject(mesh, false);
         this.aObjs.push(mesh);
       }
+
+      // bottom
+      shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
+      for (var j = 1, m = polygon.length; j < m; j++) {
+        shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[j])));
+      }
+      geom = new THREE.ShapeGeometry(shape);
+      mesh = new THREE.Mesh(geom, mat_back);
+      mesh.position.z = z0;
+      layer.addObject(mesh, false);
+      this.aObjs.push(mesh);
     }
-    // TODO: create bottom
   },
 
   getValue: function (x, y) {
@@ -2006,6 +2024,15 @@ Q3D.Utils.createWallGeometry = function (vertices, z0) {
   }
   geom.computeFaceNormals();
   return geom;
+};
+
+Q3D.Utils.arrayToVec2Array = function (points) {
+  var pt, pts = [];
+  for (var i = 0, l = points.length; i < l; i++) {
+    pt = points[i];
+    pts.push(new THREE.Vector2(pt[0], pt[1]));
+  }
+  return pts;
 };
 
 Q3D.Utils.arrayToVec3Array = function (points, zFunc) {
