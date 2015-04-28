@@ -281,11 +281,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
-    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color]
-    widgets += [self.checkBox_Shading, self.checkBox_Sides, self.checkBox_Frame]
+    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.checkBox_Shading]
+    widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
+    widgets += [self.checkBox_Sides, self.checkBox_Frame]
     self.registerPropertyWidgets(widgets)
 
-    self.initDEMLayerList()
+    self.initLayerComboBox()
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
@@ -342,14 +343,23 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     else:
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
-  def initDEMLayerList(self):
-    comboBox = self.comboBox_DEMLayer
-    # list 1 band raster layers
-    comboBox.clear()
-    comboBox.addItem("Flat plane (no DEM used)", 0)
+  def initLayerComboBox(self):
+    # list of 1 band raster layers
+    comboDEM = self.comboBox_DEMLayer
+    comboDEM.clear()
+    comboDEM.addItem("Flat plane (no DEM used)", 0)
+
+    # list of polygon layers
+    comboPolygon = self.comboBox_ClipLayer
+    comboPolygon.clear()
+
     for layer in self.dialog.iface.legendInterface().layers():
-      if layer.type() == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        comboBox.addItem(layer.name(), layer.id())
+      if layer.type() == QgsMapLayer.RasterLayer:
+        if layer.providerType() == "gdal" and layer.bandCount() == 1:
+          comboDEM.addItem(layer.name(), layer.id())
+      elif layer.type() == QgsMapLayer.VectorLayer:
+        if layer.geometryType() == QGis.Polygon:
+          comboPolygon.addItem(layer.name(), layer.id())
 
   def selectDEMLayer(self, layerId=None):
     comboBox = self.comboBox_DEMLayer

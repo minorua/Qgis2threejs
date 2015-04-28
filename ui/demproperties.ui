@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>437</width>
-    <height>616</height>
+    <height>654</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -673,6 +673,39 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_Clip">
+     <property name="title">
+      <string>Clip</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="checkBox_Clip">
+          <property name="text">
+           <string>Clip DEM with polygon layer</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_ClipLayer">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_Accessories">
      <property name="title">
       <string>&amp;Sides and frame</string>
@@ -720,5 +753,22 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>checkBox_Clip</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>comboBox_ClipLayer</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>545</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>305</x>
+     <y>547</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -34,7 +34,7 @@ except ImportError:
   import gdal, ogr, osr
 
 from rotatedrect import RotatedRect
-from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
+from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, Triangles
 from datamanager import ImageManager, ModelManager, MaterialManager
 from propertyreader import DEMPropertyReader, VectorPropertyReader
 from quadtree import QuadTree, DEMQuadList
@@ -301,7 +301,7 @@ class ThreejsJSWriter(JSWriter):
 
     self.imageManager = ImageManager(settings)
     self.modelManager = ModelManager()
-    self.triMesh = None
+    self.triMesh = {}
 
   def writeProject(self):
     # write project information
@@ -408,17 +408,19 @@ class ThreejsJSWriter(JSWriter):
 
     return map(lambda fn: '<script src="./%s"></script>' % fn, files)
 
-  def triangleMesh(self):
-    if self.triMesh is None:
+  def triangleMesh(self, dem_width=0, dem_height=0):
+    if dem_width == 0 and dem_height == 0:
       prop = DEMPropertyReader(self.settings.get(ObjectTreeItem.ITEM_DEM))
       dem_width = prop.width()
       dem_height = prop.height()
 
+    key = "{0}x{1}".format(dem_width, dem_height)
+    if key not in self.triMesh:
       mapTo3d = self.settings.mapTo3d
       hw = 0.5 * mapTo3d.planeWidth
       hh = 0.5 * mapTo3d.planeHeight
-      self.triMesh = TriangleMesh(-hw, -hh, hw, hh, dem_width - 1, dem_height - 1)
-    return self.triMesh
+      self.triMesh[key] = TriangleMesh(-hw, -hh, hw, hh, dem_width - 1, dem_height - 1)
+    return self.triMesh[key]
 
   def log(self, message):
     QgsMessageLog.logMessage(message, "Qgis2threejs")
@@ -570,14 +572,51 @@ def writeSimpleDEM(writer, properties, progress=None):
     block["shading"] = True
 
   if not surroundings and properties.get("checkBox_Sides", False):
-    block["s"] = True
+    block["s"] = True   #TODO: rename key to sides
 
   if not surroundings and properties.get("checkBox_Frame", False):
     block["frame"] = True
 
+  # clipping option
+  clip_layerId = properties.get("comboBox_ClipLayer") if properties.get("checkBox_Clip", False) else None
+  clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
+
   # write central block
-  writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
+  writer.write("bl = lyr.addBlock({0}, {1});\n".format(pyobj2js(block), pyobj2js(bool(clip_layer))))
   writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
+
+  # clipped with polygon layer
+  if clip_layer:
+    geometry = dissolvePolygonsOnCanvas(writer, clip_layer)
+    z_func = lambda x, y: 0
+    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
+
+    geom = PolygonGeometry.fromQgsGeometry(geometry, z_func, transform_func)
+    geom.splitPolygon(writer.triangleMesh(dem_width, dem_height))
+
+    polygons = []
+    for polygon in geom.polygons:
+      bnds = []
+      for boundary in polygon:
+        bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
+      polygons.append(bnds)
+
+    writer.write("bl.clip = {};\n")
+    writer.write("bl.clip.polygons = {0};\n".format(pyobj2js(polygons)))
+
+    triangles = Triangles()
+    polygons = []
+    for polygon in geom.split_polygons:
+      boundary = polygon[0]
+      if len(polygon) == 1 and len(boundary) == 4:
+        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
+      else:
+        bnds = [map(lambda pt: [pt.x, pt.y], bnd) for bnd in polygon]
+        polygons.append(bnds)
+
+    vf = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+    writer.write("bl.clip.triangles = {0};\n".format(pyobj2js(vf)))
+    writer.write("bl.clip.split_polygons = {0};\n".format(pyobj2js(polygons)))
 
   # write surrounding dems
   if surroundings:
@@ -586,6 +625,52 @@ def writeSimpleDEM(writer, properties, progress=None):
     writer.write("lyr.stats = {0};\n".format(pyobj2js(stats)))
 
   writer.writeMaterials(layer.materialManager)
+
+
+def dissolvePolygonsOnCanvas(writer, layer):
+  """dissolve polygons of the layer and clip the dissolution with base extent"""
+  settings = writer.settings
+  baseExtent = settings.baseExtent
+  baseExtentGeom = baseExtent.geometry()
+  rotation = baseExtent.rotation()
+  transform = QgsCoordinateTransform(layer.crs(), settings.crs)
+
+  combi = None
+  request = QgsFeatureRequest()
+  request.setFilterRect(transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+  for f in layer.getFeatures(request):
+    geometry = f.geometry()
+    if geometry is None:
+      qDebug("null geometry skipped")
+      continue
+
+    # coordinate transformation - layer crs to project crs
+    geom = QgsGeometry(geometry)
+    if geom.transform(transform) != 0:
+      qDebug("Failed to transform geometry")
+      continue
+
+    # check if geometry intersects with the base extent (rotated rect)
+    if rotation and not baseExtentGeom.intersects(geom):
+      continue
+
+    if combi:
+      combi = combi.combine(geom)
+    else:
+      combi = geom
+
+  # clip geom with base extent
+  geom = geom.intersection(baseExtentGeom)
+  if geom is None:
+    return None
+
+  # check if geometry is empty
+  if geom.isGeosEmpty():
+    qDebug("empty geometry")
+    return None
+
+  return geom
+
 
 def roughenEdges(width, height, values, interval):
   if interval == 1:

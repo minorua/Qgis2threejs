@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Thu Apr 23 10:13:02 2015
+# Created: Tue Apr 28 10:11:32 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_DEMPropertiesWidget(object):
     def setupUi(self, DEMPropertiesWidget):
         DEMPropertiesWidget.setObjectName(_fromUtf8("DEMPropertiesWidget"))
-        DEMPropertiesWidget.resize(437, 616)
+        DEMPropertiesWidget.resize(437, 654)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -323,6 +323,26 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Shading.setObjectName(_fromUtf8("checkBox_Shading"))
         self.verticalLayout_4.addWidget(self.checkBox_Shading)
         self.verticalLayout_2.addWidget(self.groupBox_DisplayType)
+        self.groupBox_Clip = QtGui.QGroupBox(DEMPropertiesWidget)
+        self.groupBox_Clip.setObjectName(_fromUtf8("groupBox_Clip"))
+        self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox_Clip)
+        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.formLayout = QtGui.QFormLayout()
+        self.formLayout.setObjectName(_fromUtf8("formLayout"))
+        self.checkBox_Clip = QtGui.QCheckBox(self.groupBox_Clip)
+        self.checkBox_Clip.setObjectName(_fromUtf8("checkBox_Clip"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.checkBox_Clip)
+        self.comboBox_ClipLayer = QtGui.QComboBox(self.groupBox_Clip)
+        self.comboBox_ClipLayer.setEnabled(False)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBox_ClipLayer.sizePolicy().hasHeightForWidth())
+        self.comboBox_ClipLayer.setSizePolicy(sizePolicy)
+        self.comboBox_ClipLayer.setObjectName(_fromUtf8("comboBox_ClipLayer"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_ClipLayer)
+        self.verticalLayout_3.addLayout(self.formLayout)
+        self.verticalLayout_2.addWidget(self.groupBox_Clip)
         self.groupBox_Accessories = QtGui.QGroupBox(DEMPropertiesWidget)
         self.groupBox_Accessories.setObjectName(_fromUtf8("groupBox_Accessories"))
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.groupBox_Accessories)
@@ -340,6 +360,7 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout_2.addItem(spacerItem2)
 
         self.retranslateUi(DEMPropertiesWidget)
+        QtCore.QObject.connect(self.checkBox_Clip, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.comboBox_ClipLayer.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
 
     def retranslateUi(self, DEMPropertiesWidget):
@@ -376,6 +397,8 @@ class Ui_DEMPropertiesWidget(object):
         self.label_17.setText(_translate("DEMPropertiesWidget", "Transparency (%)", None))
         self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
         self.checkBox_Shading.setText(_translate("DEMPropertiesWidget", "Enable shading", None))
+        self.groupBox_Clip.setTitle(_translate("DEMPropertiesWidget", "Clip", None))
+        self.checkBox_Clip.setText(_translate("DEMPropertiesWidget", "Clip DEM with polygon layer", None))
         self.groupBox_Accessories.setTitle(_translate("DEMPropertiesWidget", "&Sides and frame", None))
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides", None))
         self.checkBox_Frame.setText(_translate("DEMPropertiesWidget", "Build frame", None))

@@ -798,6 +798,68 @@ Q3D.DEMBlock.prototype = {
 
 
 /*
+Q3D.ClippedDEMBlock
+*/
+Q3D.ClippedDEMBlock = function (params) {
+  for (var k in params) {
+    this[k] = params[k];
+  }
+  this.aObjs = [];
+};
+
+Q3D.ClippedDEMBlock.prototype = {
+
+  constructor: Q3D.ClippedDEMBlock,
+
+  build: function (layer) {
+    var geom = Q3D.Utils.createOverlayGeometry(this.clip.triangles, this.clip.split_polygons, layer.getZ.bind(layer));
+
+    // set UVs
+    Q3D.Utils.setGeometryUVs(geom, layer.project.width, layer.project.height);
+
+    var mesh = new THREE.Mesh(geom, layer.materials[this.m].m);
+    if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
+    if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
+    mesh.userData.layerId = layer.index;
+    this.obj = mesh;
+    layer.addObject(mesh);
+  },
+
+  buildSides: function (layer, material, z0) {
+    var polygons = this.clip.polygons,
+        zFunc = layer.getZ.bind(layer);
+    var geom, mesh, vertices;
+    for (var i = 0, l = polygons.length; i < l; i++) {
+      var polygon = polygons[i];
+      for (var j = 0, m = polygon.length; j < m; j++) {
+        vertices = layer.segmentizeLineString(polygon[j], zFunc);
+        geom = Q3D.Utils.createWallGeometry(vertices, z0);
+        mesh = new THREE.Mesh(geom, material);
+        layer.addObject(mesh, false);
+        this.aObjs.push(mesh);
+      }
+    }
+    // TODO: create bottom
+  },
+
+  getValue: function (x, y) {
+    if (0 <= x && x < this.width && 0 <= y && y < this.height) return this.data[x + this.width * y];
+    return null;
+  },
+
+  contains: function (x, y) {
+    var xmin = this.plane.offsetX - this.plane.width / 2,
+        xmax = this.plane.offsetX + this.plane.width / 2,
+        ymin = this.plane.offsetY - this.plane.height / 2,
+        ymax = this.plane.offsetY + this.plane.height / 2;
+    if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
+    return false;
+  }
+
+};
+
+
+/*
 Q3D.MapLayer
 */
 Q3D.MapLayer = function (params) {
@@ -927,8 +989,9 @@ Q3D.DEMLayer = function (params) {
 Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
-Q3D.DEMLayer.prototype.addBlock = function (params) {
-  var block = new Q3D.DEMBlock(params);
+Q3D.DEMLayer.prototype.addBlock = function (params, clipped) {
+  var BlockClass = (clipped) ? Q3D.ClippedDEMBlock : Q3D.DEMBlock,
+      block = new BlockClass(params);
   this.blocks.push(block);
   return block;
 };
@@ -940,7 +1003,20 @@ Q3D.DEMLayer.prototype.build = function (parent) {
 
     // Build sides, bottom and frame
     if (block.s) {
-      this.buildSides(block, opt.side.color, opt.sole_height);
+      if (block instanceof Q3D.ClippedDEMBlock) {
+        // material
+        var opacity = this.materials[block.m].o;
+        if (opacity === undefined) opacity = 1;
+        var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
+                                                 ambient: opt.side.color,
+                                                 opacity: opacity,
+                                                 transparent: (opacity < 1)});
+        this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
+
+        block.buildSides(this, mat, -opt.sole_height);    // z0 = project.zShift * project.zScale;
+      }
+      else this.buildSides(block, opt.side.color, opt.sole_height);   // TODO: move to Q3D.DEMBlock
+
       this.sideVisible = true;
     }
     if (block.frame) {
@@ -1579,62 +1655,16 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     var face012 = new THREE.Face3(0, 1, 2);
 
     var createObject = function (f) {
+      var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
+
       var zFunc;
       if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
       else zFunc = function (x, y) { return f.h; };
 
-      var geom = new THREE.Geometry();
+      var geom = Q3D.Utils.createOverlayGeometry(f.triangles, polygons, zFunc);
 
-      // vertices and faces
-      if (f.triangles !== undefined) {
-        geom.vertices = arrayToVec3Array(f.triangles.v, zFunc);
-        geom.faces = arrayToFace3Array(f.triangles.f);
-      }
-
-      // polygons (number of vertices > 3)
-      var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
-      for (var i = 0, l = polygons.length; i < l; i++) {
-        var polygon = polygons[i];
-        var triangles = new THREE.Geometry(),
-            holes = [];
-
-        // make Vector3 arrays
-        triangles.vertices = arrayToVec3Array(polygon[0], zFunc);
-        for (var j = 1, m = polygon.length; j < m; j++) {
-          holes.push(arrayToVec3Array(polygon[j], zFunc));
-        }
-
-        // triangulate polygon
-        var faces = THREE.Shape.Utils.triangulateShape(triangles.vertices, holes);
-
-        // append points of holes to vertices
-        for (var j = 0, m = holes.length; j < m; j++) {
-          Array.prototype.push.apply(triangles.vertices, holes[j]);
-        }
-
-        // element of faces is [index1, index2, index3]
-        triangles.faces = arrayToFace3Array(faces);
-
-        THREE.GeometryUtils.merge(geom, triangles, 0);
-      }
-      geom.mergeVertices();
-      geom.computeFaceNormals();
-      geom.computeVertexNormals();
-
-      if (materials[f.m].i !== undefined) {
-        // set UVs
-        var w = project.width, h = project.height, face, v, uvs = [];
-        for (var i = 0, l = geom.vertices.length; i < l; i++) {
-          v = geom.vertices[i];
-          uvs.push(new THREE.Vector2(v.x / w + 0.5, v.y / h + 0.5));
-        }
-
-        geom.faceVertexUvs[0] = [];
-        for (var i = 0, l = geom.faces.length; i < l; i++) {
-          face = geom.faces[i];
-          geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
-        }
-      }
+      // set UVs
+      if (materials[f.m].i !== undefined) Q3D.Utils.setGeometryUVs(geom, project.width, project.height);
 
       var mesh = new THREE.Mesh(geom, materials[f.m].m);
 
@@ -1976,4 +2006,77 @@ Q3D.Utils.createWallGeometry = function (vertices, z0) {
   }
   geom.computeFaceNormals();
   return geom;
+};
+
+Q3D.Utils.arrayToVec3Array = function (points, zFunc) {
+  if (zFunc === undefined) zFunc = function () { return 0; };
+  var pt, pts = [];
+  for (var i = 0, l = points.length; i < l; i++) {
+    pt = points[i];
+    pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
+  }
+  return pts;
+};
+
+Q3D.Utils.arrayToFace3Array = function (faces) {
+  var f, fs = [];
+  for (var i = 0, l = faces.length; i < l; i++) {
+    f = faces[i];
+    fs.push(new THREE.Face3(f[0], f[1], f[2]));
+  }
+  return fs;
+};
+
+Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
+  var geom = new THREE.Geometry();
+
+  // vertices and faces
+  if (triangles !== undefined) {
+    geom.vertices = Q3D.Utils.arrayToVec3Array(triangles.v, zFunc);
+    geom.faces = Q3D.Utils.arrayToFace3Array(triangles.f);
+  }
+
+  // split-polygons
+  for (var i = 0, l = polygons.length; i < l; i++) {
+    var polygon = polygons[i];
+    var poly_geom = new THREE.Geometry(),
+        holes = [];
+
+    // make Vector3 arrays
+    poly_geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[0], zFunc);
+    for (var j = 1, m = polygon.length; j < m; j++) {
+      holes.push(Q3D.Utils.arrayToVec3Array(polygon[j], zFunc));
+    }
+
+    // triangulate polygon
+    var faces = THREE.Shape.Utils.triangulateShape(poly_geom.vertices, holes);
+
+    // append points of holes to vertices
+    for (var j = 0, m = holes.length; j < m; j++) {
+      Array.prototype.push.apply(poly_geom.vertices, holes[j]);
+    }
+
+    // element of faces is [index1, index2, index3]
+    poly_geom.faces = Q3D.Utils.arrayToFace3Array(faces);
+
+    THREE.GeometryUtils.merge(geom, poly_geom, 0);
+  }
+  geom.mergeVertices();
+  geom.computeFaceNormals();
+  geom.computeVertexNormals();
+  return geom;
+};
+
+Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
+  var face, v, uvs = [];
+  for (var i = 0, l = geom.vertices.length; i < l; i++) {
+    v = geom.vertices[i];
+    uvs.push(new THREE.Vector2(v.x / base_width + 0.5, v.y / base_height + 0.5));
+  }
+
+  geom.faceVertexUvs[0] = [];
+  for (var i = 0, l = geom.faces.length; i < l; i++) {
+    face = geom.faces[i];
+    geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
+  }
 };
