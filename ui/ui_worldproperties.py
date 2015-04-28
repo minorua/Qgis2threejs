@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\worldproperties.ui'
 #
-# Created: Mon Mar 02 10:47:36 2015
+# Created: Tue Apr 28 11:22:06 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -126,6 +126,8 @@ class Ui_WorldPropertiesWidget(object):
         self.verticalLayout_3.addItem(spacerItem1)
 
         self.retranslateUi(WorldPropertiesWidget)
+        QtCore.QObject.connect(self.radioButton_Color, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.lineEdit_Color.setEnabled)
+        QtCore.QObject.connect(self.radioButton_Color, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_Color.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(WorldPropertiesWidget)
 
     def retranslateUi(self, WorldPropertiesWidget):

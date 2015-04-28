@@ -512,6 +512,9 @@
           </item>
           <item>
            <widget class="QLabel" name="label_LayerImage">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -522,6 +525,9 @@
           </item>
           <item>
            <widget class="QToolButton" name="toolButton_SelectLayer">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Select layer(s)...</string>
             </property>
@@ -542,10 +548,17 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_ImageFile"/>
+           <widget class="QLineEdit" name="lineEdit_ImageFile">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QToolButton" name="toolButton_ImageFile">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Browse...</string>
             </property>
@@ -584,6 +597,9 @@
           </item>
           <item>
            <widget class="QLineEdit" name="lineEdit_Color">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>0xrrggbb</string>
             </property>
@@ -591,6 +607,9 @@
           </item>
           <item>
            <widget class="QToolButton" name="toolButton_Color">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>...</string>
             </property>
@@ -767,6 +786,102 @@
     <hint type="destinationlabel">
      <x>305</x>
      <y>547</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_LayerImage</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_LayerImage</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>366</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>242</x>
+     <y>366</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_LayerImage</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_SelectLayer</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>366</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>367</x>
+     <y>366</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_ImageFile</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit_ImageFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>57</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>225</x>
+     <y>391</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_ImageFile</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_ImageFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>57</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>386</x>
+     <y>391</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_SolidColor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit_Color</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>417</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>322</x>
+     <y>417</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_SolidColor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_Color</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>417</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>405</x>
+     <y>417</y>
     </hint>
    </hints>
   </connection>

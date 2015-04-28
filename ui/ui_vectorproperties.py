@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Sun Mar 01 14:21:52 2015
+# Created: Tue Apr 28 11:48:23 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -138,6 +138,7 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_2.addItem(spacerItem)
 
         self.retranslateUi(VectorPropertiesWidget)
+        QtCore.QObject.connect(self.radioButton_IntersectingFeatures, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.checkBox_Clip.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)
 
     def retranslateUi(self, VectorPropertiesWidget):

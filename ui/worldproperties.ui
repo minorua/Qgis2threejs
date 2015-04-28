@@ -233,5 +233,38 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>radioButton_Color</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit_Color</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>58</x>
+     <y>257</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_Color</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_Color</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>58</x>
+     <y>257</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>236</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

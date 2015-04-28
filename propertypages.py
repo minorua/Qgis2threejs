@@ -159,7 +159,6 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
     self.registerPropertyWidgets([self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color, self.radioButton_WGS84])
-    self.radioButton_Color.toggled.connect(self.backgroundToggled)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
@@ -194,11 +193,6 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     if not proj_supported:
       self.radioButton_ProjectCRS.setChecked(True)
     self.radioButton_WGS84.setEnabled(proj_supported)
-
-  def backgroundToggled(self, checked):
-    isColor = self.radioButton_Color.isChecked()
-    self.lineEdit_Color.setEnabled(isColor)
-    self.toolButton_Color.setEnabled(isColor)
 
   def colorButtonClicked(self):
     color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
@@ -551,22 +545,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       elif t == 2:
         self.checkBox_TransparentBackground.setText("Enable transparency")
 
-      self.label_LayerImage.setEnabled(t == 1)
-      self.toolButton_SelectLayer.setEnabled(t == 1)
-
-      self.lineEdit_ImageFile.setEnabled(t == 2)
-      self.toolButton_ImageFile.setEnabled(t == 2)
-
-      self.lineEdit_Color.setEnabled(t == 3)
-      self.toolButton_Color.setEnabled(t == 3)
-
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
     surroundings = self.checkBox_Surroundings.isChecked()
 
     self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
-    self.setLayoutsEnabled([self.horizontalLayout_ImageFile], isSimpleMode and not surroundings)
     self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and surroundings)
+    self.radioButton_ImageFile.setEnabled(isSimpleMode and not surroundings)
     isAdvancedMode = not isSimpleMode
 
     if self.isPrimary:
@@ -637,13 +622,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
-    for radioButton in [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures]:
-      radioButton.toggled.connect(self.featuresToExportChanged)
-
-  def featuresToExportChanged(self, checked=True):
-    if checked:
-      enabled = self.radioButton_IntersectingFeatures.isChecked()
-      self.checkBox_Clip.setEnabled(enabled)
 
   def setup(self, properties=None, layer=None):
     self.layer = layer

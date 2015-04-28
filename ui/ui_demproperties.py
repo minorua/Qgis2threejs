@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Tue Apr 28 10:11:32 2015
+# Created: Tue Apr 28 11:32:03 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -254,11 +254,13 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_LayerImage.setObjectName(_fromUtf8("radioButton_LayerImage"))
         self.horizontalLayout_5.addWidget(self.radioButton_LayerImage)
         self.label_LayerImage = QtGui.QLabel(self.groupBox_DisplayType)
+        self.label_LayerImage.setEnabled(False)
         self.label_LayerImage.setText(_fromUtf8(""))
         self.label_LayerImage.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_LayerImage.setObjectName(_fromUtf8("label_LayerImage"))
         self.horizontalLayout_5.addWidget(self.label_LayerImage)
         self.toolButton_SelectLayer = QtGui.QToolButton(self.groupBox_DisplayType)
+        self.toolButton_SelectLayer.setEnabled(False)
         self.toolButton_SelectLayer.setObjectName(_fromUtf8("toolButton_SelectLayer"))
         self.horizontalLayout_5.addWidget(self.toolButton_SelectLayer)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
@@ -269,9 +271,11 @@ class Ui_DEMPropertiesWidget(object):
         self.radioButton_ImageFile.setObjectName(_fromUtf8("radioButton_ImageFile"))
         self.horizontalLayout_ImageFile.addWidget(self.radioButton_ImageFile)
         self.lineEdit_ImageFile = QtGui.QLineEdit(self.groupBox_DisplayType)
+        self.lineEdit_ImageFile.setEnabled(False)
         self.lineEdit_ImageFile.setObjectName(_fromUtf8("lineEdit_ImageFile"))
         self.horizontalLayout_ImageFile.addWidget(self.lineEdit_ImageFile)
         self.toolButton_ImageFile = QtGui.QToolButton(self.groupBox_DisplayType)
+        self.toolButton_ImageFile.setEnabled(False)
         self.toolButton_ImageFile.setObjectName(_fromUtf8("toolButton_ImageFile"))
         self.horizontalLayout_ImageFile.addWidget(self.toolButton_ImageFile)
         self.verticalLayout.addLayout(self.horizontalLayout_ImageFile)
@@ -286,9 +290,11 @@ class Ui_DEMPropertiesWidget(object):
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout_7.addWidget(self.label)
         self.lineEdit_Color = QtGui.QLineEdit(self.groupBox_DisplayType)
+        self.lineEdit_Color.setEnabled(False)
         self.lineEdit_Color.setObjectName(_fromUtf8("lineEdit_Color"))
         self.horizontalLayout_7.addWidget(self.lineEdit_Color)
         self.toolButton_Color = QtGui.QToolButton(self.groupBox_DisplayType)
+        self.toolButton_Color.setEnabled(False)
         self.toolButton_Color.setObjectName(_fromUtf8("toolButton_Color"))
         self.horizontalLayout_7.addWidget(self.toolButton_Color)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
@@ -361,6 +367,12 @@ class Ui_DEMPropertiesWidget(object):
 
         self.retranslateUi(DEMPropertiesWidget)
         QtCore.QObject.connect(self.checkBox_Clip, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.comboBox_ClipLayer.setEnabled)
+        QtCore.QObject.connect(self.radioButton_LayerImage, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.label_LayerImage.setEnabled)
+        QtCore.QObject.connect(self.radioButton_LayerImage, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_SelectLayer.setEnabled)
+        QtCore.QObject.connect(self.radioButton_ImageFile, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.lineEdit_ImageFile.setEnabled)
+        QtCore.QObject.connect(self.radioButton_ImageFile, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_ImageFile.setEnabled)
+        QtCore.QObject.connect(self.radioButton_SolidColor, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.lineEdit_Color.setEnabled)
+        QtCore.QObject.connect(self.radioButton_SolidColor, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_Color.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
 
     def retranslateUi(self, DEMPropertiesWidget):
