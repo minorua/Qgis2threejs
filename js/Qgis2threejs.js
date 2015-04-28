@@ -13,9 +13,8 @@ Q3D.Options = {
       altitude: 45    // altitude angle
     }
   },
-  sole_height: 1.5,
-  side: {color: 0xc7ac92},
-  frame: {color: 0},
+  side: {color: 0xc7ac92, bottomZ: -1.5},
+  frame: {color: 0, bottomZ: -1.5},
   label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
   qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
   debugMode: false,
@@ -781,15 +780,13 @@ Q3D.DEMBlock.prototype = {
   },
 
   buildSides: function (layer, material, z0) {
-    var sole_height = -z0;
-
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
-    var dem_data = this.data, w = this.width, h = this.height, HALF_PI = Math.PI / 2;
+    var band_width = -z0 * 2, dem_data = this.data, w = this.width, h = this.height, HALF_PI = Math.PI / 2;
     var i, mesh;
 
     // front and back
-    var geom_fr = new PlaneGeometry(this.plane.width, 2 * sole_height, w - 1, 1),
-        geom_ba = new PlaneGeometry(this.plane.width, 2 * sole_height, w - 1, 1);
+    var geom_fr = new PlaneGeometry(this.plane.width, band_width, w - 1, 1),
+        geom_ba = new PlaneGeometry(this.plane.width, band_width, w - 1, 1);
 
     var k = w * (h - 1);
     if (Q3D.Options.exportMode) {
@@ -821,8 +818,8 @@ Q3D.DEMBlock.prototype = {
     this.aObjs.push(mesh);
 
     // left and right
-    var geom_le = new PlaneGeometry(2 * sole_height, this.plane.height, 1, h - 1),
-        geom_ri = new PlaneGeometry(2 * sole_height, this.plane.height, 1, h - 1);
+    var geom_le = new PlaneGeometry(band_width, this.plane.height, 1, h - 1),
+        geom_ri = new PlaneGeometry(band_width, this.plane.height, 1, h - 1);
 
     if (Q3D.Options.exportMode) {
       for (i = 0; i < h; i++) {
@@ -859,7 +856,7 @@ Q3D.DEMBlock.prototype = {
       var geom = new THREE.PlaneBufferGeometry(this.plane.width, this.plane.height, 1, 1);
     }
     mesh = new THREE.Mesh(geom, material);
-    mesh.position.z = -sole_height;
+    mesh.position.z = z0;
     mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
     layer.addObject(mesh, false);
     this.aObjs.push(mesh);
@@ -1104,7 +1101,7 @@ Q3D.DEMLayer.prototype.build = function (parent) {
   this.blocks.forEach(function (block) {
     block.build(this);
 
-    // Build sides, bottom and frame
+    // build sides, bottom and frame
     if (block.s) {
       // material
       var opacity = this.materials[block.m].o;
@@ -1115,11 +1112,11 @@ Q3D.DEMLayer.prototype.build = function (parent) {
                                                transparent: (opacity < 1)});
       this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
 
-      block.buildSides(this, mat, -opt.sole_height);    // z0 = project.zShift * project.zScale;
+      block.buildSides(this, mat, opt.side.bottomZ);
       this.sideVisible = true;
     }
     if (block.frame) {
-      this.buildFrame(block, opt.frame.color, opt.sole_height);
+      this.buildFrame(block, opt.frame.color, opt.frame.bottomZ);
       this.sideVisible = true;
     }
   }, this);
@@ -1127,7 +1124,7 @@ Q3D.DEMLayer.prototype.build = function (parent) {
   if (parent) parent.add(this.objectGroup);
 };
 
-Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
+Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
   var dem = block;
   var opacity = this.materials[block.m].o;
   if (opacity === undefined) opacity = 1;
@@ -1137,13 +1134,13 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   this.materials.push({type: Q3D.MaterialType.LineBasic, m: mat});
 
   // horizontal rectangle at bottom
-  var hw = dem.plane.width / 2, hh = dem.plane.height / 2, z = -sole_height;
+  var hw = dem.plane.width / 2, hh = dem.plane.height / 2;
   var geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(-hw, -hh, z),
-                     new THREE.Vector3(hw, -hh, z),
-                     new THREE.Vector3(hw, hh, z),
-                     new THREE.Vector3(-hw, hh, z),
-                     new THREE.Vector3(-hw, -hh, z));
+  geom.vertices.push(new THREE.Vector3(-hw, -hh, z0),
+                     new THREE.Vector3(hw, -hh, z0),
+                     new THREE.Vector3(hw, hh, z0),
+                     new THREE.Vector3(-hw, hh, z0),
+                     new THREE.Vector3(-hw, -hh, z0));
 
   var obj = new THREE.Line(geom, mat);
   this.addObject(obj, false);
@@ -1157,7 +1154,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, sole_height) {
   pts.forEach(function (pt) {
     var geom = new THREE.Geometry();
     geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
-                       new THREE.Vector3(pt[0], pt[1], z));
+                       new THREE.Vector3(pt[0], pt[1], z0));
 
     var obj = new THREE.Line(geom, mat);
     this.addObject(obj, false);
