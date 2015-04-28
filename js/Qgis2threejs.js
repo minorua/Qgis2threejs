@@ -1596,7 +1596,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       project = this.project;
 
   if (this.objType == "Extruded") {
-    var createObject = function (f, polygon, z) {
+    var createSubObject = function (f, polygon, z) {
       var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
       for (var i = 1, l = polygon.length; i < l; i++) {
         shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
@@ -1607,23 +1607,20 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       return mesh;
     };
 
-    // each feature in this layer
-    this.f.forEach(function (f, fid) {
-      f.objs = [];
+    var createObject = function (f) {
+      if (f.polygons.length == 1) return createSubObject(f, f.polygons[0], f.zs[0]);
+
+      var group = new THREE.Group();
       for (var i = 0, l = f.polygons.length; i < l; i++) {
-        var obj = createObject(f, f.polygons[i], f.zs[i]);
-        obj.userData.layerId = this.index;
-        obj.userData.featureId = fid;
-        this.addObject(obj);
-        f.objs.push(obj);
+        group.add(createSubObject(f, f.polygons[i], f.zs[i]));
       }
-    }, this);
+      return group;
+    };
   }
   else {    // this.objType == "Overlay"
-    var relativeToDEM = (this.am == "relative");    // altitude mode
-    if (relativeToDEM) {
-      var dem = project.layers[0];
-    }
+    var relativeToDEM = (this.am == "relative"),    // altitude mode
+        dem = (relativeToDEM) ? project.layers[0] : null;
+
     var createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
 
@@ -1666,17 +1663,17 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       }
       return mesh;
     };
-
-    // each feature in this layer
-    this.f.forEach(function (f, fid) {
-      f.objs = [];
-      var obj = createObject(f);
-      obj.userData.layerId = this.index;
-      obj.userData.featureId = fid;
-      this.addObject(obj);
-      f.objs.push(obj);
-    }, this);
   }
+
+  // each feature in this layer
+  this.f.forEach(function (f, fid) {
+    f.objs = [];
+    var obj = createObject(f);
+    obj.userData.layerId = this.index;
+    obj.userData.featureId = fid;
+    this.addObject(obj);
+    f.objs.push(obj);
+  }, this);
 
   if (parent) parent.add(this.objectGroup);
 };
