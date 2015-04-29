@@ -176,8 +176,8 @@ Q3D.application = {
     this.queryObjNeedsUpdate = true;
 
     // label
-    this.labelConnectorGroup = new THREE.Group();
     this.labelVisibility = Q3D.Options.label.visible;
+    this.labelConnectorGroup = new THREE.Group();
     this.labels = [];     // labels of visible layers
 
     // root element for labels
@@ -430,24 +430,16 @@ Q3D.application = {
   labelVisibilityChanged: function () {
     this.labels = [];
     this.project.layers.forEach(function (layer) {
-      if (!layer.l) return;
-      this.labels = this.labels.concat(layer.labels);
+      if (layer.l && layer.visible) this.labels = this.labels.concat(layer.labels);
     }, this);
   },
 
   setLabelVisibility: function (visible) {
     this.labelVisibility = visible;
-    if (this.labels.length == 0) return;
-
     this.labelRootElement.style.display = (visible) ? "block" : "none";
     this.labelConnectorGroup.visible = visible;
-    this.labelConnectorGroup.children.forEach(function (group) {
-      var layer = this.project.layers[group.userData.layerId];
-      if (!layer.visible && visible) return;
-      group.visible = visible;
-    }, this);
 
-    this.render();
+    if (this.labels.length) this.render();
   },
 
   setWireframeMode: function (wireframe) {
@@ -1382,9 +1374,7 @@ Q3D.VectorLayer.prototype.setVisible = function (visible) {
   if (this.labels.length == 0) return;
 
   this.labelParentElement.style.display = (visible) ? "block" : "none";
-  if (this.labelConnectorGroup.parent.visible) {
-    this.labelConnectorGroup.visible = visible;
-  }
+  this.labelConnectorGroup.visible = visible;
   Q3D.application.labelVisibilityChanged();
 };
 
