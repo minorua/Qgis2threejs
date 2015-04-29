@@ -567,10 +567,6 @@ def writeSimpleDEM(writer, properties, progress=None):
   #elif properties.get("radioButton_Wireframe", False):
   #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
-  # shading (whether compute normals)
-  if properties.get("checkBox_Shading", True):
-    block["shading"] = True
-
   if not surroundings and properties.get("checkBox_Sides", False):
     block["s"] = True   #TODO: rename key to sides
 
@@ -771,10 +767,6 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
-    # shading (whether compute normals)
-    if properties.get("checkBox_Shading", True):
-      block["shading"] = True
-
     # write block
     writer.write("bl = lyr.addBlock({0});\n".format(pyobj2js(block)))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
@@ -831,10 +823,6 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     elif properties.get("radioButton_SolidColor", False):
       block["m"] = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
-
-    # shading (whether compute normals)
-    if properties.get("checkBox_Shading", True):
-      block["shading"] = True
 
     # write block
     writer.nextFile(True)
@@ -968,6 +956,12 @@ class DEMLayer(Layer):
   def layerObject(self):
     obj = Layer.layerObject(self)
     obj["type"] = "dem"
+
+    properties = self.prop.properties
+    # shading (whether normals are computed or not)
+    if properties.get("checkBox_Shading", True):
+      obj["shading"] = True
+
     return obj
 
 
