@@ -567,15 +567,19 @@ def writeSimpleDEM(writer, properties, progress=None):
   #elif properties.get("radioButton_Wireframe", False):
   #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
-  if not surroundings and properties.get("checkBox_Sides", False):
-    block["s"] = True   #TODO: rename key to sides
+  clip_layer = None
+  if not surroundings:
+    # clipping option
+    clip_option = properties.get("checkBox_Clip", False)
+    if clip_option:
+      clip_layerId = properties.get("comboBox_ClipLayer")
+      clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
 
-  if not surroundings and properties.get("checkBox_Frame", False):
-    block["frame"] = True
+    if properties.get("checkBox_Sides", False):
+      block["s"] = True   #TODO: rename key to sides
 
-  # clipping option
-  clip_layerId = properties.get("comboBox_ClipLayer") if properties.get("checkBox_Clip", False) else None
-  clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
+    if properties.get("checkBox_Frame", False) and not clip_option:
+      block["frame"] = True
 
   # write central block
   writer.write("bl = lyr.addBlock({0}, {1});\n".format(pyobj2js(block), pyobj2js(bool(clip_layer))))

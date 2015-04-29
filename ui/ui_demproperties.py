@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Tue Apr 28 11:32:03 2015
+# Created: Wed Apr 29 13:34:14 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -373,6 +373,7 @@ class Ui_DEMPropertiesWidget(object):
         QtCore.QObject.connect(self.radioButton_ImageFile, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_ImageFile.setEnabled)
         QtCore.QObject.connect(self.radioButton_SolidColor, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.lineEdit_Color.setEnabled)
         QtCore.QObject.connect(self.radioButton_SolidColor, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.toolButton_Color.setEnabled)
+        QtCore.QObject.connect(self.checkBox_Clip, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.checkBox_Frame.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
 
     def retranslateUi(self, DEMPropertiesWidget):

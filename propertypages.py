@@ -97,6 +97,10 @@ class PropertyPage(QWidget):
     for layout in layouts:
       self.setLayoutEnabled(layout, enabled)
 
+  def setWidgetsEnabled(self, widgets, enabled):
+    for w in widgets:
+      w.setEnabled(enabled)
+
   def registerPropertyWidgets(self, widgets):
     self.propertyWidgets = widgets
     # save default properties
@@ -426,9 +430,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.calculateResolution()
     self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
 
-    if self.radioButton_Simple.isChecked():
-      self.radioButton_ImageFile.setEnabled(not checked)
-      self.groupBox_Accessories.setEnabled(not checked)
+    is_simple = self.radioButton_Simple.isChecked()
+    is_simple_wo_surroundings = is_simple and not checked
+    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip, self.groupBox_Accessories], is_simple_wo_surroundings)
 
     if checked and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
@@ -547,17 +551,18 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def samplingModeChanged(self, checked):
     isSimpleMode = self.radioButton_Simple.isChecked()
+    isAdvancedMode = not isSimpleMode
     surroundings = self.checkBox_Surroundings.isChecked()
+    is_simple_wo_surroundings = isSimpleMode and not surroundings
 
     self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
     self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and surroundings)
-    self.radioButton_ImageFile.setEnabled(isSimpleMode and not surroundings)
-    isAdvancedMode = not isSimpleMode
+    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip, self.groupBox_Accessories], is_simple_wo_surroundings)
 
     if self.isPrimary:
-      self.setWidgetsVisible([self.groupBox_Accessories], isSimpleMode)
       self.setLayoutsVisible([self.horizontalLayout_Advanced1, self.horizontalLayout_Advanced3], isAdvancedMode)
       self.setWidgetsVisible([self.label_Focus], isAdvancedMode)
+
       if isSimpleMode:
         self.setLayoutVisible(self.horizontalLayout_Advanced4, False)
       else:

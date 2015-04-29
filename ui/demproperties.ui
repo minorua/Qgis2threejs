@@ -885,5 +885,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>checkBox_Clip</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBox_Frame</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>545</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>218</x>
+     <y>623</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
