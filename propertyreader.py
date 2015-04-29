@@ -183,7 +183,7 @@ class VectorPropertyReader:
         if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
           vals.append(comboData)
         elif comboData == ColorTextureWidgetFunc.LAYER:
-          vals.append(widgetValues["layerIds"])
+          vals.append(widgetValues.get("layerIds", []))
         else:
           vals.append(self._readColor(widgetValues, f))
 

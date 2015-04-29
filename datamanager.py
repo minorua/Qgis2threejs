@@ -118,7 +118,7 @@ class ImageManager(DataManager):
     settings.setExtent(extent.unrotatedRect())
     settings.setRotation(extent.rotation())
 
-    if layerids:
+    if layerids is not None:
       settings.setLayers(layerids)
 
     if transp_background:
