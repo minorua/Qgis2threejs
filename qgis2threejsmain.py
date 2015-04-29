@@ -576,7 +576,7 @@ def writeSimpleDEM(writer, properties, progress=None):
       clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
 
     if properties.get("checkBox_Sides", False):
-      block["s"] = True   #TODO: rename key to sides
+      block["sides"] = True
 
     if properties.get("checkBox_Frame", False) and not clip_option:
       block["frame"] = True

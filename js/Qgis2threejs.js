@@ -1102,7 +1102,7 @@ Q3D.DEMLayer.prototype.build = function (parent) {
     block.build(this);
 
     // build sides, bottom and frame
-    if (block.s) {
+    if (block.sides) {
       // material
       var opacity = this.materials[block.m].o;
       if (opacity === undefined) opacity = 1;

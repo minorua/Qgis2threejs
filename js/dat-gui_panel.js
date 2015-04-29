@@ -40,7 +40,7 @@ Q3D.gui = {
 
       if (layer.type == Q3D.LayerType.DEM) {
         var itemName = '';
-        if (layer.blocks[0].s) itemName = 'Sides and bottom';
+        if (layer.blocks[0].sides) itemName = 'Sides and bottom';
         else if (layer.blocks[0].frame) itemName = 'Frame';
 
         if (itemName) {
