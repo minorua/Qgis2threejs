@@ -305,7 +305,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layer = layer
 
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
-    self.setWidgetsVisible([self.radioButton_Advanced, self.groupBox_Accessories], isPrimary)
+    self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
     self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
 
@@ -320,9 +320,14 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.groupBox_Resampling.setEnabled(True)
     self.demLayerChanged(currentIndex)
 
-    # restore properties for the layer
+    # use default properties if properties is not set
+    if not properties:
+      properties = self.defaultProperties
+      properties["checkBox_Sides"] = self.isPrimary
+
+    # restore properties of the layer
     self.spinBox_Height.blockSignals(True)
-    self.setProperties(properties or self.defaultProperties)
+    self.setProperties(properties)
     self.spinBox_Height.blockSignals(False)
 
     self.calculateResolution()
