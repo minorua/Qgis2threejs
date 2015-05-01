@@ -1611,14 +1611,15 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   else {    // this.objType == "Overlay"
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
-        dem = project.layers[0];
+        dem = project.layers[0],
+        z0 = project.zShift * project.zScale;
 
     var createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
 
       var zFunc;
       if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
-      else zFunc = function (x, y) { return f.h; };     // TODO [FIXME]: f.h is height in 3d world from real zero altitude. must consider vertical shift
+      else zFunc = function (x, y) { return z0 + f.h; };
 
       var geom = Q3D.Utils.createOverlayGeometry(f.triangles, polygons, zFunc);
 
@@ -1632,7 +1633,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       // borders and sides
       var bzFunc, geom, vertices;
       if (sbRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.sb; };
-      else bzFunc = function (x, y) { return f.sb; };
+      else bzFunc = function (x, y) { return z0 + f.sb; };
 
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
