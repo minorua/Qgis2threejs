@@ -901,7 +901,8 @@ Q3D.ClippedDEMBlock.prototype = {
 
   buildSides: function (layer, material, z0) {
     var polygons = this.clip.polygons,
-        zFunc = layer.getZ.bind(layer);
+        zFunc = layer.getZ.bind(layer),
+        bzFunc = function (x, y) { return z0; };
 
     // make back-side material for bottom
     var mat_back = material.clone();
@@ -915,7 +916,7 @@ Q3D.ClippedDEMBlock.prototype = {
       // sides
       for (var j = 0, m = polygon.length; j < m; j++) {
         vertices = layer.segmentizeLineString(polygon[j], zFunc);
-        geom = Q3D.Utils.createWallGeometry(vertices, z0);
+        geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
         mesh = new THREE.Mesh(geom, material);
         layer.addObject(mesh, false);
         this.aObjs.push(mesh);
@@ -1530,7 +1531,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
     };
   }
   else if (this.objType == "Profile") {
-    var z0 = this.project.zShift * this.project.zScale;
+    var bz = this.project.zShift * this.project.zScale;   // TODO: use Q3D.Utils.createWallGeometry(+flat)
     var createObject = function (f, line) {
       var geom = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
       for (var i = 0, l = line.length; i < l; i++) {
@@ -1538,7 +1539,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
         geom.vertices[i].x = geom.vertices[i + l].x = pt[0];
         geom.vertices[i].y = geom.vertices[i + l].y = pt[1];
         geom.vertices[i].z = pt[2];
-        geom.vertices[i + l].z = z0;
+        geom.vertices[i + l].z = bz;
       }
       geom.computeFaceNormals();
       return new THREE.Mesh(geom, materials[f.m].m);
@@ -1609,14 +1610,15 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   }
   else {    // this.objType == "Overlay"
     var relativeToDEM = (this.am == "relative"),    // altitude mode
-        dem = (relativeToDEM) ? project.layers[0] : null;
+        sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
+        dem = project.layers[0];
 
     var createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.split_polygons || []) : f.polygons;
 
       var zFunc;
       if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
-      else zFunc = function (x, y) { return f.h; };
+      else zFunc = function (x, y) { return f.h; };     // TODO [FIXME]: f.h is height in 3d world from real zero altitude. must consider vertical shift
 
       var geom = Q3D.Utils.createOverlayGeometry(f.triangles, polygons, zFunc);
 
@@ -1628,11 +1630,14 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
       if (f.mb === undefined && f.ms === undefined) return mesh;
 
       // borders and sides
-      var geom, vertices, z0 = project.zShift * project.zScale;
+      var bzFunc, geom, vertices;
+      if (sbRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.sb; };
+      else bzFunc = function (x, y) { return f.sb; };
+
       for (var i = 0, l = f.polygons.length; i < l; i++) {
         var polygon = f.polygons[i];
         for (var j = 0, m = polygon.length; j < m; j++) {
-          if (relativeToDEM) {
+          if (relativeToDEM || sbRelativeToDEM) {
             vertices = dem.segmentizeLineString(polygon[j], zFunc);
           }
           else {
@@ -1646,7 +1651,7 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
           }
 
           if (f.ms) {
-            geom = Q3D.Utils.createWallGeometry(vertices, z0);
+            geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
             mesh.add(new THREE.Mesh(geom, materials[f.ms].m));
           }
         }
@@ -1937,7 +1942,7 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
          ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
-Q3D.Utils.createWallGeometry = function (vertices, z0) {
+Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
   var geom, pt, v;
   if (Q3D.Options.exportMode) {
     geom = new THREE.PlaneGeometry(0, 0, vertices.length - 1, 1);
@@ -1946,7 +1951,7 @@ Q3D.Utils.createWallGeometry = function (vertices, z0) {
       pt = vertices[i];
       v[i].x = v[i + l].x = pt.x;
       v[i].y = v[i + l].y = pt.y;
-      v[i].z = z0;
+      v[i].z = bzFunc(pt.x, pt.y);
       v[i + l].z = pt.z;
     }
   }
@@ -1957,7 +1962,7 @@ Q3D.Utils.createWallGeometry = function (vertices, z0) {
       pt = vertices[i];
       v[k] = v[k + l3] = pt.x;
       v[k + 1] = v[k + l3 + 1] = pt.y;
-      v[k + 2] = z0;
+      v[k + 2] = bzFunc(pt.x, pt.y);
       v[k + l3 + 2] = pt.z;
     }
   }

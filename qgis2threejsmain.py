@@ -1003,7 +1003,14 @@ class VectorLayer(Layer):
     obj["objType"] = prop.type_name
 
     if self.geomType == QGis.Polygon and prop.type_index == 1:   # Overlay
+      #TODO: move to object module (.layerProperties)
       obj["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
+
+      # altitude mode of bottom of side
+      from stylewidget import HeightWidgetFunc
+      cb4 = properties["styleWidget4"]["comboData"]
+      isSbRelative = (cb4 == HeightWidgetFunc.RELATIVE or cb4 >= HeightWidgetFunc.FIRST_ATTR_REL)
+      obj["sbm"] = "relative" if isSbRelative else "absolute"
 
     if self.hasLabel():
       widgetValues = properties.get("labelHeightWidget", {})

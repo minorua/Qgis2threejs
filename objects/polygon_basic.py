@@ -52,6 +52,8 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
            "itemText": {OptionalColorWidgetFunc.NONE: "(No side)",
                         ColorWidgetFunc.FEATURE: "Border color of feature style"}}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
+    #TODO: default is absolute
+    ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Side bottom height", "layer": layer})
 
   # label height widget
   if type_index == 0:
@@ -98,14 +100,19 @@ def write(writer, layer, feat):
     else:
       d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
-    # borders
+    # border
     if vals[2] is not None:
       d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
-    # sides
+    # side
     if vals[3] is not None:
       d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], doubleSide=True)
 
+      # bottom height of side
+      d["sb"] = vals[4] * writer.settings.mapTo3d.multiplierZ
+
+    # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
+    # Vertical shift is not considered (will be shifted in JS).
     d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
 
     polygons = []

@@ -206,6 +206,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
         self.widget.lineEdit.setText(directory)
 
 class HeightWidgetFunc(WidgetFuncBase):
+
   ABSOLUTE = 1
   RELATIVE = 2
   Z_VALUE = 3
@@ -213,9 +214,9 @@ class HeightWidgetFunc(WidgetFuncBase):
   FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
   def setup(self, options=None):
-    """ options: defaultValue, layer """
-    WidgetFuncBase.setup(self, "Mode")
+    """ options: name, defaultValue, layer """
     options = options or {}
+    WidgetFuncBase.setup(self, options.get("name", "Mode"))
     self.defaultValue = options.get("defaultValue", 0)
     layer = options.get("layer")
 

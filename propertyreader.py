@@ -202,6 +202,14 @@ class VectorPropertyReader:
             QgsMessageLog.logMessage(u"Empty attribute value in the field '{0}'".format(fieldName), "Qgis2threejs")
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
+      elif widgetType == StyleWidget.HEIGHT:
+        if widgetValues["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
+          vals.append(self.toFloat(widgetValues["editText"]))
+        else:
+          # attribute value + addend
+          fieldName = widgetValues["comboText"].lstrip("+").strip(' "')
+          vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
+
       else:
         if comboData == FieldValueWidgetFunc.ABSOLUTE or f is None:
           vals.append(widgetValues["editText"])
