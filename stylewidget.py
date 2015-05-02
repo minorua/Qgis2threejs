@@ -214,7 +214,7 @@ class HeightWidgetFunc(WidgetFuncBase):
   FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
   def setup(self, options=None):
-    """ options: name, defaultValue, layer """
+    """ options: name, defaultItem, defaultValue, layer """
     options = options or {}
     WidgetFuncBase.setup(self, options.get("name", "Mode"))
     self.defaultValue = options.get("defaultValue", 0)
@@ -245,6 +245,12 @@ class HeightWidgetFunc(WidgetFuncBase):
       for index, fieldName in index_fieldName:
         comboBox.addItem(u' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
             # note: VectorPropertyReader.relativeHeight() uses item name to get field name
+
+    defaultItem = options.get("defaultItem")
+    if defaultItem is not None:
+      index = self.widget.comboBox.findData(defaultItem)
+      if index != -1:
+        self.widget.comboBox.setCurrentIndex(index)
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)

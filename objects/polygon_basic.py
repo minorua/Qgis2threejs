@@ -52,8 +52,11 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
            "itemText": {OptionalColorWidgetFunc.NONE: "(No side)",
                         ColorWidgetFunc.FEATURE: "Border color of feature style"}}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
-    #TODO: default is absolute
-    ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Side bottom height", "layer": layer})
+
+    opt = {"name": "Side bottom height",
+           "layer": layer,
+           "defaultItem": HeightWidgetFunc.ABSOLUTE}
+    ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
 
   # label height widget
   if type_index == 0:
