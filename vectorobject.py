@@ -30,15 +30,21 @@ def list_modules():
     qDebug(nam + ": " + str(mod))
 
 class ObjectTypeModule:
+
   def __init__(self, module):
     self.module = module
     self.geometryType = getattr(module, 'geometryType')()
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
-    self.setupWidgets = getattr(module, 'setupWidgets')     # setupWidgets(dialog, mapTo3d, layer, type_index=0)
-    self.write = getattr(module, 'write')             # write(writer, layer, feat)
+
+    self.setupWidgets = getattr(module, 'setupWidgets')                       # (dialog, mapTo3d, layer, type_index=0)
+    self.layerProperties = getattr(module, 'layerProperties', self.a_dict)    # (writer, layer)
+    self.write = getattr(module, 'write')                                     # (writer, layer, feat)
+
+  def a_dict(self, *args):
+    return {}
 
   @classmethod
-  def load(self, modname):
+  def load(cls, modname):
     if modname in sys.modules:
       module = reload(sys.modules[modname])
       return ObjectTypeModule(module)

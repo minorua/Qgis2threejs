@@ -76,6 +76,18 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   if layer:
     ppage.labelHeightWidget.addFieldNames(layer)
 
+def layerProperties(writer, layer):
+  p = {}
+  prop = layer.prop
+  if prop.type_index == 1:      # Overlay
+    p["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
+
+    # altitude mode of bottom of side
+    cb4 = prop.properties["styleWidget5"]["comboData"]
+    isSbRelative = (cb4 == HeightWidgetFunc.RELATIVE or cb4 >= HeightWidgetFunc.FIRST_ATTR_REL)
+    p["sbm"] = "relative" if isSbRelative else "absolute"
+  return p
+
 def write(writer, layer, feat):
   vals = feat.propValues()
   polygons = []

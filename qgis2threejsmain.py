@@ -973,8 +973,9 @@ class VectorLayer(Layer):
 
   geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
 
-  def __init__(self, writer, layer, prop):
+  def __init__(self, writer, layer, prop, obj_mod):
     Layer.__init__(self, writer, layer, prop)
+    self.obj_mod = obj_mod
 
     self.transform = QgsCoordinateTransform(layer.crs(), writer.settings.crs)
     self.geomType = layer.geometryType()
@@ -994,6 +995,7 @@ class VectorLayer(Layer):
     return bool(self.labelAttrIndex is not None)
 
   def layerObject(self):
+    """layer properties"""
     mapTo3d = self.writer.settings.mapTo3d
     prop = self.prop
     properties = prop.properties
@@ -1002,21 +1004,15 @@ class VectorLayer(Layer):
     obj["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(self.geomType, "")
     obj["objType"] = prop.type_name
 
-    if self.geomType == QGis.Polygon and prop.type_index == 1:   # Overlay
-      #TODO: move to object module (.layerProperties)
-      obj["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
-
-      # altitude mode of bottom of side
-      from stylewidget import HeightWidgetFunc
-      cb4 = properties["styleWidget5"]["comboData"]
-      isSbRelative = (cb4 == HeightWidgetFunc.RELATIVE or cb4 >= HeightWidgetFunc.FIRST_ATTR_REL)
-      obj["sbm"] = "relative" if isSbRelative else "absolute"
-
     if self.hasLabel():
       widgetValues = properties.get("labelHeightWidget", {})
       obj["l"] = {"i": self.labelAttrIndex,
                   "ht": int(widgetValues.get("comboData", 0)),
                   "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
+
+    # object-type-specific properties
+    obj.update(self.obj_mod.layerProperties(self.writer, self))
+
     return obj
 
   def features(self, request=None, clipGeom=None):
@@ -1158,7 +1154,7 @@ def writeVectors(writer, legendInterface, progress=None):
     progress(30 + 30 * finishedLayers / len(layers), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
 
     # write layer object
-    layer = VectorLayer(writer, mapLayer, prop)
+    layer = VectorLayer(writer, mapLayer, prop, obj_mod)
     writer.writeLayer(layer.layerObject(), layer.fieldNames)
 
     # initialize symbol rendering
