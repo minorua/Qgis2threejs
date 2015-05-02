@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\widgetComboEdit.ui'
 #
-# Created: Sun Apr 06 11:40:21 2014
+# Created: Sat May 02 10:53:45 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -56,6 +56,9 @@ class Ui_ComboEditWidget(object):
         self.comboBox.setMinimumSize(QtCore.QSize(120, 0))
         self.comboBox.setObjectName(_fromUtf8("comboBox"))
         self.horizontalLayout_1.addWidget(self.comboBox)
+        self.checkBox = QtGui.QCheckBox(ComboEditWidget)
+        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.horizontalLayout_1.addWidget(self.checkBox)
         self.formLayout.setLayout(0, QtGui.QFormLayout.LabelRole, self.horizontalLayout_1)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))

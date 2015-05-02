@@ -593,7 +593,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
-  STYLE_MAX_COUNT = 5
+  STYLE_MAX_COUNT = 6
 
   def __init__(self, dialog, parent=None):
     PropertyPage.__init__(self, PAGE_VECTOR, dialog, parent)

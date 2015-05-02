@@ -35,7 +35,7 @@ class WidgetFuncBase:
   def __init__(self, widget):
     self.widget = widget
 
-  def setup(self, name, editLabel="Value", lineEdit="", placeholderText="", readOnly=False, toolButton=False):
+  def setup(self, name, editLabel="Value", lineEdit="", placeholderText="", readOnly=False, toolButton=False, checkBox=False):
     # initialize widgets
     self.widget.label_1.setText(name)
     self.widget.label_2.setText(editLabel)
@@ -44,6 +44,7 @@ class WidgetFuncBase:
     self.widget.lineEdit.setText(lineEdit or "")
     self.widget.lineEdit.setVisible(lineEdit is not False)
     self.widget.toolButton.setVisible(toolButton)
+    self.widget.checkBox.setVisible(checkBox)
 
   def resetDefault(self):
     pass
@@ -330,9 +331,11 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
     ColorWidgetFunc.setup(self, options)
     self.widget.label_1.setText(options.get("name", "Color"))
 
-    self.widget.comboBox.insertItem(0, "None", OptionalColorWidgetFunc.NONE)
+    itemText = options.get("itemText", {})
+    if itemText.get(OptionalColorWidgetFunc.NONE, "") is not None:
+      self.widget.comboBox.insertItem(0, "None", OptionalColorWidgetFunc.NONE)
 
-    for id, text in options.get("itemText", {}).iteritems():
+    for id, text in itemText.iteritems():
       index = self.widget.comboBox.findData(id)
       if index != -1:
         self.widget.comboBox.setItemText(index, text)
@@ -402,6 +405,44 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     self.layerIds = vals.get("layerIds", [])
     ColorWidgetFunc.setValues(self, vals)
 
+class CheckBoxWidgetFunc(WidgetFuncBase):
+
+  def setup(self, options=None):
+    """ options: name, defaultValue, connectTo """
+    options = options or {}
+    WidgetFuncBase.setup(self, options.get("name", ""), checkBox=True)
+    self.setLayoutVisible(False)
+    checked = options.get("defaultValue", False)
+
+    # connect with widgets
+    self.connectedWidgets = []
+    for w in options.get("connectTo", []):
+      w.setEnabled(checked)
+      self.widget.checkBox.toggled.connect(w.setEnabled)
+      self.connectedWidgets.append(w)
+
+  def resetDefault(self):
+    self.setLayoutVisible(True)
+    for w in self.connectedWidgets:
+      self.widget.checkBox.toggled.disconnect(w.setEnabled)
+      w.setEnabled(True)
+
+  def values(self):
+    return {"type": self.widget.funcType,
+            "checkBox": self.widget.checkBox.isChecked()}
+
+  def setValues(self, vals):
+    checked = vals["checkBox"]
+    self.widget.checkBox.setChecked(checked)
+    for w in self.connectedWidgets:
+      w.setEnabled(checked)
+
+  def setLayoutVisible(self, visible):
+    self.widget.label_2.setVisible(visible)
+    self.widget.comboBox.setVisible(visible)
+    self.widget.lineEdit.setVisible(visible)
+    self.widget.toolButton.setVisible(visible)
+
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
   # function types
@@ -413,6 +454,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   LABEL_HEIGHT = 6
   OPTIONAL_COLOR = 7
   COLOR_TEXTURE = 8
+  CHECKBOX = 9
 
   type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
                     COLOR: ColorWidgetFunc,
@@ -421,7 +463,8 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                     LABEL_HEIGHT: LabelHeightWidgetFunc,
                     TRANSPARENCY: TransparencyWidgetFunc,
                     OPTIONAL_COLOR: OptionalColorWidgetFunc,
-                    COLOR_TEXTURE: ColorTextureWidgetFunc}
+                    COLOR_TEXTURE: ColorTextureWidgetFunc,
+                    CHECKBOX: CheckBoxWidgetFunc}
 
   FIELDTYPE_ALL = 0
   FIELDTYPE_NUMBER = 1

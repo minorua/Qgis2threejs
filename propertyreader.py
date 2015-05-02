@@ -175,7 +175,7 @@ class VectorPropertyReader:
         break
 
       widgetType = widgetValues["type"]
-      comboData = widgetValues["comboData"]
+      comboData = widgetValues.get("comboData")
       if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
         vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
 
@@ -201,6 +201,9 @@ class VectorPropertyReader:
             value = ""
             QgsMessageLog.logMessage(u"Empty attribute value in the field '{0}'".format(fieldName), "Qgis2threejs")
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
+
+      elif widgetType == StyleWidget.CHECKBOX:
+        vals.append(widgetValues["checkBox"])
 
       elif widgetType == StyleWidget.HEIGHT:
         if widgetValues["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:

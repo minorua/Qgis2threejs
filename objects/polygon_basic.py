@@ -48,12 +48,16 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
            "defaultItem": ColorWidgetFunc.FEATURE}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
+    opt = {"name": "Side",
+           "connectTo": [ppage.styleWidgets[4], ppage.styleWidgets[5]]}
+    ppage.addStyleWidget(StyleWidget.CHECKBOX, opt)
+
     opt = {"name": "Side color",
-           "itemText": {OptionalColorWidgetFunc.NONE: "(No side)",
-                        ColorWidgetFunc.FEATURE: "Border color of feature style"}}
+           "itemText": {OptionalColorWidgetFunc.NONE: None,
+                        OptionalColorWidgetFunc.FEATURE: "Feature style (border)"}}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
-    opt = {"name": "Side bottom height",
+    opt = {"name": "Side bottom Z",
            "layer": layer,
            "defaultItem": HeightWidgetFunc.ABSOLUTE}
     ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
@@ -108,11 +112,11 @@ def write(writer, layer, feat):
       d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
     # side
-    if vals[3] is not None:
-      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[3], vals[1], doubleSide=True)
+    if vals[3]:
+      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
 
       # bottom height of side
-      d["sb"] = vals[4] * writer.settings.mapTo3d.multiplierZ
+      d["sb"] = vals[5] * writer.settings.mapTo3d.multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).

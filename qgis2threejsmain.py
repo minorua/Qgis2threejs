@@ -1008,7 +1008,7 @@ class VectorLayer(Layer):
 
       # altitude mode of bottom of side
       from stylewidget import HeightWidgetFunc
-      cb4 = properties["styleWidget4"]["comboData"]
+      cb4 = properties["styleWidget5"]["comboData"]
       isSbRelative = (cb4 == HeightWidgetFunc.RELATIVE or cb4 >= HeightWidgetFunc.FIRST_ATTR_REL)
       obj["sbm"] = "relative" if isSbRelative else "absolute"
 

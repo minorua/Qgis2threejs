@@ -63,6 +63,9 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="checkBox"/>
+     </item>
     </layout>
    </item>
    <item row="0" column="1">
