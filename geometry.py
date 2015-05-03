@@ -104,6 +104,9 @@ class LineGeometry:
   def asList(self):
     return [map(lambda pt: [pt.x, pt.y, pt.z], line) for line in self.lines]
 
+  def asList2(self):
+    return [map(lambda pt: [pt.x, pt.y], line) for line in self.lines]
+
   def toQgsGeometry(self):
     count = len(self.lines)
     if count > 1:

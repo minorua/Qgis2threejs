@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QGis
-from Qgis2threejs.stylewidget import StyleWidget
+from Qgis2threejs.stylewidget import StyleWidget, HeightWidgetFunc
 
 def geometryType():
   return QGis.Line
@@ -34,21 +34,49 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.initStyleWidgets()
   if type_index in [1, 2]:  # Pipe or Cone
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
+  elif type_index == 3:     # Profile
+    opt = {"name": "Bottom Z",
+           "layer": layer,
+           "defaultItem": HeightWidgetFunc.ABSOLUTE}
+    ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
+
+def layerProperties(writer, layer):
+  p = {}
+  prop = layer.prop
+  if prop.type_index == 3:      # Profile
+    # altitude mode
+    p["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"
+
+    # altitude mode of bottom
+    cb = prop.properties["styleWidget2"]["comboData"]
+    isBRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
+    p["bam"] = "relative" if isBRelative else "absolute"
+  return p
 
 def write(writer, layer, feat):
   mapTo3d = writer.settings.mapTo3d
+  type_index = feat.prop.type_index
   vals = feat.propValues()
-  if feat.prop.type_index in [0, 3]:   # Line or Profile
-    if feat.prop.type_index == 0:
-      mat = layer.materialManager.getLineBasicIndex(vals[0], vals[1])
-    else:
-      mat = layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)
+
+  if type_index == 0:   # Line
+    mat = layer.materialManager.getLineBasicIndex(vals[0], vals[1])
     writer.writeFeature({"m": mat, "lines": feat.geom.asList()})
+    return
+  elif type_index == 3:   # Profile
+    d = {"m": layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)}
+    if feat.prop.isHeightRelativeToDEM():
+      d["h"] = feat.relativeHeight() * mapTo3d.multiplierZ
+      d["lines"] = feat.geom.asList2()
+    else:
+      d["lines"] = feat.geom.asList()
+
+    d["bh"] = float(vals[2]) * mapTo3d.multiplierZ
+    writer.writeFeature(d)
     return
 
   # Pipe or Cone
   rb = float(vals[2]) * mapTo3d.multiplier
   if rb != 0:
     mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-    rt = 0 if feat.prop.type_index == 2 else rb
+    rt = 0 if type_index == 2 else rb
     writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "rt": rt, "rb": rb})

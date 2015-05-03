@@ -1217,7 +1217,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   var pts = [];
   for (var i = 1, l = lineString.length; i < l; i++) {
     var pt1 = lineString[i - 1], pt2 = lineString[i];
-    var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1];
+    var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1], z1 = pt1[2], z2 = pt2[2];
     var nx1 = (x1 - xmin) / ix,
         nx2 = (x2 - xmin) / ix;
     var ny1 = (ymax - y1) / iy,
@@ -1238,14 +1238,19 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
 
     p.sort(function (a, b) { return a - b; });
 
-    var x, y, lp = null;
+    var x, y, z, lp = null;
     for (var j = 0, m = p.length; j < m; j++) {
       if (lp === p[j]) continue;
       if (p[j] == 1) break;
 
       x = x1 + (x2 - x1) * p[j];
       y = y1 + (y2 - y1) * p[j];
-      pts.push(new THREE.Vector3(x, y, zFunc(x, y)));
+
+      if (z1 === undefined || z2 === undefined) z = zFunc(x, y);
+      else z = z1 + (z2 - z1) * p[j];
+
+      pts.push(new THREE.Vector3(x, y, z));
+
       // Q3D.Utils.putStick(x, y, zFunc);
 
       lp = p[j];
@@ -1253,7 +1258,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   }
   // last point (= the first point)
   var pt = lineString[lineString.length - 1];
-  pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
+  pts.push(new THREE.Vector3(pt[0], pt[1], (pt[2] === undefined) ? zFunc(pt[0], pt[1]) : pt[2]));
 
   /*
   for (var i = 0, l = lineString.length - 1; i < l; i++) {
@@ -1531,17 +1536,31 @@ Q3D.LineLayer.prototype.build = function (parent) {
     };
   }
   else if (this.objType == "Profile") {
-    var bz = this.project.zShift * this.project.zScale;   // TODO: use Q3D.Utils.createWallGeometry(+flat)
+    var relativeToDEM = (this.am == "relative"),    // altitude mode
+        bRelativeToDEM = (this.bam == "relative"),  // altitude mode of bottom height
+        dem = project.layers[0],
+        z0 = project.zShift * project.zScale;
+
     var createObject = function (f, line) {
-      var geom = new THREE.PlaneGeometry(0, 0, line.length - 1, 1);
-      for (var i = 0, l = line.length; i < l; i++) {
-        pt = line[i];
-        geom.vertices[i].x = geom.vertices[i + l].x = pt[0];
-        geom.vertices[i].y = geom.vertices[i + l].y = pt[1];
-        geom.vertices[i].z = pt[2];
-        geom.vertices[i + l].z = bz;
+      var bzFunc, vertices;
+      if (bRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.bh; };
+      else bzFunc = function (x, y) { return z0 + f.bh; };
+
+      if (relativeToDEM) {
+        var zFunc = function (x, y) { return dem.getZ(x, y) + f.h; };
+        vertices = dem.segmentizeLineString(line, zFunc);   // line is list of 2D point [x, y]
       }
-      geom.computeFaceNormals();
+      else if (bRelativeToDEM) {
+        vertices = dem.segmentizeLineString(line);          // line is list of 3D point [x, y, z]
+      }
+      else {    // both altitude modes are absolute
+        vertices = [];
+        for (var i = 0, l = line.length; i < l; i++) {
+          pt = line[i];
+          vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+        }
+      }
+      var geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);    // TODO: flat shading
       return new THREE.Mesh(geom, materials[f.m].m);
     };
   }
