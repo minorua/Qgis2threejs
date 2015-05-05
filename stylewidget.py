@@ -264,6 +264,11 @@ class HeightWidgetFunc(WidgetFuncBase):
     self.widget.label_2.setText(label)
     self.widget.lineEdit.setText(unicode(defaultValue))
 
+  def isCurrentItemRelativeHeight(self):
+    itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
+    return itemData == HeightWidgetFunc.RELATIVE or itemData >= HeightWidgetFunc.FIRST_ATTR_REL
+
+
 class LabelHeightWidgetFunc(WidgetFuncBase):
   ABSOLUTE = 1
   RELATIVE = 2

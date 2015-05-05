@@ -631,6 +631,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
+    self.heightWidget.comboBox.currentIndexChanged.connect(self.altitudeModeChanged)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
   def setup(self, properties=None, layer=None):
@@ -695,8 +696,24 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # setup widgets
     self.dialog.objectTypeManager.setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
 
+    # update enabled property of feature group box
+    self.altitudeModeChanged()
+
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
+
+  def altitudeModeChanged(self, index=None):
+    geom_type = self.layer.geometryType()
+    type_index = self.comboBox_ObjectType.currentIndex()
+    only_clipped = False
+
+    if (geom_type == QGis.Line and type_index == 3) or (geom_type == QGis.Polygon and type_index == 1):    # Profile or Overlay
+      if self.heightWidget.func.isCurrentItemRelativeHeight():
+        only_clipped = True
+        self.radioButton_IntersectingFeatures.setChecked(True)
+        self.checkBox_Clip.setChecked(True)
+
+    self.groupBox_Features.setEnabled(not only_clipped)
 
   def exportAttrsToggled(self, checked):
     self.setLayoutEnabled(self.formLayout_Label, checked)

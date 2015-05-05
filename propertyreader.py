@@ -146,7 +146,7 @@ class VectorPropertyReader:
 
   def isHeightRelativeToDEM(self):
     v0 = self.properties["heightWidget"]["comboData"]
-    return  v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
+    return v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
 
   def relativeHeight(self, f=None):
     vals = self.properties["heightWidget"]
