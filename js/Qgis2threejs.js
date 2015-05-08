@@ -1493,10 +1493,9 @@ Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
 Q3D.LineLayer.prototype.build = function (parent) {
   var materials = this.materials;
-  var pt;
   if (this.objType == "Line") {
     var createObject = function (f, line) {
-      var geom = new THREE.Geometry();
+      var geom = new THREE.Geometry(), pt;
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
         geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
@@ -1510,7 +1509,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
       var group = new THREE.Group();
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
-      var geom, obj;
+      var geom, obj, pt;
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
         pt1.set(pt[0], pt[1], pt[2]);
@@ -1535,6 +1534,99 @@ Q3D.LineLayer.prototype.build = function (parent) {
       return group;
     };
   }
+  else if (this.objType == "Box") {
+    // In this method, box corners are exposed near joint when both azimuth and slope of
+    // the segments of both sides are different. Also, some unnecessary faces are created.
+    var debugMode = Q3D.Options.debugMode;
+    var faces = [], vi;
+    vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
+          [3, 0, 7], [7, 0, 4],
+          [6, 3, 2], [2, 3, 7],
+          [4, 1, 0], [0, 1, 5],   // right turn - top, side, bottom
+          [1, 2, 5], [5, 2, 6],
+          [2, 7, 6], [6, 7, 3]];
+
+    for (var j = 0; j < 12; j++) {
+      faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
+    }
+
+    var createObject = function (f, line) {
+      var geometry = new THREE.Geometry(),
+          group = new THREE.Group();      // used in debug mode
+
+      var geom, obj, dist, quat, rx, rz, wh4, vb4, vf4;
+      var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
+          pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
+          matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
+
+      pt0.set(line[0][0], line[0][1], line[0][2]);
+      for (var i = 1, l = line.length; i < l; i++) {
+        pt1.set(line[i][0], line[i][1], line[i][2]);
+        dist = pt0.distanceTo(pt1);
+        sub.subVectors(pt1, pt0);
+        rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
+        rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
+        ptM.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);   // midpoint
+        quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
+        matrix.compose(ptM, quat, scale1);
+
+        // place a box to the segment
+        geom = new THREE.BoxGeometry(f.w, dist, f.h);
+        if (debugMode) {
+          obj = new THREE.Mesh(geom, materials[f.m].m);
+          obj.position.set(ptM.x, ptM.y, ptM.z);
+          obj.rotation.set(rx, 0, rz, "ZXY");
+          group.add(obj);
+        }
+        else {
+          geom.applyMatrix(matrix);
+          geometry.merge(geom);
+        }
+
+        // joint
+        // 4 vertices of backward side of current segment
+        wh4 = [[-f.w / 2, f.h / 2],
+              [f.w / 2, f.h / 2],
+              [f.w / 2, -f.h / 2],
+              [-f.w / 2, -f.h / 2]];
+        vb4 = [];
+        for (j = 0; j < 4; j++) {
+          pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
+          pt.applyMatrix4(matrix);
+          vb4.push(pt.clone());
+        }
+
+        if (vf4) {
+          geom = new THREE.Geometry();
+          geom.vertices = vf4.concat(vb4);
+          geom.faces = faces;
+          if (debugMode) {
+            geom.computeFaceNormals();
+            group.add(new THREE.Mesh(geom));
+          }
+          else {
+            geometry.merge(geom);
+          }
+        }
+
+        // 4 vertices of forward side
+        vf4 = [];
+        for (j = 0; j < 4; j++) {
+          pt.set(wh4[j][0], dist / 2, wh4[j][1]);
+          pt.applyMatrix4(matrix);
+          vf4.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+        }
+
+        pt0.copy(pt1);
+      }
+
+      if (debugMode) return group;
+
+      geometry.mergeVertices();
+      geometry.computeFaceNormals();
+      return new THREE.Mesh(geometry, materials[f.m].m);
+    };
+  }
   else if (this.objType == "Profile") {
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         bRelativeToDEM = (this.bam == "relative"),  // altitude mode of bottom height
@@ -1554,6 +1646,7 @@ Q3D.LineLayer.prototype.build = function (parent) {
         vertices = dem.segmentizeLineString(line);          // line is list of 3D point [x, y, z]
       }
       else {    // both altitude modes are absolute
+        var pt;
         vertices = [];
         for (var i = 0, l = line.length; i < l; i++) {
           pt = line[i];
