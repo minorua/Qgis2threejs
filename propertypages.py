@@ -707,7 +707,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
-    if (geom_type == QGis.Line and type_index == 3) or (geom_type == QGis.Polygon and type_index == 1):    # Profile or Overlay
+    if (geom_type == QGis.Line and type_index == 4) or (geom_type == QGis.Polygon and type_index == 1):    # Profile or Overlay
       if self.heightWidget.func.isCurrentItemRelativeHeight():
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)

@@ -26,7 +26,7 @@ def geometryType():
   return QGis.Point
 
 def objectTypeNames():
-  return ["Sphere", "Cylinder", "Box", "Cone", "Disk"]
+  return ["Sphere", "Cylinder", "Cone", "Box", "Disk"]
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
@@ -35,10 +35,10 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.initStyleWidgets()
   if type_index == 0:  # Sphere
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
-  elif type_index in [1, 3]: # Cylinder, Cone
+  elif type_index in [1, 2]: # Cylinder, Cone
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
-  elif type_index == 2:  # Box
+  elif type_index == 3:  # Box
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Depth", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
@@ -58,12 +58,12 @@ def write(writer, layer, feat):
       writer.writeFeature({"m": mat, "pts": pts,"r": r})
     else:
       QgsMessageLog.logMessage(u"Sphere with zero radius not exported", "Qgis2threejs")
-  elif feat.prop.type_index in [1, 3]: # Cylinder, Cone
+  elif feat.prop.type_index in [1, 2]: # Cylinder, Cone
     rb = float(vals[2]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
     h = float(vals[3]) * mapTo3d.multiplierZ
     writer.writeFeature({"m": mat, "pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90})
-  elif feat.prop.type_index == 2:  # Box
+  elif feat.prop.type_index == 3:  # Box
     w = float(vals[2]) * mapTo3d.multiplier
     d = float(vals[3]) * mapTo3d.multiplier
     h = float(vals[4]) * mapTo3d.multiplierZ
