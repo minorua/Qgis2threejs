@@ -279,12 +279,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
-    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.checkBox_Shading]
+    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.comboBox_TextureSize, self.checkBox_Shading]
     widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
     widgets += [self.checkBox_Sides, self.checkBox_Frame]
     self.registerPropertyWidgets(widgets)
 
     self.initLayerComboBox()
+    self.initTextureSizeComboBox()
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
@@ -363,6 +364,16 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       elif layer.type() == QgsMapLayer.VectorLayer:
         if layer.geometryType() == QGis.Polygon:
           comboPolygon.addItem(layer.name(), layer.id())
+
+  def initTextureSizeComboBox(self):
+    canvas = self.dialog.iface.mapCanvas()
+    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+
+    self.comboBox_TextureSize.clear()
+    for i in range(1, 5):
+      percent = i * 100
+      text = "{0} % ({1} x {2})".format(percent, outsize.width() * i, outsize.height() * i)
+      self.comboBox_TextureSize.addItem(text, percent)
 
   def selectDEMLayer(self, layerId=None):
     comboBox = self.comboBox_DEMLayer
@@ -547,6 +558,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         t = 2
       else:   # self.radioButton_SolidColor.isChecked():
         t = 3
+
+      self.setWidgetsEnabled([self.label_TextureSize, self.comboBox_TextureSize], t in [0, 1])
 
       self.checkBox_TransparentBackground.setEnabled(t in [0, 1, 2])
       if t in [0, 1]:

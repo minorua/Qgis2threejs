@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Wed Apr 29 13:34:14 2015
+# Created: Sun May 10 10:29:22 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -299,11 +299,17 @@ class Ui_DEMPropertiesWidget(object):
         self.horizontalLayout_7.addWidget(self.toolButton_Color)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
         self.verticalLayout_4.addLayout(self.verticalLayout)
-        self.horizontalLayout_2 = QtGui.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.label_TextureSize = QtGui.QLabel(self.groupBox_DisplayType)
+        self.label_TextureSize.setObjectName(_fromUtf8("label_TextureSize"))
+        self.gridLayout.addWidget(self.label_TextureSize, 0, 0, 1, 1)
+        self.comboBox_TextureSize = QtGui.QComboBox(self.groupBox_DisplayType)
+        self.comboBox_TextureSize.setObjectName(_fromUtf8("comboBox_TextureSize"))
+        self.gridLayout.addWidget(self.comboBox_TextureSize, 0, 1, 1, 2)
         self.label_17 = QtGui.QLabel(self.groupBox_DisplayType)
         self.label_17.setObjectName(_fromUtf8("label_17"))
-        self.horizontalLayout_2.addWidget(self.label_17)
+        self.gridLayout.addWidget(self.label_17, 1, 0, 1, 1)
         self.spinBox_demtransp = QtGui.QSpinBox(self.groupBox_DisplayType)
         self.spinBox_demtransp.setEnabled(True)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -317,13 +323,11 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_demtransp.setSingleStep(10)
         self.spinBox_demtransp.setProperty("value", 0)
         self.spinBox_demtransp.setObjectName(_fromUtf8("spinBox_demtransp"))
-        self.horizontalLayout_2.addWidget(self.spinBox_demtransp)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem1)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+        self.gridLayout.addWidget(self.spinBox_demtransp, 1, 1, 1, 1)
         self.checkBox_TransparentBackground = QtGui.QCheckBox(self.groupBox_DisplayType)
         self.checkBox_TransparentBackground.setObjectName(_fromUtf8("checkBox_TransparentBackground"))
-        self.verticalLayout_4.addWidget(self.checkBox_TransparentBackground)
+        self.gridLayout.addWidget(self.checkBox_TransparentBackground, 1, 2, 1, 1)
+        self.verticalLayout_4.addLayout(self.gridLayout)
         self.checkBox_Shading = QtGui.QCheckBox(self.groupBox_DisplayType)
         self.checkBox_Shading.setChecked(False)
         self.checkBox_Shading.setObjectName(_fromUtf8("checkBox_Shading"))
@@ -362,8 +366,8 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Frame.setObjectName(_fromUtf8("checkBox_Frame"))
         self.verticalLayout_5.addWidget(self.checkBox_Frame)
         self.verticalLayout_2.addWidget(self.groupBox_Accessories)
-        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem2)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem1)
 
         self.retranslateUi(DEMPropertiesWidget)
         QtCore.QObject.connect(self.checkBox_Clip, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.comboBox_ClipLayer.setEnabled)
@@ -407,6 +411,7 @@ class Ui_DEMPropertiesWidget(object):
         self.label.setText(_translate("DEMPropertiesWidget", "Color", None))
         self.lineEdit_Color.setPlaceholderText(_translate("DEMPropertiesWidget", "0xrrggbb", None))
         self.toolButton_Color.setText(_translate("DEMPropertiesWidget", "...", None))
+        self.label_TextureSize.setText(_translate("DEMPropertiesWidget", "Texture size", None))
         self.label_17.setText(_translate("DEMPropertiesWidget", "Transparency (%)", None))
         self.checkBox_TransparentBackground.setText(_translate("DEMPropertiesWidget", "Transparent background", None))
         self.checkBox_Shading.setText(_translate("DEMPropertiesWidget", "Enable shading", None))

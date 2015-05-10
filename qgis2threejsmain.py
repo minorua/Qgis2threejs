@@ -545,17 +545,21 @@ def writeSimpleDEM(writer, properties, progress=None):
   block["plane"] = {"width": mapTo3d.planeWidth, "height": mapTo3d.planeHeight, "offsetX": 0, "offsetY": 0}
 
   # material option
+  texture_scale = properties["comboBox_TextureSize"] / 100
   transparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
   # display type
+  canvas_size = settings.mapSettings.outputSize()
   if properties.get("radioButton_MapCanvas", False):
-    block["m"] = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
+    if texture_scale == 1:
+      block["m"] = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
+    else:
+      block["m"] = layer.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_LayerImage", False):
     layerids = properties.get("layerImageIds", [])
-    size = settings.mapSettings.outputSize()
-    block["m"] = layer.materialManager.getLayerImageIndex(layerids, size.width(), size.height(), settings.baseExtent, transparency, transp_background)
+    block["m"] = layer.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
@@ -706,6 +710,7 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   # options
   size = properties["spinBox_Size"]
   roughening = properties["spinBox_Roughening"]
+  texture_scale = properties["comboBox_TextureSize"] / 100
   transparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
@@ -715,6 +720,8 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
 
   # texture image size
   canvas_size = mapSettings.outputSize()
+
+  #TODO: use canvas size as texture size
   hpw = float(canvas_size.height()) / canvas_size.width()
   if hpw < 1:
     image_width = settings.image_basesize
@@ -804,6 +811,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
   # material options
+  texture_scale = properties["comboBox_TextureSize"] / 100
   transparency = properties["spinBox_demtransp"]
   transp_background = properties.get("checkBox_TransparentBackground", False)
   layerImageIds = properties.get("layerImageIds", [])
@@ -834,6 +842,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
 
   # image size
+  #TODO: use canvas_size as texture size
   canvas_size = mapSettings.outputSize()
   hpw = float(canvas_size.height()) / canvas_size.width()
   if hpw < 1:

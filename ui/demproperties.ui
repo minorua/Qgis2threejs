@@ -620,15 +620,25 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_TextureSize">
+          <property name="text">
+           <string>Texture size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QComboBox" name="comboBox_TextureSize"/>
+        </item>
+        <item row="1" column="0">
          <widget class="QLabel" name="label_17">
           <property name="text">
            <string>Transparency (%)</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="1" column="1">
          <widget class="QSpinBox" name="spinBox_demtransp">
           <property name="enabled">
            <bool>true</bool>
@@ -656,27 +666,14 @@
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+        <item row="1" column="2">
+         <widget class="QCheckBox" name="checkBox_TransparentBackground">
+          <property name="text">
+           <string>Transparent background</string>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+         </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_TransparentBackground">
-        <property name="text">
-         <string>Transparent background</string>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="checkBox_Shading">
