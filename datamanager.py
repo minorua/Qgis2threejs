@@ -23,7 +23,7 @@ import os
 
 from PyQt4.QtCore import Qt, QDir, QSize
 from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
-from qgis.core import QGis, QgsMapRenderer, QgsPalLabeling, QgsMessageLog
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling, QgsMessageLog
 
 import gdal2threejs
 import qgis2threejstools as tools
@@ -109,10 +109,11 @@ class ImageManager(DataManager):
     if QGis.QGIS_VERSION_INT < 20700:
       return self._renderedImage2(width, height, extent, transp_background, layerids)
 
+    # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
     antialias = True
 
-    # render map image with QgsMapRendererCustomPainterJob
+    # map settings
     settings = self.context.canvas.mapSettings()
     settings.setOutputSize(QSize(width, height))
     settings.setExtent(extent.unrotatedRect())
@@ -125,17 +126,28 @@ class ImageManager(DataManager):
       settings.setBackgroundColor(QColor(Qt.transparent))
     #else:    #TODO: remove
       #settings.setBackgroundColor(self.context.canvas.canvasColor())
- 
+
+    has_pluginlayer = False
+    for layerId in settings.layers():
+      layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+      if layer and layer.type() == QgsMapLayer.PluginLayer:
+        has_pluginlayer = True
+        break
+
+    # create an image
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
     painter = QPainter()
     painter.begin(image)
     if antialias:
       painter.setRenderHint(QPainter.Antialiasing)
 
+    # rendering
     job = QgsMapRendererCustomPainterJob(settings, painter)
-    job.renderSynchronously()   # use this method so that TileLayerPlugin layer is rendered correctly
-    #job.start()
-    #job.waitForFinished()
+    if has_pluginlayer:
+      job.renderSynchronously()   # use this method so that TileLayerPlugin layer is rendered correctly
+    else:
+      job.start()
+      job.waitForFinished()
     painter.end()
 
     return tools.base64image(image)
