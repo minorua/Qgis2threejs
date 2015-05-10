@@ -207,8 +207,6 @@ class ExportSettings:
     transform = QgsCoordinateTransform(self.crs, wgs84)
     self.wgs84Center = transform.transform(self.baseExtent.center())
 
-    self.image_basesize = 256
-
     controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
     self.controls = controls.get("comboBox_Controls")
     if not self.controls:
@@ -718,18 +716,10 @@ def writeSurroundingDEM(writer, layer, warp_dem, stats, properties, progress=Non
   dem_width = (prop.width() - 1) / roughening + 1
   dem_height = (prop.height() - 1) / roughening + 1
 
-  # texture image size
+  # texture size
   canvas_size = mapSettings.outputSize()
-
-  #TODO: use canvas size as texture size
-  hpw = float(canvas_size.height()) / canvas_size.width()
-  if hpw < 1:
-    image_width = settings.image_basesize
-    image_height = round(image_width * hpw)
-    #image_height = settings.image_basesize * max(1, int(round(1 / hpw)))    # not rendered expectedly
-  else:
-    image_height = settings.image_basesize
-    image_width = round(image_height / hpw)
+  image_width = canvas_size.width() * texture_scale
+  image_height = canvas_size.height() * texture_scale
 
   center = baseExtent.center()
   rotation = baseExtent.rotation()
@@ -842,15 +832,9 @@ def writeMultiResDEM(writer, properties, progress=None):
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, dem_values))))
 
   # image size
-  #TODO: use canvas_size as texture size
   canvas_size = mapSettings.outputSize()
-  hpw = float(canvas_size.height()) / canvas_size.width()
-  if hpw < 1:
-    image_width = settings.image_basesize
-    image_height = round(image_width * hpw)
-  else:
-    image_height = settings.image_basesize
-    image_width = round(image_height / hpw)
+  image_width = canvas_size.width() * texture_scale
+  image_height = canvas_size.height() * texture_scale
 
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
@@ -912,12 +896,8 @@ def writeMultiResDEM(writer, properties, progress=None):
     dem_height = (dem_height - 1) * centerQuads.height() + 1
     dem_values = centerQuads.unitedDEM()
 
-    if hpw < 1:
-      image_width = settings.image_basesize * centerQuads.width()
-      image_height = round(image_width * hpw)
-    else:
-      image_height = settings.image_basesize * centerQuads.height()
-      image_width = round(image_height / hpw)
+    image_width *= centerQuads.width()
+    image_height *= centerQuads.height()
 
     # block extent
     rect = centerQuads.rect()
