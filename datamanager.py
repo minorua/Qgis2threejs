@@ -133,8 +133,9 @@ class ImageManager(DataManager):
       painter.setRenderHint(QPainter.Antialiasing)
 
     job = QgsMapRendererCustomPainterJob(settings, painter)
-    job.start()
-    job.waitForFinished()
+    job.renderSynchronously()   # use this method so that TileLayerPlugin layer is rendered correctly
+    #job.start()
+    #job.waitForFinished()
     painter.end()
 
     return tools.base64image(image)
