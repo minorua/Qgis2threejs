@@ -70,6 +70,8 @@ class Qgis2threejsDialog(QDialog):
     items = [["Load Settings...", self.loadSettings],
              ["Save Settings...", self.saveSettings],
              [None, None],
+             ["Clear Settings", self.clearSettings],
+             [None, None],
              ["Plugin Settings...", self.pluginSettings]]
 
     self.menu = QMenu()
@@ -206,6 +208,10 @@ class Qgis2threejsDialog(QDialog):
       json.dump(self.settings(), f, ensure_ascii=False)
 
     QgsMessageLog.logMessage(u"Settings saved: {0}".format(filename), "Qgis2threejs")
+
+  def clearSettings(self):
+    if QMessageBox.question(self, "Qgis2threejs", "Are you sure to clear all export settings?", QMessageBox.Ok | QMessageBox.Cancel) == QMessageBox.Ok:
+      self.setSettings({})
 
   def pluginSettings(self):
     from settingsdialog import SettingsDialog
