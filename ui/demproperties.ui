@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>437</width>
-    <height>654</height>
+    <width>386</width>
+    <height>656</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -36,6 +30,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>350</width>
+         <height>16777215</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -120,67 +120,72 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>X resolution</string>
+             <string>Grid spacing:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_HRes">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Y resolution</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_VRes">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_HRes">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_VRes">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QFormLayout" name="formLayout_Surroundings">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMaximumSize</enum>
-          </property>
-          <property name="formAlignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-          <item row="1" column="0">
+          <item row="0" column="0">
            <widget class="QCheckBox" name="checkBox_Surroundings">
             <property name="text">
              <string>Surroundings</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_Surroundings">
-            <item>
+          <item row="0" column="1">
+           <layout class="QGridLayout" name="gridLayout_Surroundings">
+            <item row="0" column="0">
              <widget class="QLabel" name="label_2">
               <property name="enabled">
                <bool>false</bool>
@@ -193,7 +198,7 @@
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="1">
              <widget class="QSpinBox" name="spinBox_Size">
               <property name="enabled">
                <bool>false</bool>
@@ -218,7 +223,7 @@
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="2">
              <widget class="QLabel" name="label_3">
               <property name="enabled">
                <bool>false</bool>
@@ -231,7 +236,7 @@
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="3">
              <widget class="QSpinBox" name="spinBox_Roughening">
               <property name="enabled">
                <bool>false</bool>
@@ -309,7 +314,7 @@
           <item>
            <widget class="QLineEdit" name="lineEdit">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -624,7 +629,7 @@
         <item row="0" column="0">
          <widget class="QLabel" name="label_TextureSize">
           <property name="text">
-           <string>Texture size</string>
+           <string>Resolution</string>
           </property>
          </widget>
         </item>
@@ -693,30 +698,32 @@
      <property name="title">
       <string>Clip</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="checkBox_Clip">
-          <property name="text">
-           <string>Clip DEM with polygon layer</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox_ClipLayer">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_Clip">
+        <property name="text">
+         <string>Clip DEM with polygon layer</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox_ClipLayer">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>220</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -893,8 +900,8 @@
      <y>545</y>
     </hint>
     <hint type="destinationlabel">
-     <x>218</x>
-     <y>623</y>
+     <x>237</x>
+     <y>639</y>
     </hint>
    </hints>
   </connection>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Tue Apr 28 11:48:23 2015
+# Created: Mon May 11 13:51:31 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName(_fromUtf8("VectorPropertiesWidget"))
-        VectorPropertiesWidget.resize(340, 375)
+        VectorPropertiesWidget.resize(346, 375)
         self.verticalLayout_2 = QtGui.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.formLayout_4 = QtGui.QFormLayout()
@@ -34,7 +34,13 @@ class Ui_VectorPropertiesWidget(object):
         self.formLayout_4.setContentsMargins(8, -1, 6, -1)
         self.formLayout_4.setObjectName(_fromUtf8("formLayout_4"))
         self.label_ObjectType = QtGui.QLabel(VectorPropertiesWidget)
-        self.label_ObjectType.setMinimumSize(QtCore.QSize(70, 0))
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_ObjectType.sizePolicy().hasHeightForWidth())
+        self.label_ObjectType.setSizePolicy(sizePolicy)
+        self.label_ObjectType.setMinimumSize(QtCore.QSize(78, 0))
+        self.label_ObjectType.setMaximumSize(QtCore.QSize(78, 16777215))
         self.label_ObjectType.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_ObjectType.setObjectName(_fromUtf8("label_ObjectType"))
         self.formLayout_4.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_ObjectType)
@@ -116,7 +122,13 @@ class Ui_VectorPropertiesWidget(object):
         self.formLayout_Label.setObjectName(_fromUtf8("formLayout_Label"))
         self.label = QtGui.QLabel(self.groupBox_Attrs)
         self.label.setEnabled(False)
-        self.label.setMinimumSize(QtCore.QSize(70, 0))
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setMinimumSize(QtCore.QSize(75, 0))
+        self.label.setMaximumSize(QtCore.QSize(75, 16777215))
         self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label.setObjectName(_fromUtf8("label"))
         self.formLayout_Label.setWidget(0, QtGui.QFormLayout.LabelRole, self.label)
@@ -127,6 +139,7 @@ class Ui_VectorPropertiesWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.comboBox_Label.sizePolicy().hasHeightForWidth())
         self.comboBox_Label.setSizePolicy(sizePolicy)
+        self.comboBox_Label.setMaximumSize(QtCore.QSize(270, 16777215))
         self.comboBox_Label.setObjectName(_fromUtf8("comboBox_Label"))
         self.formLayout_Label.setWidget(0, QtGui.QFormLayout.FieldRole, self.comboBox_Label)
         self.verticalLayout_4.addLayout(self.formLayout_Label)

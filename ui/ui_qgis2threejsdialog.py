@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(720, 513)
+        Qgis2threejsDialog.resize(738, 513)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -77,7 +77,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 439, 388))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 457, 388))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

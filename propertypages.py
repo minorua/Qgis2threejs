@@ -372,7 +372,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.comboBox_TextureSize.clear()
     for i in [4, 2, 1]:
       percent = i * 100
-      text = "{0} %  ({1} x {2})".format(percent, outsize.width() * i, outsize.height() * i)
+      text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
 
     self.comboBox_TextureSize.setCurrentIndex(self.comboBox_TextureSize.count() - 1)
@@ -446,7 +446,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def surroundingsToggled(self, checked):
     self.calculateResolution()
-    self.setLayoutEnabled(self.horizontalLayout_Surroundings, checked)
+    self.setLayoutEnabled(self.gridLayout_Surroundings, checked)
 
     is_simple = self.radioButton_Simple.isChecked()
     is_simple_wo_surroundings = is_simple and not checked
@@ -576,7 +576,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     is_simple_wo_surroundings = isSimpleMode and not surroundings
 
     self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
-    self.setLayoutsEnabled([self.horizontalLayout_Surroundings], isSimpleMode and surroundings)
+    self.setLayoutsEnabled([self.gridLayout_Surroundings], isSimpleMode and surroundings)
     self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip, self.groupBox_Accessories], is_simple_wo_surroundings)
 
     if self.isPrimary:
