@@ -370,7 +370,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
 
     self.comboBox_TextureSize.clear()
-    for i in range(4, 0, -1):
+    for i in [4, 2, 1]:
       percent = i * 100
       text = "{0} %  ({1} x {2})".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
