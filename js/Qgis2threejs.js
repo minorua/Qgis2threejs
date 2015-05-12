@@ -211,8 +211,20 @@ Q3D.application = {
     if (project.buildCustomCamera) project.buildCustomCamera();
     else this.buildDefaultCamera();
 
+    // restore view (camera position and its target) from URL parameters
+    var vars = this.urlParams;
+    if (vars.cx !== undefined) this.camera.position.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
+    if (vars.ux !== undefined) this.camera.up.set(parseFloat(vars.ux), parseFloat(vars.uy), parseFloat(vars.uz));
+    if (vars.tx !== undefined) this.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+
     // controls
-    if (Q3D.Controls) this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
+    if (Q3D.Controls) {
+      this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
+      if (vars.tx !== undefined) {
+        this.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+        this.controls.target0.copy(this.controls.target);   // for reset
+      }
+    }
 
     // load models
     if (project.models.length > 0) {
@@ -242,9 +254,6 @@ Q3D.application = {
     }, this);
 
     if (this.labels.length) this.scene.add(this.labelConnectorGroup);
-
-    // restore view from URL parameters
-    this._restoreViewFromUrl();
 
     // wireframe mode setting
     if ("wireframe" in this.urlParams) this.setWireframeMode(true);
@@ -332,20 +341,11 @@ Q3D.application = {
   },
 
   currentViewUrl: function () {
-    var controls = this.controls;
-    var c = controls.object.position, t = controls.target, u = controls.object.up;
+    var c = this.camera.position, t = this.controls.target, u = this.camera.up;
     var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
     if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
     if (u.x || u.y || u.z != 1) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
     return window.location.href.split("#")[0] + hash;
-  },
-
-  // Restore camera position and target position
-  _restoreViewFromUrl: function () {
-    var vars = this.urlParams;
-    if (vars.tx !== undefined) this.controls.target.set(vars.tx, vars.ty, vars.tz);
-    if (vars.cx !== undefined) this.controls.object.position.set(vars.cx, vars.cy, vars.cz);
-    if (vars.ux !== undefined) this.controls.object.up.set(vars.ux, vars.uy, vars.uz);
   },
 
   // start rendering loop
