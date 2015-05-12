@@ -2144,7 +2144,7 @@ Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
     // element of faces is [index1, index2, index3]
     poly_geom.faces = Q3D.Utils.arrayToFace3Array(faces);
 
-    THREE.GeometryUtils.merge(geom, poly_geom, 0);
+    geom.merge(poly_geom);
   }
   geom.mergeVertices();
   geom.computeFaceNormals();
