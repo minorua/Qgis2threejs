@@ -512,16 +512,25 @@ Q3D.application = {
 
   popup: {
 
-    show: function (html, caption) {
-      if (html === undefined) {
+    // show box
+    // obj: html or element
+    show: function (obj, caption) {
+      var content = Q3D.$("popupcontent");
+      if (obj === undefined) {
         // show page info
-        Q3D.$("popupcontent").style.display = "none";
+        content.style.display = "none";
         Q3D.$("pageinfo").style.display = "block";
       }
       else {
         Q3D.$("pageinfo").style.display = "none";
-        Q3D.$("popupcontent").style.display = "block";
-        Q3D.$("popupcontent").innerHTML = html;
+        if (obj instanceof HTMLElement) {
+          content.innerHTML = "";
+          content.appendChild(obj);
+        }
+        else {
+          content.innerHTML = obj;
+        }
+        content.style.display = "block";
       }
       Q3D.$("popupbar").innerHTML = caption || "";
       Q3D.$("popup").style.display = "block";
@@ -650,8 +659,7 @@ Q3D.application = {
       return false;
     }
 
-    this.popup.show("", "Save Image");
-    Q3D.$("popupcontent").appendChild(f);
+    this.popup.show(f, "Save Image");
   },
 
   closePopup: function () {
