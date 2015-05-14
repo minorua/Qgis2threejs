@@ -294,20 +294,22 @@ Q3D.application = {
       }
       else {
         if (keyPressed == 82) this.controls.reset();   // Shift + R
-        else if (keyPressed == 83) this.saveCanvasImage();    // Shift + S
+        else if (keyPressed == 83) this.showPrintDialog();    // Shift + S
       }
     },
 
     resize: function () {
-      if (!this._fullWindow) return;
-
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
-      this.camera.aspect = this.width / this.height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.width, this.height);
+      if (this._fullWindow) this.setCanvasSize(window.innerWidth, window.innerHeight);
     }
 
+  },
+
+  setCanvasSize: function (width, height) {
+    this.width = width;
+    this.height = height;
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
   },
 
   buildDefaultLights: function (parent) {
@@ -510,7 +512,7 @@ Q3D.application = {
 
   popup: {
 
-    show: function (html) {
+    show: function (html, caption) {
       if (html === undefined) {
         // show page info
         Q3D.$("popupcontent").style.display = "none";
@@ -521,6 +523,7 @@ Q3D.application = {
         Q3D.$("popupcontent").style.display = "block";
         Q3D.$("popupcontent").innerHTML = html;
       }
+      Q3D.$("popupbar").innerHTML = caption || "";
       Q3D.$("popup").style.display = "block";
     },
 
@@ -572,6 +575,83 @@ Q3D.application = {
       r.push("</table>");
     }
     this.popup.show(r.join(""));
+  },
+
+  showPrintDialog: function () {
+
+    function e (tagName, parent, innerHTML) {
+      var elem = document.createElement(tagName);
+      if (parent) parent.appendChild(elem);
+      if (innerHTML) elem.innerHTML = innerHTML;
+      return elem;
+    }
+
+    var f = e("form");
+    f.className = "print";
+
+    var d1 = e("div", f, "Image Size");
+    d1.style.textDecoration = "underline";
+
+    var d2 = e("div", f),
+        l1 = e("label", d2, "Width:"),
+        width = e("input", d2);
+    d2.style.cssFloat = "left";
+    l1.htmlFor = width.id = width.name = "width";
+    width.type = "text";
+    width.value = this.width;
+    e("span", d2, "px,")
+
+    var d3 = e("div", f),
+        l2 = e("label", d3, "Height:"),
+        height = e("input", d3);
+    l2.htmlFor = height.id = height.name = "height";
+    height.type = "text";
+    height.value = this.height;
+    e("span", d3, "px");
+
+    var d4 = e("div", f),
+        ka = e("input", d4);
+    ka.type = "checkbox";
+    ka.checked = true;
+    e("span", d4, "Keep Aspect Ratio");
+
+    var d5 = e("div", f),
+        ok = e("span", d5, "OK"),
+        cancel = e("span", d5, "Cancel");
+    d5.className = "buttonbox";
+
+    e("input", f).type = "submit";
+
+    // event handlers
+    // width and height boxes
+    var aspect = this.width / this.height;
+
+    width.oninput = function () {
+      if (ka.checked) height.value = Math.round(width.value / aspect);
+    };
+
+    height.oninput = function () {
+      if (ka.checked) width.value = Math.round(height.value * aspect);
+    };
+
+    var app = this;
+    ok.onclick = function () {
+      app.popup.show("Rendering...");
+      window.setTimeout(function () {
+        app.saveCanvasImage(width.value, height.value);
+      }, 10);
+    };
+
+    cancel.onclick = this.closePopup.bind(this);
+
+    // enter key pressed
+    f.onsubmit = function () {
+      ok.onclick();
+      return false;
+    }
+
+    this.popup.show("", "Save Image");
+    Q3D.$("popupcontent").appendChild(f);
   },
 
   closePopup: function () {
@@ -676,7 +756,8 @@ Q3D.application = {
   // limitations:
   // - background of image is white if background is sky-like
   // - labels are not rendered
-  saveCanvasImage: function () {
+  saveCanvasImage: function (width, height) {
+
     function saveBlob (blob) {
       var filename = "image.png";
 
@@ -695,13 +776,18 @@ Q3D.application = {
       e.className = "download-link";
       e.href = this._canvasImageUrl;
       e.download = filename;
-      e.innerHTML = "Click here to save the image";
-      this.popup.show(e.outerHTML);
+      e.innerHTML = "Save";
+      this.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
     }
 
-    // render for canvas.toDataURL()
+    var old_size;
+    if (width && height) {
+      old_size = [this.width, this.height];
+      this.setCanvasSize(width, height);
+    }
+
     this.renderer.preserveDrawingBuffer = true;
-    this.render();
+    this.renderer.render(this.scene, this.camera);
 
     // to blob
     var canvas = this.renderer.domElement;
@@ -720,6 +806,10 @@ Q3D.application = {
 
       saveBlob.call(this, new Blob([arr], {type: "image/png"}));
     }
+
+    // restore canvas size
+    if (old_size) this.setCanvasSize(old_size[0], old_size[1]);
+    this.render();
   }
 
 };
