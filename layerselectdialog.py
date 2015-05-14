@@ -80,7 +80,8 @@ class LayerSelectDialog(QDialog):
       c.setCanvasColor(s.backgroundColor())
       c.setCrsTransformEnabled(s.hasCrsTransformEnabled())
       c.setDestinationCrs(s.destinationCrs())
-      c.setRotation(s.rotation())
+      if QGis.QGIS_VERSION_INT >= 20700:
+        c.setRotation(s.rotation())
       c.setExtent(s.extent())
 
       self.canvasReady = True
