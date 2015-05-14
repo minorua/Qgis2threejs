@@ -762,62 +762,106 @@ Q3D.application = {
   },
 
   // limitations:
-  // - background of image is white if background is sky-like
   // - labels are not rendered
-  saveCanvasImage: function (width, height) {
+  saveCanvasImage: function (width, height, fill_background) {
+    if (fill_background === undefined) fill_background = true;
 
-    function saveBlob (blob) {
-      var filename = "image.png";
-
-      // ie
-      if (window.navigator.msSaveBlob !== undefined) {
-        window.navigator.msSaveBlob(blob, filename);
-        return;
-      }
-
-      // create object url
-      if (this._canvasImageUrl) URL.revokeObjectURL(this._canvasImageUrl);
-      this._canvasImageUrl = URL.createObjectURL(blob);
-
-      // display a link to save the image
-      var e = document.createElement("a");
-      e.className = "download-link";
-      e.href = this._canvasImageUrl;
-      e.download = filename;
-      e.innerHTML = "Save";
-      this.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
-    }
-
+    // set canvas size
     var old_size;
     if (width && height) {
       old_size = [this.width, this.height];
       this.setCanvasSize(width, height);
     }
 
+    // functions
+    var app = this;
+    var saveBlob = function (blob) {
+      var filename = "image.png";
+
+      // ie
+      if (window.navigator.msSaveBlob !== undefined) {
+        window.navigator.msSaveBlob(blob, filename);
+      }
+      else {
+        // create object url
+        if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
+        app._canvasImageUrl = URL.createObjectURL(blob);
+
+        // display a link to save the image
+        var e = document.createElement("a");
+        e.className = "download-link";
+        e.href = app._canvasImageUrl;
+        e.download = filename;
+        e.innerHTML = "Save";
+        app.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
+      }
+    };
+
+    var saveCanvasImage = function (canvas) {
+      if (canvas.toBlob !== undefined) {
+        canvas.toBlob(saveBlob);
+      }
+      else {    // !HTMLCanvasElement.prototype.toBlob
+        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
+        var binStr = atob(canvas.toDataURL("image/png").split(',')[1]),
+            len = binStr.length,
+            arr = new Uint8Array(len);
+
+        for (var i = 0; i < len; i++) {
+          arr[i] = binStr.charCodeAt(i);
+        }
+
+        saveBlob(new Blob([arr], {type: "image/png"}));
+      }
+    };
+
+    var restoreCanvasSize = function () {
+      // restore canvas size
+      if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
+      app.render();
+    };
+
+    // background option
+    if (!fill_background) this.renderer.setClearColor(0, 0);
+
+    // render
     this.renderer.preserveDrawingBuffer = true;
     this.renderer.render(this.scene, this.camera);
 
-    // to blob
-    var canvas = this.renderer.domElement;
-    if (canvas.toBlob !== undefined) {
-      canvas.toBlob(saveBlob.bind(this));
+    // restore clear color
+    var bgcolor = Q3D.Options.bgcolor;
+    this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
+
+    if (fill_background && bgcolor === null) {
+      // render "sky-like" background
+      var canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      var ctx = canvas.getContext("2d");
+      var grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, "#98c8f6");
+      grad.addColorStop(0.4, "#cbebff");
+      grad.addColorStop(1, "#f0f9ff");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      var image = new Image();
+      image.onload = function () {
+        // draw webgl canvas image
+        ctx.drawImage(image, 0, 0, width, height);
+
+        // save canvas image
+        saveCanvasImage(canvas);
+        restoreCanvasSize();
+      };
+      image.src = this.renderer.domElement.toDataURL("image/png");
     }
-    else {    // !HTMLCanvasElement.prototype.toBlob
-      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
-      var binStr = atob(canvas.toDataURL("image/png").split(',')[1]),
-          len = binStr.length,
-          arr = new Uint8Array(len);
-
-      for (var i = 0; i < len; i++) {
-        arr[i] = binStr.charCodeAt(i);
-      }
-
-      saveBlob.call(this, new Blob([arr], {type: "image/png"}));
+    else {
+      // save webgl canvas image
+      saveCanvasImage(this.renderer.domElement);
+      restoreCanvasSize();
     }
-
-    // restore canvas size
-    if (old_size) this.setCanvasSize(old_size[0], old_size[1]);
-    this.render();
   }
 
 };
