@@ -489,7 +489,7 @@ Q3D.application = {
       "L : Toggle Label Visibility",
       "W : Wireframe Mode",
       "Shift + R : Reset View",
-      "Shift + S : Save Image As File"
+      "Shift + S : Save Image"
     ]);
     var html = '<table>';
     lines.forEach(function (line) {

@@ -83,8 +83,8 @@ def layerProperties(writer, layer):
     p["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"    # altitude mode
 
     # altitude mode of bottom of side
-    cb4 = prop.properties["styleWidget5"]["comboData"]
-    isSbRelative = (cb4 == HeightWidgetFunc.RELATIVE or cb4 >= HeightWidgetFunc.FIRST_ATTR_REL)
+    cb = prop.properties["styleWidget5"]["comboData"]
+    isSbRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     p["sbm"] = "relative" if isSbRelative else "absolute"
   return p
 

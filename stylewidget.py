@@ -94,8 +94,8 @@ class FieldValueWidgetFunc(WidgetFuncBase):
 
   def setup(self, options=None):
     """ options: name, label, defaultValue, layer """
-    WidgetFuncBase.setup(self, options.get("name", ""))
     options = options or {}
+    WidgetFuncBase.setup(self, options.get("name", ""))
 
     self.label_absolute = options.get("label", "Value")
     self.label_field = options.get("label_field", "Multiplier")
