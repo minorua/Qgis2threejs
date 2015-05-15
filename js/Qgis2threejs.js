@@ -164,7 +164,7 @@ Q3D.application = {
 
     // WebGLRenderer
     var bgcolor = Q3D.Options.bgcolor;
-    this.renderer = new THREE.WebGLRenderer({alpha: (bgcolor === null)});
+    this.renderer = new THREE.WebGLRenderer({alpha: true});
     this.renderer.setSize(this.width, this.height);
     this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     this.container.appendChild(this.renderer.domElement);
@@ -637,10 +637,19 @@ Q3D.application = {
     ka.checked = true;
     e("span", d4, "Keep Aspect Ratio");
 
-    var d5 = e("div", f),
-        ok = e("span", d5, "OK"),
-        cancel = e("span", d5, "Cancel");
-    d5.className = "buttonbox";
+    var d5 = e("div", f, "Option");
+    d5.style.textDecoration = "underline";
+
+    var d6 = e("div", f),
+        bg = e("input", d6);
+    bg.type = "checkbox";
+    bg.checked = true;
+    e("span", d6, "Fill Background");
+
+    var d7 = e("div", f),
+        ok = e("span", d7, "OK"),
+        cancel = e("span", d7, "Cancel");
+    d7.className = "buttonbox";
 
     e("input", f).type = "submit";
 
@@ -660,7 +669,7 @@ Q3D.application = {
     ok.onclick = function () {
       app.popup.show("Rendering...");
       window.setTimeout(function () {
-        app.saveCanvasImage(width.value, height.value);
+        app.saveCanvasImage(width.value, height.value, bg.checked);
       }, 10);
     };
 
