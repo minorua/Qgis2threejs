@@ -376,17 +376,19 @@ Q3D.application = {
   updateLabelPosition: function () {
     if (!this.labelVisibility || this.labels.length == 0) return;
 
-    var widthHalf = this.width / 2, heightHalf = this.height / 2;
-    var autosize = Q3D.Options.label.autoSize;
-    var camera = this.camera;
-    var c2t = this.controls.target.clone().sub(camera.position);
-    var c2l = new THREE.Vector3();
-    var v = new THREE.Vector3();
+    var widthHalf = this.width / 2,
+        heightHalf = this.height / 2,
+        autosize = Q3D.Options.label.autoSize,
+        camera = this.camera,
+        camera_pos = camera.position,
+        c2t = this.controls.target.clone().sub(camera_pos),
+        c2l = new THREE.Vector3(),
+        v = new THREE.Vector3();
 
     // make a list of [label index, distance to camera]
     var idx_dist = [];
     for (var i = 0, l = this.labels.length; i < l; i++) {
-      idx_dist.push([i, camera.position.distanceTo(this.labels[i].pt)]);
+      idx_dist.push([i, camera_pos.distanceTo(this.labels[i].pt)]);
     }
 
     // sort label indexes in descending order of distances
@@ -398,10 +400,10 @@ Q3D.application = {
 
     var label, e, x, y, dist, fontSize;
     var minFontSize = Q3D.Options.label.minFontSize;
-    for (var i = 0, l = this.labels.length; i < l; i++) {
+    for (var i = 0, l = idx_dist.length; i < l; i++) {
       label = this.labels[idx_dist[i][0]];
       e = label.e;
-      if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {
+      if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {
         // label is in front
         // calculate label position
         v.copy(label.pt).project(camera);
