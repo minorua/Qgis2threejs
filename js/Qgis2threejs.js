@@ -763,8 +763,6 @@ Q3D.application = {
     this.closePopup();
   },
 
-  // limitations:
-  // - labels are not rendered
   saveCanvasImage: function (width, height, fill_background) {
     if (fill_background === undefined) fill_background = true;
 
@@ -817,6 +815,64 @@ Q3D.application = {
       }
     };
 
+    var renderLabels = function (ctx) {
+      // context settings
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // get label style from css
+      var elem = document.createElement("div");
+      elem.className = "print-label";
+      document.body.appendChild(elem);
+      var style = document.defaultView.getComputedStyle(elem, ""),
+          color = style.color;
+      ctx.font = style.font;
+      document.body.removeChild(elem);
+
+      var widthHalf = width / 2,
+          heightHalf = height / 2,
+          camera = app.camera,
+          camera_pos = camera.position,
+          c2t = app.controls.target.clone().sub(camera_pos),
+          c2l = new THREE.Vector3(),
+          v = new THREE.Vector3();
+
+      // make a list of [label index, distance to camera]
+      var idx_dist = [];
+      for (var i = 0, l = app.labels.length; i < l; i++) {
+        idx_dist.push([i, camera_pos.distanceTo(app.labels[i].pt)]);
+      }
+
+      // sort label indexes in descending order of distances
+      idx_dist.sort(function (a, b) {
+        if (a[1] < b[1]) return 1;
+        if (a[1] > b[1]) return -1;
+        return 0;
+      });
+
+      var label, text, x, y;
+      for (var i = 0, l = idx_dist.length; i < l; i++) {
+        label = app.labels[idx_dist[i][0]];
+        text = label.e.textContent;
+        if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {    // label is in front
+          // calculate label position
+          v.copy(label.pt).project(camera);
+          x = (v.x * widthHalf) + widthHalf;
+          y = -(v.y * heightHalf) + heightHalf;
+          if (x < 0 || width <= x || y < 0 || height <= y) continue;
+
+          // outline effect
+          ctx.fillStyle = "#FFF";
+          for (var j = 0; j < 9; j++) {
+            if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
+          }
+
+          ctx.fillStyle = color;
+          ctx.fillText(text, x, y);
+        }
+      }
+    };
+
     var restoreCanvasSize = function () {
       // restore canvas size
       if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
@@ -834,24 +890,30 @@ Q3D.application = {
     var bgcolor = Q3D.Options.bgcolor;
     this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
-    if (fill_background && bgcolor === null) {
-      // render "sky-like" background
+    var render_labels = (this.labelVisibility && this.labels.length > 0);
+    if ((fill_background && bgcolor === null) || render_labels) {
       var canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
 
       var ctx = canvas.getContext("2d");
-      var grad = ctx.createLinearGradient(0, 0, 0, height);
-      grad.addColorStop(0, "#98c8f6");
-      grad.addColorStop(0.4, "#cbebff");
-      grad.addColorStop(1, "#f0f9ff");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
+      if (fill_background && bgcolor === null) {
+        // render "sky-like" background
+        var grad = ctx.createLinearGradient(0, 0, 0, height);
+        grad.addColorStop(0, "#98c8f6");
+        grad.addColorStop(0.4, "#cbebff");
+        grad.addColorStop(1, "#f0f9ff");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+      }
 
       var image = new Image();
       image.onload = function () {
         // draw webgl canvas image
         ctx.drawImage(image, 0, 0, width, height);
+
+        // render labels
+        if (render_labels) renderLabels(ctx);
 
         // save canvas image
         saveCanvasImage(canvas);

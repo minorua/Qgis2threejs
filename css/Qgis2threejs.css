@@ -208,3 +208,9 @@ table.attrs tr td:first-child {
   position: absolute;
   pointer-events: none;
 }
+
+.print-label {
+  /* these 2 properties are copied to canvas 2D context in renderLabels function of Qgis2threejs.js */
+  color: black;
+  font: normal medium sans-serif;
+}
