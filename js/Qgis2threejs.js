@@ -618,7 +618,7 @@ Q3D.application = {
         l1 = e("label", d2, "Width:"),
         width = e("input", d2);
     d2.style.cssFloat = "left";
-    l1.htmlFor = width.id = width.name = "width";
+    l1.htmlFor = width.id = width.name = "printwidth";
     width.type = "text";
     width.value = this.width;
     e("span", d2, "px,")
@@ -626,7 +626,7 @@ Q3D.application = {
     var d3 = e("div", f),
         l2 = e("label", d3, "Height:"),
         height = e("input", d3);
-    l2.htmlFor = height.id = height.name = "height";
+    l2.htmlFor = height.id = height.name = "printheight";
     height.type = "text";
     height.value = this.height;
     e("span", d3, "px");
