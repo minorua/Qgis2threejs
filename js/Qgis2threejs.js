@@ -353,11 +353,13 @@ Q3D.application = {
   // start rendering loop
   start: function () {
     this.running = true;
+    if (this.controls) this.controls.enabled = true;
     this.animate();
   },
 
-  stop: function () {
+  pause: function () {
     this.running = false;
+    if (this.controls) this.controls.enabled = false;
   },
 
   // animation loop
@@ -514,9 +516,17 @@ Q3D.application = {
 
   popup: {
 
+    modal: false,
+
     // show box
     // obj: html or element
-    show: function (obj, caption) {
+    show: function (obj, title, modal) {
+
+      if (modal) Q3D.application.pause();
+      else if (this.modal) Q3D.application.start();   // enable controls
+
+      this.modal = Boolean(modal);
+
       var content = Q3D.$("popupcontent");
       if (obj === undefined) {
         // show page info
@@ -534,12 +544,13 @@ Q3D.application = {
         }
         content.style.display = "block";
       }
-      Q3D.$("popupbar").innerHTML = caption || "";
+      Q3D.$("popupbar").innerHTML = title || "";
       Q3D.$("popup").style.display = "block";
     },
 
     hide: function () {
       Q3D.$("popup").style.display = "none";
+      if (this.modal) Q3D.application.start();    // enable controls
     }
 
   },
@@ -661,7 +672,7 @@ Q3D.application = {
       return false;
     }
 
-    this.popup.show(f, "Save Image");
+    this.popup.show(f, "Save Image", true);   // modal
   },
 
   closePopup: function () {
@@ -781,6 +792,7 @@ Q3D.application = {
       // ie
       if (window.navigator.msSaveBlob !== undefined) {
         window.navigator.msSaveBlob(blob, filename);
+        app.popup.hide();
       }
       else {
         // create object url
