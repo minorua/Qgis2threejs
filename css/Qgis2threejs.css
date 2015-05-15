@@ -204,7 +204,7 @@ table.attrs tr td:first-child {
 /* label */
 .label {
   padding: 2px;
-  text-shadow: 1px 1px #FFF, -1px 1px #FFF, 1px -1px #FFF, -1px -1px #FFF;
+  text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
   position: absolute;
   pointer-events: none;
 }
