@@ -23,10 +23,11 @@ import os
 
 from PyQt4.QtCore import Qt, QDir, QSize
 from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling, QgsMessageLog
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
 
 import gdal2threejs
 import qgis2threejstools as tools
+from qgis2threejstools import logMessage
 
 
 class DataManager:
@@ -211,7 +212,7 @@ class ImageManager(DataManager):
             err_msg = u"Not image file path"
           else:
             err_msg = u"Image file not found"
-          QgsMessageLog.logMessage(u"{0}: {1}".format(err_msg, image_path), "Qgis2threejs")
+          logMessage(u"{0}: {1}".format(err_msg, image_path))
           continue
 
       elif imageType == self.MAP_IMAGE:
@@ -388,4 +389,4 @@ class ModelManager(DataManager):
           err_msg = u"Not 3D model file path"
         else:
           err_msg = u"3D model file not found"
-        QgsMessageLog.logMessage(u"{0}: {1} ({2})".format(err_msg, path, model_type), "Qgis2threejs")
+        logMessage(u"{0}: {1} ({2})".format(err_msg, path, model_type))

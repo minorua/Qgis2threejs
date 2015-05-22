@@ -21,7 +21,7 @@
 """
 from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
 from PyQt4.QtGui import QMessageBox
-from qgis.core import NULL, QgsMapLayerRegistry
+from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
 import os
 import ConfigParser
 import re
@@ -50,6 +50,9 @@ def pyobj2js(obj, escape=False, quoteHex=True):
   elif obj == NULL:   # qgis.core.NULL
     return "null"
   return '"' + str(obj) + '"'
+
+def logMessage(message):
+  QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
 
 def shortTextFromSelectedLayerIds(layerIds):
   count = len(layerIds)

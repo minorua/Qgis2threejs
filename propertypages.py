@@ -24,7 +24,7 @@ import re
 
 from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle, QgsMessageLog
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
 from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
@@ -36,6 +36,7 @@ from qgis2threejsmain import ObjectTreeItem, createQuadTree
 from stylewidget import StyleWidget
 from quadtree import QuadTree
 import qgis2threejstools as tools
+from qgis2threejstools import logMessage
 from settings import def_vals
 
 PAGE_NONE = 0
@@ -129,7 +130,7 @@ class PropertyPage(QWidget):
       elif isinstance(w, StyleWidget):
         v = w.values()
       else:
-        QgsMessageLog.logMessage("[propertypages.py] Not recognized widget type: " + unicode(type(w)), "Qgis2threejs")
+        logMessage("[propertypages.py] Not recognized widget type: " + unicode(type(w)))
 
       p[w.objectName()] = v
     return p
@@ -154,7 +155,7 @@ class PropertyPage(QWidget):
         if len(v):
           w.setValues(v)
       else:
-        QgsMessageLog.logMessage("[propertypages.py] Cannot restore %s property" % n, "Qgis2threejs")
+        logMessage("[propertypages.py] Cannot restore %s property" % n)
 
 class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
 

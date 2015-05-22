@@ -26,13 +26,14 @@ import os
 
 from PyQt4.QtCore import Qt, QDir, QFile, QSettings, qDebug, QEventLoop, SIGNAL
 from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle, QgsMessageLog, QgsProject
+from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsRectangle, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
 from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToThreeJS
 import propertypages as ppages
 import qgis2threejstools as tools
+from qgis2threejstools import logMessage
 from rotatedrect import RotatedRect
 from settings import debug_mode, def_vals, plugin_version
 
@@ -208,7 +209,7 @@ class Qgis2threejsDialog(QDialog):
     with codecs.open(filename, "w", "UTF-8") as f:
       json.dump(self.settings(), f, ensure_ascii=False)
 
-    QgsMessageLog.logMessage(u"Settings saved: {0}".format(filename), "Qgis2threejs")
+    logMessage(u"Settings saved: {0}".format(filename))
 
   def clearSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure to clear all export settings?", QMessageBox.Ok | QMessageBox.Cancel) == QMessageBox.Ok:
@@ -483,7 +484,6 @@ class Qgis2threejsDialog(QDialog):
       ui.label_Status.setText(statusMsg)
       ui.label_Status.repaint()
     QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
-    #qDebug("{0}: {1}".format(percentage, statusMsg))
 
   def run(self):
     self.endPointSelection()

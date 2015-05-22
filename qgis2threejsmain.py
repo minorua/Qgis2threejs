@@ -24,7 +24,7 @@ import codecs
 import datetime
 import struct
 
-from PyQt4.QtCore import QDir, QSettings, qDebug
+from PyQt4.QtCore import QDir, QSettings
 from PyQt4.QtGui import QImage, QPainter
 from qgis.core import *
 
@@ -43,7 +43,7 @@ import gdal2threejs
 from gdal2threejs import Raster
 
 import qgis2threejstools as tools
-from qgis2threejstools import pyobj2js
+from qgis2threejstools import pyobj2js, logMessage
 from settings import debug_mode, def_vals
 
 apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
@@ -253,7 +253,7 @@ class ExportSettings:
       if provider:
         return provider(str(self.crs.toWkt()))
 
-      qDebug('Plugin "{0}" not found'.format(id))
+      logMessage('Plugin "{0}" not found'.format(id))
       return FlatRaster()
 
     else:
@@ -440,7 +440,7 @@ class ThreejsJSWriter(JSWriter):
     return self.triMesh[key]
 
   def log(self, message):
-    QgsMessageLog.logMessage(message, "Qgis2threejs")
+    logMessage(message)
 
 
 def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None):
@@ -662,13 +662,13 @@ def dissolvePolygonsOnCanvas(writer, layer):
   for f in layer.getFeatures(request):
     geometry = f.geometry()
     if geometry is None:
-      qDebug("null geometry skipped")
+      logMessage("null geometry skipped")
       continue
 
     # coordinate transformation - layer crs to project crs
     geom = QgsGeometry(geometry)
     if geom.transform(transform) != 0:
-      qDebug("Failed to transform geometry")
+      logMessage("Failed to transform geometry")
       continue
 
     # check if geometry intersects with the base extent (rotated rect)
@@ -688,7 +688,7 @@ def dissolvePolygonsOnCanvas(writer, layer):
 
   # check if geometry is empty
   if geom.isGeosEmpty():
-    qDebug("empty geometry")
+    logMessage("empty geometry")
     return None
 
   return geom
@@ -1063,13 +1063,13 @@ class VectorLayer(Layer):
     for f in self.layer.getFeatures(request):
       geometry = f.geometry()
       if geometry is None:
-        qDebug("null geometry skipped")
+        logMessage("null geometry skipped")
         continue
 
       # coordinate transformation - layer crs to project crs
       geom = QgsGeometry(geometry)
       if geom.transform(self.transform) != 0:
-        qDebug("Failed to transform geometry")
+        logMessage("Failed to transform geometry")
         continue
 
       # check if geometry intersects with the base extent (rotated rect)
@@ -1089,7 +1089,7 @@ class VectorLayer(Layer):
 
         # transform geometry from layer CRS to project CRS
         if ogr_geom.Transform(ogr_transform) != 0:
-          qDebug("Failed to transform geometry")
+          logMessage("Failed to transform geometry")
           continue
 
         # clip geometry
@@ -1100,7 +1100,7 @@ class VectorLayer(Layer):
 
         # check if geometry is empty
         if ogr_geom.IsEmpty():
-          qDebug("empty geometry skipped")
+          logMessage("empty geometry skipped")
           continue
 
         feat.geom = self.geomClass.fromOgrGeometry25D(ogr_geom, transform_func)
@@ -1114,7 +1114,7 @@ class VectorLayer(Layer):
 
         # check if geometry is empty
         if geom.isGeosEmpty():
-          qDebug("empty geometry skipped")
+          logMessage("empty geometry skipped")
           continue
 
         if self.geomType == QGis.Polygon:
@@ -1156,7 +1156,7 @@ def writeVectors(writer, legendInterface, progress=None):
     prop = VectorPropertyReader(writer.objectTypeManager, mapLayer, properties)
     obj_mod = writer.objectTypeManager.module(prop.mod_index)
     if obj_mod is None:
-      qDebug("Module not found")
+      logMessage("Module not found")
       continue
 
     # prepare triangle mesh

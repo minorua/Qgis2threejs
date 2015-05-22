@@ -25,7 +25,7 @@ import math
 import numpy
 import struct
 
-from PyQt4.QtCore import QObject, QSettings, qDebug
+from PyQt4.QtCore import QObject, QSettings
 from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsRectangle
 
 try:
@@ -34,6 +34,7 @@ except ImportError:
   import gdal
 
 from downloader import Downloader
+from Qgis2threejs.qgis2threejstools import logMessage
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244
@@ -49,7 +50,7 @@ class GSIDEMTileProvider:
     self.crs3857 = QgsCoordinateReferenceSystem(3857)
     self.dest_crs = QgsCoordinateReferenceSystem()
     if dest_wkt and not self.dest_crs.createFromWkt(dest_wkt):
-      qDebug("Failed to create CRS from WKT: {0}".format(dest_wkt))
+      logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
     self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857)
 
     # approximate bbox of this data
@@ -124,7 +125,7 @@ class GSIDEMTileProvider:
 
     # download count limit
     if cols * rows > 128:
-      qDebug("Number of tiles to fetch is too large!")
+      logMessage("Number of tiles to fetch is too large!")
       width = height = 1
       return self.driver.Create("", width, height, 1, gdal.GDT_Float32, [])
 

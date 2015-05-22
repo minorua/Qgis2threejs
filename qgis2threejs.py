@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt4.QtCore import QCoreApplication, QFile, Qt, qDebug    #, QSettings, QTranslator, qVersion
+from PyQt4.QtCore import QCoreApplication, QFile, Qt    #, QSettings, QTranslator, qVersion
 from PyQt4.QtGui import QAction, QIcon
 from qgis.core import QGis
 

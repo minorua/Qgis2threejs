@@ -22,7 +22,8 @@
 import os
 import sys
 
-from PyQt4.QtCore import QDir, QFile, QSettings, qDebug
+from PyQt4.QtCore import QDir, QFile, QSettings
+from qgis2threejstools import logMessage
 
 class PluginManager:
 
@@ -48,7 +49,7 @@ class PluginManager:
         self.modules.append(module)
         self.plugins.append(getattr(module, "plugin_class"))
       except ImportError:
-        qDebug("Failed to load plugin: " + str(name))
+        logMessage("Failed to load plugin: " + str(name))
 
   def demProviderPlugins(self):
     plugins = []

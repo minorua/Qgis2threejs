@@ -20,10 +20,11 @@
  ***************************************************************************/
 """
 import os
-#from PyQt4.QtCore import qDebug
-from PyQt4.QtGui import QColor
-from qgis.core import QGis, QgsMessageLog, NULL
 import random
+from PyQt4.QtGui import QColor
+from qgis.core import QGis, NULL
+
+from qgis2threejstools import logMessage
 from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from settings import debug_mode
 
@@ -81,7 +82,7 @@ class VectorPropertyReader:
     # feature color
     symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      QgsMessageLog.logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()), "Qgis2threejs")
+      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
@@ -112,7 +113,7 @@ class VectorPropertyReader:
     alpha = None
     symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      QgsMessageLog.logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()), "Qgis2threejs")
+      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
@@ -137,7 +138,7 @@ class VectorPropertyReader:
     try:
       return float(val)
     except Exception as e:
-      QgsMessageLog.logMessage(u'{0} (value: {1})'.format(e.message, unicode(val)), "Qgis2threejs")
+      logMessage(u'{0} (value: {1})'.format(e.message, unicode(val)))
       return 0
 
   # functions to read values from height widget (z coordinate)
@@ -199,7 +200,7 @@ class VectorPropertyReader:
           value = f.attribute(fieldName)
           if value == NULL:
             value = ""
-            QgsMessageLog.logMessage(u"Empty attribute value in the field '{0}'".format(fieldName), "Qgis2threejs")
+            logMessage(u"Empty attribute value in the field '{0}'".format(fieldName))
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
       elif widgetType == StyleWidget.CHECKBOX:
