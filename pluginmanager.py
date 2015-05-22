@@ -40,10 +40,11 @@ class PluginManager:
     else:
       plugins = QSettings().value("/Qgis2threejs/plugins", "", type=unicode).split(",")
 
+    import importlib
     for name in plugins:
       try:
         modname = "Qgis2threejs.plugins." + str(name)
-        module = reload(sys.modules[modname]) if modname in sys.modules else __import__(modname)
+        module = reload(sys.modules[modname]) if modname in sys.modules else importlib.import_module(modname)
         self.modules.append(module)
         self.plugins.append(getattr(module, "plugin_class"))
       except ImportError:
