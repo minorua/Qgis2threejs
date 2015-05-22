@@ -116,6 +116,7 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 class MemoryWarpRaster(Raster):
+
   def __init__(self, filename, source_wkt=None, dest_wkt=None):
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
@@ -151,8 +152,12 @@ class MemoryWarpRaster(Raster):
     return self.read(1, 1, geotransform, dest_wkt)[0]
 
 class FlatRaster:
+
   def __init__(self, value=0):
     self.value = value
+
+  def name(self):
+    return "Flat Plane"
 
   def read(self, width, height, geotransform, wkt=None):
     return [self.value] * width * height
@@ -168,7 +173,7 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
-  def __init__(self, settings, canvas, localBrowsingMode=True):
+  def __init__(self, settings, canvas, pluginManager, localBrowsingMode=True):
     self.data = settings
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -199,6 +204,7 @@ class ExportSettings:
     self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
     self.baseExtent = RotatedRect.fromMapSettings(self.mapSettings)
 
+    self.pluginManager = pluginManager
     self.localBrowsingMode = localBrowsingMode
 
     self.crs = self.mapSettings.destinationCrs()
@@ -212,16 +218,15 @@ class ExportSettings:
     if not self.controls:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
 
-    self.demLayer = None
+    self.demProvider = None
     self.quadtree = None
+
     if self.templateConfig.get("type") == "sphere":
       self.exportMode = ExportSettings.SPHERE
       return
 
     demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
-    demLayerId = demProperties["comboBox_DEMLayer"]
-    if demLayerId:
-      self.demLayer = QgsMapLayerRegistry.instance().mapLayer(demLayerId)
+    self.demProvider = self.demProviderByLayerId(demProperties["comboBox_DEMLayer"])
 
     if demProperties.get("radioButton_Simple", False):
       self.exportMode = ExportSettings.PLAIN_SIMPLE
@@ -239,6 +244,24 @@ class ExportSettings:
       return False, u"Focus point/area is not selected."
     return True, ""
 
+  def demProviderByLayerId(self, id):
+    if not id:
+      return FlatRaster()
+
+    if id.startswith("plugin:"):
+      provider = self.pluginManager.findDEMProvider(id[7:])
+      if provider:
+        return provider(str(self.crs.toWkt()))
+
+      qDebug('Plugin "{0}" not found'.format(id))
+      return FlatRaster()
+
+    else:
+      layer = QgsMapLayerRegistry.instance().mapLayer(id)
+      return MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()), str(self.crs.toWkt()))
+
+    #TODO: rename *Raster to DEMProvider
+    #TODO: rename MemoryWarpRaster to GDALDEMProvider
 
 class JSWriter:
 
@@ -281,22 +304,18 @@ class JSWriter:
 
 class ThreejsJSWriter(JSWriter):
 
-  def __init__(self, settings, objectTypeManager, multiple_files=False):
+  def __init__(self, settings, objectTypeManager, pluginManager, multiple_files=False):
     JSWriter.__init__(self, settings.path_root, multiple_files)
 
     self.settings = settings
+    self.warp_dem = settings.demProvider
     self.objectTypeManager = objectTypeManager
+    self.pluginManager = pluginManager
 
     self.layerCount = 0
     self.currentLayerIndex = 0
     self.currentFeatureIndex = -1
     self.attrs = []
-
-    if settings.demLayer:
-      self.warp_dem = MemoryWarpRaster(settings.demLayer.source(), str(settings.demLayer.crs().toWkt()), str(settings.crs.toWkt()))
-    else:
-      self.warp_dem = FlatRaster()
-
     self.imageManager = ImageManager(settings)
     self.modelManager = ModelManager()
     self.triMesh = {}
@@ -508,14 +527,14 @@ def writeSimpleDEM(writer, properties, progress=None):
   dem_width = prop.width()
   dem_height = prop.height()
 
-  # warp dem
-  demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId) if prop.layerId else None
-  if demLayer:
+  # warp dem    #TODO: rename to provider
+  warp_dem = settings.demProviderByLayerId(prop.layerId)
+  if isinstance(warp_dem, MemoryWarpRaster):
+    demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
     layerName = demLayer.name()
-    warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
   else:
-    layerName = "Flat plane"
-    warp_dem = FlatRaster()
+    demLayer = None
+    layerName = warp_dem.name()
 
   dem_values = warp_dem.read(dem_width, dem_height, settings.baseExtent.geotransform(dem_width, dem_height))
 
@@ -780,15 +799,21 @@ def writeMultiResDEM(writer, properties, progress=None):
   progress = progress or dummyProgress
 
   prop = DEMPropertyReader(properties)
-  demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
-  if demLayer is None:
-    return
+
+  # provider    #TODO: rename to provider
+  warp_dem = settings.demProviderByLayerId(prop.layerId)
+  if isinstance(warp_dem, MemoryWarpRaster):
+    demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
+    layerName = demLayer.name()
+  else:
+    demLayer = None
+    layerName = warp_dem.name()
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
-  lyrIdx = writer.writeLayer(layer.layerObject())
-
-  warp_dem = MemoryWarpRaster(demLayer.source(), str(demLayer.crs().toWkt()), str(settings.crs.toWkt()))
+  lyr = layer.layerObject()
+  lyr.update({"name": layerName})
+  lyrIdx = writer.writeLayer(lyr)
 
   # quad tree
   quadtree = settings.quadtree

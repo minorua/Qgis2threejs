@@ -348,10 +348,14 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
   def initLayerComboBox(self):
-    # list of 1 band raster layers
+    # list of 1 band raster layers and plugin dem providers
     comboDEM = self.comboBox_DEMLayer
     comboDEM.clear()
     comboDEM.addItem("Flat plane (no DEM used)", 0)
+
+    # plugin dem providers
+    for plugin in self.dialog.pluginManager.demProviderPlugins():
+      comboDEM.addItem(plugin.providerName(), "plugin:" + plugin.providerId())
 
     # list of polygon layers
     comboPolygon = self.comboBox_ClipLayer

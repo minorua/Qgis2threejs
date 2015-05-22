@@ -38,10 +38,11 @@ from settings import debug_mode, def_vals, plugin_version
 
 class Qgis2threejsDialog(QDialog):
 
-  def __init__(self, iface, objectTypeManager, exportSettings=None, lastTreeItemData=None):
+  def __init__(self, iface, objectTypeManager, pluginManager, exportSettings=None, lastTreeItemData=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
     self.objectTypeManager = objectTypeManager
+    self.pluginManager = pluginManager
     self._settings = exportSettings or {}
     self.lastTreeItemData = lastTreeItemData
     self.localBrowsingMode = True
@@ -495,7 +496,7 @@ class Qgis2threejsDialog(QDialog):
 
     # export to web (three.js)
     canvas = self.iface.mapCanvas()
-    export_settings = ExportSettings(self.settings(), canvas, self.localBrowsingMode)
+    export_settings = ExportSettings(self.settings(), canvas, self.pluginManager, self.localBrowsingMode)
 
     valid, err_msg = export_settings.checkValidity()
     if not valid:

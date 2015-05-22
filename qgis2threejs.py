@@ -49,6 +49,8 @@ class Qgis2threejs:
     #    QCoreApplication.installTranslator(self.translator)
 
     self.objectTypeManager = None
+    self.pluginManager = None
+
     self.exportSettings = {}
     self.lastTreeItemData = None
 
@@ -81,12 +83,16 @@ class Qgis2threejs:
 
   def run(self):
     from vectorobject import ObjectTypeManager
+    from pluginmanager import PluginManager
     from qgis2threejsdialog import Qgis2threejsDialog
 
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
 
-    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.exportSettings, self.lastTreeItemData)
+    if self.pluginManager is None:
+      self.pluginManager = PluginManager()
+
+    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.pluginManager, self.exportSettings, self.lastTreeItemData)
 
     # show dialog
     dialog.show()
