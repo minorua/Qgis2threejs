@@ -34,12 +34,13 @@ class PluginManager:
     self.modules = []
     self.plugins = []
 
-    allPlugins = True
+    allPlugins = False
     if allPlugins:
       plugin_dir = QDir(os.path.join(os.path.dirname(QFile.decodeName(__file__)), "plugins"))
       plugins = plugin_dir.entryList(QDir.Dirs | QDir.NoSymLinks | QDir.NoDotAndDotDot)
     else:
-      plugins = QSettings().value("/Qgis2threejs/plugins", "", type=unicode).split(",")
+      p = QSettings().value("/Qgis2threejs/plugins", "", type=unicode)
+      plugins = p.split(",") if p else []
 
     import importlib
     for name in plugins:

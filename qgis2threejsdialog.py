@@ -218,7 +218,9 @@ class Qgis2threejsDialog(QDialog):
   def pluginSettings(self):
     from settingsdialog import SettingsDialog
     dialog = SettingsDialog(self)
-    dialog.exec_()
+    if dialog.exec_():
+      self.pluginManager.reloadPlugins()
+      self.pages[ppages.PAGE_DEM].initLayerComboBox()
 
   def showMessageBar(self, text, level=QgsMessageBar.INFO):
     # from src/gui/qgsmessagebaritem.cpp

@@ -107,7 +107,8 @@ class Qgis2threejs:
     from settingsdialog import SettingsDialog
     dialog = SettingsDialog(self.iface.mainWindow())
     dialog.show()
-    dialog.exec_()
+    if dialog.exec_():
+      self.pluginManager = PluginManager()
 
   def loadExportSettings(self, filename):
     import json
