@@ -85,7 +85,7 @@ class GSIDEMTileProvider:
     # get tiles
     over_smpl = 1
     mapUnitsPerPixel = geotransform[1] / over_smpl
-    ds = self.getDataset(xmin, ymin, xmax, ymax, mapUnitsPerPixel)
+    ds = self.getDataset(merc_rect.xMinimum(), merc_rect.yMinimum(), merc_rect.xMaximum(), merc_rect.yMaximum(), mapUnitsPerPixel)
 
     # create a memory dataset
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
