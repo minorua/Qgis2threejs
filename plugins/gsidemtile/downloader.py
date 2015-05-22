@@ -19,14 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import *
+from PyQt4.QtCore import QDateTime, QEventLoop, QObject, QTimer, QUrl, qDebug, SIGNAL
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
-from qgis.core import *
-import os
-import datetime
+from qgis.core import QgsNetworkAccessManager
 import threading
 
-debug_mode = 1
+debug_mode = 0
 
 class Downloader(QObject):
 
