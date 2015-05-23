@@ -34,7 +34,6 @@ from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 from rotatedrect import RotatedRect
 from qgis2threejsmain import ObjectTreeItem, createQuadTree
 from stylewidget import StyleWidget
-from quadtree import QuadTree
 import qgis2threejstools as tools
 from qgis2threejstools import logMessage
 from settings import def_vals

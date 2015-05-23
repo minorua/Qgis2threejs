@@ -22,6 +22,7 @@
 from qgis.core import QgsPoint, QgsRectangle
 
 class QuadNode:
+
   def __init__(self, parent, rect, location, height=0):
     self.parent = parent
     self.rect = rect
@@ -41,7 +42,7 @@ class QuadNode:
         xmax = xmin + 0.5 * self.rect.width()
         ymax = ymin + 0.5 * self.rect.height()
         quadrect = QgsRectangle(xmin, ymin, xmax, ymax)
-        node = QuadNode(self, quadrect, 2 * y + x, self.height + 1)
+        node = self.__class__(self, quadrect, 2 * y + x, self.height + 1)
         self.subNodes.append(node)
         if quadrect.intersects(rect):
           node.subdivideRecursively(rect, maxHeight)
@@ -63,7 +64,11 @@ class QuadNode:
     y = min(1, int(2 * (self.rect.yMaximum() - point.y()) / self.rect.height()))
     return self.subNodes[2 * y + x].quadByPosition(point)
 
+
 class QuadTree:
+
+  NodeClass = QuadNode
+
   UP = 0
   LEFT = 1
   RIGHT = 2
@@ -73,7 +78,7 @@ class QuadTree:
     if rect is None:
       rect = QgsRectangle(0, 0, 1, 1)
     self.rect = rect
-    self.root = QuadNode(self, rect, 0)
+    self.root = self.NodeClass(self, rect, 0)
     self.focusRect = None
     self.height = 0
 
@@ -88,8 +93,11 @@ class QuadTree:
   def buildTreeByPoint(self, point, height):
     return self.buildTreeByRect(QgsRectangle(point.x(), point.y(), point.x(), point.y()), height)
 
-  def quads(self):
-    return self.root.listTopQuads([])
+  def quads(self, sorted=False):
+    q = self.root.listTopQuads([])
+    if sorted:
+      q.sort(key=lambda x: x.height)    # sort by height
+    return q
 
   def quadByPosition(self, point):
     if point and self.rect.contains(point):
@@ -110,7 +118,9 @@ class QuadTree:
     quads[self.DOWN] = self.quadByPosition(QgsPoint(center.x(), rect.yMinimum() - m * rect.height()))
     return quads
 
+
 class QuadList:
+
   def __init__(self):
     self.quads = []
     self.calculatedRect = None
@@ -157,13 +167,85 @@ class QuadList:
     self.quads = sorted_quads
     self.sorted = True
 
+
+class DEMQuadNode(QuadNode):
+
+  def __init__(self, parent, rect, location, height=0):
+    QuadNode.__init__(self, parent, rect, location, height)
+
+  def setData(self, width, height, values):
+    self.dem_width = width
+    self.dem_height = height
+    self.dem_values = values
+
+  def getValue(self, x, y):
+
+    def _getValue(gx, gy):
+      return self.dem_values[gx + self.dem_width * gy]
+
+    if 0 <= x and x <= self.dem_width - 1 and 0 <= y and y <= self.dem_height - 1:
+      ix, iy = int(x), int(y)
+      sx, sy = x - ix, y - iy
+
+      z11 = _getValue(ix, iy)
+      z21 = 0 if x == self.dem_width - 1 else _getValue(ix + 1, iy)
+      z12 = 0 if y == self.dem_height - 1 else _getValue(ix, iy + 1)
+      z22 = 0 if x == self.dem_width - 1 or y == self.dem_height - 1 else _getValue(ix + 1, iy + 1)
+
+      return (1 - sx) * ((1 - sy) * z11 + sy * z12) + sx * ((1 - sy) * z21 + sy * z22)    # bilinear interpolation
+
+    return 0    # as safe null value
+
+  def gridPointToPoint(self, x, y):
+    x = self.rect.xMinimum() + self.rect.width() / (self.dem_width - 1) * x
+    y = self.rect.yMaximum() - self.rect.height() / (self.dem_height - 1) * y
+    return x, y
+
+  def pointToGridPoint(self, x, y):
+    x = (x - self.rect.xMinimum()) / self.rect.width() * (self.dem_width - 1)
+    y = (self.rect.yMaximum() - y) / self.rect.height() * (self.dem_height - 1)
+    return x, y
+
+
+class DEMQuadTree(QuadTree):
+
+  NodeClass = DEMQuadNode
+
+  def processEdges(self):
+    """ fit edges of every block with next block of different resolution"""
+
+    for quad in self.quads(sorted=True):
+      if quad == 1:
+        continue
+
+      dem_width, dem_height, dem_values = quad.dem_width, quad.dem_height, quad.dem_values
+      for direction, neighbor in enumerate(self.neighbors(quad)):
+        if neighbor is None or quad.height <= neighbor.height:
+          continue
+
+        if direction in [DEMQuadTree.UP, DEMQuadTree.DOWN]:
+          y = 0 if direction == DEMQuadTree.UP else dem_height - 1
+          for x in range(dem_width):
+            gx, gy = quad.gridPointToPoint(x, y)
+            gx, gy = neighbor.pointToGridPoint(gx, gy)
+            dem_values[x + dem_width * y] = neighbor.getValue(gx, gy)
+
+        else:   # LEFT or RIGHT
+          x = 0 if direction == DEMQuadTree.LEFT else dem_width - 1
+          for y in range(dem_height):
+            gx, gy = quad.gridPointToPoint(x, y)
+            gx, gy = neighbor.pointToGridPoint(gx, gy)
+            dem_values[x + dem_width * y] = neighbor.getValue(gx, gy)
+
+
 class DEMQuadList(QuadList):
+
   def __init__(self, dem_width, dem_height):
     QuadList.__init__(self)
     self.dem_width = dem_width
     self.dem_height = dem_height
 
-  def addQuad(self, quad, dem):
+  def addQuad(self, quad, dem):   # quad: QuadNode    #TODO: DEMQuadNode
     quad.data = dem
     QuadList.addQuad(self, quad)
 

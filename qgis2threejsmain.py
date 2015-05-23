@@ -37,7 +37,7 @@ from rotatedrect import RotatedRect
 from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, Triangles
 from datamanager import ImageManager, ModelManager, MaterialManager
 from propertyreader import DEMPropertyReader, VectorPropertyReader
-from quadtree import QuadTree, DEMQuadList
+from quadtree import DEMQuadTree, DEMQuadList
 
 import gdal2threejs
 from gdal2threejs import Raster
@@ -819,7 +819,6 @@ def writeMultiResDEM(writer, properties, progress=None):
   quadtree = settings.quadtree
   if quadtree is None:
     return
-  quads = quadtree.quads()
 
   # (currently) dem size is 2 ^ quadtree.height * a + 1, where a is larger integer than 0
   # with smooth resolution change, this is not necessary
@@ -832,6 +831,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   layerImageIds = properties.get("layerImageIds", [])
 
   # writeBlock function
+  #TODO: quad_rect, dem_width, dem_height, dem_values -> dem_quad
   def writeBlock(quad_rect, extent, dem_width, dem_height, dem_values, image_width, image_height):
     # extent = baseExtent.subrectangle(rect)
     npt = baseExtent.normalizePoint(extent.center().x(), extent.center().y())
@@ -861,15 +861,15 @@ def writeMultiResDEM(writer, properties, progress=None):
   image_width = canvas_size.width() * texture_scale
   image_height = canvas_size.height() * texture_scale
 
+  quads = quadtree.quads()
   unites_center = True
   centerQuads = DEMQuadList(dem_width, dem_height)
   stats = None
   for i, quad in enumerate(quads):
-    progress(30 * i / len(quads) + 5)
+    progress(15 * i / len(quads) + 5)
 
     # block extent
-    rect = quad.rect
-    extent = baseExtent.subrectangle(rect)
+    extent = baseExtent.subrectangle(quad.rect)
 
     # warp dem
     dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
@@ -885,36 +885,20 @@ def writeMultiResDEM(writer, properties, progress=None):
     if mapTo3d.multiplierZ != 1:
       dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
 
-    # calculate DEM values on edges to combine with next DEM block with different resolution
-    neighbors = quadtree.neighbors(quad)
-    for direction, neighbor in enumerate(neighbors):
-      if neighbor is None:
-        continue
-      interval = 2 ** (quad.height - neighbor.height)
-      if interval > 1:
-        if direction == QuadTree.UP or direction == QuadTree.DOWN:
-          y = 0 if direction == QuadTree.UP else dem_height - 1
-          for x1 in range(interval, dem_width, interval):
-            x0 = x1 - interval
-            z0 = dem_values[x0 + dem_width * y]
-            z1 = dem_values[x1 + dem_width * y]
-            for xx in range(1, interval):
-              z = (z0 * (interval - xx) + z1 * xx) / interval
-              dem_values[x0 + xx + dem_width * y] = z
-        else:   # LEFT or RIGHT
-          x = 0 if direction == QuadTree.LEFT else dem_width - 1
-          for y1 in range(interval, dem_height, interval):
-            y0 = y1 - interval
-            z0 = dem_values[x + dem_width * y0]
-            z1 = dem_values[x + dem_width * y1]
-            for yy in range(1, interval):
-              z = (z0 * (interval - yy) + z1 * yy) / interval
-              dem_values[x + dem_width * (y0 + yy)] = z
+    quad.setData(dem_width, dem_height, dem_values)
+
+  # process edges to eliminate opening between blocks
+  quadtree.processEdges()
+
+  for i, quad in enumerate(quads):
+    progress(15 * i / len(quads) + 20)
 
     if unites_center and quad.height == quadtree.height:
-      centerQuads.addQuad(quad, dem_values)
+      centerQuads.addQuad(quad, quad.dem_values)    #TODO: DEMQuadNode
     else:
-      writeBlock(rect, extent, dem_width, dem_height, dem_values, image_width, image_height)
+      rect = quad.rect
+      extent = baseExtent.subrectangle(rect)
+      writeBlock(rect, extent, quad.dem_width, quad.dem_height, quad.dem_values, image_width, image_height)
 
   if unites_center:
     dem_width = (dem_width - 1) * centerQuads.width() + 1
@@ -1221,7 +1205,7 @@ def createQuadTree(extent, p):
   hw = 0.5 * w / extent.width()
   hh = 0.5 * h / extent.height()
 
-  quadtree = QuadTree()
+  quadtree = DEMQuadTree()
   if not quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"]):
     return None
 
