@@ -577,7 +577,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   block.zScale(mapTo3d.multiplierZ)
   block.set("m", mat)
 
-  surroundings = properties.get("checkBox_Surroundings", False) if demLayer else False    #TODO: prop.layerId
+  surroundings = properties.get("checkBox_Surroundings", False) if prop.layerId else False
   if surroundings:
     blocks = DEMBlocks()
     blocks.appendBlock(block)
