@@ -40,7 +40,6 @@ from datamanager import ImageManager, ModelManager, MaterialManager
 from propertyreader import DEMPropertyReader, VectorPropertyReader
 from quadtree import DEMQuadTree, DEMQuadList
 
-import gdal2threejs
 from gdal2threejs import Raster
 
 import qgis2threejstools as tools
@@ -656,30 +655,6 @@ def dissolvePolygonsOnCanvas(writer, layer):
     return None
 
   return geom
-
-
-#TODO: remove
-def roughenEdges(width, height, values, interval):
-  if interval == 1:
-    return
-
-  for y in [0, height - 1]:
-    for x1 in range(interval, width, interval):
-      x0 = x1 - interval
-      z0 = values[x0 + width * y]
-      z1 = values[x1 + width * y]
-      for xx in range(1, interval):
-        z = (z0 * (interval - xx) + z1 * xx) / interval
-        values[x0 + xx + width * y] = z
-
-  for x in [0, width - 1]:
-    for y1 in range(interval, height, interval):
-      y0 = y1 - interval
-      z0 = values[x + width * y0]
-      z1 = values[x + width * y1]
-      for yy in range(1, interval):
-        z = (z0 * (interval - yy) + z1 * yy) / interval
-        values[x + width * (y0 + yy)] = z
 
 
 def surroundingDEMBlocks(writer, layer, warp_dem, properties, progress=None):
