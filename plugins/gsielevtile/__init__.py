@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- GSIDEMTilePlugin - A Qgis2threejs plugin
+ GSIElevTilePlugin - A Qgis2threejs plugin
                               -------------------
         begin                : 2015-05-22
         copyright            : (C) 2015 Minoru Akagi
@@ -18,11 +18,11 @@
  ***************************************************************************/
 """
 
-class GSIDEMTilePlugin:
+class GSIElevTilePlugin:
 
   @staticmethod
   def name():
-    return "GSI DEM Tile Plugin"
+    return "GSI Elevation Tile Plugin"
 
   @staticmethod
   def type():
@@ -30,15 +30,15 @@ class GSIDEMTilePlugin:
 
   @staticmethod
   def providerName():
-    return "GSI DEM Tile"
+    return "GSI Elevation Tile"
 
   @staticmethod
   def providerId():
-    return "gsidemtile"
+    return "gsielevtile"
 
   @staticmethod
   def providerClass():
-    from gsidemtileprovider import GSIDEMTileProvider
-    return GSIDEMTileProvider
+    from gsielevtileprovider import GSIElevTileProvider
+    return GSIElevTileProvider
 
-plugin_class = GSIDEMTilePlugin
+plugin_class = GSIElevTilePlugin

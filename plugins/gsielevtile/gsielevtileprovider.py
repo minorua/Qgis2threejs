@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- GSIDEMTileProvider
+ GSIElevTileProvider
 
    DEM provider that downloads GSI Tiles (elevation) from the web server of
  Geospatial Information Authority of Japan, and provides elevation data to
@@ -41,7 +41,7 @@ TSIZE1 = 20037508.342789244
 NODATA_VALUE = 0
 ZMAX = 14
 
-class GSIDEMTileProvider:
+class GSIElevTileProvider:
 
   def __init__(self, dest_wkt=None):
     self.dest_wkt = dest_wkt
@@ -57,13 +57,13 @@ class GSIDEMTileProvider:
     self.boundingbox = QgsRectangle(13667807, 2320477, 17230031, 5713298)
 
     self.downloader = Downloader()
-    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIDEMTileProvider".format(QGis.QGIS_VERSION) # not written since QGIS 2.2
+    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIElevTileProvider".format(QGis.QGIS_VERSION) # not written since QGIS 2.2
     self.downloader.DEFAULT_CACHE_EXPIRATION = QSettings().value("/qgis/defaultTileExpiry", 24, type=int)
 
     self.driver = gdal.GetDriverByName("MEM")
 
   def name(self):
-    return "GSI DEM Tile"
+    return "GSI Elevation Tile"
 
   def read(self, width, height, geotransform, dest_wkt=None):
     xmin, ymax = geotransform[0], geotransform[3]
