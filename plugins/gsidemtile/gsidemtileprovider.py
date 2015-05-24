@@ -101,7 +101,7 @@ class GSIDEMTileProvider:
     return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
 
   def readValue(self, x, y, dest_wkt=None):
-    """get value at the position using 1px * 1px memory raster"""
+    """Get value at the position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return self.read(1, 1, geotransform, dest_wkt)[0]
