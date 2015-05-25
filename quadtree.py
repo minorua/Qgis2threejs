@@ -29,7 +29,6 @@ class QuadNode:
     self.location = location
     self.height = height
     self.subNodes = []
-    self.data = None
 
   def subdivideRecursively(self, rect, maxHeight):
     if maxHeight <= self.height:
@@ -245,8 +244,7 @@ class DEMQuadList(QuadList):
     self.dem_width = dem_width
     self.dem_height = dem_height
 
-  def addQuad(self, quad, dem):   # quad: QuadNode    #TODO: DEMQuadNode
-    quad.data = dem
+  def addQuad(self, quad):   # quad: DEMQuadNode
     QuadList.addQuad(self, quad)
 
   def unitedDEM(self):
@@ -260,5 +258,5 @@ class DEMQuadList(QuadList):
         for col in range(width):
           x0 = 0 if col == 0 else 1
           i = y * self.dem_width + x0
-          dem_values += self.quads[col + row * width].data[i:i + self.dem_width - x0]
+          dem_values += self.quads[col + row * width].dem_values[i:i + self.dem_width - x0]
     return dem_values

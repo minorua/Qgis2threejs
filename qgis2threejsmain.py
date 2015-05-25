@@ -824,7 +824,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     progress(15 * i / len(quads) + 20)
 
     if unites_center and quad.height == quadtree.height:
-      centerQuads.addQuad(quad, quad.dem_values)    #TODO: DEMQuadNode
+      centerQuads.addQuad(quad)
     else:
       addDEMBlock(quad.rect, quad.dem_width, quad.dem_height, quad.dem_values, image_width, image_height)
 
