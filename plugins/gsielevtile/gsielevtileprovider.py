@@ -61,6 +61,7 @@ class GSIElevTileProvider:
     self.downloader.DEFAULT_CACHE_EXPIRATION = QSettings().value("/qgis/defaultTileExpiry", 24, type=int)
 
     self.driver = gdal.GetDriverByName("MEM")
+    self.last_dataset = None
 
   def name(self):
     return "GSI Elevation Tile"
@@ -151,11 +152,12 @@ class GSIElevTileProvider:
       width = height = 1
       return self.driver.Create("", width, height, 1, gdal.GDT_Float32, [])
 
+    if self.last_dataset and self.last_dataset[0] == [zoom, ulx, uly, lrx, lry]:    # if same as last tile set, return cached dataset
+      return self.last_dataset[1]
+
     urltmpl = "http://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt"
     #urltmpl = "http://localhost/xyz/dem/{z}/{x}/{y}.txt"
     tiles = self.fetchFiles(urltmpl, zoom, ulx, uly, lrx, lry)
-
-    #TODO: cache to self.tiles: ([zoom, ulx, uly, lrx, lry], tiles)
 
     # create a memory dataset
     width = cols * TILE_SIZE
@@ -178,6 +180,8 @@ class GSIElevTileProvider:
         band.WriteRaster(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE, tile)
 
     ds.FlushCache()
+
+    self.last_dataset = [[zoom, ulx, uly, lrx, lry], ds]   # cache dataset
     return ds
 
   def fetchFiles(self, urltmpl, zoom, xmin, ymin, xmax, ymax):
