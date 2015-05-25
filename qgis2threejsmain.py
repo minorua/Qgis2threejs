@@ -125,7 +125,7 @@ class GDALDEMProvider(Raster):
     if source_wkt:
       self.ds.SetProjection(str(source_wkt))
 
-  def read(self, width, height, geotransform, dest_wkt=None):
+  def _read(self, width, height, geotransform, dest_wkt=None):
     if dest_wkt is None:
       dest_wkt = self.dest_wkt
 
@@ -138,18 +138,20 @@ class GDALDEMProvider(Raster):
     gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
 
     # load values into an array
-    values = []
-    fs = "f" * width
     band = warped_ds.GetRasterBand(1)
-    for py in range(height):
-      values += struct.unpack(fs, band.ReadRaster(0, py, width, 1, width, 1, gdal.GDT_Float32))
-    return values
+    fs = "f" * width * height
+    return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
+
+  def read(self, width, height, extent, dest_wkt=None):
+    geotransform = extent.geotransform(width, height)
+    return self._read(width, height, geotransform, dest_wkt)
 
   def readValue(self, x, y, dest_wkt=None):
     """get value at the position using 1px * 1px memory raster"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self.read(1, 1, geotransform, dest_wkt)[0]
+    return self._read(1, 1, geotransform, dest_wkt)[0]
+
 
 class FlatDEMProvider:
 
@@ -159,7 +161,7 @@ class FlatDEMProvider:
   def name(self):
     return "Flat Plane"
 
-  def read(self, width, height, geotransform, wkt=None):
+  def read(self, width, height, extent, wkt=None):
     return [self.value] * width * height
 
   def readValue(self, x, y, wkt=None):
@@ -566,7 +568,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # get DEM values
   dem_width, dem_height = prop.width(), prop.height()
-  dem_values = provider.read(dem_width, dem_height, settings.baseExtent.geotransform(dem_width, dem_height))
+  dem_values = provider.read(dem_width, dem_height, settings.baseExtent)
 
   # DEM block
   block = DEMBlock(dem_width, dem_height, dem_values, mapTo3d.planeWidth, mapTo3d.planeHeight, 0, 0)
@@ -705,7 +707,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
       mat = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     # DEM block
-    dem_values = provider.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
+    dem_values = provider.read(dem_width, dem_height, extent)
     planeWidth, planeHeight = mapTo3d.planeWidth, mapTo3d.planeHeight
     offsetX, offsetY = planeWidth * sx, planeHeight * sy
 
@@ -800,7 +802,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     extent = baseExtent.subrectangle(quad.rect)
 
     # warp dem
-    dem_values = provider.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
+    dem_values = provider.read(dem_width, dem_height, extent)
 
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}

@@ -26,7 +26,7 @@ import numpy
 import struct
 
 from PyQt4.QtCore import QObject, QSettings
-from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsRectangle
+from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle
 
 try:
   from osgeo import gdal
@@ -65,12 +65,8 @@ class GSIElevTileProvider:
   def name(self):
     return "GSI Elevation Tile"
 
-  def read(self, width, height, geotransform, dest_wkt=None):
-    xmin, ymax = geotransform[0], geotransform[3]
-    xmax, ymin = xmin + geotransform[1] * width, ymax + geotransform[5] * height
-    rect = QgsRectangle(xmin, ymin, xmax, ymax)
-
-    # calculate bounding box in EPSG:3857 and check if the bounding box intersects the bounding box of this data
+  def read(self, width, height, extent, dest_wkt=None):
+    # calculate bounding box in EPSG:3857
     if dest_wkt is None:
       dest_wkt = self.dest_wkt
       transform = self.transform
@@ -78,18 +74,50 @@ class GSIElevTileProvider:
       dest_crs = QgsCoordinateReferenceSystem(dest_wkt)
       transform = QgsCoordinateTransform(dest_crs, self.crs3857)
 
-    merc_rect = transform.transform(rect)
-    if not merc_rect.intersects(self.boundingbox):
+    geometry = extent.geometry()
+    geometry.transform(transform)
+    merc_rect = geometry.boundingBox()
+
+    # if the bounding box doesn't intersect with the bounding box of this data, return a list filled with nodata value
+    if not self.boundingbox.intersects(merc_rect):
       return [NODATA_VALUE] * width * height
 
     # get tiles
     over_smpl = 1
-    mapUnitsPerPixel = geotransform[1] / over_smpl
-    ds = self.getDataset(merc_rect.xMinimum(), merc_rect.yMinimum(), merc_rect.xMaximum(), merc_rect.yMaximum(), mapUnitsPerPixel)
+    segments_x = 1 if width == 1 else width - 1
+    res = extent.width() / segments_x / over_smpl
+    ds = self.getDataset(merc_rect.xMinimum(), merc_rect.yMinimum(), merc_rect.xMaximum(), merc_rect.yMaximum(), res)
 
+    geotransform = extent.geotransform(width, height)
+    return self._read(ds, width, height, geotransform, dest_wkt)
+
+  def readValue(self, x, y, dest_wkt=None):     #TODO: remove dest_wkt
+    """Get value at the position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
+    # coordinate transformation into EPSG:3857
+    if dest_wkt is None:
+      dest_wkt = self.dest_wkt
+      transform = self.transform
+    else:
+      dest_crs = QgsCoordinateReferenceSystem(dest_wkt)
+      transform = QgsCoordinateTransform(dest_crs, self.crs3857)
+
+    pt = transform.transform(QgsPoint(x, y))
+
+    # if the point is not within the bounding box of this data, return nodata value
+    if not self.boundingbox.contains(pt):
+      return NODATA_VALUE
+
+    res = 0.1
+    hres = res / 2
+    geotransform = [pt.x() - hres, res, 0, pt.y() + hres, 0, -res]
+
+    ds = self.getDataset(pt.x() - hres, pt.y() - hres, pt.x() + hres, pt.y() + hres, res)
+    return self._read(ds, 1, 1, geotransform, dest_wkt)[0]
+
+  def _read(self, ds, width, height, geotransform, dest_wkt=None):
     # create a memory dataset
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(dest_wkt)
+    warped_ds.SetProjection(dest_wkt or self.dest_wkt)
     warped_ds.SetGeoTransform(geotransform)
 
     # reproject image
@@ -99,12 +127,6 @@ class GSIElevTileProvider:
     band = warped_ds.GetRasterBand(1)
     fs = "f" * width * height
     return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
-
-  def readValue(self, x, y, dest_wkt=None):
-    """Get value at the position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
-    res = 0.1
-    geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self.read(1, 1, geotransform, dest_wkt)[0]
 
   def getDataset(self, xmin, ymin, xmax, ymax, mapUnitsPerPixel):
     # calculate zoom level
@@ -132,6 +154,8 @@ class GSIElevTileProvider:
     urltmpl = "http://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt"
     #urltmpl = "http://localhost/xyz/dem/{z}/{x}/{y}.txt"
     tiles = self.fetchFiles(urltmpl, zoom, ulx, uly, lrx, lry)
+
+    #TODO: cache to self.tiles: ([zoom, ulx, uly, lrx, lry], tiles)
 
     # create a memory dataset
     width = cols * TILE_SIZE
