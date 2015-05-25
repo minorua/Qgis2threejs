@@ -43,13 +43,13 @@ ZMAX = 14
 
 class GSIElevTileProvider:
 
-  def __init__(self, dest_wkt=None):
+  def __init__(self, dest_wkt):
     self.dest_wkt = dest_wkt
 
     # crs transformer, which aims to calculate bbox in EPSG:3857
     self.crs3857 = QgsCoordinateReferenceSystem(3857)
     self.dest_crs = QgsCoordinateReferenceSystem()
-    if dest_wkt and not self.dest_crs.createFromWkt(dest_wkt):
+    if not self.dest_crs.createFromWkt(dest_wkt):
       logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
     self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857)
 
@@ -66,17 +66,10 @@ class GSIElevTileProvider:
   def name(self):
     return "GSI Elevation Tile"
 
-  def read(self, width, height, extent, dest_wkt=None):
+  def read(self, width, height, extent):
     # calculate bounding box in EPSG:3857
-    if dest_wkt is None:
-      dest_wkt = self.dest_wkt
-      transform = self.transform
-    else:
-      dest_crs = QgsCoordinateReferenceSystem(dest_wkt)
-      transform = QgsCoordinateTransform(dest_crs, self.crs3857)
-
     geometry = extent.geometry()
-    geometry.transform(transform)
+    geometry.transform(self.transform)
     merc_rect = geometry.boundingBox()
 
     # if the bounding box doesn't intersect with the bounding box of this data, return a list filled with nodata value
@@ -90,19 +83,12 @@ class GSIElevTileProvider:
     ds = self.getDataset(merc_rect.xMinimum(), merc_rect.yMinimum(), merc_rect.xMaximum(), merc_rect.yMaximum(), res)
 
     geotransform = extent.geotransform(width, height)
-    return self._read(ds, width, height, geotransform, dest_wkt)
+    return self._read(ds, width, height, geotransform)
 
-  def readValue(self, x, y, dest_wkt=None):     #TODO: remove dest_wkt
+  def readValue(self, x, y):
     """Get value at the position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
     # coordinate transformation into EPSG:3857
-    if dest_wkt is None:
-      dest_wkt = self.dest_wkt
-      transform = self.transform
-    else:
-      dest_crs = QgsCoordinateReferenceSystem(dest_wkt)
-      transform = QgsCoordinateTransform(dest_crs, self.crs3857)
-
-    pt = transform.transform(QgsPoint(x, y))
+    pt = self.transform.transform(QgsPoint(x, y))
 
     # if the point is not within the bounding box of this data, return nodata value
     if not self.boundingbox.contains(pt):
@@ -113,12 +99,12 @@ class GSIElevTileProvider:
     geotransform = [pt.x() - hres, res, 0, pt.y() + hres, 0, -res]
 
     ds = self.getDataset(pt.x() - hres, pt.y() - hres, pt.x() + hres, pt.y() + hres, res)
-    return self._read(ds, 1, 1, geotransform, dest_wkt)[0]
+    return self._read(ds, 1, 1, geotransform)[0]
 
-  def _read(self, ds, width, height, geotransform, dest_wkt=None):
+  def _read(self, ds, width, height, geotransform):
     # create a memory dataset
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(dest_wkt or self.dest_wkt)
+    warped_ds.SetProjection(self.dest_wkt)
     warped_ds.SetGeoTransform(geotransform)
 
     # reproject image

@@ -48,7 +48,9 @@ from settings import debug_mode, def_vals
 
 apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
 
+
 class ObjectTreeItem:
+
   ITEM_WORLD = "WORLD"
   ITEM_CONTROLS = "CTRL"
   ITEM_DEM = "DEM"
@@ -88,6 +90,7 @@ class ObjectTreeItem:
 
 
 class MapTo3D:
+
   def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     mapSettings = mapCanvas.mapSettings() if apiChanged23 else mapCanvas.mapRenderer()
 
@@ -115,23 +118,21 @@ class MapTo3D:
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
 
+
 class GDALDEMProvider(Raster):
 
-  def __init__(self, filename, source_wkt=None, dest_wkt=None):
+  def __init__(self, filename, dest_wkt, source_wkt=None):
     Raster.__init__(self, filename)
     self.driver = gdal.GetDriverByName("MEM")
-    self.source_wkt = source_wkt
     self.dest_wkt = dest_wkt
+    self.source_wkt = source_wkt
     if source_wkt:
       self.ds.SetProjection(str(source_wkt))
 
-  def _read(self, width, height, geotransform, dest_wkt=None):
-    if dest_wkt is None:
-      dest_wkt = self.dest_wkt
-
+  def _read(self, width, height, geotransform):
     # create a memory dataset
     warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(dest_wkt)
+    warped_ds.SetProjection(self.dest_wkt)
     warped_ds.SetGeoTransform(geotransform)
 
     # reproject image
@@ -142,15 +143,14 @@ class GDALDEMProvider(Raster):
     fs = "f" * width * height
     return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
 
-  def read(self, width, height, extent, dest_wkt=None):
-    geotransform = extent.geotransform(width, height)
-    return self._read(width, height, geotransform, dest_wkt)
+  def read(self, width, height, extent):
+    return self._read(width, height, extent.geotransform(width, height))
 
-  def readValue(self, x, y, dest_wkt=None):
+  def readValue(self, x, y):
     """get value at the position using 1px * 1px memory raster"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self._read(1, 1, geotransform, dest_wkt)[0]
+    return self._read(1, 1, geotransform)[0]
 
 
 class FlatDEMProvider:
@@ -161,10 +161,10 @@ class FlatDEMProvider:
   def name(self):
     return "Flat Plane"
 
-  def read(self, width, height, extent, wkt=None):
+  def read(self, width, height, extent):
     return [self.value] * width * height
 
-  def readValue(self, x, y, wkt=None):
+  def readValue(self, x, y):
     return self.value
 
 
@@ -260,7 +260,7 @@ class ExportSettings:
 
     else:
       layer = QgsMapLayerRegistry.instance().mapLayer(id)
-      return GDALDEMProvider(layer.source(), str(layer.crs().toWkt()), str(self.crs.toWkt()))
+      return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
 
 
 class JSWriter:
