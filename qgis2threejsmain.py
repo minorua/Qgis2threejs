@@ -115,7 +115,7 @@ class MapTo3D:
   def transformPoint(self, pt):
     return self.transform(pt.x, pt.y, pt.z)
 
-class MemoryWarpRaster(Raster):
+class GDALDEMProvider(Raster):
 
   def __init__(self, filename, source_wkt=None, dest_wkt=None):
     Raster.__init__(self, filename)
@@ -151,7 +151,7 @@ class MemoryWarpRaster(Raster):
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return self.read(1, 1, geotransform, dest_wkt)[0]
 
-class FlatRaster:
+class FlatDEMProvider:
 
   def __init__(self, value=0):
     self.value = value
@@ -246,7 +246,7 @@ class ExportSettings:
 
   def demProviderByLayerId(self, id):
     if not id:
-      return FlatRaster()
+      return FlatDEMProvider()
 
     if id.startswith("plugin:"):
       provider = self.pluginManager.findDEMProvider(id[7:])
@@ -254,14 +254,12 @@ class ExportSettings:
         return provider(str(self.crs.toWkt()))
 
       logMessage('Plugin "{0}" not found'.format(id))
-      return FlatRaster()
+      return FlatDEMProvider()
 
     else:
       layer = QgsMapLayerRegistry.instance().mapLayer(id)
-      return MemoryWarpRaster(layer.source(), str(layer.crs().toWkt()), str(self.crs.toWkt()))
+      return GDALDEMProvider(layer.source(), str(layer.crs().toWkt()), str(self.crs.toWkt()))
 
-    #TODO: rename *Raster to DEMProvider
-    #TODO: rename MemoryWarpRaster to GDALDEMProvider
 
 class JSWriter:
 
@@ -308,7 +306,7 @@ class ThreejsJSWriter(JSWriter):
     JSWriter.__init__(self, settings.path_root, multiple_files)
 
     self.settings = settings
-    self.warp_dem = settings.demProvider
+    self.demProvider = settings.demProvider
     self.objectTypeManager = objectTypeManager
     self.pluginManager = pluginManager
 
@@ -523,16 +521,16 @@ def writeSimpleDEM(writer, properties, progress=None):
   mapTo3d = settings.mapTo3d
   progress = progress or dummyProgress
 
-  prop = DEMPropertyReader(properties)    #TODO: prop_reader
+  prop = DEMPropertyReader(properties)
 
-  # warp dem    #TODO: rename to provider
-  warp_dem = settings.demProviderByLayerId(prop.layerId)
-  if isinstance(warp_dem, MemoryWarpRaster):
+  # DEM provider
+  provider = settings.demProviderByLayerId(prop.layerId)
+  if isinstance(provider, GDALDEMProvider):
     demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
     layerName = demLayer.name()
   else:
     demLayer = None
-    layerName = warp_dem.name()
+    layerName = provider.name()
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
@@ -569,7 +567,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # get DEM values
   dem_width, dem_height = prop.width(), prop.height()
-  dem_values = warp_dem.read(dem_width, dem_height, settings.baseExtent.geotransform(dem_width, dem_height))
+  dem_values = provider.read(dem_width, dem_height, settings.baseExtent.geotransform(dem_width, dem_height))
 
   # DEM block
   block = DEMBlock(dem_width, dem_height, dem_values, mapTo3d.planeWidth, mapTo3d.planeHeight, 0, 0)
@@ -581,7 +579,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   if surroundings:
     blocks = DEMBlocks()
     blocks.appendBlock(block)
-    blocks.appendBlocks(surroundingDEMBlocks(writer, layer, warp_dem, properties, progress))
+    blocks.appendBlocks(surroundingDEMBlocks(writer, layer, provider, properties, progress))
     blocks.processEdges()
     blocks.write(writer)
 
@@ -657,7 +655,7 @@ def dissolvePolygonsOnCanvas(writer, layer):
   return geom
 
 
-def surroundingDEMBlocks(writer, layer, warp_dem, properties, progress=None):
+def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   settings = writer.settings
   mapSettings = settings.mapSettings
   mapTo3d = settings.mapTo3d
@@ -708,7 +706,7 @@ def surroundingDEMBlocks(writer, layer, warp_dem, properties, progress=None):
       mat = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
     # DEM block
-    dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
+    dem_values = provider.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
     planeWidth, planeHeight = mapTo3d.planeWidth, mapTo3d.planeHeight
     offsetX, offsetY = planeWidth * sx, planeHeight * sy
 
@@ -730,14 +728,14 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   prop = DEMPropertyReader(properties)
 
-  # provider    #TODO: rename to provider
-  warp_dem = settings.demProviderByLayerId(prop.layerId)
-  if isinstance(warp_dem, MemoryWarpRaster):
+  # DEM provider
+  provider = settings.demProviderByLayerId(prop.layerId)
+  if isinstance(provider, GDALDEMProvider):
     demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
     layerName = demLayer.name()
   else:
     demLayer = None
-    layerName = warp_dem.name()
+    layerName = provider.name()
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
@@ -803,7 +801,7 @@ def writeMultiResDEM(writer, properties, progress=None):
     extent = baseExtent.subrectangle(quad.rect)
 
     # warp dem
-    dem_values = warp_dem.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
+    dem_values = provider.read(dem_width, dem_height, extent.geotransform(dem_width, dem_height))
 
     if stats is None:
       stats = {"max": max(dem_values), "min": min(dem_values)}
@@ -968,7 +966,7 @@ class VectorLayer(Layer):
           z_func = lambda x, y: 0
         else:
           # get elevation from DEM
-          z_func = lambda x, y: self.writer.warp_dem.readValue(x, y)
+          z_func = lambda x, y: self.writer.demProvider.readValue(x, y)
       else:
         z_func = lambda x, y: 0
 
