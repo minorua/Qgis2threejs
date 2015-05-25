@@ -302,13 +302,12 @@ class JSWriter:
 
 class ThreejsJSWriter(JSWriter):
 
-  def __init__(self, settings, objectTypeManager, pluginManager, multiple_files=False):
+  def __init__(self, settings, objectTypeManager, multiple_files=False):
     JSWriter.__init__(self, settings.path_root, multiple_files)
 
     self.settings = settings
     self.demProvider = settings.demProvider
     self.objectTypeManager = objectTypeManager
-    self.pluginManager = pluginManager
 
     self.layerCount = 0
     self.currentLayerIndex = 0

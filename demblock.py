@@ -184,6 +184,6 @@ class DEMBlocks:
   def write(self, writer, separated=False):
     for block in self.blocks:
       if separated:
-        writer.nextFile(True)     #TODO: not working
+        writer.nextFile(True)
 
       block.write(writer)
