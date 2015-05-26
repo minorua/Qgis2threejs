@@ -324,6 +324,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # use default properties if properties is not set
     if not properties:
       properties = self.defaultProperties
+      properties["comboBox_TextureSize"] = 100
       properties["checkBox_Sides"] = self.isPrimary
 
     # restore properties of the layer
@@ -378,8 +379,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       percent = i * 100
       text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
-
-    self.comboBox_TextureSize.setCurrentIndex(self.comboBox_TextureSize.count() - 1)
 
   def selectDEMLayer(self, layerId=None):
     comboBox = self.comboBox_DEMLayer
