@@ -176,12 +176,12 @@ class Qgis2threejsDialog(QDialog):
       directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
       directory = QDir.homePath()
-    filterString = "Settings files (*.json);;All files (*.*)"
+    filterString = "Settings files (*.qto3settings);;All files (*.*)"
     filename = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
     if not filename:
       return
 
-    # load settings from file (.json)
+    # load settings from file (.qto3settings)
     import json
     with open(filename) as f:
       settings = json.load(f)
@@ -196,15 +196,15 @@ class Qgis2threejsDialog(QDialog):
         directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
       if not directory:
         directory = QDir.homePath()
-      filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
+      filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
       if not filename:
         return
 
-      # append .json extension if filename doesn't have
-      if filename[-5:].lower() != ".json":
-        filename += ".json"
+      # append .qto3settings extension if filename doesn't have
+      if os.path.splitext(filename)[1].lower() != ".qto3settings":
+        filename += ".qto3settings"
 
-    # save settings to file (.json)
+    # save settings to file (.qto3settings)
     import codecs
     import json
     with codecs.open(filename, "w", "UTF-8") as f:

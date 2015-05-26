@@ -95,7 +95,7 @@ class Qgis2threejs:
 
     # restore export settings
     proj_path = QgsProject.instance().fileName()
-    settingsFilePath = proj_path + ".qto3" if proj_path else None
+    settingsFilePath = proj_path + ".qto3settings" if proj_path else None
 
     if settingsFilePath and os.path.exists(settingsFilePath):
       if not self.exportSettings or settingsFilePath != self.settingsFilePath:
