@@ -70,7 +70,7 @@ class Qgis2threejsDialog(QDialog):
 
     # popup menu displayed when settings button is pressed
     items = [["Load Settings...", self.loadSettings],
-             ["Save Settings...", self.saveSettings],
+             ["Save Settings As...", self.saveSettings],
              [None, None],
              ["Clear Settings", self.clearSettings],
              [None, None],
@@ -188,20 +188,21 @@ class Qgis2threejsDialog(QDialog):
 
     self.setSettings(settings)
 
-  def saveSettings(self):
-    # file save dialog
-    directory = QgsProject.instance().homePath()
-    if not directory:
-      directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
-    if not directory:
-      directory = QDir.homePath()
-    filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
+  def saveSettings(self, filename=None):
     if not filename:
-      return
+      # file save dialog
+      directory = QgsProject.instance().homePath()
+      if not directory:
+        directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
+      if not directory:
+        directory = QDir.homePath()
+      filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.json)")
+      if not filename:
+        return
 
-    # append .json extension if filename doesn't have
-    if filename[-5:].lower() != ".json":
-      filename += ".json"
+      # append .json extension if filename doesn't have
+      if filename[-5:].lower() != ".json":
+        filename += ".json"
 
     # save settings to file (.json)
     import codecs
@@ -531,7 +532,7 @@ class Qgis2threejsDialog(QDialog):
     settings.setValue("/Qgis2threejs/lastTemplate", export_settings.templateName)
     settings.setValue("/Qgis2threejs/lastControls", export_settings.controls)
 
-    # open browser
+    # open web browser
     if not tools.openHTMLFile(export_settings.htmlfilename):
       ui.toolButton_Settings.setVisible(True)
       return

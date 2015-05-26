@@ -23,9 +23,9 @@ import os
 
 from PyQt4.QtCore import QCoreApplication, QFile, Qt    #, QSettings, QTranslator, qVersion
 from PyQt4.QtGui import QAction, QIcon
-from qgis.core import QGis
+from qgis.core import QGis, QgsProject
 
-from qgis2threejstools import removeTemporaryOutputDir
+from qgis2threejstools import logMessage, removeTemporaryOutputDir
 from settings import debug_mode
 
 class Qgis2threejs:
@@ -53,6 +53,7 @@ class Qgis2threejs:
 
     self.exportSettings = {}
     self.lastTreeItemData = None
+    self.settingsFilePath = None
 
   def initGui(self):
     # Create action that will start plugin configuration
@@ -92,16 +93,31 @@ class Qgis2threejs:
     if self.pluginManager is None:
       self.pluginManager = PluginManager()
 
+    # restore export settings
+    proj_path = QgsProject.instance().fileName()
+    settingsFilePath = proj_path + ".qto3" if proj_path else None
+
+    if settingsFilePath and os.path.exists(settingsFilePath):
+      if not self.exportSettings or settingsFilePath != self.settingsFilePath:
+        self.loadExportSettings(settingsFilePath)
+        logMessage(u"Restored export settings of this project: {0}".format(os.path.basename(proj_path)))    #QgsProject.instance().title()
+
     dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.pluginManager, self.exportSettings, self.lastTreeItemData)
 
     # show dialog
     dialog.show()
-    dialog.exec_()
+    ret = dialog.exec_()
 
     self.exportSettings = dialog.settings()
 
     item = dialog.ui.treeWidget.currentItem()
     self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None
+
+    # if export succeeded, save export settings in the directory that project file exists
+    if ret and settingsFilePath:
+      self.saveExportSettings(settingsFilePath)
+
+    self.settingsFilePath = settingsFilePath
 
   def setting(self):
     from settingsdialog import SettingsDialog
@@ -118,5 +134,10 @@ class Qgis2threejs:
   def saveExportSettings(self, filename):
     import codecs
     import json
-    with codecs.open(filename, "w", "UTF-8") as f:
-      json.dump(self.exportSettings, f, ensure_ascii=False)
+    try:
+      with codecs.open(filename, "w", "UTF-8") as f:
+        json.dump(self.exportSettings, f, ensure_ascii=False)
+      return True
+    except Exception as e:
+      logMessage("Failed to save export settings: " + str(e))
+      return False
