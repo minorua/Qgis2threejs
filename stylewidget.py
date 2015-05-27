@@ -38,11 +38,13 @@ class WidgetFuncBase:
   def setup(self, name, editLabel="Value", lineEdit="", placeholderText="", readOnly=False, toolButton=False, checkBox=False):
     # initialize widgets
     self.widget.label_1.setText(name)
-    self.widget.label_2.setText(editLabel)
+    if editLabel:
+      self.widget.label_2.setText(editLabel)
+    self.widget.label_2.setVisible(bool(editLabel))
     self.widget.lineEdit.setPlaceholderText(placeholderText)
     self.widget.lineEdit.setReadOnly(readOnly)
     self.widget.lineEdit.setText(lineEdit or "")
-    self.widget.lineEdit.setVisible(lineEdit is not False)
+    self.widget.lineEdit.setVisible(lineEdit is not None)
     self.widget.toolButton.setVisible(toolButton)
     self.widget.checkBox.setVisible(checkBox)
 
@@ -131,7 +133,7 @@ class ColorWidgetFunc(WidgetFuncBase):
 
   def setup(self, options=None):
     """ options: defaultValue """
-    WidgetFuncBase.setup(self, "Color", lineEdit=False, placeholderText="0xrrggbb")
+    WidgetFuncBase.setup(self, "Color", lineEdit=None, placeholderText="0xrrggbb")
     options = options or {}
 
     self.widget.comboBox.clear()
@@ -307,7 +309,7 @@ class TransparencyWidgetFunc(WidgetFuncBase):
   VALUE = 2
 
   def setup(self, options=None):
-    WidgetFuncBase.setup(self, "Transparency", editLabel="Value (%)", lineEdit=False, placeholderText="0 - 100")
+    WidgetFuncBase.setup(self, "Transparency", editLabel="Value (%)", lineEdit=None, placeholderText="0 - 100")
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", TransparencyWidgetFunc.FEATURE)
