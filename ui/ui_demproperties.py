@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Mon May 11 14:13:15 2015
+# Created: Wed May 27 09:36:22 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -159,7 +159,7 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_Height.setEnabled(True)
         self.spinBox_Height.setMinimum(1)
         self.spinBox_Height.setMaximum(8)
-        self.spinBox_Height.setProperty("value", 5)
+        self.spinBox_Height.setProperty("value", 4)
         self.spinBox_Height.setObjectName(_fromUtf8("spinBox_Height"))
         self.horizontalLayout_Advanced1.addWidget(self.spinBox_Height)
         self.label_10 = QtGui.QLabel(self.groupBox_Resampling)
