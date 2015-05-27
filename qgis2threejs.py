@@ -97,8 +97,8 @@ class Qgis2threejs:
     proj_path = QgsProject.instance().fileName()
     settingsFilePath = proj_path + ".qto3settings" if proj_path else None
 
-    if settingsFilePath and os.path.exists(settingsFilePath):
-      if not self.exportSettings or settingsFilePath != self.settingsFilePath:
+    if not self.exportSettings or settingsFilePath != self.settingsFilePath:
+      if settingsFilePath and os.path.exists(settingsFilePath):
         self.loadExportSettings(settingsFilePath)
         logMessage(u"Restored export settings of this project: {0}".format(os.path.basename(proj_path)))    #QgsProject.instance().title()
 
@@ -108,7 +108,7 @@ class Qgis2threejs:
     dialog.show()
     ret = dialog.exec_()
 
-    self.exportSettings = dialog.settings()
+    self.exportSettings = dialog.settings(True)
 
     item = dialog.ui.treeWidget.currentItem()
     self.lastTreeItemData = item.data(0, Qt.UserRole) if item else None

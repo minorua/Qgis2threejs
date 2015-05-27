@@ -130,7 +130,7 @@ class Qgis2threejsDialog(QDialog):
 
     #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
 
-  def settings(self):
+  def settings(self, clean=False):
     # save settings of current panel
     item = self.ui.treeWidget.currentItem()
     if item and self.currentPage:
@@ -142,6 +142,17 @@ class Qgis2threejsDialog(QDialog):
     # template and output html file path
     self._settings["Template"] = self.ui.comboBox_Template.currentText()
     self._settings["OutputFilename"] = self.ui.lineEdit_OutputFilename.text()
+
+    if not clean:
+      return self._settings
+
+    # clean up settings - remove layers that don't exist in the layer registry
+    registry = QgsMapLayerRegistry.instance()
+    for itemId in [ObjectTreeItem.ITEM_OPTDEM, ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
+      parent = self._settings.get(itemId, {})
+      for layerId in parent.keys():
+        if registry.mapLayer(layerId) is None:
+          del parent[layerId]
 
     return self._settings
 
@@ -208,7 +219,7 @@ class Qgis2threejsDialog(QDialog):
     import codecs
     import json
     with codecs.open(filename, "w", "UTF-8") as f:
-      json.dump(self.settings(), f, ensure_ascii=False)
+      json.dump(self.settings(True), f, ensure_ascii=False)
 
     logMessage(u"Settings saved: {0}".format(filename))
 
