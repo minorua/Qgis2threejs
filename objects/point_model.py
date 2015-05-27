@@ -59,4 +59,10 @@ def write(writer, layer, feat):
   rx = float(vals[2])
   ry = float(vals[3])
   rz = float(vals[4])
+
+  # take map rotation into account
+  rotation = writer.settings.baseExtent.rotation()
+  if rotation:
+    rz = (rz - rotation) % 360    # map rotation is clockwise
+
   writer.writeFeature({"model_index": index, "pts": feat.geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale})

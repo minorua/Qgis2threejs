@@ -73,4 +73,10 @@ def write(writer, layer, feat):
     r = float(vals[2]) * mapTo3d.multiplier
     d = float(vals[3])
     dd = float(vals[4])
+
+    # take map rotation into account
+    rotation = writer.settings.baseExtent.rotation()
+    if rotation:
+      dd = (dd + rotation) % 360
+
     writer.writeFeature({"m": mat, "pts": pts, "r": r, "d": d, "dd": dd})
