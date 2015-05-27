@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\settingsdialog.ui'
 #
-# Created: Fri May 22 16:12:12 2015
+# Created: Wed May 27 11:29:05 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -79,7 +79,7 @@ class Ui_SettingsDialog(object):
 
     def retranslateUi(self, SettingsDialog):
         SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Settings", None))
-        self.groupBox_2.setTitle(_translate("SettingsDialog", "Plugins", None))
+        self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features (Plugins)", None))
         self.label_2.setText(_translate("SettingsDialog", "Description", None))
         self.groupBox.setTitle(_translate("SettingsDialog", "General", None))
         self.label.setText(_translate("SettingsDialog", "Browser path", None))

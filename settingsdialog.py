@@ -48,7 +48,7 @@ class SettingsDialog(QDialog):
     tableWidget = ui.tableWidget_Plugins
     tableWidget.setRowCount(len(plugins))
     tableWidget.setColumnCount(1)
-    tableWidget.setHorizontalHeaderLabels(["Plugin Name"])
+    tableWidget.setHorizontalHeaderLabels(["Name"])
     tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
     headerView = tableWidget.horizontalHeader()
     headerView.setResizeMode(0, QHeaderView.Stretch)
