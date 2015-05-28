@@ -367,10 +367,6 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     self.mapSettings = options.get("mapSettings")
     ColorWidgetFunc.setup(self, options)
     self.widget.label_1.setText("Color/Texture")
-    self.widget.label_2.setText("Layers")
-    self.widget.lineEdit.setReadOnly(True)
-    self.widget.lineEdit.setPlaceholderText("")
-
     comboBox = self.widget.comboBox
     comboBox.insertSeparator(comboBox.count())
     comboBox.addItem("Map canvas image", ColorTextureWidgetFunc.MAP_CANVAS)
@@ -382,12 +378,31 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
-    visible = (itemData == ColorTextureWidgetFunc.LAYER)
-    self.widget.label_2.setVisible(visible)
-    self.widget.lineEdit.setVisible(visible)
-    self.widget.toolButton.setVisible(visible)
+    isRGB = bool(itemData == ColorWidgetFunc.RGB)
+    isLayer = bool(itemData == ColorTextureWidgetFunc.LAYER)
+
+    self.widget.label_2.setText("Layers" if isLayer else "Value")
+    self.widget.label_2.setVisible(isRGB or isLayer)
+
+    self.widget.lineEdit.setPlaceholderText("0xrrggbb" if isRGB else "")
+    self.widget.lineEdit.setReadOnly(isLayer)
+    self.widget.lineEdit.setVisible(isRGB or isLayer)
+
+    if isRGB:
+      self.widget.lineEdit.setText("")
+    elif isLayer:
+      self.updateLineEdit()
+
+    self.widget.toolButton.setVisible(isRGB or isLayer)
+
 
   def toolButtonClicked(self):
+    itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
+    if itemData == ColorWidgetFunc.RGB:
+      ColorWidgetFunc.toolButtonClicked(self)
+      return
+
+    # ColorTextureWidgetFunc.LAYER
     from layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self.widget)
     dialog.initTree(self.layerIds)
@@ -411,6 +426,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
   def setValues(self, vals):
     self.layerIds = vals.get("layerIds", [])
     ColorWidgetFunc.setValues(self, vals)
+
 
 class CheckBoxWidgetFunc(WidgetFuncBase):
 
