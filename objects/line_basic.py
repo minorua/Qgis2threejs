@@ -38,7 +38,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValue, "layer": layer})
   elif type_index == 4:     # Profile
-    opt = {"name": "Bottom Z",
+    opt = {"name": "Lower Z",
            "layer": layer,
            "defaultItem": HeightWidgetFunc.ABSOLUTE}
     ppage.addStyleWidget(StyleWidget.HEIGHT, opt)

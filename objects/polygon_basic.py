@@ -57,7 +57,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
                         OptionalColorWidgetFunc.FEATURE: "Feature style (border)"}}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
-    opt = {"name": "Side bottom Z",
+    opt = {"name": "Side lower Z",
            "layer": layer,
            "defaultItem": HeightWidgetFunc.ABSOLUTE}
     ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
