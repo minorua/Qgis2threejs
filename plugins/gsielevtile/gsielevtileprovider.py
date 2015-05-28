@@ -113,7 +113,7 @@ class GSIElevTileProvider:
     # load values into an array
     band = warped_ds.GetRasterBand(1)
     fs = "f" * width * height
-    return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
+    return struct.unpack(fs, band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32))
 
   def getDataset(self, xmin, ymin, xmax, ymax, mapUnitsPerPixel):
     # calculate zoom level

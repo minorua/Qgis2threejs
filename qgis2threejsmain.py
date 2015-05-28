@@ -141,7 +141,7 @@ class GDALDEMProvider(Raster):
     # load values into an array
     band = warped_ds.GetRasterBand(1)
     fs = "f" * width * height
-    return struct.unpack(fs, band.ReadRaster(buf_type=gdal.GDT_Float32))
+    return struct.unpack(fs, band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32))
 
   def read(self, width, height, extent):
     return self._read(width, height, extent.geotransform(width, height))
