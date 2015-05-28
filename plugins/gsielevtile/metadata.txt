@@ -5,8 +5,8 @@ type=demprovider
 author=Minoru Akagi
 #version=
 
-description=This DEM provider downloads GSI Tiles (elevation) from the web server of Geospatial Information Authority of Japan, and provides elevation data to Qgis2threejs.
-    <p>For detail, see <a href="https://github.com/minorua/Qgis2threejs/wiki/Plugins#GSIElevTile">https://github.com/minorua/Qgis2threejs/wiki/Plugins#GSIElevTile</a>
+description=This DEM provider downloads GSI Tiles (elevation) from the web server of Geospatial Information Authority of Japan, and provides elevation data to Qgis2threejs. The tile data covers the area of Japan.
+    <p>For detail, see <a href="https://github.com/minorua/Qgis2threejs/wiki/Plugins#gsielevtile">https://github.com/minorua/Qgis2threejs/wiki/Plugins#gsielevtile</a>
     <p>このプラグインは国土地理院の地理院タイル(標高タイル)をQgis2threejsで地形データとして利用可能にします。利用にあたっては国土地理院コンテンツ利用規約をよく読んで、それに従って下さい。
 
 # (en) Geospatial Information Authority of Japan Website Terms of Use http://www.gsi.go.jp/ENGLISH/page_e30286.html
