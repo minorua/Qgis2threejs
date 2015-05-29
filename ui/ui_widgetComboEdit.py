@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\widgetComboEdit.ui'
 #
-# Created: Mon May 11 13:50:27 2015
+# Created: Fri May 29 10:17:48 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -32,19 +32,16 @@ class Ui_ComboEditWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(ComboEditWidget.sizePolicy().hasHeightForWidth())
         ComboEditWidget.setSizePolicy(sizePolicy)
+        ComboEditWidget.setMinimumSize(QtCore.QSize(50, 0))
         self.formLayout = QtGui.QFormLayout(ComboEditWidget)
         self.formLayout.setContentsMargins(0, 2, 0, 2)
+        self.formLayout.setHorizontalSpacing(0)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
         self.horizontalLayout_1 = QtGui.QHBoxLayout()
+        self.horizontalLayout_1.setSpacing(3)
         self.horizontalLayout_1.setObjectName(_fromUtf8("horizontalLayout_1"))
         self.label_1 = QtGui.QLabel(ComboEditWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_1.sizePolicy().hasHeightForWidth())
-        self.label_1.setSizePolicy(sizePolicy)
-        self.label_1.setMinimumSize(QtCore.QSize(75, 0))
-        self.label_1.setMaximumSize(QtCore.QSize(75, 16777215))
+        self.label_1.setMinimumSize(QtCore.QSize(80, 0))
         self.label_1.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_1.setObjectName(_fromUtf8("label_1"))
         self.horizontalLayout_1.addWidget(self.label_1)
@@ -54,8 +51,8 @@ class Ui_ComboEditWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.comboBox.sizePolicy().hasHeightForWidth())
         self.comboBox.setSizePolicy(sizePolicy)
-        self.comboBox.setMinimumSize(QtCore.QSize(130, 0))
-        self.comboBox.setMaximumSize(QtCore.QSize(120, 16777215))
+        self.comboBox.setMinimumSize(QtCore.QSize(125, 0))
+        self.comboBox.setMaximumSize(QtCore.QSize(125, 16777215))
         self.comboBox.setObjectName(_fromUtf8("comboBox"))
         self.horizontalLayout_1.addWidget(self.comboBox)
         self.checkBox = QtGui.QCheckBox(ComboEditWidget)
@@ -63,9 +60,10 @@ class Ui_ComboEditWidget(object):
         self.horizontalLayout_1.addWidget(self.checkBox)
         self.formLayout.setLayout(0, QtGui.QFormLayout.LabelRole, self.horizontalLayout_1)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
+        self.horizontalLayout_2.setSpacing(3)
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.label_2 = QtGui.QLabel(ComboEditWidget)
-        self.label_2.setMinimumSize(QtCore.QSize(40, 0))
+        self.label_2.setMinimumSize(QtCore.QSize(45, 0))
         self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.horizontalLayout_2.addWidget(self.label_2)

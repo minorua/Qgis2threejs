@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\qgis2threejsdialog.ui'
 #
-# Created: Sat Mar 21 10:03:07 2015
+# Created: Fri May 29 10:50:30 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,12 +26,7 @@ except AttributeError:
 class Ui_Qgis2threejsDialog(object):
     def setupUi(self, Qgis2threejsDialog):
         Qgis2threejsDialog.setObjectName(_fromUtf8("Qgis2threejsDialog"))
-        Qgis2threejsDialog.resize(738, 513)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(Qgis2threejsDialog.sizePolicy().hasHeightForWidth())
-        Qgis2threejsDialog.setSizePolicy(sizePolicy)
+        Qgis2threejsDialog.resize(720, 513)
         self.verticalLayout_2 = QtGui.QVBoxLayout(Qgis2threejsDialog)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.formLayout_3 = QtGui.QFormLayout()
@@ -77,7 +72,7 @@ class Ui_Qgis2threejsDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 457, 388))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 439, 388))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -111,6 +106,7 @@ class Ui_Qgis2threejsDialog(object):
         self.horizontalLayout_2.addWidget(self.toolButton_Browse)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setSpacing(3)
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
         self.toolButton_Settings = QtGui.QToolButton(Qgis2threejsDialog)
         self.toolButton_Settings.setObjectName(_fromUtf8("toolButton_Settings"))
@@ -130,16 +126,12 @@ class Ui_Qgis2threejsDialog(object):
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.label_MessageIcon = QtGui.QLabel(Qgis2threejsDialog)
+        self.label_MessageIcon.setMaximumSize(QtCore.QSize(32, 32))
         self.label_MessageIcon.setText(_fromUtf8(""))
         self.label_MessageIcon.setMargin(2)
         self.label_MessageIcon.setObjectName(_fromUtf8("label_MessageIcon"))
         self.horizontalLayout.addWidget(self.label_MessageIcon)
         self.label_Status = QtGui.QLabel(Qgis2threejsDialog)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_Status.sizePolicy().hasHeightForWidth())
-        self.label_Status.setSizePolicy(sizePolicy)
         self.label_Status.setText(_fromUtf8(""))
         self.label_Status.setObjectName(_fromUtf8("label_Status"))
         self.horizontalLayout.addWidget(self.label_Status)
