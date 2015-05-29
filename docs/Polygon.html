@@ -31,21 +31,29 @@
 
 <h2><a name="Overlay"/> Overlay</h2>
 
-<p>Overlay of main DEM with specified color, border color and transparency</p>
+<p>Overlay of main DEM with specified color, border color and transparency. If altitude mode of z coordinate is <code>Relative to DEM</code> or <code>+ "field name"</code>, each polygon is split into triangles using triangles of DEM, and is located at the relative height from triangle surface of DEM. You can add side to each polygon if you want.</p>
 
 <p><strong>Specific settings</strong>:</p>
 
 <ul>
 <li>Border color</li>
+<li><p>Side</p>
+<p>Check this option to add side to each polygon.</p></li>
+<li><p>Side color</p></li>
+<li><p>Side lower Z</p>
+<p>Z coordinate of lower edge of side.</p></li>
 </ul>
 
 <p><strong>three.js classes:</strong></p>
 
-<p><a href="http://threejs.org/docs/#Reference/Core/Geometry">Geometry</a> and <a href="http://threejs.org/docs/#Reference/Objects/Line">Line</a></p>
+<p><a href="http://threejs.org/docs/#Reference/Core/Geometry">Geometry</a>,
+<a href="http://threejs.org/docs/#Reference/Objects/Line">Line</a> and 
+<a href="http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry">PlaneGeometry</a>
+</p>
 
 <hr />
 
-<p>Back to <a href="ExportSettings.html">Export Settings</a> | Qgis2threejs plugin version 1.2</p>
+<p>Back to <a href="ExportSettings.html">Export Settings</a> | Qgis2threejs plugin version 1.3</p>
 
 </div>
 </body>
