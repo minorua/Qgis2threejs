@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 
-plugin_version = "1.2"
+plugin_version = "1.3"
 debug_mode = 0
 
 class DefaultSettings:

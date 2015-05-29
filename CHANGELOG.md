@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### Version 1.3-dev
+### Version 1.3
 
 #### General
 
