@@ -96,9 +96,9 @@ class GSIElevTileProvider:
 
     res = 0.1
     hres = res / 2
-    geotransform = [pt.x() - hres, res, 0, pt.y() + hres, 0, -res]
-
     ds = self.getDataset(pt.x() - hres, pt.y() - hres, pt.x() + hres, pt.y() + hres, res)
+
+    geotransform = [x - hres, res, 0, y + hres, 0, -res]
     return self._read(ds, 1, 1, geotransform)[0]
 
   def _read(self, ds, width, height, geotransform):
