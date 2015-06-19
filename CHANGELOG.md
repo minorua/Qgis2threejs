@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 1.3.1
+
+* fixed error on applying plugin settings
+
 ### Version 1.3
 
 #### General
