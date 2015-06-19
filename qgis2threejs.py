@@ -124,6 +124,7 @@ class Qgis2threejs:
     dialog = SettingsDialog(self.iface.mainWindow())
     dialog.show()
     if dialog.exec_():
+      from pluginmanager import PluginManager
       self.pluginManager = PluginManager()
 
   def loadExportSettings(self, filename):
