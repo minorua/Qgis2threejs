@@ -78,7 +78,7 @@ class Downloader(QObject):
     reply = self.sender()
     url = reply.request().url().toString()
     self.log("replyFinished: %s" % url)
-    if not url in self.fetchedFiles:
+    if url not in self.fetchedFiles:
       self.fetchedFiles[url] = None
     self.requestingUrls.remove(url)
     self.replies.remove(reply)
