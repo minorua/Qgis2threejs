@@ -32,7 +32,7 @@ from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
 from rotatedrect import RotatedRect
-from qgis2threejsmain import ObjectTreeItem, createQuadTree
+from qgis2threejscore import ObjectTreeItem, createQuadTree
 from stylewidget import StyleWidget
 import qgis2threejstools as tools
 from qgis2threejstools import logMessage

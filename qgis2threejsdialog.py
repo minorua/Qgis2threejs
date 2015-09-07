@@ -30,12 +30,16 @@ from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, Qg
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
-from qgis2threejsmain import ObjectTreeItem, MapTo3D, ExportSettings, exportToThreeJS
-import propertypages as ppages
-import qgis2threejstools as tools
+
+from export import exportToThreeJS
+from exportsettings import ExportSettings
+from qgis2threejscore import ObjectTreeItem, MapTo3D
 from qgis2threejstools import logMessage
 from rotatedrect import RotatedRect
 from settings import debug_mode, def_vals, plugin_version
+import propertypages as ppages
+import qgis2threejstools as tools
+
 
 class Qgis2threejsDialog(QDialog):
 

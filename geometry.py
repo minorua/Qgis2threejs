@@ -18,7 +18,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex
+from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
+from qgis2threejstools import logMessage
 
 try:
   from osgeo import ogr
@@ -366,3 +367,49 @@ class Triangles:
     else:
       self.vdict[v.y] = {v.x: vi}
     return vi
+
+#TODO: parameters - extent, layer, projectCrs
+def dissolvePolygonsOnCanvas(writer, layer):
+  """dissolve polygons of the layer and clip the dissolution with base extent"""
+  settings = writer.settings
+  baseExtent = settings.baseExtent
+  baseExtentGeom = baseExtent.geometry()
+  rotation = baseExtent.rotation()
+  transform = QgsCoordinateTransform(layer.crs(), settings.crs)
+
+  combi = None
+  request = QgsFeatureRequest()
+  request.setFilterRect(transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+  for f in layer.getFeatures(request):
+    geometry = f.geometry()
+    if geometry is None:
+      logMessage("null geometry skipped")
+      continue
+
+    # coordinate transformation - layer crs to project crs
+    geom = QgsGeometry(geometry)
+    if geom.transform(transform) != 0:
+      logMessage("Failed to transform geometry")
+      continue
+
+    # check if geometry intersects with the base extent (rotated rect)
+    if rotation and not baseExtentGeom.intersects(geom):
+      continue
+
+    if combi:
+      combi = combi.combine(geom)
+    else:
+      combi = geom
+
+  # clip geom with slightly smaller extent than base extent
+  # to make sure that the clipped polygon stays within the base extent
+  geom = combi.intersection(baseExtent.clone().scale(0.999999).geometry())
+  if geom is None:
+    return None
+
+  # check if geometry is empty
+  if geom.isGeosEmpty():
+    logMessage("empty geometry")
+    return None
+
+  return geom

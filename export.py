@@ -21,246 +21,25 @@
 """
 import os
 import codecs
-import datetime
-import struct
 
-from PyQt4.QtCore import QDir, QSettings
-from PyQt4.QtGui import QImage, QPainter
-from qgis.core import *
+from PyQt4.QtCore import QDir
+from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsMapLayerRegistry, QgsPoint
 
 try:
-  from osgeo import gdal, ogr, osr
+  from osgeo import ogr, osr
 except ImportError:
-  import gdal, ogr, osr
+  import ogr, osr
 
-from demblock import DEMBlock, DEMBlocks
-from rotatedrect import RotatedRect
-from geometry import Point, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from datamanager import ImageManager, ModelManager, MaterialManager
+from demblock import DEMBlock, DEMBlocks
+from exportsettings import ExportSettings
+from geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from propertyreader import DEMPropertyReader, VectorPropertyReader
-from quadtree import DEMQuadTree, DEMQuadList
-
-from gdal2threejs import Raster
-
-import qgis2threejstools as tools
+from qgis2threejscore import ObjectTreeItem, GDALDEMProvider
 from qgis2threejstools import pyobj2js, logMessage
-from settings import debug_mode, def_vals
-
-apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
-
-
-class ObjectTreeItem:
-
-  ITEM_WORLD = "WORLD"
-  ITEM_CONTROLS = "CTRL"
-  ITEM_DEM = "DEM"
-  ITEM_OPTDEM = "OPTDEM"
-  ITEM_POINT = "POINT"
-  ITEM_LINE = "LINE"
-  ITEM_POLYGON = "POLYGON"
-  topItemIds = [ITEM_WORLD, ITEM_CONTROLS, ITEM_DEM, ITEM_OPTDEM, ITEM_POINT, ITEM_LINE, ITEM_POLYGON]
-  topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
-  geomType2id = {QGis.Point: ITEM_POINT, QGis.Line: ITEM_LINE, QGis.Polygon: ITEM_POLYGON}
-
-  @classmethod
-  def topItemIndex(cls, id):
-    return cls.topItemIds.index(id)
-
-  @classmethod
-  def idByGeomType(cls, geomType):
-    return cls.geomType2id.get(geomType)
-
-  @classmethod
-  def geomTypeById(cls, id):
-    for geomType in cls.geomType2id:
-      if cls.geomType2id[geomType] == id:
-        return geomType
-    return None
-
-  @classmethod
-  def parentIdByLayer(cls, layer):
-    layerType = layer.type()
-    if layerType == QgsMapLayer.VectorLayer:
-      return cls.idByGeomType(layer.geometryType())
-
-    if layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-      return cls.ITEM_OPTDEM
-
-    return None
-
-
-class MapTo3D:
-
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
-    mapSettings = mapCanvas.mapSettings() if apiChanged23 else mapCanvas.mapRenderer()
-
-    # map canvas
-    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
-    self.mapExtent = RotatedRect.fromMapSettings(mapSettings)
-
-    # 3d
-    canvas_size = mapSettings.outputSize()
-    self.planeWidth = planeWidth
-    self.planeHeight = planeWidth * canvas_size.height() / float(canvas_size.width())
-
-    self.verticalExaggeration = verticalExaggeration
-    self.verticalShift = verticalShift
-
-    self.multiplier = planeWidth / self.mapExtent.width()
-    self.multiplierZ = self.multiplier * verticalExaggeration
-
-  def transform(self, x, y, z=0):
-    n = self.mapExtent.normalizePoint(x, y)
-    return Point((n.x() - 0.5) * self.planeWidth,
-                 (n.y() - 0.5) * self.planeHeight,
-                 (z + self.verticalShift) * self.multiplierZ)
-
-  def transformPoint(self, pt):
-    return self.transform(pt.x, pt.y, pt.z)
-
-
-class GDALDEMProvider(Raster):
-
-  def __init__(self, filename, dest_wkt, source_wkt=None):
-    Raster.__init__(self, filename)
-    self.driver = gdal.GetDriverByName("MEM")
-    self.dest_wkt = dest_wkt
-    self.source_wkt = source_wkt
-    if source_wkt:
-      self.ds.SetProjection(str(source_wkt))
-
-  def _read(self, width, height, geotransform):
-    # create a memory dataset
-    warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
-    warped_ds.SetProjection(self.dest_wkt)
-    warped_ds.SetGeoTransform(geotransform)
-
-    # reproject image
-    gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
-
-    # load values into an array
-    band = warped_ds.GetRasterBand(1)
-    fs = "f" * width * height
-    return struct.unpack(fs, band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32))
-
-  def read(self, width, height, extent):
-    return self._read(width, height, extent.geotransform(width, height))
-
-  def readValue(self, x, y):
-    """get value at the position using 1px * 1px memory raster"""
-    res = 0.1
-    geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self._read(1, 1, geotransform)[0]
-
-
-class FlatDEMProvider:
-
-  def __init__(self, value=0):
-    self.value = value
-
-  def name(self):
-    return "Flat Plane"
-
-  def read(self, width, height, extent):
-    return [self.value] * width * height
-
-  def readValue(self, x, y):
-    return self.value
-
-
-class ExportSettings:
-
-  # export mode
-  PLAIN_SIMPLE = 0
-  PLAIN_MULTI_RES = 1
-  SPHERE = 2
-
-  def __init__(self, settings, canvas, pluginManager, localBrowsingMode=True):
-    self.data = settings
-    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
-
-    # output html file path
-    htmlfilename = settings.get("OutputFilename")
-    if not htmlfilename:
-      htmlfilename = tools.temporaryOutputDir() + "/%s.html" % self.timestamp
-    self.htmlfilename = htmlfilename
-    self.path_root = os.path.splitext(htmlfilename)[0]
-    self.htmlfiletitle = os.path.basename(self.path_root)
-    self.title = self.htmlfiletitle
-
-    # load configuration of the template
-    self.templateName = settings.get("Template", "")
-    templatePath = os.path.join(tools.templateDir(), self.templateName)
-    self.templateConfig = tools.getTemplateConfig(templatePath)
-
-    # MapTo3D object
-    world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
-    baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
-    verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
-    verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
-    self.mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
-
-    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
-
-    self.canvas = canvas
-    self.mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-    self.baseExtent = RotatedRect.fromMapSettings(self.mapSettings)
-
-    self.pluginManager = pluginManager
-    self.localBrowsingMode = localBrowsingMode
-
-    self.crs = self.mapSettings.destinationCrs()
-
-    wgs84 = QgsCoordinateReferenceSystem(4326)
-    transform = QgsCoordinateTransform(self.crs, wgs84)
-    self.wgs84Center = transform.transform(self.baseExtent.center())
-
-    controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
-    self.controls = controls.get("comboBox_Controls")
-    if not self.controls:
-      self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
-
-    self.demProvider = None
-    self.quadtree = None
-
-    if self.templateConfig.get("type") == "sphere":
-      self.exportMode = ExportSettings.SPHERE
-      return
-
-    demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
-    self.demProvider = self.demProviderByLayerId(demProperties["comboBox_DEMLayer"])
-
-    if demProperties.get("radioButton_Simple", False):
-      self.exportMode = ExportSettings.PLAIN_SIMPLE
-    else:
-      self.exportMode = ExportSettings.PLAIN_MULTI_RES
-      self.quadtree = createQuadTree(self.baseExtent, demProperties)
-
-  def get(self, key, default=None):
-    return self.data.get(key, default)
-
-  def checkValidity(self):
-    """return valid as bool, err_msg as str"""
-    # check validity of settings
-    if self.exportMode == ExportSettings.PLAIN_MULTI_RES and self.quadtree is None:
-      return False, u"Focus point/area is not selected."
-    return True, ""
-
-  def demProviderByLayerId(self, id):
-    if not id:
-      return FlatDEMProvider()
-
-    if id.startswith("plugin:"):
-      provider = self.pluginManager.findDEMProvider(id[7:])
-      if provider:
-        return provider(str(self.crs.toWkt()))
-
-      logMessage('Plugin "{0}" not found'.format(id))
-      return FlatDEMProvider()
-
-    else:
-      layer = QgsMapLayerRegistry.instance().mapLayer(id)
-      return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+from quadtree import DEMQuadList
+from rotatedrect import RotatedRect
+import qgis2threejstools as tools
 
 
 class JSWriter:
@@ -517,6 +296,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 
   return True
 
+
 def writeSimpleDEM(writer, properties, progress=None):
   settings = writer.settings
   mapTo3d = settings.mapTo3d
@@ -610,52 +390,6 @@ def writeSimpleDEM(writer, properties, progress=None):
   writer.writeMaterials(layer.materialManager)
 
 
-def dissolvePolygonsOnCanvas(writer, layer):
-  """dissolve polygons of the layer and clip the dissolution with base extent"""
-  settings = writer.settings
-  baseExtent = settings.baseExtent
-  baseExtentGeom = baseExtent.geometry()
-  rotation = baseExtent.rotation()
-  transform = QgsCoordinateTransform(layer.crs(), settings.crs)
-
-  combi = None
-  request = QgsFeatureRequest()
-  request.setFilterRect(transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
-  for f in layer.getFeatures(request):
-    geometry = f.geometry()
-    if geometry is None:
-      logMessage("null geometry skipped")
-      continue
-
-    # coordinate transformation - layer crs to project crs
-    geom = QgsGeometry(geometry)
-    if geom.transform(transform) != 0:
-      logMessage("Failed to transform geometry")
-      continue
-
-    # check if geometry intersects with the base extent (rotated rect)
-    if rotation and not baseExtentGeom.intersects(geom):
-      continue
-
-    if combi:
-      combi = combi.combine(geom)
-    else:
-      combi = geom
-
-  # clip geom with slightly smaller extent than base extent
-  # to make sure that the clipped polygon stays within the base extent
-  geom = combi.intersection(baseExtent.clone().scale(0.999999).geometry())
-  if geom is None:
-    return None
-
-  # check if geometry is empty
-  if geom.isGeosEmpty():
-    logMessage("empty geometry")
-    return None
-
-  return geom
-
-
 def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   settings = writer.settings
   mapSettings = settings.mapSettings
@@ -719,6 +453,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
     blocks.append(block)
 
   return blocks
+
 
 def writeMultiResDEM(writer, properties, progress=None):
   settings = writer.settings
@@ -1084,7 +819,7 @@ def writeVectors(writer, legendInterface, progress=None):
     writer.writeLayer(layer.layerObject(), layer.fieldNames)
 
     # initialize symbol rendering
-    mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if apiChanged23 else mapLayer)
+    mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)
 
     # features to export
     request = QgsFeatureRequest()
@@ -1117,27 +852,6 @@ def writeVectors(writer, legendInterface, progress=None):
 def writeSphereTexture(writer):
   # removed (moved to exp_sphere branch)
   pass
-
-def createQuadTree(extent, p):
-  """
-  args:
-    p -- demProperties
-  """
-  try:
-    cx, cy, w, h = map(float, [p["lineEdit_centerX"], p["lineEdit_centerY"], p["lineEdit_rectWidth"], p["lineEdit_rectHeight"]])
-  except ValueError:
-    return None
-
-  # normalize
-  c = extent.normalizePoint(cx, cy)
-  hw = 0.5 * w / extent.width()
-  hh = 0.5 * h / extent.height()
-
-  quadtree = DEMQuadTree()
-  if not quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"]):
-    return None
-
-  return quadtree
 
 def dummyProgress(progress=None, statusMsg=None):
   pass
