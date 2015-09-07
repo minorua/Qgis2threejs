@@ -641,6 +641,7 @@ class Qgis2threejsDialog(QDialog):
     if debug_mode:
       qDebug(msg)
 
+
 class PointMapTool(QgsMapToolEmitPoint):
   def __init__(self, canvas):
     self.canvas = canvas

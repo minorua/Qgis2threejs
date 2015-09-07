@@ -22,11 +22,14 @@
 from qgis.core import QGis
 from Qgis2threejs.stylewidget import StyleWidget
 
+
 def geometryType():
   return QGis.Point
 
+
 def objectTypeNames():
   return ["JSON model", "COLLADA model"]
+
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
@@ -43,6 +46,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+
 
 def write(writer, layer, feat):
   mapTo3d = writer.settings.mapTo3d

@@ -29,6 +29,7 @@ else:   # 2.4
 
 from ui.ui_layerselectdialog import Ui_LayerSelectDialog
 
+
 class LayerSelectDialog(QDialog):
 
   def __init__(self, parent):

@@ -21,6 +21,7 @@
 """
 from qgis.core import QgsPoint, QgsRectangle
 
+
 class QuadNode:
 
   def __init__(self, parent, rect, location, height=0):

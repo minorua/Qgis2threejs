@@ -44,6 +44,7 @@ class DataManager:
     self._list.append(image)
     return index
 
+
 class ImageManager(DataManager):
 
   IMAGE_FILE = 1
@@ -344,6 +345,7 @@ class MaterialManager(DataManager):
         m["ds"] = 1
 
       f.write(u"lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
+
 
 class ModelManager(DataManager):
 

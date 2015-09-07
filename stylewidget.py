@@ -28,6 +28,7 @@ from qgis.core import QGis, QgsProject
 from ui.ui_widgetComboEdit import Ui_ComboEditWidget
 from qgis2threejstools import shortTextFromSelectedLayerIds
 
+
 class WidgetFuncBase:
 
   FIRST_ATTRIBUTE = 100
@@ -125,6 +126,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     self.widget.label_2.setVisible(bool(label))
     self.widget.lineEdit.setVisible(bool(label))
 
+
 class ColorWidgetFunc(WidgetFuncBase):
 
   FEATURE = 1
@@ -161,6 +163,7 @@ class ColorWidgetFunc(WidgetFuncBase):
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
     self.widget.lineEdit.setText(vals["editText"])
+
 
 class FilePathWidgetFunc(WidgetFuncBase):
 
@@ -207,6 +210,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
         if directory[-1] not in ["/", "\\"]:
           directory += os.sep
         self.widget.lineEdit.setText(directory)
+
 
 class HeightWidgetFunc(WidgetFuncBase):
 
@@ -303,6 +307,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     self.widget.label_2.setText(label)
     self.widget.lineEdit.setText(unicode(defaultValue))
 
+
 class TransparencyWidgetFunc(WidgetFuncBase):
 
   FEATURE = 1
@@ -328,6 +333,7 @@ class TransparencyWidgetFunc(WidgetFuncBase):
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
     self.widget.lineEdit.setText(vals["editText"])
 
+
 class OptionalColorWidgetFunc(ColorWidgetFunc):
 
   NONE = 0
@@ -350,6 +356,7 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
     index = self.widget.comboBox.findData(options.get("defaultItem", OptionalColorWidgetFunc.NONE))
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
+
 
 class ColorTextureWidgetFunc(ColorWidgetFunc):
 
@@ -394,7 +401,6 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
       self.updateLineEdit()
 
     self.widget.toolButton.setVisible(isRGB or isLayer)
-
 
   def toolButtonClicked(self):
     itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())

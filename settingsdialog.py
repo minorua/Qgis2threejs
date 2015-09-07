@@ -25,6 +25,7 @@ from PyQt4.QtGui import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QT
 
 from ui.ui_settingsdialog import Ui_SettingsDialog
 
+
 class SettingsDialog(QDialog):
 
   def __init__(self, parent):

@@ -30,6 +30,7 @@ import webbrowser
 
 from settings import debug_mode
 
+
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
     items = [u"{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
@@ -51,8 +52,10 @@ def pyobj2js(obj, escape=False, quoteHex=True):
     return "null"
   return '"' + str(obj) + '"'
 
+
 def logMessage(message):
   QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+
 
 def shortTextFromSelectedLayerIds(layerIds):
   count = len(layerIds)
@@ -73,6 +76,7 @@ def shortTextFromSelectedLayerIds(layerIds):
     text += "s"
   return text
 
+
 def openHTMLFile(htmlfilename):
   url = QUrl.fromLocalFile(htmlfilename).toString()
   settings = QSettings()
@@ -86,12 +90,14 @@ def openHTMLFile(htmlfilename):
       return False
   return True
 
+
 def base64image(image):
   ba = QByteArray()
   buffer = QBuffer(ba)
   buffer.open(QIODevice.WriteOnly)
   image.save(buffer, "PNG")
   return "data:image/png;base64," + ba.toBase64().data()
+
 
 def getTemplateConfig(template_path):
   meta_path = os.path.splitext(template_path)[0] + ".txt"
@@ -106,6 +112,7 @@ def getTemplateConfig(template_path):
   if debug_mode:
     qDebug("config: " + str(config))
   return config
+
 
 def copyFile(source, dest, overwrite=False):
   if os.path.exists(dest):
@@ -126,6 +133,7 @@ def copyFile(source, dest, overwrite=False):
       qDebug("Failed to copy file: %s to %s" % (source, dest))
   return ret
 
+
 def copyDir(source, dest, overwrite=False):
   if os.path.exists(dest):
     if overwrite:
@@ -141,6 +149,7 @@ def copyDir(source, dest, overwrite=False):
   if debug_mode:
     qDebug("Dir copied: %s to %s" % (source, dest))
   return True
+
 
 def copyFiles(filesToCopy, out_dir):
   plugin_dir = pluginDir()
@@ -181,12 +190,15 @@ def copyFiles(filesToCopy, out_dir):
         for filename in filenames:
           copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
+
 def removeTemporaryFiles(filelist):
   for file in filelist:
     QFile.remove(file)
 
+
 def removeTemporaryOutputDir():
   removeDir(temporaryOutputDir())
+
 
 def removeDir(dirName):
   d = QDir(dirName)
@@ -198,11 +210,14 @@ def removeDir(dirName):
         d.remove(info.fileName())
     d.rmdir(dirName)
 
+
 def pluginDir():
   return os.path.dirname(QFile.decodeName(__file__))
 
+
 def templateDir():
   return os.path.join(pluginDir(), "html_templates")
+
 
 def temporaryOutputDir():
   return QDir.tempPath() + "/Qgis2threejs"

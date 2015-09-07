@@ -23,11 +23,14 @@ from qgis.core import QGis
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from Qgis2threejs.geometry import Triangles
 
+
 def geometryType():
   return QGis.Polygon
 
+
 def objectTypeNames():
   return ["Extruded", "Overlay"]
+
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValueZ = 0.6 / mapTo3d.multiplierZ
@@ -76,6 +79,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   if layer:
     ppage.labelHeightWidget.addFieldNames(layer)
 
+
 def layerProperties(writer, layer):
   p = {}
   prop = layer.prop
@@ -87,6 +91,7 @@ def layerProperties(writer, layer):
     isSbRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     p["sbm"] = "relative" if isSbRelative else "absolute"
   return p
+
 
 def write(writer, layer, feat):
   vals = feat.propValues()

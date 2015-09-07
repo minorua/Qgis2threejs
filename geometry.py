@@ -43,8 +43,10 @@ class Point:
 def pointToQgsPoint(point):
   return QgsPoint(point.x, point.y)
 
+
 def lineToQgsPolyline(line):
   return map(pointToQgsPoint, line)
+
 
 def polygonToQgsPolygon(polygon):
   return map(lineToQgsPolyline, polygon)
@@ -252,6 +254,7 @@ class PolygonGeometry:
 #  def fromOgrGeometry25D(geometry, transform_func):
 #    pass
 
+
 class GeometryUtils:
 
   @classmethod
@@ -369,6 +372,8 @@ class Triangles:
     return vi
 
 #TODO: parameters - extent, layer, projectCrs
+
+
 def dissolvePolygonsOnCanvas(writer, layer):
   """dissolve polygons of the layer and clip the dissolution with base extent"""
   settings = writer.settings

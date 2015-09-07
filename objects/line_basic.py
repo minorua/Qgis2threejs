@@ -22,11 +22,14 @@
 from qgis.core import QGis
 from Qgis2threejs.stylewidget import StyleWidget, HeightWidgetFunc
 
+
 def geometryType():
   return QGis.Line
 
+
 def objectTypeNames():
   return ["Line", "Pipe", "Cone", "Box", "Profile"]
+
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
@@ -43,6 +46,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
            "defaultItem": HeightWidgetFunc.ABSOLUTE}
     ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
 
+
 def layerProperties(writer, layer):
   p = {}
   prop = layer.prop
@@ -55,6 +59,7 @@ def layerProperties(writer, layer):
     isBRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     p["bam"] = "relative" if isBRelative else "absolute"
   return p
+
 
 def write(writer, layer, feat):
   mapTo3d = writer.settings.mapTo3d

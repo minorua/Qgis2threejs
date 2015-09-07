@@ -25,6 +25,7 @@ try:
 except ImportError:
   import gdal
 
+
 class Raster:
   def __init__(self, filename=""):
     self.ds = None
@@ -61,6 +62,7 @@ class Raster:
         values += map(lambda x: x * multiplier, line)
     return values
 
+
 def base64image(filename):
   with open(filename, "rb") as f:
     subtype = os.path.splitext(filename)[1][1:].lower().replace("jpg", "jpeg")
@@ -69,6 +71,7 @@ def base64image(filename):
     tex = "data:image/%s;base64," % subtype
     tex += base64.b64encode(f.read())
   return tex
+
 
 def gdal2threejs(demfile, texfile, outfile="data.js", title="no title", suffix=""):
 
@@ -92,6 +95,7 @@ def gdal2threejs(demfile, texfile, outfile="data.js", title="no title", suffix="
     f.write('%stex%s = "%s";\n' % (var, suffix, tex))
 
   return 0
+
 
 def formatValue(val, fmt="%.6f"):
   try:

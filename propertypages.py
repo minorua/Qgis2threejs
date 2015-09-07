@@ -44,12 +44,14 @@ PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
 
+
 def is_number(val):
   try:
     float(val)
     return True
   except ValueError:
     return False
+
 
 class PropertyPage(QWidget):
 
@@ -156,6 +158,7 @@ class PropertyPage(QWidget):
       else:
         logMessage("[propertypages.py] Cannot restore %s property" % n)
 
+
 class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
 
   def __init__(self, dialog, parent=None):
@@ -214,6 +217,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
       p["lineEdit_zShift"] = str(def_vals.zShift)
     return p
 
+
 class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 
   def __init__(self, dialog, parent=None):
@@ -257,6 +261,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     else:
       desc = "No description"
     self.textEdit.setText(desc)
+
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
@@ -607,6 +612,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     selection = "area" if toRect else "point"
     action = "Stroke a rectangle" if toRect else "Click"
     self.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))
+
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 

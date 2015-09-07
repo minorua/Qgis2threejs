@@ -21,6 +21,7 @@
 plugin_version = "1.3.1"
 debug_mode = 0
 
+
 class DefaultSettings:
 
   def __init__(self):

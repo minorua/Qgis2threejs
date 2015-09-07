@@ -26,6 +26,7 @@ import threading
 
 debug_mode = 0
 
+
 class Downloader(QObject):
 
   MAX_CONNECTION = 2

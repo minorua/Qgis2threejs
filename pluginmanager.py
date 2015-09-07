@@ -25,6 +25,7 @@ import sys
 from PyQt4.QtCore import QDir, QFile, QSettings
 from qgis2threejstools import logMessage
 
+
 class PluginManager:
 
   def __init__(self):

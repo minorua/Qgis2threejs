@@ -23,6 +23,7 @@ import gdal2threejs
 from geometry import PolygonGeometry, Triangles
 from qgis2threejstools import pyobj2js
 
+
 class DEMBlock:
 
   def __init__(self, dem_width, dem_height, dem_values, plane_width, plane_height, offsetX, offsetY):

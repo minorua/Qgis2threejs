@@ -23,11 +23,14 @@ from qgis.core import QGis
 from Qgis2threejs.qgis2threejstools import logMessage
 from Qgis2threejs.stylewidget import StyleWidget
 
+
 def geometryType():
   return QGis.Point
 
+
 def objectTypeNames():
   return ["Sphere", "Cylinder", "Cone", "Box", "Disk"]
+
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   defaultValue = 0.6 / mapTo3d.multiplier
@@ -47,6 +50,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+
 
 def write(writer, layer, feat):
   mapTo3d = writer.settings.mapTo3d

@@ -24,10 +24,12 @@ import sys
 from PyQt4.QtGui import QMessageBox
 from qgis.core import QGis
 
+
 def list_modules():
   from PyQt4.QtCore import qDebug
   for nam, mod in sys.modules.items():
     qDebug(nam + ": " + str(mod))
+
 
 class ObjectTypeModule:
 
@@ -57,11 +59,13 @@ class ObjectTypeModule:
     except:
       return None
 
+
 class ObjectTypeItem:
   def __init__(self, name, mod_index, type_index):
     self.name = name
     self.mod_index = mod_index
     self.type_index = type_index
+
 
 class ObjectTypeManager:
   def __init__(self):

@@ -507,6 +507,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       return layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
 
   blocks = DEMBlocks()
+
   def addDEMBlock(quad_rect, dem_width, dem_height, dem_values, image_width, image_height):
     planeWidth = quad_rect.width() * mapTo3d.planeWidth
     planeHeight = quad_rect.height() * mapTo3d.planeHeight
@@ -729,6 +730,7 @@ class VectorLayer(Layer):
 
       # transform_func: function to transform the map coordinates to 3d coordinates
       relativeHeight = prop.relativeHeight(f)
+
       def transform_func(x, y, z):
         return mapTo3d.transform(x, y, z + relativeHeight)
 
@@ -853,6 +855,7 @@ def writeVectors(writer, legendInterface, progress=None):
 def writeSphereTexture(writer):
   # removed (moved to exp_sphere branch)
   pass
+
 
 def dummyProgress(progress=None, statusMsg=None):
   pass

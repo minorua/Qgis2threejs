@@ -13,6 +13,7 @@ import os
 import sys
 from unittest import TestCase
 
+
 class TestPlugin(TestCase):
 
   def test01_import(self):
