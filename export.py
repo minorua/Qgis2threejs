@@ -368,7 +368,8 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   else:
     # clipping
-    if properties.get("checkBox_Clip", False):
+    clip_option = properties.get("checkBox_Clip", False)
+    if clip_option:
       clip_layerId = properties.get("comboBox_ClipLayer")
       clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
       if clip_layer:
