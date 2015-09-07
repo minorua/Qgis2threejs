@@ -24,19 +24,19 @@ import re
 
 from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsRectangle
+from qgis.core import QGis, QgsMapLayer
 
 from ui.ui_worldproperties import Ui_WorldPropertiesWidget
 from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
 from ui.ui_demproperties import Ui_DEMPropertiesWidget
 from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
 
+from qgis2threejscore import createQuadTree
+from qgis2threejstools import logMessage
 from rotatedrect import RotatedRect
-from qgis2threejscore import ObjectTreeItem, createQuadTree
+from settings import def_vals
 from stylewidget import StyleWidget
 import qgis2threejstools as tools
-from qgis2threejstools import logMessage
-from settings import def_vals
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -602,7 +602,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.updateQuads()
 
   def switchFocusMode(self, toRect):
-    toPoint = not toRect
     self.setLayoutVisible(self.horizontalLayout_Advanced4, toRect)
 
     selection = "area" if toRect else "point"

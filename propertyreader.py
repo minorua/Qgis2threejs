@@ -22,13 +22,13 @@
 import os
 import random
 from PyQt4.QtGui import QColor
-from qgis.core import QGis, NULL
+from qgis.core import NULL
 
 from qgis2threejstools import logMessage
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
-from settings import debug_mode
+from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
+
 
 class DEMPropertyReader:
 

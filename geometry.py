@@ -180,7 +180,7 @@ class PolygonGeometry:
     for boundaries in self.polygons:
       # outer boundary
       pts = map(lambda pt: [pt.x, pt.y, pt.z], boundaries[0])
-      if not GeometryUtils.isClockwise(boundary):
+      if not GeometryUtils.isClockwise(boundaries[0]):
         pts.reverse()   # to clockwise
       b = [pts]
 

@@ -20,7 +20,6 @@ if __name__ == "__main__":
     print e.message
     sys.exit(1)
 
-import imp
 import os
 import unittest
 

@@ -91,7 +91,7 @@ class ImageManager(DataManager):
   def saveMapCanvasImage(self):
     texfilename = self.context.path_root + ".png"
     self.context.canvas.saveAsImage(texfilename)
-    texSrc = os.path.split(texfilename)[1]
+    #texSrc = os.path.split(texfilename)[1]
     tools.removeTemporaryFiles([texfilename + "w"])
 
   def _initRenderer(self):

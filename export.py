@@ -317,7 +317,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   layer = DEMLayer(writer, demLayer, prop)
   lyr = layer.layerObject()
   lyr.update({"name": layerName})
-  lyrIdx = writer.writeLayer(lyr)
+  writer.writeLayer(lyr)
 
   # material option
   texture_scale = properties["comboBox_TextureSize"] / 100
@@ -478,7 +478,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   layer = DEMLayer(writer, demLayer, prop)
   lyr = layer.layerObject()
   lyr.update({"name": layerName})
-  lyrIdx = writer.writeLayer(lyr)
+  writer.writeLayer(lyr)
 
   # quad tree
   quadtree = settings.quadtree

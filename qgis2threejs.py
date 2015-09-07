@@ -21,12 +21,12 @@
 """
 import os
 
-from PyQt4.QtCore import QCoreApplication, QFile, Qt    #, QSettings, QTranslator, qVersion
+from PyQt4.QtCore import QFile, Qt    #, QSettings, QTranslator, qVersion
 from PyQt4.QtGui import QAction, QIcon
-from qgis.core import QGis, QgsProject
+from qgis.core import QgsProject
 
 from qgis2threejstools import logMessage, removeTemporaryOutputDir
-from settings import debug_mode
+
 
 class Qgis2threejs:
 

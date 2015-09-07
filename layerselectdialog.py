@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QDialog, QFileDialog
+from PyQt4.QtGui import QDialog
 from qgis.core import QGis, QgsProject
 from qgis.gui import QgsMapCanvasLayer
 
