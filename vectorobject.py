@@ -71,7 +71,7 @@ class ObjectTypeManager:
   def __init__(self):
     # load object types
     self.modules = []
-    self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon:[]}    # each list item is ObjectTypeItem object
+    self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon: []}    # each list item is ObjectTypeItem object
 
     module_names = ["point_basic", "line_basic", "polygon_basic"]
     module_names += ["point_icon", "point_model"]

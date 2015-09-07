@@ -146,7 +146,7 @@ class PropertyPage(QWidget):
           index = w.findData(v)
           if index != -1:
             w.setCurrentIndex(index)
-      elif isinstance(w, (QRadioButton, QCheckBox)): # subclass of QAbstractButton
+      elif isinstance(w, (QRadioButton, QCheckBox)):  # subclass of QAbstractButton
         w.setChecked(v)
       elif isinstance(w, (QSlider, QSpinBox)):
         w.setValue(v)

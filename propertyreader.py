@@ -56,7 +56,7 @@ class VectorPropertyReader:
       typeitem = objectTypeManager.objectTypeItem(layer.geometryType(), self.item_index)  #
       self.type_name = typeitem.name
       self.mod_index = typeitem.mod_index
-      self.type_index = typeitem.type_index #
+      self.type_index = typeitem.type_index
       self.visible = properties["visible"]
     else:
       self.visible = False

@@ -58,7 +58,7 @@ class GSIElevTileProvider:
     self.boundingbox = QgsRectangle(13667807, 2320477, 17230031, 5713298)
 
     self.downloader = Downloader()
-    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIElevTileProvider".format(QGis.QGIS_VERSION) # not written since QGIS 2.2
+    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIElevTileProvider".format(QGis.QGIS_VERSION)  # not written since QGIS 2.2
     self.downloader.DEFAULT_CACHE_EXPIRATION = QSettings().value("/qgis/defaultTileExpiry", 24, type=int)
 
     self.driver = gdal.GetDriverByName("MEM")

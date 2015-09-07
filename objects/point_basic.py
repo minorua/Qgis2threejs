@@ -39,7 +39,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.initStyleWidgets()
   if type_index == 0:  # Sphere
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
-  elif type_index in [1, 2]: # Cylinder, Cone
+  elif type_index in [1, 2]:  # Cylinder, Cone
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": defaultValue, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
   elif type_index == 3:  # Box
@@ -60,10 +60,10 @@ def write(writer, layer, feat):
   if feat.prop.type_index == 0:  # Sphere
     r = float(vals[2]) * mapTo3d.multiplier
     if r:
-      writer.writeFeature({"m": mat, "pts": pts,"r": r})
+      writer.writeFeature({"m": mat, "pts": pts, "r": r})
     else:
       logMessage(u"Sphere with zero radius not exported")
-  elif feat.prop.type_index in [1, 2]: # Cylinder, Cone
+  elif feat.prop.type_index in [1, 2]:  # Cylinder, Cone
     rb = float(vals[2]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 3 else rb
     h = float(vals[3]) * mapTo3d.multiplierZ
