@@ -1,5 +1,5 @@
 @echo off
-rem run_test-dev.bat
+rem run_test-20.bat
 rem begin: 2015-09-06
 
 set OSGEO4W_ROOT=C:\Program Files\QGIS Dufour
