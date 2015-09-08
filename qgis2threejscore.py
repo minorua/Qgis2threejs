@@ -76,9 +76,7 @@ class ObjectTreeItem:
 
 class MapTo3D:
 
-  def __init__(self, mapCanvas, planeWidth=100, verticalExaggeration=1, verticalShift=0):
-    mapSettings = mapCanvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else mapCanvas.mapRenderer()
-
+  def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
     self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
     self.mapExtent = RotatedRect.fromMapSettings(mapSettings)

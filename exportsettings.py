@@ -23,13 +23,11 @@ import datetime
 from PyQt4.QtCore import QSettings
 from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayerRegistry
 
-
 from rotatedrect import RotatedRect
-
 from qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
-import qgis2threejstools as tools
 from qgis2threejstools import logMessage
 from settings import def_vals
+import qgis2threejstools as tools
 
 
 class ExportSettings:
@@ -39,76 +37,147 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
-  def __init__(self, settings, canvas, pluginManager, localBrowsingMode=True):
-    self.data = settings
-    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
-
-    # output html file path
-    htmlfilename = settings.get("OutputFilename")
-    if not htmlfilename:
-      htmlfilename = tools.temporaryOutputDir() + "/%s.html" % self.timestamp
-    self.htmlfilename = htmlfilename
-    self.path_root = os.path.splitext(htmlfilename)[0]
-    self.htmlfiletitle = os.path.basename(self.path_root)
-    self.title = self.htmlfiletitle
-
-    # load configuration of the template
-    self.templateName = settings.get("Template", "")
-    templatePath = os.path.join(tools.templateDir(), self.templateName)
-    self.templateConfig = tools.getTemplateConfig(templatePath)
-
-    # MapTo3D object
-    world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
-    baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
-    verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
-    verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
-    self.mapTo3d = MapTo3D(canvas, float(baseSize), float(verticalExaggeration), float(verticalShift))
-
-    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
-
-    self.canvas = canvas
-    self.mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-    self.baseExtent = RotatedRect.fromMapSettings(self.mapSettings)
-
+  def __init__(self, pluginManager, localBrowsingMode=True):
     self.pluginManager = pluginManager
     self.localBrowsingMode = localBrowsingMode
 
-    self.crs = self.mapSettings.destinationCrs()
+    self.data = {}
+    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
-    wgs84 = QgsCoordinateReferenceSystem(4326)
-    transform = QgsCoordinateTransform(self.crs, wgs84)
-    self.wgs84Center = transform.transform(self.baseExtent.center())
+    self.templatePath = None
 
+    self.htmlfilename = None
+    self.path_root = None
+    self.htmlfiletitle = None
+    self.title = None
+
+    self.exportMode = ExportSettings.PLAIN_SIMPLE
+    self.controls = None
+    self.coordsInWGS84 = False
+
+    self.canvas = None
+    self.mapSettings = None
+    self.baseExtent = None
+    self.crs = None
+
+    # cache
+    self._mapTo3d = None
+    self._quadtree = None
+    self._templateConfig = None
+
+  def loadSettingsDict(self, settings):
+    self.data = settings
+    self._mapTo3d = None
+
+    # output html file path
+    self.setOutputFilename(settings.get("OutputFilename"))
+
+    # template
+    self.setTemplatePath(settings.get("Template", ""))
+
+    # world
+    world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
+    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
+
+    # controls name
     controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
     self.controls = controls.get("comboBox_Controls")
     if not self.controls:
       self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
 
-    self.demProvider = None
-    self.quadtree = None
-
-    if self.templateConfig.get("type") == "sphere":
-      self.exportMode = ExportSettings.SPHERE
-      return
-
+    # export mode
     demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
-    self.demProvider = self.demProviderByLayerId(demProperties["comboBox_DEMLayer"])
-
-    if demProperties.get("radioButton_Simple", False):
+    if self.templateConfig().get("type") == "sphere":
+      self.exportMode = ExportSettings.SPHERE
+    elif demProperties.get("radioButton_Simple", False):
       self.exportMode = ExportSettings.PLAIN_SIMPLE
     else:
       self.exportMode = ExportSettings.PLAIN_MULTI_RES
-      self.quadtree = createQuadTree(self.baseExtent, demProperties)
+
+  def loadSettingsFile(filepath):
+    #TODO: load settings from JSON file
+    pass
+
+  def setTemplatePath(self, filepath):
+    """filepath: relative path from html_templates directory or absolute path to a template html file"""
+    self.templatePath = os.path.join(tools.templateDir(), filepath)
+    self._templateConfig = None
+
+  def setOutputFilename(self, filepath=None):
+    if not filepath:
+      filepath = tools.temporaryOutputDir() + "/%s.html" % self.timestamp   # temporary file
+    self.htmlfilename = filepath
+    self.path_root = os.path.splitext(filepath)[0]
+    self.htmlfiletitle = os.path.basename(self.path_root)
+    self.title = self.htmlfiletitle
+
+  def setMapCanvas(self, canvas):
+    self.canvas = canvas
+    self.setMapSettings(canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer())
+
+  def setMapSettings(self, settings):
+    """settings: QgsMapSettings (QGIS >= 2.3) or QgsMapRenderer"""
+    self.mapSettings = settings
+
+    self.baseExtent = RotatedRect.fromMapSettings(settings)
+    self.crs = settings.destinationCrs()
+
+  def demProvider(self):
+    layerId = self.data.get(ObjectTreeItem.ITEM_DEM, {}).get("comboBox_DEMLayer")
+    if layerId:
+      return self.demProviderByLayerId(layerId)
+    return None
+
+  def mapTo3d(self):
+    if self._mapTo3d:
+      return self._mapTo3d
+
+    if self.mapSettings is None:
+      return None
+
+    world = self.data.get(ObjectTreeItem.ITEM_WORLD, {})
+    baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
+    verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
+    verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
+    self._mapTo3d = MapTo3D(self.mapSettings, float(baseSize), float(verticalExaggeration), float(verticalShift))
+    return self._mapTo3d
+
+  def quadtree(self):
+    if self._quadtree:
+      self._quadtree
+
+    if self.baseExtent is None:
+      return
+
+    properties = self.data.get(ObjectTreeItem.ITEM_DEM, {})
+    self._quadtree = createQuadTree(self.baseExtent, properties)
+    return self._quadtree
+
+  def templateConfig(self):
+    if self._templateConfig:
+      return self._templateConfig
+
+    if not self.templatePath:
+      return None     #TODO: default template
+
+    self._templateConfig = tools.getTemplateConfig(self.templatePath)
+    return self._templateConfig
+
+  def wgs84Center(self):
+    if self.crs and self.baseExtent:
+      wgs84 = QgsCoordinateReferenceSystem(4326)
+      transform = QgsCoordinateTransform(self.crs, wgs84)
+      return transform.transform(self.baseExtent.center())
+    return None
 
   def get(self, key, default=None):
     return self.data.get(key, default)
 
   def checkValidity(self):
-    """return valid as bool, err_msg as str"""
-    # check validity of settings
-    if self.exportMode == ExportSettings.PLAIN_MULTI_RES and self.quadtree is None:
-      return False, u"Focus point/area is not selected."
-    return True, ""
+    """check validity of export settings. return error message as unicode. return None if valid."""
+    if self.exportMode == ExportSettings.PLAIN_MULTI_RES and self.quadtree() is None:
+      return u"Focus point/area is not selected."
+    return None
 
   def demProviderByLayerId(self, id):
     if not id:

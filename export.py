@@ -87,7 +87,7 @@ class ThreejsJSWriter(JSWriter):
     JSWriter.__init__(self, settings.path_root, multiple_files)
 
     self.settings = settings
-    self.demProvider = settings.demProvider
+    self.demProvider = settings.demProvider()
     self.objectTypeManager = objectTypeManager
 
     self.layerCount = 0
@@ -104,8 +104,8 @@ class ThreejsJSWriter(JSWriter):
     settings = self.settings
     extent = self.settings.baseExtent
     rect = extent.unrotatedRect()
-    mapTo3d = self.settings.mapTo3d
-    wgs84Center = self.settings.wgs84Center
+    mapTo3d = self.settings.mapTo3d()
+    wgs84Center = self.settings.wgs84Center()
 
     args = {"title": settings.title,
             "crs": unicode(settings.crs.authid()),
@@ -162,7 +162,7 @@ class ThreejsJSWriter(JSWriter):
     files.append({"files": ["js/threejs/controls/" + self.settings.controls], "dest": "threejs"})
 
     # template specific libraries (files)
-    config = self.settings.templateConfig
+    config = self.settings.templateConfig()
 
     for f in config.get("files", "").strip().split(","):
       p = f.split(">")
@@ -211,7 +211,7 @@ class ThreejsJSWriter(JSWriter):
 
     key = "{0}x{1}".format(dem_width, dem_height)
     if key not in self.triMesh:
-      mapTo3d = self.settings.mapTo3d
+      mapTo3d = self.settings.mapTo3d()
       hw = 0.5 * mapTo3d.planeWidth
       hh = 0.5 * mapTo3d.planeHeight
       self.triMesh[key] = TriangleMesh(-hw, -hh, hw, hh, dem_width - 1, dem_height - 1)
@@ -233,7 +233,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
   writer.openFile()
 
   # read configuration of the template
-  templateConfig = settings.templateConfig
+  templateConfig = settings.templateConfig()
   templatePath = templateConfig["path"]
 
   if settings.exportMode == ExportSettings.SPHERE:
@@ -299,7 +299,7 @@ def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None)
 
 def writeSimpleDEM(writer, properties, progress=None):
   settings = writer.settings
-  mapTo3d = settings.mapTo3d
+  mapTo3d = settings.mapTo3d()
   progress = progress or dummyProgress
 
   prop = DEMPropertyReader(properties)
@@ -394,7 +394,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   settings = writer.settings
   mapSettings = settings.mapSettings
-  mapTo3d = settings.mapTo3d
+  mapTo3d = settings.mapTo3d()
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
 
@@ -459,7 +459,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
 def writeMultiResDEM(writer, properties, progress=None):
   settings = writer.settings
   mapSettings = settings.mapSettings
-  mapTo3d = settings.mapTo3d
+  mapTo3d = settings.mapTo3d()
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
 
@@ -481,7 +481,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   writer.writeLayer(lyr)
 
   # quad tree
-  quadtree = settings.quadtree
+  quadtree = settings.quadtree()
   if quadtree is None:
     return
 
@@ -659,7 +659,7 @@ class VectorLayer(Layer):
 
   def layerObject(self):
     """layer properties"""
-    mapTo3d = self.writer.settings.mapTo3d
+    mapTo3d = self.writer.settings.mapTo3d()
     prop = self.prop
     properties = prop.properties
 
@@ -680,7 +680,7 @@ class VectorLayer(Layer):
 
   def features(self, request=None, clipGeom=None):
     settings = self.writer.settings
-    mapTo3d = settings.mapTo3d
+    mapTo3d = settings.mapTo3d()
     baseExtent = settings.baseExtent
     baseExtentGeom = baseExtent.geometry()
     rotation = baseExtent.rotation()

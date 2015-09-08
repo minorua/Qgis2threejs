@@ -513,11 +513,12 @@ class Qgis2threejsDialog(QDialog):
         return
 
     # export to web (three.js)
-    canvas = self.iface.mapCanvas()
-    export_settings = ExportSettings(self.settings(), canvas, self.pluginManager, self.localBrowsingMode)
+    export_settings = ExportSettings(self.pluginManager, self.localBrowsingMode)
+    export_settings.loadSettingsDict(self.settings())
+    export_settings.setMapCanvas(self.iface.mapCanvas())
 
-    valid, err_msg = export_settings.checkValidity()
-    if not valid:
+    err_msg = export_settings.checkValidity()
+    if err_msg is not None:
       QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
       return
 
@@ -528,7 +529,7 @@ class Qgis2threejsDialog(QDialog):
 
     if export_settings.exportMode == ExportSettings.PLAIN_MULTI_RES:
       # update quads and point on map canvas
-      self.createRubberBands(export_settings.baseExtent, export_settings.quadtree)
+      self.createRubberBands(export_settings.baseExtent, export_settings.quadtree())
 
     # export
     ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
@@ -544,7 +545,7 @@ class Qgis2threejsDialog(QDialog):
 
     # store last selections
     settings = QSettings()
-    settings.setValue("/Qgis2threejs/lastTemplate", export_settings.templateName)
+    settings.setValue("/Qgis2threejs/lastTemplate", export_settings.templatePath)
     settings.setValue("/Qgis2threejs/lastControls", export_settings.controls)
 
     # open web browser

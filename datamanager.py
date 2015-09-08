@@ -52,9 +52,9 @@ class ImageManager(DataManager):
   MAP_IMAGE = 3
   LAYER_IMAGE = 4
 
-  def __init__(self, context):
+  def __init__(self, exportSettings):
     DataManager.__init__(self)
-    self.context = context
+    self.exportSettings = exportSettings
     self._renderer = None
 
   def imageIndex(self, path):
@@ -75,31 +75,32 @@ class ImageManager(DataManager):
 
   def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
-    if transp_background:
-      size = self.context.mapSettings.outputSize()
-      return self.renderedImage(size.width(), size.height(), self.context.baseExtent, transp_background)
+    canvas = self.exportSettings.canvas
+    if canvas is None or transp_background:
+      size = self.exportSettings.mapSettings.outputSize()
+      return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
 
-    canvas = self.context.canvas
     if QGis.QGIS_VERSION_INT >= 20400:
-     return tools.base64image(canvas.map().contentImage())
+      return tools.base64image(canvas.map().contentImage())
     temp_dir = QDir.tempPath()
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (self.context.timestamp))
+    texfilename = os.path.join(temp_dir, "tex%s.png" % (self.exportSettings.timestamp))
     canvas.saveAsImage(texfilename)
     texData = gdal2threejs.base64image(texfilename)
     tools.removeTemporaryFiles([texfilename, texfilename + "w"])
     return texData
 
   def saveMapCanvasImage(self):
-    texfilename = self.context.path_root + ".png"
-    self.context.canvas.saveAsImage(texfilename)
-    #texSrc = os.path.split(texfilename)[1]
+    if self.exportSettings.canvas is None:
+      return
+    texfilename = self.exportSettings.path_root + ".png"
+    self.exportSettings.canvas.saveAsImage(texfilename)
     tools.removeTemporaryFiles([texfilename + "w"])
 
   def _initRenderer(self):
     # set up a renderer
     labeling = QgsPalLabeling()
     renderer = QgsMapRenderer()
-    renderer.setDestinationCrs(self.context.crs)
+    renderer.setDestinationCrs(self.exportSettings.crs)
     renderer.setProjectionsEnabled(True)
     renderer.setLabelingEngine(labeling)
 
@@ -116,7 +117,7 @@ class ImageManager(DataManager):
     antialias = True
 
     # map settings
-    settings = self.context.canvas.mapSettings()
+    settings = self.exportSettings.mapSettings
     settings.setOutputSize(QSize(width, height))
     settings.setExtent(extent.unrotatedRect())
     settings.setRotation(extent.rotation())
@@ -127,7 +128,7 @@ class ImageManager(DataManager):
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
     #else:    #TODO: remove
-      #settings.setBackgroundColor(self.context.canvas.canvasColor())
+      #settings.setBackgroundColor(self.exportSettings.canvas.canvasColor())
 
     has_pluginlayer = False
     for layerId in settings.layers():
@@ -155,16 +156,21 @@ class ImageManager(DataManager):
     return tools.base64image(image)
 
   def _renderedImage2(self, width, height, extent, transp_background=False, layerids=None):
+    """rendering function for GIS < 2.7"""
     antialias = True
 
     if self._renderer is None:
       self._initRenderer()
 
-    canvas = self.context.canvas
+    canvas = self.exportSettings.canvas    #TODO: use mapSettings
+    if canvas is None:
+      logMessage("Rendering: Map canvas is not set in the export settings")
+      return
+
     if layerids is None:
       layerids = [mapLayer.id() for mapLayer in canvas.layers()]
 
-    renderer = self._renderer
+    renderer = self._renderer   # QgsMapRenderer
     renderer.setLayerSet(layerids)
 
     image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
@@ -185,7 +191,7 @@ class ImageManager(DataManager):
 
     return tools.base64image(image)
 
-    #if context.localBrowsingMode:
+    #if exportSettings.localBrowsingMode:
     #else:
     #  texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
     #  image.save(texfilename)
@@ -226,7 +232,7 @@ class ImageManager(DataManager):
 
       else:   #imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
-        size = self.context.mapSettings.outputSize()
+        size = self.exportSettings.mapSettings.outputSize()
         args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
 
       f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
