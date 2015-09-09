@@ -648,6 +648,7 @@ class Qgis2threejsDialog(QDialog):
 
 
 class PointMapTool(QgsMapToolEmitPoint):
+
   def __init__(self, canvas):
     self.canvas = canvas
     QgsMapToolEmitPoint.__init__(self, self.canvas)
@@ -660,6 +661,7 @@ class PointMapTool(QgsMapToolEmitPoint):
 
 # first changed on 2014-01-03 (last changed on 2015-03-09)
 class RectangleMapTool(QgsMapToolEmitPoint):
+
   def __init__(self, canvas):
     QgsMapToolEmitPoint.__init__(self, canvas)
 

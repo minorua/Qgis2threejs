@@ -241,7 +241,7 @@ class HeightWidgetFunc(WidgetFuncBase):
       index_fieldName = self.numericalFields(layer)
       for index, fieldName in index_fieldName:
         comboBox.addItem(u'+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
-            # note: VectorPropertyReader.relativeHeight() uses item name to get field name
+        # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
       if index_fieldName:
         comboBox.insertSeparator(comboBox.count())
@@ -251,7 +251,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     if layer:
       for index, fieldName in index_fieldName:
         comboBox.addItem(u' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
-            # note: VectorPropertyReader.relativeHeight() uses item name to get field name
+        # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
     defaultItem = options.get("defaultItem")
     if defaultItem is not None:
@@ -563,4 +563,4 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
 
     for index, fieldName in index_fieldName:
       self.comboBox.addItem(u'"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
-          # note: VectorPropertyReader.values() uses item name to get field name
+      # note: VectorPropertyReader.values() uses item name to get field name

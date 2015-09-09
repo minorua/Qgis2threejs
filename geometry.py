@@ -28,6 +28,7 @@ except ImportError:
 
 
 class Point:
+
   def __init__(self, x, y, z=0):
     self.x = x
     self.y = y
@@ -53,6 +54,7 @@ def polygonToQgsPolygon(polygon):
 
 
 class PointGeometry:
+
   def __init__(self):
     self.pts = []
 
@@ -101,6 +103,7 @@ class PointGeometry:
 
 
 class LineGeometry:
+
   def __init__(self):
     self.lines = []
 
@@ -152,6 +155,7 @@ class LineGeometry:
 
 
 class PolygonGeometry:
+
   def __init__(self):
     self.polygons = []
     self.centroids = []

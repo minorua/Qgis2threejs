@@ -61,6 +61,7 @@ class ObjectTypeModule:
 
 
 class ObjectTypeItem:
+
   def __init__(self, name, mod_index, type_index):
     self.name = name
     self.mod_index = mod_index
@@ -68,6 +69,7 @@ class ObjectTypeItem:
 
 
 class ObjectTypeManager:
+
   def __init__(self):
     # load object types
     self.modules = []

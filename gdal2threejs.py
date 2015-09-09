@@ -27,6 +27,7 @@ except ImportError:
 
 
 class Raster:
+
   def __init__(self, filename=""):
     self.ds = None
     self.filename = filename
@@ -104,6 +105,6 @@ def formatValue(val, fmt="%.6f"):
   except:
     return "-0"   # return -0 so that we can distinguish between 0 and error
 
-if __name__=="__main__":
+if __name__ == "__main__":
   argv = sys.argv
   gdal2threejs(argv[1], argv[2], argv[3])

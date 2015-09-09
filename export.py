@@ -28,7 +28,8 @@ from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeomet
 try:
   from osgeo import ogr, osr
 except ImportError:
-  import ogr, osr
+  import ogr
+  import osr
 
 from datamanager import ImageManager, ModelManager, MaterialManager
 from demblock import DEMBlock, DEMBlocks
