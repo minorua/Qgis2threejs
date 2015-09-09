@@ -62,7 +62,7 @@ def layerProperties(writer, layer):
 
 
 def write(writer, layer, feat):
-  mapTo3d = writer.settings.mapTo3d
+  mapTo3d = writer.settings.mapTo3d()
   type_index = feat.prop.type_index
   vals = feat.propValues()
 

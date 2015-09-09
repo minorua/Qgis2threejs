@@ -61,7 +61,7 @@ class DEMBlock:
       self.dem_values = map(lambda x: x * scale, self.dem_values)
 
   def write(self, writer):
-    mapTo3d = writer.settings.mapTo3d
+    mapTo3d = writer.settings.mapTo3d()
 
     writer.write("bl = lyr.addBlock({0}, {1});\n".format(pyobj2js(self.properties), pyobj2js(bool(self.clip_geometry))))
     writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, self.dem_values))))

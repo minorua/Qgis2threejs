@@ -53,7 +53,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
 
 def write(writer, layer, feat):
-  mapTo3d = writer.settings.mapTo3d
+  mapTo3d = writer.settings.mapTo3d()
   vals = feat.propValues()
   mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
   pts = feat.geom.asList()

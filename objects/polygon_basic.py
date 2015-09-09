@@ -112,7 +112,7 @@ def write(writer, layer, feat):
   if feat.prop.type_index == 0:  # Extruded
     d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
     d["zs"] = zs
-    d["h"] = float(vals[2]) * writer.settings.mapTo3d.multiplierZ
+    d["h"] = float(vals[2]) * writer.settings.mapTo3d().multiplierZ
 
   else:   # Overlay
     if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
@@ -133,11 +133,11 @@ def write(writer, layer, feat):
       d["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
 
       # bottom height of side
-      d["sb"] = vals[5] * writer.settings.mapTo3d.multiplierZ
+      d["sb"] = vals[5] * writer.settings.mapTo3d().multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
-    d["h"] = feat.relativeHeight() * writer.settings.mapTo3d.multiplierZ
+    d["h"] = feat.relativeHeight() * writer.settings.mapTo3d().multiplierZ
 
     polygons = []
     triangles = Triangles()

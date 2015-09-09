@@ -482,11 +482,15 @@ class Qgis2threejsDialog(QDialog):
     return numeric_fields
 
   def mapTo3d(self):
+    canvas = self.iface.mapCanvas()
+    mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+
     world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
     bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
     ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
     vs = float(world.get("lineEdit_zShift", def_vals.zShift))
-    return MapTo3D(self.iface.mapCanvas(), bs, ve, vs)
+
+    return MapTo3D(mapSettings, bs, ve, vs)
 
   def progress(self, percentage=None, statusMsg=None):
     ui = self.ui
