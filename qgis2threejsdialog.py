@@ -518,7 +518,7 @@ class Qgis2threejsDialog(QDialog):
 
     # export to web (three.js)
     export_settings = ExportSettings(self.pluginManager, self.localBrowsingMode)
-    export_settings.loadSettingsDict(self.settings())
+    export_settings.loadSettings(self.settings())
     export_settings.setMapCanvas(self.iface.mapCanvas())
 
     err_msg = export_settings.checkValidity()

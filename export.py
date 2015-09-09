@@ -221,8 +221,12 @@ class ThreejsJSWriter(JSWriter):
     logMessage(message)
 
 
-def exportToThreeJS(settings, legendInterface, objectTypeManager, progress=None):
+def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, progress=None):
+  """legendInterface is used for vector layer ordering"""
   progress = progress or dummyProgress
+  if objectTypeManager is None:
+    from vectorobject import ObjectTypeManager
+    objectTypeManager = ObjectTypeManager()
 
   out_dir = os.path.split(settings.htmlfilename)[0]
   if not QDir(out_dir).exists():
@@ -781,21 +785,28 @@ class VectorLayer(Layer):
       yield feat
 
 
-def writeVectors(writer, legendInterface, progress=None):
+def writeVectors(writer, legendInterface=None, progress=None):
   settings = writer.settings
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
   renderer = QgsMapRenderer()
 
   layers = []
-  for layer in legendInterface.layers():
-    if layer.type() != QgsMapLayer.VectorLayer:
-      continue
+  if legendInterface is None:
+    for parentId in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
+      for layerId, properties in settings.get(parentId, {}).iteritems():
+        if properties.get("visible", False):
+          layers.append([layerId, properties])
+  else:
+    # use vector layer order in legendInterface
+    for layer in legendInterface.layers():
+      if layer.type() != QgsMapLayer.VectorLayer:
+        continue
 
-    parentId = ObjectTreeItem.parentIdByLayer(layer)
-    properties = settings.get(parentId, {}).get(layer.id(), {})
-    if properties.get("visible", False):
-      layers.append([layer.id(), properties])
+      parentId = ObjectTreeItem.parentIdByLayer(layer)
+      properties = settings.get(parentId, {}).get(layer.id(), {})
+      if properties.get("visible", False):
+        layers.append([layer.id(), properties])
 
   finishedLayers = 0
   for layerId, properties in layers:

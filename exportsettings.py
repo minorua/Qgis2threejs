@@ -37,9 +37,13 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
-  def __init__(self, pluginManager, localBrowsingMode=True):
-    self.pluginManager = pluginManager
+  def __init__(self, pluginManager=None, localBrowsingMode=True):
+    """localBrowsingMode: not imlemented yet"""
     self.localBrowsingMode = localBrowsingMode
+    self.pluginManager = pluginManager
+    if self.pluginManager is None:
+      from pluginmanager import PluginManager
+      self.pluginManager = PluginManager()
 
     self.data = {}
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
@@ -65,7 +69,7 @@ class ExportSettings:
     self._quadtree = None
     self._templateConfig = None
 
-  def loadSettingsDict(self, settings):
+  def loadSettings(self, settings):
     self.data = settings
     self._mapTo3d = None
 
@@ -94,9 +98,12 @@ class ExportSettings:
     else:
       self.exportMode = ExportSettings.PLAIN_MULTI_RES
 
-  def loadSettingsFile(filepath):
-    #TODO: load settings from JSON file
-    pass
+  def loadSettingsFromFile(self, filepath):
+    """load settings from JSON file"""
+    import json
+    with open(filepath) as f:
+      settings = json.load(f)
+    self.loadSettings(settings)
 
   def setTemplatePath(self, filepath):
     """filepath: relative path from html_templates directory or absolute path to a template html file"""
