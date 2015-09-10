@@ -1,3 +1,0 @@
-from Qgis2threejs.exportsettings import ExportSettings
-from Qgis2threejs.export import exportToThreeJS
-from Qgis2threejs.rotatedrect import RotatedRect
