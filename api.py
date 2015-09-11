@@ -5,8 +5,8 @@
                                  A QGIS plugin
  export terrain data, map canvas image and vector data to web browser
                               -------------------
-        begin                : 2014-01-16
-        copyright            : (C) 2014 Minoru Akagi
+        begin                : 2015-09-10
+        copyright            : (C) 2015 Minoru Akagi
         email                : akaginch@gmail.com
  ***************************************************************************/
 
@@ -25,18 +25,27 @@ from qgis.core import QgsMapSettings, QgsRectangle
 from export import exportToThreeJS
 from exportsettings import ExportSettings
 from rotatedrect import RotatedRect
-import qgis2threejstools as tools
+import qgis2threejstools
 
 
 class Exporter:
-  """a convenient class to export the scenes to web programmatically"""
+  """A convenient class to export the scenes to web programmatically
+
+  Attributes:
+    settings: ExportSettings object
+  """
 
   NO_ERROR = None
 
   def __init__(self, iface=None, settingsPath=None):
     """
-    iface: QgisInterface
-    settingsPath: unicode. Path to an existing settings file (.qto3settings).
+    Args:
+      iface: QgisInterface
+        If specified, mapSettings attribute is initialized with the map settings of the map canvas.
+        The iface.legendInterface() is used to export vector layers in the same order as the legend.
+
+      settingsPath: unicode
+        Path to an existing settings file (.qto3settings).
     """
     self.iface = iface
     self.mapSettings = None
@@ -47,23 +56,15 @@ class Exporter:
       self.settings.loadSettingsFromFile(settingsPath)
 
     if iface:
-      self.mapSettings = iface.mapCanvas().mapSettings()
-      self.settings.setMapSettings(self.mapSettings)
-
-  def setCanvasSize(self, width, height):
-    """
-    width: float
-    height: float
-    """
-    self.mapSettings.setOutputSize(QSize(width, height))
-    self.settings.setMapSettings(self.mapSettings)
+      self.setMapSettings(iface.mapCanvas().mapSettings())
 
   def setExtent(self, center, width, height, rotation=0):
     """
-    center: QgsPoint. In unit of project CRS.
-    width: float. In unit of project CRS.
-    height: float. In unit of project CRS.
-    rotation: float. In degrees.
+    Args:
+      center: QgsPoint. In unit of the map CRS.
+      width: float. In unit of the map CRS.
+      height: float. In unit of the map CRS.
+      rotation: float. In degrees. (QGIS version >= 2.8)
     """
     if self.mapSettings is None:
       self.mapSettings = QgsMapSettings()
@@ -78,11 +79,25 @@ class Exporter:
 
     self.settings.setMapSettings(self.mapSettings)
 
+  def setMapSettings(self, mapSettings):
+    """
+    Args:
+      mapSettings: QgsMapSettings
+    """
+    self.mapSettings = mapSettings
+    self.settings.setMapSettings(mapSettings)
+
   def export(self, htmlPath, openBrowser=False):
     """
-    htmlPath: unicode
-    openBrowser: bool
-    return value: 0 if success. Otherwise return error message.
+    Args:
+      htmlPath: unicode
+        Output HTML file path.
+
+      openBrowser: bool
+        If True, open the exported page using default web browser.
+
+    Returns:
+      Exporter.NO_ERROR if success. Otherwise returns error message.
     """
     self.settings.setOutputFilename(htmlPath)
 
@@ -96,6 +111,6 @@ class Exporter:
       return "Failed to export (Unknown error)"
 
     if openBrowser:
-      tools.openHTMLFile(self.settings.htmlfilename)
+      qgis2threejstools.openHTMLFile(self.settings.htmlfilename)
 
     return Exporter.NO_ERROR
