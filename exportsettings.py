@@ -56,7 +56,7 @@ class ExportSettings:
     self.title = None
 
     self.exportMode = ExportSettings.PLAIN_SIMPLE
-    self.controls = None
+    self._controls = None
     self.coordsInWGS84 = False
 
     self.canvas = None
@@ -68,6 +68,16 @@ class ExportSettings:
     self._mapTo3d = None
     self._quadtree = None
     self._templateConfig = None
+
+  @property
+  def controls(self):
+    if self._controls:
+      return self._controls
+    return QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
+
+  @controls.setter
+  def controls(self, value):
+    self._controls = value
 
   def loadSettings(self, settings):
     self.data = settings
@@ -84,19 +94,16 @@ class ExportSettings:
     self.coordsInWGS84 = world.get("radioButton_WGS84", False)
 
     # controls name
-    controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
-    self.controls = controls.get("comboBox_Controls")
-    if not self.controls:
-      self.controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
+    self._controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {}).get("comboBox_Controls")
 
     # export mode
     demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
     if self.templateConfig().get("type") == "sphere":
       self.exportMode = ExportSettings.SPHERE
-    elif demProperties.get("radioButton_Simple", False):
-      self.exportMode = ExportSettings.PLAIN_SIMPLE
-    else:
+    elif demProperties.get("radioButton_Advanced", False):
       self.exportMode = ExportSettings.PLAIN_MULTI_RES
+    else:
+      self.exportMode = ExportSettings.PLAIN_SIMPLE
 
   def loadSettingsFromFile(self, filepath):
     """load settings from JSON file"""

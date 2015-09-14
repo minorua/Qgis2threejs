@@ -251,7 +251,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
     progress(5, "Writing DEM")
 
     # write primary DEM
-    demProperties = settings.get(ObjectTreeItem.ITEM_DEM)
+    demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
     if settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       writeSimpleDEM(writer, demProperties, progress)
     else:
@@ -259,7 +259,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
       writer.nextFile()
 
     # write additional DEM(s)
-    primaryDEMLayerId = demProperties["comboBox_DEMLayer"]
+    primaryDEMLayerId = demProperties.get("comboBox_DEMLayer", 0)
     for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).iteritems():
       if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsMapLayerRegistry.instance().mapLayer(layerId):
         writeSimpleDEM(writer, properties)
@@ -325,8 +325,8 @@ def writeSimpleDEM(writer, properties, progress=None):
   writer.writeLayer(lyr)
 
   # material option
-  texture_scale = properties["comboBox_TextureSize"] / 100
-  transparency = properties["spinBox_demtransp"]
+  texture_scale = properties.get("comboBox_TextureSize", 100) / 100
+  transparency = properties.get("spinBox_demtransp", 0)
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
   # display type
@@ -346,7 +346,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     mat = layer.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
 
   else:   #.get("radioButton_SolidColor", False)
-    mat = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+    mat = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
 
   #elif properties.get("radioButton_Wireframe", False):
   #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
@@ -406,8 +406,8 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   # options
   size = properties["spinBox_Size"]
   roughening = properties["spinBox_Roughening"]
-  texture_scale = properties["comboBox_TextureSize"] / 100
-  transparency = properties["spinBox_demtransp"]
+  texture_scale = properties.get("comboBox_TextureSize", 100) / 100
+  transparency = properties.get("spinBox_demtransp", 0)
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
   prop = DEMPropertyReader(properties)
@@ -444,7 +444,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
       mat = layer.materialManager.getLayerImageIndex(layerids, image_width, image_height, extent, transparency, transp_background)
 
     else:     #.get("radioButton_SolidColor", False)
-      mat = layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+      mat = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
 
     # DEM block
     dem_values = provider.read(dem_width, dem_height, extent)
@@ -495,8 +495,8 @@ def writeMultiResDEM(writer, properties, progress=None):
   dem_width = dem_height = max(64, 2 ** quadtree.height) + 1
 
   # material options
-  texture_scale = properties["comboBox_TextureSize"] / 100
-  transparency = properties["spinBox_demtransp"]
+  texture_scale = properties.get("comboBox_TextureSize", 100) / 100
+  transparency = properties.get("spinBox_demtransp", 0)
   transp_background = properties.get("checkBox_TransparentBackground", False)
   layerImageIds = properties.get("layerImageIds", [])
 
@@ -509,7 +509,7 @@ def writeMultiResDEM(writer, properties, progress=None):
       return layer.materialManager.getLayerImageIndex(layerImageIds, image_width, image_height, extent, transparency, transp_background)
 
     else:   #.get("radioButton_SolidColor", False)
-      return layer.materialManager.getMeshLambertIndex(properties["lineEdit_Color"], transparency, True)
+      return layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
 
   blocks = DEMBlocks()
 
