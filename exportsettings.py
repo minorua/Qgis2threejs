@@ -77,7 +77,7 @@ class ExportSettings:
     self.setOutputFilename(settings.get("OutputFilename"))
 
     # template
-    self.setTemplatePath(settings.get("Template", ""))
+    self.setTemplatePath(settings.get("Template", def_vals.template))
 
     # world
     world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
@@ -87,7 +87,7 @@ class ExportSettings:
     controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {})
     self.controls = controls.get("comboBox_Controls")
     if not self.controls:
-      self.controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
+      self.controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
 
     # export mode
     demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
@@ -165,7 +165,7 @@ class ExportSettings:
       return self._templateConfig
 
     if not self.templatePath:
-      return None     #TODO: default template
+      self.setTemplatePath(def_vals.template)
 
     self._templateConfig = tools.getTemplateConfig(self.templatePath)
     return self._templateConfig

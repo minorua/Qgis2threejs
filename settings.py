@@ -25,9 +25,16 @@ debug_mode = 0
 class DefaultSettings:
 
   def __init__(self):
+    # template
+    self.template = "3DViewer(dat-gui).html"
+
+    # world
     self.baseSize = 100
     self.zExaggeration = 1.5
     self.zShift = 0
+
+    # controls
+    self.controls = "OrbitControls.js"    # last selected one has priority
 
   def __getattr__(self, name):
     raise AttributeError

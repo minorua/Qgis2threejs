@@ -238,7 +238,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     if properties:
       self.setProperties(properties)
     else:
-      controls = QSettings().value("/Qgis2threejs/lastControls", "OrbitControls.js", type=unicode)
+      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
       index = comboBox.findText(controls)
       if index != -1:
         comboBox.setCurrentIndex(index)
