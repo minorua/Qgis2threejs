@@ -1,25 +1,15 @@
 # -*- coding: utf-8 -*-
 """
+author : Minoru Akagi
+begin  : 2015-09-06
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
-__author__ = "Minoru Akagi"
-__date__ = "2015-09-06"
-
-
+import qgis   # to set sip API version to 2
 import sys
-if __name__ == "__main__":
-  import sip
-  try:
-    for api in ["QDate", "QDateTime", "QString", "QTextStream", "QTime", "QUrl", "QVariant"]:
-      sip.setapi(api, 2)
-  except Exception as e:
-    print "Failed to set sip API version"
-    print e.message
-    sys.exit(1)
-
 import os
 import unittest
 

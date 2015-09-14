@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 """
+author : Minoru Akagi
+begin  : 2015-09-06
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
-__author__ = "Minoru Akagi"
-__date__ = "2015-09-06"
-
 import importlib
 import os
 import sys
 from unittest import TestCase
+
+from utilities import pluginPath
 
 
 class TestPlugin(TestCase):
 
   def test01_import(self):
     """import test"""
-    tests_dir = os.path.dirname(os.path.abspath(__file__).decode(sys.getfilesystemencoding()))
-    plugin_dir = os.path.dirname(tests_dir)
-
+    plugin_dir = pluginPath()
     imported = 0
     for package_dir in ["", "/objects", "/plugins/gsielevtile"]:
       for filename in os.listdir(plugin_dir + package_dir):
