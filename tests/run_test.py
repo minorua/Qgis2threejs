@@ -13,15 +13,18 @@ import sys
 import os
 import unittest
 
+from utilities import pluginPath, initOutputDir
 
 def runTest():
-  tests_dir = os.path.dirname(os.path.abspath(__file__).decode(sys.getfilesystemencoding()))
-  plugin_dir = os.path.dirname(tests_dir)
+  plugin_dir = pluginPath()
   plugins_dir = os.path.dirname(plugin_dir)
 
   # python path setting
   sys.path.append(plugins_dir)
   #print str(sys.path)
+
+  # initialize output directory
+  initOutputDir()
 
   plugin_name = os.path.basename(plugin_dir)
   suite = unittest.TestLoader().discover(plugin_name + ".tests")
