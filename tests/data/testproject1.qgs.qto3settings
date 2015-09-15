@@ -1,0 +1,32 @@
+{
+  "PluginVersion": "1.3.1", 
+  "Template": "3DViewer(dat-gui).html", 
+  "DEM": {
+    "spinBox_Roughening": 4, 
+    "checkBox_Frame": false, 
+    "checkBox_Surroundings": false, 
+    "horizontalSlider_Resolution": 2, 
+    "lineEdit_Color": "", 
+    "visible": false, 
+    "dem_Height": 175, 
+    "lineEdit_centerX": "", 
+    "lineEdit_centerY": "", 
+    "lineEdit_ImageFile": "", 
+    "spinBox_Size": 5, 
+    "radioButton_MapCanvas": true, 
+    "dem_Width": 230, 
+    "lineEdit_rectHeight": "", 
+    "radioButton_Simple": true, 
+    "comboBox_ClipLayer": null, 
+    "lineEdit_rectWidth": "", 
+    "checkBox_Sides": true, 
+    "checkBox_TransparentBackground": false, 
+    "comboBox_DEMLayer": "dem_srtm3020150914165149263", 
+    "checkBox_Clip": false, 
+    "spinBox_demtransp": 0, 
+    "checkBox_Shading": false, 
+    "comboBox_TextureSize": 100, 
+    "spinBox_Height": 4
+  }, 
+  "OutputFilename": ""
+}
