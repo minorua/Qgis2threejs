@@ -8,7 +8,6 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
-import codecs
 import os
 import shutil
 import sys
@@ -16,8 +15,7 @@ import sys
 from PyQt4.QtCore import QFileInfo, qDebug
 from PyQt4.QtGui import QColor
 from PyQt4.QtXml import QDomDocument
-from qgis.core import QgsCoordinateReferenceSystem, QgsMapLayerRegistry, QgsMapSettings, QgsPoint, QgsProject, QgsRectangle
-from qgis.gui import QgsMapCanvas, QgsLayerTreeMapCanvasBridge
+from qgis.core import QgsMapLayerRegistry, QgsMapSettings, QgsProject
 
 
 def pluginPath(subdir=None):
@@ -56,7 +54,7 @@ def loadProject(filename):
   QgsProject.instance().read(QFileInfo(filename))
   assert QgsMapLayerRegistry.instance().mapLayers(), "no layers in map layer registry"
 
-  with codecs.open(filename, "r", "utf-8") as f:
+  with open(filename) as f:
     doc = QDomDocument()
     doc.setContent(f.read())
 
