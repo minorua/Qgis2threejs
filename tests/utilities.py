@@ -49,8 +49,12 @@ def initOutputDir():
 
 
 def loadProject(filename):
+  # clear the map layer registry
+  QgsMapLayerRegistry.instance().removeAllMapLayers()
+
   assert os.path.exists(filename), "project file does not exist: " + filename
 
+  # load the project
   QgsProject.instance().read(QFileInfo(filename))
   assert QgsMapLayerRegistry.instance().mapLayers(), "no layers in map layer registry"
 

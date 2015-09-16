@@ -42,7 +42,7 @@ class TestApi(TestCase):
     assert err == Exporter.NO_ERROR, err
 
   def test02_export_project1(self):
-    """test exporting a small project"""
+    """test exporting from a test project"""
     projectPath = dataPath("testproject1.qgs")
     mapSettings = loadProject(projectPath)
 
@@ -53,7 +53,7 @@ class TestApi(TestCase):
 
     exporter = Exporter(None, projectPath + ".qto3settings")
     exporter.settings.setMapSettings(mapSettings)
-    err = exporter.export(outputPath(os.path.join("testproject1", "test.html")))
+    err = exporter.export(outputPath(os.path.join("testproject1", "testproject1.html")))
     assert err == Exporter.NO_ERROR, err
 
 if __name__ == "__main__":

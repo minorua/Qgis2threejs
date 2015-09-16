@@ -16,7 +16,7 @@ from unittest import TestCase
 from utilities import pluginPath
 
 
-class TestPlugin(TestCase):
+class TestBasic(TestCase):
 
   def test01_import(self):
     """import test"""
