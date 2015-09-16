@@ -11,6 +11,7 @@ the Free Software Foundation; either version 2 of the License, or
 import os
 from unittest import TestCase
 from PyQt4.QtCore import QSize
+from qgis.core import QgsRectangle
 
 from Qgis2threejs.api import Exporter
 from Qgis2threejs.pluginmanager import PluginManager
@@ -26,6 +27,9 @@ class TestPlugins(TestCase):
     """test exporting with GSI elevation tile plugin"""
     projectPath = dataPath("testproject1.qgs")
     mapSettings = loadProject(projectPath)
+
+    # zoom
+    mapSettings.setExtent(QgsRectangle(-51698, -75431, 21286, -20179))
 
     # output size
     width = 800
