@@ -1,6 +1,7 @@
 *.py[co]
 *.qm
 *.orig
+tests/cache
 tests/output
 *.aux.xml
 *.qgs~

@@ -12,8 +12,11 @@ import qgis   # to set sip API version to 2
 import sys
 import os
 import unittest
+from PyQt4.QtNetwork import QNetworkDiskCache
+from qgis.core import QgsApplication, QgsNetworkAccessManager
 
 from utilities import pluginPath, initOutputDir
+
 
 def runTest():
   plugin_dir = pluginPath()
@@ -21,7 +24,6 @@ def runTest():
 
   # python path setting
   sys.path.append(plugins_dir)
-  #print str(sys.path)
 
   # initialize output directory
   initOutputDir()
@@ -32,14 +34,19 @@ def runTest():
 
 
 if __name__ == "__main__":
-  from qgis.core import QgsApplication
-
   gui_mode = True
   QGISAPP = QgsApplication(sys.argv, gui_mode)
   QGISAPP.initQgis()
   print "=" * 70
   print QGISAPP.showSettings()
   print "=" * 70
+
+  # set up network disk cache
+  manager = QgsNetworkAccessManager.instance()
+  cache = QNetworkDiskCache(manager)
+  cache.setCacheDirectory(pluginPath(os.path.join("tests", "cache")))
+  cache.setMaximumCacheSize(50 * 1024 * 1024)
+  manager.setCache(cache)
 
   # run test!
   runTest()
