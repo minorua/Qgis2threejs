@@ -5,3 +5,4 @@ tests/cache
 tests/output
 *.aux.xml
 *.qgs~
+*.qgs.qto3settings
