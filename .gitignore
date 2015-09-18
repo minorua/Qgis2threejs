@@ -1,6 +1,7 @@
 *.py[co]
 *.qm
 *.orig
+docs/build
 tests/cache
 tests/output
 *.aux.xml
