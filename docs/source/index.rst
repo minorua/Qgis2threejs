@@ -11,6 +11,16 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   Demos
+   ShortGuide
+   ExportSettings
+   Point
+   Line
+   Polygon
+   3DViewer
+   PluginSettings
+   Plugins
+
 
 
 Indices and tables
