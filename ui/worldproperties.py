@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\worldproperties.ui'
 #
-# Created: Tue Apr 28 11:22:06 2015
+# Created: Fri Sep 18 10:25:28 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

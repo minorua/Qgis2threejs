@@ -27,7 +27,7 @@ if QGis.QGIS_VERSION_INT >= 20600:
 else:   # 2.4
   from qgis.gui import QgsLayerTreeModel
 
-from ui.ui_layerselectdialog import Ui_LayerSelectDialog
+from ui.layerselectdialog import Ui_LayerSelectDialog
 
 
 class LayerSelectDialog(QDialog):

@@ -25,7 +25,7 @@ from PyQt4.QtCore import QDir, QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
 from qgis.core import QGis, QgsProject
 
-from ui.ui_widgetComboEdit import Ui_ComboEditWidget
+from ui.widgetComboEdit import Ui_ComboEditWidget
 from qgis2threejstools import shortTextFromSelectedLayerIds
 
 

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\layerselectdialog.ui'
 #
-# Created: Wed Apr 22 14:39:24 2015
+# Created: Fri Sep 18 10:25:04 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

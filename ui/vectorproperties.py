@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\vectorproperties.ui'
 #
-# Created: Fri May 29 10:15:44 2015
+# Created: Fri Sep 18 10:25:18 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -67,11 +67,6 @@ class Ui_VectorPropertiesWidget(object):
         self.gridLayout_9.addLayout(self.verticalLayout_zCoordinate, 1, 0, 1, 1)
         self.verticalLayout_2.addWidget(self.groupBox_zCoordinate)
         self.groupBox_Styles = QtGui.QGroupBox(VectorPropertiesWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_Styles.sizePolicy().hasHeightForWidth())
-        self.groupBox_Styles.setSizePolicy(sizePolicy)
         self.groupBox_Styles.setMinimumSize(QtCore.QSize(0, 0))
         self.groupBox_Styles.setObjectName(_fromUtf8("groupBox_Styles"))
         self.gridLayout_8 = QtGui.QGridLayout(self.groupBox_Styles)

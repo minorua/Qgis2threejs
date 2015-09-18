@@ -23,7 +23,7 @@ import os
 from PyQt4.QtCore import Qt, QDir, QFile, QSettings
 from PyQt4.QtGui import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from ui.ui_settingsdialog import Ui_SettingsDialog
+from ui.settingsdialog import Ui_SettingsDialog
 
 
 class SettingsDialog(QDialog):

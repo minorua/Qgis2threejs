@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\widgetComboEdit.ui'
 #
-# Created: Fri May 29 10:17:48 2015
+# Created: Fri Sep 18 10:25:23 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!

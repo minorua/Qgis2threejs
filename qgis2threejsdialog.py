@@ -29,7 +29,7 @@ from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBo
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsPoint, QgsRectangle, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
-from ui.ui_qgis2threejsdialog import Ui_Qgis2threejsDialog
+from ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 
 from export import exportToThreeJS
 from exportsettings import ExportSettings

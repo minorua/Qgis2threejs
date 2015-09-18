@@ -26,10 +26,10 @@ from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.core import QGis, QgsMapLayer
 
-from ui.ui_worldproperties import Ui_WorldPropertiesWidget
-from ui.ui_controlsproperties import Ui_ControlsPropertiesWidget
-from ui.ui_demproperties import Ui_DEMPropertiesWidget
-from ui.ui_vectorproperties import Ui_VectorPropertiesWidget
+from ui.worldproperties import Ui_WorldPropertiesWidget
+from ui.controlsproperties import Ui_ControlsPropertiesWidget
+from ui.demproperties import Ui_DEMPropertiesWidget
+from ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from qgis2threejscore import createQuadTree
 from qgis2threejstools import logMessage
