@@ -7,7 +7,7 @@ Object Types for Line Layer
 ## Line
 
 <table><tr><td width="256">
-<img src="images/line/Line.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Line.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -25,7 +25,7 @@ Object Types for Line Layer
 Places a cylinder to each line segment and a sphere to each joint.
 
 <table><tr><td width="256">
-<img src="images/line/Pipe.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Pipe.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -47,7 +47,7 @@ Places a cylinder to each line segment and a sphere to each joint.
 Places a cone to each line segment. Heading of cone is forward direction.
 
 <table><tr><td width="256">
-<img src="images/line/Cone.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Cone.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -68,7 +68,7 @@ Places a cone to each line segment. Heading of cone is forward direction.
 Places a box to each line segment.
 
 <table><tr><td width="256">
-<img src="images/line/Box.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Box.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -92,7 +92,7 @@ Places a box to each line segment.
 Makes a vertical plane between each line segment and zero elevation. If altitude mode of z coordinate is `Relative to DEM` or `+ "field name"`, each linestring is split into segments using triangles of DEM and every upper edge is located at the relative height from triangle surface of DEM.
 
 <table><tr><td width="256">
-<img src="images/line/Profile.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Profile.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>

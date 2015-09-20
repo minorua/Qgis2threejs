@@ -3,7 +3,7 @@ Export Settings
 
 ## Widgets on the Dialog
 
-![dialog image](images/dialog.png)
+![dialog image](https://github.com/minorua/Qgis2threejs/wiki/images/dialog.png)
 
   In order from the top:
 

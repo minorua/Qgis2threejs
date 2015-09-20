@@ -9,7 +9,7 @@ Object Types for Point Layer
 Sphere with specified radius, color and transparency
 
 <table><tr><td width="256">
-<img src="images/point/Sphere.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Sphere.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -33,7 +33,7 @@ Sphere with specified radius, color and transparency
 Cylinder with specified radius, height, color and transparency
 
 <table><tr><td width="256">
-<img src="images/point/Cylinder.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cylinder.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -59,7 +59,7 @@ Cylinder with specified radius, height, color and transparency
 Cone with specified radius, height, color and transparency
 
 <table><tr><td width="256">
-<img src="images/point/Cone.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cone.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -86,7 +86,7 @@ Cone with specified radius, height, color and transparency
 Box with specified width, depth, height, color and transparency
 
 <table><tr><td width="256">
-<img src="images/point/Cube.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cube.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -114,7 +114,7 @@ Box with specified width, depth, height, color and transparency
 Disk with specified radius, orientation, color and transparency
 
 <table><tr><td width="256">
-<img src="images/point/Disk.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Disk.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -144,7 +144,7 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Image which always faces towards the camera
 
 <table><tr><td width="256">
-<img src="images/no_image.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -168,7 +168,7 @@ Image which always faces towards the camera
 ## JSON model
 
 <table><tr><td width="256">
-<img src="images/no_image.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -195,7 +195,7 @@ Image which always faces towards the camera
 ## COLLADA model
 
 <table><tr><td width="256">
-<img src="images/no_image.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>

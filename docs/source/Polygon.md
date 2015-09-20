@@ -9,7 +9,7 @@ Object Types for Polygon Layer
 Extruded polygon with specified height, color and transparency
 
 <table><tr><td width="256">
-<img src="images/polygon/Extruded.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Extruded.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
@@ -30,7 +30,7 @@ Extruded polygon with specified height, color and transparency
 Overlay of main DEM with specified color, border color and transparency. If altitude mode of z coordinate is `Relative to DEM` or `+ "field name"`, each polygon is split into triangles using triangles of DEM, and is located at the relative height from triangle surface of DEM. You can add side to each polygon if you want.
 
 <table><tr><td width="256">
-<img src="images/polygon/Overlay.png">
+<img src="https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Overlay.png">
 </td><td>
 
 <p><strong>Specific settings</strong>:</p>
