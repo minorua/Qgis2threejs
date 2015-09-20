@@ -1,22 +1,7 @@
 Export Settings
 ===============
 
-* [Widgets on the Dialog](#Dialog)  
-* [General Settings](#General)  
-    * [Template](#Template)  
-    * [World](#World)  
-    * [Controls](#Controls)  
-* [Layer Settings](#Layer)  
-    * [DEM](#DEM)  
-    * [Additional DEM](#AdditionalDEM)  
-    * [Vector](#Vector)  
-        * [Point](#Point)  
-        * [Line](#Line)  
-        * [Polygon](#Polygon)  
-
-
-
-## <a name="Dialog"/> Widgets on the Dialog
+## Widgets on the Dialog
 
 ![dialog image](images/dialog.png)
 
@@ -24,7 +9,7 @@ Export Settings
 
 * Combo box to select a template
 
-  Select one from templates with different functions. See [Template](#Template) section.
+  Select one from templates with different functions. See [Template](#template) section.
 
 * Tree widget on the left side and panel with widgets on the right side
 
@@ -62,11 +47,11 @@ Export Settings
 
 
 
-## <a name="General"/> General Settings
+## General Settings
 
 
 
-### <a name="Template"/> Template
+### Template
 
   Available templates:
 
@@ -86,7 +71,7 @@ Export Settings
 
 
 
-### <a name="World"/> World
+### World
 
 * Base size
 
@@ -120,7 +105,7 @@ Export Settings
 
 
 
-### <a name="Controls"/> Controls
+### Controls
 
   Two available controls: [OrbitControls](https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt), [TrackballControls](https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/TrackballControls.txt).
 
@@ -128,11 +113,11 @@ Export Settings
 
 
 
-## <a name="Layer"/> Layer Settings
+## Layer Settings
 
 
 
-### <a name="DEM"/> DEM
+### DEM
 
   You can select a DEM layer from 1-band rasters loaded in QGIS using `Add Raster Layer` (GDAL provider). Selected DEM layer is used as the reference for z positions of vector objects. You can also select a flat plane at zero altitude.
 
@@ -207,7 +192,7 @@ Export Settings
 
 
 
-### <a name="AdditionalDEM"/> Additional DEM
+### Additional DEM
 
   If you want to export more than one DEM, check the checkbox on the left of child item you want. For example of usage, it may be possible to cover the terrain with supposed terrain surface of a summit level map, or make a 3D heat map.
 
@@ -215,7 +200,7 @@ Export Settings
 
 
 
-### <a name="Vector"/> Vector
+### Vector
 
   Vector layers are grouped into three types: Point, Line and Polygon. Common settings for all vector layers:
 
@@ -278,35 +263,30 @@ Export Settings
 
 
 
-#### <a name="Point"/> Point
+#### Point
 
 Point layers in the project are listed as the child items. The following object types are available:
 
 > Sphere, Cylinder, Cone, Box, Disk, Icon, JSON model, COLLADA model
 
-See [Vector](#Vector) for common settings and [Object Types for Point Layer](Point) for each object type specific settings.
+See [Vector](#vector) for common settings and [Object Types for Point Layer](Point) for each object type specific settings.
 
 
 
-#### <a name="Line"/> Line
+#### Line
 
 Line layers in the project are listed as the child items. The following object types are available:
 
 > Line, Pipe, Cone, Box, Profile
 
-See [Vector](#Vector) for common settings and [Object Types for Line Layer](Line) for each object type specific settings.
+See [Vector](#vector) for common settings and [Object Types for Line Layer](Line) for each object type specific settings.
 
 
 
-#### <a name="Polygon"/> Polygon
+#### Polygon
 
 Polygon layers in the project are listed as the child items. The following object types are available:
 
 > Extruded, Overlay
 
-See [Vector](#Vector) for common settings and [Object Types for Polygon Layer](Polygon) for each object type specific settings.
-
-
-
-***
-Qgis2threejs plugin version 1.3
+See [Vector](#vector) for common settings and [Object Types for Polygon Layer](Polygon) for each object type specific settings.

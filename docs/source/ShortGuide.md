@@ -11,8 +11,4 @@ Short Guide
 
   ![dialog image](images/dialog.png)
 
-5. Then 3D terrain appears in your web browser!
-
-
-***
-Qgis2threejs plugin version 1.3
+Then 3D terrain appears in your web browser!

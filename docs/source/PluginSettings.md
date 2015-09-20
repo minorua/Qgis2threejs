@@ -10,7 +10,3 @@ Plugin Settings
   There is list of optional features. You can enable optional feature you want to use.
 
   For details, see [Optional Features](Plugins)
-
-
-***
-Qgis2threejs plugin version 1.3

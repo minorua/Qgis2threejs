@@ -1,10 +1,10 @@
 Object Types for Point Layer
 ============================
 
-[Sphere](#Sphere) | [Cylinder](#Cylinder) | [Cone](#Cone) | [Box](#Box) | [Disk](#Disk) | [Icon](#Icon) | [JSON model](#JSON) | [COLLADA model](#COLLADA)
+[Sphere](#sphere) | [Cylinder](#cylinder) | [Cone](#cone) | [Box](#box) | [Disk](#disk) | [Icon](#icon) | [JSON model](#json-model) | [COLLADA model](#collada-model)
 
 ***
-## <a name="Sphere"/> Sphere
+## Sphere
 
 Sphere with specified radius, color and transparency
 
@@ -28,7 +28,7 @@ Sphere with specified radius, color and transparency
 
 
 
-## <a name="Cylinder"/> Cylinder
+## Cylinder
 
 Cylinder with specified radius, height, color and transparency
 
@@ -54,7 +54,7 @@ Cylinder with specified radius, height, color and transparency
 
 
 
-## <a name="Cone"/> Cone
+## Cone
 
 Cone with specified radius, height, color and transparency
 
@@ -81,7 +81,7 @@ Cone with specified radius, height, color and transparency
 
 
 
-## <a name="Box"/> Box
+## Box
 
 Box with specified width, depth, height, color and transparency
 
@@ -109,7 +109,7 @@ Box with specified width, depth, height, color and transparency
 
 
 
-## <a name="Disk"/> Disk
+## Disk
 
 Disk with specified radius, orientation, color and transparency
 
@@ -139,7 +139,7 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 
 
 
-## <a name="Icon"/> Icon
+## Icon
 
 Image which always faces towards the camera
 
@@ -165,7 +165,7 @@ Image which always faces towards the camera
 
 
 
-## <a name="JSON"/> JSON model
+## JSON model
 
 <table><tr><td width="256">
 <img src="images/no_image.png">
@@ -192,7 +192,7 @@ Image which always faces towards the camera
 
 
 
-## <a name="COLLADA"/> COLLADA model
+## COLLADA model
 
 <table><tr><td width="256">
 <img src="images/no_image.png">
@@ -216,7 +216,3 @@ Image which always faces towards the camera
 <p>origin of model</p>
 
 </td></tr></table>
-
-
-***
-Back to [Export Settings](ExportSettings) | Qgis2threejs plugin version 1.3

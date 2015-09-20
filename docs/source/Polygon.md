@@ -1,10 +1,10 @@
 Object Types for Polygon Layer
 ==============================
 
-[Extruded](#Extruded) | [Overlay](#Overlay)
+[Extruded](#extruded) | [Overlay](#overlay)
 
 ***
-## <a name="Extruded"/> Extruded
+## Extruded
 
 Extruded polygon with specified height, color and transparency
 
@@ -25,7 +25,7 @@ Extruded polygon with specified height, color and transparency
 
 
 
-## <a name="Overlay"/> Overlay
+## Overlay
 
 Overlay of main DEM with specified color, border color and transparency. If altitude mode of z coordinate is `Relative to DEM` or `+ "field name"`, each polygon is split into triangles using triangles of DEM, and is located at the relative height from triangle surface of DEM. You can add side to each polygon if you want.
 
@@ -53,7 +53,3 @@ Overlay of main DEM with specified color, border color and transparency. If alti
 
 
 Images were created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/) (ort, dem), OpenStreetMap (© OpenStreetMap contributors, [License](http://www.openstreetmap.org/copyright)) and [National Land Numerical Information](http://nlftp.mlit.go.jp/ksj/) (Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
-
-
-***
-Back to [Export Settings](ExportSettings) | Qgis2threejs plugin version 1.3
