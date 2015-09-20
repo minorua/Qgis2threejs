@@ -14,9 +14,7 @@ Contents:
    Examples
    ShortGuide
    ExportSettings
-   Point
-   Line
-   Polygon
+   ObjectTypes
    3DViewer
    PluginSettings
    Plugins
