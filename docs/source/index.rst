@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   Demos
+   Examples
    ShortGuide
    ExportSettings
    Point
@@ -20,6 +20,7 @@ Contents:
    3DViewer
    PluginSettings
    Plugins
+   ProgrammaticalExportUsingPython
 
 
 

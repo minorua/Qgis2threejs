@@ -1,7 +1,7 @@
 Export Settings
 ===============
 
-## Widgets on the Dialog
+## Plugin Dialog
 
 ![dialog image](https://github.com/minorua/Qgis2threejs/wiki/images/dialog.png)
 

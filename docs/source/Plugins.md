@@ -1,8 +1,7 @@
 Optional Feature
 ================
 
-<!--Optional Features
-To enable these features, you need to go to the settings dialog and check the feature you want to use.
+<!--To enable these features, you need to go to the settings dialog and check the feature you want to use.
 List of Optional Features:
 * [GSI Elevation Tile Provider](#gsielevtile)-->
 

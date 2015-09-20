@@ -1,3 +1,6 @@
+Programmatical export using Python
+==================================
+
 **This feature will be added in version 1.4**
 
 Do you want to export many scenes to web? You can do it programmatically using Python!

@@ -1,6 +1,8 @@
 Short Guide
 ===========
 
+Let's start using Qgis2threejs plugin!
+
 1. Open the QGIS plugin dialog (```Plugins > Manage and install plugins...```), and then install Qgis2threejs plugin.
 
 2. Load a raster DEM file using `Add Raster Layer` and any other layers into QGIS, and set the project CRS to a projected coordinate system (the unit should be the same as that of DEM values).

@@ -1,4 +1,4 @@
-# Demos
+# Examples
 
 <!--### Features in Development-->
 
