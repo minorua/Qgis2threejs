@@ -1,9 +1,9 @@
 Object Types
 ============
 
--  `Point Layer <#point-layer>`__
--  `Line Layer <#line-layer>`__
--  `Polygon Layer <#polygon-layer>`__
+* `Point Layer <#point-layer>`__
+* `Line Layer <#line-layer>`__
+* `Polygon Layer <#polygon-layer>`__
 
 --------------
 
@@ -31,12 +31,12 @@ Sphere with specified radius, color and transparency
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
 
 **Origin** :
 
-center of sphere
+    center of sphere
 
 **three.js geometry class:**
 `SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
@@ -63,14 +63,14 @@ Cylinder with specified radius, height, color and transparency
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
--  Height
+* Height
     Numerical value.
 
 **Origin** :
 
-center of bottom (if height > 0)
+    center of bottom (if height > 0)
 
 **three.js geometry class:**
 `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
@@ -97,14 +97,14 @@ Cone with specified radius, height, color and transparency
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
--  Height
+* Height
     Numerical value.
 
 **Origin** :
 
-center of bottom (if height > 0)
+    center of bottom (if height > 0)
 
 **three.js geometry class:**
 `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
@@ -131,16 +131,16 @@ Box with specified width, depth, height, color and transparency
 
 **Specific settings** :
 
--  Width
+* Width
     Numerical value.
--  Depth
+* Depth
     Numerical value.
--  Height
+* Height
     Numerical value.
 
 **Origin** :
 
-center of bottom (if height > 0)
+    center of bottom (if height > 0)
 
 **three.js geometry class:**
 `BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
@@ -167,17 +167,17 @@ Disk with specified radius, orientation, color and transparency
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
--  Dip
+* Dip
     In degrees. See `Strike and dip -
    Wikipedia <http://en.wikipedia.org/wiki/Strike_and_dip>`__.
--  Dip direction
+* Dip direction
     In degrees.
 
 **Origin** :
 
-center of disk
+    center of disk
 
 **three.js geometry class:**
 `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
@@ -206,14 +206,14 @@ Image which always faces towards the camera
 
 **Specific settings** :
 
--  Image file
+* Image file
     File path.
--  Scale
+* Scale
     Numerical value.
 
 **Origin** :
 
-center of image
+    center of image
 
 **three.js object class:**
 `Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__
@@ -238,20 +238,20 @@ JSON model
 
 **Specific settings** :
 
--  JSON file
+* JSON file
     File path.
--  Scale
+* Scale
     Numerical value.
--  Rotation (x)
+* Rotation (x)
     In degrees.
--  Rotation (y)
+* Rotation (y)
     In degrees.
--  Rotation (z)
+* Rotation (z)
     In degrees.
 
 **Origin** :
 
-origin of model
+    origin of model
 
 .. raw:: html
 
@@ -273,21 +273,21 @@ COLLADA model
 
 **Specific settings** :
 
--  COLLADA file
+* COLLADA file
     File path (.dae). If the model has texture images, they need to be
-   copied to the destination directory manually.
--  Scale
+    copied to the destination directory manually.
+* Scale
     Numerical value.
--  Rotation (x)
+* Rotation (x)
     In degrees.
--  Rotation (y)
+* Rotation (y)
     In degrees.
--  Rotation (z)
+* Rotation (z)
     In degrees.
 
 **Origin** :
 
-origin of model
+    origin of model
 
 .. raw:: html
 
@@ -316,7 +316,7 @@ Line
 
 **Specific settings** :
 
-no specific settings
+    no specific settings
 
 **three.js object class:**
 `Line <http://threejs.org/docs/#Reference/Objects/Line>`__
@@ -345,7 +345,7 @@ Places a cylinder to each line segment and a sphere to each joint.
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
 
 **three.js geometry classes:**
@@ -379,7 +379,7 @@ direction.
 
 **Specific settings** :
 
--  Radius
+* Radius
     Numerical value.
 
 **three.js geometry class:**
@@ -411,9 +411,9 @@ Places a box to each line segment.
 
 **Specific settings** :
 
--  Width
+* Width
     Numerical value.
--  Height
+* Height
     Numerical value.
 
 **three.js geometry class:**
@@ -449,7 +449,7 @@ from triangle surface of DEM.
 
 **Specific settings** :
 
--  Lower Z
+* Lower Z
     Z coordinate of lower edge.
 
 **three.js geometry class:**
@@ -485,7 +485,7 @@ Extruded polygon with specified height, color and transparency
 
 **Specific settings** :
 
--  Height
+* Height
     Numerical value.
 
 **three.js geometry class:**
@@ -521,11 +521,11 @@ DEM. You can add side to each polygon if you want.
 
 **Specific settings** :
 
--  Border color
--  Side
+* Border color
+* Side
     Check this option to add side to each polygon.
--  Side color
--  Side lower Z
+* Side color
+* Side lower Z
     Z coordinate of lower edge of side.
 
 **three.js classes:**

@@ -26,15 +26,15 @@ This feature is available with **3DViewer(dat-gui) template**.
 
 The control panel has:
 
--  layer sub menus
+* layer sub menus
 
-Each sub menu has:
+   Each sub menu has:
 
--  a check box to toggle layer visibility
--  a slider to adjust layer transparency
+   * a check box to toggle layer visibility
+   * a slider to adjust layer transparency
 
--  sub menu to add a vertically movable plane
--  help button to show the about box
+* sub menu to add a vertically movable plane
+* help button to show the about box
 
 Rotate Animation
 ----------------
@@ -55,7 +55,7 @@ format is PNG. To change label color and/or adjust label size, edit
 
 Known issue:
 
--  Wrong image output if the size is too large
+* Wrong image output if the size is too large
    https://github.com/minorua/Qgis2threejs/issues/42
 
 URL Parameters
@@ -66,18 +66,18 @@ view by entering the URL in the URL box of web browser.
 
 Parameters used in view URL:
 
--  cx, cy, cz: camera position
--  tx, ty, tz: camera target
--  ux, uy, uz: camera up direction (TrackballControls)
+* cx, cy, cz: camera position
+* tx, ty, tz: camera target
+* ux, uy, uz: camera up direction (TrackballControls)
 
 e.g.
 file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.603200058346065
 
 Other parameters:
 
--  width: canvas width
--  height: canvas height
--  popup: pop up another window with specified width and height
+* width: canvas width
+* height: canvas height
+* popup: pop up another window with specified width and height
 
 .. raw:: html
 

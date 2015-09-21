@@ -10,8 +10,8 @@ Optional Feature
 To enable this feature, you need to go to the settings dialog and check
 the feature.
 
- GSI Elevation Tile Provider (DEM Provider)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GSI Elevation Tile Provider (DEM Provider)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This DEM provider downloads GSI Tiles (elevation) from the web server of
 Geospatial Information Authority of Japan, and provides elevation data
