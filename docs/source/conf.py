@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Qgis2threejs plugin'
-copyright = u'2015, Minoru Akagi'
+copyright = u'2014, Minoru Akagi'
 author = u'Minoru Akagi'
 
 # The version info for the project you're documenting, acts as replacement for
