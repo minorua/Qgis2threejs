@@ -1,0 +1,9 @@
+pandoc -f markdown -t rst -o 3DViewer.rst 3DViewer.md
+pandoc -f markdown -t rst -o Examples.rst Examples.md
+pandoc -f markdown -t rst -o ExportSettings.rst ExportSettings.md
+pandoc -f markdown -t rst -o index.rst index.md
+pandoc -f markdown -t rst -o ObjectTypes.rst ObjectTypes.md
+pandoc -f markdown -t rst -o Plugins.rst Plugins.md
+pandoc -f markdown -t rst -o PluginSettings.rst PluginSettings.md
+pandoc -f markdown -t rst -o ProgrammaticalExportUsingPython.rst ProgrammaticalExportUsingPython.md
+pandoc -f markdown -t rst -o ShortGuide.rst ShortGuide.md

@@ -15,20 +15,22 @@ Object Types
 Sphere with specified radius, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Sphere.png">
+![image01](https://github.com/minorua/Qgis2threejs/wiki/images/point/Sphere.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>center of sphere</p>
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry">SphereGeoemtry</a></p>
+* Radius  
+  Numerical value.
+
+
+**Origin** :
+
+center of sphere
+
+**three.js geometry class:**
+[SphereGeoemtry](http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry)
 
 </td></tr></table>
 
@@ -39,22 +41,24 @@ Sphere with specified radius, color and transparency
 Cylinder with specified radius, height, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cylinder.png">
+![image02](https://github.com/minorua/Qgis2threejs/wiki/images/point/Cylinder.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-<li><p>Height</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>center of bottom (if height > 0)</p>
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a></p>
+* Radius  
+  Numerical value.
+* Height  
+  Numerical value.
+
+
+**Origin** :
+
+center of bottom (if height > 0)
+
+**three.js geometry class:**
+[CylinderGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry)
 
 </td></tr></table>
 
@@ -65,23 +69,25 @@ Cylinder with specified radius, height, color and transparency
 Cone with specified radius, height, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cone.png">
+![image03](https://github.com/minorua/Qgis2threejs/wiki/images/point/Cone.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
+**Specific settings** :
 
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-<li><p>Height</p>
-<p>Numerical value.</p></li>
-</ul>
 
-<p><strong>Origin</strong>:</p>
-<p>center of bottom (if height > 0)</p>
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a></p>
+* Radius  
+  Numerical value.
+* Height  
+  Numerical value.
+
+
+**Origin** :
+
+center of bottom (if height > 0)
+
+**three.js geometry class:**
+[CylinderGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry)
 
 </td></tr></table>
 
@@ -92,24 +98,26 @@ Cone with specified radius, height, color and transparency
 Box with specified width, depth, height, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Cube.png">
+![image04](https://github.com/minorua/Qgis2threejs/wiki/images/point/Cube.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Width</p>
-<p>Numerical value.</p></li>
-<li><p>Depth</p>
-<p>Numerical value.</p></li>
-<li><p>Height</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>center of bottom (if height > 0)</p>
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry">BoxGeometry</a></p>
+* Width  
+  Numerical value.
+* Depth  
+  Numerical value.
+* Height  
+  Numerical value.
+
+
+**Origin** :
+
+center of bottom (if height > 0)
+
+**three.js geometry class:**
+[BoxGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry)
 
 </td></tr></table>
 
@@ -120,24 +128,26 @@ Box with specified width, depth, height, color and transparency
 Disk with specified radius, orientation, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/point/Disk.png">
+![image05](https://github.com/minorua/Qgis2threejs/wiki/images/point/Disk.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-<li><p>Dip</p>
-<p>In degrees. See <a href="http://en.wikipedia.org/wiki/Strike_and_dip">Strike and dip - Wikipedia</a>.</p></li>
-<li><p>Dip direction</p>
-<p>In degrees.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>center of disk  </p>
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a></p>
+* Radius  
+  Numerical value.
+* Dip  
+  In degrees. See [Strike and dip - Wikipedia](http://en.wikipedia.org/wiki/Strike_and_dip).
+* Dip direction  
+  In degrees.
+
+
+**Origin** :
+
+center of disk  
+
+**three.js geometry class:**
+[CylinderGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry)
 
 </td></tr></table>
 
@@ -150,22 +160,24 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Image which always faces towards the camera
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
+![image06](https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Image file</p>
-<p>File path.</p></li>
-<li><p>Scale</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>center of image</p>
 
-<p><strong>three.js object class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Objects/Sprite">Sprite</a></p>
+* Image file  
+  File path.
+* Scale  
+  Numerical value.
+
+
+**Origin** :
+
+center of image
+
+**three.js object class:**
+[Sprite](http://threejs.org/docs/#Reference/Objects/Sprite)
 
 </td></tr></table>
 
@@ -174,25 +186,27 @@ Image which always faces towards the camera
 ### JSON model
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
+![image07](https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>JSON file</p>
-<p>File path.</p></li>
-<li><p>Scale</p>
-<p>Numerical value.</p></li>
-<li><p>Rotation (x)</p>
-<p>In degrees.</p></li>
-<li><p>Rotation (y)</p>
-<p>In degrees.</p></li>
-<li><p>Rotation (z)</p>
-<p>In degrees.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>origin of model</p>
+
+* JSON file  
+  File path.
+* Scale  
+  Numerical value.
+* Rotation (x)  
+  In degrees.
+* Rotation (y)  
+  In degrees.
+* Rotation (z)  
+  In degrees.
+
+
+**Origin** :
+
+origin of model
 
 </td></tr></table>
 
@@ -201,25 +215,27 @@ Image which always faces towards the camera
 ### COLLADA model
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png">
+![image08](https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>COLLADA file</p>
-<p>File path (.dae). If the model has texture images, they need to be copied to the destination directory manually.</p></li>
-<li><p>Scale</p>
-<p>Numerical value.</p></li>
-<li><p>Rotation (x)</p>
-<p>In degrees.</p></li>
-<li><p>Rotation (y)</p>
-<p>In degrees.</p></li>
-<li><p>Rotation (z)</p>
-<p>In degrees.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>Origin</strong>:</p>
-<p>origin of model</p>
+
+* COLLADA file  
+  File path (.dae). If the model has texture images, they need to be copied to the destination directory manually.
+* Scale  
+  Numerical value.
+* Rotation (x)  
+  In degrees.
+* Rotation (y)  
+  In degrees.
+* Rotation (z)  
+  In degrees.
+
+
+**Origin** :
+
+origin of model
 
 </td></tr></table>
 
@@ -231,14 +247,15 @@ Image which always faces towards the camera
 ### Line
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Line.png">
+![image11](https://github.com/minorua/Qgis2threejs/wiki/images/line/Line.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<p>no specific settings</p>
+**Specific settings** :
 
-<p><strong>three.js object class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Objects/Line">Line</a></p>
+no specific settings
+
+**three.js object class:**
+[Line](http://threejs.org/docs/#Reference/Objects/Line)
 
 </td></tr></table>
 
@@ -250,18 +267,19 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Places a cylinder to each line segment and a sphere to each joint.
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Pipe.png">
+![image12](https://github.com/minorua/Qgis2threejs/wiki/images/line/Pipe.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js geometry classes:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a> and
-  <a href="http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry">SphereGeoemtry</a></p>
+
+* Radius  
+  Numerical value.
+
+
+**three.js geometry classes:**
+[CylinderGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry) and
+  [SphereGeoemtry](http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry)
 
 </td></tr></table>
 
@@ -274,17 +292,18 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Places a cone to each line segment. Heading of cone is forward direction.
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Cone.png">
+![image13](https://github.com/minorua/Qgis2threejs/wiki/images/line/Cone.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Radius</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry">CylinderGeometry</a></p>
+
+* Radius  
+  Numerical value.
+
+
+**three.js geometry class:**
+[CylinderGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry)
 
 </td></tr></table>
 
@@ -297,20 +316,21 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Places a box to each line segment.
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Box.png">
+![image14](https://github.com/minorua/Qgis2threejs/wiki/images/line/Box.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Width</p>
-<p>Numerical value.</p></li>
-<li><p>Height</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry">BoxGeometry</a> and
-<a href="http://threejs.org/docs/#Reference/Core/Geometry">Geometry</a></p>
+
+* Width  
+  Numerical value.
+* Height  
+  Numerical value.
+
+
+**three.js geometry class:**
+[BoxGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry) and
+[Geometry](http://threejs.org/docs/#Reference/Core/Geometry)
 
 </td></tr></table>
 
@@ -323,17 +343,18 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Makes a vertical plane between each line segment and zero elevation. If altitude mode of z coordinate is `Relative to DEM` or `+ "field name"`, each linestring is split into segments using triangles of DEM and every upper edge is located at the relative height from triangle surface of DEM.
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/line/Profile.png">
+![image15](https://github.com/minorua/Qgis2threejs/wiki/images/line/Profile.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Lower Z</p>
-<p>Z coordinate of lower edge.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry">PlaneGeometry</a></p>
+
+* Lower Z  
+  Z coordinate of lower edge.
+
+
+**three.js geometry class:**
+[PlaneGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry)
 
 </td></tr></table>
 
@@ -350,17 +371,18 @@ Image was created with SRTM3 elevation data.
 Extruded polygon with specified height, color and transparency
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Extruded.png">
+![image21](https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Extruded.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li><p>Height</p>
-<p>Numerical value.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js geometry class:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry">ExtrudeGeometry</a></p>
+
+* Height  
+  Numerical value.
+
+
+**three.js geometry class:**
+[ExtrudeGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry)
 
 </td></tr></table>
 
@@ -373,24 +395,25 @@ Image was created with [GSI Tiles](http://portal.cyberjapan.jp/help/development/
 Overlay of main DEM with specified color, border color and transparency. If altitude mode of z coordinate is `Relative to DEM` or `+ "field name"`, each polygon is split into triangles using triangles of DEM, and is located at the relative height from triangle surface of DEM. You can add side to each polygon if you want.
 
 <table><tr><td width="256">
-<img src="https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Overlay.png">
+![image22](https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Overlay.png)
 </td><td>
 
-<p><strong>Specific settings</strong>:</p>
-<ul>
-<li>Border color</li>
-<li><p>Side</p>
-<p>Check this option to add side to each polygon.</p></li>
-<li><p>Side color</p></li>
-<li><p>Side lower Z</p>
-<p>Z coordinate of lower edge of side.</p></li>
-</ul>
+**Specific settings** :
 
-<p><strong>three.js classes:</strong></p>
-<p><a href="http://threejs.org/docs/#Reference/Core/Geometry">Geometry</a>,
-<a href="http://threejs.org/docs/#Reference/Objects/Line">Line</a> and 
-<a href="http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry">PlaneGeometry</a>
-</p>
+
+* Border color  
+* Side  
+  Check this option to add side to each polygon.
+* Side color  
+* Side lower Z  
+  Z coordinate of lower edge of side.
+
+
+**three.js classes:**
+[Geometry](http://threejs.org/docs/#Reference/Core/Geometry),
+[Line](http://threejs.org/docs/#Reference/Objects/Line) and 
+[PlaneGeometry](http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry)
+
 
 </td></tr></table>
 
