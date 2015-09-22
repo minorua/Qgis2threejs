@@ -48,7 +48,7 @@ In order from the top:
 
    * Plugin Settings
 
-      Shows `Plugin Settings <PluginSettings>`__ dialog.
+      Shows :doc:`PluginSettings` dialog.
 
 * Run, Close and Help buttons
 
@@ -340,8 +340,7 @@ object types are available:
 
     Sphere, Cylinder, Cone, Box, Disk, Icon, JSON model, COLLADA model
 
-See `Vector <#vector>`__ for common settings and `Object Types for Point
-Layer <Point>`__ for each object type specific settings.
+See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
 Line
 ^^^^
@@ -351,8 +350,7 @@ object types are available:
 
     Line, Pipe, Cone, Box, Profile
 
-See `Vector <#vector>`__ for common settings and `Object Types for Line
-Layer <Line>`__ for each object type specific settings.
+See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
 Polygon
 ^^^^^^^
@@ -362,5 +360,4 @@ following object types are available:
 
     Extruded, Overlay
 
-See `Vector <#vector>`__ for common settings and `Object Types for
-Polygon Layer <Polygon>`__ for each object type specific settings.
+See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.

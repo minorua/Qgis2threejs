@@ -11,4 +11,4 @@ Plugin Settings
    There is list of optional features. You can enable optional feature you
    want to use.
 
-   For details, see `Optional Features <Plugins>`__
+   For details, see :doc:`Plugins`.

@@ -25,6 +25,3 @@ Technical information (in Japanese):
 
 -  Specification of elevation tile:
    http://maps.gsi.go.jp/development/demtile.html
-
-(ja)
-このプラグインは国土地理院の地理院タイル(標高タイル)をQgis2threejsで地形データとして利用可能にします。利用にあたっては\ `国土地理院コンテンツ利用規約 <http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html>`__\ をよく読んで、それに従って下さい。

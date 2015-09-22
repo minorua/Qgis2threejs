@@ -7,6 +7,8 @@ Object Types
 
 --------------
 
+.. _object-types-point-layer:
+
 Point Layer
 -----------
 
@@ -170,8 +172,7 @@ Disk with specified radius, orientation, color and transparency
 * Radius
     Numerical value.
 * Dip
-    In degrees. See `Strike and dip -
-   Wikipedia <http://en.wikipedia.org/wiki/Strike_and_dip>`__.
+    In degrees. See `Strike and dip - Wikipedia <http://en.wikipedia.org/wiki/Strike_and_dip>`__.
 * Dip direction
     In degrees.
 
@@ -294,6 +295,8 @@ COLLADA model
    </td></tr></table>
 
 --------------
+
+.. _object-types-line-layer:
 
 Line Layer
 ----------
@@ -462,6 +465,8 @@ from triangle surface of DEM.
 Image was created with SRTM3 elevation data.
 
 --------------
+
+.. _object-types-polygon-layer:
 
 Polygon Layer
 -------------
