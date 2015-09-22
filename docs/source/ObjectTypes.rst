@@ -41,7 +41,8 @@ Sphere with specified radius, color and transparency
     center of sphere
 
 **three.js geometry class:**
-`SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
+
+    `SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
 
 .. raw:: html
 
@@ -75,7 +76,8 @@ Cylinder with specified radius, height, color and transparency
     center of bottom (if height > 0)
 
 **three.js geometry class:**
-`CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+
+    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
 
 .. raw:: html
 
@@ -109,7 +111,8 @@ Cone with specified radius, height, color and transparency
     center of bottom (if height > 0)
 
 **three.js geometry class:**
-`CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+
+    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
 
 .. raw:: html
 
@@ -145,7 +148,8 @@ Box with specified width, depth, height, color and transparency
     center of bottom (if height > 0)
 
 **three.js geometry class:**
-`BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
+
+    `BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
 
 .. raw:: html
 
@@ -181,7 +185,8 @@ Disk with specified radius, orientation, color and transparency
     center of disk
 
 **three.js geometry class:**
-`CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+
+    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
 
 .. raw:: html
 
@@ -217,7 +222,8 @@ Image which always faces towards the camera
     center of image
 
 **three.js object class:**
-`Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__
+
+    `Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__
 
 .. raw:: html
 
@@ -322,7 +328,8 @@ Line
     no specific settings
 
 **three.js object class:**
-`Line <http://threejs.org/docs/#Reference/Objects/Line>`__
+
+    `Line <http://threejs.org/docs/#Reference/Objects/Line>`__
 
 .. raw:: html
 
@@ -352,9 +359,10 @@ Places a cylinder to each line segment and a sphere to each joint.
     Numerical value.
 
 **three.js geometry classes:**
-`CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
-and
-`SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
+
+    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    and
+    `SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
 
 .. raw:: html
 
@@ -386,7 +394,8 @@ direction.
     Numerical value.
 
 **three.js geometry class:**
-`CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+
+    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
 
 .. raw:: html
 
@@ -420,8 +429,10 @@ Places a box to each line segment.
     Numerical value.
 
 **three.js geometry class:**
-`BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
-and `Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__
+
+    `BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
+    and
+    `Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__
 
 .. raw:: html
 
@@ -456,7 +467,8 @@ from triangle surface of DEM.
     Z coordinate of lower edge.
 
 **three.js geometry class:**
-`PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
+
+    `PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
 
 .. raw:: html
 
@@ -494,7 +506,8 @@ Extruded polygon with specified height, color and transparency
     Numerical value.
 
 **three.js geometry class:**
-`ExtrudeGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__
+
+    `ExtrudeGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__
 
 .. raw:: html
 
@@ -534,9 +547,11 @@ DEM. You can add side to each polygon if you want.
     Z coordinate of lower edge of side.
 
 **three.js classes:**
-`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__,
-`Line <http://threejs.org/docs/#Reference/Objects/Line>`__ and
-`PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
+
+    `Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__,
+    `Line <http://threejs.org/docs/#Reference/Objects/Line>`__
+    and
+    `PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
 
 .. raw:: html
 
