@@ -19,7 +19,7 @@ Contents:
    PluginSettings
    Plugins
    ProgrammaticalExportUsingPython
-
+   API
 
 
 Indices and tables

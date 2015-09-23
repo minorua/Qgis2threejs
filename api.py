@@ -19,33 +19,34 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSize
-from qgis.core import QgsMapSettings, QgsRectangle
+import os
+try:
+  from qgis.core import QgsMapSettings, QgsRectangle
 
-from export import exportToThreeJS
-from exportsettings import ExportSettings
-from rotatedrect import RotatedRect
-import qgis2threejstools
+  from export import exportToThreeJS
+  from exportsettings import ExportSettings
+  from rotatedrect import RotatedRect
+  import qgis2threejstools
+
+except ImportError:
+  if os.environ.get('READTHEDOCS', None) is None:  # and os.environ.get('SPHINXBUILD', None) is None:
+    raise
 
 
 class Exporter:
   """A convenient class to export the scenes to web programmatically
-
-  Attributes:
-    settings: ExportSettings object
   """
 
   NO_ERROR = None
 
   def __init__(self, iface=None, settingsPath=None):
-    """
-    Args:
-      iface: QgisInterface
-        If specified, mapSettings attribute is initialized with the map settings of the map canvas.
-        The iface.legendInterface() is used to export vector layers in the same order as the legend.
+    """ Constructor.
 
-      settingsPath: unicode
-        Path to an existing settings file (.qto3settings).
+      :param iface: If specified, mapSettings attribute is initialized with the map settings of the map canvas.
+                    The iface.legendInterface() is used to export vector layers in the same order as the legend.
+      :type iface: QgisInterface.
+      :param settingsPath: Path to an existing settings file (.qto3settings).
+      :type settingsPath: unicode.
     """
     self.iface = iface
     self.mapSettings = None
@@ -59,12 +60,16 @@ class Exporter:
       self.setMapSettings(iface.mapCanvas().mapSettings())
 
   def setExtent(self, center, width, height, rotation=0):
-    """
-    Args:
-      center: QgsPoint. In unit of the map CRS.
-      width: float. In unit of the map CRS.
-      height: float. In unit of the map CRS.
-      rotation: float. In degrees. (QGIS version >= 2.8)
+    """ Set map extent.
+
+    :param center: Center of the map extent in unit of the map CRS.
+    :type center: QgsPoint.
+    :param width: Width of the map extent in unit of the map CRS.
+    :type width: float.
+    :param height: Height of the map extent in unit of the map CRS.
+    :type height: float.
+    :param rotation: Rotation in degrees. Requires QGIS version 2.8 or later.
+    :type rotation: float.
     """
     if self.mapSettings is None:
       self.mapSettings = QgsMapSettings()
@@ -80,24 +85,24 @@ class Exporter:
     self.settings.setMapSettings(self.mapSettings)
 
   def setMapSettings(self, mapSettings):
-    """
-    Args:
-      mapSettings: QgsMapSettings
+    """Set map settings.
+
+    :param mapSettings: Map settings to be set.
+    :type mapSettings: QgsMapSettings.
     """
     self.mapSettings = mapSettings
     self.settings.setMapSettings(mapSettings)
 
   def export(self, htmlPath, openBrowser=False):
-    """
-    Args:
-      htmlPath: unicode
-        Output HTML file path.
+    """Do export.
 
-      openBrowser: bool
-        If True, open the exported page using default web browser.
+    :param htmlPath: Output HTML file path.
+    :type htmlPath: unicode.
+    :param openBrowser: If True, open the exported page using default web browser.
+    :type openBrowser: bool.
 
-    Returns:
-      Exporter.NO_ERROR if success. Otherwise returns error message.
+    :returns: Exporter.NO_ERROR if success. Otherwise returns error message.
+    :rtype: None or unicode.
     """
     self.settings.setOutputFilename(htmlPath)
 
