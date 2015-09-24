@@ -4,8 +4,7 @@ Export Settings
 Plugin Dialog
 -------------
 
-.. figure:: https://github.com/minorua/Qgis2threejs/wiki/images/dialog.png
-   :alt: dialog image
+|dialog image|
 
 In order from the top:
 

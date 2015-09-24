@@ -16,9 +16,6 @@ Let's start using Qgis2threejs plugin!
 
 4. Click Run button in the dialog.
 
-.. figure:: https://github.com/minorua/Qgis2threejs/wiki/images/dialog.png
-   :alt: dialog image
+|dialog image|
 
 Then 3D terrain appears in your web browser!
-
-.. |plugin icon| image:: ../../icon.png

@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.abspath('../../'))  # plugin directory
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.ifconfig',
     'sphinx.ext.todo',
 ]
 
@@ -115,6 +116,16 @@ todo_include_todos = True
 # Internationalization
 locale_dirs = ['locale/']
 gettext_compact = False
+
+# Content based on configuration (ifconfig extension)
+# def setup(app):
+#    app.add_config_value('use_remote_images', False, 'env')
+
+# Replacements for images
+# rst_prolog = ""
+has_images = os.path.exists('images')
+include_filename = 'replace_{0}_images.txt'.format('local' if has_images else 'no')
+rst_epilog = '.. include:: ' + include_filename
 
 # -- Options for HTML output ----------------------------------------------
 

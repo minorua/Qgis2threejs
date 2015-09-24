@@ -561,19 +561,3 @@ Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
 `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
 (Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
-
-.. |image01| image:: https://github.com/minorua/Qgis2threejs/wiki/images/point/Sphere.png
-.. |image02| image:: https://github.com/minorua/Qgis2threejs/wiki/images/point/Cylinder.png
-.. |image03| image:: https://github.com/minorua/Qgis2threejs/wiki/images/point/Cone.png
-.. |image04| image:: https://github.com/minorua/Qgis2threejs/wiki/images/point/Cube.png
-.. |image05| image:: https://github.com/minorua/Qgis2threejs/wiki/images/point/Disk.png
-.. |image06| image:: https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png
-.. |image07| image:: https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png
-.. |image08| image:: https://github.com/minorua/Qgis2threejs/wiki/images/no_image.png
-.. |image11| image:: https://github.com/minorua/Qgis2threejs/wiki/images/line/Line.png
-.. |image12| image:: https://github.com/minorua/Qgis2threejs/wiki/images/line/Pipe.png
-.. |image13| image:: https://github.com/minorua/Qgis2threejs/wiki/images/line/Cone.png
-.. |image14| image:: https://github.com/minorua/Qgis2threejs/wiki/images/line/Box.png
-.. |image15| image:: https://github.com/minorua/Qgis2threejs/wiki/images/line/Profile.png
-.. |image21| image:: https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Extruded.png
-.. |image22| image:: https://github.com/minorua/Qgis2threejs/wiki/images/polygon/Overlay.png
