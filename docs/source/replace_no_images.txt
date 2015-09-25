@@ -1,5 +1,6 @@
 .. replace_no_images.txt: Replacements for images. Do not use images.
 
+.. |top image| replace:: \ 
 .. |plugin icon| replace:: \ 
 .. |dialog image| replace:: \ 
 .. |image01| replace:: [No image]

@@ -44,9 +44,9 @@ class Exporter:
 
       :param iface: If specified, mapSettings attribute is initialized with the map settings of the map canvas.
                     The iface.legendInterface() is used to export vector layers in the same order as the legend.
-      :type iface: QgisInterface.
+      :type iface: QgisInterface
       :param settingsPath: Path to an existing settings file (.qto3settings).
-      :type settingsPath: unicode.
+      :type settingsPath: unicode
     """
     self.iface = iface
     self.mapSettings = None
@@ -60,16 +60,19 @@ class Exporter:
       self.setMapSettings(iface.mapCanvas().mapSettings())
 
   def setExtent(self, center, width, height, rotation=0):
-    """ Set map extent.
+    """ Set map extent to export settings.
 
-    :param center: Center of the map extent in unit of the map CRS.
-    :type center: QgsPoint.
+    This is a convenience method to set map extent to export settings.
+    Map settings should be set before this method is called.
+
+    :param center: Center of the map extent in the map CRS.
+    :type center: QgsPoint
     :param width: Width of the map extent in unit of the map CRS.
-    :type width: float.
+    :type width: float
     :param height: Height of the map extent in unit of the map CRS.
-    :type height: float.
+    :type height: float
     :param rotation: Rotation in degrees. Requires QGIS version 2.8 or later.
-    :type rotation: float.
+    :type rotation: float
     """
     if self.mapSettings is None:
       self.mapSettings = QgsMapSettings()
@@ -85,10 +88,12 @@ class Exporter:
     self.settings.setMapSettings(self.mapSettings)
 
   def setMapSettings(self, mapSettings):
-    """Set map settings.
+    """Set map settings to export settings.
+
+    Map settings is used to render a map canvas image.
 
     :param mapSettings: Map settings to be set.
-    :type mapSettings: QgsMapSettings.
+    :type mapSettings: QgsMapSettings
     """
     self.mapSettings = mapSettings
     self.settings.setMapSettings(mapSettings)
@@ -97,9 +102,9 @@ class Exporter:
     """Do export.
 
     :param htmlPath: Output HTML file path.
-    :type htmlPath: unicode.
+    :type htmlPath: unicode
     :param openBrowser: If True, open the exported page using default web browser.
-    :type openBrowser: bool.
+    :type openBrowser: bool
 
     :returns: Exporter.NO_ERROR if success. Otherwise returns error message.
     :rtype: None or unicode.

@@ -1,31 +1,24 @@
 .. Qgis2threejs plugin documentation master file, created by
    sphinx-quickstart on Fri Sep 18 15:17:19 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to Qgis2threejs plugin's documentation!
 ===============================================
 
-Contents:
+|top image|
+
+Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin. This plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in the web browser (You need a web browser which supports WebGL).
+
+Table Of Contents:
 
 .. toctree::
    :maxdepth: 1
 
    Examples
-   ShortGuide
+   GettingStarted
    ExportSettings
    ObjectTypes
    3DViewer
    PluginSettings
    Plugins
-   ProgrammaticalExportUsingPython
+   ProgrammaticExportUsingPython
    API
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

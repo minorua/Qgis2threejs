@@ -119,11 +119,11 @@ World
 
 * Vertical shift
 
-   Vertical shift for all objects. If you want to export terrain of narrow
-   area and high altitude, you should adjust the object positions to be
+   Vertical shift for all objects. If you want to export high altitude
+   and narrow area, you should adjust the object positions to be
    displayed at the center of browser by changing this value. If you set
    the value to -1000, all objects are shifted down by 1000 in the unit of
-   project CRS.
+   map CRS.
 
 * Background
 
@@ -136,7 +136,7 @@ World
    coordinates of clicked position on a 3D object are displayed in
    longitude and latitude (WGS84). If
    `Proj4js <https://github.com/proj4js/proj4js>`__ doesn't support current
-   project CRS, this option is disabled.
+   map CRS, this option is disabled.
 
 Controls
 ~~~~~~~~
@@ -219,11 +219,14 @@ solid color.
 
    Sets transparency for the DEM. 0 is opaque, and 100 is transparent.
 
-* Transparent background / Enable transparency
+* Transparent background (With map canvas image or layer image)
 
    Makes transparent background of the image to be rendered (with map
-   canvas image or layer image) or enables transparency of the image file
-   effectively. Uncheckable with solid color.
+   canvas image or layer image).
+
+* Enable transparency (With image file)
+
+   Enables the image transparency.
 
 * Enable shading
 
@@ -232,9 +235,9 @@ solid color.
 Clip
 ^^^^
 
-Clips the DEM with a polygon layer. If you have polygon layer of the
-area that elevation data exist or the area of a drainage basin, you
-might want to use this option.
+Clips the DEM with a polygon layer. If you have a polygon layer that
+represents the area that elevation data exist or represents drainage basins,
+you might want to use this option.
 
 Sides and frame
 ^^^^^^^^^^^^^^^
@@ -271,11 +274,12 @@ Common settings for all vector layers:
 
 * Z coordinate
 
-    The mode combo box has these items:
+    ``Mode`` combo box has these items:
 
     * Z value
 
-      This doesn't appear if the geometries of the layer has no z coordinates or the layer type is polygon.
+      This item appears when the layer geometries have z coordinates and
+      the layer type is point or line.
 
     * Relative to DEM
 
@@ -297,13 +301,13 @@ Common settings for all vector layers:
 
       Only numeric fields are listed in the combo box.
 
-    The unit of the value is that of the project CRS.
+    The unit of the value is that of the map CRS.
 
 * Style
 
    Usually, there are options to set object color and transparency. Refer
    to the links below for each object type specific settings. The unit of
-   value for object size is that of the project CRS.
+   value for object size is that of the map CRS.
 
 * Feature
 
@@ -315,7 +319,7 @@ Common settings for all vector layers:
 
     * Features that intersect with map canvas extent
 
-      Features displayed on the map canvas are exported.
+      Features on the map canvas are exported.
 
         * Clip geometries
 
@@ -327,7 +331,7 @@ Common settings for all vector layers:
    feature geometries. Attributes are displayed when you click an object on
    web browser.
 
-   If a field in the label combobox is selected, a label is displayed above
+   If a field is selected in the label combobox, a label is displayed above
    each object and is connected to the object with a line. This combo box
    is not available when layer type is line.
 

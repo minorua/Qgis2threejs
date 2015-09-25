@@ -1,4 +1,4 @@
-Programmatical Export Using Python
+Programmatic Export Using Python
 ==================================
 
 **This feature will be added in version 1.4**

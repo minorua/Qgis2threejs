@@ -1,7 +1,7 @@
 API
 ===
 
-See :doc:`ProgrammaticalExportUsingPython` for an example of usage.
+See :doc:`ProgrammaticExportUsingPython` for an example of usage.
 
 Exporter class
 --------------

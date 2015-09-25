@@ -1,11 +1,14 @@
 Examples
 ========
 
+Click the images below to see live examples.
+
 .. raw:: html
 
    <!--### Features in Development-->
 
 * **Mt. Fuji**: Shaded relief map made with SRTM data
+
   |image - Mt. Fuji|
 
   Source: U.S. National Aeronautics and Space Administration (NASA)
@@ -16,14 +19,17 @@ Examples
 
 * **Mt. Fuji (Large Area)**: With surroundings option. Shaded relief
   map made with SRTM data.
+
   |image - Mt. Fuji (Large Area)|
 
 * **Seto Inland Sea**: Custom plane template. Shaded relief map made
   with SRTM data.
+
   |image - Seto Inland Sea|
 
 * **Mt. Aso**: Polygon overlay, switching layer visibility and
   adjusting layer opacity
+
   |image - Mt. Aso|
 
   Sources: Geospatial Information Authority of Japan. `GSI
@@ -33,6 +39,7 @@ Examples
   <https://gbank.gsj.jp/seamless/>`__ |(CC BY-ND 2.1 JP)|
 
 * **Forest basins**: Polygon overlay with texture
+
   |image - Forest basins in Japan|
 
   Sources: Geospatial Information Authority of Japan. `GSI Tiles
@@ -41,4 +48,5 @@ Examples
 
 * **Mt. Fuji (With Vector Data)**: This is test data. Shaded relief
   map made with SRTM data.
+
   `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html>`__

@@ -16,6 +16,9 @@ Point Layer
 `Box <#box>`__ \| `Disk <#disk>`__ \| `Icon <#icon>`__ \| `JSON
 model <#json-model>`__ \| `COLLADA model <#collada-model>`__
 
+
+.. index:: Sphere
+
 Sphere
 ~~~~~~
 
@@ -48,6 +51,8 @@ Sphere with specified radius, color and transparency
 
    </td></tr></table>
 
+
+.. index:: Cylinder
 
 Cylinder
 ~~~~~~~~
@@ -84,6 +89,8 @@ Cylinder with specified radius, height, color and transparency
    </td></tr></table>
 
 
+.. index:: Cone (Point Layer)
+
 Cone
 ~~~~
 
@@ -118,6 +125,8 @@ Cone with specified radius, height, color and transparency
 
    </td></tr></table>
 
+
+.. index:: Box (Point Layer)
 
 Box
 ~~~
@@ -155,6 +164,8 @@ Box with specified width, depth, height, color and transparency
 
    </td></tr></table>
 
+
+.. index:: Disk
 
 Disk
 ~~~~
@@ -195,6 +206,9 @@ Disk with specified radius, orientation, color and transparency
 Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (gazo1, dem).
 
+
+.. index:: Icon
+
 Icon
 ~~~~
 
@@ -230,6 +244,8 @@ Image which always faces towards the camera
    </td></tr></table>
 
 
+.. index:: JSON model
+
 JSON model
 ~~~~~~~~~~
 
@@ -264,6 +280,8 @@ JSON model
 
    </td></tr></table>
 
+
+.. index:: COLLADA model
 
 COLLADA model
 ~~~~~~~~~~~~~
@@ -310,6 +328,9 @@ Line Layer
 `Line <#line>`__ \| `Pipe <#pipe>`__ \| `Cone <#cone>`__ \|
 `Box <#box>`__ \| `Profile <#profile>`__
 
+
+.. index:: Line
+
 Line
 ~~~~
 
@@ -337,6 +358,9 @@ Line
 
 Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem).
+
+
+.. index:: Pipe
 
 Pipe
 ~~~~
@@ -372,6 +396,9 @@ Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (airphoto,
 dem).
 
+
+.. index:: Cone (Line Layer)
+
 Cone
 ~~~~
 
@@ -405,6 +432,9 @@ Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
 `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
 (Rivers. MILT of Japan).
+
+
+.. index:: Box (Line Layer)
 
 Box
 ~~~
@@ -442,14 +472,17 @@ Image was created with `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (airphoto,
 dem).
 
+
+.. index:: Profile
+
 Profile
 ~~~~~~~
 
-Makes a vertical plane between each line segment and zero elevation. If
-altitude mode of z coordinate is ``Relative to DEM`` or
+Makes a vertical plane under each line segment. When
+the altitude mode of z coordinate is ``Relative to DEM`` or
 ``+ "field name"``, each linestring is split into segments using
-triangles of DEM and every upper edge is located at the relative height
-from triangle surface of DEM.
+a triangle mesh generated from DEM and every upper edge is located
+at the relative height from triangle surface of DEM.
 
 .. raw:: html
 
@@ -485,6 +518,9 @@ Polygon Layer
 
 `Extruded <#extruded>`__ \| `Overlay <#overlay>`__
 
+
+.. index:: Extruded
+
 Extruded
 ~~~~~~~~
 
@@ -518,14 +554,17 @@ Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
 OpenStreetMap (© OpenStreetMap contributors,
 `License <http://www.openstreetmap.org/copyright>`__).
 
+
+.. index:: Overlay
+
 Overlay
 ~~~~~~~
 
-Overlay of main DEM with specified color, border color and transparency.
-If altitude mode of z coordinate is ``Relative to DEM`` or
-``+ "field name"``, each polygon is split into triangles using triangles
-of DEM, and is located at the relative height from triangle surface of
-DEM. You can add side to each polygon if you want.
+Polygon over the main DEM with specified color, border color and transparency.
+When the altitude mode of z coordinate is ``Relative to DEM`` or
+``+ "field name"``, each polygon is split into triangles using a triangle
+mesh generated from DEM, and is located at the relative height from
+the mesh surface. You can add side to each polygon if you want.
 
 .. raw:: html
 
