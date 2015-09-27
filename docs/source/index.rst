@@ -14,7 +14,7 @@ Table Of Contents:
    :maxdepth: 1
 
    Examples
-   GettingStarted
+   Tutorial
    ExportSettings
    ObjectTypes
    3DViewer

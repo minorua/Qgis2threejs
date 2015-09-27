@@ -1,8 +1,20 @@
 .. replace_no_images.txt: Replacements for images. Do not use images.
 
 .. |top image| replace:: \ 
-.. |plugin icon| replace:: \ 
 .. |dialog image| replace:: \ 
+
+
+.. Tutorial
+
+.. |CRS icon| replace:: \ 
+.. |map canvas1| replace:: \ 
+.. |plugin icon| replace:: \ 
+.. |dialog image1| replace:: \ 
+.. |browser image1| replace:: \ 
+.. |browser image2| replace:: \ 
+
+.. Object Types
+
 .. |image01| replace:: [No image]
 .. |image02| replace:: [No image]
 .. |image03| replace:: [No image]
