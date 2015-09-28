@@ -210,10 +210,9 @@ solid color.
 
 * Resolution
 
-   Increases (or decreases) the size of image applied to each DEM block.
-   This option is enabled when either ``Map canvas image`` or
-   ``Layer image`` is selected. You can select a ratio to map canvas size
-   from 50, 100, 200 and 400 (%). Image size in pixels follows the percent.
+   Increases the size of image applied to each DEM block. This option is enabled when
+   either ``Map canvas image`` or ``Layer image`` is selected. You can select a ratio
+   to map canvas size from 100, 200 and 400 (%). Image size in pixels follows the percent.
 
 * Transparency
 
