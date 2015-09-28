@@ -15,6 +15,7 @@ from PyQt4.QtCore import QSize
 from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
 
 from Qgis2threejs.api import Exporter
+from Qgis2threejs.qgis2threejscore import ObjectTreeItem
 from utilities import dataPath, outputPath, loadProject
 
 
@@ -54,6 +55,11 @@ class TestApi(TestCase):
     exporter = Exporter(None, dataPath("testproject1.qto3settings"))
     exporter.settings.setMapSettings(mapSettings)
     err = exporter.export(outputPath(os.path.join("testproject1", "testproject1.html")))
+    assert err == Exporter.NO_ERROR, err
+
+    # test export with flat plane and vector objects
+    exporter.settings.data[ObjectTreeItem.ITEM_DEM]["comboBox_DEMLayer"] = 0
+    err = exporter.export(outputPath(os.path.join("testproject1", "flatplane.html")))
     assert err == Exporter.NO_ERROR, err
 
 if __name__ == "__main__":
