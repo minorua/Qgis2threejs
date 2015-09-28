@@ -38,7 +38,7 @@ class ExportSettings:
   SPHERE = 2
 
   def __init__(self, pluginManager=None, localBrowsingMode=True):
-    """localBrowsingMode: not imlemented yet"""
+    """localBrowsingMode: not implemented yet"""
     self.localBrowsingMode = localBrowsingMode
     self.pluginManager = pluginManager
     if self.pluginManager is None:
@@ -137,10 +137,8 @@ class ExportSettings:
     self.crs = settings.destinationCrs()
 
   def demProvider(self):
-    layerId = self.data.get(ObjectTreeItem.ITEM_DEM, {}).get("comboBox_DEMLayer")
-    if layerId:
-      return self.demProviderByLayerId(layerId)
-    return None
+    layerId = self.data.get(ObjectTreeItem.ITEM_DEM, {}).get("comboBox_DEMLayer", 0)
+    return self.demProviderByLayerId(layerId)
 
   def mapTo3d(self):
     if self._mapTo3d:
