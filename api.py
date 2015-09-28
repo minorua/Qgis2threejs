@@ -90,7 +90,7 @@ class Exporter:
   def setMapSettings(self, mapSettings):
     """Set map settings to export settings.
 
-    Map settings is used to render a map canvas image.
+    Map settings is used to define base extent of the export and render a map canvas image.
 
     :param mapSettings: Map settings to be set.
     :type mapSettings: QgsMapSettings

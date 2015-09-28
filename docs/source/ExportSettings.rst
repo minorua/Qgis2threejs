@@ -277,7 +277,7 @@ Common settings for all vector layers:
 
     * Z value
 
-      This item appears when the layer geometries have z coordinates and
+      This item can be selected when the layer geometries have z coordinates and
       the layer type is point or line.
 
     * Relative to DEM

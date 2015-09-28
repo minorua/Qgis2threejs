@@ -13,8 +13,8 @@ Identifying Features
 
 When you click on an object, layer name that the feature (object)
 belongs to and the clicked coordinates (in order of x, y, z) are shown.
-If ``Latitude and longitude (WGS84)`` option (in
-``Display of coordinates`` of World page) is selected, longitude and
+If ``Latitude and longitude (WGS84)`` option (in the
+``Display of coordinates`` group of World page) is selected, longitude and
 latitude are shown in DMS format (degrees, minutes and seconds). If
 ``Export attributes`` option of each vector layer is selected, attribute
 list of the clicked feature follows them.
@@ -47,11 +47,10 @@ the camera target clockwise.
 Save Image
 ----------
 
-To save the canvas image, press ``Shift + S`` to show save image dialog,
-then enter image size and click the OK button. In addition, with some
-web browsers, you need to click a link to save image. The image file
-format is PNG. To change label color and/or adjust label size, edit
-``Qgis2threejs.css`` (``print-label`` class).
+Press ``Shift + S`` to show save image dialog, then enter image size and
+click the OK button. In addition, with some web browsers, you need to
+click a link to save image. The image file format is PNG. To change label
+color and/or adjust label size, edit ``Qgis2threejs.css`` (``print-label`` class).
 
 Known issue:
 
@@ -75,8 +74,8 @@ file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.6032000
 
 Other parameters:
 
-* width: canvas width
-* height: canvas height
+* width: canvas width (pixels)
+* height: canvas height (pixels)
 * popup: pop up another window with specified width and height
 
 .. raw:: html

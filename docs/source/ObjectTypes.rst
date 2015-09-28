@@ -365,7 +365,7 @@ Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem).
 Pipe
 ~~~~
 
-Places a cylinder to each line segment and a sphere to each joint.
+Places a cylinder to each line segment and a sphere to each point.
 
 .. raw:: html
 
@@ -482,7 +482,7 @@ Makes a vertical plane under each line segment. When
 the altitude mode of z coordinate is ``Relative to DEM`` or
 ``+ "field name"``, each linestring is split into segments using
 a triangle mesh generated from DEM and every upper edge is located
-at the relative height from triangle surface of DEM.
+at the relative height from the mesh surface.
 
 .. raw:: html
 
