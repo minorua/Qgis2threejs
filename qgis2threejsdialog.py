@@ -223,7 +223,7 @@ class Qgis2threejsDialog(QDialog):
     import codecs
     import json
     with codecs.open(filename, "w", "UTF-8") as f:
-      json.dump(self.settings(True), f, ensure_ascii=False, indent=2)
+      json.dump(self.settings(True), f, ensure_ascii=False, indent=2, sort_keys=True)
 
     logMessage(u"Settings saved: {0}".format(filename))
 

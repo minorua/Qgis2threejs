@@ -137,7 +137,7 @@ class Qgis2threejs:
     import json
     try:
       with codecs.open(filename, "w", "UTF-8") as f:
-        json.dump(self.exportSettings, f, ensure_ascii=False, indent=2)
+        json.dump(self.exportSettings, f, ensure_ascii=False, indent=2, sort_keys=True)
       return True
     except Exception as e:
       logMessage("Failed to save export settings: " + str(e))
