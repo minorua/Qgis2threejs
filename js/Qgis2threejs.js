@@ -28,6 +28,7 @@ Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new T
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
+Q3D.isTouchDevice = ("ontouchstart" in window);
 
 Q3D.$ = function (elementId) {
   return document.getElementById(elementId);

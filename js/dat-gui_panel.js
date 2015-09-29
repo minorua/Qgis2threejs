@@ -10,6 +10,10 @@ Q3D.gui = {
       o: 1,
       l: false
     },
+    cmd: {         // commands for touch screen devices
+      rot: false,  // auto rotation
+      wf: false    // wireframe mode
+    },
     i: Q3D.application.showInfo.bind(Q3D.application)
   },
 
@@ -21,6 +25,7 @@ Q3D.gui = {
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.addLayersFolder();
       this.addCustomPlaneFolder();
+      if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
     }
   },
@@ -117,6 +122,17 @@ Q3D.gui = {
       if (value) customPlane.scale.set(10, 10, 1);
       else customPlane.scale.set(1, 1, 1);
     });
+  },
+
+  // add commands folder for touch screen devices
+  addCommandsFolder: function () {
+    var folder = this.gui.addFolder('Commands');
+    if (Q3D.Controls.type == "OrbitControls") {
+      folder.add(this.parameters.cmd, 'rot').name('Auto Rotation').onChange(function (value) {
+        Q3D.application.controls.autoRotate = value;
+      });
+    }
+    folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode.bind(Q3D.application));
   },
 
   addHelpButton: function () {
