@@ -100,13 +100,15 @@ def base64image(image):
 
 
 def getTemplateConfig(template_path):
-  meta_path = os.path.splitext(template_path)[0] + ".txt"
+  abspath = os.path.join(templateDir(), template_path)
+  meta_path = os.path.splitext(abspath)[0] + ".txt"
+
   if not os.path.exists(meta_path):
     return {}
   parser = ConfigParser.SafeConfigParser()
   with open(meta_path, "r") as f:
     parser.readfp(f)
-  config = {"path": template_path}
+  config = {"path": abspath}
   for item in parser.items("general"):
     config[item[0]] = item[1]
   if debug_mode:

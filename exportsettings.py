@@ -114,7 +114,7 @@ class ExportSettings:
 
   def setTemplatePath(self, filepath):
     """filepath: relative path from html_templates directory or absolute path to a template html file"""
-    self.templatePath = os.path.join(tools.templateDir(), filepath)
+    self.templatePath = filepath
     self._templateConfig = None
 
   def setOutputFilename(self, filepath=None):

@@ -272,7 +272,7 @@ class Qgis2threejsDialog(QDialog):
     for i, entry in enumerate(templateDir.entryList(["*.html", "*.htm"])):
       cbox.addItem(entry)
 
-      config = tools.getTemplateConfig(templateDir.filePath(entry))
+      config = tools.getTemplateConfig(entry)
       # get template type
       templateType = config.get("type", "plain")
       cbox.setItemData(i, templateType, Qt.UserRole)
@@ -282,10 +282,15 @@ class Qgis2threejsDialog(QDialog):
       if desc:
         cbox.setItemData(i, desc, Qt.ToolTipRole)
 
-    # select the last used template
-    templateName = QSettings().value("/Qgis2threejs/lastTemplate", "", type=unicode)
-    if templateName:
-      index = cbox.findText(templateName)
+    # select the template of the settings
+    templatePath = self._settings.get("Template")
+
+    # if no template setting, select the last used template
+    if not templatePath:
+      templatePath = QSettings().value("/Qgis2threejs/lastTemplate", "", type=unicode)
+
+    if templatePath:
+      index = cbox.findText(templatePath)
       if index != -1:
         cbox.setCurrentIndex(index)
       return index
