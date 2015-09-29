@@ -4,7 +4,7 @@
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
 
-var Q3D = {VERSION: "1.3"};
+var Q3D = {VERSION: "1.4-dev"};
 Q3D.Options = {
   bgcolor: null,
   light: {
@@ -171,6 +171,7 @@ Q3D.application = {
 
     // scene
     this.scene = new THREE.Scene();
+    this.scene.autoUpdate = false;
 
     this._queryableObjects = [];
     this.queryObjNeedsUpdate = true;
@@ -264,6 +265,9 @@ Q3D.application = {
                                       new THREE.MeshLambertMaterial({color: opt.c, ambient: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
     this.queryMarker.visible = false;
     this.scene.add(this.queryMarker);
+
+    // update matrix world here
+    this.scene.updateMatrixWorld();
 
     this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
     if (!Q3D.isIE) this.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
@@ -1287,6 +1291,10 @@ Q3D.MapLayer.prototype = {
       if (m.w) return;
       if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
     });
+  },
+
+  updateMatrixWorld: function () {
+    this.objectGroup.updateMatrixWorld();
   }
 
 };
@@ -2079,6 +2087,7 @@ Q3D.ModelBuilder.Base.prototype = {
 
     var deg2rad = Math.PI / 180,
         m = new THREE.Matrix4();
+
     this.features.forEach(function (fet) {
       var layer = this.project.layers[fet.layerId],
           f = layer.f[fet.featureId];
@@ -2101,9 +2110,12 @@ Q3D.ModelBuilder.Base.prototype = {
         mesh.userData.featureId = fet.featureId;
 
         layer.addObject(mesh);
+        layer.updateMatrixWorld();
+
         f.objs.push(mesh);
       }
     }, this);
+
     this.features = [];
   },
 
