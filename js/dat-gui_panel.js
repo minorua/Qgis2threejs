@@ -14,7 +14,7 @@ Q3D.gui = {
       rot: false,  // auto rotation
       wf: false    // wireframe mode
     },
-    i: Q3D.application.showInfo.bind(Q3D.application)
+    i: Q3D.application.showInfo
   },
 
   // initialize gui
@@ -132,7 +132,7 @@ Q3D.gui = {
         Q3D.application.controls.autoRotate = value;
       });
     }
-    folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode.bind(Q3D.application));
+    folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode);
   },
 
   addHelpButton: function () {

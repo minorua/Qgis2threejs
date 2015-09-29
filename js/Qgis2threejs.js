@@ -125,74 +125,77 @@ Q3D.Project.prototype = {
 
 
 /*
-the application
+Q3D.application
 
 limitations:
 - one renderer
 - one scene
 */
-Q3D.application = {
+(function () {
+  // the application
+  var app = {};
+  Q3D.application = app;
 
-  init: function (container) {
-    this.container = container;
-    this.running = false;
+  app.init = function (container) {
+    app.container = container;
+    app.running = false;
 
     // URL parameters
-    this.urlParams = this.parseUrlParameters();
-    if ("popup" in this.urlParams) {
+    app.urlParams = app.parseUrlParameters();
+    if ("popup" in app.urlParams) {
       // open popup window
       var c = window.location.href.split("?");
-      window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + this.urlParams.width + ",height=" + this.urlParams.height);
-      this.popup.show("Another window has been opened.");
+      window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + app.urlParams.width + ",height=" + app.urlParams.height);
+      app.popup.show("Another window has been opened.");
       return;
     }
 
-    if (this.urlParams.width && this.urlParams.height) {
+    if (app.urlParams.width && app.urlParams.height) {
       // set container size
-      container.style.width = this.urlParams.width + "px";
-      container.style.height = this.urlParams.height + "px";
+      container.style.width = app.urlParams.width + "px";
+      container.style.height = app.urlParams.height + "px";
     }
 
     if (container.clientWidth && container.clientHeight) {
-      this.width = container.clientWidth;
-      this.height = container.clientHeight;
-      this._fullWindow = false;
+      app.width = container.clientWidth;
+      app.height = container.clientHeight;
+      app._fullWindow = false;
     } else {
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
-      this._fullWindow = true;
+      app.width = window.innerWidth;
+      app.height = window.innerHeight;
+      app._fullWindow = true;
     }
 
     // WebGLRenderer
     var bgcolor = Q3D.Options.bgcolor;
-    this.renderer = new THREE.WebGLRenderer({alpha: true});
-    this.renderer.setSize(this.width, this.height);
-    this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
-    this.container.appendChild(this.renderer.domElement);
+    app.renderer = new THREE.WebGLRenderer({alpha: true});
+    app.renderer.setSize(app.width, app.height);
+    app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
+    app.container.appendChild(app.renderer.domElement);
 
     // scene
-    this.scene = new THREE.Scene();
-    this.scene.autoUpdate = false;
+    app.scene = new THREE.Scene();
+    app.scene.autoUpdate = false;
 
-    this._queryableObjects = [];
-    this.queryObjNeedsUpdate = true;
+    app._queryableObjects = [];
+    app.queryObjNeedsUpdate = true;
 
     // label
-    this.labelVisibility = Q3D.Options.label.visible;
-    this.labelConnectorGroup = new THREE.Group();
-    this.labels = [];     // labels of visible layers
+    app.labelVisibility = Q3D.Options.label.visible;
+    app.labelConnectorGroup = new THREE.Group();
+    app.labels = [];     // labels of visible layers
 
     // root element for labels
     var e = document.createElement("div");
-    e.style.display = (this.labelVisibility) ? "block" : "none";
-    this.container.appendChild(e);
-    this.labelRootElement = e;
+    e.style.display = (app.labelVisibility) ? "block" : "none";
+    app.container.appendChild(e);
+    app.labelRootElement = e;
 
-    this.modelBuilders = [];
-    this._wireframeMode = false;
-  },
+    app.modelBuilders = [];
+    app._wireframeMode = false;
+  };
 
-  parseUrlParameters: function () {
+  app.parseUrlParameters = function () {
     var p, vars = {};
     var params = window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'));
     params.forEach(function (param) {
@@ -200,31 +203,31 @@ Q3D.application = {
       vars[p[0]] = p[1];
     });
     return vars;
-  },
+  };
 
-  loadProject: function (project) {
-    this.project = project;
+  app.loadProject = function (project) {
+    app.project = project;
 
     // light
-    if (project.buildCustomLights) project.buildCustomLights(this.scene);
-    else this.buildDefaultLights(this.scene);
+    if (project.buildCustomLights) project.buildCustomLights(app.scene);
+    else app.buildDefaultLights(app.scene);
 
     // camera
     if (project.buildCustomCamera) project.buildCustomCamera();
-    else this.buildDefaultCamera();
+    else app.buildDefaultCamera();
 
     // restore view (camera position and its target) from URL parameters
-    var vars = this.urlParams;
-    if (vars.cx !== undefined) this.camera.position.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
-    if (vars.ux !== undefined) this.camera.up.set(parseFloat(vars.ux), parseFloat(vars.uy), parseFloat(vars.uz));
-    if (vars.tx !== undefined) this.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+    var vars = app.urlParams;
+    if (vars.cx !== undefined) app.camera.position.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
+    if (vars.ux !== undefined) app.camera.up.set(parseFloat(vars.ux), parseFloat(vars.uy), parseFloat(vars.uz));
+    if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // controls
     if (Q3D.Controls) {
-      this.controls = Q3D.Controls.create(this.camera, this.renderer.domElement);
+      app.controls = Q3D.Controls.create(app.camera, app.renderer.domElement);
       if (vars.tx !== undefined) {
-        this.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
-        this.controls.target0.copy(this.controls.target);   // for reset
+        app.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+        app.controls.target0.copy(app.controls.target);   // for reset
       }
     }
 
@@ -232,92 +235,92 @@ Q3D.application = {
     if (project.models.length > 0) {
       project.models.forEach(function (model, index) {
         if (model.type == "COLLADA") {
-          this.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(this.project, model);
+          app.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(app.project, model);
         }
         else if (Q3D.Options.jsonLoader == "ObjectLoader") {
-          this.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(this.project, model);
+          app.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(app.project, model);
         }
         else {
-          this.modelBuilders[index] = new Q3D.ModelBuilder.JSON(this.project, model);
+          app.modelBuilders[index] = new Q3D.ModelBuilder.JSON(app.project, model);
         }
-      }, this);
+      });
     }
 
     // build models
     project.layers.forEach(function (layer) {
       layer.initMaterials();
-      layer.build(this.scene);
+      layer.build(app.scene);
 
       // build labels
       if (layer.l) {
-        layer.buildLabels(this.labelConnectorGroup, this.labelRootElement);
-        this.labels = this.labels.concat(layer.labels);
+        layer.buildLabels(app.labelConnectorGroup, app.labelRootElement);
+        app.labels = app.labels.concat(layer.labels);
       }
-    }, this);
+    });
 
-    if (this.labels.length) this.scene.add(this.labelConnectorGroup);
+    if (app.labels.length) app.scene.add(app.labelConnectorGroup);
 
     // wireframe mode setting
-    if ("wireframe" in this.urlParams) this.setWireframeMode(true);
+    if ("wireframe" in app.urlParams) app.setWireframeMode(true);
 
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
-    this.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.r),
+    app.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.r),
                                       new THREE.MeshLambertMaterial({color: opt.c, ambient: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
-    this.queryMarker.visible = false;
-    this.scene.add(this.queryMarker);
+    app.queryMarker.visible = false;
+    app.scene.add(app.queryMarker);
 
     // update matrix world here
-    this.scene.updateMatrixWorld();
+    app.scene.updateMatrixWorld();
 
-    this.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
-    if (!Q3D.isIE) this.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
+    app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
+    if (!Q3D.isIE) app.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
 
-    this.selectedLayerId = null;
-    this.selectedFeatureId = null;
-    this.highlightObject = null;
-  },
+    app.selectedLayerId = null;
+    app.selectedFeatureId = null;
+    app.highlightObject = null;
+  };
 
-  addEventListeners: function () {
-    window.addEventListener("keydown", this.eventListener.keydown.bind(this));
-    window.addEventListener("resize", this.eventListener.resize.bind(this));
+  app.addEventListeners = function () {
+    window.addEventListener("keydown", app.eventListener.keydown);
+    window.addEventListener("resize", app.eventListener.resize);
 
     var e = Q3D.$("closebtn");
-    if (e) e.addEventListener("click", this.closePopup.bind(this));
-  },
+    if (e) e.addEventListener("click", app.closePopup);
+  };
 
-  eventListener: {
+  app.eventListener = {
 
     keydown: function (e) {
       if (e.ctrlKey || e.altKey) return;
       var keyPressed = e.which;
       if (!e.shiftKey) {
-        if (keyPressed == 27) this.closePopup(); // ESC
-        else if (keyPressed == 73) this.showInfo();  // I
-        else if (keyPressed == 76) this.setLabelVisibility(!this.labelVisibility);  // L
-        else if (keyPressed == 87) this.setWireframeMode(!this._wireframeMode);    // W
+        if (keyPressed == 27) app.closePopup(); // ESC
+        else if (keyPressed == 73) app.showInfo();  // I
+        else if (keyPressed == 76) app.setLabelVisibility(!app.labelVisibility);  // L
+        else if (keyPressed == 87) app.setWireframeMode(!app._wireframeMode);    // W
       }
       else {
-        if (keyPressed == 82) this.controls.reset();   // Shift + R
-        else if (keyPressed == 83) this.showPrintDialog();    // Shift + S
+        if (keyPressed == 82) app.controls.reset();   // Shift + R
+        else if (keyPressed == 83) app.showPrintDialog();    // Shift + S
       }
     },
 
     resize: function () {
-      if (this._fullWindow) this.setCanvasSize(window.innerWidth, window.innerHeight);
+      if (app._fullWindow) app.setCanvasSize(window.innerWidth, window.innerHeight);
     }
 
-  },
+  };
 
-  setCanvasSize: function (width, height) {
-    this.width = width;
-    this.height = height;
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
-  },
+  app.setCanvasSize = function (width, height) {
+    app.width = width;
+    app.height = height;
+    app.camera.aspect = width / height;
+    app.camera.updateProjectionMatrix();
+    app.renderer.setSize(width, height);
+  };
 
-  buildDefaultLights: function (parent) {
+  app.buildDefaultLights = function (parent) {
     var deg2rad = Math.PI / 180;
 
     // ambient light
@@ -340,62 +343,62 @@ Q3D.application = {
     var light2 = new THREE.DirectionalLight(0xffffff, 0.1);
     light2.position.set(-x, -y, -z);
     parent.add(light2);
-  },
+  };
 
-  buildDefaultCamera: function () {
-    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 1000);
-    this.camera.position.set(0, -100, 100);
-  },
+  app.buildDefaultCamera = function () {
+    app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 1000);
+    app.camera.position.set(0, -100, 100);
+  };
 
-  currentViewUrl: function () {
-    var c = this.camera.position, t = this.controls.target, u = this.camera.up;
+  app.currentViewUrl = function () {
+    var c = app.camera.position, t = app.controls.target, u = app.camera.up;
     var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
     if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
     if (u.x || u.y || u.z != 1) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
     return window.location.href.split("#")[0] + hash;
-  },
+  };
 
   // start rendering loop
-  start: function () {
-    this.running = true;
-    if (this.controls) this.controls.enabled = true;
-    this.animate();
-  },
+  app.start = function () {
+    app.running = true;
+    if (app.controls) app.controls.enabled = true;
+    app.animate();
+  };
 
-  pause: function () {
-    this.running = false;
-    if (this.controls) this.controls.enabled = false;
-  },
+  app.pause = function () {
+    app.running = false;
+    if (app.controls) app.controls.enabled = false;
+  };
 
   // animation loop
-  animate: function () {
-    if (this.running) requestAnimationFrame(this.animate.bind(this));
-    if (this.controls) this.controls.update();
-    this.render();
-  },
+  app.animate = function () {
+    if (app.running) requestAnimationFrame(app.animate);
+    if (app.controls) app.controls.update();
+    app.render();
+  };
 
-  render: function () {
-    this.renderer.render(this.scene, this.camera);
-    this.updateLabelPosition();
-  },
+  app.render = function () {
+    app.renderer.render(app.scene, app.camera);
+    app.updateLabelPosition();
+  };
 
   // update label position
-  updateLabelPosition: function () {
-    if (!this.labelVisibility || this.labels.length == 0) return;
+  app.updateLabelPosition = function () {
+    if (!app.labelVisibility || app.labels.length == 0) return;
 
-    var widthHalf = this.width / 2,
-        heightHalf = this.height / 2,
+    var widthHalf = app.width / 2,
+        heightHalf = app.height / 2,
         autosize = Q3D.Options.label.autoSize,
-        camera = this.camera,
+        camera = app.camera,
         camera_pos = camera.position,
-        c2t = this.controls.target.clone().sub(camera_pos),
+        c2t = app.controls.target.clone().sub(camera_pos),
         c2l = new THREE.Vector3(),
         v = new THREE.Vector3();
 
     // make a list of [label index, distance to camera]
     var idx_dist = [];
-    for (var i = 0, l = this.labels.length; i < l; i++) {
-      idx_dist.push([i, camera_pos.distanceTo(this.labels[i].pt)]);
+    for (var i = 0, l = app.labels.length; i < l; i++) {
+      idx_dist.push([i, camera_pos.distanceTo(app.labels[i].pt)]);
     }
 
     // sort label indexes in descending order of distances
@@ -408,7 +411,7 @@ Q3D.application = {
     var label, e, x, y, dist, fontSize;
     var minFontSize = Q3D.Options.label.minFontSize;
     for (var i = 0, l = idx_dist.length; i < l; i++) {
-      label = this.labels[idx_dist[i][0]];
+      label = app.labels[idx_dist[i][0]];
       e = label.e;
       if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {
         // label is in front
@@ -436,61 +439,61 @@ Q3D.application = {
         e.style.display = "none";
       }
     }
-  },
+  };
 
-  labelVisibilityChanged: function () {
-    this.labels = [];
-    this.project.layers.forEach(function (layer) {
-      if (layer.l && layer.visible) this.labels = this.labels.concat(layer.labels);
-    }, this);
-  },
+  app.labelVisibilityChanged = function () {
+    app.labels = [];
+    app.project.layers.forEach(function (layer) {
+      if (layer.l && layer.visible) app.labels = app.labels.concat(layer.labels);
+    });
+  };
 
-  setLabelVisibility: function (visible) {
-    this.labelVisibility = visible;
-    this.labelRootElement.style.display = (visible) ? "block" : "none";
-    this.labelConnectorGroup.visible = visible;
+  app.setLabelVisibility = function (visible) {
+    app.labelVisibility = visible;
+    app.labelRootElement.style.display = (visible) ? "block" : "none";
+    app.labelConnectorGroup.visible = visible;
 
-    if (this.labels.length) this.render();
-  },
+    if (app.labels.length) app.render();
+  };
 
-  setWireframeMode: function (wireframe) {
-    if (wireframe == this._wireframeMode) return;
+  app.setWireframeMode = function (wireframe) {
+    if (wireframe == app._wireframeMode) return;
 
-    this.project.layers.forEach(function (layer) {
+    app.project.layers.forEach(function (layer) {
       layer.setWireframeMode(wireframe);
     });
 
-    this._wireframeMode = wireframe;
-  },
+    app._wireframeMode = wireframe;
+  };
 
-  queryableObjects: function () {
-    if (this.queryObjNeedsUpdate) {
-      this._queryableObjects = [];
-      this.project.layers.forEach(function (layer) {
-        if (layer.visible && layer.queryableObjects.length) this._queryableObjects = this._queryableObjects.concat(layer.queryableObjects);
-      }, this);
+  app.queryableObjects = function () {
+    if (app.queryObjNeedsUpdate) {
+      app._queryableObjects = [];
+      app.project.layers.forEach(function (layer) {
+        if (layer.visible && layer.queryableObjects.length) app._queryableObjects = app._queryableObjects.concat(layer.queryableObjects);
+      });
     }
-    return this._queryableObjects;
-  },
+    return app._queryableObjects;
+  };
 
-  intersectObjects: function (offsetX, offsetY) {
-    var x = (offsetX / this.width) * 2 - 1;
-    var y = -(offsetY / this.height) * 2 + 1;
+  app.intersectObjects = function (offsetX, offsetY) {
+    var x = (offsetX / app.width) * 2 - 1;
+    var y = -(offsetY / app.height) * 2 + 1;
     var vector = new THREE.Vector3(x, y, 1);
-    vector.unproject(this.camera);
-    var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
-    return ray.intersectObjects(this.queryableObjects());
-  },
+    vector.unproject(app.camera);
+    var ray = new THREE.Raycaster(app.camera.position, vector.sub(app.camera.position).normalize());
+    return ray.intersectObjects(app.queryableObjects());
+  };
 
-  _offset: function (elm) {
+  app._offset = function (elm) {
     var top = 0, left = 0;
     do {
       top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
     } while (elm);
     return {top: top, left: left};
-  },
+  };
 
-  help: function () {
+  app.help = function () {
     var lines = (Q3D.Controls === undefined) ? [] : Q3D.Controls.keyList;
     if (lines.indexOf("* Keys") == -1) lines.push("* Keys");
     lines = lines.concat([
@@ -517,9 +520,9 @@ Q3D.application = {
     });
     html += "</table>";
     return html;
-  },
+  };
 
-  popup: {
+  app.popup = {
 
     modal: false,
 
@@ -527,8 +530,8 @@ Q3D.application = {
     // obj: html or element
     show: function (obj, title, modal) {
 
-      if (modal) Q3D.application.pause();
-      else if (this.modal) Q3D.application.start();   // enable controls
+      if (modal) app.pause();
+      else if (this.modal) app.start();   // enable controls
 
       this.modal = Boolean(modal);
 
@@ -555,22 +558,22 @@ Q3D.application = {
 
     hide: function () {
       Q3D.$("popup").style.display = "none";
-      if (this.modal) Q3D.application.start();    // enable controls
+      if (this.modal) app.start();    // enable controls
     }
 
-  },
+  };
 
-  showInfo: function () {
-    Q3D.$("urlbox").value = this.currentViewUrl();
-    Q3D.$("usage").innerHTML = this.help();
-    this.popup.show();
-  },
+  app.showInfo = function () {
+    Q3D.$("urlbox").value = app.currentViewUrl();
+    Q3D.$("usage").innerHTML = app.help();
+    app.popup.show();
+  };
 
-  showQueryResult: function (point, layerId, featureId) {
+  app.showQueryResult = function (point, layerId, featureId) {
     var layer, r = [];
     if (layerId !== undefined) {
       // layer name
-      layer = this.project.layers[layerId];
+      layer = app.project.layers[layerId];
       r.push('<table class="layer">');
       r.push("<caption>Layer name</caption>");
       r.push("<tr><td>" + layer.name + "</td></tr>");
@@ -578,14 +581,14 @@ Q3D.application = {
     }
 
     // clicked coordinates
-    var pt = this.project.toMapCoordinates(point.x, point.y, point.z);
+    var pt = app.project.toMapCoordinates(point.x, point.y, point.z);
     r.push('<table class="coords">');
     r.push("<caption>Clicked coordinates</caption>");
     r.push("<tr><td>");
 
     if (typeof proj4 === "undefined") r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
     else {
-      var lonLat = proj4(this.project.proj).inverse([pt.x, pt.y]);
+      var lonLat = proj4(app.project.proj).inverse([pt.x, pt.y]);
       r.push(Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2));
     }
 
@@ -601,10 +604,10 @@ Q3D.application = {
       }
       r.push("</table>");
     }
-    this.popup.show(r.join(""));
-  },
+    app.popup.show(r.join(""));
+  };
 
-  showPrintDialog: function () {
+  app.showPrintDialog = function () {
 
     function e (tagName, parent, innerHTML) {
       var elem = document.createElement(tagName);
@@ -625,7 +628,7 @@ Q3D.application = {
     d2.style.cssFloat = "left";
     l1.htmlFor = width.id = width.name = "printwidth";
     width.type = "text";
-    width.value = this.width;
+    width.value = app.width;
     e("span", d2, "px,")
 
     var d3 = e("div", f),
@@ -633,7 +636,7 @@ Q3D.application = {
         height = e("input", d3);
     l2.htmlFor = height.id = height.name = "printheight";
     height.type = "text";
-    height.value = this.height;
+    height.value = app.height;
     e("span", d3, "px");
 
     var d4 = e("div", f),
@@ -660,7 +663,7 @@ Q3D.application = {
 
     // event handlers
     // width and height boxes
-    var aspect = this.width / this.height;
+    var aspect = app.width / app.height;
 
     width.oninput = function () {
       if (ka.checked) height.value = Math.round(width.value / aspect);
@@ -670,7 +673,6 @@ Q3D.application = {
       if (ka.checked) width.value = Math.round(height.value * aspect);
     };
 
-    var app = this;
     ok.onclick = function () {
       app.popup.show("Rendering...");
       window.setTimeout(function () {
@@ -678,7 +680,7 @@ Q3D.application = {
       }, 10);
     };
 
-    cancel.onclick = this.closePopup.bind(this);
+    cancel.onclick = app.closePopup;
 
     // enter key pressed
     f.onsubmit = function () {
@@ -686,38 +688,38 @@ Q3D.application = {
       return false;
     }
 
-    this.popup.show(f, "Save Image", true);   // modal
-  },
+    app.popup.show(f, "Save Image", true);   // modal
+  };
 
-  closePopup: function () {
-    this.popup.hide();
-    this.queryMarker.visible = false;
-    this.highlightFeature(null, null);
-    if (this._canvasImageUrl) {
-      URL.revokeObjectURL(this._canvasImageUrl);
-      this._canvasImageUrl = null;
+  app.closePopup = function () {
+    app.popup.hide();
+    app.queryMarker.visible = false;
+    app.highlightFeature(null, null);
+    if (app._canvasImageUrl) {
+      URL.revokeObjectURL(app._canvasImageUrl);
+      app._canvasImageUrl = null;
     }
-  },
+  };
 
-  highlightFeature: function (layerId, featureId) {
-    if (this.highlightObject) {
+  app.highlightFeature = function (layerId, featureId) {
+    if (app.highlightObject) {
       // remove highlight object from the scene
-      this.scene.remove(this.highlightObject);
-      this.selectedLayerId = null;
-      this.selectedFeatureId = null;
-      this.highlightObject = null;
+      app.scene.remove(app.highlightObject);
+      app.selectedLayerId = null;
+      app.selectedFeatureId = null;
+      app.highlightObject = null;
     }
 
     if (layerId === null || featureId === null) return;
 
-    var layer = this.project.layers[layerId];
+    var layer = app.project.layers[layerId];
     if (layer === undefined) return;
     if (["Icon", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
 
     var f = layer.f[featureId];
     if (f === undefined || f.objs.length == 0) return;
 
-    var high_mat = this.highlightMaterial;
+    var high_mat = app.highlightMaterial;
     var setMaterial = function (obj) {
       obj.material = high_mat;
     };
@@ -734,25 +736,25 @@ Q3D.application = {
     }
 
     // add the highlight object to the scene
-    this.scene.add(highlightObject);
+    app.scene.add(highlightObject);
 
-    this.selectedLayerId = layerId;
-    this.selectedFeatureId = featureId;
-    this.highlightObject = highlightObject;
-  },
+    app.selectedLayerId = layerId;
+    app.selectedFeatureId = featureId;
+    app.highlightObject = highlightObject;
+  };
 
   // Called from *Controls.js when canvas is clicked
-  canvasClicked: function (e) {
-    var canvasOffset = this._offset(this.renderer.domElement);
-    var objs = this.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
+  app.canvasClicked = function (e) {
+    var canvasOffset = app._offset(app.renderer.domElement);
+    var objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
 
     for (var i = 0, l = objs.length; i < l; i++) {
       var obj = objs[i];
       if (!obj.object.visible) continue;
 
       // query marker
-      this.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
-      this.queryMarker.visible = true;
+      app.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
+      app.queryMarker.visible = true;
 
       // get layerId and featureId of clicked object
       var object = obj.object, layerId, featureId;
@@ -764,10 +766,10 @@ Q3D.application = {
       }
 
       // highlight clicked object
-      this.highlightFeature((layerId === undefined) ? null : layerId,
+      app.highlightFeature((layerId === undefined) ? null : layerId,
                             (featureId === undefined) ? null : featureId);
 
-      this.showQueryResult(obj.point, layerId, featureId);
+      app.showQueryResult(obj.point, layerId, featureId);
 
       if (Q3D.Options.debugMode && object instanceof THREE.Mesh) {
         var face = obj.face,
@@ -785,21 +787,20 @@ Q3D.application = {
 
       return;
     }
-    this.closePopup();
-  },
+    app.closePopup();
+  };
 
-  saveCanvasImage: function (width, height, fill_background) {
+  app.saveCanvasImage = function (width, height, fill_background) {
     if (fill_background === undefined) fill_background = true;
 
     // set canvas size
     var old_size;
     if (width && height) {
-      old_size = [this.width, this.height];
-      this.setCanvasSize(width, height);
+      old_size = [app.width, app.height];
+      app.setCanvasSize(width, height);
     }
 
     // functions
-    var app = this;
     var saveBlob = function (blob) {
       var filename = "image.png";
 
@@ -906,17 +907,17 @@ Q3D.application = {
     };
 
     // background option
-    if (!fill_background) this.renderer.setClearColor(0, 0);
+    if (!fill_background) app.renderer.setClearColor(0, 0);
 
     // render
-    this.renderer.preserveDrawingBuffer = true;
-    this.renderer.render(this.scene, this.camera);
+    app.renderer.preserveDrawingBuffer = true;
+    app.renderer.render(app.scene, app.camera);
 
     // restore clear color
     var bgcolor = Q3D.Options.bgcolor;
-    this.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
+    app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
-    var render_labels = (this.labelVisibility && this.labels.length > 0);
+    var render_labels = (app.labelVisibility && app.labels.length > 0);
     if ((fill_background && bgcolor === null) || render_labels) {
       var canvas = document.createElement("canvas");
       canvas.width = width;
@@ -945,16 +946,15 @@ Q3D.application = {
         saveCanvasImage(canvas);
         restoreCanvasSize();
       };
-      image.src = this.renderer.domElement.toDataURL("image/png");
+      image.src = app.renderer.domElement.toDataURL("image/png");
     }
     else {
       // save webgl canvas image
-      saveCanvasImage(this.renderer.domElement);
+      saveCanvasImage(app.renderer.domElement);
       restoreCanvasSize();
     }
-  }
-
-};
+  };
+})();
 
 
 /*
