@@ -126,11 +126,12 @@ class ExportSettings:
     self.title = self.htmlfiletitle
 
   def setMapCanvas(self, canvas):
-    self.canvas = canvas
     self.setMapSettings(canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer())
+    self.canvas = canvas
 
   def setMapSettings(self, settings):
     """settings: QgsMapSettings (QGIS >= 2.3) or QgsMapRenderer"""
+    self.canvas = None
     self.mapSettings = settings
 
     self.baseExtent = RotatedRect.fromMapSettings(settings)
