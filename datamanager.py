@@ -115,15 +115,22 @@ class ImageManager(DataManager):
     # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
     antialias = True
+    settings = self.exportSettings.mapSettings
+
+    # store old map settings
+    old_outputSize = settings.outputSize()
+    old_extent = settings.extent()
+    old_rotation = settings.rotation()
+    old_layerids = settings.layers()
+    old_backgroundColor = settings.backgroundColor()
 
     # map settings
-    settings = self.exportSettings.mapSettings
     settings.setOutputSize(QSize(width, height))
     settings.setExtent(extent.unrotatedRect())
     settings.setRotation(extent.rotation())
 
     if layerids is not None:
-      settings.setLayers(layerids)    #TODO: backup old layerids and restore it after rendering job
+      settings.setLayers(layerids)
 
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
@@ -152,6 +159,13 @@ class ImageManager(DataManager):
       job.start()
       job.waitForFinished()
     painter.end()
+
+    # restore map settings
+    settings.setOutputSize(old_outputSize)
+    settings.setExtent(old_extent)
+    settings.setRotation(old_rotation)
+    settings.setLayers(old_layerids)
+    settings.setBackgroundColor(old_backgroundColor)
 
     return tools.base64image(image)
 
