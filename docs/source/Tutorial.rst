@@ -39,7 +39,7 @@ file contains a ``.hgt`` file, which is readable by the GDAL.
 
 __ http://docs.qgis.org/2.8/en/docs/user_manual/plugins/plugins_gdaltools.html#miscellaneous
 
-.. tip:: Do you have time to discover new high-resolution SRTM
+.. tip:: Do you have time to explore new high-resolution SRTM
    elevation data? You can download 1 arc-second SRTM data from
    the `EarthExplorer`__ (User registration and login are required).
 
@@ -51,7 +51,7 @@ Loading DEM data
 
 Drag & drop the downloaded zip file to QGIS window
 (or load the file using ``Add Raster Layer`` dialog).
-You don't need to unzip it.
+You don't have to unzip it.
 
 
 CRS setting
@@ -101,15 +101,7 @@ Then, click ``Run`` button in the dialog.
 
 |browser image1|
 
-
-Adding shading effect
----------------------
-
-Can't catch the shape of terrain from the view well?
-OK, then let's add shading effect to the DEM.
-
-Open the plugin dialog again, activate the ``Enable shading`` checkbox
-in the ``Display type`` group and then do export.
+If you want to hide the dat-gui controls box at the top-right corner, press ``H`` key.
 
 |browser image2|
 

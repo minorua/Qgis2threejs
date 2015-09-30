@@ -203,9 +203,6 @@ Disk with specified radius, orientation, color and transparency
 
    </td></tr></table>
 
-Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (gazo1, dem).
-
 
 .. index:: Icon
 
