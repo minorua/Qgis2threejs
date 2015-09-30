@@ -123,7 +123,7 @@ class ImageManager(DataManager):
     settings.setRotation(extent.rotation())
 
     if layerids is not None:
-      settings.setLayers(layerids)
+      settings.setLayers(layerids)    #TODO: backup old layerids and restore it after rendering job
 
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
@@ -162,9 +162,9 @@ class ImageManager(DataManager):
     if self._renderer is None:
       self._initRenderer()
 
-    canvas = self.exportSettings.canvas    #TODO: use mapSettings
+    canvas = self.exportSettings.canvas
     if canvas is None:
-      logMessage("Rendering: Map canvas is not set in the export settings")
+      logMessage("With this QGIS version (<= 2.6), map canvas needs to be set to the export settings")
       return
 
     if layerids is None:
