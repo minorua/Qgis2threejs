@@ -53,7 +53,7 @@ class TestApi(TestCase):
     mapSettings.setOutputSize(QSize(width, height))
 
     exporter = Exporter(None, dataPath("testproject1.qto3settings"))
-    exporter.settings.setMapSettings(mapSettings)
+    exporter.setMapSettings(mapSettings)
     err = exporter.export(outputPath(os.path.join("testproject1", "testproject1.html")))
     assert err == Exporter.NO_ERROR, err
 

@@ -58,8 +58,8 @@ def loadProject(filename):
   QgsProject.instance().read(QFileInfo(filename))
   assert QgsMapLayerRegistry.instance().mapLayers(), "no layers in map layer registry"
 
+  doc = QDomDocument()
   with open(filename) as f:
-    doc = QDomDocument()
     doc.setContent(f.read())
 
   # map settings
