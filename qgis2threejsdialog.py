@@ -287,7 +287,7 @@ class Qgis2threejsDialog(QDialog):
 
     # if no template setting, select the last used template
     if not templatePath:
-      templatePath = QSettings().value("/Qgis2threejs/lastTemplate", "", type=unicode)
+      templatePath = QSettings().value("/Qgis2threejs/lastTemplate", def_vals.template, type=unicode)
 
     if templatePath:
       index = cbox.findText(templatePath)
