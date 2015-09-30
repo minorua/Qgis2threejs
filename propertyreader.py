@@ -43,7 +43,7 @@ class DEMPropertyReader:
     if not self.layerId:
       return QSize(2, 2)
 
-    sizeLevel = self.properties.get("horizontalSlider_Resolution", 2)    #TODO: horizontalSlider_SizeLevel
+    sizeLevel = self.properties.get("horizontalSlider_DEMSize", 2)
     roughening = 0
     if self.properties.get("checkBox_Surroundings", False):
       roughening = self.properties.get("spinBox_Roughening", 0)

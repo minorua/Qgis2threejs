@@ -279,7 +279,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
     widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
-    widgets += [self.radioButton_Simple, self.horizontalSlider_Resolution]
+    widgets += [self.radioButton_Simple, self.horizontalSlider_DEMSize]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
@@ -292,7 +292,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.initTextureSizeComboBox()
 
     self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
-    self.horizontalSlider_Resolution.valueChanged.connect(self.resolutionSliderChanged)
+    self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
     self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
@@ -411,8 +411,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def resolutionSliderChanged(self, v):
     self.updateDEMSize()
-    size = 100 * self.horizontalSlider_Resolution.value()
-    QToolTip.showText(self.horizontalSlider_Resolution.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_Resolution)
+    size = 100 * self.horizontalSlider_DEMSize.value()
+    QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_DEMSize)
 
   def itemChanged(self, item):
     if not self.isPrimary:
@@ -478,7 +478,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # calculate DEM size and grid spacing
     canvas = self.dialog.iface.mapCanvas()
     canvasSize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-    resolutionLevel = self.horizontalSlider_Resolution.value()
+    resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
     demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
 

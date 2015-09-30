@@ -71,7 +71,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QSlider" name="horizontalSlider_Resolution">
+           <widget class="QSlider" name="horizontalSlider_DEMSize">
             <property name="enabled">
              <bool>true</bool>
             </property>
