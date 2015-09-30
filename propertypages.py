@@ -31,7 +31,7 @@ from ui.controlsproperties import Ui_ControlsPropertiesWidget
 from ui.demproperties import Ui_DEMPropertiesWidget
 from ui.vectorproperties import Ui_VectorPropertiesWidget
 
-from qgis2threejscore import createQuadTree
+from qgis2threejscore import calculateDEMSize, createQuadTree
 from qgis2threejstools import logMessage
 from rotatedrect import RotatedRect
 from settings import def_vals
@@ -275,7 +275,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     self.isPrimary = False
     self.layer = None
-    self.demWidth = self.demHeight = 0
     self.layerImageIds = []
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
@@ -337,7 +336,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.setProperties(properties)
     self.spinBox_Height.blockSignals(False)
 
-    self.calculateResolution()
+    self.updateDEMSize()
     self.updateLayerImageLabel()
 
     # set enablement and visibility of widgets
@@ -411,7 +410,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.dialog.primaryDEMChanged(comboBox.itemData(index))
 
   def resolutionSliderChanged(self, v):
-    self.calculateResolution()
+    self.updateDEMSize()
     size = 100 * self.horizontalSlider_Resolution.value()
     QToolTip.showText(self.horizontalSlider_Resolution.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_Resolution)
 
@@ -453,7 +452,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
   def surroundingsToggled(self, checked):
-    self.calculateResolution()
+    self.updateDEMSize()
     self.setLayoutEnabled(self.gridLayout_Surroundings, checked)
 
     is_simple = self.radioButton_Simple.isChecked()
@@ -464,7 +463,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.radioButton_MapCanvas.setChecked(True)
 
   def rougheningChanged(self, v):
-    self.calculateResolution()
+    self.updateDEMSize()
     # possible value is a power of 2
     self.spinBox_Roughening.setSingleStep(v)
     self.spinBox_Roughening.setMinimum(max(v / 2, 1))
@@ -475,32 +474,20 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
       self.dialog.endPointSelection()
 
-  def calculateResolution(self, v=None):
+  def updateDEMSize(self, v=None):
+    # calculate DEM size and grid spacing
     canvas = self.dialog.iface.mapCanvas()
-    size = 100 * self.horizontalSlider_Resolution.value()
-
-    # calculate resolution and size
-    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-    width, height = outsize.width(), outsize.height()
-    s = (size * size / float(width * height)) ** 0.5
-    if s < 1:
-      width = int(width * s)
-      height = int(height * s)
-
-    if self.checkBox_Surroundings.isChecked():
-      roughening = self.spinBox_Roughening.value()
-      if width % roughening != 0:
-        width = int(float(width) / roughening + 0.9) * roughening
-      if height % roughening != 0:
-        height = int(float(height) / roughening + 0.9) * roughening
-
-    self.demWidth = width + 1
-    self.demHeight = height + 1
-    self.label_Resolution.setText("{0} x {1} px".format(self.demWidth, self.demHeight))
+    canvasSize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    resolutionLevel = self.horizontalSlider_Resolution.value()
+    roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
+    demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
 
     mupp = canvas.mapUnitsPerPixel()
-    xres = (mupp * outsize.width()) / width
-    yres = (mupp * outsize.height()) / height
+    xres = (mupp * canvasSize.width()) / (demSize.width() - 1)
+    yres = (mupp * canvasSize.height()) / (demSize.height() - 1)
+
+    # update labels
+    self.label_Resolution.setText("{0} x {1}".format(demSize.width(), demSize.height()))   #TODO: label_GridSize
     self.lineEdit_HRes.setText(str(xres))
     self.lineEdit_VRes.setText(str(yres))
 
@@ -509,8 +496,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     item = self.dialog.currentItem
     if item is not None:
       p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
-    p["dem_Width"] = self.demWidth
-    p["dem_Height"] = self.demHeight
     if self.layerImageIds:
       p["layerImageIds"] = self.layerImageIds
     return p

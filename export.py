@@ -207,8 +207,9 @@ class ThreejsJSWriter(JSWriter):
   def triangleMesh(self, dem_width=0, dem_height=0):
     if dem_width == 0 and dem_height == 0:
       prop = DEMPropertyReader(self.settings.get(ObjectTreeItem.ITEM_DEM))
-      dem_width = prop.width()
-      dem_height = prop.height()
+      dem_size = prop.demSize(self.settings.mapSettings.outputSize())
+      dem_width = dem_size.width()
+      dem_height = dem_size.height()
 
     key = "{0}x{1}".format(dem_width, dem_height)
     if key not in self.triMesh:
@@ -352,7 +353,8 @@ def writeSimpleDEM(writer, properties, progress=None):
   #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
   # get DEM values
-  dem_width, dem_height = prop.width(), prop.height()
+  dem_size = prop.demSize(settings.mapSettings.outputSize())
+  dem_width, dem_height = dem_size.width(), dem_size.height()
   dem_values = provider.read(dem_width, dem_height, settings.baseExtent)
 
   # DEM block
@@ -398,7 +400,7 @@ def writeSimpleDEM(writer, properties, progress=None):
 
 def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   settings = writer.settings
-  mapSettings = settings.mapSettings
+  canvas_size = settings.mapSettings.outputSize()
   mapTo3d = settings.mapTo3d()
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
@@ -411,11 +413,11 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
   prop = DEMPropertyReader(properties)
-  dem_width = (prop.width() - 1) / roughening + 1
-  dem_height = (prop.height() - 1) / roughening + 1
+  dem_size = prop.demSize(canvas_size)
+  dem_width = (dem_size.width() - 1) / roughening + 1
+  dem_height = (dem_size.height() - 1) / roughening + 1
 
   # texture size
-  canvas_size = mapSettings.outputSize()
   image_width = canvas_size.width() * texture_scale
   image_height = canvas_size.height() * texture_scale
 

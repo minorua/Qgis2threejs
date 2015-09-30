@@ -21,9 +21,11 @@
 """
 import os
 import random
+from PyQt4.QtCore import QSize
 from PyQt4.QtGui import QColor
 from qgis.core import NULL
 
+from qgis2threejscore import calculateDEMSize
 from qgis2threejstools import logMessage
 from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
@@ -35,15 +37,17 @@ class DEMPropertyReader:
   def __init__(self, properties=None):
     properties = properties or {}
     self.layerId = properties.get("comboBox_DEMLayer", 0)
-    self._width = properties.get("dem_Width", 0) if self.layerId else 2     #TODO: do not use dem_Width and dem_Height
-    self._height = properties.get("dem_Height", 0) if self.layerId else 2
     self.properties = properties
 
-  def width(self):
-    return self._width
+  def demSize(self, canvasSize):
+    if not self.layerId:
+      return QSize(2, 2)
 
-  def height(self):
-    return self._height
+    sizeLevel = self.properties.get("horizontalSlider_Resolution", 2)    #TODO: horizontalSlider_SizeLevel
+    roughening = 0
+    if self.properties.get("checkBox_Surroundings", False):
+      roughening = self.properties.get("spinBox_Roughening", 0)
+    return calculateDEMSize(canvasSize, sizeLevel, roughening)
 
 
 class VectorPropertyReader:

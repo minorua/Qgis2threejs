@@ -21,6 +21,7 @@
 """
 import struct
 
+from PyQt4.QtCore import QSize
 from qgis.core import QGis, QgsMapLayer, QgsRectangle
 
 try:
@@ -149,6 +150,23 @@ class FlatDEMProvider:
 
   def readValue(self, x, y):
     return self.value
+
+
+def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
+  width, height = canvasSize.width(), canvasSize.height()
+  size = 100 * sizeLevel
+  s = (size * size / float(width * height)) ** 0.5
+  if s < 1:
+    width = int(width * s)
+    height = int(height * s)
+
+  if roughening:
+    if width % roughening != 0:
+      width = int(float(width) / roughening + 0.9) * roughening
+    if height % roughening != 0:
+      height = int(float(height) / roughening + 0.9) * roughening
+
+  return QSize(width + 1, height + 1)
 
 
 def createQuadTree(extent, p):
