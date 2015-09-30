@@ -686,7 +686,7 @@
          <string>Enable shading</string>
         </property>
         <property name="checked">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>

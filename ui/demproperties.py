@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created: Fri Sep 18 10:24:59 2015
+# Created: Wed Sep 30 13:48:40 2015
 #      by: PyQt4 UI code generator 4.10.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -329,7 +329,7 @@ class Ui_DEMPropertiesWidget(object):
         self.gridLayout.addWidget(self.checkBox_TransparentBackground, 1, 2, 1, 1)
         self.verticalLayout_4.addLayout(self.gridLayout)
         self.checkBox_Shading = QtGui.QCheckBox(self.groupBox_DisplayType)
-        self.checkBox_Shading.setChecked(False)
+        self.checkBox_Shading.setChecked(True)
         self.checkBox_Shading.setObjectName(_fromUtf8("checkBox_Shading"))
         self.verticalLayout_4.addWidget(self.checkBox_Shading)
         self.verticalLayout_2.addWidget(self.groupBox_DisplayType)
