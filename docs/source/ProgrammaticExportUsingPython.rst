@@ -15,7 +15,7 @@ using the plugin dialog.
 
 Procedure:
 
-1. Open a project and click the Qgis2threejs button in the web tool bar
+1. Open a project and click the Qgis2threejs icon in the web tool bar
    to open the plugin dialog.
 2. Configure the export settings.
 3. Click the Run button to see the export on the web browser and check

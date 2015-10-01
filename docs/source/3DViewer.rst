@@ -4,9 +4,9 @@
 Controls
 --------
 
-Mouse and key controls depend on the control selected in the export
-settings. There is list of mouse buttons and keys in the about box.
-Press ``I`` key to show the box.
+Mouse and keyboard operation method depends on the control selected
+in the export settings. There is list of mouse buttons and keys
+in the about box. Press ``I`` key to show the box.
 
 Identifying Features
 --------------------
@@ -19,12 +19,12 @@ latitude are shown in DMS format (degrees, minutes and seconds). If
 ``Export attributes`` option of each vector layer is selected, attribute
 list of the clicked feature follows them.
 
-Control Panel
--------------
+Controls Box
+------------
 
 This feature is available with **3DViewer(dat-gui) template**.
 
-The control panel has:
+The controls box has:
 
 * layer sub menus
 
@@ -33,7 +33,7 @@ The control panel has:
    * a check box to toggle layer visibility
    * a slider to adjust layer transparency
 
-* sub menu to add a vertically movable plane
+* sub menu to control a vertically movable plane
 * help button to show the about box
 
 Rotate Animation
@@ -52,10 +52,10 @@ click the OK button. In addition, with some web browsers, you need to
 click a link to save image. The image file format is PNG. To change label
 color and/or adjust label size, edit ``Qgis2threejs.css`` (``print-label`` class).
 
-Known issue:
+.. note:: A known issue: Wrong image output if the size is too large (`issue #42`__)
 
-* Wrong image output if the size is too large
-   https://github.com/minorua/Qgis2threejs/issues/42
+__ https://github.com/minorua/Qgis2threejs/issues/42
+
 
 URL Parameters
 --------------

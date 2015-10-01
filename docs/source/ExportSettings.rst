@@ -89,7 +89,7 @@ Available templates:
    format <http://en.wikipedia.org/wiki/COLLADA>`__. It also has ability to
    save the texture image(s).
 
-   Those formats are widely supported by 3DCG softwares such as
+   These formats are widely supported by 3DCG softwares such as
    `Blender <http://www.blender.org/>`__.
 
 World
@@ -154,8 +154,8 @@ DEM
 ~~~
 
 You can select a DEM layer from 1-band rasters loaded in QGIS using
-``Add Raster Layer`` (GDAL provider). Selected DEM layer is used as the
-reference for z positions of vector objects. You can also select a flat
+``Add Raster Layer`` (GDAL provider). Selected DEM layer is used to
+calculate z positions of vector objects. You can also select a flat
 plane at zero altitude.
 
 Resampling
@@ -216,12 +216,11 @@ solid color.
 
 * Transparency
 
-   Sets transparency for the DEM. 0 is opaque, and 100 is transparent.
+   Sets transparency of the DEM. 0 is opaque, and 100 is transparent.
 
 * Transparent background (With map canvas image or layer image)
 
-   Makes transparent background of the image to be rendered (with map
-   canvas image or layer image).
+   Makes background of the image to be rendered transparent.
 
 * Enable transparency (With image file)
 

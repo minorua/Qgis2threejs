@@ -7,7 +7,7 @@ Optional Feature
    List of Optional Features:
    * [GSI Elevation Tile Provider](#gsielevtile)-->
 
-To enable this feature, you need to go to the settings dialog and check
+To use this feature, you need to go to the settings dialog and activate
 the feature.
 
 GSI Elevation Tile Provider (DEM Provider)

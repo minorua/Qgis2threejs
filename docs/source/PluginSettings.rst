@@ -3,8 +3,8 @@ Plugin Settings
 
 * Browser path
 
-   If you want to open web browser other than default browser, use this
-   option.
+   If you want to open exported page with a web browser other than default browser,
+   use this option.
 
 * Optional Features
 
