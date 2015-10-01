@@ -108,6 +108,7 @@ Q3D.gui = {
     folder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Plane height').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.position.z = (value + project.zShift) * project.zScale;
+      customPlane.updateMatrixWorld();
     });
 
     // Plane opacity
@@ -121,6 +122,7 @@ Q3D.gui = {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       if (value) customPlane.scale.set(10, 10, 1);
       else customPlane.scale.set(1, 1, 1);
+      customPlane.updateMatrixWorld();
     });
   },
 

@@ -755,6 +755,7 @@ limitations:
       // query marker
       app.queryMarker.position.set(obj.point.x, obj.point.y, obj.point.z);
       app.queryMarker.visible = true;
+      app.queryMarker.updateMatrixWorld();
 
       // get layerId and featureId of clicked object
       var object = obj.object, layerId, featureId;
