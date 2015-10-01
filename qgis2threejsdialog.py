@@ -457,12 +457,12 @@ class Qgis2threejsDialog(QDialog):
     tree.blockSignals(False)
 
   def showDescription(self, topItemIndex):
-    fragment = {ObjectTreeItem.ITEM_OPTDEM: "AdditionalDEM",
-                ObjectTreeItem.ITEM_POINT: "Point",
-                ObjectTreeItem.ITEM_LINE: "Line",
-                ObjectTreeItem.ITEM_POLYGON: "Polygon"}.get(topItemIndex)
+    fragment = {ObjectTreeItem.ITEM_OPTDEM: "additional-dem",
+                ObjectTreeItem.ITEM_POINT: "point",
+                ObjectTreeItem.ITEM_LINE: "line",
+                ObjectTreeItem.ITEM_POLYGON: "polygon"}.get(topItemIndex)
 
-    url = "https://github.com/minorua/Qgis2threejs/wiki/ExportSettings"
+    url = "http://qgis2threejs.readthedocs.org/en/docs-release/ExportSettings.html"
     if fragment:
       url += "#" + fragment
 
@@ -576,11 +576,10 @@ class Qgis2threejsDialog(QDialog):
     QDialog.reject(self)
 
   def help(self):
-    plugin_dir = os.path.dirname(__file__)
-    htmlfilename = os.path.join(plugin_dir, "docs", "index.html")
+    url = "http://qgis2threejs.readthedocs.org/"
 
     import webbrowser
-    webbrowser.open(htmlfilename, new=2)    # new=2: new tab if possible
+    webbrowser.open(url, new=2)    # new=2: new tab if possible
 
   def startPointSelection(self):
     canvas = self.iface.mapCanvas()

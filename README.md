@@ -10,18 +10,12 @@ Check WebGL Support
   Visit http://get.webgl.org/ to check whether your web browser supports WebGL.
 
 
-Demos
------
-
-  There are some links to live-demos on GitHub Wiki [Demos](https://github.com/minorua/Qgis2threejs/wiki/Demos) page.
-
-
 Documentation
 -------------
 
-  The `docs` directory contains HTML documents.
+  Online documentation: http://qgis2threejs.readthedocs.org/
 
-  Visit GitHub [Wiki Home](https://github.com/minorua/Qgis2threejs/wiki) for online documentation (with images).
+  You can download PDF version if you want.
 
 
 Exported Pages Use These JavaScript Libraries
