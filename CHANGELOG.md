@@ -1,5 +1,17 @@
 ## CHANGELOG
 
+### Version 1.4
+
+* Documentation improved and moved to readthedocs.org
+* Activate DEM's shading by default to make it easy to create shaded 3D map
+* Added menu commands for touch screen devices (dat-gui)
+* Turn off scene.autoUpdate to reduce matrix calculation cost
+* API for Python
+* Added some basic test cases
+* Fix error while exporting with DEM's build frame option (fix #48)
+* Fix cone type object for point layer (fix #50)
+
+
 ### Version 1.3.1
 
 * fixed error on applying plugin settings

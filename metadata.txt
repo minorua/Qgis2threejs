@@ -13,7 +13,7 @@ name=Qgis2threejs
 qgisMinimumVersion=2.0
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view exported 3D objects on web browser which supports WebGL. This plugin uses three.js library.
-version=1.3.1
+version=1.4
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -23,26 +23,15 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 1.3.1
-    - fixed error on applying plugin settings
-
-    Version 1.3
-    ** General **
-    - added object type for line: Box
-    - added clear settings command to settings menu
-    - automatically save settings near project file when exporting is done, and restore the settings next time
-    - added GSIElevTilePlugin (DEM provider. Optional feature)
-    ** DEM **
-    - texture rendering with multiple selected layers
-    - added option to clip DEM with polygon layer
-    - added option to increase resolution of texture
-    ** Web page **
-    - added "save image" dialog in which image size can be entered
-    - fixed bug of restoring view from URL parameters
-    ** Others **
-    - added lower Z option (Profile)
-    - added texture option, side option and side lower Z option (Overlay)
-    - takes map rotation into account (Disk, JSON, COLLADA)
+    Version 1.4
+    - Documentation improved and moved to readthedocs.org
+    - Activate DEM's shading by default to make it easy to create shaded 3D map
+    - Added menu commands for touch screen devices (dat-gui)
+    - Turn off scene.autoUpdate to reduce matrix calculation cost
+    - API for Python
+    - Added some basic test cases
+    - Fix error while exporting with DEM's build frame option (fix #48)
+    - Fix cone type object for point layer (fix #50)
 
 
 # tags are comma separated with spaces allowed
