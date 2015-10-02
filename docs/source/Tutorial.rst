@@ -109,8 +109,8 @@ If you want to hide the dat-gui controls box at the top-right corner, press ``H`
 Conclusion
 ----------
 
-Tutorial is over. Was 3D visualization difficult? Now, you know 3D visualization
-with QGIS is very easy. If you can use high-quality data, you can create beautiful 3D scenes!
+Tutorial is over. Now, you know 3D visualization with QGIS is very easy.
+If you can use high-quality data, you can create beautiful 3D scenes!
 
 .. tip:: Next, how about adding a background map layer to the map canvas.
    You can do it easily with `QuickMapServices plugin`__. Also, how about adding
