@@ -1,0 +1,104 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-23 11:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\API.rst:2
+msgid "API"
+msgstr "API"
+
+#: ..\..\source\API.rst:7
+msgid "Exporter class"
+msgstr "Exporter クラス"
+
+#: ..\..\..\api.pydocstring of api.Exporter:1
+msgid "A convenient class to export the scenes to web programmatically"
+msgstr "プログラムを用いてWebへシーンをエクスポートするのに便利なクラス"
+
+#: ..\..\..\api.pydocstring of api.Exporter.__init__:1
+msgid "Constructor."
+msgstr "コンストラクタ."
+
+#: ..\..\..\api.pydocstring of api.Exporter.__init__:3
+msgid ""
+"If specified, mapSettings attribute is initialized with the map settings of "
+"the map canvas. The iface.legendInterface() is used to export vector layers "
+"in the same order as the legend."
+msgstr ""
+"指定されていればmapSettings属性がマップキャンバスのマップ設定で初期化されます. "
+"凡例と同じ順でベクトルレイヤをエクスポートするのにiface.legendInterface()が使用されます."
+
+#: ..\..\..\api.pydocstring of api.Exporter.__init__:6
+msgid "Path to an existing settings file (.qto3settings)."
+msgstr "既存の設定ファイルへのパス (.qto3settings)."
+
+#: ..\..\..\api.pydocstring of api.Exporter.export:1
+msgid "Do export."
+msgstr "エクスポートを実行する."
+
+#: ..\..\..\api.pydocstring of api.Exporter.export:3
+msgid "Output HTML file path."
+msgstr "出力HTMLファイルパス."
+
+#: ..\..\..\api.pydocstring of api.Exporter.export:5
+msgid "If True, open the exported page using default web browser."
+msgstr "Trueの場合、デフォルトのWebブラウザを用いてエクスポートされたページを開きます."
+
+#: ..\..\..\api.pydocstring of api.Exporter.export:8
+msgid "Exporter.NO_ERROR if success. Otherwise returns error message."
+msgstr "成功した場合はExporter.NO_ERRORが返ります. そうでなければエラーメッセージが返ります."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:8
+msgid "Width of the map extent in unit of the map CRS."
+msgstr "マップ領域の幅 (マップのCRSの単位で)."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:10
+msgid "Height of the map extent in unit of the map CRS."
+msgstr "マップ領域の高さ (マップのCRSの単位で)."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:12
+msgid "Rotation in degrees. Requires QGIS version 2.8 or later."
+msgstr "回転角度. この引数を0以外に設定する場合はQGISバージョン2.8以上を必要します."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setMapSettings:5
+msgid "Map settings to be set."
+msgstr "設定するマップ設定."
+
+#: ..\..\source\API.rst:4
+msgid "See :doc:`ProgrammaticExportUsingPython` for an example of usage."
+msgstr "使用例は :doc:`ProgrammaticExportUsingPython` を参照して下さい。"
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:1
+msgid "Set map extent to export settings."
+msgstr "エクスポート設定にマップ領域を設定する."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:3
+msgid ""
+"This is a convenience method to set map extent to export settings. Map "
+"settings should be set before this method is called."
+msgstr "エクスポート設定にマップ領域を設定するための便利なメソッドです. このメソッドが呼ばれる前にマップ設定が設定されるべきです."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setExtent:6
+msgid "Center of the map extent in the map CRS."
+msgstr "マップ領域の中心座標 (マップのCRSで)."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setMapSettings:1
+msgid "Set map settings to export settings."
+msgstr "エクスポート設定にマップ設定を設定する."
+
+#: ..\..\..\api.pydocstring of api.Exporter.setMapSettings:3
+msgid ""
+"Map settings is used to define base extent of the export and render a map "
+"canvas image."
+msgstr "マップ設定はエクスポートのベース領域を定め、マップキャンバス画像を描画するのに使用されます."

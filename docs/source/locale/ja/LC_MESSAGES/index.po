@@ -1,0 +1,38 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-21 16:56+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\index.rst:5
+msgid "Welcome to Qgis2threejs plugin's documentation!"
+msgstr "Qgis2threejsプラグインのドキュメントへようこそ!"
+
+#: ..\..\source\index.rst:7
+msgid "|top image|"
+msgstr "|top image|"
+
+#: ..\..\source\index.rst:9
+msgid ""
+"Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin. This plugin "
+"exports terrain data, map canvas image and vector data to your web browser. "
+"You can view 3D objects in the web browser (You need a web browser which "
+"supports WebGL)."
+msgstr ""
+"Qgis2threejsプラグインは `QGIS <http://qgis.org/>`_ "
+"のプラグインです。このプラグインは地形データやマップキャンバスの画像、ベクタデータをWebブラウザにエクスポートします。Webブラウザの中で3Dのオブジェクトを見ることができます "
+"(WebGLをサポートするWebブラウザが必要です)。"
+
+#: ..\..\source\index.rst:11
+msgid "Table Of Contents:"
+msgstr "目次:"

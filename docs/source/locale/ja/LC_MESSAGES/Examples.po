@@ -1,0 +1,116 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-21 16:56+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\Examples.rst:2
+msgid "Examples"
+msgstr "サンプル"
+
+#: ..\..\source\Examples.rst:4
+msgid "Click the images below to see live examples."
+msgstr "下の画像をクリックするとライブサンプルを見ることができます。"
+
+#: ..\..\source\Examples.rst:10
+msgid "**Mt. Fuji**: Shaded relief map made with SRTM data"
+msgstr "**富士山**: SRTMデータで作成された陰影段彩図"
+
+#: ..\..\source\Examples.rst:12
+msgid "|image - Mt. Fuji|"
+msgstr "|image - Mt. Fuji|"
+
+#: ..\..\source\Examples.rst:14
+msgid ""
+"Source: U.S. National Aeronautics and Space Administration (NASA) and "
+"National Geospatial-Intelligence Agency (NGA). `SRTM elevation data "
+"<http://www2.jpl.nasa.gov/srtm/cbanddataproducts.html>`__ (SRTM V2.1. Filled "
+"small voids using `gdal\\_fillnodata.py "
+"<http://www.gdal.org/gdal_fillnodata.html>`__)"
+msgstr ""
+"アメリカ航空宇宙局 (NASA)・アメリカ国家地球空間情報局 (NGA)の `SRTM標高データ "
+"<http://www2.jpl.nasa.gov/srtm/cbanddataproducts.html>`__ (SRTM V2.1)を用いて作成。 "
+"`gdal\\_fillnodata.py <http://www.gdal.org/gdal_fillnodata.html>`__ で空隙を埋めた。"
+
+#: ..\..\source\Examples.rst:20
+msgid ""
+"**Mt. Fuji (Large Area)**: With surroundings option. Shaded relief map made "
+"with SRTM data."
+msgstr "**富士山 (広範囲)**: surroundingsオプション。SRTMデータで作成された陰影段彩図。"
+
+#: ..\..\source\Examples.rst:23
+msgid "|image - Mt. Fuji (Large Area)|"
+msgstr "|image - Mt. Fuji (Large Area)|"
+
+#: ..\..\source\Examples.rst:25
+msgid ""
+"**Seto Inland Sea**: Custom plane template. Shaded relief map made with SRTM "
+"data."
+msgstr "**瀬戸内海**: カスタム平面テンプレート。SRTMデータで作成された陰影段彩図。"
+
+#: ..\..\source\Examples.rst:28
+msgid "|image - Seto Inland Sea|"
+msgstr "|image - Seto Inland Sea|"
+
+#: ..\..\source\Examples.rst:30
+msgid ""
+"**Mt. Aso**: Polygon overlay, switching layer visibility and adjusting layer "
+"opacity"
+msgstr "**阿蘇山**: ポリゴンオーバーレイやレイヤの表示・非表示切り替え、レイヤの不透明度の調整"
+
+#: ..\..\source\Examples.rst:33
+msgid "|image - Mt. Aso|"
+msgstr "|image - Mt. Aso|"
+
+#: ..\..\source\Examples.rst:35
+msgid ""
+"Sources: Geospatial Information Authority of Japan. `GSI Tiles "
+"<http://portal.cyberjapan.jp/help/development/>`__ (standard map, shaded "
+"relief and elevation tile) / Geological Survey of Japan, AIST. `Seamless "
+"digital geological map of Japan 1: 200,000 "
+"<https://gbank.gsj.jp/seamless/>`__ |(CC BY-ND 2.1 JP)|"
+msgstr ""
+"国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+"(標準地図、色別標高図、標高タイル) / 産業技術総合研究所 地質調査総合センターの `20万分の1日本シームレス地質図 "
+"<https://gbank.gsj.jp/seamless/>`__ |(CC BY-ND 2.1 JP)| を用いて作成。"
+
+#: ..\..\source\Examples.rst:41
+msgid "**Forest basins**: Polygon overlay with texture"
+msgstr "**森林流域**: テクスチャのあるポリゴンオーバレイ"
+
+#: ..\..\source\Examples.rst:43
+msgid "|image - Forest basins in Japan|"
+msgstr "|image - Forest basins in Japan|"
+
+#: ..\..\source\Examples.rst:45
+msgid ""
+"Sources: Geospatial Information Authority of Japan. `GSI Tiles "
+"<http://portal.cyberjapan.jp/help/development/>`__ (Orthophoto and elevation "
+"tile)"
+msgstr ""
+"国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+"(写真、標高タイル)を用いて作成。"
+
+#: ..\..\source\Examples.rst:49
+msgid ""
+"**Mt. Fuji (With Vector Data)**: This is test data. Shaded relief map made "
+"with SRTM data."
+msgstr "**富士山 (ベクトルデータ)**: これはテストデータです。SRTMデータで作られた陰影段彩図。"
+
+#: ..\..\source\Examples.rst:52
+msgid ""
+"`[Live example] "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html>`__"
+msgstr ""
+"`[Live example] "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html>`__"

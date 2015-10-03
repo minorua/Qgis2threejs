@@ -1,0 +1,231 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-27 15:43+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\Tutorial.rst:2
+msgid "Tutorial"
+msgstr "チュートリアル"
+
+#: ..\..\source\Tutorial.rst:4
+msgid "Let's start using Qgis2threejs plugin!"
+msgstr "さあ、Qgis2threejsプラグインを使い始めましょう!"
+
+#: ..\..\source\Tutorial.rst:10
+msgid ""
+"Open the QGIS plugin dialog (``Plugins > Manage and install plugins...``), "
+"and then install Qgis2threejs plugin."
+msgstr ""
+"QGISプラグインダイアログ (``プラグイン > "
+"プラグインの管理とインストール...``)を開いてQgis2threejsプラグインをインストールします。"
+
+#: ..\..\source\Tutorial.rst:22
+msgid "If you already have raster DEM data, you can skip this step."
+msgstr "既にラスタDEMデータをお持ちの場合はこのステップはスキップしても構いません。"
+
+#: ..\..\source\Tutorial.rst:24
+msgid ""
+"NASA released elevation data generated from NASA's `Shuttle Radar Topography "
+"Mission`__ digital topographic data. We can use the data freely. Elevation "
+"data version 2.1 can be downloaded from the `distribution site`__."
+msgstr ""
+"NASAは `Shuttle Radar Topography Mission`__ "
+"のデジタル地形データから生成された標高データを公開しました。我々は自由にデータを利用できます。標高データのバージョン2.1は `配布サイト`__ "
+"からダウンロードすることができます。"
+
+#: ..\..\source\Tutorial.rst:36
+msgid ""
+"If the area extends over two or more files, you might want to create a "
+"virtual mosaic using `Build Virtual Raster (Catalog)`__ tool of GdalTools."
+msgstr ""
+"地域が2つ以上のファイルにまたがる場合は、GdalToolsの `バーチャルラスタの構築 (カタログ)`__ "
+"ツールを使用してバーチャルなモザイクを作成するとよいでしょう。"
+
+#: ..\..\source\Tutorial.rst:60
+msgid ""
+"Horizontal unit of SRTM data is degree, whereas vertical unit is meter. For "
+"appropriate visualization, you need to transform the DEM data to a projected "
+"CRS. QGIS can perform the CRS transformation on the fly."
+msgstr ""
+"SRTMデータの水平方向の単位は度ですが鉛直方向の単位はメートルです。正しく可視化するためにDEMデータを投影座標参照系に変換する必要があります。QGISはオンザフライでCRSの変換を行うことができます。"
+
+#: ..\..\source\Tutorial.rst:73
+msgid ""
+"In the Mercator projection, size of every feature is horizontally larger "
+"than actual size except features on the equator. At latitude 40 degrees it "
+"is enlarged 1.3 times, at 60 degrees enlarged twice."
+msgstr ""
+"メルカトル投影では赤道上にある地物の場合を除き、地物の大きさが水平方向に実際より大きくなります。緯度40度では1.3倍に、緯度60度では2倍になります。"
+
+#: ..\..\source\Tutorial.rst:81
+msgid ""
+"Open the raster properties dialog for the DEM layer and colorize the DEM "
+"layer richly."
+msgstr "DEMレイヤのラスタプロパティダイアログを開き、DEMレイヤを彩り豊かにします。"
+
+#: ..\..\source\Tutorial.rst:86
+msgid "|map canvas1|"
+msgstr "|map canvas1|"
+
+#: ..\..\source\Tutorial.rst:92
+msgid ""
+"Zoom to a part of the DEM layer extent as the map canvas is filled by the "
+"colorized DEM."
+msgstr "色付けされたDEMがマップキャンバスを満たすようにDEMレイヤ領域の一部にズームして下さい。"
+
+#: ..\..\source\Tutorial.rst:96
+msgid "Then, click ``Run`` button in the dialog."
+msgstr "そしてダイアログの ``Run`` ボタンをクリックします。"
+
+#: ..\..\source\Tutorial.rst:98
+msgid "|dialog image1|"
+msgstr "|dialog image1|"
+
+#: ..\..\source\Tutorial.rst:102
+msgid "|browser image1|"
+msgstr "|browser image1|"
+
+#: ..\..\source\Tutorial.rst:106
+msgid "|browser image2|"
+msgstr "|browser image2|"
+
+#: ..\..\source\Tutorial.rst:122
+msgid ""
+"You can publish the exported scene just by uploading the exported files to a "
+"web server."
+msgstr "エクスポートされたファイルをWebサーバにアップロードするだけでシーンを公開することができます。"
+
+#: ..\..\source\Tutorial.rst:124
+msgid ""
+"Please do not forget to ensure that you comply with the Terms and use for "
+"the data before publishing the scene to the web."
+msgstr "シーンをウェブに公開する前にデータの利用規約を遵守していることを忘れずに確認して下さい。"
+
+#: ..\..\source\Tutorial.rst:8
+msgid "Installing the plugin"
+msgstr "プラグインのインストール"
+
+#: ..\..\source\Tutorial.rst:20
+msgid "Obtaining elevation data"
+msgstr "標高データの取得"
+
+#: ..\..\source\Tutorial.rst:50
+msgid "Loading DEM data"
+msgstr "DEMデータの読み込み"
+
+#: ..\..\source\Tutorial.rst:58
+msgid "CRS setting"
+msgstr "座標参照系の設定"
+
+#: ..\..\source\Tutorial.rst:79
+msgid "Layer styling"
+msgstr "レイヤのスタイル設定"
+
+#: ..\..\source\Tutorial.rst:90
+msgid "Exporting"
+msgstr "エクスポート"
+
+#: ..\..\source\Tutorial.rst:110
+msgid "Conclusion"
+msgstr "おわりに"
+
+#: ..\..\source\Tutorial.rst:13
+msgid ""
+"Need help? See the `10.1.2. Installing New Plugins`__ section of the QGIS "
+"training manual."
+msgstr "助けが必要ですか? QGISトレーニングマニュアルの `10.1.2. 新しいプラグインのインストール`__ セクションを参照して下さい。"
+
+#: ..\..\source\Tutorial.rst:32
+msgid ""
+"Download a zip file that contains elevation data of the area you are "
+"interested in from under the ``version2_1/SRTM3`` directory. The zip file "
+"contains a ``.hgt`` file, which is readable by the GDAL."
+msgstr ""
+"``version2_1/SRTM3`` "
+"ディレクトリ以下からあなたの興味がある地域の標高データが含まれるZIPファイルをダウンロードして下さい。ZIPファイルにはGDALが読み取り可能な "
+"``.hgt`` ファイルが含まれます。"
+
+#: ..\..\source\Tutorial.rst:64
+msgid ""
+"So, let's enable the On The Fly CRS transformation and change the map CRS to "
+"a projected CRS."
+msgstr "ではオンザフライCRS変換を有効にしてプロジェクトのCRSを投影座標参照系に変更しましょう。"
+
+#: ..\..\source\Tutorial.rst:84
+msgid ""
+"An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` "
+"color map):"
+msgstr "例 (``単バンド疑似カラー`` レンダータイプと反転された ``BrBG`` カラーマップ):"
+
+#: ..\..\source\Tutorial.rst:94
+msgid "Click the |plugin icon| plugin icon in the web toolbar."
+msgstr "Webツールバーのプラグインのアイコン |plugin icon| をクリックして下さい。"
+
+#: ..\..\source\Tutorial.rst:100
+msgid "3D terrain appears in your web browser!"
+msgstr "3Dの地形がWebブラウザに現れます!"
+
+#: ..\..\source\Tutorial.rst:115
+msgid ""
+"Next, how about adding a background map layer to the map canvas. You can do "
+"it easily with `QuickMapServices plugin`__. Also, how about adding vector "
+"data to the scene. :doc:`ObjectTypes` page has example images of various "
+"object types. See :doc:`ExportSettings` for the detail."
+msgstr ""
+"次は背景地図レイヤをマップキャンバスに追加してみたらどうでしょう。 `QuickMapServices プラグイン`__ "
+"を使えば簡単にできます。またベクトルデータをシーンに追加してみたらどうでしょう。 :doc:`ObjectTypes` "
+"ページには様々なオブジェクトタイプのサンプル画像があります。詳細は :doc:`ExportSettings` を参照して下さい。"
+
+#: ..\..\source\Tutorial.rst:42
+msgid ""
+"Do you have time to explore new high-resolution SRTM elevation data? You can "
+"download 1 arc-second SRTM data from the `EarthExplorer`__ (User "
+"registration and login are required)."
+msgstr ""
+"新しい高解像度のSRTM標高データを試してみますか? 1秒角のSRTMデータは `EarthExplorer`__ "
+"からダウンロードすることができます。ただし、ユーザ登録とログインが必要です。"
+
+#: ..\..\source\Tutorial.rst:52
+msgid ""
+"Drag & drop the downloaded zip file to QGIS window (or load the file using "
+"``Add Raster Layer`` dialog). You don't have to unzip it."
+msgstr ""
+"ダウンロードしたZIPファイルをQGISのウィンドウにドラッグ & ドロップするか ``ラスタレイヤの追加`` "
+"ダイアログを使用して読み込みます。ZIPファイルを展開する必要はありません。"
+
+#: ..\..\source\Tutorial.rst:104
+msgid ""
+"If you want to hide the dat-gui controls box at the top-right corner, press "
+"``H`` key."
+msgstr "右上のdat-guiコントロールボックスを非表示にするには ``H`` キーを押します。"
+
+#: ..\..\source\Tutorial.rst:112
+msgid ""
+"Tutorial is over. Now, you know 3D visualization with QGIS is very easy. If "
+"you can use high-quality data, you can create beautiful 3D scenes!"
+msgstr ""
+"チュートリアルはこれで終わりです。QGISを用いた3D表現はとても簡単です。高品質のデータを使うことができれば美しい3Dシーンを作成することができるでしょう!"
+
+#: ..\..\source\Tutorial.rst:67
+msgid ""
+"Click the |CRS icon| CRS status icon in the bottom-right corner of the "
+"window to open the project properties dialog. Activate the ``Enable 'on the "
+"fly' CRS transformation`` checkbox and then select a suitable CRS for the "
+"DEM extent. If you don't know which CRS is best suited, select the Pseudo "
+"Mercator projection (``EPSG:3857``), which is adopted by many web maps."
+msgstr ""
+"ウィンドウ右下隅の |CRS icon| CRSステータスアイコンをクリックしてプロジェクトのプロパティダイアログを開きます。 ``'オンザフライ' "
+"CRS変換を有効にする`` "
+"チェックボックスにチェックを入れてDEM領域に適切なCRSを選択します。どのCRSが最適かわからない場合はここでは多くのWeb地図で採用されている擬似メルカトル投影 "
+"(``EPSG:3857``)を選択して下さい。"
