@@ -557,11 +557,12 @@ OpenStreetMap (© OpenStreetMap contributors,
 Overlay
 ~~~~~~~
 
-Polygon over the main DEM with specified color, border color and transparency.
-When the altitude mode of z coordinate is ``Relative to DEM`` or
+Overlay polygon draped on the main DEM with specified color, border color and
+transparency. When the altitude mode of z coordinate is ``Relative to DEM`` or
 ``+ "field name"``, each polygon is split into triangles using a triangle
 mesh generated from DEM, and is located at the relative height from
-the mesh surface. You can add side to each polygon if you want.
+the mesh surface. Otherwise, creates a flat polygon at a specified altitude.
+You can add side to each polygon if you want.
 
 .. raw:: html
 
