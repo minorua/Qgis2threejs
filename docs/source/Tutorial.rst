@@ -67,10 +67,10 @@ to a projected CRS.
 Click the |CRS icon| CRS status icon in the bottom-right corner of the window to
 open the project properties dialog. Activate the ``Enable 'on the fly' CRS
 transformation`` checkbox and then select a suitable CRS for the DEM extent.
-If you don't know which CRS is best suited, select the Pseudo Mercator projection
+If you don't know which CRS is best suited, select the Spherical Mercator projection
 (``EPSG:3857``), which is adopted by many web maps.
 
-.. note:: In the Mercator projection, size of every feature is horizontally
+.. note:: In the Spherical Mercator projection, size of every feature is horizontally
    larger than actual size except features on the equator.
    At latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice.
 
