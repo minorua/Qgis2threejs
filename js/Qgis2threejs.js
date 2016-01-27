@@ -168,7 +168,7 @@ limitations:
 
     // WebGLRenderer
     var bgcolor = Q3D.Options.bgcolor;
-    app.renderer = new THREE.WebGLRenderer({alpha: true});
+    app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     app.renderer.setSize(app.width, app.height);
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
