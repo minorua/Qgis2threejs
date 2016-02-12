@@ -19,8 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import codecs
-
 from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsMapLayerRegistry, QgsPoint
 
 try:
@@ -39,50 +37,12 @@ from quadtree import DEMQuadList
 from rotatedrect import RotatedRect
 
 
-class JSWriter:
+class ThreejsJSWriter:
 
-  def __init__(self, path_root, multiple_files=False):
-    self.path_root = path_root
-    self.multiple_files = multiple_files
-    self.jsfile = None
-    self.jsindex = 0
-    self.jsfile_count = 0
-
-  def __del__(self):
-    self.closeFile()
-
-  def openFile(self):
-    if self.multiple_files:
-      jsfilename = self.path_root + "_%d.js" % self.jsindex
-    else:
-      jsfilename = self.path_root + ".js"
-    self.jsfile = codecs.open(jsfilename, "w", "UTF-8")
-    self.jsfile_count += 1
-
-  def closeFile(self):
-    if self.jsfile:
-      self.jsfile.close()
-      self.jsfile = None
-
-  def nextFile(self, open_file=False):
-    if not self.multiple_files:
-      return
-    self.closeFile()
-    self.jsindex += 1
-    if open_file:
-      self.openFile()
-
-  def write(self, data):
-    if self.jsfile is None:
-      self.openFile()
-    self.jsfile.write(data)
-
-
-class ThreejsJSWriter(JSWriter):
-
-  def __init__(self, settings, objectTypeManager, multiple_files=False):
-    JSWriter.__init__(self, settings.path_root, multiple_files)
-
+  # device: an instance of a subclass of QIODevice (QFile, QBuffer, etc.)
+  def __init__(self, device, settings, objectTypeManager):
+    self.device = device
+    self.write = device.write
     self.settings = settings
     self.demProvider = settings.demProvider()
     self.objectTypeManager = objectTypeManager
@@ -94,6 +54,9 @@ class ThreejsJSWriter(JSWriter):
     self.imageManager = ImageManager(settings)
     self.modelManager = ModelManager()
     self.triMesh = {}
+
+  def setDevice(self, device):
+    self.device = device
 
   def writeProject(self):
     # write project information
@@ -117,6 +80,7 @@ class ThreejsJSWriter(JSWriter):
     self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
 
   def writeLayer(self, obj, fieldNames=None):
+    #TODO: DEMLayerWriter/VectorLayerWriter (subclasses of LayerWriter)
     self.currentLayerIndex = self.layerCount
     type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
     self.write(u"\n// Layer {0}\n".format(self.currentLayerIndex))
@@ -130,6 +94,7 @@ class ThreejsJSWriter(JSWriter):
     self.attrs = []
     return self.currentLayerIndex
 
+  #TODO: move to VectorLayerWriter
   def writeFeature(self, f):
     self.currentFeatureIndex += 1
     self.write(u"lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
@@ -193,10 +158,11 @@ class ThreejsJSWriter(JSWriter):
 
     # data files
     filetitle = self.settings.htmlfiletitle
-    if self.multiple_files:
-      files += map(lambda x: "%s_%s.js" % (filetitle, x), range(self.jsfile_count))
-    else:
-      files.append("%s.js" % filetitle)
+
+    #if self.multiple_files:
+    #  files += map(lambda x: "%s_%s.js" % (filetitle, x), range(self.jsfile_count))
+    #else:
+    files.append("%s.js" % filetitle)
 
     return map(lambda fn: '<script src="./%s"></script>' % fn, files)
 

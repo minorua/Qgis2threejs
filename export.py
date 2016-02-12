@@ -43,8 +43,9 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
     QDir().mkpath(out_dir)
 
   # ThreejsJSWriter object
-  writer = ThreejsJSWriter(settings, objectTypeManager, bool(settings.exportMode == ExportSettings.PLAIN_MULTI_RES))
-  writer.openFile()
+  jsfilename = settings.path_root + ".js"
+  f = codecs.open(jsfilename, "w", "UTF-8")
+  writer = ThreejsJSWriter(f, settings, objectTypeManager)   #multiple_files=bool(settings.exportMode == ExportSettings.PLAIN_MULTI_RES))
 
   # read configuration of the template
   templateConfig = settings.templateConfig()
@@ -65,7 +66,6 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
       writeSimpleDEM(writer, demProperties, progress)
     else:
       writeMultiResDEM(writer, demProperties, progress)
-      writer.nextFile()
 
     # write additional DEM(s)
     primaryDEMLayerId = demProperties.get("comboBox_DEMLayer", 0)
@@ -82,7 +82,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
   progress(60, "Writing texture images")
   writer.writeImages()
   writer.writeModelData()
-  writer.closeFile()
+  f.close()
 
   progress(90, "Copying library files")
 
