@@ -39,10 +39,9 @@ from rotatedrect import RotatedRect
 
 class ThreejsJSWriter:
 
-  # device: an instance of a subclass of QIODevice (QFile, QBuffer, etc.)
+  # device: an instance of a subclass of QIODevice (QFile, QBuffer, etc.) or a file object
   def __init__(self, device, settings, objectTypeManager):
-    self.device = device
-    self.write = device.write
+    self.setDevice(device)
     self.settings = settings
     self.demProvider = settings.demProvider()
     self.objectTypeManager = objectTypeManager
@@ -57,6 +56,7 @@ class ThreejsJSWriter:
 
   def setDevice(self, device):
     self.device = device
+    self.write = device.write if device else None
 
   def writeProject(self):
     # write project information
