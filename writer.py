@@ -672,7 +672,6 @@ class VectorLayer(Layer):
 
 def writeVectors(writer, legendInterface=None, progress=None):
   settings = writer.settings
-  baseExtent = settings.baseExtent
   progress = progress or dummyProgress
   renderer = QgsMapRenderer()
 
@@ -699,53 +698,66 @@ def writeVectors(writer, legendInterface=None, progress=None):
     if mapLayer is None:
       continue
 
-    prop = VectorPropertyReader(writer.objectTypeManager, mapLayer, properties)
-    obj_mod = writer.objectTypeManager.module(prop.mod_index)
-    if obj_mod is None:
-      logMessage("Module not found")
-      continue
-
-    # prepare triangle mesh
-    geom_type = mapLayer.geometryType()
-    if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
-      progress(None, "Initializing triangle mesh for overlay polygons")
-      writer.triangleMesh()
-
     progress(30 + 30 * finishedLayers / len(layers), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
-
-    # write layer object
-    layer = VectorLayer(writer, mapLayer, prop, obj_mod)
-    writer.writeLayer(layer.layerObject(), layer.fieldNames)
-
-    # initialize symbol rendering
-    mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)
-
-    # features to export
-    request = QgsFeatureRequest()
-    clipGeom = None
-    if properties.get("radioButton_IntersectingFeatures", False):
-      request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
-      if properties.get("checkBox_Clip"):
-        extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
-        clipGeom = extent.geometry()
-
-    for feat in layer.features(request, clipGeom):
-      # write geometry
-      obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
-
-      # stack attributes in writer
-      if layer.writeAttrs:
-        writer.addAttributes(feat.attributes())
-
-    # write attributes
-    if layer.writeAttrs:
-      writer.writeAttributes()
-
-    # write materials
-    writer.writeMaterials(layer.materialManager)
-
-    mapLayer.rendererV2().stopRender(renderer.rendererContext())
+    writeVector(writer, layerId, properties, progress, renderer)
     finishedLayers += 1
+
+
+def writeVector(writer, layerId, properties, progress=None, renderer=None):
+  mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+  if mapLayer is None:
+    return
+
+  settings = writer.settings
+  baseExtent = settings.baseExtent
+  progress = progress or dummyProgress
+  renderer = renderer or QgsMapRenderer()
+
+  prop = VectorPropertyReader(writer.objectTypeManager, mapLayer, properties)
+  obj_mod = writer.objectTypeManager.module(prop.mod_index)
+  if obj_mod is None:
+    logMessage("Module not found")
+    return
+
+  # prepare triangle mesh
+  geom_type = mapLayer.geometryType()
+  if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
+    progress(None, "Initializing triangle mesh for overlay polygons")
+    writer.triangleMesh()
+    progress(None, u"Writing vector layer: {0}".format(mapLayer.name()))
+
+  # write layer object
+  layer = VectorLayer(writer, mapLayer, prop, obj_mod)
+  writer.writeLayer(layer.layerObject(), layer.fieldNames)
+
+  # initialize symbol rendering
+  mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)
+
+  # features to export
+  request = QgsFeatureRequest()
+  clipGeom = None
+  if properties.get("radioButton_IntersectingFeatures", False):
+    request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+    if properties.get("checkBox_Clip"):
+      extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
+      clipGeom = extent.geometry()
+
+  for feat in layer.features(request, clipGeom):
+    # write geometry
+    obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
+
+    # stack attributes in writer
+    if layer.writeAttrs:
+      writer.addAttributes(feat.attributes())
+
+  # write attributes
+  if layer.writeAttrs:
+    writer.writeAttributes()
+
+  # write materials
+  writer.writeMaterials(layer.materialManager)
+
+  mapLayer.rendererV2().stopRender(renderer.rendererContext())
 
 
 def writeSphereTexture(writer):
