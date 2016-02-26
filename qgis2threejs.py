@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt4.QtCore import QFile, Qt    #, QSettings, QTranslator, qVersion
+from PyQt4.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
 from PyQt4.QtGui import QAction, QIcon
 from qgis.core import QgsProject
 
@@ -55,28 +55,36 @@ class Qgis2threejs:
     self.lastTreeItemData = None
     self.settingsFilePath = None
 
+    self.controller = None    # Q3DController
+
   def initGui(self):
     # Create action that will start plugin configuration
     icon = QIcon(os.path.join(self.plugin_dir, "icon.png"))
     self.action = QAction(icon, u"Qgis2threejs", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejs")
 
+    self.viewerAction = QAction(icon, u"Live Exporter", self.iface.mainWindow())
+    self.viewerAction.setObjectName("Qgis2threejsLive")
+
     self.settingAction = QAction(u"Settings", self.iface.mainWindow())
     self.settingAction.setObjectName("Qgis2threejsSettings")
 
     # connect the action to the run method
     self.action.triggered.connect(self.run)
+    self.viewerAction.triggered.connect(self.launchViewer)
     self.settingAction.triggered.connect(self.setting)
 
     # Add toolbar button and web menu items
     self.iface.addWebToolBarIcon(self.action)
     self.iface.addPluginToWebMenu(u"Qgis2threejs", self.action)
+    self.iface.addPluginToWebMenu(u"Qgis2threejs", self.viewerAction)
     self.iface.addPluginToWebMenu(u"Qgis2threejs", self.settingAction)
 
   def unload(self):
     # Remove the web menu items and icon
     self.iface.removeWebToolBarIcon(self.action)
     self.iface.removePluginWebMenu(u"Qgis2threejs", self.action)
+    self.iface.removePluginWebMenu(u"Qgis2threejs", self.viewerAction)
     self.iface.removePluginWebMenu(u"Qgis2threejs", self.settingAction)
 
     # remove temporary output directory
@@ -118,6 +126,35 @@ class Qgis2threejs:
       self.saveExportSettings(settingsFilePath)
 
     self.settingsFilePath = settingsFilePath
+
+  def launchViewer(self):
+    from pluginmanager import PluginManager
+    from vectorobject import ObjectTypeManager
+    from viewer.q3dcontroller import Q3DController
+
+    if self.objectTypeManager is None:
+      self.objectTypeManager = ObjectTypeManager()
+
+    if self.pluginManager is None:
+      self.pluginManager = PluginManager()
+
+    if self.controller is None:
+      self.controller = Q3DController(self.iface, self.objectTypeManager, self.pluginManager)
+
+    logMessage("Launching Live Exporter...")
+
+    parent = self.iface.mainWindow()
+    p = QProcess(parent)
+    if os.name == "nt":
+      os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), str(os.getpid())))
+      return
+      cmd = r"C:\Python34\python.exe"
+    else:
+      cmd = "python3"
+    p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", str(os.getpid())])
+
+    if not p.waitForStarted():
+      logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
 
   def setting(self):
     from settingsdialog import SettingsDialog

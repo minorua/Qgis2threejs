@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3D Viewer</title>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
+</head>
+<body>
+<div id="webgl"></div>
+
+<!-- popup -->
+<div id="popup" style="display:none;">
+<div id="closebtn">&times;</div>
+<div id="popupbar"></div>
+<div id="popupbody">
+ <div id="popupcontent"></div>
+ <div id="pageinfo">
+  <h1>Current View URL</h1>
+  <div><input id="urlbox" type="text"></div>
+
+  <h1>Usage</h1>
+  <div id="usage"></div>
+
+  <h1>About</h1>
+  <div id="about">This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
+and uses the following library:
+  <ul>
+  <li>three.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="./threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
+  <li id="lib_proj4js" style="display: none;">Proj4js <a href="http://trac.osgeo.org/proj4js/" target="_blank">http://trac.osgeo.org/proj4js/</a> <a href="./proj4js/LICENSE.md" target="_blank" class="license">(LICENSE)</a></li>
+  </ul>
+  </div>
+ </div>
+</div></div>
+
+<!-- footer -->
+<div id="footer"><div id="infobtn">i</div></div>
+
+<script src="../js/threejs/three.min.js"></script>
+<script src="../js/Qgis2threejs.js"></script>
+<script src="../js/threejs/controls/OrbitControls.js"></script>
+<script>
+var app = Q3D.application;
+
+Q3D.Project.prototype.update = function (params) {
+  for (var k in params) {
+    this[k] = params[k];
+  }
+
+  var w = (this.baseExtent[2] - this.baseExtent[0]),
+      h = (this.baseExtent[3] - this.baseExtent[1]);
+
+  this.height = this.width * h / w;
+  this.scale = this.width / w;
+  this.zScale = this.scale * this.zExaggeration;
+
+  this.origin = {x: this.baseExtent[0] + w / 2,
+                 y: this.baseExtent[1] + h / 2,
+                 z: -this.zShift};
+
+  //this.layers = [];
+  //this.models = [];
+  //this.images = [];
+};
+
+Q3D.Project.prototype.setLayer = function (index, layer) {
+  app.scene.remove(this.layers[index].objectGroup)
+  // TODO: remove labels from app
+
+  layer.index = index;
+  layer.project = this;
+  this.layers[index] = layer;
+
+  app.queryObjNeedsUpdate = true;
+  return layer;
+};
+</script>
+<script>
+var option = Q3D.Options;
+//${options}
+
+if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
+
+var container = document.getElementById("webgl");
+app.init(container);
+
+document.getElementById("infobtn").onclick = app.showInfo.bind(app);
+if ("hidebutton" in app.urlParams) document.getElementById("infobtn").style.display = "none";
+
+container.addEventListener("mouseup", function (e) {
+  // alert(pyObj.myName());    // not works
+  pyObj.mouseUp(e.clientX + ', ' + e.clientY);
+});
+
+app.showQueryResult = function (point, layerId, featureId) {
+};
+
+app.addEventListeners();
+// app.start();
+</script>
+<!--${scripts}-->
+</body>
+</html>

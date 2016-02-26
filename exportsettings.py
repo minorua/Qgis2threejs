@@ -132,6 +132,7 @@ class ExportSettings:
   def setMapSettings(self, settings):
     """settings: QgsMapSettings (QGIS >= 2.3) or QgsMapRenderer"""
     self.canvas = None
+    self._mapTo3d = None
     self.mapSettings = settings
 
     self.baseExtent = RotatedRect.fromMapSettings(settings)
