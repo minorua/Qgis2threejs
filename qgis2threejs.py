@@ -132,6 +132,8 @@ class Qgis2threejs:
     from vectorobject import ObjectTypeManager
     from viewer.q3dcontroller import Q3DController
 
+    pid = str(os.getpid())
+
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
 
@@ -139,19 +141,20 @@ class Qgis2threejs:
       self.pluginManager = PluginManager()
 
     if self.controller is None:
-      self.controller = Q3DController(self.iface, self.objectTypeManager, self.pluginManager)
+      serverName = "Qgis2threejsLive" + pid
+      self.controller = Q3DController(self.iface, self.objectTypeManager, self.pluginManager, serverName)
 
     logMessage("Launching Live Exporter...")
 
     parent = self.iface.mainWindow()
     p = QProcess(parent)
     if os.name == "nt":
-      os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), str(os.getpid())))
+      os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), pid))
       return
       cmd = r"C:\Python34\python.exe"
     else:
       cmd = "python3"
-    p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", str(os.getpid())])
+    p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", pid])
 
     if not p.waitForStarted():
       logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))

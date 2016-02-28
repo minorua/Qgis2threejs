@@ -94,7 +94,9 @@ class Q3DWindow(QMainWindow):
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
     self.layerManager = LayerManager(self.ui.treeView, self)
-    self.ui.webView.setup(self, self.layerManager, pid)
+
+    serverName = "Qgis2threejsLive" + pid
+    self.ui.webView.setup(self, self.layerManager, serverName)
 
     # signal-slot connections
     self.ui.actionReset_Camera_Position.triggered.connect(self.resetCameraPosition)

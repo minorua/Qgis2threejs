@@ -37,14 +37,14 @@ from ui.propertiesdialog import Ui_PropertiesDialog
 
 class Q3DController:
 
-  def __init__(self, qgis_iface, objectTypeManager, pluginManager):
+  def __init__(self, qgis_iface, objectTypeManager, pluginManager, serverName="Qgis2threejs"):
     self.qgis_iface = qgis_iface
     self.objectTypeManager = objectTypeManager
     self.pluginManager = pluginManager
     self.requestQueue = []
     self._processing = False
 
-    self.iface = SocketServer("Qgis2threejs" + str(os.getpid()), qgis_iface.mainWindow())
+    self.iface = SocketServer(serverName, qgis_iface.mainWindow())
     self.iface.log = logMessage   # override
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)

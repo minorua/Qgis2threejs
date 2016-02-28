@@ -88,10 +88,10 @@ class Q3DView(QWebView):
 
     self.jsfile = open(os.path.join(viewer_dir, "debug.js"), "w")
 
-  def setup(self, wnd, layerManager, pid=""):
+  def setup(self, wnd, layerManager, serverName="Qgis2threejs"):
     self.wnd = wnd
     self.layerManager = layerManager
-    self.iface = SocketClient("Qgis2threejs" + pid, self)
+    self.iface = SocketClient(serverName, self)
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)
     self.iface.responseReceived.connect(self.responseReceived)
