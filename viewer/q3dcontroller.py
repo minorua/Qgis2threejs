@@ -45,6 +45,7 @@ class Q3DController:
     self._processing = False
 
     self.iface = SocketServer("Qgis2threejs" + str(os.getpid()), qgis_iface.mainWindow())
+    self.iface.log = logMessage   # override
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)
     self.iface.responseReceived.connect(self.responseReceived)

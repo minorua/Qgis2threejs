@@ -38,7 +38,8 @@ while i < len(argv):
 if pid:
   print("Process ID {0} specified.".format(pid))
 else:
-  print("Process ID not specified.")
+  print("Process ID not specified. Please specify QGIS process ID (-p argument). Enter 'ps -A' to know the process ID.")
+
 
 print("Launching Live Exporter...")
 

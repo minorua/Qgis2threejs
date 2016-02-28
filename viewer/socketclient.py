@@ -32,12 +32,12 @@ class SocketClient(SocketInterface):
     socket.readyRead.connect(self.receiveMessage)
     socket.connectToServer(serverName)
     if socket.waitForConnected(1000):
-      socket.write(b"Hello Qgis2threejs!")
+      socket.write("Hello {0}!".format(serverName).encode("utf-8"))
       socket.flush()
       socket.waitForBytesWritten(1000)
       self.conn = socket
     else:
-      self.log("Could not connect to SocketServer. Please specify the correct QGIS process ID (-p argument). Enter 'ps -A' to know the process ID.")
+      self.log("Could not connect to SocketServer.")
 
   def nextMemoryKey(self):
     return SocketInterface.nextMemoryKey(self) + "C"

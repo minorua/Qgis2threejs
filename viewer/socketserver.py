@@ -21,7 +21,6 @@
 from PyQt4.QtNetwork import QLocalServer
 
 from socketinterface import SocketInterface
-from Qgis2threejs.qgis2threejstools import logMessage
 
 
 class SocketServer(SocketInterface):
@@ -44,7 +43,7 @@ class SocketServer(SocketInterface):
 
     conn.waitForReadyRead()
     data = conn.readAll().data().decode()
-    if not self.conn and data == "Hello Qgis2threejs!":
+    if not self.conn and data == "Hello {0}!".format(self.serverName).encode("utf-8"):
         self.conn = conn
         self.conn.readyRead.connect(self.receiveMessage)
         self.conn.disconnected.connect(self.connDisconnected)
@@ -55,6 +54,3 @@ class SocketServer(SocketInterface):
 
   def connDisconnected(self):
     self.conn = None
-
-  def log(self, msg):
-    logMessage(msg)
