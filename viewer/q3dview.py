@@ -24,7 +24,7 @@ import os
 
 #from PyQt5.Qt import *
 from PyQt5.QtCore import QByteArray, QBuffer, QIODevice, QObject, QUrl, Qt, pyqtSlot
-from PyQt5.QtGui import QImage
+#from PyQt5.QtGui import *
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import q3dconst
@@ -43,6 +43,7 @@ class Bridge(QObject):
 
   def __init__(self, layerManager, parent=None):
     QObject.__init__(self, parent)
+    self._parent = parent
     self.layerManager = layerManager
 
   @pyqtSlot()
@@ -53,6 +54,10 @@ class Bridge(QObject):
   def setLayerId(self, pyLayerId, jsLayerId):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
+
+  @pyqtSlot(str)
+  def saveImage(self, dataUrl):
+    self._parent.saveImage(dataUrl)
 
   @pyqtSlot(str)
   def mouseUp(self, coords):
@@ -78,19 +83,13 @@ class Q3DView(QWebView):
   def __init__(self, parent=None):
     QWebView.__init__(self, parent)
 
-    self.layers = []
+    self.requestQueue = []
+    self._processing = False
 
-    # HTML file and js file for debug
-    viewer_dir = os.path.dirname(__file__)
-    with open(os.path.join(viewer_dir, "viewer.html"), "r", encoding="UTF-8") as f1:
-      with open(os.path.join(viewer_dir, "debug.html"), "w", encoding="UTF-8") as f2:
-        f2.write(f1.read().replace("<!--${scripts}-->", '<script src="debug.js"></script>'))
-
-    self.jsfile = open(os.path.join(viewer_dir, "debug.js"), "w")
-
-  def setup(self, wnd, layerManager, serverName="Qgis2threejs"):
+  def setup(self, wnd, layerManager, serverName="Qgis2threejs", isViewer=True):
     self.wnd = wnd
     self.layerManager = layerManager
+    self.isViewer = isViewer
     self.iface = SocketClient(serverName, self)
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)
@@ -100,7 +99,17 @@ class Q3DView(QWebView):
     self.setPage(self._page)
     self.loadFinished.connect(self.pageLoaded)
 
-    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer.html").replace("\\", "/")
+    filetitle = "viewer" if isViewer else "layer"
+
+    # HTML file and js file for debug
+    viewer_dir = os.path.dirname(__file__)
+    with open(os.path.join(viewer_dir, filetitle + ".html"), "r", encoding="UTF-8") as f1:
+      with open(os.path.join(viewer_dir, "debug.html"), "w", encoding="UTF-8") as f2:
+        f2.write(f1.read().replace("<!--${scripts}-->", '<script src="debug.js"></script>'))
+
+    self.jsfile = open(os.path.join(viewer_dir, "debug.js"), "w")
+
+    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), filetitle + ".html").replace("\\", "/")
     self.setUrl(QUrl.fromLocalFile(url))
     #self.setUrl(QUrl("https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html"))
     print("URL: {0}".format(self.url().toString()))
@@ -119,7 +128,9 @@ class Q3DView(QWebView):
     self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
 
     self.iface.request(q3dconst.JSON_LAYER_LIST)
-    self.iface.request(q3dconst.JS_CREATE_PROJECT)
+    if self.isViewer:
+      self.iface.request(q3dconst.JS_CREATE_PROJECT)
+      self.iface.request(q3dconst.JS_START_APP)
 
   def treeItemChanged(self, item):
     itemId = item.data()
@@ -143,6 +154,11 @@ class Q3DView(QWebView):
     idx = index.data(Qt.UserRole + 1)
     self.iface.notify(q3dconst.N_LAYER_DOUBLECLICKED, self.layerManager.layers[idx])
 
+  def runByteArray(self, ba):
+    if os.name == "nt":
+      ba = ba.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
+    self.runString(ba.data().decode("utf-8"))
+
   def runString(self, string):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     self.jsfile.write("//// runString ({0})\n{1}\n".format(now, string))
@@ -157,7 +173,7 @@ class Q3DView(QWebView):
     elif code == q3dconst.N_CANVAS_IMAGE_UPDATED:
       for layer in self.layerManager.layers:
         if layer["visible"]:
-          self.iface.request(q3dconst.JS_CREATE_LAYER if layer["jsLayerId"] is None else q3dconst.JS_UPDATE_LAYER, layer)
+          self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
 
     elif code == q3dconst.N_LAYER_PROPERTIES_CHANGED:
       layer = self.layerManager.layers[params["id"]]
@@ -165,30 +181,78 @@ class Q3DView(QWebView):
       self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
 
   def requestReceived(self, dataType, params):
-    pass
+    #TODO: remove any duplicate requests in requestQueue if the request is sent to update 3d model (e.g. JS_UPDATE_LAYER).
+    self.requestQueue.append([dataType, params])
+    if not self._processing:
+      self.processNextRequest()
 
   def responseReceived(self, data, dataType):
     if dataType == q3dconst.JS_UPDATE_LAYER:
       print("JS_UPDATE_LAYER data received.")
-      self.runString(data.data().decode("utf-8"))
+      self.runByteArray(data)
 
     elif dataType == q3dconst.JS_UPDATE_PROJECT:
       print("JS_UPDATE_PROJECT data received.")
-      self.runString(data.data().decode("utf-8"))
+      self.runByteArray(data)
 
     elif dataType == q3dconst.JS_CREATE_LAYER:
       print("JS_CREATE_LAYER data received.")
-      self.runString(data.data().decode("utf-8"))
+      self.runByteArray(data)
 
     elif dataType == q3dconst.JS_CREATE_PROJECT:
       print("JS_CREATE_PROJECT data received.")
-      self.runString(data.data().decode("utf-8"))
+      self.runByteArray(data)
+
+    elif dataType == q3dconst.JS_SAVE_IMAGE:
+      print("JS_SAVE_IMAGE data received.")
+      self.runByteArray(data)
+
+    elif dataType == q3dconst.JS_START_APP:
+      print("JS_START_APP data received.")
+      self.runByteArray(data)
 
     elif dataType == q3dconst.JSON_LAYER_LIST:
+      if os.name == "nt":
+        data = data.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
+
       layers = json.loads(data.data().decode("utf-8"))
       for idx, layer in enumerate(layers):
-        self.layerManager.addLayer(layer["layerId"], layer["name"], layer["geomType"], idx == 0)
+        self.layerManager.addLayer(layer["layerId"], layer["name"], layer["geomType"], idx == 0, layer.get("properties"))    #TODO: check "visible"
 
       for layer in self.layerManager.layers:
         if layer["visible"]:
           self.iface.request(q3dconst.JS_CREATE_LAYER, layer)
+
+  def processNextRequest(self):
+    if self._processing or len(self.requestQueue) == 0:
+      return
+    dataType, params = self.requestQueue.pop(0)
+    self._processing = True
+    if not self.processRequest(dataType, params):
+      self._processing = False
+      self.processNextRequest()
+
+  def processRequest(self, dataType, params):
+    if dataType == q3dconst.BIN_SCENE_IMAGE:
+      extent = params["baseExtent"]
+      js = """project.update({{
+baseExtent: [{}, {}, {}, {}],
+rotation: {}
+}});
+""".format(extent[0], extent[1], extent[2], extent[3], params["rotation"])
+      self.runString(js)
+
+      #self.iface.request(q3dconst.JS_UPDATE_PROJECT)
+      for layer in self.layerManager.layers:
+        if layer["visible"] and layer["jsLayerId"] is not None:
+          self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
+      self.iface.request(q3dconst.JS_SAVE_IMAGE, {"width": params["width"], "height": params["height"]})
+      return True
+    return False
+
+  def saveImage(self, dataUrl):
+    ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+    self.iface.respond(ba, q3dconst.BIN_SCENE_IMAGE)    # q3dconst.FORMAT_BINARY
+
+    self._processing = False
+    self.processNextRequest()

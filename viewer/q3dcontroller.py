@@ -19,25 +19,26 @@
  ***************************************************************************/
 """
 import json
-import os
-from PyQt4.QtCore import Qt, QBuffer, QByteArray, QIODevice, QObject, pyqtSignal
-from PyQt4.QtGui import QDialog, QDialogButtonBox
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry
+from PyQt4.QtCore import QBuffer, QByteArray, QIODevice, QObject
+from qgis.core import QGis, QgsMapLayer, QgsMessageLog
 
 import q3dconst
 from socketserver import SocketServer
 from Qgis2threejs.exportsettings import ExportSettings
-from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
-from Qgis2threejs.qgis2threejscore import MapTo3D
-from Qgis2threejs.qgis2threejsdialog import RectangleMapTool
-from Qgis2threejs.qgis2threejstools import logMessage
 from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
-from ui.propertiesdialog import Ui_PropertiesDialog
+
+def logMessage(message):
+  try:
+    QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+  except:
+    pass
 
 
-class Q3DController:
+class Q3DController(QObject):
 
-  def __init__(self, qgis_iface, objectTypeManager, pluginManager, serverName="Qgis2threejs"):
+  def __init__(self, qgis_iface, objectTypeManager, pluginManager, serverName):
+    QObject.__init__(self)
+
     self.qgis_iface = qgis_iface
     self.objectTypeManager = objectTypeManager
     self.pluginManager = pluginManager
@@ -49,9 +50,6 @@ class Q3DController:
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)
     self.iface.responseReceived.connect(self.responseReceived)
-
-    qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
-    qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
 
     defaultSettings = json.loads('{"DEM":{"checkBox_Clip":false,"checkBox_Frame":false,"checkBox_Shading":true,"checkBox_Sides":true,"checkBox_Surroundings":false,"checkBox_TransparentBackground":false,"comboBox_ClipLayer":null,"comboBox_DEMLayer":"plugin:gsielevtile","comboBox_TextureSize":100,"horizontalSlider_DEMSize":2,"lineEdit_Color":"","lineEdit_ImageFile":"","lineEdit_centerX":"","lineEdit_centerY":"","lineEdit_rectHeight":"","lineEdit_rectWidth":"","radioButton_MapCanvas":true,"radioButton_Simple":true,"spinBox_Height":4,"spinBox_Roughening":4,"spinBox_Size":5,"spinBox_demtransp":0,"visible":false},"OutputFilename":"","PluginVersion":"1.4","Template":"3DViewer(dat-gui).html"}')
 
@@ -65,14 +63,6 @@ class Q3DController:
       return
     self.exportSettings = exportSettings
     self.writer = ThreejsJSWriter(None, exportSettings, objectTypeManager)   #multiple_files=bool(settings.exportMode == ExportSettings.PLAIN_MULTI_RES))
-
-  def canvasUpdated(self, painter):
-    self.iface.notify(q3dconst.N_CANVAS_IMAGE_UPDATED)
-    logMessage("N_CANVAS_IMAGE_UPDATED notification sent")
-
-  def canvasExtentChanged(self):
-    self.iface.notify(q3dconst.N_CANVAS_EXTENT_CHANGED)
-    logMessage("N_CANVAS_EXTENT_CHANGED notification sent")
 
   def notified(self, code, params):
     if code == q3dconst.N_LAYER_DOUBLECLICKED:
@@ -90,11 +80,15 @@ class Q3DController:
   def processNextRequest(self):
     if self._processing or len(self.requestQueue) == 0:
       return
-    self._processing = True
     dataType, params = self.requestQueue.pop(0)
+    self._processing = True
+    self.processRequest(dataType, params)
+    self._processing = False
+    self.processNextRequest()
 
+  def processRequest(self, dataType, params):
     if dataType in [q3dconst.JS_CREATE_LAYER, q3dconst.JS_UPDATE_LAYER]:
-      self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())
+      self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())    #TODO: params["useMapCanvasExtent"]
 
       ba = QByteArray()
       buf = QBuffer(ba)
@@ -122,7 +116,6 @@ lyr.initMaterials();
 lyr.build(app.scene);
 lyr.objectGroup.updateMatrixWorld();
 app.queryObjNeedsUpdate = true;
-if (!app.running) app.start();
 """.format(params["id"]))
 
       else:   # q3dconst.JS_UPDATE_LAYER
@@ -160,6 +153,14 @@ app.queryObjNeedsUpdate = true;
         ba = ba.replace("project = new Q3D.Project", "project.update")
       self.iface.respond(ba, dataType)   # q3dconst.FORMAT_JS
 
+    elif dataType == q3dconst.JS_SAVE_IMAGE:
+      js = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
+      self.iface.respond(QByteArray(js), dataType)
+
+    elif dataType == q3dconst.JS_START_APP:
+      js = "if (!app.running) app.start();"
+      self.iface.respond(QByteArray(js), dataType)
+
     elif dataType == q3dconst.JSON_LAYER_LIST:
       layers = []
       for plugin in self.pluginManager.demProviderPlugins():
@@ -191,112 +192,3 @@ app.queryObjNeedsUpdate = true;
       self.qgis_iface.mapCanvas().map().contentImage().save(buf, "PNG")
       #TODO: image.bits()?
       self.iface.respond(ba, dataType)    # q3dconst.FORMAT_BINARY
-
-    self._processing = False
-    self.processNextRequest()
-
-  def showPropertiesDialog(self, id, layerId, geomType, properties=None):
-    layer = QgsMapLayerRegistry.instance().mapLayer(unicode(layerId))
-    if layer is None:
-      return
-
-    properties = properties or {}
-    dialog = PropertiesDialog(self.qgis_iface, self.objectTypeManager, self.pluginManager)
-    dialog.setLayer(id, layer, geomType, properties)
-    dialog.show()
-    dialog.propertiesChanged.connect(self.propertiesChanged)
-    dialog.exec_()
-
-  def propertiesChanged(self, id, properties):
-    self.iface.notify(q3dconst.N_LAYER_PROPERTIES_CHANGED, {"id": id, "properties": properties})
-
-
-class PropertiesDialog(QDialog):
-
-  propertiesChanged = pyqtSignal(int, dict)
-
-  def __init__(self, iface, objectTypeManager, pluginManager):
-    QDialog.__init__(self, iface.mainWindow())
-    self.iface = iface
-    self.objectTypeManager = objectTypeManager
-    self.pluginManager = pluginManager
-
-    # Set up the user interface from Designer.
-    self.ui = Ui_PropertiesDialog()
-    self.ui.setupUi(self)
-    self.ui.buttonBox.clicked.connect(self.buttonClicked)
-
-    self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-    self.activateWindow()
-
-  def setLayer(self, id, layer, geomType, properties):
-    self.layerId = id
-    self.layer = layer
-    self.geomType = geomType
-    self.properties = properties or {}
-
-    self.setWindowTitle(u"Layer Properties - {0} (Qgis2threejs)".format(layer.name()))
-
-    dialog = MockDialog(self.iface, self.objectTypeManager, self.pluginManager, self)
-    if geomType == q3dconst.TYPE_DEM:
-      self.page = DEMPropertyPage(dialog)
-      self.page.setup(properties, layer, False)
-    elif geomType == q3dconst.TYPE_IMAGE:
-      return
-    else:
-      self.page = VectorPropertyPage(dialog)
-      self.page.setup(properties, layer)
-    self.ui.scrollArea.setWidget(self.page)
-
-  def buttonClicked(self, button):
-    role = self.ui.buttonBox.buttonRole(button)
-    if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-      self.propertiesChanged.emit(self.layerId, self.page.properties())
-      self.setWindowTitle("buttonClicked: {0}".format(role))
-
-
-class MockTreeWidgetItem:
-
-  def data(self, i, j):
-    return Qt.Checked
-
-
-class MockDialog(QObject):
-
-  def __init__(self, iface, objectTypeManager, pluginManager, parent=None):
-    QObject.__init__(self, parent)
-    self.iface = iface
-    self.objectTypeManager = objectTypeManager
-    self.pluginManager = pluginManager
-
-    self.currentItem = MockTreeWidgetItem()
-    self.mapTool = RectangleMapTool(iface.mapCanvas())
-
-  def mapTo3d(self):
-    canvas = self.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-
-    #world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
-    #bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
-    #ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
-    #vs = float(world.get("lineEdit_zShift", def_vals.zShift))
-
-    return MapTo3D(mapSettings, 100, 1.5, 0)
-
-  def setWindowState(self, state):
-    pass
-
-  def startPointSelection(self):
-    pass
-
-  def endPointSelection(self):
-    pass
-
-  def createRubberBands(self, baseExtent, quadtree):
-    pass
-
-  def clearRubberBands(self):
-    pass
-
-  def primaryDEMChanged(self, layerId):
-    pass

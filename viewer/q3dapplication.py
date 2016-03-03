@@ -20,30 +20,54 @@
 """
 import sys
 
-from PyQt5.Qt import QApplication
+from PyQt5.Qt import Qt, QApplication
 
 from q3dwindow import Q3DWindow
 
+isViewer = True
+serverName = ""
 pid = ""
+title = None
 
 i = 1
 argv = sys.argv
 while i < len(argv):
   arg = argv[i]
+  # Live Exporter
   if arg == "-p":
     i += 1
     pid = argv[i]
+
+  # Qgis2threejs Renderer
+  elif arg == "-r":
+    isViewer = False
+  elif arg == "-n":
+    i += 1
+    serverName = argv[i]
   i += 1
 
-if pid:
-  print("Process ID {0} specified.".format(pid))
+if isViewer:
+  serverName = "Qgis2threejsLive" + pid
+  if pid:
+    print("Process ID specified: {0}".format(pid))
+  else:
+    print("Process ID not specified. Please specify QGIS process ID (-p argument). Enter 'ps -A' to know the process ID.")
+
+  print("Starting Live Exporter...")
+
 else:
-  print("Process ID not specified. Please specify QGIS process ID (-p argument). Enter 'ps -A' to know the process ID.")
-
-
-print("Launching Live Exporter...")
+  if serverName:
+    print("Server name specified: {0}".format(serverName))
+  else:
+    print("Server name not specified.")
+  print("Starting Qgis2threejs Renderer...")
+  title = "Qgis2threejs Renderer"
 
 app = QApplication([])
-wnd = Q3DWindow(pid)
+wnd = Q3DWindow(serverName, isViewer)
+if title:
+  wnd.setWindowTitle(title)
 wnd.show()
+if not isViewer:
+  wnd.setWindowState(wnd.windowState() | Qt.WindowMinimized)
 app.exec_()

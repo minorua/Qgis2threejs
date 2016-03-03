@@ -89,14 +89,12 @@ class LayerManager(QObject):
 
 class Q3DWindow(QMainWindow):
 
-  def __init__(self, pid="", parent=None):
+  def __init__(self, serverName, isViewer=True, parent=None):
     QMainWindow.__init__(self, parent)
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
     self.layerManager = LayerManager(self.ui.treeView, self)
-
-    serverName = "Qgis2threejsLive" + pid
-    self.ui.webView.setup(self, self.layerManager, serverName)
+    self.ui.webView.setup(self, self.layerManager, serverName, isViewer)
 
     # signal-slot connections
     self.ui.actionReset_Camera_Position.triggered.connect(self.resetCameraPosition)
@@ -104,7 +102,7 @@ class Q3DWindow(QMainWindow):
     self.ui.treeView.model().itemChanged.connect(self.ui.webView.treeItemChanged)
     self.ui.treeView.doubleClicked.connect(self.ui.webView.treeItemDoubleClicked)
 
-    self.alwaysOnTopToggled(True)
+    self.alwaysOnTopToggled(isViewer)
 
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")

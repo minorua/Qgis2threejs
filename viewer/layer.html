@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Qgis2threejs Renderer</title>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
+<style type="text/css">
+#webgl {
+  background: white;
+}
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<div id="footer"><div id="infobtn">i</div></div>
+
+<script src="../js/threejs/three.min.js"></script>
+<script src="../js/Qgis2threejs.js"></script>
+<script src="viewer.js"></script>
+<script>
+var is25D = true;
+
+var app = Q3D.application;
+app.start = function () {};
+
+var loadingImageCount = 0;
+Q3D.Utils.loadTextureData = function (imageData) {
+  var texture, image = new Image();
+  image.onload = function () {
+    texture.needsUpdate = true;
+    loadingImageCount--;
+  };
+  image.src = imageData;
+  loadingImageCount++;
+
+  texture = new THREE.Texture(image);
+  return texture;
+};
+
+function saveCanvasImage(width, height) {
+  console.log("saveCanvasImage: " + width + ", " + height);
+  var canvas = app.renderer.domElement;
+  canvas.width = width;
+  canvas.height = height;
+  app.renderer.setSize(width, height);
+
+  var hw = project.width / 2,
+      hh = project.height / 2;
+  app.camera.left = -hw;
+  app.camera.right = hw;
+  app.camera.top = hh;
+  app.camera.bottom = -hh;
+  app.camera.updateProjectionMatrix();
+
+  function save () {
+    app.render();
+    pyObj.saveImage(app.renderer.domElement.toDataURL("image/png"));
+  }
+
+  function checkImageLoaded() {
+    if (loadingImageCount > 0) setTimeout(checkImageLoaded, 100);
+    else save();
+  }
+
+  if (loadingImageCount > 0) setTimeout(checkImageLoaded, 100);
+  else save();
+}
+
+// Extruded polygon layer improvements
+// TODO: merge to Qgis2threejs.js
+Q3D.PolygonLayer.prototype._build = Q3D.PolygonLayer.prototype.build;
+Q3D.PolygonLayer.prototype.build = function (parent) {
+  if (this.objType != "Extruded") {
+    this._build(parent);
+    return;
+  }
+
+  var materials = this.materials,
+      project = this.project;
+
+  var createSubObject = function (f, polygon, z) {
+    var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
+    for (var i = 1, l = polygon.length; i < l; i++) {
+      shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
+    }
+    /* TODO: material and extrudeMaterial options */
+    var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h});
+    var mesh = new THREE.Mesh(geom, materials[f.m].m);
+    mesh.position.z = z;
+
+    /* added ---> */
+    var lineMaterial = new THREE.LineBasicMaterial({
+      color: 0x333333
+    });
+    if (true) {   // (withFrame)
+      var zFunc0 = function (x, y) {return 0;},
+          zFunc1 = function (x, y) {return f.h;};
+      for (var i = 0, l = polygon.length; i < l; i++) {
+        geom = new THREE.Geometry();
+        geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc0);
+        mesh.add(new THREE.Line(geom, lineMaterial));
+
+        geom = new THREE.Geometry();
+        geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc1);
+        mesh.add(new THREE.Line(geom, lineMaterial));
+
+        var x, y, poly = polygon[i];
+        for (var j = 0, k = poly.length; j < k; j++) {
+          x = poly[j][0];
+          y = poly[j][1];
+          geom = new THREE.Geometry();
+          geom.vertices.push(new THREE.Vector3(x, y, 0), new THREE.Vector3(x, y, f.h));
+          mesh.add(new THREE.Line(geom, lineMaterial));
+        }
+      }
+    }
+    /* <--- */
+    return mesh;
+  };
+
+  var createObject = function (f) {
+    if (f.polygons.length == 1) return createSubObject(f, f.polygons[0], f.zs[0]);
+
+    var group = new THREE.Group();
+    for (var i = 0, l = f.polygons.length; i < l; i++) {
+      group.add(createSubObject(f, f.polygons[i], f.zs[i]));
+    }
+    return group;
+  };
+
+  // each feature in this layer
+  this.f.forEach(function (f, fid) {
+    f.objs = [];
+    var obj = createObject(f);
+    obj.userData.layerId = this.index;
+    obj.userData.featureId = fid;
+    this.addObject(obj);
+    f.objs.push(obj);
+  }, this);
+
+  if (parent) parent.add(this.objectGroup);
+
+  /* added ---> */
+  if (is25D) {
+    // add 2.5D effect
+    var sx = 0.5, sy = 1;
+    this.objectGroup.traverse(function (obj) {
+      if (obj.geometry === undefined) return;
+      obj.geometry.vertices.forEach(function (v, i) {
+        if (v.z !== 0) {
+          v.x += sx * v.z;
+          v.y += sy * v.z;
+        }
+      });
+    });
+  }
+  console.log("Extruded polygons has been built.");
+  /* <--- */
+};
+</script>
+<script>
+var option = Q3D.Options;
+//${options}
+
+var container = document.getElementById("webgl");
+app.init(container);
+
+// Project
+project = new Q3D.Project({
+  crs: "undefined",
+  wgs84Center:{lat:0,lon:0},
+  proj: "undefined",
+  title:"2.5D renderer",
+  baseExtent:[0,0,100,100],
+  rotation:0,
+  zShift:0.0,
+  width:100.0,
+  zExaggeration:1.0
+});
+project.buildCustomLights = function (parent) {
+    var deg2rad = Math.PI / 180;
+
+    // ambient light
+    parent.add(new THREE.AmbientLight(0x999999));
+
+    // directional lights
+    var opt = Q3D.Options.light.directional;
+    var lambda = (90 - opt.azimuth) * deg2rad;
+    var phi = opt.altitude * deg2rad;
+
+    var x = Math.cos(phi) * Math.cos(lambda),
+        y = Math.cos(phi) * Math.sin(lambda),
+        z = Math.sin(phi);
+
+    var light1 = new THREE.DirectionalLight(0xffffff, 0.5);
+    light1.position.set(x, y, z);
+    parent.add(light1);
+};
+project.buildCustomCamera = function () {
+  var width = 100, height = 100;
+  app.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, -1000, 1000);
+  app.camera.position.set(0, 0, 100);
+};
+app.loadProject(project);
+
+// app.addEventListeners();
+// app.start();
+</script>
+<!--${scripts}-->
+</body>
+</html>

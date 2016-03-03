@@ -26,14 +26,20 @@ N_CANVAS_IMAGE_UPDATED = 11
 N_LAYER_PROPERTIES_CHANGED = 12
 
 # Request/Response data type
+# Q3D -> QGIS -> Q3D
 JS_CREATE_PROJECT = 1       # params: None
 JS_UPDATE_PROJECT = 2       # params: None
 JS_CREATE_LAYER = 3         # params: Layer properties
 JS_UPDATE_LAYER = 4         # params: Layer properties
+JS_START_APP = 8            # params: None
+JS_SAVE_IMAGE = 9           # params: None
 
 JSON_LAYER_LIST = 10        # params: None
 
 BIN_CANVAS_IMAGE = 20       # params: None
+
+# QGIS -> Q3D -> QGIS
+BIN_SCENE_IMAGE = 30        # params: Layer properties
 
 # Response data format
 FORMAT_JS = 0

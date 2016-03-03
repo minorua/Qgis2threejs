@@ -20,7 +20,6 @@
 """
 import ctypes
 import json
-import os
 
 try:
   from PyQt5.QtCore import QBuffer, QByteArray, QObject, QSharedMemory, QTextStream, pyqtSignal
@@ -101,9 +100,6 @@ class SocketInterface(QObject):
         buffer.setData(mem.constData())
         mem.unlock()
         mem.detach()
-
-        if os.name == "nt":
-          ba = ba.replace(b"\0", b"")
 
         for line in ba.data().split(b"\n"):
           self.log(line[:256])
