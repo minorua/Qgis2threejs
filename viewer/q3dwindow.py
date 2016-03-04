@@ -91,6 +91,7 @@ class Q3DWindow(QMainWindow):
 
   def __init__(self, serverName, isViewer=True, parent=None):
     QMainWindow.__init__(self, parent)
+    self.isViewer = isViewer
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
     self.layerManager = LayerManager(self.ui.treeView, self)
@@ -115,7 +116,7 @@ class Q3DWindow(QMainWindow):
     self.show()
 
   def changeEvent(self, event):
-    if event.type() == QEvent.WindowStateChange:
+    if self.isViewer and event.type() == QEvent.WindowStateChange:
       if self.windowState() & Qt.WindowMinimized:
         # pause application
         self.runString("app.pause();")

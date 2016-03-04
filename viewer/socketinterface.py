@@ -101,8 +101,11 @@ class SocketInterface(QObject):
         mem.unlock()
         mem.detach()
 
-        for line in ba.data().split(b"\n"):
-          self.log(line[:256])
+        lines = ba.data().split(b"\n")
+        for line in lines[:10]:
+          self.log(line[:128])
+        if len(lines) > 10:
+          self.log("--Total {0} lines received--".format(len(lines)))
 
         self.notify(self.N_DATA_RECEIVED, {"memoryKey": obj["memoryKey"]})
         self.responseReceived.emit(ba, obj["dataType"])
