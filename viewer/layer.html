@@ -79,6 +79,16 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   var materials = this.materials,
       project = this.project;
 
+  /* added ---> */
+  var tanExtrude = 2;
+  var vEdgeShiftFactor = 0.0002,
+      vEdgeShiftX = -project.width * vEdgeShiftFactor,
+      vEdgeShiftY = -project.width * vEdgeShiftFactor * tanExtrude;
+  var topShiftFactor = 0.5,
+      topShiftFactorX = topShiftFactor,
+      topShiftFactorY = topShiftFactor * tanExtrude;
+  /* <--- */
+
   var createSubObject = function (f, polygon, z) {
     var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
     for (var i = 1, l = polygon.length; i < l; i++) {
@@ -107,8 +117,8 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
 
         var x, y, poly = polygon[i];
         for (var j = 0, k = poly.length; j < k; j++) {
-          x = poly[j][0];
-          y = poly[j][1];
+          x = poly[j][0] + vEdgeShiftX;
+          y = poly[j][1] + vEdgeShiftY;
           geom = new THREE.Geometry();
           geom.vertices.push(new THREE.Vector3(x, y, 0), new THREE.Vector3(x, y, f.h));
           mesh.add(new THREE.Line(geom, lineMaterial));
@@ -144,13 +154,12 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   /* added ---> */
   if (is25D) {
     // add 2.5D effect
-    var sx = 0.5, sy = 1;
     this.objectGroup.traverse(function (obj) {
       if (obj.geometry === undefined) return;
       obj.geometry.vertices.forEach(function (v, i) {
         if (v.z !== 0) {
-          v.x += sx * v.z;
-          v.y += sy * v.z;
+          v.x += v.z * topShiftFactorX;
+          v.y += v.z * topShiftFactorY;
         }
       });
     });
