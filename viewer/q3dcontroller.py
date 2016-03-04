@@ -88,8 +88,6 @@ class Q3DController(QObject):
 
   def processRequest(self, dataType, params):
     if dataType in [q3dconst.JS_CREATE_LAYER, q3dconst.JS_UPDATE_LAYER]:
-      self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())    #TODO: params["useMapCanvasExtent"]
-
       ba = QByteArray()
       buf = QBuffer(ba)
       buf.open(QIODevice.ReadWrite)
@@ -139,8 +137,6 @@ app.queryObjNeedsUpdate = true;
       self.iface.respond(ba, dataType)   # q3dconst.FORMAT_JS
 
     elif dataType in [q3dconst.JS_CREATE_PROJECT, q3dconst.JS_UPDATE_PROJECT]:
-      self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())
-
       ba = QByteArray()
       buf = QBuffer(ba)
       buf.open(QIODevice.ReadWrite)

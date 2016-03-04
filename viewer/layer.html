@@ -40,6 +40,7 @@ Q3D.Utils.loadTextureData = function (imageData) {
 
 function saveCanvasImage(width, height) {
   console.log("saveCanvasImage: " + width + ", " + height);
+  console.log("origin: x=" + project.origin.x + ", y=" + project.origin.y + ", rotation: " + project.rotation);
   var canvas = app.renderer.domElement;
   canvas.width = width;
   canvas.height = height;

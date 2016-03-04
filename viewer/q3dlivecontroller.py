@@ -44,6 +44,8 @@ class Q3DLiveController(Q3DController):
     logMessage("N_CANVAS_IMAGE_UPDATED notification sent")
 
   def canvasExtentChanged(self):
+    # update extent of export settings
+    self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())
     self.iface.notify(q3dconst.N_CANVAS_EXTENT_CHANGED)
     logMessage("N_CANVAS_EXTENT_CHANGED notification sent")
 

@@ -135,13 +135,18 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
 
     map2pixel = renderContext.mapToPixel()
     mupp = map2pixel.mapUnitsPerPixel()
+    rotation = map2pixel.mapRotation()    #if self.plugin.apiChanged27 else 0
     painter = renderContext.painter()
     viewport = painter.viewport()
-    rotation = map2pixel.mapRotation()    # if self.plugin.apiChanged27 else 0
-    mapExtent = RotatedRect(extent.center(), mupp * viewport.width(), mupp * viewport.height(), rotation)
-    rect = mapExtent.unrotatedRect()
 
-    #self.controller.exportSettings.baseExtent = mapExtent    #
+    cx, cy = 0.5 * viewport.width(), 0.5 * viewport.height()
+    center = map2pixel.toMapCoordinatesF(cx, cy)      # extent.center() is not appropriate for print
+    mapExtent = RotatedRect(center, mupp * viewport.width(), mupp * viewport.height(), rotation)
+    mapSettings = mapExtent.toMapSettings(self.layer.iface.mapCanvas().mapSettings())
+    mapSettings.setOutputSize(viewport.size())
+    self.controller.exportSettings.setMapSettings(mapSettings)
+
+    rect = mapExtent.unrotatedRect()
     params = {
       "width": viewport.width(),
       "height": viewport.height(),
@@ -260,7 +265,6 @@ class Qgis2threejsLayer(QgsPluginLayer):
       return True
 
     painter = renderContext.painter()
-    #viewport = painter.viewport()
     #painter.eraseRect(QRect(0, 0, viewport.width(), viewport.height()))
     painter.drawImage(0, 0, image)
     painter.drawText(0, 10, "Qgis2threejs")
