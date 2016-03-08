@@ -19,6 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from PyQt4.QtCore import QObject
 from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsMapLayerRegistry, QgsPoint
 
 try:
@@ -37,10 +38,14 @@ from quadtree import DEMQuadList
 from rotatedrect import RotatedRect
 
 
-class ThreejsJSWriter:
+class ThreejsJSWriter(QObject):
+
+  #TODO: signals
+  # progress
 
   # device: an instance of a subclass of QIODevice (QFile, QBuffer, etc.) or a file object
-  def __init__(self, device, settings, objectTypeManager):
+  def __init__(self, device, settings, objectTypeManager, parent=None):
+    QObject.__init__(self, parent)
     self.setDevice(device)
     self.settings = settings
     self.demProvider = settings.demProvider()

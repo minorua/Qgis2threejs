@@ -162,6 +162,7 @@ class Q3DView(QWebView):
   def runString(self, string):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     self.jsfile.write("//// runString ({0})\n{1}\n".format(now, string))
+    string += "\napp.render();"   #TODO: THIS IS FOR DEBUG
     return self._page.mainFrame().evaluateJavaScript(string)
 
   def notified(self, code, params):

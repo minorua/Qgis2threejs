@@ -27,7 +27,7 @@ from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayer, Qg
 from qgis.gui import QgsMessageBar
 
 import q3dconst
-from q3dcontroller import Q3DController
+from q3dcontroller import Q3DController, Writer
 from Qgis2threejs.rotatedrect import RotatedRect
 
 debug_mode = 1
@@ -35,7 +35,7 @@ debug_mode = 1
 
 def logMessage(message):
   try:
-    QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+    QgsMessageLog.logMessage(u"{0} ({1})".format(unicode(message), str(threading.current_thread())), "Qgis2threejs")
   except:
     pass
 
@@ -49,11 +49,15 @@ class Q3DLayerController(Q3DController):
     self.renderedImage = None
     self.layers = []
 
+  def createWorker(self):
+    return WriterL(self)
+
   def setLayers(self, layers):
     self.layers = layers
 
   def responseReceived(self, data, dataType):
     if dataType == q3dconst.BIN_SCENE_IMAGE:
+      logMessage("BIN_SCENE_IMAGE received!")
       self.renderedImage = QImage()
       self.renderedImage.loadFromData(data)
       self.renderCompleted.emit()
@@ -61,10 +65,20 @@ class Q3DLayerController(Q3DController):
     else:
       Q3DController.responseReceived(self, data, dataType)
 
-  def processRequest(self, dataType, params):
+  def refreshMapCanvas(self):
+    self.qgis_iface.mapCanvas().refresh()    #TODO: use timer?
+
+
+class WriterL(Writer):
+
+  def run(self, kargs):
+    dataType = kargs["dataType"]
+    params = kargs["params"]
+    logMessage("WriterL.run(): {0}".format(dataType))
+
     if dataType == q3dconst.JSON_LAYER_LIST:
       layers = []
-      for layer in self.layers:
+      for layer in self._parent.layers:
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
           geomType = {QGis.Point: q3dconst.TYPE_POINT,
@@ -98,11 +112,14 @@ class Q3DLayerController(Q3DController):
                          "visible": True,
                          "properties": properties})
 
-      self.iface.respond(QByteArray(json.dumps(layers)), dataType)    # q3dconst.FORMAT_JSON
-      self.qgis_iface.mapCanvas().refresh()
+      data = QByteArray(json.dumps(layers))     # q3dconst.FORMAT_JSON
+      self._parent.refreshMapCanvas()
 
     else:
-      Q3DController.processRequest(self, dataType, params)
+      data = Writer.run(self, kargs)
+
+    logMessage("WriterL.run() finished: {0}".format(dataType))
+    return data
 
 
 class Qgis2threejsRenderer(QObject):
@@ -235,6 +252,8 @@ class Qgis2threejsLayer(QgsPluginLayer):
   def draw(self, renderContext):
     self.logT("Qgis2threejsLayer.draw")
 
+    painter = renderContext.painter()
+
     # create a QEventLoop object that belongs to the current worker thread
     eventLoop = QEventLoop()
     self.renderer.renderCompleted.connect(eventLoop.quit)
@@ -254,6 +273,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
     while tick < timeoutTick:
       # run event loop for 0.5 seconds at maximum
       eventLoop.exec_()
+      painter.drawText(0, 10, "Qgis2threejs" + "." * tick)
       # break if rendering has been finished
       if self.renderer.renderedImage() or renderContext.renderingStopped():   #TODO: isRendered
         break
@@ -264,10 +284,8 @@ class Qgis2threejsLayer(QgsPluginLayer):
     if image is None:
       return True
 
-    painter = renderContext.painter()
     #painter.eraseRect(QRect(0, 0, viewport.width(), viewport.height()))
     painter.drawImage(0, 0, image)
-    painter.drawText(0, 10, "Qgis2threejs")
     return True
 
   def readXml(self, node):

@@ -66,12 +66,10 @@ class SocketInterface(QObject):
     data = stream.readAll()
 
     for json_str in data.split("\n")[:-1]:
-      self.log("--Message Received--")
-      self.log(json_str)
-
       obj = json.loads(json_str)
       msgType = obj["type"]
       if msgType == self.TYPE_NOTIFICATION:
+        self.log("Notification Received. Code: {0}".format(obj["code"]))
         if obj["code"] == self.N_DATA_RECEIVED:
           memKey = obj["params"]["memoryKey"]
           mem = self._mem[memKey]
@@ -83,9 +81,11 @@ class SocketInterface(QObject):
           self.notified.emit(obj["code"], obj["params"])
 
       elif msgType == self.TYPE_REQUEST:
+        self.log("Request Received. Data Type: {0}".format(obj["dataType"]))
         self.requestReceived.emit(obj["dataType"], obj["params"])
 
       elif msgType == self.TYPE_RESPONSE:
+        self.log("Response Received. Data Type: {0}".format(obj["dataType"]))
         mem = QSharedMemory(obj["memoryKey"])
         if not mem.attach(QSharedMemory.ReadOnly):
           self.log("Cannot attach this process to the shared memory segment: {0}".format(mem.errorString()))
@@ -102,10 +102,10 @@ class SocketInterface(QObject):
         mem.detach()
 
         lines = ba.data().split(b"\n")
-        for line in lines[:10]:
+        for line in lines[:5]:
           self.log(line[:128])
-        if len(lines) > 10:
-          self.log("--Total {0} lines received--".format(len(lines)))
+        if len(lines) > 5:
+          self.log("--Total {0} Lines Received--".format(len(lines)))
 
         self.notify(self.N_DATA_RECEIVED, {"memoryKey": obj["memoryKey"]})
         self.responseReceived.emit(ba, obj["dataType"])
@@ -113,6 +113,7 @@ class SocketInterface(QObject):
   def notify(self, code, params=None):
     if not self.conn:
       return False
+    self.log("Sending Notification. Code: {0}".format(code))
     obj = {"type": self.TYPE_NOTIFICATION, "code": code, "params": params or {}}
     self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
     self.conn.flush()
@@ -121,6 +122,7 @@ class SocketInterface(QObject):
   def request(self, dataType, params=None):
     if not self.conn:
       return False
+    self.log("Sending Request. Data Type: {0}".format(dataType))
     obj = {"type": self.TYPE_REQUEST, "dataType": dataType, "params": params or {}}
     self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
     self.conn.flush()
@@ -129,6 +131,7 @@ class SocketInterface(QObject):
   def respond(self, byteArray, dataType):
     if not self.conn:
       return False
+    self.log("Sending Response. Data Type: {0}".format(dataType))
     obj = {"type": self.TYPE_RESPONSE, "dataType": dataType}
     memKey = self.nextMemoryKey()
     obj["memoryKey"] = memKey
