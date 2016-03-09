@@ -114,12 +114,12 @@ class WriterL(Writer):
 
       data = QByteArray(json.dumps(layers))     # q3dconst.FORMAT_JSON
       self._parent.refreshMapCanvas()
+      self.dataReady.emit(self.jobId, data, kargs)
 
     else:
-      data = Writer.run(self, kargs)
+      Writer.run(self, kargs)
 
     logMessage("WriterL.run() finished: {0}".format(dataType))
-    return data
 
 
 class Qgis2threejsRenderer(QObject):

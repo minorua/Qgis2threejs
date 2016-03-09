@@ -63,7 +63,7 @@ class ThreejsJSWriter(QObject):
     self.device = device
     self.write = device.write if device else None
 
-  def writeProject(self):
+  def writeProject(self, update=False):
     # write project information
     self.write(u"// Qgis2threejs Project\n")
     settings = self.settings
@@ -82,19 +82,26 @@ class ThreejsJSWriter(QObject):
             "zShift": mapTo3d.verticalShift,
             "wgs84Center": {"lat": wgs84Center.y(), "lon": wgs84Center.x()}}
 
-    self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
+    if update:
+      self.write(u"project.update({0});\n".format(pyobj2js(args)))
+    else:
+      self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
 
-  def writeLayer(self, obj, fieldNames=None):
+  def writeLayer(self, obj, fieldNames=None, jsLayerId=None):
     #TODO: DEMLayerWriter/VectorLayerWriter (subclasses of LayerWriter)
-    self.currentLayerIndex = self.layerCount
+    self.currentLayerIndex = self.layerCount    #TODO: self.currentLayerIndex not used
     type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
     self.write(u"\n// Layer {0}\n".format(self.currentLayerIndex))
-    self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
-    # del obj["type"]
+
+    if jsLayerId is None:
+      self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
+      self.layerCount += 1
+      # del obj["type"]
+    else:
+      self.write(u"lyr = project.setLayer({0}, new Q3D.{1}Layer({2}));\n".format(jsLayerId, type2classprefix[obj["type"]], pyobj2js(obj)))
 
     if fieldNames is not None:
       self.write(u"lyr.a = {0};\n".format(pyobj2js(fieldNames)))
-    self.layerCount += 1
     self.currentFeatureIndex = -1
     self.attrs = []
     return self.currentLayerIndex

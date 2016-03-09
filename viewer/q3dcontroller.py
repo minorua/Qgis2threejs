@@ -19,6 +19,7 @@
  ***************************************************************************/
 """
 import json
+import time
 from PyQt4.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
 from qgis.core import QGis, QgsMapLayer, QgsMessageLog
 
@@ -43,31 +44,122 @@ class Buffer:
     self.write = self.buf.write
 
 
+class LiveThreejsJSWriter(ThreejsJSWriter):
+
+  dataReady = pyqtSignal("QByteArray")
+
+  def __init__(self, settings, objectTypeManager, parent=None):
+    ThreejsJSWriter.__init__(self, None, settings, objectTypeManager, parent)
+    self.write = self._write
+    self.clearBuffer()
+
+    self.writtenTick = 0
+    self.writtenTime = None
+
+  def clearBuffer(self):
+    self.buf = Buffer()
+
+  def _write(self, data):
+    self.buf.write(data)
+    self.writtenTick += 1
+
+    if self.writtenTime is None:
+      self.writtenTime = time.time()
+
+    elif self.writtenTick > 10:
+      if time.time() - self.writtenTime > 2:    # 2 secs
+        self.flush()
+      else:
+        self.writtenTick = 0
+
+  def flush(self):
+    if self.buf.data.size() > 0:
+      self.dataReady.emit(self.buf.data)
+      self.clearBuffer()
+
+    self.writtenTick = 0
+    self.writtenTime = None
+
+  def createProject(self, _params):
+    self.writeProject()
+    self.buf.write("app.loadProject(project);")
+    self.flush()
+
+  def updateProject(self, _params):
+    self.writeProject(update=True)
+    self.flush()
+
+  def createLayer(self, layer):
+    self._writeLayer(layer)
+    self.flush()
+
+  def updateLayer(self, layer):
+    self.buf.write("lyr = undefined;\n")
+    self._writeLayer(layer, layer["jsLayerId"])
+    self.flush()
+
+  def _writeLayer(self, params, jsLayerId=None):
+    self.jsLayerId = jsLayerId
+
+    geomType = params["geomType"]
+    properties = params["properties"]
+    if geomType == q3dconst.TYPE_DEM:
+      properties["comboBox_DEMLayer"] = params["layerId"]
+      writeSimpleDEM(self, properties)
+      self.writeImages()
+    # elif geomType == q3dconst.TYPE_IMAGE:
+    #  pass
+    else:
+      writeVector(self, params["layerId"], properties)
+
+    if jsLayerId is None:
+      self.buf.write("""
+lyr.pyLayerIndex = {0};
+pyObj.setLayerId({0}, lyr.index);
+""".format(params["id"]))
+
+    self.buf.write("""
+lyr.initMaterials();
+lyr.build(app.scene);
+lyr.objectGroup.updateMatrixWorld();
+app.queryObjNeedsUpdate = true;
+""")
+
+  def writeLayer(self, obj, fieldNames=None, jsLayerId=None):
+    # pass self.jsLayerId
+    return ThreejsJSWriter.writeLayer(self, obj, fieldNames, self.jsLayerId)
+
+
 class Worker(QObject):
 
   # signals
   startJob = pyqtSignal(int, dict)                    # jobId, kargs
-  jobFinished = pyqtSignal(int, "QByteArray", dict)   # jodId, data, kargs
+  jobFinished = pyqtSignal(int, dict)                 # jodId, kargs
   jobCancelled = pyqtSignal(int)                      # jodId
+  dataReady = pyqtSignal(int, "QByteArray", dict)     # jodId, data, kargs
 
   def __init__(self):
     QObject.__init__(self)
     self.isActive = False
     self.jobId = -1
+    self.kargs = {}
 
   def startJobSlot(self, jobId, kargs):
     self.jobId = jobId
+    self.kargs = kargs
     self.isActive = True
 
-    data = self.run(kargs)
+    self.run(kargs)
 
     self.jobId = -1
+    self.kargs = {}
     self.isActive = False
-    self.jobFinished.emit(jobId, data, kargs)
+    self.jobFinished.emit(jobId, kargs)
 
   def cancelJob(self):
     jobId = self.jobId
     self.jobId = -1
+    self.kargs = {}
     self.isActive = False
 
     #TODO: abort the execution
@@ -75,8 +167,9 @@ class Worker(QObject):
     if jobId != -1:
       self.jobCancelled.emit(jobId)
 
+  # should be overridden
   def run(self, kargs):
-    return QByteArray()
+    pass
 
 
 class Writer(Worker):
@@ -89,10 +182,61 @@ class Writer(Worker):
     self.pluginManager = parent.pluginManager
 
     # writing machine
-    self.writer = ThreejsJSWriter(None, parent.exportSettings, parent.objectTypeManager)   #multiple_files=bool(settings.exportMode == ExportSettings.PLAIN_MULTI_RES))
+    self.writer = LiveThreejsJSWriter(parent.exportSettings, parent.objectTypeManager, self)
+    self.writer.dataReady.connect(self.writerDataReady)
+
+    self.dataType = -1
+
+  def writerDataReady(self, data):
+    self.dataReady.emit(self.jobId, data, {"dataType": self.dataType})
+    # directly passing self.kargs sometimes causes key error. self.kargs happens to be cleared by unknown reason.
 
   def run(self, kargs):
-    return processRequest(self, kargs["dataType"], kargs["params"])
+    dataType = self.dataType = kargs["dataType"]
+    params = kargs["params"]
+    func = {q3dconst.JS_CREATE_LAYER: self.writer.createLayer,
+            q3dconst.JS_UPDATE_LAYER: self.writer.updateLayer,
+            q3dconst.JS_CREATE_PROJECT: self.writer.createProject,
+            q3dconst.JS_UPDATE_PROJECT: self.writer.updateProject}.get(dataType)
+
+    if func:
+      func(params)
+      return
+
+    data = ""
+    if dataType == q3dconst.JS_SAVE_IMAGE:
+      js = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
+      data = QByteArray(js)
+
+    elif dataType == q3dconst.JS_START_APP:
+      js = "if (!app.running) app.start();"
+      data = QByteArray(js)
+
+    elif dataType == q3dconst.JSON_LAYER_LIST:
+      layers = []
+      for plugin in self.pluginManager.demProviderPlugins():
+        layers.append({"layerId": "plugin:" + plugin.providerId(), "name": plugin.providerName(), "geomType": q3dconst.TYPE_DEM})
+
+      for layer in self.qgis_iface.legendInterface().layers():
+        layerType = layer.type()
+        if layerType == QgsMapLayer.VectorLayer:
+          geomType = {QGis.Point: q3dconst.TYPE_POINT,
+                      QGis.Line: q3dconst.TYPE_LINESTRING,
+                      QGis.Polygon: q3dconst.TYPE_POLYGON,
+                      QGis.UnknownGeometry: None,
+                      QGis.NoGeometry: None}[layer.geometryType()]
+        elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+          geomType = q3dconst.TYPE_DEM
+        else:
+          geomType = q3dconst.TYPE_IMAGE
+          continue
+
+        if geomType is not None:
+          layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType})
+
+      data = QByteArray(json.dumps(layers))       # q3dconst.FORMAT_JSON
+
+    self.dataReady.emit(self.jobId, data, kargs)
 
 
 class WorkerManager(QObject):
@@ -110,7 +254,7 @@ class WorkerManager(QObject):
 
     self.lastJobId = 0
 
-  # should be override
+  # should be overridden
   def createWorker(self):
     return None
 
@@ -134,6 +278,7 @@ class WorkerManager(QObject):
     worker.moveToThread(thread)
     worker.startJob.connect(worker.startJobSlot)
     worker.jobFinished.connect(self.jobFinished)
+    worker.dataReady.connect(self.dataReady)
     thread.finished.connect(worker.deleteLater)
     thread.start()
 
@@ -148,12 +293,16 @@ class WorkerManager(QObject):
     self.lastJobId += 1
     return self.lastJobId
 
-  def jobFinished(self, jobId, data, kargs):
+  def jobFinished(self, jobId, kargs):
     self.activeWorkerCount -= 1
     if self.isWorkingExclusively:
       assert self.activeWorkerCount == 0
     self.isWorkingExclusively = False
     self.processNextRequest()
+
+  # should be overridden
+  def dataReady(self, jobId, data, kargs):
+    pass
 
   def request(self, dataType, params, exclusive=False):
     jobId = self.nextJobId()
@@ -214,9 +363,12 @@ class Q3DController(WorkerManager):
   def createWorker(self):
     return Writer(self)
 
-  def jobFinished(self, jobId, data, kargs):
-    WorkerManager.jobFinished(self, jobId, data, kargs)
-    self.iface.respond(data, kargs["dataType"])
+  def dataReady(self, jobId, data, kargs):
+    logMessage("dataReady()")
+    try:
+      self.iface.respond(data, kargs["dataType"])
+    except:
+      logMessage("ERROR")
 
   def notified(self, code, params):
     if code == q3dconst.N_LAYER_DOUBLECLICKED:
@@ -235,97 +387,7 @@ def processRequest(worker, dataType, params):
   pluginManager = worker.pluginManager
   writer = worker.writer
 
-  if dataType in [q3dconst.JS_CREATE_LAYER, q3dconst.JS_UPDATE_LAYER]:
-    buf = Buffer()
-    writer.setDevice(buf)
-
-    geomType = params["geomType"]
-    properties = params["properties"]
-    properties["comboBox_DEMLayer"] = params["layerId"]
-
-    if dataType == q3dconst.JS_CREATE_LAYER:
-      if geomType == q3dconst.TYPE_DEM:
-        writeSimpleDEM(writer, properties)
-        writer.writeImages()
-      elif geomType == q3dconst.TYPE_IMAGE:
-        pass
-      else:
-        writeVector(writer, params["layerId"], properties)
-
-      buf.write("""
-lyr.pyLayerIndex = {0};
-pyObj.setLayerId({0}, lyr.index);
-
-lyr.initMaterials();
-lyr.build(app.scene);
-lyr.objectGroup.updateMatrixWorld();
-app.queryObjNeedsUpdate = true;
-""".format(params["id"]))
-
-    else:   # q3dconst.JS_UPDATE_LAYER
-      buf.write("lyr = undefined;\n")
-      if geomType == q3dconst.TYPE_DEM:
-        writeSimpleDEM(writer, properties)   #TODO: option to use setLayer() instead of addLayer()
-        writer.writeImages()
-      #elif geomType == q3dconst.TYPE_IMAGE:
-      #  pass
-      else:
-        writeVector(writer, params["layerId"], properties)   #TODO: option to use setLayer() instead of addLayer()
-
-      buf.write("""
-lyr.initMaterials();
-lyr.build(app.scene);
-lyr.objectGroup.updateMatrixWorld();
-app.queryObjNeedsUpdate = true;
-""")
-      buf.data.replace("lyr = project.addLayer(", "lyr = project.setLayer({0}, ".format(params["jsLayerId"]))
-
-    return buf.data      # q3dconst.FORMAT_JS
-
-  elif dataType in [q3dconst.JS_CREATE_PROJECT, q3dconst.JS_UPDATE_PROJECT]:
-    buf = Buffer()
-    writer.setDevice(buf)
-    writer.writeProject()
-
-    if dataType == q3dconst.JS_CREATE_PROJECT:
-      buf.write("app.loadProject(project);")
-    else:
-      buf.data.replace("project = new Q3D.Project", "project.update")
-    return buf.data         # q3dconst.FORMAT_JS
-
-  elif dataType == q3dconst.JS_SAVE_IMAGE:
-    js = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
-    return QByteArray(js)
-
-  elif dataType == q3dconst.JS_START_APP:
-    js = "if (!app.running) app.start();"
-    return QByteArray(js)
-
-  elif dataType == q3dconst.JSON_LAYER_LIST:
-    layers = []
-    for plugin in pluginManager.demProviderPlugins():
-      layers.append({"layerId": "plugin:" + plugin.providerId(), "name": plugin.providerName(), "geomType": q3dconst.TYPE_DEM})
-
-    for layer in qgis_iface.legendInterface().layers():
-      layerType = layer.type()
-      if layerType == QgsMapLayer.VectorLayer:
-        geomType = {QGis.Point: q3dconst.TYPE_POINT,
-                    QGis.Line: q3dconst.TYPE_LINESTRING,
-                    QGis.Polygon: q3dconst.TYPE_POLYGON,
-                    QGis.UnknownGeometry: None,
-                    QGis.NoGeometry: None}[layer.geometryType()]
-      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        geomType = q3dconst.TYPE_DEM
-      else:
-        geomType = q3dconst.TYPE_IMAGE
-        continue
-
-      if geomType is not None:
-        layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType})
-
-    return QByteArray(json.dumps(layers))       # q3dconst.FORMAT_JSON
-
-  elif dataType == q3dconst.BIN_CANVAS_IMAGE:
+  if dataType == q3dconst.BIN_CANVAS_IMAGE:
     buf = Buffer()
     qgis_iface.mapCanvas().map().contentImage().save(buf, "PNG")
     #TODO: image.bits()?
