@@ -1733,7 +1733,10 @@ Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
 Q3D.LineLayer.prototype.build = function (parent, startIndex) {
   var materials = this.materials;
-  if (this.objType == "Line") {
+  if (this.createObject !== undefined) {
+    var createObject = this.createObject;
+  }
+  else if (this.objType == "Line") {
     var createObject = function (f, line) {
       var geom = new THREE.Geometry(), pt;
       for (var i = 0, l = line.length; i < l; i++) {
@@ -1911,6 +1914,7 @@ Q3D.LineLayer.prototype.build = function (parent, startIndex) {
     }
   }
 
+  this.createObject = createObject;
   if (parent) parent.add(this.objectGroup);
 };
 
@@ -1939,7 +1943,10 @@ Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
   var materials = this.materials,
       project = this.project;
 
-  if (this.objType == "Extruded") {
+  if (this.createObject !== undefined) {
+    var createObject = this.createObject;
+  }
+  else if (this.objType == "Extruded") {
     var createSubObject = function (f, polygon, z) {
       var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
       for (var i = 1, l = polygon.length; i < l; i++) {
@@ -2025,6 +2032,7 @@ Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
     f.objs.push(obj);
   }
 
+  this.createObject = createObject;
   if (parent) parent.add(this.objectGroup);
 };
 
