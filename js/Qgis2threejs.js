@@ -1198,7 +1198,7 @@ Q3D.MapLayer = function (params) {
     this[k] = params[k];
   }
 
-  // this.materials = undefined;
+  this.materials = [];
   this.objectGroup = new THREE.Group();
   this.queryableObjects = [];
 
@@ -1224,10 +1224,14 @@ Q3D.MapLayer.prototype = {
 
   initMaterials: function () {
     this.materials = [];
-    if (this.m.length == 0) return;
+    this.createMaterials();
+  },
+
+  createMaterials: function () {
+    if (this.materials.length >= this.m.length) return;
 
     var mat, sum_opacity = 0;
-    for (var i = 0, l = this.m.length; i < l; i++) {
+    for (var i = this.materials.length, l = this.m.length; i < l; i++) {
       var m = this.m[i];
 
       var opt = {};
@@ -1271,6 +1275,7 @@ Q3D.MapLayer.prototype = {
     }
 
     // layer opacity is the average opacity of materials
+    // TODO: in case of 3DViewer
     this.opacity = sum_opacity / this.materials.length;
   },
 
