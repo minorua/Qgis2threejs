@@ -272,6 +272,7 @@ class MaterialManager(DataManager):
 
   def __init__(self):
     DataManager.__init__(self)
+    self.writtenCount = 0
 
   def _indexCol(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
@@ -316,7 +317,7 @@ class MaterialManager(DataManager):
     return self._index(mat)
 
   def write(self, f, imageManager):
-    if not len(self._list):
+    if len(self._list) <= self.writtenCount:
       return
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
@@ -326,7 +327,7 @@ class MaterialManager(DataManager):
                       self.LAYER_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
-    for index, mat in enumerate(self._list):
+    for mat in self._list[self.writtenCount:]:
       m = {"type": toMaterialType.get(mat[0], mat[0])}
 
       transp_background = False
@@ -364,7 +365,9 @@ class MaterialManager(DataManager):
       if mat[3]:
         m["ds"] = 1
 
+      index = self.writtenCount
       f.write(u"lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
+      self.writtenCount += 1
 
 
 class ModelManager(DataManager):

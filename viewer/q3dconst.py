@@ -41,6 +41,10 @@ BIN_CANVAS_IMAGE = 20       # params: None
 # QGIS -> Q3D -> QGIS
 BIN_SCENE_IMAGE = 30        # params: Layer properties
 
+# Responce only
+# Q3D -> QGIS
+BIN_INTERMEDIATE_IMAGE = 31
+
 # Response data format
 FORMAT_JS = 0
 FORMAT_JSON = 1

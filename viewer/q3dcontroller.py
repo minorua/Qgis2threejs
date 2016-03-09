@@ -27,6 +27,7 @@ import q3dconst
 from socketserver import SocketServer
 from Qgis2threejs.exportsettings import ExportSettings
 from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
+from Qgis2threejs.qgis2threejstools import pyobj2js
 
 def logMessage(message):
   try:
@@ -52,6 +53,9 @@ class LiveThreejsJSWriter(ThreejsJSWriter):
     ThreejsJSWriter.__init__(self, None, settings, objectTypeManager, parent)
     self.write = self._write
     self.clearBuffer()
+
+    self.layer = None
+    self.jsLayerId = None
 
     self.writtenTick = 0
     self.writtenTime = None
@@ -125,9 +129,25 @@ lyr.objectGroup.updateMatrixWorld();
 app.queryObjNeedsUpdate = true;
 """)
 
-  def writeLayer(self, obj, fieldNames=None, jsLayerId=None):
+  def writeLayer(self, layer, fieldNames=None, jsLayerId=None):
     # pass self.jsLayerId
-    return ThreejsJSWriter.writeLayer(self, obj, fieldNames, self.jsLayerId)
+    self.layer = layer
+    return ThreejsJSWriter.writeLayer(self, layer, fieldNames, self.jsLayerId)
+
+  def writeFeature(self, f):
+    if self.jsLayerId is None:
+      self.write(u"// LiveThreejsJSWriter: feature not written because jsLayerId is None. # TODO\n")
+    else:
+      manager = self.layer.materialManager
+      writtenCount = manager.writtenCount
+      manager.write(self, self.imageManager)
+      if manager.writtenCount > writtenCount:
+        self.write(u"createMaterials({0});\n".format(self.jsLayerId))
+
+      #TODO: self.imageManager.write(self)
+
+      self.currentFeatureIndex += 1
+      self.write(u"addFeat({0}, {1}); //{2}\n".format(self.jsLayerId, pyobj2js(f), self.currentFeatureIndex))
 
 
 class Worker(QObject):
@@ -364,11 +384,7 @@ class Q3DController(WorkerManager):
     return Writer(self)
 
   def dataReady(self, jobId, data, kargs):
-    logMessage("dataReady()")
-    try:
-      self.iface.respond(data, kargs["dataType"])
-    except:
-      logMessage("ERROR")
+    self.iface.respond(data, kargs["dataType"])
 
   def notified(self, code, params):
     if code == q3dconst.N_LAYER_DOUBLECLICKED:

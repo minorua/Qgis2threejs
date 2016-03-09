@@ -40,3 +40,16 @@ Q3D.Project.prototype.setLayer = function (index, layer) {
   app.queryObjNeedsUpdate = true;
   return layer;
 };
+
+function addFeat(layerIndex, f) {
+  var layer = project.layers[layerIndex],
+      fid = layer.f.length;
+  layer.f.push(f);
+
+  if (fid) layer.build(undefined, fid);
+  else layer.build(app.scene);
+}
+
+function createMaterials(layerIndex) {
+  project.layers[layerIndex].createMaterials();
+}

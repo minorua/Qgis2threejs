@@ -40,7 +40,7 @@ def logMessage(message):
     pass
 
 
-class Q3DLayerController(Q3DController):
+class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> QObject
 
   renderCompleted = pyqtSignal()
 
@@ -52,6 +52,11 @@ class Q3DLayerController(Q3DController):
   def createWorker(self):
     return WriterL(self)
 
+  def dataReady(self, jobId, data, kargs):
+    self.iface.respond(data, kargs["dataType"])
+    if kargs["dataType"] == q3dconst.JS_UPDATE_LAYER:
+      self.iface.request(q3dconst.BIN_INTERMEDIATE_IMAGE, {})
+
   def setLayers(self, layers):
     self.layers = layers
 
@@ -61,6 +66,11 @@ class Q3DLayerController(Q3DController):
       self.renderedImage = QImage()
       self.renderedImage.loadFromData(data)
       self.renderCompleted.emit()
+
+    elif dataType == q3dconst.BIN_INTERMEDIATE_IMAGE:
+      logMessage("BIN_INTERMEDIATE_IMAGE received!")
+      self.renderedImage = QImage()
+      self.renderedImage.loadFromData(data)
 
     else:
       Q3DController.responseReceived(self, data, dataType)
@@ -126,6 +136,10 @@ class Qgis2threejsRenderer(QObject):
 
   renderCompleted = pyqtSignal()
 
+  def __init__(self, parent=None):
+    QObject.__init__(self, parent)
+    self.isRendering = False
+
   def renderedImage(self):
     return self.controller.renderedImage
 
@@ -138,7 +152,11 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
   def setup(self, layer, serverName):
     self.layer = layer
     self.controller = Q3DLayerController(layer.iface, layer.objectTypeManager, layer.pluginManager, serverName)
-    self.controller.renderCompleted.connect(self.renderCompleted)
+    self.controller.renderCompleted.connect(self._renderCompleted)
+
+  def _renderCompleted(self):
+    self.isRendering = False
+    self.renderCompleted.emit()
 
   def setLayers(self, layers):
     self.controller.setLayers(layers)
@@ -170,6 +188,7 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
       "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
       "rotation": rotation
     }
+    self.isRendering = True
     self.controller.iface.request(q3dconst.BIN_SCENE_IMAGE, params)
 
 
@@ -270,13 +289,20 @@ class Qgis2threejsLayer(QgsPluginLayer):
     interval = 500
     timeoutTick = timeout * 1000 / interval
     watchTimer.start(interval)
+    lastImage = None
     while tick < timeoutTick:
+      painter.drawText(0, 10, "Qgis2threejs" + "." * tick)
+
       # run event loop for 0.5 seconds at maximum
       eventLoop.exec_()
-      painter.drawText(0, 10, "Qgis2threejs" + "." * tick)
-      # break if rendering has been finished
-      if self.renderer.renderedImage() or renderContext.renderingStopped():   #TODO: isRendered
+      if not self.renderer.isRendering or renderContext.renderingStopped():
         break
+
+      image = self.renderer.renderedImage()
+      if image and image != lastImage:
+        painter.drawImage(0, 0, image)
+        lastImage = image
+
       tick += 1
     watchTimer.stop()
 

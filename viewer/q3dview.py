@@ -55,9 +55,9 @@ class Bridge(QObject):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
-  @pyqtSlot(str)
-  def saveImage(self, dataUrl):
-    self._parent.saveImage(dataUrl)
+  @pyqtSlot(str, bool)
+  def saveImage(self, dataUrl, intermediate):
+    self._parent.saveImage(dataUrl, intermediate)
 
   @pyqtSlot(str)
   def mouseUp(self, coords):
@@ -84,7 +84,7 @@ class Q3DView(QWebView):
     QWebView.__init__(self, parent)
 
     self.requestQueue = []
-    self._processing = False
+    self.isProcessingExclusively = False
 
   def setup(self, wnd, layerManager, serverName="Qgis2threejs", isViewer=True):
     self.wnd = wnd
@@ -184,7 +184,7 @@ class Q3DView(QWebView):
   def requestReceived(self, dataType, params):
     #TODO: remove any duplicate requests in requestQueue if the request is sent to update 3d model (e.g. JS_UPDATE_LAYER).
     self.requestQueue.append([dataType, params])
-    if not self._processing:
+    if not self.isProcessingExclusively:
       self.processNextRequest()
 
   def responseReceived(self, data, dataType):
@@ -225,16 +225,15 @@ class Q3DView(QWebView):
           self.iface.request(q3dconst.JS_CREATE_LAYER, layer)
 
   def processNextRequest(self):
-    if self._processing or len(self.requestQueue) == 0:
+    if self.isProcessingExclusively or len(self.requestQueue) == 0:
       return
     dataType, params = self.requestQueue.pop(0)
-    self._processing = True
-    if not self.processRequest(dataType, params):
-      self._processing = False
-      self.processNextRequest()
+    self.processRequest(dataType, params)
+    self.processNextRequest()
 
   def processRequest(self, dataType, params):
     if dataType == q3dconst.BIN_SCENE_IMAGE:
+      self._imageSize = {"width": params["width"], "height": params["height"]}
       extent = params["baseExtent"]
       js = """project.update({{
 baseExtent: [{}, {}, {}, {}],
@@ -247,13 +246,13 @@ rotation: {}
       for layer in self.layerManager.layers:
         if layer["visible"] and layer["jsLayerId"] is not None:
           self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
-      self.iface.request(q3dconst.JS_SAVE_IMAGE, {"width": params["width"], "height": params["height"]})
-      return True
-    return False
+      self.iface.request(q3dconst.JS_SAVE_IMAGE, self._imageSize)
 
-  def saveImage(self, dataUrl):
+    elif dataType == q3dconst.BIN_INTERMEDIATE_IMAGE:
+      width, height = self._imageSize["width"], self._imageSize["height"]
+      self.runString("saveCanvasImage({0}, {1}, true);".format(width, height))
+
+  def saveImage(self, dataUrl, intermediate=False):
     ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
-    self.iface.respond(ba, q3dconst.BIN_SCENE_IMAGE)    # q3dconst.FORMAT_BINARY
-
-    self._processing = False
-    self.processNextRequest()
+    dataType = q3dconst.BIN_INTERMEDIATE_IMAGE if intermediate else q3dconst.BIN_SCENE_IMAGE
+    self.iface.respond(ba, dataType)    # q3dconst.FORMAT_BINARY

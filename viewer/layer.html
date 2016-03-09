@@ -38,8 +38,8 @@ Q3D.Utils.loadTextureData = function (imageData) {
   return texture;
 };
 
-function saveCanvasImage(width, height) {
-  console.log("saveCanvasImage: " + width + ", " + height);
+function saveCanvasImage(width, height, intermediate) {
+  console.log("saveCanvasImage: " + width + ", " + height + (intermediate ? " (in progress)" : ""));
   console.log("origin: x=" + project.origin.x + ", y=" + project.origin.y + ", rotation: " + project.rotation);
   var canvas = app.renderer.domElement;
   canvas.width = width;
@@ -56,7 +56,7 @@ function saveCanvasImage(width, height) {
 
   function save () {
     app.render();
-    pyObj.saveImage(app.renderer.domElement.toDataURL("image/png"));
+    pyObj.saveImage(app.renderer.domElement.toDataURL("image/png"), intermediate || false);
   }
 
   function checkImageLoaded() {
@@ -71,9 +71,9 @@ function saveCanvasImage(width, height) {
 // Extruded polygon layer improvements
 // TODO: merge to Qgis2threejs.js
 Q3D.PolygonLayer.prototype._build = Q3D.PolygonLayer.prototype.build;
-Q3D.PolygonLayer.prototype.build = function (parent) {
+Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
   if (this.objType != "Extruded") {
-    this._build(parent);
+    this._build(parent, startIndex);
     return;
   }
 
@@ -88,6 +88,11 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   var topShiftFactor = 0.5,
       topShiftFactorX = topShiftFactor,
       topShiftFactorY = topShiftFactor * tanExtrude;
+
+if (this.createObject !== undefined) {
+  var createObject = this.createObject;
+}
+else {
   /* <--- */
 
   var createSubObject = function (f, polygon, z) {
@@ -139,34 +144,36 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
     }
     return group;
   };
+}
 
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     f.objs = [];
     var obj = createObject(f);
     obj.userData.layerId = this.index;
     obj.userData.featureId = fid;
     this.addObject(obj);
     f.objs.push(obj);
-  }, this);
 
-  if (parent) parent.add(this.objectGroup);
-
-  /* added ---> */
-  if (is25D) {
-    // add 2.5D effect
-    this.objectGroup.traverse(function (obj) {
-      if (obj.geometry === undefined) return;
-      obj.geometry.vertices.forEach(function (v, i) {
-        if (v.z !== 0) {
-          v.x += v.z * topShiftFactorX;
-          v.y += v.z * topShiftFactorY;
-        }
+    /* added ---> */
+    if (is25D) {
+      // add 2.5D effect
+      obj.traverse(function (object) {
+        if (object.geometry === undefined) return;
+        object.geometry.vertices.forEach(function (v, i) {
+          if (v.z !== 0) {
+            v.x += v.z * topShiftFactorX;
+            v.y += v.z * topShiftFactorY;
+          }
+        });
       });
-    });
+    }
+    /* <--- */
   }
-  console.log("Extruded polygons has been built.");
-  /* <--- */
+
+  this.createObject = createObject;
+  if (parent) parent.add(this.objectGroup);
 };
 </script>
 <script>

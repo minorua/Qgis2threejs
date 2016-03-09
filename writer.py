@@ -90,7 +90,7 @@ class ThreejsJSWriter(QObject):
   def writeLayer(self, layer, fieldNames=None, jsLayerId=None):
     #TODO: DEMLayerWriter/VectorLayerWriter (subclasses of LayerWriter)
     self.currentLayerIndex = self.layerCount    #TODO: self.currentLayerIndex not used
-    self.write(u"\n// Layer {0}\n".format(self.currentLayerIndex))
+    self.write(u"\n// Layer {0}\n".format(self.layerCount if jsLayerId is None else jsLayerId))
 
     type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
     obj = layer.layerObject()
