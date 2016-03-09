@@ -87,18 +87,19 @@ class ThreejsJSWriter(QObject):
     else:
       self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
 
-  def writeLayer(self, obj, fieldNames=None, jsLayerId=None):
+  def writeLayer(self, layer, fieldNames=None, jsLayerId=None):
     #TODO: DEMLayerWriter/VectorLayerWriter (subclasses of LayerWriter)
     self.currentLayerIndex = self.layerCount    #TODO: self.currentLayerIndex not used
-    type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
     self.write(u"\n// Layer {0}\n".format(self.currentLayerIndex))
 
+    type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
+    obj = layer.layerObject()
+    prefix = type2classprefix[obj["type"]]
     if jsLayerId is None:
-      self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(type2classprefix[obj["type"]], pyobj2js(obj)))
+      self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(prefix, pyobj2js(obj)))
       self.layerCount += 1
-      # del obj["type"]
     else:
-      self.write(u"lyr = project.setLayer({0}, new Q3D.{1}Layer({2}));\n".format(jsLayerId, type2classprefix[obj["type"]], pyobj2js(obj)))
+      self.write(u"lyr = project.setLayer({0}, new Q3D.{1}Layer({2}));\n".format(jsLayerId, prefix, pyobj2js(obj)))
 
     if fieldNames is not None:
       self.write(u"lyr.a = {0};\n".format(pyobj2js(fieldNames)))
@@ -215,9 +216,8 @@ def writeSimpleDEM(writer, properties, progress=None):
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
-  lyr = layer.layerObject()
-  lyr.update({"name": layerName})
-  writer.writeLayer(lyr)
+  layer.name = layerName
+  writer.writeLayer(layer)
 
   # material option
   texture_scale = properties.get("comboBox_TextureSize", 100) / 100
@@ -377,9 +377,8 @@ def writeMultiResDEM(writer, properties, progress=None):
 
   # layer
   layer = DEMLayer(writer, demLayer, prop)
-  lyr = layer.layerObject()
-  lyr.update({"name": layerName})
-  writer.writeLayer(lyr)
+  layer.name = layerName
+  writer.writeLayer(layer)
 
   # quad tree
   quadtree = settings.quadtree()
@@ -509,14 +508,13 @@ class Layer:
     self.writer = writer
     self.layer = layer
     self.prop = prop
-
     self.materialManager = MaterialManager()
 
+    self.name = layer.name() if layer else "no title"
+
   def layerObject(self):
-    obj = {"q": 1}  #queryable
-    if self.layer:
-      obj["name"] = self.layer.name()
-    return obj
+    return {"q": 1,              #queryable
+            "name": self.name}
 
 
 class DEMLayer(Layer):
@@ -740,7 +738,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None):
 
   # write layer object
   layer = VectorLayer(writer, mapLayer, prop, obj_mod)
-  writer.writeLayer(layer.layerObject(), layer.fieldNames)
+  writer.writeLayer(layer, layer.fieldNames)
 
   # initialize symbol rendering
   mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)
