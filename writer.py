@@ -713,7 +713,7 @@ def writeVectors(writer, legendInterface=None, progress=None):
     finishedLayers += 1
 
 
-def writeVector(writer, layerId, properties, progress=None, renderer=None):
+def writeVector(writer, layerId, properties, progress=None, renderer=None, noFeature=False):
   mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
   if mapLayer is None:
     return
@@ -739,6 +739,9 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None):
   # write layer object
   layer = VectorLayer(writer, mapLayer, prop, obj_mod)
   writer.writeLayer(layer, layer.fieldNames)
+
+  if noFeature:
+    return
 
   # initialize symbol rendering
   mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)

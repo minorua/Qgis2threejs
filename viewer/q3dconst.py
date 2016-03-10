@@ -17,6 +17,7 @@ DEFAULT_PROPERTIES = {
 # Notification type
 # Q3D -> QGIS
 N_LAYER_DOUBLECLICKED = 1   # params: Layer properties
+N_LAYER_CREATED = 2         # params: {"pyLayerId": int, "jsLayerId": int}
 
 # QGIS -> Q3D
 N_QGIS_TO_Q3D_MIN = 10

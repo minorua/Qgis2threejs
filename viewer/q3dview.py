@@ -53,6 +53,7 @@ class Bridge(QObject):
   @pyqtSlot(int, int)
   def setLayerId(self, pyLayerId, jsLayerId):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
+    self._parent.layerCreated(pyLayerId, jsLayerId)
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
   @pyqtSlot(int, int, str, bool)
@@ -260,6 +261,9 @@ rotation: {}
     elif dataType == q3dconst.BIN_INTERMEDIATE_IMAGE:
       js = "saveCanvasImage({0}, {1}, true);".format(self.imageSize.width(), self.imageSize.height())
       self.runString(js)
+
+  def layerCreated(self, pyLayerId, jsLayerId):
+    self.iface.notify(q3dconst.N_LAYER_CREATED, {"pyLayerId": pyLayerId, "jsLayerId": jsLayerId})
 
   def saveImage(self, width, height, dataUrl="", intermediate=False):
     if dataUrl:

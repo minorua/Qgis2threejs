@@ -60,6 +60,13 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
   def setLayers(self, layers):
     self.layers = layers
 
+  def notified(self, code, params):
+    if code == q3dconst.N_LAYER_CREATED:
+      self.qgis_iface.mapCanvas().refresh()
+
+    else:
+      Q3DController.notified(self, code, params)
+
   def responseReceived(self, data, dataType):
     if dataType == q3dconst.BIN_SCENE_IMAGE:
       logMessage("BIN_SCENE_IMAGE received!")
@@ -74,9 +81,6 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
 
     else:
       Q3DController.responseReceived(self, data, dataType)
-
-  def refreshMapCanvas(self):
-    self.qgis_iface.mapCanvas().refresh()    #TODO: use timer?
 
 
 class WriterL(Writer):
@@ -123,7 +127,6 @@ class WriterL(Writer):
                          "properties": properties})
 
       data = QByteArray(json.dumps(layers))     # q3dconst.FORMAT_JSON
-      self._parent.refreshMapCanvas()
       self.dataReady.emit(self.jobId, data, kargs)
 
     else:

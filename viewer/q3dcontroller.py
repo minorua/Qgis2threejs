@@ -114,7 +114,7 @@ class LiveThreejsJSWriter(ThreejsJSWriter):
     # elif geomType == q3dconst.TYPE_IMAGE:
     #  pass
     else:
-      writeVector(self, params["layerId"], properties)
+      writeVector(self, params["layerId"], properties, noFeature=(jsLayerId is None))
 
     if jsLayerId is None:
       self.buf.write("""
@@ -123,9 +123,7 @@ pyObj.setLayerId({0}, lyr.index);
 """.format(params["id"]))
 
     self.buf.write("""
-lyr.initMaterials();
-lyr.build(app.scene);
-lyr.objectGroup.updateMatrixWorld();
+// lyr.objectGroup.updateMatrixWorld();
 app.queryObjNeedsUpdate = true;
 """)
 
