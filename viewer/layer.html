@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
 <style type="text/css">
 #webgl {
-  background: white;
+  background: transparent;
 }
 </style>
 </head>
@@ -56,7 +56,8 @@ function saveCanvasImage(width, height, intermediate) {
 
   function save () {
     app.render();
-    pyObj.saveImage(app.renderer.domElement.toDataURL("image/png"), intermediate || false);
+    pyObj.saveImage(width, height, app.renderer.domElement.toDataURL("image/png"), intermediate || false);
+    // pyObj.saveImage(width, height, "", intermediate || false);   // use QWebFrame.render()
   }
 
   function checkImageLoaded() {

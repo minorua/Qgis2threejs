@@ -23,8 +23,8 @@ import json
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import QByteArray, QBuffer, QIODevice, QObject, QUrl, Qt, pyqtSlot
-#from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtSlot
+from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import q3dconst
@@ -55,9 +55,9 @@ class Bridge(QObject):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
-  @pyqtSlot(str, bool)
-  def saveImage(self, dataUrl, intermediate):
-    self._parent.saveImage(dataUrl, intermediate)
+  @pyqtSlot(int, int, str, bool)
+  def saveImage(self, width, height, dataUrl, intermediate):
+    self._parent.saveImage(width, height, dataUrl, intermediate)
 
   @pyqtSlot(str)
   def mouseUp(self, coords):
@@ -98,6 +98,13 @@ class Q3DView(QWebView):
     self._page = Q3DWebPage(self)
     self.setPage(self._page)
     self.loadFinished.connect(self.pageLoaded)
+
+    if not isViewer:
+      # transparent background
+      palette = self._page.palette()
+      palette.setBrush(QPalette.Base, Qt.transparent)
+      self._page.setPalette(palette)
+      self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
     filetitle = "viewer" if isViewer else "layer"
 
@@ -233,7 +240,9 @@ class Q3DView(QWebView):
 
   def processRequest(self, dataType, params):
     if dataType == q3dconst.BIN_SCENE_IMAGE:
-      self._imageSize = {"width": params["width"], "height": params["height"]}
+      self.imageSize = QSize(params["width"], params["height"])
+      self._page.setViewportSize(self.imageSize)
+
       extent = params["baseExtent"]
       js = """project.update({{
 baseExtent: [{}, {}, {}, {}],
@@ -246,13 +255,25 @@ rotation: {}
       for layer in self.layerManager.layers:
         if layer["visible"] and layer["jsLayerId"] is not None:
           self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
-      self.iface.request(q3dconst.JS_SAVE_IMAGE, self._imageSize)
+      self.iface.request(q3dconst.JS_SAVE_IMAGE, {"width": params["width"], "height": params["height"]})
 
     elif dataType == q3dconst.BIN_INTERMEDIATE_IMAGE:
-      width, height = self._imageSize["width"], self._imageSize["height"]
-      self.runString("saveCanvasImage({0}, {1}, true);".format(width, height))
+      js = "saveCanvasImage({0}, {1}, true);".format(self.imageSize.width(), self.imageSize.height())
+      self.runString(js)
 
-  def saveImage(self, dataUrl, intermediate=False):
-    ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+  def saveImage(self, width, height, dataUrl="", intermediate=False):
+    if dataUrl:
+      ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+    else:
+      image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+      painter = QPainter(image)
+      self._page.mainFrame().render(painter)
+      painter.end()
+
+      ba = QByteArray()
+      buf = QBuffer(ba)
+      buf.open(QIODevice.WriteOnly)
+      image.save(buf, "PNG")
+
     dataType = q3dconst.BIN_INTERMEDIATE_IMAGE if intermediate else q3dconst.BIN_SCENE_IMAGE
     self.iface.respond(ba, dataType)    # q3dconst.FORMAT_BINARY
