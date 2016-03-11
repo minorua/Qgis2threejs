@@ -39,6 +39,7 @@ Q3D.Utils.loadTextureData = function (imageData) {
 };
 
 function saveCanvasImage(width, height, intermediate) {
+  if (intermediate && !featAdded) return;
   console.log("saveCanvasImage: " + width + ", " + height + (intermediate ? " (in progress)" : ""));
   console.log("origin: x=" + project.origin.x + ", y=" + project.origin.y + ", rotation: " + project.rotation);
   var canvas = app.renderer.domElement;
@@ -58,6 +59,7 @@ function saveCanvasImage(width, height, intermediate) {
     app.render();
     pyObj.saveImage(width, height, app.renderer.domElement.toDataURL("image/png"), intermediate || false);
     // pyObj.saveImage(width, height, "", intermediate || false);   // use QWebFrame.render()
+    featAdded = false;
   }
 
   function checkImageLoaded() {

@@ -1,4 +1,5 @@
 var app = Q3D.application;
+var featAdded = false;    // if no feature has been added, plugin layer will not update intermediate image
 
 app.setCanvasSize = function (width, height) {
   app.width = width;
@@ -48,6 +49,7 @@ function addFeat(layerIndex, f) {
 
   if (fid) layer.build(undefined, fid);
   else layer.build(app.scene);
+  featAdded = true;
 }
 
 function createMaterials(layerIndex) {
