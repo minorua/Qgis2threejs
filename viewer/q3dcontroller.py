@@ -113,6 +113,11 @@ class LiveThreejsJSWriter(ThreejsJSWriter):
       properties["comboBox_DEMLayer"] = params["layerId"]
       writeSimpleDEM(self, properties)
       self.writeImages()
+      self.buf.write("""
+lyr.initMaterials();
+lyr.build(app.scene);
+lyr.objectGroup.updateMatrixWorld();
+""")
     # elif geomType == q3dconst.TYPE_IMAGE:
     #  pass
     else:
@@ -125,7 +130,6 @@ pyObj.setLayerId({0}, lyr.index);
 """.format(params["id"]))
 
     self.buf.write("""
-// lyr.objectGroup.updateMatrixWorld();
 app.queryObjNeedsUpdate = true;
 """)
 
