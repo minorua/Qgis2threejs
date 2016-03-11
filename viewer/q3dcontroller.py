@@ -93,12 +93,14 @@ class LiveThreejsJSWriter(ThreejsJSWriter):
     self.writeProject(update=True)
     self.flush()
 
-  def createLayer(self, layer):
-    self._writeLayer(layer)
+  def createLayer(self, params):
+    self._writeLayer(params["layer"])
     self.flush()
 
-  def updateLayer(self, layer):
+  def updateLayer(self, params):
+    self.isCanceled = False
     self.buf.write("lyr = undefined;\n")
+    layer = params["layer"]
     self._writeLayer(layer, layer["jsLayerId"])
     self.flush()
 
@@ -153,12 +155,13 @@ class Worker(QObject):
   # signals
   startJob = pyqtSignal(int, dict)                    # jobId, kargs
   jobFinished = pyqtSignal(int, dict)                 # jodId, kargs
-  jobCancelled = pyqtSignal(int)                      # jodId
+  jobCancelled = pyqtSignal(int, dict)                # jodId, kargs
   dataReady = pyqtSignal(int, "QByteArray", dict)     # jodId, data, kargs
 
   def __init__(self):
     QObject.__init__(self)
     self.isActive = False
+    self.isCanceled = False
     self.jobId = -1
     self.kargs = {}
 
@@ -166,24 +169,19 @@ class Worker(QObject):
     self.jobId = jobId
     self.kargs = kargs
     self.isActive = True
+    self.isCanceled = False
 
     self.run(kargs)
 
     self.jobId = -1
-    self.kargs = {}
     self.isActive = False
-    self.jobFinished.emit(jobId, kargs)
+    if self.isCanceled:
+      self.jobCancelled.emit(jobId, kargs)
+    else:
+      self.jobFinished.emit(jobId, kargs)
 
   def cancelJob(self):
-    jobId = self.jobId
-    self.jobId = -1
-    self.kargs = {}
-    self.isActive = False
-
-    #TODO: abort the execution
-
-    if jobId != -1:
-      self.jobCancelled.emit(jobId)
+    self.isCanceled = True
 
   # should be overridden
   def run(self, kargs):
@@ -203,15 +201,15 @@ class Writer(Worker):
     self.writer = LiveThreejsJSWriter(parent.exportSettings, parent.objectTypeManager, self)
     self.writer.dataReady.connect(self.writerDataReady)
 
-    self.dataType = -1
-
   def writerDataReady(self, data):
-    self.dataReady.emit(self.jobId, data, {"dataType": self.dataType})
-    # directly passing self.kargs sometimes causes key error. self.kargs happens to be cleared by unknown reason.
+    self.dataReady.emit(self.jobId, data, self.kargs)
 
-  def run(self, kargs):
-    dataType = self.dataType = kargs["dataType"]
-    params = kargs["params"]
+  def cancelJob(self):
+    self.writer.isCanceled = True
+    self.isCanceled = True
+
+  def run(self, params):
+    dataType = params["dataType"]
     func = {q3dconst.JS_CREATE_LAYER: self.writer.createLayer,
             q3dconst.JS_UPDATE_LAYER: self.writer.updateLayer,
             q3dconst.JS_CREATE_PROJECT: self.writer.createProject,
@@ -221,7 +219,6 @@ class Writer(Worker):
       func(params)
       return
 
-    data = ""
     if dataType == q3dconst.JS_SAVE_IMAGE:
       js = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
       data = QByteArray(js)
@@ -254,7 +251,10 @@ class Writer(Worker):
 
       data = QByteArray(json.dumps(layers))       # q3dconst.FORMAT_JSON
 
-    self.dataReady.emit(self.jobId, data, kargs)
+    else:
+      data = QByteArray()
+
+    self.dataReady.emit(self.jobId, data, params)
 
 
 class WorkerManager(QObject):
@@ -296,6 +296,7 @@ class WorkerManager(QObject):
     worker.moveToThread(thread)
     worker.startJob.connect(worker.startJobSlot)
     worker.jobFinished.connect(self.jobFinished)
+    worker.jobCancelled.connect(self.jobCanceled)
     worker.dataReady.connect(self.dataReady)
     thread.finished.connect(worker.deleteLater)
     thread.start()
@@ -318,13 +319,17 @@ class WorkerManager(QObject):
     self.isWorkingExclusively = False
     self.processNextRequest()
 
+  def jobCanceled(self, jobId, kargs):
+    logMessage(u"jobCanceled: {0} ({1})".format(jobId, unicode(kargs)))
+    self.jobFinished(jobId, kargs)
+
   # should be overridden
-  def dataReady(self, jobId, data, kargs):
+  def dataReady(self, jobId, data, meta):
     pass
 
-  def request(self, dataType, params, exclusive=False):
+  def request(self, params, exclusive=False):
     jobId = self.nextJobId()
-    self.requestQueue.append([jobId, dataType, params, exclusive])
+    self.requestQueue.append([jobId, params, exclusive])
     self.processNextRequest()
     return jobId
     #TODO: remove any duplicate requests in requestQueue if the request is sent to update 3d model (e.g. JS_UPDATE_LAYER).
@@ -333,7 +338,7 @@ class WorkerManager(QObject):
     if len(self.requestQueue) == 0 or self.isWorkingExclusively:
       return
 
-    jobId, dataType, params, exclusive = self.requestQueue[0]
+    jobId, params, exclusive = self.requestQueue[0]
     if exclusive and self.activeWorkerCount > 0:
       return
 
@@ -347,7 +352,13 @@ class WorkerManager(QObject):
       self.isWorkingExclusively = True
 
     # start job!
-    worker.startJob.emit(jobId, {"dataType": dataType, "params": params or {}, "exclusive": exclusive})
+    params["exclusive"] = exclusive
+    worker.startJob.emit(jobId, params)
+
+  def cancelJobs(self):
+    for worker in self.workers:
+      if worker.isActive:
+        worker.cancelJob()
 
 
 class Q3DController(WorkerManager):
@@ -381,18 +392,24 @@ class Q3DController(WorkerManager):
   def createWorker(self):
     return Writer(self)
 
-  def dataReady(self, jobId, data, kargs):
-    self.iface.respond(data, kargs["dataType"])
+  def cancelJobs(self, renderId=None):
+    logMessage("cancelJobs: renderId={0}".format(renderId))
+    for worker in self.workers:
+      if worker.isActive:   #TODO: renderId is None or worker.renderId == renderId
+        worker.cancelJob()
 
-  def notified(self, code, params):
-    if code == q3dconst.N_LAYER_DOUBLECLICKED:
+  def dataReady(self, jobId, data, meta):
+    self.iface.respond(data, meta)
+
+  def notified(self, params):
+    if params.get("code") == q3dconst.N_LAYER_DOUBLECLICKED:
       self.showPropertiesDialog(params["id"], params["layerId"], params["properties"])
 
-  def requestReceived(self, dataType, params):
-    exclusive = False if dataType == q3dconst.JS_UPDATE_LAYER else True
-    self.request(dataType, params, exclusive)
+  def requestReceived(self, params):
+    exclusive = False if params["dataType"] == q3dconst.JS_UPDATE_LAYER else True
+    self.request(params, exclusive)
 
-  def responseReceived(self, data, dataType):
+  def responseReceived(self, data, meta):
     pass
 
 

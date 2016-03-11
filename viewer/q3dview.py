@@ -107,6 +107,8 @@ class Q3DView(QWebView):
       self._page.setPalette(palette)
       self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
+    self.renderId = None    # for renderer
+
     filetitle = "viewer" if isViewer else "layer"
 
     # HTML file and js file for debug
@@ -135,10 +137,10 @@ class Q3DView(QWebView):
     self.bridge = Bridge(self.layerManager, self)
     self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
 
-    self.iface.request(q3dconst.JSON_LAYER_LIST)
+    self.iface.request({"dataType": q3dconst.JSON_LAYER_LIST})
     if self.isViewer:
-      self.iface.request(q3dconst.JS_CREATE_PROJECT)
-      self.iface.request(q3dconst.JS_START_APP)
+      self.iface.request({"dataType": q3dconst.JS_CREATE_PROJECT})
+      self.iface.request({"dataType": q3dconst.JS_START_APP})
 
   def treeItemChanged(self, item):
     itemId = item.data()
@@ -151,16 +153,16 @@ class Q3DView(QWebView):
     layer["visible"] = visible
     if visible:
       if layer["jsLayerId"] is None:
-        self.iface.request(q3dconst.JS_CREATE_LAYER, layer)
+        self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
       else:
         self.runString("project.layers[{0}].setVisible(true);".format(layer["jsLayerId"]))
-        self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
+        self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
     else:
       self.runString("project.layers[{0}].setVisible(false);".format(layer["jsLayerId"]))
 
   def treeItemDoubleClicked(self, index):
     idx = index.data(Qt.UserRole + 1)
-    self.iface.notify(q3dconst.N_LAYER_DOUBLECLICKED, self.layerManager.layers[idx])
+    self.iface.notify({"code": q3dconst.N_LAYER_DOUBLECLICKED, "layer": self.layerManager.layers[idx]})
 
   def runByteArray(self, ba):
     if os.name == "nt":
@@ -173,29 +175,40 @@ class Q3DView(QWebView):
     string += "\napp.render();"   #TODO: THIS IS FOR DEBUG
     return self._page.mainFrame().evaluateJavaScript(string)
 
-  def notified(self, code, params):
-    print("Notification received: {0} ({1})".format(code, str(params)))
+  def notified(self, params):
+    print("Notification received: {0}".format(str(params)))
 
+    code = params.get("code")
     if code == q3dconst.N_CANVAS_EXTENT_CHANGED:
-      self.iface.request(q3dconst.JS_UPDATE_PROJECT)
+      self.iface.request({"dataType": q3dconst.JS_UPDATE_PROJECT})
 
     elif code == q3dconst.N_CANVAS_IMAGE_UPDATED:
       for layer in self.layerManager.layers:
         if layer["visible"]:
-          self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
+          self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
 
     elif code == q3dconst.N_LAYER_PROPERTIES_CHANGED:
       layer = self.layerManager.layers[params["id"]]
       layer["properties"] = params["properties"]
-      self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
+      self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
 
-  def requestReceived(self, dataType, params):
+    elif code == q3dconst.N_RENDERING_CANCELED:
+      self.renderId = None
+
+  def requestReceived(self, params):
     #TODO: remove any duplicate requests in requestQueue if the request is sent to update 3d model (e.g. JS_UPDATE_LAYER).
-    self.requestQueue.append([dataType, params])
+    self.requestQueue.append(params)
     if not self.isProcessingExclusively:
       self.processNextRequest()
 
-  def responseReceived(self, data, dataType):
+  def responseReceived(self, data, meta):
+    dataType = meta.get("dataType")
+    print("responseReceived: renderId={0}, self.renderId={1}, dataType={2}".format(meta.get("renderId"), self.renderId, dataType))
+    renderId = meta.get("renderId")
+    if renderId != self.renderId:
+      print("responseReceived, but renderId doesn't match to current renderId.")
+      return
+
     if dataType == q3dconst.JS_UPDATE_LAYER:
       print("JS_UPDATE_LAYER data received.")
       self.runByteArray(data)
@@ -230,17 +243,19 @@ class Q3DView(QWebView):
 
       for layer in self.layerManager.layers:
         if layer["visible"]:
-          self.iface.request(q3dconst.JS_CREATE_LAYER, layer)
+          self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
 
   def processNextRequest(self):
     if self.isProcessingExclusively or len(self.requestQueue) == 0:
       return
-    dataType, params = self.requestQueue.pop(0)
-    self.processRequest(dataType, params)
+    params = self.requestQueue.pop(0)
+    self.processRequest(params)
     self.processNextRequest()
 
-  def processRequest(self, dataType, params):
+  def processRequest(self, params):
+    dataType = params["dataType"]
     if dataType == q3dconst.BIN_SCENE_IMAGE:
+      self.renderId = params["renderId"]
       self.imageSize = QSize(params["width"], params["height"])
       self._page.setViewportSize(self.imageSize)
 
@@ -252,18 +267,23 @@ rotation: {}
 """.format(extent[0], extent[1], extent[2], extent[3], params["rotation"])
       self.runString(js)
 
-      #self.iface.request(q3dconst.JS_UPDATE_PROJECT)
       for layer in self.layerManager.layers:
         if layer["visible"] and layer["jsLayerId"] is not None:
-          self.iface.request(q3dconst.JS_UPDATE_LAYER, layer)
-      self.iface.request(q3dconst.JS_SAVE_IMAGE, {"width": params["width"], "height": params["height"]})
+          self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER,
+                              "layer": layer,
+                              "renderId": self.renderId})
+
+      self.iface.request({"dataType": q3dconst.JS_SAVE_IMAGE,
+                          "width": params["width"],
+                          "height": params["height"],
+                          "renderId": self.renderId})
 
     elif dataType == q3dconst.BIN_INTERMEDIATE_IMAGE:
       js = "saveCanvasImage({0}, {1}, true);".format(self.imageSize.width(), self.imageSize.height())
       self.runString(js)
 
   def layerCreated(self, pyLayerId, jsLayerId):
-    self.iface.notify(q3dconst.N_LAYER_CREATED, {"pyLayerId": pyLayerId, "jsLayerId": jsLayerId})
+    self.iface.notify({"code": q3dconst.N_LAYER_CREATED, "pyLayerId": pyLayerId, "jsLayerId": jsLayerId})
 
   def saveImage(self, width, height, dataUrl="", intermediate=False):
     if dataUrl:
@@ -280,4 +300,4 @@ rotation: {}
       image.save(buf, "PNG")
 
     dataType = q3dconst.BIN_INTERMEDIATE_IMAGE if intermediate else q3dconst.BIN_SCENE_IMAGE
-    self.iface.respond(ba, dataType)    # q3dconst.FORMAT_BINARY
+    self.iface.respond(ba, {"dataType": dataType, "renderId": self.renderId})    # q3dconst.FORMAT_BINARY

@@ -21,7 +21,7 @@ import json
 import os
 import threading
 
-from PyQt4.QtCore import QByteArray, QEventLoop, QFile, QObject, QTimer, QProcess, pyqtSignal, qDebug
+from PyQt4.QtCore import Qt, QByteArray, QEventLoop, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
 from PyQt4.QtGui import QImage, QPainter
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayer, QgsPluginLayerType, QgsMessageLog
 from qgis.gui import QgsMessageBar
@@ -52,22 +52,23 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
   def createWorker(self):
     return WriterL(self)
 
-  def dataReady(self, jobId, data, kargs):
-    self.iface.respond(data, kargs["dataType"])
-    if kargs["dataType"] == q3dconst.JS_UPDATE_LAYER:
-      self.iface.request(q3dconst.BIN_INTERMEDIATE_IMAGE, {})
+  def dataReady(self, jobId, data, meta):
+    self.iface.respond(data, meta)
+    if meta["dataType"] == q3dconst.JS_UPDATE_LAYER:
+      self.iface.request({"dataType": q3dconst.BIN_INTERMEDIATE_IMAGE})
 
   def setLayers(self, layers):
     self.layers = layers
 
-  def notified(self, code, params):
-    if code == q3dconst.N_LAYER_CREATED:
+  def notified(self, params):
+    if params.get("code") == q3dconst.N_LAYER_CREATED:
       self.qgis_iface.mapCanvas().refresh()
 
     else:
-      Q3DController.notified(self, code, params)
+      Q3DController.notified(self, params)
 
-  def responseReceived(self, data, dataType):
+  def responseReceived(self, data, meta):
+    dataType = meta.get("dataType")
     if dataType == q3dconst.BIN_SCENE_IMAGE:
       logMessage("BIN_SCENE_IMAGE received!")
       self.renderedImage = QImage()
@@ -80,14 +81,13 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
       self.renderedImage.loadFromData(data)
 
     else:
-      Q3DController.responseReceived(self, data, dataType)
+      Q3DController.responseReceived(self, data, meta)
 
 
 class WriterL(Writer):
 
-  def run(self, kargs):
-    dataType = kargs["dataType"]
-    params = kargs["params"]
+  def run(self, params):
+    dataType = params["dataType"]
     logMessage("WriterL.run(): {0}".format(dataType))
 
     if dataType == q3dconst.JSON_LAYER_LIST:
@@ -127,10 +127,10 @@ class WriterL(Writer):
                          "properties": properties})
 
       data = QByteArray(json.dumps(layers))     # q3dconst.FORMAT_JSON
-      self.dataReady.emit(self.jobId, data, kargs)
+      self.dataReady.emit(self.jobId, data, params)
 
     else:
-      Writer.run(self, kargs)
+      Writer.run(self, params)
 
     logMessage("WriterL.run() finished: {0}".format(dataType))
 
@@ -142,6 +142,15 @@ class Qgis2threejsRenderer(QObject):
   def __init__(self, parent=None):
     QObject.__init__(self, parent)
     self.isRendering = False
+    self.renderId = 0
+
+  def nextRenderId(self):
+    self.renderId += 1
+    return self.renderId
+
+  def cancel(self, renderId):
+    self.controller.cancelJobs(renderId)
+    self.controller.iface.notify({"code": q3dconst.N_RENDERING_CANCELED, "renderId": renderId})
 
   def renderedImage(self):
     return self.controller.renderedImage
@@ -169,7 +178,9 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
     extent = renderContext.extent()
     if extent.isEmpty() or extent.width() == float("inf"):
       qDebug("Drawing is skipped because map extent is empty or inf.")
-      return True
+      return None
+
+    renderId = self.nextRenderId()
 
     map2pixel = renderContext.mapToPixel()
     mupp = map2pixel.mapUnitsPerPixel()
@@ -186,14 +197,17 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
 
     rect = mapExtent.unrotatedRect()
     params = {
+      "dataType": q3dconst.BIN_SCENE_IMAGE,
+      "renderId": renderId,
       "width": viewport.width(),
       "height": viewport.height(),
       "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
       "rotation": rotation
     }
     self.isRendering = True
-    self.controller.iface.request(q3dconst.BIN_SCENE_IMAGE, params)
+    self.controller.iface.request(params)
 
+    return renderId
 
 class Qgis2threejs3DRenderer(Qgis2threejsRenderer):
   pass
@@ -280,7 +294,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
     eventLoop = QEventLoop()
     self.renderer.renderCompleted.connect(eventLoop.quit)
     self.renderer.clearImage()
-    self.renderer.render(renderContext)
+    renderId = self.renderer.render(renderContext)
 
     # create a timer to watch whether rendering is stopped
     watchTimer = QTimer()
@@ -294,7 +308,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
     watchTimer.start(interval)
     lastImage = None
     while tick < timeoutTick:
-      painter.drawText(0, 10, "Qgis2threejs" + "." * tick)
+      painter.drawText(0, 10, "Qgis2threejs" + "." * tick)    #TODO: remove
 
       # run event loop for 0.5 seconds at maximum
       eventLoop.exec_()
@@ -309,11 +323,15 @@ class Qgis2threejsLayer(QgsPluginLayer):
       tick += 1
     watchTimer.stop()
 
+    if renderContext.renderingStopped():
+      self.renderer.cancel(renderId)
+      self.renderer.clearImage()
+      return True
+
     image = self.renderer.renderedImage()
     if image is None:
       return True
 
-    #painter.eraseRect(QRect(0, 0, viewport.width(), viewport.height()))
     painter.drawImage(0, 0, image)
     return True
 

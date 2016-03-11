@@ -38,9 +38,9 @@ class SocketInterface(QObject):
   N_DATA_RECEIVED = -1
 
   # signals
-  notified = pyqtSignal(int, dict)
-  requestReceived = pyqtSignal(int, dict)
-  responseReceived = pyqtSignal("QByteArray", int)
+  notified = pyqtSignal(dict)                         # params
+  requestReceived = pyqtSignal(dict)                  # params
+  responseReceived = pyqtSignal("QByteArray", dict)   # data, meta
 
   def __init__(self, serverName, keyCount=5, parent=None):
     QObject.__init__(self, parent)
@@ -69,8 +69,8 @@ class SocketInterface(QObject):
       obj = json.loads(json_str)
       msgType = obj["type"]
       if msgType == self.TYPE_NOTIFICATION:
-        self.log("Notification Received. Code: {0}".format(obj["code"]))
-        if obj["code"] == self.N_DATA_RECEIVED:
+        self.log("Notification Received. code: {0}".format(obj["params"].get("code")))
+        if obj["params"].get("code") == self.N_DATA_RECEIVED:
           memKey = obj["params"]["memoryKey"]
           mem = self._mem[memKey]
           if mem.isAttached():
@@ -78,14 +78,14 @@ class SocketInterface(QObject):
             self.log("Shared memory detached: key={0}".format(memKey))
           del self._mem[memKey]
         else:
-          self.notified.emit(obj["code"], obj["params"])
+          self.notified.emit(obj["params"])
 
       elif msgType == self.TYPE_REQUEST:
-        self.log("Request Received. Data Type: {0}".format(obj["dataType"]))
-        self.requestReceived.emit(obj["dataType"], obj["params"])
+        self.log("Request Received. dataType: {0}, renderId: {1}".format(obj["params"].get("dataType"), obj["params"].get("renderId")))
+        self.requestReceived.emit(obj["params"])
 
       elif msgType == self.TYPE_RESPONSE:
-        self.log("Response Received. Data Type: {0}".format(obj["dataType"]))
+        self.log("Response Received. dataType: {0}, renderId: {1}".format(obj["meta"].get("dataType"), obj["meta"].get("renderId")))
         mem = QSharedMemory(obj["memoryKey"])
         if not mem.attach(QSharedMemory.ReadOnly):
           self.log("Cannot attach this process to the shared memory segment: {0}".format(mem.errorString()))
@@ -103,36 +103,37 @@ class SocketInterface(QObject):
 
         lines = ba.data().split(b"\n")
         for line in lines[:5]:
-          self.log(line[:128])
+          self.log(line[:76])
         if len(lines) > 5:
           self.log("--Total {0} Lines Received--".format(len(lines)))
 
-        self.notify(self.N_DATA_RECEIVED, {"memoryKey": obj["memoryKey"]})
-        self.responseReceived.emit(ba, obj["dataType"])
+        self.notify({"code": self.N_DATA_RECEIVED, "memoryKey": obj["memoryKey"]})
+        self.responseReceived.emit(ba, obj["meta"])
 
-  def notify(self, code, params=None):
+  def notify(self, params):
     if not self.conn:
       return False
-    self.log("Sending Notification. Code: {0}".format(code))
-    obj = {"type": self.TYPE_NOTIFICATION, "code": code, "params": params or {}}
+    self.log("Sending Notification. code: {0}".format(params.get("code")))
+    obj = {"type": self.TYPE_NOTIFICATION, "params": params}
     self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
     self.conn.flush()
     return True
 
-  def request(self, dataType, params=None):
+  def request(self, params):
     if not self.conn:
       return False
-    self.log("Sending Request. Data Type: {0}".format(dataType))
-    obj = {"type": self.TYPE_REQUEST, "dataType": dataType, "params": params or {}}
+    self.log("Sending Request. dataType: {0}, renderId: {1}".format(params.get("dataType"), params.get("renderId")))
+    obj = {"type": self.TYPE_REQUEST, "params": params}
     self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
     self.conn.flush()
     return True
 
-  def respond(self, byteArray, dataType):
+  def respond(self, byteArray, meta=None):
     if not self.conn:
       return False
-    self.log("Sending Response. Data Type: {0}".format(dataType))
-    obj = {"type": self.TYPE_RESPONSE, "dataType": dataType}
+    self.log("Sending Response. dataType: {0}, renderId: {1}".format(meta.get("dataType"), meta.get("renderId")))
+    obj = {"type": self.TYPE_RESPONSE, "meta": meta or {}}
+
     memKey = self.nextMemoryKey()
     obj["memoryKey"] = memKey
     # TODO: check that the memory segment is not used

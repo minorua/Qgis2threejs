@@ -59,6 +59,8 @@ class ThreejsJSWriter(QObject):
     self.modelManager = ModelManager()
     self.triMesh = {}
 
+    self.isCanceled = False   # for writing vector features
+
   def setDevice(self, device):
     self.device = device
     self.write = device.write if device else None
@@ -756,7 +758,10 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
       clipGeom = extent.geometry()
 
   for feat in layer.features(request, clipGeom):
-    # write geometry
+    if writer.isCanceled:
+      break
+
+    # write feature
     obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
 
     # stack attributes in writer

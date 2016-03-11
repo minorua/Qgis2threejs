@@ -40,20 +40,20 @@ class Q3DLiveController(Q3DController):
     qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
 
   def canvasUpdated(self, painter):
-    self.iface.notify(q3dconst.N_CANVAS_IMAGE_UPDATED)
+    self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
     logMessage("N_CANVAS_IMAGE_UPDATED notification sent")
 
   def canvasExtentChanged(self):
     # update extent of export settings
     self.exportSettings.setMapCanvas(self.qgis_iface.mapCanvas())
-    self.iface.notify(q3dconst.N_CANVAS_EXTENT_CHANGED)
+    self.iface.notify({"code": q3dconst.N_CANVAS_EXTENT_CHANGED})
     logMessage("N_CANVAS_EXTENT_CHANGED notification sent")
 
-  def notified(self, code, params):
-    if code == q3dconst.N_LAYER_DOUBLECLICKED:
+  def notified(self, params):
+    if params["code"] == q3dconst.N_LAYER_DOUBLECLICKED:
       self.showPropertiesDialog(params["id"], params["layerId"], params["properties"])
     else:
-      Q3DController.notified(self, code, params)
+      Q3DController.notified(self, params)
 
   def processRequest(self, dataType, params):
     Q3DController.processRequest(self, dataType, params)
@@ -71,7 +71,7 @@ class Q3DLiveController(Q3DController):
     dialog.exec_()
 
   def propertiesChanged(self, id, properties):
-    self.iface.notify(q3dconst.N_LAYER_PROPERTIES_CHANGED, {"id": id, "properties": properties})
+    self.iface.notify({"code": q3dconst.N_LAYER_PROPERTIES_CHANGED, "id": id, "properties": properties})
 
 
 class PropertiesDialog(QDialog):

@@ -14,7 +14,7 @@ DEFAULT_PROPERTIES = {
   TYPE_IMAGE: "{}"
 }
 
-# Notification type
+# Notification type   #TODO: update comments
 # Q3D -> QGIS
 N_LAYER_DOUBLECLICKED = 1   # params: Layer properties
 N_LAYER_CREATED = 2         # params: {"pyLayerId": int, "jsLayerId": int}
@@ -25,6 +25,9 @@ N_QGIS_TO_Q3D_MIN = 10
 N_CANVAS_EXTENT_CHANGED = 10
 N_CANVAS_IMAGE_UPDATED = 11
 N_LAYER_PROPERTIES_CHANGED = 12
+
+# QGIS -> Q3D (Plugin Layer)
+N_RENDERING_CANCELED = 20   # params: {"renderId", int}
 
 # Request/Response data type
 # Q3D -> QGIS -> Q3D
