@@ -84,13 +84,16 @@ Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
       project = this.project;
 
   /* added ---> */
-  var tanExtrude = 2;
+  var sideMaterial = new THREE.MeshLambertMaterial({color: 0x999999});
+  var lineMaterial = new THREE.LineBasicMaterial({color: 0x333333});
+
+  var tanTopShift = 2;
   var vEdgeShiftFactor = 0.0002,
       vEdgeShiftX = -project.width * vEdgeShiftFactor,
-      vEdgeShiftY = -project.width * vEdgeShiftFactor * tanExtrude;
+      vEdgeShiftY = -project.width * vEdgeShiftFactor * tanTopShift;
   var topShiftFactor = 0.5,
       topShiftFactorX = topShiftFactor,
-      topShiftFactorY = topShiftFactor * tanExtrude;
+      topShiftFactorY = topShiftFactor * tanTopShift;
 
 if (this.createObject !== undefined) {
   var createObject = this.createObject;
@@ -103,15 +106,11 @@ else {
     for (var i = 1, l = polygon.length; i < l; i++) {
       shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
     }
-    /* TODO: material and extrudeMaterial options */
-    var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h});
-    var mesh = new THREE.Mesh(geom, materials[f.m].m);
+    var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h, material: 0, extrudeMaterial: 1});
+    var mesh = new THREE.Mesh(geom, new THREE.MeshFaceMaterial([materials[f.m].m, sideMaterial]));
     mesh.position.z = z;
 
     /* added ---> */
-    var lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x333333
-    });
     if (true) {   // (withFrame)
       var zFunc0 = function (x, y) {return 0;},
           zFunc1 = function (x, y) {return f.h;};
