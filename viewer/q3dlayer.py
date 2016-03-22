@@ -23,7 +23,7 @@ import threading
 
 from PyQt4.QtCore import Qt, QByteArray, QEventLoop, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
 from PyQt4.QtGui import QImage, QPainter
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayer, QgsPluginLayerType, QgsMessageLog
+from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 
 import q3dconst
@@ -191,7 +191,9 @@ class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
     cx, cy = 0.5 * viewport.width(), 0.5 * viewport.height()
     center = map2pixel.toMapCoordinatesF(cx, cy)      # extent.center() is not appropriate for print
     mapExtent = RotatedRect(center, mupp * viewport.width(), mupp * viewport.height(), rotation)
-    mapSettings = mapExtent.toMapSettings(self.layer.iface.mapCanvas().mapSettings())
+
+    mapSettings = createMapSettingsFromRenderContext(renderContext, self.layer.iface.mapCanvas().mapSettings())
+    mapSettings = mapExtent.toMapSettings(mapSettings)
     mapSettings.setOutputSize(viewport.size())
     self.controller.exportSettings.setMapSettings(mapSettings)
 
@@ -425,3 +427,18 @@ class Qgis2threejs25DLayerType(QgsPluginLayerType):
     layer.setSmoothRender(dialog.ui.checkBox_SmoothRender.isChecked())
     layer.setCreditVisibility(dialog.ui.checkBox_CreditVisibility.isChecked())
     layer.repaintRequested.emit()
+
+
+def createMapSettingsFromRenderContext(ctx, baseSettings=None):
+  s = QgsMapSettings(baseSettings) if baseSettings else QgsMapSettings()
+  transform = ctx.coordinateTransform()
+  if transform:
+    s.setCrsTransformEnabled(True)
+    s.setDestinationCrs(transform.destCRS())
+  s.setExtent(ctx.extent())
+  s.setOutputDpi(ctx.scaleFactor() * 25.4)    # ref. QgsRenderContext::fromMapSettings
+  if hasattr(ctx, "RenderMapTile"):
+    s.setFlag(QgsMapSettings.RenderMapTile, ctx.testFlag(QgsRenderContext.RenderMapTile))
+  if hasattr(ctx, "expressionContext"):
+    s.setExpressionContext(ctx.expressionContext())
+  return s
