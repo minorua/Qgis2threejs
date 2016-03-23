@@ -391,9 +391,18 @@ class Qgis2threejsLayer(QgsPluginLayer):
     pass
 
 #  def createMapRenderer(self, renderContext):
-#    qDebug("createMapRenderer")
-#    self.renderer = QgsPluginLayerRenderer(self, renderContext)
-#    return self.renderer
+#    return Qgis2threejsRenderer(self, renderContext)
+
+
+# class Qgis2threejsRenderer(QgsMapLayerRenderer):
+#
+#  def __init__(self, layer, renderContext):
+#    QgsMapLayerRenderer.__init__(self, layer.id())
+#    self.layer = layer
+#    self.context = renderContext
+#
+#  def render(self):
+#    return self.layer.draw(self.context)
 
 
 class Qgis2threejs25DLayerType(QgsPluginLayerType):
