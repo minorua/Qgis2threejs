@@ -91,9 +91,18 @@ Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
   var vEdgeShiftFactor = 0.0002,
       vEdgeShiftX = -project.width * vEdgeShiftFactor,
       vEdgeShiftY = -project.width * vEdgeShiftFactor * tanTopShift;
+
   var topShiftFactor = 0.5,
       topShiftFactorX = topShiftFactor,
       topShiftFactorY = topShiftFactor * tanTopShift;
+
+  var shearX = 0.5,
+      shearY = shearX * tanTopShift;
+  var shearMatrix = new THREE.Matrix4();
+  shearMatrix.set(1, 0, shearX, 0,
+                  0, 1, shearY, 0,
+                  0, 0,      1, 0,
+                  0, 0,      0, 1);
 
 if (this.createObject !== undefined) {
   var createObject = this.createObject;
@@ -133,6 +142,18 @@ else {
         }
       }
     }
+
+    if (is25D) {
+      mesh.traverse(function (object) {
+        // apply shear transformation to the geometries
+        // if (object.geometry) object.geometry.applyMatrix(shearMatrix);
+        if (object.geometry === undefined) return;
+        object.geometry.vertices.forEach(function (v, i) {
+          v.x += v.z * topShiftFactorX;
+          v.y += v.z * topShiftFactorY;
+        });
+      });
+    }
     /* <--- */
     return mesh;
   };
@@ -157,21 +178,6 @@ else {
     obj.userData.featureId = fid;
     this.addObject(obj);
     f.objs.push(obj);
-
-    /* added ---> */
-    if (is25D) {
-      // add 2.5D effect
-      obj.traverse(function (object) {
-        if (object.geometry === undefined) return;
-        object.geometry.vertices.forEach(function (v, i) {
-          if (v.z !== 0) {
-            v.x += v.z * topShiftFactorX;
-            v.y += v.z * topShiftFactorY;
-          }
-        });
-      });
-    }
-    /* <--- */
   }
 
   this.createObject = createObject;
