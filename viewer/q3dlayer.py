@@ -302,14 +302,11 @@ class Qgis2threejsLayer(QgsPluginLayer):
     watchTimer = QTimer()
     watchTimer.timeout.connect(eventLoop.quit)
 
-    # wait for the fetch to finish
-    timeout = 30
-    tick = 0
     interval = 500
-    timeoutTick = timeout * 1000 / interval
     watchTimer.start(interval)
     lastImage = None
-    while tick < timeoutTick:
+    tick = 0
+    while True:
       painter.drawText(0, 10, "Qgis2threejs" + "." * tick)    #TODO: remove
 
       # run event loop for 0.5 seconds at maximum
@@ -317,12 +314,13 @@ class Qgis2threejsLayer(QgsPluginLayer):
       if not self.renderer.isRendering or renderContext.renderingStopped():
         break
 
+      # draw intermediate image
       image = self.renderer.renderedImage()
       if image and image != lastImage:
         painter.drawImage(0, 0, image)
         lastImage = image
-
       tick += 1
+
     watchTimer.stop()
 
     if renderContext.renderingStopped():
