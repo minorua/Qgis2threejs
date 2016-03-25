@@ -84,8 +84,8 @@ Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
       project = this.project;
 
   /* added ---> */
-  var sideMaterial = new THREE.MeshLambertMaterial({color: 0x999999});
-  var lineMaterial = new THREE.LineBasicMaterial({color: 0x333333});
+  var sideMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc});
+  var lineMaterial = new THREE.LineBasicMaterial({color: 0x555555});
 
   var tanTopShift = 2;
   var vEdgeShiftFactor = 0.0002,
@@ -186,6 +186,8 @@ else {
 </script>
 <script>
 var option = Q3D.Options;
+option.light.directional.azimuth = 270;
+option.light.directional.altitude = 45;
 //${options}
 
 var container = document.getElementById("webgl");
@@ -218,7 +220,7 @@ project.buildCustomLights = function (parent) {
         y = Math.cos(phi) * Math.sin(lambda),
         z = Math.sin(phi);
 
-    var light1 = new THREE.DirectionalLight(0xffffff, 0.5);
+    var light1 = new THREE.DirectionalLight(0xffffff, 0.55);
     light1.position.set(x, y, z);
     parent.add(light1);
 };
