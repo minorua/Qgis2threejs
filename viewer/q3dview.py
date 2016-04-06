@@ -56,9 +56,9 @@ class Bridge(QObject):
     self._parent.layerCreated(pyLayerId, jsLayerId)
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
-  @pyqtSlot(int, int, str, bool)
-  def saveImage(self, width, height, dataUrl, intermediate):
-    self._parent.saveImage(width, height, dataUrl, intermediate)
+  @pyqtSlot(int, int, str, int, int, bool)
+  def saveImage(self, width, height, dataUrl, tx, ty, intermediate):
+    self._parent.saveImage(width, height, dataUrl, tx, ty, intermediate)
 
   @pyqtSlot(str)
   def mouseUp(self, coords):
@@ -141,6 +141,8 @@ class Q3DView(QWebView):
     if self.isViewer:
       self.iface.request({"dataType": q3dconst.JS_CREATE_PROJECT})
       self.iface.request({"dataType": q3dconst.JS_START_APP})
+    else:
+      self.iface.request({"dataType": q3dconst.JS_INITIALIZE})
 
   def treeItemChanged(self, item):
     itemId = item.data()
@@ -233,6 +235,10 @@ class Q3DView(QWebView):
       print("JS_START_APP data received.")
       self.runByteArray(data)
 
+    elif dataType == q3dconst.JS_INITIALIZE:
+      print("JS_INITIALIZE data received.")
+      self.runByteArray(data)
+
     elif dataType == q3dconst.JSON_LAYER_LIST:
       if os.name == "nt":
         data = data.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
@@ -285,15 +291,29 @@ rotation: {}
   def layerCreated(self, pyLayerId, jsLayerId):
     self.iface.notify({"code": q3dconst.N_LAYER_CREATED, "pyLayerId": pyLayerId, "jsLayerId": jsLayerId})
 
-  def saveImage(self, width, height, dataUrl="", intermediate=False):
+  def saveImage(self, width, height, dataUrl="", tx=0, ty=0, intermediate=False):
+    image = None
     if dataUrl:
       ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+      if tx or ty:
+        image = QImage()
+        image.loadFromData(ba)
+
     else:
       image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
       painter = QPainter(image)
       self._page.mainFrame().render(painter)
       painter.end()
 
+    if tx or ty:
+      img = QImage(width - tx, height - ty, QImage.Format_ARGB32_Premultiplied)
+      painter = QPainter(img)
+      painter.drawImage(tx, ty, image)
+      painter.end()
+      image = img
+
+    # image to byte array
+    if image:
       ba = QByteArray()
       buf = QBuffer(ba)
       buf.open(QIODevice.WriteOnly)

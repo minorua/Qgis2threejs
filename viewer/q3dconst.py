@@ -15,13 +15,11 @@ DEFAULT_PROPERTIES = {
 }
 
 # Notification type   #TODO: update comments
-# Q3D -> QGIS
+# Q3D -> QGIS (Live Exporter)
 N_LAYER_DOUBLECLICKED = 1   # params: Layer properties
 N_LAYER_CREATED = 2         # params: {"pyLayerId": int, "jsLayerId": int}
 
-# QGIS -> Q3D
-N_QGIS_TO_Q3D_MIN = 10
-
+# QGIS -> Q3D (Live Exporter)
 N_CANVAS_EXTENT_CHANGED = 10
 N_CANVAS_IMAGE_UPDATED = 11
 N_LAYER_PROPERTIES_CHANGED = 12
@@ -31,23 +29,28 @@ N_RENDERING_CANCELED = 20   # params: {"renderId", int}
 
 # Request/Response data type
 # Q3D -> QGIS -> Q3D
-JS_CREATE_PROJECT = 1       # params: None
-JS_UPDATE_PROJECT = 2       # params: None
-JS_CREATE_LAYER = 3         # params: Layer properties
-JS_UPDATE_LAYER = 4         # params: Layer properties
-JS_START_APP = 8            # params: None
-JS_SAVE_IMAGE = 9           # params: None
+JS_CREATE_LAYER = 1         # params: Layer properties
+JS_UPDATE_LAYER = 2         # params: Layer properties
+JSON_LAYER_LIST = 3         # params: None
 
-JSON_LAYER_LIST = 10        # params: None
+# Q3D -> QGIS -> Q3D (Live Exporter)
+JS_CREATE_PROJECT = 11      # params: None
+JS_UPDATE_PROJECT = 12      # params: None
+JS_START_APP = 13           # params: None
 
-BIN_CANVAS_IMAGE = 20       # params: None
+# Q3D -> QGIS -> Q3D (Plugin Layer)
+JS_INITIALIZE = 21          # params: None
+JS_SAVE_IMAGE = 22          # params: None
 
-# QGIS -> Q3D -> QGIS
-BIN_SCENE_IMAGE = 30        # params: Layer properties
+# QGIS -> Q3D -> QGIS (Plugin Layer)
+BIN_SCENE_IMAGE = 51        # params: Layer properties
 
 # Responce only
-# Q3D -> QGIS
-BIN_INTERMEDIATE_IMAGE = 31
+# Q3D -> QGIS (Plugin Layer)
+BIN_INTERMEDIATE_IMAGE = 61
+
+# Not used
+BIN_CANVAS_IMAGE = 91       # params: None
 
 # Response data format
 FORMAT_JS = 0

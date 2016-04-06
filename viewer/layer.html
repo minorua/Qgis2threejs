@@ -19,9 +19,13 @@
 <script src="../js/Qgis2threejs.js"></script>
 <script src="viewer.js"></script>
 <script>
-var is25D = true;
+var isOrthographic = true,
+    isPerspective = false,
+    perspectiveFOV = 80,
+    perspectiveX = 0.5,
+    perspectiveY = 0.5;
 
-var app = Q3D.application;
+var app = Q3D.application, project;
 app.start = function () {};
 
 var loadingImageCount = 0;
@@ -42,23 +46,46 @@ function saveCanvasImage(width, height, intermediate) {
   if (intermediate && !featAdded) return;
   console.log("saveCanvasImage: " + width + ", " + height + (intermediate ? " (in progress)" : ""));
   console.log("origin: x=" + project.origin.x + ", y=" + project.origin.y + ", rotation: " + project.rotation);
-  var canvas = app.renderer.domElement;
-  canvas.width = width;
-  canvas.height = height;
-  app.renderer.setSize(width, height);
 
-  var hw = project.width / 2,
-      hh = project.height / 2;
-  app.camera.left = -hw;
-  app.camera.right = hw;
-  app.camera.top = hh;
-  app.camera.bottom = -hh;
+  var canvasWidth = width,
+      canvasHeight = height;
+
+  if (isPerspective) {
+    var m = (perspectiveX < 0.5) ? (1 - perspectiveX) : perspectiveX,
+        n = (perspectiveY < 0.5) ? (1 - perspectiveY) : perspectiveY;
+    canvasWidth = 2 * m * width;
+    canvasHeight = 2 * n * height;
+
+    app.camera.fov = perspectiveFOV;
+    app.camera.aspect = canvasWidth / canvasHeight;
+    app.camera.position.set((perspectiveX - 0.5) * project.width,
+                            (0.5 - perspectiveY) * project.height,
+                            n * project.height / Math.tan(perspectiveFOV * Math.PI / 360));
+  }
+  else {
+    var hw = project.width / 2,
+        hh = project.height / 2;
+    app.camera.left = -hw;
+    app.camera.right = hw;
+    app.camera.top = hh;
+    app.camera.bottom = -hh;
+  }
   app.camera.updateProjectionMatrix();
+
+  var canvas = app.renderer.domElement;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  app.renderer.setSize(canvasWidth, canvasHeight);
 
   function save () {
     app.render();
-    pyObj.saveImage(width, height, app.renderer.domElement.toDataURL("image/png"), intermediate || false);
-    // pyObj.saveImage(width, height, "", intermediate || false);   // use QWebFrame.render()
+    var tx = 0, ty = 0;
+    if (isPerspective) {
+      if (perspectiveX < 0.5) tx = (1 - 2 * m) * width;
+      if (perspectiveY < 0.5) ty = (1 - 2 * n) * height;
+    }
+    pyObj.saveImage(canvasWidth, canvasHeight, app.renderer.domElement.toDataURL("image/png"), tx, ty, intermediate || false);
+    // pyObj.saveImage(width, height, "", tx, ty, intermediate || false);   // use QWebFrame.render()
     featAdded = false;
   }
 
@@ -134,7 +161,7 @@ else {
 
         var x, y, poly = polygon[i];
         for (var j = 0, k = poly.length; j < k; j++) {
-          x = poly[j][0] + vEdgeShiftX;
+          x = poly[j][0] + vEdgeShiftX;   // TODO: for perspective camera
           y = poly[j][1] + vEdgeShiftY;
           geom = new THREE.Geometry();
           geom.vertices.push(new THREE.Vector3(x, y, 0), new THREE.Vector3(x, y, f.h));
@@ -143,7 +170,7 @@ else {
       }
     }
 
-    if (is25D) {
+    if (isOrthographic) {
       mesh.traverse(function (object) {
         // apply shear transformation to the geometries
         // if (object.geometry) object.geometry.applyMatrix(shearMatrix);
@@ -190,49 +217,56 @@ option.light.directional.azimuth = 270;
 option.light.directional.altitude = 45;
 //${options}
 
-var container = document.getElementById("webgl");
-app.init(container);
+function init(params) {
+  isPerspective = params.perspective || false;
+  isOrthographic = !isPerspective;
 
-// Project
-project = new Q3D.Project({
-  crs: "undefined",
-  wgs84Center:{lat:0,lon:0},
-  proj: "undefined",
-  title:"2.5D renderer",
-  baseExtent:[0,0,100,100],
-  rotation:0,
-  zShift:0.0,
-  width:100.0,
-  zExaggeration:1.0
-});
-project.buildCustomLights = function (parent) {
-    var deg2rad = Math.PI / 180;
+  var container = document.getElementById("webgl");
+  app.init(container);
 
-    // ambient light
-    parent.add(new THREE.AmbientLight(0x999999));
+  // Project
+  project = new Q3D.Project({
+    crs: "undefined",
+    wgs84Center:{lat:0,lon:0},
+    proj: "undefined",
+    title:"2.5D renderer",
+    baseExtent:[0,0,100,100],
+    rotation:0,
+    zShift:0.0,
+    width:100.0,
+    zExaggeration:1.0
+  });
+  project.buildCustomLights = function (parent) {
+      var deg2rad = Math.PI / 180;
 
-    // directional lights
-    var opt = Q3D.Options.light.directional;
-    var lambda = (90 - opt.azimuth) * deg2rad;
-    var phi = opt.altitude * deg2rad;
+      // ambient light
+      parent.add(new THREE.AmbientLight(0x999999));
 
-    var x = Math.cos(phi) * Math.cos(lambda),
-        y = Math.cos(phi) * Math.sin(lambda),
-        z = Math.sin(phi);
+      // directional lights
+      var opt = Q3D.Options.light.directional;
+      var lambda = (90 - opt.azimuth) * deg2rad;
+      var phi = opt.altitude * deg2rad;
 
-    var light1 = new THREE.DirectionalLight(0xffffff, 0.55);
-    light1.position.set(x, y, z);
-    parent.add(light1);
-};
-project.buildCustomCamera = function () {
-  var width = 100, height = 100;
-  app.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, -1000, 1000);
-  app.camera.position.set(0, 0, 100);
-};
-app.loadProject(project);
+      var x = Math.cos(phi) * Math.cos(lambda),
+          y = Math.cos(phi) * Math.sin(lambda),
+          z = Math.sin(phi);
 
-// app.addEventListeners();
-// app.start();
+      var light1 = new THREE.DirectionalLight(0xffffff, 0.55);
+      light1.position.set(x, y, z);
+      parent.add(light1);
+  };
+
+  if (!isPerspective) {
+    project.buildCustomCamera = function () {
+      var width = 100, height = 100;
+      app.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, -1000, 1000);
+      app.camera.position.set(0, 0, 100);
+    };
+  }
+  app.loadProject(project);
+
+  console.log("INITIALIZED: isPerspective=" + isPerspective);
+}
 </script>
 <!--${scripts}-->
 </body>

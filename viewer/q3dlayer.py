@@ -44,8 +44,9 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
 
   renderCompleted = pyqtSignal()
 
-  def __init__(self, qgis_iface, objectTypeManager, pluginManager, serverName):
+  def __init__(self, qgis_iface, objectTypeManager, pluginManager, serverName, perspective=False):
     Q3DController.__init__(self, qgis_iface, objectTypeManager, pluginManager, serverName)
+    self.perspective = perspective
     self.renderedImage = None
     self.layers = []
 
@@ -90,7 +91,11 @@ class WriterL(Writer):
     dataType = params["dataType"]
     logMessage("WriterL.run(): {0}".format(dataType))
 
-    if dataType == q3dconst.JSON_LAYER_LIST:
+    if dataType == q3dconst.JS_INITIALIZE:
+      js = "init({{perspective: {0}}});".format("true" if self._parent.perspective else "false")
+      self.dataReady.emit(self.jobId, QByteArray(js), params)
+
+    elif dataType == q3dconst.JSON_LAYER_LIST:
       layers = []
       for layer in self._parent.layers:
         layerType = layer.type()
@@ -161,9 +166,9 @@ class Qgis2threejsRenderer(QObject):
 
 class Qgis2threejs25DRenderer(Qgis2threejsRenderer):
 
-  def setup(self, layer, serverName):
+  def setup(self, layer, serverName, perspective=False):
     self.layer = layer
-    self.controller = Q3DLayerController(layer.iface, layer.objectTypeManager, layer.pluginManager, serverName)
+    self.controller = Q3DLayerController(layer.iface, layer.objectTypeManager, layer.pluginManager, serverName, perspective)
     self.controller.renderCompleted.connect(self._renderCompleted)
 
   def _renderCompleted(self):
@@ -225,7 +230,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
   statusSignal = pyqtSignal(str, int)
   messageBarSignal = pyqtSignal(str, str, int, int)
 
-  def __init__(self, plugin, serverName="Qgis2threejs"):
+  def __init__(self, plugin, serverName="Qgis2threejs", perspective=False):
     layer = plugin.iface.activeLayer()
     title = "[2.5D] " + layer.name() if layer else ""
     QgsPluginLayer.__init__(self, Qgis2threejsLayer.LAYER_TYPE, title)
@@ -239,7 +244,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
     self.pluginManager = plugin.pluginManager
 
     self.renderer = Qgis2threejs25DRenderer()   #self.id())
-    self.renderer.setup(self, serverName)
+    self.renderer.setup(self, serverName, perspective)
     self.renderer.setLayers([self.iface.activeLayer()])
 
     # set custom properties

@@ -190,10 +190,13 @@ class Qgis2threejs:
       QMessageBox.information(None, u"Qgis2threejs", "Select a DEM/Vector layer.")
       return
 
+    # select camera mode
+    perspective = QMessageBox.question(None, u"Select Camera", u"Use perspective camera?\n[Yes] -> Perspective camera\n[No] -> Orthographic camera", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes) == QMessageBox.Yes
+
     # create a plugin layer
     self.lastLayerIndex += 1
     serverName = "Qgis2threejsLayer{0}_{1}".format(os.getpid(), self.lastLayerIndex)
-    layer = Qgis2threejsLayer(self, serverName)
+    layer = Qgis2threejsLayer(self, serverName, perspective)
     QgsMapLayerRegistry.instance().addMapLayer(layer)
 
     self.layers[layer.id()] = layer   # TODO: remove item from dict when the layer is removed from registry
