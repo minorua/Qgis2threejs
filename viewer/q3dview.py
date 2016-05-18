@@ -50,6 +50,11 @@ class Bridge(QObject):
   def mouseUpMessage(self, x, y):
     return "Clicked at ({0}, {1})".format(x, y)
 
+  @pyqtSlot(result="QImage")
+  def image(self):
+    image_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icon.png")
+    return QImage(image_path)
+
   @pyqtSlot(int, int)
   def setLayerId(self, pyLayerId, jsLayerId):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
