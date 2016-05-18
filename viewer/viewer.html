@@ -53,7 +53,7 @@ document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 if ("hidebutton" in app.urlParams) document.getElementById("infobtn").style.display = "none";
 
 container.addEventListener("mouseup", function (e) {
-  // alert(pyObj.myName());    // not works
+  console.log(pyObj.myName);
   pyObj.mouseUp(e.clientX + ', ' + e.clientY);
 });
 

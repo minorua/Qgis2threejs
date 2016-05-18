@@ -23,7 +23,7 @@ import json
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtSlot
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtProperty, pyqtSlot
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
@@ -46,9 +46,9 @@ class Bridge(QObject):
     self._parent = parent
     self.layerManager = layerManager
 
-  @pyqtSlot()
+  @pyqtProperty(str)
   def myName(self):
-    return "QtWebKit Bridge Test"   # Not works
+    return "QtWebKit Bridge Test"
 
   @pyqtSlot(int, int)
   def setLayerId(self, pyLayerId, jsLayerId):
