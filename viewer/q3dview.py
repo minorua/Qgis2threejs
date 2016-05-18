@@ -46,9 +46,9 @@ class Bridge(QObject):
     self._parent = parent
     self.layerManager = layerManager
 
-  @pyqtProperty(str)
-  def myName(self):
-    return "QtWebKit Bridge Test"
+  @pyqtSlot(int, int, result=str)
+  def mouseUpMessage(self, x, y):
+    return "Clicked at ({0}, {1})".format(x, y)
 
   @pyqtSlot(int, int)
   def setLayerId(self, pyLayerId, jsLayerId):
