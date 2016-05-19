@@ -20,7 +20,7 @@
 """
 import json
 import time
-from PyQt4.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
+from qgis.PyQt.QtCore import QByteArray, QIODevice, QObject, QThread, pyqtSignal
 from qgis.core import QGis, QgsMapLayer, QgsMessageLog
 
 from . import q3dconst

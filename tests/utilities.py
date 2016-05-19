@@ -12,9 +12,9 @@ import os
 import shutil
 import sys
 
-from PyQt4.QtCore import QFileInfo, qDebug
-from PyQt4.QtGui import QColor
-from PyQt4.QtXml import QDomDocument
+from qgis.PyQt.QtCore import QFileInfo, qDebug
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapLayerRegistry, QgsMapSettings, QgsProject
 
 

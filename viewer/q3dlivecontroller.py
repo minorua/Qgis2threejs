@@ -18,8 +18,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, QObject, pyqtSignal
-from PyQt4.QtGui import QDialog, QDialogButtonBox
+from qgis.PyQt.QtCore import Qt, QObject, pyqtSignal
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 from qgis.core import QGis, QgsMapLayerRegistry
 
 from . import q3dconst

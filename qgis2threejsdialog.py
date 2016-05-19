@@ -24,8 +24,9 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QSettings, qDebug, QEventLoop, SIGNAL
-from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
+from qgis.PyQt.QtCore import Qt, QDir, QSettings, qDebug
+from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
+from qgis.PyQt.QtGui import QColor, QIcon
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsPoint, QgsRectangle, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 

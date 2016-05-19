@@ -21,7 +21,7 @@
 """
 import struct
 
-from PyQt4.QtCore import QSize
+from qgis.PyQt.QtCore import QSize
 from qgis.core import QGis, QgsMapLayer, QgsRectangle
 
 try:

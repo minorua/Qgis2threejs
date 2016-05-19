@@ -22,7 +22,7 @@
 import os
 import sys
 
-from PyQt4.QtCore import QDir, QFile, QSettings
+from qgis.PyQt.QtCore import QDir, QFile, QSettings
 from .qgis2threejstools import logMessage
 
 

@@ -21,8 +21,8 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QSize
-from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
+from qgis.PyQt.QtCore import Qt, QDir, QSize
+from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
 
 from . import gdal2threejs

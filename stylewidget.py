@@ -21,8 +21,9 @@
 """
 import os
 
-from PyQt4.QtCore import QDir, QVariant
-from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
+from qgis.PyQt.QtCore import QDir, QVariant
+from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
+from qgis.PyQt.QtGui import QColor
 from qgis.core import QGis, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget

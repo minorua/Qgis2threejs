@@ -20,8 +20,8 @@
 import codecs
 import configparser
 import os
-from PyQt4.QtCore import Qt, QDir, QFile, QSettings
-from PyQt4.QtGui import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
+from qgis.PyQt.QtCore import Qt, QDir, QFile, QSettings
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .ui.settingsdialog import Ui_SettingsDialog
 

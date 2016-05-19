@@ -20,7 +20,7 @@
 import os
 import datetime
 
-from PyQt4.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayerRegistry
 
 from .rotatedrect import RotatedRect

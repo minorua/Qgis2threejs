@@ -21,12 +21,12 @@
 """
 import sys
 
-from PyQt4.QtGui import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QGis
 
 
 def list_modules():
-  from PyQt4.QtCore import qDebug
+  from qgis.PyQt.QtCore import qDebug
   for nam, mod in list(sys.modules.items()):
     qDebug(nam + ": " + str(mod))
 

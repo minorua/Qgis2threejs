@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QObject
+from qgis.PyQt.QtCore import QObject
 from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsMapLayerRegistry, QgsPoint
 
 try:

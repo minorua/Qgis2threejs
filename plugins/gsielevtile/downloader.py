@@ -18,8 +18,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QDateTime, QEventLoop, QObject, QTimer, QUrl, qDebug, pyqtSignal, pyqtSlot
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
+from qgis.PyQt.QtCore import QDateTime, QObject, QTimer, QUrl, qDebug, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 from qgis.core import QgsNetworkAccessManager
 import threading
 

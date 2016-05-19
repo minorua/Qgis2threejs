@@ -21,8 +21,9 @@
 """
 import os
 
-from PyQt4.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
-from PyQt4.QtGui import QAction, QIcon, QMessageBox
+from qgis.PyQt.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
+from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayerRegistry
 
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir

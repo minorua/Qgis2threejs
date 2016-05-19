@@ -11,7 +11,7 @@ the Free Software Foundation; either version 2 of the License, or
 # TODO: version >= 2.4
 import os
 from unittest import TestCase
-from PyQt4.QtCore import QSize
+from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
 
 from Qgis2threejs.api import Exporter

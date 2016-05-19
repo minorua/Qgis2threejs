@@ -22,7 +22,7 @@
 import os
 import codecs
 
-from PyQt4.QtCore import QDir
+from qgis.PyQt.QtCore import QDir
 from qgis.core import QgsMapLayerRegistry
 
 

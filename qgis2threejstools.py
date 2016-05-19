@@ -19,8 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
-from PyQt4.QtGui import QMessageBox
+from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
 import os
 import configparser
