@@ -23,24 +23,24 @@ from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer,
 from PyQt4.QtGui import QMessageBox
 from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
 import os
-import ConfigParser
+import configparser
 import re
 import shutil
 import webbrowser
 
-from settings import debug_mode
+from .settings import debug_mode
 
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
-    items = [u"{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
+    items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
     return "{" + ",".join(items) + "}"
   elif isinstance(obj, list):
-    items = [unicode(pyobj2js(v, escape, quoteHex)) for v in obj]
+    items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
     return "[" + ",".join(items) + "]"
   elif isinstance(obj, bool):
     return "true" if obj else "false"
-  elif isinstance(obj, (str, unicode)):
+  elif isinstance(obj, str):
     if escape:
       return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
     if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
@@ -54,7 +54,7 @@ def pyobj2js(obj, escape=False, quoteHex=True):
 
 
 def logMessage(message):
-  QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+  QgsMessageLog.logMessage(str(message), "Qgis2threejs")
 
 
 def shortTextFromSelectedLayerIds(layerIds):
@@ -69,7 +69,7 @@ def shortTextFromSelectedLayerIds(layerIds):
   if layer is None:
     return "Layer not found"
 
-  text = u'"{0}"'.format(layer.name())
+  text = '"{0}"'.format(layer.name())
   if count > 1:
     text += " and {0} layer".format(count - 1)
   if count > 2:
@@ -80,7 +80,7 @@ def shortTextFromSelectedLayerIds(layerIds):
 def openHTMLFile(htmlfilename):
   url = QUrl.fromLocalFile(htmlfilename).toString()
   settings = QSettings()
-  browserPath = settings.value("/Qgis2threejs/browser", "", type=unicode)
+  browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
   if browserPath == "":
     # open default web browser
     webbrowser.open(url, new=2)    # new=2: new tab if possible
@@ -105,7 +105,7 @@ def getTemplateConfig(template_path):
 
   if not os.path.exists(meta_path):
     return {}
-  parser = ConfigParser.SafeConfigParser()
+  parser = configparser.SafeConfigParser()
   with open(meta_path, "r") as f:
     parser.readfp(f)
   config = {"path": abspath}

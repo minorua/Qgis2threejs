@@ -25,9 +25,9 @@ from PyQt4.QtCore import QSize
 from PyQt4.QtGui import QColor
 from qgis.core import NULL
 
-from qgis2threejscore import calculateDEMSize
-from qgis2threejstools import logMessage
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .qgis2threejscore import calculateDEMSize
+from .qgis2threejstools import logMessage
+from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
 
@@ -88,7 +88,7 @@ class VectorPropertyReader:
     # feature color
     symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
+      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
@@ -102,7 +102,7 @@ class VectorPropertyReader:
           cs_rgb = expr.evaluate(f, f.fields())
 
           # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-          rgb = map(int, cs_rgb.split(",")[0:3])
+          rgb = list(map(int, cs_rgb.split(",")[0:3]))
           return "0x" + "".join(map(chr, rgb)).encode("hex")
 
     return symbol.color().name().replace("#", "0x")
@@ -119,7 +119,7 @@ class VectorPropertyReader:
     alpha = None
     symbol = self.layer.rendererV2().symbolForFeature(f)
     if symbol is None:
-      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
+      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.rendererV2().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
@@ -144,7 +144,7 @@ class VectorPropertyReader:
     try:
       return float(val)
     except Exception as e:
-      logMessage(u'{0} (value: {1})'.format(e.message, unicode(val)))
+      logMessage('{0} (value: {1})'.format(e.message, str(val)))
       return 0
 
   # functions to read values from height widget (z coordinate)
@@ -206,7 +206,7 @@ class VectorPropertyReader:
           value = f.attribute(fieldName)
           if value == NULL:
             value = ""
-            logMessage(u"Empty attribute value in the field '{0}'".format(fieldName))
+            logMessage("Empty attribute value in the field '{0}'".format(fieldName))
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
       elif widgetType == StyleWidget.CHECKBOX:

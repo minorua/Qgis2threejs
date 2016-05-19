@@ -13,7 +13,7 @@ import os
 import sys
 from unittest import TestCase
 
-from utilities import pluginPath
+from .utilities import pluginPath
 
 
 class TestBasic(TestCase):
@@ -41,7 +41,7 @@ class TestBasic(TestCase):
           pass
         imported += 1
 
-    print "{0} modules imported".format(imported)
+    print("{0} modules imported".format(imported))
 
 
 if __name__ == "__main__":

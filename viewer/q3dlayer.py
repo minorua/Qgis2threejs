@@ -26,8 +26,8 @@ from PyQt4.QtGui import QImage, QPainter
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 
-import q3dconst
-from q3dcontroller import Q3DController, Writer
+from . import q3dconst
+from .q3dcontroller import Q3DController, Writer
 from Qgis2threejs.rotatedrect import RotatedRect
 
 debug_mode = 1
@@ -35,7 +35,7 @@ debug_mode = 1
 
 def logMessage(message):
   try:
-    QgsMessageLog.logMessage(u"{0} ({1})".format(unicode(message), str(threading.current_thread())), "Qgis2threejs")
+    QgsMessageLog.logMessage("{0} ({1})".format(str(message), str(threading.current_thread())), "Qgis2threejs")
   except:
     pass
 
@@ -364,7 +364,7 @@ class Qgis2threejsLayer(QgsPluginLayer):
 
   def metadata(self):
     lines = []
-    fmt = u"%s:\t%s"
+    fmt = "%s:\t%s"
     lines.append(fmt % (self.tr("Title"), "title"))
     return "\n".join(lines)
 

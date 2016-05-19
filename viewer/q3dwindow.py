@@ -25,8 +25,8 @@ from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from ui5_q3dwindow import Ui_Q3DWindow
-import q3dconst
+from .ui5_q3dwindow import Ui_Q3DWindow
+from . import q3dconst
 
 
 class LayerManager(QObject):
@@ -126,14 +126,14 @@ class Q3DWindow(QMainWindow):
 
   #TODO: CopyAction is not possible
   def dragEnterEvent(self, event):
-    print(str(event.mimeData().formats()))
+    print((str(event.mimeData().formats())))
     if event.mimeData().hasFormat("application/qgis.layertreemodeldata"):
       event.setDropAction(Qt.CopyAction)
       event.accept()
       # event.acceptProposedAction()
 
   def dropEvent(self, event):
-    print("Possible actions: ".format(int(event.possibleActions()))) # => 2 (Qt.MoveAction)
+    print(("Possible actions: ".format(int(event.possibleActions())))) # => 2 (Qt.MoveAction)
     event.setDropAction(Qt.CopyAction)
     event.accept()
     #event.ignore()
@@ -144,7 +144,7 @@ class Q3DWindow(QMainWindow):
 
     doc = minidom.parseString(xml)
     layerId = doc.getElementsByTagName("layer-tree-layer")[0].getAttribute("id")
-    print("Layer {0} has been dropped.".format(layerId))
+    print(("Layer {0} has been dropped.".format(layerId)))
     """
     from PyQt5.QtXml import QDomDocument
     # ImportError: No module named 'PyQt5.QtXml'

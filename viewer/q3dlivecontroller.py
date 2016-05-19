@@ -22,13 +22,13 @@ from PyQt4.QtCore import Qt, QObject, pyqtSignal
 from PyQt4.QtGui import QDialog, QDialogButtonBox
 from qgis.core import QGis, QgsMapLayerRegistry
 
-import q3dconst
-from q3dcontroller import Q3DController
+from . import q3dconst
+from .q3dcontroller import Q3DController
 from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
 from Qgis2threejs.qgis2threejscore import MapTo3D
 from Qgis2threejs.qgis2threejsdialog import RectangleMapTool
 from Qgis2threejs.qgis2threejstools import logMessage
-from ui.propertiesdialog import Ui_PropertiesDialog
+from .ui.propertiesdialog import Ui_PropertiesDialog
 
 
 class Q3DLiveController(Q3DController):
@@ -59,7 +59,7 @@ class Q3DLiveController(Q3DController):
     Q3DController.processRequest(self, dataType, params)
 
   def showPropertiesDialog(self, id, layerId, geomType, properties=None):
-    layer = QgsMapLayerRegistry.instance().mapLayer(unicode(layerId))
+    layer = QgsMapLayerRegistry.instance().mapLayer(str(layerId))
     if layer is None:
       return
 
@@ -98,7 +98,7 @@ class PropertiesDialog(QDialog):
     self.geomType = geomType
     self.properties = properties or {}
 
-    self.setWindowTitle(u"Layer Properties - {0} (Qgis2threejs)".format(layer.name()))
+    self.setWindowTitle("Layer Properties - {0} (Qgis2threejs)".format(layer.name()))
 
     dialog = MockDialog(self.iface, self.objectTypeManager, self.pluginManager, self)
     if geomType == q3dconst.TYPE_DEM:

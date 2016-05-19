@@ -20,7 +20,7 @@
 """
 from PyQt4.QtNetwork import QLocalServer
 
-from socketinterface import SocketInterface
+from .socketinterface import SocketInterface
 
 
 class SocketServer(SocketInterface):

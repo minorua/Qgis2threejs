@@ -167,4 +167,4 @@ class Ui_Q3DWindow(object):
         self.actionAdd_Layer.setText(_translate("Q3DWindow", "Add Layer..."))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
 
-from q3dview import Q3DView
+from .q3dview import Q3DView

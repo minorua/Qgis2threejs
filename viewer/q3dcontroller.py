@@ -23,15 +23,15 @@ import time
 from PyQt4.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
 from qgis.core import QGis, QgsMapLayer, QgsMessageLog
 
-import q3dconst
-from socketserver import SocketServer
+from . import q3dconst
+from .socketserver import SocketServer
 from Qgis2threejs.exportsettings import ExportSettings
 from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
 from Qgis2threejs.qgis2threejstools import pyobj2js
 
 def logMessage(message):
   try:
-    QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+    QgsMessageLog.logMessage(str(message), "Qgis2threejs")
   except:
     pass
 
@@ -140,18 +140,18 @@ app.queryObjNeedsUpdate = true;
 
   def writeFeature(self, f):
     if self.jsLayerId is None:
-      self.write(u"// LiveThreejsJSWriter: feature not written because jsLayerId is None. # TODO\n")
+      self.write("// LiveThreejsJSWriter: feature not written because jsLayerId is None. # TODO\n")
     else:
       manager = self.layer.materialManager
       writtenCount = manager.writtenCount
       manager.write(self, self.imageManager)
       if manager.writtenCount > writtenCount:
-        self.write(u"createMaterials({0});\n".format(self.jsLayerId))
+        self.write("createMaterials({0});\n".format(self.jsLayerId))
 
       #TODO: self.imageManager.write(self)
 
       self.currentFeatureIndex += 1
-      self.write(u"addFeat({0}, {1}); //{2}\n".format(self.jsLayerId, pyobj2js(f), self.currentFeatureIndex))
+      self.write("addFeat({0}, {1}); //{2}\n".format(self.jsLayerId, pyobj2js(f), self.currentFeatureIndex))
 
 
 class Worker(QObject):
@@ -324,7 +324,7 @@ class WorkerManager(QObject):
     self.processNextRequest()
 
   def jobCanceled(self, jobId, kargs):
-    logMessage(u"jobCanceled: {0} ({1})".format(jobId, unicode(kargs)))
+    logMessage("jobCanceled: {0} ({1})".format(jobId, str(kargs)))
     self.jobFinished(jobId, kargs)
 
   # should be overridden

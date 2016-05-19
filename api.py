@@ -23,10 +23,10 @@ import os
 try:
   from qgis.core import QgsMapSettings, QgsRectangle
 
-  from export import exportToThreeJS
-  from exportsettings import ExportSettings
-  from rotatedrect import RotatedRect
-  import qgis2threejstools
+  from .export import exportToThreeJS
+  from .exportsettings import ExportSettings
+  from .rotatedrect import RotatedRect
+  from . import qgis2threejstools
 
 except ImportError:
   if os.environ.get('READTHEDOCS', None) is None:  # and os.environ.get('SPHINXBUILD', None) is None:

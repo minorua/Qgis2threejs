@@ -39,7 +39,7 @@ class GSIElevTilePlugin:
 
   @staticmethod
   def providerClass():
-    from gsielevtileprovider import GSIElevTileProvider
+    from .gsielevtileprovider import GSIElevTileProvider
     return GSIElevTileProvider
 
 plugin_class = GSIElevTilePlugin

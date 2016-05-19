@@ -19,9 +19,9 @@
 """
 from qgis.core import QgsRectangle
 
-import gdal2threejs
-from geometry import PolygonGeometry, Triangles
-from qgis2threejstools import pyobj2js
+from . import gdal2threejs
+from .geometry import PolygonGeometry, Triangles
+from .qgis2threejstools import pyobj2js
 
 
 class DEMBlock:
@@ -54,11 +54,11 @@ class DEMBlock:
 
   def zShift(self, shift):
     if shift != 0:
-      self.dem_values = map(lambda x: x + shift, self.dem_values)
+      self.dem_values = [x + shift for x in self.dem_values]
 
   def zScale(self, scale):
     if scale != 1:
-      self.dem_values = map(lambda x: x * scale, self.dem_values)
+      self.dem_values = [x * scale for x in self.dem_values]
 
   def write(self, writer):
     mapTo3d = writer.settings.mapTo3d()
@@ -78,7 +78,7 @@ class DEMBlock:
       for polygon in geom.polygons:
         bnds = []
         for boundary in polygon:
-          bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
+          bnds.append([[pt.x, pt.y] for pt in boundary])
         polygons.append(bnds)
 
       writer.write("bl.clip = {};\n")
@@ -91,10 +91,10 @@ class DEMBlock:
         if len(polygon) == 1 and len(boundary) == 4:
           triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
         else:
-          bnds = [map(lambda pt: [pt.x, pt.y], bnd) for bnd in polygon]
+          bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
           polygons.append(bnds)
 
-      vf = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+      vf = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
       writer.write("bl.clip.triangles = {0};\n".format(pyobj2js(vf)))
       writer.write("bl.clip.split_polygons = {0};\n".format(pyobj2js(polygons)))
 

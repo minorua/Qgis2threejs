@@ -18,12 +18,12 @@
  ***************************************************************************/
 """
 import codecs
-import ConfigParser
+import configparser
 import os
 from PyQt4.QtCore import Qt, QDir, QFile, QSettings
 from PyQt4.QtGui import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from ui.settingsdialog import Ui_SettingsDialog
+from .ui.settingsdialog import Ui_SettingsDialog
 
 
 class SettingsDialog(QDialog):
@@ -39,8 +39,8 @@ class SettingsDialog(QDialog):
 
     # load settings
     settings = QSettings()
-    ui.lineEdit_BrowserPath.setText(settings.value("/Qgis2threejs/browser", "", type=unicode))
-    enabled_plugins = QSettings().value("/Qgis2threejs/plugins", "", type=unicode).split(",")
+    ui.lineEdit_BrowserPath.setText(settings.value("/Qgis2threejs/browser", "", type=str))
+    enabled_plugins = QSettings().value("/Qgis2threejs/plugins", "", type=str).split(",")
 
     # initialize plugin table widget
     plugin_dir = QDir(os.path.join(os.path.dirname(QFile.decodeName(__file__)), "plugins"))
@@ -56,7 +56,7 @@ class SettingsDialog(QDialog):
 
     self.plugin_metadata = []
     for i, name in enumerate(plugins):
-      parser = ConfigParser.SafeConfigParser()
+      parser = configparser.SafeConfigParser()
       with codecs.open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", "UTF-8") as f:
         parser.readfp(f)
 

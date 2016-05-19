@@ -15,7 +15,7 @@ from qgis.core import QgsRectangle
 
 from Qgis2threejs.api import Exporter
 from Qgis2threejs.pluginmanager import PluginManager
-from utilities import dataPath, outputPath, loadProject
+from .utilities import dataPath, outputPath, loadProject
 
 
 class TestPlugins(TestCase):

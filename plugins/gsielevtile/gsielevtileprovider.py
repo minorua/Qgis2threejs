@@ -33,7 +33,7 @@ try:
 except ImportError:
   import gdal
 
-from downloader import Downloader
+from .downloader import Downloader
 from Qgis2threejs.qgis2threejstools import logMessage
 
 TILE_SIZE = 256

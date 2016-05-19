@@ -26,16 +26,16 @@ from PyQt4.QtCore import QDir
 from qgis.core import QgsMapLayerRegistry
 
 
-from exportsettings import ExportSettings
-from qgis2threejscore import ObjectTreeItem
-from writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
-import qgis2threejstools as tools
+from .exportsettings import ExportSettings
+from .qgis2threejscore import ObjectTreeItem
+from .writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
+from . import qgis2threejstools as tools
 
 def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, progress=None):
   """legendInterface is used for vector layer ordering"""
   progress = progress or dummyProgress
   if objectTypeManager is None:
-    from vectorobject import ObjectTypeManager
+    from .vectorobject import ObjectTypeManager
     objectTypeManager = ObjectTypeManager()
 
   out_dir = os.path.split(settings.htmlfilename)[0]
@@ -69,7 +69,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
 
     # write additional DEM(s)
     primaryDEMLayerId = demProperties.get("comboBox_DEMLayer", 0)
-    for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).iteritems():
+    for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).items():
       if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsMapLayerRegistry.instance().mapLayer(layerId):
         writeSimpleDEM(writer, properties)
 

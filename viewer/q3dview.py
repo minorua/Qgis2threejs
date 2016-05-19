@@ -27,8 +27,8 @@ from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUr
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
-import q3dconst
-from socketclient import SocketClient
+from . import q3dconst
+from .socketclient import SocketClient
 
 
 def base64image(image):
@@ -59,7 +59,7 @@ class Bridge(QObject):
   def setLayerId(self, pyLayerId, jsLayerId):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
     self._parent.layerCreated(pyLayerId, jsLayerId)
-    print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
+    print(("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId)))
 
   @pyqtSlot(int, int, str, int, int, bool)
   def saveImage(self, width, height, dataUrl, tx, ty, intermediate):
@@ -79,7 +79,7 @@ class Q3DWebPage(QWebPage):
     self.logfile = open(os.path.join(os.path.dirname(__file__), "q3dview.log"), "w")
 
   def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-    print("[JS CONSOLE] {0} ({1}:{2})".format(message, sourceID, lineNumber))
+    print(("[JS CONSOLE] {0} ({1}:{2})".format(message, sourceID, lineNumber)))
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     self.logfile.write("{0}: {1} ({2}:{3})".format(now, message, sourceID, lineNumber))
 
@@ -127,7 +127,7 @@ class Q3DView(QWebView):
     url = os.path.join(os.path.abspath(os.path.dirname(__file__)), filetitle + ".html").replace("\\", "/")
     self.setUrl(QUrl.fromLocalFile(url))
     #self.setUrl(QUrl("https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html"))
-    print("URL: {0}".format(self.url().toString()))
+    print(("URL: {0}".format(self.url().toString())))
 
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
@@ -183,7 +183,7 @@ class Q3DView(QWebView):
     return self._page.mainFrame().evaluateJavaScript(string)
 
   def notified(self, params):
-    print("Notification received: {0}".format(str(params)))
+    print(("Notification received: {0}".format(str(params))))
 
     code = params.get("code")
     if code == q3dconst.N_CANVAS_EXTENT_CHANGED:
@@ -210,7 +210,7 @@ class Q3DView(QWebView):
 
   def responseReceived(self, data, meta):
     dataType = meta.get("dataType")
-    print("responseReceived: renderId={0}, self.renderId={1}, dataType={2}".format(meta.get("renderId"), self.renderId, dataType))
+    print(("responseReceived: renderId={0}, self.renderId={1}, dataType={2}".format(meta.get("renderId"), self.renderId, dataType)))
     renderId = meta.get("renderId")
     if renderId != self.renderId:
       print("responseReceived, but renderId doesn't match to current renderId.")

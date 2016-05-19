@@ -229,7 +229,7 @@ class RotatedRect:
            QgsPoint(rect.xMinimum(), rect.yMinimum())]
 
     if self._rotation:
-      return map(lambda pt: self.rotatePoint(pt, self._rotation, self._center), pts)
+      return [self.rotatePoint(pt, self._rotation, self._center) for pt in pts]
 
     return pts
 
@@ -238,4 +238,4 @@ class RotatedRect:
 
     # print coordinates of vertices
     pts = self.verticies()
-    return "RotatedRect:" + ",".join(map(lambda (x, y): "P{0}({1})".format(x, y.toString()), enumerate(pts)))
+    return "RotatedRect:" + ",".join(["P{0}({1})".format(x_y[0], x_y[1].toString()) for x_y in enumerate(pts)])

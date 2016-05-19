@@ -28,14 +28,14 @@ except ImportError:
   import ogr
   import osr
 
-from datamanager import ImageManager, ModelManager, MaterialManager
-from demblock import DEMBlock, DEMBlocks
-from geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
-from propertyreader import DEMPropertyReader, VectorPropertyReader
-from qgis2threejscore import ObjectTreeItem, GDALDEMProvider
-from qgis2threejstools import pyobj2js, logMessage
-from quadtree import DEMQuadList
-from rotatedrect import RotatedRect
+from .datamanager import ImageManager, ModelManager, MaterialManager
+from .demblock import DEMBlock, DEMBlocks
+from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
+from .propertyreader import DEMPropertyReader, VectorPropertyReader
+from .qgis2threejscore import ObjectTreeItem, GDALDEMProvider
+from .qgis2threejstools import pyobj2js, logMessage
+from .quadtree import DEMQuadList
+from .rotatedrect import RotatedRect
 
 
 class ThreejsJSWriter(QObject):
@@ -67,7 +67,7 @@ class ThreejsJSWriter(QObject):
 
   def writeProject(self, update=False):
     # write project information
-    self.write(u"// Qgis2threejs Project\n")
+    self.write("// Qgis2threejs Project\n")
     settings = self.settings
     extent = self.settings.baseExtent
     rect = extent.unrotatedRect()
@@ -75,7 +75,7 @@ class ThreejsJSWriter(QObject):
     wgs84Center = self.settings.wgs84Center()
 
     args = {"title": settings.title,
-            "crs": unicode(settings.crs.authid()),
+            "crs": str(settings.crs.authid()),
             "proj": settings.crs.toProj4(),
             "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
             "rotation": extent.rotation(),
@@ -85,26 +85,26 @@ class ThreejsJSWriter(QObject):
             "wgs84Center": {"lat": wgs84Center.y(), "lon": wgs84Center.x()}}
 
     if update:
-      self.write(u"project.update({0});\n".format(pyobj2js(args)))
+      self.write("project.update({0});\n".format(pyobj2js(args)))
     else:
-      self.write(u"project = new Q3D.Project({0});\n".format(pyobj2js(args)))
+      self.write("project = new Q3D.Project({0});\n".format(pyobj2js(args)))
 
   def writeLayer(self, layer, fieldNames=None, jsLayerId=None):
     #TODO: DEMLayerWriter/VectorLayerWriter (subclasses of LayerWriter)
     self.currentLayerIndex = self.layerCount    #TODO: self.currentLayerIndex not used
-    self.write(u"\n// Layer {0}\n".format(self.layerCount if jsLayerId is None else jsLayerId))
+    self.write("\n// Layer {0}\n".format(self.layerCount if jsLayerId is None else jsLayerId))
 
     type2classprefix = {"dem": "DEM", "point": "Point", "line": "Line", "polygon": "Polygon"}
     obj = layer.layerObject()
     prefix = type2classprefix[obj["type"]]
     if jsLayerId is None:
-      self.write(u"lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(prefix, pyobj2js(obj)))
+      self.write("lyr = project.addLayer(new Q3D.{0}Layer({1}));\n".format(prefix, pyobj2js(obj)))
       self.layerCount += 1
     else:
-      self.write(u"lyr = project.setLayer({0}, new Q3D.{1}Layer({2}));\n".format(jsLayerId, prefix, pyobj2js(obj)))
+      self.write("lyr = project.setLayer({0}, new Q3D.{1}Layer({2}));\n".format(jsLayerId, prefix, pyobj2js(obj)))
 
     if fieldNames is not None:
-      self.write(u"lyr.a = {0};\n".format(pyobj2js(fieldNames)))
+      self.write("lyr.a = {0};\n".format(pyobj2js(fieldNames)))
     self.currentFeatureIndex = -1
     self.attrs = []
     return self.currentLayerIndex
@@ -112,14 +112,14 @@ class ThreejsJSWriter(QObject):
   #TODO: move to VectorLayerWriter
   def writeFeature(self, f):
     self.currentFeatureIndex += 1
-    self.write(u"lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
+    self.write("lyr.f[{0}] = {1};\n".format(self.currentFeatureIndex, pyobj2js(f)))
 
   def addAttributes(self, attrs):
     self.attrs.append(attrs)
 
   def writeAttributes(self):
     for index, attrs in enumerate(self.attrs):
-      self.write(u"lyr.f[{0}].a = {1};\n".format(index, pyobj2js(attrs, True)))
+      self.write("lyr.f[{0}].a = {1};\n".format(index, pyobj2js(attrs, True)))
 
   def writeMaterials(self, materialManager):
     materialManager.write(self, self.imageManager)
@@ -179,7 +179,7 @@ class ThreejsJSWriter(QObject):
     #else:
     files.append("%s.js" % filetitle)
 
-    return map(lambda fn: '<script src="./%s"></script>' % fn, files)
+    return ['<script src="./%s"></script>' % fn for fn in files]
 
   def triangleMesh(self, dem_width=0, dem_height=0):
     if dem_width == 0 and dem_height == 0:
@@ -451,9 +451,9 @@ def writeMultiResDEM(writer, properties, progress=None):
 
     # shift and scale
     if mapTo3d.verticalShift != 0:
-      dem_values = map(lambda x: x + mapTo3d.verticalShift, dem_values)
+      dem_values = [x + mapTo3d.verticalShift for x in dem_values]
     if mapTo3d.multiplierZ != 1:
-      dem_values = map(lambda x: x * mapTo3d.multiplierZ, dem_values)
+      dem_values = [x * mapTo3d.multiplierZ for x in dem_values]
 
     quad.setData(dem_width, dem_height, dem_values)
 
@@ -690,7 +690,7 @@ def writeVectors(writer, legendInterface=None, progress=None):
   layers = []
   if legendInterface is None:
     for parentId in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
-      for layerId, properties in settings.get(parentId, {}).iteritems():
+      for layerId, properties in settings.get(parentId, {}).items():
         if properties.get("visible", False):
           layers.append([layerId, properties])
   else:
@@ -710,7 +710,7 @@ def writeVectors(writer, legendInterface=None, progress=None):
     if mapLayer is None:
       continue
 
-    progress(30 + 30 * finishedLayers / len(layers), u"Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
+    progress(30 + 30 * finishedLayers / len(layers), "Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
     writeVector(writer, layerId, properties, progress, renderer)
     finishedLayers += 1
 
@@ -736,7 +736,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
   if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
     progress(None, "Initializing triangle mesh for overlay polygons")
     writer.triangleMesh()
-    progress(None, u"Writing vector layer: {0}".format(mapLayer.name()))
+    progress(None, "Writing vector layer: {0}".format(mapLayer.name()))
 
   # write layer object
   layer = VectorLayer(writer, mapLayer, prop, obj_mod)

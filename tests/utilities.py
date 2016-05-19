@@ -85,7 +85,7 @@ def loadProject(filename):
 
 
 def log(msg):
-  if isinstance(msg, unicode):
+  if isinstance(msg, str):
     qDebug(msg.encode("utf-8"))
   else:
     qDebug(str(msg))

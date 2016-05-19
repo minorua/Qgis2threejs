@@ -25,9 +25,9 @@ from PyQt4.QtCore import Qt, QDir, QSize
 from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
 
-import gdal2threejs
-import qgis2threejstools as tools
-from qgis2threejstools import logMessage
+from . import gdal2threejs
+from . import qgis2threejstools as tools
+from .qgis2threejstools import logMessage
 
 
 class DataManager:
@@ -216,7 +216,7 @@ class ImageManager(DataManager):
     if len(self._list) == 0:
       return
 
-    f.write(u'\n// Base64 encoded images\n')
+    f.write('\n// Base64 encoded images\n')
     for index, image in enumerate(self._list):
       imageType = image[0]
       if imageType == self.IMAGE_FILE:
@@ -227,13 +227,13 @@ class ImageManager(DataManager):
           size = QImageReader(image_path).size()
           args = (index, size.width(), size.height(), gdal2threejs.base64image(image_path))
         else:
-          f.write(u"project.images[%d] = {data:null};\n" % index)
+          f.write("project.images[%d] = {data:null};\n" % index)
 
           if exists:
-            err_msg = u"Not image file path"
+            err_msg = "Not image file path"
           else:
-            err_msg = u"Image file not found"
-          logMessage(u"{0}: {1}".format(err_msg, image_path))
+            err_msg = "Image file not found"
+          logMessage("{0}: {1}".format(err_msg, image_path))
           continue
 
       elif imageType == self.MAP_IMAGE:
@@ -249,7 +249,7 @@ class ImageManager(DataManager):
         size = self.exportSettings.mapSettings.outputSize()
         args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
 
-      f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
+      f.write('project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
 
 class MaterialManager(DataManager):
@@ -366,7 +366,7 @@ class MaterialManager(DataManager):
         m["ds"] = 1
 
       index = self.writtenCount
-      f.write(u"lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
+      f.write("lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
       self.writtenCount += 1
 
 
@@ -399,19 +399,19 @@ class ModelManager(DataManager):
     if len(self._list) == 0:
       return
 
-    f.write(u'\n// 3D model data\n')
+    f.write('\n// 3D model data\n')
     for index, model in enumerate(self._list):
       model_type, path = model
       exists = os.path.exists(path)
       if exists and os.path.isfile(path):
         with open(path) as model_file:
           data = model_file.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
-        f.write(u"project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
+        f.write("project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
       else:
-        f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
+        f.write("project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
 
         if exists:
-          err_msg = u"Not 3D model file path"
+          err_msg = "Not 3D model file path"
         else:
-          err_msg = u"3D model file not found"
-        logMessage(u"{0}: {1} ({2})".format(err_msg, path, model_type))
+          err_msg = "3D model file not found"
+        logMessage("{0}: {1} ({2})".format(err_msg, path, model_type))

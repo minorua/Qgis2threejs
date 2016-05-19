@@ -25,8 +25,8 @@ from PyQt4.QtCore import QDir, QVariant
 from PyQt4.QtGui import QWidget, QColor, QColorDialog, QFileDialog
 from qgis.core import QGis, QgsProject
 
-from ui.widgetComboEdit import Ui_ComboEditWidget
-from qgis2threejstools import shortTextFromSelectedLayerIds
+from .ui.widgetComboEdit import Ui_ComboEditWidget
+from .qgis2threejstools import shortTextFromSelectedLayerIds
 
 
 class WidgetFuncBase:
@@ -120,7 +120,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
       defaultValue = 1
       label = self.label_field
 
-    self.widget.lineEdit.setText(unicode(defaultValue))
+    self.widget.lineEdit.setText(str(defaultValue))
     if label:
       self.widget.label_2.setText(label)
     self.widget.label_2.setVisible(bool(label))
@@ -174,7 +174,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
     options = options or {}
     self.lineEditLabel = options.get("label", "Path")
     WidgetFuncBase.setup(self, options.get("name", ""), editLabel=self.lineEditLabel, toolButton=True)
-    self.widget.lineEdit.setText(unicode(options.get("defaultValue", "")))
+    self.widget.lineEdit.setText(str(options.get("defaultValue", "")))
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
@@ -240,7 +240,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     if layer:
       index_fieldName = self.numericalFields(layer)
       for index, fieldName in index_fieldName:
-        comboBox.addItem(u'+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
+        comboBox.addItem('+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
         # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
       if index_fieldName:
@@ -250,7 +250,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     comboBox.addItem("Absolute value", HeightWidgetFunc.ABSOLUTE)
     if layer:
       for index, fieldName in index_fieldName:
-        comboBox.addItem(u' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
+        comboBox.addItem(' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
         # note: VectorPropertyReader.relativeHeight() uses item name to get field name
 
     defaultItem = options.get("defaultItem")
@@ -268,7 +268,7 @@ class HeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(unicode(defaultValue))
+    self.widget.lineEdit.setText(str(defaultValue))
 
   def isCurrentItemRelativeHeight(self):
     itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
@@ -305,7 +305,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(unicode(defaultValue))
+    self.widget.lineEdit.setText(str(defaultValue))
 
 
 class TransparencyWidgetFunc(WidgetFuncBase):
@@ -348,7 +348,7 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
     if itemText.get(OptionalColorWidgetFunc.NONE, "") is not None:
       self.widget.comboBox.insertItem(0, "None", OptionalColorWidgetFunc.NONE)
 
-    for id, text in itemText.iteritems():
+    for id, text in itemText.items():
       index = self.widget.comboBox.findData(id)
       if index != -1:
         self.widget.comboBox.setItemText(index, text)
@@ -409,7 +409,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
       return
 
     # ColorTextureWidgetFunc.LAYER
-    from layerselectdialog import LayerSelectDialog
+    from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self.widget)
     dialog.initTree(self.layerIds)
     dialog.setMapSettings(self.mapSettings)
@@ -545,7 +545,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
 
   def values(self):
     if self.func and self.hasValues:
-      return self.func.values()
+      return list(self.func.values())
     else:
       return {}
 
@@ -562,5 +562,5 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
       index_fieldName = WidgetFuncBase.fields(layer)
 
     for index, fieldName in index_fieldName:
-      self.comboBox.addItem(u'"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
+      self.comboBox.addItem('"{0}"'.format(fieldName), WidgetFuncBase.FIRST_ATTRIBUTE + index)
       # note: VectorPropertyReader.values() uses item name to get field name

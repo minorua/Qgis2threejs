@@ -128,7 +128,7 @@ class Downloader(QObject):
     # clear queue and abort requests
     self.queue = []
 
-    for reply in self.requestingReplies.itervalues():
+    for reply in self.requestingReplies.values():
       url = reply.url().toString()
       reply.abort()
       reply.deleteLater()

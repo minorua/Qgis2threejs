@@ -26,17 +26,17 @@ from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
 from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.core import QGis, QgsMapLayer
 
-from ui.worldproperties import Ui_WorldPropertiesWidget
-from ui.controlsproperties import Ui_ControlsPropertiesWidget
-from ui.demproperties import Ui_DEMPropertiesWidget
-from ui.vectorproperties import Ui_VectorPropertiesWidget
+from .ui.worldproperties import Ui_WorldPropertiesWidget
+from .ui.controlsproperties import Ui_ControlsPropertiesWidget
+from .ui.demproperties import Ui_DEMPropertiesWidget
+from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
-from qgis2threejscore import calculateDEMSize, createQuadTree
-from qgis2threejstools import logMessage
-from rotatedrect import RotatedRect
-from settings import def_vals
-from stylewidget import StyleWidget
-import qgis2threejstools as tools
+from .qgis2threejscore import calculateDEMSize, createQuadTree
+from .qgis2threejstools import logMessage
+from .rotatedrect import RotatedRect
+from .settings import def_vals
+from .stylewidget import StyleWidget
+from . import qgis2threejstools as tools
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -129,15 +129,15 @@ class PropertyPage(QWidget):
       elif isinstance(w, QLineEdit):
         v = w.text()
       elif isinstance(w, StyleWidget):
-        v = w.values()
+        v = list(w.values())
       else:
-        logMessage("[propertypages.py] Not recognized widget type: " + unicode(type(w)))
+        logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
       p[w.objectName()] = v
     return p
 
   def setProperties(self, properties):
-    for n, v in properties.items():
+    for n, v in list(properties.items()):
       w = getattr(self, n, None)
       if w is None:
         continue
@@ -238,7 +238,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     if properties:
       self.setProperties(properties)
     else:
-      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
+      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
       index = comboBox.findText(controls)
       if index != -1:
         comboBox.setCurrentIndex(index)
@@ -423,7 +423,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       QMessageBox.warning(self, "Qgis2threejs", "Sorry, newer QGIS version (>= 2.4) is required.")
       return
 
-    from layerselectdialog import LayerSelectDialog
+    from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
     dialog.setMapSettings(self.dialog.iface.mapCanvas().mapSettings())

@@ -27,7 +27,7 @@ from qgis.core import QGis
 
 def list_modules():
   from PyQt4.QtCore import qDebug
-  for nam, mod in sys.modules.items():
+  for nam, mod in list(sys.modules.items()):
     qDebug(nam + ": " + str(mod))
 
 
@@ -77,7 +77,7 @@ class ObjectTypeManager:
 
     module_names = ["point_basic", "line_basic", "polygon_basic"]
     module_names += ["point_icon", "point_model"]
-    module_fullnames = map(lambda x: "Qgis2threejs.objects." + x, module_names)
+    module_fullnames = ["Qgis2threejs.objects." + x for x in module_names]
     for modname in module_fullnames:
       mod = ObjectTypeModule.load(modname)
       if mod is None:
@@ -90,7 +90,7 @@ class ObjectTypeManager:
 
   def objectTypeNames(self, geom_type):
     if geom_type in self.objTypes:
-      return map(lambda x: x.name, self.objTypes[geom_type])
+      return [x.name for x in self.objTypes[geom_type]]
     return []
 
   def objectTypeItem(self, geom_type, item_index):

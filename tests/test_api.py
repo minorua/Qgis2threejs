@@ -16,7 +16,7 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
 
 from Qgis2threejs.api import Exporter
 from Qgis2threejs.qgis2threejscore import ObjectTreeItem
-from utilities import dataPath, outputPath, loadProject
+from .utilities import dataPath, outputPath, loadProject
 
 
 class TestApi(TestCase):

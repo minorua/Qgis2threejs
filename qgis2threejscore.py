@@ -29,10 +29,10 @@ try:
 except ImportError:
   import gdal
 
-from gdal2threejs import Raster
-from geometry import Point
-from rotatedrect import RotatedRect
-from quadtree import DEMQuadTree
+from .gdal2threejs import Raster
+from .geometry import Point
+from .rotatedrect import RotatedRect
+from .quadtree import DEMQuadTree
 
 
 class ObjectTreeItem:
@@ -175,7 +175,7 @@ def createQuadTree(extent, p):
     p -- demProperties
   """
   try:
-    cx, cy, w, h = map(float, [p["lineEdit_centerX"], p["lineEdit_centerY"], p["lineEdit_rectWidth"], p["lineEdit_rectHeight"]])
+    cx, cy, w, h = list(map(float, [p["lineEdit_centerX"], p["lineEdit_centerY"], p["lineEdit_rectWidth"], p["lineEdit_rectHeight"]]))
   except ValueError:
     return None
 
