@@ -24,7 +24,7 @@
 """
 import os
 
-from qgis.PyQt.QtCore import Qt, QDir, QSettings, qDebug
+from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
 from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsPoint, QgsRectangle, QgsProject
@@ -193,7 +193,7 @@ class Qgis2threejsDialog(QDialog):
     if not directory:
       directory = QDir.homePath()
     filterString = "Settings files (*.qto3settings);;All files (*.*)"
-    filename = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+    filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
     if not filename:
       return
 
@@ -212,7 +212,7 @@ class Qgis2threejsDialog(QDialog):
         directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
       if not directory:
         directory = QDir.homePath()
-      filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
+      filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
       if not filename:
         return
 
@@ -637,7 +637,7 @@ class Qgis2threejsDialog(QDialog):
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
       directory = QDir.homePath()
-    filename = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
     if not filename:
       return
 

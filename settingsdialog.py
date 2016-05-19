@@ -91,6 +91,6 @@ class SettingsDialog(QDialog):
     QDialog.accept(self)
 
   def browseClicked(self):
-    filename = QFileDialog.getOpenFileName(self, self.tr("Select browser"))
+    filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select browser"))
     if filename != "":
       self.ui.lineEdit_BrowserPath.setText(filename)

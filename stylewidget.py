@@ -202,7 +202,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 
     comboBox = self.widget.comboBox
     if comboBox.itemData(comboBox.currentIndex()) == FilePathWidgetFunc.FILEPATH:
-      filepath = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
+      filepath, _ = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
       if filepath:
         self.widget.lineEdit.setText(filepath)
     else:

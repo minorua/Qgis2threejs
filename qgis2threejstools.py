@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
 import os
@@ -46,6 +46,8 @@ def pyobj2js(obj, escape=False, quoteHex=True):
     if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
       return obj
     return '"' + obj + '"'
+  elif isinstance(obj, bytes):
+    return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
   elif isinstance(obj, (int, float)):
     return obj
   elif obj == NULL:   # qgis.core.NULL
@@ -96,7 +98,7 @@ def base64image(image):
   buffer = QBuffer(ba)
   buffer.open(QIODevice.WriteOnly)
   image.save(buffer, "PNG")
-  return "data:image/png;base64," + ba.toBase64().data()
+  return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 def getTemplateConfig(template_path):

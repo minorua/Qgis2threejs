@@ -348,7 +348,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     if isPrimary:
       # enable map tool to select focus area
-      self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
+      #self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)    #TODO: new style
       self.dialog.startPointSelection()
     else:
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
@@ -443,7 +443,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if directory == "":
       directory = QDir.homePath()
     filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
-    filename = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
+    filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
     if filename:
       self.lineEdit_ImageFile.setText(filename)
 
