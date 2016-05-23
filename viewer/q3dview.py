@@ -26,6 +26,8 @@ import os
 from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtProperty, pyqtSlot
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+# INSTALL
+# sudo apt-get install python3-pyqt5.qtwebkit
 
 from . import q3dconst
 from .socketclient import SocketClient

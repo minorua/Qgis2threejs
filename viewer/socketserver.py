@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtNetwork import QLocalServer
+from PyQt5.QtNetwork import QLocalServer
 
 from .socketinterface import SocketInterface
 

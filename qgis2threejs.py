@@ -27,6 +27,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayerRegistry
 
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
+from .settings import live_in_another_process
 
 
 class Qgis2threejs:
@@ -149,25 +150,31 @@ class Qgis2threejs:
 
     self.initManagers()
     pid = str(os.getpid())
+    serverName = "Qgis2threejsLive" + pid
 
     if self.controller is None:
-      serverName = "Qgis2threejsLive" + pid
       self.controller = Q3DLiveController(self.iface, self.objectTypeManager, self.pluginManager, serverName)
 
     logMessage("Launching Live Exporter...")
 
     parent = self.iface.mainWindow()
-    p = QProcess(parent)
-    if os.name == "nt":
-      os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), pid))
-      return
-      cmd = r"C:\Python34\python.exe"
-    else:
-      cmd = "python3"
-    p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", pid])
+    if live_in_another_process:
+      p = QProcess(parent)
+      if os.name == "nt":
+        os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), pid))
+        return
+        cmd = r"C:\Python34\python.exe"
+      else:
+        cmd = "python3"
+      p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", pid])
 
-    if not p.waitForStarted():
-      logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
+      if not p.waitForStarted():
+        logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
+
+    else:
+      from .viewer.q3dwindow import Q3DWindow
+      self.liveExporter = Q3DWindow(serverName, isViewer=True, parent=parent)
+      self.liveExporter.show()
 
   def addPluginLayer(self):
     from .viewer.q3dlayer import Qgis2threejsLayer, Qgis2threejs25DLayerType
