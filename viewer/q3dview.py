@@ -23,7 +23,7 @@ import json
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtProperty, pyqtSlot
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtSlot
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 # INSTALL
@@ -31,6 +31,8 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 from . import q3dconst
 from .socketclient import SocketClient
+from .q3dconnector import Q3DConnector
+from Qgis2threejs.settings import live_in_another_process
 
 
 def base64image(image):
@@ -98,7 +100,11 @@ class Q3DView(QWebView):
     self.wnd = wnd
     self.layerManager = layerManager
     self.isViewer = isViewer
-    self.iface = SocketClient(serverName, self)
+
+    if live_in_another_process:
+      self.iface = SocketClient(serverName, self)
+    else:
+      self.iface = Q3DConnector(self)
     self.iface.notified.connect(self.notified)
     self.iface.requestReceived.connect(self.requestReceived)
     self.iface.responseReceived.connect(self.responseReceived)

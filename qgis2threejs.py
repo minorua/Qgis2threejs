@@ -174,6 +174,7 @@ class Qgis2threejs:
     else:
       from .viewer.q3dwindow import Q3DWindow
       self.liveExporter = Q3DWindow(serverName, isViewer=True, parent=parent)
+      self.liveExporter.ui.webView.iface.connect(self.controller.iface)
       self.liveExporter.show()
 
   def addPluginLayer(self):

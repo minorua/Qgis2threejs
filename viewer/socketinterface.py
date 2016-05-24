@@ -21,10 +21,7 @@
 import ctypes
 import json
 
-try:
-  from PyQt5.QtCore import QBuffer, QByteArray, QObject, QSharedMemory, QTextStream, pyqtSignal
-except:
-  from qgis.PyQt.QtCore import QByteArray, QObject, QTextStream, pyqtSignal
+from PyQt5.QtCore import QBuffer, QByteArray, QObject, QSharedMemory, QTextStream, pyqtSignal
 
 
 class SocketInterface(QObject):
