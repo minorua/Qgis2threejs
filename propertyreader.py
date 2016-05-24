@@ -99,11 +99,11 @@ class VectorPropertyReader:
         expr = sl.dataDefinedProperty("color")
         if expr:
           # data defined color
-          cs_rgb = expr.evaluate(f, f.fields())
+          rgb = expr.evaluate(f, f.fields())
 
           # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-          rgb = list(map(int, cs_rgb.split(",")[0:3]))
-          return "0x" + "".join(map(chr, rgb)).encode("hex")
+          r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
+          return "0x{0:02x}{1:02x}{2:02x}".format(r, g, b)
 
     return symbol.color().name().replace("#", "0x")
 

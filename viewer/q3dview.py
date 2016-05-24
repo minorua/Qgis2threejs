@@ -40,7 +40,7 @@ def base64image(image):
   buffer = QBuffer(ba)
   buffer.open(QIODevice.WriteOnly)
   image.save(buffer, "PNG")
-  return "data:image/png;base64," + ba.toBase64().data().decode("utf-8")
+  return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 class Bridge(QObject):
@@ -63,7 +63,7 @@ class Bridge(QObject):
   def setLayerId(self, pyLayerId, jsLayerId):
     self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
     self._parent.layerCreated(pyLayerId, jsLayerId)
-    print(("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId)))
+    print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
   @pyqtSlot(int, int, str, int, int, bool)
   def saveImage(self, width, height, dataUrl, tx, ty, intermediate):
@@ -83,7 +83,7 @@ class Q3DWebPage(QWebPage):
     self.logfile = open(os.path.join(os.path.dirname(__file__), "q3dview.log"), "w")
 
   def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-    print(("[JS CONSOLE] {0} ({1}:{2})".format(message, sourceID, lineNumber)))
+    print("[JS CONSOLE] {0} ({1}:{2})".format(message, sourceID, lineNumber))
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     self.logfile.write("{0}: {1} ({2}:{3})".format(now, message, sourceID, lineNumber))
 
@@ -135,7 +135,7 @@ class Q3DView(QWebView):
     url = os.path.join(os.path.abspath(os.path.dirname(__file__)), filetitle + ".html").replace("\\", "/")
     self.setUrl(QUrl.fromLocalFile(url))
     #self.setUrl(QUrl("https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html"))
-    print(("URL: {0}".format(self.url().toString())))
+    print("URL: {0}".format(self.url().toString()))
 
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
@@ -179,10 +179,10 @@ class Q3DView(QWebView):
     idx = index.data(Qt.UserRole + 1)
     self.iface.notify({"code": q3dconst.N_LAYER_DOUBLECLICKED, "layer": self.layerManager.layers[idx]})
 
-  def runByteArray(self, ba):
+  def runBytes(self, ba):
     if os.name == "nt":
       ba = ba.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
-    self.runString(ba.data().decode("utf-8"))
+    self.runString(ba.decode("utf-8"))
 
   def runString(self, string):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -191,7 +191,7 @@ class Q3DView(QWebView):
     return self._page.mainFrame().evaluateJavaScript(string)
 
   def notified(self, params):
-    print(("Notification received: {0}".format(str(params))))
+    print("Notification received: {0}".format(str(params)))
 
     code = params.get("code")
     if code == q3dconst.N_CANVAS_EXTENT_CHANGED:
@@ -218,7 +218,7 @@ class Q3DView(QWebView):
 
   def responseReceived(self, data, meta):
     dataType = meta.get("dataType")
-    print(("responseReceived: renderId={0}, self.renderId={1}, dataType={2}".format(meta.get("renderId"), self.renderId, dataType)))
+    print("responseReceived: renderId={0}, self.renderId={1}, dataType={2}".format(meta.get("renderId"), self.renderId, dataType))
     renderId = meta.get("renderId")
     if renderId != self.renderId:
       print("responseReceived, but renderId doesn't match to current renderId.")
@@ -226,37 +226,37 @@ class Q3DView(QWebView):
 
     if dataType == q3dconst.JS_UPDATE_LAYER:
       print("JS_UPDATE_LAYER data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_UPDATE_PROJECT:
       print("JS_UPDATE_PROJECT data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_CREATE_LAYER:
       print("JS_CREATE_LAYER data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_CREATE_PROJECT:
       print("JS_CREATE_PROJECT data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_SAVE_IMAGE:
       print("JS_SAVE_IMAGE data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_START_APP:
       print("JS_START_APP data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JS_INITIALIZE:
       print("JS_INITIALIZE data received.")
-      self.runByteArray(data)
+      self.runBytes(data)
 
     elif dataType == q3dconst.JSON_LAYER_LIST:
       if os.name == "nt":
         data = data.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
 
-      layers = json.loads(data.data().decode("utf-8"))
+      layers = json.loads(data.decode("utf-8"))
       for idx, layer in enumerate(layers):
         self.layerManager.addLayer(layer["layerId"], layer["name"], layer["geomType"], idx == 0, layer.get("properties"))    #TODO: check "visible"
 
@@ -333,4 +333,4 @@ rotation: {}
       image.save(buf, "PNG")
 
     dataType = q3dconst.BIN_INTERMEDIATE_IMAGE if intermediate else q3dconst.BIN_SCENE_IMAGE
-    self.iface.respond(ba, {"dataType": dataType, "renderId": self.renderId})    # q3dconst.FORMAT_BINARY
+    self.iface.respond(ba.data(), {"dataType": dataType, "renderId": self.renderId})    # q3dconst.FORMAT_BINARY

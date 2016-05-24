@@ -23,6 +23,7 @@ import os
 
 from qgis.PyQt.QtCore import Qt, QDir, QSize
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
+from PyQt5.QtGui import QImageReader
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
 
 from . import gdal2threejs

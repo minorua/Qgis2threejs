@@ -26,7 +26,8 @@ class Q3DConnector(QObject):
   # signals
   notified = pyqtSignal(dict)                         # params
   requestReceived = pyqtSignal(dict)                  # params
-  responseReceived = pyqtSignal("QByteArray", dict)   # data, meta
+  responseReceived = pyqtSignal(bytes, dict)          # data, meta
+  #TODO: data = bytes or str
 
   def __init__(self, parent):
     QObject.__init__(self, parent)
@@ -51,6 +52,7 @@ class Q3DConnector(QObject):
     self.other.receiveRequest(params)
     return True
 
+  #TODO: support both str and bytes
   def respond(self, byteArray, meta=None):
     if not self.other:
       return False
@@ -65,7 +67,7 @@ class Q3DConnector(QObject):
     self.requestReceived.emit(params)
 
   def receiveResponse(self, data, meta):
-    lines = data.data().split(b"\n")
+    lines = data.split(b"\n")
     for line in lines[:5]:
       self.log(line[:76])
     if len(lines) > 5:

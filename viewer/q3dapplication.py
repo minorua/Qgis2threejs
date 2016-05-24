@@ -49,7 +49,7 @@ while i < len(argv):
 if isViewer:
   serverName = "Qgis2threejsLive" + pid
   if pid:
-    print(("Process ID specified: {0}".format(pid)))
+    print("Process ID specified: {0}".format(pid))
   else:
     print("Process ID not specified. Please specify QGIS process ID (-p argument). Enter 'ps -A' to know the process ID.")
 
@@ -57,7 +57,7 @@ if isViewer:
 
 else:
   if serverName:
-    print(("Server name specified: {0}".format(serverName)))
+    print("Server name specified: {0}".format(serverName))
   else:
     print("Server name not specified.")
   print("Starting Qgis2threejs Renderer...")

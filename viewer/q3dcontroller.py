@@ -37,19 +37,28 @@ def logMessage(message):
   except:
     pass
 
-
 class Buffer:
 
   def __init__(self):
-    self.data = QByteArray()
-    self.buf = QBuffer(self.data)
+    self._data = QByteArray()
+    self.buf = QBuffer(self._data)
     self.buf.open(QIODevice.ReadWrite)
-    self.write = self.buf.write
+    # self.write = self.buf.write
+    #TODO: use QTextStream
+
+  def data(self):
+    return self._data.data()
+
+  def dataSize(self):
+    return self._data.size()
+
+  def write(self, data):
+    self.buf.write(data.encode("utf-8") if type(data) == str else data)
 
 
 class LiveThreejsJSWriter(ThreejsJSWriter):
 
-  dataReady = pyqtSignal("QByteArray")
+  dataReady = pyqtSignal(str)
 
   def __init__(self, settings, objectTypeManager, parent=None):
     ThreejsJSWriter.__init__(self, None, settings, objectTypeManager, parent)
@@ -79,8 +88,8 @@ class LiveThreejsJSWriter(ThreejsJSWriter):
         self.writtenTick = 0
 
   def flush(self):
-    if self.buf.data.size() > 0:
-      self.dataReady.emit(self.buf.data)
+    if self.buf.dataSize() > 0:
+      self.dataReady.emit(self.buf.data().decode("utf-8"))
       self.clearBuffer()
 
     self.writtenTick = 0
@@ -162,7 +171,8 @@ class Worker(QObject):
   startJob = pyqtSignal(int, dict)                    # jobId, kargs
   jobFinished = pyqtSignal(int, dict)                 # jodId, kargs
   jobCancelled = pyqtSignal(int, dict)                # jodId, kargs
-  dataReady = pyqtSignal(int, "QByteArray", dict)     # jodId, data, kargs
+  dataReady = pyqtSignal(int, str, dict)              # jodId, data, kargs
+  #binaryDataReady = pyqtSignal(int, bytes, dict)
 
   def __init__(self):
     QObject.__init__(self)
@@ -226,12 +236,10 @@ class Writer(Worker):
       return
 
     if dataType == q3dconst.JS_SAVE_IMAGE:
-      js = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
-      data = QByteArray(js)
+      data = "saveCanvasImage({0}, {1});".format(params["width"], params["height"])
 
     elif dataType == q3dconst.JS_START_APP:
-      js = "if (!app.running) app.start();"
-      data = QByteArray(js)
+      data = "if (!app.running) app.start();"
 
     elif dataType == q3dconst.JSON_LAYER_LIST:
       layers = []
@@ -255,10 +263,10 @@ class Writer(Worker):
         if geomType is not None:
           layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType})
 
-      data = QByteArray(json.dumps(layers))       # q3dconst.FORMAT_JSON
+      data = json.dumps(layers)       # q3dconst.FORMAT_JSON
 
     else:
-      data = QByteArray()
+      data = ""
 
     self.dataReady.emit(self.jobId, data, params)
 
@@ -408,7 +416,7 @@ class Q3DController(WorkerManager):
         worker.cancelJob()
 
   def dataReady(self, jobId, data, meta):
-    self.iface.respond(data, meta)
+    self.iface.respond(data.encode("utf-8") if type(data) == str else data, meta)   #TODO: support both str and bytes
 
   def notified(self, params):
     if params.get("code") == q3dconst.N_LAYER_DOUBLECLICKED:
@@ -428,6 +436,6 @@ def processRequest(worker, dataType, params):
     buf = Buffer()
     qgis_iface.mapCanvas().map().contentImage().save(buf, "PNG")
     #TODO: image.bits()?
-    return buf.data       # q3dconst.FORMAT_BINARY
+    return buf.data()       # q3dconst.FORMAT_BINARY
 
   return QByteArray()

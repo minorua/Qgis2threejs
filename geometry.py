@@ -46,11 +46,11 @@ def pointToQgsPoint(point):
 
 
 def lineToQgsPolyline(line):
-  return list(map(pointToQgsPoint, line))
+  return [pointToQgsPoint(pt) for pt in line]
 
 
 def polygonToQgsPolygon(polygon):
-  return list(map(lineToQgsPolyline, polygon))
+  return [lineToQgsPolyline(line) for line in polygon]
 
 
 class PointGeometry:
@@ -64,7 +64,7 @@ class PointGeometry:
   def toQgsGeometry(self):
     count = len(self.pts)
     if count > 1:
-      pts = list(map(pointToQgsPoint, self.pts))
+      pts = [pointToQgsPoint(pt) for pt in self.pts]
       return QgsGeometry.fromMultiPoint(pts)
 
     if count == 1:
@@ -116,7 +116,7 @@ class LineGeometry:
   def toQgsGeometry(self):
     count = len(self.lines)
     if count > 1:
-      lines = list(map(lineToQgsPolyline, self.lines))
+      lines = [lineToQgsPolyline(line) for line in self.lines]
       return QgsGeometry.fromMultiPolyline(lines)
 
     if count == 1:
@@ -202,7 +202,7 @@ class PolygonGeometry:
   def toQgsGeometry(self):
     count = len(self.polygons)
     if count > 1:
-      polys = list(map(polygonToQgsPolygon, self.polygons))
+      polys = [polygonToQgsPolygon(poly) for poly in self.polygons]
       return QgsGeometry.fromMultiPolygon(polys)
 
     if count == 1:

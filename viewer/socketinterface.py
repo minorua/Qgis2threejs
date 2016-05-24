@@ -37,7 +37,7 @@ class SocketInterface(QObject):
   # signals
   notified = pyqtSignal(dict)                         # params
   requestReceived = pyqtSignal(dict)                  # params
-  responseReceived = pyqtSignal("QByteArray", dict)   # data, meta
+  responseReceived = pyqtSignal(bytes, dict)          # data, meta
 
   def __init__(self, serverName, keyCount=5, parent=None):
     QObject.__init__(self, parent)
@@ -98,14 +98,15 @@ class SocketInterface(QObject):
         mem.unlock()
         mem.detach()
 
-        lines = ba.data().split(b"\n")
+        data = ba.data()
+        lines = data.split(b"\n")
         for line in lines[:5]:
           self.log(line[:76])
         if len(lines) > 5:
           self.log("--Total {0} Lines Received--".format(len(lines)))
 
         self.notify({"code": self.N_DATA_RECEIVED, "memoryKey": obj["memoryKey"]})
-        self.responseReceived.emit(ba, obj["meta"])
+        self.responseReceived.emit(data, obj["meta"])
 
   def notify(self, params):
     if not self.conn:
@@ -125,6 +126,7 @@ class SocketInterface(QObject):
     self.conn.flush()
     return True
 
+  #TODO: support both str and bytes
   def respond(self, byteArray, meta=None):
     if not self.conn:
       return False

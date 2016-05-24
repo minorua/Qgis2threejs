@@ -54,7 +54,7 @@ class Q3DLayerController(Q3DController):    # Q3DController -> WorkerManager -> 
     return WriterL(self)
 
   def dataReady(self, jobId, data, meta):
-    self.iface.respond(data, meta)
+    self.iface.respond(data.encode("utf-8") if type(data) == str else data, meta)   #TODO: support both str and bytes
     if meta["dataType"] == q3dconst.JS_UPDATE_LAYER:
       self.iface.request({"dataType": q3dconst.BIN_INTERMEDIATE_IMAGE})
 
@@ -93,7 +93,7 @@ class WriterL(Writer):
 
     if dataType == q3dconst.JS_INITIALIZE:
       js = "init({{perspective: {0}}});".format("true" if self._parent.perspective else "false")
-      self.dataReady.emit(self.jobId, QByteArray(js), params)
+      self.dataReady.emit(self.jobId, js, params)
 
     elif dataType == q3dconst.JSON_LAYER_LIST:
       layers = []
@@ -131,8 +131,7 @@ class WriterL(Writer):
                          "visible": True,
                          "properties": properties})
 
-      data = QByteArray(json.dumps(layers))     # q3dconst.FORMAT_JSON
-      self.dataReady.emit(self.jobId, data, params)
+      self.dataReady.emit(self.jobId, json.dumps(layers), params)     # q3dconst.FORMAT_JSON
 
     else:
       Writer.run(self, params)

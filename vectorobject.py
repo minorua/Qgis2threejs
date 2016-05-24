@@ -27,7 +27,7 @@ from qgis.core import QGis
 
 def list_modules():
   from qgis.PyQt.QtCore import qDebug
-  for nam, mod in list(sys.modules.items()):
+  for nam, mod in sys.modules.items():
     qDebug(nam + ": " + str(mod))
 
 

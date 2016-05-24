@@ -130,7 +130,7 @@ class PropertyPage(QWidget):
       elif isinstance(w, QLineEdit):
         v = w.text()
       elif isinstance(w, StyleWidget):
-        v = list(w.values())
+        v = w.values()
       else:
         logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
@@ -138,7 +138,7 @@ class PropertyPage(QWidget):
     return p
 
   def setProperties(self, properties):
-    for n, v in list(properties.items()):
+    for n, v in properties.items():
       w = getattr(self, n, None)
       if w is None:
         continue
