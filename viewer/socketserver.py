@@ -42,7 +42,7 @@ class SocketServer(SocketInterface):
       conn.disconnected.connect(conn.deleteLater)
 
     conn.waitForReadyRead()
-    data = conn.readAll().data().decode()
+    data = conn.readAll().data()
     if not self.conn and data == "Hello {0}!".format(self.serverName).encode("utf-8"):
         self.conn = conn
         self.conn.readyRead.connect(self.receiveMessage)

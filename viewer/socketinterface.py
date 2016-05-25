@@ -127,6 +127,7 @@ class SocketInterface(QObject):
     return True
 
   #TODO: support both str and bytes
+  #TODO: rename byteArray to data
   def respond(self, byteArray, meta=None):
     if not self.conn:
       return False
@@ -142,14 +143,14 @@ class SocketInterface(QObject):
     if mem.isAttached():
       mem.detach()
 
-    if not mem.create(byteArray.size()):
+    if not mem.create(len(byteArray)):
       self.log(mem.errorString())
       return False
-    self.log("Shared memory created: {0}, {1} bytes".format(memKey, byteArray.size()))
+    self.log("Shared memory created: {0}, {1} bytes".format(memKey, len(byteArray)))
 
     mem.lock()
     try:
-      ctypes.memmove(int(mem.data()), byteArray.data(), byteArray.size())
+      ctypes.memmove(int(mem.data()), byteArray, len(byteArray))
     finally:
       mem.unlock()
 
