@@ -166,7 +166,9 @@ class Qgis2threejs:
         cmd = r"C:\Python34\python.exe"
       else:
         cmd = "python3"
-      p.start(cmd, [os.path.join(self.plugin_dir, "viewer", "q3dapplication.py"), "-p", pid])
+
+      p.setWorkingDirectory(os.path.dirname(self.plugin_dir))
+      p.start(cmd, ["-m", "Qgis2threejs.viewer.q3dapplication", "--", "-p", pid])
 
       if not p.waitForStarted():
         logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
