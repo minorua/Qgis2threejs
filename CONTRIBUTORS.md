@@ -7,3 +7,4 @@ Many thanks to all the contributors!
 * Olivier Dalang https://github.com/olivierdalang
 * Josef K https://github.com/jkall
 * Luca Casagrande https://github.com/lucacasagrande
+* Stefano Cudini https://github.com/stefanocudini
