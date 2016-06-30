@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### Version 1.4.1
+* Rendering with antialias enabled
+* Improved height range of custom plane (dat-gui, refs #53)
+* Skip invalid polygons (fix #71)
+* Fix feature attribute writing (fix #73)
+
 ### Version 1.4
 
 * Documentation improved and moved to readthedocs.org
