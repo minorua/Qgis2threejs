@@ -849,7 +849,8 @@ def writeVectors(writer, legendInterface=None, progress=None):
 
     for feat in layer.features(request, clipGeom):
       # write geometry
-      obj_mod.write(writer, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
+      if not obj_mod.write(writer, layer, feat):   # writer.writeFeature(layer, feat, obj_mod)
+        continue
 
       # stack attributes in writer
       if layer.writeAttrs:

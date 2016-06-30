@@ -93,3 +93,4 @@ def write(writer, layer, feat):
 
     d["bh"] = float(vals[2]) * mapTo3d.multiplierZ
     writer.writeFeature(d)
+  return True

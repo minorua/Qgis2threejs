@@ -63,6 +63,7 @@ def write(writer, layer, feat):
       writer.writeFeature({"m": mat, "pts": pts, "r": r})
     else:
       logMessage(u"Sphere with zero radius not exported")
+      return False
   elif feat.prop.type_index in [1, 2]:  # Cylinder, Cone
     rb = float(vals[2]) * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 2 else rb
@@ -84,3 +85,4 @@ def write(writer, layer, feat):
       dd = (dd + rotation) % 360
 
     writer.writeFeature({"m": mat, "pts": pts, "r": r, "d": d, "dd": dd})
+  return True
