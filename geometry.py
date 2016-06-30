@@ -225,7 +225,10 @@ class PolygonGeometry:
 
     for polygon in polygons:
       if useCentroidHeight or calcCentroid:
-        pt = QgsGeometry.fromPolygon(polygon).centroid().asPoint()
+        centroid = QgsGeometry.fromPolygon(polygon).centroid()
+        if centroid is None:
+          continue
+        pt = centroid.asPoint()
         centroidHeight = z_func(pt.x(), pt.y())
         if calcCentroid and centroidPerPolygon:
           geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
