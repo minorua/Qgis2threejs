@@ -13,7 +13,7 @@ name=Qgis2threejs
 qgisMinimumVersion=2.0
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view exported 3D objects on web browser which supports WebGL. This plugin uses three.js library.
-version=1.4
+version=1.4.1
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -23,6 +23,12 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
+    Version 1.4.1 (release-1.4 branch)
+    - Rendering with antialias enabled
+    - Improved height range of custom plane (dat-gui, refs #53)
+    - Skip invalid polygons (fix #71)
+    - Fix feature attribute writing (fix #73)
+
     Version 1.4
     - Documentation improved and moved to readthedocs.org
     - Activate DEM's shading by default to make it easy to create shaded 3D map
@@ -40,7 +46,7 @@ tags=terrain,WebGL,3D,three.js,web
 category=Web
 homepage=https://github.com/minorua/Qgis2threejs
 tracker=https://github.com/minorua/Qgis2threejs
-repository=https://github.com/minorua/Qgis2threejs
+repository=https://github.com/minorua/Qgis2threejs/tree/release-1.4
 icon=icon.png
 # experimental flag
 experimental=False
