@@ -37,14 +37,14 @@
 .. |image22| image:: ./images/polygon/Overlay.jpg
 
 .. |image - Mt. Fuji| image:: ./images/examples/mt_fuji.jpg
-   :target: https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html
+   :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/mt_fuji.html
 .. |image - Mt. Fuji (Large Area)| image:: ./images/examples/mt_fujiL.jpg
-   :target: https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html
+   :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/mt_fujiL.html
 .. |image - Seto Inland Sea| image:: ./images/examples/seto_inland_sea.jpg
-   :target: https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html
+   :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/seto_inland_sea.html
 .. |image - Mt. Aso| image:: ./images/examples/mt_aso.jpg
-   :target: https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/aso-zan/aso-zan.html
+   :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/aso-zan/aso-zan.html
 .. |(CC BY-ND 2.1 JP)| image:: ./images/examples/ccbynd_s.png
    :target: http://creativecommons.org/licenses/by-nd/2.1/jp/
 .. |image - Forest basins in Japan| image:: ./images/examples/forest_basin.jpg
-   :target: https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/forest_basin/slope.html
+   :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/forest_basin/slope.html
