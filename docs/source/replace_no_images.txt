@@ -31,9 +31,9 @@
 .. |image21| replace:: [No image]
 .. |image22| replace:: [No image]
 
-.. |image - Mt. Fuji| replace:: `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html>`__
-.. |image - Mt. Fuji (Large Area)| replace:: `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fujiL.html>`__
-.. |image - Seto Inland Sea| replace:: `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/seto_inland_sea.html>`__
-.. |image - Mt. Aso| replace:: `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/aso-zan/aso-zan.html>`__
+.. |image - Mt. Fuji| replace:: `[Live example] <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/mt_fuji.html>`__
+.. |image - Mt. Fuji (Large Area)| replace:: `[Live example] <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/mt_fujiL.html>`__
+.. |image - Seto Inland Sea| replace:: `[Live example] <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/seto_inland_sea.html>`__
+.. |image - Mt. Aso| replace:: `[Live example] <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/aso-zan/aso-zan.html>`__
 .. |(CC BY-ND 2.1 JP)| replace:: `(CC BY-ND 2.1 JP) <http://creativecommons.org/licenses/by-nd/2.1/jp/>`__
-.. |image - Forest basins in Japan| replace:: `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/forest_basin/slope.html>`__
+.. |image - Forest basins in Japan| replace:: `[Live example] <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/forest_basin/slope.html>`__

@@ -45,8 +45,3 @@ Click the images below to see live examples.
   Sources: Geospatial Information Authority of Japan. `GSI Tiles
   <http://portal.cyberjapan.jp/help/development/>`__
   (Orthophoto and elevation tile)
-
-* **Mt. Fuji (With Vector Data)**: This is test data. Shaded relief
-  map made with SRTM data.
-
-  `[Live example] <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/Qgis2threejsTest/dat-gui.html>`__

@@ -88,10 +88,10 @@ You are ready to play with Python. Let's open the QGIS Python console
 
 Exported scene examples:
 
-* `Kyoto <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/python_export/pref_offices/Kyoto.html>`__,
-  `Osaka <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/python_export/pref_offices/Osaka.html>`__,
-  `Nara <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/python_export/pref_offices/Nara.html>`__,
-  `Ehime <https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/python_export/pref_offices/Ehime.html>`__
+* `Kyoto <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/python_export/pref_offices/Kyoto.html>`__,
+  `Osaka <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/python_export/pref_offices/Osaka.html>`__,
+  `Nara <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/python_export/pref_offices/Nara.html>`__,
+  `Ehime <https://minorua.github.io/qgis/plugins/qgis2threejs/examples/python_export/pref_offices/Ehime.html>`__
 
 Sources: Geospatial Information Authority of Japan. `GSI
 Tiles <http://portal.cyberjapan.jp/help/development/>`__ (Orthophoto and
