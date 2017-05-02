@@ -33,7 +33,7 @@ from .demblock import DEMBlock, DEMBlocks
 from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem, GDALDEMProvider
-from .qgis2threejstools import pyobj2js, logMessage
+from .qgis2threejstools import getLayersInProject, logMessage, pyobj2js
 from .quadtree import DEMQuadList
 from .rotatedrect import RotatedRect
 
@@ -694,7 +694,7 @@ def writeVectors(writer, progress=None):
           layers.append([layerId, properties])
   else:
     # use vector layer order in project
-    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
+    for layer in getLayersInProject():
       if layer.type() != QgsMapLayer.VectorLayer:
         continue
 

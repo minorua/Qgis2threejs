@@ -28,7 +28,7 @@ from .socketserver import SocketServer
 from .q3dconnector import Q3DConnector
 from Qgis2threejs.exportsettings import ExportSettings
 from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
-from Qgis2threejs.qgis2threejstools import pyobj2js
+from Qgis2threejs.qgis2threejstools import getLayersInProject, pyobj2js
 from Qgis2threejs.settings import live_in_another_process
 
 def logMessage(message):
@@ -246,7 +246,7 @@ class Writer(Worker):
       for plugin in self.pluginManager.demProviderPlugins():
         layers.append({"layerId": "plugin:" + plugin.providerId(), "name": plugin.providerName(), "geomType": q3dconst.TYPE_DEM})
 
-      for layer in QgsProject.instance().layerTreeRoot().layerOrder():
+      for layer in getLayersInProject():
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
           geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,

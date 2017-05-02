@@ -35,7 +35,7 @@ from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 from .export import exportToThreeJS
 from .exportsettings import ExportSettings
 from .qgis2threejscore import ObjectTreeItem, MapTo3D
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
 from .settings import debug_mode, def_vals, plugin_version
 from . import propertypages as ppages
@@ -309,7 +309,7 @@ class Qgis2threejsDialog(QDialog):
       topItems[id] = item
 
     optDEMChecked = False
-    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
+    for layer in getLayersInProject():
       parentId = ObjectTreeItem.parentIdByLayer(layer)
       if parentId is None:
         continue

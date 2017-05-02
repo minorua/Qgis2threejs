@@ -30,6 +30,14 @@ import webbrowser
 
 from .settings import debug_mode
 
+def getLayersInProject():
+  layers = []
+  for tLayer in QgsProject.instance().layerTreeRoot().findLayers():
+    layers.append(tLayer.layer())
+  return layers
+
+  #TODO: QgsProject.instance().layerTreeRoot() is a QgsLayerTree object?
+  return QgsProject.instance().layerTreeRoot().layerOrder()
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):

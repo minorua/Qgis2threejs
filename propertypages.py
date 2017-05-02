@@ -33,7 +33,7 @@ from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from .qgis2threejscore import calculateDEMSize, createQuadTree
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
 from .settings import def_vals
 from .stylewidget import StyleWidget
@@ -365,7 +365,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     comboPolygon = self.comboBox_ClipLayer
     comboPolygon.clear()
 
-    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
+    for layer in getLayersInProject():
       if layer.type() == QgsMapLayer.RasterLayer:
         if layer.providerType() == "gdal" and layer.bandCount() == 1:
           comboDEM.addItem(layer.name(), layer.id())
