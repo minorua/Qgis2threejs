@@ -19,13 +19,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QGis
+from qgis.core import Qgis
 from Qgis2threejs.qgis2threejstools import logMessage
 from Qgis2threejs.stylewidget import StyleWidget
 
 
 def geometryType():
-  return QGis.Point
+  return Qgis.Point
 
 
 def objectTypeNames():

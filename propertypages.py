@@ -25,7 +25,7 @@ import re
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
 from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QGis, QgsMapLayer
+from qgis.core import Qgis, QgsMapLayer
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
@@ -170,7 +170,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
-    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
+    apiChanged23 = Qgis.QGIS_VERSION_INT >= 20300
 
     canvas = self.dialog.iface.mapCanvas()
     extent = canvas.extent()
@@ -372,12 +372,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if layer.providerType() == "gdal" and layer.bandCount() == 1:
           comboDEM.addItem(layer.name(), layer.id())
       elif layer.type() == QgsMapLayer.VectorLayer:
-        if layer.geometryType() == QGis.Polygon:
+        if layer.geometryType() == Qgis.Polygon:
           comboPolygon.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
     canvas = self.dialog.iface.mapCanvas()
-    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
 
     self.comboBox_TextureSize.clear()
     for i in [4, 2, 1]:
@@ -420,7 +420,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def selectLayerClicked(self):
-    if QGis.QGIS_VERSION_INT < 20400:
+    if Qgis.QGIS_VERSION_INT < 20400:
       QMessageBox.warning(self, "Qgis2threejs", "Sorry, newer QGIS version (>= 2.4) is required.")
       return
 
@@ -478,7 +478,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def updateDEMSize(self, v=None):
     # calculate DEM size and grid spacing
     canvas = self.dialog.iface.mapCanvas()
-    canvasSize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    canvasSize = canvas.mapSettings().outputSize() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
     resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
     demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
@@ -511,7 +511,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.clearRubberBands()
       return
 
-    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
+    apiChanged23 = Qgis.QGIS_VERSION_INT >= 20300
     canvas = self.dialog.iface.mapCanvas()
     mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
 
@@ -667,20 +667,20 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up height widget and label height widget
     self.heightWidget.setup(options={"layer": layer})
-    if layer.geometryType() != QGis.Line:
+    if layer.geometryType() != Qgis.Line:
       defaultLabelHeight = 5
       self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
     else:
       self.labelHeightWidget.hide()
 
     # point layer has no geometry clip option
-    self.checkBox_Clip.setVisible(layer.geometryType() != QGis.Point)
+    self.checkBox_Clip.setVisible(layer.geometryType() != Qgis.Point)
 
     # set up style widgets for selected object type
     self.setupStyleWidgets()
 
     # set up label combo box
-    hasPoint = (layer.geometryType() in (QGis.Point, QGis.Polygon))
+    hasPoint = (layer.geometryType() in (Qgis.Point, Qgis.Polygon))
     self.setLayoutVisible(self.formLayout_Label, hasPoint)
     self.comboBox_Label.clear()
     if hasPoint:
@@ -716,7 +716,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
-    if (geom_type == QGis.Line and type_index == 4) or (geom_type == QGis.Polygon and type_index == 1):    # Profile or Overlay
+    if (geom_type == Qgis.Line and type_index == 4) or (geom_type == Qgis.Polygon and type_index == 1):    # Profile or Overlay
       if self.heightWidget.func.isCurrentItemRelativeHeight():
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)

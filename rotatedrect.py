@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 import math
-from qgis.core import QGis, QgsPoint, QgsRectangle, QgsGeometry
+from qgis.core import Qgis, QgsPoint, QgsRectangle, QgsGeometry
 
 
 class RotatedRect:
@@ -136,8 +136,8 @@ class RotatedRect:
 
   @classmethod
   def fromMapSettings(cls, mapSettings):
-    extent = mapSettings.visibleExtent() if QGis.QGIS_VERSION_INT >= 20300 else mapSettings.extent()
-    rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    extent = mapSettings.visibleExtent() if Qgis.QGIS_VERSION_INT >= 20300 else mapSettings.extent()
+    rotation = mapSettings.rotation() if Qgis.QGIS_VERSION_INT >= 20700 else 0
     if rotation == 0:
       return cls(extent.center(), extent.width(), extent.height())
 
@@ -147,7 +147,7 @@ class RotatedRect:
 
   def toMapSettings(self, mapSettings=None):
     if mapSettings is None:
-      if QGis.QGIS_VERSION_INT >= 20300:
+      if Qgis.QGIS_VERSION_INT >= 20300:
         from qgis.core import QgsMapSettings
         mapSettings = QgsMapSettings()
       else:

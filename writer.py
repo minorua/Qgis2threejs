@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.PyQt.QtCore import QObject
-from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsPoint, QgsProject
+from qgis.core import Qgis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsPoint, QgsProject
 
 try:
   from osgeo import ogr, osr
@@ -535,7 +535,7 @@ class DEMLayer(Layer):
 
 class VectorLayer(Layer):
 
-  geomType2Class = {QGis.Point: PointGeometry, QGis.Line: LineGeometry, QGis.Polygon: PolygonGeometry}
+  geomType2Class = {Qgis.Point: PointGeometry, Qgis.Line: LineGeometry, Qgis.Polygon: PolygonGeometry}
 
   def __init__(self, writer, layer, prop, obj_mod):
     Layer.__init__(self, writer, layer, prop)
@@ -565,7 +565,7 @@ class VectorLayer(Layer):
     properties = prop.properties
 
     obj = Layer.layerObject(self)
-    obj["type"] = {QGis.Point: "point", QGis.Line: "line", QGis.Polygon: "polygon"}.get(self.geomType, "")
+    obj["type"] = {Qgis.Point: "point", Qgis.Line: "line", Qgis.Polygon: "polygon"}.get(self.geomType, "")
     obj["objType"] = prop.type_name
 
     if self.hasLabel():
@@ -601,7 +601,7 @@ class VectorLayer(Layer):
     else:
       # z_func: function to get elevation at given point (x, y) on surface
       if prop.isHeightRelativeToDEM():
-        if self.geomType == QGis.Polygon and prop.type_index == 1:  # Overlay
+        if self.geomType == Qgis.Polygon and prop.type_index == 1:  # Overlay
           z_func = lambda x, y: 0
         else:
           # get elevation from DEM
@@ -644,7 +644,7 @@ class VectorLayer(Layer):
           continue
 
         # clip geometry
-        if ogr_clipGeom and self.geomType == QGis.Line:
+        if ogr_clipGeom and self.geomType == Qgis.Line:
           ogr_geom = ogr_geom.Intersection(ogr_clipGeom)
           if ogr_geom is None:
             continue
@@ -658,7 +658,7 @@ class VectorLayer(Layer):
 
       else:
         # clip geometry
-        if clipGeom and self.geomType in [QGis.Line, QGis.Polygon]:
+        if clipGeom and self.geomType in [Qgis.Line, Qgis.Polygon]:
           geom = geom.intersection(clipGeom)
           if geom is None:
             continue
@@ -668,7 +668,7 @@ class VectorLayer(Layer):
           logMessage("empty geometry skipped")
           continue
 
-        if self.geomType == QGis.Polygon:
+        if self.geomType == Qgis.Polygon:
           feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel())
           if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
             feat.geom.splitPolygon(self.writer.triangleMesh())
@@ -733,7 +733,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
 
   # prepare triangle mesh
   geom_type = mapLayer.geometryType()
-  if geom_type == QGis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
+  if geom_type == Qgis.Polygon and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
     progress(None, "Initializing triangle mesh for overlay polygons")
     writer.triangleMesh()
     progress(None, "Writing vector layer: {0}".format(mapLayer.name()))
@@ -746,7 +746,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
     return
 
   # initialize symbol rendering
-  mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if QGis.QGIS_VERSION_INT >= 20300 else mapLayer)
+  mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if Qgis.QGIS_VERSION_INT >= 20300 else mapLayer)
 
   # features to export
   request = QgsFeatureRequest()

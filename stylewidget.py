@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import QDir, QVariant
 from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QGis, QgsProject
+from qgis.core import Qgis, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .qgis2threejstools import shortTextFromSelectedLayerIds
@@ -232,7 +232,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     comboBox.clear()
 
     # z value if layer has
-    if layer and layer.wkbType() in [QGis.WKBPoint25D, QGis.WKBLineString25D, QGis.WKBMultiPoint25D, QGis.WKBMultiLineString25D]:
+    if layer and layer.wkbType() in [Qgis.WKBPoint25D, Qgis.WKBLineString25D, Qgis.WKBMultiPoint25D, Qgis.WKBMultiLineString25D]:
       comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
       comboBox.insertSeparator(1)
 
@@ -290,7 +290,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     layer = options.get("layer")
 
     self.widget.comboBox.clear()
-    if layer and layer.geometryType() != QGis.Point:
+    if layer and layer.geometryType() != Qgis.Point:
       return  # Will be initialized in obj_mod.setupWidgets() if polygon. Line layer cannot have labels.
     self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)
@@ -379,7 +379,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     comboBox.insertSeparator(comboBox.count())
     comboBox.addItem("Map canvas image", ColorTextureWidgetFunc.MAP_CANVAS)
 
-    if QGis.QGIS_VERSION_INT >= 20400:
+    if Qgis.QGIS_VERSION_INT >= 20400:
       comboBox.addItem("Layer image", ColorTextureWidgetFunc.LAYER)
 
     self.updateLineEdit()

@@ -22,7 +22,7 @@
 import struct
 
 from qgis.PyQt.QtCore import QSize
-from qgis.core import QGis, QgsMapLayer, QgsRectangle
+from qgis.core import Qgis, QgsMapLayer, QgsRectangle
 
 try:
   from osgeo import gdal
@@ -46,7 +46,7 @@ class ObjectTreeItem:
   ITEM_POLYGON = "POLYGON"
   topItemIds = [ITEM_WORLD, ITEM_CONTROLS, ITEM_DEM, ITEM_OPTDEM, ITEM_POINT, ITEM_LINE, ITEM_POLYGON]
   topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
-  geomType2id = {QGis.Point: ITEM_POINT, QGis.Line: ITEM_LINE, QGis.Polygon: ITEM_POLYGON}
+  geomType2id = {Qgis.Point: ITEM_POINT, Qgis.Line: ITEM_LINE, Qgis.Polygon: ITEM_POLYGON}
 
   @classmethod
   def topItemIndex(cls, id):
@@ -79,7 +79,7 @@ class MapTo3D:
 
   def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
-    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    self.rotation = mapSettings.rotation() if Qgis.QGIS_VERSION_INT >= 20700 else 0
     self.mapExtent = RotatedRect.fromMapSettings(mapSettings)
 
     # 3d

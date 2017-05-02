@@ -20,7 +20,7 @@
 """
 from qgis.PyQt.QtCore import Qt, QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
-from qgis.core import QGis, QgsProject
+from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
 from .q3dcontroller import Q3DController
@@ -137,7 +137,7 @@ class MockDialog(QObject):
 
   def mapTo3d(self):
     canvas = self.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    mapSettings = canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
 
     #world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
     #bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))

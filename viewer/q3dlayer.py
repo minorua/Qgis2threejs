@@ -23,7 +23,7 @@ import threading
 
 from qgis.PyQt.QtCore import Qt, QByteArray, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
 from qgis.PyQt.QtGui import QImage, QPainter
-from qgis.core import QGis, QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
+from qgis.core import Qgis, QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 
 from . import q3dconst
@@ -100,11 +100,11 @@ class WriterL(Writer):
       for layer in self._parent.layers:
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
-          geomType = {QGis.Point: q3dconst.TYPE_POINT,
-                      QGis.Line: q3dconst.TYPE_LINESTRING,
-                      QGis.Polygon: q3dconst.TYPE_POLYGON,
-                      QGis.UnknownGeometry: None,
-                      QGis.NoGeometry: None}[layer.geometryType()]
+          geomType = {Qgis.Point: q3dconst.TYPE_POINT,
+                      Qgis.Line: q3dconst.TYPE_LINESTRING,
+                      Qgis.Polygon: q3dconst.TYPE_POLYGON,
+                      Qgis.UnknownGeometry: None,
+                      Qgis.NoGeometry: None}[layer.geometryType()]
         elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
           geomType = q3dconst.TYPE_DEM
         else:

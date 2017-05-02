@@ -27,7 +27,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject
+from qgis.core import Qgis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -375,8 +375,8 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     if templateType != "sphere":
       # show message if crs unit is degrees
-      mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
-      if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
+      mapSettings = self.iface.mapCanvas().mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
+      if mapSettings.destinationCrs().mapUnits() in [Qgis.Degrees]:
         self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
 
     self.templateType = templateType
@@ -489,7 +489,7 @@ class Qgis2threejsDialog(QDialog):
 
   def mapTo3d(self):
     canvas = self.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    mapSettings = canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
 
     world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
     bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
@@ -604,7 +604,7 @@ class Qgis2threejsDialog(QDialog):
   def createRubberBands(self, baseExtent, quadtree):
     self.clearRubberBands()
     # create quads with rubber band
-    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QGis.Line)
+    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), Qgis.Line)
     self.rb_quads.setColor(Qt.blue)
     self.rb_quads.setWidth(1)
 
@@ -620,7 +620,7 @@ class Qgis2threejsDialog(QDialog):
     # create a point with rubber band
     if quadtree.focusRect.width() == 0 or quadtree.focusRect.height() == 0:
       npt = quadtree.focusRect.center()
-      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QGis.Point)
+      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), Qgis.Point)
       self.rb_point.setColor(Qt.red)
       self.rb_point.addPoint(baseExtent.point(npt))
 
@@ -671,7 +671,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     QgsMapToolEmitPoint.__init__(self, canvas)
 
     self.canvas = canvas
-    self.rubberBand = QgsRubberBand(canvas, QGis.Polygon)
+    self.rubberBand = QgsRubberBand(canvas, Qgis.Polygon)
     self.rubberBand.setColor(QColor(255, 0, 0, 180))
     self.rubberBand.setWidth(1)
     self.reset()
@@ -679,15 +679,15 @@ class RectangleMapTool(QgsMapToolEmitPoint):
   def reset(self):
     self.startPoint = self.endPoint = None
     self.isDrawing = False
-    self.rubberBand.reset(QGis.Polygon)
+    self.rubberBand.reset(Qgis.Polygon)
 
   def canvasPressEvent(self, e):
     self.startPoint = self.toMapCoordinates(e.pos())
     self.endPoint = self.startPoint
 
-    mapSettings = self.canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.canvas.mapRenderer()
+    mapSettings = self.canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else self.canvas.mapRenderer()
     self.mupp = mapSettings.mapUnitsPerPixel()
-    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    self.rotation = mapSettings.rotation() if Qgis.QGIS_VERSION_INT >= 20700 else 0
 
     self.isDrawing = True
     self.showRect(self.startPoint, self.endPoint)
@@ -703,7 +703,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     self.showRect(self.startPoint, self.endPoint)
 
   def showRect(self, startPoint, endPoint):
-    self.rubberBand.reset(QGis.Polygon)
+    self.rubberBand.reset(Qgis.Polygon)
     if startPoint.x() == endPoint.x() and startPoint.y() == endPoint.y():
       return
 

@@ -19,12 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QGis
+from qgis.core import Qgis
 from Qgis2threejs.stylewidget import StyleWidget, HeightWidgetFunc
 
 
 def geometryType():
-  return QGis.Line
+  return Qgis.Line
 
 
 def objectTypeNames():
