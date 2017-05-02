@@ -39,6 +39,16 @@ def getLayersInProject():
   #TODO: QgsProject.instance().layerTreeRoot() is a QgsLayerTree object?
   return QgsProject.instance().layerTreeRoot().layerOrder()
 
+
+def getLayersByLayerIds(layerIds):
+  layers = []
+  for id in layerIds:
+    layer = QgsProject.instance().mapLayer(id)
+    if layer:
+      layers.append(layer)
+  return layers
+
+
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
     items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]

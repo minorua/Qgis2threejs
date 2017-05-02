@@ -77,7 +77,7 @@ class ImageManager(DataManager):
   def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
     canvas = self.exportSettings.canvas
-    if canvas is None or transp_background:
+    if canvas is None or transp_background or True:   #TODO: canvas.map() has been removed
       size = self.exportSettings.mapSettings.outputSize()
       return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
 
@@ -113,7 +113,7 @@ class ImageManager(DataManager):
     old_outputSize = settings.outputSize()
     old_extent = settings.extent()
     old_rotation = settings.rotation()
-    old_layerids = settings.layers()
+    old_layerids = settings.layerIds()
     old_backgroundColor = settings.backgroundColor()
 
     # map settings
@@ -121,8 +121,8 @@ class ImageManager(DataManager):
     settings.setExtent(extent.unrotatedRect())
     settings.setRotation(extent.rotation())
 
-    if layerids is not None:
-      settings.setLayers(layerids)
+    if layerids:
+      settings.setLayers(tools.getLayersByLayerIds(layerids))
 
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
@@ -130,8 +130,7 @@ class ImageManager(DataManager):
       #settings.setBackgroundColor(self.exportSettings.canvas.canvasColor())
 
     has_pluginlayer = False
-    for layerId in settings.layers():
-      layer = QgsProject.instance().mapLayer(layerId)
+    for layer in settings.layers():
       if layer and layer.type() == QgsMapLayer.PluginLayer:
         has_pluginlayer = True
         break
@@ -156,7 +155,7 @@ class ImageManager(DataManager):
     settings.setOutputSize(old_outputSize)
     settings.setExtent(old_extent)
     settings.setRotation(old_rotation)
-    settings.setLayers(old_layerids)
+    settings.setLayers(tools.getLayersByLayerIds(old_layerids))
     settings.setBackgroundColor(old_backgroundColor)
 
     return tools.base64image(image)
