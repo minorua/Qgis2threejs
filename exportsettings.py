@@ -21,7 +21,7 @@ import os
 import datetime
 
 from qgis.PyQt.QtCore import QSettings
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
@@ -126,11 +126,11 @@ class ExportSettings:
     self.title = self.htmlfiletitle
 
   def setMapCanvas(self, canvas):
-    self.setMapSettings(canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer())
+    self.setMapSettings(canvas.mapSettings())
     self.canvas = canvas
 
   def setMapSettings(self, settings):
-    """settings: QgsMapSettings (QGIS >= 2.3) or QgsMapRenderer"""
+    """settings: QgsMapSettings"""
     self.canvas = None
     self._mapTo3d = None
     self.mapSettings = settings

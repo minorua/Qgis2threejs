@@ -22,7 +22,7 @@
 import struct
 
 from qgis.PyQt.QtCore import QSize
-from qgis.core import Qgis, QgsMapLayer, QgsRectangle, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsRectangle, QgsWkbTypes
 
 try:
   from osgeo import gdal
@@ -79,7 +79,7 @@ class MapTo3D:
 
   def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):
     # map canvas
-    self.rotation = mapSettings.rotation() if Qgis.QGIS_VERSION_INT >= 20700 else 0
+    self.rotation = mapSettings.rotation()
     self.mapExtent = RotatedRect.fromMapSettings(mapSettings)
 
     # 3d

@@ -22,7 +22,7 @@
 import sys
 
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import Qgis, QgsWkbTypes
+from qgis.core import QgsWkbTypes
 
 
 def list_modules():

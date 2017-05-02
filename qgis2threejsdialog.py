@@ -27,7 +27,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
-from qgis.core import Qgis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject, QgsWkbTypes
+from qgis.core import QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject, QgsWkbTypes
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -375,7 +375,7 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     if templateType != "sphere":
       # show message if crs unit is degrees
-      mapSettings = self.iface.mapCanvas().mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
+      mapSettings = self.iface.mapCanvas().mapSettings()
       if mapSettings.destinationCrs().mapUnits() in [Qgis.Degrees]:
         self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
 
@@ -488,15 +488,12 @@ class Qgis2threejsDialog(QDialog):
     return numeric_fields
 
   def mapTo3d(self):
-    canvas = self.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-
     world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
     bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
     ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
     vs = float(world.get("lineEdit_zShift", def_vals.zShift))
 
-    return MapTo3D(mapSettings, bs, ve, vs)
+    return MapTo3D(self.iface.mapCanvas().mapSettings(), bs, ve, vs)
 
   def progress(self, percentage=None, statusMsg=None):
     ui = self.ui
@@ -685,9 +682,9 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     self.startPoint = self.toMapCoordinates(e.pos())
     self.endPoint = self.startPoint
 
-    mapSettings = self.canvas.mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else self.canvas.mapRenderer()
+    mapSettings = self.canvas.mapSettings()
     self.mupp = mapSettings.mapUnitsPerPixel()
-    self.rotation = mapSettings.rotation() if Qgis.QGIS_VERSION_INT >= 20700 else 0
+    self.rotation = mapSettings.rotation()
 
     self.isDrawing = True
     self.showRect(self.startPoint, self.endPoint)

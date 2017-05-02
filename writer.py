@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.PyQt.QtCore import QObject
-from qgis.core import Qgis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsPoint, QgsProject, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsWkbTypes
 
 try:
   from osgeo import ogr, osr
@@ -685,7 +685,6 @@ class VectorLayer(Layer):
 def writeVectors(writer, legendInterface=None, progress=None):
   settings = writer.settings
   progress = progress or dummyProgress
-  renderer = QgsMapRenderer()
 
   layers = []
   if legendInterface is None:
@@ -711,10 +710,11 @@ def writeVectors(writer, legendInterface=None, progress=None):
       continue
 
     progress(30 + 30 * finishedLayers / len(layers), "Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layers), mapLayer.name()))
-    writeVector(writer, layerId, properties, progress, renderer)
+    writeVector(writer, layerId, properties, progress)
     finishedLayers += 1
 
 
+#TODO: remove renderer parameter
 def writeVector(writer, layerId, properties, progress=None, renderer=None, noFeature=False):
   mapLayer = QgsProject.instance().mapLayer(layerId)
   if mapLayer is None:
@@ -723,7 +723,6 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
   settings = writer.settings
   baseExtent = settings.baseExtent
   progress = progress or dummyProgress
-  renderer = renderer or QgsMapRenderer()
 
   prop = VectorPropertyReader(writer.objectTypeManager, mapLayer, properties)
   obj_mod = writer.objectTypeManager.module(prop.mod_index)
@@ -746,7 +745,8 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
     return
 
   # initialize symbol rendering
-  mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if Qgis.QGIS_VERSION_INT >= 20300 else mapLayer)
+  #TODO: QGIS3
+  #mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if Qgis.QGIS_VERSION_INT >= 20300 else mapLayer)
 
   # features to export
   request = QgsFeatureRequest()
@@ -775,7 +775,8 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
   # write materials
   writer.writeMaterials(layer.materialManager)
 
-  mapLayer.rendererV2().stopRender(renderer.rendererContext())
+  #TODO: QGIS3
+  #mapLayer.rendererV2().stopRender(renderer.rendererContext())
 
 
 def writeSphereTexture(writer):

@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QSize
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from PyQt5.QtGui import QImageReader
-from qgis.core import Qgis, QgsMapLayer, QgsMapRenderer, QgsPalLabeling, QgsProject
+from qgis.core import QgsMapLayer, QgsPalLabeling, QgsProject
 
 from . import gdal2threejs
 from . import qgis2threejstools as tools
@@ -81,14 +81,7 @@ class ImageManager(DataManager):
       size = self.exportSettings.mapSettings.outputSize()
       return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
 
-    if Qgis.QGIS_VERSION_INT >= 20400:
-      return tools.base64image(canvas.map().contentImage())
-    temp_dir = QDir.tempPath()
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (self.exportSettings.timestamp))
-    canvas.saveAsImage(texfilename)
-    texData = gdal2threejs.base64image(texfilename)
-    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
-    return texData
+    return tools.base64image(canvas.map().contentImage())
 
   def saveMapCanvasImage(self):
     if self.exportSettings.canvas is None:
@@ -110,8 +103,6 @@ class ImageManager(DataManager):
     self._renderer = renderer
 
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
-    if Qgis.QGIS_VERSION_INT < 20700:
-      return self._renderedImage2(width, height, extent, transp_background, layerids)
 
     # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
@@ -167,42 +158,6 @@ class ImageManager(DataManager):
     settings.setRotation(old_rotation)
     settings.setLayers(old_layerids)
     settings.setBackgroundColor(old_backgroundColor)
-
-    return tools.base64image(image)
-
-  def _renderedImage2(self, width, height, extent, transp_background=False, layerids=None):
-    """rendering function for GIS < 2.7"""
-    antialias = True
-
-    if self._renderer is None:
-      self._initRenderer()
-
-    canvas = self.exportSettings.canvas
-    if canvas is None:
-      logMessage("With this QGIS version (<= 2.6), map canvas needs to be set to the export settings")
-      return
-
-    if layerids is None:
-      layerids = [mapLayer.id() for mapLayer in canvas.layers()]
-
-    renderer = self._renderer   # QgsMapRenderer
-    renderer.setLayerSet(layerids)
-
-    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-    if transp_background:
-      image.fill(QColor(Qt.transparent).rgba())   #
-    else:
-      image.fill(canvas.canvasColor().rgba())   #
-
-    renderer.setOutputSize(image.size(), image.logicalDpiX())
-    renderer.setExtent(extent.unrotatedRect())
-
-    painter = QPainter()
-    painter.begin(image)
-    if antialias:
-      painter.setRenderHint(QPainter.Antialiasing)
-    renderer.render(painter)
-    painter.end()
 
     return tools.base64image(image)
 

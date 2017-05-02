@@ -21,7 +21,7 @@
 import json
 import time
 from qgis.PyQt.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
-from qgis.core import Qgis, QgsMapLayer, QgsMessageLog, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsMessageLog, QgsWkbTypes
 
 from . import q3dconst
 from .socketserver import SocketServer
@@ -252,8 +252,8 @@ class Writer(Worker):
           geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
                       QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
                       QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
-                      Qgis.UnknownGeometry: None,
-                      Qgis.NoGeometry: None}[layer.geometryType()]
+                      QgsWkbTypes.UnknownGeometry: None,
+                      QgsWkbTypes.NullGeometry: None}[layer.geometryType()]
         elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
           geomType = q3dconst.TYPE_DEM
         else:

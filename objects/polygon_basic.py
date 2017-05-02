@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import Qgis, QgsWkbTypes
+from qgis.core import QgsWkbTypes
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from Qgis2threejs.geometry import Triangles
 
@@ -42,7 +42,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   else:   # Overlay
     ppage.initStyleWidgets(color=False, transparency=False)
 
-    mapSettings = ppage.dialog.iface.mapCanvas().mapSettings() if Qgis.QGIS_VERSION_INT >= 20300 else None
+    mapSettings = ppage.dialog.iface.mapCanvas().mapSettings()
     ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE, {"mapSettings": mapSettings})
     ppage.addStyleWidget(StyleWidget.TRANSPARENCY)
 

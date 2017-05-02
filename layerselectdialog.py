@@ -19,13 +19,8 @@
 """
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialog
-from qgis.core import Qgis, QgsProject
+from qgis.core import QgsLayerTreeModel, QgsProject
 from qgis.gui import QgsMapCanvasLayer
-
-if Qgis.QGIS_VERSION_INT >= 20600:
-  from qgis.core import QgsLayerTreeModel
-else:   # 2.4
-  from qgis.gui import QgsLayerTreeModel
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog
 
@@ -81,8 +76,7 @@ class LayerSelectDialog(QDialog):
       c.setCanvasColor(s.backgroundColor())
       c.setCrsTransformEnabled(s.hasCrsTransformEnabled())
       c.setDestinationCrs(s.destinationCrs())
-      if Qgis.QGIS_VERSION_INT >= 20700:
-        c.setRotation(s.rotation())
+      c.setRotation(s.rotation())
       c.setExtent(s.extent())
 
       self.canvasReady = True

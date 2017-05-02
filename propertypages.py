@@ -25,7 +25,7 @@ import re
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
 from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.PyQt.QtGui import QColor
-from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsWkbTypes
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
@@ -170,11 +170,9 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
-    apiChanged23 = Qgis.QGIS_VERSION_INT >= 20300
-
     canvas = self.dialog.iface.mapCanvas()
     extent = canvas.extent()
-    outsize = canvas.mapSettings().outputSize() if apiChanged23 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize()
 
     self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
     self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(outsize.width(), outsize.height()))
@@ -193,7 +191,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
               "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    mapSettings = canvas.mapSettings()
     proj = mapSettings.destinationCrs().toProj4()
     m = re.search("\+proj=(\w+)", proj)
     proj_supported = bool(m and m.group(1) in projs)
@@ -377,7 +375,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def initTextureSizeComboBox(self):
     canvas = self.dialog.iface.mapCanvas()
-    outsize = canvas.mapSettings().outputSize() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
     for i in [4, 2, 1]:
@@ -420,10 +418,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def selectLayerClicked(self):
-    if Qgis.QGIS_VERSION_INT < 20400:
-      QMessageBox.warning(self, "Qgis2threejs", "Sorry, newer QGIS version (>= 2.4) is required.")
-      return
-
     from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
@@ -478,7 +472,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def updateDEMSize(self, v=None):
     # calculate DEM size and grid spacing
     canvas = self.dialog.iface.mapCanvas()
-    canvasSize = canvas.mapSettings().outputSize() if Qgis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    canvasSize = canvas.mapSettings().outputSize()
     resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
     demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
@@ -511,10 +505,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.clearRubberBands()
       return
 
-    apiChanged23 = Qgis.QGIS_VERSION_INT >= 20300
     canvas = self.dialog.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-
+    mapSettings = canvas.mapSettings()
     baseExtent = RotatedRect.fromMapSettings(mapSettings)
     p = {"lineEdit_centerX": self.lineEdit_centerX.text(),
          "lineEdit_centerY": self.lineEdit_centerY.text(),

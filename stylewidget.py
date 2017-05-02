@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import QDir, QVariant
 from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
 from qgis.PyQt.QtGui import QColor
-from qgis.core import Qgis, QgsProject
+from qgis.core import QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .qgis2threejstools import shortTextFromSelectedLayerIds
@@ -378,9 +378,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     comboBox = self.widget.comboBox
     comboBox.insertSeparator(comboBox.count())
     comboBox.addItem("Map canvas image", ColorTextureWidgetFunc.MAP_CANVAS)
-
-    if Qgis.QGIS_VERSION_INT >= 20400:
-      comboBox.addItem("Layer image", ColorTextureWidgetFunc.LAYER)
+    comboBox.addItem("Layer image", ColorTextureWidgetFunc.LAYER)
 
     self.updateLineEdit()
 

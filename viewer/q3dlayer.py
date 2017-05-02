@@ -23,7 +23,7 @@ import threading
 
 from qgis.PyQt.QtCore import Qt, QByteArray, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
 from qgis.PyQt.QtGui import QImage, QPainter
-from qgis.core import Qgis, QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
+from qgis.core import QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 
 from . import q3dconst
@@ -103,8 +103,8 @@ class WriterL(Writer):
           geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
                       QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
                       QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
-                      Qgis.UnknownGeometry: None,
-                      Qgis.NoGeometry: None}[layer.geometryType()]
+                      QgsWkbTypes.UnknownGeometry: None,
+                      QgsWkbTypes.NullGeometry: None}[layer.geometryType()]
         elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
           geomType = q3dconst.TYPE_DEM
         else:
