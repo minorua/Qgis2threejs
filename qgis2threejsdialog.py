@@ -27,7 +27,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
-from qgis.core import Qgis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject
+from qgis.core import Qgis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject, QgsWkbTypes
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -604,7 +604,7 @@ class Qgis2threejsDialog(QDialog):
   def createRubberBands(self, baseExtent, quadtree):
     self.clearRubberBands()
     # create quads with rubber band
-    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), Qgis.Line)
+    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
     self.rb_quads.setColor(Qt.blue)
     self.rb_quads.setWidth(1)
 
@@ -620,7 +620,7 @@ class Qgis2threejsDialog(QDialog):
     # create a point with rubber band
     if quadtree.focusRect.width() == 0 or quadtree.focusRect.height() == 0:
       npt = quadtree.focusRect.center()
-      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), Qgis.Point)
+      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.PointGeometry)
       self.rb_point.setColor(Qt.red)
       self.rb_point.addPoint(baseExtent.point(npt))
 
@@ -671,7 +671,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     QgsMapToolEmitPoint.__init__(self, canvas)
 
     self.canvas = canvas
-    self.rubberBand = QgsRubberBand(canvas, Qgis.Polygon)
+    self.rubberBand = QgsRubberBand(canvas, QgsWkbTypes.PolygonGeometry)
     self.rubberBand.setColor(QColor(255, 0, 0, 180))
     self.rubberBand.setWidth(1)
     self.reset()
@@ -679,7 +679,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
   def reset(self):
     self.startPoint = self.endPoint = None
     self.isDrawing = False
-    self.rubberBand.reset(Qgis.Polygon)
+    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
 
   def canvasPressEvent(self, e):
     self.startPoint = self.toMapCoordinates(e.pos())
@@ -703,7 +703,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     self.showRect(self.startPoint, self.endPoint)
 
   def showRect(self, startPoint, endPoint):
-    self.rubberBand.reset(Qgis.Polygon)
+    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
     if startPoint.x() == endPoint.x() and startPoint.y() == endPoint.y():
       return
 

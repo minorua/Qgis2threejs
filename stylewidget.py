@@ -232,7 +232,7 @@ class HeightWidgetFunc(WidgetFuncBase):
     comboBox.clear()
 
     # z value if layer has
-    if layer and layer.wkbType() in [Qgis.WKBPoint25D, Qgis.WKBLineString25D, Qgis.WKBMultiPoint25D, Qgis.WKBMultiLineString25D]:
+    if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
       comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
       comboBox.insertSeparator(1)
 
@@ -290,7 +290,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     layer = options.get("layer")
 
     self.widget.comboBox.clear()
-    if layer and layer.geometryType() != Qgis.Point:
+    if layer and layer.geometryType() != QgsWkbTypes.PointGeometry:
       return  # Will be initialized in obj_mod.setupWidgets() if polygon. Line layer cannot have labels.
     self.widget.comboBox.addItem("Height from point", LabelHeightWidgetFunc.RELATIVE)
     self.widget.comboBox.addItem("Fixed value", LabelHeightWidgetFunc.ABSOLUTE)

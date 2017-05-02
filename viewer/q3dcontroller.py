@@ -21,7 +21,7 @@
 import json
 import time
 from qgis.PyQt.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
-from qgis.core import Qgis, QgsMapLayer, QgsMessageLog
+from qgis.core import Qgis, QgsMapLayer, QgsMessageLog, QgsWkbTypes
 
 from . import q3dconst
 from .socketserver import SocketServer
@@ -249,9 +249,9 @@ class Writer(Worker):
       for layer in self.qgis_iface.legendInterface().layers():
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
-          geomType = {Qgis.Point: q3dconst.TYPE_POINT,
-                      Qgis.Line: q3dconst.TYPE_LINESTRING,
-                      Qgis.Polygon: q3dconst.TYPE_POLYGON,
+          geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
+                      QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
+                      QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
                       Qgis.UnknownGeometry: None,
                       Qgis.NoGeometry: None}[layer.geometryType()]
         elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:

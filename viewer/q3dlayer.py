@@ -100,9 +100,9 @@ class WriterL(Writer):
       for layer in self._parent.layers:
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
-          geomType = {Qgis.Point: q3dconst.TYPE_POINT,
-                      Qgis.Line: q3dconst.TYPE_LINESTRING,
-                      Qgis.Polygon: q3dconst.TYPE_POLYGON,
+          geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
+                      QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
+                      QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
                       Qgis.UnknownGeometry: None,
                       Qgis.NoGeometry: None}[layer.geometryType()]
         elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:

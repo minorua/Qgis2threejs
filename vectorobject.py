@@ -22,7 +22,7 @@
 import sys
 
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsWkbTypes
 
 
 def list_modules():
@@ -73,7 +73,7 @@ class ObjectTypeManager:
   def __init__(self):
     # load object types
     self.modules = []
-    self.objTypes = {Qgis.Point: [], Qgis.Line: [], Qgis.Polygon: []}    # each list item is ObjectTypeItem object
+    self.objTypes = {QgsWkbTypes.PointGeometry: [], QgsWkbTypes.LineGeometry: [], QgsWkbTypes.PolygonGeometry: []}    # each list item is ObjectTypeItem object
 
     module_names = ["point_basic", "line_basic", "polygon_basic"]
     module_names += ["point_icon", "point_model"]

@@ -25,7 +25,7 @@ import re
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
 from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.PyQt.QtGui import QColor
-from qgis.core import Qgis, QgsMapLayer
+from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
@@ -372,7 +372,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if layer.providerType() == "gdal" and layer.bandCount() == 1:
           comboDEM.addItem(layer.name(), layer.id())
       elif layer.type() == QgsMapLayer.VectorLayer:
-        if layer.geometryType() == Qgis.Polygon:
+        if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
           comboPolygon.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
@@ -667,20 +667,20 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up height widget and label height widget
     self.heightWidget.setup(options={"layer": layer})
-    if layer.geometryType() != Qgis.Line:
+    if layer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
       self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
     else:
       self.labelHeightWidget.hide()
 
     # point layer has no geometry clip option
-    self.checkBox_Clip.setVisible(layer.geometryType() != Qgis.Point)
+    self.checkBox_Clip.setVisible(layer.geometryType() != QgsWkbTypes.PointGeometry)
 
     # set up style widgets for selected object type
     self.setupStyleWidgets()
 
     # set up label combo box
-    hasPoint = (layer.geometryType() in (Qgis.Point, Qgis.Polygon))
+    hasPoint = (layer.geometryType() in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
     self.setLayoutVisible(self.formLayout_Label, hasPoint)
     self.comboBox_Label.clear()
     if hasPoint:
@@ -716,7 +716,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
-    if (geom_type == Qgis.Line and type_index == 4) or (geom_type == Qgis.Polygon and type_index == 1):    # Profile or Overlay
+    if (geom_type == QgsWkbTypes.LineGeometry and type_index == 4) or (geom_type == QgsWkbTypes.PolygonGeometry and type_index == 1):    # Profile or Overlay
       if self.heightWidget.func.isCurrentItemRelativeHeight():
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)

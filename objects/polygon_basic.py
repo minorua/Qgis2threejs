@@ -19,13 +19,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsWkbTypes
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from Qgis2threejs.geometry import Triangles
 
 
 def geometryType():
-  return Qgis.Polygon
+  return QgsWkbTypes.PolygonGeometry
 
 
 def objectTypeNames():

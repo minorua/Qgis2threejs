@@ -22,7 +22,7 @@
 import struct
 
 from qgis.PyQt.QtCore import QSize
-from qgis.core import Qgis, QgsMapLayer, QgsRectangle
+from qgis.core import Qgis, QgsMapLayer, QgsRectangle, QgsWkbTypes
 
 try:
   from osgeo import gdal
@@ -46,7 +46,7 @@ class ObjectTreeItem:
   ITEM_POLYGON = "POLYGON"
   topItemIds = [ITEM_WORLD, ITEM_CONTROLS, ITEM_DEM, ITEM_OPTDEM, ITEM_POINT, ITEM_LINE, ITEM_POLYGON]
   topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
-  geomType2id = {Qgis.Point: ITEM_POINT, Qgis.Line: ITEM_LINE, Qgis.Polygon: ITEM_POLYGON}
+  geomType2id = {QgsWkbTypes.PointGeometry: ITEM_POINT, QgsWkbTypes.LineGeometry: ITEM_LINE, QgsWkbTypes.PolygonGeometry: ITEM_POLYGON}
 
   @classmethod
   def topItemIndex(cls, id):
