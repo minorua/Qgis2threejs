@@ -43,7 +43,6 @@ class Exporter:
     """ Constructor.
 
       :param iface: If specified, mapSettings attribute is initialized with the map settings of the map canvas.
-                    The iface.legendInterface() is used to export vector layers in the same order as the legend.
       :type iface: QgisInterface
       :param settingsPath: Path to an existing settings file (.qto3settings).
       :type settingsPath: unicode
@@ -116,7 +115,7 @@ class Exporter:
     if err_msg:
       return err_msg
 
-    ret = exportToThreeJS(self.settings, self.iface.legendInterface() if self.iface else None)
+    ret = exportToThreeJS(self.settings)
     if not ret:
       return "Failed to export (Unknown error)"
 

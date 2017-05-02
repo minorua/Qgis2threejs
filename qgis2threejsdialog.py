@@ -309,13 +309,13 @@ class Qgis2threejsDialog(QDialog):
       topItems[id] = item
 
     optDEMChecked = False
-    for layer in self.iface.legendInterface().layers():
+    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
       parentId = ObjectTreeItem.parentIdByLayer(layer)
       if parentId is None:
         continue
 
       item = QTreeWidgetItem(topItems[parentId], [layer.name()])
-      isVisible = self._settings.get(parentId, {}).get(layer.id(), {}).get("visible", False)   #self.iface.legendInterface().isLayerVisible(layer)
+      isVisible = self._settings.get(parentId, {}).get(layer.id(), {}).get("visible", False)
       check_state = Qt.Checked if isVisible else Qt.Unchecked
       item.setData(0, Qt.CheckStateRole, check_state)
       item.setData(0, Qt.UserRole, layer.id())
@@ -539,7 +539,7 @@ class Qgis2threejsDialog(QDialog):
       self.createRubberBands(export_settings.baseExtent, export_settings.quadtree())
 
     # export
-    ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
+    ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)

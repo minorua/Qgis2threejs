@@ -25,7 +25,7 @@ import re
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
 from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsMapLayer, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
@@ -365,7 +365,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     comboPolygon = self.comboBox_ClipLayer
     comboPolygon.clear()
 
-    for layer in self.dialog.iface.legendInterface().layers():
+    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
       if layer.type() == QgsMapLayer.RasterLayer:
         if layer.providerType() == "gdal" and layer.bandCount() == 1:
           comboDEM.addItem(layer.name(), layer.id())

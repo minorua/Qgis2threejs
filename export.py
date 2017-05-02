@@ -31,8 +31,7 @@ from .qgis2threejscore import ObjectTreeItem
 from .writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
 from . import qgis2threejstools as tools
 
-def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, progress=None):
-  """legendInterface is used for vector layer ordering"""
+def exportToThreeJS(settings, objectTypeManager=None, progress=None):
   progress = progress or dummyProgress
   if objectTypeManager is None:
     from .vectorobject import ObjectTypeManager
@@ -76,7 +75,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
     progress(30, "Writing vector data")
 
     # write vector data
-    writeVectors(writer, legendInterface, progress)
+    writeVectors(writer, progress)
 
   # write images and model data
   progress(60, "Writing texture images")

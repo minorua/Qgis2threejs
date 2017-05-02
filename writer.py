@@ -682,19 +682,19 @@ class VectorLayer(Layer):
       yield feat
 
 
-def writeVectors(writer, legendInterface=None, progress=None):
+def writeVectors(writer, progress=None):
   settings = writer.settings
   progress = progress or dummyProgress
 
   layers = []
-  if legendInterface is None:
+  if False:   #TODO: remove
     for parentId in [ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
       for layerId, properties in settings.get(parentId, {}).items():
         if properties.get("visible", False):
           layers.append([layerId, properties])
   else:
-    # use vector layer order in legendInterface
-    for layer in legendInterface.layers():
+    # use vector layer order in project
+    for layer in QgsProject.instance().layerTreeRoot().layerOrder():
       if layer.type() != QgsMapLayer.VectorLayer:
         continue
 

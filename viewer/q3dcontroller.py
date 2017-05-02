@@ -21,7 +21,7 @@
 import json
 import time
 from qgis.PyQt.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
-from qgis.core import QgsMapLayer, QgsMessageLog, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsMessageLog, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from .socketserver import SocketServer
@@ -246,7 +246,7 @@ class Writer(Worker):
       for plugin in self.pluginManager.demProviderPlugins():
         layers.append({"layerId": "plugin:" + plugin.providerId(), "name": plugin.providerName(), "geomType": q3dconst.TYPE_DEM})
 
-      for layer in self.qgis_iface.legendInterface().layers():
+      for layer in QgsProject.instance().layerTreeRoot().layerOrder():
         layerType = layer.type()
         if layerType == QgsMapLayer.VectorLayer:
           geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
