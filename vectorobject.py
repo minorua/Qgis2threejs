@@ -19,6 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import importlib
 import sys
 
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -48,7 +49,7 @@ class ObjectTypeModule:
   @classmethod
   def load(cls, modname):
     if modname in sys.modules:
-      module = reload(sys.modules[modname])
+      module = importlib.reload(sys.modules[modname])
       return ObjectTypeModule(module)
 
     module = __import__(modname)
