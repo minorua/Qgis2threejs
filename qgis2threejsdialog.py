@@ -27,7 +27,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
-from qgis.core import QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject, QgsWkbTypes
+from qgis.core import QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -376,7 +376,7 @@ class Qgis2threejsDialog(QDialog):
     if templateType != "sphere":
       # show message if crs unit is degrees
       mapSettings = self.iface.mapCanvas().mapSettings()
-      if mapSettings.destinationCrs().mapUnits() in [Qgis.Degrees]:
+      if mapSettings.destinationCrs().mapUnits() in [QgsUnitTypes.DistanceDegrees]:
         self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
 
     self.templateType = templateType
