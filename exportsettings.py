@@ -21,7 +21,7 @@ import os
 import datetime
 
 from qgis.PyQt.QtCore import QSettings
-from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayerRegistry
+from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
@@ -206,5 +206,5 @@ class ExportSettings:
       return FlatDEMProvider()
 
     else:
-      layer = QgsMapLayerRegistry.instance().mapLayer(id)
+      layer = QgsProject.instance().mapLayer(id)
       return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS

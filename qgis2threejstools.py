@@ -21,7 +21,7 @@
 """
 from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
+from qgis.core import NULL, QgsMessageLog, QgsProject
 import os
 import configparser
 import re
@@ -67,7 +67,7 @@ def shortTextFromSelectedLayerIds(layerIds):
   if count == 0:
     return "0 layer"
 
-  layer = QgsMapLayerRegistry.instance().mapLayer(layerIds[0])
+  layer = QgsProject.instance().mapLayer(layerIds[0])
   if layer is None:
     return "Layer not found"
 

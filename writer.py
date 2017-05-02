@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from qgis.PyQt.QtCore import QObject
-from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsMapLayerRegistry, QgsPoint
+from qgis.core import QGis, QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsMapRenderer, QgsPoint, QgsProject
 
 try:
   from osgeo import ogr, osr
@@ -210,7 +210,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   # DEM provider
   provider = settings.demProviderByLayerId(prop.layerId)
   if isinstance(provider, GDALDEMProvider):
-    demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
+    demLayer = QgsProject.instance().mapLayer(prop.layerId)
     layerName = demLayer.name()
   else:
     demLayer = None
@@ -274,7 +274,7 @@ def writeSimpleDEM(writer, properties, progress=None):
     clip_option = properties.get("checkBox_Clip", False)
     if clip_option:
       clip_layerId = properties.get("comboBox_ClipLayer")
-      clip_layer = QgsMapLayerRegistry.instance().mapLayer(clip_layerId) if clip_layerId else None
+      clip_layer = QgsProject.instance().mapLayer(clip_layerId) if clip_layerId else None
       if clip_layer:
         block.setClipGeometry(dissolvePolygonsOnCanvas(writer, clip_layer))
 
@@ -371,7 +371,7 @@ def writeMultiResDEM(writer, properties, progress=None):
   # DEM provider
   provider = settings.demProviderByLayerId(prop.layerId)
   if isinstance(provider, GDALDEMProvider):
-    demLayer = QgsMapLayerRegistry.instance().mapLayer(prop.layerId)
+    demLayer = QgsProject.instance().mapLayer(prop.layerId)
     layerName = demLayer.name()
   else:
     demLayer = None
@@ -706,7 +706,7 @@ def writeVectors(writer, legendInterface=None, progress=None):
 
   finishedLayers = 0
   for layerId, properties in layers:
-    mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+    mapLayer = QgsProject.instance().mapLayer(layerId)
     if mapLayer is None:
       continue
 
@@ -716,7 +716,7 @@ def writeVectors(writer, legendInterface=None, progress=None):
 
 
 def writeVector(writer, layerId, properties, progress=None, renderer=None, noFeature=False):
-  mapLayer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+  mapLayer = QgsProject.instance().mapLayer(layerId)
   if mapLayer is None:
     return
 

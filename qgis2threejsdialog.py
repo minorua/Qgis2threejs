@@ -27,7 +27,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from qgis.PyQt.QtGui import QColor, QIcon
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsPoint, QgsRectangle, QgsProject
+from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsFeature, QgsPoint, QgsRectangle, QgsProject
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
@@ -152,7 +152,7 @@ class Qgis2threejsDialog(QDialog):
       return self._settings
 
     # clean up settings - remove layers that don't exist in the layer registry
-    registry = QgsMapLayerRegistry.instance()
+    registry = QgsProject.instance()
     for itemId in [ObjectTreeItem.ITEM_OPTDEM, ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
       parent = self._settings.get(itemId, {})
       for layerId in list(parent.keys()):
@@ -409,7 +409,7 @@ class Qgis2threejsDialog(QDialog):
     else:
       parentId = parent.data(0, Qt.UserRole)
       layerId = currentItem.data(0, Qt.UserRole)
-      layer = QgsMapLayerRegistry.instance().mapLayer(str(layerId))
+      layer = QgsProject.instance().mapLayer(str(layerId))
       if layer is None:
         return
 

@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
 from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import QgsProject, QgsMapLayer, QgsMapLayerRegistry, QgsPluginLayerRegistry
+from qgis.core import QgsMapLayer, QgsPluginLayerRegistry, QgsProject
 
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
 from .settings import live_in_another_process
@@ -208,7 +208,7 @@ class Qgis2threejs:
     self.lastLayerIndex += 1
     serverName = "Qgis2threejsLayer{0}_{1}".format(os.getpid(), self.lastLayerIndex)
     layer = Qgis2threejsLayer(self, serverName, perspective)
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    QgsProject.instance().addMapLayer(layer)
 
     self.layers[layer.id()] = layer   # TODO: remove item from dict when the layer is removed from registry
 

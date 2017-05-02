@@ -23,7 +23,7 @@ import threading
 
 from qgis.PyQt.QtCore import Qt, QByteArray, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
 from qgis.PyQt.QtGui import QImage, QPainter
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsRenderContext, QgsMessageLog
+from qgis.core import QGis, QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 
 from . import q3dconst

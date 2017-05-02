@@ -20,7 +20,7 @@
 """
 from qgis.PyQt.QtCore import Qt, QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
-from qgis.core import QGis, QgsMapLayerRegistry
+from qgis.core import QGis, QgsProject
 
 from . import q3dconst
 from .q3dcontroller import Q3DController
@@ -59,7 +59,7 @@ class Q3DLiveController(Q3DController):
     Q3DController.processRequest(self, dataType, params)
 
   def showPropertiesDialog(self, id, layerId, geomType, properties=None):
-    layer = QgsMapLayerRegistry.instance().mapLayer(str(layerId))
+    layer = QgsProject.instance().mapLayer(str(layerId))
     if layer is None:
       return
 

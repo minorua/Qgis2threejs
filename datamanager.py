@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QSize
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from PyQt5.QtGui import QImageReader
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
+from qgis.core import QGis, QgsMapLayer, QgsMapRenderer, QgsPalLabeling, QgsProject
 
 from . import gdal2threejs
 from . import qgis2threejstools as tools
@@ -140,7 +140,7 @@ class ImageManager(DataManager):
 
     has_pluginlayer = False
     for layerId in settings.layers():
-      layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+      layer = QgsProject.instance().mapLayer(layerId)
       if layer and layer.type() == QgsMapLayer.PluginLayer:
         has_pluginlayer = True
         break

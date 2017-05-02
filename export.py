@@ -23,7 +23,7 @@ import os
 import codecs
 
 from qgis.PyQt.QtCore import QDir
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 
 
 from .exportsettings import ExportSettings
@@ -70,7 +70,7 @@ def exportToThreeJS(settings, legendInterface=None, objectTypeManager=None, prog
     # write additional DEM(s)
     primaryDEMLayerId = demProperties.get("comboBox_DEMLayer", 0)
     for layerId, properties in settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).items():
-      if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsMapLayerRegistry.instance().mapLayer(layerId):
+      if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsProject.instance().mapLayer(layerId):
         writeSimpleDEM(writer, properties)
 
     progress(30, "Writing vector data")

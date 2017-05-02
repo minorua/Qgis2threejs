@@ -15,7 +15,7 @@ import sys
 from qgis.PyQt.QtCore import QFileInfo, qDebug
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtXml import QDomDocument
-from qgis.core import QgsMapLayerRegistry, QgsMapSettings, QgsProject
+from qgis.core import QgsMapSettings, QgsProject
 
 
 def pluginPath(subdir=None):
@@ -50,13 +50,13 @@ def initOutputDir():
 
 def loadProject(filename):
   # clear the map layer registry
-  QgsMapLayerRegistry.instance().removeAllMapLayers()
+  QgsProject.instance().removeAllMapLayers()
 
   assert os.path.exists(filename), "project file does not exist: " + filename
 
   # load the project
   QgsProject.instance().read(QFileInfo(filename))
-  assert QgsMapLayerRegistry.instance().mapLayers(), "no layers in map layer registry"
+  assert QgsProject.instance().mapLayers(), "no layers in map layer registry"
 
   doc = QDomDocument()
   with open(filename) as f:
