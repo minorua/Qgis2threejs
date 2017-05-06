@@ -24,7 +24,7 @@ import os
 from qgis.PyQt.QtCore import QDir, QVariant
 from qgis.PyQt.QtWidgets import QWidget, QColorDialog, QFileDialog
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsWkbTypes
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .qgis2threejstools import shortTextFromSelectedLayerIds
@@ -531,7 +531,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.hasValues = True
 
   def comboBoxSelectionChanged(self, index):
-    if self.func:
+    if self.func and index != -1:
       self.func.comboBoxSelectionChanged(index)
 
   def toolButtonClicked(self):
@@ -544,7 +544,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
 
   def values(self):
     if self.func and self.hasValues:
-      return list(self.func.values())
+      return self.func.values()
     else:
       return {}
 

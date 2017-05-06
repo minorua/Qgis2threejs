@@ -466,7 +466,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def hide(self):
     PropertyPage.hide(self)
     if self.isPrimary:
-      self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
+      #self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)   #TODO: new style
       self.dialog.endPointSelection()
 
   def updateDEMSize(self, v=None):
