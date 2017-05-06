@@ -595,7 +595,7 @@ class VectorLayer(Layer):
       srs_to.ImportFromProj4(str(self.writer.settings.crs.toProj4()))
 
       ogr_transform = osr.CreateCoordinateTransformation(srs_from, srs_to)
-      clipGeomWkb = clipGeom.asWkb() if clipGeom else None
+      clipGeomWkb = bytes(clipGeom.exportToWkb()) if clipGeom else None
       ogr_clipGeom = ogr.CreateGeometryFromWkb(clipGeomWkb) if clipGeomWkb else None
 
     else:
@@ -636,7 +636,7 @@ class VectorLayer(Layer):
         return mapTo3d.transform(x, y, z + relativeHeight)
 
       if useZ:
-        ogr_geom = ogr.CreateGeometryFromWkb(geometry.asWkb())
+        ogr_geom = ogr.CreateGeometryFromWkb(bytes(geometry.exportToWkb()))
 
         # transform geometry from layer CRS to project CRS
         if ogr_geom.Transform(ogr_transform) != 0:
