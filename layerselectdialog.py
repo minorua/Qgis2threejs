@@ -20,7 +20,6 @@
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import QgsLayerTreeModel, QgsProject
-from qgis.gui import QgsMapCanvasLayer
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog
 
@@ -39,11 +38,11 @@ class LayerSelectDialog(QDialog):
     ui.tabWidget.setTabEnabled(1, False)
     ui.tabWidget.currentChanged.connect(self.tabPageChanged)
 
-  def initTree(self, ids=None):
-    ids = ids or []
+  def initTree(self, visibleLayerIds=None):
+    ids = visibleLayerIds or []
     self.root = QgsProject.instance().layerTreeRoot().clone()
     for layer in self.root.findLayers():
-      layer.setVisible(Qt.Checked if layer.layerId() in ids else Qt.Unchecked)
+      layer.setItemVisibilityChecked(layer.layerId() in ids)
 
     self.model = QgsLayerTreeModel(self.root)
     self.model.setFlags(QgsLayerTreeModel.AllowNodeChangeVisibility)
@@ -81,4 +80,4 @@ class LayerSelectDialog(QDialog):
 
       self.canvasReady = True
 
-    self.ui.canvas.setLayerSet([QgsMapCanvasLayer(layer) for layer in self.visibleLayers()])
+    self.ui.canvas.setLayers(self.visibleLayers())
