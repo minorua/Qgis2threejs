@@ -52,7 +52,9 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-  def __init__(self, objectTypeManager, layer, properties=None):
+  def __init__(self, objectTypeManager, renderContext, expressionContext, layer, properties=None):
+    self.renderContext = renderContext
+    self.expressionContext = expressionContext
     self.layer = layer
     properties = properties or {}
     self.properties = properties
@@ -86,7 +88,7 @@ class VectorPropertyReader:
       return QColor(colorName).name().replace("#", "0x")
 
     # feature color
-    symbol = self.layer.renderer().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
       logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.renderer().symbols()[0]
@@ -95,8 +97,8 @@ class VectorPropertyReader:
       if sl and isBorder:
         return sl.outlineColor().name().replace("#", "0x")
 
-      if sl:    # and sl.hasDataDefinedProperties():  # needs >= 2.2
-        expr = sl.dataDefinedProperty("color")
+      if sl and symbol.hasDataDefinedProperties():
+        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
         if expr:
           # data defined color
           rgb = expr.evaluate(f, f.fields())
@@ -117,14 +119,14 @@ class VectorPropertyReader:
         return 0
 
     alpha = None
-    symbol = self.layer.renderer().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
       logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
-      if sl:    # and sl.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")
+      if sl and symbol.hasDataDefinedProperties():
+        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
         if expr:
           # data defined transparency
           cs_rgba = expr.evaluate(f, f.fields())
