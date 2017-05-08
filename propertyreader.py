@@ -86,10 +86,10 @@ class VectorPropertyReader:
       return QColor(colorName).name().replace("#", "0x")
 
     # feature color
-    symbol = self.layer.rendererV2().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f)
     if symbol is None:
       logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.rendererV2().symbols()[0]
+      symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
       if sl and isBorder:
@@ -117,10 +117,10 @@ class VectorPropertyReader:
         return 0
 
     alpha = None
-    symbol = self.layer.rendererV2().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f)
     if symbol is None:
       logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.rendererV2().symbols()[0]
+      symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
       if sl:    # and sl.hasDataDefinedProperties():

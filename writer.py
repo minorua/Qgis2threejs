@@ -746,7 +746,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
 
   # initialize symbol rendering
   #TODO: QGIS3
-  #mapLayer.rendererV2().startRender(renderer.rendererContext(), mapLayer.pendingFields() if Qgis.QGIS_VERSION_INT >= 20300 else mapLayer)
+  #mapLayer.renderer().startRender(renderer.rendererContext(), mapLayer.pendingFields() if Qgis.QGIS_VERSION_INT >= 20300 else mapLayer)
 
   # features to export
   request = QgsFeatureRequest()
@@ -776,7 +776,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
   writer.writeMaterials(layer.materialManager)
 
   #TODO: QGIS3
-  #mapLayer.rendererV2().stopRender(renderer.rendererContext())
+  #mapLayer.renderer().stopRender(renderer.rendererContext())
 
 
 def writeSphereTexture(writer):
