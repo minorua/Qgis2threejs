@@ -52,7 +52,7 @@ class SettingsDialog(QDialog):
     tableWidget.setHorizontalHeaderLabels(["Name"])
     tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
     headerView = tableWidget.horizontalHeader()
-    headerView.setResizeMode(0, QHeaderView.Stretch)
+    headerView.setSectionResizeMode(QHeaderView.Stretch)
 
     self.plugin_metadata = []
     for i, name in enumerate(plugins):
