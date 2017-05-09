@@ -20,7 +20,7 @@
 
 plugin_version = "1.4.2"
 debug_mode = 0
-live_in_another_process = True
+live_in_another_process = False
 
 class DefaultSettings:
 
