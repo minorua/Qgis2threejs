@@ -1198,7 +1198,7 @@ Q3D.MapLayer = function (params) {
     this[k] = params[k];
   }
 
-  // this.materials = undefined;
+  this.materials = [];
   this.objectGroup = new THREE.Group();
   this.queryableObjects = [];
 
@@ -1224,10 +1224,14 @@ Q3D.MapLayer.prototype = {
 
   initMaterials: function () {
     this.materials = [];
-    if (this.m.length == 0) return;
+    this.createMaterials();
+  },
+
+  createMaterials: function () {
+    if (this.materials.length >= this.m.length) return;
 
     var mat, sum_opacity = 0;
-    for (var i = 0, l = this.m.length; i < l; i++) {
+    for (var i = this.materials.length, l = this.m.length; i < l; i++) {
       var m = this.m[i];
 
       var opt = {};
@@ -1271,6 +1275,7 @@ Q3D.MapLayer.prototype = {
     }
 
     // layer opacity is the average opacity of materials
+    // TODO: in case of 3DViewer
     this.opacity = sum_opacity / this.materials.length;
   },
 
@@ -1532,7 +1537,7 @@ Q3D.VectorLayer = function (params) {
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
-Q3D.VectorLayer.prototype.build = function (parent) {};
+Q3D.VectorLayer.prototype.build = function (parent, startIndex) {};
 
 Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPointsFunc, zFunc) {
   // Layer must belong to a project
@@ -1633,9 +1638,9 @@ Q3D.PointLayer = function (params) {
 Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
-Q3D.PointLayer.prototype.build = function (parent) {
-  if (this.objType == "Icon") { this.buildIcons(parent); return; }
-  if (this.objType == "JSON model" || this.objType == "COLLADA model") { this.buildModels(parent); return; }
+Q3D.PointLayer.prototype.build = function (parent, startIndex) {
+  if (this.objType == "Icon") { this.buildIcons(parent, startIndex); return; }
+  if (this.objType == "JSON model" || this.objType == "COLLADA model") { this.buildModels(parent, startIndex); return; }
 
   var materials = this.materials;
   var deg2rad = Math.PI / 180;
@@ -1654,7 +1659,8 @@ Q3D.PointLayer.prototype.build = function (parent) {
   else createGeometry = function (f) { return new THREE.CylinderGeometry(f.rt, f.rb, f.h); };   // Cylinder or Cone
 
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     f.objs = [];
     var z_addend = (f.h) ? f.h / 2 : 0;
     for (var i = 0, l = f.pts.length; i < l; i++) {
@@ -1670,14 +1676,15 @@ Q3D.PointLayer.prototype.build = function (parent) {
       this.addObject(mesh);
       f.objs.push(mesh);
     }
-  }, this);
+  }
 
   if (parent) parent.add(this.objectGroup);
 };
 
-Q3D.PointLayer.prototype.buildIcons = function (parent) {
+Q3D.PointLayer.prototype.buildIcons = function (parent, startIndex) {
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     var mat = this.materials[f.m];
     var image = this.project.images[mat.i];
 
@@ -1698,16 +1705,17 @@ Q3D.PointLayer.prototype.buildIcons = function (parent) {
       this.addObject(sprite);
       f.objs.push(sprite);
     }
-  }, this);
+  }
 
   if (parent) parent.add(this.objectGroup);
 };
 
-Q3D.PointLayer.prototype.buildModels = function (parent) {
+Q3D.PointLayer.prototype.buildModels = function (parent, startIndex) {
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     Q3D.application.modelBuilders[f.model_index].addFeature(this.index, fid);
-  }, this);
+  }
 
   if (parent) parent.add(this.objectGroup);
 };
@@ -1728,9 +1736,12 @@ Q3D.LineLayer = function (params) {
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
-Q3D.LineLayer.prototype.build = function (parent) {
+Q3D.LineLayer.prototype.build = function (parent, startIndex) {
   var materials = this.materials;
-  if (this.objType == "Line") {
+  if (this.createObject !== undefined) {
+    var createObject = this.createObject;
+  }
+  else if (this.objType == "Line") {
     var createObject = function (f, line) {
       var geom = new THREE.Geometry(), pt;
       for (var i = 0, l = line.length; i < l; i++) {
@@ -1896,7 +1907,8 @@ Q3D.LineLayer.prototype.build = function (parent) {
   }
 
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     f.objs = [];
     for (var i = 0, l = f.lines.length; i < l; i++) {
       var obj = createObject(f, f.lines[i]);
@@ -1905,8 +1917,9 @@ Q3D.LineLayer.prototype.build = function (parent) {
       this.addObject(obj);
       f.objs.push(obj);
     }
-  }, this);
+  }
 
+  this.createObject = createObject;
   if (parent) parent.add(this.objectGroup);
 };
 
@@ -1931,11 +1944,14 @@ Q3D.PolygonLayer = function (params) {
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PolygonLayer.prototype.constructor = Q3D.PolygonLayer;
 
-Q3D.PolygonLayer.prototype.build = function (parent) {
+Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
   var materials = this.materials,
       project = this.project;
 
-  if (this.objType == "Extruded") {
+  if (this.createObject !== undefined) {
+    var createObject = this.createObject;
+  }
+  else if (this.objType == "Extruded") {
     var createSubObject = function (f, polygon, z) {
       var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
       for (var i = 1, l = polygon.length; i < l; i++) {
@@ -2011,15 +2027,17 @@ Q3D.PolygonLayer.prototype.build = function (parent) {
   }
 
   // each feature in this layer
-  this.f.forEach(function (f, fid) {
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
     f.objs = [];
     var obj = createObject(f);
     obj.userData.layerId = this.index;
     obj.userData.featureId = fid;
     this.addObject(obj);
     f.objs.push(obj);
-  }, this);
+  }
 
+  this.createObject = createObject;
   if (parent) parent.add(this.objectGroup);
 };
 

@@ -21,13 +21,13 @@
 """
 import os
 import random
-from PyQt4.QtCore import QSize
-from PyQt4.QtGui import QColor
+from qgis.PyQt.QtCore import QSize
+from qgis.PyQt.QtGui import QColor
 from qgis.core import NULL
 
-from qgis2threejscore import calculateDEMSize
-from qgis2threejstools import logMessage
-from stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .qgis2threejscore import calculateDEMSize
+from .qgis2threejstools import logMessage
+from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
 
@@ -52,7 +52,9 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-  def __init__(self, objectTypeManager, layer, properties=None):
+  def __init__(self, objectTypeManager, renderContext, expressionContext, layer, properties=None):
+    self.renderContext = renderContext
+    self.expressionContext = expressionContext
     self.layer = layer
     properties = properties or {}
     self.properties = properties
@@ -86,24 +88,24 @@ class VectorPropertyReader:
       return QColor(colorName).name().replace("#", "0x")
 
     # feature color
-    symbol = self.layer.rendererV2().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
-      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.rendererV2().symbols()[0]
+      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
+      symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
       if sl and isBorder:
         return sl.outlineColor().name().replace("#", "0x")
 
-      if sl:    # and sl.hasDataDefinedProperties():  # needs >= 2.2
-        expr = sl.dataDefinedProperty("color")
+      if sl and symbol.hasDataDefinedProperties():
+        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
         if expr:
           # data defined color
-          cs_rgb = expr.evaluate(f, f.fields())
+          rgb = expr.evaluate(f, f.fields())
 
           # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-          rgb = map(int, cs_rgb.split(",")[0:3])
-          return "0x" + "".join(map(chr, rgb)).encode("hex")
+          r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
+          return "0x{0:02x}{1:02x}{2:02x}".format(r, g, b)
 
     return symbol.color().name().replace("#", "0x")
 
@@ -117,14 +119,14 @@ class VectorPropertyReader:
         return 0
 
     alpha = None
-    symbol = self.layer.rendererV2().symbolForFeature(f)
+    symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
-      logMessage(u'Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.rendererV2().symbols()[0]
+      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
+      symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
-      if sl:    # and sl.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")
+      if sl and symbol.hasDataDefinedProperties():
+        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
         if expr:
           # data defined transparency
           cs_rgba = expr.evaluate(f, f.fields())
@@ -144,7 +146,7 @@ class VectorPropertyReader:
     try:
       return float(val)
     except Exception as e:
-      logMessage(u'{0} (value: {1})'.format(e.message, unicode(val)))
+      logMessage('{0} (value: {1})'.format(e.message, str(val)))
       return 0
 
   # functions to read values from height widget (z coordinate)
@@ -206,7 +208,7 @@ class VectorPropertyReader:
           value = f.attribute(fieldName)
           if value == NULL:
             value = ""
-            logMessage(u"Empty attribute value in the field '{0}'".format(fieldName))
+            logMessage("Empty attribute value in the field '{0}'".format(fieldName))
           vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
 
       elif widgetType == StyleWidget.CHECKBOX:

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Qgis2threejs Renderer</title>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
+<style type="text/css">
+#webgl {
+  background: transparent;
+}
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<div id="footer"><div id="infobtn">i</div></div>
+
+<script src="../js/threejs/three.min.js"></script>
+<script src="../js/Qgis2threejs.js"></script>
+<script src="viewer.js"></script>
+<script>
+var isOrthographic = true,
+    isPerspective = false,
+    perspectiveFOV = 80,
+    perspectiveX = 0.5,
+    perspectiveY = 0.5;
+
+var app = Q3D.application, project;
+app.start = function () {};
+
+var loadingImageCount = 0;
+Q3D.Utils.loadTextureData = function (imageData) {
+  var texture, image = new Image();
+  image.onload = function () {
+    texture.needsUpdate = true;
+    loadingImageCount--;
+  };
+  image.src = imageData;
+  loadingImageCount++;
+
+  texture = new THREE.Texture(image);
+  return texture;
+};
+
+function saveCanvasImage(width, height, intermediate) {
+  if (intermediate && !featAdded) return;
+  console.log("saveCanvasImage: " + width + ", " + height + (intermediate ? " (in progress)" : ""));
+  console.log("origin: x=" + project.origin.x + ", y=" + project.origin.y + ", rotation: " + project.rotation);
+
+  var canvasWidth = width,
+      canvasHeight = height;
+
+  if (isPerspective) {
+    var m = (perspectiveX < 0.5) ? (1 - perspectiveX) : perspectiveX,
+        n = (perspectiveY < 0.5) ? (1 - perspectiveY) : perspectiveY;
+    canvasWidth = 2 * m * width;
+    canvasHeight = 2 * n * height;
+
+    app.camera.fov = perspectiveFOV;
+    app.camera.aspect = canvasWidth / canvasHeight;
+    app.camera.position.set((perspectiveX - 0.5) * project.width,
+                            (0.5 - perspectiveY) * project.height,
+                            n * project.height / Math.tan(perspectiveFOV * Math.PI / 360));
+  }
+  else {
+    var hw = project.width / 2,
+        hh = project.height / 2;
+    app.camera.left = -hw;
+    app.camera.right = hw;
+    app.camera.top = hh;
+    app.camera.bottom = -hh;
+  }
+  app.camera.updateProjectionMatrix();
+
+  var canvas = app.renderer.domElement;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  app.renderer.setSize(canvasWidth, canvasHeight);
+
+  function save () {
+    app.render();
+    var tx = 0, ty = 0;
+    if (isPerspective) {
+      if (perspectiveX < 0.5) tx = (1 - 2 * m) * width;
+      if (perspectiveY < 0.5) ty = (1 - 2 * n) * height;
+    }
+    pyObj.saveImage(canvasWidth, canvasHeight, app.renderer.domElement.toDataURL("image/png"), tx, ty, intermediate || false);
+    // pyObj.saveImage(width, height, "", tx, ty, intermediate || false);   // use QWebFrame.render()
+    featAdded = false;
+  }
+
+  function checkImageLoaded() {
+    if (loadingImageCount > 0) setTimeout(checkImageLoaded, 100);
+    else save();
+  }
+
+  if (loadingImageCount > 0) setTimeout(checkImageLoaded, 100);
+  else save();
+}
+
+// Extruded polygon layer improvements
+// TODO: merge to Qgis2threejs.js
+Q3D.PolygonLayer.prototype._build = Q3D.PolygonLayer.prototype.build;
+Q3D.PolygonLayer.prototype.build = function (parent, startIndex) {
+  if (this.objType != "Extruded") {
+    this._build(parent, startIndex);
+    return;
+  }
+
+  var materials = this.materials,
+      project = this.project;
+
+  /* added ---> */
+  var sideMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc});
+  var lineMaterial = new THREE.LineBasicMaterial({color: 0x555555});
+
+  var tanTopShift = 2;
+  var vEdgeShiftFactor = 0.0002,
+      vEdgeShiftX = -project.width * vEdgeShiftFactor,
+      vEdgeShiftY = -project.width * vEdgeShiftFactor * tanTopShift;
+
+  var topShiftFactor = 0.5,
+      topShiftFactorX = topShiftFactor,
+      topShiftFactorY = topShiftFactor * tanTopShift;
+
+  var shearX = 0.5,
+      shearY = shearX * tanTopShift;
+  var shearMatrix = new THREE.Matrix4();
+  shearMatrix.set(1, 0, shearX, 0,
+                  0, 1, shearY, 0,
+                  0, 0,      1, 0,
+                  0, 0,      0, 1);
+
+if (this.createObject !== undefined) {
+  var createObject = this.createObject;
+}
+else {
+  /* <--- */
+
+  var createSubObject = function (f, polygon, z) {
+    var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
+    for (var i = 1, l = polygon.length; i < l; i++) {
+      shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
+    }
+    var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.h, material: 0, extrudeMaterial: 1});
+    var mesh = new THREE.Mesh(geom, new THREE.MeshFaceMaterial([materials[f.m].m, sideMaterial]));
+    mesh.position.z = z;
+
+    /* added ---> */
+    if (true) {   // (withFrame)
+      var zFunc0 = function (x, y) {return 0;},
+          zFunc1 = function (x, y) {return f.h;};
+      for (var i = 0, l = polygon.length; i < l; i++) {
+        geom = new THREE.Geometry();
+        geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc0);
+        mesh.add(new THREE.Line(geom, lineMaterial));
+
+        geom = new THREE.Geometry();
+        geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc1);
+        mesh.add(new THREE.Line(geom, lineMaterial));
+
+        var x, y, poly = polygon[i];
+        for (var j = 0, k = poly.length; j < k; j++) {
+          x = poly[j][0] + vEdgeShiftX;   // TODO: for perspective camera
+          y = poly[j][1] + vEdgeShiftY;
+          geom = new THREE.Geometry();
+          geom.vertices.push(new THREE.Vector3(x, y, 0), new THREE.Vector3(x, y, f.h));
+          mesh.add(new THREE.Line(geom, lineMaterial));
+        }
+      }
+    }
+
+    if (isOrthographic) {
+      mesh.traverse(function (object) {
+        // apply shear transformation to the geometries
+        // if (object.geometry) object.geometry.applyMatrix(shearMatrix);
+        if (object.geometry === undefined) return;
+        object.geometry.vertices.forEach(function (v, i) {
+          v.x += v.z * topShiftFactorX;
+          v.y += v.z * topShiftFactorY;
+        });
+      });
+    }
+    /* <--- */
+    return mesh;
+  };
+
+  var createObject = function (f) {
+    if (f.polygons.length == 1) return createSubObject(f, f.polygons[0], f.zs[0]);
+
+    var group = new THREE.Group();
+    for (var i = 0, l = f.polygons.length; i < l; i++) {
+      group.add(createSubObject(f, f.polygons[i], f.zs[i]));
+    }
+    return group;
+  };
+}
+
+  // each feature in this layer
+  for (var fid = startIndex || 0, flen = this.f.length; fid < flen; fid++) {
+    var f = this.f[fid];
+    f.objs = [];
+    var obj = createObject(f);
+    obj.userData.layerId = this.index;
+    obj.userData.featureId = fid;
+    this.addObject(obj);
+    f.objs.push(obj);
+  }
+
+  this.createObject = createObject;
+  if (parent) parent.add(this.objectGroup);
+};
+</script>
+<script>
+var option = Q3D.Options;
+option.light.directional.azimuth = 270;
+option.light.directional.altitude = 45;
+//${options}
+
+function init(params) {
+  isPerspective = params.perspective || false;
+  isOrthographic = !isPerspective;
+
+  var container = document.getElementById("webgl");
+  app.init(container);
+
+  // Project
+  project = new Q3D.Project({
+    crs: "undefined",
+    wgs84Center:{lat:0,lon:0},
+    proj: "undefined",
+    title:"2.5D renderer",
+    baseExtent:[0,0,100,100],
+    rotation:0,
+    zShift:0.0,
+    width:100.0,
+    zExaggeration:1.0
+  });
+  project.buildCustomLights = function (parent) {
+      var deg2rad = Math.PI / 180;
+
+      // ambient light
+      parent.add(new THREE.AmbientLight(0x999999));
+
+      // directional lights
+      var opt = Q3D.Options.light.directional;
+      var lambda = (90 - opt.azimuth) * deg2rad;
+      var phi = opt.altitude * deg2rad;
+
+      var x = Math.cos(phi) * Math.cos(lambda),
+          y = Math.cos(phi) * Math.sin(lambda),
+          z = Math.sin(phi);
+
+      var light1 = new THREE.DirectionalLight(0xffffff, 0.55);
+      light1.position.set(x, y, z);
+      parent.add(light1);
+  };
+
+  if (!isPerspective) {
+    project.buildCustomCamera = function () {
+      var width = 100, height = 100;
+      app.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, -1000, 1000);
+      app.camera.position.set(0, 0, 100);
+    };
+  }
+  app.loadProject(project);
+
+  console.log("INITIALIZED: isPerspective=" + isPerspective);
+}
+</script>
+<!--${scripts}-->
+</body>
+</html>

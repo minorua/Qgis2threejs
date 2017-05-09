@@ -19,14 +19,15 @@
  *                                                                         *
  ***************************************************************************/
 """
+import importlib
 import sys
 
-from PyQt4.QtGui import QMessageBox
-from qgis.core import QGis
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.core import QgsWkbTypes
 
 
 def list_modules():
-  from PyQt4.QtCore import qDebug
+  from qgis.PyQt.QtCore import qDebug
   for nam, mod in sys.modules.items():
     qDebug(nam + ": " + str(mod))
 
@@ -48,7 +49,7 @@ class ObjectTypeModule:
   @classmethod
   def load(cls, modname):
     if modname in sys.modules:
-      module = reload(sys.modules[modname])
+      module = importlib.reload(sys.modules[modname])
       return ObjectTypeModule(module)
 
     module = __import__(modname)
@@ -73,11 +74,11 @@ class ObjectTypeManager:
   def __init__(self):
     # load object types
     self.modules = []
-    self.objTypes = {QGis.Point: [], QGis.Line: [], QGis.Polygon: []}    # each list item is ObjectTypeItem object
+    self.objTypes = {QgsWkbTypes.PointGeometry: [], QgsWkbTypes.LineGeometry: [], QgsWkbTypes.PolygonGeometry: []}    # each list item is ObjectTypeItem object
 
     module_names = ["point_basic", "line_basic", "polygon_basic"]
     module_names += ["point_icon", "point_model"]
-    module_fullnames = map(lambda x: "Qgis2threejs.objects." + x, module_names)
+    module_fullnames = ["Qgis2threejs.objects." + x for x in module_names]
     for modname in module_fullnames:
       mod = ObjectTypeModule.load(modname)
       if mod is None:
@@ -90,7 +91,7 @@ class ObjectTypeManager:
 
   def objectTypeNames(self, geom_type):
     if geom_type in self.objTypes:
-      return map(lambda x: x.name, self.objTypes[geom_type])
+      return [x.name for x in self.objTypes[geom_type]]
     return []
 
   def objectTypeItem(self, geom_type, item_index):

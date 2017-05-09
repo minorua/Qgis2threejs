@@ -12,10 +12,12 @@ import os
 import shutil
 import sys
 
-from PyQt4.QtCore import QFileInfo, qDebug
-from PyQt4.QtGui import QColor
-from PyQt4.QtXml import QDomDocument
-from qgis.core import QgsMapLayerRegistry, QgsMapSettings, QgsProject
+from qgis.PyQt.QtCore import QFileInfo, qDebug
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtXml import QDomDocument
+from qgis.core import QgsMapSettings, QgsProject
+
+from Qgis2threejs.qgis2threejstools import getLayersByLayerIds
 
 
 def pluginPath(subdir=None):
@@ -50,13 +52,13 @@ def initOutputDir():
 
 def loadProject(filename):
   # clear the map layer registry
-  QgsMapLayerRegistry.instance().removeAllMapLayers()
+  QgsProject.instance().removeAllMapLayers()
 
   assert os.path.exists(filename), "project file does not exist: " + filename
 
   # load the project
   QgsProject.instance().read(QFileInfo(filename))
-  assert QgsMapLayerRegistry.instance().mapLayers(), "no layers in map layer registry"
+  assert QgsProject.instance().mapLayers(), "no layers in map layer registry"
 
   doc = QDomDocument()
   with open(filename) as f:
@@ -73,7 +75,7 @@ def loadProject(filename):
     elem = nodes.at(i).toElement().elementsByTagName("legendlayerfile").at(0).toElement()
     if elem.attribute("visible") == "1":
       layerIds.append(elem.attribute("layerid"))
-  mapSettings.setLayers(layerIds)
+  mapSettings.setLayers(getLayersByLayerIds(layerIds))
 
   # canvas color
   red = int(doc.elementsByTagName("CanvasColorRedPart").at(0).toElement().text())
@@ -85,7 +87,7 @@ def loadProject(filename):
 
 
 def log(msg):
-  if isinstance(msg, unicode):
+  if isinstance(msg, str):
     qDebug(msg.encode("utf-8"))
   else:
     qDebug(str(msg))

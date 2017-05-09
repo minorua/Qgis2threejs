@@ -24,5 +24,5 @@
 
 def classFactory(iface):
   # load Qgis2threejs class from file Qgis2threejs
-  from qgis2threejs import Qgis2threejs
+  from .qgis2threejs import Qgis2threejs
   return Qgis2threejs(iface)

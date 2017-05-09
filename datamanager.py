@@ -21,13 +21,14 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QSize
-from PyQt4.QtGui import QColor, QImage, QImageReader, QPainter
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsPalLabeling
+from qgis.PyQt.QtCore import Qt, QDir, QSize
+from qgis.PyQt.QtGui import QColor, QImage, QPainter
+from PyQt5.QtGui import QImageReader
+from qgis.core import QgsMapLayer, QgsPalLabeling, QgsProject
 
-import gdal2threejs
-import qgis2threejstools as tools
-from qgis2threejstools import logMessage
+from . import gdal2threejs
+from . import qgis2threejstools as tools
+from .qgis2threejstools import logMessage
 
 
 class DataManager:
@@ -76,18 +77,11 @@ class ImageManager(DataManager):
   def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
     canvas = self.exportSettings.canvas
-    if canvas is None or transp_background:
+    if canvas is None or transp_background or True:   #TODO: canvas.map() has been removed
       size = self.exportSettings.mapSettings.outputSize()
       return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
 
-    if QGis.QGIS_VERSION_INT >= 20400:
-      return tools.base64image(canvas.map().contentImage())
-    temp_dir = QDir.tempPath()
-    texfilename = os.path.join(temp_dir, "tex%s.png" % (self.exportSettings.timestamp))
-    canvas.saveAsImage(texfilename)
-    texData = gdal2threejs.base64image(texfilename)
-    tools.removeTemporaryFiles([texfilename, texfilename + "w"])
-    return texData
+    return tools.base64image(canvas.map().contentImage())
 
   def saveMapCanvasImage(self):
     if self.exportSettings.canvas is None:
@@ -109,8 +103,6 @@ class ImageManager(DataManager):
     self._renderer = renderer
 
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
-    if QGis.QGIS_VERSION_INT < 20700:
-      return self._renderedImage2(width, height, extent, transp_background, layerids)
 
     # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
@@ -121,7 +113,7 @@ class ImageManager(DataManager):
     old_outputSize = settings.outputSize()
     old_extent = settings.extent()
     old_rotation = settings.rotation()
-    old_layerids = settings.layers()
+    old_layerids = settings.layerIds()
     old_backgroundColor = settings.backgroundColor()
 
     # map settings
@@ -129,8 +121,8 @@ class ImageManager(DataManager):
     settings.setExtent(extent.unrotatedRect())
     settings.setRotation(extent.rotation())
 
-    if layerids is not None:
-      settings.setLayers(layerids)
+    if layerids:
+      settings.setLayers(tools.getLayersByLayerIds(layerids))
 
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
@@ -138,8 +130,7 @@ class ImageManager(DataManager):
       #settings.setBackgroundColor(self.exportSettings.canvas.canvasColor())
 
     has_pluginlayer = False
-    for layerId in settings.layers():
-      layer = QgsMapLayerRegistry.instance().mapLayer(layerId)
+    for layer in settings.layers():
       if layer and layer.type() == QgsMapLayer.PluginLayer:
         has_pluginlayer = True
         break
@@ -164,44 +155,8 @@ class ImageManager(DataManager):
     settings.setOutputSize(old_outputSize)
     settings.setExtent(old_extent)
     settings.setRotation(old_rotation)
-    settings.setLayers(old_layerids)
+    settings.setLayers(tools.getLayersByLayerIds(old_layerids))
     settings.setBackgroundColor(old_backgroundColor)
-
-    return tools.base64image(image)
-
-  def _renderedImage2(self, width, height, extent, transp_background=False, layerids=None):
-    """rendering function for GIS < 2.7"""
-    antialias = True
-
-    if self._renderer is None:
-      self._initRenderer()
-
-    canvas = self.exportSettings.canvas
-    if canvas is None:
-      logMessage("With this QGIS version (<= 2.6), map canvas needs to be set to the export settings")
-      return
-
-    if layerids is None:
-      layerids = [mapLayer.id() for mapLayer in canvas.layers()]
-
-    renderer = self._renderer   # QgsMapRenderer
-    renderer.setLayerSet(layerids)
-
-    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-    if transp_background:
-      image.fill(QColor(Qt.transparent).rgba())   #
-    else:
-      image.fill(canvas.canvasColor().rgba())   #
-
-    renderer.setOutputSize(image.size(), image.logicalDpiX())
-    renderer.setExtent(extent.unrotatedRect())
-
-    painter = QPainter()
-    painter.begin(image)
-    if antialias:
-      painter.setRenderHint(QPainter.Antialiasing)
-    renderer.render(painter)
-    painter.end()
 
     return tools.base64image(image)
 
@@ -216,7 +171,7 @@ class ImageManager(DataManager):
     if len(self._list) == 0:
       return
 
-    f.write(u'\n// Base64 encoded images\n')
+    f.write('\n// Base64 encoded images\n')
     for index, image in enumerate(self._list):
       imageType = image[0]
       if imageType == self.IMAGE_FILE:
@@ -227,13 +182,13 @@ class ImageManager(DataManager):
           size = QImageReader(image_path).size()
           args = (index, size.width(), size.height(), gdal2threejs.base64image(image_path))
         else:
-          f.write(u"project.images[%d] = {data:null};\n" % index)
+          f.write("project.images[%d] = {data:null};\n" % index)
 
           if exists:
-            err_msg = u"Not image file path"
+            err_msg = "Not image file path"
           else:
-            err_msg = u"Image file not found"
-          logMessage(u"{0}: {1}".format(err_msg, image_path))
+            err_msg = "Image file not found"
+          logMessage("{0}: {1}".format(err_msg, image_path))
           continue
 
       elif imageType == self.MAP_IMAGE:
@@ -249,7 +204,7 @@ class ImageManager(DataManager):
         size = self.exportSettings.mapSettings.outputSize()
         args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
 
-      f.write(u'project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
+      f.write('project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
 
 class MaterialManager(DataManager):
@@ -272,6 +227,7 @@ class MaterialManager(DataManager):
 
   def __init__(self):
     DataManager.__init__(self)
+    self.writtenCount = 0
 
   def _indexCol(self, type, color, transparency=0, doubleSide=False):
     if color[0:2] != "0x":
@@ -316,7 +272,7 @@ class MaterialManager(DataManager):
     return self._index(mat)
 
   def write(self, f, imageManager):
-    if not len(self._list):
+    if len(self._list) <= self.writtenCount:
       return
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
@@ -326,7 +282,7 @@ class MaterialManager(DataManager):
                       self.LAYER_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
-    for index, mat in enumerate(self._list):
+    for mat in self._list[self.writtenCount:]:
       m = {"type": toMaterialType.get(mat[0], mat[0])}
 
       transp_background = False
@@ -364,7 +320,9 @@ class MaterialManager(DataManager):
       if mat[3]:
         m["ds"] = 1
 
-      f.write(u"lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
+      index = self.writtenCount
+      f.write("lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
+      self.writtenCount += 1
 
 
 class ModelManager(DataManager):
@@ -396,19 +354,19 @@ class ModelManager(DataManager):
     if len(self._list) == 0:
       return
 
-    f.write(u'\n// 3D model data\n')
+    f.write('\n// 3D model data\n')
     for index, model in enumerate(self._list):
       model_type, path = model
       exists = os.path.exists(path)
       if exists and os.path.isfile(path):
         with open(path) as model_file:
           data = model_file.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
-        f.write(u"project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
+        f.write("project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
       else:
-        f.write(u"project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
+        f.write("project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
 
         if exists:
-          err_msg = u"Not 3D model file path"
+          err_msg = "Not 3D model file path"
         else:
-          err_msg = u"3D model file not found"
-        logMessage(u"{0}: {1} ({2})".format(err_msg, path, model_type))
+          err_msg = "3D model file not found"
+        logMessage("{0}: {1} ({2})".format(err_msg, path, model_type))

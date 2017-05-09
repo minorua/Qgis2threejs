@@ -21,11 +21,13 @@
 """
 import os
 
-from PyQt4.QtCore import QFile, Qt    #, QSettings, QTranslator, qVersion
-from PyQt4.QtGui import QAction, QIcon
-from qgis.core import QgsProject
+from qgis.PyQt.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
+from qgis.PyQt.QtGui import QIcon
+from qgis.core import QgsMapLayer, QgsPluginLayerRegistry, QgsProject
 
-from qgis2threejstools import logMessage, removeTemporaryOutputDir
+from .qgis2threejstools import logMessage, removeTemporaryOutputDir
+from .settings import live_in_another_process
 
 
 class Qgis2threejs:
@@ -55,43 +57,67 @@ class Qgis2threejs:
     self.lastTreeItemData = None
     self.settingsFilePath = None
 
+    # live exporter
+    self.controller = None    # Q3DController
+
+    # plugin layer
+    self.layers = {}
+    self.pluginLayerType = None
+    self.lastLayerIndex = 0
+
   def initGui(self):
     # Create action that will start plugin configuration
     icon = QIcon(os.path.join(self.plugin_dir, "icon.png"))
-    self.action = QAction(icon, u"Qgis2threejs", self.iface.mainWindow())
+    self.action = QAction(icon, "Qgis2threejs", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejs")
 
-    self.settingAction = QAction(u"Settings", self.iface.mainWindow())
+    self.viewerAction = QAction(icon, "Live Exporter", self.iface.mainWindow())
+    self.viewerAction.setObjectName("Qgis2threejsLive")
+
+    self.layerAction = QAction(icon, "Add Qgis2threejs Layer...", self.iface.mainWindow())
+    self.layerAction.setObjectName("Qgis2threejsLayer")
+
+    self.settingAction = QAction("Settings", self.iface.mainWindow())
     self.settingAction.setObjectName("Qgis2threejsSettings")
 
     # connect the action to the run method
     self.action.triggered.connect(self.run)
+    self.viewerAction.triggered.connect(self.launchViewer)
+    self.layerAction.triggered.connect(self.addPluginLayer)
     self.settingAction.triggered.connect(self.setting)
 
     # Add toolbar button and web menu items
+    name = "Qgis2threejs"
     self.iface.addWebToolBarIcon(self.action)
-    self.iface.addPluginToWebMenu(u"Qgis2threejs", self.action)
-    self.iface.addPluginToWebMenu(u"Qgis2threejs", self.settingAction)
+    self.iface.addPluginToWebMenu(name, self.action)
+    self.iface.addPluginToWebMenu(name, self.viewerAction)
+    self.iface.addPluginToWebMenu(name, self.layerAction)
+    self.iface.addPluginToWebMenu(name, self.settingAction)
 
   def unload(self):
     # Remove the web menu items and icon
+    name = "Qgis2threejs"
     self.iface.removeWebToolBarIcon(self.action)
-    self.iface.removePluginWebMenu(u"Qgis2threejs", self.action)
-    self.iface.removePluginWebMenu(u"Qgis2threejs", self.settingAction)
+    self.iface.removePluginWebMenu(name, self.action)
+    self.iface.removePluginWebMenu(name, self.viewerAction)
+    self.iface.removePluginWebMenu(name, self.layerAction)
+    self.iface.removePluginWebMenu(name, self.settingAction)
 
     # remove temporary output directory
     removeTemporaryOutputDir()
 
-  def run(self):
-    from vectorobject import ObjectTypeManager
-    from pluginmanager import PluginManager
-    from qgis2threejsdialog import Qgis2threejsDialog
-
+  def initManagers(self):
+    from .vectorobject import ObjectTypeManager
+    from .pluginmanager import PluginManager
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
 
     if self.pluginManager is None:
       self.pluginManager = PluginManager()
+
+  def run(self):
+    from .qgis2threejsdialog import Qgis2threejsDialog
+    self.initManagers()
 
     # restore export settings
     proj_path = QgsProject.instance().fileName()
@@ -100,7 +126,7 @@ class Qgis2threejs:
     if not self.exportSettings or settingsFilePath != self.settingsFilePath:
       if settingsFilePath and os.path.exists(settingsFilePath):
         self.loadExportSettings(settingsFilePath)
-        logMessage(u"Restored export settings of this project: {0}".format(os.path.basename(proj_path)))    #QgsProject.instance().title()
+        logMessage("Restored export settings of this project: {0}".format(os.path.basename(proj_path)))    #QgsProject.instance().title()
 
     dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.pluginManager, self.exportSettings, self.lastTreeItemData)
 
@@ -119,12 +145,79 @@ class Qgis2threejs:
 
     self.settingsFilePath = settingsFilePath
 
+  def launchViewer(self):
+    from .viewer.q3dlivecontroller import Q3DLiveController
+
+    self.initManagers()
+    pid = str(os.getpid())
+    serverName = "Qgis2threejsLive" + pid
+
+    if self.controller is None:
+      self.controller = Q3DLiveController(self.iface, self.objectTypeManager, self.pluginManager, serverName)
+
+    logMessage("Launching Live Exporter...")
+
+    parent = self.iface.mainWindow()
+    if live_in_another_process:
+      p = QProcess(parent)
+      if os.name == "nt":
+        os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), pid))
+        return
+        cmd = r"C:\Python34\python.exe"
+      else:
+        cmd = "python3"
+
+      p.setWorkingDirectory(os.path.dirname(self.plugin_dir))
+      p.start(cmd, ["-m", "Qgis2threejs.viewer.q3dapplication", "--", "-p", pid])
+
+      if not p.waitForStarted():
+        logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
+
+    else:
+      from .viewer.q3dwindow import Q3DWindow
+      self.liveExporter = Q3DWindow(serverName, isViewer=True, parent=parent)
+      self.liveExporter.ui.webView.iface.connect(self.controller.iface)
+      self.liveExporter.show()
+
+  def addPluginLayer(self):
+    from .viewer.q3dlayer import Qgis2threejsLayer, Qgis2threejs25DLayerType
+
+    self.initManagers()
+
+    if self.pluginLayerType is None:
+      # register plugin layer
+      self.pluginLayerType = Qgis2threejs25DLayerType(self)
+      QgsPluginLayerRegistry.instance().addPluginLayerType(self.pluginLayerType)
+
+    layer = self.iface.activeLayer()
+    valid = True
+    if layer is None or layer.type() == QgsMapLayer.PluginLayer:
+      valid = False
+    elif layer.type() == QgsMapLayer.RasterLayer:
+      if layer.providerType() != "gdal" or layer.bandCount() != 1:
+        valid = False
+
+    if not valid:
+      QMessageBox.information(None, "Qgis2threejs", "Select a DEM/Vector layer.")
+      return
+
+    # select camera mode
+    perspective = QMessageBox.question(None, "Select Camera", "Use perspective camera?\n[Yes] -> Perspective camera\n[No] -> Orthographic camera", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes) == QMessageBox.Yes
+
+    # create a plugin layer
+    self.lastLayerIndex += 1
+    serverName = "Qgis2threejsLayer{0}_{1}".format(os.getpid(), self.lastLayerIndex)
+    layer = Qgis2threejsLayer(self, serverName, perspective)
+    QgsProject.instance().addMapLayer(layer)
+
+    self.layers[layer.id()] = layer   # TODO: remove item from dict when the layer is removed from registry
+
   def setting(self):
-    from settingsdialog import SettingsDialog
+    from .settingsdialog import SettingsDialog
     dialog = SettingsDialog(self.iface.mainWindow())
     dialog.show()
     if dialog.exec_():
-      from pluginmanager import PluginManager
+      from .pluginmanager import PluginManager
       self.pluginManager = PluginManager()
 
   def loadExportSettings(self, filename):

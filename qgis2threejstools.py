@@ -19,33 +19,53 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import qDebug, QProcess, QSettings, QUrl, QByteArray, QBuffer, QIODevice, QFile, QDir, QFileInfo
-from PyQt4.QtGui import QMessageBox
-from qgis.core import NULL, QgsMapLayerRegistry, QgsMessageLog
+from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.core import NULL, QgsMessageLog, QgsProject
 import os
-import ConfigParser
+import configparser
 import re
 import shutil
 import webbrowser
 
-from settings import debug_mode
+from .settings import debug_mode
+
+def getLayersInProject():
+  layers = []
+  for tLayer in QgsProject.instance().layerTreeRoot().findLayers():
+    layers.append(tLayer.layer())
+  return layers
+
+  #TODO: QgsProject.instance().layerTreeRoot() is a QgsLayerTree object?
+  return QgsProject.instance().layerTreeRoot().layerOrder()
+
+
+def getLayersByLayerIds(layerIds):
+  layers = []
+  for id in layerIds:
+    layer = QgsProject.instance().mapLayer(id)
+    if layer:
+      layers.append(layer)
+  return layers
 
 
 def pyobj2js(obj, escape=False, quoteHex=True):
   if isinstance(obj, dict):
-    items = [u"{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.iteritems()]
+    items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
     return "{" + ",".join(items) + "}"
   elif isinstance(obj, list):
-    items = [unicode(pyobj2js(v, escape, quoteHex)) for v in obj]
+    items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
     return "[" + ",".join(items) + "]"
   elif isinstance(obj, bool):
     return "true" if obj else "false"
-  elif isinstance(obj, (str, unicode)):
+  elif isinstance(obj, str):
     if escape:
       return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
     if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
       return obj
     return '"' + obj + '"'
+  elif isinstance(obj, bytes):
+    return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
   elif isinstance(obj, (int, float)):
     return obj
   elif obj == NULL:   # qgis.core.NULL
@@ -54,7 +74,7 @@ def pyobj2js(obj, escape=False, quoteHex=True):
 
 
 def logMessage(message):
-  QgsMessageLog.logMessage(unicode(message), "Qgis2threejs")
+  QgsMessageLog.logMessage(str(message), "Qgis2threejs")
 
 
 def shortTextFromSelectedLayerIds(layerIds):
@@ -65,11 +85,11 @@ def shortTextFromSelectedLayerIds(layerIds):
   if count == 0:
     return "0 layer"
 
-  layer = QgsMapLayerRegistry.instance().mapLayer(layerIds[0])
+  layer = QgsProject.instance().mapLayer(layerIds[0])
   if layer is None:
     return "Layer not found"
 
-  text = u'"{0}"'.format(layer.name())
+  text = '"{0}"'.format(layer.name())
   if count > 1:
     text += " and {0} layer".format(count - 1)
   if count > 2:
@@ -80,7 +100,7 @@ def shortTextFromSelectedLayerIds(layerIds):
 def openHTMLFile(htmlfilename):
   url = QUrl.fromLocalFile(htmlfilename).toString()
   settings = QSettings()
-  browserPath = settings.value("/Qgis2threejs/browser", "", type=unicode)
+  browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
   if browserPath == "":
     # open default web browser
     webbrowser.open(url, new=2)    # new=2: new tab if possible
@@ -96,7 +116,7 @@ def base64image(image):
   buffer = QBuffer(ba)
   buffer.open(QIODevice.WriteOnly)
   image.save(buffer, "PNG")
-  return "data:image/png;base64," + ba.toBase64().data()
+  return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 def getTemplateConfig(template_path):
@@ -105,7 +125,7 @@ def getTemplateConfig(template_path):
 
   if not os.path.exists(meta_path):
     return {}
-  parser = ConfigParser.SafeConfigParser()
+  parser = configparser.SafeConfigParser()
   with open(meta_path, "r") as f:
     parser.readfp(f)
   config = {"path": abspath}

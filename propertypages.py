@@ -22,21 +22,22 @@
 import os
 import re
 
-from PyQt4.QtCore import Qt, SIGNAL, QDir, QSettings, QPoint
-from PyQt4.QtGui import QCheckBox, QColor, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
-from qgis.core import QGis, QgsMapLayer
+from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
+from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from qgis.PyQt.QtGui import QColor
+from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 
-from ui.worldproperties import Ui_WorldPropertiesWidget
-from ui.controlsproperties import Ui_ControlsPropertiesWidget
-from ui.demproperties import Ui_DEMPropertiesWidget
-from ui.vectorproperties import Ui_VectorPropertiesWidget
+from .ui.worldproperties import Ui_WorldPropertiesWidget
+from .ui.controlsproperties import Ui_ControlsPropertiesWidget
+from .ui.demproperties import Ui_DEMPropertiesWidget
+from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
-from qgis2threejscore import calculateDEMSize, createQuadTree
-from qgis2threejstools import logMessage
-from rotatedrect import RotatedRect
-from settings import def_vals
-from stylewidget import StyleWidget
-import qgis2threejstools as tools
+from .qgis2threejscore import calculateDEMSize, createQuadTree
+from .qgis2threejstools import getLayersInProject, logMessage
+from .rotatedrect import RotatedRect
+from .settings import def_vals
+from .stylewidget import StyleWidget
+from . import qgis2threejstools as tools
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -131,7 +132,7 @@ class PropertyPage(QWidget):
       elif isinstance(w, StyleWidget):
         v = w.values()
       else:
-        logMessage("[propertypages.py] Not recognized widget type: " + unicode(type(w)))
+        logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
       p[w.objectName()] = v
     return p
@@ -169,11 +170,9 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
-    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
-
     canvas = self.dialog.iface.mapCanvas()
     extent = canvas.extent()
-    outsize = canvas.mapSettings().outputSize() if apiChanged23 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize()
 
     self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
     self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(outsize.width(), outsize.height()))
@@ -192,7 +191,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
               "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
+    mapSettings = canvas.mapSettings()
     proj = mapSettings.destinationCrs().toProj4()
     m = re.search("\+proj=(\w+)", proj)
     proj_supported = bool(m and m.group(1) in projs)
@@ -238,7 +237,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
     if properties:
       self.setProperties(properties)
     else:
-      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=unicode)
+      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
       index = comboBox.findText(controls)
       if index != -1:
         comboBox.setCurrentIndex(index)
@@ -347,7 +346,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     if isPrimary:
       # enable map tool to select focus area
-      self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
+      #self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)    #TODO: new style
       self.dialog.startPointSelection()
     else:
       self.checkBox_Sides.setChecked(False)   # no sides with additional dem
@@ -366,17 +365,17 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     comboPolygon = self.comboBox_ClipLayer
     comboPolygon.clear()
 
-    for layer in self.dialog.iface.legendInterface().layers():
+    for layer in getLayersInProject():
       if layer.type() == QgsMapLayer.RasterLayer:
         if layer.providerType() == "gdal" and layer.bandCount() == 1:
           comboDEM.addItem(layer.name(), layer.id())
       elif layer.type() == QgsMapLayer.VectorLayer:
-        if layer.geometryType() == QGis.Polygon:
+        if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
           comboPolygon.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
     canvas = self.dialog.iface.mapCanvas()
-    outsize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
     for i in [4, 2, 1]:
@@ -419,11 +418,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def selectLayerClicked(self):
-    if QGis.QGIS_VERSION_INT < 20400:
-      QMessageBox.warning(self, "Qgis2threejs", "Sorry, newer QGIS version (>= 2.4) is required.")
-      return
-
-    from layerselectdialog import LayerSelectDialog
+    from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
     dialog.setMapSettings(self.dialog.iface.mapCanvas().mapSettings())
@@ -442,7 +437,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if directory == "":
       directory = QDir.homePath()
     filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
-    filename = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
+    filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
     if filename:
       self.lineEdit_ImageFile.setText(filename)
 
@@ -471,13 +466,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def hide(self):
     PropertyPage.hide(self)
     if self.isPrimary:
-      self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)
+      #self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)   #TODO: new style
       self.dialog.endPointSelection()
 
   def updateDEMSize(self, v=None):
     # calculate DEM size and grid spacing
     canvas = self.dialog.iface.mapCanvas()
-    canvasSize = canvas.mapSettings().outputSize() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
+    canvasSize = canvas.mapSettings().outputSize()
     resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
     demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
@@ -510,10 +505,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.dialog.clearRubberBands()
       return
 
-    apiChanged23 = QGis.QGIS_VERSION_INT >= 20300
     canvas = self.dialog.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if apiChanged23 else canvas.mapRenderer()
-
+    mapSettings = canvas.mapSettings()
     baseExtent = RotatedRect.fromMapSettings(mapSettings)
     p = {"lineEdit_centerX": self.lineEdit_centerX.text(),
          "lineEdit_centerY": self.lineEdit_centerY.text(),
@@ -666,20 +659,20 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up height widget and label height widget
     self.heightWidget.setup(options={"layer": layer})
-    if layer.geometryType() != QGis.Line:
+    if layer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
       self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
     else:
       self.labelHeightWidget.hide()
 
     # point layer has no geometry clip option
-    self.checkBox_Clip.setVisible(layer.geometryType() != QGis.Point)
+    self.checkBox_Clip.setVisible(layer.geometryType() != QgsWkbTypes.PointGeometry)
 
     # set up style widgets for selected object type
     self.setupStyleWidgets()
 
     # set up label combo box
-    hasPoint = (layer.geometryType() in (QGis.Point, QGis.Polygon))
+    hasPoint = (layer.geometryType() in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
     self.setLayoutVisible(self.formLayout_Label, hasPoint)
     self.comboBox_Label.clear()
     if hasPoint:
@@ -715,7 +708,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
-    if (geom_type == QGis.Line and type_index == 4) or (geom_type == QGis.Polygon and type_index == 1):    # Profile or Overlay
+    if (geom_type == QgsWkbTypes.LineGeometry and type_index == 4) or (geom_type == QgsWkbTypes.PolygonGeometry and type_index == 1):    # Profile or Overlay
       if self.heightWidget.func.isCurrentItemRelativeHeight():
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)

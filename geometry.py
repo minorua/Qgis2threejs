@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
-from qgis2threejstools import logMessage
+from .qgis2threejstools import logMessage
 
 try:
   from osgeo import ogr
@@ -46,11 +46,11 @@ def pointToQgsPoint(point):
 
 
 def lineToQgsPolyline(line):
-  return map(pointToQgsPoint, line)
+  return [pointToQgsPoint(pt) for pt in line]
 
 
 def polygonToQgsPolygon(polygon):
-  return map(lineToQgsPolyline, polygon)
+  return [lineToQgsPolyline(line) for line in polygon]
 
 
 class PointGeometry:
@@ -59,12 +59,12 @@ class PointGeometry:
     self.pts = []
 
   def asList(self):
-    return map(lambda pt: [pt.x, pt.y, pt.z], self.pts)
+    return [[pt.x, pt.y, pt.z] for pt in self.pts]
 
   def toQgsGeometry(self):
     count = len(self.pts)
     if count > 1:
-      pts = map(pointToQgsPoint, self.pts)
+      pts = [pointToQgsPoint(pt) for pt in self.pts]
       return QgsGeometry.fromMultiPoint(pts)
 
     if count == 1:
@@ -108,15 +108,15 @@ class LineGeometry:
     self.lines = []
 
   def asList(self):
-    return [map(lambda pt: [pt.x, pt.y, pt.z], line) for line in self.lines]
+    return [[[pt.x, pt.y, pt.z] for pt in line] for line in self.lines]
 
   def asList2(self):
-    return [map(lambda pt: [pt.x, pt.y], line) for line in self.lines]
+    return [[[pt.x, pt.y] for pt in line] for line in self.lines]
 
   def toQgsGeometry(self):
     count = len(self.lines)
     if count > 1:
-      lines = map(lineToQgsPolyline, self.lines)
+      lines = [lineToQgsPolyline(line) for line in self.lines]
       return QgsGeometry.fromMultiPolyline(lines)
 
     if count == 1:
@@ -185,14 +185,14 @@ class PolygonGeometry:
     p = []
     for boundaries in self.polygons:
       # outer boundary
-      pts = map(lambda pt: [pt.x, pt.y, pt.z], boundaries[0])
+      pts = [[pt.x, pt.y, pt.z] for pt in boundaries[0]]
       if not GeometryUtils.isClockwise(boundaries[0]):
         pts.reverse()   # to clockwise
       b = [pts]
 
       # inner boundaries
       for boundary in boundaries[1:]:
-        pts = map(lambda pt: [pt.x, pt.y, pt.z], boundary)
+        pts = [[pt.x, pt.y, pt.z] for pt in boundary]
         if GeometryUtils.isClockwise(boundary):
           pts.reverse()   # to counter-clockwise
         b.append(pts)
@@ -202,7 +202,7 @@ class PolygonGeometry:
   def toQgsGeometry(self):
     count = len(self.polygons)
     if count > 1:
-      polys = map(polygonToQgsPolygon, self.polygons)
+      polys = [polygonToQgsPolygon(poly) for poly in self.polygons]
       return QgsGeometry.fromMultiPolygon(polys)
 
     if count == 1:

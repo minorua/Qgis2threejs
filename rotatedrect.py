@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 import math
-from qgis.core import QGis, QgsPoint, QgsRectangle, QgsGeometry
+from qgis.core import QgsPoint, QgsRectangle, QgsGeometry
 
 
 class RotatedRect:
@@ -136,8 +136,8 @@ class RotatedRect:
 
   @classmethod
   def fromMapSettings(cls, mapSettings):
-    extent = mapSettings.visibleExtent() if QGis.QGIS_VERSION_INT >= 20300 else mapSettings.extent()
-    rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    extent = mapSettings.visibleExtent()
+    rotation = mapSettings.rotation()
     if rotation == 0:
       return cls(extent.center(), extent.width(), extent.height())
 
@@ -147,11 +147,8 @@ class RotatedRect:
 
   def toMapSettings(self, mapSettings=None):
     if mapSettings is None:
-      if QGis.QGIS_VERSION_INT >= 20300:
-        from qgis.core import QgsMapSettings
-        mapSettings = QgsMapSettings()
-      else:
-        return None
+      from qgis.core import QgsMapSettings
+      mapSettings = QgsMapSettings()
     mapSettings.setExtent(self._unrotated_rect)
     mapSettings.setRotation(self._rotation)
     return mapSettings
@@ -229,7 +226,7 @@ class RotatedRect:
            QgsPoint(rect.xMinimum(), rect.yMinimum())]
 
     if self._rotation:
-      return map(lambda pt: self.rotatePoint(pt, self._rotation, self._center), pts)
+      return [self.rotatePoint(pt, self._rotation, self._center) for pt in pts]
 
     return pts
 
@@ -238,4 +235,4 @@ class RotatedRect:
 
     # print coordinates of vertices
     pts = self.verticies()
-    return "RotatedRect:" + ",".join(map(lambda (x, y): "P{0}({1})".format(x, y.toString()), enumerate(pts)))
+    return "RotatedRect:" + ",".join(["P{0}({1})".format(x_y[0], x_y[1].toString()) for x_y in enumerate(pts)])

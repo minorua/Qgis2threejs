@@ -36,7 +36,7 @@ class Raster:
       self.open(filename)
 
   def open(self, filename):
-    filename_utf8 = filename.encode("UTF-8") if isinstance(filename, unicode) else filename
+    filename_utf8 = filename.encode("UTF-8") if isinstance(filename, str) else filename
     self.ds = ds = gdal.Open(filename_utf8, gdal.GA_ReadOnly)
     if ds is None:
       return "Cannot open dem file: " + filename
@@ -60,7 +60,7 @@ class Raster:
       if multiplier == 1:
         values += line
       else:
-        values += map(lambda x: x * multiplier, line)
+        values += [x * multiplier for x in line]
     return values
 
 

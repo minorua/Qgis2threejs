@@ -25,15 +25,15 @@ import math
 import numpy
 import struct
 
-from PyQt4.QtCore import QSettings
-from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle
+from qgis.PyQt.QtCore import QSettings
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle
 
 try:
   from osgeo import gdal
 except ImportError:
   import gdal
 
-from downloader import Downloader
+from .downloader import Downloader
 from Qgis2threejs.qgis2threejstools import logMessage
 
 TILE_SIZE = 256
@@ -58,7 +58,7 @@ class GSIElevTileProvider:
     self.boundingbox = QgsRectangle(13667807, 2320477, 17230031, 5713298)
 
     self.downloader = Downloader()
-    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIElevTileProvider".format(QGis.QGIS_VERSION)  # not written since QGIS 2.2
+    self.downloader.userAgent = "QGIS/{0} Qgis2threejs GSIElevTileProvider".format(Qgis.QGIS_VERSION)  # not written since QGIS 2.2
     self.downloader.DEFAULT_CACHE_EXPIRATION = QSettings().value("/qgis/defaultTileExpiry", 24, type=int)
 
     self.driver = gdal.GetDriverByName("MEM")

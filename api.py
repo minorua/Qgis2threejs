@@ -23,10 +23,10 @@ import os
 try:
   from qgis.core import QgsMapSettings, QgsRectangle
 
-  from export import exportToThreeJS
-  from exportsettings import ExportSettings
-  from rotatedrect import RotatedRect
-  import qgis2threejstools
+  from .export import exportToThreeJS
+  from .exportsettings import ExportSettings
+  from .rotatedrect import RotatedRect
+  from . import qgis2threejstools
 
 except ImportError:
   if os.environ.get('READTHEDOCS', None) is None:  # and os.environ.get('SPHINXBUILD', None) is None:
@@ -43,7 +43,6 @@ class Exporter:
     """ Constructor.
 
       :param iface: If specified, mapSettings attribute is initialized with the map settings of the map canvas.
-                    The iface.legendInterface() is used to export vector layers in the same order as the legend.
       :type iface: QgisInterface
       :param settingsPath: Path to an existing settings file (.qto3settings).
       :type settingsPath: unicode
@@ -116,7 +115,7 @@ class Exporter:
     if err_msg:
       return err_msg
 
-    ret = exportToThreeJS(self.settings, self.iface.legendInterface() if self.iface else None)
+    ret = exportToThreeJS(self.settings)
     if not ret:
       return "Failed to export (Unknown error)"
 

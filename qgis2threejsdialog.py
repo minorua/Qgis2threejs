@@ -24,21 +24,22 @@
 """
 import os
 
-from PyQt4.QtCore import Qt, QDir, QSettings, qDebug, QEventLoop, SIGNAL
-from PyQt4.QtGui import QAction, QColor, QDialog, QFileDialog, QIcon, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
-from qgis.core import QGis, QgsApplication, QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsPoint, QgsRectangle, QgsProject
+from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
+from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
+from qgis.PyQt.QtGui import QColor, QIcon
+from qgis.core import QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
-from ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
+from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 
-from export import exportToThreeJS
-from exportsettings import ExportSettings
-from qgis2threejscore import ObjectTreeItem, MapTo3D
-from qgis2threejstools import logMessage
-from rotatedrect import RotatedRect
-from settings import debug_mode, def_vals, plugin_version
-import propertypages as ppages
-import qgis2threejstools as tools
+from .export import exportToThreeJS
+from .exportsettings import ExportSettings
+from .qgis2threejscore import ObjectTreeItem, MapTo3D
+from .qgis2threejstools import getLayersInProject, logMessage
+from .rotatedrect import RotatedRect
+from .settings import debug_mode, def_vals, plugin_version
+from . import propertypages as ppages
+from . import qgis2threejstools as tools
 
 
 class Qgis2threejsDialog(QDialog):
@@ -119,7 +120,7 @@ class Qgis2threejsDialog(QDialog):
     self.pages[ppages.PAGE_DEM] = ppages.DEMPropertyPage(self)
     self.pages[ppages.PAGE_VECTOR] = ppages.VectorPropertyPage(self)
     container = ui.propertyPagesContainer
-    for page in self.pages.itervalues():
+    for page in self.pages.values():
       page.hide()
       container.addWidget(page)
 
@@ -151,10 +152,10 @@ class Qgis2threejsDialog(QDialog):
       return self._settings
 
     # clean up settings - remove layers that don't exist in the layer registry
-    registry = QgsMapLayerRegistry.instance()
+    registry = QgsProject.instance()
     for itemId in [ObjectTreeItem.ITEM_OPTDEM, ObjectTreeItem.ITEM_POINT, ObjectTreeItem.ITEM_LINE, ObjectTreeItem.ITEM_POLYGON]:
       parent = self._settings.get(itemId, {})
-      for layerId in parent.keys():
+      for layerId in list(parent.keys()):
         if registry.mapLayer(layerId) is None:
           del parent[layerId]
 
@@ -192,7 +193,7 @@ class Qgis2threejsDialog(QDialog):
     if not directory:
       directory = QDir.homePath()
     filterString = "Settings files (*.qto3settings);;All files (*.*)"
-    filename = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+    filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
     if not filename:
       return
 
@@ -211,7 +212,7 @@ class Qgis2threejsDialog(QDialog):
         directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
       if not directory:
         directory = QDir.homePath()
-      filename = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
+      filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
       if not filename:
         return
 
@@ -225,14 +226,14 @@ class Qgis2threejsDialog(QDialog):
     with codecs.open(filename, "w", "UTF-8") as f:
       json.dump(self.settings(True), f, ensure_ascii=False, indent=2, sort_keys=True)
 
-    logMessage(u"Settings saved: {0}".format(filename))
+    logMessage("Settings saved: {0}".format(filename))
 
   def clearSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure to clear all export settings?", QMessageBox.Ok | QMessageBox.Cancel) == QMessageBox.Ok:
       self.setSettings({})
 
   def pluginSettings(self):
-    from settingsdialog import SettingsDialog
+    from .settingsdialog import SettingsDialog
     dialog = SettingsDialog(self)
     if dialog.exec_():
       self.pluginManager.reloadPlugins()
@@ -287,7 +288,7 @@ class Qgis2threejsDialog(QDialog):
 
     # if no template setting, select the last used template
     if not templatePath:
-      templatePath = QSettings().value("/Qgis2threejs/lastTemplate", def_vals.template, type=unicode)
+      templatePath = QSettings().value("/Qgis2threejs/lastTemplate", def_vals.template, type=str)
 
     if templatePath:
       index = cbox.findText(templatePath)
@@ -308,20 +309,20 @@ class Qgis2threejsDialog(QDialog):
       topItems[id] = item
 
     optDEMChecked = False
-    for layer in self.iface.legendInterface().layers():
+    for layer in getLayersInProject():
       parentId = ObjectTreeItem.parentIdByLayer(layer)
       if parentId is None:
         continue
 
       item = QTreeWidgetItem(topItems[parentId], [layer.name()])
-      isVisible = self._settings.get(parentId, {}).get(layer.id(), {}).get("visible", False)   #self.iface.legendInterface().isLayerVisible(layer)
+      isVisible = self._settings.get(parentId, {}).get(layer.id(), {}).get("visible", False)
       check_state = Qt.Checked if isVisible else Qt.Unchecked
       item.setData(0, Qt.CheckStateRole, check_state)
       item.setData(0, Qt.UserRole, layer.id())
       if parentId == ObjectTreeItem.ITEM_OPTDEM and isVisible:
         optDEMChecked = True
 
-    for id, item in topItems.iteritems():
+    for id, item in topItems.items():
       if id != ObjectTreeItem.ITEM_OPTDEM or optDEMChecked:
         tree.expandItem(item)
 
@@ -374,8 +375,8 @@ class Qgis2threejsDialog(QDialog):
     self.clearMessageBar()
     if templateType != "sphere":
       # show message if crs unit is degrees
-      mapSettings = self.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.iface.mapCanvas().mapRenderer()
-      if mapSettings.destinationCrs().mapUnits() in [QGis.Degrees]:
+      mapSettings = self.iface.mapCanvas().mapSettings()
+      if mapSettings.destinationCrs().mapUnits() in [QgsUnitTypes.DistanceDegrees]:
         self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
 
     self.templateType = templateType
@@ -390,7 +391,7 @@ class Qgis2threejsDialog(QDialog):
 
     # hide text browser and all pages
     self.ui.textBrowser.hide()
-    for page in self.pages.itervalues():
+    for page in self.pages.values():
       page.hide()
 
     parent = currentItem.parent()
@@ -408,7 +409,7 @@ class Qgis2threejsDialog(QDialog):
     else:
       parentId = parent.data(0, Qt.UserRole)
       layerId = currentItem.data(0, Qt.UserRole)
-      layer = QgsMapLayerRegistry.instance().mapLayer(unicode(layerId))
+      layer = QgsProject.instance().mapLayer(str(layerId))
       if layer is None:
         return
 
@@ -487,15 +488,12 @@ class Qgis2threejsDialog(QDialog):
     return numeric_fields
 
   def mapTo3d(self):
-    canvas = self.iface.mapCanvas()
-    mapSettings = canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else canvas.mapRenderer()
-
     world = self._settings.get(ObjectTreeItem.ITEM_WORLD, {})
     bs = float(world.get("lineEdit_BaseSize", def_vals.baseSize))
     ve = float(world.get("lineEdit_zFactor", def_vals.zExaggeration))
     vs = float(world.get("lineEdit_zShift", def_vals.zShift))
 
-    return MapTo3D(mapSettings, bs, ve, vs)
+    return MapTo3D(self.iface.mapCanvas().mapSettings(), bs, ve, vs)
 
   def progress(self, percentage=None, statusMsg=None):
     ui = self.ui
@@ -541,7 +539,7 @@ class Qgis2threejsDialog(QDialog):
       self.createRubberBands(export_settings.baseExtent, export_settings.quadtree())
 
     # export
-    ret = exportToThreeJS(export_settings, self.iface.legendInterface(), self.objectTypeManager, self.progress)
+    ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)
@@ -603,7 +601,7 @@ class Qgis2threejsDialog(QDialog):
   def createRubberBands(self, baseExtent, quadtree):
     self.clearRubberBands()
     # create quads with rubber band
-    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QGis.Line)
+    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
     self.rb_quads.setColor(Qt.blue)
     self.rb_quads.setWidth(1)
 
@@ -619,7 +617,7 @@ class Qgis2threejsDialog(QDialog):
     # create a point with rubber band
     if quadtree.focusRect.width() == 0 or quadtree.focusRect.height() == 0:
       npt = quadtree.focusRect.center()
-      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QGis.Point)
+      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.PointGeometry)
       self.rb_point.setColor(Qt.red)
       self.rb_point.addPoint(baseExtent.point(npt))
 
@@ -636,7 +634,7 @@ class Qgis2threejsDialog(QDialog):
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
       directory = QDir.homePath()
-    filename = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Output filename"), directory, "HTML file (*.html *.htm)", options=QFileDialog.DontConfirmOverwrite)
     if not filename:
       return
 
@@ -670,7 +668,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     QgsMapToolEmitPoint.__init__(self, canvas)
 
     self.canvas = canvas
-    self.rubberBand = QgsRubberBand(canvas, QGis.Polygon)
+    self.rubberBand = QgsRubberBand(canvas, QgsWkbTypes.PolygonGeometry)
     self.rubberBand.setColor(QColor(255, 0, 0, 180))
     self.rubberBand.setWidth(1)
     self.reset()
@@ -678,15 +676,15 @@ class RectangleMapTool(QgsMapToolEmitPoint):
   def reset(self):
     self.startPoint = self.endPoint = None
     self.isDrawing = False
-    self.rubberBand.reset(QGis.Polygon)
+    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
 
   def canvasPressEvent(self, e):
     self.startPoint = self.toMapCoordinates(e.pos())
     self.endPoint = self.startPoint
 
-    mapSettings = self.canvas.mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else self.canvas.mapRenderer()
+    mapSettings = self.canvas.mapSettings()
     self.mupp = mapSettings.mapUnitsPerPixel()
-    self.rotation = mapSettings.rotation() if QGis.QGIS_VERSION_INT >= 20700 else 0
+    self.rotation = mapSettings.rotation()
 
     self.isDrawing = True
     self.showRect(self.startPoint, self.endPoint)
@@ -702,7 +700,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
     self.showRect(self.startPoint, self.endPoint)
 
   def showRect(self, startPoint, endPoint):
-    self.rubberBand.reset(QGis.Polygon)
+    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
     if startPoint.x() == endPoint.x() and startPoint.y() == endPoint.y():
       return
 

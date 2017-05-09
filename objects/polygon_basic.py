@@ -19,13 +19,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QGis
+from qgis.core import QgsWkbTypes
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from Qgis2threejs.geometry import Triangles
 
 
 def geometryType():
-  return QGis.Polygon
+  return QgsWkbTypes.PolygonGeometry
 
 
 def objectTypeNames():
@@ -42,7 +42,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   else:   # Overlay
     ppage.initStyleWidgets(color=False, transparency=False)
 
-    mapSettings = ppage.dialog.iface.mapCanvas().mapSettings() if QGis.QGIS_VERSION_INT >= 20300 else None
+    mapSettings = ppage.dialog.iface.mapCanvas().mapSettings()
     ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE, {"mapSettings": mapSettings})
     ppage.addStyleWidget(StyleWidget.TRANSPARENCY)
 
@@ -101,8 +101,8 @@ def write(writer, layer, feat):
     bnds = []
     zsum = zcount = 0
     for boundary in polygon:
-      bnds.append(map(lambda pt: [pt.x, pt.y], boundary))
-      zsum += sum(map(lambda pt: pt.z, boundary), -boundary[0].z)
+      bnds.append([[pt.x, pt.y] for pt in boundary])
+      zsum += sum([pt.z for pt in boundary], -boundary[0].z)
       zcount += len(boundary) - 1
     polygons.append(bnds)
     zs.append(zsum / zcount)
@@ -146,16 +146,16 @@ def write(writer, layer, feat):
       if len(polygon) == 1 and len(boundary) == 4:
         triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
       else:
-        bnds = [map(lambda pt: [pt.x, pt.y], bnd) for bnd in polygon]
+        bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
         polygons.append(bnds)
 
     if triangles.vertices:
-      d["triangles"] = {"v": map(lambda pt: [pt.x, pt.y], triangles.vertices), "f": triangles.faces}
+      d["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
 
     if polygons:
       d["split_polygons"] = polygons
 
   if feat.geom.centroids:
-    d["centroids"] = map(lambda pt: [pt.x, pt.y, pt.z], feat.geom.centroids)
+    d["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
 
   writer.writeFeature(d)

@@ -19,12 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QGis
+from qgis.core import QgsWkbTypes
 from Qgis2threejs.stylewidget import StyleWidget
 
 
 def geometryType():
-  return QGis.Point
+  return QgsWkbTypes.PointGeometry
 
 
 def objectTypeNames():
