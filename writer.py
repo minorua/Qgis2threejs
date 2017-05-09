@@ -664,9 +664,9 @@ class VectorLayer(Layer):
           if geom is None:
             continue
 
-        # check if geometry is empty
-        if geom.isGeosEmpty():
-          logMessage("empty geometry skipped")
+        # skip if geometry is empty or null
+        if geom.isEmpty() or geom.isNull():
+          logMessage("empty/null geometry skipped")
           continue
 
         if self.geomType == QgsWkbTypes.PolygonGeometry:
