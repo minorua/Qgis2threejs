@@ -45,3 +45,4 @@ def write(writer, layer, feat):
   scale = float(vals[2])
   mat = layer.materialManager.getSpriteIndex(image_path, vals[0])
   writer.writeFeature({"m": mat, "pts": feat.geom.asList(), "scale": scale})
+  return True

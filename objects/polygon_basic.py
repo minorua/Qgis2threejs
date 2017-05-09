@@ -159,3 +159,4 @@ def write(writer, layer, feat):
     d["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
 
   writer.writeFeature(d)
+  return True

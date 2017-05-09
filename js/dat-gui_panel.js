@@ -91,8 +91,18 @@ Q3D.gui = {
     };
 
     // Min/Max value for the plane
-    var zMin = (project.layers[0].type == Q3D.LayerType.DEM) ? project.layers[0].stats.min - 500 : 0,
-        zMax = (project.layers[0].type == Q3D.LayerType.DEM) ? project.layers[0].stats.max + 1000 : 9000;
+    var layer = project.layers[0],
+        zMin = 0,
+        zMax = 9000;
+    if (layer.type == Q3D.LayerType.DEM) {
+      zMin = layer.stats.min;
+      zMax = layer.stats.max;
+
+      var buffer = (zMax - zMin) * 0.1;
+      if (buffer < 50) buffer = 50;
+      zMin -= buffer;
+      zMax += buffer;
+    }
     parameters.cp.d = zMin;
 
     // Create Custom Plane folder
