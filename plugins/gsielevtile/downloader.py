@@ -81,7 +81,7 @@ class Downloader(QObject):
       if reply.attribute(QNetworkRequest.SourceIsFromCacheAttribute):
         self._cacheHits += 1
 
-      elif not reply.hasRawHeader("Cache-Control"):
+      elif not reply.hasRawHeader(b"Cache-Control"):
         cache = QgsNetworkAccessManager.instance().cache()
         if cache:
           metadata = cache.metaData(reply.request().url())
@@ -149,7 +149,7 @@ class Downloader(QObject):
     # create request
     request = QNetworkRequest(QUrl(url))
     if self.userAgent:
-      request.setRawHeader("User-Agent", self.userAgent)    # will be overwritten in QgsNetworkAccessManager::createRequest() since 2.2
+      request.setRawHeader(b"User-Agent", self.userAgent.encode("ascii", "ignore"))    # will be overwritten in QgsNetworkAccessManager::createRequest() since 2.2
 
     # send request
     reply = QgsNetworkAccessManager.instance().get(request)

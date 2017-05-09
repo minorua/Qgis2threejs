@@ -39,6 +39,7 @@ from Qgis2threejs.qgis2threejstools import logMessage
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244
 NODATA_VALUE = 0
+NODATA_VALUE_BYTES = b"0"
 ZMAX = 14
 
 
@@ -183,7 +184,7 @@ class GSIElevTileProvider:
     for url in urls:
       data = files[url]
       if data:
-        yield numpy.fromstring(data.replace("e", str(NODATA_VALUE)).replace("\n", ","), dtype=numpy.float32, sep=",").tostring()   # to byte array
+        yield numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",").tostring()   # to byte array
       else:
         array = numpy.empty(TILE_SIZE * TILE_SIZE, dtype=numpy.float32)
         array.fill(NODATA_VALUE)
