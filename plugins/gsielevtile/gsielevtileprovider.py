@@ -164,7 +164,7 @@ class GSIElevTileProvider:
     for i, tile in enumerate(tiles):
       if tile:
         col = i % cols
-        row = i / cols
+        row = i // cols
         band.WriteRaster(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE, tile)
 
     ds.FlushCache()

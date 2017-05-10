@@ -222,7 +222,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   writer.writeLayer(layer)
 
   # material option
-  texture_scale = properties.get("comboBox_TextureSize", 100) / 100
+  texture_scale = properties.get("comboBox_TextureSize", 100) // 100
   transparency = properties.get("spinBox_demtransp", 0)
   transp_background = properties.get("checkBox_TransparentBackground", False)
 
@@ -304,7 +304,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
   # options
   size = properties["spinBox_Size"]
   roughening = properties["spinBox_Roughening"]
-  texture_scale = properties.get("comboBox_TextureSize", 100) / 100
+  texture_scale = properties.get("comboBox_TextureSize", 100) // 100
   transparency = properties.get("spinBox_demtransp", 0)
   transp_background = properties.get("checkBox_TransparentBackground", False)
 

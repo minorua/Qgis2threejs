@@ -313,7 +313,7 @@ class MaterialManager(DataManager):
 
       transparency = mat[2]
       if transparency > 0:
-        opacity = 1.0 - float(transparency) / 100
+        opacity = 1.0 - transparency / 100
         m["o"] = opacity
 
       # double sides

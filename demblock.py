@@ -144,7 +144,7 @@ class DEMBlocks:
     if count < 9:
       return
 
-    ci = (count - 1) / 2
+    ci = (count - 1) // 2
     size = int(count ** 0.5)
 
     center = self.blocks[0]

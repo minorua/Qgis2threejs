@@ -461,7 +461,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.updateDEMSize()
     # possible value is a power of 2
     self.spinBox_Roughening.setSingleStep(v)
-    self.spinBox_Roughening.setMinimum(max(v / 2, 1))
+    self.spinBox_Roughening.setMinimum(max(v // 2, 1))
 
   def hide(self):
     PropertyPage.hide(self)

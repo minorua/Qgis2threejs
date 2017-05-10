@@ -85,7 +85,7 @@ class MapTo3D:
     # 3d
     canvas_size = mapSettings.outputSize()
     self.planeWidth = planeWidth
-    self.planeHeight = planeWidth * canvas_size.height() / float(canvas_size.width())
+    self.planeHeight = planeWidth * canvas_size.height() / canvas_size.width()
 
     self.verticalExaggeration = verticalExaggeration
     self.verticalShift = verticalShift
@@ -155,16 +155,16 @@ class FlatDEMProvider:
 def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
   width, height = canvasSize.width(), canvasSize.height()
   size = 100 * sizeLevel
-  s = (size * size / float(width * height)) ** 0.5
+  s = (size * size / (width * height)) ** 0.5
   if s < 1:
     width = int(width * s)
     height = int(height * s)
 
   if roughening:
     if width % roughening != 0:
-      width = int(float(width) / roughening + 0.9) * roughening
+      width = int(width / roughening + 0.9) * roughening
     if height % roughening != 0:
-      height = int(float(height) / roughening + 0.9) * roughening
+      height = int(height / roughening + 0.9) * roughening
 
   return QSize(width + 1, height + 1)
 
