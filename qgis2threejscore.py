@@ -152,6 +152,7 @@ class FlatDEMProvider:
     return self.value
 
 
+#TODO; move to propertyreader.py
 def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
   width, height = canvasSize.width(), canvasSize.height()
   size = 100 * sizeLevel
@@ -169,6 +170,7 @@ def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
   return QSize(width + 1, height + 1)
 
 
+#TODO: move to quadtree.py
 def createQuadTree(extent, p):
   """
   args:

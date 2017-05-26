@@ -38,6 +38,7 @@ from .rotatedrect import RotatedRect
 from .settings import def_vals
 from .stylewidget import StyleWidget
 from . import qgis2threejstools as tools
+from .vectorobject import objectTypeManager
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -264,7 +265,7 @@ class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
-  def __init__(self, dialog, parent=None):
+  def __init__(self, dialog, parent=None):      #TODO: dialog -> canvas, dialog
     PropertyPage.__init__(self, PAGE_DEM, dialog, parent)
     Ui_DEMPropertiesWidget.setupUi(self, self)
 
@@ -311,7 +312,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
-    self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+    if self.dialog.currentItem:
+      self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+    else:
+      self.setEnabled(True)
 
     # select dem layer
     layerId = None
@@ -358,8 +362,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     comboDEM.addItem("Flat plane (no DEM used)", 0)
 
     # plugin dem providers
-    for plugin in self.dialog.pluginManager.demProviderPlugins():
-      comboDEM.addItem(plugin.providerName(), "plugin:" + plugin.providerId())
+    if self.dialog.pluginManager:
+      for plugin in self.dialog.pluginManager.demProviderPlugins():
+        comboDEM.addItem(plugin.providerName(), "plugin:" + plugin.providerId())
 
     # list of polygon layers
     comboPolygon = self.comboBox_ClipLayer
@@ -638,11 +643,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def setup(self, properties=None, layer=None):
     self.layer = layer
 
-    self.setEnabled(self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+    if self.dialog.currentItem:
+      self.setEnabled(self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
+    else:
+      self.setEnabled(True)
+
     for i in range(self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
 
-    obj_types = self.dialog.objectTypeManager.objectTypeNames(layer.geometryType())
+    obj_types = objectTypeManager().objectTypeNames(layer.geometryType())
 
     # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
@@ -695,7 +704,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     mapTo3d = self.dialog.mapTo3d()
 
     # setup widgets
-    self.dialog.objectTypeManager.setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
+    objectTypeManager().setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
 
     # update enabled property of feature group box
     self.altitudeModeChanged()

@@ -26,6 +26,15 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsWkbTypes
 
 
+_objectTypeManager = None
+
+def objectTypeManager():
+  global _objectTypeManager
+  if _objectTypeManager is None:
+    _objectTypeManager = ObjectTypeManager()
+  return _objectTypeManager
+
+
 def list_modules():
   from qgis.PyQt.QtCore import qDebug
   for nam, mod in sys.modules.items():

@@ -47,7 +47,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.HEIGHT, opt)
 
 
-def layerProperties(writer, layer):
+def layerProperties(settings, layer):
   p = {}
   prop = layer.prop
   if prop.type_index == 4:      # Profile
@@ -61,30 +61,30 @@ def layerProperties(writer, layer):
   return p
 
 
-def write(writer, layer, feat):
-  mapTo3d = writer.settings.mapTo3d()
+def write(settings, layer, feat):
+  mapTo3d = settings.mapTo3d()
   type_index = feat.prop.type_index
   vals = feat.propValues()
 
   if type_index == 0:   # Line
     mat = layer.materialManager.getLineBasicIndex(vals[0], vals[1])
-    writer.writeFeature({"m": mat, "lines": feat.geom.asList()})
+    return {"lines": feat.geom.asList()}, mat
 
   elif type_index in [1, 2]:    # Pipe, Cone
     rb = float(vals[2]) * mapTo3d.multiplier
     if rb != 0:
       mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
       rt = 0 if type_index == 2 else rb
-      writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "rt": rt, "rb": rb})
+      return {"lines": feat.geom.asList(), "rt": rt, "rb": rb}, mat
 
   elif type_index == 3:   # Box
     mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
     w = float(vals[2]) * mapTo3d.multiplier
     h = float(vals[3]) * mapTo3d.multiplier
-    writer.writeFeature({"m": mat, "lines": feat.geom.asList(), "w": w, "h": h})
+    return {"lines": feat.geom.asList(), "w": w, "h": h}, mat
 
   elif type_index == 4:   # Profile
-    d = {"m": layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)}
+    d = {}
     if feat.prop.isHeightRelativeToDEM():
       d["h"] = feat.relativeHeight() * mapTo3d.multiplierZ
       d["lines"] = feat.geom.asList2()
@@ -92,5 +92,8 @@ def write(writer, layer, feat):
       d["lines"] = feat.geom.asList()
 
     d["bh"] = float(vals[2]) * mapTo3d.multiplierZ
-    writer.writeFeature(d)
-  return True
+
+    mat = layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)
+    return d, mat
+
+  return None, None

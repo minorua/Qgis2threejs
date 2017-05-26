@@ -65,7 +65,7 @@ class VectorPropertyReader:
       self.type_name = typeitem.name
       self.mod_index = typeitem.mod_index
       self.type_index = typeitem.type_index
-      self.visible = properties["visible"]
+      self.visible = properties.get("visible", True)
     else:
       self.visible = False
 

@@ -53,8 +53,8 @@ var container = document.getElementById("webgl");
 var app = Q3D.application;
 app.init(container);
 
-// load the project
-app.loadProject(project);
+// load the scene
+app.loadJSONFromURL("scene.json");      // TODO: data/<HTML file title>/scene.json
 
 app.addEventListeners();
 app.start();

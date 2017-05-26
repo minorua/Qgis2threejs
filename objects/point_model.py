@@ -48,8 +48,8 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 
-def write(writer, layer, feat):
-  mapTo3d = writer.settings.mapTo3d()
+def write(settings, layer, feat):
+  mapTo3d = settings.mapTo3d()
   vals = feat.propValues()
   model_path = vals[0]
 
@@ -58,6 +58,7 @@ def write(writer, layer, feat):
   else:
     model_type = "COLLADA"
 
+  #TODO: writer -> layer
   index = writer.modelManager.modelIndex(model_path, model_type)
   scale = float(vals[1]) * mapTo3d.multiplier
   rx = float(vals[2])
@@ -65,9 +66,9 @@ def write(writer, layer, feat):
   rz = float(vals[4])
 
   # take map rotation into account
-  rotation = writer.settings.baseExtent.rotation()
+  rotation = settings.baseExtent.rotation()
   if rotation:
     rz = (rz - rotation) % 360    # map rotation is clockwise
 
-  writer.writeFeature({"model_index": index, "pts": feat.geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale})
-  return True
+  #TODO: geom, model_index
+  return {"model_index": index, "pts": feat.geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale}, None

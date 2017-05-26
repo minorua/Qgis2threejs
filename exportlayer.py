@@ -4,9 +4,9 @@
  Qgis2threejs
                                  A QGIS plugin
  export terrain data, map canvas image and vector data to web browser
-                             -------------------
-        begin                : 2015-01-03
-        copyright            : (C) 2015 Minoru Akagi
+                              -------------------
+        begin                : 2014-01-16
+        copyright            : (C) 2014 Minoru Akagi
         email                : akaginch@gmail.com
  ***************************************************************************/
 
@@ -19,29 +19,27 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsWkbTypes
-from Qgis2threejs.stylewidget import StyleWidget
+from qgis.core import QgsProject, QgsRectangle
+
+from . import gdal2threejs
+from .datamanager import ImageManager, ModelManager, MaterialManager
+from .propertyreader import DEMPropertyReader
+from .qgis2threejscore import GDALDEMProvider
+from . import qgis2threejstools as tools
+from .qgis2threejstools import logMessage
 
 
-def geometryType():
-  return QgsWkbTypes.PointGeometry
+class LayerExporter:
+
+  def __init__(self, settings, imageManager, progress=None):
+    self.settings = settings
+    self.imageManager = imageManager
+    self.materialManager = MaterialManager()    #TODO: takes imageManager
+    self.progress = progress or dummyProgress
+
+  def export(self, layerId, properties, jsLayerId, visible=True):
+    pass
 
 
-def objectTypeNames():
-  return ["Icon"]
-
-
-def setupWidgets(ppage, mapTo3d, layer, type_index=0):
-  filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
-
-  ppage.initStyleWidgets(color=False)
-  ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString})
-  ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
-
-
-def write(settings, layer, feat):
-  vals = feat.propValues()
-  image_path = vals[1]
-  scale = float(vals[2])
-  mat = layer.materialManager.getSpriteIndex(image_path, vals[0])
-  return {"pts": feat.geom.asList(), "scale": scale}, mat
+def dummyProgress(progress=None, statusMsg=None):
+  pass

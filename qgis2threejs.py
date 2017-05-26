@@ -128,7 +128,7 @@ class Qgis2threejs:
         self.loadExportSettings(settingsFilePath)
         logMessage("Restored export settings of this project: {0}".format(os.path.basename(proj_path)))    #QgsProject.instance().title()
 
-    dialog = Qgis2threejsDialog(self.iface, self.objectTypeManager, self.pluginManager, self.exportSettings, self.lastTreeItemData)
+    dialog = Qgis2threejsDialog(self.iface, self.pluginManager, self.exportSettings, self.lastTreeItemData)
 
     # show dialog
     dialog.show()
@@ -146,38 +146,21 @@ class Qgis2threejs:
     self.settingsFilePath = settingsFilePath
 
   def launchViewer(self):
-    from .viewer.q3dlivecontroller import Q3DLiveController
+    from .viewer2.q3dviewercontroller import Q3DViewerController
+    from .viewer2.q3dwindow import Q3DWindow
 
     self.initManagers()
-    pid = str(os.getpid())
-    serverName = "Qgis2threejsLive" + pid
 
     if self.controller is None:
-      self.controller = Q3DLiveController(self.iface, self.objectTypeManager, self.pluginManager, serverName)
+      self.controller = Q3DViewerController(self.iface, self.pluginManager)
 
     logMessage("Launching Live Exporter...")
 
+    serverName = "null"
     parent = self.iface.mainWindow()
-    if live_in_another_process:
-      p = QProcess(parent)
-      if os.name == "nt":
-        os.system("start cmd.exe /c {0} -p {1}".format(os.path.join(self.plugin_dir, "viewer", "q3dapplication.bat"), pid))
-        return
-        cmd = r"C:\Python34\python.exe"
-      else:
-        cmd = "python3"
-
-      p.setWorkingDirectory(os.path.dirname(self.plugin_dir))
-      p.start(cmd, ["-m", "Qgis2threejs.viewer.q3dapplication", "--", "-p", pid])
-
-      if not p.waitForStarted():
-        logMessage("Cannot launch Live Exporter (code: {0}).".format(p.error()))
-
-    else:
-      from .viewer.q3dwindow import Q3DWindow
-      self.liveExporter = Q3DWindow(serverName, isViewer=True, parent=parent)
-      self.liveExporter.ui.webView.iface.connect(self.controller.iface)
-      self.liveExporter.show()
+    self.liveExporter = Q3DWindow(self.iface, isViewer=True, parent=parent, controller=self.controller)
+    self.controller.setViewerInterface(self.liveExporter.iface)   #TODO: check self.liveExporter.iface is set
+    self.liveExporter.show()
 
   def addPluginLayer(self):
     from .viewer.q3dlayer import Qgis2threejsLayer, Qgis2threejs25DLayerType

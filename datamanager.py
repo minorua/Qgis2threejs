@@ -77,11 +77,17 @@ class ImageManager(DataManager):
   def mapCanvasImage(self, transp_background=False):
     """ returns base64 encoded map canvas image """
     canvas = self.exportSettings.canvas
-    if canvas is None or transp_background or True:   #TODO: canvas.map() has been removed
-      size = self.exportSettings.mapSettings.outputSize()
+    size = self.exportSettings.mapSettings.outputSize()
+    if canvas is None or transp_background or True:   #
       return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
 
-    return tools.base64image(canvas.map().contentImage())
+    # bad - incompletely rendered image is given
+    image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
+    painter = QPainter()
+    painter.begin(image)
+    canvas.render(painter)
+    painter.end()
+    return tools.base64image(image)
 
   def saveMapCanvasImage(self):
     if self.exportSettings.canvas is None:
@@ -167,12 +173,38 @@ class ImageManager(DataManager):
     #  texSrc = os.path.split(texfilename)[1]
     #  tex["src"] = texSrc
 
+  def base64image(self, index):
+    image = self._list[index]
+    imageType = image[0]
+    if imageType == self.IMAGE_FILE:
+      image_path = image[1]
+      exists = os.path.exists(image_path)
+      if exists and os.path.isfile(image_path):
+        return gdal2threejs.base64image(image_path)
+      else:
+        logMessage("Image file not found: {0}".format(image_path))
+        return None
+
+    if imageType == self.MAP_IMAGE:
+      width, height, extent, transp_background = image[1]
+      return self.renderedImage(width, height, extent, transp_background)
+
+    if imageType == self.LAYER_IMAGE:
+      layerids, width, height, extent, transp_background = image[1]
+      return self.renderedImage(width, height, extent, transp_background, layerids)
+
+    #imageType == self.CANVAS_IMAGE:
+    transp_background = image[1]
+    return self.mapCanvasImage(transp_background)
+
   def write(self, f):   #TODO: separated image files (not in localBrowsingMode)
     if len(self._list) == 0:
       return
 
     f.write('\n// Base64 encoded images\n')
     for index, image in enumerate(self._list):
+      #TODO: image - list to class or something
+
       imageType = image[0]
       if imageType == self.IMAGE_FILE:
         image_path = image[1]
@@ -193,16 +225,16 @@ class ImageManager(DataManager):
 
       elif imageType == self.MAP_IMAGE:
         width, height, extent, transp_background = image[1]
-        args = (index, width, height, self.renderedImage(width, height, extent, transp_background))
+        args = (index, width, height, self.base64image(index))
 
       elif imageType == self.LAYER_IMAGE:
         layerids, width, height, extent, transp_background = image[1]
-        args = (index, width, height, self.renderedImage(width, height, extent, transp_background, layerids))
+        args = (index, width, height, self.base64image(index))
 
       else:   #imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
         size = self.exportSettings.mapSettings.outputSize()
-        args = (index, size.width(), size.height(), self.mapCanvasImage(transp_background))
+        args = (index, size.width(), size.height(), self.base64image(index))
 
       f.write('project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
@@ -270,6 +302,61 @@ class MaterialManager(DataManager):
     transp_background = True
     mat = (self.SPRITE, (path, transp_background), transparency, False)
     return self._index(mat)
+
+  def export(self, imageManager):
+
+    toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
+                      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
+                      self.CANVAS_IMAGE: self.MESH_PHONG,
+                      self.MAP_IMAGE: self.MESH_PHONG,
+                      self.LAYER_IMAGE: self.MESH_PHONG,
+                      self.IMAGE_FILE: self.MESH_PHONG}
+
+    mList = []
+
+    for mat in self._list:
+      transp_background = False
+
+      m = {"type": toMaterialType.get(mat[0], mat[0])}
+
+      if mat[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
+        if mat[0] == self.CANVAS_IMAGE:
+          transp_background = mat[1]
+          imgIndex = imageManager.canvasImageIndex(transp_background)
+        elif mat[0] == self.MAP_IMAGE:
+          width, height, extent, transp_background = mat[1]
+          imgIndex = imageManager.mapImageIndex(width, height, extent, transp_background)
+        elif mat[0] == self.LAYER_IMAGE:
+          layerids, width, height, extent, transp_background = mat[1]
+          imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
+        elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
+          filepath, transp_background = mat[1]
+          imgIndex = imageManager.imageIndex(filepath)
+        m["image"] = {"base64": imageManager.base64image(imgIndex)}
+      else:
+        m["c"] = int(mat[1], 16)    # color
+
+      if transp_background:
+        m["t"] = 1
+
+      if mat[0] == self.WIREFRAME:
+        m["w"] = 1
+
+      if mat[0] == self.MESH_LAMBERT_FLAT:
+        m["flat"] = 1
+
+      transparency = mat[2]
+      if transparency > 0:
+        opacity = 1.0 - transparency / 100
+        m["o"] = opacity
+
+      # double sides
+      if mat[3]:
+        m["ds"] = 1
+
+      mList.append(m)
+
+    return mList
 
   def write(self, f, imageManager):
     if len(self._list) <= self.writtenCount:

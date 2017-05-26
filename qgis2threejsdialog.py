@@ -44,10 +44,9 @@ from . import qgis2threejstools as tools
 
 class Qgis2threejsDialog(QDialog):
 
-  def __init__(self, iface, objectTypeManager, pluginManager, exportSettings=None, lastTreeItemData=None):
+  def __init__(self, iface, pluginManager, exportSettings=None, lastTreeItemData=None):
     QDialog.__init__(self, iface.mainWindow())
     self.iface = iface
-    self.objectTypeManager = objectTypeManager
     self.pluginManager = pluginManager
     self._settings = exportSettings or {}
     self.lastTreeItemData = lastTreeItemData
@@ -539,7 +538,7 @@ class Qgis2threejsDialog(QDialog):
       self.createRubberBands(export_settings.baseExtent, export_settings.quadtree())
 
     # export
-    ret = exportToThreeJS(export_settings, self.objectTypeManager, self.progress)
+    ret = exportToThreeJS(export_settings, self.progress)
 
     self.progress(100)
     ui.pushButton_Run.setEnabled(True)

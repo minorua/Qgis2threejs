@@ -80,7 +80,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.labelHeightWidget.addFieldNames(layer)
 
 
-def layerProperties(writer, layer):
+def layerProperties(settings, layer):
   p = {}
   prop = layer.prop
   if prop.type_index == 1:      # Overlay
@@ -93,7 +93,7 @@ def layerProperties(writer, layer):
   return p
 
 
-def write(writer, layer, feat):
+def write(settings, layer, feat):
   vals = feat.propValues()
   polygons = []
   zs = []
@@ -110,34 +110,35 @@ def write(writer, layer, feat):
   d = {"polygons": polygons}
 
   if feat.prop.type_index == 0:  # Extruded
-    d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
+    mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
     d["zs"] = zs
-    d["h"] = float(vals[2]) * writer.settings.mapTo3d().multiplierZ
+    d["h"] = float(vals[2]) * settings.mapTo3d().multiplierZ
 
   else:   # Overlay
     if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
-      d["m"] = layer.materialManager.getCanvasImageIndex(vals[1])
+      mat = layer.materialManager.getCanvasImageIndex(vals[1])
     elif isinstance(vals[0], list):   # LAYER
-      size = writer.settings.mapSettings.outputSize()
-      extent = writer.settings.baseExtent
-      d["m"] = layer.materialManager.getLayerImageIndex(vals[0], size.width(), size.height(), extent, vals[1])
+      size = settings.mapSettings.outputSize()
+      extent = settings.baseExtent
+      mat = layer.materialManager.getLayerImageIndex(vals[0], size.width(), size.height(), extent, vals[1])
     else:
-      d["m"] = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
+      mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
 
+    #TODO: mb and ms
     # border
-    if vals[2] is not None:
-      d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
+    #if vals[2] is not None:
+    #  d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
     # side
     if vals[3]:
-      d["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
+      #d["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
 
       # bottom height of side
-      d["sb"] = vals[5] * writer.settings.mapTo3d().multiplierZ
+      d["sb"] = vals[5] * settings.mapTo3d().multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
-    d["h"] = feat.relativeHeight() * writer.settings.mapTo3d().multiplierZ
+    d["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
 
     polygons = []
     triangles = Triangles()
@@ -158,5 +159,4 @@ def write(writer, layer, feat):
   if feat.geom.centroids:
     d["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
 
-  writer.writeFeature(d)
-  return True
+  return d, mat
