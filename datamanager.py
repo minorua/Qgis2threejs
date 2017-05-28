@@ -37,12 +37,15 @@ class DataManager:
   def __init__(self):
     self._list = []
 
-  def _index(self, image):
-    if image in self._list:
-      return self._list.index(image)
+  def count(self):
+    return len(self._list)
+
+  def _index(self, data):
+    if data in self._list:
+      return self._list.index(data)
 
     index = len(self._list)
-    self._list.append(image)
+    self._list.append(data)
     return index
 
 
@@ -201,7 +204,11 @@ class ImageManager(DataManager):
       return tools.base64image(image)
     return None
 
-  def write(self, f):   #TODO: separated image files (not in localBrowsingMode)
+  def write(self, pathRoot):
+    for i in range(self.count()):
+      self.image(i).save("{}_{}.png".format(pathRoot, i))
+
+  def _write(self, f):    #TODO: remove
     if len(self._list) == 0:
       return
 
@@ -307,7 +314,7 @@ class MaterialManager(DataManager):
     mat = (self.SPRITE, (path, transp_background), transparency, False)
     return self._index(mat)
 
-  def export(self, imageManager):
+  def export(self, imageManager, pathRoot=None, urlRoot=None):
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
                       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
@@ -336,8 +343,12 @@ class MaterialManager(DataManager):
         elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
           filepath, transp_background = mat[1]
           imgIndex = imageManager.imageIndex(filepath)
-        m["image"] = {"object": imageManager.image(imgIndex)}
-        #m["image"] = {"base64": imageManager.base64image(imgIndex)}
+
+        if urlRoot is None:
+          m["image"] = {"object": imageManager.image(imgIndex)}
+          #m["image"] = {"base64": imageManager.base64image(imgIndex)}
+        else:
+          m["image"] = {"url": "{}_{}.png".format(urlRoot, imgIndex)}
       else:
         m["c"] = int(mat[1], 16)    # color
 
@@ -360,6 +371,10 @@ class MaterialManager(DataManager):
         m["ds"] = 1
 
       mList.append(m)
+
+    # write image files
+    if pathRoot is not None:
+      imageManager.write(pathRoot)
 
     return mList
 

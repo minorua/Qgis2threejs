@@ -1112,32 +1112,51 @@ Q3D.DEMBlock.prototype = {
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
         geom = new PlaneGeometry(this.width, this.height, this.grid.width - 1, this.grid.height - 1);
 
-    var grid_values = this.grid.array;
-    if (grid_values === undefined) {
-      debugger;
-      grid_values = this.grid.csv.split(",").map(function(val) {
-        return parseFloat(val);
-      });
-    }
-    // TODO: this.grid.url
+    if (this.grid.array !== undefined) {
+      var grid_values = this.grid.array;
 
-    // Filling of the DEM plane
-    if (Q3D.Options.exportMode) {
-      for (var i = 0, l = geom.vertices.length; i < l; i++) {
-        geom.vertices[i].z = grid_values[i];
+      if (Q3D.Options.exportMode) {
+        for (var i = 0, l = geom.vertices.length; i < l; i++) {
+          geom.vertices[i].z = grid_values[i];
+        }
+      }
+      else {
+        var vertices = geom.attributes.position.array;
+        for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+          vertices[j + 2] = grid_values[i];
+        }
+      }
+
+      // Calculate normals
+      if (layer.properties.shading) {
+        geom.computeFaceNormals();
+        geom.computeVertexNormals();
       }
     }
-    else {
-      var vertices = geom.attributes.position.array;
-      for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-        vertices[j + 2] = grid_values[i];
-      }
-    }
+    else if (this.grid.url !== undefined) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", this.grid.url, true);
+      xhr.responseType = "arraybuffer";
 
-    // Calculate normals
-    if (layer.shading) {
-      geom.computeFaceNormals();
-      geom.computeVertexNormals();
+      xhr.onload = function (event) {
+        var arrayBuffer = xhr.response;
+        if (arrayBuffer) {
+          var grid_values = new Float32Array(arrayBuffer);
+          var vertices = geom.attributes.position.array;
+          for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+            vertices[j + 2] = grid_values[i];
+          }
+
+          // Calculate normals
+          if (layer.properties.shading) {
+            geom.computeFaceNormals();
+            geom.computeVertexNormals();
+          }
+
+          geom.attributes.position.needsUpdate = true;
+        }
+      };
+      xhr.send(null);
     }
 
     var mesh = new THREE.Mesh(geom, material);    // TODO: , layer.materials[this.m].m);

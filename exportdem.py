@@ -19,6 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import struct
 from qgis.core import QgsProject, QgsRectangle
 
 from . import gdal2threejs
@@ -34,13 +35,12 @@ class DEMLayerExporter(LayerExporter):
   def __init__(self, settings, imageManager, progress=None):
     LayerExporter.__init__(self, settings, imageManager, progress)
 
-  def export(self, layerId, properties, jsLayerId, visible=True):
+  def export(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       #writeSimpleDEM(writer, demProperties, progress)
     #else:
       #writeMultiResDEM(writer, demProperties, progress)
 
-    mapTo3d = self.settings.mapTo3d()
     prop = DEMPropertyReader(properties)
 
     # DEM provider
@@ -58,9 +58,14 @@ class DEMLayerExporter(LayerExporter):
     grid_values = provider.read(grid_size.width(), grid_size.height(), self.settings.baseExtent)
 
     # DEM block
+    mapTo3d = self.settings.mapTo3d()
     block = DEMBlock(grid_size.width(), grid_size.height(), grid_values, mapTo3d.planeWidth, mapTo3d.planeHeight, 0, 0)
     block.zShift(mapTo3d.verticalShift)
     block.zScale(mapTo3d.multiplierZ)
+
+    # write grid values to an external binary file (file export mode)
+    if pathRoot is not None:
+      block.write(pathRoot + "_0.bin")
 
     #TODO: move to DEMBlock?
     # material option
@@ -98,7 +103,8 @@ class DEMLayerExporter(LayerExporter):
       "visible": visible
       }
 
-    b = block.asDict()
+    url = None if urlRoot is None else urlRoot + "_0.bin"
+    b = block.export(url)
     b["mat"] = mi
 
     return {
@@ -107,7 +113,7 @@ class DEMLayerExporter(LayerExporter):
       "properties": p,
       "data": {
         "blocks": [b],
-        "materials": self.materialManager.export(self.imageManager)
+        "materials": self.materialManager.export(self.imageManager, pathRoot, urlRoot)
         },
       "PROPERTIES": properties    # debug
       }
@@ -140,19 +146,28 @@ class DEMBlock:
     if scale != 1:
       self.grid_values = [x * scale for x in self.grid_values]
 
-  def asDict(self):
-
+  def export(self, extFileUrl=None):
+    """extFileUrl: should be specified when the grid values are written to an extenal binary file."""
     g = {"width": self.grid_width,
-         "height": self.grid_height,
-         "array": self.grid_values}
+         "height": self.grid_height}
          #"csv": ",".join(map(gdal2threejs.formatValue, self.grid_values))}
+
+    if extFileUrl is None:
+      g["array"] = self.grid_values
+    else:
+      g["url"] = extFileUrl
 
     return {"grid": g,
             "width": self.plane_width,
             "height": self.plane_height,
             "translate": [self.offsetX, self.offsetY, 0]}
 
-  def write(self, writer):
+  def write(self, filepath):
+    """write grid values to an external binary file"""
+    with open(filepath, "wb") as f:
+      f.write(struct.pack("{}f".format(self.grid_width * self.grid_height), *self.grid_values))
+
+  def _write(self, writer):
     mapTo3d = writer.settings.mapTo3d()
 
     writer.write("bl = lyr.addBlock({0}, {1});\n".format(pyobj2js(self.properties), pyobj2js(bool(self.clip_geometry))))

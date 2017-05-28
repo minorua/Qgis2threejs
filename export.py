@@ -141,19 +141,22 @@ class ThreeJSFileExporter(ThreeJSExporter):
   def __init__(self, settings, progress=None):
     ThreeJSExporter.__init__(self, settings, progress)
 
+    self.outDir = os.path.split(settings.htmlfilename)[0]
+
+    self._index = -1
+
   def export(self):
     # read configuration of the template
     templateConfig = self.settings.templateConfig()
     templatePath = templateConfig["path"]
 
     # create output directory if not exists
-    out_dir = os.path.split(self.settings.htmlfilename)[0]
-    if not QDir(out_dir).exists():
-      QDir().mkpath(out_dir)
+    if not QDir(self.outDir).exists():
+      QDir().mkpath(self.outDir)
 
     json_object = self.exportScene()
     #with open(self.settings.path_root + ".json", "w") as f:
-    with open(os.path.join(out_dir, "scene.json"), "w") as f:
+    with open(os.path.join(self.outDir, "scene.json"), "w") as f:
       json.dump(json_object, f, indent=2)
 
     # TODO: export refdata (binary grid data, texture images and model data)
@@ -163,10 +166,9 @@ class ThreeJSFileExporter(ThreeJSExporter):
         with open(self.settings.path_root + suffix, "wb") as f:
           f.write(data)
 
-
     # copy files
     self.progress(90, "Copying library files")
-    tools.copyFiles(self.filesToCopy(), out_dir)
+    tools.copyFiles(self.filesToCopy(), self.outDir)
 
     # create html file
     options = []
@@ -188,6 +190,26 @@ class ThreeJSFileExporter(ThreeJSExporter):
       f.write(html)
 
     return True
+
+  def nextLayerIndex(self):
+    self._index += 1
+    return self._index
+
+  def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
+    title = "L{}".format(self.nextLayerIndex())
+    pathRoot = os.path.join(self.outDir, title)
+    urlRoot = "./" + title
+
+    exporter = DEMLayerExporter(self.settings, self.imageManager)
+    return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+
+  def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
+    title = "L{}".format(self.nextLayerIndex())
+    pathRoot = os.path.join(self.outDir, title)
+    urlRoot = "./" + title
+
+    exporter = VectorLayerExporter(self.settings, self.imageManager)
+    return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
 
   def filesToCopy(self):
     # three.js library

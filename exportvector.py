@@ -40,7 +40,7 @@ class VectorLayerExporter(LayerExporter):
   def __init__(self, settings, imageManager, progress=None):
     LayerExporter.__init__(self, settings, imageManager, progress)
 
-  def export(self, layerId, properties, jsLayerId, visible=True):
+  def export(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
     mapLayer = QgsProject.instance().mapLayer(layerId)
     if mapLayer is None:
       return
