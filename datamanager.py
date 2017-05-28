@@ -87,7 +87,7 @@ class ImageManager(DataManager):
     painter.begin(image)
     canvas.render(painter)
     painter.end()
-    return tools.base64image(image)
+    return image
 
   def saveMapCanvasImage(self):
     if self.exportSettings.canvas is None:
@@ -109,7 +109,6 @@ class ImageManager(DataManager):
     self._renderer = renderer
 
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
-
     # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
     antialias = True
@@ -164,7 +163,7 @@ class ImageManager(DataManager):
     settings.setLayers(tools.getLayersByLayerIds(old_layerids))
     settings.setBackgroundColor(old_backgroundColor)
 
-    return tools.base64image(image)
+    return image
 
     #if exportSettings.localBrowsingMode:
     #else:
@@ -173,14 +172,13 @@ class ImageManager(DataManager):
     #  texSrc = os.path.split(texfilename)[1]
     #  tex["src"] = texSrc
 
-  def base64image(self, index):
+  def image(self, index):
     image = self._list[index]
     imageType = image[0]
     if imageType == self.IMAGE_FILE:
       image_path = image[1]
-      exists = os.path.exists(image_path)
-      if exists and os.path.isfile(image_path):
-        return gdal2threejs.base64image(image_path)
+      if os.path.isfile(image_path):
+        return QImage(image_path)
       else:
         logMessage("Image file not found: {0}".format(image_path))
         return None
@@ -196,6 +194,12 @@ class ImageManager(DataManager):
     #imageType == self.CANVAS_IMAGE:
     transp_background = image[1]
     return self.mapCanvasImage(transp_background)
+
+  def base64image(self, index):
+    image = self.image(index)
+    if image:
+      return tools.base64image(image)
+    return None
 
   def write(self, f):   #TODO: separated image files (not in localBrowsingMode)
     if len(self._list) == 0:
@@ -332,7 +336,8 @@ class MaterialManager(DataManager):
         elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
           filepath, transp_background = mat[1]
           imgIndex = imageManager.imageIndex(filepath)
-        m["image"] = {"base64": imageManager.base64image(imgIndex)}
+        m["image"] = {"object": imageManager.image(imgIndex)}
+        #m["image"] = {"base64": imageManager.base64image(imgIndex)}
       else:
         m["c"] = int(mat[1], 16)    # color
 

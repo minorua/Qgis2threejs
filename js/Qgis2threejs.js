@@ -1390,8 +1390,16 @@ Q3D.MapLayer.prototype = {
       if (m.image !== undefined) {
         var image = m.image;
         if (image.texture === undefined) {
-          if (image.url !== undefined) image.texture = THREE.ImageUtils.loadTexture(image.url);
-          else image.texture = Q3D.Utils.loadTextureData(image.base64);
+          if (image.url !== undefined) {
+            image.texture = THREE.ImageUtils.loadTexture(image.url);
+          }
+          else if (image.object !== undefined) {    // WebKit Bridge
+            image.texture = new THREE.Texture(image.object.toImageData());
+            image.texture.needsUpdate = true;
+          }
+          else {
+            image.texture = Q3D.Utils.loadTextureBase64(image.base64);
+          }
         }
         opt.map = image.texture;
       }
@@ -2497,7 +2505,7 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
 };
 
 // Create a texture with image data and update texture when the image has been loaded
-Q3D.Utils.loadTextureData = function (imageData) {
+Q3D.Utils.loadTextureBase64 = function (imageData) {
   var texture, image = new Image();
   image.onload = function () {
     texture.needsUpdate = true;
