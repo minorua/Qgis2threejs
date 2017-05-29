@@ -16,6 +16,13 @@
   height 100%;
   pointer-events: none;
 }
+
+#fps {
+  position: absolute;
+  left: 40px;
+  bottom: 3px;
+  font-size: xx-small;
+}
 </style>
 </head>
 <body>
@@ -47,7 +54,10 @@ and uses the following library:
 </div></div>
 
 <!-- footer -->
-<div id="footer"><div id="infobtn">i</div></div>
+<div id="footer">
+  <div id="infobtn">i</div>
+</div>
+<div id="fps">Waiting...</div>
 
 <script src="../js/threejs/three.min.js"></script>
 <script src="../js/Qgis2threejs.js"></script>
