@@ -1384,11 +1384,23 @@ Q3D.MapLayer.prototype = {
   },
 
   removeAllObjects: function () {
-    for (var i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
+    // dispose of geometries, materials and textures
+    this.objectGroup.traverse(function (obj) {
+      if (obj.geometry) obj.geometry.dispose();
+    });
+
+    var i, l;
+    for (i = 0, l = this.materials.length; i < l; i++) {
+      if (this.materials[i].map) this.materials[i].map.dispose();   // dispose of texture
+      this.materials[i].m.dispose();
+    }
+    this.materials = [];
+
+    // remove all child objects from object group
+    for (i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
       this.objectGroup.remove(this.objectGroup.children[i]);
     }
     this.queryableObjects = [];
-    this.materials = [];
   },
 
   initMaterials: function () {
