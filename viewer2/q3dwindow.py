@@ -90,12 +90,14 @@ class LayerManager(QObject):
     return False
 
 
-class Q3DViewerInterface:   #:TODO: base on QObject
+class Q3DViewerInterface(QObject):
 
-  def __init__(self, controller, wnd, webView):
-    self.controller = controller
-    self.wnd = wnd
+  def __init__(self, parent, webView, controller):
+    QObject.__init__(self, parent)
+
+    self.wnd = parent
     self.webView = webView
+    self.controller = controller
 
   def fetchLayerList(self):
     self.wnd.setLayerList(self.controller.getLayerList())
@@ -158,7 +160,7 @@ class Q3DWindow(QMainWindow):
     self.ui.setupUi(self)
 
     self.layerManager = LayerManager(self.ui.treeView, self)
-    self.iface = Q3DViewerInterface(controller, self, self.ui.webView)
+    self.iface = Q3DViewerInterface(self, self.ui.webView, controller)
     self.ui.webView.setup(self, self.iface, self.layerManager, isViewer)
 
     # signal-slot connections
@@ -166,6 +168,12 @@ class Q3DWindow(QMainWindow):
     self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
     self.ui.treeView.model().itemChanged.connect(self.treeItemChanged)
     self.ui.treeView.doubleClicked.connect(self.treeItemDoubleClicked)
+
+    qgisIface.mapCanvas().renderComplete.connect(self.iface.canvasUpdated)
+    qgisIface.mapCanvas().extentsChanged.connect(self.iface.canvasExtentChanged)
+
+    # to disconnect from map canvas when window is closed
+    self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.alwaysOnTopToggled(False)
 

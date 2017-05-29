@@ -55,8 +55,6 @@ class Q3DViewerController:
 
   def setViewerInterface(self, iface):
     self.iface = iface
-    self.qgis_iface.mapCanvas().renderComplete.connect(iface.canvasUpdated)
-    self.qgis_iface.mapCanvas().extentsChanged.connect(iface.canvasExtentChanged)
 
   def getLayerList(self):
     layers = []
