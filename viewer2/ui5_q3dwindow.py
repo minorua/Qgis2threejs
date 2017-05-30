@@ -53,7 +53,7 @@ class Ui_Q3DWindow(object):
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.treeView = QtWidgets.QTreeView(self.dockWidgetContents)
+        self.treeView = Q3DTreeView(self.dockWidgetContents)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -193,4 +193,5 @@ class Ui_Q3DWindow(object):
         self.actionAdd_Layer.setText(_translate("Q3DWindow", "Add Layer..."))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
 
+from .q3dtreeview import Q3DTreeView
 from .q3dview import Q3DView

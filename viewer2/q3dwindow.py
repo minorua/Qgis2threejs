@@ -18,89 +18,30 @@
  *                                                                         *
  ***************************************************************************/
 """
-import json
-import os
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QObject, QVariant, pyqtSignal
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox, QHeaderView, QPushButton
+from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox
 
-from qgis.core import QgsApplication, QgsProject
+from qgis.core import QgsProject
 
-from .ui5_q3dwindow import Ui_Q3DWindow
 from .ui5_propertiesdialog import Ui_PropertiesDialog
+from .ui5_q3dwindow import Ui_Q3DWindow
 from . import q3dconst
 from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
-from Qgis2threejs.qgis2threejstools import logMessage, pluginDir
+from Qgis2threejs.qgis2threejstools import logMessage
 from Qgis2threejs.vectorobject import objectTypeManager
-
-
-class LayerManager(QObject):    #TODO: -> Q3DTreeView (treeview management, layer management)
-
-  def __init__(self, treeView, treeParentItem, parent=None):
-    QObject.__init__(self, parent)
-
-    self.treeView = treeView
-    self.treeParentItem = treeParentItem
-    self.layers = []
-    self._index = -1
-
-    self.icons = {
-      q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("/mIconRaster.svg"),
-      q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("/mIconPointLayer.svg"),
-      q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("/mIconLineLayer.svg"),
-      q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg"),
-      "settings": QIcon(os.path.join(pluginDir(), "icons", "settings.png"))
-      }
-
-  def addLayer(self, layerId, name, geomType, visible=True, properties=None):
-    itemId = len(self.layers)
-
-    self.layers.append({
-      "id": itemId,
-      "layerId": layerId,
-      "name": name,
-      "geomType": geomType,
-      "visible": visible,
-      "properties": properties or json.loads(q3dconst.DEFAULT_PROPERTIES[geomType]),
-      "jsLayerId": layerId[:8] + str(itemId)
-    })
-
-    # add a layer item to tree view
-    item = QStandardItem(name)
-    item.setCheckable(True)
-    item.setCheckState(Qt.Checked if visible else Qt.Unchecked)
-    item.setData(itemId)
-    item.setIcon(self.icons[geomType])
-    item.setEditable(False)
-
-    item2 = QStandardItem()
-    self.treeParentItem.appendRow([item, item2])
-
-    # add a button
-    button = QPushButton()
-    button.setIcon(self.icons["settings"])
-    button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-    button.setMaximumHeight(16)
-    button.setMaximumWidth(20)
-    self.treeView.setIndexWidget(item2.index(), button)
-
-  def removeLayer(self, id):
-    for index, layer in enumerate(self.layers):
-      if layer["id"] == id:
-        self.layers[index] = None
-        return True
-    return False
 
 
 class Q3DViewerInterface(QObject):
 
-  def __init__(self, parent, webView, controller):
+  def __init__(self, parent, qgisIface, treeView, webView, controller):
     QObject.__init__(self, parent)
 
     self.wnd = parent
+    self.qgisIface = qgisIface
+    self.treeView = treeView
     self.webView = webView
     self.controller = controller
 
@@ -135,7 +76,7 @@ class Q3DViewerInterface(QObject):
   def canvasUpdated(self, painter):
     #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
 
-    for layer in self.wnd.layerManager.layers:
+    for layer in self.treeView.layers:
       if layer["visible"]:
         self.updateLayer(layer)
         #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
@@ -143,6 +84,27 @@ class Q3DViewerInterface(QObject):
   def canvasExtentChanged(self):
     #self.iface.notify({"code": q3dconst.N_CANVAS_EXTENT_CHANGED})
     self.controller.updateMapCanvasExtent()
+
+  def showLayerPropertiesDialog(self, layer):
+    mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
+    if mapLayer is None:
+      return False
+
+    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
+    dialog.propertiesChanged.connect(self.updateLayerProperties)
+    dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
+    dialog.show()
+    dialog.exec_()
+    return True
+
+  def updateLayerProperties(self, layerId, properties):
+    layer = self.treeView.layers[layerId]
+    layer["properties"] = properties
+    if layer["visible"]:
+      if layer["jsLayerId"] is None:
+        self.createLayer(layer)
+      else:
+        self.updateLayer(layer)
 
 
 class Q3DWindow(QMainWindow):
@@ -164,17 +126,16 @@ class Q3DWindow(QMainWindow):
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
     self.setupStatusBar()
-    self.setupTreeView()
 
-    self.layerManager = LayerManager(self.ui.treeView, self.treeItems[self.TREE_ITEM_LAYERS], self)
-    self.iface = Q3DViewerInterface(self, self.ui.webView, controller)
-    self.ui.webView.setup(self, self.iface, self.layerManager, isViewer)
+    self.iface = Q3DViewerInterface(self, qgisIface, self.ui.treeView, self.ui.webView, controller)
+    controller.setViewerInterface(self.iface)
+
+    self.ui.treeView.setup(self.iface)
+    self.ui.webView.setup(self, self.iface, self.ui.treeView, isViewer)
 
     # signal-slot connections
     self.ui.actionReset_Camera_Position.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
-    self.ui.treeView.model().itemChanged.connect(self.treeItemChanged)
-    self.ui.treeView.doubleClicked.connect(self.treeItemDoubleClicked)
 
     qgisIface.mapCanvas().renderComplete.connect(self.iface.canvasUpdated)
     qgisIface.mapCanvas().extentsChanged.connect(self.iface.canvasExtentChanged)
@@ -183,31 +144,6 @@ class Q3DWindow(QMainWindow):
     self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.alwaysOnTopToggled(False)
-
-  def setupTreeView(self):
-    #self.TREE_HEADERS = ["Properties"]
-    self.TREE_TOP_ITEMS = ("Scene", "Lights & Shadow", "Layers")    # tr
-    self.TREE_ITEM_LAYERS = 2
-
-    self.model = QStandardItemModel(0, 2)   #0, len(self.TREE_HEADERS))
-    #self.model.setHorizontalHeaderLabels(self.TREE_HEADERS)
-    self.ui.treeView.setModel(self.model)
-
-    self.treeItems = []
-    for name in self.TREE_TOP_ITEMS:
-      item = QStandardItem(name)
-      item.setIcon(QgsApplication.getThemeIcon("/propertyicons/CRS.svg"))
-      #item.setData(itemId)
-      item.setEditable(False)
-      self.treeItems.append(item)
-      self.model.invisibleRootItem().appendRow([item])
-
-    self.ui.treeView.header().setStretchLastSection(False)
-    self.ui.treeView.header().setSectionResizeMode(0, QHeaderView.Stretch)
-    self.ui.treeView.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-
-    #self.ui.treeView.header().setResizeMode(QHeaderView.ResizeToContents)
-    self.ui.treeView.expandAll()
 
   def setupStatusBar(self):
     w = QCheckBox(self.ui.statusbar)
@@ -227,60 +163,6 @@ class Q3DWindow(QMainWindow):
 
   def renderingToggled(self, checked):
     pass
-
-  def treeItemChanged(self, item):
-    itemId = item.data()
-    layer = self.layerManager.layers[itemId]
-    visible = bool(item.checkState() == Qt.Checked)
-
-    if layer["geomType"] == q3dconst.TYPE_IMAGE:    #TODO: image
-      return
-
-    layer["visible"] = visible
-    if visible:
-      if layer["jsLayerId"] is None:
-        self.iface.createLayer(layer)
-        #self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
-      else:
-        self.iface.updateLayer(layer)
-        #self.runString("project.layers[{0}].setVisible(true);".format(layer["jsLayerId"]))
-        #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
-    else:
-      obj = {
-        "type": "layer",
-        "id": layer["jsLayerId"],
-        "properties": {
-          "visible": False
-          }
-        }
-      self.iface.loadJSONObject(obj)
-
-  def treeItemDoubleClicked(self, modelIndex):
-    #TODO: open layer properties dialog
-    index = modelIndex.data(Qt.UserRole + 1)
-    layer = self.layerManager.layers[index]     #TODO: index or layerId
-    mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
-    if mapLayer is None:
-      return
-
-    #treeItem = self.layerManager.model.itemFromIndex(modelIndex)
-
-    dialog = PropertiesDialog(self, self.qgisIface, self.settings)    #, pluginManager)
-    dialog.propertiesChanged.connect(self.updateLayerProperties)
-    dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
-    dialog.show()
-    dialog.exec_()
-
-    #self.iface.notify({"code": q3dconst.N_LAYER_DOUBLECLICKED, "layer": self.layerManager.layers[idx]})
-
-  def updateLayerProperties(self, layerId, properties):
-    layer = self.layerManager.layers[layerId]
-    layer["properties"] = properties
-    if layer["visible"]:
-      if layer["jsLayerId"] is None:
-        self.iface.createLayer(layer)
-      else:
-        self.iface.updateLayer(layer)
 
   def changeEvent(self, event):
     if self.isViewer and event.type() == QEvent.WindowStateChange:
@@ -334,9 +216,9 @@ class Q3DWindow(QMainWindow):
 
     for idx, layer in enumerate(layers):
       logMessage(str(layer))
-      self.layerManager.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
+      self.ui.treeView.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
 
-    #for layer in self.layerManager.layers:
+    #for layer in self.ui.treeView.layers:
     #  if layer["visible"]:
     #    self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
 

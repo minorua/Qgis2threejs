@@ -159,7 +159,6 @@ class Qgis2threejs:
     serverName = "null"
     parent = self.iface.mainWindow()
     self.liveExporter = Q3DWindow(self.iface, isViewer=True, parent=parent, controller=self.controller)
-    self.controller.setViewerInterface(self.liveExporter.iface)   #TODO: check self.liveExporter.iface is set
     self.liveExporter.show()
 
   def addPluginLayer(self):

@@ -117,7 +117,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QTreeView" name="treeView">
+      <widget class="Q3DTreeView" name="treeView">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -311,6 +311,11 @@
    <extends>QWidget</extends>
    <header>.q3dview</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Q3DTreeView</class>
+   <extends>QTreeView</extends>
+   <header>.q3dtreeview</header>
   </customwidget>
  </customwidgets>
  <resources/>
