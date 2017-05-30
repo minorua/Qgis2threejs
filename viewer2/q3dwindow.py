@@ -19,40 +19,41 @@
  ***************************************************************************/
 """
 import json
+import os
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QObject, QVariant, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox, QHeaderView, QPushButton
 
-from qgis.core import QgsProject
+from qgis.core import QgsApplication, QgsProject
 
 from .ui5_q3dwindow import Ui_Q3DWindow
 from .ui5_propertiesdialog import Ui_PropertiesDialog
 from . import q3dconst
 from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
-from Qgis2threejs.qgis2threejstools import logMessage
+from Qgis2threejs.qgis2threejstools import logMessage, pluginDir
 from Qgis2threejs.vectorobject import objectTypeManager
 
-class LayerManager(QObject):
 
-  def __init__(self, treeView, parent=None):
+class LayerManager(QObject):    #TODO: -> Q3DTreeView (treeview management, layer management)
+
+  def __init__(self, treeView, treeParentItem, parent=None):
     QObject.__init__(self, parent)
 
     self.treeView = treeView
+    self.treeParentItem = treeParentItem
     self.layers = []
     self._index = -1
-    self.setupTreeView()
 
-  def setupTreeView(self):
-    headers = ["Layer"]
-    self.model = QStandardItemModel(0, len(headers))
-    self.model.setHorizontalHeaderLabels(headers)
-
-    self.treeView.setModel(self.model)
-    #self.treeView.header().setResizeMode(QHeaderView.ResizeToContents)
-    #self.treeView.expandAll()
+    self.icons = {
+      q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("/mIconRaster.svg"),
+      q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("/mIconPointLayer.svg"),
+      q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("/mIconLineLayer.svg"),
+      q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg"),
+      "settings": QIcon(os.path.join(pluginDir(), "icons", "settings.png"))
+      }
 
   def addLayer(self, layerId, name, geomType, visible=True, properties=None):
     itemId = len(self.layers)
@@ -66,21 +67,25 @@ class LayerManager(QObject):
       "properties": properties or json.loads(q3dconst.DEFAULT_PROPERTIES[geomType]),
       "jsLayerId": layerId[:8] + str(itemId)
     })
-    geomTypeStr = {
-      q3dconst.TYPE_DEM: "DEM",
-      q3dconst.TYPE_POINT: "PT",
-      q3dconst.TYPE_LINESTRING: "LINE",
-      q3dconst.TYPE_POLYGON: "POLY"
-      #q3dconst.TYPE_IMAGE: "IMG"
-    }[geomType]
 
-    # add layer to tree view
-    item = QStandardItem("[{0}] {1}".format(geomTypeStr, name))
+    # add a layer item to tree view
+    item = QStandardItem(name)
     item.setCheckable(True)
     item.setCheckState(Qt.Checked if visible else Qt.Unchecked)
     item.setData(itemId)
+    item.setIcon(self.icons[geomType])
     item.setEditable(False)
-    self.model.invisibleRootItem().appendRow([item])
+
+    item2 = QStandardItem()
+    self.treeParentItem.appendRow([item, item2])
+
+    # add a button
+    button = QPushButton()
+    button.setIcon(self.icons["settings"])
+    button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+    button.setMaximumHeight(16)
+    button.setMaximumWidth(20)
+    self.treeView.setIndexWidget(item2.index(), button)
 
   def removeLayer(self, id):
     for index, layer in enumerate(self.layers):
@@ -158,8 +163,10 @@ class Q3DWindow(QMainWindow):
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
+    self.setupStatusBar()
+    self.setupTreeView()
 
-    self.layerManager = LayerManager(self.ui.treeView, self)
+    self.layerManager = LayerManager(self.ui.treeView, self.treeItems[self.TREE_ITEM_LAYERS], self)
     self.iface = Q3DViewerInterface(self, self.ui.webView, controller)
     self.ui.webView.setup(self, self.iface, self.layerManager, isViewer)
 
@@ -177,12 +184,49 @@ class Q3DWindow(QMainWindow):
 
     self.alwaysOnTopToggled(False)
 
+  def setupTreeView(self):
+    #self.TREE_HEADERS = ["Properties"]
+    self.TREE_TOP_ITEMS = ("Scene", "Lights & Shadow", "Layers")    # tr
+    self.TREE_ITEM_LAYERS = 2
+
+    self.model = QStandardItemModel(0, 2)   #0, len(self.TREE_HEADERS))
+    #self.model.setHorizontalHeaderLabels(self.TREE_HEADERS)
+    self.ui.treeView.setModel(self.model)
+
+    self.treeItems = []
+    for name in self.TREE_TOP_ITEMS:
+      item = QStandardItem(name)
+      item.setIcon(QgsApplication.getThemeIcon("/propertyicons/CRS.svg"))
+      #item.setData(itemId)
+      item.setEditable(False)
+      self.treeItems.append(item)
+      self.model.invisibleRootItem().appendRow([item])
+
+    self.ui.treeView.header().setStretchLastSection(False)
+    self.ui.treeView.header().setSectionResizeMode(0, QHeaderView.Stretch)
+    self.ui.treeView.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+
+    #self.ui.treeView.header().setResizeMode(QHeaderView.ResizeToContents)
+    self.ui.treeView.expandAll()
+
+  def setupStatusBar(self):
+    w = QCheckBox(self.ui.statusbar)
+    w.setObjectName("checkBoxRendering")
+    w.setText("Rendering")     #_translate("Q3DWindow", "Rendering"))
+    w.setChecked(True)
+    self.ui.statusbar.addPermanentWidget(w)
+    self.ui.checkBoxRendering = w
+    self.ui.checkBoxRendering.toggled.connect(self.renderingToggled)
+
   def alwaysOnTopToggled(self, checked):
     if checked:
       self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
     else:
       self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
     self.show()
+
+  def renderingToggled(self, checked):
+    pass
 
   def treeItemChanged(self, item):
     itemId = item.data()

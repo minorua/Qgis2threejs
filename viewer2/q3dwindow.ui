@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>819</width>
-    <height>602</height>
+    <width>757</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -17,7 +17,7 @@
    <string>Live Exporter - Qgis2threejs</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="margin">
      <number>0</number>
     </property>
@@ -31,7 +31,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>819</width>
+     <width>757</width>
      <height>21</height>
     </rect>
    </property>
@@ -101,50 +101,32 @@
    <addaction name="menuWindow"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockWidget">
+  <widget class="QDockWidget" name="dockWidgetProperties">
+   <property name="windowTitle">
+    <string>Properties</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <property name="spacing">
       <number>0</number>
      </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
      <item>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>0</number>
+      <widget class="QTreeView" name="treeView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <widget class="QWidget" name="tab">
-        <attribute name="title">
-         <string>Layer</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QTreeView" name="treeView">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="tab_2">
-        <attribute name="title">
-         <string>Dev</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QListWidget" name="listWidgetDebugView"/>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEditInputBox"/>
-         </item>
-        </layout>
-       </widget>
+       <property name="headerHidden">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
     </layout>
@@ -166,6 +148,33 @@
    <addaction name="separator"/>
    <addaction name="actionReset_Camera_Position"/>
    <addaction name="actionReload"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetConsole">
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Console</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QListWidget" name="listWidgetDebugView"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditInputBox"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionSTL_format">
    <property name="enabled">
