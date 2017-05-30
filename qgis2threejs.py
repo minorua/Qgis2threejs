@@ -88,7 +88,7 @@ class Qgis2threejs:
 
     # Add toolbar button and web menu items
     name = "Qgis2threejs"
-    self.iface.addWebToolBarIcon(self.action)
+    self.iface.addWebToolBarIcon(self.viewerAction)
     self.iface.addPluginToWebMenu(name, self.action)
     self.iface.addPluginToWebMenu(name, self.viewerAction)
     self.iface.addPluginToWebMenu(name, self.layerAction)
@@ -97,7 +97,7 @@ class Qgis2threejs:
   def unload(self):
     # Remove the web menu items and icon
     name = "Qgis2threejs"
-    self.iface.removeWebToolBarIcon(self.action)
+    self.iface.removeWebToolBarIcon(self.viewerAction)
     self.iface.removePluginWebMenu(name, self.action)
     self.iface.removePluginWebMenu(name, self.viewerAction)
     self.iface.removePluginWebMenu(name, self.layerAction)
