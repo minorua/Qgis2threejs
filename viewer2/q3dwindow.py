@@ -167,11 +167,9 @@ class Q3DWindow(QMainWindow):
   def changeEvent(self, event):
     if self.isViewer and event.type() == QEvent.WindowStateChange:
       if self.windowState() & Qt.WindowMinimized:
-        # pause application
         self.runString("app.pause();")
       else:
-        # start application if not running
-        self.runString("if (!app.running) app.start();")
+        self.runString("app.resume();")
 
   #TODO: CopyAction is not possible
   def dragEnterEvent(self, event):

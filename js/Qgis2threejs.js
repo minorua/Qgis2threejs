@@ -115,6 +115,8 @@ Q3D.Scene.prototype.loadLayerJSONObject = function (jsonObject) {
   // TODO: into a web worker
   layer.loadJSONObject(jsonObject);
 
+  app.render();   // TODO: dispatch requestRender event
+
   /* TODO: build labels
   // build labels
   if (layer.l) {
@@ -253,7 +255,9 @@ limitations:
 
   app.init = function (container) {
     app.container = container;
-    app.running = false;
+    app.running = false;        // if true, animation loop is continued.
+    app.powerSavingMode = true;   // set false to continue animation loop after user operation
+                                  // is finished (e.g. automatic camera rotation mode).
 
     // URL parameters
     app.urlParams = app.parseUrlParameters();
@@ -302,6 +306,7 @@ limitations:
         app.controls.target0.copy(app.controls.target);   // for reset
       }
       */
+      app.controls.update();
     }
 
     app._queryableObjects = [];
@@ -446,6 +451,35 @@ limitations:
     window.addEventListener("keydown", app.eventListener.keydown);
     window.addEventListener("resize", app.eventListener.resize);
 
+
+    if (app.controls) {
+      app.controls.addEventListener("start", function (event) {
+        if (!app.running) {
+          app.running = true;
+          app.animate();
+        }
+        var elm = document.getElementById("fps");
+        if (elm) elm.style.fontWeight = "bold";
+      });
+
+      app.controls.addEventListener("end", function (event) {
+        if (app.powerSavingMode) {
+          app.running = false;
+
+          var elm = document.getElementById("fps");
+          if (elm) elm.style.fontWeight = "normal";
+        }
+      });
+
+      window.addEventListener("keydown", function () {
+        app.render(true);
+      });
+
+      window.addEventListener("keyup", function () {
+        app.render(true);
+      });
+    }
+
     var e = Q3D.$("closebtn");
     if (e) e.addEventListener("click", app.closePopup);
   };
@@ -496,9 +530,9 @@ limitations:
 
   // start rendering loop
   app.start = function () {
-    app.running = true;
+    // app.running = true;
     if (app.controls) app.controls.enabled = true;
-    app.animate();
+    // app.animate();
   };
 
   app.pause = function () {
@@ -506,14 +540,18 @@ limitations:
     if (app.controls) app.controls.enabled = false;
   };
 
+  app.resume = function () {
+    if (app.controls) app.controls.enabled = false;
+  };
+
   // animation loop
   app.animate = function () {
     if (app.running) requestAnimationFrame(app.animate);
-    if (app.controls) app.controls.update();
-    app.render();
+    app.render(true);
   };
 
-  app.render = function () {
+  app.render = function (updateControls) {
+    if (app.controls && updateControls) app.controls.update();
     app.renderer.render(app.scene, app.camera);
     app.updateLabelPosition();
   };
@@ -667,7 +705,7 @@ limitations:
     show: function (obj, title, modal) {
 
       if (modal) app.pause();
-      else if (this.modal) app.start();   // enable controls
+      else if (this.modal) app.resume();
 
       this.modal = Boolean(modal);
 
@@ -694,7 +732,7 @@ limitations:
 
     hide: function () {
       Q3D.$("popup").style.display = "none";
-      if (this.modal) app.start();    // enable controls
+      if (this.modal) app.resume();
     }
 
   };
@@ -1422,7 +1460,7 @@ Q3D.MapLayer.prototype = {
         var image = m.image;
         if (image.texture === undefined) {
           if (image.url !== undefined) {
-            image.texture = THREE.ImageUtils.loadTexture(image.url);
+            image.texture = Q3D.Utils.loadTexture(image.url);
           }
           else if (image.object !== undefined) {    // WebKit Bridge
             image.texture = new THREE.Texture(image.object.toImageData());
@@ -2535,12 +2573,17 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
   });
 };
 
-// Create a texture with image data and update texture when the image has been loaded
+Q3D.Utils.loadTexture = function (url) {
+  THREE.ImageUtils.loadTexture(url, function (tex) {
+    Q3D.application.render();
+  });
+};
+
 Q3D.Utils.loadTextureBase64 = function (imageData) {
   var texture, image = new Image();
   image.onload = function () {
     texture.needsUpdate = true;
-    if (!Q3D.Options.exportMode && !Q3D.application.running) Q3D.application.render();
+    if (!Q3D.Options.exportMode) Q3D.application.render();
   };
   image.src = imageData;
   texture = new THREE.Texture(image);
