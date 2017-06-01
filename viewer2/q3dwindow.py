@@ -125,6 +125,7 @@ class Q3DWindow(QMainWindow):
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
+    self.setupMenu()
     self.setupStatusBar()
 
     self.iface = Q3DViewerInterface(self, qgisIface, self.ui.treeView, self.ui.webView, controller)
@@ -144,6 +145,10 @@ class Q3DWindow(QMainWindow):
     self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.alwaysOnTopToggled(False)
+
+  def setupMenu(self):
+    self.ui.menuPanels.addAction(self.ui.dockWidgetProperties.toggleViewAction())
+    self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
   def setupStatusBar(self):
     w = QCheckBox(self.ui.statusbar)

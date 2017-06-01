@@ -68,25 +68,24 @@
      <addaction name="actionOrbit"/>
      <addaction name="actionTrackball"/>
     </widget>
-    <widget class="QMenu" name="menuPanel">
-     <property name="title">
-      <string>Panel</string>
-     </property>
-     <addaction name="actionLayer_Panel"/>
-    </widget>
     <addaction name="actionWorld_Settings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="separator"/>
     <addaction name="actionReset_Camera_Position"/>
     <addaction name="actionReload"/>
-    <addaction name="separator"/>
-    <addaction name="menuPanel"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <widget class="QMenu" name="menuPanels">
+     <property name="title">
+      <string>Panels</string>
+     </property>
+    </widget>
+    <addaction name="menuPanels"/>
+    <addaction name="separator"/>
     <addaction name="actionAlways_on_Top"/>
    </widget>
    <widget class="QMenu" name="menuLayer">
@@ -230,7 +229,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Always on Top</string>
