@@ -49,8 +49,7 @@ class Q3DViewerInterface(QObject):
     self.wnd.setLayerList(self.controller.getLayerList())
 
   def startApplication(self):
-    pass
-    #self.webView.runString("app.start();");
+    self.webView.runString("app.start();");
 
   def createScene(self):
     # create a scene with lights

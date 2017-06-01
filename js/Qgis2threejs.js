@@ -414,6 +414,7 @@ limitations:
 
     resize: function () {
       if (app._fullWindow) app.setCanvasSize(window.innerWidth, window.innerHeight);
+      app.render();
     }
 
   };
@@ -439,11 +440,9 @@ limitations:
     return window.location.href.split("#")[0] + hash;
   };
 
-  // start rendering loop
+  // enable the controls
   app.start = function () {
-    // app.running = true;
     if (app.controls) app.controls.enabled = true;
-    // app.animate();
   };
 
   app.pause = function () {
@@ -452,7 +451,7 @@ limitations:
   };
 
   app.resume = function () {
-    if (app.controls) app.controls.enabled = false;
+    if (app.controls) app.controls.enabled = true;
   };
 
   // animation loop

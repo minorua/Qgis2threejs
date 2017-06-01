@@ -135,6 +135,9 @@ class Q3DView(QWebView):
   def pageLoaded(self, ok):
     self.runString("pyObj.sendData.connect(this, dataReceived);")
 
+    # start application - enable controls
+    self.iface.startApplication()
+
     # create scene and layers
     self.iface.createScene()
 
