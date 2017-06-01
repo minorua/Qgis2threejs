@@ -45,11 +45,37 @@ class Q3DViewerInterface(QObject):
     self.webView = webView
     self.controller = controller
 
+    # for Rendering checkbox
+    self.enabled = True
+    self.extentUpdated = False
+
   def fetchLayerList(self):
     self.wnd.setLayerList(self.controller.getLayerList())
 
   def startApplication(self):
     self.webView.runString("app.start();");
+
+  def setEnabled(self, enabled):
+    self.enabled = enabled
+    self.webView.runString("app.resume();" if enabled else "app.pause();");
+    if enabled:
+      # update layers
+      for layerId, layer in enumerate(self.treeView.layers):
+        if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
+          if layer["jsLayerId"] is None:
+            self.createLayer(layer)
+          else:
+            self.updateLayer(layer)
+
+      self.extentUpdated = False
+
+  def loadJSONObject(self, obj):
+    # display the content of the object in the debug element
+    self.webView.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
+    self.webView.bridge.sendData.emit(QVariant(obj))
+
+    #self.webView.runString("var jsonToLoad = JSON.parse('" + json.dumps(obj).replace("'", "\\'") + "');")
+    #self.webView.runString("app.loadJSONObject(jsonToLoad);")
 
   def createScene(self):
     # create a scene with lights
@@ -60,30 +86,33 @@ class Q3DViewerInterface(QObject):
     #self.flush()
 
   def createLayer(self, layer):
+    if not self.enabled:
+      return
     self.controller.createLayer(layer)
+    layer["updated"] = False
 
   def updateLayer(self, layer):
+    if not self.enabled:
+      return
     self.controller.updateLayer(layer)
-
-  def loadJSONObject(self, obj):
-    # display the content of the object in the debug element
-    self.webView.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:1000].replace("'", "\\'")))
-    self.webView.bridge.sendData.emit(QVariant(obj))
-
-    #self.webView.runString("var jsonToLoad = JSON.parse('" + json.dumps(obj).replace("'", "\\'") + "');")
-    #self.webView.runString("app.loadJSONObject(jsonToLoad);")
+    layer["updated"] = False
 
   def canvasUpdated(self, painter):
-    #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
+    if not self.enabled:
+      return
 
+    #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
     for layer in self.treeView.layers:
       if layer["visible"]:
         self.updateLayer(layer)
         #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
+    self.extentUpdated = False
 
   def canvasExtentChanged(self):
     #self.iface.notify({"code": q3dconst.N_CANVAS_EXTENT_CHANGED})
+    # update extent of export settings
     self.controller.updateMapCanvasExtent()
+    self.extentUpdated = True
 
   def showLayerPropertiesDialog(self, layer):
     mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
@@ -91,15 +120,21 @@ class Q3DViewerInterface(QObject):
       return False
 
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
-    dialog.propertiesChanged.connect(self.updateLayerProperties)
+    dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
     dialog.show()
     dialog.exec_()
     return True
 
   def updateLayerProperties(self, layerId, properties):
+    # save layer properties
     layer = self.treeView.layers[layerId]
     layer["properties"] = properties
+    layer["updated"] = True
+
+    if not self.enabled:
+      return
+
     if layer["visible"]:
       if layer["jsLayerId"] is None:
         self.createLayer(layer)
@@ -125,12 +160,12 @@ class Q3DWindow(QMainWindow):
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
-    self.setupMenu()
-    self.setupStatusBar()
 
     self.iface = Q3DViewerInterface(self, qgisIface, self.ui.treeView, self.ui.webView, controller)
     controller.setViewerInterface(self.iface)
 
+    self.setupMenu()
+    self.setupStatusBar(self.iface)
     self.ui.treeView.setup(self.iface)
     self.ui.webView.setup(self, self.iface, self.ui.treeView, isViewer)
 
@@ -165,14 +200,14 @@ class Q3DWindow(QMainWindow):
     self.ui.menuPanels.addAction(self.ui.dockWidgetProperties.toggleViewAction())
     self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
-  def setupStatusBar(self):
+  def setupStatusBar(self, iface):
     w = QCheckBox(self.ui.statusbar)
     w.setObjectName("checkBoxRendering")
     w.setText("Rendering")     #_translate("Q3DWindow", "Rendering"))
     w.setChecked(True)
     self.ui.statusbar.addPermanentWidget(w)
     self.ui.checkBoxRendering = w
-    self.ui.checkBoxRendering.toggled.connect(self.renderingToggled)
+    self.ui.checkBoxRendering.toggled.connect(iface.setEnabled)
 
   def alwaysOnTopToggled(self, checked):
     if checked:
@@ -180,9 +215,6 @@ class Q3DWindow(QMainWindow):
     else:
       self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
     self.show()
-
-  def renderingToggled(self, checked):
-    pass
 
   def changeEvent(self, event):
     if self.isViewer and event.type() == QEvent.WindowStateChange:
@@ -249,7 +281,7 @@ class Q3DWindow(QMainWindow):
 
 class PropertiesDialog(QDialog):
 
-  propertiesChanged = pyqtSignal(int, dict)
+  propertiesAccepted = pyqtSignal(int, dict)
 
   def __init__(self, parent, qgisIface, settings, pluginManager=None):
     QDialog.__init__(self, parent)
@@ -289,7 +321,7 @@ class PropertiesDialog(QDialog):
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-      self.propertiesChanged.emit(self.layerId, self.page.properties())
+      self.propertiesAccepted.emit(self.layerId, self.page.properties())
 
   def createRubberBands(baseExtent, quadtree):
     pass
