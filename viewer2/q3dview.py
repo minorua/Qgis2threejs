@@ -101,11 +101,13 @@ class Q3DView(QWebView):
     self.iface = iface
     self.layerManager = layerManager
     self.isViewer = isViewer
+    self.bridge = Bridge(layerManager, self)
+
+    self.loadFinished.connect(self.pageLoaded)
 
     self._page = Q3DWebPage(self)
     self._page.consoleMessage.connect(wnd.printConsoleMessage)
     self._page.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
-    self.loadFinished.connect(self.pageLoaded)
     self.setPage(self._page)
 
     if not isViewer:
@@ -120,27 +122,32 @@ class Q3DView(QWebView):
     filetitle = "viewer" if isViewer else "layer"
     url = os.path.join(os.path.abspath(os.path.dirname(__file__)), filetitle + ".html").replace("\\", "/")
     self.setUrl(QUrl.fromLocalFile(url))
-    #self.setUrl(QUrl("https://dl.dropboxusercontent.com/u/21526091/qgis-plugins/samples/threejs/mt_fuji.html"))
-    print("URL: {0}".format(self.url().toString()))
+
+  def reloadPage(self):
+    self.wnd.clearConsole()
+    self.setUrl(self.url())
+    #self.reload()
 
   def addJSObject(self):
-    self.bridge = Bridge(self.layerManager, self)
     self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
+    self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")    # debug
 
   def pageLoaded(self, ok):
     self.runString("pyObj.sendData.connect(this, dataReceived);")
 
-    self.iface.fetchLayerList()   # wnd.setLayerList(layers) will be called
-    #TODO: move to window?
+    # create scene and layers
+    self.iface.createScene()
 
-    #self.iface.request({"dataType": q3dconst.JSON_LAYER_LIST})
-    if self.isViewer:
-      self.iface.createProject()
-      self.iface.startApplication()
+    for id, layer in enumerate(self.layerManager.layers):
+      layer["jsLayerId"] = None
+      if layer.get("visible", False):
+        self.iface.createLayer(layer)
+
+    #if self.isViewer:
       #self.iface.request({"dataType": q3dconst.JS_CREATE_PROJECT})
       #self.iface.request({"dataType": q3dconst.JS_START_APP})
-    else:
-      self.iface.request({"dataType": q3dconst.JS_INITIALIZE})
+    #else:
+    #  self.iface.request({"dataType": q3dconst.JS_INITIALIZE})
 
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
@@ -157,14 +164,12 @@ class Q3DView(QWebView):
     self.runString(ba.decode("utf-8"))
 
   def runString(self, string):
-    self.wnd.ui.listWidgetDebugView.addItem("runString: {} // and app.render();".format(string))
+    self.wnd.printConsoleMessage(string, sourceID="runString")    # debug
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    self._page.logfile.write("{} runString: {}\n".format(now, string))
+    self._page.logfile.write("{} runString: {}\n".format(now, string))    # debug
     self._page.logfile.flush()
 
-    # string += "\nfor(var xxx = 0; xxx < 9999999999; xxx++) { var i = 9999 / 0.5; };"
-    string += "\napp.render();"   #TODO: THIS IS FOR DEBUG
     return self._page.mainFrame().evaluateJavaScript(string)
 
   def saveImage(self, width, height, dataUrl="", tx=0, ty=0, intermediate=False):

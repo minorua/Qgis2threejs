@@ -49,9 +49,10 @@ class Q3DViewerInterface(QObject):
     self.wnd.setLayerList(self.controller.getLayerList())
 
   def startApplication(self):
-    self.webView.runString("app.start();");
+    pass
+    #self.webView.runString("app.start();");
 
-  def createProject(self):
+  def createScene(self):
     # create a scene with lights
     self.controller.createScene()
 
@@ -134,8 +135,11 @@ class Q3DWindow(QMainWindow):
     self.ui.treeView.setup(self.iface)
     self.ui.webView.setup(self, self.iface, self.ui.treeView, isViewer)
 
+    self.iface.fetchLayerList()   # self.setLayerList(layers) will be called
+
     # signal-slot connections
     self.ui.actionReset_Camera_Position.triggered.connect(self.ui.webView.resetCameraPosition)
+    self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
 
     qgisIface.mapCanvas().renderComplete.connect(self.iface.canvasUpdated)
@@ -207,7 +211,10 @@ class Q3DWindow(QMainWindow):
     layerId = root.firstChild().toElement().attribute("id").decode("utf-8")
     """
 
-  def printConsoleMessage(self, message, lineNumber, sourceID):
+  def clearConsole(self):
+    self.ui.listWidgetDebugView.clear()
+
+  def printConsoleMessage(self, message, lineNumber="", sourceID=""):
     self.ui.listWidgetDebugView.addItem("{} ({}): {}".format(sourceID.split("/")[-1], lineNumber, message))
 
   def runString(self, string):

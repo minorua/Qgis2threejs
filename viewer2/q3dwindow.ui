@@ -214,9 +214,6 @@
    </property>
   </action>
   <action name="actionReload">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Reload</string>
    </property>

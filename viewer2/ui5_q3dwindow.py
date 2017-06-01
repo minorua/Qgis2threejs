@@ -99,7 +99,6 @@ class Ui_Q3DWindow(object):
         self.actionOrthogonal.setEnabled(False)
         self.actionOrthogonal.setObjectName("actionOrthogonal")
         self.actionReload = QtWidgets.QAction(Q3DWindow)
-        self.actionReload.setEnabled(False)
         self.actionReload.setObjectName("actionReload")
         self.actionAlways_on_Top = QtWidgets.QAction(Q3DWindow)
         self.actionAlways_on_Top.setCheckable(True)
