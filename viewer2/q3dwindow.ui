@@ -161,7 +161,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <property name="spacing">
-      <number>0</number>
+      <number>2</number>
      </property>
      <property name="margin">
       <number>0</number>
@@ -170,7 +170,21 @@
       <widget class="QListWidget" name="listWidgetDebugView"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditInputBox"/>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>&gt;&gt;&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditInputBox"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

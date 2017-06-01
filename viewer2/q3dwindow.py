@@ -141,6 +141,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionReset_Camera_Position.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
+    self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
 
     qgisIface.mapCanvas().renderComplete.connect(self.iface.canvasUpdated)
     qgisIface.mapCanvas().extentsChanged.connect(self.iface.canvasExtentChanged)
@@ -227,6 +228,9 @@ class Q3DWindow(QMainWindow):
 
   def printConsoleMessage(self, message, lineNumber="", sourceID=""):
     self.ui.listWidgetDebugView.addItem("{} ({}): {}".format(sourceID.split("/")[-1], lineNumber, message))
+
+  def runInputBoxString(self):
+    self.runString(self.ui.lineEditInputBox.text())
 
   def runString(self, string):
     self.ui.webView.runString(string)
