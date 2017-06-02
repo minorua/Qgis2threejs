@@ -18,13 +18,10 @@
  *                                                                         *
  ***************************************************************************/
 """
+from osgeo import ogr
 from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
-from .qgis2threejstools import logMessage
 
-try:
-  from osgeo import ogr
-except ImportError:
-  import ogr
+from .qgis2threejstools import logMessage
 
 
 class Point:

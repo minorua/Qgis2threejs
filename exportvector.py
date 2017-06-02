@@ -20,12 +20,7 @@
  ***************************************************************************/
 """
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
-
-try:
-  from osgeo import ogr, osr
-except ImportError:
-  import ogr
-  import osr
+from osgeo import ogr, osr
 
 from .exportlayer import LayerExporter
 from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas

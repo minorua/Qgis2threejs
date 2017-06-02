@@ -18,8 +18,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import Qt, QObject, pyqtSignal
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from qgis.core import QgsProject
 
 from . import q3dconst

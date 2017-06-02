@@ -24,8 +24,7 @@ import os
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QHeaderView, QPushButton, QTreeView
-
-from qgis.core import QgsApplication, QgsProject
+from qgis.core import QgsApplication
 
 from . import q3dconst
 from Qgis2threejs.qgis2threejstools import logMessage, pluginDir

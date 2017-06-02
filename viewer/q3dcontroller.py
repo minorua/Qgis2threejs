@@ -20,7 +20,8 @@
 """
 import json
 import time
-from qgis.PyQt.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
+
+from PyQt5.QtCore import QBuffer, QByteArray, QIODevice, QObject, QThread, pyqtSignal
 from qgis.core import QgsMapLayer, QgsMessageLog, QgsProject, QgsWkbTypes
 
 from . import q3dconst
@@ -29,7 +30,7 @@ from .q3dconnector import Q3DConnector
 from Qgis2threejs.exportsettings import ExportSettings
 from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
 from Qgis2threejs.qgis2threejstools import getLayersInProject, pyobj2js
-from Qgis2threejs.settings import live_in_another_process
+from Qgis2threejs.conf import live_in_another_process
 
 def logMessage(message):
   try:

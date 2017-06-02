@@ -21,8 +21,8 @@
 """
 import os
 import random
-from qgis.PyQt.QtCore import QSize
-from qgis.PyQt.QtGui import QColor
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QColor
 from qgis.core import NULL
 
 from .qgis2threejscore import calculateDEMSize

@@ -19,15 +19,12 @@
  ***************************************************************************/
 """
 from datetime import datetime
-import json
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QSize, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
-
-from Qgis2threejs.settings import live_in_another_process
 
 
 def base64image(image):

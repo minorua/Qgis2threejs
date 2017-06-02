@@ -20,10 +20,7 @@ import sys
 import struct
 import base64
 
-try:
-  from osgeo import gdal
-except ImportError:
-  import gdal
+from osgeo import gdal
 
 
 class Raster:

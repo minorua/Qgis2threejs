@@ -19,8 +19,8 @@
 """
 import configparser
 import os
-from qgis.PyQt.QtCore import Qt, QDir, QFile, QSettings
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
+from PyQt5.QtCore import Qt, QDir, QFile, QSettings
+from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .qgis2threejstools import logMessage
 from .ui.settingsdialog import Ui_SettingsDialog
@@ -66,7 +66,7 @@ class SettingsDialog(QDialog):
         metadata = dict(parser.items("general"))
         self.plugin_metadata.append(metadata)
       except Exception as e:
-        logMessage("Unable to read metadata of plugin: {}".format(name))
+        logMessage("Unable to read metadata of plugin: {} ({})".format(name, e))
 
     tableWidget.setRowCount(len(self.plugin_metadata))
     for i, metadata in enumerate(self.plugin_metadata):

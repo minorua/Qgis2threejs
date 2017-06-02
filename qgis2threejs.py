@@ -21,13 +21,12 @@
 """
 import os
 
-from qgis.PyQt.QtCore import QFile, QProcess, Qt    #, QSettings, QTranslator, qVersion
-from qgis.PyQt.QtWidgets import QAction, QMessageBox
-from qgis.PyQt.QtGui import QIcon
+from PyQt5.QtCore import QFile, Qt    #, QSettings, QTranslator, qVersion
+from PyQt5.QtWidgets import QAction, QMessageBox
+from PyQt5.QtGui import QIcon
 from qgis.core import QgsMapLayer, QgsPluginLayerRegistry, QgsProject
 
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
-from .settings import live_in_another_process
 
 
 class Qgis2threejs:
@@ -156,7 +155,6 @@ class Qgis2threejs:
 
     logMessage("Launching Live Exporter...")
 
-    serverName = "null"
     parent = self.iface.mainWindow()
     self.liveExporter = Q3DWindow(self.iface, isViewer=True, parent=parent, controller=self.controller)
     self.liveExporter.show()

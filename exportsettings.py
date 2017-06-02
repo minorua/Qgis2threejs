@@ -20,13 +20,13 @@
 import os
 import datetime
 
-from qgis.PyQt.QtCore import QSettings
+from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 
+from .conf import def_vals
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
 from .qgis2threejstools import logMessage
-from .settings import def_vals
 from . import qgis2threejstools as tools
 
 

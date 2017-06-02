@@ -21,13 +21,9 @@
 """
 import struct
 
-from qgis.PyQt.QtCore import QSize
+from osgeo import gdal
+from PyQt5.QtCore import QSize
 from qgis.core import QgsMapLayer, QgsRectangle, QgsWkbTypes
-
-try:
-  from osgeo import gdal
-except ImportError:
-  import gdal
 
 from .gdal2threejs import Raster
 from .geometry import Point

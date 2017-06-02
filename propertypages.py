@@ -22,20 +22,20 @@
 import os
 import re
 
-from qgis.PyQt.QtCore import Qt, QDir, QSettings, QPoint
-from qgis.PyQt.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
-from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
+from PyQt5.QtCore import Qt, QDir, QSettings, QPoint
+from PyQt5.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt5.QtGui import QColor
+from qgis.core import QgsMapLayer, QgsWkbTypes
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
+from .conf import def_vals
 from .qgis2threejscore import calculateDEMSize, createQuadTree
 from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
-from .settings import def_vals
 from .stylewidget import StyleWidget
 from . import qgis2threejstools as tools
 from .vectorobject import objectTypeManager

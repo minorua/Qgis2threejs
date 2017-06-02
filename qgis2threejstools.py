@@ -19,16 +19,17 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
-from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import NULL, QgsMessageLog, QgsProject
 import os
 import configparser
 import re
 import shutil
 import webbrowser
 
-from .settings import debug_mode
+from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from PyQt5.QtWidgets import QMessageBox
+from qgis.core import NULL, QgsMessageLog, QgsProject
+
+from .conf import debug_mode
 
 def getLayersInProject():
   layers = []

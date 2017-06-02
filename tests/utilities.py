@@ -12,9 +12,9 @@ import os
 import shutil
 import sys
 
-from qgis.PyQt.QtCore import QFileInfo, qDebug
-from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtXml import QDomDocument
+from PyQt5.QtCore import QFileInfo, qDebug
+from PyQt5.QtGui import QColor
+from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
 from Qgis2threejs.qgis2threejstools import getLayersByLayerIds

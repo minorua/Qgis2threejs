@@ -22,7 +22,7 @@
 import json
 import os
 
-from qgis.PyQt.QtCore import QDir
+from PyQt5.QtCore import QDir
 from qgis.core import QgsMapLayer, QgsProject
 
 from .datamanager import ImageManager, ModelManager

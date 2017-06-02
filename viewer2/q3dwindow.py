@@ -31,7 +31,6 @@ from .ui5_q3dwindow import Ui_Q3DWindow
 from . import q3dconst
 from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
 from Qgis2threejs.qgis2threejstools import logMessage
-from Qgis2threejs.vectorobject import objectTypeManager
 
 
 class Q3DViewerInterface(QObject):

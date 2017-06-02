@@ -21,10 +21,9 @@
 """
 import os
 
-from qgis.PyQt.QtCore import Qt, QDir, QSize
-from qgis.PyQt.QtGui import QColor, QImage, QPainter
-from PyQt5.QtGui import QImageReader
-from qgis.core import QgsMapLayer, QgsPalLabeling, QgsProject
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QColor, QImage, QImageReader, QPainter
+from qgis.core import QgsMapLayer
 
 from . import gdal2threejs
 from . import qgis2threejstools as tools
@@ -98,18 +97,6 @@ class ImageManager(DataManager):
     texfilename = self.exportSettings.path_root + ".png"
     self.exportSettings.canvas.saveAsImage(texfilename)
     tools.removeTemporaryFiles([texfilename + "w"])
-
-  def _initRenderer(self):
-    # set up a renderer
-    labeling = QgsPalLabeling()
-    renderer = QgsMapRenderer()
-    renderer.setDestinationCrs(self.exportSettings.crs)
-    renderer.setProjectionsEnabled(True)
-    renderer.setLabelingEngine(labeling)
-
-    # save renderer
-    self._labeling = labeling
-    self._renderer = renderer
 
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
     # render layers with QgsMapRendererCustomPainterJob
@@ -243,7 +230,7 @@ class ImageManager(DataManager):
         args = (index, width, height, self.base64image(index))
 
       else:   #imageType == self.CANVAS_IMAGE:
-        transp_background = image[1]
+        #transp_background = image[1]
         size = self.exportSettings.mapSettings.outputSize()
         args = (index, size.width(), size.height(), self.base64image(index))
 

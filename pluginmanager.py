@@ -23,7 +23,7 @@ import importlib
 import os
 import sys
 
-from qgis.PyQt.QtCore import QDir, QFile, QSettings
+from PyQt5.QtCore import QDir, QFile, QSettings
 from .qgis2threejstools import logMessage
 
 
@@ -44,7 +44,6 @@ class PluginManager:
       p = QSettings().value("/Qgis2threejs/plugins", "", type=str)
       plugins = p.split(",") if p else []
 
-    import importlib
     for name in plugins:
       try:
         modname = "Qgis2threejs.plugins." + str(name)

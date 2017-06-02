@@ -25,13 +25,9 @@ import math
 import numpy
 import struct
 
-from qgis.PyQt.QtCore import QSettings
+from osgeo import gdal
+from PyQt5.QtCore import QSettings
 from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle
-
-try:
-  from osgeo import gdal
-except ImportError:
-  import gdal
 
 from .downloader import Downloader
 from Qgis2threejs.qgis2threejstools import logMessage

@@ -21,8 +21,8 @@ import json
 import os
 import threading
 
-from qgis.PyQt.QtCore import Qt, QByteArray, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
-from qgis.PyQt.QtGui import QImage, QPainter
+from PyQt5.QtCore import Qt, QByteArray, QFile, QObject, QTimer, QProcess, QRect, pyqtSignal, qDebug
+from PyQt5.QtGui import QImage, QPainter
 from qgis.core import QgsMapLayer, QgsMapSettings, QgsPluginLayer, QgsPluginLayerType, QgsProject, QgsRenderContext, QgsMessageLog
 from qgis.gui import QgsMessageBar
 

@@ -19,14 +19,9 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QObject
+from osgeo import ogr, osr
+from PyQt5.QtCore import QObject
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
-
-try:
-  from osgeo import ogr, osr
-except ImportError:
-  import ogr
-  import osr
 
 from .datamanager import ImageManager, ModelManager, MaterialManager
 from .demblock import DEMBlock, DEMBlocks

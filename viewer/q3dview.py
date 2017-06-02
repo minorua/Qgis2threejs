@@ -32,7 +32,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from . import q3dconst
 from .socketclient import SocketClient
 from .q3dconnector import Q3DConnector
-from Qgis2threejs.settings import live_in_another_process
+from Qgis2threejs.conf import live_in_another_process
 
 
 def base64image(image):

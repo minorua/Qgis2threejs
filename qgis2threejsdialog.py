@@ -24,20 +24,20 @@
 """
 import os
 
-from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
-from qgis.PyQt.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
-from qgis.PyQt.QtGui import QColor, QIcon
+from PyQt5.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
+from PyQt5.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
+from PyQt5.QtGui import QColor, QIcon
 from qgis.core import QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 
+from .conf import debug_mode, def_vals, plugin_version
 from .export import exportToThreeJS
 from .exportsettings import ExportSettings
 from .qgis2threejscore import ObjectTreeItem, MapTo3D
 from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
-from .settings import debug_mode, def_vals, plugin_version
 from . import propertypages as ppages
 from . import qgis2threejstools as tools
 
@@ -656,7 +656,7 @@ class PointMapTool(QgsMapToolEmitPoint):
 
   def canvasPressEvent(self, e):
     self.point = self.toMapCoordinates(e.pos())
-    self.emit(SIGNAL("pointSelected()"))
+    self.emit(SIGNAL("pointSelected()"))    #TODO: new style signal
 
 
 # first changed on 2014-01-03 (last changed on 2015-03-09)
@@ -689,7 +689,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
 
   def canvasReleaseEvent(self, e):
     self.isDrawing = False
-    self.emit(SIGNAL("rectangleCreated()"))
+    self.emit(SIGNAL("rectangleCreated()"))   #TODO: new style signal
 
   def canvasMoveEvent(self, e):
     if not self.isDrawing:

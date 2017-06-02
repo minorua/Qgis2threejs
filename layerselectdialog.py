@@ -17,8 +17,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog
 from qgis.core import QgsLayerTreeModel, QgsProject
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog

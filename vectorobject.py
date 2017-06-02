@@ -22,7 +22,7 @@
 import importlib
 import sys
 
-from qgis.PyQt.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsWkbTypes
 
 
@@ -36,7 +36,7 @@ def objectTypeManager():
 
 
 def list_modules():
-  from qgis.PyQt.QtCore import qDebug
+  from PyQt5.QtCore import qDebug
   for nam, mod in sys.modules.items():
     qDebug(nam + ": " + str(mod))
 

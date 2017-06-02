@@ -19,18 +19,12 @@
  ***************************************************************************/
 """
 import json
-from qgis.PyQt.QtCore import Qt, QObject, pyqtSignal
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from Qgis2threejs.export import ThreeJSExporter
 from Qgis2threejs.exportsettings import ExportSettings
-from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
-from Qgis2threejs.qgis2threejscore import MapTo3D
-from Qgis2threejs.qgis2threejsdialog import RectangleMapTool
 from Qgis2threejs.qgis2threejstools import getLayersInProject, logMessage
-from Qgis2threejs.writer import ThreejsJSWriter, writeSimpleDEM, writeVector    #writeMultiResDEM
 
 
 class Q3DViewerController:

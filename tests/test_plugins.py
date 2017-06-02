@@ -10,7 +10,7 @@ the Free Software Foundation; either version 2 of the License, or
 """
 import os
 from unittest import TestCase
-from qgis.PyQt.QtCore import QSize
+from PyQt5.QtCore import QSize
 from qgis.core import QgsRectangle
 
 from Qgis2threejs.api import Exporter
