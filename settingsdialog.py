@@ -23,6 +23,7 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QFile, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
+from .qgis2threejstools import logMessage
 from .ui.settingsdialog import Ui_SettingsDialog
 
 
@@ -47,7 +48,6 @@ class SettingsDialog(QDialog):
     plugins = plugin_dir.entryList(QDir.Dirs | QDir.NoSymLinks | QDir.NoDotAndDotDot)
 
     tableWidget = ui.tableWidget_Plugins
-    tableWidget.setRowCount(len(plugins))
     tableWidget.setColumnCount(1)
     tableWidget.setHorizontalHeaderLabels(["Name"])
     tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -56,13 +56,21 @@ class SettingsDialog(QDialog):
 
     self.plugin_metadata = []
     for i, name in enumerate(plugins):
+      if name[0] == "_":    # skip __pycache__ dir.
+        continue
+
       parser = configparser.SafeConfigParser()
-      with codecs.open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", "UTF-8") as f:
-        parser.readfp(f)
+      try:
+        with codecs.open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", "UTF-8") as f:
+          parser.readfp(f)
 
-      metadata = dict(parser.items("general"))
-      self.plugin_metadata.append(metadata)
+        metadata = dict(parser.items("general"))
+        self.plugin_metadata.append(metadata)
+      except Exception as e:
+        logMessage("Unable to read metadata of plugin: {}".format(name))
 
+    tableWidget.setRowCount(len(self.plugin_metadata))
+    for i, metadata in enumerate(self.plugin_metadata):
       item = QTableWidgetItem(metadata.get("name", name))
       item.setCheckState(Qt.Checked if name in enabled_plugins else Qt.Unchecked)
       tableWidget.setItem(i, 0, item)
