@@ -19,7 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import codecs
 import json
 import os
 
@@ -177,7 +176,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
     # read html template
-    with codecs.open(templatePath, "r", "UTF-8") as f:
+    with open(templatePath, "r", encoding="UTF-8") as f:
       html = f.read()
 
     html = html.replace("${title}", self.settings.title)
@@ -186,7 +185,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     html = html.replace("${scripts}", "\n".join(self.scripts()))
 
     # write html
-    with codecs.open(self.settings.htmlfilename, "w", "UTF-8") as f:
+    with open(self.settings.htmlfilename, "w", encoding="UTF-8") as f:
       f.write(html)
 
     return True

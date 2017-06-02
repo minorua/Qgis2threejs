@@ -208,10 +208,9 @@ class Qgis2threejs:
       self.exportSettings = json.load(f)
 
   def saveExportSettings(self, filename):
-    import codecs
     import json
     try:
-      with codecs.open(filename, "w", "UTF-8") as f:
+      with open(filename, "w", encoding="UTF-8") as f:
         json.dump(self.exportSettings, f, ensure_ascii=False, indent=2, sort_keys=True)
       return True
     except Exception as e:

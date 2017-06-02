@@ -17,7 +17,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import codecs
 import configparser
 import os
 from qgis.PyQt.QtCore import Qt, QDir, QFile, QSettings
@@ -61,7 +60,7 @@ class SettingsDialog(QDialog):
 
       parser = configparser.SafeConfigParser()
       try:
-        with codecs.open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", "UTF-8") as f:
+        with open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", encoding="UTF-8") as f:
           parser.readfp(f)
 
         metadata = dict(parser.items("general"))
