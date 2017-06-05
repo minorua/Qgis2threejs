@@ -35,6 +35,7 @@ class VectorLayerExporter(LayerExporter):
 
   def __init__(self, settings, imageManager, progress=None):
     LayerExporter.__init__(self, settings, imageManager, progress)
+    self.triMesh = {}
 
   def export(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
     mapLayer = QgsProject.instance().mapLayer(layerId)

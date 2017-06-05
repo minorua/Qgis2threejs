@@ -95,7 +95,7 @@ class VectorPropertyReader:
     else:
       sl = symbol.symbolLayer(0)
       if sl and isBorder:
-        return sl.outlineColor().name().replace("#", "0x")
+        return "0xffff00"   #sl.outlineColor().name().replace("#", "0x")    #TODO: QGIS 3
 
       if sl and symbol.hasDataDefinedProperties():
         expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
