@@ -24,7 +24,8 @@ from osgeo import ogr, osr
 
 from .exportlayer import LayerExporter
 from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
-from .propertyreader import VectorPropertyReader
+from .propertyreader import DEMPropertyReader, VectorPropertyReader
+from .qgis2threejscore import ObjectTreeItem
 from . import qgis2threejstools as tools
 from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeManager
