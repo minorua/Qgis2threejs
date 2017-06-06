@@ -136,7 +136,7 @@ class Q3DView(QWebView):
     self.iface.startApplication()
 
     # create scene and layers
-    self.iface.createScene()
+    self.iface.exportScene()
 
     for id, layer in enumerate(self.layerManager.layers):
       if layer.get("visible", False):

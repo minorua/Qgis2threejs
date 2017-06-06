@@ -73,13 +73,9 @@ class Q3DViewerInterface(QObject):
     #self.webView.runString("var jsonToLoad = JSON.parse('" + json.dumps(obj).replace("'", "\\'") + "');")
     #self.webView.runString("app.loadJSONObject(jsonToLoad);")
 
-  def createScene(self):
+  def exportScene(self):
     # create a scene with lights
-    self.controller.createScene()
-
-    #writer.writeProject()
-    #self.buf.write("app.loadProject(project);")
-    #self.flush()
+    self.controller.exportScene()
 
   def exportLayer(self, layer):
     if not self.enabled:

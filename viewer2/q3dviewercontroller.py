@@ -76,7 +76,7 @@ class Q3DViewerController:
 
     return layers
 
-  def createScene(self):
+  def exportScene(self):
     self.iface.loadJSONObject(self.exporter.exportScene(False))
 
   def exportLayer(self, layer):
