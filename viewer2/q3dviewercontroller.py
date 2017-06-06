@@ -91,19 +91,3 @@ class Q3DViewerController:
 
     # update scene properties
     self.iface.loadJSONObject(self.exporter.exportScene(False))
-
-  def showPropertiesDialog(self, id, layerId, geomType, properties=None):
-    layer = QgsProject.instance().mapLayer(str(layerId))
-    if layer is None:
-      return
-
-    properties = properties or {}
-    dialog = PropertiesDialog(self.qgis_iface, self.objectTypeManager, self.pluginManager)
-    dialog.setLayer(id, layer, geomType, properties)
-    dialog.show()
-    dialog.propertiesChanged.connect(self.propertiesChanged)
-    dialog.exec_()
-
-  def propertiesChanged(self, id, properties):
-    pass
-    #self.iface.notify({"code": q3dconst.N_LAYER_PROPERTIES_CHANGED, "id": id, "properties": properties})
