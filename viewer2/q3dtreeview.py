@@ -83,7 +83,7 @@ class Q3DTreeView(QTreeView):
       "geomType": geomType,
       "visible": visible,
       "properties": properties or json.loads(q3dconst.DEFAULT_PROPERTIES[geomType]),
-      "jsLayerId": layerId[:8] + str(itemId)
+      "jsLayerId": "{}_{}".format(itemId, layerId[:8])
     })
 
     # add a layer item to tree view
@@ -122,13 +122,7 @@ class Q3DTreeView(QTreeView):
 
     layer["visible"] = visible
     if visible:
-      if layer["jsLayerId"] is None:
-        self.iface.createLayer(layer)
-        #self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
-      else:
-        self.iface.updateLayer(layer)
-        #self.runString("project.layers[{0}].setVisible(true);".format(layer["jsLayerId"]))
-        #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
+      self.iface.exportLayer(layer)
     else:
       obj = {
         "type": "layer",

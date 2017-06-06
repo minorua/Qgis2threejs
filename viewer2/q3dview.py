@@ -55,8 +55,8 @@ class Bridge(QObject):
 
   @pyqtSlot(int, int)
   def setLayerId(self, pyLayerId, jsLayerId):   # TODO: set jsLayerId when the layer is added to layer manager.
-    self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
-    self._parent.layerCreated(pyLayerId, jsLayerId)
+    #self.layerManager.layers[pyLayerId]["jsLayerId"] = jsLayerId
+    #self._parent.layerCreated(pyLayerId, jsLayerId)
     print("Layer {0} in the layer manager got a layer ID for Q3D project. Layer ID: {1}".format(pyLayerId, jsLayerId))
 
   @pyqtSlot(int, int, str, int, int, bool)
@@ -139,9 +139,8 @@ class Q3DView(QWebView):
     self.iface.createScene()
 
     for id, layer in enumerate(self.layerManager.layers):
-      layer["jsLayerId"] = None
       if layer.get("visible", False):
-        self.iface.createLayer(layer)
+        self.iface.exportLayer(layer)
 
     #if self.isViewer:
       #self.iface.request({"dataType": q3dconst.JS_CREATE_PROJECT})

@@ -17,7 +17,7 @@ DEFAULT_PROPERTIES = {
 # Notification type   #TODO: update comments
 # Q3D -> QGIS (Live Exporter)
 N_LAYER_DOUBLECLICKED = 1   # params: Layer properties
-N_LAYER_CREATED = 2         # params: {"pyLayerId": int, "jsLayerId": int}
+N_LAYER_CREATED = 2         # params: {"pyLayerId": int, "jsLayerId": str}
 
 # QGIS -> Q3D (Live Exporter)
 N_CANVAS_EXTENT_CHANGED = 10

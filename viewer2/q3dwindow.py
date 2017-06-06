@@ -61,10 +61,7 @@ class Q3DViewerInterface(QObject):
       # update layers
       for layerId, layer in enumerate(self.treeView.layers):
         if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
-          if layer["jsLayerId"] is None:
-            self.createLayer(layer)
-          else:
-            self.updateLayer(layer)
+          self.exportLayer(layer)
 
       self.extentUpdated = False
 
@@ -84,16 +81,10 @@ class Q3DViewerInterface(QObject):
     #self.buf.write("app.loadProject(project);")
     #self.flush()
 
-  def createLayer(self, layer):
+  def exportLayer(self, layer):
     if not self.enabled:
       return
-    self.controller.createLayer(layer)
-    layer["updated"] = False
-
-  def updateLayer(self, layer):
-    if not self.enabled:
-      return
-    self.controller.updateLayer(layer)
+    self.controller.exportLayer(layer)
     layer["updated"] = False
 
   def canvasUpdated(self, painter):
@@ -103,7 +94,7 @@ class Q3DViewerInterface(QObject):
     #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
     for layer in self.treeView.layers:
       if layer["visible"]:
-        self.updateLayer(layer)
+        self.exportLayer(layer)
         #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
     self.extentUpdated = False
 
@@ -135,10 +126,7 @@ class Q3DViewerInterface(QObject):
       return
 
     if layer["visible"]:
-      if layer["jsLayerId"] is None:
-        self.createLayer(layer)
-      else:
-        self.updateLayer(layer)
+      self.exportLayer(layer)
 
 
 class Q3DWindow(QMainWindow):
