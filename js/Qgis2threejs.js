@@ -527,9 +527,10 @@ limitations:
 
   app.labelVisibilityChanged = function () {
     app.labels = [];
-    app.scene.mapLayers.forEach(function (layer) {
+    var layer;
+    for (var id in app.scene.mapLayers) {
       if (layer.l && layer.visible) app.labels = app.labels.concat(layer.labels);
-    });
+    }
   };
 
   app.setLabelVisibility = function (visible) {
@@ -543,9 +544,9 @@ limitations:
   app.setWireframeMode = function (wireframe) {
     if (wireframe == app._wireframeMode) return;
 
-    app.scene.mapLayers.forEach(function (layer) {
-      layer.setWireframeMode(wireframe);
-    });
+    for (var id in app.scene.mapLayers) {
+      app.scene.mapLayers[id].setWireframeMode(wireframe);
+    }
 
     app._wireframeMode = wireframe;
   };
@@ -553,9 +554,11 @@ limitations:
   app.queryableObjects = function () {
     if (app.queryObjNeedsUpdate) {
       app._queryableObjects = [];
-      app.scene.mapLayers.forEach(function (layer) {
+      var layer;
+      for (var id in app.scene.mapLayers) {
+        layer = app.scene.mapLayers[id];
         if (layer.visible && layer.queryableObjects.length) app._queryableObjects = app._queryableObjects.concat(layer.queryableObjects);
-      });
+      }
     }
     return app._queryableObjects;
   };
