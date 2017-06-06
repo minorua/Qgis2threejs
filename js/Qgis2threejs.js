@@ -1335,7 +1335,9 @@ Q3D.MapLayer.prototype = {
     var i, l;
     for (i = 0, l = this.materials.length; i < l; i++) {
       if (this.materials[i].map) this.materials[i].map.dispose();   // dispose of texture
-      this.materials[i].m.dispose();
+      // this.materials[i].m.dispose();
+      //TODO: error occurs during next rendering if materials are disposed here (with three.js r70).
+      //      updating three.js solves this problem?
     }
     this.materials = [];
 
