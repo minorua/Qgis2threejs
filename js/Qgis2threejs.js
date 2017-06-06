@@ -2478,7 +2478,7 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
 };
 
 Q3D.Utils.loadTexture = function (url) {
-  THREE.ImageUtils.loadTexture(url, function (tex) {
+  return THREE.ImageUtils.loadTexture(url, function (tex) {
     Q3D.application.render();
   });
 };
