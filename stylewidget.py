@@ -273,6 +273,8 @@ class HeightWidgetFunc(WidgetFuncBase):
 
   def isCurrentItemRelativeHeight(self):
     itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
+    if itemData is None:    # happens while setting up the height widget
+      return False
     return itemData == HeightWidgetFunc.RELATIVE or itemData >= HeightWidgetFunc.FIRST_ATTR_REL
 
 
