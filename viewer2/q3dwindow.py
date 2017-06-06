@@ -21,10 +21,10 @@
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QObject, QVariant, pyqtSignal
+from PyQt5.QtCore import QObject, QSettings, QVariant, pyqtSignal
 from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox
 
-from qgis.core import QgsProject, QgsSettings
+from qgis.core import QgsProject
 
 from .ui5_propertiesdialog import Ui_PropertiesDialog
 from .ui5_q3dwindow import Ui_Q3DWindow
@@ -173,12 +173,12 @@ class Q3DWindow(QMainWindow):
     self.alwaysOnTopToggled(False)
 
     # restore window geometry and dockwidget layout
-    settings = QgsSettings()
+    settings = QSettings()
     self.restoreGeometry(settings.value("/Qgis2threejs/wnd/geometry", b""))
     self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
   def closeEvent(self, event):
-    settings = QgsSettings()
+    settings = QSettings()
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
     QMainWindow.closeEvent(self, event)
