@@ -65,7 +65,7 @@ class DEMLayerExporter(LayerExporter):
 
     # write grid values to an external binary file (file export mode)
     if pathRoot is not None:
-      block.write(pathRoot + "_0.bin")
+      block.write(pathRoot + "_DEM0.bin")
 
     #TODO: move to DEMBlock?
     # material option
@@ -103,7 +103,7 @@ class DEMLayerExporter(LayerExporter):
       "visible": visible
       }
 
-    url = None if urlRoot is None else urlRoot + "_0.bin"
+    url = None if urlRoot is None else urlRoot + "_DEM0.bin"
     b = block.export(url)
     b["mat"] = mi
 

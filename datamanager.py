@@ -193,7 +193,7 @@ class ImageManager(DataManager):
 
   def write(self, pathRoot):
     for i in range(self.count()):
-      self.image(i).save("{}_{}.png".format(pathRoot, i))
+      self.image(i).save("{}_IMG{}.png".format(pathRoot, i))
 
   def _write(self, f):    #TODO: remove
     if len(self._list) == 0:
@@ -335,7 +335,7 @@ class MaterialManager(DataManager):
           m["image"] = {"object": imageManager.image(imgIndex)}
           #m["image"] = {"base64": imageManager.base64image(imgIndex)}
         else:
-          m["image"] = {"url": "{}_{}.png".format(urlRoot, imgIndex)}
+          m["image"] = {"url": "{}_IMG{}.png".format(urlRoot, imgIndex)}
       else:
         m["c"] = int(mat[1], 16)    # color
 
