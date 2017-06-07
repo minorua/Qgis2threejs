@@ -103,9 +103,20 @@ class DEMLayerExporter(LayerExporter):
       "visible": visible
       }
 
+    # DEM block
     url = None if urlRoot is None else urlRoot + "_DEM0.bin"
     b = block.export(url)
     b["mat"] = mi
+
+    # TODO: clipping
+    clip_option = properties.get("checkBox_Clip", False)
+
+    if properties.get("checkBox_Sides", False):
+      b["sides"] = True     # sides and bottom
+
+    if properties.get("checkBox_Frame", False) and not clip_option:
+      b["frame"] = True     # frame
+
 
     return {
       "type": "layer",

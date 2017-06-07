@@ -1065,11 +1065,13 @@ Q3D.DEMBlock.prototype = {
 
   constructor: Q3D.DEMBlock,
 
-  build: function (layer, material) {     // TODO: -> shading, materials
+  build: function (layer, material, callback) {     // TODO: -> shading, materials, callback
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
-        geom = new PlaneGeometry(this.width, this.height, this.grid.width - 1, this.grid.height - 1);
+        geom = new PlaneGeometry(this.width, this.height, this.grid.width - 1, this.grid.height - 1),
+        mesh = new THREE.Mesh(geom, material),    // TODO: , layer.materials[this.m].m);
+        block = this;
 
-    if (this.grid.array !== undefined) {
+    if (this.grid.array !== undefined) {    // WebKit Bridge
       var grid_values = this.grid.array;
 
       if (Q3D.Options.exportMode) {
@@ -1089,6 +1091,8 @@ Q3D.DEMBlock.prototype = {
         geom.computeFaceNormals();
         geom.computeVertexNormals();
       }
+
+      if (callback) callback(block);
     }
     else if (this.grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
@@ -1112,13 +1116,13 @@ Q3D.DEMBlock.prototype = {
 
           geom.attributes.position.needsUpdate = true;
 
-          layer.dispatchEvent({type: "renderRequest"});
+          block.grid.array = grid_values;
+          if (callback) callback(block);
         }
       };
       xhr.send(null);
     }
 
-    var mesh = new THREE.Mesh(geom, material);    // TODO: , layer.materials[this.m].m);
     // TODO: if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
     // TODO: if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
     this.obj = mesh;
@@ -1127,12 +1131,12 @@ Q3D.DEMBlock.prototype = {
 
   buildSides: function (layer, material, z0) {
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
-    var band_width = -z0 * 2, grid_values = this.data, w = this.width, h = this.height, HALF_PI = Math.PI / 2;
+    var band_width = -z0 * 2, grid_values = this.grid.array, w = this.grid.width, h = this.grid.height, HALF_PI = Math.PI / 2;
     var i, mesh;
 
     // front and back
-    var geom_fr = new PlaneGeometry(this.plane.width, band_width, w - 1, 1),
-        geom_ba = new PlaneGeometry(this.plane.width, band_width, w - 1, 1);
+    var geom_fr = new PlaneGeometry(this.width, band_width, w - 1, 1),
+        geom_ba = new PlaneGeometry(this.width, band_width, w - 1, 1);
 
     var k = w * (h - 1);
     if (Q3D.Options.exportMode) {
@@ -1151,21 +1155,21 @@ Q3D.DEMBlock.prototype = {
       }
     }
     mesh = new THREE.Mesh(geom_fr, material);
-    mesh.position.y = -this.plane.height / 2;
+    mesh.position.y = -this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     layer.addObject(mesh, false);
     this.aObjs.push(mesh);
 
     mesh = new THREE.Mesh(geom_ba, material);
-    mesh.position.y = this.plane.height / 2;
+    mesh.position.y = this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     layer.addObject(mesh, false);
     this.aObjs.push(mesh);
 
     // left and right
-    var geom_le = new PlaneGeometry(band_width, this.plane.height, 1, h - 1),
-        geom_ri = new PlaneGeometry(band_width, this.plane.height, 1, h - 1);
+    var geom_le = new PlaneGeometry(band_width, this.height, 1, h - 1),
+        geom_ri = new PlaneGeometry(band_width, this.height, 1, h - 1);
 
     if (Q3D.Options.exportMode) {
       for (i = 0; i < h; i++) {
@@ -1183,23 +1187,23 @@ Q3D.DEMBlock.prototype = {
       }
     }
     mesh = new THREE.Mesh(geom_le, material);
-    mesh.position.x = -this.plane.width / 2;
+    mesh.position.x = -this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
     layer.addObject(mesh, false);
     this.aObjs.push(mesh);
 
     mesh = new THREE.Mesh(geom_ri, material);
-    mesh.position.x = this.plane.width / 2;
+    mesh.position.x = this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
     layer.addObject(mesh, false);
     this.aObjs.push(mesh);
 
     // bottom
     if (Q3D.Options.exportMode) {
-      var geom = new THREE.PlaneGeometry(this.plane.width, this.plane.height, w - 1, h - 1);
+      var geom = new THREE.PlaneGeometry(this.width, this.height, w - 1, h - 1);
     }
     else {
-      var geom = new THREE.PlaneBufferGeometry(this.plane.width, this.plane.height, 1, 1);
+      var geom = new THREE.PlaneBufferGeometry(this.width, this.height, 1, 1);
     }
     mesh = new THREE.Mesh(geom, material);
     mesh.position.z = z0;
@@ -1500,12 +1504,40 @@ Q3D.DEMLayer.prototype.addBlock = function (params, clipped) {
 };
 
 Q3D.DEMLayer.prototype.build = function (data) {
+  var layer = this,
+      opt = Q3D.Options;
+
+  var callback = function (block) {
+    // build sides, bottom and frame
+    if (block.sides) {
+      // material
+      var material = layer.materials[block.mat];
+      var opacity = (material.o !== undefined) ? material.o : 1;
+      var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
+                                               ambient: opt.side.color,
+                                               opacity: opacity,
+                                               transparent: (opacity < 1)});
+      layer.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
+
+      layer.objectGroup.add(block.buildSides(layer, mat, opt.side.bottomZ));
+      layer.sideVisible = true;
+    }
+    if (block.frame) {
+      layer.objectGroup.add(layer.buildFrame(block, opt.frame.color, opt.frame.bottomZ));
+      layer.sideVisible = true;
+    }
+
+    layer.updateMatrixWorld();
+
+    if (block.grid.url !== undefined) layer.dispatchEvent({type: "renderRequest"});
+  };
+
   // build blocks
   data.blocks.forEach(function (b) {
     var block = new Q3D.DEMBlock(b);
     this.blocks.push(block);
 
-    var obj = block.build(this, this.materials[b.mat].m);
+    var obj = block.build(this, this.materials[b.mat].m, callback);
     obj.userData.layerId = this.index;
     this.objectGroup.add(obj);
   }, this);
