@@ -96,10 +96,14 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 Q3D.Scene.prototype.loadLayerJSONObject = function (jsonObject) {
   // console.assert(jsonObject.type == "layer");
 
+  var scene = this;
+  var requestRender = function () {
+    scene.dispatchEvent({type: "renderRequest"});
+  };
+
   var layer = this.mapLayers[jsonObject.id];
   if (layer === undefined) {
     // console.assert(jsonObject.properties !== undefined);
-
     var type = jsonObject.properties.type
     if (type == "dem") layer = new Q3D.DEMLayer(this);
     else if (type == "point") layer = new Q3D.PointLayer(this);
@@ -109,15 +113,16 @@ Q3D.Scene.prototype.loadLayerJSONObject = function (jsonObject) {
       // console.error("unknown layer type:" + type);
       return;
     }
+    layer.addEventListener("renderRequest", requestRender);
+
     this.mapLayers[jsonObject.id] = layer;
     this.add(layer.objectGroup);
   }
 
-  // TODO: into a web worker
   layer.loadJSONObject(jsonObject);
 
-  app.render();   // TODO: dispatch requestRender event
-
+  requestRender();
+ 
   /* TODO: build labels
   // build labels
   if (layer.l) {
@@ -258,6 +263,7 @@ limitations:
 
     // scene
     app.scene = new Q3D.Scene();
+    app.scene.addEventListener("renderRequest", app.render);
 
     // camera
     app.buildDefaultCamera();
@@ -330,7 +336,7 @@ limitations:
       app.scene.loadJSONObject(jsonObject);
     }
     else if (jsonObject.type == "layer") {
-      app.scene.loadLayerJSONObject(jsonObject);
+      app.scene.loadLayerJSONObject(jsonObject);    // TODO: -> .loadJSONObject
     }
   };
 
@@ -1086,7 +1092,7 @@ Q3D.DEMBlock.prototype = {
     }
     else if (this.grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", this.grid.url, true);
+      xhr.open("GET", this.grid.url);
       xhr.responseType = "arraybuffer";
 
       xhr.onload = function (event) {
@@ -1105,6 +1111,8 @@ Q3D.DEMBlock.prototype = {
           }
 
           geom.attributes.position.needsUpdate = true;
+
+          layer.dispatchEvent({type: "renderRequest"});
         }
       };
       xhr.send(null);
@@ -1311,156 +1319,154 @@ Q3D.MapLayer = function (scene) {
   this.queryableObjects = [];
 };
 
-Q3D.MapLayer.prototype = {
+Q3D.MapLayer.prototype = Object.create(THREE.EventDispatcher.prototype);
+Q3D.MapLayer.prototype.constructor = Q3D.MapLayer;
 
-  constructor: Q3D.MapLayer,
+Q3D.MapLayer.prototype.addObject = function (object, queryable) {
+  if (queryable === undefined) queryable = this.q;
 
-  addObject: function (object, queryable) {
-    if (queryable === undefined) queryable = this.q;
+  this.objectGroup.add(object);
+  if (queryable) this._addQueryableObject(object);
+};
 
-    this.objectGroup.add(object);
-    if (queryable) this._addQueryableObject(object);
-  },
+Q3D.MapLayer.prototype._addQueryableObject = function (object) {
+  this.queryableObjects.push(object);
+  for (var i = 0, l = object.children.length; i < l; i++) {
+    this._addQueryableObject(object.children[i]);
+  }
+};
 
-  _addQueryableObject: function (object) {
-    this.queryableObjects.push(object);
-    for (var i = 0, l = object.children.length; i < l; i++) {
-      this._addQueryableObject(object.children[i]);
-    }
-  },
+Q3D.MapLayer.prototype.removeAllObjects = function () {
+  // dispose of geometries, materials and textures
+  this.objectGroup.traverse(function (obj) {
+    if (obj.geometry) obj.geometry.dispose();
+  });
 
-  removeAllObjects: function () {
-    // dispose of geometries, materials and textures
-    this.objectGroup.traverse(function (obj) {
-      if (obj.geometry) obj.geometry.dispose();
-    });
+  var i, l;
+  for (i = 0, l = this.materials.length; i < l; i++) {
+    if (this.materials[i].map) this.materials[i].map.dispose();   // dispose of texture
+    // this.materials[i].m.dispose();
+    //TODO: error occurs during next rendering if materials are disposed here (with three.js r70).
+    //      updating three.js solves this problem?
+  }
+  this.materials = [];
 
-    var i, l;
-    for (i = 0, l = this.materials.length; i < l; i++) {
-      if (this.materials[i].map) this.materials[i].map.dispose();   // dispose of texture
-      // this.materials[i].m.dispose();
-      //TODO: error occurs during next rendering if materials are disposed here (with three.js r70).
-      //      updating three.js solves this problem?
-    }
-    this.materials = [];
+  // remove all child objects from object group
+  for (i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
+    this.objectGroup.remove(this.objectGroup.children[i]);
+  }
+  this.queryableObjects = [];
+};
 
-    // remove all child objects from object group
-    for (i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
-      this.objectGroup.remove(this.objectGroup.children[i]);
-    }
-    this.queryableObjects = [];
-  },
+Q3D.MapLayer.prototype.initMaterials = function () {
+  this.materials = [];
+  this.createMaterials();
+};
 
-  initMaterials: function () {
-    this.materials = [];
-    this.createMaterials();
-  },
+Q3D.MapLayer.prototype.createMaterials = function () {
+  if (this.materials.length >= this.m.length) return;
 
-  createMaterials: function () {
-    if (this.materials.length >= this.m.length) return;
+  var mat, sum_opacity = 0;
+  for (var i = this.materials.length, l = this.m.length; i < l; i++) {
+    var m = this.m[i];
 
-    var mat, sum_opacity = 0;
-    for (var i = this.materials.length, l = this.m.length; i < l; i++) {
-      var m = this.m[i];
-
-      var opt = {};
-      if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
-      if (m.flat) opt.shading = THREE.FlatShading;
-      if (m.image !== undefined) {
-        var image = m.image;
-        if (image.texture === undefined) {
-          if (image.url !== undefined) {
-            image.texture = Q3D.Utils.loadTexture(image.url);
-          }
-          else if (image.object !== undefined) {    // WebKit Bridge
-            image.texture = new THREE.Texture(image.object.toImageData());
-            image.texture.needsUpdate = true;
-          }
-          else {
-            image.texture = Q3D.Utils.loadTextureBase64(image.base64);
-          }
+    var opt = {};
+    if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
+    if (m.flat) opt.shading = THREE.FlatShading;
+    if (m.image !== undefined) {
+      var image = m.image;
+      if (image.texture === undefined) {
+        if (image.url !== undefined) {
+          image.texture = Q3D.Utils.loadTexture(image.url, this);
         }
-        opt.map = image.texture;
+        else if (image.object !== undefined) {    // WebKit Bridge
+          image.texture = new THREE.Texture(image.object.toImageData());
+          image.texture.needsUpdate = true;
+        }
+        else {
+          image.texture = Q3D.Utils.loadTextureBase64(image.base64, this);
+        }
       }
-      if (m.o !== undefined && m.o < 1) {
-        opt.opacity = m.o;
-        opt.transparent = true;
-      }
-      if (m.t) opt.transparent = true;
-      if (m.w) opt.wireframe = true;
+      opt.map = image.texture;
+    }
+    if (m.o !== undefined && m.o < 1) {
+      opt.opacity = m.o;
+      opt.transparent = true;
+    }
+    if (m.t) opt.transparent = true;
+    if (m.w) opt.wireframe = true;
 
-      if (m.type == Q3D.MaterialType.MeshLambert) {
-        if (m.c !== undefined) opt.color = opt.ambient = m.c;
-        mat = new THREE.MeshLambertMaterial(opt);
-      }
-      else if (m.type == Q3D.MaterialType.MeshPhong) {
-        if (m.c !== undefined) opt.color = opt.ambient = m.c;
-        mat = new THREE.MeshPhongMaterial(opt);
-      }
-      else if (m.type == Q3D.MaterialType.LineBasic) {
-        opt.color = m.c;
-        mat = new THREE.LineBasicMaterial(opt);
-      }
-      else {
-        opt.color = 0xffffff;
-        mat = new THREE.SpriteMaterial(opt);
-      }
-
-      m.m = mat;
-      this.materials.push(m);   // TODO: push mat instead of m. add mat.userData to store some material information
-      sum_opacity += mat.opacity;
+    if (m.type == Q3D.MaterialType.MeshLambert) {
+      if (m.c !== undefined) opt.color = opt.ambient = m.c;
+      mat = new THREE.MeshLambertMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.MeshPhong) {
+      if (m.c !== undefined) opt.color = opt.ambient = m.c;
+      mat = new THREE.MeshPhongMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.LineBasic) {
+      opt.color = m.c;
+      mat = new THREE.LineBasicMaterial(opt);
+    }
+    else {
+      opt.color = 0xffffff;
+      mat = new THREE.SpriteMaterial(opt);
     }
 
-    // layer opacity is the average opacity of materials
-    // TODO: in case of 3DViewer
-    this.opacity = sum_opacity / this.materials.length;
-  },
-
-  loadJSONObject: function (jsonObject) {
-    // properties
-    if (jsonObject.properties !== undefined) {
-      this.properties = jsonObject.properties;
-      this.setVisible((jsonObject.properties.visible !== false) ? true : false);
-    }
-
-    if (jsonObject.data !== undefined) {
-      this.removeAllObjects();
-
-      // materials
-      if (jsonObject.data.materials !== undefined) {
-        this.m = jsonObject.data.materials;
-        this.initMaterials();   //TODO: this.createMaterials(data.materials)
-      }
-    }
-  },
-
-  setOpacity: function (opacity) {
-    this.opacity = opacity;
-    this.materials.forEach(function (m) {
-      m.m.transparent = Boolean(m.t) || (opacity < 1);
-      m.m.opacity = opacity;
-    });
-  },
-
-  setVisible: function (visible) {
-    // if (this.visible === visible) return;
-    this.visible = visible;
-    this.objectGroup.visible = visible;
-    Q3D.application.queryObjNeedsUpdate = true;
-  },
-
-  setWireframeMode: function (wireframe) {
-    this.materials.forEach(function (m) {
-      if (m.w) return;
-      if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
-    });
-  },
-
-  updateMatrixWorld: function () {
-    this.objectGroup.updateMatrixWorld();
+    m.m = mat;
+    this.materials.push(m);   // TODO: push mat instead of m. add mat.userData to store some material information
+    sum_opacity += mat.opacity;
   }
 
+  // layer opacity is the average opacity of materials
+  // TODO: in case of 3DViewer
+  this.opacity = sum_opacity / this.materials.length;
 };
+
+Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject) {
+  // properties
+  if (jsonObject.properties !== undefined) {
+    this.properties = jsonObject.properties;
+    this.setVisible((jsonObject.properties.visible !== false) ? true : false);
+  }
+
+  if (jsonObject.data !== undefined) {
+    this.removeAllObjects();
+
+    // materials
+    if (jsonObject.data.materials !== undefined) {
+      this.m = jsonObject.data.materials;
+      this.initMaterials();   //TODO: this.createMaterials(data.materials)
+    }
+  }
+};
+
+Q3D.MapLayer.prototype.setOpacity = function (opacity) {
+  this.opacity = opacity;
+  this.materials.forEach(function (m) {
+    m.m.transparent = Boolean(m.t) || (opacity < 1);
+    m.m.opacity = opacity;
+  });
+};
+
+Q3D.MapLayer.prototype.setVisible = function (visible) {
+  // if (this.visible === visible) return;
+  this.visible = visible;
+  this.objectGroup.visible = visible;
+  Q3D.application.queryObjNeedsUpdate = true;
+};
+
+Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
+  this.materials.forEach(function (m) {
+    if (m.w) return;
+    if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
+  });
+};
+
+Q3D.MapLayer.prototype.updateMatrixWorld = function () {
+  this.objectGroup.updateMatrixWorld();
+};
+
 
 /*
 Q3D.MapLayer.prototype.build = function () {};
@@ -2482,17 +2488,17 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
   });
 };
 
-Q3D.Utils.loadTexture = function (url) {
-  return THREE.ImageUtils.loadTexture(url, function (tex) {
-    Q3D.application.render();
+Q3D.Utils.loadTexture = function (url, eventDispatcher) {
+  return THREE.ImageUtils.loadTexture(url, undefined, function (tex) {
+    if (eventDispatcher) eventDispatcher.dispatchEvent({type: "renderRequest"});
   });
 };
 
-Q3D.Utils.loadTextureBase64 = function (imageData) {
+Q3D.Utils.loadTextureBase64 = function (imageData, eventDispatcher) {
   var texture, image = new Image();
   image.onload = function () {
     texture.needsUpdate = true;
-    if (!Q3D.Options.exportMode) Q3D.application.render();
+    if (eventDispatcher && !Q3D.Options.exportMode) eventDispatcher.dispatchEvent({type: "renderRequest"});
   };
   image.src = imageData;
   texture = new THREE.Texture(image);
