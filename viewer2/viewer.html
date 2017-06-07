@@ -26,7 +26,6 @@
 </style>
 </head>
 <body>
-<img id="icon" style="position:absolute;">
 <div id="webgl"></div>
 
 <!-- popup -->
@@ -64,41 +63,17 @@ and uses the following library:
 <script src="../js/threejs/controls/OrbitControls.js"></script>
 <script src="viewer.js"></script>
 <script>
-var option = Q3D.Options;
-//${options}
-
 if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
 
 var container = document.getElementById("webgl");
 app.init(container);
 
 document.getElementById("infobtn").onclick = app.showInfo.bind(app);
-if ("hidebutton" in app.urlParams) document.getElementById("infobtn").style.display = "none";
-
-container.addEventListener("mouseup", function (e) {
-  console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
-  pyObj.mouseUp(e.clientX + ', ' + e.clientY);
-});
-
-container.addEventListener("dblclick", function (e) {
-  var myicon = pyObj.image();
-  console.log(myicon);
-  myicon.assignToHTMLImageElement(document.getElementById("icon"));
-
-  /*
-  var img = new Image();
-  myicon.assignToHTMLImageElement(img);
-  document.getElementById("icon").src = img.src;
-  */
-});
-
-app.showQueryResult = function (point, layerId, featureId) {
-};
 
 app.addEventListeners();
 // app.start();
 </script>
-<!--${scripts}-->
+
 <div id="debug"></div>
 </body>
 </html>
