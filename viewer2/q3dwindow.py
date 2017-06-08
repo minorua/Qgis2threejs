@@ -254,7 +254,6 @@ class Q3DWindow(QMainWindow):
     #  data = data.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
 
     for idx, layer in enumerate(layers):
-      logMessage(str(layer))
       self.ui.treeView.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
 
     #for layer in self.ui.treeView.layers:

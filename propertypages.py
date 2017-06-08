@@ -353,7 +353,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       #self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)    #TODO: new style
       self.dialog.startPointSelection()
     else:
-      self.checkBox_Sides.setChecked(False)   # no sides with additional dem
+      pass
+      #TODO: remove
+      #self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
   def initLayerComboBox(self):
     # list of 1 band raster layers and plugin dem providers
