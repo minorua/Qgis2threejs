@@ -171,7 +171,9 @@ class ImageManager(DataManager):
         return QImage(image_path)
       else:
         logMessage("Image file not found: {0}".format(image_path))
-        return None
+        image = QImage(1, 1, QImage.Format_RGB32)
+        image.fill(Qt.lightGray)
+        return image
 
     if imageType == self.MAP_IMAGE:
       width, height, extent, transp_background = image[1]
