@@ -126,9 +126,8 @@ def getTemplateConfig(template_path):
 
   if not os.path.exists(meta_path):
     return {}
-  parser = configparser.SafeConfigParser()
-  with open(meta_path, "r") as f:
-    parser.readfp(f)
+  parser = configparser.ConfigParser()
+  parser.read(meta_path)
   config = {"path": abspath}
   for item in parser.items("general"):
     config[item[0]] = item[1]
