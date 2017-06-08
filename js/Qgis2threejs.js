@@ -1545,35 +1545,8 @@ Q3D.DEMLayer.prototype.build = function (data) {
   }, this);
 };
 
-Q3D.DEMLayer.prototype._build = function () {
-  var opt = Q3D.Options;
-  this.blocks.forEach(function (block) {
-    block.build(this);
-
-    // build sides, bottom and frame
-    if (block.sides) {
-      // material
-      var opacity = this.materials[block.m].o;
-      if (opacity === undefined) opacity = 1;
-      var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
-                                               ambient: opt.side.color,
-                                               opacity: opacity,
-                                               transparent: (opacity < 1)});
-      this.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
-
-      block.buildSides(this, mat, opt.side.bottomZ);
-      this.sideVisible = true;
-    }
-    if (block.frame) {
-      this.buildFrame(block, opt.frame.color, opt.frame.bottomZ);
-      this.sideVisible = true;
-    }
-  }, this);
-};
-
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
-  var dem = block;
-  var opacity = this.materials[block.m].o;
+  var opacity = this.materials[block.mat].o;
   if (opacity === undefined) opacity = 1;
   var mat = new THREE.LineBasicMaterial({color: color,
                                          opacity: opacity,
@@ -1581,7 +1554,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
   this.materials.push({type: Q3D.MaterialType.LineBasic, m: mat});
 
   // horizontal rectangle at bottom
-  var hw = dem.plane.width / 2, hh = dem.plane.height / 2;
+  var hw = block.width / 2, hh = block.height / 2;
   var geom = new THREE.Geometry();
   geom.vertices.push(new THREE.Vector3(-hw, -hh, z0),
                      new THREE.Vector3(hw, -hh, z0),
@@ -1591,13 +1564,13 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
 
   var obj = new THREE.Line(geom, mat);
   this.addObject(obj, false);
-  dem.aObjs.push(obj);
+  block.aObjs.push(obj);
 
   // vertical lines at corners
-  var pts = [[-hw, -hh, dem.data[dem.data.length - dem.width]],
-             [hw, -hh, dem.data[dem.data.length - 1]],
-             [hw, hh, dem.data[dem.width - 1]],
-             [-hw, hh, dem.data[0]]];
+  var pts = [[-hw, -hh, block.grid.array[block.grid.array.length - block.grid.width]],
+             [hw, -hh, block.grid.array[block.grid.array.length - 1]],
+             [hw, hh, block.grid.array[block.grid.width - 1]],
+             [-hw, hh, block.grid.array[0]]];
   pts.forEach(function (pt) {
     var geom = new THREE.Geometry();
     geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
@@ -1605,7 +1578,7 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
 
     var obj = new THREE.Line(geom, mat);
     this.addObject(obj, false);
-    dem.aObjs.push(obj);
+    block.aObjs.push(obj);
   }, this);
 };
 
