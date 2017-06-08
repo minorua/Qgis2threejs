@@ -108,8 +108,16 @@ class Q3DViewerInterface(QObject):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
+
+    # restore dialog geometry
+    settings = QSettings()
+    dialog.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
+
     dialog.show()
     dialog.exec_()
+
+    # save dialog geometry
+    settings.setValue("/Qgis2threejs/propdlg/geometry", dialog.saveGeometry())
     return True
 
   def updateLayerProperties(self, layerId, properties):
