@@ -302,7 +302,7 @@ limitations:
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
     app.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.r),
-                                      new THREE.MeshLambertMaterial({color: opt.c, ambient: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
+                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
     app.queryMarker.visible = false;
     app.scene.add(app.queryMarker);
 
@@ -1403,11 +1403,11 @@ Q3D.MapLayer.prototype.createMaterials = function () {
     if (m.w) opt.wireframe = true;
 
     if (m.type == Q3D.MaterialType.MeshLambert) {
-      if (m.c !== undefined) opt.color = opt.ambient = m.c;
+      if (m.c !== undefined) opt.color = m.c;
       mat = new THREE.MeshLambertMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.MeshPhong) {
-      if (m.c !== undefined) opt.color = opt.ambient = m.c;
+      if (m.c !== undefined) opt.color = m.c;
       mat = new THREE.MeshPhongMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.LineBasic) {
@@ -1516,16 +1516,15 @@ Q3D.DEMLayer.prototype.build = function (data) {
       var material = layer.materials[block.mat];
       var opacity = (material.o !== undefined) ? material.o : 1;
       var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
-                                               ambient: opt.side.color,
                                                opacity: opacity,
                                                transparent: (opacity < 1)});
       layer.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
 
-      layer.objectGroup.add(block.buildSides(layer, mat, opt.side.bottomZ));
+      block.buildSides(layer, mat, opt.side.bottomZ);                 // TODO: layer.objectGroup.add()
       layer.sideVisible = true;
     }
     if (block.frame) {
-      layer.objectGroup.add(layer.buildFrame(block, opt.frame.color, opt.frame.bottomZ));
+      layer.buildFrame(block, opt.frame.color, opt.frame.bottomZ);    // layer.objectGroup.add()
       layer.sideVisible = true;
     }
 
