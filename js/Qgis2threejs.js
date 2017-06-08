@@ -172,6 +172,8 @@ Q3D.Scene.prototype.buildDefaultLights = function () {
   var light2 = new THREE.DirectionalLight(0xffffff, 0.1);
   light2.position.set(-x, -y, -z);
   this.lightGroup.add(light2);
+
+  this.lightGroup.updateMatrixWorld();
 };
 
 Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
