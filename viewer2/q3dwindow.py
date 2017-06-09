@@ -106,13 +106,13 @@ class Q3DViewerInterface(QObject):
       return False
 
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
-    dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
 
     # restore dialog geometry
     settings = QSettings()
     dialog.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
+    dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.show()
     dialog.exec_()
 
@@ -131,6 +131,15 @@ class Q3DViewerInterface(QObject):
 
     if layer["visible"]:
       self.exportLayer(layer)
+
+  def getDefaultProperties(self, layer):
+    mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
+    if mapLayer is None:
+      return {}
+
+    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
+    dialog.setLayer(layer["id"], mapLayer, layer["geomType"], {})   #layer["properties"] or {})
+    return dialog.page.properties()
 
 
 class Q3DWindow(QMainWindow):

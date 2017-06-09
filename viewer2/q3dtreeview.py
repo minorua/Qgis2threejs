@@ -82,7 +82,7 @@ class Q3DTreeView(QTreeView):
       "name": name,
       "geomType": geomType,
       "visible": visible,
-      "properties": properties or json.loads(q3dconst.DEFAULT_PROPERTIES[geomType]),
+      "properties": properties,
       "jsLayerId": "{}_{}".format(itemId, layerId[:8])
     })
 
@@ -122,6 +122,9 @@ class Q3DTreeView(QTreeView):
 
     layer["visible"] = visible
     if visible:
+      if layer["properties"] is None:
+        layer["properties"] = self.iface.getDefaultProperties(layer)
+
       self.iface.exportLayer(layer)
     else:
       obj = {

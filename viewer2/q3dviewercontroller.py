@@ -71,8 +71,7 @@ class Q3DViewerController:
         continue
 
       if geomType is not None:
-        properties = json.loads(q3dconst.DEFAULT_PROPERTIES[geomType])
-        layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType, "properties": properties})
+        layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType, "properties": None})
 
     return layers
 
