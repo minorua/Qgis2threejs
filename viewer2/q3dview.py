@@ -142,7 +142,7 @@ class Q3DView(QWebView):
     pass
 
   def resetCameraPosition(self):
-    self.runString("app.controls.reset();")
+    self.runString("app.controls.reset(); app.render();")
 
   def runBytes(self, ba):
     if os.name == "nt":
