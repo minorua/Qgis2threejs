@@ -1060,7 +1060,6 @@ Q3D.DEMBlock = function (params) {
   for (var k in params) {
     this[k] = params[k];
   }
-  this.aObjs = [];
 };
 
 Q3D.DEMBlock.prototype = {
@@ -1159,15 +1158,15 @@ Q3D.DEMBlock.prototype = {
     mesh = new THREE.Mesh(geom_fr, material);
     mesh.position.y = -this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+    mesh.name = "side";
     layer.addObject(mesh, false);
-    this.aObjs.push(mesh);
 
     mesh = new THREE.Mesh(geom_ba, material);
     mesh.position.y = this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
+    mesh.name = "side";
     layer.addObject(mesh, false);
-    this.aObjs.push(mesh);
 
     // left and right
     var geom_le = new PlaneGeometry(band_width, this.height, 1, h - 1),
@@ -1191,14 +1190,14 @@ Q3D.DEMBlock.prototype = {
     mesh = new THREE.Mesh(geom_le, material);
     mesh.position.x = -this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
+    mesh.name = "side";
     layer.addObject(mesh, false);
-    this.aObjs.push(mesh);
 
     mesh = new THREE.Mesh(geom_ri, material);
     mesh.position.x = this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
+    mesh.name = "side";
     layer.addObject(mesh, false);
-    this.aObjs.push(mesh);
 
     // bottom
     if (Q3D.Options.exportMode) {
@@ -1210,8 +1209,8 @@ Q3D.DEMBlock.prototype = {
     mesh = new THREE.Mesh(geom, material);
     mesh.position.z = z0;
     mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
+    mesh.name = "bottom";
     layer.addObject(mesh, false);
-    this.aObjs.push(mesh);
     // TODO: return object group
   },
 
@@ -1239,7 +1238,6 @@ Q3D.ClippedDEMBlock = function (params) {
   for (var k in params) {
     this[k] = params[k];
   }
-  this.aObjs = [];
 };
 
 Q3D.ClippedDEMBlock.prototype = {
@@ -1278,8 +1276,8 @@ Q3D.ClippedDEMBlock.prototype = {
         vertices = layer.segmentizeLineString(polygon[j], zFunc);
         geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
         mesh = new THREE.Mesh(geom, material);
+        mesh.name = "side";
         layer.addObject(mesh, false);
-        this.aObjs.push(mesh);
       }
 
       // bottom
@@ -1290,8 +1288,8 @@ Q3D.ClippedDEMBlock.prototype = {
       geom = new THREE.ShapeGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
       mesh.position.z = z0;
+      mesh.name = "bottom";
       layer.addObject(mesh, false);
-      this.aObjs.push(mesh);
     }
   },
 
@@ -1560,8 +1558,8 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
                      new THREE.Vector3(-hw, -hh, z0));
 
   var obj = new THREE.Line(geom, mat);
+  obj.name = "frame";
   this.addObject(obj, false);
-  block.aObjs.push(obj);
 
   // vertical lines at corners
   var pts = [[-hw, -hh, block.grid.array[block.grid.array.length - block.grid.width]],
@@ -1574,11 +1572,12 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
                        new THREE.Vector3(pt[0], pt[1], z0));
 
     var obj = new THREE.Line(geom, mat);
+    obj.name = "frame";
     this.addObject(obj, false);
-    block.aObjs.push(obj);
   }, this);
 };
 
+// TODO: remove
 Q3D.DEMLayer.prototype.meshes = function () {
   var m = [];
   this.blocks.forEach(function (block) {
@@ -1695,13 +1694,13 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
 
 Q3D.DEMLayer.prototype.setVisible = function (visible) {
   Q3D.MapLayer.prototype.setVisible.call(this, visible);
-  if (visible && this.sideVisible === false) this.setSideVisibility(false);
+  // if (visible && this.sideVisible === false) this.setSideVisibility(false);
 };
 
 Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
   this.sideVisible = visible;
-  this.blocks[0].aObjs.forEach(function (obj) {
-    obj.visible = visible;
+  this.objectGroup.traverse(function (obj) {
+    if (obj.name == "side" || obj.name == "bottom" || obj.name == "frame") obj.visible = visible;
   });
 };
 
