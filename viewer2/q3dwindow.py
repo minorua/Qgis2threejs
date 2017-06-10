@@ -83,23 +83,6 @@ class Q3DViewerInterface(QObject):
     self.controller.exportLayer(layer)
     layer["updated"] = False
 
-  def canvasUpdated(self, painter):
-    if not self.enabled:
-      return
-
-    #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
-    for layer in self.treeView.layers:
-      if layer["visible"]:
-        self.exportLayer(layer)
-        #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
-    self.extentUpdated = False
-
-  def canvasExtentChanged(self):
-    #self.iface.notify({"code": q3dconst.N_CANVAS_EXTENT_CHANGED})
-    # update extent of export settings
-    self.controller.updateMapCanvasExtent()
-    self.extentUpdated = True
-
   def showLayerPropertiesDialog(self, layer):
     mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
     if mapLayer is None:
@@ -176,9 +159,6 @@ class Q3DWindow(QMainWindow):
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
     self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
-
-    qgisIface.mapCanvas().renderComplete.connect(self.iface.canvasUpdated)
-    qgisIface.mapCanvas().extentsChanged.connect(self.iface.canvasExtentChanged)
 
     # to disconnect from map canvas when window is closed
     self.setAttribute(Qt.WA_DeleteOnClose)

@@ -47,6 +47,10 @@ class Q3DViewerController:
     self.settings = settings
     self.exporter = ThreeJSExporter(settings)
 
+    qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
+    qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
+
+
   def setViewerInterface(self, iface):
     self.iface = iface
 
@@ -84,9 +88,25 @@ class Q3DViewerController:
     elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
       self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
 
-  def updateMapCanvasExtent(self):
-    # update extent in export settings
+  def canvasUpdated(self, painter):
+    # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+
+    if not self.iface.enabled:
+      return
+
+    #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
+    for layer in self.iface.treeView.layers:
+      if layer["visible"]:
+        self.exportLayer(layer)
+        #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
+    self.iface.extentUpdated = False
+
+  def canvasExtentChanged(self):
+    # update map settings
+    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+
+    self.iface.extentUpdated = True   #TODO: self.extentUpdated
 
     # update scene properties
     self.iface.loadJSONObject(self.exporter.exportScene(False))
