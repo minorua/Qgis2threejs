@@ -42,14 +42,15 @@ class Q3DViewerController:
       err_msg = settings.checkValidity()
       if err_msg:
         logMessage(err_msg or "Invalid settings")
-        #return
 
     self.settings = settings
     self.exporter = ThreeJSExporter(settings)
 
+    self.enabled = True
+    self.extentUpdated = False
+
     qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
     qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
-
 
   def setViewerInterface(self, iface):
     self.iface = iface
@@ -83,30 +84,39 @@ class Q3DViewerController:
     self.iface.loadJSONObject(self.exporter.exportScene(False))
 
   def exportLayer(self, layer):
-    if layer["geomType"] == q3dconst.TYPE_DEM:
-      self.iface.loadJSONObject(self.exporter.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
-    elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
-      self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
+    if self.enabled:
+      if layer["geomType"] == q3dconst.TYPE_DEM:
+        self.iface.loadJSONObject(self.exporter.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
+      elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
+        self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
+      layer["updated"] = False
+
+  def setEnabled(self, enabled):
+    self.enabled = enabled
+    self.iface.runString("app.resume();" if enabled else "app.pause();");
+    if enabled:
+      # update layers
+      for layerId, layer in enumerate(self.iface.treeView.layers):
+        if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
+          self.exportLayer(layer)
+
+      self.extentUpdated = False
 
   def canvasUpdated(self, painter):
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    if not self.iface.enabled:
-      return
-
-    #self.iface.notify({"code": q3dconst.N_CANVAS_IMAGE_UPDATED})
-    for layer in self.iface.treeView.layers:
-      if layer["visible"]:
-        self.exportLayer(layer)
-        #self.iface.request({"dataType": q3dconst.JS_UPDATE_LAYER, "layer": layer})
-    self.iface.extentUpdated = False
+    if self.enabled:
+      for layer in self.iface.treeView.layers:
+        if layer["visible"]:
+          self.exportLayer(layer)
+      self.extentUpdated = False
 
   def canvasExtentChanged(self):
+    self.extentUpdated = True
+
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    self.iface.extentUpdated = True   #TODO: self.extentUpdated
-
     # update scene properties
-    self.iface.loadJSONObject(self.exporter.exportScene(False))
+    self.exportScene()

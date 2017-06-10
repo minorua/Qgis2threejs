@@ -44,10 +44,6 @@ class Q3DViewerInterface(QObject):
     self.webView = webView
     self.controller = controller
 
-    # for Rendering checkbox
-    self.enabled = True
-    self.extentUpdated = False
-
   def fetchLayerList(self):
     self.wnd.setLayerList(self.controller.getLayerList())
 
@@ -55,15 +51,7 @@ class Q3DViewerInterface(QObject):
     self.webView.runString("app.start();");
 
   def setEnabled(self, enabled):
-    self.enabled = enabled
-    self.webView.runString("app.resume();" if enabled else "app.pause();");
-    if enabled:
-      # update layers
-      for layerId, layer in enumerate(self.treeView.layers):
-        if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
-          self.exportLayer(layer)
-
-      self.extentUpdated = False
+    self.controller.setEnabled(enabled)
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
@@ -73,15 +61,14 @@ class Q3DViewerInterface(QObject):
     #self.webView.runString("var jsonToLoad = JSON.parse('" + json.dumps(obj).replace("'", "\\'") + "');")
     #self.webView.runString("app.loadJSONObject(jsonToLoad);")
 
+  def runString(self, string):
+    self.webView.runString(string)
+
   def exportScene(self):
-    # create a scene with lights
     self.controller.exportScene()
 
   def exportLayer(self, layer):
-    if not self.enabled:
-      return
     self.controller.exportLayer(layer)
-    layer["updated"] = False
 
   def showLayerPropertiesDialog(self, layer):
     mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
@@ -108,9 +95,6 @@ class Q3DViewerInterface(QObject):
     layer = self.treeView.layers[layerId]
     layer["properties"] = properties
     layer["updated"] = True
-
-    if not self.enabled:
-      return
 
     if layer["visible"]:
       self.exportLayer(layer)
