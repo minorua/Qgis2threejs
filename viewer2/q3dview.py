@@ -129,12 +129,6 @@ class Q3DView(QWebView):
       if layer.get("visible", False):
         self.iface.exportLayer(layer)
 
-    #if self.isViewer:
-      #self.iface.request({"dataType": q3dconst.JS_CREATE_PROJECT})
-      #self.iface.request({"dataType": q3dconst.JS_START_APP})
-    #else:
-    #  self.iface.request({"dataType": q3dconst.JS_INITIALIZE})
-
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
 

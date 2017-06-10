@@ -231,15 +231,8 @@ class Q3DWindow(QMainWindow):
     self.ui.webView.runString(string)
 
   def setLayerList(self, layers):
-    #if os.name == "nt":
-    #  data = data.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
-
     for idx, layer in enumerate(layers):
       self.ui.treeView.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
-
-    #for layer in self.ui.treeView.layers:
-    #  if layer["visible"]:
-    #    self.iface.request({"dataType": q3dconst.JS_CREATE_LAYER, "layer": layer})
 
 
 class PropertiesDialog(QDialog):

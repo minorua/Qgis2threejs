@@ -155,5 +155,3 @@ class Q3DTreeView(QTreeView):
       return
     layer = self.layers[index]     #TODO: index or layerId
     self.iface.showLayerPropertiesDialog(layer)
-
-    #self.iface.notify({"code": q3dconst.N_LAYER_DOUBLECLICKED, "layer": self.layerManager.layers[idx]})
