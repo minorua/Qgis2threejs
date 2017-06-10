@@ -88,14 +88,7 @@
     <addaction name="separator"/>
     <addaction name="actionAlways_on_Top"/>
    </widget>
-   <widget class="QMenu" name="menuLayer">
-    <property name="title">
-     <string>&amp;Layer</string>
-    </property>
-    <addaction name="actionAdd_Layer"/>
-   </widget>
    <addaction name="menuProject"/>
-   <addaction name="menuLayer"/>
    <addaction name="menuView"/>
    <addaction name="menuWindow"/>
   </widget>
@@ -141,7 +134,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionAdd_Layer"/>
    <addaction name="separator"/>
    <addaction name="actionExport_to_Web"/>
    <addaction name="separator"/>
@@ -290,14 +282,6 @@
    </property>
    <property name="text">
     <string>Trackball</string>
-   </property>
-  </action>
-  <action name="actionAdd_Layer">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Add Layer...</string>
    </property>
   </action>
   <action name="actionLayer_Panel">

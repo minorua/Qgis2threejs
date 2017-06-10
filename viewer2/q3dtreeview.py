@@ -51,6 +51,10 @@ class Q3DTreeView(QTreeView):
     self.iface = iface
 
     TREE_TOP_ITEMS = ("Scene", "Lights & Shadow", "Layers")    # tr
+    LAYER_GROUP_ITEMS = ((q3dconst.TYPE_DEM, "DEM"),
+                         (q3dconst.TYPE_POINT, "Point"),
+                         (q3dconst.TYPE_LINESTRING, "Line"),
+                         (q3dconst.TYPE_POLYGON, "Polygon"))
 
     model = QStandardItemModel(0, 2)
     self.treeItems = []
@@ -62,13 +66,21 @@ class Q3DTreeView(QTreeView):
       self.treeItems.append(item)
       model.invisibleRootItem().appendRow([item])
 
+    itemLayers = self.treeItems[2]   # Layers
+    self.layerParentItem = {}
+    for geomType, name in LAYER_GROUP_ITEMS:
+      item = QStandardItem(name)
+      item.setIcon(self.icons[geomType])
+      #item.setData(itemId)
+      item.setEditable(False)
+      itemLayers.appendRow([item])
+      self.layerParentItem[geomType] = item
+
     self.setModel(model)
     self.header().setStretchLastSection(False)
     self.header().setSectionResizeMode(0, QHeaderView.Stretch)
     self.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
     self.expandAll()
-
-    self.layerParentItem = self.treeItems[2]   # Layers
 
     self.model().itemChanged.connect(self.treeItemChanged)
     self.doubleClicked.connect(self.treeItemDoubleClicked)
@@ -91,11 +103,11 @@ class Q3DTreeView(QTreeView):
     item.setCheckable(True)
     item.setCheckState(Qt.Checked if visible else Qt.Unchecked)
     item.setData(itemId)
-    item.setIcon(self.icons[geomType])
+    item.setIcon(self.icons[geomType])    #TODO: icon for each object type
     item.setEditable(False)
 
     item2 = QStandardItem()
-    self.layerParentItem.appendRow([item, item2])
+    self.layerParentItem[geomType].appendRow([item, item2])
 
     # add a button
     button = QPushButton()
@@ -139,6 +151,8 @@ class Q3DTreeView(QTreeView):
   def treeItemDoubleClicked(self, modelIndex):
     # open layer properties dialog
     index = modelIndex.data(Qt.UserRole + 1)
+    if index is None:
+      return
     layer = self.layers[index]     #TODO: index or layerId
     self.iface.showLayerPropertiesDialog(layer)
 
