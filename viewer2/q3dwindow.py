@@ -29,6 +29,8 @@ from qgis.core import QgsProject
 from .ui5_propertiesdialog import Ui_PropertiesDialog
 from .ui5_q3dwindow import Ui_Q3DWindow
 from . import q3dconst
+from .exporttowebdialog import ExportToWebDialog
+from Qgis2threejs.exportsettings import ExportSettings
 from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
 from Qgis2threejs.qgis2threejstools import logMessage
 
@@ -139,9 +141,10 @@ class Q3DWindow(QMainWindow):
     self.iface.fetchLayerList()   # self.setLayerList(layers) will be called
 
     # signal-slot connections
-    self.ui.actionReset_Camera_Position.triggered.connect(self.ui.webView.resetCameraPosition)
+    self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
+    self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
-    self.ui.actionAlways_on_Top.toggled.connect(self.alwaysOnTopToggled)
+    self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
     self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
 
     # to disconnect from map canvas when window is closed
@@ -230,9 +233,21 @@ class Q3DWindow(QMainWindow):
   def runString(self, string):
     self.ui.webView.runString(string)
 
-  def setLayerList(self, layers):
+  def setLayerList(self, layers):   #TODO: move to tree view
     for idx, layer in enumerate(layers):
       self.ui.treeView.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
+
+  def exportToWeb(self):
+    layers = []
+    for layer in self.ui.treeView.layers:
+      if layer.get("visible", False):
+        layers.append(layer)    #TODO: copy
+
+    self.settings.data["layers"] = layers
+
+    dialog = ExportToWebDialog(self, self.qgisIface, self.settings)
+    dialog.show()
+    dialog.exec_()
 
 
 class PropertiesDialog(QDialog):
@@ -241,6 +256,8 @@ class PropertiesDialog(QDialog):
 
   def __init__(self, parent, qgisIface, settings, pluginManager=None):
     QDialog.__init__(self, parent)
+    self.setAttribute(Qt.WA_DeleteOnClose)
+
     self.iface = qgisIface
     self.pluginManager = pluginManager
     self.mapTo3d = settings.mapTo3d
@@ -257,7 +274,7 @@ class PropertiesDialog(QDialog):
     #self.activateWindow()
 
   def setLayer(self, id, mapLayer, geomType, properties=None):
-    self.layerId = id
+    self.layerId = id   #TODO: layer index
     self.layer = mapLayer
     self.geomType = geomType
     self.properties = properties or {}

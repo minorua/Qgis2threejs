@@ -89,7 +89,7 @@ class Q3DTreeView(QTreeView):
     itemId = len(self.layers)
 
     self.layers.append({
-      "id": itemId,
+      "id": itemId,       #TODO: index
       "layerId": layerId,
       "name": name,
       "geomType": geomType,

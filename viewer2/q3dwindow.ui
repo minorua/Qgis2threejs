@@ -37,18 +37,18 @@
    </property>
    <widget class="QMenu" name="menuProject">
     <property name="title">
-     <string>&amp;Project</string>
+     <string>&amp;Scene</string>
     </property>
     <widget class="QMenu" name="menuExport">
      <property name="title">
       <string>Export</string>
      </property>
-     <addaction name="actionExport_to_Web"/>
+     <addaction name="actionExportToWeb"/>
      <addaction name="separator"/>
-     <addaction name="actionExport_as_Image"/>
      <addaction name="actionSTL_format"/>
     </widget>
     <addaction name="menuExport"/>
+    <addaction name="actionSaveAsImage"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -72,7 +72,7 @@
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="separator"/>
-    <addaction name="actionReset_Camera_Position"/>
+    <addaction name="actionResetCameraPosition"/>
     <addaction name="actionReload"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
@@ -86,7 +86,7 @@
     </widget>
     <addaction name="menuPanels"/>
     <addaction name="separator"/>
-    <addaction name="actionAlways_on_Top"/>
+    <addaction name="actionAlwaysOnTop"/>
    </widget>
    <addaction name="menuProject"/>
    <addaction name="menuView"/>
@@ -135,9 +135,9 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="actionExport_to_Web"/>
+   <addaction name="actionExportToWeb"/>
    <addaction name="separator"/>
-   <addaction name="actionReset_Camera_Position"/>
+   <addaction name="actionResetCameraPosition"/>
    <addaction name="actionReload"/>
   </widget>
   <widget class="QDockWidget" name="dockWidgetConsole">
@@ -227,7 +227,7 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="actionAlways_on_Top">
+  <action name="actionAlwaysOnTop">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -238,23 +238,23 @@
     <string>Always on Top</string>
    </property>
   </action>
-  <action name="actionExport_to_Web">
+  <action name="actionExportToWeb">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Export to Web...</string>
    </property>
   </action>
-  <action name="actionExport_as_Image">
+  <action name="actionSaveAsImage">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export as Image</string>
+    <string>Save as Image</string>
    </property>
   </action>
-  <action name="actionReset_Camera_Position">
+  <action name="actionResetCameraPosition">
    <property name="text">
     <string>Reset Camera Position</string>
    </property>

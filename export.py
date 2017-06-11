@@ -33,7 +33,7 @@ from .qgis2threejscore import ObjectTreeItem
 from .writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
 from . import qgis2threejstools as tools
 from .qgis2threejstools import getLayersInProject, logMessage
-
+from .viewer2 import q3dconst
 
 class ThreeJSExporter:
 
@@ -78,9 +78,16 @@ class ThreeJSExporter:
     return obj
 
   def exportLayers(self):
-
     layers = []
+    for index, layer in enumerate(self.settings.data["layers"]):
+      if layer["geomType"] == q3dconst.TYPE_DEM:
+        layers.append(self.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"]))
+      else:
+        layers.append(self.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"]))
 
+    return layers
+
+    #TODO: remove
     self.progress(5, "Writing DEM")
 
     # write primary DEM
