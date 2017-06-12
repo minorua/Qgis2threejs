@@ -21,7 +21,7 @@
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QObject, QSettings, QVariant, pyqtSignal
+from PyQt5.QtCore import QSettings, QVariant, pyqtSignal
 from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox
 
 from qgis.core import QgsProject
@@ -35,16 +35,24 @@ from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
 from Qgis2threejs.qgis2threejstools import logMessage
 
 
-class Q3DViewerInterface(QObject):
+class Q3DViewerInterface:
 
-  def __init__(self, parent, qgisIface, treeView, webView, controller):
-    QObject.__init__(self, parent)
-
-    self.wnd = parent
+  def __init__(self, qgisIface, wnd, treeView, webView, controller):
     self.qgisIface = qgisIface
+    self.wnd = wnd
     self.treeView = treeView
     self.webView = webView
+
+    self.connectToController(controller)
+
+  def connectToController(self, controller):
     self.controller = controller
+    controller.connectToIface(self)
+
+  def disconnectFromController(self):
+    if self.controller:
+      self.controller.disconnectFromIface()
+    self.controller = None
 
   def fetchLayerList(self):
     self.wnd.setLayerList(self.controller.getLayerList())
@@ -113,7 +121,7 @@ class Q3DViewerInterface(QObject):
 
 class Q3DWindow(QMainWindow):
 
-  def __init__(self, qgisIface, isViewer=True, parent=None, controller=None):   #TODO: controller is required
+  def __init__(self, parent, qgisIface, controller, isViewer=True):
     QMainWindow.__init__(self, parent)
     self.qgisIface = qgisIface
     self.isViewer = isViewer
@@ -130,8 +138,7 @@ class Q3DWindow(QMainWindow):
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
 
-    self.iface = Q3DViewerInterface(self, qgisIface, self.ui.treeView, self.ui.webView, controller)
-    controller.setViewerInterface(self.iface)
+    self.iface = Q3DViewerInterface(qgisIface, self, self.ui.treeView, self.ui.webView, controller)
 
     self.setupMenu()
     self.setupStatusBar(self.iface)
@@ -158,6 +165,8 @@ class Q3DWindow(QMainWindow):
     self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
   def closeEvent(self, event):
+    self.iface.disconnectFromController()
+
     settings = QSettings()
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())

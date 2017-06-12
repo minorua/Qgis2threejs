@@ -46,14 +46,22 @@ class Q3DViewerController:
     self.settings = settings
     self.exporter = ThreeJSExporter(settings)
 
+    self.iface = None
     self.enabled = True
     self.extentUpdated = False
 
-    qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
-    qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
-
-  def setViewerInterface(self, iface):
+  def connectToIface(self, iface):
+    """iface: Q3DViewerInterface"""
     self.iface = iface
+
+    self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
+    self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
+
+  def disconnectFromIface(self):
+    self.iface = None
+
+    self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
+    self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
   def getLayerList(self):
     layers = []
@@ -81,10 +89,11 @@ class Q3DViewerController:
     return layers
 
   def exportScene(self):
-    self.iface.loadJSONObject(self.exporter.exportScene(False))
+    if self.iface:
+      self.iface.loadJSONObject(self.exporter.exportScene(False))
 
   def exportLayer(self, layer):
-    if self.enabled:
+    if self.iface and self.enabled:
       if layer["geomType"] == q3dconst.TYPE_DEM:
         self.iface.loadJSONObject(self.exporter.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
       elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
@@ -92,6 +101,9 @@ class Q3DViewerController:
       layer["updated"] = False
 
   def setEnabled(self, enabled):
+    if self.iface is None:
+      return
+
     self.enabled = enabled
     self.iface.runString("app.resume();" if enabled else "app.pause();");
     if enabled:
@@ -106,7 +118,7 @@ class Q3DViewerController:
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    if self.enabled:
+    if self.iface and self.enabled:
       for layer in self.iface.treeView.layers:
         if layer["visible"]:
           self.exportLayer(layer)

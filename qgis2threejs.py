@@ -153,11 +153,15 @@ class Qgis2threejs:
     if self.controller is None:
       self.controller = Q3DViewerController(self.iface, self.pluginManager)
 
-    logMessage("Launching Live Exporter...")
+    if self.controller.iface is None:
+      logMessage("Launching Live Exporter...")
 
-    parent = self.iface.mainWindow()
-    self.liveExporter = Q3DWindow(self.iface, isViewer=True, parent=parent, controller=self.controller)
-    self.liveExporter.show()
+      self.liveExporter = Q3DWindow(self.iface.mainWindow(), self.iface, self.controller, isViewer=True)
+      self.liveExporter.show()
+    else:
+      logMessage("Live Exporter is already running.")
+
+      self.liveExporter.activateWindow()
 
   def addPluginLayer(self):
     from .viewer.q3dlayer import Qgis2threejsLayer, Qgis2threejs25DLayerType
