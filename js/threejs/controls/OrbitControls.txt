@@ -11,9 +11,6 @@ OrbitControls
  Ctrl  + Arrow keys       : Rotate
  Shift + Ctrl + Up / Down : Zoom In / Out
 
- R         : Auto Rotate On / Off
- U         : Switch Upside Down (controls are also reversed)
-
  I         : Show Information About Page
  L         : Toggle Label Visibility
  W         : Wireframe Mode
