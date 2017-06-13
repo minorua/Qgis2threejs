@@ -34,6 +34,21 @@ Q3D.$ = function (elementId) {
   return document.getElementById(elementId);
 };
 
+/*
+Q3D.Group -> THREE.Scene -> THREE.Object3D
+*/
+Q3D.Group = function () {
+  THREE.Group.call(this);
+};
+
+Q3D.Group.prototype = Object.create(THREE.Group.prototype);
+Q3D.Group.prototype.constructor = Q3D.Group;
+
+Q3D.Group.prototype.add = function (object) {
+  THREE.Group.prototype.add.call(this, object);
+  object.updateMatrixWorld();
+};
+
 
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
@@ -52,19 +67,27 @@ custom function
 .toMapCoordinates(x, y, z): converts world coordinates to map coordinates
 ._rotatePoint(point, degrees, origin): 
 */
-
 Q3D.Scene = function () {
   THREE.Scene.call(this);
   this.autoUpdate = false;
 
+  // scene is z-up
+  this.rotateX(-Math.PI / 2);
+  this.updateMatrixWorld();
+
   this.mapLayers = {};
 
-  this.lightGroup = new THREE.Group();
+  this.lightGroup = new Q3D.Group();
   this.add(this.lightGroup);
 };
 
 Q3D.Scene.prototype = Object.create(THREE.Scene.prototype);
 Q3D.Scene.prototype.constructor = Q3D.Scene;
+
+Q3D.Scene.prototype.add = function (object) {
+  THREE.Scene.prototype.add.call(this, object);
+  object.updateMatrixWorld();
+};
 
 Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   // console.assert(jsonObject.type == "scene");
@@ -172,8 +195,6 @@ Q3D.Scene.prototype.buildDefaultLights = function () {
   var light2 = new THREE.DirectionalLight(0xffffff, 0.1);
   light2.position.set(-x, -y, -z);
   this.lightGroup.add(light2);
-
-  this.lightGroup.updateMatrixWorld();
 };
 
 Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
@@ -290,7 +311,7 @@ limitations:
 
     // label
     app.labelVisibility = Q3D.Options.label.visible;
-    app.labelConnectorGroup = new THREE.Group();
+    app.labelConnectorGroup = new Q3D.Group();
     app.labels = [];     // labels of visible layers
 
     // root element for labels
@@ -820,7 +841,7 @@ limitations:
     };
 
     // create a highlight object (if layer type is Point, slightly bigger than the object)
-    var highlightObject = new THREE.Group();
+    var highlightObject = new Q3D.Group();
     var clone, s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
 
     for (var i = 0, l = f.objs.length; i < l; i++) {
@@ -1319,7 +1340,7 @@ Q3D.MapLayer = function (scene) {
 
   this.m = [];
   this.materials = [];
-  this.objectGroup = new THREE.Group();
+  this.objectGroup = new Q3D.Group();
   this.queryableObjects = [];
 };
 
@@ -1465,10 +1486,6 @@ Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
   });
 };
 
-Q3D.MapLayer.prototype.updateMatrixWorld = function () {
-  this.objectGroup.updateMatrixWorld();
-};
-
 
 /*
 Q3D.MapLayer.prototype.build = function () {};
@@ -1523,8 +1540,6 @@ Q3D.DEMLayer.prototype.build = function (data) {
       layer.buildFrame(block, opt.frame.color, opt.frame.bottomZ);    // layer.objectGroup.add()
       layer.sideVisible = true;
     }
-
-    layer.updateMatrixWorld();
 
     if (block.grid.url !== undefined) layer.dispatchEvent({type: "renderRequest"});
   };
@@ -1741,7 +1756,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
   };
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
-  this.labelConnectorGroup = new THREE.Group();
+  this.labelConnectorGroup = new Q3D.Group();
   this.labelConnectorGroup.userData.layerId = this.index;
   if (parent) parent.add(this.labelConnectorGroup);
 
@@ -1826,7 +1841,6 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject) {
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
-    this.objectGroup.updateMatrixWorld();
   }
 };
 
@@ -1934,7 +1948,6 @@ Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject) {
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
-    this.objectGroup.updateMatrixWorld();
   }
 };
 
@@ -1958,7 +1971,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
   else if (objType == "Pipe" || objType == "Cone") {
     var hasJoints = (objType == "Pipe");
     var createObject = function (f, line) {
-      var group = new THREE.Group();
+      var group = new Q3D.Group();
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
       var geom, obj, pt;
@@ -2004,7 +2017,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
 
     var createObject = function (f, line) {
       var geometry = new THREE.Geometry(),
-          group = new THREE.Group();      // used in debug mode
+          group = new Q3D.Group();      // used in debug mode
 
       var geom, obj, dist, quat, rx, rz, wh4, vb4, vf4;
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
@@ -2154,7 +2167,6 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject) {
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
-    this.objectGroup.updateMatrixWorld();
   }
 };
 
@@ -2180,7 +2192,7 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
     var createObject = function (f) {
       if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.zs[0]);
 
-      var group = new THREE.Group();
+      var group = new Q3D.Group();
       for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
         group.add(createSubObject(f, f.geom.polygons[i], f.geom.zs[i]));
       }
@@ -2348,7 +2360,6 @@ Q3D.ModelBuilder.Base.prototype = {
         mesh.userData.featureId = fet.featureId;
 
         layer.addObject(mesh);
-        layer.updateMatrixWorld();
 
         f.objs.push(mesh);
       }
