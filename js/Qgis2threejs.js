@@ -297,17 +297,17 @@ limitations:
     if (vars.ux !== undefined) app.camera.up.set(parseFloat(vars.ux), parseFloat(vars.uy), parseFloat(vars.uz));
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
-    // controls
-    if (Q3D.Controls) {
-      app.controls = Q3D.Controls.create(app.camera, app.renderer.domElement);
+    // orbit controls
+    app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+    app.enableKeys = false;     // TODO: do key event handling in this script
+
       /*
-      if (vars.tx !== undefined) {
-        app.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
-        app.controls.target0.copy(app.controls.target);   // for reset
-      }
-      */
-      app.controls.update();
+    if (vars.tx !== undefined) {
+      app.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+      app.controls.target0.copy(app.controls.target);   // for reset
     }
+    */
+    app.controls.update();
 
     // label
     app.labelVisibility = Q3D.Options.label.visible;
