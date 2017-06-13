@@ -458,7 +458,7 @@ limitations:
 
   app.buildDefaultCamera = function () {
     app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 1000);
-    app.camera.position.set(0, -100, 100);
+    app.camera.position.set(0, 100, 100);
   };
 
   app.currentViewUrl = function () {
