@@ -284,7 +284,9 @@ limitations:
 
     // scene
     app.scene = new Q3D.Scene();
-    app.scene.addEventListener("renderRequest", app.render);
+    app.scene.addEventListener("renderRequest", function (event) {
+      app.render();
+    });
 
     // camera
     app.buildDefaultCamera();
@@ -569,7 +571,7 @@ limitations:
   };
 
   app.render = function (updateControls) {
-    if (app.controls && updateControls) app.controls.update();
+    if (updateControls && app.controls.update()) return;    // changeEvent handler calls app.render()
     app.renderer.render(app.scene, app.camera);
     app.updateLabelPosition();
   };
