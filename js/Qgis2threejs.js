@@ -296,8 +296,42 @@ limitations:
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // orbit controls
-    app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
-    app.enableKeys = false;     // TODO: do key event handling in this script
+    var controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+    controls.enableKeys = false;
+
+    var offset = new THREE.Vector3();
+    controls.moveForward = function (delta) {
+      offset.copy(controls.object.position).sub(controls.target);
+      var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
+      offset.y = 0;
+      offset.normalize();
+      offset.multiplyScalar(-2 * delta * targetDistance / app.renderer.domElement.clientHeight);
+
+      controls.object.position.add(offset);
+      controls.target.add(offset);
+    };
+    controls.cameraRotate = function (thetaDelta, phiDelta) {
+      offset.copy(controls.target).sub(controls.object.position);
+
+      // angle from z-axis around y-axis
+      var theta = Math.atan2(offset.x, offset.z);
+
+      // angle from x-z plane
+      var phi = Math.atan2(offset.y, Math.sqrt(offset.x * offset.x + offset.z * offset.z));
+
+      theta += thetaDelta;
+      phi += phiDelta;
+
+      var radius = offset.length();
+      offset.x = radius * Math.cos(phi) * Math.sin(theta);
+      offset.z = radius * Math.cos(phi) * Math.cos(theta);
+      offset.y = radius * Math.sin(phi);
+      controls.target.copy(controls.object.position).add(offset);
+    };
+
+
+    app.controls = controls;
+    controls.update();
 
       /*
     if (vars.tx !== undefined) {
@@ -305,7 +339,6 @@ limitations:
       app.controls.target0.copy(app.controls.target);   // for reset
     }
     */
-    app.controls.update();
 
     // label
     app.labelVisibility = Q3D.Options.label.visible;
@@ -401,18 +434,90 @@ limitations:
   app.eventListener = {
 
     keydown: function (e) {
-      if (e.ctrlKey || e.altKey) return;
-      var keyPressed = e.which;
-      if (!e.shiftKey) {
-        if (keyPressed == 27) app.closePopup(); // ESC
-        else if (keyPressed == 73) app.showInfo();  // I
-        else if (keyPressed == 76) app.setLabelVisibility(!app.labelVisibility);  // L
-        else if (keyPressed == 87) app.setWireframeMode(!app._wireframeMode);    // W
+      var controls = app.controls, keyPressed = e.which;
+      var panDelta = 3, rotateAngle = 2 * Math.PI / 180;
+      if (event.shiftKey && event.ctrlKey) {
+        switch (event.keyCode) {
+          case 38:  // Shift + Ctrl + UP
+            controls.dollyOut(controls.getZoomScale());
+            break;
+          case 40:  // Shift + Ctrl + DOWN
+            controls.dollyIn(controls.getZoomScale());
+            break;
+          default:
+            return;
+        }
+      } else if (event.shiftKey) {
+        switch (event.keyCode) {
+          case 37:  // LEFT
+            controls.rotateLeft(rotateAngle);
+            break;
+          case 38:  // UP
+            controls.rotateUp(rotateAngle);
+            break;
+          case 39:  // RIGHT
+            controls.rotateLeft(-rotateAngle);
+            break;
+          case 40:  // DOWN
+            controls.rotateUp(-rotateAngle);
+            break;
+          case 82:  // Shift + R
+            controls.reset();
+            break;
+          case 83:  // Shift + S
+            app.showPrintDialog();
+            return;
+          default:
+            return;
+        }
+      } else if (event.ctrlKey) {
+        switch (event.keyCode) {
+          case 37:  // Ctrl + LEFT
+            controls.cameraRotate(rotateAngle, 0);
+            break;
+          case 38:  // Ctrl + UP
+            controls.cameraRotate(0, rotateAngle);
+            break;
+          case 39:  // Ctrl + RIGHT
+            controls.cameraRotate(-rotateAngle, 0);
+            break;
+          case 40:  // Ctrl + DOWN
+            controls.cameraRotate(0, -rotateAngle);
+            break;
+          default:
+            return;
+        }
+      } else {
+        switch (event.keyCode) {
+          case 37:  // LEFT
+            controls.panLeft(panDelta, controls.object.matrix);
+            break;
+          case 38:  // UP
+            controls.moveForward(3 * panDelta)    // horizontally forward
+            break;
+          case 39:  // RIGHT
+            controls.panLeft(-panDelta, controls.object.matrix);
+            break;
+          case 40:  // DOWN
+            controls.moveForward(-3 * panDelta);
+            break;
+          case 27:  // ESC
+            app.closePopup();
+            return;
+          case 73:  // I
+            app.showInfo();
+            return;
+          case 76:  // L
+            app.setLabelVisibility(!app.labelVisibility);
+            return;
+          case 87:  // W
+            app.setWireframeMode(!app._wireframeMode);
+            return;
+          default:
+            return;
+        }
       }
-      else {
-        if (keyPressed == 82) app.controls.reset();   // Shift + R
-        else if (keyPressed == 83) app.showPrintDialog();    // Shift + S
-      }
+      app.controls.update();
     },
 
     resize: function () {

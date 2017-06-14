@@ -505,7 +505,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			delta = event.deltaY;
 
-		} else if ( event.wheelDelta !== undefined ) {	// WebKit
+		} else if ( event.wheelDelta !== undefined ) {	// WebKit @minorua
 
 			delta = - event.wheelDelta;
 
@@ -880,13 +880,21 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}
 
+	// expose functions @minorua
+	this.panLeft = panLeft;
+	this.rotateLeft = rotateLeft;
+	this.rotateUp = rotateUp;
+	this.dollyIn = dollyIn;
+	this.dollyOut = dollyOut;
+	this.getZoomScale = getZoomScale;
+
 	//
 
 	scope.domElement.addEventListener( 'contextmenu', onContextMenu, false );
 
 	scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
 	scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
-	scope.domElement.addEventListener( 'mousewheel', onMouseWheel, false );	// WebKit
+	scope.domElement.addEventListener( 'mousewheel', onMouseWheel, false );	// WebKit @minorua
 
 	scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
 	scope.domElement.addEventListener( 'touchend', onTouchEnd, false );
