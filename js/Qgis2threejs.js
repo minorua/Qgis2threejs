@@ -248,8 +248,6 @@ limitations:
   app.init = function (container) {
     app.container = container;
     app.running = false;        // if true, animation loop is continued.
-    app.powerSavingMode = true;   // set false to continue animation loop after user operation
-                                  // is finished (e.g. automatic camera rotation mode).
 
     // URL parameters
     app.urlParams = app.parseUrlParameters();
@@ -392,33 +390,9 @@ limitations:
     window.addEventListener("keydown", app.eventListener.keydown);
     window.addEventListener("resize", app.eventListener.resize);
 
-    if (app.controls) {
-      app.controls.addEventListener("start", function (event) {
-        if (!app.running) {
-          app.running = true;
-          app.animate();
-        }
-        var elm = document.getElementById("fps");
-        if (elm) elm.style.fontWeight = "bold";
-      });
-
-      app.controls.addEventListener("end", function (event) {
-        if (app.powerSavingMode) {
-          app.running = false;
-
-          var elm = document.getElementById("fps");
-          if (elm) elm.style.fontWeight = "normal";
-        }
-      });
-
-      window.addEventListener("keydown", function () {
-        app.render(true);
-      });
-
-      window.addEventListener("keyup", function () {
-        app.render(true);
-      });
-    }
+    app.controls.addEventListener("change", function (event) {
+      app.render();
+    });
 
     var e = Q3D.$("closebtn");
     if (e) e.addEventListener("click", app.closePopup);
