@@ -152,6 +152,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index = -1
 
   def export(self):
+    self.settings.setTemplatePath("3DViewer.html");   # this is a temporal line
+
     # read configuration of the template
     templateConfig = self.settings.templateConfig()
     templatePath = templateConfig["path"]
