@@ -438,8 +438,8 @@ limitations:
     keydown: function (e) {
       var controls = app.controls, keyPressed = e.which;
       var panDelta = 3, rotateAngle = 2 * Math.PI / 180;
-      if (event.shiftKey && event.ctrlKey) {
-        switch (event.keyCode) {
+      if (e.shiftKey && e.ctrlKey) {
+        switch (e.keyCode) {
           case 38:  // Shift + Ctrl + UP
             controls.dollyOut(controls.getZoomScale());
             break;
@@ -449,8 +449,8 @@ limitations:
           default:
             return;
         }
-      } else if (event.shiftKey) {
-        switch (event.keyCode) {
+      } else if (e.shiftKey) {
+        switch (e.keyCode) {
           case 37:  // LEFT
             controls.rotateLeft(rotateAngle);
             break;
@@ -472,8 +472,8 @@ limitations:
           default:
             return;
         }
-      } else if (event.ctrlKey) {
-        switch (event.keyCode) {
+      } else if (e.ctrlKey) {
+        switch (e.keyCode) {
           case 37:  // Ctrl + LEFT
             controls.cameraRotate(rotateAngle, 0);
             break;
@@ -490,7 +490,7 @@ limitations:
             return;
         }
       } else {
-        switch (event.keyCode) {
+        switch (e.keyCode) {
           case 37:  // LEFT
             controls.panLeft(panDelta, controls.object.matrix);
             break;
