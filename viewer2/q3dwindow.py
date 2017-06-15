@@ -87,17 +87,10 @@ class Q3DViewerInterface:
 
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
     dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
-
-    # restore dialog geometry
-    settings = QSettings()
-    dialog.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
-
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.show()
     dialog.exec_()
 
-    # save dialog geometry
-    settings.setValue("/Qgis2threejs/propdlg/geometry", dialog.saveGeometry())
     return True
 
   def updateLayerProperties(self, layerId, properties):
@@ -279,8 +272,18 @@ class PropertiesDialog(QDialog):
     self.ui.setupUi(self)
     self.ui.buttonBox.clicked.connect(self.buttonClicked)
 
+    # restore dialog geometry
+    settings = QSettings()
+    self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
+
     #self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
     #self.activateWindow()
+
+  def closeEvent(self, event):
+    # save dialog geometry
+    settings = QSettings()
+    settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+    QDialog.closeEvent(self, event)
 
   def setLayer(self, id, mapLayer, geomType, properties=None):
     self.layerId = id   #TODO: layer index
