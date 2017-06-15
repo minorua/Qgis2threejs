@@ -119,9 +119,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 Q3D.Scene.prototype.loadLayerJSONObject = function (jsonObject) {
   // console.assert(jsonObject.type == "layer");
 
-  var scene = this;
+  var _this = this;
   var requestRender = function () {
-    scene.dispatchEvent({type: "renderRequest"});
+    _this.dispatchEvent({type: "renderRequest"});
   };
 
   var layer = this.mapLayers[jsonObject.id];
@@ -1156,6 +1156,172 @@ limitations:
 
 
 /*
+Q3D.Material
+*/
+Q3D.Material = function () {
+};
+
+Q3D.Material.prototype = {
+
+  constructor: Q3D.Material,
+
+  // callback is called when texture is loaded
+  loadJSONObject: function (jsonObject, callback) {
+    this.origProp = jsonObject;
+
+    var m = jsonObject, opt = {};
+
+    if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
+
+    if (m.flat) opt.shading = THREE.FlatShading;
+
+    // texture
+    if (m.image !== undefined) {
+      var image = m.image;
+      if (image.url !== undefined) {
+        opt.map = THREE.ImageUtils.loadTexture(image.url, undefined, callback);
+      }
+      else if (image.object !== undefined) {    // WebKit Bridge
+        opt.map = new THREE.Texture(image.object.toImageData());
+        opt.map.needsUpdate = true;
+        callback();
+      }
+      else {    // base64   TODO: remove
+        var img = new Image();
+        img.onload = function () {
+          opt.map.needsUpdate = true;
+          callback();
+        };
+        img.src = image.base64;
+        opt.map = new THREE.Texture(img);
+      }
+    }
+
+    if (m.o !== undefined && m.o < 1) {
+      opt.opacity = m.o;
+      opt.transparent = true;
+    }
+
+    if (m.t) opt.transparent = true;
+
+    if (m.w) opt.wireframe = true;
+
+    if (m.type == Q3D.MaterialType.MeshLambert) {
+      if (m.c !== undefined) opt.color = m.c;
+      this.mat = new THREE.MeshLambertMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.MeshPhong) {
+      if (m.c !== undefined) opt.color = m.c;
+      this.mat = new THREE.MeshPhongMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.LineBasic) {
+      opt.color = m.c;
+      this.mat = new THREE.LineBasicMaterial(opt);
+    }
+    else {
+      opt.color = 0xffffff;
+      this.mat = new THREE.SpriteMaterial(opt);
+    }
+  },
+
+  set: function (material) {
+    this.mat = material;
+    this.origProp = {};
+  },
+
+  type: function () {
+    if (this.mat instanceof THREE.MeshLambertMaterial) return Q3D.MaterialType.MeshLambert;
+    if (this.mat instanceof THREE.MeshPhongMaterial) return Q3D.MaterialType.MeshPhong;
+    if (this.mat instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.LineBasic;
+    if (this.mat instanceof THREE.SpriteMaterial) return Q3D.MaterialType.Sprite;
+    if (this.mat === undefined) return undefined;
+    if (this.mat === null) return null;
+    return Q3D.MaterialType.Unknown;
+  },
+
+  dispose: function () {
+    if (!this.mat) return;
+
+    if (this.mat.map) this.mat.map.dispose();   // dispose of texture
+    this.mat.dispose();
+    this.mat = null;
+  }
+};
+
+/*
+Q3D.Materials
+*/
+Q3D.Materials = function () {
+  this.materials = [];
+};
+
+Q3D.Materials.prototype = Object.create(THREE.EventDispatcher.prototype);
+Q3D.Materials.prototype.constructor = Q3D.Materials;
+
+// material: instance of Q3D.Material object or THREE.Material-based object
+Q3D.Materials.prototype.add = function (material) {
+  if (material instanceof Q3D.Material) this.materials.push(material);
+  else {
+    var mat = new Q3D.Material();
+    mat.set(material);
+    this.materials.push(mat);
+  }
+};
+
+Q3D.Materials.prototype.get = function (index) {
+  return this.materials[index];
+};
+
+Q3D.Materials.prototype.mat = function (index) {
+  return this.materials[index].mat;
+};
+
+
+Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
+  var _this = this, iterated = false;
+  var callback = function () {
+    if (iterated) _this.dispatchEvent({type: "renderRequest"});
+  };
+
+  for (var i = 0, l = jsonObject.length; i < l; i++) {
+    var mat = new Q3D.Material();
+    mat.loadJSONObject(jsonObject[i], callback);    // callback is called when a texture is loaded
+    this.add(mat);
+  }
+  iterated = true;
+
+  // TODO: layer opacity is the average opacity of materials
+  //this.opacity = sum_opacity / this.materials.length;
+};
+
+Q3D.Materials.prototype.dispose = function () {
+  for (var i = 0, l = this.materials.length; i < l; i++) {
+    this.materials[i].dispose();
+  }
+  this.materials = [];
+};
+
+// opacity
+Q3D.Materials.prototype.setOpacity = function (opacity) {
+  var material;
+  for (var i = 0, l = this.materials.length; i < l; i++) {
+    material.mat.transparent = Boolean(material.origProp.t) || (opacity < 1);
+    material.mat.opacity = opacity;
+  }
+};
+
+// wireframe: boolean
+Q3D.Materials.prototype.setWireframeMode = function (wireframe) {
+  var material;
+  for (var i = 0, l = this.materials.length; i < l; i++) {
+    material = this.materials[i];
+    if (material.origProp.w || material.mat instanceof THREE.LineBasicMaterial) continue;
+    material.mat.wireframe = wireframe;
+  }
+};
+
+
+/*
 Q3D.DEMBlock
 */
 Q3D.DEMBlock = function (params) {
@@ -1367,7 +1533,7 @@ Q3D.ClippedDEMBlock.prototype = {
     // make back-side material for bottom
     var mat_back = material.clone();
     mat_back.side = THREE.BackSide;
-    layer.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat_back});
+    layer.materials.add(mat_back);
 
     var geom, mesh, shape, vertices;
     for (var i = 0, l = polygons.length; i < l; i++) {
@@ -1419,8 +1585,14 @@ Q3D.MapLayer = function (scene) {
   this.visible = true;
   this.opacity = 1;
 
-  this.m = [];
-  this.materials = [];
+  this.materials = new Q3D.Materials();
+
+  var _this = this;
+  this.materials.addEventListener("renderRequest", function (event) {
+    console.log("renderRequest from materials");
+    _this.dispatchEvent({type: "renderRequest"});
+  });
+
   this.objectGroup = new Q3D.Group();
   this.queryableObjects = [];
 };
@@ -1443,88 +1615,19 @@ Q3D.MapLayer.prototype._addQueryableObject = function (object) {
 };
 
 Q3D.MapLayer.prototype.removeAllObjects = function () {
-  // dispose of geometries, materials and textures
+  // dispose of geometries
   this.objectGroup.traverse(function (obj) {
     if (obj.geometry) obj.geometry.dispose();
   });
 
-  var i, l;
-  for (i = 0, l = this.materials.length; i < l; i++) {
-    if (this.materials[i].map) this.materials[i].map.dispose();   // dispose of texture
-    this.materials[i].m.dispose();
-  }
-  this.materials = [];
+  // dispose of materials
+  this.materials.dispose();
 
   // remove all child objects from object group
-  for (i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
+  for (var i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
     this.objectGroup.remove(this.objectGroup.children[i]);
   }
   this.queryableObjects = [];
-};
-
-Q3D.MapLayer.prototype.initMaterials = function () {
-  this.materials = [];
-  this.createMaterials();
-};
-
-Q3D.MapLayer.prototype.createMaterials = function () {
-  if (this.materials.length >= this.m.length) return;
-
-  var mat, sum_opacity = 0;
-  for (var i = this.materials.length, l = this.m.length; i < l; i++) {
-    var m = this.m[i];
-
-    var opt = {};
-    if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
-    if (m.flat) opt.shading = THREE.FlatShading;
-    if (m.image !== undefined) {
-      var image = m.image;
-      if (image.texture === undefined) {
-        if (image.url !== undefined) {
-          image.texture = Q3D.Utils.loadTexture(image.url, this);
-        }
-        else if (image.object !== undefined) {    // WebKit Bridge
-          image.texture = new THREE.Texture(image.object.toImageData());
-          image.texture.needsUpdate = true;
-        }
-        else {
-          image.texture = Q3D.Utils.loadTextureBase64(image.base64, this);
-        }
-      }
-      opt.map = image.texture;
-    }
-    if (m.o !== undefined && m.o < 1) {
-      opt.opacity = m.o;
-      opt.transparent = true;
-    }
-    if (m.t) opt.transparent = true;
-    if (m.w) opt.wireframe = true;
-
-    if (m.type == Q3D.MaterialType.MeshLambert) {
-      if (m.c !== undefined) opt.color = m.c;
-      mat = new THREE.MeshLambertMaterial(opt);
-    }
-    else if (m.type == Q3D.MaterialType.MeshPhong) {
-      if (m.c !== undefined) opt.color = m.c;
-      mat = new THREE.MeshPhongMaterial(opt);
-    }
-    else if (m.type == Q3D.MaterialType.LineBasic) {
-      opt.color = m.c;
-      mat = new THREE.LineBasicMaterial(opt);
-    }
-    else {
-      opt.color = 0xffffff;
-      mat = new THREE.SpriteMaterial(opt);
-    }
-
-    m.m = mat;
-    this.materials.push(m);   // TODO: push mat instead of m. add mat.userData to store some material information
-    sum_opacity += mat.opacity;
-  }
-
-  // layer opacity is the average opacity of materials
-  // TODO: in case of 3DViewer
-  this.opacity = sum_opacity / this.materials.length;
 };
 
 Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject) {
@@ -1539,18 +1642,14 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject) {
 
     // materials
     if (jsonObject.data.materials !== undefined) {
-      this.m = jsonObject.data.materials;
-      this.initMaterials();   //TODO: this.createMaterials(data.materials)
+      this.materials.loadJSONObject(jsonObject.data.materials);
     }
   }
 };
 
 Q3D.MapLayer.prototype.setOpacity = function (opacity) {
+  this.materials.setOpacity(opacity);
   this.opacity = opacity;
-  this.materials.forEach(function (m) {
-    m.m.transparent = Boolean(m.t) || (opacity < 1);
-    m.m.opacity = opacity;
-  });
 };
 
 Q3D.MapLayer.prototype.setVisible = function (visible) {
@@ -1561,10 +1660,7 @@ Q3D.MapLayer.prototype.setVisible = function (visible) {
 };
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
-  this.materials.forEach(function (m) {
-    if (m.w) return;
-    if (m.type != Q3D.MaterialType.LineBasic) m.m.wireframe = wireframe;
-  });
+  this.materials.setWireframeMode(wireframe);
 };
 
 
@@ -1607,12 +1703,12 @@ Q3D.DEMLayer.prototype.build = function (data) {
     // build sides, bottom and frame
     if (block.sides) {
       // material
-      var material = layer.materials[block.mat];
-      var opacity = (material.o !== undefined) ? material.o : 1;
+      var matProp = layer.materials.get(block.mat).origProp;
+      var opacity = (matProp.o !== undefined) ? matProp.o : 1;
       var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
                                                opacity: opacity,
                                                transparent: (opacity < 1)});
-      layer.materials.push({type: Q3D.MaterialType.MeshLambert, m: mat});
+      layer.materials.add(mat);
 
       block.buildSides(layer, mat, opt.side.bottomZ);                 // TODO: layer.objectGroup.add()
       layer.sideVisible = true;
@@ -1630,19 +1726,19 @@ Q3D.DEMLayer.prototype.build = function (data) {
     var block = new Q3D.DEMBlock(b);
     this.blocks.push(block);
 
-    var obj = block.build(this, this.materials[b.mat].m, callback);
+    var obj = block.build(this, this.materials.mat(b.mat), callback);
     obj.userData.layerId = this.index;
     this.objectGroup.add(obj);
   }, this);
 };
 
 Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
-  var opacity = this.materials[block.mat].o;
+  var opacity = this.materials.mat(block.mat).opacity;
   if (opacity === undefined) opacity = 1;
   var mat = new THREE.LineBasicMaterial({color: color,
                                          opacity: opacity,
                                          transparent: (opacity < 1)});
-  this.materials.push({type: Q3D.MaterialType.LineBasic, m: mat});
+  this.materials.add(mat);
 
   // horizontal rectangle at bottom
   var hw = block.width / 2, hh = block.height / 2;
@@ -1953,7 +2049,7 @@ Q3D.PointLayer.prototype.build = function (features, startIndex) {
     f.objs = [];    // TODO
     var z_addend = (geom.h) ? geom.h / 2 : 0;
     for (var i = 0, l = geom.pts.length; i < l; i++) {
-      var mesh = new THREE.Mesh(createGeometry(geom), materials[f.mat].m);
+      var mesh = new THREE.Mesh(createGeometry(geom), materials.mat(f.mat));
 
       var pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
@@ -1974,7 +2070,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
   for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
     var f = features[fid],
         geom = f.geom;
-    var mat = this.materials[f.mat];
+    var mat = this.materials.mat(f.mat);
     var image = this.scene.images[mat.i];   // TODO:
 
     // base size is 64 x 64
@@ -1985,7 +2081,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
     f.objs = [];
     for (var i = 0, l = geom.pts.length; i < l; i++) {
       var pt = geom.pts[i];
-      var sprite = new THREE.Sprite(mat.m);
+      var sprite = new THREE.Sprite(mat);
       sprite.position.set(pt[0], pt[1], pt[2]);
       sprite.scale.set(sx, sy, scale);
       sprite.userData.layerId = this.index;
@@ -2046,7 +2142,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
         pt = line[i];
         geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
       }
-      return new THREE.Line(geom, materials[f.mat].m);
+      return new THREE.Line(geom, materials.mat(f.mat));
     };
   }
   else if (objType == "Pipe" || objType == "Cone") {
@@ -2062,7 +2158,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
 
         if (hasJoints) {
           geom = new THREE.SphereGeometry(f.geom.rb, 8, 8);
-          obj = new THREE.Mesh(geom, materials[f.mat].m);
+          obj = new THREE.Mesh(geom, materials.mat(f.mat));
           obj.position.copy(pt1);
           group.add(obj);
         }
@@ -2070,7 +2166,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
         if (i) {
           sub.subVectors(pt1, pt0);
           geom = new THREE.CylinderGeometry(f.geom.rt, f.geom.rb, pt0.distanceTo(pt1), 8);
-          obj = new THREE.Mesh(geom, materials[f.mat].m);
+          obj = new THREE.Mesh(geom, materials.mat(f.mat));
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
           obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
           group.add(obj);
@@ -2119,7 +2215,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
         // place a box to the segment
         geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
         if (debugMode) {
-          obj = new THREE.Mesh(geom, materials[f.mat].m);
+          obj = new THREE.Mesh(geom, materials.mat(f.mat));
           obj.position.set(ptM.x, ptM.y, ptM.z);
           obj.rotation.set(rx, 0, rz, "ZXY");
           group.add(obj);
@@ -2170,7 +2266,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
 
       geometry.mergeVertices();
       geometry.computeFaceNormals();
-      return new THREE.Mesh(geometry, materials[f.mat].m);
+      return new THREE.Mesh(geometry, materials.mat(f.mat));
     };
   }
   else if (objType == "Profile") {
@@ -2200,7 +2296,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
         }
       }
       var geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);    // TODO: flat shading
-      return new THREE.Mesh(geom, materials[f.mat].m);
+      return new THREE.Mesh(geom, materials.mat(f.mat));
     };
   }
 
@@ -2265,7 +2361,7 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
         shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
       }
       var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.geom.h});
-      var mesh = new THREE.Mesh(geom, materials[f.mat].m);
+      var mesh = new THREE.Mesh(geom, materials.mat(f.mat));
       mesh.position.z = z;
       return mesh;
     };
@@ -2297,8 +2393,9 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
 
       // set UVs
       if (materials[f.mat].i !== undefined) Q3D.Utils.setGeometryUVs(geom, scene.userData.width, scene.userData.height);
+      // TODO: materials.get(f.mat).origProp.i
 
-      var mesh = new THREE.Mesh(geom, materials[f.mat].m);
+      var mesh = new THREE.Mesh(geom, materials.mat(f.mat));
 
       // TODO: f.mb and f.ms
       if (f.mb === undefined && f.ms === undefined) return mesh;
@@ -2322,15 +2419,16 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
           if (f.mb) {
             geom = new THREE.Geometry();
             geom.vertices = vertices;
-            mesh.add(new THREE.Line(geom, materials[f.mb].m));
+            mesh.add(new THREE.Line(geom, materials.mat(f.mb)));
           }
 
           if (f.ms) {
             geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
-            mesh.add(new THREE.Mesh(geom, materials[f.ms].m));
+            mesh.add(new THREE.Mesh(geom, materials.mat(f.ms)));
           }
         }
       }
+      // TODO: mesh.updateWorldMatrix();
       return mesh;
     };
   }
@@ -2466,14 +2564,14 @@ Q3D.ModelBuilder.Base.prototype = {
       object.traverse(function (obj) {
         if (obj instanceof THREE.Mesh === false) return;
         obj.material = obj.material.clone();
-        layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+        layer.materials.add(obj.material);
       });
     }
     else {
       // if this is the first, append original materials to material list of the layer
       object.traverse(function (obj) {
         if (obj instanceof THREE.Mesh === false) return;
-        layer.materials.push({type: Q3D.MaterialType.Unknown, m: obj.material});
+        layer.materials.add(obj.material);
       });
     }
     this._objects[layerId] = object;
@@ -2583,12 +2681,14 @@ Q3D.Utils.setObjectVisibility = function (object, visible) {
   });
 };
 
+// TODO: REMOVE
 Q3D.Utils.loadTexture = function (url, eventDispatcher) {
   return THREE.ImageUtils.loadTexture(url, undefined, function (tex) {
     if (eventDispatcher) eventDispatcher.dispatchEvent({type: "renderRequest"});
   });
 };
 
+// TODO: remove
 Q3D.Utils.loadTextureBase64 = function (imageData, eventDispatcher) {
   var texture, image = new Image();
   image.onload = function () {
