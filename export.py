@@ -127,11 +127,15 @@ class ThreeJSFileExporter(ThreeJSExporter):
     with open(templatePath, "r", encoding="UTF-8") as f:
       html = f.read()
 
-    html = html.replace("${title}", self.settings.title)
-    html = html.replace("${controls}", '<script src="./threejs/%s"></script>' % self.settings.controls)    #TODO: move to self.scripts()
-    html = html.replace("${options}", "\n".join(options))
-    html = html.replace("${scripts}", "\n".join(self.scripts()))
-    html = html.replace("${scenefile}", "./data/{0}/scene.json".format(self.settings.htmlfiletitle))
+    mapping = {
+      "title": self.settings.htmlfiletitle,
+      "controls": '<script src="./threejs/%s"></script>' % self.settings.controls,    #TODO: move to self.scripts()
+      "options": "\n".join(options),
+      "scripts": "\n".join(self.scripts()),
+      "scenefile": "./data/{0}/scene.json".format(self.settings.htmlfiletitle)
+      }
+    for key, value in mapping.items():
+      html = html.replace("${" + key + "}", value)
 
     # write html
     with open(self.settings.htmlfilename, "w", encoding="UTF-8") as f:

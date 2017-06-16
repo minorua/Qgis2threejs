@@ -91,14 +91,6 @@ class ImageManager(DataManager):
     painter.end()
     return image
 
-  #TODO: remove
-  def saveMapCanvasImage(self):
-    if self.exportSettings.canvas is None:
-      return
-    texfilename = self.exportSettings.path_root + ".png"
-    self.exportSettings.canvas.saveAsImage(texfilename)
-    tools.removeTemporaryFiles([texfilename + "w"])
-
   def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
     # render layers with QgsMapRendererCustomPainterJob
     from qgis.core import QgsMapRendererCustomPainterJob
@@ -197,47 +189,6 @@ class ImageManager(DataManager):
   def write(self, pathRoot):
     for i in range(self.count()):
       self.image(i).save("{}_IMG{}.png".format(pathRoot, i))
-
-  def _write(self, f):    #TODO: remove
-    if len(self._list) == 0:
-      return
-
-    f.write('\n// Base64 encoded images\n')
-    for index, image in enumerate(self._list):
-      #TODO: image - list to class or something
-
-      imageType = image[0]
-      if imageType == self.IMAGE_FILE:
-        image_path = image[1]
-
-        exists = os.path.exists(image_path)
-        if exists and os.path.isfile(image_path):
-          size = QImageReader(image_path).size()
-          args = (index, size.width(), size.height(), gdal2threejs.base64image(image_path))
-        else:
-          f.write("project.images[%d] = {data:null};\n" % index)
-
-          if exists:
-            err_msg = "Not image file path"
-          else:
-            err_msg = "Image file not found"
-          logMessage("{0}: {1}".format(err_msg, image_path))
-          continue
-
-      elif imageType == self.MAP_IMAGE:
-        width, height, extent, transp_background = image[1]
-        args = (index, width, height, self.base64image(index))
-
-      elif imageType == self.LAYER_IMAGE:
-        layerids, width, height, extent, transp_background = image[1]
-        args = (index, width, height, self.base64image(index))
-
-      else:   #imageType == self.CANVAS_IMAGE:
-        #transp_background = image[1]
-        size = self.exportSettings.mapSettings.outputSize()
-        args = (index, size.width(), size.height(), self.base64image(index))
-
-      f.write('project.images[%d] = {width:%d,height:%d,data:"%s"};\n' % args)
 
 
 class MaterialManager(DataManager):
