@@ -23,8 +23,8 @@ In order from the top:
 
    Select output HTML file path. Usually, a js file with the same file
    title that contains whole data of geometries and images is output into
-   the same directory, and some JavaScript library files are copied to
-   under the directory. Leave this empty to output into temporary
+   the same directory, and some JavaScript library files are copied
+   into the directory. Leave this empty to output into temporary
    directory. Temporary files are removed when you close the QGIS
    application.
 
