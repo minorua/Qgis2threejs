@@ -91,6 +91,7 @@ class ImageManager(DataManager):
     painter.end()
     return image
 
+  #TODO: remove
   def saveMapCanvasImage(self):
     if self.exportSettings.canvas is None:
       return

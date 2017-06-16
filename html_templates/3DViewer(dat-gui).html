@@ -54,7 +54,7 @@ var app = Q3D.application;
 app.init(container);
 
 // load the scene
-app.loadJSONFromURL("scene.json");      // TODO: data/<HTML file title>/scene.json
+app.loadJSONFromURL("${scenefile}");
 
 app.addEventListeners();
 app.start();

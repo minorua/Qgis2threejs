@@ -41,11 +41,6 @@ class ThreeJSExporter:
     self.settings = settings
     self.progress = progress or dummyProgress
     self.imageManager = ImageManager(settings)
-    self.clearBinaryData()
-
-  def clearBinaryData(self):
-    self.binaryData = {}
-    #TODO: binary data -> something good for binary grid data, image data and model data (may be ascii file).
 
   def exportScene(self, export_layers=True):
     crs = self.settings.crs
@@ -87,52 +82,6 @@ class ThreeJSExporter:
 
     return layers
 
-    #TODO: remove
-    self.progress(5, "Writing DEM")
-
-    # write primary DEM
-    properties = self.settings.get(ObjectTreeItem.ITEM_DEM, {})
-    primaryDEMLayerId = properties.get("comboBox_DEMLayer", 0)
-    jsLayerId = primaryDEMLayerId
-    layers.append(self.exportDEMLayer(primaryDEMLayerId, properties, jsLayerId))
-
-    #self.binaryData[layerId] = bindata
-
-    # write additional DEM(s)
-    for layerId, properties in self.settings.get(ObjectTreeItem.ITEM_OPTDEM, {}).items():
-      #TODO:
-      # visible: initial visibility.
-      # export: whether to export. True or False
-      if properties.get("visible", False) and layerId != primaryDEMLayerId and QgsProject.instance().mapLayer(layerId):
-        jsLayerId = layerId
-        layers.append(self.exportDEMLayer(layerId, properties, jsLayerId))
-
-    self.progress(30, "Writing vector data")
-
-    # write vector data
-    layerList = []
-    # use vector layer order in project
-    for layer in getLayersInProject():
-      if layer.type() == QgsMapLayer.VectorLayer:
-        parentId = ObjectTreeItem.parentIdByLayer(layer)
-        properties = self.settings.get(parentId, {}).get(layer.id(), {})
-        if properties.get("visible", False):
-          layerList.append([layer.id(), properties])
-
-    finishedLayers = 0
-    for layerId, properties in layerList:
-      mapLayer = QgsProject.instance().mapLayer(layerId)
-      if mapLayer is None:
-        continue
-
-      self.progress(30 + 30 * finishedLayers / len(layerList), "Writing vector layer ({0} of {1}): {2}".format(finishedLayers + 1, len(layerList), mapLayer.name()))
-
-      jsLayerId = layerId     #TODO: jsLayerId should be unique. layerId + number is preferable.
-      layers.append(self.exportVectorLayer(layerId, properties, jsLayerId))
-      finishedLayers += 1
-
-    return layers
-
   def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
     exporter = DEMLayerExporter(self.settings, self.imageManager)
     return exporter.export(layerId, properties, jsLayerId, visible)
@@ -147,8 +96,6 @@ class ThreeJSFileExporter(ThreeJSExporter):
   def __init__(self, settings, progress=None):
     ThreeJSExporter.__init__(self, settings, progress)
 
-    self.outDir = os.path.split(settings.htmlfilename)[0]
-
     self._index = -1
 
   def export(self):
@@ -158,25 +105,17 @@ class ThreeJSFileExporter(ThreeJSExporter):
     templateConfig = self.settings.templateConfig()
     templatePath = templateConfig["path"]
 
-    # create output directory if not exists
-    if not QDir(self.outDir).exists():
-      QDir().mkpath(self.outDir)
+    # create output data directory if not exists
+    if not QDir(self.settings.outputdatadir).exists():
+      QDir().mkpath(self.settings.outputdatadir)
 
     json_object = self.exportScene()
-    #with open(self.settings.path_root + ".json", "w") as f:
-    with open(os.path.join(self.outDir, "scene.json"), "w") as f:
+    with open(os.path.join(self.settings.outputdatadir, "scene.json"), "w") as f:
       json.dump(json_object, f, indent=2)
-
-    # TODO: export refdata (binary grid data, texture images and model data)
-    self.progress(60, "Writing texture images")
-    for layerId, dataset in self.binaryData.items():
-      for suffix, data in dataset.items():
-        with open(self.settings.path_root + suffix, "wb") as f:
-          f.write(data)
 
     # copy files
     self.progress(90, "Copying library files")
-    tools.copyFiles(self.filesToCopy(), self.outDir)
+    tools.copyFiles(self.filesToCopy(), self.settings.outputdir)
 
     # create html file
     options = []
@@ -192,6 +131,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     html = html.replace("${controls}", '<script src="./threejs/%s"></script>' % self.settings.controls)    #TODO: move to self.scripts()
     html = html.replace("${options}", "\n".join(options))
     html = html.replace("${scripts}", "\n".join(self.scripts()))
+    html = html.replace("${scenefile}", "./data/{0}/scene.json".format(self.settings.htmlfiletitle))
 
     # write html
     with open(self.settings.htmlfilename, "w", encoding="UTF-8") as f:
@@ -204,17 +144,17 @@ class ThreeJSFileExporter(ThreeJSExporter):
     return self._index
 
   def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
-    title = "L{}".format(self.nextLayerIndex())
-    pathRoot = os.path.join(self.outDir, title)
-    urlRoot = "./" + title
+    title = "L{0}".format(self.nextLayerIndex())
+    pathRoot = os.path.join(self.settings.outputdatadir, title)
+    urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = DEMLayerExporter(self.settings, self.imageManager)
     return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
-    title = "L{}".format(self.nextLayerIndex())
-    pathRoot = os.path.join(self.outDir, title)
-    urlRoot = "./" + title
+    title = "L{0}".format(self.nextLayerIndex())
+    pathRoot = os.path.join(self.settings.outputdatadir, title)
+    urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = VectorLayerExporter(self.settings, self.imageManager)
     return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)

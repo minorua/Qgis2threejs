@@ -120,10 +120,14 @@ class ExportSettings:
   def setOutputFilename(self, filepath=None):
     if not filepath:
       filepath = tools.temporaryOutputDir() + "/%s.html" % self.timestamp   # temporary file
+    self.title = filepath
     self.htmlfilename = filepath
-    self.path_root = os.path.splitext(filepath)[0]
-    self.htmlfiletitle = os.path.basename(self.path_root)
-    self.title = self.htmlfiletitle
+    self.htmlfiletitle = os.path.splitext(os.path.basename(filepath))[0]
+
+    self.outputdir = os.path.split(filepath)[0]
+    self.outputdatadir = os.path.join(self.outputdir, "data", self.htmlfiletitle)
+
+    self.path_root = os.path.splitext(filepath)[0]    #TODO: remove
 
   def setMapCanvas(self, canvas):
     self.setMapSettings(canvas.mapSettings())
