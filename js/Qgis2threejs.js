@@ -298,10 +298,14 @@ limitations:
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // orbit controls
-    var controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+    app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+    var controls = app.controls;
     controls.enableKeys = false;
 
     var offset = new THREE.Vector3();
+    var spherical = new THREE.Spherical();
+
+    // orbit controls - custom functions
     controls.moveForward = function (delta) {
       offset.copy(controls.object.position).sub(controls.target);
       var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
@@ -314,25 +318,21 @@ limitations:
     };
     controls.cameraRotate = function (thetaDelta, phiDelta) {
       offset.copy(controls.target).sub(controls.object.position);
+      spherical.setFromVector3(offset);
 
-      // angle from z-axis around y-axis
-      var theta = Math.atan2(offset.x, offset.z);
+      spherical.theta += thetaDelta;
+      spherical.phi -= phiDelta;
 
-      // angle from x-z plane
-      var phi = Math.atan2(offset.y, Math.sqrt(offset.x * offset.x + offset.z * offset.z));
+      // restrict theta/phi to be between desired limits
+      spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
+      spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
+      spherical.makeSafe();
 
-      theta += thetaDelta;
-      phi += phiDelta;
-
-      var radius = offset.length();
-      offset.x = radius * Math.cos(phi) * Math.sin(theta);
-      offset.z = radius * Math.cos(phi) * Math.cos(theta);
-      offset.y = radius * Math.sin(phi);
-      controls.target.copy(controls.object.position).add(offset);
+      offset.setFromSpherical(spherical);
+      scope.target.copy(controls.object.position).add(offset);
+      scope.object.lookAt(controls.target);
     };
 
-
-    app.controls = controls;
     controls.update();
 
       /*
