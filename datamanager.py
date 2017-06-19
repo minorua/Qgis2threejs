@@ -255,7 +255,7 @@ class MaterialManager(DataManager):
     mat = (self.SPRITE, (path, transp_background), transparency, False)
     return self._index(mat)
 
-  def export(self, imageManager, pathRoot=None, urlRoot=None):
+  def build(self, imageManager, pathRoot=None, urlRoot=None):
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
                       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,

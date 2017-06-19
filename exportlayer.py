@@ -37,7 +37,7 @@ class LayerExporter:
     self.materialManager = MaterialManager()    #TODO: takes imageManager
     self.progress = progress or dummyProgress
 
-  def export(self, layerId, properties, jsLayerId, visible=True):
+  def build(self, layerId, properties, jsLayerId, visible=True):
     pass
 
 

@@ -84,11 +84,11 @@ class ThreeJSExporter:
 
   def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
     exporter = DEMLayerExporter(self.settings, self.imageManager)
-    return exporter.export(layerId, properties, jsLayerId, visible)
+    return exporter.build(layerId, properties, jsLayerId, visible)
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
     exporter = VectorLayerExporter(self.settings, self.imageManager)
-    return exporter.export(layerId, properties, jsLayerId, visible)
+    return exporter.build(layerId, properties, jsLayerId, visible)
 
 
 class ThreeJSFileExporter(ThreeJSExporter):
@@ -109,6 +109,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if not QDir(self.settings.outputdatadir).exists():
       QDir().mkpath(self.settings.outputdatadir)
 
+    # write scene data to a file in json format
     json_object = self.exportScene()
     with open(os.path.join(self.settings.outputdatadir, "scene.json"), "w") as f:
       json.dump(json_object, f, indent=2)
@@ -117,7 +118,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self.progress(90, "Copying library files")
     tools.copyFiles(self.filesToCopy(), self.settings.outputdir)
 
-    # create html file
+    # options in html file
     options = []
     world = self.settings.get(ObjectTreeItem.ITEM_WORLD, {})
     if world.get("radioButton_Color", False):
@@ -137,7 +138,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)
 
-    # write html
+    # write to html file
     with open(self.settings.htmlfilename, "w", encoding="UTF-8") as f:
       f.write(html)
 
@@ -153,7 +154,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = DEMLayerExporter(self.settings, self.imageManager)
-    return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    return exporter.build(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
     title = "L{0}".format(self.nextLayerIndex())
@@ -161,7 +162,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = VectorLayerExporter(self.settings, self.imageManager)
-    return exporter.export(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    return exporter.build(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
 
   def filesToCopy(self):
     # three.js library

@@ -35,7 +35,9 @@ class DEMLayerExporter(LayerExporter):
   def __init__(self, settings, imageManager, progress=None):
     LayerExporter.__init__(self, settings, imageManager, progress)
 
-  def export(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
+  def build(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
+    """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
+
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       #writeSimpleDEM(writer, demProperties, progress)
     #else:
@@ -63,7 +65,7 @@ class DEMLayerExporter(LayerExporter):
     block.zShift(mapTo3d.verticalShift)
     block.zScale(mapTo3d.multiplierZ)
 
-    # write grid values to an external binary file (file export mode)
+    # write grid values to an individual binary file (file export mode)
     if pathRoot is not None:
       block.write(pathRoot + "_DEM0.bin")
 
@@ -105,7 +107,7 @@ class DEMLayerExporter(LayerExporter):
 
     # DEM block
     url = None if urlRoot is None else urlRoot + "_DEM0.bin"
-    b = block.export(url)
+    b = block.build(url)
     b["mat"] = mi
 
     # TODO: clipping
@@ -124,7 +126,7 @@ class DEMLayerExporter(LayerExporter):
       "properties": p,
       "data": {
         "blocks": [b],
-        "materials": self.materialManager.export(self.imageManager, pathRoot, urlRoot)
+        "materials": self.materialManager.build(self.imageManager, pathRoot, urlRoot)
         },
       "PROPERTIES": properties    # debug
       }
@@ -157,7 +159,7 @@ class DEMBlock:
     if scale != 1:
       self.grid_values = [x * scale for x in self.grid_values]
 
-  def export(self, extFileUrl=None):
+  def build(self, extFileUrl=None):
     """extFileUrl: should be specified when the grid values are written to an extenal binary file."""
     g = {"width": self.grid_width,
          "height": self.grid_height}

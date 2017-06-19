@@ -37,7 +37,9 @@ class VectorLayerExporter(LayerExporter):
     LayerExporter.__init__(self, settings, imageManager, progress)
     self.triMesh = {}
 
-  def export(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
+  def build(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
+    """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
+
     mapLayer = QgsProject.instance().mapLayer(layerId)
     if mapLayer is None:
       return
@@ -110,7 +112,7 @@ class VectorLayerExporter(LayerExporter):
 
     d = {
       "features": features,
-      "materials": self.materialManager.export(self.imageManager)
+      "materials": self.materialManager.build(self.imageManager)
       }
     if layer.writeAttrs:
       d["propertyNames"] = layer.fieldNames
