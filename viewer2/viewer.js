@@ -23,11 +23,9 @@ window.setInterval(function () {
 }, 1000);
 
 // overrides
-// TODO: var origAnimate = app.animate;
-app.animate = function () {
-  if (app.running) requestAnimationFrame(app.animate);
-  if (app.controls) app.controls.update();
-  app.render();
+var origRender = app.render;
+app.render = function () {
+  origRender();
   app.timer.tickCount++;
 };
 
