@@ -22,17 +22,9 @@ window.setInterval(function () {
   app.timer.tickCount = 0;
 }, 1000);
 
-// overrides
+// override
 var origRender = app.render;
 app.render = function () {
   origRender();
   app.timer.tickCount++;
-};
-
-app.setCanvasSize = function (width, height) {
-  app.width = width;
-  app.height = height;
-  //app.camera.aspect = width / height;
-  app.camera.updateProjectionMatrix();
-  app.renderer.setSize(width, height);
 };
