@@ -110,12 +110,13 @@ class VectorLayerExporter(LayerExporter):
       "visible": visible
       }
 
+    if layer.writeAttrs:
+      p["propertyNames"] = layer.fieldNames
+
     d = {
       "features": features,
       "materials": self.materialManager.build(self.imageManager)
       }
-    if layer.writeAttrs:
-      d["propertyNames"] = layer.fieldNames
 
     return {
       "type": "layer",
