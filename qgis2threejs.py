@@ -26,7 +26,11 @@ from PyQt5.QtWidgets import QAction, QMessageBox
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsMapLayer, QgsPluginLayerRegistry, QgsProject
 
+from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
+from .vectorobject import ObjectTypeManager
+from .viewer2.q3dviewercontroller import Q3DViewerController
+from .viewer2.q3dwindow import Q3DWindow
 
 
 class Qgis2threejs:
@@ -106,8 +110,6 @@ class Qgis2threejs:
     removeTemporaryOutputDir()
 
   def initManagers(self):
-    from .vectorobject import ObjectTypeManager
-    from .pluginmanager import PluginManager
     if self.objectTypeManager is None:
       self.objectTypeManager = ObjectTypeManager()
 
@@ -145,9 +147,6 @@ class Qgis2threejs:
     self.settingsFilePath = settingsFilePath
 
   def launchViewer(self):
-    from .viewer2.q3dviewercontroller import Q3DViewerController
-    from .viewer2.q3dwindow import Q3DWindow
-
     self.initManagers()
 
     if self.controller is None:
