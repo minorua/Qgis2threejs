@@ -35,7 +35,7 @@ class SettingsDialog(QDialog):
     self.ui = ui = Ui_SettingsDialog()
     ui.setupUi(self)
     ui.lineEdit_BrowserPath.setPlaceholderText("Leave this empty to use your default browser")
-    ui.toolButton_Browse.clicked.connect(self.browseClicked)
+    ui.pushButton_Browse.clicked.connect(self.browseClicked)
 
     # load settings
     settings = QSettings()
