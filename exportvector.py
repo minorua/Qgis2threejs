@@ -102,6 +102,7 @@ class VectorLayerExporter(LayerExporter):
       QgsWkbTypes.PolygonGeometry: "polygon"
       }
 
+    # properties
     p = {
       "type": gt2str.get(geom_type),
       "objType": prop.type_name,
@@ -113,6 +114,15 @@ class VectorLayerExporter(LayerExporter):
     if layer.writeAttrs:
       p["propertyNames"] = layer.fieldNames
 
+    mapTo3d = self.settings.mapTo3d()
+    labelAttrIndex = properties.get("comboBox_Label", None)
+    if labelAttrIndex is not None:
+      widgetValues = properties.get("labelHeightWidget", {})
+      p["label"] = {"index": labelAttrIndex,
+                    "heightType": int(widgetValues.get("comboData", 0)),
+                    "height": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
+
+    # data
     d = {
       "features": features,
       "materials": self.materialManager.build(self.imageManager)

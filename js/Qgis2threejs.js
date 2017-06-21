@@ -49,6 +49,12 @@ Q3D.Group.prototype.add = function (object) {
   object.updateMatrixWorld();
 };
 
+Q3D.Group.prototype.clear = function () {
+  for (var i = this.children.length - 1 ; i >= 0; i--) {
+    this.remove(this.children[i]);
+  }
+};
+
 
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
@@ -79,6 +85,11 @@ Q3D.Scene = function () {
 
   this.lightGroup = new Q3D.Group();
   this.add(this.lightGroup);
+
+  this.labelConnectorGroup = new Q3D.Group();
+  this.add(this.labelConnectorGroup);
+
+  this.labelRootElement = null;
 };
 
 Q3D.Scene.prototype = Object.create(THREE.Scene.prototype);
@@ -110,9 +121,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     // load lights
     if (jsonObject.lights !== undefined) {
       // remove all existing lights
-      for (var i = this.lightGroup.children.length - 1 ; i >= 0; i--) {
-        this.lightGroup.remove(this.lightGroup.children[i]);
-      }
+      this.lightGroup.clear();
 
       // TODO: load light settings and build lights
     }
@@ -156,16 +165,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     layer.loadJSONObject(jsonObject, this);
 
     requestRender();
-   
-    /* TODO: build labels
-    // build labels
-    if (layer.l) {
-      layer.buildLabels(app.labelConnectorGroup, app.labelRootElement);
-      app.labels = app.labels.concat(layer.labels);
-    }
-
-    if (app.labels.length) app.scene.add(app.labelConnectorGroup);
-    */
 
     /* TODO: load models
     // load models
@@ -362,16 +361,13 @@ limitations:
     }
     */
 
-    // label
     app.labelVisibility = Q3D.Options.label.visible;
-    app.labelConnectorGroup = new Q3D.Group();
-    app.labels = [];     // labels of visible layers
 
-    // root element for labels
+    // root element of labels
     var e = document.createElement("div");
     e.style.display = (app.labelVisibility) ? "block" : "none";
     app.container.appendChild(e);
-    app.labelRootElement = e;
+    app.scene.labelRootElement = e;
 
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
@@ -605,39 +601,57 @@ limitations:
 
   // update label position
   app.updateLabelPosition = function () {
-    if (!app.labelVisibility || app.labels.length == 0) return;
+    var rootGroup = app.scene.labelConnectorGroup;
+    if (!app.labelVisibility || rootGroup.children.length == 0) return;
 
-    var widthHalf = app.width / 2,
-        heightHalf = app.height / 2,
-        autosize = Q3D.Options.label.autoSize,
-        camera = app.camera,
+    var camera = app.camera,
         camera_pos = camera.position,
-        c2t = app.controls.target.clone().sub(camera_pos),
-        c2l = new THREE.Vector3(),
-        v = new THREE.Vector3();
+        pt = new THREE.Vector3();
 
-    // make a list of [label index, distance to camera]
-    var idx_dist = [];
-    for (var i = 0, l = app.labels.length; i < l; i++) {
-      idx_dist.push([i, camera_pos.distanceTo(app.labels[i].pt)]);
+    // make list of [connector object, distance to camera]
+    var obj_dist = [];
+    var layerGroup, conn, pt0;
+    for (var i = 0, l = rootGroup.children.length; i < l; i++) {
+      layerGroup = rootGroup.children[i];
+      if (layerGroup.visible) {
+        for (var k = 0, m = layerGroup.children.length; k < m; k++) {
+          conn = layerGroup.children[k];
+          pt0 = conn.geometry.vertices[0];
+          pt.set(pt0.x, pt0.z, -pt0.y);
+          obj_dist.push([conn, camera_pos.distanceTo(pt)]);
+        }
+      }
     }
 
-    // sort label indexes in descending order of distances
-    idx_dist.sort(function (a, b) {
+    if (obj_dist.length == 0) return;
+
+    // sort label objects in descending order of distances
+    obj_dist.sort(function (a, b) {
       if (a[1] < b[1]) return 1;
       if (a[1] > b[1]) return -1;
       return 0;
     });
 
-    var label, e, x, y, dist, fontSize;
+    var widthHalf = app.width / 2,
+        heightHalf = app.height / 2,
+        autosize = Q3D.Options.label.autoSize,
+        c2t = app.controls.target.clone().sub(camera_pos),
+        c2l = new THREE.Vector3(),
+        v = new THREE.Vector3();
+
+    var label, e, x, y, pt, dist, fontSize;
     var minFontSize = Q3D.Options.label.minFontSize;
-    for (var i = 0, l = idx_dist.length; i < l; i++) {
-      label = app.labels[idx_dist[i][0]];
-      e = label.e;
-      if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {
+    for (var i = 0, l = obj_dist.length; i < l; i++) {
+      label = obj_dist[i][0];
+      dist = obj_dist[i][1];
+
+      e = label.userData.elem;
+      pt0 = label.geometry.vertices[0];
+      pt.set(pt0.x, pt0.z, -pt0.y);
+      if (c2l.subVectors(pt, camera_pos).dot(c2t) > 0) {
         // label is in front
         // calculate label position
-        v.copy(label.pt).project(camera);
+        v.copy(pt).project(camera);
         x = (v.x * widthHalf) + widthHalf;
         y = -(v.y * heightHalf) + heightHalf;
 
@@ -649,7 +663,6 @@ limitations:
 
         // set font size
         if (autosize) {
-          dist = idx_dist[i][1];
           if (dist < 10) dist = 10;
           fontSize = Math.max(Math.round(1000 / dist), minFontSize);
           e.style.fontSize = fontSize + "px";
@@ -662,20 +675,11 @@ limitations:
     }
   };
 
-  app.labelVisibilityChanged = function () {
-    app.labels = [];
-    var layer;
-    for (var id in app.scene.mapLayers) {
-      if (layer.l && layer.visible) app.labels = app.labels.concat(layer.labels);
-    }
-  };
-
   app.setLabelVisibility = function (visible) {
     app.labelVisibility = visible;
-    app.labelRootElement.style.display = (visible) ? "block" : "none";
-    app.labelConnectorGroup.visible = visible;
-
-    if (app.labels.length) app.render();
+    app.scene.labelRootElement.style.display = (visible) ? "block" : "none";
+    app.scene.labelConnectorGroup.visible = visible;
+    app.render();
   };
 
   app.setWireframeMode = function (wireframe) {
@@ -1044,6 +1048,7 @@ limitations:
       }
     };
 
+    // TODO: save QWebView page content as image
     var renderLabels = function (ctx) {
       // context settings
       ctx.textAlign = "center";
@@ -1119,6 +1124,7 @@ limitations:
     var bgcolor = Q3D.Options.bgcolor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
+    // TODO: save QWebView page content as image
     var render_labels = (app.labelVisibility && app.labels.length > 0);
     if ((fill_background && bgcolor === null) || render_labels) {
       var canvas = document.createElement("canvas");
@@ -1897,8 +1903,9 @@ Q3D.VectorLayer --> Q3D.MapLayer
 */
 Q3D.VectorLayer = function () {
   Q3D.MapLayer.call(this);
-  this.f = [];
-  this.labels = [];
+
+  // this.labelConnectorGroup = undefined;
+  // this.labelParentElement = undefined;
 };
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
@@ -1906,42 +1913,45 @@ Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
 Q3D.VectorLayer.prototype.build = function (features) {};
 
-Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPointsFunc, zFunc) {
-  var label = this.l;
-  if (label === undefined || getPointsFunc === undefined) return;
+Q3D.VectorLayer.prototype.clearLabels = function () {
+  if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
 
-  // function to get height for both ends of label connector
-  // label.ht
-  //  1: fixed height
-  //  2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
-  //  3: height from top of extruded polygon / from overlay
-  //  >= 100: data-defined + addend
+  // create parent element for labels
+  var elem = this.labelParentElement;
+  if (elem) {
+    while (elem.lastChild) {
+      elem.removeChild(elem.lastChild);
+    }
+  }
+};
+
+Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc, zFunc) {
+  if (this.properties.label === undefined || getPointsFunc === undefined) return;
+
   var zShift = this.sceneData.zShift, zScale = this.sceneData.zScale;
+  var prop = this.properties.label,
+      pIndex = prop.index,
+      heightType = prop.heightType,
+      connHeight = prop.height;
+
+  // function to get height for both ends of label connector. returns [bottomZ, topZ]
   var labelHeightFunc = function (f, pt) {
     var z0 = (zFunc === undefined) ? pt[2] : zFunc(pt[0], pt[1]);
 
-    if (label.ht == 1) return [z0, label.v];
-    if (label.ht >= 100) return [z0, (f.a[label.ht - 100] + zShift) * zScale + label.v];
+    if (heightType == 1) return [z0, connHeight];      // fixed height
+    if (heightType >= 100) return [z0, (f.a[heightType - 100] + zShift) * zScale + connHeight];    // data-defined + addend
 
-    if (label.ht == 3) z0 += f.h;
-    return [z0, z0 + label.v];
+    // 2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
+    // 3: height from top of extruded polygon / from overlay
+    if (heightType == 3) z0 += f.h;
+    return [z0, z0 + connHeight];
   };
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
-  this.labelConnectorGroup = new Q3D.Group();
-  this.labelConnectorGroup.userData.layerId = this.id;
-  if (parent) parent.add(this.labelConnectorGroup);
 
-  // create parent element for labels
-  var e = document.createElement("div");
-  parentElement.appendChild(e);
-  this.labelParentElement = e;
-
-  for (var i = 0, l = this.f.length; i < l; i++) {
-    var f = this.f[i];
-    f.aElems = [];
-    f.aObjs = [];
-    var text = f.a[label.i];
+  for (var i = 0, l = features.length; i < l; i++) {
+    var f = features[i];
+    var text = f.prop[pIndex];
     if (text === null || text === "") continue;
 
     var pts = getPointsFunc(f);
@@ -1963,26 +1973,45 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
       var conn = new THREE.Line(geom, line_mat);
       conn.userData.layerId = this.id;
       conn.userData.featureId = i;
+      conn.userData.elem = e;
       this.labelConnectorGroup.add(conn);
-
-      f.aElems.push(e);
-      f.aObjs.push(conn);
-      this.labels.push({e: e, obj: conn, pt: pt1});
     }
   }
 };
 
 Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+
+  if (jsonObject.data !== undefined) {
+    this.build(jsonObject.data.features);
+
+    this.clearLabels();
+
+    // build labels
+    if (this.properties.label !== undefined) {
+      // create a label connector group
+      if (this.labelConnectorGroup === undefined) {
+        this.labelConnectorGroup = new Q3D.Group();
+        this.labelConnectorGroup.userData.layerId = this.id;
+        scene.labelConnectorGroup.add(this.labelConnectorGroup);
+      }
+
+      // create a label parent element
+      if (this.labelParentElement === undefined) {
+        this.labelParentElement = document.createElement("div");
+        scene.labelRootElement.appendChild(this.labelParentElement);
+      }
+
+      this.buildLabels(jsonObject.data.features);
+    }
+  }
 };
 
 Q3D.VectorLayer.prototype.setVisible = function (visible) {
   Q3D.MapLayer.prototype.setVisible.call(this, visible);
-  if (this.labels.length == 0) return;
 
-  this.labelParentElement.style.display = (visible) ? "block" : "none";
-  this.labelConnectorGroup.visible = visible;
-  Q3D.application.labelVisibilityChanged();
+  if (this.labelParentElement) this.labelParentElement.style.display = (visible) ? "block" : "none";
+  if (this.labelConnectorGroup) this.labelConnectorGroup.visible = visible;
 };
 
 
@@ -1999,10 +2028,6 @@ Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
 Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
-
-  if (jsonObject.data !== undefined) {
-    this.build(jsonObject.data.features);
-  }
 };
 
 Q3D.PointLayer.prototype.build = function (features) {
@@ -2082,9 +2107,8 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
   }
 };
 
-// TODO:
-Q3D.PointLayer.prototype.buildLabels = function (parent, parentElement) {
-  Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, function (f) { return f.pts; });
+Q3D.PointLayer.prototype.buildLabels = function (features) {
+  Q3D.VectorLayer.prototype.buildLabels.call(this, features, function (f) { return f.geom.pts; });
 };
 
 
@@ -2101,10 +2125,6 @@ Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
 Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
-
-  if (jsonObject.data !== undefined) {
-    this.build(jsonObject.data.features);
-  }
 };
 
 Q3D.LineLayer.prototype.build = function (features) {
@@ -2294,9 +2314,9 @@ Q3D.LineLayer.prototype.build = function (features) {
   this.createObject = createObject;
 };
 
-Q3D.LineLayer.prototype.buildLabels = function (parent, parentElement) {
+Q3D.LineLayer.prototype.buildLabels = function (features) {
   // Line layer doesn't support label
-  // Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement);
+  // Q3D.VectorLayer.prototype.buildLabels.call(this, features);
 };
 
 
@@ -2317,10 +2337,6 @@ Q3D.PolygonLayer.prototype.constructor = Q3D.PolygonLayer;
 
 Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
-
-  if (jsonObject.data !== undefined) {
-    this.build(jsonObject.data.features);
-  }
 };
 
 Q3D.PolygonLayer.prototype.build = function (features) {
@@ -2423,15 +2439,15 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 };
 
 // TODO:
-Q3D.PolygonLayer.prototype.buildLabels = function (parent, parentElement) {
-  var zFunc, getPointsFunc = function (f) { return f.centroids; };
+Q3D.PolygonLayer.prototype.buildLabels = function (features) {
+  var zFunc, getPointsFunc = function (f) { return f.centroids; };    // TODO: centroids
   var relativeToDEM = (this.am == "relative");    // altitude mode
   if (relativeToDEM) {
     var dem = this.scene.mapLayers[0];    // TODO: referenced dem
     zFunc = dem.getZ.bind(dem);
   }
 
-  Q3D.VectorLayer.prototype.buildLabels.call(this, parent, parentElement, getPointsFunc, zFunc);
+  Q3D.VectorLayer.prototype.buildLabels.call(this, features, getPointsFunc, zFunc);
 };
 
 Q3D.PolygonLayer.prototype.setBorderVisibility = function (visible) {
