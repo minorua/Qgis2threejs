@@ -54,7 +54,7 @@ Q3D.Group.prototype.add = function (object) {
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
 .mapLayers: an object that holds map layers contained in this scene. the key is layerId.
-            use .loadLayerJSONObject() to add a map layer to this scene.
+            use .loadJSONObject() to add a map layer to this scene.
 .userData: an object that holds metadata (crs, proj, baseExtent, rotation, width, zExaggeration, zShift, wgs84Center)
            properties of the scene object in JSON data?
 
@@ -63,7 +63,7 @@ Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
 --
 custom function
-.loadLayerJSONObject(json_obj): 
+.loadJSONObject(json_obj): 
 .toMapCoordinates(x, y, z): converts world coordinates to map coordinates
 ._rotatePoint(point, degrees, origin): 
 */
@@ -90,103 +90,100 @@ Q3D.Scene.prototype.add = function (object) {
 };
 
 Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
-  // console.assert(jsonObject.type == "scene");
-
-  // set properties
-  if (jsonObject.properties !== undefined) {
-    this.userData = jsonObject.properties;
-
-    var w = (this.userData.baseExtent[2] - this.userData.baseExtent[0]),
-        h = (this.userData.baseExtent[3] - this.userData.baseExtent[1]);
-
-    this.userData.scale = this.userData.width / w;
-    this.userData.zScale = this.userData.scale * this.userData.zExaggeration;
-
-    this.userData.origin = {x: this.userData.baseExtent[0] + w / 2,
-                            y: this.userData.baseExtent[1] + h / 2,
-                            z: -this.userData.zShift};
-  }
-
-  // load lights
-  if (jsonObject.lights !== undefined) {
-    // remove all existing lights
-    for (var i = this.lightGroup.children.length - 1 ; i >= 0; i--) {
-      this.lightGroup.remove(this.lightGroup.children[i]);
-    }
-
-    // TODO: load light settings and build lights
-  }
-
-  // create default lights if this scene has no lights
-  if (this.lightGroup.children.length == 0) this.buildDefaultLights();
-
-  // load layers
-  if (jsonObject.layers !== undefined) {
-    jsonObject.layers.forEach(function (layer) {
-      this.loadLayerJSONObject(layer);
-    }, this);
-  }
-};
-
-Q3D.Scene.prototype.loadLayerJSONObject = function (jsonObject) {
-  // console.assert(jsonObject.type == "layer");
-
   var _this = this;
-  var requestRender = function () {
-    _this.dispatchEvent({type: "renderRequest"});
-  };
+  if (jsonObject.type == "scene") {
+    // set properties
+    if (jsonObject.properties !== undefined) {
+      this.userData = jsonObject.properties;
 
-  var layer = this.mapLayers[jsonObject.id];
-  if (layer === undefined) {
-    // console.assert(jsonObject.properties !== undefined);
+      var w = (this.userData.baseExtent[2] - this.userData.baseExtent[0]),
+          h = (this.userData.baseExtent[3] - this.userData.baseExtent[1]);
 
-    // create a layer
-    var type = jsonObject.properties.type
-    if (type == "dem") layer = new Q3D.DEMLayer(this);
-    else if (type == "point") layer = new Q3D.PointLayer(this);
-    else if (type == "line") layer = new Q3D.LineLayer(this);
-    else if (type == "polygon") layer = new Q3D.PolygonLayer(this);
-    else {
-      // console.error("unknown layer type:" + type);
-      return;
+      this.userData.scale = this.userData.width / w;
+      this.userData.zScale = this.userData.scale * this.userData.zExaggeration;
+
+      this.userData.origin = {x: this.userData.baseExtent[0] + w / 2,
+                              y: this.userData.baseExtent[1] + h / 2,
+                              z: -this.userData.zShift};
     }
-    layer.id = jsonObject.id;
-    layer.addEventListener("renderRequest", requestRender);
 
-    this.mapLayers[jsonObject.id] = layer;
-    this.add(layer.objectGroup);
-  }
-
-  layer.loadJSONObject(jsonObject);
-
-  requestRender();
- 
-  /* TODO: build labels
-  // build labels
-  if (layer.l) {
-    layer.buildLabels(app.labelConnectorGroup, app.labelRootElement);
-    app.labels = app.labels.concat(layer.labels);
-  }
-
-  if (app.labels.length) app.scene.add(app.labelConnectorGroup);
-  */
-
-  /* TODO: load models
-  // load models
-  if (project.models.length > 0) {
-    project.models.forEach(function (model, index) {
-      if (model.type == "COLLADA") {
-        app.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(app.project, model);
+    // load lights
+    if (jsonObject.lights !== undefined) {
+      // remove all existing lights
+      for (var i = this.lightGroup.children.length - 1 ; i >= 0; i--) {
+        this.lightGroup.remove(this.lightGroup.children[i]);
       }
-      else if (Q3D.Options.jsonLoader == "ObjectLoader") {
-        app.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(app.project, model);
-      }
+
+      // TODO: load light settings and build lights
+    }
+
+    // create default lights if this scene has no lights
+    if (this.lightGroup.children.length == 0) this.buildDefaultLights();
+
+    // load layers
+    if (jsonObject.layers !== undefined) {
+      jsonObject.layers.forEach(function (layer) {
+        _this.loadJSONObject(layer);
+      });
+    }
+  }
+  else if (jsonObject.type == "layer") {
+    var requestRender = function () {
+      _this.dispatchEvent({type: "renderRequest"});
+    };
+
+    var layer = this.mapLayers[jsonObject.id];
+    if (layer === undefined) {
+      // console.assert(jsonObject.properties !== undefined);
+
+      // create a layer
+      var type = jsonObject.properties.type
+      if (type == "dem") layer = new Q3D.DEMLayer();
+      else if (type == "point") layer = new Q3D.PointLayer();
+      else if (type == "line") layer = new Q3D.LineLayer();
+      else if (type == "polygon") layer = new Q3D.PolygonLayer();
       else {
-        app.modelBuilders[index] = new Q3D.ModelBuilder.JSON(app.project, model);
+        // console.error("unknown layer type:" + type);
+        return;
       }
-    });
+      layer.id = jsonObject.id;
+      layer.addEventListener("renderRequest", requestRender);
+
+      this.mapLayers[jsonObject.id] = layer;
+      this.add(layer.objectGroup);
+    }
+
+    layer.loadJSONObject(jsonObject, this);
+
+    requestRender();
+   
+    /* TODO: build labels
+    // build labels
+    if (layer.l) {
+      layer.buildLabels(app.labelConnectorGroup, app.labelRootElement);
+      app.labels = app.labels.concat(layer.labels);
+    }
+
+    if (app.labels.length) app.scene.add(app.labelConnectorGroup);
+    */
+
+    /* TODO: load models
+    // load models
+    if (project.models.length > 0) {
+      project.models.forEach(function (model, index) {
+        if (model.type == "COLLADA") {
+          app.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(app.project, model);
+        }
+        else if (Q3D.Options.jsonLoader == "ObjectLoader") {
+          app.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(app.project, model);
+        }
+        else {
+          app.modelBuilders[index] = new Q3D.ModelBuilder.JSON(app.project, model);
+        }
+      });
+    }
+    */
   }
-  */
 };
 
 Q3D.Scene.prototype.buildDefaultLights = function () {
@@ -408,12 +405,7 @@ limitations:
   };
 
   app.loadJSONObject = function (jsonObject) {
-    if (jsonObject.type == "scene") {
-      app.scene.loadJSONObject(jsonObject);
-    }
-    else if (jsonObject.type == "layer") {
-      app.scene.loadLayerJSONObject(jsonObject);    // TODO: -> .loadJSONObject
-    }
+    app.scene.loadJSONObject(jsonObject);
   };
 
   app.loadJSONFromURL = function (url) {
@@ -1528,7 +1520,7 @@ Q3D.ClippedDEMBlock.prototype = {
     var geom = Q3D.Utils.createOverlayGeometry(this.clip.triangles, this.clip.split_polygons, layer.getZ.bind(layer));
 
     // set UVs
-    Q3D.Utils.setGeometryUVs(geom, layer.scene.userData.width, layer.scene.userData.height);
+    Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
 
     var mesh = new THREE.Mesh(geom, material);
     if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
@@ -1592,8 +1584,7 @@ Q3D.ClippedDEMBlock.prototype = {
 /*
 Q3D.MapLayer
 */
-Q3D.MapLayer = function (scene) {   // TODO: sceneData (scene.userData: sceneWidth, sceneHeight, zScale, zShift)
-  this.scene = scene;
+Q3D.MapLayer = function () {
   this.opacity = 1;
   this.visible = true;
   this.queryable = true;
@@ -1647,7 +1638,7 @@ Q3D.MapLayer.prototype.removeAllObjects = function () {
   this.queryObjs = [];
 };
 
-Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject) {
+Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   // properties
   if (jsonObject.properties !== undefined) {
     this.properties = jsonObject.properties;
@@ -1662,6 +1653,8 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject) {
       this.materials.loadJSONObject(jsonObject.data.materials);
     }
   }
+
+  this.sceneData = scene.userData;
 };
 
 Q3D.MapLayer.prototype.setOpacity = function (opacity) {
@@ -1688,8 +1681,8 @@ Q3D.MapLayer.prototype.build = function () {};
 /*
 Q3D.DEMLayer --> Q3D.MapLayer
 */
-Q3D.DEMLayer = function (scene) {
-  Q3D.MapLayer.call(this, scene);
+Q3D.DEMLayer = function () {
+  Q3D.MapLayer.call(this);
   this.type = Q3D.LayerType.DEM;
   this.blocks = [];
 };
@@ -1697,8 +1690,8 @@ Q3D.DEMLayer = function (scene) {
 Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
-Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject) {
-  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject);
+Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
   if (jsonObject.data !== undefined) this.build(jsonObject.data);
 };
@@ -1785,8 +1778,8 @@ Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
 
 // calculate elevation at the coordinates (x, y) on triangle face
 Q3D.DEMLayer.prototype.getZ = function (x, y) {
-  var xmin = -this.scene.userData.width / 2,
-      ymax = this.scene.userData.height / 2;
+  var xmin = -this.sceneData.width / 2,
+      ymax = this.sceneData.height / 2;
 
   for (var i = 0, l = this.blocks.length; i < l; i++) {
     var block = this.blocks[i];
@@ -1823,7 +1816,7 @@ Q3D.DEMLayer.prototype.getZ = function (x, y) {
 Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   // does not support multiple blocks
   if (zFunc === undefined) zFunc = function () { return 0; };
-  var width = this.scene.userData.width, height = this.scene.userData.height;
+  var width = this.sceneData.width, height = this.sceneData.height;
   var xmin = -width / 2, ymax = height / 2;
   var block = this.blocks[0];
   var x_segments = block.width - 1,
@@ -1902,8 +1895,8 @@ Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
 /*
 Q3D.VectorLayer --> Q3D.MapLayer
 */
-Q3D.VectorLayer = function (scene) {
-  Q3D.MapLayer.call(this, scene);
+Q3D.VectorLayer = function () {
+  Q3D.MapLayer.call(this);
   this.f = [];
   this.labels = [];
 };
@@ -1911,7 +1904,7 @@ Q3D.VectorLayer = function (scene) {
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
-Q3D.VectorLayer.prototype.build = function (startIndex) {};
+Q3D.VectorLayer.prototype.build = function (features) {};
 
 Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPointsFunc, zFunc) {
   var label = this.l;
@@ -1923,7 +1916,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
   //  2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
   //  3: height from top of extruded polygon / from overlay
   //  >= 100: data-defined + addend
-  var zShift = this.scene.userData.zShift, zScale = this.scene.userData.zScale;
+  var zShift = this.sceneData.zShift, zScale = this.sceneData.zScale;
   var labelHeightFunc = function (f, pt) {
     var z0 = (zFunc === undefined) ? pt[2] : zFunc(pt[0], pt[1]);
 
@@ -1979,8 +1972,8 @@ Q3D.VectorLayer.prototype.buildLabels = function (parent, parentElement, getPoin
   }
 };
 
-Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject) {
-  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject);
+Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 };
 
 Q3D.VectorLayer.prototype.setVisible = function (visible) {
@@ -1996,26 +1989,26 @@ Q3D.VectorLayer.prototype.setVisible = function (visible) {
 /*
 Q3D.PointLayer --> Q3D.VectorLayer
 */
-Q3D.PointLayer = function (scene) {
-  Q3D.VectorLayer.call(this, scene);
+Q3D.PointLayer = function () {
+  Q3D.VectorLayer.call(this);
   this.type = Q3D.LayerType.Point;
 };
 
 Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
-Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject) {
-  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject);
+Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
   }
 };
 
-Q3D.PointLayer.prototype.build = function (features, startIndex) {
+Q3D.PointLayer.prototype.build = function (features) {
   var objType = this.properties.objType;
-  if (objType == "Icon") { this.buildIcons(features, startIndex); return; }
-  if (objType == "JSON model" || objType == "COLLADA model") { this.buildModels(features, startIndex); return; }
+  if (objType == "Icon") { this.buildIcons(features); return; }
+  if (objType == "JSON model" || objType == "COLLADA model") { this.buildModels(features); return; }
 
   var deg2rad = Math.PI / 180;
   var createGeometry, scaleZ = 1;
@@ -2028,20 +2021,21 @@ Q3D.PointLayer.prototype.build = function (features, startIndex) {
       if (geom.dd) geom.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
       return geom;
     };
-    if (this.ns === undefined || this.ns == false) scaleZ = this.scene.userData.zExaggeration;
+    if (this.ns === undefined || this.ns == false) scaleZ = this.sceneData.zExaggeration;
   }
   else createGeometry = function (geom) { return new THREE.CylinderGeometry(geom.rt, geom.rb, geom.h); };   // Cylinder or Cone
 
   // each feature in this layer
   var materials = this.materials;
-  for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
-    var f = features[fid],
-        geom = f.geom;
-    var z_addend = (geom.h) ? geom.h / 2 : 0;
-    for (var i = 0, l = geom.pts.length; i < l; i++) {
-      var mesh = new THREE.Mesh(createGeometry(geom), materials.mat(f.mat));
+  var f, geom, z_addend, i, l, mesh, pt;
+  for (var fid = 0, flen = features.length; fid < flen; fid++) {
+    f = features[fid];
+    geom = f.geom;
+    z_addend = (geom.h) ? geom.h / 2 : 0;
+    for (i = 0, l = geom.pts.length; i < l; i++) {
+      mesh = new THREE.Mesh(createGeometry(geom), materials.mat(f.mat));
 
-      var pt = geom.pts[i];
+      pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
       if (geom.rotateX) mesh.rotation.x = geom.rotateX * deg2rad;
       if (scaleZ != 1) mesh.scale.z = scaleZ;
@@ -2053,13 +2047,13 @@ Q3D.PointLayer.prototype.build = function (features, startIndex) {
   }
 };
 
-Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
+Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
-  for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
+  for (var fid = 0, flen = features.length; fid < flen; fid++) {
     var f = features[fid],
         geom = f.geom;
     var mat = this.materials.mat(f.mat);
-    var image = this.scene.images[mat.i];   // TODO:
+    var image = scene.images[mat.i];   // TODO:
 
     // base size is 64 x 64
     var scale = (geom.scale === undefined) ? 1 : geom.scale;
@@ -2080,9 +2074,9 @@ Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
 };
 
 // TODO:
-Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
+Q3D.PointLayer.prototype.buildModels = function (features) {
   // each feature in this layer
-  for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
+  for (var fid = 0, flen = features.length; fid < flen; fid++) {
     var f = features[fid];
     Q3D.application.modelBuilders[f.model_index].addFeature(this.userData.id, fid);
   }
@@ -2097,26 +2091,26 @@ Q3D.PointLayer.prototype.buildLabels = function (parent, parentElement) {
 /*
 Q3D.LineLayer --> Q3D.VectorLayer
 */
-Q3D.LineLayer = function (scene) {
-  Q3D.VectorLayer.call(this, scene);
+Q3D.LineLayer = function () {
+  Q3D.VectorLayer.call(this);
   this.type = Q3D.LayerType.Line;
 };
 
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
-Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject) {
-  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject);
+Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
   }
 };
 
-Q3D.LineLayer.prototype.build = function (features, startIndex) {
+Q3D.LineLayer.prototype.build = function (features) {
   var objType = this.properties.objType,
       materials = this.materials,
-      scene = this.scene;
+      sceneData = this.sceneData;
   if (this.createObject !== undefined) {
     var createObject = this.createObject;
   }
@@ -2258,7 +2252,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         bRelativeToDEM = (this.bam == "relative"),  // altitude mode of bottom height
         dem = scene.mapLayers[0],   // TODO: referenced DEM layer
-        z0 = scene.userData.zShift * scene.userData.zScale;
+        z0 = sceneData.zShift * sceneData.zScale;
 
     var createObject = function (f, line) {
       var bzFunc, vertices;
@@ -2286,7 +2280,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
   }
 
   // each feature in this layer
-  for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
+  for (var fid = 0, flen = features.length; fid < flen; fid++) {
     var f = features[fid],
         geom = f.geom;
     for (var i = 0, l = geom.lines.length; i < l; i++) {
@@ -2309,8 +2303,8 @@ Q3D.LineLayer.prototype.buildLabels = function (parent, parentElement) {
 /*
 Q3D.PolygonLayer --> Q3D.VectorLayer
 */
-Q3D.PolygonLayer = function (scene) {
-  Q3D.VectorLayer.call(this, scene);
+Q3D.PolygonLayer = function () {
+  Q3D.VectorLayer.call(this);
   this.type = Q3D.LayerType.Polygon;
 
   // for overlay
@@ -2321,17 +2315,17 @@ Q3D.PolygonLayer = function (scene) {
 Q3D.PolygonLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PolygonLayer.prototype.constructor = Q3D.PolygonLayer;
 
-Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject) {
-  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject);
+Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
   if (jsonObject.data !== undefined) {
     this.build(jsonObject.data.features);
   }
 };
 
-Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
+Q3D.PolygonLayer.prototype.build = function (features) {
   var materials = this.materials,
-      scene = this.scene;
+      sceneData = this.sceneData;
 
   if (this.createObject !== undefined) {
     var createObject = this.createObject;
@@ -2362,7 +2356,7 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
         dem = scene.mapLayers[0],    // TODO: referenced DEM layer
-        z0 = scene.userData.zShift * scene.userData.zScale;
+        z0 = sceneData.zShift * sceneData.zScale;
 
     var createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.geom.split_polygons || []) : f.geom.polygons;
@@ -2374,7 +2368,7 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
       var geom = Q3D.Utils.createOverlayGeometry(f.geom.triangles, polygons, zFunc);
 
       // set UVs
-      if (materials[f.mat].i !== undefined) Q3D.Utils.setGeometryUVs(geom, scene.userData.width, scene.userData.height);
+      if (materials[f.mat].i !== undefined) Q3D.Utils.setGeometryUVs(geom, sceneData.width, sceneData.height);
       // TODO: materials.get(f.mat).origProp.i
 
       var mesh = new THREE.Mesh(geom, materials.mat(f.mat));
@@ -2416,10 +2410,11 @@ Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
   }
 
   // each feature in this layer
-  for (var fid = startIndex || 0, flen = features.length; fid < flen; fid++) {
-    var f = features[fid];
-    var obj = createObject(f);
-    obj.userData.featureId = fid;
+  var f, obj;
+  for (var i = 0, l = features.length; i < l; i++) {
+    f = features[i];
+    obj = createObject(f);
+    obj.userData.featureId = i;
     obj.userData.properties = f.prop;
     this.addObject(obj);
   }
