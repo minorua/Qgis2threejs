@@ -75,6 +75,9 @@ class ThreeJSExporter:
   def exportLayers(self):
     layers = []
     for index, layer in enumerate(self.settings.data["layers"]):
+      if layer["visible"] == False:   #TODO: export flag (bool)
+        continue
+
       if layer["geomType"] == q3dconst.TYPE_DEM:
         layers.append(self.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"]))
       else:
