@@ -1939,11 +1939,11 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc, zFunc
     var z0 = (zFunc === undefined) ? pt[2] : zFunc(pt[0], pt[1]);
 
     if (heightType == 1) return [z0, connHeight];      // fixed height
-    if (heightType >= 100) return [z0, (f.a[heightType - 100] + zShift) * zScale + connHeight];    // data-defined + addend
+    if (heightType >= 100) return [z0, (f.prop[heightType - 100] + zShift) * zScale + connHeight];    // data-defined + addend
 
     // 2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
     // 3: height from top of extruded polygon / from overlay
-    if (heightType == 3) z0 += f.h;
+    if (heightType == 3) z0 += f.geom.h;
     return [z0, z0 + connHeight];
   };
 
@@ -2440,7 +2440,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
 // TODO:
 Q3D.PolygonLayer.prototype.buildLabels = function (features) {
-  var zFunc, getPointsFunc = function (f) { return f.centroids; };    // TODO: centroids
+  var zFunc, getPointsFunc = function (f) { return f.geom.centroids; };
   var relativeToDEM = (this.am == "relative");    // altitude mode
   if (relativeToDEM) {
     var dem = this.scene.mapLayers[0];    // TODO: referenced dem

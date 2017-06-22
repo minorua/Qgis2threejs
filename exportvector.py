@@ -115,8 +115,9 @@ class VectorLayerExporter(LayerExporter):
       p["propertyNames"] = layer.fieldNames
 
     mapTo3d = self.settings.mapTo3d()
-    labelAttrIndex = properties.get("comboBox_Label", None)
-    if labelAttrIndex is not None:
+    writeAttrs = properties.get("checkBox_ExportAttrs", False)
+    labelAttrIndex = properties.get("comboBox_Label")
+    if writeAttrs and labelAttrIndex is not None:
       widgetValues = properties.get("labelHeightWidget", {})
       p["label"] = {"index": labelAttrIndex,
                     "heightType": int(widgetValues.get("comboData", 0)),
