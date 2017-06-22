@@ -97,7 +97,7 @@ class Q3DViewerInterface:
 
   def updateLayerProperties(self, layerId, properties):
     # save layer properties
-    layer = self.controller.settings.getLayerItem(layerId)
+    layer = self.controller.settings.getItemByLayerId(layerId)
     layer["properties"] = properties
     layer["updated"] = True
 

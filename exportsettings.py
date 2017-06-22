@@ -216,7 +216,7 @@ class ExportSettings:
     layers = []
     for plugin in self.pluginManager.demProviderPlugins():
       layerId = "plugin:" + plugin.providerId()
-      item = self.getLayerItem(layerId)
+      item = self.getItemByLayerId(layerId)
       if item:
         layers.append(item)
       else:
@@ -242,7 +242,7 @@ class ExportSettings:
         continue
 
       if geomType is not None:
-        item = self.getLayerItem(layer.id())
+        item = self.getItemByLayerId(layer.id())
         if item:
           layers.append(item)
         else:
@@ -259,7 +259,7 @@ class ExportSettings:
 
     self.data["layers"] = layers
 
-  def getLayerItem(self, layerId):
+  def getItemByLayerId(self, layerId):
     for layer in self.data.get("layers", []):
       if layer["layerId"] == layerId:
         return layer

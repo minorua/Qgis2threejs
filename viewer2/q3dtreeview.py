@@ -108,12 +108,20 @@ class Q3DTreeView(QTreeView):
   def removeLayer(self, layerId):
     pass
 
+  def getItemByLayerId(self, layerId):
+    for parent in self.layerParentItem.values():
+      for row in range(parent.rowCount()):
+        item = parent.child(row)
+        if item.data() == layerId:
+          return item
+    return None
+
   def setLayerList(self, layers):
     for layer in layers:
       self.addLayer(layer)
 
   def treeItemChanged(self, item):
-    layer = self.iface.controller.settings.getLayerItem(item.data())
+    layer = self.iface.controller.settings.getItemByLayerId(item.data())
     if layer is None:
       return
 
@@ -140,7 +148,7 @@ class Q3DTreeView(QTreeView):
 
   def treeItemDoubleClicked(self, modelIndex):
     # open layer properties dialog
-    layer = self.iface.controller.settings.getLayerItem(modelIndex.data(Qt.UserRole + 1))
+    layer = self.iface.controller.settings.getItemByLayerId(modelIndex.data(Qt.UserRole + 1))
     if layer is None:
       return
     self.iface.showLayerPropertiesDialog(layer)
