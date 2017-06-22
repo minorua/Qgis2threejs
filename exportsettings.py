@@ -21,13 +21,14 @@ import os
 import datetime
 
 from PyQt5.QtCore import QSettings
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from .conf import def_vals
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import getLayersInProject, logMessage
 from . import qgis2threejstools as tools
+from .viewer2 import q3dconst
 
 
 class ExportSettings:
@@ -207,3 +208,59 @@ class ExportSettings:
     else:
       layer = QgsProject.instance().mapLayer(id)
       return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+
+  def getLayerList(self):
+    return self.data.get("layers", [])
+
+  def updateLayerList(self):
+    layers = []
+    for plugin in self.pluginManager.demProviderPlugins():
+      layerId = "plugin:" + plugin.providerId()
+      item = self.getLayerItem(layerId)
+      if item:
+        layers.append(item)
+      else:
+        layers.append({"layerId": layerId,
+                       "name": plugin.providerName(),
+                       "geomType": q3dconst.TYPE_DEM,
+                       "properties": None,
+                       "visible": False})
+
+    for layer in getLayersInProject():
+      layerType = layer.type()
+      if layerType == QgsMapLayer.VectorLayer:
+        geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
+                    QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
+                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
+                    QgsWkbTypes.UnknownGeometry: None,
+                    QgsWkbTypes.NullGeometry: None}[layer.geometryType()]
+
+      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+        geomType = q3dconst.TYPE_DEM
+      else:
+        geomType = q3dconst.TYPE_IMAGE
+        continue
+
+      if geomType is not None:
+        item = self.getLayerItem(layer.id())
+        if item:
+          layers.append(item)
+        else:
+          layers.append({"layerId": layer.id(),
+                         "name": layer.name(),
+                         "geomType": geomType,
+                         "properties": None,
+                         "visible": False})
+
+    # update id and jsLayerId
+    for index, layer in enumerate(layers):
+      layer["id"] = index   #TODO: index
+      layer["jsLayerId"] = index      # "{}_{}".format(itemId, layerId[:8])
+
+    self.data["layers"] = layers
+
+  def getLayerItem(self, layerId):
+    for layer in self.data.get("layers", []):
+      if layer["layerId"] == layerId:
+        return layer
+    return None

@@ -63,31 +63,6 @@ class Q3DViewerController:
     self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
     self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
-  def getLayerList(self):
-    layers = []
-    for plugin in self.pluginManager.demProviderPlugins():
-      layers.append({"layerId": "plugin:" + plugin.providerId(), "name": plugin.providerName(), "geomType": q3dconst.TYPE_DEM})
-
-    for layer in getLayersInProject():
-      layerType = layer.type()
-      if layerType == QgsMapLayer.VectorLayer:
-        geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
-                    QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
-                    QgsWkbTypes.UnknownGeometry: None,
-                    QgsWkbTypes.NullGeometry: None}[layer.geometryType()]
-
-      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        geomType = q3dconst.TYPE_DEM
-      else:
-        geomType = q3dconst.TYPE_IMAGE
-        continue
-
-      if geomType is not None:
-        layers.append({"layerId": layer.id(), "name": layer.name(), "geomType": geomType, "properties": None})
-
-    return layers
-
   def exportScene(self):
     if self.iface:
       self.iface.loadJSONObject(self.exporter.exportScene(False))
@@ -108,7 +83,7 @@ class Q3DViewerController:
     self.iface.runString("app.resume();" if enabled else "app.pause();");
     if enabled:
       # update layers
-      for layerId, layer in enumerate(self.iface.treeView.layers):
+      for layerId, layer in enumerate(self.iface.controller.settings.getLayerList()):
         if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
           self.exportLayer(layer)
 
@@ -119,7 +94,7 @@ class Q3DViewerController:
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
     if self.iface and self.enabled:
-      for layer in self.iface.treeView.layers:
+      for layer in self.iface.controller.settings.getLayerList():
         if layer["visible"]:
           self.exportLayer(layer)
       self.extentUpdated = False

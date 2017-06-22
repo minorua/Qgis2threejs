@@ -85,29 +85,17 @@ class Q3DTreeView(QTreeView):
     self.model().itemChanged.connect(self.treeItemChanged)
     self.doubleClicked.connect(self.treeItemDoubleClicked)
 
-  def addLayer(self, layerId, name, geomType, visible=True, properties=None):
-    itemId = len(self.layers)
-
-    self.layers.append({
-      "id": itemId,       #TODO: index
-      "layerId": layerId,
-      "name": name,
-      "geomType": geomType,
-      "visible": visible,
-      "properties": properties,
-      "jsLayerId": "{}_{}".format(itemId, layerId[:8])
-    })
-
+  def addLayer(self, layer):
     # add a layer item to tree view
-    item = QStandardItem(name)
+    item = QStandardItem(layer["name"])
     item.setCheckable(True)
-    item.setCheckState(Qt.Checked if visible else Qt.Unchecked)
-    item.setData(itemId)
-    item.setIcon(self.icons[geomType])    #TODO: icon for each object type
+    item.setCheckState(Qt.Checked if layer.get("visible", False) else Qt.Unchecked)
+    item.setData(layer["layerId"])
+    item.setIcon(self.icons[layer["geomType"]])    #TODO: icon for each object type
     item.setEditable(False)
 
     item2 = QStandardItem()
-    self.layerParentItem[geomType].appendRow([item, item2])
+    self.layerParentItem[layer["geomType"]].appendRow([item, item2])
 
     # add a button
     button = QPushButton()
@@ -117,16 +105,18 @@ class Q3DTreeView(QTreeView):
     button.setMaximumWidth(20)
     self.setIndexWidget(item2.index(), button)
 
-  def removeLayer(self, id):
-    for index, layer in enumerate(self.layers):
-      if layer["id"] == id:
-        self.layers[index] = None
-        return True
-    return False
+  def removeLayer(self, layerId):
+    pass
+
+  def setLayerList(self, layers):
+    for layer in layers:
+      self.addLayer(layer)
 
   def treeItemChanged(self, item):
-    itemId = item.data()
-    layer = self.layers[itemId]
+    layer = self.iface.controller.settings.getLayerItem(item.data())
+    if layer is None:
+      return
+
     visible = bool(item.checkState() == Qt.Checked)
 
     if layer["geomType"] == q3dconst.TYPE_IMAGE:    #TODO: image
@@ -150,8 +140,7 @@ class Q3DTreeView(QTreeView):
 
   def treeItemDoubleClicked(self, modelIndex):
     # open layer properties dialog
-    index = modelIndex.data(Qt.UserRole + 1)
-    if index is None:
+    layer = self.iface.controller.settings.getLayerItem(modelIndex.data(Qt.UserRole + 1))
+    if layer is None:
       return
-    layer = self.layers[index]     #TODO: index or layerId
     self.iface.showLayerPropertiesDialog(layer)

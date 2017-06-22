@@ -39,10 +39,9 @@ class Bridge(QObject):
 
   sendData = pyqtSignal("QVariant")
 
-  def __init__(self, layerManager, parent=None):
+  def __init__(self, parent=None):
     QObject.__init__(self, parent)
     self._parent = parent
-    self.layerManager = layerManager
 
   # examples
   @pyqtSlot(int, int, result=str)
@@ -80,12 +79,11 @@ class Q3DView(QWebView):
     self.requestQueue = []
     self.isProcessingExclusively = False
 
-  def setup(self, wnd, iface, layerManager, isViewer=True):
+  def setup(self, wnd, iface, isViewer=True):
     self.wnd = wnd
     self.iface = iface
-    self.layerManager = layerManager
     self.isViewer = isViewer
-    self.bridge = Bridge(layerManager, self)
+    self.bridge = Bridge(self)
 
     self.loadFinished.connect(self.pageLoaded)
 
@@ -125,7 +123,7 @@ class Q3DView(QWebView):
     # create scene and layers
     self.iface.exportScene()
 
-    for id, layer in enumerate(self.layerManager.layers):
+    for layer in self.iface.controller.settings.getLayerList():
       if layer.get("visible", False):
         self.iface.exportLayer(layer)
 

@@ -55,7 +55,9 @@ class Q3DViewerInterface:
     self.controller = None
 
   def fetchLayerList(self):
-    self.wnd.setLayerList(self.controller.getLayerList())
+    settings = self.controller.settings
+    settings.updateLayerList()
+    self.treeView.setLayerList(settings.getLayerList())
 
   def startApplication(self):
     self.webView.runString("app.start();");
@@ -86,7 +88,7 @@ class Q3DViewerInterface:
       return False
 
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
-    dialog.setLayer(layer["id"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class?
+    dialog.setLayer(layer["layerId"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.show()
     dialog.exec_()
@@ -95,7 +97,7 @@ class Q3DViewerInterface:
 
   def updateLayerProperties(self, layerId, properties):
     # save layer properties
-    layer = self.treeView.layers[layerId]
+    layer = self.controller.settings.getLayerItem(layerId)
     layer["properties"] = properties
     layer["updated"] = True
 
@@ -108,7 +110,7 @@ class Q3DViewerInterface:
       return {}
 
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
-    dialog.setLayer(layer["id"], mapLayer, layer["geomType"], {})   #layer["properties"] or {})
+    dialog.setLayer(layer["layerId"], mapLayer, layer["geomType"], None)
     return dialog.page.properties()
 
 
@@ -136,9 +138,9 @@ class Q3DWindow(QMainWindow):
     self.setupMenu()
     self.setupStatusBar(self.iface)
     self.ui.treeView.setup(self.iface)
-    self.ui.webView.setup(self, self.iface, self.ui.treeView, isViewer)
+    self.ui.webView.setup(self, self.iface, isViewer)
 
-    self.iface.fetchLayerList()   # self.setLayerList(layers) will be called
+    self.iface.fetchLayerList()
 
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
@@ -235,18 +237,7 @@ class Q3DWindow(QMainWindow):
   def runString(self, string):
     self.ui.webView.runString(string)
 
-  def setLayerList(self, layers):   #TODO: move to tree view
-    for idx, layer in enumerate(layers):
-      self.ui.treeView.addLayer(layer["layerId"], layer["name"], layer["geomType"], False, layer.get("properties"))    #TODO: check "visible"
-
   def exportToWeb(self):
-    layers = []
-    for layer in self.ui.treeView.layers:
-      if layer.get("visible", False):
-        layers.append(layer)    #TODO: copy
-
-    self.settings.data["layers"] = layers
-
     dialog = ExportToWebDialog(self, self.qgisIface, self.settings)
     dialog.show()
     dialog.exec_()
@@ -254,7 +245,7 @@ class Q3DWindow(QMainWindow):
 
 class PropertiesDialog(QDialog):
 
-  propertiesAccepted = pyqtSignal(int, dict)
+  propertiesAccepted = pyqtSignal(str, dict)
 
   def __init__(self, parent, qgisIface, settings, pluginManager=None):
     QDialog.__init__(self, parent)
@@ -285,8 +276,8 @@ class PropertiesDialog(QDialog):
     settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
     QDialog.closeEvent(self, event)
 
-  def setLayer(self, id, mapLayer, geomType, properties=None):
-    self.layerId = id   #TODO: layer index
+  def setLayer(self, layerId, mapLayer, geomType, properties=None):
+    self.layerId = layerId
     self.layer = mapLayer
     self.geomType = geomType
     self.properties = properties or {}
