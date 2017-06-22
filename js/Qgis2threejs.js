@@ -364,10 +364,8 @@ limitations:
     app.labelVisibility = Q3D.Options.label.visible;
 
     // root element of labels
-    var e = document.createElement("div");
-    e.style.display = (app.labelVisibility) ? "block" : "none";
-    app.container.appendChild(e);
-    app.scene.labelRootElement = e;
+    app.scene.labelRootElement = document.getElementById("labels");
+    app.scene.labelRootElement.style.display = (app.labelVisibility) ? "block" : "none";
 
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
