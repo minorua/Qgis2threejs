@@ -2346,20 +2346,53 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   }
   else if (this.properties.objType == "Extruded") {
     var createSubObject = function (f, polygon, z) {
+      var i, l, j, m;
+
       var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
-      for (var i = 1, l = polygon.length; i < l; i++) {
+      for (i = 1, l = polygon.length; i < l; i++) {
         shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
       }
+
+      // extruded geometry
       var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.geom.h});
-      var mesh = new THREE.Mesh(geom, materials.mat(f.mat));
+      var mesh = new THREE.Mesh(geom, materials.mat(f.mat.face));
       mesh.position.z = z;
+
+      if (f.mat.border !== undefined) {
+        // border
+        var border, pt, pts, zFunc = function (x, y) { return 0; };
+
+        for (i = 0, l = polygon.length; i < l; i++) {
+          pts = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc);
+
+          geom = new THREE.Geometry();
+          geom.vertices = pts;
+
+          border = new THREE.Line(geom, materials.mat(f.mat.border));
+          mesh.add(border);
+
+          border = new THREE.Line(geom, materials.mat(f.mat.border));
+          border.position.z = f.geom.h;
+          mesh.add(border);
+
+          // vertical lines
+          for (j = 0, m = geom.vertices.length - 1; j < m; j++) {
+            pt = pts[j];
+
+            geom = new THREE.Geometry();
+            geom.vertices.push(pt, new THREE.Vector3(pt.x, pt.y, pt.z + f.geom.h));
+            border = new THREE.Line(geom, materials.mat(f.mat.border));
+            mesh.add(border);
+          }
+        }
+      }
       return mesh;
     };
 
     var createObject = function (f) {
       if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.zs[0]);
 
-      var group = new Q3D.Group();
+      var group = new THREE.Group();
       for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
         group.add(createSubObject(f, f.geom.polygons[i], f.geom.zs[i]));
       }

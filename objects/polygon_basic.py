@@ -39,6 +39,12 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   if type_index == 0:   # Extruded
     ppage.initStyleWidgets()
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": defaultValueZ, "layer": layer})
+
+    opt = {"name": "Border color",
+           "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+           "defaultItem": ColorWidgetFunc.FEATURE}
+    ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
+
   else:   # Overlay
     ppage.initStyleWidgets(color=False, transparency=False)
 
@@ -80,6 +86,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.labelHeightWidget.addFieldNames(layer)
 
 
+#TODO
 def layerProperties(settings, layer):
   p = {}
   prop = layer.prop
@@ -92,6 +99,12 @@ def layerProperties(settings, layer):
     p["sbm"] = "relative" if isSbRelative else "absolute"
   return p
 
+#TODO:
+def material(settings, layer, feat):
+  pass
+
+def geometry(settings, layer, feat):
+  pass
 
 def write(settings, layer, feat):
   vals = feat.propValues()
@@ -107,12 +120,17 @@ def write(settings, layer, feat):
     polygons.append(bnds)
     zs.append(zsum / zcount)
 
-  d = {"polygons": polygons}
+  geom = {"polygons": polygons}
 
   if feat.prop.type_index == 0:  # Extruded
-    mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-    d["zs"] = zs
-    d["h"] = float(vals[2]) * settings.mapTo3d().multiplierZ
+    mat = {"face": layer.materialManager.getMeshLambertIndex(vals[0], vals[1])}
+
+    # border
+    if vals[3] is not None:
+      mat["border"] = layer.materialManager.getLineBasicIndex(vals[3], vals[1])
+
+    geom["zs"] = zs
+    geom["h"] = float(vals[2]) * settings.mapTo3d().multiplierZ
 
   else:   # Overlay
     if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
@@ -127,18 +145,18 @@ def write(settings, layer, feat):
     #TODO: mb and ms
     # border
     #if vals[2] is not None:
-    #  d["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
+    #  geom["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
 
     # side
     if vals[3]:
-      #d["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
+      #geom["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
 
       # bottom height of side
-      d["sb"] = vals[5] * settings.mapTo3d().multiplierZ
+      geom["sb"] = vals[5] * settings.mapTo3d().multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
-    d["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
+    geom["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
 
     polygons = []
     triangles = Triangles()
@@ -151,12 +169,12 @@ def write(settings, layer, feat):
         polygons.append(bnds)
 
     if triangles.vertices:
-      d["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
+      geom["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
 
     if polygons:
-      d["split_polygons"] = polygons
+      geom["split_polygons"] = polygons
 
   if feat.geom.centroids:
-    d["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
+    geom["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
 
-  return d, mat
+  return geom, mat
