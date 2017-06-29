@@ -33,17 +33,18 @@ from .vectorobject import objectTypeManager
 
 class VectorLayerExporter(LayerExporter):
 
-  def __init__(self, settings, imageManager, progress=None):
-    LayerExporter.__init__(self, settings, imageManager, progress)
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, progress=None):
+    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, progress)
+
+    self.materialManager = MaterialManager()    #TODO: takes imageManager
     self.triMesh = {}
 
-  def build(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
-    """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
-
-    mapLayer = QgsProject.instance().mapLayer(layerId)
+  def build(self):
+    mapLayer = QgsProject.instance().mapLayer(self.layerId)
     if mapLayer is None:
       return
 
+    properties = self.properties
     baseExtent = self.settings.baseExtent
     mapSettings = self.settings.mapSettings
     renderContext = QgsRenderContext.fromMapSettings(mapSettings)
@@ -108,7 +109,7 @@ class VectorLayerExporter(LayerExporter):
       "objType": prop.type_name,
       "name": mapLayer.name(),
       "queryable": 1,
-      "visible": visible
+      "visible": self.visible
       }
 
     if layer.writeAttrs:
@@ -131,7 +132,7 @@ class VectorLayerExporter(LayerExporter):
 
     return {
       "type": "layer",
-      "id": jsLayerId,
+      "id": self.jsLayerId,
       "properties": p,
       "data": d,
       "PROPERTIES": properties    # debug

@@ -86,12 +86,12 @@ class ThreeJSExporter:
     return layers
 
   def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
-    exporter = DEMLayerExporter(self.settings, self.imageManager)
-    return exporter.build(layerId, properties, jsLayerId, visible)
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+    return exporter.build()
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
-    exporter = VectorLayerExporter(self.settings, self.imageManager)
-    return exporter.build(layerId, properties, jsLayerId, visible)
+    exporter = VectorLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+    return exporter.build()
 
 
 class ThreeJSFileExporter(ThreeJSExporter):
@@ -156,16 +156,16 @@ class ThreeJSFileExporter(ThreeJSExporter):
     pathRoot = os.path.join(self.settings.outputdatadir, title)
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
-    exporter = DEMLayerExporter(self.settings, self.imageManager)
-    return exporter.build(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    return exporter.build()
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
     title = "L{0}".format(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputdatadir, title)
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
-    exporter = VectorLayerExporter(self.settings, self.imageManager)
-    return exporter.build(layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    exporter = VectorLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    return exporter.build()
 
   def filesToCopy(self):
     # three.js library

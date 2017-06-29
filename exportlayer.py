@@ -31,13 +31,17 @@ from .qgis2threejstools import logMessage
 
 class LayerExporter:
 
-  def __init__(self, settings, imageManager, progress=None):
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, progress=None):
     self.settings = settings
     self.imageManager = imageManager
-    self.materialManager = MaterialManager()    #TODO: takes imageManager
+
+    self.layerId = layerId
+    self.properties = properties
+    self.jsLayerId = jsLayerId
+    self.visible = visible
     self.progress = progress or dummyProgress
 
-  def build(self, layerId, properties, jsLayerId, visible=True):
+  def build(self):
     pass
 
 

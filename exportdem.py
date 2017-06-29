@@ -23,6 +23,7 @@ import struct
 from qgis.core import QgsProject, QgsRectangle
 
 from . import gdal2threejs
+from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .propertyreader import DEMPropertyReader
 from .qgis2threejscore import GDALDEMProvider
@@ -32,45 +33,156 @@ from .qgis2threejstools import logMessage
 
 class DEMLayerExporter(LayerExporter):
 
-  def __init__(self, settings, imageManager, progress=None):
-    LayerExporter.__init__(self, settings, imageManager, progress)
-
-  def build(self, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None):
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
     """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
+    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, progress)
+    self.pathRoot = pathRoot
+    self.urlRoot = urlRoot
 
+  def build(self, export_blocks=True):
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       #writeSimpleDEM(writer, demProperties, progress)
     #else:
       #writeMultiResDEM(writer, demProperties, progress)
 
-    prop = DEMPropertyReader(properties)
+    prop = DEMPropertyReader(self.properties)
 
     # DEM provider
-    provider = self.settings.demProviderByLayerId(layerId)
-    #TODO: if provider is None: return None
+    provider = self.settings.demProviderByLayerId(self.layerId)
     if isinstance(provider, GDALDEMProvider):
-      layer = QgsProject.instance().mapLayer(layerId)
+      layer = QgsProject.instance().mapLayer(self.layerId)
       layerName = layer.name()
-    else:
+    elif provider:
       layer = None
       layerName = provider.name()
+    else:
+      return None
 
-    # grid
-    grid_size = prop.demSize(self.settings.mapSettings.outputSize())
-    grid_values = provider.read(grid_size.width(), grid_size.height(), self.settings.baseExtent)
+    p = {
+      "type": "dem",
+      "name": layerName,
+      "queryable": 1,
+      "shading": self.properties.get("checkBox_Shading", True),
+      "visible": self.visible
+      }
+
+    d = {
+      "type": "layer",
+      "id": self.jsLayerId,
+      "properties": p,
+      "PROPERTIES": self.properties    # debug
+      }
 
     # DEM block
+    if export_blocks:
+      grid_size = prop.demSize(self.settings.mapSettings.outputSize())
+
+      blockIndex = 0
+      mapTo3d = self.settings.mapTo3d()
+      block = DEMBlockExporter(self.settings,
+                               self.imageManager,
+                               self.layerId,
+                               self.properties,
+                               self.jsLayerId,
+                               blockIndex,
+                               provider,
+                               grid_size,
+                               self.settings.baseExtent,
+                               mapTo3d.planeWidth,
+                               mapTo3d.planeHeight,
+                               offsetX=0,
+                               offsetY=0,
+                               clip_geometry=None,
+                               pathRoot=self.pathRoot,
+                               urlRoot=self.urlRoot)
+      b = block.build()
+      d["data"] = [b]
+
+    return d
+
+
+class DEMBlockExporter:
+
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, clip_geometry=None, pathRoot=None, urlRoot=None):
+    self.settings = settings
+    self.imageManager = imageManager
+    self.materialManager = MaterialManager()
+
+    self.layerId = layerId
+    self.properties = properties
+    self.jsLayerId = jsLayerId
+    self.blockIndex = blockIndex
+    self.provider = provider
+    self.grid_size = grid_size
+    self.extent = extent
+    self.planeWidth = planeWidth
+    self.planeHeight = planeHeight
+    self.offsetX = offsetX
+    self.offsetY = offsetY
+    self.clip_geometry = clip_geometry
+    self.pathRoot = pathRoot
+    self.urlRoot = urlRoot
+
+    #self.orig_stats = {"max": max(grid_values), "min": min(grid_values)}
+    #self.rect = QgsRectangle(offsetX - plane_width * 0.5, offsetY - plane_height * 0.5,
+    #                         offsetX + plane_width * 0.5, offsetY + plane_height * 0.5)
+
+  def build(self):
     mapTo3d = self.settings.mapTo3d()
-    block = DEMBlock(grid_size.width(), grid_size.height(), grid_values, mapTo3d.planeWidth, mapTo3d.planeHeight, 0, 0)
-    block.zShift(mapTo3d.verticalShift)
-    block.zScale(mapTo3d.multiplierZ)
+    shift = mapTo3d.verticalShift
+    scale = mapTo3d.multiplierZ
 
-    # write grid values to an individual binary file (file export mode)
-    if pathRoot is not None:
-      block.write(pathRoot + "_DEM0.bin")
+    grid_values = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
+    if shift != 0:
+      grid_values = [x + shift for x in grid_values]
 
-    #TODO: move to DEMBlock?
-    # material option
+    if scale != 1:
+      grid_values = [x * scale for x in grid_values]
+
+    # write grid values to an external binary file
+    if self.pathRoot is not None:
+      with open(self.pathRoot + "_DEM{0}.bin".format(self.blockIndex), "wb") as f:
+        f.write(struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values))
+
+    # block data
+    g = {"width": self.grid_size.width(),
+         "height": self.grid_size.height()}
+
+    extFileUrl = None if self.urlRoot is None else self.urlRoot + "_DEM{0}.bin".format(self.blockIndex)
+    if extFileUrl is None:
+      g["array"] = grid_values
+    else:
+      g["url"] = extFileUrl
+
+    # material
+    material = self.material()
+
+    b = {"type": "block",
+         "layer": self.layerId,
+         "block": self.blockIndex,
+         "grid": g,
+         "width": self.planeWidth,
+         "height": self.planeHeight,
+         "translate": [self.offsetX, self.offsetY, 0],
+         "material": material}
+
+    # clipped with polygon layer
+    if self.clip_geometry:
+      b["clip"] = self.clipped()
+
+    # sides and bottom
+    if self.properties.get("checkBox_Sides", False):
+      b["sides"] = True
+
+    # frame
+    if self.properties.get("checkBox_Frame", False) and not self.properties.get("checkBox_Clip", False):
+      b["frame"] = True 
+
+    return b
+
+  def material(self):
+    # material options
+    properties = self.properties
     texture_scale = properties.get("comboBox_TextureSize", 100) // 100
     transparency = properties.get("spinBox_demtransp", 0)
     transp_background = properties.get("checkBox_TransparentBackground", False)
@@ -97,126 +209,40 @@ class DEMLayerExporter(LayerExporter):
     #elif properties.get("radioButton_Wireframe", False):
     #  mi = self.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
 
-    p = {
-      "type": "dem",
-      "name": layerName,
-      "queryable": 1,
-      "shading": properties.get("checkBox_Shading", True),
-      "visible": visible
-      }
+    materials = self.materialManager.build(self.imageManager, self.pathRoot, self.urlRoot)
+    return materials[mi]
 
-    # DEM block
-    url = None if urlRoot is None else urlRoot + "_DEM0.bin"
-    b = block.build(url)
-    b["mat"] = mi
+  #TODO
+  def clipped(self):
+    mapTo3d = self.settings.mapTo3d()
+    z_func = lambda x, y: 0
+    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
 
-    # TODO: clipping
-    clip_option = properties.get("checkBox_Clip", False)
+    geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
+    geom.splitPolygon(writer.triangleMesh(self.grid_width, self.grid_height))
 
-    if properties.get("checkBox_Sides", False):
-      b["sides"] = True     # sides and bottom
+    #TODO: geom.toList()
+    polygons = []
+    for polygon in geom.polygons:
+      bnds = []
+      for boundary in polygon:
+        bnds.append([[pt.x, pt.y] for pt in boundary])
+      polygons.append(bnds)
 
-    if properties.get("checkBox_Frame", False) and not clip_option:
-      b["frame"] = True     # frame
+    triangles = Triangles()
+    split_polygons = []
+    for polygon in geom.split_polygons:
+      boundary = polygon[0]
+      if len(polygon) == 1 and len(boundary) == 4:
+        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
+      else:
+        bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
+        split_polygons.append(bnds)
 
-
-    return {
-      "type": "layer",
-      "id": jsLayerId,
-      "properties": p,
-      "data": {
-        "blocks": [b],
-        "materials": self.materialManager.build(self.imageManager, pathRoot, urlRoot)
-        },
-      "PROPERTIES": properties    # debug
-      }
-
-
-class DEMBlock:
-
-  def __init__(self, grid_width, grid_height, grid_values, plane_width, plane_height, offsetX, offsetY):
-    self.grid_width = grid_width
-    self.grid_height = grid_height
-    self.grid_values = grid_values
-    self.plane_width = plane_width
-    self.plane_height = plane_height
-    self.offsetX = offsetX
-    self.offsetY = offsetY
-
-    self.orig_stats = {"max": max(grid_values), "min": min(grid_values)}
-    self.rect = QgsRectangle(offsetX - plane_width * 0.5, offsetY - plane_height * 0.5,
-                             offsetX + plane_width * 0.5, offsetY + plane_height * 0.5)
-    self.clip_geometry = None
-
-  def setClipGeometry(self, geometry):
-    self.clip_geometry = geometry
-
-  def zShift(self, shift):
-    if shift != 0:
-      self.grid_values = [x + shift for x in self.grid_values]
-
-  def zScale(self, scale):
-    if scale != 1:
-      self.grid_values = [x * scale for x in self.grid_values]
-
-  def build(self, extFileUrl=None):
-    """extFileUrl: should be specified when the grid values are written to an extenal binary file."""
-    g = {"width": self.grid_width,
-         "height": self.grid_height}
-         #"csv": ",".join(map(gdal2threejs.formatValue, self.grid_values))}
-
-    if extFileUrl is None:
-      g["array"] = self.grid_values
-    else:
-      g["url"] = extFileUrl
-
-    return {"grid": g,
-            "width": self.plane_width,
-            "height": self.plane_height,
-            "translate": [self.offsetX, self.offsetY, 0]}
-
-  def write(self, filepath):
-    """write grid values to an external binary file"""
-    with open(filepath, "wb") as f:
-      f.write(struct.pack("{}f".format(self.grid_width * self.grid_height), *self.grid_values))
-
-  def _write(self, writer):
-    mapTo3d = writer.settings.mapTo3d()
-
-    writer.write("bl = lyr.addBlock({0}, {1});\n".format(pyobj2js(self.properties), pyobj2js(bool(self.clip_geometry))))
-    writer.write("bl.data = [{0}];\n".format(",".join(map(gdal2threejs.formatValue, self.grid_values))))
-
-    # clipped with polygon layer
-    if self.clip_geometry:
-      z_func = lambda x, y: 0
-      transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
-
-      geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
-      geom.splitPolygon(writer.triangleMesh(self.grid_width, self.grid_height))
-
-      polygons = []
-      for polygon in geom.polygons:
-        bnds = []
-        for boundary in polygon:
-          bnds.append([[pt.x, pt.y] for pt in boundary])
-        polygons.append(bnds)
-
-      writer.write("bl.clip = {};\n")
-      writer.write("bl.clip.polygons = {0};\n".format(pyobj2js(polygons)))
-
-      triangles = Triangles()
-      polygons = []
-      for polygon in geom.split_polygons:
-        boundary = polygon[0]
-        if len(polygon) == 1 and len(boundary) == 4:
-          triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
-        else:
-          bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
-          polygons.append(bnds)
-
-      vf = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
-      writer.write("bl.clip.triangles = {0};\n".format(pyobj2js(vf)))
-      writer.write("bl.clip.split_polygons = {0};\n".format(pyobj2js(polygons)))
+    return {"polygons": polygons,
+            "triangles": {"v": [[pt.x, pt.y] for pt in triangles.vertices],
+                          "f": triangles.faces},
+            "split_polygons": split_polygons}
 
   def getValue(self, x, y):
 

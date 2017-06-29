@@ -24,7 +24,7 @@ from PyQt5.QtCore import QObject
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .datamanager import ImageManager, ModelManager, MaterialManager
-from .demblock import DEMBlock, DEMBlocks
+#from .demblock import DEMBlock, DEMBlocks
 from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem, GDALDEMProvider

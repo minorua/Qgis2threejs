@@ -1332,24 +1332,33 @@ Q3D.Materials.prototype.setWireframeMode = function (wireframe) {
 /*
 Q3D.DEMBlock
 */
-Q3D.DEMBlock = function (params) {
-  for (var k in params) {
-    this[k] = params[k];
-  }
-};
+Q3D.DEMBlock = function () {};
 
 Q3D.DEMBlock.prototype = {
 
   constructor: Q3D.DEMBlock,
 
-  build: function (layer, material, callback) {     // TODO: -> shading, materials, callback
+  loadJSONObject: function (jsonObject, layer, callback) {
+    var _this = this;
+    for (var k in jsonObject) {
+      this[k] = jsonObject[k];
+    }
+
+    // load material
+    var mat = this.material;
+    this.material = new Q3D.Material();
+    this.material.loadJSONObject(mat, function () {
+      if (callback) callback(_this);
+    });
+    layer.materials.add(this.material);
+
+    // create geometry
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
         geom = new PlaneGeometry(this.width, this.height, this.grid.width - 1, this.grid.height - 1),
-        mesh = new THREE.Mesh(geom, material),    // TODO: , layer.materials[this.m].m);
-        block = this;
+        mesh = new THREE.Mesh(geom, this.material.mat);
 
-    if (this.grid.array !== undefined) {    // WebKit Bridge
-      var grid_values = this.grid.array;
+    var buildGeometry = function (grid_values) {
+      var grid_values = _this.grid.array;
 
       if (Q3D.Options.exportMode) {
         for (var i = 0, l = geom.vertices.length; i < l; i++) {
@@ -1361,6 +1370,7 @@ Q3D.DEMBlock.prototype = {
         for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
           vertices[j + 2] = grid_values[i];
         }
+        geom.attributes.position.needsUpdate = true;
       }
 
       // Calculate normals
@@ -1369,8 +1379,10 @@ Q3D.DEMBlock.prototype = {
         geom.computeVertexNormals();
       }
 
-      if (callback) callback(block);
-    }
+      if (callback) callback(_this);
+    };
+
+    if (this.grid.array !== undefined) buildGeometry(this.grid.array);   // WebKit Bridge
     else if (this.grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", this.grid.url);
@@ -1379,22 +1391,8 @@ Q3D.DEMBlock.prototype = {
       xhr.onload = function (event) {
         var arrayBuffer = xhr.response;
         if (arrayBuffer) {
-          var grid_values = new Float32Array(arrayBuffer);
-          var vertices = geom.attributes.position.array;
-          for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-            vertices[j + 2] = grid_values[i];
-          }
-
-          // Calculate normals
-          if (layer.properties.shading) {
-            geom.computeFaceNormals();
-            geom.computeVertexNormals();
-          }
-
-          geom.attributes.position.needsUpdate = true;
-
-          block.grid.array = grid_values;
-          if (callback) callback(block);
+          _this.grid.array = new Float32Array(arrayBuffer)
+          buildGeometry(_this.grid.array);
         }
       };
       xhr.send(null);
@@ -1510,17 +1508,17 @@ Q3D.DEMBlock.prototype = {
 /*
 Q3D.ClippedDEMBlock
 */
-Q3D.ClippedDEMBlock = function (params) {
-  for (var k in params) {
-    this[k] = params[k];
-  }
-};
+Q3D.ClippedDEMBlock = function () {};
 
 Q3D.ClippedDEMBlock.prototype = {
 
   constructor: Q3D.ClippedDEMBlock,
 
-  build: function (layer, material) {
+  loadJSONObject: function (jsonObject, layer, callback) {    // TODO: callback
+    for (var k in jsonObject) {
+      this[k] = jsonObject[k];
+    }
+
     var geom = Q3D.Utils.createOverlayGeometry(this.clip.triangles, this.clip.split_polygons, layer.getZ.bind(layer));
 
     // set UVs
@@ -1530,7 +1528,7 @@ Q3D.ClippedDEMBlock.prototype = {
     if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
     if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
     this.obj = mesh;
-    layer.addObject(mesh);
+    return mesh;
   },
 
   buildSides: function (layer, material, z0) {
@@ -1700,13 +1698,6 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   if (jsonObject.data !== undefined) this.build(jsonObject.data);
 };
 
-Q3D.DEMLayer.prototype.addBlock = function (params, clipped) {
-  var BlockClass = (clipped) ? Q3D.ClippedDEMBlock : Q3D.DEMBlock,
-      block = new BlockClass(params);
-  this.blocks.push(block);
-  return block;
-};
-
 Q3D.DEMLayer.prototype.build = function (data) {
   var layer = this,
       opt = Q3D.Options;
@@ -1715,7 +1706,7 @@ Q3D.DEMLayer.prototype.build = function (data) {
     // build sides, bottom and frame
     if (block.sides) {
       // material
-      var matProp = layer.materials.get(block.mat).origProp;
+      var matProp = block.material.origProp;
       var opacity = (matProp.o !== undefined) ? matProp.o : 1;
       var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
                                                opacity: opacity,
@@ -1734,12 +1725,11 @@ Q3D.DEMLayer.prototype.build = function (data) {
   };
 
   // build blocks
-  data.blocks.forEach(function (b) {
-    var block = new Q3D.DEMBlock(b);
+  data.forEach(function (obj) {
+    var block = new Q3D.DEMBlock(),
+        mesh = block.loadJSONObject(obj, layer, callback);
+    this.addObject(mesh);
     this.blocks.push(block);
-
-    var obj = block.build(this, this.materials.mat(b.mat), callback);
-    this.addObject(obj);
   }, this);
 };
 
