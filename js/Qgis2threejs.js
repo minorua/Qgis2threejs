@@ -348,8 +348,8 @@ limitations:
       spherical.makeSafe();
 
       offset.setFromSpherical(spherical);
-      scope.target.copy(controls.object.position).add(offset);
-      scope.object.lookAt(controls.target);
+      controls.target.copy(controls.object.position).add(offset);
+      controls.object.lookAt(controls.target);
     };
 
     controls.update();
