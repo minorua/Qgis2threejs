@@ -459,7 +459,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     is_simple = self.radioButton_Simple.isChecked()
     is_simple_wo_surroundings = is_simple and not checked
-    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip, self.groupBox_Accessories], is_simple_wo_surroundings)
+    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip], is_simple_wo_surroundings)
 
     if checked and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
@@ -570,7 +570,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
     self.setLayoutsEnabled([self.gridLayout_Surroundings], isSimpleMode and surroundings)
-    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip, self.groupBox_Accessories], is_simple_wo_surroundings)
+    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip], is_simple_wo_surroundings)
 
     if self.isPrimary:
       self.setLayoutsVisible([self.horizontalLayout_Advanced1, self.horizontalLayout_Advanced3], isAdvancedMode)

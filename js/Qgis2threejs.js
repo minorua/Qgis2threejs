@@ -1348,7 +1348,7 @@ Q3D.DEMBlock.prototype = {
     var mat = this.material;
     this.material = new Q3D.Material();
     this.material.loadJSONObject(mat, function () {
-      if (callback) callback(_this);
+      // TODO: request rendering
     });
     layer.materials.add(this.material);
 
@@ -1382,6 +1382,7 @@ Q3D.DEMBlock.prototype = {
       if (callback) callback(_this);
     };
 
+    this.obj = mesh;
     if (this.grid.array !== undefined) buildGeometry(this.grid.array);   // WebKit Bridge
     else if (this.grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
@@ -1398,13 +1399,11 @@ Q3D.DEMBlock.prototype = {
       xhr.send(null);
     }
 
-    // TODO: if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
-    // TODO: if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
-    this.obj = mesh;
+    if (this.translate !== undefined) mesh.position.set(this.translate[0], this.translate[1], this.translate[2]);
     return mesh;
   },
 
-  buildSides: function (layer, material, z0) {
+  buildSides: function (layer, parent, material, z0) {
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
     var band_width = -z0 * 2, grid_values = this.grid.array, w = this.grid.width, h = this.grid.height, HALF_PI = Math.PI / 2;
     var i, mesh;
@@ -1433,14 +1432,14 @@ Q3D.DEMBlock.prototype = {
     mesh.position.y = -this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     mesh.name = "side";
-    layer.addObject(mesh, false);
+    parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ba, material);
     mesh.position.y = this.height / 2;
     mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
     mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     mesh.name = "side";
-    layer.addObject(mesh, false);
+    parent.add(mesh);
 
     // left and right
     var geom_le = new PlaneGeometry(band_width, this.height, 1, h - 1),
@@ -1465,13 +1464,13 @@ Q3D.DEMBlock.prototype = {
     mesh.position.x = -this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
     mesh.name = "side";
-    layer.addObject(mesh, false);
+    parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ri, material);
     mesh.position.x = this.width / 2;
     mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
     mesh.name = "side";
-    layer.addObject(mesh, false);
+    parent.add(mesh);
 
     // bottom
     if (Q3D.Options.exportMode) {
@@ -1484,8 +1483,9 @@ Q3D.DEMBlock.prototype = {
     mesh.position.z = z0;
     mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
     mesh.name = "bottom";
-    layer.addObject(mesh, false);
-    // TODO: return object group
+    parent.add(mesh);
+
+    parent.updateMatrixWorld();
   },
 
   getValue: function (x, y) {
@@ -1531,7 +1531,7 @@ Q3D.ClippedDEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, material, z0) {
+  buildSides: function (layer, parent, material, z0) {
     var polygons = this.clip.polygons,
         zFunc = layer.getZ.bind(layer),
         bzFunc = function (x, y) { return z0; };
@@ -1563,8 +1563,9 @@ Q3D.ClippedDEMBlock.prototype = {
       mesh = new THREE.Mesh(geom, mat_back);
       mesh.position.z = z0;
       mesh.name = "bottom";
-      layer.addObject(mesh, false);
+      parent.add(mesh);
     }
+    parent.updateMatrixWorld();
   },
 
   getValue: function (x, y) {
@@ -1703,6 +1704,8 @@ Q3D.DEMLayer.prototype.build = function (data) {
       opt = Q3D.Options;
 
   var callback = function (block) {
+    var obj = block.obj;
+
     // build sides, bottom and frame
     if (block.sides) {
       // material
@@ -1713,11 +1716,11 @@ Q3D.DEMLayer.prototype.build = function (data) {
                                                transparent: (opacity < 1)});
       layer.materials.add(mat);
 
-      block.buildSides(layer, mat, opt.side.bottomZ);                 // TODO: layer.objectGroup.add()
+      block.buildSides(layer, obj, mat, opt.side.bottomZ);                 // TODO: layer.objectGroup.add()
       layer.sideVisible = true;
     }
     if (block.frame) {
-      layer.buildFrame(block, opt.frame.color, opt.frame.bottomZ);    // layer.objectGroup.add()
+      layer.buildFrame(block, obj, opt.frame.color, opt.frame.bottomZ);    // layer.objectGroup.add()
       layer.sideVisible = true;
     }
 
@@ -1878,6 +1881,7 @@ Q3D.DEMLayer.prototype.setVisible = function (visible) {
   // if (visible && this.sideVisible === false) this.setSideVisibility(false);
 };
 
+// TODO
 Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {

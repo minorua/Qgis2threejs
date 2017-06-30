@@ -186,7 +186,10 @@ class ImageManager(DataManager):
       return tools.base64image(image)
     return None
 
-  def write(self, pathRoot):
+  def write(self, index, path):
+    self.image(index).save(path)
+
+  def writeAll(self, pathRoot):
     for i in range(self.count()):
       self.image(i).save("{}_IMG{}.png".format(pathRoot, i))
 
@@ -255,68 +258,69 @@ class MaterialManager(DataManager):
     mat = (self.SPRITE, (path, transp_background), transparency, False)
     return self._index(mat)
 
-  def build(self, imageManager, pathRoot=None, urlRoot=None):
+  def build(self, index, imageManager, filepath=None, url=None):
+    mat = self._list[index]
+    mt = {
+      self.WIREFRAME: self.MESH_LAMBERT,
+      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
+      self.CANVAS_IMAGE: self.MESH_PHONG,
+      self.MAP_IMAGE: self.MESH_PHONG,
+      self.LAYER_IMAGE: self.MESH_PHONG,
+      self.IMAGE_FILE: self.MESH_PHONG
+      }.get(mat[0], mat[0])
 
-    toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
-                      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
-                      self.CANVAS_IMAGE: self.MESH_PHONG,
-                      self.MAP_IMAGE: self.MESH_PHONG,
-                      self.LAYER_IMAGE: self.MESH_PHONG,
-                      self.IMAGE_FILE: self.MESH_PHONG}
+    m = {"type": mt}
+    transp_background = False
+    if mat[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
+      if mat[0] == self.CANVAS_IMAGE:
+        transp_background = mat[1]
+        imgIndex = imageManager.canvasImageIndex(transp_background)
+      elif mat[0] == self.MAP_IMAGE:
+        width, height, extent, transp_background = mat[1]
+        imgIndex = imageManager.mapImageIndex(width, height, extent, transp_background)
+      elif mat[0] == self.LAYER_IMAGE:
+        layerids, width, height, extent, transp_background = mat[1]
+        imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
+      elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
+        filepath, transp_background = mat[1]
+        imgIndex = imageManager.imageIndex(filepath)
 
-    mList = []
-
-    for mat in self._list:
-      transp_background = False
-
-      m = {"type": toMaterialType.get(mat[0], mat[0])}
-
-      if mat[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
-        if mat[0] == self.CANVAS_IMAGE:
-          transp_background = mat[1]
-          imgIndex = imageManager.canvasImageIndex(transp_background)
-        elif mat[0] == self.MAP_IMAGE:
-          width, height, extent, transp_background = mat[1]
-          imgIndex = imageManager.mapImageIndex(width, height, extent, transp_background)
-        elif mat[0] == self.LAYER_IMAGE:
-          layerids, width, height, extent, transp_background = mat[1]
-          imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
-        elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
-          filepath, transp_background = mat[1]
-          imgIndex = imageManager.imageIndex(filepath)
-
-        if urlRoot is None:
-          m["image"] = {"object": imageManager.image(imgIndex)}
-          #m["image"] = {"base64": imageManager.base64image(imgIndex)}
-        else:
-          m["image"] = {"url": "{}_IMG{}.png".format(urlRoot, imgIndex)}
+      if filepath is None:
+        m["image"] = {"object": imageManager.image(imgIndex)}
+        #m["image"] = {"base64": imageManager.base64image(imgIndex)}
       else:
-        m["c"] = int(mat[1], 16)    # color
+        m["image"] = {"url": url}
+        # write image to a file
+        imageManager.write(imgIndex, filepath)
+    else:
+      m["c"] = int(mat[1], 16)    # color
 
-      if transp_background:
-        m["t"] = 1
+    if transp_background:
+      m["t"] = 1
 
-      if mat[0] == self.WIREFRAME:
-        m["w"] = 1
+    if mat[0] == self.WIREFRAME:
+      m["w"] = 1
 
-      if mat[0] == self.MESH_LAMBERT_FLAT:
-        m["flat"] = 1
+    if mat[0] == self.MESH_LAMBERT_FLAT:
+      m["flat"] = 1
 
-      transparency = mat[2]
-      if transparency > 0:
-        opacity = 1.0 - transparency / 100
-        m["o"] = opacity
+    transparency = mat[2]
+    if transparency > 0:
+      opacity = 1.0 - transparency / 100
+      m["o"] = opacity
 
-      # double sides
-      if mat[3]:
-        m["ds"] = 1
+    # double sides
+    if mat[3]:
+      m["ds"] = 1
 
-      mList.append(m)
+    return m
 
-    # write image files
-    if pathRoot is not None:
-      imageManager.write(pathRoot)
-
+  def buildAll(self, imageManager, pathRoot=None, urlRoot=None):
+    mList = []
+    for i in range(len(self._list)):
+      filepath = "{0}_IMG{1}.png".format(pathRoot, i)
+      url = "{0}_IMG{1}.png".format(urlRoot, i)
+      mList.append(self.build(i, imageManager, filepath, url))
     return mList
 
   def write(self, f, imageManager):

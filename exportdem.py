@@ -20,7 +20,8 @@
  ***************************************************************************/
 """
 import struct
-from qgis.core import QgsProject, QgsRectangle
+from PyQt5.QtCore import QSize
+from qgis.core import QgsPoint, QgsProject, QgsRectangle
 
 from . import gdal2threejs
 from .datamanager import MaterialManager
@@ -29,6 +30,7 @@ from .propertyreader import DEMPropertyReader
 from .qgis2threejscore import GDALDEMProvider
 from . import qgis2threejstools as tools
 from .qgis2threejstools import logMessage
+from .rotatedrect import RotatedRect
 
 
 class DEMLayerExporter(LayerExporter):
@@ -36,6 +38,8 @@ class DEMLayerExporter(LayerExporter):
   def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
     """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
     LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, progress)
+    self.provider = settings.demProviderByLayerId(layerId)
+    self.prop = DEMPropertyReader(properties)
     self.pathRoot = pathRoot
     self.urlRoot = urlRoot
 
@@ -45,16 +49,12 @@ class DEMLayerExporter(LayerExporter):
     #else:
       #writeMultiResDEM(writer, demProperties, progress)
 
-    prop = DEMPropertyReader(self.properties)
-
-    # DEM provider
-    provider = self.settings.demProviderByLayerId(self.layerId)
-    if isinstance(provider, GDALDEMProvider):
+    if isinstance(self.provider, GDALDEMProvider):
       layer = QgsProject.instance().mapLayer(self.layerId)
       layerName = layer.name()
-    elif provider:
+    elif self.provider:
       layer = None
-      layerName = provider.name()
+      layerName = self.provider.name()
     else:
       return None
 
@@ -75,7 +75,10 @@ class DEMLayerExporter(LayerExporter):
 
     # DEM block
     if export_blocks:
-      grid_size = prop.demSize(self.settings.mapSettings.outputSize())
+      d["data"] = [block.build() for block in self.blocks()]
+      return d
+
+      grid_size = self.prop.demSize(self.settings.mapSettings.outputSize())
 
       blockIndex = 0
       mapTo3d = self.settings.mapTo3d()
@@ -85,7 +88,7 @@ class DEMLayerExporter(LayerExporter):
                                self.properties,
                                self.jsLayerId,
                                blockIndex,
-                               provider,
+                               self.provider,
                                grid_size,
                                self.settings.baseExtent,
                                mapTo3d.planeWidth,
@@ -100,10 +103,58 @@ class DEMLayerExporter(LayerExporter):
 
     return d
 
+  def blocks(self):
+    mapTo3d = self.settings.mapTo3d()
+    baseExtent = self.settings.baseExtent
+    center = baseExtent.center()
+    rotation = baseExtent.rotation()
+    base_grid_size = self.prop.demSize(self.settings.mapSettings.outputSize())
+
+    surroundings = self.properties.get("checkBox_Surroundings", False)    #TODO: if prop.layerId else False   (GSIElevProvider?)
+    roughening = self.properties["spinBox_Roughening"] if surroundings else 1
+    size = self.properties["spinBox_Size"] if surroundings else 1
+    size2 = size * size
+    for i in range(size2):    #TODO: first is center, then surroundings
+      is_center = (i == (size2 - 1) // 2)
+      blockIndex = i
+
+      #self.progress(20 * i / size2 + 10)
+
+      # block extent
+      if is_center:
+        sx = sy = 0
+        extent = baseExtent
+        grid_size = base_grid_size
+      else:
+        sx = i % size - (size - 1) // 2
+        sy = i // size - (size - 1) // 2
+        block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
+        extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
+        grid_size = QSize((base_grid_size.width() - 1) // roughening + 1, (base_grid_size.height() - 1) // roughening + 1)
+
+      block = DEMBlockExporter(self.settings,
+                               self.imageManager,
+                               self.layerId,
+                               self.properties,
+                               self.jsLayerId,
+                               blockIndex,
+                               self.provider,
+                               grid_size,
+                               extent,
+                               mapTo3d.planeWidth,
+                               mapTo3d.planeHeight,
+                               offsetX=mapTo3d.planeWidth * sx,
+                               offsetY=mapTo3d.planeHeight * sy,
+                               edgeRougheness=roughening if is_center else 1,
+                               clip_geometry=None,
+                               pathRoot=self.pathRoot,
+                               urlRoot=self.urlRoot)
+      yield block
+
 
 class DEMBlockExporter:
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, clip_geometry=None, pathRoot=None, urlRoot=None):
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
     self.settings = settings
     self.imageManager = imageManager
     self.materialManager = MaterialManager()
@@ -119,10 +170,12 @@ class DEMBlockExporter:
     self.planeHeight = planeHeight
     self.offsetX = offsetX
     self.offsetY = offsetY
+    self.edgeRougheness = edgeRougheness
     self.clip_geometry = clip_geometry
     self.pathRoot = pathRoot
     self.urlRoot = urlRoot
 
+    #TODO: stats
     #self.orig_stats = {"max": max(grid_values), "min": min(grid_values)}
     #self.rect = QgsRectangle(offsetX - plane_width * 0.5, offsetY - plane_height * 0.5,
     #                         offsetX + plane_width * 0.5, offsetY + plane_height * 0.5)
@@ -138,6 +191,9 @@ class DEMBlockExporter:
 
     if scale != 1:
       grid_values = [x * scale for x in grid_values]
+
+    if self.edgeRougheness != 1:
+      self.processEdges(grid_values, self.edgeRougheness)
 
     # write grid values to an external binary file
     if self.pathRoot is not None:
@@ -181,36 +237,37 @@ class DEMBlockExporter:
     return b
 
   def material(self):
-    # material options
-    properties = self.properties
-    texture_scale = properties.get("comboBox_TextureSize", 100) // 100
-    transparency = properties.get("spinBox_demtransp", 0)
-    transp_background = properties.get("checkBox_TransparentBackground", False)
+    # properties
+    texture_scale = self.properties.get("comboBox_TextureSize", 100) // 100
+    transparency = self.properties.get("spinBox_demtransp", 0)
+    transp_background = self.properties.get("checkBox_TransparentBackground", False)
 
     # display type
     canvas_size = self.settings.mapSettings.outputSize()
-    if properties.get("radioButton_MapCanvas", False):
-      if texture_scale == 1:
-        mi = self.materialManager.getCanvasImageIndex(transparency, transp_background)
-      else:
-        mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.settings.baseExtent, transparency, transp_background)
+    if self.properties.get("radioButton_MapCanvas", False):
+      #if texture_scale == 1:
+      #  mi = self.materialManager.getCanvasImageIndex(transparency, transp_background)
+      #else:
+      mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, transparency, transp_background)
 
-    elif properties.get("radioButton_LayerImage", False):
-      layerids = properties.get("layerImageIds", [])
+    elif self.properties.get("radioButton_LayerImage", False):
+      layerids = self.properties.get("layerImageIds", [])
       mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.settings.baseExtent, transparency, transp_background)
 
-    elif properties.get("radioButton_ImageFile", False):
-      filepath = properties.get("lineEdit_ImageFile", "")
+    elif self.properties.get("radioButton_ImageFile", False):
+      filepath = self.properties.get("lineEdit_ImageFile", "")
       mi = self.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
 
     else:   #.get("radioButton_SolidColor", False)
-      mi = self.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
+      mi = self.materialManager.getMeshLambertIndex(self.properties.get("lineEdit_Color", ""), transparency, True)
 
-    #elif properties.get("radioButton_Wireframe", False):
-    #  mi = self.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
+    #elif self.properties.get("radioButton_Wireframe", False):
+    #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], transparency)
 
-    materials = self.materialManager.build(self.imageManager, self.pathRoot, self.urlRoot)
-    return materials[mi]
+    # build material
+    filepath = None if self.pathRoot is None else "{0}_IMG{1}.png".format(self.pathRoot, self.blockIndex)
+    url = None if self.urlRoot is None else "{0}_IMG{1}.png".format(self.urlRoot, self.blockIndex)
+    return self.materialManager.build(mi, self.imageManager, filepath, url)
 
   #TODO
   def clipped(self):
@@ -243,6 +300,44 @@ class DEMBlockExporter:
             "triangles": {"v": [[pt.x, pt.y] for pt in triangles.vertices],
                           "f": triangles.faces},
             "split_polygons": split_polygons}
+
+  def processEdges(self, grid_values, roughness):
+    grid_width = self.grid_size.width()
+    grid_height = self.grid_size.height()
+    rg_grid_width = (grid_width - 1) // roughness + 1
+    rg_grid_height = (grid_height - 1) // roughness + 1
+    ii = range(roughness)[1:]
+
+    for x0 in range(rg_grid_width - 1):
+      # top edge
+      ix0 = x0 * roughness
+      z0 = grid_values[ix0]
+      z1 = grid_values[ix0 + roughness]
+      for i in ii:
+        grid_values[ix0 + i] = (z1 - z0) * i / roughness + z0
+
+      # bottom edge
+      iy0 = grid_width * (grid_height - 1)
+      z0 = grid_values[iy0 + ix0]
+      z1 = grid_values[iy0 + ix0 + roughness]
+      for i in ii:
+        grid_values[iy0 + ix0 + i] = (z1 - z0) * i / roughness + z0
+
+    rw = roughness * grid_width
+    for y0 in range(rg_grid_height - 1):
+      # left edge
+      iy0 = y0 * grid_width
+      z0 = grid_values[iy0]
+      z1 = grid_values[iy0 + rw]
+      for i in ii:
+        grid_values[iy0 + i * grid_width] = (z1 - z0) * i / roughness + z0
+
+      # right edge
+      iy0 += grid_width - 1
+      z0 = grid_values[iy0]
+      z1 = grid_values[iy0 + rw]
+      for i in ii:
+        grid_values[iy0 + i * grid_width] = (z1 - z0) * i / roughness + z0
 
   def getValue(self, x, y):
 

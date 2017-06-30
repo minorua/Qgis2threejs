@@ -127,7 +127,7 @@ class VectorLayerExporter(LayerExporter):
     # data
     d = {
       "features": features,
-      "materials": self.materialManager.build(self.imageManager)
+      "materials": self.materialManager.buildAll(self.imageManager)
       }
 
     return {

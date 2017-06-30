@@ -286,7 +286,7 @@ class PropertiesDialog(QDialog):
 
     if geomType == q3dconst.TYPE_DEM:
       self.page = DEMPropertyPage(self, self)
-      self.page.setup(properties, mapLayer, False)
+      self.page.setup(properties, mapLayer)
     elif geomType == q3dconst.TYPE_IMAGE:
       return
     else:
