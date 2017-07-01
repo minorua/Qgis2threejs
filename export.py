@@ -89,6 +89,13 @@ class ThreeJSExporter:
     exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
     return exporter.build()
 
+  def demExporters(self, layerId, properties, jsLayerId, visible=True):
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+    yield exporter
+
+    for blockExporter in exporter.blocks():
+      yield blockExporter
+
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
     exporter = VectorLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
     return exporter.build()
@@ -157,7 +164,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
-    return exporter.build()
+    return exporter.build(True)
 
   def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
     title = "L{0}".format(self.nextLayerIndex())

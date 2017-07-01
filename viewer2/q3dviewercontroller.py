@@ -70,7 +70,9 @@ class Q3DViewerController:
   def exportLayer(self, layer):
     if self.iface and self.enabled:
       if layer["geomType"] == q3dconst.TYPE_DEM:
-        self.iface.loadJSONObject(self.exporter.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
+        for exporter in self.exporter.demExporters(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]):
+          self.iface.loadJSONObject(exporter.build())
+
       elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
         self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
       layer["updated"] = False

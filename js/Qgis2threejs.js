@@ -182,7 +182,14 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     */
   }
   else if (jsonObject.type == "block") {
-    // TODO
+    var layer = this.mapLayers[jsonObject.layer];
+    if (layer === undefined) {
+      // console.error("layer not exists:" + jsonObject.layer);
+      return;
+    }
+    layer.loadJSONObject(jsonObject, this);
+
+    this.requestRender();
   }
 };
 
@@ -1758,9 +1765,17 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+  if (jsonObject.type == "layer") {
+    Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+    if (jsonObject.data !== undefined) this.build(jsonObject.data);
+  }
+  else if (jsonObject.type == "block") {
+    var index = jsonObject.block;
+    if (this.blocks[index] === undefined) this.blocks[index] = new Q3D.DEMBlock();
 
-  if (jsonObject.data !== undefined) this.build(jsonObject.data);
+    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, this.requestRender.call(this));
+    this.addObject(mesh);
+  }
 };
 
 Q3D.DEMLayer.prototype.build = function (data) {

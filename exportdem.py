@@ -43,7 +43,7 @@ class DEMLayerExporter(LayerExporter):
     self.pathRoot = pathRoot
     self.urlRoot = urlRoot
 
-  def build(self, export_blocks=True):
+  def build(self, export_blocks=False):
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
       #writeSimpleDEM(writer, demProperties, progress)
     #else:
@@ -76,30 +76,8 @@ class DEMLayerExporter(LayerExporter):
     # DEM block
     if export_blocks:
       d["data"] = [block.build() for block in self.blocks()]
-      return d
-
-      grid_size = self.prop.demSize(self.settings.mapSettings.outputSize())
-
-      blockIndex = 0
-      mapTo3d = self.settings.mapTo3d()
-      block = DEMBlockExporter(self.settings,
-                               self.imageManager,
-                               self.layerId,
-                               self.properties,
-                               self.jsLayerId,
-                               blockIndex,
-                               self.provider,
-                               grid_size,
-                               self.settings.baseExtent,
-                               mapTo3d.planeWidth,
-                               mapTo3d.planeHeight,
-                               offsetX=0,
-                               offsetY=0,
-                               clip_geometry=None,
-                               pathRoot=self.pathRoot,
-                               urlRoot=self.urlRoot)
-      b = block.build()
-      d["data"] = [b]
+    else:
+      d["data"] = []
 
     return d
 
@@ -214,7 +192,7 @@ class DEMBlockExporter:
     material = self.material()
 
     b = {"type": "block",
-         "layer": self.layerId,
+         "layer": self.jsLayerId,
          "block": self.blockIndex,
          "grid": g,
          "width": self.planeWidth,
