@@ -183,6 +183,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     }
     */
   }
+  else if (jsonObject.type == "block") {
+    // TODO
+  }
 };
 
 Q3D.Scene.prototype.buildDefaultLights = function () {
@@ -1340,6 +1343,7 @@ Q3D.DEMBlock.prototype = {
 
   loadJSONObject: function (jsonObject, layer, callback) {
     var _this = this;
+    // TODO: this.data = jsonObject;
     for (var k in jsonObject) {
       this[k] = jsonObject[k];
     }
@@ -1352,10 +1356,12 @@ Q3D.DEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    // create geometry
+    // create geometry and mesh
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
         geom = new PlaneGeometry(this.width, this.height, this.grid.width - 1, this.grid.height - 1),
         mesh = new THREE.Mesh(geom, this.material.mat);
+
+    if (this.translate !== undefined) mesh.position.set(this.translate[0], this.translate[1], this.translate[2]);
 
     var buildGeometry = function (grid_values) {
       var grid_values = _this.grid.array;
@@ -1379,11 +1385,25 @@ Q3D.DEMBlock.prototype = {
         geom.computeVertexNormals();
       }
 
-      if (callback) callback(_this);
+
+      // build sides, bottom and frame
+      if (_this.sides) {
+        _this.buildSides(layer, mesh, Q3D.Options.side.bottomZ);
+        layer.sideVisible = true;
+      }
+      if (_this.frame) {
+        _this.buildFrame(layer, mesh, Q3D.Options.frame.bottomZ);
+        layer.sideVisible = true;
+      }
+
+      //if (_this.grid.url !== undefined) layer.dispatchEvent({type: "renderRequest"});
+
+      if (callback) callback(_this);    // TODO: call callback to request rendering
     };
 
-    this.obj = mesh;
-    if (this.grid.array !== undefined) buildGeometry(this.grid.array);   // WebKit Bridge
+    if (this.grid.array !== undefined) {
+      buildGeometry(this.grid.array);   // WebKit Bridge
+    }
     else if (this.grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", this.grid.url);
@@ -1399,11 +1419,18 @@ Q3D.DEMBlock.prototype = {
       xhr.send(null);
     }
 
-    if (this.translate !== undefined) mesh.position.set(this.translate[0], this.translate[1], this.translate[2]);
+    this.obj = mesh;
     return mesh;
   },
 
-  buildSides: function (layer, parent, material, z0) {
+  buildSides: function (layer, parent, z0) {
+    var matProp = this.material.origProp,
+        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.side.color,
+                                                  opacity: opacity,
+                                                  transparent: (opacity < 1)});
+    layer.materials.add(material);
+
     var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
     var band_width = -z0 * 2, grid_values = this.grid.array, w = this.grid.width, h = this.grid.height, HALF_PI = Math.PI / 2;
     var i, mesh;
@@ -1484,6 +1511,45 @@ Q3D.DEMBlock.prototype = {
     mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
     mesh.name = "bottom";
     parent.add(mesh);
+
+    parent.updateMatrixWorld();
+  },
+
+  buildFrame: function (layer, parent, z0) {
+    var matProp = this.material.origProp,
+        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var material = new THREE.LineBasicMaterial({color: Q3D.Options.frame.color,
+                                                opacity: opacity,
+                                                transparent: (opacity < 1)});
+    layer.materials.add(material);
+
+    // horizontal rectangle at bottom
+    var hw = this.width / 2, hh = this.height / 2;
+    var geom = new THREE.Geometry();
+    geom.vertices.push(new THREE.Vector3(-hw, -hh, z0),
+                       new THREE.Vector3(hw, -hh, z0),
+                       new THREE.Vector3(hw, hh, z0),
+                       new THREE.Vector3(-hw, hh, z0),
+                       new THREE.Vector3(-hw, -hh, z0));
+
+    var obj = new THREE.Line(geom, material);
+    obj.name = "frame";
+    parent.add(obj);
+
+    // vertical lines at corners
+    var pts = [[-hw, -hh, this.grid.array[this.grid.array.length - this.grid.width]],
+               [hw, -hh, this.grid.array[this.grid.array.length - 1]],
+               [hw, hh, this.grid.array[this.grid.width - 1]],
+               [-hw, hh, this.grid.array[0]]];
+    pts.forEach(function (pt) {
+      var geom = new THREE.Geometry();
+      geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
+                         new THREE.Vector3(pt[0], pt[1], z0));
+
+      var obj = new THREE.Line(geom, material);
+      obj.name = "frame";
+      parent.add(obj);
+    }, this);
 
     parent.updateMatrixWorld();
   },
@@ -1700,76 +1766,16 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.DEMLayer.prototype.build = function (data) {
-  var layer = this,
-      opt = Q3D.Options;
+  var layer = this;
 
-  var callback = function (block) {
-    var obj = block.obj;
-
-    // build sides, bottom and frame
-    if (block.sides) {
-      // material
-      var matProp = block.material.origProp;
-      var opacity = (matProp.o !== undefined) ? matProp.o : 1;
-      var mat = new THREE.MeshLambertMaterial({color: opt.side.color,
-                                               opacity: opacity,
-                                               transparent: (opacity < 1)});
-      layer.materials.add(mat);
-
-      block.buildSides(layer, obj, mat, opt.side.bottomZ);                 // TODO: layer.objectGroup.add()
-      layer.sideVisible = true;
-    }
-    if (block.frame) {
-      layer.buildFrame(block, obj, opt.frame.color, opt.frame.bottomZ);    // layer.objectGroup.add()
-      layer.sideVisible = true;
-    }
-
-    if (block.grid.url !== undefined) layer.dispatchEvent({type: "renderRequest"});
-  };
+  var callback = function (block) {};
 
   // build blocks
   data.forEach(function (obj) {
     var block = new Q3D.DEMBlock(),
-        mesh = block.loadJSONObject(obj, layer, callback);
+        mesh = block.loadJSONObject(obj, layer, callback);    // TODO: callback is called to request rendering
     this.addObject(mesh);
     this.blocks.push(block);
-  }, this);
-};
-
-Q3D.DEMLayer.prototype.buildFrame = function (block, color, z0) {
-  var opacity = this.materials.mat(block.mat).opacity;
-  if (opacity === undefined) opacity = 1;
-  var mat = new THREE.LineBasicMaterial({color: color,
-                                         opacity: opacity,
-                                         transparent: (opacity < 1)});
-  this.materials.add(mat);
-
-  // horizontal rectangle at bottom
-  var hw = block.width / 2, hh = block.height / 2;
-  var geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(-hw, -hh, z0),
-                     new THREE.Vector3(hw, -hh, z0),
-                     new THREE.Vector3(hw, hh, z0),
-                     new THREE.Vector3(-hw, hh, z0),
-                     new THREE.Vector3(-hw, -hh, z0));
-
-  var obj = new THREE.Line(geom, mat);
-  obj.name = "frame";
-  this.addObject(obj, false);
-
-  // vertical lines at corners
-  var pts = [[-hw, -hh, block.grid.array[block.grid.array.length - block.grid.width]],
-             [hw, -hh, block.grid.array[block.grid.array.length - 1]],
-             [hw, hh, block.grid.array[block.grid.width - 1]],
-             [-hw, hh, block.grid.array[0]]];
-  pts.forEach(function (pt) {
-    var geom = new THREE.Geometry();
-    geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
-                       new THREE.Vector3(pt[0], pt[1], z0));
-
-    var obj = new THREE.Line(geom, mat);
-    obj.name = "frame";
-    this.addObject(obj, false);
   }, this);
 };
 
