@@ -19,7 +19,8 @@
  ***************************************************************************/
 """
 import json
-from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
+from PyQt5.QtCore import QEventLoop
+from qgis.core import QgsApplication, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from Qgis2threejs.export import ThreeJSExporter
@@ -72,6 +73,8 @@ class Q3DViewerController:
       if layer["geomType"] == q3dconst.TYPE_DEM:
         for exporter in self.exporter.demExporters(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]):
           self.iface.loadJSONObject(exporter.build())
+          QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+            # NOTE: process events only for the calling thread
 
       elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
         self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
