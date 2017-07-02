@@ -92,20 +92,22 @@ class DEMLayerExporter(LayerExporter):
     roughening = self.properties["spinBox_Roughening"] if surroundings else 1
     size = self.properties["spinBox_Size"] if surroundings else 1
     size2 = size * size
-    for i in range(size2):    #TODO: first is center, then surroundings
-      is_center = (i == (size2 - 1) // 2)
-      blockIndex = i
 
+    blks = []
+    for i in range(size2):
+      sx = i % size - (size - 1) // 2
+      sy = i // size - (size - 1) // 2
+      dist2 = sx * sx + sy * sy
+      blks.append([dist2, i, sx, sy])
+
+    for dist2, blockIndex, sx, sy in sorted(blks):
       #self.progress(20 * i / size2 + 10)
+      is_center = (sx == 0 and sy == 0)
 
-      # block extent
       if is_center:
-        sx = sy = 0
         extent = baseExtent
         grid_size = base_grid_size
       else:
-        sx = i % size - (size - 1) // 2
-        sy = i // size - (size - 1) // 2
         block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
         extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
         grid_size = QSize((base_grid_size.width() - 1) // roughening + 1, (base_grid_size.height() - 1) // roughening + 1)
