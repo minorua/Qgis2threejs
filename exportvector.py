@@ -22,6 +22,7 @@
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 from osgeo import ogr, osr
 
+from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
