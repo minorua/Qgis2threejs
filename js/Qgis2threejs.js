@@ -1462,15 +1462,15 @@ Q3D.DEMBlock.prototype = {
       }
     }
     mesh = new THREE.Mesh(geom_fr, material);
+    mesh.rotation.x = HALF_PI;
     mesh.position.y = -this.height / 2;
-    mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     mesh.name = "side";
     parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ba, material);
+    mesh.rotation.x = HALF_PI;
+    mesh.rotation.y = Math.PI;
     mesh.position.y = this.height / 2;
-    mesh.rotateOnAxis(Q3D.uv.k, Math.PI);
-    mesh.rotateOnAxis(Q3D.uv.i, HALF_PI);
     mesh.name = "side";
     parent.add(mesh);
 
@@ -1494,14 +1494,14 @@ Q3D.DEMBlock.prototype = {
       }
     }
     mesh = new THREE.Mesh(geom_le, material);
+    mesh.rotation.y = -HALF_PI;
     mesh.position.x = -this.width / 2;
-    mesh.rotateOnAxis(Q3D.uv.j, -HALF_PI);
     mesh.name = "side";
     parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ri, material);
+    mesh.rotation.y = HALF_PI;
     mesh.position.x = this.width / 2;
-    mesh.rotateOnAxis(Q3D.uv.j, HALF_PI);
     mesh.name = "side";
     parent.add(mesh);
 
@@ -1513,8 +1513,8 @@ Q3D.DEMBlock.prototype = {
       var geom = new THREE.PlaneBufferGeometry(this.width, this.height, 1, 1);
     }
     mesh = new THREE.Mesh(geom, material);
+    mesh.rotation.x = Math.PI;
     mesh.position.z = z0;
-    mesh.rotateOnAxis(Q3D.uv.i, Math.PI);
     mesh.name = "bottom";
     parent.add(mesh);
 
