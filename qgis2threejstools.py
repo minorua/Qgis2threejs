@@ -27,7 +27,7 @@ import webbrowser
 
 from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from PyQt5.QtWidgets import QMessageBox
-from qgis.core import NULL, QgsMessageLog, QgsProject
+from qgis.core import NULL, QgsMapLayer, QgsMessageLog, QgsProject
 
 from .conf import debug_mode
 
@@ -39,6 +39,16 @@ def getLayersInProject():
 
   #TODO: QgsProject.instance().layerTreeRoot() is a QgsLayerTree object?
   return QgsProject.instance().layerTreeRoot().layerOrder()
+
+
+def getDEMLayersInProject():
+  layers = []
+  #TODO: DEM data provider
+  for layer in getLayersInProject():
+    if layer.type() == QgsMapLayer.RasterLayer:
+      if layer.providerType() == "gdal" and layer.bandCount() == 1:
+        layers.append(layer)
+  return layers
 
 
 def getLayersByLayerIds(layerIds):

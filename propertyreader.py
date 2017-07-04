@@ -151,11 +151,15 @@ class VectorPropertyReader:
 
   # functions to read values from height widget (z coordinate)
   def useZ(self):
-    return self.properties["heightWidget"]["comboData"] == HeightWidgetFunc.Z_VALUE
+    return self.properties.get("radioButton_zValue", False)
+
+    #return self.properties["heightWidget"]["comboData"] == HeightWidgetFunc.Z_VALUE
 
   def isHeightRelativeToDEM(self):
-    v0 = self.properties["heightWidget"]["comboData"]
-    return v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
+    return self.properties.get("radioButton_Relative", False)
+
+    #v0 = self.properties["heightWidget"]["comboData"]
+    #return v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
 
   def relativeHeight(self, f=None):
     vals = self.properties["heightWidget"]

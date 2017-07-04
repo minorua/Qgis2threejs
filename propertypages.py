@@ -25,7 +25,8 @@ import re
 from PyQt5.QtCore import Qt, QDir, QSettings, QPoint
 from PyQt5.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor
-from qgis.core import QgsMapLayer, QgsWkbTypes
+from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
+from qgis.gui import QgsFieldExpressionWidget
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
 from .ui.controlsproperties import Ui_ControlsPropertiesWidget
@@ -132,6 +133,8 @@ class PropertyPage(QWidget):
         v = w.text()
       elif isinstance(w, StyleWidget):
         v = w.values()
+      elif isinstance(w, QgsFieldExpressionWidget):
+        v = w.expression()
       else:
         logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
@@ -157,6 +160,8 @@ class PropertyPage(QWidget):
       elif isinstance(w, StyleWidget):
         if len(v):
           w.setValues(v)
+      elif isinstance(w, QgsFieldExpressionWidget):
+        w.setExpression(v)
       else:
         logMessage("[propertypages.py] Cannot restore %s property" % n)
 
@@ -610,10 +615,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.layer = None
 
     # initialize vector style widgets
-    self.heightWidget = StyleWidget(StyleWidget.HEIGHT)
-    self.heightWidget.setObjectName("heightWidget")
-    self.verticalLayout_zCoordinate.addWidget(self.heightWidget)
-
     self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
     self.labelHeightWidget.setObjectName("labelHeightWidget")
     self.labelHeightWidget.setEnabled(False)
@@ -633,16 +634,19 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       # assign the widget to property page attribute
       setattr(self, objName, widget)
 
-    widgets = [self.comboBox_ObjectType, self.heightWidget] + self.styleWidgets
+    widgets = [self.comboBox_ObjectType]
+    widgets += [self.radioButton_Absolute, self.radioButton_Relative, self.comboBox_zDEMLayer]
+    widgets += [self.radioButton_zValue, self.radioButton_mValue, self.radioButton_FieldValue, self.fieldExpressionWidget_zCoordinate]
+    widgets += self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
-    self.heightWidget.comboBox.currentIndexChanged.connect(self.altitudeModeChanged)
+    #self.heightWidget.comboBox.currentIndexChanged.connect(self.altitudeModeChanged) #TODO
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
-  def setup(self, properties=None, layer=None):
+  def setup(self, properties=None, layer=None):   # TODO: layer is required. layer, properties=None
     self.layer = layer
 
     if self.dialog.currentItem:
@@ -665,11 +669,29 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       self.comboBox_ObjectType.setCurrentIndex(properties.get("comboBox_ObjectType", 0))
     self.comboBox_ObjectType.blockSignals(False)
 
+    # populate DEM layer items (relative to DEM)
+    for lyr in tools.getDEMLayersInProject():
+      self.comboBox_zDEMLayer.addItem(lyr.name(), lyr.id())
+
     # get MapTo3D object to calculate default values
     mapTo3d = self.dialog.mapTo3d()
 
-    # set up height widget and label height widget
-    self.heightWidget.setup(options={"layer": layer})
+    # set up z/m button
+    self.radioButton_zValue.setEnabled(layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
+                                                           QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D])
+    self.radioButton_mValue.setEnabled(False)    #TODO
+
+    if self.radioButton_zValue.isEnabled():
+      self.radioButton_zValue.setChecked(True)
+    else:
+      self.radioButton_FieldValue.setChecked(True)
+
+    # set up field expression widget (z coordinate)
+    self.fieldExpressionWidget_zCoordinate.setFilters(QgsFieldProxyModel.Numeric)
+    self.fieldExpressionWidget_zCoordinate.setLayer(layer)
+    self.fieldExpressionWidget_zCoordinate.setExpression("0")
+
+    # set up label height widget
     if layer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
       self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})

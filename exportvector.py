@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 from osgeo import ogr, osr
 
 from .datamanager import MaterialManager
@@ -71,6 +71,8 @@ class VectorLayerExporter(LayerExporter):
     #if noFeature:
     #  return
 
+    demProvider = self.settings.demProviderByLayerId(properties.get("comboBox_zDEMLayer"))
+
     # initialize symbol rendering
     mapLayer.renderer().startRender(renderContext, mapLayer.pendingFields())
 
@@ -84,7 +86,7 @@ class VectorLayerExporter(LayerExporter):
         clipGeom = extent.geometry()
 
     features = []
-    for feat in layer.features(request, clipGeom, self.settings.demProvider()):
+    for feat in layer.features(request, clipGeom, demProvider):
       #if writer.isCanceled:
       #  break
 
@@ -242,6 +244,7 @@ class VectorLayer(Layer):
     baseExtentGeom = baseExtent.geometry()
     rotation = baseExtent.rotation()
     prop = self.prop
+    properties = self.prop.properties
 
     useZ = prop.useZ()
     if useZ:
@@ -265,6 +268,11 @@ class VectorLayer(Layer):
       else:
         z_func = lambda x, y: 0
 
+    #TODO: create proper expression context
+    expression = properties.get("fieldExpressionWidget_zCoordinate") or "0"
+    exp = QgsExpression(expression)
+    fields = self.layer.pendingFields()
+
     feats = []
     request = request or QgsFeatureRequest()
     for f in self.layer.getFeatures(request):
@@ -286,9 +294,11 @@ class VectorLayer(Layer):
       # create feature
       feat = Feature(self.settings, self, f)
 
-      # transform_func: function to transform the map coordinates to 3d coordinates
-      relativeHeight = prop.relativeHeight(f)
+      # evaluate expression
+      ctx = QgsExpressionContextUtils.createFeatureBasedContext(f, fields)
+      relativeHeight = exp.evaluate(ctx)
 
+      # transform_func: function to transform the map coordinates to 3d coordinates
       def transform_func(x, y, z):
         return mapTo3d.transform(x, y, z + relativeHeight)
 
