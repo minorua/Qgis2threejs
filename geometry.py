@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 from osgeo import ogr
-from qgis.core import QgsGeometry, QgsPoint, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
+from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
 
 from .qgis2threejstools import logMessage
 
@@ -39,7 +39,7 @@ class Point:
 
 
 def pointToQgsPoint(point):
-  return QgsPoint(point.x, point.y)
+  return QgsPointXY(point.x, point.y)
 
 
 def lineToQgsPolyline(line):
@@ -325,10 +325,10 @@ class TriangleMesh:
 
     for x, vi in self.vSplit(geom):
       for y in self.hIntersects(vi):
-        pt0 = QgsPoint(xmin + x * xres, ymax - y * yres)
-        pt1 = QgsPoint(xmin + x * xres, ymax - (y + 1) * yres)
-        pt2 = QgsPoint(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
-        pt3 = QgsPoint(xmin + (x + 1) * xres, ymax - y * yres)
+        pt0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
+        pt1 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
+        pt2 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+        pt3 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
         quad = QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]])
         tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
 

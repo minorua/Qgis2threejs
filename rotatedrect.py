@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 import math
-from qgis.core import QgsPoint, QgsRectangle, QgsGeometry
+from qgis.core import QgsPointXY, QgsRectangle, QgsGeometry
 
 
 class RotatedRect:
@@ -26,7 +26,7 @@ class RotatedRect:
   def __init__(self, center, width, height, rotation=0):
     """
     args:
-      center        -- QgsPoint
+      center        -- QgsPointXY
       width, height -- float
       rotation      -- int/float
     """
@@ -69,15 +69,15 @@ class RotatedRect:
     if origin:
       xd += origin.x()
       yd += origin.y()
-    return QgsPoint(xd, yd)
+    return QgsPointXY(xd, yd)
 
   def normalizePoint(self, x, y):
     """Normalize given point. In result, lower-left is (0, 0) and upper-right is (1, 1)."""
-    pt = QgsPoint(x, y)
+    pt = QgsPointXY(x, y)
     if self._rotation:
       pt = self.rotatePoint(pt, -self._rotation, self._center)
     rect = self._unrotated_rect
-    return QgsPoint((pt.x() - rect.xMinimum()) / rect.width(),
+    return QgsPointXY((pt.x() - rect.xMinimum()) / rect.width(),
                     (pt.y() - rect.yMinimum()) / rect.height())
 
   def scale(self, s):
@@ -90,7 +90,7 @@ class RotatedRect:
     """Rotate the center of extent around the origin
     args:
       degrees -- int/float (counter-clockwise)
-      origin  -- QgsPoint
+      origin  -- QgsPointXY
     """
     self._rotation += degrees
     if origin is None:
@@ -102,7 +102,7 @@ class RotatedRect:
   def point(self, norm_point, y_inverted=False):
     """
     args:
-      norm_point -- QgsPoint (0 <= x <= 1, 0 <= y <= 1)
+      norm_point -- QgsPointXY (0 <= x <= 1, 0 <= y <= 1)
       y_inverted -- If True, lower-left is (0, 1) and upper-right is (1, 0).
                     Or else lower-left is (0, 0) and upper-right is (1, 1).
     """
@@ -112,7 +112,7 @@ class RotatedRect:
       y = ur_rect.yMaximum() - norm_point.y() * ur_rect.height()
     else:
       y = ur_rect.yMinimum() + norm_point.y() * ur_rect.height()
-    return self.rotatePoint(QgsPoint(x, y), self._rotation, self._center)
+    return self.rotatePoint(QgsPointXY(x, y), self._rotation, self._center)
 
   def subrectangle(self, norm_rect, y_inverted=False):
     """
@@ -175,7 +175,7 @@ class RotatedRect:
 
     if rotation:
       # rotate top-left corner of unrotated extent around center of extent counter-clockwise (map rotates clockwise)
-      rpt = self.rotatePoint(QgsPoint(ur_rect.xMinimum(), ur_rect.yMaximum()), rotation, center)
+      rpt = self.rotatePoint(QgsPointXY(ur_rect.xMinimum(), ur_rect.yMaximum()), rotation, center)
       res_lr = self._width / segments_x
       res_ul = self._height / segments_y
 
@@ -220,10 +220,10 @@ class RotatedRect:
   def vertices(self):
     """return vertices of the rect clockwise"""
     rect = self._unrotated_rect
-    pts = [QgsPoint(rect.xMinimum(), rect.yMaximum()),
-           QgsPoint(rect.xMaximum(), rect.yMaximum()),
-           QgsPoint(rect.xMaximum(), rect.yMinimum()),
-           QgsPoint(rect.xMinimum(), rect.yMinimum())]
+    pts = [QgsPointXY(rect.xMinimum(), rect.yMaximum()),
+           QgsPointXY(rect.xMaximum(), rect.yMaximum()),
+           QgsPointXY(rect.xMaximum(), rect.yMinimum()),
+           QgsPointXY(rect.xMinimum(), rect.yMinimum())]
 
     if self._rotation:
       return [self.rotatePoint(pt, self._rotation, self._center) for pt in pts]
