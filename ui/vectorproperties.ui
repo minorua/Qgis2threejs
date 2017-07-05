@@ -29,27 +29,17 @@
       <widget class="QLabel" name="label_ObjectType">
        <property name="minimumSize">
         <size>
-         <width>80</width>
+         <width>50</width>
          <height>0</height>
         </size>
        </property>
        <property name="text">
         <string>Object type</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox_ObjectType">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="QComboBox" name="comboBox_ObjectType"/>
      </item>
     </layout>
    </item>
@@ -114,7 +104,7 @@
            <bool>true</bool>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
+           <string notr="true">buttonGroup_zMode</string>
           </attribute>
          </widget>
         </item>
@@ -126,7 +116,7 @@
              <string>Relative To DEM</string>
             </property>
             <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
+             <string notr="true">buttonGroup_zMode</string>
             </attribute>
            </widget>
           </item>
@@ -152,12 +142,25 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
+           <widget class="QRadioButton" name="radioButton_FieldValue">
+            <property name="text">
+             <string>Field/Value</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">buttonGroup_zValue</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
            <widget class="QRadioButton" name="radioButton_zValue">
             <property name="text">
              <string>Z Value</string>
             </property>
             <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_2</string>
+             <string notr="true">buttonGroup_zValue</string>
             </attribute>
            </widget>
           </item>
@@ -167,20 +170,7 @@
              <string>M Value</string>
             </property>
             <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_2</string>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_FieldValue">
-            <property name="text">
-             <string>Field/Value</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_2</string>
+             <string notr="true">buttonGroup_zValue</string>
             </attribute>
            </widget>
           </item>
@@ -422,7 +412,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_zMode"/>
+  <buttongroup name="buttonGroup_zValue"/>
  </buttongroups>
 </ui>

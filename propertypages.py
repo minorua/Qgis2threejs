@@ -632,15 +632,18 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType]
-    widgets += [self.radioButton_Absolute, self.radioButton_Relative, self.comboBox_zDEMLayer]
-    widgets += [self.radioButton_zValue, self.radioButton_mValue, self.radioButton_FieldValue, self.fieldExpressionWidget_zCoordinate]
+    widgets += self.buttonGroup_zMode.buttons() + [self.comboBox_zDEMLayer]
+    widgets += self.buttonGroup_zValue.buttons() + [self.fieldExpressionWidget_zCoordinate]
     widgets += self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
-    #self.heightWidget.comboBox.currentIndexChanged.connect(self.altitudeModeChanged) #TODO
+    for btn in self.buttonGroup_zMode.buttons():
+      btn.toggled.connect(self.zModeRadioButtonToggled)
+    for btn in self.buttonGroup_zValue.buttons():
+      btn.toggled.connect(self.zValueRadioButtonToggled)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
   def setup(self, properties=None, layer=None):   # TODO: layer is required. layer, properties=None
@@ -731,24 +734,25 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # setup widgets
     objectTypeManager().setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
 
-    # update enabled property of feature group box
-    self.altitudeModeChanged()
-
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
-  def altitudeModeChanged(self, index=None):
+  def zModeRadioButtonToggled(self, toggled=None):
     geom_type = self.layer.geometryType()
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
     if (geom_type == QgsWkbTypes.LineGeometry and type_index == 4) or (geom_type == QgsWkbTypes.PolygonGeometry and type_index == 1):    # Profile or Overlay
-      if self.heightWidget.func.isCurrentItemRelativeHeight():
+      if self.radioButton_Relative.isChecked():
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)
         self.checkBox_Clip.setChecked(True)
 
     self.groupBox_Features.setEnabled(not only_clipped)
+
+  def zValueRadioButtonToggled(self, toggled=None):
+    if toggled != False:
+      self.label_zExpression.setText("Expression" if self.radioButton_FieldValue.isChecked() else "Addend")
 
   def exportAttrsToggled(self, checked):
     self.setLayoutEnabled(self.formLayout_Label, checked)

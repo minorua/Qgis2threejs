@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ComboEditWidget(object):
     def setupUi(self, ComboEditWidget):
         ComboEditWidget.setObjectName("ComboEditWidget")
-        ComboEditWidget.resize(259, 58)
+        ComboEditWidget.resize(259, 52)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -35,6 +35,7 @@ class Ui_ComboEditWidget(object):
         self.gridLayout_1.addWidget(self.toolButton, 0, 5, 1, 1)
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.gridLayout_1)
         self.label_1 = QtWidgets.QLabel(ComboEditWidget)
+        self.label_1.setMinimumSize(QtCore.QSize(50, 0))
         self.label_1.setObjectName("label_1")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_1)
         self.expression = QgsFieldExpressionWidget(ComboEditWidget)
@@ -42,6 +43,8 @@ class Ui_ComboEditWidget(object):
         self.expression.setObjectName("expression")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.expression)
         self.label_2 = QtWidgets.QLabel(ComboEditWidget)
+        self.label_2.setMinimumSize(QtCore.QSize(50, 0))
+        self.label_2.setText("")
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)
 
@@ -52,7 +55,5 @@ class Ui_ComboEditWidget(object):
         _translate = QtCore.QCoreApplication.translate
         ComboEditWidget.setWindowTitle(_translate("ComboEditWidget", "Form"))
         self.toolButton.setText(_translate("ComboEditWidget", "..."))
-        self.label_1.setText(_translate("ComboEditWidget", "Name"))
-        self.label_2.setText(_translate("ComboEditWidget", "Value"))
 
 from qgis.gui import QgsFieldExpressionWidget
