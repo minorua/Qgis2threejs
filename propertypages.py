@@ -677,11 +677,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     mapTo3d = self.dialog.mapTo3d()
 
     # set up z/m button
-    self.radioButton_zValue.setEnabled(layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
-                                                           QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D])
-    self.radioButton_mValue.setEnabled(False)    #TODO
+    wkbType = layer.wkbType()
+    hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
+                       QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]  #TODO: ,MultiPolygon25D
+    hasZ = hasZ or (wkbType // 1000 in [1, 3])
+    hasM = (wkbType // 1000 in [2, 3])
+    self.radioButton_zValue.setEnabled(hasZ)
+    self.radioButton_mValue.setEnabled(hasM)
 
-    if self.radioButton_zValue.isEnabled():
+    if hasZ:
       self.radioButton_zValue.setChecked(True)
     else:
       self.radioButton_FieldValue.setChecked(True)
