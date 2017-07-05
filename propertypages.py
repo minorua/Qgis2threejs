@@ -63,7 +63,6 @@ class PropertyPage(QWidget):
     self.pageType = pageType
     self.dialog = dialog
     self.propertyWidgets = []
-    self.defaultProperties = {}
 
   def itemChanged(self, item):
     pass
@@ -108,8 +107,6 @@ class PropertyPage(QWidget):
 
   def registerPropertyWidgets(self, widgets):
     self.propertyWidgets = widgets
-    # save default properties
-    self.defaultProperties = self.properties()
 
   def properties(self):
     p = {}
@@ -335,7 +332,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # use default properties if properties is not set
     if not properties:
-      properties = self.defaultProperties
+      properties = self.properties()
       properties["comboBox_TextureSize"] = 100
       properties["checkBox_Sides"] = self.isPrimary
 
@@ -719,7 +716,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboBox_Label.addItem(fields[i].name(), i)
 
     # restore other properties for the layer
-    self.setProperties(properties or self.defaultProperties)
+    self.setProperties(properties or {})
 
   def setupStyleWidgets(self, index=None):
     index = self.comboBox_ObjectType.currentIndex()
