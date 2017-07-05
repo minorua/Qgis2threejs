@@ -40,7 +40,7 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     name = "COLLADA file"
     filterString = "COLLADA files (*.dae);;All files (*.*)"
 
-  ppage.initStyleWidgets(color=False, transparency=False)
+  ppage.initStyleWidgets(color=False, opacity=False)
   ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": name, "layer": layer, "filterString": filterString})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})

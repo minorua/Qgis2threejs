@@ -27,7 +27,7 @@ from qgis.core import NULL
 
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
-from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, TransparencyWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
 
@@ -109,14 +109,14 @@ class VectorPropertyReader:
 
     return symbol.color().name().replace("#", "0x")
 
-  def _readTransparency(self, widgetValues, f=None):
+  def _readOpacity(self, widgetValues, f=None):
     vals = widgetValues
 
-    if vals["comboData"] == TransparencyWidgetFunc.VALUE:
+    if vals["comboData"] == OpacityWidgetFunc.VALUE:
       try:
-        return int(vals["editText"])
+        return min(max(0, float(vals["editText"])), 100) / 100
       except ValueError:
-        return 0
+        return 1
 
     alpha = None
     symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
@@ -128,18 +128,17 @@ class VectorPropertyReader:
       if sl and symbol.hasDataDefinedProperties():
         expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
         if expr:
-          # data defined transparency
+          # data defined opacity
           cs_rgba = expr.evaluate(f, f.fields())
           rgba = cs_rgba.split(",")
           if len(rgba) == 4:
             alpha = rgba[3] / 255
 
     if alpha is None:
-      alpha = symbol.alpha()
+      alpha = 1         #TODO: QGIS 3 symbol.alpha()
+                        # 'QgsMarkerSymbol' object has no attribute 'alpha'
 
-    opacity = (100 - self.layer.layerTransparency()) / 100
-    opacity *= alpha      # opacity = layer_opacity * feature_opacity
-    return int((1.0 - opacity) * 100)
+    return self.layer.opacity() * alpha    # opacity = layer_opacity * feature_opacity
 
   @classmethod
   def toFloat(cls, val):
@@ -200,8 +199,8 @@ class VectorPropertyReader:
         else:
           vals.append(self._readColor(widgetValues, f))
 
-      elif widgetType == StyleWidget.TRANSPARENCY:
-        vals.append(self._readTransparency(widgetValues, f))
+      elif widgetType == StyleWidget.OPACITY:
+        vals.append(self._readOpacity(widgetValues, f))
 
       elif widgetType == StyleWidget.FILEPATH:
         if comboData == FilePathWidgetFunc.FILEPATH or f is None:

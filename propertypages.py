@@ -283,7 +283,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layerImageIds = []
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
-    widgets = [self.comboBox_DEMLayer, self.spinBox_demtransp]
+    widgets = [self.comboBox_DEMLayer, self.spinBox_Opacity]
     widgets += [self.radioButton_Simple, self.horizontalSlider_DEMSize]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
@@ -760,14 +760,14 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
     return p
 
-  def initStyleWidgets(self, color=True, transparency=True):
+  def initStyleWidgets(self, color=True, opacity=True):
     self.styleWidgetCount = 0
 
     if color:
       self.addStyleWidget(StyleWidget.COLOR)
 
-    if transparency:
-      self.addStyleWidget(StyleWidget.TRANSPARENCY)
+    if opacity:
+      self.addStyleWidget(StyleWidget.OPACITY)
 
     for i in range(self.styleWidgetCount, self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()

@@ -46,11 +46,11 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
   else:   # Overlay
-    ppage.initStyleWidgets(color=False, transparency=False)
+    ppage.initStyleWidgets(color=False, opacity=False)
 
     mapSettings = ppage.dialog.iface.mapCanvas().mapSettings()
     ppage.addStyleWidget(StyleWidget.COLOR_TEXTURE, {"mapSettings": mapSettings})
-    ppage.addStyleWidget(StyleWidget.TRANSPARENCY)
+    ppage.addStyleWidget(StyleWidget.OPACITY)
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},

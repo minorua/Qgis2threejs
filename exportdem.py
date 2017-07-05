@@ -219,30 +219,30 @@ class DEMBlockExporter:
   def material(self):
     # properties
     texture_scale = self.properties.get("comboBox_TextureSize", 100) // 100
-    transparency = self.properties.get("spinBox_demtransp", 0)
+    opacity = self.properties.get("spinBox_Opacity", 100) / 100
     transp_background = self.properties.get("checkBox_TransparentBackground", False)
 
     # display type
     canvas_size = self.settings.mapSettings.outputSize()
     if self.properties.get("radioButton_MapCanvas", False):
       #if texture_scale == 1:
-      #  mi = self.materialManager.getCanvasImageIndex(transparency, transp_background)
+      #  mi = self.materialManager.getCanvasImageIndex(opacity, transp_background)
       #else:
-      mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, transparency, transp_background)
+      mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, opacity, transp_background)
 
     elif self.properties.get("radioButton_LayerImage", False):
       layerids = self.properties.get("layerImageIds", [])
-      mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.settings.baseExtent, transparency, transp_background)
+      mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.settings.baseExtent, opacity, transp_background)
 
     elif self.properties.get("radioButton_ImageFile", False):
       filepath = self.properties.get("lineEdit_ImageFile", "")
-      mi = self.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
+      mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
     else:   #.get("radioButton_SolidColor", False)
-      mi = self.materialManager.getMeshLambertIndex(self.properties.get("lineEdit_Color", ""), transparency, True)
+      mi = self.materialManager.getMeshLambertIndex(self.properties.get("lineEdit_Color", ""), opacity, True)
 
     #elif self.properties.get("radioButton_Wireframe", False):
-    #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], transparency)
+    #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
 
     # build material
     filepath = None if self.pathRoot is None else "{0}_IMG{1}.png".format(self.pathRoot, self.blockIndex)

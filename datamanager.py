@@ -216,46 +216,46 @@ class MaterialManager(DataManager):
     DataManager.__init__(self)
     self.writtenCount = 0
 
-  def _indexCol(self, type, color, transparency=0, doubleSide=False):
+  def _indexCol(self, type, color, opacity=1, doubleSide=False):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
-    mat = (type, color, transparency, doubleSide)
+    mat = (type, color, opacity, doubleSide)
     return self._index(mat)
 
-  def getMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT, color, transparency, doubleSide)
+  def getMeshLambertIndex(self, color, opacity=1, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT, color, opacity, doubleSide)
 
-  def getSmoothMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT_SMOOTH, color, transparency, doubleSide)
+  def getSmoothMeshLambertIndex(self, color, opacity=1, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT_SMOOTH, color, opacity, doubleSide)
 
-  def getFlatMeshLambertIndex(self, color, transparency=0, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT_FLAT, color, transparency, doubleSide)
+  def getFlatMeshLambertIndex(self, color, opacity=1, doubleSide=False):
+    return self._indexCol(self.MESH_LAMBERT_FLAT, color, opacity, doubleSide)
 
-  def getLineBasicIndex(self, color, transparency=0):
-    return self._indexCol(self.LINE_BASIC, color, transparency)
+  def getLineBasicIndex(self, color, opacity=1):
+    return self._indexCol(self.LINE_BASIC, color, opacity)
 
-  def getWireframeIndex(self, color, transparency=0):
-    return self._indexCol(self.WIREFRAME, color, transparency)
+  def getWireframeIndex(self, color, opacity=1):
+    return self._indexCol(self.WIREFRAME, color, opacity)
 
-  def getCanvasImageIndex(self, transparency=0, transp_background=False):
-    mat = (self.CANVAS_IMAGE, transp_background, transparency, True)
+  def getCanvasImageIndex(self, opacity=1, transp_background=False):
+    mat = (self.CANVAS_IMAGE, transp_background, opacity, True)
     return self._index(mat)
 
-  def getMapImageIndex(self, width, height, extent, transparency=0, transp_background=False):
-    mat = (self.MAP_IMAGE, (width, height, extent, transp_background), transparency, True)
+  def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False):
+    mat = (self.MAP_IMAGE, (width, height, extent, transp_background), opacity, True)
     return self._index(mat)
 
-  def getLayerImageIndex(self, layerids, width, height, extent, transparency=0, transp_background=False):
-    mat = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background), transparency, True)
+  def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False):
+    mat = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background), opacity, True)
     return self._index(mat)
 
-  def getImageFileIndex(self, path, transparency=0, transp_background=False, doubleSide=False):
-    mat = (self.IMAGE_FILE, (path, transp_background), transparency, doubleSide)
+  def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False):
+    mat = (self.IMAGE_FILE, (path, transp_background), opacity, doubleSide)
     return self._index(mat)
 
-  def getSpriteIndex(self, path, transparency=0):
+  def getSpriteIndex(self, path, opacity=1):
     transp_background = True
-    mat = (self.SPRITE, (path, transp_background), transparency, False)
+    mat = (self.SPRITE, (path, transp_background), opacity, False)
     return self._index(mat)
 
   def build(self, index, imageManager, filepath=None, url=None):
@@ -304,9 +304,8 @@ class MaterialManager(DataManager):
     if mat[0] == self.MESH_LAMBERT_FLAT:
       m["flat"] = 1
 
-    transparency = mat[2]
-    if transparency > 0:
-      opacity = 1.0 - transparency / 100
+    opacity = mat[2]
+    if opacity < 1:
       m["o"] = opacity
 
     # double sides
@@ -363,9 +362,8 @@ class MaterialManager(DataManager):
       if mat[0] == self.MESH_LAMBERT_FLAT:
         m["flat"] = 1
 
-      transparency = mat[2]
-      if transparency > 0:
-        opacity = 1.0 - transparency / 100
+      opacity = mat[2]
+      if opacity < 1:
         m["o"] = opacity
 
       # double sides

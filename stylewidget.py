@@ -311,21 +311,21 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     self.widget.lineEdit.setText(str(defaultValue))
 
 
-class TransparencyWidgetFunc(WidgetFuncBase):
+class OpacityWidgetFunc(WidgetFuncBase):
 
   FEATURE = 1
   VALUE = 2
 
   def setup(self, options=None):
-    WidgetFuncBase.setup(self, "Transparency", editLabel="Value (%)", lineEdit=None, placeholderText="0 - 100")
+    WidgetFuncBase.setup(self, "Opacity", editLabel="Value (%)", lineEdit=None, placeholderText="0 - 100")
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Feature style", TransparencyWidgetFunc.FEATURE)
-    self.widget.comboBox.addItem("Fixed value", TransparencyWidgetFunc.VALUE)
+    self.widget.comboBox.addItem("Feature style", OpacityWidgetFunc.FEATURE)
+    self.widget.comboBox.addItem("Fixed value", OpacityWidgetFunc.VALUE)
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
-    isValue = itemData == TransparencyWidgetFunc.VALUE
+    isValue = itemData == OpacityWidgetFunc.VALUE
     self.widget.label_2.setVisible(isValue)
     self.widget.lineEdit.setVisible(isValue)
 
@@ -480,7 +480,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   COLOR = 2
   FILEPATH = 3
   HEIGHT = 4
-  TRANSPARENCY = 5
+  OPACITY = 5
   LABEL_HEIGHT = 6
   OPTIONAL_COLOR = 7
   COLOR_TEXTURE = 8
@@ -491,7 +491,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                     FILEPATH: FilePathWidgetFunc,
                     HEIGHT: HeightWidgetFunc,
                     LABEL_HEIGHT: LabelHeightWidgetFunc,
-                    TRANSPARENCY: TransparencyWidgetFunc,
+                    OPACITY: OpacityWidgetFunc,
                     OPTIONAL_COLOR: OptionalColorWidgetFunc,
                     COLOR_TEXTURE: ColorTextureWidgetFunc,
                     CHECKBOX: CheckBoxWidgetFunc}
