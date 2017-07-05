@@ -31,7 +31,7 @@ from .qgis2threejstools import logMessage
 
 class LayerExporter:
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, progress=None):
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
     self.settings = settings
     self.imageManager = imageManager
 
@@ -39,6 +39,8 @@ class LayerExporter:
     self.properties = properties
     self.jsLayerId = jsLayerId
     self.visible = visible
+    self.pathRoot = pathRoot
+    self.urlRoot = urlRoot
     self.progress = progress or dummyProgress
 
   def build(self):

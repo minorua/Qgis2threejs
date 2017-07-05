@@ -34,8 +34,8 @@ from .vectorobject import objectTypeManager
 
 class VectorLayerExporter(LayerExporter):
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, progress=None):
-    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, progress)
+  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
+    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot, progress)
 
     self.materialManager = MaterialManager()    #TODO: takes imageManager
     self.triMesh = {}
