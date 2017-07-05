@@ -43,10 +43,10 @@ class WidgetFuncBase:
     if editLabel:
       self.widget.label_2.setText(editLabel)
     self.widget.label_2.setVisible(bool(editLabel))
-    self.widget.lineEdit.setPlaceholderText(placeholderText)
-    self.widget.lineEdit.setReadOnly(readOnly)
-    self.widget.lineEdit.setText(lineEdit or "")
-    self.widget.lineEdit.setVisible(lineEdit is not None)
+    #self.widget.expression.setPlaceholderText(placeholderText)
+    #self.widget.expression.setReadOnly(readOnly)
+    self.widget.expression.setExpression(lineEdit or "")
+    self.widget.expression.setVisible(lineEdit is not None)
     self.widget.toolButton.setVisible(toolButton)
     self.widget.checkBox.setVisible(checkBox)
 
@@ -63,13 +63,13 @@ class WidgetFuncBase:
     return {"type": self.widget.funcType,
             "comboData": self.widget.comboBox.itemData(self.widget.comboBox.currentIndex()),
             "comboText": self.widget.comboBox.currentText(),
-            "editText": self.widget.lineEdit.text()}
+            "editText": self.widget.expression.expression()}
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
-    self.widget.lineEdit.setText(vals["editText"])
+    self.widget.expression.setExpression(vals["editText"])
 
   @classmethod
   def fields(cls, layer):
@@ -121,11 +121,11 @@ class FieldValueWidgetFunc(WidgetFuncBase):
       defaultValue = 1
       label = self.label_field
 
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.expression.setExpression(str(defaultValue))
     if label:
       self.widget.label_2.setText(label)
     self.widget.label_2.setVisible(bool(label))
-    self.widget.lineEdit.setVisible(bool(label))
+    self.widget.expression.setVisible(bool(label))
 
 
 class ColorWidgetFunc(WidgetFuncBase):
@@ -144,26 +144,26 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
     self.widget.comboBox.addItem("RGB value", ColorWidgetFunc.RGB)
 
-    self.widget.lineEdit.setText(options.get("defaultValue", ""))
+    self.widget.expression.setExpression(options.get("defaultValue", ""))
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
     isRGB = itemData == ColorWidgetFunc.RGB
     self.widget.label_2.setVisible(isRGB)
-    self.widget.lineEdit.setVisible(isRGB)
+    self.widget.expression.setVisible(isRGB)
     self.widget.toolButton.setVisible(isRGB)
 
   def toolButtonClicked(self):
-    color = QColorDialog.getColor(QColor(self.widget.lineEdit.text().replace("0x", "#")))
+    color = QColorDialog.getColor(QColor(self.widget.expression.expression().replace("0x", "#")))
     if color.isValid():
-      self.widget.lineEdit.setText(color.name().replace("#", "0x"))
+      self.widget.expression.setExpression(color.name().replace("#", "0x"))
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
-    self.widget.lineEdit.setText(vals["editText"])
+    self.widget.expression.setExpression(vals["editText"])
 
 
 class FilePathWidgetFunc(WidgetFuncBase):
@@ -175,7 +175,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
     options = options or {}
     self.lineEditLabel = options.get("label", "Path")
     WidgetFuncBase.setup(self, options.get("name", ""), editLabel=self.lineEditLabel, toolButton=True)
-    self.widget.lineEdit.setText(str(options.get("defaultValue", "")))
+    self.widget.expression.setExpression(str(options.get("defaultValue", "")))
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
@@ -194,7 +194,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
     self.widget.label_2.setText(label)
 
   def toolButtonClicked(self):
-    workdir = os.path.split(self.widget.lineEdit.text())[0]
+    workdir = os.path.split(self.widget.expression.expression())[0]
     if not workdir:
       workdir = QgsProject.instance().homePath()
     if not workdir:
@@ -204,13 +204,13 @@ class FilePathWidgetFunc(WidgetFuncBase):
     if comboBox.itemData(comboBox.currentIndex()) == FilePathWidgetFunc.FILEPATH:
       filepath, _ = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
       if filepath:
-        self.widget.lineEdit.setText(filepath)
+        self.widget.expression.setExpression(filepath)
     else:
       directory = QFileDialog.getExistingDirectory(None, "Select a directory", workdir)
       if directory:
         if directory[-1] not in ["/", "\\"]:
           directory += os.sep
-        self.widget.lineEdit.setText(directory)
+        self.widget.expression.setExpression(directory)
 
 
 class HeightWidgetFunc(WidgetFuncBase):
@@ -269,7 +269,7 @@ class HeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.expression.setExpression(str(defaultValue))
 
   def isCurrentItemRelativeHeight(self):
     itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
@@ -308,7 +308,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
       label = "Addend"
       defaultValue = 0
     self.widget.label_2.setText(label)
-    self.widget.lineEdit.setText(str(defaultValue))
+    self.widget.expression.setExpression(str(defaultValue))
 
 
 class OpacityWidgetFunc(WidgetFuncBase):
@@ -327,14 +327,14 @@ class OpacityWidgetFunc(WidgetFuncBase):
     itemData = self.widget.comboBox.itemData(index)
     isValue = itemData == OpacityWidgetFunc.VALUE
     self.widget.label_2.setVisible(isValue)
-    self.widget.lineEdit.setVisible(isValue)
+    self.widget.expression.setVisible(isValue)
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals["comboData"])
     if index != -1:
       self.widget.comboBox.setCurrentIndex(index)
       self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
-    self.widget.lineEdit.setText(vals["editText"])
+    self.widget.expression.setExpression(vals["editText"])
 
 
 class OptionalColorWidgetFunc(ColorWidgetFunc):
@@ -392,12 +392,12 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     self.widget.label_2.setText("Layers" if isLayer else "Value")
     self.widget.label_2.setVisible(isRGB or isLayer)
 
-    self.widget.lineEdit.setPlaceholderText("0xrrggbb" if isRGB else "")
-    self.widget.lineEdit.setReadOnly(isLayer)
-    self.widget.lineEdit.setVisible(isRGB or isLayer)
+    #self.widget.expression.setPlaceholderText("0xrrggbb" if isRGB else "")
+    #self.widget.expression.setReadOnly(isLayer)
+    self.widget.expression.setVisible(isRGB or isLayer)
 
     if isRGB:
-      self.widget.lineEdit.setText("")
+      self.widget.expression.setExpression("")
     elif isLayer:
       self.updateLineEdit()
 
@@ -422,7 +422,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     self.updateLineEdit()
 
   def updateLineEdit(self):
-    self.widget.lineEdit.setText(shortTextFromSelectedLayerIds(self.layerIds))
+    self.widget.expression.setExpression(shortTextFromSelectedLayerIds(self.layerIds))
 
   def values(self):
     v = ColorWidgetFunc.values(self)
@@ -470,7 +470,7 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
   def setLayoutVisible(self, visible):
     self.widget.label_2.setVisible(visible)
     self.widget.comboBox.setVisible(visible)
-    self.widget.lineEdit.setVisible(visible)
+    self.widget.expression.setVisible(visible)
     self.widget.toolButton.setVisible(visible)
 
 

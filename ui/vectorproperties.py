@@ -101,7 +101,7 @@ class Ui_VectorPropertiesWidget(object):
         self.label_zExpression.setObjectName("label_zExpression")
         self.gridLayout.addWidget(self.label_zExpression, 0, 0, 1, 1)
         self.fieldExpressionWidget_zCoordinate = QgsFieldExpressionWidget(self.groupBox_zCoordinate)
-        self.fieldExpressionWidget_zCoordinate.setMinimumSize(QtCore.QSize(0, 15))
+        self.fieldExpressionWidget_zCoordinate.setMinimumSize(QtCore.QSize(0, 20))
         self.fieldExpressionWidget_zCoordinate.setObjectName("fieldExpressionWidget_zCoordinate")
         self.gridLayout.addWidget(self.fieldExpressionWidget_zCoordinate, 0, 1, 1, 1)
         self.gridLayout.setColumnStretch(1, 1)
