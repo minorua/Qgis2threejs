@@ -37,7 +37,7 @@ from .conf import def_vals
 from .qgis2threejscore import calculateDEMSize, createQuadTree
 from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
-from .stylewidget import StyleWidget
+from .stylewidget import StyleWidget, LabelHeightWidgetFunc
 from . import qgis2threejstools as tools
 from .vectorobject import objectTypeManager
 
@@ -647,6 +647,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
   def setup(self, properties=None, layer=None):   # TODO: layer is required. layer, properties=None
+    assert(layer is not None)
     self.layer = layer
 
     if self.dialog.currentItem:
@@ -699,6 +700,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     if layer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
       self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
+      if layer.geometryType() == QgsWkbTypes.PointGeometry:
+        self.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE, "Height from point")])
     else:
       self.labelHeightWidget.hide()
 
@@ -769,10 +772,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.styleWidgetCount = 0
 
     if color:
-      self.addStyleWidget(StyleWidget.COLOR)
+      self.addStyleWidget(StyleWidget.COLOR, {"layer": self.layer})
 
     if opacity:
-      self.addStyleWidget(StyleWidget.OPACITY)
+      self.addStyleWidget(StyleWidget.OPACITY, {"layer": self.layer})
 
     for i in range(self.styleWidgetCount, self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
@@ -780,3 +783,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def addStyleWidget(self, funcType=None, options=None):
     self.styleWidgets[self.styleWidgetCount].setup(funcType, options)
     self.styleWidgetCount += 1
+
+  def setupLabelHeightWidget(self, item_list):
+    self.labelHeightWidget.setup(options={"items": item_list})

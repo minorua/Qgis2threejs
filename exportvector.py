@@ -270,7 +270,7 @@ class VectorLayer(Layer):
 
     #TODO: create proper expression context
     expression = properties.get("fieldExpressionWidget_zCoordinate") or "0"
-    exp = QgsExpression(expression)
+    expr = QgsExpression(expression)
     fields = self.layer.pendingFields()
 
     feats = []
@@ -296,7 +296,7 @@ class VectorLayer(Layer):
 
       # evaluate expression
       ctx = QgsExpressionContextUtils.createFeatureBasedContext(f, fields)
-      relativeHeight = exp.evaluate(ctx)
+      relativeHeight = expr.evaluate(ctx)
 
       # transform_func: function to transform the map coordinates to 3d coordinates
       def transform_func(x, y, z):

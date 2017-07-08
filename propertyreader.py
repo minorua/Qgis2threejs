@@ -23,7 +23,7 @@ import os
 import random
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QColor
-from qgis.core import NULL
+from qgis.core import NULL, QgsExpression, QgsExpressionContextUtils
 
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
@@ -32,6 +32,7 @@ from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldVa
 colorNames = []
 
 
+#TODO: integrate into DEMLayerExporter
 class DEMPropertyReader:
 
   def __init__(self, properties=None):
@@ -52,7 +53,8 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-  def __init__(self, objectTypeManager, renderContext, expressionContext, layer, properties=None):
+  def __init__(self, objectTypeManager, renderContext, expressionContext, layer, properties):
+    assert(properties is not None)
     self.renderContext = renderContext
     self.expressionContext = expressionContext
     self.layer = layer
@@ -77,7 +79,7 @@ class VectorPropertyReader:
     if mode == OptionalColorWidgetFunc.NONE:
       return None
 
-    if mode == ColorWidgetFunc.RGB:
+    if mode == ColorWidgetFunc.EXPRESSION:
       return widgetValues["editText"]
 
     if mode == ColorWidgetFunc.RANDOM or f is None:
@@ -174,9 +176,11 @@ class VectorPropertyReader:
     #return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_ABS]) + float(lst[2])
 
   # read values from style widgets
-  #TODO: rename this to styles
-  def values(self, f=None):
+  #TODO: rename this to styleValues
+  def values(self, f):
+    assert(f is not None)
     vals = []
+    fields = self.layer.pendingFields()
     for i in range(32):   # big number for style count
       p = "styleWidget" + str(i)
       if p not in self.properties:
@@ -226,11 +230,7 @@ class VectorPropertyReader:
           vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
 
       else:
-        if comboData == FieldValueWidgetFunc.ABSOLUTE or f is None:
-          vals.append(widgetValues["editText"])
-        else:
-          # attribute value * multiplier
-          fieldName = widgetValues["comboText"].strip('"')
-          val = self.toFloat(f.attribute(fieldName)) * self.toFloat(widgetValues["editText"])
-          vals.append(str(val))
+        ctx = QgsExpressionContextUtils.createFeatureBasedContext(f, fields)    #TODO: proper context
+        val = QgsExpression(widgetValues["editText"]).evaluate(ctx)
+        vals.append(val)
     return vals

@@ -77,13 +77,8 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   else:
     item_text = ["Height from overlay", "Height from DEM"]
 
-  comboBox = ppage.labelHeightWidget.comboBox
-  comboBox.clear()
-  comboBox.addItem(item_text[0], LabelHeightWidgetFunc.RELATIVE_TO_TOP)
-  comboBox.addItem(item_text[1], LabelHeightWidgetFunc.RELATIVE)
-  comboBox.addItem("Fixed value", HeightWidgetFunc.ABSOLUTE)
-  if layer:
-    ppage.labelHeightWidget.addFieldNames(layer)
+  ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, item_text[0]),
+                                (LabelHeightWidgetFunc.RELATIVE, item_text[1])])
 
 
 #TODO
