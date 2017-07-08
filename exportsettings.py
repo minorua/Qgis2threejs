@@ -138,10 +138,6 @@ class ExportSettings:
     self.baseExtent = RotatedRect.fromMapSettings(settings)
     self.crs = settings.destinationCrs()
 
-  def demProvider(self):
-    layerId = self.data.get(ObjectTreeItem.ITEM_DEM, {}).get("comboBox_DEMLayer", 0)
-    return self.demProviderByLayerId(layerId)
-
   def mapTo3d(self):
     if self._mapTo3d:
       return self._mapTo3d

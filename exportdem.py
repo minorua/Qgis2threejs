@@ -39,7 +39,7 @@ class DEMLayerExporter(LayerExporter):
     """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
     LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot, progress)
     self.provider = settings.demProviderByLayerId(layerId)
-    self.prop = DEMPropertyReader(properties)
+    self.prop = DEMPropertyReader(layerId, properties)
 
   def build(self, export_blocks=False):
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:

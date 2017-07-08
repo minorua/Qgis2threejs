@@ -32,12 +32,11 @@ from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldVa
 colorNames = []
 
 
-#TODO: integrate into DEMLayerExporter
 class DEMPropertyReader:
 
-  def __init__(self, properties=None):
+  def __init__(self, layerId, properties=None):
     properties = properties or {}
-    self.layerId = properties.get("comboBox_DEMLayer", 0)
+    self.layerId = layerId
     self.properties = properties
 
   def demSize(self, canvasSize):

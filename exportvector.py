@@ -143,7 +143,8 @@ class VectorLayerExporter(LayerExporter):
 
   def triangleMesh(self, dem_width=0, dem_height=0):
     if dem_width == 0 and dem_height == 0:
-      prop = DEMPropertyReader(self.settings.get(ObjectTreeItem.ITEM_DEM))
+      #TODO:
+      prop = DEMPropertyReader(layerId, self.settings.get(ObjectTreeItem.ITEM_DEM))
       dem_size = prop.demSize(self.settings.mapSettings.outputSize())
       dem_width = dem_size.width()
       dem_height = dem_size.height()

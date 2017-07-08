@@ -280,8 +280,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.layerImageIds = []
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
-    widgets = [self.comboBox_DEMLayer, self.spinBox_Opacity]
-    widgets += [self.radioButton_Simple, self.horizontalSlider_DEMSize]
+    widgets = [self.spinBox_Opacity, self.radioButton_Simple, self.horizontalSlider_DEMSize]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
@@ -293,7 +292,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.initLayerComboBox()
     self.initTextureSizeComboBox()
 
-    self.comboBox_DEMLayer.currentIndexChanged.connect(self.demLayerChanged)
     self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
     self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
@@ -311,7 +309,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.isPrimary = isPrimary
     self.layer = layer
 
-    self.setLayoutsVisible([self.formLayout_DEMLayer, self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
+    self.setLayoutsVisible([self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
     if self.dialog.currentItem:
@@ -324,11 +322,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     if layer is not None:
       layerId = layer.id()
 
-    self.comboBox_DEMLayer.blockSignals(True)
-    currentIndex = self.selectDEMLayer(layerId)
-    self.comboBox_DEMLayer.blockSignals(False)
     self.groupBox_Resampling.setEnabled(True)
-    self.demLayerChanged(currentIndex)
 
     # use default properties if properties is not set
     if not properties:
@@ -360,27 +354,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       #self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
   def initLayerComboBox(self):
-    # list of 1 band raster layers and plugin dem providers
-    comboDEM = self.comboBox_DEMLayer
-    comboDEM.clear()
-    comboDEM.addItem("Flat plane (no DEM used)", 0)
-
-    # plugin dem providers
-    if self.dialog.pluginManager:
-      for plugin in self.dialog.pluginManager.demProviderPlugins():
-        comboDEM.addItem(plugin.providerName(), "plugin:" + plugin.providerId())
-
     # list of polygon layers
-    comboPolygon = self.comboBox_ClipLayer
-    comboPolygon.clear()
-
+    self.comboBox_ClipLayer.clear()
     for layer in getLayersInProject():
-      if layer.type() == QgsMapLayer.RasterLayer:
-        if layer.providerType() == "gdal" and layer.bandCount() == 1:
-          comboDEM.addItem(layer.name(), layer.id())
-      elif layer.type() == QgsMapLayer.VectorLayer:
-        if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-          comboPolygon.addItem(layer.name(), layer.id())
+      if layer.type() == QgsMapLayer.VectorLayer and layer.geometryType() == QgsWkbTypes.PolygonGeometry:
+        self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
     canvas = self.dialog.iface.mapCanvas()
@@ -391,31 +369,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       percent = i * 100
       text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
-
-  def selectDEMLayer(self, layerId=None):
-    comboBox = self.comboBox_DEMLayer
-    if layerId is not None:
-      # select the last selected layer
-      index = comboBox.findData(layerId)
-      if index != -1:
-        comboBox.setCurrentIndex(index)
-      return index
-    elif comboBox.count() > 1:
-      # select the first 1 band raster layer
-      comboBox.setCurrentIndex(1)
-      return 1
-    # combo box has one item "(Flat plane)"
-    return 0
-
-  def demLayerChanged(self, index):
-    if not self.isPrimary:
-      return
-    comboBox = self.comboBox_DEMLayer
-    useDEM = comboBox.itemData(index) != 0
-    self.groupBox_Resampling.setEnabled(useDEM)
-    if not useDEM:
-      self.checkBox_Surroundings.setChecked(False)
-    self.dialog.primaryDEMChanged(comboBox.itemData(index))
 
   def resolutionSliderChanged(self, v):
     self.updateDEMSize()
