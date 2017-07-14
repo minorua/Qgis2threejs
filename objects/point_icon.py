@@ -42,6 +42,6 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 def write(settings, layer, feat):
   vals = feat.propValues()
   image_path = vals[1]
-  scale = float(vals[2])
+  scale = vals[2]
   mat = layer.materialManager.getSpriteIndex(image_path, vals[0])
   return {"pts": feat.geom.asList(), "scale": scale}, mat

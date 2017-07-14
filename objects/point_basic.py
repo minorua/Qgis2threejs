@@ -58,28 +58,28 @@ def write(settings, layer, feat):
   mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
   pts = feat.geom.asList()
   if feat.prop.type_index == 0:  # Sphere
-    r = float(vals[2]) * mapTo3d.multiplier
+    r = vals[2] * mapTo3d.multiplier
     if r:
       return {"pts": pts, "r": r}, mat
     else:
       logMessage(u"Sphere with zero radius not exported")
 
   elif feat.prop.type_index in [1, 2]:  # Cylinder, Cone
-    rb = float(vals[2]) * mapTo3d.multiplier
+    rb = vals[2] * mapTo3d.multiplier
     rt = 0 if feat.prop.type_index == 2 else rb
-    h = float(vals[3]) * mapTo3d.multiplierZ
+    h = vals[3] * mapTo3d.multiplierZ
     return {"pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90}, mat
 
   elif feat.prop.type_index == 3:  # Box
-    w = float(vals[2]) * mapTo3d.multiplier
-    d = float(vals[3]) * mapTo3d.multiplier
-    h = float(vals[4]) * mapTo3d.multiplierZ
+    w = vals[2] * mapTo3d.multiplier
+    d = vals[3] * mapTo3d.multiplier
+    h = vals[4] * mapTo3d.multiplierZ
     return {"pts": pts, "w": w, "d": d, "h": h, "rotateX": 90}, mat
 
   elif feat.prop.type_index == 4:  # Disk
-    r = float(vals[2]) * mapTo3d.multiplier
-    d = float(vals[3])
-    dd = float(vals[4])
+    r = vals[2] * mapTo3d.multiplier
+    d = vals[3]
+    dd = vals[4]
 
     # take map rotation into account
     rotation = settings.baseExtent.rotation()

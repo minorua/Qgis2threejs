@@ -125,7 +125,7 @@ def write(settings, layer, feat):
       mat["border"] = layer.materialManager.getLineBasicIndex(vals[3], vals[1])
 
     geom["zs"] = zs
-    geom["h"] = float(vals[2]) * settings.mapTo3d().multiplierZ
+    geom["h"] = vals[2] * settings.mapTo3d().multiplierZ
 
   else:   # Overlay
     if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:

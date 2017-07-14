@@ -60,10 +60,10 @@ def write(settings, layer, feat):
 
   #TODO: writer -> layer
   index = writer.modelManager.modelIndex(model_path, model_type)
-  scale = float(vals[1]) * mapTo3d.multiplier
-  rx = float(vals[2])
-  ry = float(vals[3])
-  rz = float(vals[4])
+  scale = vals[1] * mapTo3d.multiplier
+  rx = vals[2]
+  ry = vals[3]
+  rz = vals[4]
 
   # take map rotation into account
   rotation = settings.baseExtent.rotation()

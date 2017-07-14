@@ -71,7 +71,7 @@ def write(settings, layer, feat):
     return {"lines": feat.geom.asList()}, mat
 
   elif type_index in [1, 2]:    # Pipe, Cone
-    rb = float(vals[2]) * mapTo3d.multiplier
+    rb = vals[2] * mapTo3d.multiplier
     if rb != 0:
       mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
       rt = 0 if type_index == 2 else rb
@@ -79,8 +79,8 @@ def write(settings, layer, feat):
 
   elif type_index == 3:   # Box
     mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-    w = float(vals[2]) * mapTo3d.multiplier
-    h = float(vals[3]) * mapTo3d.multiplier
+    w = vals[2] * mapTo3d.multiplier
+    h = vals[3] * mapTo3d.multiplier
     return {"lines": feat.geom.asList(), "w": w, "h": h}, mat
 
   elif type_index == 4:   # Profile
@@ -91,7 +91,7 @@ def write(settings, layer, feat):
     else:
       d["lines"] = feat.geom.asList()
 
-    d["bh"] = float(vals[2]) * mapTo3d.multiplierZ
+    d["bh"] = vals[2] * mapTo3d.multiplierZ
 
     mat = layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)
     return d, mat

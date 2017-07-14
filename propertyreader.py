@@ -225,8 +225,13 @@ class VectorPropertyReader:
           vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
 
       else:
-        val = self.evaluateExpression(widgetValues["editText"], f)
-        if widgetType != StyleWidget.FILEPATH and val == "":
-          val = 0
+        expr = widgetValues["editText"]
+        val = self.evaluateExpression(expr, f)
+        if val is None:
+          logMessage("Failed to evaluate expression: " + expr)
+          if widgetType == StyleWidget.FILEPATH:
+            val = ""
+          else:
+            val = 0
         vals.append(val)
     return vals
