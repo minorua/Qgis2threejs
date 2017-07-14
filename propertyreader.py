@@ -70,8 +70,14 @@ class VectorPropertyReader:
     else:
       self.visible = False
 
+  def readFillColor(self, vals, f):
+    return self._readColor(vals, f)
+
+  def readBorderColor(self, vals, f):
+    return self._readColor(vals, f, isBorder=True)
+
   # read color from COLOR or OPTIONAL_COLOR widget
-  def _readColor(self, widgetValues, f=None, isBorder=False):
+  def _readColor(self, widgetValues, f, isBorder=False):
     global colorNames
 
     mode = widgetValues["comboData"]
@@ -79,7 +85,7 @@ class VectorPropertyReader:
       return None
 
     if mode == ColorWidgetFunc.EXPRESSION:
-      return widgetValues["editText"]
+      return widgetValues["editText"]   #TODO: evaluate
 
     if mode == ColorWidgetFunc.RANDOM or f is None:
       if len(colorNames) == 0:
@@ -96,7 +102,7 @@ class VectorPropertyReader:
     else:
       sl = symbol.symbolLayer(0)
       if sl and isBorder:
-        return "0xffff00"   #sl.outlineColor().name().replace("#", "0x")    #TODO: QGIS 3
+        return sl.strokeColor().name().replace("#", "0x")
 
       if sl and symbol.hasDataDefinedProperties():
         expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
@@ -110,7 +116,7 @@ class VectorPropertyReader:
 
     return symbol.color().name().replace("#", "0x")
 
-  def _readOpacity(self, widgetValues, f=None):
+  def readOpacity(self, widgetValues, f):
     vals = widgetValues
 
     if vals["comboData"] == OpacityWidgetFunc.VALUE:
@@ -191,8 +197,11 @@ class VectorPropertyReader:
 
       widgetType = widgetValues["type"]
       comboData = widgetValues.get("comboData")
-      if widgetType in [StyleWidget.COLOR, StyleWidget.OPTIONAL_COLOR]:
-        vals.append(self._readColor(widgetValues, f, widgetType == StyleWidget.OPTIONAL_COLOR))
+      if widgetType == StyleWidget.COLOR:
+        vals.append(self.readFillColor(widgetValues, f))
+
+      elif widgetType == StyleWidget.OPTIONAL_COLOR:
+        vals.append(self.readBorderColor(widgetValues, f))
 
       elif widgetType == StyleWidget.COLOR_TEXTURE:
         if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
@@ -200,10 +209,10 @@ class VectorPropertyReader:
         elif comboData == ColorTextureWidgetFunc.LAYER:
           vals.append(widgetValues.get("layerIds", []))
         else:
-          vals.append(self._readColor(widgetValues, f))
+          vals.append(self.readFillColor(widgetValues, f))
 
       elif widgetType == StyleWidget.OPACITY:
-        vals.append(self._readOpacity(widgetValues, f))
+        vals.append(self.readOpacity(widgetValues, f))
 
       elif widgetType == StyleWidget.FILEPATH:
         if comboData == FilePathWidgetFunc.FILEPATH or f is None:
