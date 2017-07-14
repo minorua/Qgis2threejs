@@ -190,7 +190,7 @@ class ExportSettings:
     return None
 
   def demProviderByLayerId(self, id):
-    if not id:
+    if id == "FLAT":
       return FlatDEMProvider()
 
     if id.startswith("plugin:"):
@@ -210,18 +210,8 @@ class ExportSettings:
 
   def updateLayerList(self):
     layers = []
-    for plugin in self.pluginManager.demProviderPlugins():
-      layerId = "plugin:" + plugin.providerId()
-      item = self.getItemByLayerId(layerId)
-      if item:
-        layers.append(item)
-      else:
-        layers.append({"layerId": layerId,
-                       "name": plugin.providerName(),
-                       "geomType": q3dconst.TYPE_DEM,
-                       "properties": None,
-                       "visible": False})
 
+    # DEM and Vector layers
     for layer in getLayersInProject():
       layerType = layer.type()
       if layerType == QgsMapLayer.VectorLayer:
@@ -247,6 +237,31 @@ class ExportSettings:
                          "geomType": geomType,
                          "properties": None,
                          "visible": False})
+
+    # DEM provider plugins
+    for plugin in self.pluginManager.demProviderPlugins():
+      layerId = "plugin:" + plugin.providerId()
+      item = self.getItemByLayerId(layerId)
+      if item:
+        layers.append(item)
+      else:
+        layers.append({"layerId": layerId,
+                       "name": plugin.providerName(),
+                       "geomType": q3dconst.TYPE_DEM,
+                       "properties": None,
+                       "visible": False})
+
+    # Flat plane
+    layerId = "FLAT"
+    item = self.getItemByLayerId(layerId)
+    if item:
+      layers.append(item)
+    else:
+      layers.append({"layerId": layerId,
+                     "name": "Flat Plane",
+                     "geomType": q3dconst.TYPE_DEM,
+                     "properties": None,
+                     "visible": False})
 
     # update id and jsLayerId
     for index, layer in enumerate(layers):
