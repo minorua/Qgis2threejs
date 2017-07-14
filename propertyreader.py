@@ -23,7 +23,7 @@ import os
 import random
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QColor
-from qgis.core import NULL, QgsExpression, QgsExpressionContextUtils
+from qgis.core import NULL, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils
 
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
@@ -52,10 +52,11 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-  def __init__(self, objectTypeManager, renderContext, expressionContext, layer, properties):
+  def __init__(self, objectTypeManager, renderContext, layer, properties):
     assert(properties is not None)
     self.renderContext = renderContext
-    self.expressionContext = expressionContext
+    self.expressionContext = QgsExpressionContext()
+    self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(layer))
     self.layer = layer
     properties = properties or {}
     self.properties = properties
@@ -238,7 +239,6 @@ class VectorPropertyReader:
           vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
 
       else:
-        ctx = QgsExpressionContextUtils.createFeatureBasedContext(f, fields)    #TODO: proper context
-        val = QgsExpression(widgetValues["editText"]).evaluate(ctx)
+        val = QgsExpression(widgetValues["editText"]).evaluate(self.expressionContext)
         vals.append(val)
     return vals

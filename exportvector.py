@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 from osgeo import ogr, osr
 
 from .datamanager import MaterialManager
@@ -49,10 +49,9 @@ class VectorLayerExporter(LayerExporter):
     baseExtent = self.settings.baseExtent
     mapSettings = self.settings.mapSettings
     renderContext = QgsRenderContext.fromMapSettings(mapSettings)
-    expContext = mapSettings.expressionContext()
 
     otm = objectTypeManager()
-    prop = VectorPropertyReader(otm, renderContext, expContext, mapLayer, properties)
+    prop = VectorPropertyReader(otm, renderContext, mapLayer, properties)
     obj_mod = otm.module(prop.mod_index)
     if obj_mod is None:
       logMessage("Module not found")
@@ -269,10 +268,11 @@ class VectorLayer(Layer):
       else:
         z_func = lambda x, y: 0
 
-    #TODO: create proper expression context
+    # expression
+    ctx = QgsExpressionContext()
+    ctx.appendScope(QgsExpressionContextUtils.layerScope(self.layer))
     expression = properties.get("fieldExpressionWidget_zCoordinate") or "0"
     expr = QgsExpression(expression)
-    fields = self.layer.pendingFields()
 
     feats = []
     request = request or QgsFeatureRequest()
@@ -296,7 +296,6 @@ class VectorLayer(Layer):
       feat = Feature(self.settings, self, f)
 
       # evaluate expression
-      ctx = QgsExpressionContextUtils.createFeatureBasedContext(f, fields)
       relativeHeight = expr.evaluate(ctx)
 
       # transform_func: function to transform the map coordinates to 3d coordinates
