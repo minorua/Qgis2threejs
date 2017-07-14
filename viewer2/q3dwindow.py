@@ -21,8 +21,8 @@
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QSettings, QVariant, pyqtSignal
-from PyQt5.QtWidgets import QCheckBox, QDialog, QDialogButtonBox
+from PyQt5.QtCore import QObject, QSettings, QVariant, pyqtSignal
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox
 
 from qgis.core import QgsProject
 
@@ -255,6 +255,8 @@ class PropertiesDialog(QDialog):
     self.pluginManager = pluginManager
     self.mapTo3d = settings.mapTo3d
 
+    self.wheelFilter = WheelEventFilter()
+
     self.currentItem = None
     self.mapTool = None   #TODO
 
@@ -294,6 +296,10 @@ class PropertiesDialog(QDialog):
       self.page.setup(properties, mapLayer)
     self.ui.scrollArea.setWidget(self.page)
 
+    # disable wheel event for ComboBox widgets
+    for w in self.ui.scrollArea.findChildren(QComboBox):
+      w.installEventFilter(self.wheelFilter)
+
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
@@ -313,3 +319,11 @@ class PropertiesDialog(QDialog):
 
   def primaryDEMChanged(self, layerId):
     pass
+
+
+class WheelEventFilter(QObject):
+
+  def eventFilter(self, obj, event):
+    if event.type() == QEvent.Wheel:
+      return True
+    return QObject.eventFilter(self, obj, event)
