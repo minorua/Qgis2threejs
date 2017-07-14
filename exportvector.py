@@ -296,6 +296,7 @@ class VectorLayer(Layer):
       feat = Feature(self.settings, self, f)
 
       # evaluate expression
+      ctx.setFeature(f)
       relativeHeight = expr.evaluate(ctx)
 
       # transform_func: function to transform the map coordinates to 3d coordinates

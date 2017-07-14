@@ -71,6 +71,15 @@ class VectorPropertyReader:
     else:
       self.visible = False
 
+    self._exprs = {}
+
+  def evaluateExpression(self, expr_str, f):
+    if expr_str not in self._exprs:
+      self._exprs[expr_str] = QgsExpression(expr_str)
+
+    self.expressionContext.setFeature(f)
+    return self._exprs[expr_str].evaluate(self.expressionContext)
+
   def readFillColor(self, vals, f):
     return self._readColor(vals, f)
 
@@ -86,7 +95,7 @@ class VectorPropertyReader:
       return None
 
     if mode == ColorWidgetFunc.EXPRESSION:
-      return widgetValues["editText"]   #TODO: evaluate
+      return self.evaluateExpression(widgetValues["editText"], f)
 
     if mode == ColorWidgetFunc.RANDOM or f is None:
       if len(colorNames) == 0:
@@ -122,7 +131,8 @@ class VectorPropertyReader:
 
     if vals["comboData"] == OpacityWidgetFunc.VALUE:
       try:
-        return min(max(0, float(vals["editText"])), 100) / 100
+        val = self.evaluateExpression(widgetValues["editText"], f)
+        return min(max(0, val), 100) / 100
       except ValueError:
         return 1
 
@@ -160,33 +170,20 @@ class VectorPropertyReader:
   def useZ(self):
     return self.properties.get("radioButton_zValue", False)
 
-    #return self.properties["heightWidget"]["comboData"] == HeightWidgetFunc.Z_VALUE
+  def useM(self):
+    return self.properties.get("radioButton_mValue", False)
 
   def isHeightRelativeToDEM(self):
     return self.properties.get("radioButton_Relative", False)
 
-    #v0 = self.properties["heightWidget"]["comboData"]
-    #return v0 == HeightWidgetFunc.RELATIVE or v0 >= HeightWidgetFunc.FIRST_ATTR_REL
-
-  def relativeHeight(self, f=None):
-    vals = self.properties["heightWidget"]
-    if vals["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
-      return self.toFloat(vals["editText"])
-
-    # attribute value + addend
-    fieldName = vals["comboText"].lstrip("+").strip(' "')
-    return self.toFloat(f.attribute(fieldName)) + self.toFloat(vals["editText"])
-
-    #if lst[0] >= HeightWidgetFunc.FIRST_ATTR_REL:
-    #  return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_REL]) + float(lst[2])
-    #return float(f.attributes()[lst[0] - HeightWidgetFunc.FIRST_ATTR_ABS]) + float(lst[2])
+  def relativeHeight(self, f):
+    return self.evaluateExpression(self.properties["heightWidget"]["editText"], f)
 
   # read values from style widgets
   #TODO: rename this to styleValues
   def values(self, f):
     assert(f is not None)
     vals = []
-    fields = self.layer.pendingFields()
     for i in range(32):   # big number for style count
       p = "styleWidget" + str(i)
       if p not in self.properties:
@@ -215,22 +212,11 @@ class VectorPropertyReader:
       elif widgetType == StyleWidget.OPACITY:
         vals.append(self.readOpacity(widgetValues, f))
 
-      elif widgetType == StyleWidget.FILEPATH:
-        if comboData == FilePathWidgetFunc.FILEPATH or f is None:
-          vals.append(widgetValues["editText"])
-        else:
-          # prefix + attribute
-          fieldName = widgetValues["comboText"].strip('"')
-          value = f.attribute(fieldName)
-          if value == NULL:
-            value = ""
-            logMessage("Empty attribute value in the field '{0}'".format(fieldName))
-          vals.append(os.path.join(widgetValues["editText"], value.strip('"')))
-
       elif widgetType == StyleWidget.CHECKBOX:
         vals.append(widgetValues["checkBox"])
 
       elif widgetType == StyleWidget.HEIGHT:
+        #TODO
         if widgetValues["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
           vals.append(self.toFloat(widgetValues["editText"]))
         else:
@@ -239,6 +225,8 @@ class VectorPropertyReader:
           vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
 
       else:
-        val = QgsExpression(widgetValues["editText"]).evaluate(self.expressionContext)
+        val = self.evaluateExpression(widgetValues["editText"], f)
+        if widgetType != StyleWidget.FILEPATH and val == "":
+          val = 0
         vals.append(val)
     return vals

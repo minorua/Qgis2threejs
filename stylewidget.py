@@ -172,13 +172,6 @@ class FilePathWidgetFunc(WidgetFuncBase):
 
     self.filterString = options.get("filterString", "")
 
-  def comboBoxSelectionChanged(self, index):
-    if self.widget.comboBox.itemData(index) == FilePathWidgetFunc.FILEPATH:
-      label = self.lineEditLabel
-    else:
-      label = "Prefix"
-    self.widget.label_2.setText(label)
-
   def toolButtonClicked(self):
     workdir = os.path.split(self.widget.expression.expression())[0]
     if not workdir:
@@ -186,17 +179,9 @@ class FilePathWidgetFunc(WidgetFuncBase):
     if not workdir:
       workdir = QDir.homePath()
 
-    comboBox = self.widget.comboBox
-    if comboBox.itemData(comboBox.currentIndex()) == FilePathWidgetFunc.FILEPATH:
-      filepath, _ = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
-      if filepath:
-        self.widget.expression.setExpression(filepath)
-    else:
-      directory = QFileDialog.getExistingDirectory(None, "Select a directory", workdir)
-      if directory:
-        if directory[-1] not in ["/", "\\"]:
-          directory += os.sep
-        self.widget.expression.setExpression(directory)
+    filepath, _ = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
+    if filepath:
+      self.widget.expression.setExpression(filepath)
 
 
 class HeightWidgetFunc(WidgetFuncBase):
