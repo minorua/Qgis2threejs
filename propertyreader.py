@@ -40,7 +40,7 @@ class DEMPropertyReader:
     self.properties = properties
 
   def demSize(self, canvasSize):
-    if not self.layerId:
+    if self.layerId == "FLAT":
       return QSize(2, 2)
 
     sizeLevel = self.properties.get("horizontalSlider_DEMSize", 2)
