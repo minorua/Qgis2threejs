@@ -83,12 +83,8 @@ class Q3DViewerInterface:
     self.controller.exportLayer(layer)
 
   def showLayerPropertiesDialog(self, layer):
-    mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
-    if mapLayer is None:
-      return False
-
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
-    dialog.setLayer(layer["layerId"], mapLayer, layer["geomType"], layer["properties"])    # TODO: layer -> Layer class
+    dialog.setLayer(layer)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.show()
     dialog.exec_()
@@ -98,19 +94,15 @@ class Q3DViewerInterface:
   def updateLayerProperties(self, layerId, properties):
     # save layer properties
     layer = self.controller.settings.getItemByLayerId(layerId)
-    layer["properties"] = properties
-    layer["updated"] = True
+    layer.properties = properties
+    layer.updated = True
 
-    if layer["visible"]:
+    if layer.visible:
       self.exportLayer(layer)
 
   def getDefaultProperties(self, layer):
-    mapLayer = QgsProject.instance().mapLayer(layer["layerId"])    #TODO: plugin dem data provider
-    if mapLayer is None:
-      return {}
-
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
-    dialog.setLayer(layer["layerId"], mapLayer, layer["geomType"], None)
+    dialog.setLayer(layer)
     return dialog.page.properties()
 
 
@@ -278,22 +270,18 @@ class PropertiesDialog(QDialog):
     settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
     QDialog.closeEvent(self, event)
 
-  def setLayer(self, layerId, mapLayer, geomType, properties=None):
-    self.layerId = layerId
-    self.layer = mapLayer
-    self.geomType = geomType
-    self.properties = properties or {}
+  def setLayer(self, layer):
+    self.layer = layer
+    self.setWindowTitle("Layer Properties - {0} (Qgis2threejs)".format(layer.name))
 
-    self.setWindowTitle("Layer Properties - {0} (Qgis2threejs)".format(mapLayer.name()))
-
-    if geomType == q3dconst.TYPE_DEM:
+    if layer.geomType == q3dconst.TYPE_DEM:
       self.page = DEMPropertyPage(self, self)
-      self.page.setup(properties, mapLayer)
-    elif geomType == q3dconst.TYPE_IMAGE:
+      self.page.setup(layer)
+    elif layer.geomType == q3dconst.TYPE_IMAGE:
       return
     else:
       self.page = VectorPropertyPage(self, self)
-      self.page.setup(properties, mapLayer)
+      self.page.setup(layer)
     self.ui.scrollArea.setWidget(self.page)
 
     # disable wheel event for ComboBox widgets
@@ -303,7 +291,7 @@ class PropertiesDialog(QDialog):
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-      self.propertiesAccepted.emit(self.layerId, self.page.properties())
+      self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
   def createRubberBands(baseExtent, quadtree):
     pass

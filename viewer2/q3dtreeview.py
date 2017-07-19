@@ -87,15 +87,15 @@ class Q3DTreeView(QTreeView):
 
   def addLayer(self, layer):
     # add a layer item to tree view
-    item = QStandardItem(layer["name"])
+    item = QStandardItem(layer.name)
     item.setCheckable(True)
-    item.setCheckState(Qt.Checked if layer.get("visible", False) else Qt.Unchecked)
-    item.setData(layer["layerId"])
-    item.setIcon(self.icons[layer["geomType"]])    #TODO: icon for each object type
+    item.setCheckState(Qt.Checked if layer.visible else Qt.Unchecked)
+    item.setData(layer.layerId)
+    item.setIcon(self.icons[layer.geomType])    #TODO: icon for each object type
     item.setEditable(False)
 
     item2 = QStandardItem()
-    self.layerParentItem[layer["geomType"]].appendRow([item, item2])
+    self.layerParentItem[layer.geomType].appendRow([item, item2])
 
     # add a button
     button = QPushButton()
@@ -127,19 +127,19 @@ class Q3DTreeView(QTreeView):
 
     visible = bool(item.checkState() == Qt.Checked)
 
-    if layer["geomType"] == q3dconst.TYPE_IMAGE:    #TODO: image
+    if layer.geomType == q3dconst.TYPE_IMAGE:    #TODO: image
       return
 
-    layer["visible"] = visible
+    layer.visible = visible
     if visible:
-      if layer["properties"] is None:
-        layer["properties"] = self.iface.getDefaultProperties(layer)
+      if layer.properties is None:
+        layer.properties = self.iface.getDefaultProperties(layer)
 
       self.iface.exportLayer(layer)
     else:
       obj = {
         "type": "layer",
-        "id": layer["jsLayerId"],
+        "id": layer.jsLayerId,
         "properties": {
           "visible": False
           }

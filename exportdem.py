@@ -35,11 +35,11 @@ from .rotatedrect import RotatedRect
 
 class DEMLayerExporter(LayerExporter):
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
+  def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
     """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
-    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot, progress)
-    self.provider = settings.demProviderByLayerId(layerId)
-    self.prop = DEMPropertyReader(layerId, properties)
+    LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+    self.provider = settings.demProviderByLayerId(layer.layerId)
+    self.prop = DEMPropertyReader(layer.layerId, layer.properties)
 
   def build(self, export_blocks=False):
     #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
@@ -47,26 +47,20 @@ class DEMLayerExporter(LayerExporter):
     #else:
       #writeMultiResDEM(writer, demProperties, progress)
 
-    if isinstance(self.provider, GDALDEMProvider):
-      layer = QgsProject.instance().mapLayer(self.layerId)
-      layerName = layer.name()
-    elif self.provider:
-      layer = None
-      layerName = self.provider.name()
-    else:
+    if self.provider is None:
       return None
 
     p = {
       "type": "dem",
-      "name": layerName,
+      "name": self.layer.name,
       "queryable": 1,
       "shading": self.properties.get("checkBox_Shading", True),
-      "visible": self.visible
+      "visible": self.layer.visible
       }
 
     d = {
       "type": "layer",
-      "id": self.jsLayerId,
+      "id": self.layer.jsLayerId,
       "properties": p,
       "PROPERTIES": self.properties    # debug
       }
@@ -112,9 +106,7 @@ class DEMLayerExporter(LayerExporter):
 
       block = DEMBlockExporter(self.settings,
                                self.imageManager,
-                               self.layerId,
-                               self.properties,
-                               self.jsLayerId,
+                               self.layer,
                                blockIndex,
                                self.provider,
                                grid_size,
@@ -132,14 +124,14 @@ class DEMLayerExporter(LayerExporter):
 
 class DEMBlockExporter:
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
+  def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
     self.settings = settings
     self.imageManager = imageManager
     self.materialManager = MaterialManager()
 
-    self.layerId = layerId
-    self.properties = properties
-    self.jsLayerId = jsLayerId
+    self.layer = layer
+    self.properties = layer.properties
+
     self.blockIndex = blockIndex
     self.provider = provider
     self.grid_size = grid_size
@@ -192,7 +184,7 @@ class DEMBlockExporter:
     material = self.material()
 
     b = {"type": "block",
-         "layer": self.jsLayerId,
+         "layer": self.layer.jsLayerId,
          "block": self.blockIndex,
          "grid": g,
          "width": self.planeWidth,

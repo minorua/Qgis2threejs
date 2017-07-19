@@ -124,7 +124,7 @@ class Q3DView(QWebView):
     self.iface.exportScene()
 
     for layer in self.iface.controller.settings.getLayerList():
-      if layer.get("visible", False):
+      if layer.visible:
         self.iface.exportLayer(layer)
 
   def showStatusMessage(self, msg):

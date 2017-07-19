@@ -34,18 +34,18 @@ from .vectorobject import objectTypeManager
 
 class VectorLayerExporter(LayerExporter):
 
-  def __init__(self, settings, imageManager, layerId, properties, jsLayerId, visible=True, pathRoot=None, urlRoot=None, progress=None):
-    LayerExporter.__init__(self, settings, imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot, progress)
+  def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
+    LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
     self.materialManager = MaterialManager()    #TODO: takes imageManager
     self.triMesh = {}
 
   def build(self):
-    mapLayer = QgsProject.instance().mapLayer(self.layerId)
+    mapLayer = self.layer.mapLayer
     if mapLayer is None:
       return
 
-    properties = self.properties
+    properties = self.layer.properties
     baseExtent = self.settings.baseExtent
     mapSettings = self.settings.mapSettings
     renderContext = QgsRenderContext.fromMapSettings(mapSettings)
@@ -109,9 +109,9 @@ class VectorLayerExporter(LayerExporter):
     p = {
       "type": gt2str.get(geom_type),
       "objType": prop.type_name,
-      "name": mapLayer.name(),
+      "name": self.layer.name,
       "queryable": 1,
-      "visible": self.visible
+      "visible": self.layer.visible
       }
 
     if layer.writeAttrs:
@@ -134,7 +134,7 @@ class VectorLayerExporter(LayerExporter):
 
     return {
       "type": "layer",
-      "id": self.jsLayerId,
+      "id": self.layer.jsLayerId,
       "properties": p,
       "data": d,
       "PROPERTIES": properties    # debug

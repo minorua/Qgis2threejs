@@ -70,15 +70,15 @@ class Q3DViewerController:
 
   def exportLayer(self, layer):
     if self.iface and self.enabled:
-      if layer["geomType"] == q3dconst.TYPE_DEM:
-        for exporter in self.exporter.demExporters(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]):
+      if layer.geomType == q3dconst.TYPE_DEM:
+        for exporter in self.exporter.demExporters(layer):
           self.iface.loadJSONObject(exporter.build())
           QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
             # NOTE: process events only for the calling thread
 
-      elif layer["geomType"] in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
-        self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"], layer["visible"]))
-      layer["updated"] = False
+      elif layer.geomType in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
+        self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer))
+      layer.updated = False
 
   def setEnabled(self, enabled):
     if self.iface is None:
@@ -89,7 +89,7 @@ class Q3DViewerController:
     if enabled:
       # update layers
       for layerId, layer in enumerate(self.iface.controller.settings.getLayerList()):
-        if layer.get("updated", False) or (self.extentUpdated and layer.get("visible", False)):
+        if layer.updated or (self.extentUpdated and layer.visible):
           self.exportLayer(layer)
 
       self.extentUpdated = False
@@ -100,7 +100,7 @@ class Q3DViewerController:
 
     if self.iface and self.enabled:
       for layer in self.iface.controller.settings.getLayerList():
-        if layer["visible"]:
+        if layer.visible:
           self.exportLayer(layer)
       self.extentUpdated = False
 

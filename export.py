@@ -75,29 +75,29 @@ class ThreeJSExporter:
   def exportLayers(self):
     layers = []
     for index, layer in enumerate(self.settings.data["layers"]):
-      if layer["visible"] == False:   #TODO: export flag (bool)
+      if layer.visible == False:   #TODO: export flag (bool)
         continue
 
-      if layer["geomType"] == q3dconst.TYPE_DEM:
-        layers.append(self.exportDEMLayer(layer["layerId"], layer["properties"], layer["jsLayerId"]))
+      if layer.geomType == q3dconst.TYPE_DEM:
+        layers.append(self.exportDEMLayer(layer))
       else:
-        layers.append(self.exportVectorLayer(layer["layerId"], layer["properties"], layer["jsLayerId"]))
+        layers.append(self.exportVectorLayer(layer))
 
     return layers
 
-  def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+  def exportDEMLayer(self, layer):
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     return exporter.build()
 
-  def demExporters(self, layerId, properties, jsLayerId, visible=True):
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+  def demExporters(self, layer):
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     yield exporter
 
     for blockExporter in exporter.blocks():
       yield blockExporter
 
-  def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
-    exporter = VectorLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible)
+  def exportVectorLayer(self, layer):
+    exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     return exporter.build()
 
 
@@ -158,20 +158,20 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index += 1
     return self._index
 
-  def exportDEMLayer(self, layerId, properties, jsLayerId, visible=True):
+  def exportDEMLayer(self, layer):
     title = "L{0}".format(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputdatadir, title)
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     return exporter.build(True)
 
-  def exportVectorLayer(self, layerId, properties, jsLayerId, visible=True):
+  def exportVectorLayer(self, layer):
     title = "L{0}".format(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputdatadir, title)
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
-    exporter = VectorLayerExporter(self.settings, self.imageManager, layerId, properties, jsLayerId, visible, pathRoot, urlRoot)
+    exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     return exporter.build()
 
   def filesToCopy(self):

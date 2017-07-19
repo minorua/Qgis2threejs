@@ -305,9 +305,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
 
-  def setup(self, properties=None, layer=None, isPrimary=True):
-    self.isPrimary = isPrimary
+  def setup(self, layer=None, isPrimary=True):
     self.layer = layer
+    properties = layer.properties
+
+    self.isPrimary = isPrimary
 
     self.setLayoutsVisible([self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
@@ -316,11 +318,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
     else:
       self.setEnabled(True)
-
-    # select dem layer
-    layerId = None
-    if layer is not None:
-      layerId = layer.id()
 
     self.groupBox_Resampling.setEnabled(True)
 
@@ -599,9 +596,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       btn.toggled.connect(self.zValueRadioButtonToggled)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
-  def setup(self, properties=None, layer=None):   # TODO: layer is required. layer, properties=None
-    assert(layer is not None)
+  def setup(self, layer):
     self.layer = layer
+    mapLayer = layer.mapLayer
+    properties = layer.properties
 
     if self.dialog.currentItem:
       self.setEnabled(self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
@@ -611,7 +609,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     for i in range(self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
 
-    obj_types = objectTypeManager().objectTypeNames(layer.geometryType())
+    obj_types = objectTypeManager().objectTypeNames(mapLayer.geometryType())
 
     # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
@@ -631,7 +629,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     mapTo3d = self.dialog.mapTo3d()
 
     # set up z/m button
-    wkbType = layer.wkbType()
+    wkbType = mapLayer.wkbType()
     hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
                        QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]  #TODO: ,MultiPolygon25D
     hasZ = hasZ or (wkbType // 1000 in [1, 3])
@@ -646,31 +644,31 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up field expression widget (z coordinate)
     self.fieldExpressionWidget_zCoordinate.setFilters(QgsFieldProxyModel.Numeric)
-    self.fieldExpressionWidget_zCoordinate.setLayer(layer)
+    self.fieldExpressionWidget_zCoordinate.setLayer(mapLayer)
     self.fieldExpressionWidget_zCoordinate.setExpression("0")
 
     # set up label height widget
-    if layer.geometryType() != QgsWkbTypes.LineGeometry:
+    if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
-      self.labelHeightWidget.setup(options={"layer": layer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
-      if layer.geometryType() == QgsWkbTypes.PointGeometry:
+      self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
+      if mapLayer.geometryType() == QgsWkbTypes.PointGeometry:
         self.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE, "Height from point")])
     else:
       self.labelHeightWidget.hide()
 
     # point layer has no geometry clip option
-    self.checkBox_Clip.setVisible(layer.geometryType() != QgsWkbTypes.PointGeometry)
+    self.checkBox_Clip.setVisible(mapLayer.geometryType() != QgsWkbTypes.PointGeometry)
 
     # set up style widgets for selected object type
     self.setupStyleWidgets()
 
     # set up label combo box
-    hasPoint = (layer.geometryType() in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
+    hasPoint = (mapLayer.geometryType() in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
     self.setLayoutVisible(self.formLayout_Label, hasPoint)
     self.comboBox_Label.clear()
     if hasPoint:
       self.comboBox_Label.addItem("(No label)")
-      fields = self.layer.pendingFields()
+      fields = mapLayer.pendingFields()
       for i in range(fields.count()):
         self.comboBox_Label.addItem(fields[i].name(), i)
 
@@ -678,23 +676,22 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.setProperties(properties or {})
 
   def setupStyleWidgets(self, index=None):
-    index = self.comboBox_ObjectType.currentIndex()
-
     # notice 3D model is experimental
     is_experimental = self.comboBox_ObjectType.currentText() in ["JSON model", "COLLADA model"]
     self.label_ObjectTypeMessage.setVisible(is_experimental)
 
-    # get MapTo3D object to calculate default values
-    mapTo3d = self.dialog.mapTo3d()
-
     # setup widgets
-    objectTypeManager().setupWidgets(self, mapTo3d, self.layer, self.layer.geometryType(), index)
+    objectTypeManager().setupWidgets(self,
+                                     self.dialog.mapTo3d(),     # to calculate default values
+                                     self.layer.mapLayer,
+                                     self.layer.mapLayer.geometryType(),
+                                     self.comboBox_ObjectType.currentIndex())
 
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def zModeRadioButtonToggled(self, toggled=None):
-    geom_type = self.layer.geometryType()
+    geom_type = self.layer.mapLayer.geometryType()
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
@@ -725,10 +722,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.styleWidgetCount = 0
 
     if color:
-      self.addStyleWidget(StyleWidget.COLOR, {"layer": self.layer})
+      self.addStyleWidget(StyleWidget.COLOR, {"layer": self.layer.mapLayer})
 
     if opacity:
-      self.addStyleWidget(StyleWidget.OPACITY, {"layer": self.layer})
+      self.addStyleWidget(StyleWidget.OPACITY, {"layer": self.layer.mapLayer})
 
     for i in range(self.styleWidgetCount, self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()

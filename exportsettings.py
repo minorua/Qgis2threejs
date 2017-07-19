@@ -31,6 +31,41 @@ from . import qgis2threejstools as tools
 from .viewer2 import q3dconst
 
 
+class Layer:
+
+  def __init__(self, layerId, name, geomType, properties=None, visible=False):
+    self.layerId = layerId
+    self.name = name
+    self.geomType = geomType
+    self.properties = properties
+    self.visible = visible
+
+    self.id = None
+    self.jsLayerId = None
+    self.mapLayer = None
+    self.updated = False
+
+  @classmethod
+  def fromQgsMapLayer(cls, layer):
+    lyr = Layer(layer.id(), layer.name(), cls.getGeometryType(layer))
+    lyr.mapLayer = layer
+    return lyr
+
+  @classmethod
+  def getGeometryType(cls, layer):
+    """layer: QgsMapLayer sub-class object"""
+    layerType = layer.type()
+    if layerType == QgsMapLayer.VectorLayer:
+      return {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
+              QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
+              QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON}.get(layer.geometryType())
+
+    elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+      return q3dconst.TYPE_DEM
+
+    return None
+
+
 class ExportSettings:
 
   # export mode
@@ -213,65 +248,37 @@ class ExportSettings:
 
     # DEM and Vector layers
     for layer in getLayersInProject():
-      layerType = layer.type()
-      if layerType == QgsMapLayer.VectorLayer:
-        geomType = {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
-                    QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON,
-                    QgsWkbTypes.UnknownGeometry: None,
-                    QgsWkbTypes.NullGeometry: None}[layer.geometryType()]
-
-      elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-        geomType = q3dconst.TYPE_DEM
-      else:
-        geomType = q3dconst.TYPE_IMAGE
-        continue
-
-      if geomType is not None:
+      if Layer.getGeometryType(layer) is not None:
         item = self.getItemByLayerId(layer.id())
-        if item:
-          layers.append(item)
-        else:
-          layers.append({"layerId": layer.id(),
-                         "name": layer.name(),
-                         "geomType": geomType,
-                         "properties": None,
-                         "visible": False})
+        if item is None:
+          item = Layer.fromQgsMapLayer(layer)
+        layers.append(item)
 
     # DEM provider plugins
     for plugin in self.pluginManager.demProviderPlugins():
       layerId = "plugin:" + plugin.providerId()
       item = self.getItemByLayerId(layerId)
-      if item:
-        layers.append(item)
-      else:
-        layers.append({"layerId": layerId,
-                       "name": plugin.providerName(),
-                       "geomType": q3dconst.TYPE_DEM,
-                       "properties": None,
-                       "visible": False})
+      if item is None:
+        item = Layer(layerId, plugin.providerName(), q3dconst.TYPE_DEM)
+      layers.append(item)
 
     # Flat plane
     layerId = "FLAT"
     item = self.getItemByLayerId(layerId)
-    if item:
-      layers.append(item)
-    else:
-      layers.append({"layerId": layerId,
-                     "name": "Flat Plane",
-                     "geomType": q3dconst.TYPE_DEM,
-                     "properties": None,
-                     "visible": False})
+    if item is None:
+      item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM)
+    layers.append(item)
 
     # update id and jsLayerId
     for index, layer in enumerate(layers):
-      layer["id"] = index   #TODO: index
-      layer["jsLayerId"] = index      # "{}_{}".format(itemId, layerId[:8])
+      layer.id = index
+      layer.jsLayerId = index      # "{}_{}".format(itemId, layerId[:8])
 
     self.data["layers"] = layers
 
   def getItemByLayerId(self, layerId):
-    for layer in self.data.get("layers", []):
-      if layer["layerId"] == layerId:
-        return layer
+    if layerId is not None:
+      for layer in self.data.get("layers", []):
+        if layer.layerId == layerId:
+          return layer
     return None
