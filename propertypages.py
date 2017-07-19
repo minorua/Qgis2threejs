@@ -275,14 +275,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
     self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
 
-    self.isPrimary = False
     self.layer = None
     self.layerImageIds = []
 
     dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
-    widgets = [self.spinBox_Opacity, self.radioButton_Simple, self.horizontalSlider_DEMSize]
+    widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
-    widgets += [self.radioButton_Advanced, self.spinBox_Height, self.lineEdit_centerX, self.lineEdit_centerY, self.lineEdit_rectWidth, self.lineEdit_rectHeight]
     widgets += dispTypeButtons
     widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.comboBox_TextureSize, self.checkBox_Shading]
     widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
@@ -293,63 +291,36 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.initTextureSizeComboBox()
 
     self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
-    self.radioButton_Simple.toggled.connect(self.samplingModeChanged)
     self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
     self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
-    self.spinBox_Height.valueChanged.connect(self.updateQuads)
     for radioButton in dispTypeButtons:
       radioButton.toggled.connect(self.dispTypeChanged)
     self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
-    self.toolButton_PointTool.clicked.connect(dialog.startPointSelection)
-
-  def setup(self, layer=None, isPrimary=True):
+  def setup(self, layer=None):
     self.layer = layer
     properties = layer.properties
 
-    self.isPrimary = isPrimary
-    self.setLayoutsVisible([self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
-
+    # show/hide resampling slider
     self.setLayoutVisible(self.verticalLayout_Resampling, layer.layerId != "FLAT")
-    self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
-    self.setWidgetsVisible([self.toolButton_PointTool], False)
-    if self.dialog.currentItem:
-      self.setEnabled(isPrimary or self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
-    else:
-      self.setEnabled(True)
-
-    self.groupBox_Resampling.setEnabled(True)
 
     # use default properties if properties is not set
     if not properties:
       properties = self.properties()
       properties["comboBox_TextureSize"] = 100
-      properties["checkBox_Sides"] = self.isPrimary
+      properties["checkBox_Sides"] = True
 
     # restore properties of the layer
-    self.spinBox_Height.blockSignals(True)
     self.setProperties(properties)
-    self.spinBox_Height.blockSignals(False)
 
     self.updateDEMSize()
     self.updateLayerImageLabel()
 
     # set enablement and visibility of widgets
-    if isPrimary:
-      self.samplingModeChanged(True)
-      self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
+    self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
     self.dispTypeChanged()
-
-    if isPrimary:
-      # enable map tool to select focus area
-      #self.connect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)    #TODO: new style
-      self.dialog.startPointSelection()
-    else:
-      pass
-      #TODO: remove
-      #self.checkBox_Sides.setChecked(False)   # no sides with additional dem
 
   def initLayerComboBox(self):
     # list of polygon layers
@@ -363,7 +334,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
-    for i in [4, 2, 1]:
+    for i in [4, 2, 1]:   #TODO: conf.py
       percent = i * 100
       text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
@@ -372,10 +343,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.updateDEMSize()
     size = 100 * self.horizontalSlider_DEMSize.value()
     QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_DEMSize)
-
-  def itemChanged(self, item):
-    if not self.isPrimary:
-      self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def selectLayerClicked(self):
     from .layerselectdialog import LayerSelectDialog
@@ -409,10 +376,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
   def surroundingsToggled(self, checked):
     self.updateDEMSize()
     self.setLayoutEnabled(self.gridLayout_Surroundings, checked)
-
-    is_simple = self.radioButton_Simple.isChecked()
-    is_simple_wo_surroundings = is_simple and not checked
-    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip], is_simple_wo_surroundings)
+    self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
+    self.setWidgetsEnabled([self.radioButton_ImageFile], not checked)
 
     if checked and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)
@@ -422,12 +387,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # possible value is a power of 2
     self.spinBox_Roughening.setSingleStep(v)
     self.spinBox_Roughening.setMinimum(max(v // 2, 1))
-
-  def hide(self):
-    PropertyPage.hide(self)
-    if self.isPrimary:
-      #self.disconnect(self.dialog.mapTool, SIGNAL("rectangleCreated()"), self.rectangleSelected)   #TODO: new style
-      self.dialog.endPointSelection()
 
   def updateDEMSize(self, v=None):
     # calculate DEM size and grid spacing
@@ -459,43 +418,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     PropertyPage.setProperties(self, properties)
     self.layerImageIds = properties.get("layerImageIds", [])
 
-  def updateQuads(self, v=None):
-    isSimpleMode = self.radioButton_Simple.isChecked()
-    if isSimpleMode:
-      self.dialog.clearRubberBands()
-      return
-
-    canvas = self.dialog.iface.mapCanvas()
-    mapSettings = canvas.mapSettings()
-    baseExtent = RotatedRect.fromMapSettings(mapSettings)
-    p = {"lineEdit_centerX": self.lineEdit_centerX.text(),
-         "lineEdit_centerY": self.lineEdit_centerY.text(),
-         "lineEdit_rectWidth": self.lineEdit_rectWidth.text(),
-         "lineEdit_rectHeight": self.lineEdit_rectHeight.text(),
-         "spinBox_Height": self.spinBox_Height.value()}
-
-    quadtree = createQuadTree(baseExtent, p)
-    if quadtree:
-      self.dialog.createRubberBands(baseExtent, quadtree)
-      self.dialog.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-    else:
-      self.dialog.clearRubberBands()
-
-  def rectangleSelected(self):
-    self.radioButton_Advanced.setChecked(True)
-    rect = self.dialog.mapTool.rectangle()    # RotatedRect object
-    toRect = rect.width() and rect.height()
-    self.switchFocusMode(toRect)
-
-    center = rect.center()
-    self.lineEdit_centerX.setText(str(center.x()))
-    self.lineEdit_centerY.setText(str(center.y()))
-    self.lineEdit_rectWidth.setText(str(rect.width()))
-    self.lineEdit_rectHeight.setText(str(rect.height()))
-
-    # update quad rubber bands
-    self.updateQuads()
-
   def dispTypeChanged(self, checked=True):
     if checked:
       if self.radioButton_MapCanvas.isChecked():
@@ -514,42 +436,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.checkBox_TransparentBackground.setText("Transparent background")
       elif t == 2:
         self.checkBox_TransparentBackground.setText("Enable transparency")
-
-  def samplingModeChanged(self, checked):
-    isSimpleMode = self.radioButton_Simple.isChecked()
-    isAdvancedMode = not isSimpleMode
-    surroundings = self.checkBox_Surroundings.isChecked()
-    is_simple_wo_surroundings = isSimpleMode and not surroundings
-
-    self.setLayoutsEnabled([self.verticalLayout_Simple], isSimpleMode)
-    self.setLayoutsEnabled([self.gridLayout_Surroundings], isSimpleMode and surroundings)
-    self.setWidgetsEnabled([self.radioButton_ImageFile, self.groupBox_Clip], is_simple_wo_surroundings)
-
-    if self.isPrimary:
-      self.setLayoutsVisible([self.horizontalLayout_Advanced1, self.horizontalLayout_Advanced3], isAdvancedMode)
-      self.setWidgetsVisible([self.label_Focus], isAdvancedMode)
-
-      if isSimpleMode:
-        self.setLayoutVisible(self.horizontalLayout_Advanced4, False)
-      else:
-        try:
-          isPoint = (float(self.lineEdit_rectWidth.text()) == 0 and float(self.lineEdit_rectHeight.text()) == 0)
-        except ValueError:
-          isPoint = True
-        self.switchFocusMode(not isPoint)
-
-    if isAdvancedMode and self.radioButton_ImageFile.isChecked():
-      self.radioButton_MapCanvas.setChecked(True)
-
-    # update quad rubber bands
-    self.updateQuads()
-
-  def switchFocusMode(self, toRect):
-    self.setLayoutVisible(self.horizontalLayout_Advanced4, toRect)
-
-    selection = "area" if toRect else "point"
-    action = "Stroke a rectangle" if toRect else "Click"
-    self.label_Focus.setText("Focus {0} ({1} on map canvas to set values)".format(selection, action))
 
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):

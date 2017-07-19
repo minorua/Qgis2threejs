@@ -293,21 +293,6 @@ class PropertiesDialog(QDialog):
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
       self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
-  def createRubberBands(baseExtent, quadtree):
-    pass
-
-  def clearRubberBands(self):
-    pass
-
-  def startPointSelection(self):
-    pass
-
-  def endPointSelection(self):
-    pass
-
-  def primaryDEMChanged(self, layerId):
-    pass
-
 
 class WheelEventFilter(QObject):
 
