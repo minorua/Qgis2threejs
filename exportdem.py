@@ -102,7 +102,8 @@ class DEMLayerExporter(LayerExporter):
       else:
         block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
         extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
-        grid_size = QSize((base_grid_size.width() - 1) // roughening + 1, (base_grid_size.height() - 1) // roughening + 1)
+        grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughening + 1),
+                          max(2, (base_grid_size.height() - 1) // roughening + 1))
 
       block = DEMBlockExporter(self.settings,
                                self.imageManager,
