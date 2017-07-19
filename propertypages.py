@@ -310,8 +310,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     properties = layer.properties
 
     self.isPrimary = isPrimary
-
     self.setLayoutsVisible([self.verticalLayout_Advanced, self.formLayout_Surroundings], isPrimary)
+
+    self.setLayoutVisible(self.verticalLayout_Resampling, layer.layerId != "FLAT")
     self.setWidgetsVisible([self.radioButton_Advanced], isPrimary)
     self.setWidgetsVisible([self.toolButton_PointTool], False)
     if self.dialog.currentItem:
