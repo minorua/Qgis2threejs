@@ -21,7 +21,7 @@
 """
 import json
 from osgeo import ogr, osr
-from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
@@ -75,6 +75,7 @@ class VectorLayerExporter(LayerExporter):
     #if noFeature:
     #  return
 
+    self.hasLabel = layer.hasLabel()
     self.clipGeom = None
 
     # feature request
@@ -158,7 +159,7 @@ class VectorLayerExporter(LayerExporter):
 
     feats = []
     for feat in self.features or []:
-      geom = feat.geometry(self.mapTo3d, demProvider, self.clipGeom)
+      geom = feat.geometry(self.mapTo3d, demProvider, self.clipGeom, self.hasLabel)
       if geom is None:
         continue
 
@@ -217,20 +218,19 @@ class FeatureBlockExporter:
 
 class Feature:
 
-  def __init__(self, layer, qFeat, qGeom):
-    self.attributes = qFeat.attributes() if layer.writeAttrs else None
+  def __init__(self, layer, qGeom, height, propValues, attrs=None):
     self.layerProp = layer.prop
-
     self.geom = qGeom
     self.geomType = layer.geomType
     self.geomClass = layer.geomType2Class.get(layer.geomType)
+    self.relativeHeight = height
+    self.values = propValues
+    self.attributes = attrs
 
     self.material = -1
-    self.relativeHeight = 0
 
-    self.hasLabel = layer.hasLabel()
-
-  def geometry(self, mapTo3d, demProvider=None, clipGeom=None):
+  def geometry(self, mapTo3d, demProvider=None, clipGeom=None, calcCentroid=False):
+    """calcCentroid: for polygon geometry"""
     # z_func: function to get elevation at given point (x, y) on surface
     if demProvider:
       z_func = lambda x, y: demProvider.readValue(x, y)
@@ -258,7 +258,7 @@ class Feature:
       return None
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
-      geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+      geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
       if self.layerProp.type_index == 1 and self.layerProp.isHeightRelativeToDEM():   # Overlay and relative to DEM
         pass
         #TODO:
@@ -331,18 +331,15 @@ class VectorLayer(Layer):
     return obj
 
   def features(self, request=None):
-    mapTo3d = self.settings.mapTo3d()
     baseExtent = self.settings.baseExtent
     baseExtentGeom = baseExtent.geometry()
     rotation = baseExtent.rotation()
     prop = self.prop
-    properties = self.prop.properties
 
     useZ = prop.useZ()
 
     feats = []
-    request = request or QgsFeatureRequest()
-    for f in self.layer.getFeatures(request):
+    for f in self.layer.getFeatures(request or QgsFeatureRequest()):
       geometry = f.geometry()
       if geometry is None:
         logMessage("null geometry skipped")
@@ -361,16 +358,14 @@ class VectorLayer(Layer):
       # set feature to expression context
       prop.setContextFeature(f)
 
-      # create a feature object
-      feat = Feature(self, f, geom)
-      feat.relativeHeight = prop.relativeHeight()
-      feat.values = prop.values(f)      # TODO: divide into geomProperties, styleProperties
+      # evaluate expression
+      height = prop.relativeHeight()
+      propVals = prop.values(f)      # TODO: divide into geomProperties, styleProperties
 
-      #yield feat
+      attrs = f.attributes() if self.writeAttrs else None
+
+      # create a feature object
+      feat = Feature(self, geom, height, propVals, attrs)
       feats.append(feat)
 
     return feats
-    # returns a list, not a iterator
-    # QGIS 3 errors
-    # SystemError: <built-in function delete_SpatialReference> returned a result with an error set
-    # SystemError: <built-in function delete_CoordinateTransformation> returned a result with an error set
