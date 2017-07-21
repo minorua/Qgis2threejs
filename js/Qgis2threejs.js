@@ -2154,14 +2154,16 @@ Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.LineLayer.prototype.build = function (features) {
-  var objType = this.properties.objType,
+  var createObject,
+      objType = this.properties.objType,
       materials = this.materials,
       sceneData = this.sceneData;
-  if (this.createObject !== undefined) {
-    var createObject = this.createObject;
+
+  if (objType == this._lastObjType && this._createObject !== undefined) {
+    createObject = this._createObject;
   }
   else if (objType == "Line") {
-    var createObject = function (f, line) {
+    createObject = function (f, line) {
       var geom = new THREE.Geometry(), pt;
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
@@ -2172,7 +2174,8 @@ Q3D.LineLayer.prototype.build = function (features) {
   }
   else if (objType == "Pipe" || objType == "Cone") {
     var hasJoints = (objType == "Pipe");
-    var createObject = function (f, line) {
+
+    createObject = function (f, line) {
       var group = new Q3D.Group();
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
@@ -2217,7 +2220,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
     }
 
-    var createObject = function (f, line) {
+    createObject = function (f, line) {
       var geometry = new THREE.Geometry(),
           group = new Q3D.Group();      // used in debug mode
 
@@ -2300,7 +2303,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         dem = scene.mapLayers[0],   // TODO: referenced DEM layer
         z0 = sceneData.zShift * sceneData.zScale;
 
-    var createObject = function (f, line) {
+    createObject = function (f, line) {
       var bzFunc, vertices;
       if (bRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.geom.bh; };
       else bzFunc = function (x, y) { return z0 + f.geom.bh; };
@@ -2337,7 +2340,8 @@ Q3D.LineLayer.prototype.build = function (features) {
     }
   }
 
-  this.createObject = createObject;
+  this._lastObjType = objType;
+  this._createObject = createObject;
 };
 
 Q3D.LineLayer.prototype.buildLabels = function (features) {
@@ -2366,11 +2370,12 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.PolygonLayer.prototype.build = function (features) {
-  var materials = this.materials,
+  var createObject,
+      materials = this.materials,
       sceneData = this.sceneData;
 
-  if (this.createObject !== undefined) {
-    var createObject = this.createObject;
+  if (this.properties.objType == this._lastObjType && this._createObject !== undefined) {
+    createObject = this._createObject;
   }
   else if (this.properties.objType == "Extruded") {
     var createSubObject = function (f, polygon, z) {
@@ -2417,7 +2422,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return mesh;
     };
 
-    var createObject = function (f) {
+    createObject = function (f) {
       if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.zs[0]);
 
       var group = new THREE.Group();
@@ -2433,7 +2438,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
         dem = scene.mapLayers[0],    // TODO: referenced DEM layer
         z0 = sceneData.zShift * sceneData.zScale;
 
-    var createObject = function (f) {
+    createObject = function (f) {
       var polygons = (relativeToDEM) ? (f.geom.split_polygons || []) : f.geom.polygons;
 
       var zFunc;
@@ -2494,7 +2499,8 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     this.addObject(obj);
   }
 
-  this.createObject = createObject;
+  this._lastObjType = this.properties.objType;
+  this._createObject = createObject;
 };
 
 // TODO:
