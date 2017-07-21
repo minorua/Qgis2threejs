@@ -52,40 +52,37 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
 
 
-def write(settings, layer, feat):
+def material(settings, layer, feat):
+  return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
+
+
+def geometry(settings, layer, feat, geom):
   mapTo3d = settings.mapTo3d()
-  vals = feat.propValues()
-  mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-  pts = feat.geom.asList()
-  if feat.prop.type_index == 0:  # Sphere
-    r = vals[2] * mapTo3d.multiplier
-    if r:
-      return {"pts": pts, "r": r}, mat
-    else:
-      logMessage(u"Sphere with zero radius not exported")
+  pts = geom.asList()
+  if layer.prop.type_index == 0:  # Sphere
+    r = feat.values[2] * mapTo3d.multiplier
+    return {"pts": pts, "r": r}
 
-  elif feat.prop.type_index in [1, 2]:  # Cylinder, Cone
-    rb = vals[2] * mapTo3d.multiplier
-    rt = 0 if feat.prop.type_index == 2 else rb
-    h = vals[3] * mapTo3d.multiplierZ
-    return {"pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90}, mat
+  if layer.prop.type_index in [1, 2]:  # Cylinder, Cone
+    rb = feat.values[2] * mapTo3d.multiplier
+    rt = 0 if layer.prop.type_index == 2 else rb
+    h = feat.values[3] * mapTo3d.multiplierZ
+    return {"pts": pts, "rt": rt, "rb": rb, "h": h, "rotateX": 90}
 
-  elif feat.prop.type_index == 3:  # Box
-    w = vals[2] * mapTo3d.multiplier
-    d = vals[3] * mapTo3d.multiplier
-    h = vals[4] * mapTo3d.multiplierZ
-    return {"pts": pts, "w": w, "d": d, "h": h, "rotateX": 90}, mat
+  if layer.prop.type_index == 3:  # Box
+    w = feat.values[2] * mapTo3d.multiplier
+    d = feat.values[3] * mapTo3d.multiplier
+    h = feat.values[4] * mapTo3d.multiplierZ
+    return {"pts": pts, "w": w, "d": d, "h": h, "rotateX": 90}
 
-  elif feat.prop.type_index == 4:  # Disk
-    r = vals[2] * mapTo3d.multiplier
-    d = vals[3]
-    dd = vals[4]
+  if layer.prop.type_index == 4:  # Disk
+    r = feat.values[2] * mapTo3d.multiplier
+    d = feat.values[3]
+    dd = feat.values[4]
 
     # take map rotation into account
     rotation = settings.baseExtent.rotation()
     if rotation:
       dd = (dd + rotation) % 360
 
-    return {"pts": pts, "r": r, "d": d, "dd": dd}, mat
-
-  return None, None
+    return {"pts": pts, "r": r, "d": d, "dd": dd}

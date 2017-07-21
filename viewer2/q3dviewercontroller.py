@@ -77,7 +77,10 @@ class Q3DViewerController:
             # NOTE: process events only for the calling thread
 
       elif layer.geomType in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
-        self.iface.loadJSONObject(self.exporter.exportVectorLayer(layer))
+        for exporter in self.exporter.vectorExporters(layer):
+          self.iface.loadJSONObject(exporter.build())
+          QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+
       layer.updated = False
 
   def setEnabled(self, enabled):

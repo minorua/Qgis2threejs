@@ -234,11 +234,13 @@ class ExportSettings:
         return provider(str(self.crs.toWkt()))
 
       logMessage('Plugin "{0}" not found'.format(id))
-      return FlatDEMProvider()
 
     else:
       layer = QgsProject.instance().mapLayer(id)
-      return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+      if layer:
+        return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+
+    return FlatDEMProvider()
 
   def getLayerList(self):
     return self.data.get("layers", [])

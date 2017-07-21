@@ -94,18 +94,32 @@ def layerProperties(settings, layer):
     p["sbm"] = "relative" if isSbRelative else "absolute"
   return p
 
-#TODO:
+
 def material(settings, layer, feat):
-  pass
+  if layer.prop.type_index == 0:  # Extruded
+    mat = {"face": layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])}
 
-def geometry(settings, layer, feat):
-  pass
+    # border
+    if feat.values[3] is not None:
+      mat["border"] = layer.materialManager.getLineBasicIndex(feat.values[3], feat.values[1])
+    return mat
 
-def write(settings, layer, feat):
-  vals = feat.propValues()
+  # Overlay
+  if feat.values[0] == ColorTextureWidgetFunc.MAP_CANVAS:
+    return layer.materialManager.getCanvasImageIndex(feat.values[1])
+
+  if isinstance(feat.values[0], list):   # LAYER
+    size = settings.mapSettings.outputSize()
+    extent = settings.baseExtent
+    return layer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(), extent, feat.values[1])
+
+  return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1], True)
+
+
+def geometry(settings, layer, feat, geom):
   polygons = []
   zs = []
-  for polygon in feat.geom.polygons:
+  for polygon in geom.polygons:
     bnds = []
     zsum = zcount = 0
     for boundary in polygon:
@@ -115,47 +129,32 @@ def write(settings, layer, feat):
     polygons.append(bnds)
     zs.append(zsum / zcount)
 
-  geom = {"polygons": polygons}
+  g = {"polygons": polygons}
 
-  if feat.prop.type_index == 0:  # Extruded
-    mat = {"face": layer.materialManager.getMeshLambertIndex(vals[0], vals[1])}
-
-    # border
-    if vals[3] is not None:
-      mat["border"] = layer.materialManager.getLineBasicIndex(vals[3], vals[1])
-
-    geom["zs"] = zs
-    geom["h"] = vals[2] * settings.mapTo3d().multiplierZ
+  if layer.prop.type_index == 0:  # Extruded
+    g["zs"] = zs
+    g["h"] = feat.values[2] * settings.mapTo3d().multiplierZ
 
   else:   # Overlay
-    if vals[0] == ColorTextureWidgetFunc.MAP_CANVAS:
-      mat = layer.materialManager.getCanvasImageIndex(vals[1])
-    elif isinstance(vals[0], list):   # LAYER
-      size = settings.mapSettings.outputSize()
-      extent = settings.baseExtent
-      mat = layer.materialManager.getLayerImageIndex(vals[0], size.width(), size.height(), extent, vals[1])
-    else:
-      mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1], True)
-
     #TODO: mb and ms
     # border
-    #if vals[2] is not None:
-    #  geom["mb"] = layer.materialManager.getLineBasicIndex(vals[2], vals[1])
+    #if feat.values[2] is not None:
+    #  g["mb"] = layer.materialManager.getLineBasicIndex(feat.values[2], feat.values[1])
 
     # side
-    if vals[3]:
-      #geom["ms"] = layer.materialManager.getMeshLambertIndex(vals[4], vals[1], doubleSide=True)
+    if feat.values[3]:
+      #g["ms"] = layer.materialManager.getMeshLambertIndex(feat.values[4], feat.values[1], doubleSide=True)
 
       # bottom height of side
-      geom["sb"] = vals[5] * settings.mapTo3d().multiplierZ
+      g["sb"] = feat.values[5] * settings.mapTo3d().multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
-    geom["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
+    g["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
 
     polygons = []
     triangles = Triangles()
-    for polygon in feat.geom.split_polygons:
+    for polygon in geom.split_polygons:
       boundary = polygon[0]
       if len(polygon) == 1 and len(boundary) == 4:
         triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
@@ -164,12 +163,12 @@ def write(settings, layer, feat):
         polygons.append(bnds)
 
     if triangles.vertices:
-      geom["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
+      g["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
 
     if polygons:
-      geom["split_polygons"] = polygons
+      g["split_polygons"] = polygons
 
-  if feat.geom.centroids:
-    geom["centroids"] = [[pt.x, pt.y, pt.z] for pt in feat.geom.centroids]
+  if geom.centroids:
+    g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
 
-  return geom, mat
+  return g

@@ -72,6 +72,7 @@ class VectorPropertyReader:
       self.visible = False
 
     self._exprs = {}
+    self.exprZ = QgsExpression(properties.get("fieldExpressionWidget_zCoordinate") or "0")
 
   def evaluateExpression(self, expr_str, f):
     if expr_str not in self._exprs:
@@ -176,8 +177,11 @@ class VectorPropertyReader:
   def isHeightRelativeToDEM(self):
     return self.properties.get("radioButton_Relative", False)
 
-  def relativeHeight(self, f):
-    return self.evaluateExpression(self.properties["heightWidget"]["editText"], f)
+  def relativeHeight(self):
+    return self.exprZ.evaluate(self.expressionContext)
+
+  def setContextFeature(self, f):
+    self.expressionContext.setFeature(f)
 
   # read values from style widgets
   #TODO: rename this to styleValues

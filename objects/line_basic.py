@@ -49,51 +49,56 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
 
 def layerProperties(settings, layer):
   p = {}
-  prop = layer.prop
-  if prop.type_index == 4:      # Profile
+  if layer.prop.type_index == 4:      # Profile
     # altitude mode
-    p["am"] = "relative" if prop.isHeightRelativeToDEM() else "absolute"
+    p["am"] = "relative" if layer.prop.isHeightRelativeToDEM() else "absolute"
 
     # altitude mode of bottom
-    cb = prop.properties["styleWidget2"]["comboData"]
+    cb = layer.prop.properties["styleWidget2"]["comboData"]
     isBRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     p["bam"] = "relative" if isBRelative else "absolute"
   return p
 
 
-def write(settings, layer, feat):
-  mapTo3d = settings.mapTo3d()
-  type_index = feat.prop.type_index
-  vals = feat.propValues()
-
+def material(settings, layer, feat):
+  type_index = layer.prop.type_index
   if type_index == 0:   # Line
-    mat = layer.materialManager.getLineBasicIndex(vals[0], vals[1])
-    return {"lines": feat.geom.asList()}, mat
+    return layer.materialManager.getLineBasicIndex(feat.values[0], feat.values[1])
 
-  elif type_index in [1, 2]:    # Pipe, Cone
-    rb = vals[2] * mapTo3d.multiplier
-    if rb != 0:
-      mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-      rt = 0 if type_index == 2 else rb
-      return {"lines": feat.geom.asList(), "rt": rt, "rb": rb}, mat
+  if type_index in [1, 2]:    # Pipe, Cone
+    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
 
-  elif type_index == 3:   # Box
-    mat = layer.materialManager.getMeshLambertIndex(vals[0], vals[1])
-    w = vals[2] * mapTo3d.multiplier
-    h = vals[3] * mapTo3d.multiplier
-    return {"lines": feat.geom.asList(), "w": w, "h": h}, mat
+  if type_index == 3:   # Box
+    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
 
-  elif type_index == 4:   # Profile
+  if type_index == 4:   # Profile
+    return layer.materialManager.getFlatMeshLambertIndex(feat.values[0], feat.values[1], doubleSide=True)
+
+
+def geometry(settings, layer, feat, geom):
+  mapTo3d = settings.mapTo3d()
+  type_index = layer.prop.type_index
+  if type_index == 0:   # Line
+    return {"lines": geom.asList()}
+
+  if type_index in [1, 2]:    # Pipe, Cone
+    rb = feat.values[2] * mapTo3d.multiplier
+    rt = 0 if type_index == 2 else rb
+    return {"lines": geom.asList(), "rt": rt, "rb": rb}
+
+  if type_index == 3:   # Box
+    w = feat.values[2] * mapTo3d.multiplier
+    h = feat.values[3] * mapTo3d.multiplier
+    return {"lines": geom.asList(), "w": w, "h": h}
+
+  if type_index == 4:   # Profile
     d = {}
-    if feat.prop.isHeightRelativeToDEM():
-      d["h"] = feat.relativeHeight() * mapTo3d.multiplierZ
-      d["lines"] = feat.geom.asList2()
+    if layer.prop.isHeightRelativeToDEM():
+      d["h"] = feat.relativeHeight * mapTo3d.multiplierZ
+      d["lines"] = geom.asList2()
     else:
-      d["lines"] = feat.geom.asList()
+      d["lines"] = geom.asList()
 
-    d["bh"] = vals[2] * mapTo3d.multiplierZ
+    d["bh"] = feat.values[2] * mapTo3d.multiplierZ
 
-    mat = layer.materialManager.getFlatMeshLambertIndex(vals[0], vals[1], doubleSide=True)
-    return d, mat
-
-  return None, None
+    return d

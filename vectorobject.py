@@ -49,8 +49,10 @@ class ObjectTypeModule:
     self.objectTypeNames = getattr(module, 'objectTypeNames')()
 
     self.setupWidgets = getattr(module, 'setupWidgets')                       # (dialog, mapTo3d, layer, type_index=0)
-    self.layerProperties = getattr(module, 'layerProperties', self.a_dict)    # (writer, layer)
-    self.write = getattr(module, 'write')                                     # (writer, layer, feat)
+    self.layerProperties = getattr(module, 'layerProperties', self.a_dict)    # (settings, layer)
+
+    self.material = getattr(module, 'material')                               # (settings, layer, feat)
+    self.geometry = getattr(module, 'geometry')                               # (settings, layer, feat, geom)
 
   def a_dict(self, *args):
     return {}

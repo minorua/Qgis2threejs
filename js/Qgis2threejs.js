@@ -973,11 +973,10 @@ limitations:
       app.queryMarker.visible = true;
       app.queryMarker.updateMatrixWorld();
 
-      // get layerId and featureId of clicked object
-      var object = obj.object, layerId, featureId;
+      // get layerId of clicked object
+      var layerId, object = obj.object;
       while (object) {
-        layerId = object.userData.layerId,
-        featureId = object.userData.featureId;
+        layerId = object.userData.layerId;
         if (layerId !== undefined) break;
         object = object.parent;
       }
@@ -1776,16 +1775,16 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   }
 };
 
-Q3D.DEMLayer.prototype.build = function (data) {
+Q3D.DEMLayer.prototype.build = function (blocks) {
   var _this = this;
   // build blocks
-  data.forEach(function (obj) {
-    var block = new Q3D.DEMBlock(),
-        mesh = block.loadJSONObject(obj, _this, function (block) {
+  blocks.forEach(function (block) {
+    var b = new Q3D.DEMBlock(),
+        mesh = b.loadJSONObject(block, _this, function (blk) {
           _this.requestRender();
         });
     _this.addObject(mesh);
-    _this.blocks.push(block);
+    _this.blocks.push(b);
   });
 };
 
@@ -1921,7 +1920,7 @@ Q3D.VectorLayer = function () {
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
-Q3D.VectorLayer.prototype.build = function (features) {};
+Q3D.VectorLayer.prototype.build = function (block) {};
 
 Q3D.VectorLayer.prototype.clearLabels = function () {
   if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
@@ -1982,7 +1981,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc, zFunc
       geom.vertices.push(pt1, pt0);
       var conn = new THREE.Line(geom, line_mat);
       conn.userData.layerId = this.id;
-      conn.userData.featureId = i;
+      //conn.userData.featureId = i;
       conn.userData.elem = e;
       this.labelConnectorGroup.add(conn);
     }
@@ -1990,30 +1989,39 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc, zFunc
 };
 
 Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+  if (jsonObject.type == "layer") {
+    Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+    if (jsonObject.data !== undefined) {
+      this.clearLabels();
 
-  if (jsonObject.data !== undefined) {
-    this.build(jsonObject.data.features);
+      // build labels
+      if (this.properties.label !== undefined) {
+        // create a label connector group
+        if (this.labelConnectorGroup === undefined) {
+          this.labelConnectorGroup = new Q3D.Group();
+          this.labelConnectorGroup.userData.layerId = this.id;
+          scene.labelConnectorGroup.add(this.labelConnectorGroup);
+        }
 
-    this.clearLabels();
-
-    // build labels
-    if (this.properties.label !== undefined) {
-      // create a label connector group
-      if (this.labelConnectorGroup === undefined) {
-        this.labelConnectorGroup = new Q3D.Group();
-        this.labelConnectorGroup.userData.layerId = this.id;
-        scene.labelConnectorGroup.add(this.labelConnectorGroup);
+        // create a label parent element
+        if (this.labelParentElement === undefined) {
+          this.labelParentElement = document.createElement("div");
+          scene.labelRootElement.appendChild(this.labelParentElement);
+        }
       }
 
-      // create a label parent element
-      if (this.labelParentElement === undefined) {
-        this.labelParentElement = document.createElement("div");
-        scene.labelRootElement.appendChild(this.labelParentElement);
-      }
-
-      this.buildLabels(jsonObject.data.features);
+      (jsonObject.data.blocks || []).forEach(function (block) {
+        if (block.url !== undefined) app.loadJSONFromURL(block.url);
+        else {
+          this.build(block.features);
+          if (this.properties.label !== undefined) this.buildLabels(block.features);
+        }
+      }, this);
     }
+  }
+  else if (jsonObject.type == "block") {
+    this.build(jsonObject.features);
+    if (this.properties.label !== undefined) this.buildLabels(jsonObject.features);
   }
 };
 
@@ -2047,7 +2055,13 @@ Q3D.PointLayer.prototype.build = function (features) {
 
   var deg2rad = Math.PI / 180;
   var createGeometry, scaleZ = 1;
-  if (objType == "Sphere") createGeometry = function (geom) { return new THREE.SphereGeometry(geom.r); };
+
+  if (objType == "Sphere") {
+    createGeometry = function (geom) {
+      if (geom.r == 0) return null;
+      return new THREE.SphereGeometry(geom.r);
+    };
+  }
   else if (objType == "Box") createGeometry = function (geom) { return new THREE.BoxGeometry(geom.w, geom.h, geom.d); };
   else if (objType == "Disk") {
     createGeometry = function (geom) {
@@ -2062,19 +2076,21 @@ Q3D.PointLayer.prototype.build = function (features) {
 
   // each feature in this layer
   var materials = this.materials;
-  var f, geom, z_addend, i, l, mesh, pt;
-  for (var fid = 0, flen = features.length; fid < flen; fid++) {
-    f = features[fid];
+  var f, geom, geometry, z_addend, i, l, mesh, pt;
+  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+    f = features[fidx];
     geom = f.geom;
     z_addend = (geom.h) ? geom.h / 2 : 0;
     for (i = 0, l = geom.pts.length; i < l; i++) {
-      mesh = new THREE.Mesh(createGeometry(geom), materials.mat(f.mat));
+      geometry = createGeometry(geom);
+      if (geometry === null) continue;
+      mesh = new THREE.Mesh(geometry, materials.mat(f.mat));
 
       pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
       if (geom.rotateX) mesh.rotation.x = geom.rotateX * deg2rad;
       if (scaleZ != 1) mesh.scale.z = scaleZ;
-      mesh.userData.featureId = fid;
+      //mesh.userData.featureId = fid;
       mesh.userData.properties = f.prop;
 
       this.addObject(mesh);
@@ -2084,8 +2100,8 @@ Q3D.PointLayer.prototype.build = function (features) {
 
 Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
-  for (var fid = 0, flen = features.length; fid < flen; fid++) {
-    var f = features[fid],
+  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+    var f = features[fidx],
         geom = f.geom;
     var mat = this.materials.mat(f.mat);
     var image = scene.images[mat.i];   // TODO:
@@ -2100,7 +2116,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
       var sprite = new THREE.Sprite(mat);
       sprite.position.set(pt[0], pt[1], pt[2]);
       sprite.scale.set(sx, sy, scale);
-      sprite.userData.featureId = fid;
+      //sprite.userData.featureId = fid;
       sprite.mesh.userData.properties = f.prop;
 
       this.addObject(sprite);
@@ -2310,12 +2326,12 @@ Q3D.LineLayer.prototype.build = function (features) {
   }
 
   // each feature in this layer
-  for (var fid = 0, flen = features.length; fid < flen; fid++) {
-    var f = features[fid],
+  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+    var f = features[fidx],
         geom = f.geom;
     for (var i = 0, l = geom.lines.length; i < l; i++) {
       var obj = createObject(f, geom.lines[i]);
-      obj.userData.featureId = fid;
+      //obj.userData.featureId = fid;
       obj.userData.properties = f.prop;
       this.addObject(obj);
     }
@@ -2473,7 +2489,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
     obj = createObject(f);
-    obj.userData.featureId = i;
+    //obj.userData.featureId = i;
     obj.userData.properties = f.prop;
     this.addObject(obj);
   }

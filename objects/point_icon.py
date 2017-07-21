@@ -39,9 +39,10 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
 
 
-def write(settings, layer, feat):
-  vals = feat.propValues()
-  image_path = vals[1]
-  scale = vals[2]
-  mat = layer.materialManager.getSpriteIndex(image_path, vals[0])
-  return {"pts": feat.geom.asList(), "scale": scale}, mat
+def material(settings, layer, feat):
+  image_path = feat.values[1]
+  return layer.materialManager.getSpriteIndex(image_path, feat.values[0])
+
+
+def geometry(settings, layer, feat, geom):
+  return {"pts": geom.asList(), "scale": feat.values[2]}

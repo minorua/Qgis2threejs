@@ -100,6 +100,13 @@ class ThreeJSExporter:
     exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     return exporter.build()
 
+  def vectorExporters(self, layer):
+    exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
+    yield exporter
+
+    for blockExporter in exporter.blocks():
+      yield blockExporter
+
 
 class ThreeJSFileExporter(ThreeJSExporter):
 
@@ -172,7 +179,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
     exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
-    return exporter.build()
+    return exporter.build(True)
 
   def filesToCopy(self):
     # three.js library

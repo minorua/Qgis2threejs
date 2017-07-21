@@ -19,8 +19,9 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
+import json
 from osgeo import ogr, osr
+from qgis.core import QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
@@ -40,7 +41,11 @@ class VectorLayerExporter(LayerExporter):
     self.materialManager = MaterialManager()    #TODO: takes imageManager
     self.triMesh = {}
 
-  def build(self):
+    self.mapTo3d = settings.mapTo3d()
+    self.geomType = self.layer.mapLayer.geometryType()
+    self.fidx = None
+
+  def build(self, export_blocks=False):
     mapLayer = self.layer.mapLayer
     if mapLayer is None:
       return
@@ -51,53 +56,48 @@ class VectorLayerExporter(LayerExporter):
     renderContext = QgsRenderContext.fromMapSettings(mapSettings)
 
     otm = objectTypeManager()
-    prop = VectorPropertyReader(otm, renderContext, mapLayer, properties)
-    obj_mod = otm.module(prop.mod_index)
-    if obj_mod is None:
+    self.prop = VectorPropertyReader(otm, renderContext, mapLayer, properties)
+    self.obj_mod = otm.module(self.prop.mod_index)
+    if self.obj_mod is None:
       logMessage("Module not found")
       return
 
     # prepare triangle mesh
     geom_type = mapLayer.geometryType()
-    if geom_type == QgsWkbTypes.PolygonGeometry and prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay
+    if geom_type == QgsWkbTypes.PolygonGeometry and self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
       self.progress(None, "Initializing triangle mesh for overlay polygons")
       self.triangleMesh()
       self.progress(None, "Writing vector layer: {0}".format(mapLayer.name()))
 
-    # write layer object
-    layer = VectorLayer(self.settings, mapLayer, prop, obj_mod, self.materialManager)
+    layer = VectorLayer(self.settings, mapLayer, self.prop, self.obj_mod, self.materialManager)
+    self._layer = layer
 
     #if noFeature:
     #  return
 
-    demProvider = self.settings.demProviderByLayerId(properties.get("comboBox_zDEMLayer"))
+    self.clipGeom = None
 
-    # initialize symbol rendering
-    mapLayer.renderer().startRender(renderContext, mapLayer.pendingFields())
-
-    # features to export
+    # feature request
     request = QgsFeatureRequest()
-    clipGeom = None
     if properties.get("radioButton_IntersectingFeatures", False):
       request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+
+      # geometry for clipping
       if properties.get("checkBox_Clip"):
         extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
-        clipGeom = extent.geometry()
+        self.clipGeom = extent.geometry()
 
-    features = []
-    for feat in layer.features(request, clipGeom, demProvider):
+    # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
+    mapLayer.renderer().startRender(renderContext, mapLayer.pendingFields())
+    self.features = layer.features(request)
+    mapLayer.renderer().stopRender(renderContext)
+
+    # materials
+    for feat in self.features:
       #if writer.isCanceled:
       #  break
 
-      geom, mat = obj_mod.write(self.settings, layer, feat)   # writer.writeFeature(layer, feat, obj_mod)
-      f = {"geom": geom, "mat": mat}
-
-      if layer.writeAttrs:
-        f["prop"] = feat.attributes()
-
-      features.append(f)
-
-    mapLayer.renderer().stopRender(renderContext)
+      feat.material = self.obj_mod.material(self.settings, layer, feat)
 
     gt2str = {
       QgsWkbTypes.PointGeometry: "point",
@@ -108,7 +108,7 @@ class VectorLayerExporter(LayerExporter):
     # properties
     p = {
       "type": gt2str.get(geom_type),
-      "objType": prop.type_name,
+      "objType": self.prop.type_name,
       "name": self.layer.name,
       "queryable": 1,
       "visible": self.layer.visible
@@ -117,20 +117,19 @@ class VectorLayerExporter(LayerExporter):
     if layer.writeAttrs:
       p["propertyNames"] = layer.fieldNames
 
-    mapTo3d = self.settings.mapTo3d()
     writeAttrs = properties.get("checkBox_ExportAttrs", False)
     labelAttrIndex = properties.get("comboBox_Label")
     if writeAttrs and labelAttrIndex is not None:
       widgetValues = properties.get("labelHeightWidget", {})
       p["label"] = {"index": labelAttrIndex,
                     "heightType": int(widgetValues.get("comboData", 0)),
-                    "height": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
+                    "height": float(widgetValues.get("editText", 0)) * self.mapTo3d.multiplierZ}
 
-    # data
-    d = {
-      "features": features,
-      "materials": self.materialManager.buildAll(self.imageManager)
-      }
+    d = {}
+    d["materials"] = self.materialManager.buildAll(self.imageManager)
+
+    if export_blocks:
+      d["blocks"] = [block.build() for block in self.blocks()]
 
     return {
       "type": "layer",
@@ -139,6 +138,46 @@ class VectorLayerExporter(LayerExporter):
       "data": d,
       "PROPERTIES": properties    # debug
       }
+
+  def blocks(self):
+    index = 0
+    FEATURE_COUNT = 50    #TODO: VERTEX_COUNT
+
+    def block(blockIndex, features):
+      return FeatureBlockExporter(blockIndex, {
+        "type": "block",
+        "layer": self.layer.jsLayerId,
+        "block": blockIndex,
+        "features": features
+        }, self.pathRoot, self.urlRoot)
+
+    demProvider = None
+    if self.prop.isHeightRelativeToDEM():
+      if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.type_index != 1:  # Overlay
+        demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_zDEMLayer"))
+
+    feats = []
+    for feat in self.features or []:
+      geom = feat.geometry(self.mapTo3d, demProvider, self.clipGeom)
+      if geom is None:
+        continue
+
+      f = {}
+      f["geom"] = self.obj_mod.geometry(self.settings, self._layer, feat, geom)
+      f["mat"] = feat.material
+
+      if feat.attributes is not None:
+        f["prop"] = feat.attributes
+
+      feats.append(f)
+
+      if len(feats) == FEATURE_COUNT:
+        yield block(index, feats)
+        index += 1
+        feats = []
+
+    if len(feats) or index == 0:
+      yield block(index, feats)
 
   def triangleMesh(self, dem_width=0, dem_height=0):
     if dem_width == 0 and dem_height == 0:
@@ -157,24 +196,77 @@ class VectorLayerExporter(LayerExporter):
     return self.triMesh[key]
 
 
+class FeatureBlockExporter:
+  
+  def __init__(self, blockIndex, data, pathRoot=None, urlRoot=None):
+    self.blockIndex = blockIndex
+    self.data = data
+    self.pathRoot = pathRoot
+    self.urlRoot = urlRoot
+
+  def build(self):
+    if self.pathRoot is not None:
+      with open(self.pathRoot + "_GEOM{0}.json".format(self.blockIndex), "w", encoding="UTF-8") as f:
+        json.dump(self.data, f, ensure_ascii=False, indent=1)
+
+      url = self.urlRoot + "_GEOM{0}.json".format(self.blockIndex)
+      return {"url": url}
+
+    else:
+      return self.data
+
 class Feature:
 
-  def __init__(self, settings, layer, feat):
-    self.settings = settings
-    self.layer = layer
-    self.feat = feat
-    self.geom = None
+  def __init__(self, layer, qFeat, qGeom):
+    self.attributes = qFeat.attributes() if layer.writeAttrs else None
+    self.layerProp = layer.prop
 
-    self.prop = layer.prop
+    self.geom = qGeom
+    self.geomType = layer.geomType
+    self.geomClass = layer.geomType2Class.get(layer.geomType)
 
-  def attributes(self):
-    return self.feat.attributes()
+    self.material = -1
+    self.relativeHeight = 0
 
-  def relativeHeight(self):
-    return self.prop.relativeHeight(self.feat)
+    self.hasLabel = layer.hasLabel()
 
-  def propValues(self):
-    return self.prop.values(self.feat)
+  def geometry(self, mapTo3d, demProvider=None, clipGeom=None):
+    # z_func: function to get elevation at given point (x, y) on surface
+    if demProvider:
+      z_func = lambda x, y: demProvider.readValue(x, y)
+    else:
+      z_func = lambda x, y: 0
+
+    # transform_func: function to transform the map coordinates to 3d coordinates
+    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z + self.relativeHeight)
+
+    #if useZ and False:    #TODO: use QGIS API
+      # ogr_geom = ogr.CreateGeometryFromWkb(bytes(geometry.exportToWkb()))
+      # ...
+      # feat.geom = self.geomClass.fromOgrGeometry25D(ogr_geom, transform_func)
+
+    geom = self.geom
+    # clip geometry
+    if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
+      geom = geom.intersection(clipGeom)
+      if geom is None:
+        return None
+
+    # skip if geometry is empty or null
+    if geom.isEmpty() or geom.isNull():
+      logMessage("empty/null geometry skipped")
+      return None
+
+    if self.geomType == QgsWkbTypes.PolygonGeometry:
+      geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel)
+      if self.layerProp.type_index == 1 and self.layerProp.isHeightRelativeToDEM():   # Overlay and relative to DEM
+        pass
+        #TODO:
+        #feat.geom.splitPolygon(self.writer.triangleMesh())
+      return geom
+
+    else:
+      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
 
 
 class Layer:
@@ -238,7 +330,7 @@ class VectorLayer(Layer):
 
     return obj
 
-  def features(self, request=None, clipGeom=None, demProvider=None):
+  def features(self, request=None):
     mapTo3d = self.settings.mapTo3d()
     baseExtent = self.settings.baseExtent
     baseExtentGeom = baseExtent.geometry()
@@ -247,32 +339,6 @@ class VectorLayer(Layer):
     properties = self.prop.properties
 
     useZ = prop.useZ()
-    if useZ:
-      srs_from = osr.SpatialReference()
-      srs_from.ImportFromProj4(str(self.layer.crs().toProj4()))
-      srs_to = osr.SpatialReference()
-      srs_to.ImportFromProj4(str(self.settings.crs.toProj4()))
-
-      ogr_transform = osr.CreateCoordinateTransformation(srs_from, srs_to)
-      clipGeomWkb = bytes(clipGeom.exportToWkb()) if clipGeom else None
-      ogr_clipGeom = ogr.CreateGeometryFromWkb(clipGeomWkb) if clipGeomWkb else None
-
-    else:
-      # z_func: function to get elevation at given point (x, y) on surface
-      if prop.isHeightRelativeToDEM():
-        if self.geomType == QgsWkbTypes.PolygonGeometry and prop.type_index == 1:  # Overlay
-          z_func = lambda x, y: 0
-        else:
-          # get elevation from DEM
-          z_func = lambda x, y: demProvider.readValue(x, y)
-      else:
-        z_func = lambda x, y: 0
-
-    # expression
-    ctx = QgsExpressionContext()
-    ctx.appendScope(QgsExpressionContextUtils.layerScope(self.layer))
-    expression = properties.get("fieldExpressionWidget_zCoordinate") or "0"
-    expr = QgsExpression(expression)
 
     feats = []
     request = request or QgsFeatureRequest()
@@ -292,62 +358,13 @@ class VectorLayer(Layer):
       if rotation and not baseExtentGeom.intersects(geom):
         continue
 
-      # create feature
-      feat = Feature(self.settings, self, f)
+      # set feature to expression context
+      prop.setContextFeature(f)
 
-      # evaluate expression
-      ctx.setFeature(f)
-      relativeHeight = expr.evaluate(ctx)
-
-      # transform_func: function to transform the map coordinates to 3d coordinates
-      def transform_func(x, y, z):
-        return mapTo3d.transform(x, y, z + relativeHeight)
-
-      if useZ:
-        ogr_geom = ogr.CreateGeometryFromWkb(bytes(geometry.exportToWkb()))
-
-        # transform geometry from layer CRS to project CRS
-        if ogr_geom.Transform(ogr_transform) != 0:
-          logMessage("Failed to transform geometry")
-          continue
-
-        # clip geometry
-        if ogr_clipGeom and self.geomType == QgsWkbTypes.LineGeometry:
-          ogr_geom = ogr_geom.Intersection(ogr_clipGeom)
-          if ogr_geom is None:
-            continue
-
-        # check if geometry is empty
-        if ogr_geom.IsEmpty():
-          logMessage("empty geometry skipped")
-          continue
-
-        feat.geom = self.geomClass.fromOgrGeometry25D(ogr_geom, transform_func)
-
-      else:
-        # clip geometry
-        if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
-          geom = geom.intersection(clipGeom)
-          if geom is None:
-            continue
-
-        # skip if geometry is empty or null
-        if geom.isEmpty() or geom.isNull():
-          logMessage("empty/null geometry skipped")
-          continue
-
-        if self.geomType == QgsWkbTypes.PolygonGeometry:
-          feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, self.hasLabel())
-          if prop.type_index == 1 and prop.isHeightRelativeToDEM():   # Overlay and relative to DEM
-            pass
-            #TODO:
-            #feat.geom.splitPolygon(self.writer.triangleMesh())
-
-        else:
-          feat.geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
-
-      if feat.geom is None:
-        continue
+      # create a feature object
+      feat = Feature(self, f, geom)
+      feat.relativeHeight = prop.relativeHeight()
+      feat.values = prop.values(f)      # TODO: divide into geomProperties, styleProperties
 
       #yield feat
       feats.append(feat)

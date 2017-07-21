@@ -48,22 +48,25 @@ def setupWidgets(ppage, mapTo3d, layer, type_index=0):
   ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
 
-def write(settings, layer, feat):
-  mapTo3d = settings.mapTo3d()
-  vals = feat.propValues()
-  model_path = vals[0]
+def material(settings, layer, feat):
+  pass
 
-  if feat.prop.type_index == 0:
+
+def geometry(settings, layer, feat, geom):
+  mapTo3d = settings.mapTo3d()
+  model_path = feat.values[0]
+
+  if layer.prop.type_index == 0:
     model_type = "JSON"
   else:
     model_type = "COLLADA"
 
   #TODO: writer -> layer
   index = writer.modelManager.modelIndex(model_path, model_type)
-  scale = vals[1] * mapTo3d.multiplier
-  rx = vals[2]
-  ry = vals[3]
-  rz = vals[4]
+  scale = feat.values[1] * mapTo3d.multiplier
+  rx = feat.values[2]
+  ry = feat.values[3]
+  rz = feat.values[4]
 
   # take map rotation into account
   rotation = settings.baseExtent.rotation()
@@ -71,4 +74,4 @@ def write(settings, layer, feat):
     rz = (rz - rotation) % 360    # map rotation is clockwise
 
   #TODO: geom, model_index
-  return {"model_index": index, "pts": feat.geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale}, None
+  return {"model_index": index, "pts": geom.asList(), "rotateX": rx, "rotateY": ry, "rotateZ": rz, "scale": scale}
