@@ -68,6 +68,8 @@ class Ui_ExportToWebDialog(object):
         _translate = QtCore.QCoreApplication.translate
         ExportToWebDialog.setWindowTitle(_translate("ExportToWebDialog", "Export to Web"))
         self.label_2.setText(_translate("ExportToWebDialog", "Output Directory"))
+        self.lineEdit_OutputDir.setToolTip(_translate("ExportToWebDialog", "Leave this empty to export files to temporary directory and open the exported page in web browser."))
+        self.lineEdit_OutputDir.setPlaceholderText(_translate("ExportToWebDialog", "[Temporary directory]"))
         self.pushButton_Browse.setText(_translate("ExportToWebDialog", "Browse..."))
         self.label.setText(_translate("ExportToWebDialog", "Template"))
         self.lineEdit_FileTitle.setText(_translate("ExportToWebDialog", "index"))

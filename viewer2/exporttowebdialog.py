@@ -18,6 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from datetime import datetime
 import os
 from PyQt5.Qt import Qt
 from PyQt5.QtCore import QSettings
@@ -25,7 +26,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from Qgis2threejs.conf import def_vals
 from Qgis2threejs.export import ThreeJSFileExporter
-from Qgis2threejs.qgis2threejstools import logMessage
+from Qgis2threejs.qgis2threejstools import logMessage, openHTMLFile, temporaryOutputDir
 
 
 class ExportToWebDialog(QDialog):
@@ -53,9 +54,15 @@ class ExportToWebDialog(QDialog):
       self.ui.lineEdit_OutputDir.setText(d)
 
   def exportClicked(self):
+    openBrowser = False
     outputDir = self.ui.lineEdit_OutputDir.text()
-    filetitle = self.ui.lineEdit_FileTitle.text()
-    filename = os.path.join(outputDir, filetitle + ".html")
+    fileTitle = self.ui.lineEdit_FileTitle.text()
+
+    if outputDir == "":
+      outputDir = temporaryOutputDir()
+      #fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
+      openBrowser = True
+    filename = os.path.join(outputDir, fileTitle + ".html")
 
     #TODO: check validity
 
@@ -88,6 +95,9 @@ class ExportToWebDialog(QDialog):
     settings = QSettings()
     settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
     settings.setValue("/Qgis2threejs/lastControls", self.settings.controls)
+
+    if not openHTMLFile(filename):
+      return
 
     self.close()
 

@@ -24,7 +24,14 @@
    <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLineEdit" name="lineEdit_OutputDir"/>
+      <widget class="QLineEdit" name="lineEdit_OutputDir">
+       <property name="toolTip">
+        <string>Leave this empty to export files to temporary directory and open the exported page in web browser.</string>
+       </property>
+       <property name="placeholderText">
+        <string>[Temporary directory]</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_Browse">
