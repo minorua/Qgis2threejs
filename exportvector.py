@@ -25,7 +25,7 @@ from qgis.core import QgsCoordinateTransform, QgsExpressionContext, QgsExpressio
 
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
-from .geometry import PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
+from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem
 from . import qgis2threejstools as tools
@@ -157,9 +157,16 @@ class VectorLayerExporter(LayerExporter):
       if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.type_index != 1:  # Overlay
         demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_zDEMLayer"))
 
+    if self.layer.properties.get("radioButton_zValue"):
+      useZM = Geometry.UseZ
+    elif self.layer.properties.get("radioButton_mValue"):
+      useZM = Geometry.UseM
+    else:
+      useZM = Geometry.NotUseZM
+
     feats = []
     for feat in self.features or []:
-      geom = feat.geometry(self.mapTo3d, demProvider, self.clipGeom, self.hasLabel)
+      geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.hasLabel)
       if geom is None:
         continue
 
@@ -229,7 +236,7 @@ class Feature:
 
     self.material = -1
 
-  def geometry(self, mapTo3d, demProvider=None, clipGeom=None, calcCentroid=False):
+  def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, calcCentroid=False):
     """calcCentroid: for polygon geometry"""
     # z_func: function to get elevation at given point (x, y) on surface
     if demProvider:
@@ -266,7 +273,7 @@ class Feature:
       return geom
 
     else:
-      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func)
+      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
 
 class Layer:

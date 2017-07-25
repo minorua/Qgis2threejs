@@ -19,7 +19,9 @@
  ***************************************************************************/
 """
 from osgeo import ogr
-from qgis.core import QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest
+from qgis.core import (
+  QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
+  QgsPoint, QgsMultiPointV2, QgsLineString, QgsMultiLineString)
 
 from .qgis2threejstools import logMessage
 
@@ -50,7 +52,14 @@ def polygonToQgsPolygon(polygon):
   return [lineToQgsPolyline(line) for line in polygon]
 
 
-class PointGeometry:
+class Geometry:
+
+  NotUseZM = 0
+  UseZ = 1
+  UseM = 2
+
+
+class PointGeometry(Geometry):
 
   def __init__(self):
     self.pts = []
@@ -69,13 +78,33 @@ class PointGeometry:
 
     return QgsGeometry()
 
-  @staticmethod
-  def fromQgsGeometry(geometry, z_func, transform_func):
-    geom = PointGeometry()
-    pts = geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]
-    geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
+    geom = cls()
+    if useZM == Geometry.NotUseZM:
+      pts = geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]
+      geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
+
+    else:
+      g = geometry.geometry()
+      if isinstance(g, QgsPoint):
+        pts = [g]
+      elif isinstance(g, QgsMultiPointV2):
+        pts = [g.geometryN(i) for i in range(g.numGeometries())]
+      else:
+        logMessage("Unknown point geometry type: " + type(g))
+        pts = []
+
+      if useZM == Geometry.UseZ:
+        geom.pts = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in pts]
+
+      else:   # UseM
+        geom.pts = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in pts]
+
     return geom
 
+
+  #TODO: remove
   @staticmethod
   def fromOgrGeometry25D(geometry, transform_func):
     geomType = geometry.GetGeometryType()
@@ -99,7 +128,7 @@ class PointGeometry:
     return point_geom
 
 
-class LineGeometry:
+class LineGeometry(Geometry):
 
   def __init__(self):
     self.lines = []
@@ -121,13 +150,32 @@ class LineGeometry:
 
     return QgsGeometry()
 
-  @staticmethod
-  def fromQgsGeometry(geometry, z_func, transform_func):
-    geom = LineGeometry()
-    lines = geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]
-    geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
+    geom = cls()
+    if useZM == Geometry.NotUseZM:
+      lines = geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]
+      geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
+
+    else:
+      g = geometry.geometry()
+      if isinstance(g, QgsLineString):
+        lines = [g.points()]
+      elif isinstance(g, QgsMultiLineString):
+        lines = [g.geometryN(i).points() for i in range(g.numGeometries())]
+      else:
+        logMessage("Unknown line geometry type: " + type(g))
+        lines = []
+
+      if useZM == Geometry.UseZ:
+        geom.lines = [[transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
+
+      else:   # UseM
+        geom.lines = [[transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
+
     return geom
 
+  #TODO: remove
   @staticmethod
   def fromOgrGeometry25D(geometry, transform_func):
     geomType = geometry.GetGeometryType()
@@ -151,7 +199,7 @@ class LineGeometry:
     return line_geom
 
 
-class PolygonGeometry:
+class PolygonGeometry(Geometry):
 
   def __init__(self):
     self.polygons = []
@@ -207,14 +255,15 @@ class PolygonGeometry:
 
     return QgsGeometry()
 
-  @staticmethod
-  def fromQgsGeometry(geometry, z_func, transform_func, calcCentroid=False):
+  #TODO: z/m support
+  @classmethod
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False):
 
     useCentroidHeight = True
     centroidPerPolygon = True
 
     polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
-    geom = PolygonGeometry()
+    geom = cls()
     if calcCentroid and not centroidPerPolygon:
       pt = geometry.centroid().asPoint()
       centroidHeight = z_func(pt.x(), pt.y())
@@ -254,6 +303,8 @@ class PolygonGeometry:
 
     return geom
 
+
+  #TODO: remove
 #  @staticmethod
 #  def fromOgrGeometry25D(geometry, transform_func):
 #    pass
@@ -261,18 +312,23 @@ class PolygonGeometry:
 
 class GeometryUtils:
 
-  @classmethod
-  def _signedArea(cls, p):
+  #TODO:
+  @staticmethod
+  def convertToList(qgs_geom, z_func, transform_func, useZM=False):
+    pass
+
+  @staticmethod
+  def _signedArea(p):
     """Calculates signed area of polygon."""
     area = 0
     for i in range(len(p) - 1):
       area += (p[i].x - p[i + 1].x) * (p[i].y + p[i + 1].y)
     return area / 2
 
-  @classmethod
-  def isClockwise(cls, linearRing):
+  @staticmethod
+  def isClockwise(linearRing):
     """Returns whether given linear ring is clockwise."""
-    return cls._signedArea(linearRing) < 0
+    return GeometryUtils._signedArea(linearRing) < 0
 
 
 class TriangleMesh:
