@@ -703,11 +703,11 @@ limitations:
   };
 
   app.intersectObjects = function (offsetX, offsetY) {
-    var x = (offsetX / app.width) * 2 - 1;
-    var y = -(offsetY / app.height) * 2 + 1;
-    var vector = new THREE.Vector3(x, y, 1);
-    vector.unproject(app.camera);
-    var ray = new THREE.Raycaster(app.camera.position, vector.sub(app.camera.position).normalize());
+    var vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
+                                 -(offsetY / app.height) * 2 + 1);
+    var ray = new THREE.Raycaster();
+    ray.linePrecision = 0.2;
+    ray.setFromCamera(vec2, app.camera);
     return ray.intersectObjects(app.scene.queryableObjects());
   };
 
