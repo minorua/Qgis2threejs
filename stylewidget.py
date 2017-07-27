@@ -94,9 +94,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
   def setup(self, options=None):
     """ options: name, label, defaultValue, layer """
     options = options or {}
-    WidgetFuncBase.setup(self, options.get("name", ""))
-
-    self.defaultValue = options.get("defaultValue", 0)
+    WidgetFuncBase.setup(self, options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Field/Value")

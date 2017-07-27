@@ -33,8 +33,8 @@ def objectTypeNames():
 
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
-  defaultValue = 0.6 / mapTo3d.multiplier
-  defaultValueZ = 0.6 / mapTo3d.multiplierZ
+  defaultValue = float("{0:.4g}".format(0.6 / mapTo3d.multiplier))
+  defaultValueZ = float("{0:.4g}".format(0.6 / mapTo3d.multiplierZ))
 
   ppage.initStyleWidgets()
   if type_index == 0:  # Sphere

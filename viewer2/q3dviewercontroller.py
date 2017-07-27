@@ -97,6 +97,9 @@ class Q3DViewerController:
 
       self.extentUpdated = False
 
+  def updateExtent(self):
+    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+
   def canvasUpdated(self, painter):
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())

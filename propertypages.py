@@ -512,9 +512,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     for lyr in tools.getDEMLayersInProject():
       self.comboBox_zDEMLayer.addItem(lyr.name(), lyr.id())
 
-    # get MapTo3D object to calculate default values
-    mapTo3d = self.dialog.mapTo3d()
-
     # set up z/m button
     wkbType = mapLayer.wkbType()
     hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
@@ -537,6 +534,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # set up label height widget
     if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
       defaultLabelHeight = 5
+      mapTo3d = self.dialog.mapTo3d()
       self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
       if mapLayer.geometryType() == QgsWkbTypes.PointGeometry:
         self.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE, "Height from point")])

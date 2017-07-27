@@ -33,7 +33,7 @@ def objectTypeNames():
 
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
-  defaultValueZ = 0.6 / mapTo3d.multiplierZ
+  defaultValueZ = float("{0:.4g}".format(0.6 / mapTo3d.multiplierZ))
 
   # style widgets
   if type_index == 0:   # Extruded

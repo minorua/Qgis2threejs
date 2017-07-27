@@ -32,7 +32,7 @@ def objectTypeNames():
 
 
 def setupWidgets(ppage, mapTo3d, layer, type_index=0):
-  defaultValue = 0.6 / mapTo3d.multiplier
+  defaultValue = float("{0:.4g}".format(0.6 / mapTo3d.multiplier))
 
   ppage.initStyleWidgets()
   if type_index in [1, 2]:  # Pipe, Cone
