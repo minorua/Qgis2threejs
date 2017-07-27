@@ -66,6 +66,8 @@ class Q3DViewerController:
 
   def exportScene(self):
     if self.iface:
+      self.extentUpdated = True
+      self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
       self.iface.loadJSONObject(self.exporter.exportScene(False))
 
   def exportLayer(self, layer):
@@ -111,10 +113,4 @@ class Q3DViewerController:
       self.extentUpdated = False
 
   def canvasExtentChanged(self):
-    self.extentUpdated = True
-
-    # update map settings
-    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
-
-    # update scene properties
     self.exportScene()
