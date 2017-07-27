@@ -123,7 +123,7 @@ class ColorWidgetFunc(WidgetFuncBase):
 
     self.widget.expression.setExpression(options.get("defaultValue", ""))
     self.widget.expression.setFilters(QgsFieldProxyModel.String)
-    self.setPlaceholderText('integer or string in "0xRRGGBB" format')
+    self.setPlaceholderText("integer or string in '0xRRGGBB' format")
     layer = options.get("layer")
     if layer:
       self.widget.expression.setFilters(QgsFieldProxyModel.String | QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong)
@@ -139,7 +139,7 @@ class ColorWidgetFunc(WidgetFuncBase):
   def toolButtonClicked(self):
     color = QColorDialog.getColor(QColor(self.widget.expression.expression().replace("0x", "#")))
     if color.isValid():
-      self.widget.expression.setExpression(color.name().replace("#", "0x"))
+      self.widget.expression.setExpression("'" + color.name().replace("#", "0x") + "'")
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals["comboData"])
