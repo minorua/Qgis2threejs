@@ -97,7 +97,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self, options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Field/Value")
+    self.widget.comboBox.addItem("Value/Expression")
 
     layer = options.get("layer")
     if layer:
@@ -119,7 +119,7 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", ColorWidgetFunc.FEATURE)
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
-    self.widget.comboBox.addItem("Field/Value", ColorWidgetFunc.EXPRESSION)
+    self.widget.comboBox.addItem("Value/Expression", ColorWidgetFunc.EXPRESSION)
 
     self.widget.expression.setExpression(options.get("defaultValue", ""))
     self.widget.expression.setFilters(QgsFieldProxyModel.String)
@@ -281,7 +281,7 @@ class OpacityWidgetFunc(WidgetFuncBase):
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", OpacityWidgetFunc.FEATURE)
-    self.widget.comboBox.addItem("Field/Value", OpacityWidgetFunc.VALUE)
+    self.widget.comboBox.addItem("Value/Expression", OpacityWidgetFunc.VALUE)
 
     layer = options.get("layer")
     if layer:
