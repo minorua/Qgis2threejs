@@ -144,7 +144,7 @@
           <item>
            <widget class="QRadioButton" name="radioButton_FieldValue">
             <property name="text">
-             <string>Field/Value</string>
+             <string>Value/Expression</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -180,8 +180,11 @@
          <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
           <item row="0" column="0">
            <widget class="QLabel" name="label_zExpression">
-            <property name="text">
-             <string>Expression</string>
+            <property name="minimumSize">
+             <size>
+              <width>46</width>
+              <height>0</height>
+             </size>
             </property>
            </widget>
           </item>

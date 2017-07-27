@@ -590,7 +590,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def zValueRadioButtonToggled(self, toggled=None):
     if toggled != False:
-      self.label_zExpression.setText("Expression" if self.radioButton_FieldValue.isChecked() else "Addend")
+      self.label_zExpression.setText("" if self.radioButton_FieldValue.isChecked() else "Addend")
 
   def exportAttrsToggled(self, checked):
     self.setLayoutEnabled(self.formLayout_Label, checked)
