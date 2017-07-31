@@ -31,7 +31,7 @@
         <item>
          <widget class="QLabel" name="label_Resampling">
           <property name="text">
-           <string>Resampling</string>
+           <string>Resampling level</string>
           </property>
          </widget>
         </item>
@@ -69,9 +69,12 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_Resolution">
-            <property name="text">
-             <string>XXX x XXX</string>
+           <widget class="QLabel" name="label_GridSize">
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -109,6 +112,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="toolTip">
+               <string>This is for reference.</string>
+              </property>
               <property name="readOnly">
                <bool>true</bool>
               </property>
@@ -125,6 +131,9 @@
              <widget class="QLineEdit" name="lineEdit_VRes">
               <property name="enabled">
                <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>This is for reference.</string>
               </property>
               <property name="readOnly">
                <bool>true</bool>

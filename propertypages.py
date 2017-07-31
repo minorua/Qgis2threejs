@@ -341,8 +341,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
   def resolutionSliderChanged(self, v):
     self.updateDEMSize()
-    size = 100 * self.horizontalSlider_DEMSize.value()
-    QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), "about {0} x {0}".format(size), self.horizontalSlider_DEMSize)
+    val = self.horizontalSlider_DEMSize.value()
+    size = 100 * val
+    QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), "Level {0} (about {1} x {1})".format(val, size), self.horizontalSlider_DEMSize)
 
   def selectLayerClicked(self):
     from .layerselectdialog import LayerSelectDialog
@@ -401,9 +402,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     yres = (mupp * canvasSize.height()) / (demSize.height() - 1)
 
     # update labels
-    self.label_Resolution.setText("{0} x {1}".format(demSize.width(), demSize.height()))   #TODO: label_GridSize
-    self.lineEdit_HRes.setText(str(xres))
-    self.lineEdit_VRes.setText(str(yres))
+    fmt = "{0:.5f}"
+    self.label_GridSize.setText("{0} ({1} x {2})".format(resolutionLevel, demSize.width(), demSize.height()))
+    self.lineEdit_HRes.setText(fmt.format(xres))
+    self.lineEdit_VRes.setText(fmt.format(yres))
 
   def properties(self):
     p = PropertyPage.properties(self)
