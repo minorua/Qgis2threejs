@@ -19,7 +19,7 @@
 
 #fps {
   position: absolute;
-  left: 40px;
+  left: 10px;
   bottom: 3px;
   font-size: xx-small;
 }
@@ -54,9 +54,7 @@ and uses the following library:
 </div></div>
 
 <!-- footer -->
-<div id="footer">
-  <div id="infobtn">i</div>
-</div>
+<div id="footer"></div>
 <div id="fps">Waiting...</div>
 
 <script src="../js/threejs/three.min.js"></script>
@@ -68,8 +66,6 @@ if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.d
 
 var container = document.getElementById("webgl");
 app.init(container);
-
-document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 
 app.addEventListeners();
 // app.start();
