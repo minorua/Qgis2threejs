@@ -21,7 +21,7 @@
 from datetime import datetime
 import os
 from PyQt5.Qt import Qt
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from Qgis2threejs.conf import def_vals
@@ -48,8 +48,8 @@ class ExportToWebDialog(QDialog):
 
   def browseClicked(self):
     # directory select dialog
-    #TODO: home directory
-    d  = QFileDialog.getExistingDirectory(self, self.tr("Select Output Directory"), self.ui.lineEdit_OutputDir.text())
+    d = self.ui.lineEdit_OutputDir.text() or QDir.homePath()
+    d = QFileDialog.getExistingDirectory(self, self.tr("Select Output Directory"), d)
     if d:
       self.ui.lineEdit_OutputDir.setText(d)
 
