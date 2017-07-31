@@ -54,14 +54,12 @@ class ExportToWebDialog(QDialog):
       self.ui.lineEdit_OutputDir.setText(d)
 
   def exportClicked(self):
-    openBrowser = False
     outputDir = self.ui.lineEdit_OutputDir.text()
     fileTitle = self.ui.lineEdit_FileTitle.text()
 
     if outputDir == "":
       outputDir = temporaryOutputDir()
       #fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
-      openBrowser = True
     filename = os.path.join(outputDir, fileTitle + ".html")
 
     #TODO: check validity
@@ -96,8 +94,9 @@ class ExportToWebDialog(QDialog):
     settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
     settings.setValue("/Qgis2threejs/lastControls", self.settings.controls)
 
-    if not openHTMLFile(filename):
-      return
+    if self.ui.checkBox_openPage.isChecked():
+      if not openHTMLFile(filename):
+        return
 
     self.close()
 

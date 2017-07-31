@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ExportToWebDialog(object):
     def setupUi(self, ExportToWebDialog):
         ExportToWebDialog.setObjectName("ExportToWebDialog")
-        ExportToWebDialog.resize(495, 152)
+        ExportToWebDialog.resize(495, 168)
         self.formLayout = QtWidgets.QFormLayout(ExportToWebDialog)
         self.formLayout.setObjectName("formLayout")
         self.label_2 = QtWidgets.QLabel(ExportToWebDialog)
@@ -60,6 +60,10 @@ class Ui_ExportToWebDialog(object):
         self.pushButton_Cancel.setObjectName("pushButton_Cancel")
         self.horizontalLayout_3.addWidget(self.pushButton_Cancel)
         self.formLayout.setLayout(7, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_3)
+        self.checkBox_openPage = QtWidgets.QCheckBox(ExportToWebDialog)
+        self.checkBox_openPage.setChecked(True)
+        self.checkBox_openPage.setObjectName("checkBox_openPage")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.checkBox_openPage)
 
         self.retranslateUi(ExportToWebDialog)
         QtCore.QMetaObject.connectSlotsByName(ExportToWebDialog)
@@ -68,7 +72,7 @@ class Ui_ExportToWebDialog(object):
         _translate = QtCore.QCoreApplication.translate
         ExportToWebDialog.setWindowTitle(_translate("ExportToWebDialog", "Export to Web"))
         self.label_2.setText(_translate("ExportToWebDialog", "Output Directory"))
-        self.lineEdit_OutputDir.setToolTip(_translate("ExportToWebDialog", "Leave this empty to export files to temporary directory and open the exported page in web browser."))
+        self.lineEdit_OutputDir.setToolTip(_translate("ExportToWebDialog", "Leave this empty to export files to temporary directory."))
         self.lineEdit_OutputDir.setPlaceholderText(_translate("ExportToWebDialog", "[Temporary directory]"))
         self.pushButton_Browse.setText(_translate("ExportToWebDialog", "Browse..."))
         self.label.setText(_translate("ExportToWebDialog", "Template"))
@@ -77,4 +81,5 @@ class Ui_ExportToWebDialog(object):
         self.label_3.setText(_translate("ExportToWebDialog", "HTML Filename"))
         self.pushButton_Export.setText(_translate("ExportToWebDialog", "Export"))
         self.pushButton_Cancel.setText(_translate("ExportToWebDialog", "Cancel"))
+        self.checkBox_openPage.setText(_translate("ExportToWebDialog", "Open exported page in web browser"))
 
