@@ -22,9 +22,10 @@ from datetime import datetime
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+from PyQt5.QtWidgets import QFileDialog
 
 
 def base64image(image):
@@ -37,7 +38,11 @@ def base64image(image):
 
 class Bridge(QObject):
 
+  # Python to JS
   sendData = pyqtSignal("QVariant")
+
+  # Python to Python
+  imageReceived = pyqtSignal(int, int, "QImage")
 
   def __init__(self, parent=None):
     QObject.__init__(self, parent)
@@ -49,9 +54,14 @@ class Bridge(QObject):
     return "Clicked at ({0}, {1})".format(x, y)
     # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
 
-  @pyqtSlot(int, int, str, int, int, bool)
-  def saveImage(self, width, height, dataUrl, tx, ty, intermediate):
-    self._parent.saveImage(width, height, dataUrl, tx, ty, intermediate)
+  @pyqtSlot(int, int, str)
+  def saveImage(self, width, height, dataUrl):
+    image = None
+    if dataUrl:
+      ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+      image = QImage()
+      image.loadFromData(ba)
+    self.imageReceived.emit(width, height, image)
 
 
 class Q3DWebPage(QWebPage):
@@ -84,6 +94,7 @@ class Q3DView(QWebView):
     self.iface = iface
     self.isViewer = isViewer
     self.bridge = Bridge(self)
+    self.bridge.imageReceived.connect(self.saveImage)
 
     self.loadFinished.connect(self.pageLoaded)
 
@@ -150,33 +161,13 @@ class Q3DView(QWebView):
 
     return self._page.mainFrame().evaluateJavaScript(string)
 
-  def saveImage(self, width, height, dataUrl="", tx=0, ty=0, intermediate=False):
-    image = None
-    if dataUrl:
-      ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
-      if tx or ty:
-        image = QImage()
-        image.loadFromData(ba)
-
-    else:
+  def saveImage(self, width, height, image):
+    if image is None:
       image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
       painter = QPainter(image)
       self._page.mainFrame().render(painter)
       painter.end()
 
-    if tx or ty:
-      img = QImage(width - tx, height - ty, QImage.Format_ARGB32_Premultiplied)
-      painter = QPainter(img)
-      painter.drawImage(tx, ty, image)
-      painter.end()
-      image = img
-
-    # image to byte array
-    if image:
-      ba = QByteArray()
-      buf = QBuffer(ba)
-      buf.open(QIODevice.WriteOnly)
-      image.save(buf, "PNG")
-
-    dataType = q3dconst.BIN_INTERMEDIATE_IMAGE if intermediate else q3dconst.BIN_SCENE_IMAGE
-    self.iface.respond(ba.data(), {"dataType": dataType, "renderId": self.renderId})    # q3dconst.FORMAT_BINARY
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG file (*.png)")
+    if filename:
+      image.save(filename)

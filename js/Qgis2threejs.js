@@ -1005,7 +1005,7 @@ limitations:
     app.closePopup();
   };
 
-  app.saveCanvasImage = function (width, height, fill_background) {
+  app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
     if (fill_background === undefined) fill_background = true;
 
     // set canvas size
@@ -1039,7 +1039,7 @@ limitations:
       }
     };
 
-    var saveCanvasImage = function (canvas) {
+    var saveCanvasImage = saveImageFunc || function (canvas) {
       if (canvas.toBlob !== undefined) {
         canvas.toBlob(saveBlob);
       }
@@ -1134,7 +1134,7 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
     // TODO: save QWebView page content as image
-    var render_labels = (app.labelVisibility && app.labels.length > 0);
+    var render_labels = false;    // TODO: (app.labelVisibility && app.labels.length > 0);
     if ((fill_background && bgcolor === null) || render_labels) {
       var canvas = document.createElement("canvas");
       canvas.width = width;

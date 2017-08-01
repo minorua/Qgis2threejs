@@ -247,11 +247,8 @@
    </property>
   </action>
   <action name="actionSaveAsImage">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
-    <string>Save as Image</string>
+    <string>Save Scene as Image</string>
    </property>
   </action>
   <action name="actionResetCameraPosition">

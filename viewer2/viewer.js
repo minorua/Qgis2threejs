@@ -22,9 +22,18 @@ window.setInterval(function () {
   app.timer.tickCount = 0;
 }, 1000);
 
-// override
+// overrides
 var origRender = app.render;
 app.render = function () {
   origRender();
   app.timer.tickCount++;
+};
+
+app._saveCanvasImage = app.saveCanvasImage;
+app.saveCanvasImage = function (width, height, fill_background) {
+  var saveCanvasImage = function (canvas) {
+    pyObj.saveImage(width, height, canvas.toDataURL("image/png"));
+    app.popup.hide();
+  };
+  app._saveCanvasImage(width, height, fill_background, saveCanvasImage);
 };

@@ -136,6 +136,7 @@ class Q3DWindow(QMainWindow):
 
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
+    self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
@@ -233,6 +234,9 @@ class Q3DWindow(QMainWindow):
     dialog = ExportToWebDialog(self, self.qgisIface, self.settings)
     dialog.show()
     dialog.exec_()
+
+  def saveAsImage(self):
+    self.runString("app.showPrintDialog();")
 
 
 class PropertiesDialog(QDialog):
