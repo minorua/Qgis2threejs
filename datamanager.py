@@ -282,8 +282,8 @@ class MaterialManager(DataManager):
         layerids, width, height, extent, transp_background = mat[1]
         imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
       elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
-        filepath, transp_background = mat[1]
-        imgIndex = imageManager.imageIndex(filepath)
+        imagepath, transp_background = mat[1]
+        imgIndex = imageManager.imageIndex(imagepath)
 
       if filepath is None:
         m["image"] = {"object": imageManager.image(imgIndex)}
