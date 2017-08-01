@@ -26,6 +26,7 @@ from qgis.core import QgsPoint, QgsProject, QgsRectangle
 from . import gdal2threejs
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
+from .geometry import PolygonGeometry, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
 from .qgis2threejscore import GDALDEMProvider
 from . import qgis2threejstools as tools
@@ -80,6 +81,16 @@ class DEMLayerExporter(LayerExporter):
     rotation = baseExtent.rotation()
     base_grid_size = self.prop.demSize(self.settings.mapSettings.outputSize())
 
+    # clipping
+    clip_geometry = None
+    clip_option = self.properties.get("checkBox_Clip", False)
+    if clip_option:
+      clip_layerId = self.properties.get("comboBox_ClipLayer")
+      clip_layer = QgsProject.instance().mapLayer(clip_layerId) if clip_layerId else None
+      if clip_layer:
+        clip_geometry = dissolvePolygonsOnCanvas(self.settings, clip_layer)
+
+    # surroundings
     surroundings = self.properties.get("checkBox_Surroundings", False)    #TODO: if prop.layerId else False   (GSIElevProvider?)
     roughening = self.properties["spinBox_Roughening"] if surroundings else 1
     size = self.properties["spinBox_Size"] if surroundings else 1
@@ -117,7 +128,7 @@ class DEMLayerExporter(LayerExporter):
                                offsetX=mapTo3d.planeWidth * sx,
                                offsetY=mapTo3d.planeHeight * sy,
                                edgeRougheness=roughening if is_center else 1,
-                               clip_geometry=None,
+                               clip_geometry=clip_geometry if is_center else None,
                                pathRoot=self.pathRoot,
                                urlRoot=self.urlRoot)
       yield block
@@ -240,7 +251,6 @@ class DEMBlockExporter:
     url = None if self.urlRoot is None else "{0}_IMG{1}.png".format(self.urlRoot, self.blockIndex)
     return self.materialManager.build(mi, self.imageManager, filepath, url)
 
-  #TODO
   def clipped(self):
     mapTo3d = self.settings.mapTo3d()
     z_func = lambda x, y: 0

@@ -434,9 +434,8 @@ class Triangles:
 #TODO: parameters - extent, layer, projectCrs
 
 
-def dissolvePolygonsOnCanvas(writer, layer):
+def dissolvePolygonsOnCanvas(settings, layer):
   """dissolve polygons of the layer and clip the dissolution with base extent"""
-  settings = writer.settings
   baseExtent = settings.baseExtent
   baseExtentGeom = baseExtent.geometry()
   rotation = baseExtent.rotation()
