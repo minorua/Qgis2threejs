@@ -473,7 +473,7 @@ def dissolvePolygonsOnCanvas(writer, layer):
     return None
 
   # check if geometry is empty
-  if geom.isGeosEmpty():
+  if geom.isEmpty():
     logMessage("empty geometry")
     return None
 
