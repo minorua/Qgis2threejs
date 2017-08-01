@@ -213,9 +213,10 @@ class RotatedRect:
     return self._unrotated_rect
 
   def geometry(self):
-    pts = self.vertices()
-    pts.append(pts[0])
-    return QgsGeometry.fromPolygon([pts])
+    geom = QgsGeometry.fromRect(self._unrotated_rect)
+    if self._rotation:
+      geom.rotate(self._rotation, self._center)
+    return geom
 
   def vertices(self):
     """return vertices of the rect clockwise"""
