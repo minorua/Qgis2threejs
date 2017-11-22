@@ -71,10 +71,10 @@ class PointGeometry(Geometry):
     count = len(self.pts)
     if count > 1:
       pts = [pointToQgsPoint(pt) for pt in self.pts]
-      return QgsGeometry.fromMultiPoint(pts)
+      return QgsGeometry.fromMultiPointXY(pts)
 
     if count == 1:
-      return QgsGeometry.fromPoint(pointToQgsPoint(self.pts[0]))
+      return QgsGeometry.fromPointXY(pointToQgsPoint(self.pts[0]))
 
     return QgsGeometry()
 
@@ -143,10 +143,10 @@ class LineGeometry(Geometry):
     count = len(self.lines)
     if count > 1:
       lines = [lineToQgsPolyline(line) for line in self.lines]
-      return QgsGeometry.fromMultiPolyline(lines)
+      return QgsGeometry.fromMultiPolylineXY(lines)
 
     if count == 1:
-      return QgsGeometry.fromPolyline(lineToQgsPolyline(self.lines[0]))
+      return QgsGeometry.fromPolylineXY(lineToQgsPolyline(self.lines[0]))
 
     return QgsGeometry()
 
@@ -248,10 +248,10 @@ class PolygonGeometry(Geometry):
     count = len(self.polygons)
     if count > 1:
       polys = [polygonToQgsPolygon(poly) for poly in self.polygons]
-      return QgsGeometry.fromMultiPolygon(polys)
+      return QgsGeometry.fromMultiPolygonXY(polys)
 
     if count == 1:
-      return QgsGeometry.fromPolygon(polygonToQgsPolygon(self.polygons[0]))
+      return QgsGeometry.fromPolygonXY(polygonToQgsPolygon(self.polygons[0]))
 
     return QgsGeometry()
 
@@ -271,7 +271,7 @@ class PolygonGeometry(Geometry):
 
     for polygon in polygons:
       if useCentroidHeight or calcCentroid:
-        centroid = QgsGeometry.fromPolygon(polygon).centroid()
+        centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
         if centroid is None:
           continue
         pt = centroid.asPoint()
@@ -385,14 +385,14 @@ class TriangleMesh:
         pt1 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
         pt2 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
         pt3 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
-        quad = QgsGeometry.fromPolygon([[pt0, pt1, pt2, pt3, pt0]])
+        quad = QgsGeometry.fromPolygonXY([[pt0, pt1, pt2, pt3, pt0]])
         tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
 
         if geom.contains(quad):
           yield tris[0]
           yield tris[1]
         else:
-          for i, tri in enumerate(map(QgsGeometry.fromPolygon, tris)):
+          for i, tri in enumerate(map(QgsGeometry.fromPolygonXY, tris)):
             if geom.contains(tri):
               yield tris[i]
             elif geom.intersects(tri):
