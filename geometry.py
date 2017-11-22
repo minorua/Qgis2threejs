@@ -21,7 +21,7 @@
 from osgeo import ogr
 from qgis.core import (
   QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
-  QgsPoint, QgsMultiPointV2, QgsLineString, QgsMultiLineString)
+  QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString)
 
 from .qgis2threejstools import logMessage
 
@@ -89,7 +89,7 @@ class PointGeometry(Geometry):
       g = geometry.geometry()
       if isinstance(g, QgsPoint):
         pts = [g]
-      elif isinstance(g, QgsMultiPointV2):
+      elif isinstance(g, QgsMultiPoint):
         pts = [g.geometryN(i) for i in range(g.numGeometries())]
       else:
         logMessage("Unknown point geometry type: " + type(g))
