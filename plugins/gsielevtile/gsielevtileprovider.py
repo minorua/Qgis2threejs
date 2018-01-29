@@ -27,7 +27,7 @@ import struct
 
 from osgeo import gdal
 from PyQt5.QtCore import QSettings
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle, QgsProject
 
 from .downloader import Downloader
 from Qgis2threejs.qgis2threejstools import logMessage
@@ -49,7 +49,7 @@ class GSIElevTileProvider:
     self.dest_crs = QgsCoordinateReferenceSystem()
     if not self.dest_crs.createFromWkt(dest_wkt):
       logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
-    self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857)
+    self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857, QgsProject.instance())
 
     # approximate bbox of this data
     self.boundingbox = QgsRectangle(13667807, 2320477, 17230031, 5713298)

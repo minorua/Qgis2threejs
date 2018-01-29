@@ -299,7 +299,7 @@ class VectorLayer(Layer):
     self.obj_mod = obj_mod
     self.materialManager = materialManager
 
-    self.transform = QgsCoordinateTransform(layer.crs(), settings.crs)
+    self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
     self.geomType = layer.geometryType()
     self.geomClass = self.geomType2Class.get(self.geomType)
 

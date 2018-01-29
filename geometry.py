@@ -21,7 +21,7 @@
 from osgeo import ogr
 from qgis.core import (
   QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
-  QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString)
+  QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsProject)
 
 from .qgis2threejstools import logMessage
 
@@ -439,7 +439,7 @@ def dissolvePolygonsOnCanvas(settings, layer):
   baseExtent = settings.baseExtent
   baseExtentGeom = baseExtent.geometry()
   rotation = baseExtent.rotation()
-  transform = QgsCoordinateTransform(layer.crs(), settings.crs)
+  transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
 
   combi = None
   request = QgsFeatureRequest()
