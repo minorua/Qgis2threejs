@@ -47,13 +47,6 @@
      <addaction name="separator"/>
      <addaction name="actionSTL_format"/>
     </widget>
-    <addaction name="menuExport"/>
-    <addaction name="actionSaveAsImage"/>
-   </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
     <widget class="QMenu" name="menuCamera">
      <property name="title">
       <string>Camera</string>
@@ -72,8 +65,18 @@
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="separator"/>
-    <addaction name="actionResetCameraPosition"/>
     <addaction name="actionReload"/>
+    <addaction name="separator"/>
+    <addaction name="menuExport"/>
+    <addaction name="actionSaveAsImage"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose_Live_Exporter"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionResetCameraPosition"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -295,6 +298,11 @@
     <string>Layer Panel</string>
    </property>
   </action>
+  <action name="actionClose_Live_Exporter">
+   <property name="text">
+    <string>Close Live Exporter</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -310,5 +318,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionClose_Live_Exporter</sender>
+   <signal>triggered()</signal>
+   <receiver>Q3DWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>378</x>
+     <y>289</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
