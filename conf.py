@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 
-plugin_version = "1.4.2"
+plugin_version = "1.99.0"
 debug_mode = 0
 live_in_another_process = False
 
