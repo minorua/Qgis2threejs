@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis2\python\developing_plugins\Qgis2threejs\viewer\ui\propertiesdialog.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\propertiesdialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.5
 #
@@ -11,16 +11,16 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PropertiesDialog(object):
     def setupUi(self, PropertiesDialog):
         PropertiesDialog.setObjectName("PropertiesDialog")
-        PropertiesDialog.resize(472, 464)
+        PropertiesDialog.resize(545, 474)
         self.verticalLayout = QtWidgets.QVBoxLayout(PropertiesDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.scrollArea = QtWidgets.QScrollArea(PropertiesDialog)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
-        self.container = QtWidgets.QWidget()
-        self.container.setGeometry(QtCore.QRect(0, 0, 452, 415))
-        self.container.setObjectName("container")
-        self.scrollArea.setWidget(self.container)
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 525, 425))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout.addWidget(self.scrollArea)
         self.buttonBox = QtWidgets.QDialogButtonBox(PropertiesDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -34,5 +34,6 @@ class Ui_PropertiesDialog(object):
         QtCore.QMetaObject.connectSlotsByName(PropertiesDialog)
 
     def retranslateUi(self, PropertiesDialog):
-        pass
+        _translate = QtCore.QCoreApplication.translate
+        PropertiesDialog.setWindowTitle(_translate("PropertiesDialog", "Properties Dialog"))
 

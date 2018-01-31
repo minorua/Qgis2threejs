@@ -29,8 +29,8 @@ from qgis.core import QgsMapLayer, QgsPluginLayerRegistry, QgsProject
 from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
 from .vectorobject import ObjectTypeManager
-from .viewer2.q3dviewercontroller import Q3DViewerController
-from .viewer2.q3dwindow import Q3DWindow
+from .q3dviewercontroller import Q3DViewerController
+from .q3dwindow import Q3DWindow
 
 
 class Qgis2threejs:

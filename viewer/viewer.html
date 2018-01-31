@@ -5,10 +5,29 @@
 <title>3D Viewer</title>
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
+<style type="text/css">
+#debug {
+  background-color: rgba(0, 0, 0, 0);
+  font-size: xx-small;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height 100%;
+  pointer-events: none;
+}
+
+#fps {
+  position: absolute;
+  left: 10px;
+  bottom: 3px;
+  font-size: xx-small;
+}
+</style>
 </head>
 <body>
-<img id="icon" style="position:absolute;">
 <div id="webgl"></div>
+<div id="labels"></div>
 
 <!-- popup -->
 <div id="popup" style="display:none;">
@@ -35,47 +54,23 @@ and uses the following library:
 </div></div>
 
 <!-- footer -->
-<div id="footer"><div id="infobtn">i</div></div>
+<div id="footer"></div>
+<div id="fps">Waiting...</div>
 
 <script src="../js/threejs/three.min.js"></script>
 <script src="../js/Qgis2threejs.js"></script>
 <script src="../js/threejs/controls/OrbitControls.js"></script>
 <script src="viewer.js"></script>
 <script>
-var option = Q3D.Options;
-//${options}
-
 if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
 
 var container = document.getElementById("webgl");
 app.init(container);
 
-document.getElementById("infobtn").onclick = app.showInfo.bind(app);
-if ("hidebutton" in app.urlParams) document.getElementById("infobtn").style.display = "none";
-
-container.addEventListener("mouseup", function (e) {
-  console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
-  pyObj.mouseUp(e.clientX + ', ' + e.clientY);
-});
-
-container.addEventListener("dblclick", function (e) {
-  var myicon = pyObj.image();
-  console.log(myicon);
-  myicon.assignToHTMLImageElement(document.getElementById("icon"));
-
-  /*
-  var img = new Image();
-  myicon.assignToHTMLImageElement(img);
-  document.getElementById("icon").src = img.src;
-  */
-});
-
-app.showQueryResult = function (point, layerId, featureId) {
-};
-
 app.addEventListeners();
 // app.start();
 </script>
-<!--${scripts}-->
+
+<div id="debug"></div>
 </body>
 </html>

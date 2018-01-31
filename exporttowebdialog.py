@@ -24,9 +24,9 @@ from PyQt5.Qt import Qt
 from PyQt5.QtCore import QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
-from Qgis2threejs.conf import def_vals
-from Qgis2threejs.export import ThreeJSFileExporter
-from Qgis2threejs.qgis2threejstools import logMessage, openHTMLFile, temporaryOutputDir
+from .conf import def_vals
+from .export import ThreeJSFileExporter
+from .qgis2threejstools import logMessage, openHTMLFile, temporaryOutputDir
 
 
 class ExportToWebDialog(QDialog):

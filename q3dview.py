@@ -113,7 +113,7 @@ class Q3DView(QWebView):
     self.renderId = None    # for renderer
 
     filetitle = "viewer" if isViewer else "layer"
-    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), filetitle + ".html").replace("\\", "/")
+    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", filetitle + ".html").replace("\\", "/")
     self.setUrl(QUrl.fromLocalFile(url))
 
   def reloadPage(self):

@@ -26,13 +26,13 @@ from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox
 
 from qgis.core import QgsProject
 
-from .ui5_propertiesdialog import Ui_PropertiesDialog
-from .ui5_q3dwindow import Ui_Q3DWindow
 from . import q3dconst
+from .exportsettings import ExportSettings
 from .exporttowebdialog import ExportToWebDialog
-from Qgis2threejs.exportsettings import ExportSettings
-from Qgis2threejs.propertypages import DEMPropertyPage, VectorPropertyPage
-from Qgis2threejs.qgis2threejstools import logMessage
+from .propertypages import DEMPropertyPage, VectorPropertyPage
+from .qgis2threejstools import logMessage
+from .ui.propertiesdialog import Ui_PropertiesDialog
+from .ui.q3dwindow import Ui_Q3DWindow
 
 
 class Q3DViewerInterface:

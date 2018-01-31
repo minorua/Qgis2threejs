@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\viewer2\q3dwindow.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\q3dwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.5
 #
@@ -195,5 +195,5 @@ class Ui_Q3DWindow(object):
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
         self.actionClose_Live_Exporter.setText(_translate("Q3DWindow", "Close Live Exporter"))
 
-from .q3dtreeview import Q3DTreeView
-from .q3dview import Q3DView
+from Qgis2threejs.q3dtreeview import Q3DTreeView
+from Qgis2threejs.q3dview import Q3DView

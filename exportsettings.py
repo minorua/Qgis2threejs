@@ -27,8 +27,8 @@ from .conf import def_vals
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
 from .qgis2threejstools import getLayersInProject, logMessage
+from . import q3dconst
 from . import qgis2threejstools as tools
-from .viewer2 import q3dconst
 
 
 class Layer:

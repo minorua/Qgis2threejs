@@ -23,9 +23,9 @@ from PyQt5.QtCore import QEventLoop
 from qgis.core import QgsApplication, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from . import q3dconst
-from Qgis2threejs.export import ThreeJSExporter
-from Qgis2threejs.exportsettings import ExportSettings
-from Qgis2threejs.qgis2threejstools import getLayersInProject, logMessage
+from .export import ThreeJSExporter
+from .exportsettings import ExportSettings
+from .qgis2threejstools import getLayersInProject, logMessage
 
 
 class Q3DViewerController:

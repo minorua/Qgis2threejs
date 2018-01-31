@@ -31,9 +31,9 @@ from .exportvector import VectorLayerExporter
 from .exportsettings import ExportSettings
 from .qgis2threejscore import ObjectTreeItem
 from .writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
-from . import qgis2threejstools as tools
 from .qgis2threejstools import getLayersInProject, logMessage
-from .viewer2 import q3dconst
+from . import q3dconst
+from . import qgis2threejstools as tools
 
 class ThreeJSExporter:
 
