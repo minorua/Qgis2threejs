@@ -50,31 +50,21 @@ class Q3DTreeView(QTreeView):
   def setup(self, iface):
     self.iface = iface
 
-    TREE_TOP_ITEMS = ("Scene", "Lights & Shadow", "Layers")    # tr
     LAYER_GROUP_ITEMS = ((q3dconst.TYPE_DEM, "DEM"),
                          (q3dconst.TYPE_POINT, "Point"),
                          (q3dconst.TYPE_LINESTRING, "Line"),
                          (q3dconst.TYPE_POLYGON, "Polygon"))
 
     model = QStandardItemModel(0, 2)
-    self.treeItems = []
-    for name in TREE_TOP_ITEMS:
-      item = QStandardItem(name)
-      item.setIcon(QgsApplication.getThemeIcon("/propertyicons/CRS.svg"))
-      #item.setData(itemId)
-      item.setEditable(False)
-      self.treeItems.append(item)
-      model.invisibleRootItem().appendRow([item])
-
-    itemLayers = self.treeItems[2]   # Layers
     self.layerParentItem = {}
     for geomType, name in LAYER_GROUP_ITEMS:
       item = QStandardItem(name)
       item.setIcon(self.icons[geomType])
       #item.setData(itemId)
       item.setEditable(False)
-      itemLayers.appendRow([item])
+
       self.layerParentItem[geomType] = item
+      model.invisibleRootItem().appendRow([item])
 
     self.setModel(model)
     self.header().setStretchLastSection(False)

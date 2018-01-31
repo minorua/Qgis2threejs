@@ -96,9 +96,9 @@
    <addaction name="menuWindow"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockWidgetProperties">
+  <widget class="QDockWidget" name="dockWidgetLayers">
    <property name="windowTitle">
-    <string>Properties</string>
+    <string>Layers</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>

@@ -161,7 +161,7 @@ class Q3DWindow(QMainWindow):
     QMainWindow.closeEvent(self, event)
 
   def setupMenu(self):
-    self.ui.menuPanels.addAction(self.ui.dockWidgetProperties.toggleViewAction())
+    self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
     self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
   def setupStatusBar(self, iface):
