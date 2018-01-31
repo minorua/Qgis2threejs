@@ -43,8 +43,7 @@ class Q3DTreeView(QTreeView):
       q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("/mIconRaster.svg"),
       q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("/mIconPointLayer.svg"),
       q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("/mIconLineLayer.svg"),
-      q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg"),
-      "settings": QIcon(os.path.join(pluginDir(), "icons", "settings.png"))
+      q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg")
       }
 
   def setup(self, iface):
@@ -55,7 +54,7 @@ class Q3DTreeView(QTreeView):
                          (q3dconst.TYPE_LINESTRING, "Line"),
                          (q3dconst.TYPE_POLYGON, "Polygon"))
 
-    model = QStandardItemModel(0, 2)
+    model = QStandardItemModel(0, 1)
     self.layerParentItem = {}
     for geomType, name in LAYER_GROUP_ITEMS:
       item = QStandardItem(name)
@@ -67,9 +66,6 @@ class Q3DTreeView(QTreeView):
       model.invisibleRootItem().appendRow([item])
 
     self.setModel(model)
-    self.header().setStretchLastSection(False)
-    self.header().setSectionResizeMode(0, QHeaderView.Stretch)
-    self.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
     self.expandAll()
 
     self.model().itemChanged.connect(self.treeItemChanged)
@@ -84,16 +80,7 @@ class Q3DTreeView(QTreeView):
     item.setIcon(self.icons[layer.geomType])    #TODO: icon for each object type
     item.setEditable(False)
 
-    item2 = QStandardItem()
-    self.layerParentItem[layer.geomType].appendRow([item, item2])
-
-    # add a button
-    button = QPushButton()
-    button.setIcon(self.icons["settings"])
-    button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-    button.setMaximumHeight(16)
-    button.setMaximumWidth(20)
-    self.setIndexWidget(item2.index(), button)
+    self.layerParentItem[layer.geomType].appendRow([item])
 
   def removeLayer(self, layerId):
     pass
