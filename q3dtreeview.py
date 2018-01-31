@@ -23,7 +23,7 @@ import os
 
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QHeaderView, QPushButton, QTreeView
+from PyQt5.QtWidgets import QAction, QHeaderView, QMenu, QPushButton, QTreeView
 from qgis.core import QgsApplication
 
 from . import q3dconst
@@ -46,6 +46,17 @@ class Q3DTreeView(QTreeView):
       q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg")
       }
 
+    self.actionProperties = QAction("Properties")
+    self.actionProperties.triggered.connect(self.showPropertiesDialog)
+
+    self.contextMenu = QMenu(self)
+    self.contextMenu.addAction(self.actionProperties)
+
+    self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    self.customContextMenuRequested.connect(self.showContextMenu)
+    self.doubleClicked.connect(self.showPropertiesDialog)
+
   def setup(self, iface):
     self.iface = iface
 
@@ -59,7 +70,6 @@ class Q3DTreeView(QTreeView):
     for geomType, name in LAYER_GROUP_ITEMS:
       item = QStandardItem(name)
       item.setIcon(self.icons[geomType])
-      #item.setData(itemId)
       item.setEditable(False)
 
       self.layerParentItem[geomType] = item
@@ -69,7 +79,6 @@ class Q3DTreeView(QTreeView):
     self.expandAll()
 
     self.model().itemChanged.connect(self.treeItemChanged)
-    self.doubleClicked.connect(self.treeItemDoubleClicked)
 
   def addLayer(self, layer):
     # add a layer item to tree view
@@ -123,9 +132,13 @@ class Q3DTreeView(QTreeView):
         }
       self.iface.loadJSONObject(obj)
 
-  def treeItemDoubleClicked(self, modelIndex):
+  def showContextMenu(self, pos):
+    if self.model().data(self.indexAt(pos), Qt.UserRole + 1) is not None:
+      self.contextMenu.exec_(self.mapToGlobal(pos))
+
+  def showPropertiesDialog(self, _=None):
     # open layer properties dialog
-    layer = self.iface.controller.settings.getItemByLayerId(modelIndex.data(Qt.UserRole + 1))
-    if layer is None:
-      return
-    self.iface.showLayerPropertiesDialog(layer)
+    data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
+    layer = self.iface.controller.settings.getItemByLayerId(data)
+    if layer is not None:
+      self.iface.showLayerPropertiesDialog(layer)
