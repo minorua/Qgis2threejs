@@ -35,7 +35,7 @@ Q3D.$ = function (elementId) {
 };
 
 /*
-Q3D.Group -> THREE.Scene -> THREE.Object3D
+Q3D.Group -> THREE.Group -> THREE.Object3D
 */
 Q3D.Group = function () {
   THREE.Group.call(this);
