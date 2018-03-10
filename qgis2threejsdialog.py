@@ -27,8 +27,8 @@ import os
 from PyQt5.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from PyQt5.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
 from PyQt5.QtGui import QColor, QIcon
-from qgis.core import QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
-from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint, QgsRubberBand
+from qgis.core import Qgis, QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
+from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 
@@ -237,12 +237,12 @@ class Qgis2threejsDialog(QDialog):
       self.pluginManager.reloadPlugins()
       self.pages[ppages.PAGE_DEM].initLayerComboBox()
 
-  def showMessageBar(self, text, level=QgsMessageBar.INFO):
+  def showMessageBar(self, text, level=Qgis.Info):
     # from src/gui/qgsmessagebaritem.cpp
-    if level == QgsMessageBar.CRITICAL:
+    if level == Qgis.Critical:
       msgIcon = "/mIconCritical.png"
       bgColor = "#d65253"
-    elif level == QgsMessageBar.WARNING:
+    elif level == Qgis.Warning:
       msgIcon = "/mIconWarn.png"
       bgColor = "#ffc800"
     else:
@@ -375,7 +375,7 @@ class Qgis2threejsDialog(QDialog):
       # show message if crs unit is degrees
       mapSettings = self.iface.mapCanvas().mapSettings()
       if mapSettings.destinationCrs().mapUnits() in [QgsUnitTypes.DistanceDegrees]:
-        self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", QgsMessageBar.WARNING)
+        self.showMessageBar("The unit of current CRS is degrees, so terrain may not appear well.", Qgis.Warning)
 
     self.templateType = templateType
 
