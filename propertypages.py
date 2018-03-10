@@ -555,7 +555,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.comboBox_Label.clear()
     if hasPoint:
       self.comboBox_Label.addItem("(No label)")
-      fields = mapLayer.pendingFields()
+      fields = mapLayer.fields()
       for i in range(fields.count()):
         self.comboBox_Label.addItem(fields[i].name(), i)
 

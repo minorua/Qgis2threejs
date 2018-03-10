@@ -547,7 +547,7 @@ class VectorLayer(Layer):
     self.labelAttrIndex = None
 
     if self.writeAttrs:
-      self.fieldNames = [field.name() for field in layer.pendingFields()]
+      self.fieldNames = [field.name() for field in layer.fields()]
       self.labelAttrIndex = properties.get("comboBox_Label", None)
 
   def hasLabel(self):
@@ -750,7 +750,7 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
     return
 
   # initialize symbol rendering
-  mapLayer.renderer().startRender(renderContext, mapLayer.pendingFields())
+  mapLayer.renderer().startRender(renderContext, mapLayer.fields())
 
   # features to export
   request = QgsFeatureRequest()

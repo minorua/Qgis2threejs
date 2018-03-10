@@ -89,7 +89,7 @@ class VectorLayerExporter(LayerExporter):
         self.clipGeom = extent.geometry()
 
     # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
-    mapLayer.renderer().startRender(renderContext, mapLayer.pendingFields())
+    mapLayer.renderer().startRender(renderContext, mapLayer.fields())
     self.features = layer.features(request)
     mapLayer.renderer().stopRender(renderContext)
 
@@ -310,7 +310,7 @@ class VectorLayer(Layer):
     self.labelAttrIndex = None
 
     if self.writeAttrs:
-      self.fieldNames = [field.name() for field in layer.pendingFields()]
+      self.fieldNames = [field.name() for field in layer.fields()]
       self.labelAttrIndex = properties.get("comboBox_Label", None)
 
   def hasLabel(self):

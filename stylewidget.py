@@ -83,7 +83,7 @@ class WidgetFuncBase:
   @classmethod
   def numericalFields(cls, layer):
     numeric_fields = []
-    for i, field in enumerate(layer.pendingFields()):
+    for i, field in enumerate(layer.fields()):
       if field.type() in [QVariant.Double, QVariant.Int, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]:
         numeric_fields.append([i, field.name()])
     return numeric_fields
