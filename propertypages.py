@@ -304,7 +304,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     properties = layer.properties
 
     # show/hide resampling slider
-    self.setLayoutVisible(self.verticalLayout_Resampling, layer.layerId != "FLAT")
+    self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
 
     # use default properties if properties is not set
     if not properties:
@@ -315,7 +315,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # restore properties of the layer
     self.setProperties(properties)
 
-    self.updateDEMSize()
     self.updateLayerImageLabel()
 
     # set enablement and visibility of widgets
@@ -340,10 +339,22 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.comboBox_TextureSize.addItem(text, percent)
 
   def resolutionSliderChanged(self, v):
-    self.updateDEMSize()
-    val = self.horizontalSlider_DEMSize.value()
-    size = 100 * val
-    QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), "Level {0} (about {1} x {1})".format(val, size), self.horizontalSlider_DEMSize)
+    canvas = self.dialog.iface.mapCanvas()
+    canvasSize = canvas.mapSettings().outputSize()
+    resolutionLevel = self.horizontalSlider_DEMSize.value()
+    roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
+    demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
+
+    mupp = canvas.mapUnitsPerPixel()
+    xres = (mupp * canvasSize.width()) / (demSize.width() - 1)
+    yres = (mupp * canvasSize.height()) / (demSize.height() - 1)
+
+    tip = """Level {0}
+Grid Size: {1} x {2}
+Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
+                                           demSize.width(), demSize.height(),
+                                           xres, yres)
+    QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
 
   def selectLayerClicked(self):
     from .layerselectdialog import LayerSelectDialog
@@ -375,7 +386,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
   def surroundingsToggled(self, checked):
-    self.updateDEMSize()
     self.setLayoutEnabled(self.gridLayout_Surroundings, checked)
     self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
     self.setWidgetsEnabled([self.radioButton_ImageFile], not checked)
@@ -384,28 +394,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.radioButton_MapCanvas.setChecked(True)
 
   def rougheningChanged(self, v):
-    self.updateDEMSize()
     # possible value is a power of 2
     self.spinBox_Roughening.setSingleStep(v)
     self.spinBox_Roughening.setMinimum(max(v // 2, 1))
-
-  def updateDEMSize(self, v=None):
-    # calculate DEM size and grid spacing
-    canvas = self.dialog.iface.mapCanvas()
-    canvasSize = canvas.mapSettings().outputSize()
-    resolutionLevel = self.horizontalSlider_DEMSize.value()
-    roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
-    demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
-
-    mupp = canvas.mapUnitsPerPixel()
-    xres = (mupp * canvasSize.width()) / (demSize.width() - 1)
-    yres = (mupp * canvasSize.height()) / (demSize.height() - 1)
-
-    # update labels
-    fmt = "{0:.5f}"
-    self.label_GridSize.setText("{0} ({1} x {2})".format(resolutionLevel, demSize.width(), demSize.height()))
-    self.lineEdit_HRes.setText(fmt.format(xres))
-    self.lineEdit_VRes.setText(fmt.format(yres))
 
   def properties(self):
     p = PropertyPage.properties(self)
