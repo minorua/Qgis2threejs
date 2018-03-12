@@ -129,8 +129,8 @@ class Ui_Q3DWindow(object):
         self.actionLayer_Panel.setObjectName("actionLayer_Panel")
         self.actionClose_Live_Exporter = QtWidgets.QAction(Q3DWindow)
         self.actionClose_Live_Exporter.setObjectName("actionClose_Live_Exporter")
-        self.actionPlugin_Settings = QtWidgets.QAction(Q3DWindow)
-        self.actionPlugin_Settings.setObjectName("actionPlugin_Settings")
+        self.actionPluginSettings = QtWidgets.QAction(Q3DWindow)
+        self.actionPluginSettings.setObjectName("actionPluginSettings")
         self.actionHelp = QtWidgets.QAction(Q3DWindow)
         self.actionHelp.setObjectName("actionHelp")
         self.menuCamera.addAction(self.actionPerspective)
@@ -151,7 +151,7 @@ class Ui_Q3DWindow(object):
         self.menuFile.addAction(self.menuExport.menuAction())
         self.menuFile.addAction(self.actionSaveAsImage)
         self.menuFile.addSeparator()
-        self.menuFile.addAction(self.actionPlugin_Settings)
+        self.menuFile.addAction(self.actionPluginSettings)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose_Live_Exporter)
         self.menuHelp.addAction(self.actionHelp)
@@ -198,7 +198,7 @@ class Ui_Q3DWindow(object):
         self.actionOrbit.setText(_translate("Q3DWindow", "Orbit"))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
         self.actionClose_Live_Exporter.setText(_translate("Q3DWindow", "Close Live Exporter"))
-        self.actionPlugin_Settings.setText(_translate("Q3DWindow", "Plugin Settings.."))
+        self.actionPluginSettings.setText(_translate("Q3DWindow", "Plugin Settings.."))
         self.actionHelp.setText(_translate("Q3DWindow", "&Help"))
 
 from Qgis2threejs.q3dtreeview import Q3DTreeView

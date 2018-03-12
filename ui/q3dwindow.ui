@@ -87,7 +87,7 @@
     <addaction name="menuExport"/>
     <addaction name="actionSaveAsImage"/>
     <addaction name="separator"/>
-    <addaction name="actionPlugin_Settings"/>
+    <addaction name="actionPluginSettings"/>
     <addaction name="separator"/>
     <addaction name="actionClose_Live_Exporter"/>
    </widget>
@@ -299,7 +299,7 @@
     <string>Close Live Exporter</string>
    </property>
   </action>
-  <action name="actionPlugin_Settings">
+  <action name="actionPluginSettings">
    <property name="text">
     <string>Plugin Settings..</string>
    </property>

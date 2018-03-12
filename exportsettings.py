@@ -73,6 +73,8 @@ class ExportSettings:
   PLAIN_MULTI_RES = 1
   SPHERE = 2
 
+  #TODO: do not take pluginManager.
+  # one instance should be held in Qgis2threejs plugin, and should not be held in export settings.
   def __init__(self, pluginManager=None, localBrowsingMode=True):
     """localBrowsingMode: not implemented yet"""
     self.localBrowsingMode = localBrowsingMode
