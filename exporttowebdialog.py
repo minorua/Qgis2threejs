@@ -39,7 +39,7 @@ class ExportToWebDialog(QDialog):
     self.settings = settings
     self.pluginManager = pluginManager
 
-    from .ui5_exporttowebdialog import Ui_ExportToWebDialog
+    from .ui.exporttowebdialog import Ui_ExportToWebDialog
     self.ui = Ui_ExportToWebDialog()
     self.ui.setupUi(self)
     self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
