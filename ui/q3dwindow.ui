@@ -35,18 +35,10 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuProject">
+   <widget class="QMenu" name="menuScene">
     <property name="title">
      <string>&amp;Scene</string>
     </property>
-    <widget class="QMenu" name="menuExport">
-     <property name="title">
-      <string>Export</string>
-     </property>
-     <addaction name="actionExportToWeb"/>
-     <addaction name="separator"/>
-     <addaction name="actionSTL_format"/>
-    </widget>
     <widget class="QMenu" name="menuCamera">
      <property name="title">
       <string>Camera</string>
@@ -59,7 +51,6 @@
       <string>Controls</string>
      </property>
      <addaction name="actionOrbit"/>
-     <addaction name="actionTrackball"/>
     </widget>
     <addaction name="actionWorld_Settings"/>
     <addaction name="menuCamera"/>
@@ -67,15 +58,6 @@
     <addaction name="separator"/>
     <addaction name="actionReload"/>
     <addaction name="separator"/>
-    <addaction name="menuExport"/>
-    <addaction name="actionSaveAsImage"/>
-    <addaction name="separator"/>
-    <addaction name="actionClose_Live_Exporter"/>
-   </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
     <addaction name="actionResetCameraPosition"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
@@ -91,9 +73,34 @@
     <addaction name="separator"/>
     <addaction name="actionAlwaysOnTop"/>
    </widget>
-   <addaction name="menuProject"/>
-   <addaction name="menuView"/>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionExportToWeb"/>
+     <addaction name="actionSTL_format"/>
+    </widget>
+    <addaction name="menuExport"/>
+    <addaction name="actionSaveAsImage"/>
+    <addaction name="separator"/>
+    <addaction name="actionPlugin_Settings"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose_Live_Exporter"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionHelp"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuScene"/>
    <addaction name="menuWindow"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidgetLayers">
@@ -189,7 +196,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export as STL format</string>
+    <string>Export as STL format...</string>
    </property>
   </action>
   <action name="actionWorld_Settings">
@@ -251,7 +258,7 @@
   </action>
   <action name="actionSaveAsImage">
    <property name="text">
-    <string>Save Scene as Image</string>
+    <string>Save Scene as Image...</string>
    </property>
   </action>
   <action name="actionResetCameraPosition">
@@ -273,17 +280,6 @@
     <string>Orbit</string>
    </property>
   </action>
-  <action name="actionTrackball">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Trackball</string>
-   </property>
-  </action>
   <action name="actionLayer_Panel">
    <property name="checkable">
     <bool>true</bool>
@@ -301,6 +297,16 @@
   <action name="actionClose_Live_Exporter">
    <property name="text">
     <string>Close Live Exporter</string>
+   </property>
+  </action>
+  <action name="actionPlugin_Settings">
+   <property name="text">
+    <string>Plugin Settings..</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>&amp;Help</string>
    </property>
   </action>
  </widget>
