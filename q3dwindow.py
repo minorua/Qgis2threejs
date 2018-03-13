@@ -21,12 +21,14 @@
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QObject, QSettings, QVariant, pyqtSignal
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox
+from PyQt5.QtCore import QObject, QSettings, QUrl, QVariant, pyqtSignal
+from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox
 
 from qgis.core import QgsProject
 
 from . import q3dconst
+from .conf import plugin_version
 from .exportsettings import ExportSettings
 from .exporttowebdialog import ExportToWebDialog
 from .propertypages import DEMPropertyPage, VectorPropertyPage
@@ -141,6 +143,10 @@ class Q3DWindow(QMainWindow):
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
+    self.ui.actionHelp.triggered.connect(self.help)
+    self.ui.actionHomePage.triggered.connect(self.homePage)
+    self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
+    self.ui.actionAbout.triggered.connect(self.about)
     self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
 
     # to disconnect from map canvas when window is closed
@@ -244,6 +250,18 @@ class Q3DWindow(QMainWindow):
     dialog = SettingsDialog(self)
     if dialog.exec_():
       self.iface.controller.pluginManager.reloadPlugins()
+
+  def help(self):
+    QDesktopServices.openUrl(QUrl("http://qgis2threejs.readthedocs.io/en/docs-release/"))
+
+  def homePage(self):
+    QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs"))
+
+  def sendFeedback(self):
+    QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs/issues"))
+
+  def about(self):
+    QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(plugin_version), QMessageBox.Ok)
 
 
 class PropertiesDialog(QDialog):

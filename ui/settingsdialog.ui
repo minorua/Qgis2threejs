@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Settings</string>
+   <string>Qgis2threejs Plugin Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>

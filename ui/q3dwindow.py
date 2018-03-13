@@ -133,6 +133,12 @@ class Ui_Q3DWindow(object):
         self.actionPluginSettings.setObjectName("actionPluginSettings")
         self.actionHelp = QtWidgets.QAction(Q3DWindow)
         self.actionHelp.setObjectName("actionHelp")
+        self.actionHomePage = QtWidgets.QAction(Q3DWindow)
+        self.actionHomePage.setObjectName("actionHomePage")
+        self.actionSendFeedback = QtWidgets.QAction(Q3DWindow)
+        self.actionSendFeedback.setObjectName("actionSendFeedback")
+        self.actionAbout = QtWidgets.QAction(Q3DWindow)
+        self.actionAbout.setObjectName("actionAbout")
         self.menuCamera.addAction(self.actionPerspective)
         self.menuCamera.addAction(self.actionOrthogonal)
         self.menuControls.addAction(self.actionOrbit)
@@ -155,6 +161,11 @@ class Ui_Q3DWindow(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose_Live_Exporter)
         self.menuHelp.addAction(self.actionHelp)
+        self.menuHelp.addSeparator()
+        self.menuHelp.addAction(self.actionHomePage)
+        self.menuHelp.addAction(self.actionSendFeedback)
+        self.menuHelp.addSeparator()
+        self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuScene.menuAction())
         self.menubar.addAction(self.menuWindow.menuAction())
@@ -171,7 +182,7 @@ class Ui_Q3DWindow(object):
 
     def retranslateUi(self, Q3DWindow):
         _translate = QtCore.QCoreApplication.translate
-        Q3DWindow.setWindowTitle(_translate("Q3DWindow", "Live Exporter - Qgis2threejs"))
+        Q3DWindow.setWindowTitle(_translate("Q3DWindow", "Qgis2threejs Exporter"))
         self.menuScene.setTitle(_translate("Q3DWindow", "&Scene"))
         self.menuCamera.setTitle(_translate("Q3DWindow", "Camera"))
         self.menuControls.setTitle(_translate("Q3DWindow", "Controls"))
@@ -197,9 +208,12 @@ class Ui_Q3DWindow(object):
         self.actionResetCameraPosition.setShortcut(_translate("Q3DWindow", "Shift+R"))
         self.actionOrbit.setText(_translate("Q3DWindow", "Orbit"))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
-        self.actionClose_Live_Exporter.setText(_translate("Q3DWindow", "Close Live Exporter"))
+        self.actionClose_Live_Exporter.setText(_translate("Q3DWindow", "E&xit Exporter"))
         self.actionPluginSettings.setText(_translate("Q3DWindow", "Plugin Settings.."))
         self.actionHelp.setText(_translate("Q3DWindow", "&Help"))
+        self.actionHomePage.setText(_translate("Q3DWindow", "Plugin Home Page"))
+        self.actionSendFeedback.setText(_translate("Q3DWindow", "Send Feedback"))
+        self.actionAbout.setText(_translate("Q3DWindow", "About Qgis2threejs Plugin"))
 
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView

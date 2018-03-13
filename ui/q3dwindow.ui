@@ -14,7 +14,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>Live Exporter - Qgis2threejs</string>
+   <string>Qgis2threejs Exporter</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -96,6 +96,11 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionHelp"/>
+    <addaction name="separator"/>
+    <addaction name="actionHomePage"/>
+    <addaction name="actionSendFeedback"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuScene"/>
@@ -296,7 +301,7 @@
   </action>
   <action name="actionClose_Live_Exporter">
    <property name="text">
-    <string>Close Live Exporter</string>
+    <string>E&amp;xit Exporter</string>
    </property>
   </action>
   <action name="actionPluginSettings">
@@ -307,6 +312,21 @@
   <action name="actionHelp">
    <property name="text">
     <string>&amp;Help</string>
+   </property>
+  </action>
+  <action name="actionHomePage">
+   <property name="text">
+    <string>Plugin Home Page</string>
+   </property>
+  </action>
+  <action name="actionSendFeedback">
+   <property name="text">
+    <string>Send Feedback</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About Qgis2threejs Plugin</string>
    </property>
   </action>
  </widget>
