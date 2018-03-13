@@ -84,121 +84,99 @@
        <number>3</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="leftMargin">
-         <number>4</number>
-        </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QRadioButton" name="radioButton_Absolute">
+         <widget class="QLabel" name="label_2">
+          <property name="minimumSize">
+           <size>
+            <width>46</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>Absolute</string>
+           <string>Altitude</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_zValue">
+          <property name="text">
+           <string>Z Value</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_zValue</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_mValue">
+          <property name="text">
+           <string>M Value</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_zValue</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_FieldValue">
+          <property name="text">
+           <string>Value/Expression</string>
           </property>
           <property name="checked">
            <bool>true</bool>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">buttonGroup_zMode</string>
+           <string notr="true">buttonGroup_zValue</string>
           </attribute>
          </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QRadioButton" name="radioButton_Relative">
-            <property name="text">
-             <string>Relative To DEM</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_zMode</string>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox_zDEMLayer"/>
-          </item>
-         </layout>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Value</string>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="leftMargin">
+         <number>10</number>
         </property>
-       </widget>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_zExpression">
+          <property name="minimumSize">
+           <size>
+            <width>46</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QgsFieldExpressionWidget" name="fieldExpressionWidget_altitude" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>20</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <property name="leftMargin">
-         <number>4</number>
-        </property>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QRadioButton" name="radioButton_FieldValue">
-            <property name="text">
-             <string>Value/Expression</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_zValue</string>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_zValue">
-            <property name="text">
-             <string>Z Value</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_zValue</string>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_mValue">
-            <property name="text">
-             <string>M Value</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup_zValue</string>
-            </attribute>
-           </widget>
-          </item>
-         </layout>
+       <layout class="QFormLayout" name="formLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="minimumSize">
+           <size>
+            <width>46</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Mode</string>
+          </property>
+         </widget>
         </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_zExpression">
-            <property name="minimumSize">
-             <size>
-              <width>46</width>
-              <height>0</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QgsFieldExpressionWidget" name="fieldExpressionWidget_zCoordinate" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>20</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_altitudeMode"/>
         </item>
        </layout>
       </item>
@@ -415,7 +393,6 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_zMode"/>
   <buttongroup name="buttonGroup_zValue"/>
  </buttongroups>
 </ui>

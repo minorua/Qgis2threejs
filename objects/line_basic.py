@@ -94,7 +94,7 @@ def geometry(settings, layer, feat, geom):
   if type_index == 4:   # Profile
     d = {}
     if layer.prop.isHeightRelativeToDEM():
-      d["h"] = feat.relativeHeight * mapTo3d.multiplierZ
+      d["h"] = feat.altitude * mapTo3d.multiplierZ
       d["lines"] = geom.asList2()
     else:
       d["lines"] = geom.asList()

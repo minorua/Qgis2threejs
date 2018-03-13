@@ -72,7 +72,7 @@ class VectorPropertyReader:
       self.visible = False
 
     self._exprs = {}
-    self.exprZ = QgsExpression(properties.get("fieldExpressionWidget_zCoordinate") or "0")
+    self.exprAlt = QgsExpression(properties.get("fieldExpressionWidget_altitude") or "0")
 
   def evaluateExpression(self, expr_str, f):
     if expr_str not in self._exprs:
@@ -175,10 +175,10 @@ class VectorPropertyReader:
     return self.properties.get("radioButton_mValue", False)
 
   def isHeightRelativeToDEM(self):
-    return self.properties.get("radioButton_Relative", False)
+    return self.properties.get("comboBox_altitudeMode") is not None
 
-  def relativeHeight(self):
-    return self.exprZ.evaluate(self.expressionContext)
+  def altitude(self):
+    return self.exprAlt.evaluate(self.expressionContext)
 
   def setContextFeature(self, f):
     self.expressionContext.setFeature(f)

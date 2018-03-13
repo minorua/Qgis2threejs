@@ -155,7 +155,7 @@ class VectorLayerExporter(LayerExporter):
     demProvider = None
     if self.prop.isHeightRelativeToDEM():
       if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.type_index != 1:  # Overlay
-        demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_zDEMLayer"))
+        demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
     if self.layer.properties.get("radioButton_zValue"):
       useZM = Geometry.UseZ
@@ -225,12 +225,12 @@ class FeatureBlockExporter:
 
 class Feature:
 
-  def __init__(self, layer, qGeom, height, propValues, attrs=None):
+  def __init__(self, layer, qGeom, altitude, propValues, attrs=None):
     self.layerProp = layer.prop
     self.geom = qGeom
     self.geomType = layer.geomType
     self.geomClass = layer.geomType2Class.get(layer.geomType)
-    self.relativeHeight = height
+    self.altitude = altitude
     self.values = propValues
     self.attributes = attrs
 
@@ -245,7 +245,7 @@ class Feature:
       z_func = lambda x, y: 0
 
     # transform_func: function to transform the map coordinates to 3d coordinates
-    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z + self.relativeHeight)
+    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z + self.altitude)
 
     #if useZ and False:    #TODO: use QGIS API
       # ogr_geom = ogr.CreateGeometryFromWkb(bytes(geometry.exportToWkb()))
@@ -366,13 +366,13 @@ class VectorLayer(Layer):
       prop.setContextFeature(f)
 
       # evaluate expression
-      height = prop.relativeHeight()
+      altitude = prop.altitude()
       propVals = prop.values(f)      # TODO: divide into geomProperties, styleProperties
 
       attrs = f.attributes() if self.writeAttrs else None
 
       # create a feature object
-      feat = Feature(self, geom, height, propVals, attrs)
+      feat = Feature(self, geom, altitude, propVals, attrs)
       feats.append(feat)
 
     return feats

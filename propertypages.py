@@ -462,16 +462,14 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType]
-    widgets += self.buttonGroup_zMode.buttons() + [self.comboBox_zDEMLayer]
-    widgets += self.buttonGroup_zValue.buttons() + [self.fieldExpressionWidget_zCoordinate]
+    widgets += self.buttonGroup_zValue.buttons() + [self.fieldExpressionWidget_altitude, self.comboBox_altitudeMode]
     widgets += self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
     self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
-    for btn in self.buttonGroup_zMode.buttons():
-      btn.toggled.connect(self.zModeRadioButtonToggled)
+    self.comboBox_altitudeMode.currentIndexChanged.connect(self.altitudeModeChanged)
     for btn in self.buttonGroup_zValue.buttons():
       btn.toggled.connect(self.zValueRadioButtonToggled)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
@@ -501,9 +499,13 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       self.comboBox_ObjectType.setCurrentIndex(properties.get("comboBox_ObjectType", 0))
     self.comboBox_ObjectType.blockSignals(False)
 
-    # populate DEM layer items (relative to DEM)
+    # set up altitude mode combo box
+    self.comboBox_altitudeMode.blockSignals(True)
+    self.comboBox_altitudeMode.clear()
+    self.comboBox_altitudeMode.addItem("Absolute")
     for lyr in tools.getDEMLayersInProject():
-      self.comboBox_zDEMLayer.addItem(lyr.name(), lyr.id())
+      self.comboBox_altitudeMode.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
+    self.comboBox_altitudeMode.blockSignals(False)
 
     # set up z/m button
     wkbType = mapLayer.wkbType()
@@ -519,10 +521,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     else:
       self.radioButton_FieldValue.setChecked(True)
 
-    # set up field expression widget (z coordinate)
-    self.fieldExpressionWidget_zCoordinate.setFilters(QgsFieldProxyModel.Numeric)
-    self.fieldExpressionWidget_zCoordinate.setLayer(mapLayer)
-    self.fieldExpressionWidget_zCoordinate.setExpression("0")
+    # set up field expression widget
+    self.fieldExpressionWidget_altitude.setFilters(QgsFieldProxyModel.Numeric)
+    self.fieldExpressionWidget_altitude.setLayer(mapLayer)
+    self.fieldExpressionWidget_altitude.setExpression("0")
 
     # set up label height widget
     if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
@@ -568,13 +570,13 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
-  def zModeRadioButtonToggled(self, toggled=None):
+  def altitudeModeChanged(self, index):
     geom_type = self.layer.mapLayer.geometryType()
     type_index = self.comboBox_ObjectType.currentIndex()
     only_clipped = False
 
     if (geom_type == QgsWkbTypes.LineGeometry and type_index == 4) or (geom_type == QgsWkbTypes.PolygonGeometry and type_index == 1):    # Profile or Overlay
-      if self.radioButton_Relative.isChecked():
+      if index:
         only_clipped = True
         self.radioButton_IntersectingFeatures.setChecked(True)
         self.checkBox_Clip.setChecked(True)

@@ -150,7 +150,7 @@ def geometry(settings, layer, feat, geom):
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
-    g["h"] = feat.relativeHeight() * settings.mapTo3d().multiplierZ
+    g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
 
     polygons = []
     triangles = Triangles()
