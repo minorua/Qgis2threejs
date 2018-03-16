@@ -39,7 +39,7 @@ from .qgis2threejstools import getLayersInProject, logMessage
 from .rotatedrect import RotatedRect
 from .stylewidget import StyleWidget, LabelHeightWidgetFunc
 from . import qgis2threejstools as tools
-from .vectorobject import objectTypeManager
+from .vectorobject import objectTypeRegistry
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
@@ -490,7 +490,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
     self.comboBox_ObjectType.clear()
-    for obj_type in objectTypeManager().objectTypes(mapLayer.geometryType()):
+    for obj_type in objectTypeRegistry().objectTypes(mapLayer.geometryType()):
       self.comboBox_ObjectType.addItem(obj_type.displayName, obj_type.name)
     if properties:
       # restore object type selection
@@ -562,8 +562,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.label_ObjectTypeMessage.setVisible(is_experimental)
 
     # setup widgets
-    obj_type = objectTypeManager().objectType(self.layer.mapLayer.geometryType(),
-                                              self.comboBox_ObjectType.currentData())
+    obj_type = objectTypeRegistry().objectType(self.layer.mapLayer.geometryType(),
+                                               self.comboBox_ObjectType.currentData())
     obj_type.setupWidgets(self,
                           self.dialog.mapTo3d(),     # to calculate default values
                           self.layer.mapLayer)

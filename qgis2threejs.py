@@ -28,7 +28,6 @@ from qgis.core import QgsMapLayer
 
 from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
-from .vectorobject import ObjectTypeManager
 from .q3dviewercontroller import Q3DViewerController
 from .q3dwindow import Q3DWindow
 
@@ -53,7 +52,6 @@ class Qgis2threejs:
     #  if qVersion() > '4.3.3':
     #    QCoreApplication.installTranslator(self.translator)
 
-    self.objectTypeManager = None
     self.pluginManager = None
 
     self.exportSettings = {}
@@ -87,9 +85,6 @@ class Qgis2threejs:
     removeTemporaryOutputDir()
 
   def initManagers(self):
-    if self.objectTypeManager is None:
-      self.objectTypeManager = ObjectTypeManager()
-
     if self.pluginManager is None:
       self.pluginManager = PluginManager()
 

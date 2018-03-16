@@ -39,12 +39,12 @@ class ThreejsJSWriter(QObject):
   # progress
 
   # device: an instance of a subclass of QIODevice (QFile, QBuffer, etc.) or a file object
-  def __init__(self, device, settings, objectTypeManager, parent=None):
+  def __init__(self, device, settings, objectTypeRegistry, parent=None):
     QObject.__init__(self, parent)
     self.setDevice(device)
     self.settings = settings
     self.demProvider = settings.demProvider()
-    self.objectTypeManager = objectTypeManager
+    self.objectTypeRegistry = objectTypeRegistry
 
     self.layerCount = 0
     self.currentLayerIndex = 0
@@ -729,8 +729,8 @@ def writeVector(writer, layerId, properties, progress=None, renderer=None, noFea
 
   renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
   expContext = settings.mapSettings.expressionContext()
-  prop = VectorPropertyReader(writer.objectTypeManager, renderContext, expContext, mapLayer, properties)
-  obj_mod = writer.objectTypeManager.module(prop.mod_index)
+  prop = VectorPropertyReader(writer.objectTypeRegistry, renderContext, expContext, mapLayer, properties)
+  obj_mod = writer.objectTypeRegistry.module(prop.mod_index)
   if obj_mod is None:
     logMessage("Module not found")
     return

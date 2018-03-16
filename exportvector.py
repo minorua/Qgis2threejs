@@ -30,7 +30,7 @@ from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem
 from . import qgis2threejstools as tools
 from .qgis2threejstools import logMessage
-from .vectorobject import objectTypeManager
+from .vectorobject import objectTypeRegistry
 
 
 class VectorLayerExporter(LayerExporter):
@@ -55,8 +55,7 @@ class VectorLayerExporter(LayerExporter):
     mapSettings = self.settings.mapSettings
     renderContext = QgsRenderContext.fromMapSettings(mapSettings)
 
-    otm = objectTypeManager()
-    self.prop = VectorPropertyReader(otm, renderContext, mapLayer, properties)
+    self.prop = VectorPropertyReader(objectTypeRegistry(), renderContext, mapLayer, properties)
     if self.prop.objType is None:
       logMessage("Object type not found")
       return

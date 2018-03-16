@@ -29,19 +29,17 @@ from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetF
 from Qgis2threejs.geometry import Triangles
 
 
-_objectTypeManager = None
+_objectTypeRegistry = None
 
-def objectTypeManager():
-  global _objectTypeManager
-  if _objectTypeManager is None:
-    _objectTypeManager = ObjectTypeManager()
-  return _objectTypeManager
+def objectTypeRegistry():
+  global _objectTypeRegistry
+  if _objectTypeRegistry is None:
+    _objectTypeRegistry = ObjectTypeRegistry()
+  return _objectTypeRegistry
 
-
-##############################
 
 def tr(source):
-  return "(" + source + ")"   #TODO
+  return source
 
 
 def _():
@@ -484,10 +482,8 @@ class COLLADAModelType(ModelTypeBase):
     ModelTypeBase.setupWidgets(self, ppage, mapTo3d, layer, "COLLADA file", "COLLADA files (*.dae);;All files (*.*)")
 
 
-##############################
-
-#TODO: ObjectTypeRegistry
-class ObjectTypeManager:
+### ObjectTypeRegistry
+class ObjectTypeRegistry:
 
   def __init__(self):
     # instantiate object type classes
