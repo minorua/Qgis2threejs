@@ -323,12 +323,12 @@ class ExtrudedType(PolygonBasicTypeBase):
                                   (LabelHeightWidgetFunc.RELATIVE, "Height from bottom")])
 
   def material(self, settings, layer, feat):
-    mat = {"face": layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])}
+    mtl = {"face": layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])}
 
     # border
     if feat.values[3] is not None:
-      mat["border"] = layer.materialManager.getLineBasicIndex(feat.values[3], feat.values[1])
-    return mat
+      mtl["border"] = layer.materialManager.getLineBasicIndex(feat.values[3], feat.values[1])
+    return mtl
 
   def geometry(self, settings, layer, feat, geom):
     g = PolygonBasicTypeBase.geometry(self, settings, layer, feat, geom)

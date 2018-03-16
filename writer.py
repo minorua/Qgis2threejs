@@ -225,20 +225,20 @@ def writeSimpleDEM(writer, properties, progress=None):
   canvas_size = settings.mapSettings.outputSize()
   if properties.get("radioButton_MapCanvas", False):
     if texture_scale == 1:
-      mat = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
+      mtl = layer.materialManager.getCanvasImageIndex(transparency, transp_background)
     else:
-      mat = layer.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
+      mtl = layer.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_LayerImage", False):
     layerids = properties.get("layerImageIds", [])
-    mat = layer.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
+    mtl = layer.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, settings.baseExtent, transparency, transp_background)
 
   elif properties.get("radioButton_ImageFile", False):
     filepath = properties.get("lineEdit_ImageFile", "")
-    mat = layer.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
+    mtl = layer.materialManager.getImageFileIndex(filepath, transparency, transp_background, True)
 
   else:   #.get("radioButton_SolidColor", False)
-    mat = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
+    mtl = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
 
   #elif properties.get("radioButton_Wireframe", False):
   #  block["m"] = layer.materialManager.getWireframeIndex(properties["lineEdit_Color"], transparency)
@@ -252,7 +252,7 @@ def writeSimpleDEM(writer, properties, progress=None):
   block = DEMBlock(dem_width, dem_height, dem_values, mapTo3d.planeWidth, mapTo3d.planeHeight, 0, 0)
   block.zShift(mapTo3d.verticalShift)
   block.zScale(mapTo3d.multiplierZ)
-  block.set("m", mat)
+  block.set("m", mtl)
 
   surroundings = properties.get("checkBox_Surroundings", False) if prop.layerId else False
   if surroundings:
@@ -330,14 +330,14 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
 
     # display type
     if properties.get("radioButton_MapCanvas", False):
-      mat = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
+      mtl = layer.materialManager.getMapImageIndex(image_width, image_height, extent, transparency, transp_background)
 
     elif properties.get("radioButton_LayerImage", False):
       layerids = properties.get("layerImageIds", [])
-      mat = layer.materialManager.getLayerImageIndex(layerids, image_width, image_height, extent, transparency, transp_background)
+      mtl = layer.materialManager.getLayerImageIndex(layerids, image_width, image_height, extent, transparency, transp_background)
 
     else:     #.get("radioButton_SolidColor", False)
-      mat = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
+      mtl = layer.materialManager.getMeshLambertIndex(properties.get("lineEdit_Color", ""), transparency, True)
 
     # DEM block
     dem_values = provider.read(dem_width, dem_height, extent)
@@ -347,7 +347,7 @@ def surroundingDEMBlocks(writer, layer, provider, properties, progress=None):
     block = DEMBlock(dem_width, dem_height, dem_values, planeWidth, planeHeight, offsetX, offsetY)
     block.zShift(mapTo3d.verticalShift)
     block.zScale(mapTo3d.multiplierZ)
-    block.set("m", mat)
+    block.set("m", mtl)
 
     blocks.append(block)
 

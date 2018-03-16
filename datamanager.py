@@ -218,8 +218,8 @@ class MaterialManager(DataManager):
   def _indexCol(self, type, color, opacity=1, doubleSide=False):
     if color[0:2] != "0x":
       color = self.ERROR_COLOR
-    mat = (type, color, opacity, doubleSide)
-    return self._index(mat)
+    mtl = (type, color, opacity, doubleSide)
+    return self._index(mtl)
 
   def getMeshLambertIndex(self, color, opacity=1, doubleSide=False):
     return self._indexCol(self.MESH_LAMBERT, color, opacity, doubleSide)
@@ -237,28 +237,28 @@ class MaterialManager(DataManager):
     return self._indexCol(self.WIREFRAME, color, opacity)
 
   def getCanvasImageIndex(self, opacity=1, transp_background=False):
-    mat = (self.CANVAS_IMAGE, transp_background, opacity, True)
-    return self._index(mat)
+    mtl = (self.CANVAS_IMAGE, transp_background, opacity, True)
+    return self._index(mtl)
 
   def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False):
-    mat = (self.MAP_IMAGE, (width, height, extent, transp_background), opacity, True)
-    return self._index(mat)
+    mtl = (self.MAP_IMAGE, (width, height, extent, transp_background), opacity, True)
+    return self._index(mtl)
 
   def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False):
-    mat = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background), opacity, True)
-    return self._index(mat)
+    mtl = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background), opacity, True)
+    return self._index(mtl)
 
   def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False):
-    mat = (self.IMAGE_FILE, (path, transp_background), opacity, doubleSide)
-    return self._index(mat)
+    mtl = (self.IMAGE_FILE, (path, transp_background), opacity, doubleSide)
+    return self._index(mtl)
 
   def getSpriteIndex(self, path, opacity=1):
     transp_background = True
-    mat = (self.SPRITE, (path, transp_background), opacity, False)
-    return self._index(mat)
+    mtl = (self.SPRITE, (path, transp_background), opacity, False)
+    return self._index(mtl)
 
   def build(self, index, imageManager, filepath=None, url=None):
-    mat = self._list[index]
+    mtl = self._list[index]
     mt = {
       self.WIREFRAME: self.MESH_LAMBERT,
       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
@@ -266,22 +266,22 @@ class MaterialManager(DataManager):
       self.MAP_IMAGE: self.MESH_PHONG,
       self.LAYER_IMAGE: self.MESH_PHONG,
       self.IMAGE_FILE: self.MESH_PHONG
-      }.get(mat[0], mat[0])
+      }.get(mtl[0], mtl[0])
 
     m = {"type": mt}
     transp_background = False
-    if mat[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
-      if mat[0] == self.CANVAS_IMAGE:
-        transp_background = mat[1]
+    if mtl[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
+      if mtl[0] == self.CANVAS_IMAGE:
+        transp_background = mtl[1]
         imgIndex = imageManager.canvasImageIndex(transp_background)
-      elif mat[0] == self.MAP_IMAGE:
-        width, height, extent, transp_background = mat[1]
+      elif mtl[0] == self.MAP_IMAGE:
+        width, height, extent, transp_background = mtl[1]
         imgIndex = imageManager.mapImageIndex(width, height, extent, transp_background)
-      elif mat[0] == self.LAYER_IMAGE:
-        layerids, width, height, extent, transp_background = mat[1]
+      elif mtl[0] == self.LAYER_IMAGE:
+        layerids, width, height, extent, transp_background = mtl[1]
         imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
-      elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
-        imagepath, transp_background = mat[1]
+      elif mtl[0] in [self.IMAGE_FILE, self.SPRITE]:
+        imagepath, transp_background = mtl[1]
         imgIndex = imageManager.imageIndex(imagepath)
 
       if filepath is None:
@@ -292,23 +292,23 @@ class MaterialManager(DataManager):
         # write image to a file
         imageManager.write(imgIndex, filepath)
     else:
-      m["c"] = int(mat[1], 16)    # color
+      m["c"] = int(mtl[1], 16)    # color
 
     if transp_background:
       m["t"] = 1
 
-    if mat[0] == self.WIREFRAME:
+    if mtl[0] == self.WIREFRAME:
       m["w"] = 1
 
-    if mat[0] == self.MESH_LAMBERT_FLAT:
+    if mtl[0] == self.MESH_LAMBERT_FLAT:
       m["flat"] = 1
 
-    opacity = mat[2]
+    opacity = mtl[2]
     if opacity < 1:
       m["o"] = opacity
 
     # double sides
-    if mat[3]:
+    if mtl[3]:
       m["ds"] = 1
 
     return m
@@ -332,41 +332,41 @@ class MaterialManager(DataManager):
                       self.LAYER_IMAGE: self.MESH_PHONG,
                       self.IMAGE_FILE: self.MESH_PHONG}
 
-    for mat in self._list[self.writtenCount:]:
-      m = {"type": toMaterialType.get(mat[0], mat[0])}
+    for mtl in self._list[self.writtenCount:]:
+      m = {"type": toMaterialType.get(mtl[0], mtl[0])}
 
       transp_background = False
 
-      if mat[0] == self.CANVAS_IMAGE:
-        transp_background = mat[1]
+      if mtl[0] == self.CANVAS_IMAGE:
+        transp_background = mtl[1]
         m["i"] = imageManager.canvasImageIndex(transp_background)
-      elif mat[0] == self.MAP_IMAGE:
-        width, height, extent, transp_background = mat[1]
+      elif mtl[0] == self.MAP_IMAGE:
+        width, height, extent, transp_background = mtl[1]
         m["i"] = imageManager.mapImageIndex(width, height, extent, transp_background)
-      elif mat[0] == self.LAYER_IMAGE:
-        layerids, width, height, extent, transp_background = mat[1]
+      elif mtl[0] == self.LAYER_IMAGE:
+        layerids, width, height, extent, transp_background = mtl[1]
         m["i"] = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
-      elif mat[0] in [self.IMAGE_FILE, self.SPRITE]:
-        filepath, transp_background = mat[1]
+      elif mtl[0] in [self.IMAGE_FILE, self.SPRITE]:
+        filepath, transp_background = mtl[1]
         m["i"] = imageManager.imageIndex(filepath)
       else:
-        m["c"] = mat[1]
+        m["c"] = mtl[1]
 
       if transp_background:
         m["t"] = 1
 
-      if mat[0] == self.WIREFRAME:
+      if mtl[0] == self.WIREFRAME:
         m["w"] = 1
 
-      if mat[0] == self.MESH_LAMBERT_FLAT:
+      if mtl[0] == self.MESH_LAMBERT_FLAT:
         m["flat"] = 1
 
-      opacity = mat[2]
+      opacity = mtl[2]
       if opacity < 1:
         m["o"] = opacity
 
       # double sides
-      if mat[3]:
+      if mtl[3]:
         m["ds"] = 1
 
       index = self.writtenCount

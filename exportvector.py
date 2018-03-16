@@ -168,7 +168,7 @@ class VectorLayerExporter(LayerExporter):
 
       f = {}
       f["geom"] = self.prop.objType.geometry(self.settings, self._layer, feat, geom)
-      f["mat"] = feat.material
+      f["mtl"] = feat.material
 
       if feat.attributes is not None:
         f["prop"] = feat.attributes
