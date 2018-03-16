@@ -62,11 +62,7 @@ class VectorPropertyReader:
     self.properties = properties
 
     if properties:
-      self.item_index = properties["comboBox_ObjectType"]
-      typeitem = objectTypeManager.objectTypeItem(layer.geometryType(), self.item_index)  #
-      self.type_name = typeitem.name
-      self.mod_index = typeitem.mod_index
-      self.type_index = typeitem.type_index
+      self.objType = objectTypeManager.objectType(layer.geometryType(), properties["comboBox_ObjectType"])
       self.visible = properties.get("visible", True)
     else:
       self.visible = False

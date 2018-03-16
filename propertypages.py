@@ -487,16 +487,16 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     for i in range(self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
 
-    obj_types = objectTypeManager().objectTypeNames(mapLayer.geometryType())
-
     # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
     self.comboBox_ObjectType.clear()
-    for index, obj_type in enumerate(obj_types):
-      self.comboBox_ObjectType.addItem(obj_type, index)
+    for obj_type in objectTypeManager().objectTypes(mapLayer.geometryType()):
+      self.comboBox_ObjectType.addItem(obj_type.displayName, obj_type.name)
     if properties:
       # restore object type selection
-      self.comboBox_ObjectType.setCurrentIndex(properties.get("comboBox_ObjectType", 0))
+      idx = self.comboBox_ObjectType.findData(properties.get("comboBox_ObjectType"))
+      if idx != -1:
+        self.comboBox_ObjectType.setCurrentIndex(idx)
     self.comboBox_ObjectType.blockSignals(False)
 
     # set up altitude mode combo box
@@ -557,29 +557,28 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def setupStyleWidgets(self, index=None):
     # notice 3D model is experimental
-    is_experimental = self.comboBox_ObjectType.currentText() in ["JSON model", "COLLADA model"]
+    #TODO: to tooltip
+    is_experimental = self.comboBox_ObjectType.currentData() in ["JSON model", "COLLADA model"]
     self.label_ObjectTypeMessage.setVisible(is_experimental)
 
     # setup widgets
-    objectTypeManager().setupWidgets(self,
-                                     self.dialog.mapTo3d(),     # to calculate default values
-                                     self.layer.mapLayer,
-                                     self.layer.mapLayer.geometryType(),
-                                     self.comboBox_ObjectType.currentIndex())
+    obj_type = objectTypeManager().objectType(self.layer.mapLayer.geometryType(),
+                                              self.comboBox_ObjectType.currentData())
+    obj_type.setupWidgets(self,
+                          self.dialog.mapTo3d(),     # to calculate default values
+                          self.layer.mapLayer)
 
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 
   def altitudeModeChanged(self, index):
-    geom_type = self.layer.mapLayer.geometryType()
-    type_index = self.comboBox_ObjectType.currentIndex()
+    name = self.comboBox_ObjectType.currentData()
     only_clipped = False
 
-    if (geom_type == QgsWkbTypes.LineGeometry and type_index == 4) or (geom_type == QgsWkbTypes.PolygonGeometry and type_index == 1):    # Profile or Overlay
-      if index:
-        only_clipped = True
-        self.radioButton_IntersectingFeatures.setChecked(True)
-        self.checkBox_Clip.setChecked(True)
+    if name in ["Profile", "Overlay"] and index:
+      only_clipped = True
+      self.radioButton_IntersectingFeatures.setChecked(True)
+      self.checkBox_Clip.setChecked(True)
 
     self.groupBox_Features.setEnabled(not only_clipped)
 

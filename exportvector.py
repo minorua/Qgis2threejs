@@ -57,19 +57,18 @@ class VectorLayerExporter(LayerExporter):
 
     otm = objectTypeManager()
     self.prop = VectorPropertyReader(otm, renderContext, mapLayer, properties)
-    self.obj_mod = otm.module(self.prop.mod_index)
-    if self.obj_mod is None:
-      logMessage("Module not found")
+    if self.prop.objType is None:
+      logMessage("Object type not found")
       return
 
     # prepare triangle mesh
     geom_type = mapLayer.geometryType()
-    if geom_type == QgsWkbTypes.PolygonGeometry and self.prop.type_index == 1 and self.prop.isHeightRelativeToDEM():   # Overlay
+    if geom_type == QgsWkbTypes.PolygonGeometry and self.prop.objType.name == "Overlay" and self.prop.isHeightRelativeToDEM():
       self.progress(None, "Initializing triangle mesh for overlay polygons")
       self.triangleMesh()
       self.progress(None, "Writing vector layer: {0}".format(mapLayer.name()))
 
-    layer = VectorLayer(self.settings, mapLayer, self.prop, self.obj_mod, self.materialManager)
+    layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager)
     self._layer = layer
 
     #if noFeature:
@@ -98,7 +97,7 @@ class VectorLayerExporter(LayerExporter):
       #if writer.isCanceled:
       #  break
 
-      feat.material = self.obj_mod.material(self.settings, layer, feat)
+      feat.material = self.prop.objType.material(self.settings, layer, feat)
 
     gt2str = {
       QgsWkbTypes.PointGeometry: "point",
@@ -109,7 +108,7 @@ class VectorLayerExporter(LayerExporter):
     # properties
     p = {
       "type": gt2str.get(geom_type),
-      "objType": self.prop.type_name,
+      "objType": self.prop.objType.name,
       "name": self.layer.name,
       "queryable": 1,
       "visible": self.layer.visible
@@ -154,7 +153,7 @@ class VectorLayerExporter(LayerExporter):
 
     demProvider = None
     if self.prop.isHeightRelativeToDEM():
-      if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.type_index != 1:  # Overlay
+      if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.objType.name != "Overlay":
         demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
     if self.layer.properties.get("radioButton_zValue"):
@@ -171,7 +170,7 @@ class VectorLayerExporter(LayerExporter):
         continue
 
       f = {}
-      f["geom"] = self.obj_mod.geometry(self.settings, self._layer, feat, geom)
+      f["geom"] = self.prop.objType.geometry(self.settings, self._layer, feat, geom)
       f["mat"] = feat.material
 
       if feat.attributes is not None:
@@ -266,7 +265,7 @@ class Feature:
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
       geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
-      if self.layerProp.type_index == 1 and self.layerProp.isHeightRelativeToDEM():   # Overlay and relative to DEM
+      if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
         pass
         #TODO:
         #feat.geom.splitPolygon(self.writer.triangleMesh())
@@ -294,9 +293,8 @@ class VectorLayer(Layer):
 
   geomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry, QgsWkbTypes.LineGeometry: LineGeometry, QgsWkbTypes.PolygonGeometry: PolygonGeometry}
 
-  def __init__(self, settings, layer, prop, obj_mod, materialManager):
+  def __init__(self, settings, layer, prop, materialManager):
     Layer.__init__(self, settings, layer, prop)
-    self.obj_mod = obj_mod
     self.materialManager = materialManager
 
     self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
@@ -324,7 +322,7 @@ class VectorLayer(Layer):
 
     obj = Layer.layerObject(self)
     obj["type"] = {QgsWkbTypes.PointGeometry: "point", QgsWkbTypes.LineGeometry: "line", QgsWkbTypes.PolygonGeometry: "polygon"}.get(self.geomType, "")
-    obj["objType"] = prop.type_name
+    obj["objType"] = prop.objType.name
 
     if self.hasLabel():
       widgetValues = properties.get("labelHeightWidget", {})
@@ -333,7 +331,7 @@ class VectorLayer(Layer):
                   "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
 
     # object-type-specific properties
-    obj.update(self.obj_mod.layerProperties(self.settings, self))
+    obj.update(self.prop.objType.layerProperties(self.settings, self))
 
     return obj
 
