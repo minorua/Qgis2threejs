@@ -461,7 +461,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
       setattr(self, objName, widget)
 
     widgets = [self.comboBox_ObjectType]
-    widgets += self.buttonGroup_zValue.buttons() + [self.fieldExpressionWidget_altitude, self.comboBox_altitudeMode]
+    widgets += self.buttonGroup_altitude.buttons() + [self.fieldExpressionWidget_altitude, self.comboBox_altitudeMode]
     widgets += self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
@@ -469,7 +469,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
     self.comboBox_altitudeMode.currentIndexChanged.connect(self.altitudeModeChanged)
-    for btn in self.buttonGroup_zValue.buttons():
+    for btn in self.buttonGroup_altitude.buttons():
       btn.toggled.connect(self.zValueRadioButtonToggled)
     self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 

@@ -104,7 +104,7 @@
            <string>Z Value</string>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">buttonGroup_zValue</string>
+           <string notr="true">buttonGroup_altitude</string>
           </attribute>
          </widget>
         </item>
@@ -114,7 +114,7 @@
            <string>M Value</string>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">buttonGroup_zValue</string>
+           <string notr="true">buttonGroup_altitude</string>
           </attribute>
          </widget>
         </item>
@@ -127,7 +127,7 @@
            <bool>true</bool>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">buttonGroup_zValue</string>
+           <string notr="true">buttonGroup_altitude</string>
           </attribute>
          </widget>
         </item>
@@ -393,6 +393,6 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_zValue"/>
+  <buttongroup name="buttonGroup_altitude"/>
  </buttongroups>
 </ui>
