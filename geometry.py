@@ -86,7 +86,7 @@ class PointGeometry(Geometry):
       geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
 
     else:
-      g = geometry.geometry()
+      g = geometry.constGet()
       if isinstance(g, QgsPoint):
         pts = [g]
       elif isinstance(g, QgsMultiPoint):
@@ -158,7 +158,7 @@ class LineGeometry(Geometry):
       geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
     else:
-      g = geometry.geometry()
+      g = geometry.constGet()
       if isinstance(g, QgsLineString):
         lines = [g.points()]
       elif isinstance(g, QgsMultiLineString):
