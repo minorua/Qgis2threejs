@@ -8,9 +8,6 @@
         begin                : 2013-12-21
         copyright            : (C) 2013 Minoru Akagi
         email                : akaginch@gmail.com
-
- RectangleMapTool class is from extentSelector.py of GdalTools plugin
-        copyright            : (C) 2010 by Giuseppe Sucameli
  ***************************************************************************/
 
 /***************************************************************************
@@ -26,9 +23,8 @@ import os
 
 from PyQt5.QtCore import Qt, QDir, QEventLoop, QSettings, qDebug
 from PyQt5.QtWidgets import QAction, QDialog, QFileDialog, QMessageBox, QMenu, QTreeWidgetItem, QTreeWidgetItemIterator, QToolButton
-from PyQt5.QtGui import QColor, QIcon
-from qgis.core import Qgis, QgsApplication, QgsFeature, QgsMapLayer, QgsPoint, QgsProject, QgsRectangle, QgsUnitTypes, QgsWkbTypes
-from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand
+from PyQt5.QtGui import QIcon
+from qgis.core import Qgis, QgsApplication, QgsFeature, QgsMapLayer, QgsProject, QgsUnitTypes
 
 from .ui.qgis2threejsdialog import Ui_Qgis2threejsDialog
 
@@ -37,7 +33,6 @@ from .export import exportToThreeJS
 from .exportsettings import ExportSettings
 from .qgis2threejscore import ObjectTreeItem, MapTo3D
 from .qgis2threejstools import getLayersInProject, logMessage
-from .rotatedrect import RotatedRect
 from . import propertypages as ppages
 from . import qgis2threejstools as tools
 
@@ -103,11 +98,6 @@ class Qgis2threejsDialog(QDialog):
     ui.pushButton_Close.clicked.connect(self.reject)
     ui.pushButton_Help.clicked.connect(self.help)
 
-    # set up map tool
-    self.previousMapTool = None
-    self.mapTool = RectangleMapTool(iface.mapCanvas())
-    #self.mapTool = PointMapTool(iface.mapCanvas())
-
     # set up the template combo box
     self.initTemplateList()
     self.ui.comboBox_Template.currentIndexChanged.connect(self.currentTemplateChanged)
@@ -131,8 +121,6 @@ class Qgis2threejsDialog(QDialog):
     self.currentTemplateChanged()   # update item visibility
 
     ui.toolButton_Browse.clicked.connect(self.browseClicked)
-
-    #iface.mapCanvas().mapToolSet.connect(self.mapToolSet)    # to show button to enable own map tool
 
   def settings(self, clean=False):
     # save settings of current panel
@@ -577,57 +565,6 @@ class Qgis2threejsDialog(QDialog):
     import webbrowser
     webbrowser.open(url, new=2)    # new=2: new tab if possible
 
-  def startPointSelection(self):
-    canvas = self.iface.mapCanvas()
-    if self.previousMapTool != self.mapTool:
-      self.previousMapTool = canvas.mapTool()
-    canvas.setMapTool(self.mapTool)
-    self.pages[ppages.PAGE_DEM].toolButton_PointTool.setVisible(False)
-
-  def endPointSelection(self):
-    self.mapTool.reset()
-    if self.previousMapTool is not None:
-      self.iface.mapCanvas().setMapTool(self.previousMapTool)
-
-  def mapToolSet(self, mapTool):
-    return
-    #TODO: unstable
-    if mapTool != self.mapTool and self.currentPage is not None:
-      if self.currentPage.pageType == ppages.PAGE_DEM and self.currentPage.isPrimary:
-        self.currentPage.toolButton_PointTool.setVisible(True)
-
-  def createRubberBands(self, baseExtent, quadtree):
-    self.clearRubberBands()
-    # create quads with rubber band
-    self.rb_quads = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
-    self.rb_quads.setColor(Qt.blue)
-    self.rb_quads.setWidth(1)
-
-    quads = quadtree.quads()
-    for quad in quads:
-      geom = baseExtent.subrectangle(quad.rect).geometry()
-      self.rb_quads.addGeometry(geom, None)
-    self.log("Quad count: %d" % len(quads))
-
-    if not quadtree.focusRect:
-      return
-
-    # create a point with rubber band
-    if quadtree.focusRect.width() == 0 or quadtree.focusRect.height() == 0:
-      npt = quadtree.focusRect.center()
-      self.rb_point = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.PointGeometry)
-      self.rb_point.setColor(Qt.red)
-      self.rb_point.addPoint(baseExtent.point(npt))
-
-  def clearRubberBands(self):
-    # clear quads and point
-    if self.rb_quads:
-      self.iface.mapCanvas().scene().removeItem(self.rb_quads)
-      self.rb_quads = None
-    if self.rb_point:
-      self.iface.mapCanvas().scene().removeItem(self.rb_point)
-      self.rb_point = None
-
   def browseClicked(self):
     directory = os.path.split(self.ui.lineEdit_OutputFilename.text())[0]
     if not directory:
@@ -646,85 +583,3 @@ class Qgis2threejsDialog(QDialog):
     if debug_mode:
       qDebug(msg)
 
-
-class PointMapTool(QgsMapToolEmitPoint):
-
-  def __init__(self, canvas):
-    self.canvas = canvas
-    QgsMapToolEmitPoint.__init__(self, self.canvas)
-    self.point = None
-
-  def canvasPressEvent(self, e):
-    self.point = self.toMapCoordinates(e.pos())
-    self.emit(SIGNAL("pointSelected()"))    #TODO: new style signal
-
-
-# first changed on 2014-01-03 (last changed on 2015-03-09)
-class RectangleMapTool(QgsMapToolEmitPoint):
-
-  def __init__(self, canvas):
-    QgsMapToolEmitPoint.__init__(self, canvas)
-
-    self.canvas = canvas
-    self.rubberBand = QgsRubberBand(canvas, QgsWkbTypes.PolygonGeometry)
-    self.rubberBand.setColor(QColor(255, 0, 0, 180))
-    self.rubberBand.setWidth(1)
-    self.reset()
-
-  def reset(self):
-    self.startPoint = self.endPoint = None
-    self.isDrawing = False
-    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
-
-  def canvasPressEvent(self, e):
-    self.startPoint = self.toMapCoordinates(e.pos())
-    self.endPoint = self.startPoint
-
-    mapSettings = self.canvas.mapSettings()
-    self.mupp = mapSettings.mapUnitsPerPixel()
-    self.rotation = mapSettings.rotation()
-
-    self.isDrawing = True
-    self.showRect(self.startPoint, self.endPoint)
-
-  def canvasReleaseEvent(self, e):
-    self.isDrawing = False
-    self.emit(SIGNAL("rectangleCreated()"))   #TODO: new style signal
-
-  def canvasMoveEvent(self, e):
-    if not self.isDrawing:
-      return
-    self.endPoint = self.toMapCoordinates(e.pos())
-    self.showRect(self.startPoint, self.endPoint)
-
-  def showRect(self, startPoint, endPoint):
-    self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
-    if startPoint.x() == endPoint.x() and startPoint.y() == endPoint.y():
-      return
-
-    for i, pt in enumerate(self._rect(startPoint, endPoint).vertices()):
-      self.rubberBand.addPoint(pt, bool(i == 3))
-    self.rubberBand.show()
-
-  def _rect(self, startPoint, endPoint):
-    if startPoint is None or endPoint is None:
-      return None
-
-    p0 = self.toCanvasCoordinates(startPoint)
-    p1 = self.toCanvasCoordinates(endPoint)
-    canvas_rect = QgsRectangle(QgsPoint(p0.x(), p0.y()), QgsPoint(p1.x(), p1.y()))
-    center = QgsPoint((startPoint.x() + endPoint.x()) / 2, (startPoint.y() + endPoint.y()) / 2)
-    return RotatedRect(center, self.mupp * canvas_rect.width(), self.mupp * canvas_rect.height()).rotate(self.rotation, center)
-
-  def rectangle(self):
-    return self._rect(self.startPoint, self.endPoint)
-
-  def setRectangle(self, rect):
-    if rect == self._rect(self.startPoint, self.endPoint):
-      return False
-
-    v = rect.vertices()
-    self.startPoint = v[3]
-    self.endPoint = v[1]
-    self.showRect(self.startPoint, self.endPoint)
-    return True

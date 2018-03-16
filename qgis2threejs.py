@@ -24,7 +24,6 @@ import os
 from PyQt5.QtCore import QFile    #, QSettings, QTranslator, qVersion
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
-from qgis.core import QgsMapLayer
 
 from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir

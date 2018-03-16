@@ -20,15 +20,13 @@
  ***************************************************************************/
 """
 import json
-from osgeo import ogr, osr
-from qgis.core import QgsCoordinateTransform, QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest, QgsGeometry, QgsMapLayer, QgsPoint, QgsProject, QgsRenderContext, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem
-from . import qgis2threejstools as tools
 from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeRegistry
 

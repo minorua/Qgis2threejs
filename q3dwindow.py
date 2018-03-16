@@ -25,11 +25,9 @@ from PyQt5.QtCore import QObject, QSettings, QUrl, QVariant, pyqtSignal
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox
 
-from qgis.core import QgsProject
 
 from . import q3dconst
 from .conf import plugin_version
-from .exportsettings import ExportSettings
 from .exporttowebdialog import ExportToWebDialog
 from .propertypages import DEMPropertyPage, VectorPropertyPage
 from .qgis2threejstools import logMessage
@@ -279,7 +277,6 @@ class PropertiesDialog(QDialog):
     self.wheelFilter = WheelEventFilter()
 
     self.currentItem = None
-    self.mapTool = None   #TODO
 
     # Set up the user interface from Designer.
     self.ui = Ui_PropertiesDialog()

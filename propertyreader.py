@@ -19,15 +19,14 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
 import random
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QColor
-from qgis.core import NULL, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils
+from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextUtils
 
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
-from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, FieldValueWidgetFunc, FilePathWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
 

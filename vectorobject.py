@@ -19,10 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import importlib
-import sys
-
-from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsWkbTypes
 
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
@@ -446,11 +442,10 @@ class ModelTypeBase(PointTypeBase):
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
     ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
-  def geometry(settings, layer, feat, geom):
+  def geometry(self, settings, layer, feat, geom):
     model_path = feat.values[0]
     model_type = self.name.split(" ")[0]
-    #TODO: writer -> layer
-    index = writer.modelManager.modelIndex(model_path, model_type)
+    index = layer.modelManager.modelIndex(model_path, model_type)
 
     rz = feat.values[4]
     # take map rotation into account

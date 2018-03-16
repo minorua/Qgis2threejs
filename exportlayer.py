@@ -19,14 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsProject, QgsRectangle
-
-from . import gdal2threejs
-from .datamanager import ImageManager, ModelManager, MaterialManager
-from .propertyreader import DEMPropertyReader
-from .qgis2threejscore import GDALDEMProvider
-from . import qgis2threejstools as tools
-from .qgis2threejstools import logMessage
 
 
 class LayerExporter:

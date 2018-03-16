@@ -22,10 +22,9 @@
 import os
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QColor, QImage, QImageReader, QPainter
+from PyQt5.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
-from . import gdal2threejs
 from . import qgis2threejstools as tools
 from .qgis2threejstools import logMessage
 

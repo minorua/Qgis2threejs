@@ -21,16 +21,12 @@
 """
 import struct
 from PyQt5.QtCore import QSize
-from qgis.core import QgsPoint, QgsProject, QgsRectangle
+from qgis.core import QgsPoint, QgsProject
 
-from . import gdal2threejs
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import PolygonGeometry, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
-from .qgis2threejscore import GDALDEMProvider
-from . import qgis2threejstools as tools
-from .qgis2threejstools import logMessage
 from .rotatedrect import RotatedRect
 
 

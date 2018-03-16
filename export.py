@@ -23,15 +23,11 @@ import json
 import os
 
 from PyQt5.QtCore import QDir
-from qgis.core import QgsMapLayer, QgsProject
 
 from .datamanager import ImageManager, ModelManager
 from .exportdem import DEMLayerExporter
 from .exportvector import VectorLayerExporter
-from .exportsettings import ExportSettings
 from .qgis2threejscore import ObjectTreeItem
-from .writer import ThreejsJSWriter, writeSphereTexture, writeSimpleDEM, writeMultiResDEM, writeVectors
-from .qgis2threejstools import getLayersInProject, logMessage
 from . import q3dconst
 from . import qgis2threejstools as tools
 

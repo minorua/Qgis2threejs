@@ -18,14 +18,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-import json
 from PyQt5.QtCore import QEventLoop
-from qgis.core import QgsApplication, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import QgsApplication
 
 from . import q3dconst
 from .export import ThreeJSExporter
 from .exportsettings import ExportSettings
-from .qgis2threejstools import getLayersInProject, logMessage
+from .qgis2threejstools import logMessage
 
 
 class Q3DViewerController:
