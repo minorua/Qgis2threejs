@@ -89,7 +89,7 @@ class WidgetFuncBase:
     return numeric_fields
 
 
-class FieldValueWidgetFunc(WidgetFuncBase):
+class ExpressionWidgetFunc(WidgetFuncBase):
 
   def setup(self, options=None):
     """ options: name, label, defaultValue, layer """
@@ -97,7 +97,7 @@ class FieldValueWidgetFunc(WidgetFuncBase):
     WidgetFuncBase.setup(self, options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("Value/Expression")
+    self.widget.comboBox.addItem("Expression")
 
     layer = options.get("layer")
     if layer:
@@ -119,7 +119,7 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", ColorWidgetFunc.FEATURE)
     self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
-    self.widget.comboBox.addItem("Value/Expression", ColorWidgetFunc.EXPRESSION)
+    self.widget.comboBox.addItem("Expression", ColorWidgetFunc.EXPRESSION)
 
     self.widget.expression.setExpression(options.get("defaultValue", ""))
     self.widget.expression.setFilters(QgsFieldProxyModel.String)
@@ -273,7 +273,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
 class OpacityWidgetFunc(WidgetFuncBase):
 
   FEATURE = 1
-  VALUE = 2
+  EXPRESSION = 2
 
   def setup(self, options=None):
     WidgetFuncBase.setup(self, "Opacity", lineEdit=None)
@@ -281,7 +281,7 @@ class OpacityWidgetFunc(WidgetFuncBase):
 
     self.widget.comboBox.clear()
     self.widget.comboBox.addItem("Feature style", OpacityWidgetFunc.FEATURE)
-    self.widget.comboBox.addItem("Value/Expression", OpacityWidgetFunc.VALUE)
+    self.widget.comboBox.addItem("Expression", OpacityWidgetFunc.EXPRESSION)
 
     layer = options.get("layer")
     if layer:
@@ -291,7 +291,7 @@ class OpacityWidgetFunc(WidgetFuncBase):
 
   def comboBoxSelectionChanged(self, index):
     itemData = self.widget.comboBox.itemData(index)
-    isValue = itemData == OpacityWidgetFunc.VALUE
+    isValue = itemData == OpacityWidgetFunc.EXPRESSION
     self.widget.label_2.setVisible(isValue)
     self.widget.expression.setVisible(isValue)
 
@@ -442,7 +442,7 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
 
 class StyleWidget(QWidget, Ui_ComboEditWidget):
   # function types
-  FIELD_VALUE = 1
+  EXPRESSION = 1
   COLOR = 2
   FILEPATH = 3
   HEIGHT = 4
@@ -452,7 +452,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   COLOR_TEXTURE = 8
   CHECKBOX = 9
 
-  type2funcClass = {FIELD_VALUE: FieldValueWidgetFunc,
+  type2funcClass = {EXPRESSION: ExpressionWidgetFunc,
                     COLOR: ColorWidgetFunc,
                     FILEPATH: FilePathWidgetFunc,
                     HEIGHT: HeightWidgetFunc,

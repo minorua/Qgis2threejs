@@ -125,7 +125,7 @@ class VectorPropertyReader:
   def readOpacity(self, widgetValues, f):
     vals = widgetValues
 
-    if vals["comboData"] == OpacityWidgetFunc.VALUE:
+    if vals["comboData"] == OpacityWidgetFunc.EXPRESSION:
       try:
         val = self.evaluateExpression(widgetValues["editText"], f)
         return min(max(0, val), 100) / 100

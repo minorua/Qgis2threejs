@@ -518,7 +518,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     if hasZ:
       self.radioButton_zValue.setChecked(True)
     else:
-      self.radioButton_FieldValue.setChecked(True)
+      self.radioButton_Expression.setChecked(True)
 
     # set up field expression widget
     self.fieldExpressionWidget_altitude.setFilters(QgsFieldProxyModel.Numeric)
@@ -583,7 +583,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def zValueRadioButtonToggled(self, toggled=None):
     if toggled != False:
-      self.label_zExpression.setText("" if self.radioButton_FieldValue.isChecked() else "Addend")
+      self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
 
   def exportAttrsToggled(self, checked):
     self.setLayoutEnabled(self.formLayout_Label, checked)

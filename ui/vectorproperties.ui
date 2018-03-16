@@ -119,9 +119,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="radioButton_FieldValue">
+         <widget class="QRadioButton" name="radioButton_Expression">
           <property name="text">
-           <string>Value/Expression</string>
+           <string>Expression</string>
           </property>
           <property name="checked">
            <bool>true</bool>

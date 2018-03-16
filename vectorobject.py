@@ -58,7 +58,7 @@ class ObjectTypeBase:
 #  def widgets(self, settings, layer):
 #    return [const.Color,
 #            const.Opacity,
-#            {"type": StyleWidget.FIELD_VALUE, "name": "Height", "defaultValue": 0}]
+#            {"type": StyleWidget.EXPRESSION, "name": "Height", "defaultValue": 0}]
 
   def layerProperties(self, settings, layer):
     return {}
@@ -104,7 +104,7 @@ class SphereType(PointBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
 
   def geometry(self, settings, layer, feat, geom):
     return {"pts": geom.asList(),
@@ -117,8 +117,8 @@ class CylinderType(PointBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
 
   def geometry(self, settings, layer, feat, geom):
     mapTo3d = settings.mapTo3d()
@@ -149,9 +149,9 @@ class BoxType(PointBasicTypeBase):
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
     val = self.defaultValue(mapTo3d)
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": val, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Depth", "defaultValue": val, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Depth", "defaultValue": val, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
 
   def geometry(self, settings, layer, feat, geom):
     mapTo3d = settings.mapTo3d()
@@ -168,9 +168,9 @@ class DiskType(PointBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
 
   def geometry(self, settings, layer, feat, geom):
     dd = feat.values[4]
@@ -211,7 +211,7 @@ class PipeType(LineBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
 
   def material(self, settings, layer, feat):
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
@@ -241,8 +241,8 @@ class BoxLineType(LineBasicTypeBase):
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
     val = self.defaultValue(mapTo3d)
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Width", "defaultValue": val, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": val, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": val, "layer": layer})
 
   def material(self, settings, layer, feat):
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
@@ -312,7 +312,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
@@ -342,7 +342,7 @@ class OverlayType(PolygonBasicTypeBase):
 
   def setupWidgets(self, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
@@ -420,7 +420,7 @@ class IconType(PointTypeBase):
 
     ppage.initStyleWidgets(color=False)
     ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
 
   def material(self, settings, layer, feat):
     image_path = feat.values[1]
@@ -437,10 +437,10 @@ class ModelTypeBase(PointTypeBase):
   def setupWidgets(self, ppage, mapTo3d, layer, label, filterString):
     ppage.initStyleWidgets(color=False, opacity=False)
     ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": label, "layer": layer, "filterString": filterString})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Scale", "defaultValue": 1, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.FIELD_VALUE, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
   def geometry(self, settings, layer, feat, geom):
     model_path = feat.values[0]
