@@ -30,7 +30,7 @@ class DefaultSettings:
 
     # world
     self.baseSize = 100
-    self.zExaggeration = 1.5
+    self.zExaggeration = 1.0
     self.zShift = 0
 
     # controls
