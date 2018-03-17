@@ -47,32 +47,40 @@ def _():
 
 class ObjectTypeBase:
 
-  def __init__(self):
-    self.experimental = False
-    self.displayName = tr(self.name)
+  experimental = False
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def displayName(cls):
+    return tr(cls.name)
+
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     pass
 
 #TODO: setupWidgets -> widgets?
-#  def widgets(self, settings, layer):
+#  def widgets(cls, settings, layer):
 #    return [const.Color,
 #            const.Opacity,
 #            {"type": StyleWidget.EXPRESSION, "name": "Height", "defaultValue": 0}]
 
-  def layerProperties(self, settings, layer):
+  @classmethod
+  def layerProperties(cls, settings, layer):
     return {}
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     pass
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     pass
 
-  def defaultValue(self, mapTo3d):
+  @classmethod
+  def defaultValue(cls, mapTo3d):
     return float("{0:.4g}".format(1.0 / mapTo3d.multiplier))
 
-  def defaultValueZ(self, mapTo3d):
+  @classmethod
+  def defaultValueZ(cls, mapTo3d):
     return float("{0:.4g}".format(1.0 / mapTo3d.multiplierZ))
 
 
@@ -94,7 +102,8 @@ class PolygonTypeBase(ObjectTypeBase):
 ### PointBasicType
 class PointBasicTypeBase(PointTypeBase):
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
 
 
@@ -102,11 +111,13 @@ class SphereType(PointBasicTypeBase):
 
   name = "Sphere"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     return {"pts": geom.asList(),
             "r": feat.values[2] * settings.mapTo3d().multiplier}
 
@@ -115,12 +126,14 @@ class CylinderType(PointBasicTypeBase):
 
   name = "Cylinder"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     mapTo3d = settings.mapTo3d()
     r = feat.values[2] * mapTo3d.multiplier
     return {"pts": geom.asList(),
@@ -133,7 +146,8 @@ class ConeType(CylinderType):
 
   name = "Cone"
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     mapTo3d = settings.mapTo3d()
     r = feat.values[2] * mapTo3d.multiplier
     return {"pts": geom.asList(),
@@ -146,14 +160,16 @@ class BoxType(PointBasicTypeBase):
 
   name = "Box"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    val = self.defaultValue(mapTo3d)
+    val = cls.defaultValue(mapTo3d)
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Depth", "defaultValue": val, "layer": layer})
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     mapTo3d = settings.mapTo3d()
     return {"pts": geom.asList(),
             "w": feat.values[2] * mapTo3d.multiplier,
@@ -166,13 +182,15 @@ class DiskType(PointBasicTypeBase):
 
   name = "Disk"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     dd = feat.values[4]
     # take map rotation into account
     rotation = settings.baseExtent.rotation()
@@ -195,13 +213,16 @@ class LineType(LineBasicTypeBase):
 
   name = "Line"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     return layer.materialManager.getLineBasicIndex(feat.values[0], feat.values[1])
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     return {"lines": geom.asList()}
 
 
@@ -209,14 +230,17 @@ class PipeType(LineBasicTypeBase):
 
   name = "Pipe"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": self.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     r = feat.values[2] * settings.mapTo3d().multiplier
     return {"lines": geom.asList(),
             "rt": r,
@@ -227,7 +251,8 @@ class ConeLineType(PipeType):
 
   name = "Cone"
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     r = feat.values[2] * settings.mapTo3d().multiplier
     return {"lines": geom.asList(),
             "rt": 0,
@@ -238,16 +263,19 @@ class BoxLineType(LineBasicTypeBase):
 
   name = "Box"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    val = self.defaultValue(mapTo3d)
+    val = cls.defaultValue(mapTo3d)
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": val, "layer": layer})
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     multiplier = settings.mapTo3d().multiplier
     return {"lines": geom.asList(),
             "w": feat.values[2] * multiplier,
@@ -258,20 +286,24 @@ class ProfileType(LineBasicTypeBase):
 
   name = "Profile"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
     ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Lower Z", "layer": layer, "defaultItem": HeightWidgetFunc.ABSOLUTE})
 
-  def layerProperties(self, settings, layer):
+  @classmethod
+  def layerProperties(cls, settings, layer):
     cb = layer.prop.properties["styleWidget2"]["comboData"]
     isBRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     return {"am": "relative" if layer.prop.isHeightRelativeToDEM() else "absolute", # altitude mode
             "bam": "relative" if isBRelative else "absolute"}                       # altitude mode of bottom
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     return layer.materialManager.getFlatMeshLambertIndex(feat.values[0], feat.values[1], doubleSide=True)
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     multiplierZ = settings.mapTo3d().multiplierZ
     if layer.prop.isHeightRelativeToDEM():
       d = {"lines": geom.asList2(),
@@ -286,7 +318,8 @@ class ProfileType(LineBasicTypeBase):
 ### PolygonBasicType
 class PolygonBasicTypeBase(PolygonTypeBase):
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     polygons = []
     zs = []
     for polygon in geom.polygons:
@@ -310,9 +343,10 @@ class ExtrudedType(PolygonBasicTypeBase):
 
   name = "Extruded"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
@@ -322,7 +356,8 @@ class ExtrudedType(PolygonBasicTypeBase):
     ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from top"),
                                   (LabelHeightWidgetFunc.RELATIVE, "Height from bottom")])
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     mtl = {"face": layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])}
 
     # border
@@ -330,8 +365,9 @@ class ExtrudedType(PolygonBasicTypeBase):
       mtl["border"] = layer.materialManager.getLineBasicIndex(feat.values[3], feat.values[1])
     return mtl
 
-  def geometry(self, settings, layer, feat, geom):
-    g = PolygonBasicTypeBase.geometry(self, settings, layer, feat, geom)
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
+    g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
     g["h"] = feat.values[2] * settings.mapTo3d().multiplierZ
     return g
 
@@ -340,9 +376,10 @@ class OverlayType(PolygonBasicTypeBase):
 
   name = "Overlay"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": self.defaultValueZ(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
@@ -353,14 +390,16 @@ class OverlayType(PolygonBasicTypeBase):
                                   (LabelHeightWidgetFunc.RELATIVE, "Height from DEM")])
 
   #TODO
-  def layerProperties(self, settings, layer):
+  @classmethod
+  def layerProperties(cls, settings, layer):
     prop = layer.prop
     cb = prop.properties["styleWidget5"]["comboData"]
     isSbRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     return {"am": "relative" if prop.isHeightRelativeToDEM() else "absolute",   # altitude mode
             "sbm": "relative" if isSbRelative else "absolute"}                  # altitude mode of bottom of side
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     if feat.values[0] == ColorTextureWidgetFunc.MAP_CANVAS:
       return layer.materialManager.getCanvasImageIndex(feat.values[1])
 
@@ -371,8 +410,9 @@ class OverlayType(PolygonBasicTypeBase):
 
     return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1], True)
 
-  def geometry(self, settings, layer, feat, geom):
-    g = PolygonBasicTypeBase.geometry(self, settings, layer, feat, geom)
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
+    g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
     del g["zs"]
 
     #TODO: mb and ms
@@ -415,18 +455,21 @@ class IconType(PointTypeBase):
 
   name = "Icon"
 
-  def setupWidgets(self, ppage, mapTo3d, layer):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
     filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
     ppage.initStyleWidgets(color=False)
     ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
 
-  def material(self, settings, layer, feat):
+  @classmethod
+  def material(cls, settings, layer, feat):
     image_path = feat.values[1]
     return layer.materialManager.getSpriteIndex(image_path, feat.values[0])
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     return {"pts": geom.asList(),
             "scale": feat.values[2]}
 
@@ -434,7 +477,8 @@ class IconType(PointTypeBase):
 ### ModelType
 class ModelTypeBase(PointTypeBase):
 
-  def setupWidgets(self, ppage, mapTo3d, layer, label, filterString):
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
     ppage.initStyleWidgets(color=False, opacity=False)
     ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": label, "layer": layer, "filterString": filterString})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
@@ -442,9 +486,10 @@ class ModelTypeBase(PointTypeBase):
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
-  def geometry(self, settings, layer, feat, geom):
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     model_path = feat.values[0]
-    model_type = self.name.split(" ")[0]
+    model_type = cls.name.split(" ")[0]
     index = layer.modelManager.modelIndex(model_path, model_type)
 
     rz = feat.values[4]
@@ -465,30 +510,28 @@ class JSONModelType(ModelTypeBase):
 
   name = "JSON model"
 
-  def setupWidgets(self, ppage, mapTo3d, layer, label, filterString):
-    ModelTypeBase.setupWidgets(self, ppage, mapTo3d, layer, "JSON file", "JSON files (*.json *.js);;All files (*.*)")
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
+    ModelTypeBase.setupWidgets(ppage, mapTo3d, layer, "JSON file", "JSON files (*.json *.js);;All files (*.*)")
 
 
 class COLLADAModelType(ModelTypeBase):
 
   name = "COLLADA model"
 
-  def setupWidgets(self, ppage, mapTo3d, layer, label, filterString):
-    ModelTypeBase.setupWidgets(self, ppage, mapTo3d, layer, "COLLADA file", "COLLADA files (*.dae);;All files (*.*)")
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
+    ModelTypeBase.setupWidgets(ppage, mapTo3d, layer, "COLLADA file", "COLLADA files (*.dae);;All files (*.*)")
 
 
 ### ObjectTypeRegistry
 class ObjectTypeRegistry:
 
   def __init__(self):
-    # instantiate object type classes
-    ptClss = [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType, JSONModelType, COLLADAModelType]
-    lnClss = [LineType, PipeType, ConeLineType, BoxLineType, ProfileType]
-    plClss = [ExtrudedType, OverlayType]
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [cls() for cls in ptClss],
-      QgsWkbTypes.LineGeometry: [cls() for cls in lnClss],
-      QgsWkbTypes.PolygonGeometry: [cls() for cls in plClss]
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType, JSONModelType, COLLADAModelType],
+      QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
+      QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType]
     }
 
   def objectTypes(self, geom_type):
