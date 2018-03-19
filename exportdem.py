@@ -39,11 +39,6 @@ class DEMLayerExporter(LayerExporter):
     self.prop = DEMPropertyReader(layer.layerId, layer.properties)
 
   def build(self, export_blocks=False):
-    #if self.settings.exportMode == ExportSettings.PLAIN_SIMPLE:
-      #writeSimpleDEM(writer, demProperties, progress)
-    #else:
-      #writeMultiResDEM(writer, demProperties, progress)
-
     if self.provider is None:
       return None
 
@@ -59,7 +54,7 @@ class DEMLayerExporter(LayerExporter):
       "type": "layer",
       "id": self.layer.jsLayerId,
       "properties": p,
-      "PROPERTIES": self.properties    # debug
+      "PROPERTIES": self.properties    # for debug
       }
 
     # DEM block
@@ -399,13 +394,6 @@ class DEMBlocks:
       stats["max"] = max(block.orig_stats["max"], stats["max"])
       stats["min"] = min(block.orig_stats["min"], stats["min"])
     return stats
-
-  def write(self, writer, separated=False):
-    for block in self.blocks:
-      if separated:
-        writer.nextFile(True)
-
-      block.write(writer)
 
 
 def dummyProgress(progress=None, statusMsg=None):

@@ -91,7 +91,7 @@ class VectorLayerExporter(LayerExporter):
 
     # materials
     for feat in self.features:
-      #if writer.isCanceled:
+      #if self.isCanceled:
       #  break
 
       feat.material = self.prop.objType.material(self.settings, layer, feat)
@@ -243,11 +243,6 @@ class Feature:
     # transform_func: function to transform the map coordinates to 3d coordinates
     transform_func = lambda x, y, z: mapTo3d.transform(x, y, z + self.altitude)
 
-    #if useZ and False:    #TODO: use QGIS API
-      # ogr_geom = ogr.CreateGeometryFromWkb(bytes(geometry.exportToWkb()))
-      # ...
-      # feat.geom = self.geomClass.fromOgrGeometry25D(ogr_geom, transform_func)
-
     geom = self.geom
     # clip geometry
     if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
@@ -261,12 +256,18 @@ class Feature:
       return None
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
-      geom = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
+      g = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
-        pass
-        #TODO:
-        #feat.geom.splitPolygon(self.writer.triangleMesh())
-      return geom
+        #TODO: needs grid size of the DEM layer in export settings.
+
+        # create triangle mesh
+        hw = 0.5 * mapTo3d.planeWidth
+        hh = 0.5 * mapTo3d.planeHeight
+        tmesh = TriangleMesh(-hw, -hh,
+                             hw, hh,
+                             grid_size.width() - 1, grid_size.height() - 1)
+        g.splitPolygon(tmesh)
+      return g
 
     else:
       return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
