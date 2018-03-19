@@ -244,6 +244,15 @@ class PolygonGeometry(Geometry):
       p.append(b)
     return p
 
+  def asList2(self):
+    p = []
+    for boundaries in self.polygons:
+      b = []
+      for boundary in boundaries:
+        b.append([[pt.x, pt.y] for pt in boundary])
+      p.append(b)
+    return p
+
   def toQgsGeometry(self):
     count = len(self.polygons)
     if count > 1:

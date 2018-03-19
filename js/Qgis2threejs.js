@@ -1561,12 +1561,12 @@ Q3D.DEMBlock.prototype = {
     return null;
   },
 
-  // TODO:
   contains: function (x, y) {
-    var xmin = this.plane.offsetX - this.plane.width / 2,
-        xmax = this.plane.offsetX + this.plane.width / 2,
-        ymin = this.plane.offsetY - this.plane.height / 2,
-        ymax = this.plane.offsetY + this.plane.height / 2;
+    var translate = this.data.translate,
+        xmin = translate[0] - this.data.width / 2,
+        xmax = translate[0] + this.data.width / 2,
+        ymin = translate[1] - this.data.height / 2,
+        ymax = translate[1] + this.data.height / 2;
     if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
     return false;
   }
@@ -1583,19 +1583,24 @@ Q3D.ClippedDEMBlock.prototype = {
 
   constructor: Q3D.ClippedDEMBlock,
 
-  loadJSONObject: function (jsonObject, layer, callback) {
-    for (var k in jsonObject) {
-      this[k] = jsonObject[k];
-    }
+  loadJSONObject: function (obj, layer, callback) {
+    var _this = this;
+    this.data = obj;
 
-    var geom = Q3D.Utils.createOverlayGeometry(this.clip.triangles, this.clip.split_polygons, layer.getZ.bind(layer));
+    // load material
+    this.material = new Q3D.Material();
+    this.material.loadJSONObject(obj.material, function () {
+      if (callback) callback(_this);
+    });
+    layer.materials.add(this.material);
+
+    var geom = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));
 
     // set UVs
     Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
 
-    var mesh = new THREE.Mesh(geom, material);
-    if (this.plane.offsetX != 0) mesh.position.x = this.plane.offsetX;
-    if (this.plane.offsetY != 0) mesh.position.y = this.plane.offsetY;
+    var mesh = new THREE.Mesh(geom, this.material.mtl);
+    if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
     this.obj = mesh;
     return mesh;
   },
@@ -1638,15 +1643,17 @@ Q3D.ClippedDEMBlock.prototype = {
   },
 
   getValue: function (x, y) {
-    if (0 <= x && x < this.width && 0 <= y && y < this.height) return this.data[x + this.width * y];
+    var grid = this.data.grid;
+    if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
     return null;
   },
 
   contains: function (x, y) {
-    var xmin = this.plane.offsetX - this.plane.width / 2,
-        xmax = this.plane.offsetX + this.plane.width / 2,
-        ymin = this.plane.offsetY - this.plane.height / 2,
-        ymax = this.plane.offsetY + this.plane.height / 2;
+    var translate = this.data.translate,
+        xmin = translate[0] - this.data.width / 2,
+        xmax = translate[0] + this.data.width / 2,
+        ymin = translate[1] - this.data.height / 2,
+        ymax = translate[1] + this.data.height / 2;
     if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
     return false;
   }
@@ -1768,7 +1775,7 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   }
   else if (jsonObject.type == "block") {
     var index = jsonObject.block;
-    if (this.blocks[index] === undefined) this.blocks[index] = new Q3D.DEMBlock();
+    this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
     var mesh = this.blocks[index].loadJSONObject(jsonObject, this, this.requestRender.call(this));
     this.addObject(mesh);
@@ -1779,7 +1786,7 @@ Q3D.DEMLayer.prototype.build = function (blocks) {
   var _this = this;
   // build blocks
   blocks.forEach(function (block) {
-    var b = new Q3D.DEMBlock(),
+    var b = (block.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock()),
         mesh = b.loadJSONObject(block, _this, function (blk) {
           _this.requestRender();
         });
@@ -1788,21 +1795,21 @@ Q3D.DEMLayer.prototype.build = function (blocks) {
   });
 };
 
-// TODO: block.plane, .getValue
 // calculate elevation at the coordinates (x, y) on triangle face
 Q3D.DEMLayer.prototype.getZ = function (x, y) {
   var xmin = -this.sceneData.width / 2,
       ymax = this.sceneData.height / 2;
 
   for (var i = 0, l = this.blocks.length; i < l; i++) {
-    var block = this.blocks[i];
+    var block = this.blocks[i],
+        data = block.data;
     if (!block.contains(x, y)) continue;
 
-    var ix = block.plane.width / (block.width - 1),
-        iy = block.plane.height / (block.height - 1);
+    var ix = data.width / (data.grid.width - 1),
+        iy = data.height / (data.grid.height - 1);
 
-    var xmin = block.plane.offsetX - block.plane.width / 2,
-        ymax = block.plane.offsetY + block.plane.height / 2;
+    var xmin = data.translate[0] - data.width / 2,
+        ymax = data.translate[1] + data.height / 2;
 
     var mx0 = Math.floor((x - xmin) / ix),
         my0 = Math.floor((ymax - y) / iy);
@@ -2859,7 +2866,7 @@ Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
     }
 
     // triangulate polygon
-    var faces = THREE.Shape.Utils.triangulateShape(poly_geom.vertices, holes);
+    var faces = THREE.ShapeUtils.triangulateShape(poly_geom.vertices, holes);
 
     // append points of holes to vertices
     for (var j = 0, m = holes.length; j < m; j++) {

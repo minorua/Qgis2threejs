@@ -25,7 +25,7 @@ from qgis.core import QgsPoint, QgsProject
 
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
-from .geometry import PolygonGeometry, dissolvePolygonsOnCanvas
+from .geometry import PolygonGeometry, TriangleMesh, Triangles, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
 from .rotatedrect import RotatedRect
 
@@ -252,16 +252,16 @@ class DEMBlockExporter:
     z_func = lambda x, y: 0
     transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
 
-    geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
-    geom.splitPolygon(writer.triangleMesh(self.grid_width, self.grid_height))
+    # create triangle mesh
+    hw = 0.5 * mapTo3d.planeWidth
+    hh = 0.5 * mapTo3d.planeHeight
+    tmesh = TriangleMesh(-hw, -hh,
+                         hw, hh,
+                         self.grid_size.width() - 1, self.grid_size.height() - 1)
 
-    #TODO: geom.toList()
-    polygons = []
-    for polygon in geom.polygons:
-      bnds = []
-      for boundary in polygon:
-        bnds.append([[pt.x, pt.y] for pt in boundary])
-      polygons.append(bnds)
+    # split polygons with triangle mesh
+    geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
+    geom.splitPolygon(tmesh)
 
     triangles = Triangles()
     split_polygons = []
@@ -273,7 +273,7 @@ class DEMBlockExporter:
         bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
         split_polygons.append(bnds)
 
-    return {"polygons": polygons,
+    return {"polygons": geom.asList2(),
             "triangles": {"v": [[pt.x, pt.y] for pt in triangles.vertices],
                           "f": triangles.faces},
             "split_polygons": split_polygons}
