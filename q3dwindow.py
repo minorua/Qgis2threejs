@@ -277,7 +277,7 @@ class Q3DWindow(QMainWindow):
     self.runString("app.showPrintDialog();")
 
   def pluginSettings(self):
-    from .settingsdialog import SettingsDialog
+    from .pluginsettings import SettingsDialog
     dialog = SettingsDialog(self)
     if dialog.exec_():
       self.iface.controller.pluginManager.reloadPlugins()

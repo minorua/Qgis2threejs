@@ -29,7 +29,6 @@ from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
 from qgis.gui import QgsFieldExpressionWidget
 
 from .ui.worldproperties import Ui_WorldPropertiesWidget
-from .ui.controlsproperties import Ui_ControlsPropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
@@ -42,7 +41,7 @@ from .vectorobject import objectTypeRegistry
 
 PAGE_NONE = 0
 PAGE_WORLD = 1
-PAGE_CONTROLS = 2
+#PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
 
@@ -217,51 +216,6 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     if not is_number(self.lineEdit_zShift.text()):
       p["lineEdit_zShift"] = str(def_vals.zShift)
     return p
-
-
-class ControlsPropertyPage(PropertyPage, Ui_ControlsPropertiesWidget):
-
-  def __init__(self, dialog, parent=None):
-    PropertyPage.__init__(self, PAGE_CONTROLS, dialog, parent)
-    Ui_ControlsPropertiesWidget.setupUi(self, self)
-
-    self.controlsDir = os.path.join(tools.pluginDir(), "js", "threejs", "controls")
-
-    self.initControlsList()
-    self.registerPropertyWidgets([self.comboBox_Controls])
-
-    self.comboBox_Controls.currentIndexChanged.connect(self.controlsChanged)
-
-  def setup(self, properties=None):
-    # restore properties
-    comboBox = self.comboBox_Controls
-    comboBox.blockSignals(True)
-    if properties:
-      self.setProperties(properties)
-    else:
-      controls = QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
-      index = comboBox.findText(controls)
-      if index != -1:
-        comboBox.setCurrentIndex(index)
-    comboBox.blockSignals(False)
-
-    self.controlsChanged(comboBox.currentIndex())
-
-  def initControlsList(self):
-    # list controls
-    self.comboBox_Controls.clear()
-    for entry in QDir(self.controlsDir).entryList(["*.js"]):
-      self.comboBox_Controls.addItem(entry, entry)
-
-  def controlsChanged(self, index):
-    controls = self.comboBox_Controls.itemText(index)
-    descFile = os.path.splitext(os.path.join(self.controlsDir, controls))[0] + ".txt"
-    if os.path.exists(descFile):
-      with open(descFile) as f:
-        desc = f.read()
-    else:
-      desc = "No description"
-    self.textEdit.setText(desc)
 
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):

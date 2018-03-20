@@ -219,7 +219,7 @@ class Qgis2threejsDialog(QDialog):
       self.setSettings({})
 
   def pluginSettings(self):
-    from .settingsdialog import SettingsDialog
+    from .pluginsettings import SettingsDialog
     dialog = SettingsDialog(self)
     if dialog.exec_():
       self.pluginManager.reloadPlugins()
