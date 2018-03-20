@@ -23,7 +23,7 @@ from xml.dom import minidom
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QObject, QSettings, QUrl, QVariant, pyqtSignal
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox, QProgressBar
 
 
 from . import q3dconst
@@ -76,11 +76,31 @@ class Q3DViewerInterface:
   def runString(self, string):
     self.webView.runString(string)
 
+  def abort(self):
+    self.controller.abort()
+
   def exportScene(self):
     self.controller.exportScene()
 
   def exportLayer(self, layer):
     self.controller.exportLayer(layer)
+
+  def showMessage(self, msg):
+    self.wnd.ui.statusbar.showMessage(msg)
+
+  def clearMessage(self):
+    self.wnd.ui.statusbar.clearMessage()
+
+  def progress(self, percentage=100, text=None):
+    bar = self.wnd.ui.progressBar
+    if percentage == 100:
+      bar.setVisible(False)
+      bar.setFormat("")
+    else:
+      bar.setVisible(True)
+      bar.setValue(percentage)
+      if text is not None:
+        bar.setFormat(text)
 
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
@@ -165,11 +185,24 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
     QMainWindow.closeEvent(self, event)
 
+  def keyPressEvent(self, event):
+    if event.key() == Qt.Key_Escape:
+      self.iface.abort()
+    QMainWindow.keyPressEvent(self, event)
+
   def setupMenu(self):
     self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
     self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
   def setupStatusBar(self, iface):
+    w = QProgressBar(self.ui.statusbar)
+    w.setObjectName("progressBar")
+    w.setMaximumWidth(250)
+    w.setAlignment(Qt.AlignCenter)
+    w.setVisible(False)
+    self.ui.statusbar.addPermanentWidget(w)
+    self.ui.progressBar = w
+
     w = QCheckBox(self.ui.statusbar)
     w.setObjectName("checkBoxRendering")
     w.setText("Rendering")     #_translate("Q3DWindow", "Rendering"))

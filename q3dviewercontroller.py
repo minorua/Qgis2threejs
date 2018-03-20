@@ -47,8 +47,12 @@ class Q3DViewerController:
     self.exporter = ThreeJSExporter(settings)
 
     self.iface = None
-    self.enabled = True
+    self.enabled = True   # preview enabled
+    self.aborted = False  # layer export aborted
+    self.exporting = False
     self.extentUpdated = False
+
+    self.message1 = "Press ESC key to abort processing"
 
   def connectToIface(self, iface):
     """iface: Q3DViewerInterface"""
@@ -63,6 +67,11 @@ class Q3DViewerController:
     self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
     self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
+  def abort(self):
+    if self.exporting:
+      self.iface.showMessage("Aborting processing...")
+      self.aborted = True
+
   def exportScene(self):
     if self.iface:
       self.extentUpdated = True
@@ -70,19 +79,35 @@ class Q3DViewerController:
       self.iface.loadJSONObject(self.exporter.exportScene(False))
 
   def exportLayer(self, layer):
+    self.exporting = True
+    self.iface.showMessage(self.message1)
+    self.iface.progress(0, "Exporting {0}...".format(layer.name))
+
+    self._exportLayer(layer)
+
+    self.exporting = self.aborted = False
+    self.iface.progress()
+    self.iface.clearMessage()
+
+  def _exportLayer(self, layer):
     if self.iface and self.enabled:
       if layer.geomType == q3dconst.TYPE_DEM:
         for exporter in self.exporter.demExporters(layer):
+          if self.aborted:
+            return False
           self.iface.loadJSONObject(exporter.build())
-          QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+          QgsApplication.processEvents()
             # NOTE: process events only for the calling thread
 
       elif layer.geomType in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
         for exporter in self.exporter.vectorExporters(layer):
+          if self.aborted:
+            return False
           self.iface.loadJSONObject(exporter.build())
-          QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+          QgsApplication.processEvents()
 
       layer.updated = False
+      return True
 
   def setEnabled(self, enabled):
     if self.iface is None:
@@ -92,12 +117,21 @@ class Q3DViewerController:
     self.iface.runString("app.resume();" if enabled else "app.pause();");
     if enabled:
       # update layers
-      for layerId, layer in enumerate(self.iface.controller.settings.getLayerList()):
+      self.exporting = True
+      self.iface.showMessage(self.message1)
+      self.iface.progress(0, "Updating layers")
+      layers = self.iface.controller.settings.getLayerList()
+      for idx, layer in enumerate(layers):
+        self.iface.progress(idx / len(layers) * 100)
         if layer.updated or (self.extentUpdated and layer.visible):
-          self.exportLayer(layer)
+          if not self._exportLayer(layer):
+            break
 
       self.extentUpdated = False
-
+      self.exporting = self.aborted = False
+      self.iface.progress()
+      self.iface.clearMessage()
+      
   def updateExtent(self):
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
@@ -106,10 +140,19 @@ class Q3DViewerController:
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
     if self.iface and self.enabled:
-      for layer in self.iface.controller.settings.getLayerList():
+      self.exporting = True
+      self.iface.showMessage(self.message1)
+      self.iface.progress(0, "Updating layers")
+      layers = self.iface.controller.settings.getLayerList()
+      for idx, layer in enumerate(layers):
+        self.iface.progress(idx / len(layers) * 100)
         if layer.visible:
-          self.exportLayer(layer)
+          if not self._exportLayer(layer):
+            break
       self.extentUpdated = False
+      self.exporting = self.aborted = False
+      self.iface.progress()
+      self.iface.clearMessage()
 
   def canvasExtentChanged(self):
     self.exportScene()
