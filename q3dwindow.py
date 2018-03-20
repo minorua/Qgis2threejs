@@ -62,8 +62,8 @@ class Q3DViewerInterface:
   def startApplication(self):
     self.webView.runString("app.start();");
 
-  def setEnabled(self, enabled):
-    self.controller.setEnabled(enabled)
+  def setPreviewEnabled(self, enabled):
+    self.controller.setPreviewEnabled(enabled)
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
@@ -204,12 +204,12 @@ class Q3DWindow(QMainWindow):
     self.ui.progressBar = w
 
     w = QCheckBox(self.ui.statusbar)
-    w.setObjectName("checkBoxRendering")
-    w.setText("Rendering")     #_translate("Q3DWindow", "Rendering"))
+    w.setObjectName("checkBoxPreview")
+    w.setText("Preview")     #_translate("Q3DWindow", "Preview"))
     w.setChecked(True)
     self.ui.statusbar.addPermanentWidget(w)
-    self.ui.checkBoxRendering = w
-    self.ui.checkBoxRendering.toggled.connect(iface.setEnabled)
+    self.ui.checkBoxPreview = w
+    self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)
 
   def alwaysOnTopToggled(self, checked):
     if checked:

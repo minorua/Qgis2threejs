@@ -47,7 +47,7 @@ class Q3DViewerController:
     self.exporter = ThreeJSExporter(settings)
 
     self.iface = None
-    self.enabled = True   # preview enabled
+    self.previewEnabled = True
     self.aborted = False  # layer export aborted
     self.exporting = False
     self.extentUpdated = False
@@ -90,7 +90,7 @@ class Q3DViewerController:
     self.iface.clearMessage()
 
   def _exportLayer(self, layer):
-    if self.iface and self.enabled:
+    if self.iface and self.previewEnabled:
       if layer.geomType == q3dconst.TYPE_DEM:
         for exporter in self.exporter.demExporters(layer):
           if self.aborted:
@@ -109,11 +109,11 @@ class Q3DViewerController:
       layer.updated = False
       return True
 
-  def setEnabled(self, enabled):
+  def setPreviewEnabled(self, enabled):
     if self.iface is None:
       return
 
-    self.enabled = enabled
+    self.previewEnabled = enabled
     self.iface.runString("app.resume();" if enabled else "app.pause();");
     if enabled:
       # update layers
@@ -139,7 +139,7 @@ class Q3DViewerController:
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    if self.iface and self.enabled:
+    if self.iface and self.previewEnabled:
       self.exporting = True
       self.iface.showMessage(self.message1)
       self.iface.progress(0, "Updating layers")
