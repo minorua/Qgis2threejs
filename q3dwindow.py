@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMe
 from . import q3dconst
 from .conf import plugin_version
 from .exporttowebdialog import ExportToWebDialog
-from .propertypages import DEMPropertyPage, VectorPropertyPage
+from .propertypages import WorldPropertyPage, DEMPropertyPage, VectorPropertyPage
 from .qgis2threejstools import logMessage
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
@@ -104,11 +104,8 @@ class Q3DViewerInterface:
 
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
-    dialog.setLayer(layer)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
-    dialog.show()
-    dialog.exec_()
-
+    dialog.showLayerProperties(layer)
     return True
 
   def updateLayerProperties(self, layerId, properties):
@@ -158,6 +155,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
+    self.ui.actionWorldSettings.triggered.connect(self.showWorldPropertiesDialog)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
@@ -282,6 +280,15 @@ class Q3DWindow(QMainWindow):
     if dialog.exec_():
       self.iface.controller.pluginManager.reloadPlugins()
 
+  def showWorldPropertiesDialog(self):
+    dialog = PropertiesDialog(self, self.qgisIface, self.settings)
+    dialog.propertiesAccepted.connect(self.updateWorldProperties)
+    dialog.showWorldProperties()
+
+  def updateWorldProperties(self, _, properties):
+    #TODO:
+    pass
+
   def help(self):
     QDesktopServices.openUrl(QUrl("http://qgis2threejs.readthedocs.io/en/docs-release/"))
 
@@ -350,7 +357,27 @@ class PropertiesDialog(QDialog):
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-      self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
+      if isinstance(self.page, WorldPropertyPage):
+        self.propertiesAccepted.emit("", self.page.properties())
+      else:
+        self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
+
+  def showLayerProperties(self, layer):
+    self.setLayer(layer)
+    self.show()
+    self.exec_()
+
+  def showWorldProperties(self):
+    self.page = WorldPropertyPage(self, self)
+    self.page.setup()
+    self.ui.scrollArea.setWidget(self.page)
+
+    # disable wheel event for ComboBox widgets
+    for w in self.ui.scrollArea.findChildren(QComboBox):
+      w.installEventFilter(self.wheelFilter)
+
+    self.show()
+    self.exec_()
 
 
 class WheelEventFilter(QObject):

@@ -52,7 +52,7 @@
      </property>
      <addaction name="actionOrbit"/>
     </widget>
-    <addaction name="actionWorld_Settings"/>
+    <addaction name="actionWorldSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="separator"/>
@@ -191,10 +191,7 @@
     <string>STL (.stl)</string>
    </property>
   </action>
-  <action name="actionWorld_Settings">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
+  <action name="actionWorldSettings">
    <property name="text">
     <string>World Settings...</string>
    </property>
