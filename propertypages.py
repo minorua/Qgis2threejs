@@ -22,7 +22,7 @@
 import os
 import re
 
-from PyQt5.QtCore import Qt, QDir, QSettings, QPoint
+from PyQt5.QtCore import Qt, QDir, QPoint
 from PyQt5.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
@@ -171,13 +171,6 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
-    canvas = self.dialog.iface.mapCanvas()
-    extent = canvas.extent()
-    outsize = canvas.mapSettings().outputSize()
-
-    self.lineEdit_MapCanvasExtent.setText("%.4f, %.4f - %.4f, %.4f" % (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()))
-    self.lineEdit_MapCanvasSize.setText("{0} x {1}".format(outsize.width(), outsize.height()))
-
     # restore properties
     if properties:
       self.setProperties(properties)
@@ -192,6 +185,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
               "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
+    canvas = self.dialog.iface.mapCanvas()
     mapSettings = canvas.mapSettings()
     proj = mapSettings.destinationCrs().toProj4()
     m = re.search("\+proj=(\w+)", proj)
