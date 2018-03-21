@@ -105,6 +105,13 @@ class ExportSettings:
     self._quadtree = None
     self._templateConfig = None
 
+  def worldProperties(self):
+    return self.data.get(ObjectTreeItem.ITEM_WORLD, {})
+
+  def setWorldProperties(self, properties):
+    self.data[ObjectTreeItem.ITEM_WORLD] = properties
+    self._mapTo3d = None
+
   @property
   def controls(self):
     if self._controls:

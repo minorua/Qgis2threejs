@@ -102,6 +102,18 @@ class Q3DViewerInterface:
       if text is not None:
         bar.setFormat(text)
 
+  def showWorldPropertiesDialog(self):
+    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
+    dialog.propertiesAccepted.connect(self.updateWorldProperties)
+    dialog.showWorldProperties()
+
+  def updateWorldProperties(self, _, properties):
+    if self.controller.settings.worldProperties() == properties:
+      return
+    self.controller.settings.setWorldProperties(properties)
+    self.controller.layersNeedUpdate = True
+    self.controller.updateScene()
+
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
@@ -155,7 +167,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-    self.ui.actionWorldSettings.triggered.connect(self.showWorldPropertiesDialog)
+    self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
@@ -280,15 +292,6 @@ class Q3DWindow(QMainWindow):
     if dialog.exec_():
       self.iface.controller.pluginManager.reloadPlugins()
 
-  def showWorldPropertiesDialog(self):
-    dialog = PropertiesDialog(self, self.qgisIface, self.settings)
-    dialog.propertiesAccepted.connect(self.updateWorldProperties)
-    dialog.showWorldProperties()
-
-  def updateWorldProperties(self, _, properties):
-    #TODO:
-    pass
-
   def help(self):
     QDesktopServices.openUrl(QUrl("http://qgis2threejs.readthedocs.io/en/docs-release/"))
 
@@ -312,6 +315,7 @@ class PropertiesDialog(QDialog):
 
     self.iface = qgisIface
     self.pluginManager = pluginManager
+    self.settings = settings
     self.mapTo3d = settings.mapTo3d
 
     self.wheelFilter = WheelEventFilter()
@@ -369,13 +373,8 @@ class PropertiesDialog(QDialog):
 
   def showWorldProperties(self):
     self.page = WorldPropertyPage(self, self)
-    self.page.setup()
+    self.page.setup(self.settings.worldProperties())
     self.ui.scrollArea.setWidget(self.page)
-
-    # disable wheel event for ComboBox widgets
-    for w in self.ui.scrollArea.findChildren(QComboBox):
-      w.installEventFilter(self.wheelFilter)
-
     self.show()
     self.exec_()
 
