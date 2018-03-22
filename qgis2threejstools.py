@@ -243,12 +243,15 @@ def removeDir(dirName):
     d.rmdir(dirName)
 
 
-def pluginDir():
-  return os.path.dirname(QFile.decodeName(__file__))
+def pluginDir(subdir=""):
+  p = os.path.dirname(QFile.decodeName(__file__))
+  if subdir:
+    return os.path.join(p, subdir)
+  return p
 
 
 def templateDir():
-  return os.path.join(pluginDir(), "html_templates")
+  return pluginDir("html_templates")
 
 
 def temporaryOutputDir():

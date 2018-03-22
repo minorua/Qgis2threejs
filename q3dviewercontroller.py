@@ -18,7 +18,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
 from qgis.core import QgsApplication
 
 from . import q3dconst
@@ -132,7 +131,7 @@ class Q3DViewerController:
 
     # coordinate display (geographic/projected)
     if ws.get("radioButton_WGS84", False):
-      with open(os.path.join(pluginDir(), "js/proj4js/proj4.js"), "r") as f:
+      with open(pluginDir("js/proj4js/proj4.js"), "r") as f:
         self.iface.runString(f.read())
     else:
       self.iface.runString("proj4 = undefined;")

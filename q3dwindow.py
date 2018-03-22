@@ -18,7 +18,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
@@ -152,7 +151,7 @@ class Q3DWindow(QMainWindow):
     #else:
     #  self.iface = Q3DConnector(self)
 
-    self.setWindowIcon(QIcon(os.path.join(pluginDir(), "icon.png")))
+    self.setWindowIcon(QIcon(pluginDir("icon.png")))
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
