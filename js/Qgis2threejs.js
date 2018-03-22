@@ -2067,7 +2067,7 @@ Q3D.PointLayer.prototype.build = function (features) {
     setSR = function (geom, scale, rotation) {
       scale.set(geom.r, geom.r, geom.r);
     };
-    unitGeom = new THREE.SphereGeometry(1);
+    unitGeom = new THREE.SphereGeometry(1, 32, 32);
   }
   else if (objType == "Box") {
     setSR = function (geom, scale, rotation) {
@@ -2093,7 +2093,7 @@ Q3D.PointLayer.prototype.build = function (features) {
       scale.set(geom.r, geom.h, geom.r);
       rotation.x = rx;
     };
-    unitGeom = (objType == "Cylinder") ? new THREE.CylinderGeometry(1, 1, 1) : new THREE.CylinderGeometry(0, 1, 1);
+    unitGeom = (objType == "Cylinder") ? new THREE.CylinderGeometry(1, 1, 1, 32) : new THREE.CylinderGeometry(0, 1, 1, 32);
   }
 
   // iteration for features
