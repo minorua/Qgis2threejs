@@ -137,23 +137,13 @@ class CylinderType(PointBasicTypeBase):
     mapTo3d = settings.mapTo3d()
     r = feat.values[2] * mapTo3d.multiplier
     return {"pts": geom.asList(),
-            "rt": r, "rb": r,
-            "h": feat.values[3] * mapTo3d.multiplierZ,
-            "rotateX": 90}
+            "r": r,
+            "h": feat.values[3] * mapTo3d.multiplierZ}
 
 
 class ConeType(CylinderType):
 
   name = "Cone"
-
-  @classmethod
-  def geometry(cls, settings, layer, feat, geom):
-    mapTo3d = settings.mapTo3d()
-    r = feat.values[2] * mapTo3d.multiplier
-    return {"pts": geom.asList(),
-            "rt": 0, "rb": r,
-            "h": feat.values[3] * mapTo3d.multiplierZ,
-            "rotateX": 90}
 
 
 class BoxType(PointBasicTypeBase):
@@ -174,8 +164,7 @@ class BoxType(PointBasicTypeBase):
     return {"pts": geom.asList(),
             "w": feat.values[2] * mapTo3d.multiplier,
             "d": feat.values[3] * mapTo3d.multiplier,
-            "h": feat.values[4] * mapTo3d.multiplierZ,
-            "rotateX": 90}
+            "h": feat.values[4] * mapTo3d.multiplierZ}
 
 
 class DiskType(PointBasicTypeBase):
@@ -243,20 +232,12 @@ class PipeType(LineBasicTypeBase):
   def geometry(cls, settings, layer, feat, geom):
     r = feat.values[2] * settings.mapTo3d().multiplier
     return {"lines": geom.asList(),
-            "rt": r,
-            "rb": r}
+            "r": r}
 
 
 class ConeLineType(PipeType):
 
   name = "Cone"
-
-  @classmethod
-  def geometry(cls, settings, layer, feat, geom):
-    r = feat.values[2] * settings.mapTo3d().multiplier
-    return {"lines": geom.asList(),
-            "rt": 0,
-            "rb": r}
 
 
 class BoxLineType(LineBasicTypeBase):

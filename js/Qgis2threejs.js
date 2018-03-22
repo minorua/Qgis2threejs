@@ -2090,7 +2090,7 @@ Q3D.PointLayer.prototype.build = function (features) {
   }
   else {  // Cylinder or Cone
     setSR = function (geom, scale, rotation) {
-      scale.set(geom.rb, geom.h, geom.rb);
+      scale.set(geom.r, geom.h, geom.r);
       rotation.x = rx;
     };
     unitGeom = (objType == "Cylinder") ? new THREE.CylinderGeometry(1, 1, 1) : new THREE.CylinderGeometry(0, 1, 1);
@@ -2212,7 +2212,7 @@ Q3D.LineLayer.prototype.build = function (features) {
 
         if (jointGeom) {
           obj = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
-          obj.scale.set(f.geom.rb, f.geom.rb, f.geom.rb);
+          obj.scale.set(f.geom.r, f.geom.r, f.geom.r);
           obj.position.copy(pt1);
           group.add(obj);
         }
@@ -2220,7 +2220,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         if (i) {
           sub.subVectors(pt1, pt0);
           obj = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
-          obj.scale.set(f.geom.rb, pt0.distanceTo(pt1), f.geom.rb);
+          obj.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
           obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
           group.add(obj);
