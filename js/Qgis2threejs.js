@@ -2060,43 +2060,55 @@ Q3D.PointLayer.prototype.build = function (features) {
   if (objType == "Icon") { this.buildIcons(features); return; }
   if (objType == "JSON model" || objType == "COLLADA model") { this.buildModels(features); return; }
 
-  var deg2rad = Math.PI / 180;
-  var createGeometry, scaleZ = 1;
+  var deg2rad = Math.PI / 180, rx = 90 * deg2rad;
+  var setSR, unitGeom;
 
   if (objType == "Sphere") {
-    createGeometry = function (geom) {
-      if (geom.r == 0) return null;
-      return new THREE.SphereGeometry(geom.r);
+    setSR = function (geom, scale, rotation) {
+      scale.set(geom.r, geom.r, geom.r);
     };
+    unitGeom = new THREE.SphereGeometry(1);
   }
-  else if (objType == "Box") createGeometry = function (geom) { return new THREE.BoxGeometry(geom.w, geom.h, geom.d); };
+  else if (objType == "Box") {
+    setSR = function (geom, scale, rotation) {
+      scale.set(geom.w, geom.h, geom.d);
+      rotation.x = rx;
+    };
+    unitGeom = new THREE.BoxGeometry(1, 1, 1);
+  }
   else if (objType == "Disk") {
-    createGeometry = function (geom) {
-      var geom = new THREE.CylinderGeometry(geom.r, geom.r, 0, 32), m = new THREE.Matrix4();
-      if (90 - geom.d) geom.applyMatrix(m.makeRotationX((90 - geom.d) * deg2rad));
-      if (geom.dd) geom.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
-      return geom;
-    };
-    if (this.ns === undefined || this.ns == false) scaleZ = this.sceneData.zExaggeration;
-  }
-  else createGeometry = function (geom) { return new THREE.CylinderGeometry(geom.rt, geom.rb, geom.h); };   // Cylinder or Cone
+    var sz = (this.ns === undefined || this.ns == false) ? this.sceneData.zExaggeration : 1;
+    setSR = function (geom, scale, rotation) {
+      scale.set(geom.r, 0, geom.r * sz);
 
-  // each feature in this layer
+      // TODO: check
+      var m = new THREE.Matrix4()
+      if (90 - geom.d) rotation.applyMatrix(m.makeRotationX((90 - geom.d) * deg2rad));
+      if (geom.dd) rotation.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
+    };
+    unitGeom = new THREE.CylinderGeometry(1, 1, 0, 32);
+  }
+  else {  // Cylinder or Cone
+    setSR = function (geom, scale, rotation) {
+      scale.set(geom.rb, geom.h, geom.rb);
+      rotation.x = rx;
+    };
+    unitGeom = (objType == "Cylinder") ? new THREE.CylinderGeometry(1, 1, 1) : new THREE.CylinderGeometry(0, 1, 1);
+  }
+
+  // iteration for features
   var materials = this.materials;
-  var f, geom, geometry, z_addend, i, l, mesh, pt;
+  var f, geom, z_addend, i, l, mesh, pt;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
     geom = f.geom;
     z_addend = (geom.h) ? geom.h / 2 : 0;
     for (i = 0, l = geom.pts.length; i < l; i++) {
-      geometry = createGeometry(geom);
-      if (geometry === null) continue;
-      mesh = new THREE.Mesh(geometry, materials.mtl(f.mtl));
+      mesh = new THREE.Mesh(unitGeom, materials.mtl(f.mtl));
+      setSR(geom, mesh.scale, mesh.rotation);
 
       pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
-      if (geom.rotateX) mesh.rotation.x = geom.rotateX * deg2rad;
-      if (scaleZ != 1) mesh.scale.z = scaleZ;
       //mesh.userData.featureId = fid;
       mesh.userData.properties = f.prop;
 
