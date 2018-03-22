@@ -19,7 +19,10 @@
 """
 
 plugin_version = "1.99.0"
-debug_mode = 0
+debug_mode = 1
+  # 0. no debug info
+  # 1. JS console, qDebug
+  # 2. JS console, qDebug, log file, "debug" element
 live_in_another_process = False
 
 class DefaultSettings:

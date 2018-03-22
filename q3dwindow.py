@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMe
 
 
 from . import q3dconst
-from .conf import plugin_version
+from .conf import debug_mode, plugin_version
 from .exporttowebdialog import ExportToWebDialog
 from .propertypages import WorldPropertyPage, DEMPropertyPage, VectorPropertyPage
 from .qgis2threejstools import logMessage, pluginDir
@@ -67,11 +67,10 @@ class Q3DViewerInterface:
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
-    self.webView.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
-    self.webView.bridge.sendData.emit(QVariant(obj))
+    if debug_mode == 2:
+      self.webView.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
-    #self.webView.runString("var jsonToLoad = JSON.parse('" + json.dumps(obj).replace("'", "\\'") + "');")
-    #self.webView.runString("app.loadJSONObject(jsonToLoad);")
+    self.webView.bridge.sendData.emit(QVariant(obj))
 
   def runString(self, string):
     self.webView.runString(string)

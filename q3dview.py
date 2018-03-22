@@ -22,11 +22,13 @@ from datetime import datetime
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot, qDebug
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from PyQt5.QtWidgets import QFileDialog
 
+from .conf import debug_mode
+from .qgis2threejstools import pluginDir
 
 def base64image(image):
   ba = QByteArray()
@@ -71,14 +73,17 @@ class Q3DWebPage(QWebPage):
   def __init__(self, parent=None):
     QWebPage.__init__(self, parent)
 
-    # open log file
-    self.logfile = open(os.path.join(os.path.dirname(__file__), "q3dview.log"), "w")
+    if debug_mode == 2:
+      # open log file
+      self.logfile = open(pluginDir("q3dview.log"), "w")
 
   def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
     self.consoleMessage.emit(message, lineNumber, sourceID)
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
-    self.logfile.flush()
+
+    if debug_mode == 2:
+      now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
+      self.logfile.flush()
 
 
 class Q3DView(QWebView):
@@ -123,7 +128,8 @@ class Q3DView(QWebView):
 
   def addJSObject(self):
     self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-    self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")    # debug
+    if debug_mode:
+      self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
   def pageLoaded(self, ok):
     self.runString("pyObj.sendData.connect(this, dataReceived);")
@@ -147,17 +153,15 @@ class Q3DView(QWebView):
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")
 
-  def runBytes(self, ba):
-    if os.name == "nt":
-      ba = ba.replace(b"\0", b"")   # remove \0 characters at the end  #TODO: why \0 characters there?
-    self.runString(ba.decode("utf-8"))
-
   def runString(self, string):
-    self.wnd.printConsoleMessage(string, sourceID="runString")    # debug
+    if debug_mode:
+      self.wnd.printConsoleMessage(string, sourceID="runString")
+      qDebug("runString: {}\n".format(string))
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    self._page.logfile.write("{} runString: {}\n".format(now, string))    # debug
-    self._page.logfile.flush()
+      if debug_mode == 2:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self._page.logfile.write("{} runString: {}\n".format(now, string))
+        self._page.logfile.flush()
 
     return self._page.mainFrame().evaluateJavaScript(string)
 
