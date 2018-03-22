@@ -2192,7 +2192,14 @@ Q3D.LineLayer.prototype.build = function (features) {
     };
   }
   else if (objType == "Pipe" || objType == "Cone") {
-    var hasJoints = (objType == "Pipe");
+    var jointGeom, cylinGeom;
+    if (objType == "Pipe") {
+      jointGeom = new THREE.SphereGeometry(1, 8, 8);
+      cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 8);
+    }
+    else {
+      cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 8);
+    }
 
     createObject = function (f, line) {
       var group = new Q3D.Group();
@@ -2203,17 +2210,17 @@ Q3D.LineLayer.prototype.build = function (features) {
         pt = line[i];
         pt1.set(pt[0], pt[1], pt[2]);
 
-        if (hasJoints) {
-          geom = new THREE.SphereGeometry(f.geom.rb, 8, 8);
-          obj = new THREE.Mesh(geom, materials.mtl(f.mtl));
+        if (jointGeom) {
+          obj = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
+          obj.scale.set(f.geom.rb, f.geom.rb, f.geom.rb);
           obj.position.copy(pt1);
           group.add(obj);
         }
 
         if (i) {
           sub.subVectors(pt1, pt0);
-          geom = new THREE.CylinderGeometry(f.geom.rt, f.geom.rb, pt0.distanceTo(pt1), 8);
-          obj = new THREE.Mesh(geom, materials.mtl(f.mtl));
+          obj = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
+          obj.scale.set(f.geom.rb, pt0.distanceTo(pt1), f.geom.rb);
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
           obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
           group.add(obj);
