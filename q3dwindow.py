@@ -18,11 +18,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 from xml.dom import minidom
 
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QObject, QSettings, QUrl, QVariant, pyqtSignal
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox, QProgressBar
 
 
@@ -30,7 +31,7 @@ from . import q3dconst
 from .conf import plugin_version
 from .exporttowebdialog import ExportToWebDialog
 from .propertypages import WorldPropertyPage, DEMPropertyPage, VectorPropertyPage
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -150,6 +151,8 @@ class Q3DWindow(QMainWindow):
     #  self.iface.responseReceived.connect(self.responseReceived)
     #else:
     #  self.iface = Q3DConnector(self)
+
+    self.setWindowIcon(QIcon(os.path.join(pluginDir(), "icon.png")))
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
