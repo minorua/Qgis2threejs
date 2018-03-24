@@ -23,6 +23,24 @@
   bottom: 3px;
   font-size: xx-small;
 }
+#cover {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: lightgray;
+}
+#cover img {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  left: 50%;
+  top: 50%;
+  -webkit-filter: grayscale(1);
+  -webkit-transform: translate3d(-50%, -50%, 0);
+}
 </style>
 </head>
 <body>
@@ -71,6 +89,7 @@ app.addEventListeners();
 // app.start();
 </script>
 
+<div id="cover"></div>
 <div id="debug"></div>
 </body>
 </html>

@@ -65,6 +65,11 @@ class Q3DViewerInterface:
   def setPreviewEnabled(self, enabled):
     self.controller.setPreviewEnabled(enabled)
 
+    elem = "document.getElementById('cover')"
+    self.webView.runString("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
+    if not enabled:
+      self.webView.runString("{}.innerHTML = '<img src=\"../icon.png\">';".format(elem))
+
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
     if debug_mode == 2:
