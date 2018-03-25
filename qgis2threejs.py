@@ -66,19 +66,25 @@ class Qgis2threejs:
     self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejsExporter")
 
+    self.actionNP = QAction(icon, "Qgis2threejs Exporter (No Preview)", self.iface.mainWindow())
+    self.actionNP.setObjectName("Qgis2threejsExporterNoPreview")
+
     # connect the action to the launchExporter method
     self.action.triggered.connect(self.launchExporter)
+    self.actionNP.triggered.connect(self.launchExporterWithPreviewDisabled)
 
     # Add toolbar button and web menu items
     name = "Qgis2threejs"
     self.iface.addWebToolBarIcon(self.action)
     self.iface.addPluginToWebMenu(name, self.action)
+    self.iface.addPluginToWebMenu(name, self.actionNP)
 
   def unload(self):
     # Remove the web menu items and icon
     name = "Qgis2threejs"
     self.iface.removeWebToolBarIcon(self.action)
     self.iface.removePluginWebMenu(name, self.action)
+    self.iface.removePluginWebMenu(name, self.actionNP)
 
     # remove temporary output directory
     removeTemporaryOutputDir()
@@ -87,7 +93,7 @@ class Qgis2threejs:
     if self.pluginManager is None:
       self.pluginManager = PluginManager()
 
-  def launchExporter(self):
+  def launchExporter(self, _, preview=True):
     self.initManagers()
 
     if self.controller is None:
@@ -96,12 +102,17 @@ class Qgis2threejs:
     if self.controller.iface is None:
       logMessage("Launching Qgis2threejs Exporter...")
 
-      self.liveExporter = Q3DWindow(self.iface.mainWindow(), self.iface, self.controller, isViewer=True)
+      self.controller.previewEnabled = preview
+
+      self.liveExporter = Q3DWindow(self.iface.mainWindow(), self.iface, self.controller, isViewer=True, preview=preview)
       self.liveExporter.show()
     else:
       logMessage("Qgis2threejs Exporter is already running.")
 
       self.liveExporter.activateWindow()
+
+  def launchExporterWithPreviewDisabled(self):
+    self.launchExporter(False, False)
 
   def loadExportSettings(self, filename):
     import json

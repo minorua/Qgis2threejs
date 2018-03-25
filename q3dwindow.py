@@ -141,7 +141,7 @@ class Q3DViewerInterface:
 
 class Q3DWindow(QMainWindow):
 
-  def __init__(self, parent, qgisIface, controller, isViewer=True):
+  def __init__(self, parent, qgisIface, controller, isViewer=True, preview=True):
     QMainWindow.__init__(self, parent)
     self.qgisIface = qgisIface
     self.isViewer = isViewer
@@ -163,24 +163,14 @@ class Q3DWindow(QMainWindow):
     self.iface = Q3DViewerInterface(qgisIface, self, self.ui.treeView, self.ui.webView, controller)
 
     self.setupMenu()
-    self.setupStatusBar(self.iface)
+    self.setupStatusBar(self.iface, preview)
     self.ui.treeView.setup(self.iface)
-    self.ui.webView.setup(self, self.iface, isViewer)
+    self.ui.webView.setup(self, self.iface, isViewer, preview)
 
     self.iface.fetchLayerList()
 
     # signal-slot connections
-    self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
-    self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
-    self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-    self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
-    self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
-    self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
-    self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
-    self.ui.actionHelp.triggered.connect(self.help)
-    self.ui.actionHomePage.triggered.connect(self.homePage)
-    self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
-    self.ui.actionAbout.triggered.connect(self.about)
+    # console
     self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
 
     # to disconnect from map canvas when window is closed
@@ -210,7 +200,20 @@ class Q3DWindow(QMainWindow):
     self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
     self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
-  def setupStatusBar(self, iface):
+    # signal-slot connections
+    self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
+    self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+    self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
+    self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
+    self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
+    self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
+    self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
+    self.ui.actionHelp.triggered.connect(self.help)
+    self.ui.actionHomePage.triggered.connect(self.homePage)
+    self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
+    self.ui.actionAbout.triggered.connect(self.about)
+
+  def setupStatusBar(self, iface, previewEnabled=True):
     w = QProgressBar(self.ui.statusbar)
     w.setObjectName("progressBar")
     w.setMaximumWidth(250)
@@ -222,7 +225,7 @@ class Q3DWindow(QMainWindow):
     w = QCheckBox(self.ui.statusbar)
     w.setObjectName("checkBoxPreview")
     w.setText("Preview")     #_translate("Q3DWindow", "Preview"))
-    w.setChecked(True)
+    w.setChecked(previewEnabled)
     self.ui.statusbar.addPermanentWidget(w)
     self.ui.checkBoxPreview = w
     self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)

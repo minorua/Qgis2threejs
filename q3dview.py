@@ -94,10 +94,11 @@ class Q3DView(QWebView):
     self.requestQueue = []
     self.isProcessingExclusively = False
 
-  def setup(self, wnd, iface, isViewer=True):
+  def setup(self, wnd, iface, isViewer=True, enabled=True):
     self.wnd = wnd
     self.iface = iface
     self.isViewer = isViewer
+    self._enabled = enabled
     self.bridge = Bridge(self)
     self.bridge.imageReceived.connect(self.saveImage)
 
@@ -137,12 +138,15 @@ class Q3DView(QWebView):
     # start application - enable controls
     self.iface.startApplication()
 
-    # create scene and layers
-    self.iface.exportScene()
+    if self._enabled:
+      # create scene and layers
+      self.iface.exportScene()
 
-    for layer in self.iface.controller.settings.getLayerList():
-      if layer.visible:
-        self.iface.exportLayer(layer)
+      for layer in self.iface.controller.settings.getLayerList():
+        if layer.visible:
+          self.iface.exportLayer(layer)
+    else:
+      self.iface.setPreviewEnabled(False)
 
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
