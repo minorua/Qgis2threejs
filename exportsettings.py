@@ -54,8 +54,9 @@ class Layer:
 
   @classmethod
   def fromDict(self, obj):
-    lyr = Layer(layer.id(), layer.name(), cls.getGeometryType(layer))
-    lyr.mapLayer = QgsProject.instance().mapLayer(obj["layerId"])
+    id = obj["layerId"]
+    lyr = Layer(id, obj["name"], obj["geomType"], obj["properties"], obj["visible"])
+    lyr.mapLayer = QgsProject.instance().mapLayer(id)
     return lyr
 
   @classmethod
@@ -166,16 +167,18 @@ class ExportSettings:
     """load settings from a JSON file"""
     self.data = {}
     if filepath is None:
-      filepath = settingsFilePath()
+      filepath = settingsFilePath()   # get settings file path for current project
       if filepath is None:
         return False
 
     try:
-      with open(filepath) as f:
+      with open(filepath, encoding="UTF-8") as f:
         settings = json.load(f)
     except Exception as e:
       logMessage("Failed to load export settings from file. Error: " + str(e))
       return False
+
+    logMessage("Export settings loaded from file:" + filepath)
 
     # transform layer dict to Layer object
     settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings["LAYERS"]]

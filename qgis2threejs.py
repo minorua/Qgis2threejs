@@ -25,6 +25,8 @@ from PyQt5.QtCore import QFile    #, QSettings, QTranslator, qVersion
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 
+from qgis.core import QgsProject
+
 from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
 from .q3dviewercontroller import Q3DViewerController
@@ -56,6 +58,8 @@ class Qgis2threejs:
     self.exportSettings = {}
     self.lastTreeItemData = None
     self.settingsFilePath = None
+
+    self.currentProjectPath = None
 
     # exporter
     self.controller = None    # Q3DController
@@ -101,6 +105,11 @@ class Qgis2threejs:
 
     if self.controller.iface is None:
       logMessage("Launching Qgis2threejs Exporter...")
+
+      proj_path = QgsProject.instance().fileName()
+      if proj_path != self.currentProjectPath:
+        self.controller.settings.loadSettingsFromFile()   # load export settings from settings file for current project
+        self.currentProjectPath = proj_path
 
       self.controller.previewEnabled = preview
 
