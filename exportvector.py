@@ -150,7 +150,7 @@ class VectorLayerExporter(LayerExporter):
 
     demProvider = None
     if self.prop.isHeightRelativeToDEM():
-      if self.layer.mapLayer != QgsWkbTypes.PolygonGeometry or self.prop.objType.name != "Overlay":
+      if self.layer.geomType != QgsWkbTypes.PolygonGeometry or self.prop.objType.name != "Overlay":
         demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
     if self.layer.properties.get("radioButton_zValue"):

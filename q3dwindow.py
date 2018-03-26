@@ -186,9 +186,13 @@ class Q3DWindow(QMainWindow):
   def closeEvent(self, event):
     self.iface.disconnectFromController()
 
+    # save export settings to a settings file
+    self.settings.saveSettings()
+
     settings = QSettings()
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+
     QMainWindow.closeEvent(self, event)
 
   def keyPressEvent(self, event):

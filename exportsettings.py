@@ -19,16 +19,16 @@
 """
 import os
 import datetime
+import json
 
 from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsProject, QgsWkbTypes
 
+from . import q3dconst
 from .conf import def_vals
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
-from .qgis2threejstools import getLayersInProject, logMessage
-from . import q3dconst
-from . import qgis2threejstools as tools
+from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
 
 
 class Layer:
@@ -44,6 +44,19 @@ class Layer:
     self.jsLayerId = None
     self.mapLayer = None
     self.updated = False
+
+  def toDict(self):
+    return {"layerId": self.layerId,
+            "name": self.name,
+            "geomType": self.geomType,
+            "properties": self.properties,
+            "visible": self.visible}
+
+  @classmethod
+  def fromDict(self, obj):
+    lyr = Layer(layer.id(), layer.name(), cls.getGeometryType(layer))
+    lyr.mapLayer = QgsProject.instance().mapLayer(obj["layerId"])
+    return lyr
 
   @classmethod
   def fromQgsMapLayer(cls, layer):
@@ -134,12 +147,13 @@ class ExportSettings:
 
     # world
     world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
-    self.coordsInWGS84 = world.get("radioButton_WGS84", False)
+    self.coordsInWGS84 = world.get("radioButton_WGS84", False)    #TODO: remove
 
     # controls name
     self._controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {}).get("comboBox_Controls")
 
     # export mode
+    #TODO: remove
     demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
     if self.templateConfig().get("type") == "sphere":
       self.exportMode = ExportSettings.SPHERE
@@ -148,12 +162,47 @@ class ExportSettings:
     else:
       self.exportMode = ExportSettings.PLAIN_SIMPLE
 
-  def loadSettingsFromFile(self, filepath):
-    """load settings from JSON file"""
-    import json
-    with open(filepath) as f:
-      settings = json.load(f)
+  def loadSettingsFromFile(self, filepath=None):
+    """load settings from a JSON file"""
+    self.data = {}
+    if filepath is None:
+      filepath = settingsFilePath()
+      if filepath is None:
+        return False
+
+    try:
+      with open(filepath) as f:
+        settings = json.load(f)
+    except Exception as e:
+      logMessage("Failed to load export settings from file. Error: " + str(e))
+      return False
+
+    # transform layer dict to Layer object
+    settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings["LAYERS"]]
+
     self.loadSettings(settings)
+    self.updateLayerList()
+    return True
+
+  def saveSettings(self, filepath=None):
+    """save settings to a JSON file"""
+    if filepath is None:
+      filepath = settingsFilePath()
+      if filepath is None:
+        return False
+
+    def default(obj):
+      if isinstance(obj, Layer):
+        return obj.toDict()
+      raise TypeError(repr(obj) + " is not JSON serializable")
+
+    try:
+      with open(filepath, "w", encoding="UTF-8") as f:
+        json.dump(self.data, f, ensure_ascii=False, indent=2, default=default, sort_keys=True)
+      return True
+    except Exception as e:
+      logMessage("Failed to save export settings: " + str(e))
+      return False
 
   def setTemplatePath(self, filepath):
     """filepath: relative path from html_templates directory or absolute path to a template html file"""
@@ -162,7 +211,7 @@ class ExportSettings:
 
   def setOutputFilename(self, filepath=None):
     if not filepath:
-      filepath = tools.temporaryOutputDir() + "/%s.html" % self.timestamp   # temporary file
+      filepath = temporaryOutputDir() + "/%s.html" % self.timestamp   # temporary file
     self.htmlfilename = filepath
     self.htmlfiletitle = os.path.splitext(os.path.basename(filepath))[0]
 
@@ -214,7 +263,7 @@ class ExportSettings:
     if not self.templatePath:
       self.setTemplatePath(def_vals.template)
 
-    self._templateConfig = tools.getTemplateConfig(self.templatePath)
+    self._templateConfig = getTemplateConfig(self.templatePath)
     return self._templateConfig
 
   def wgs84Center(self):
@@ -252,7 +301,7 @@ class ExportSettings:
     return FlatDEMProvider()
 
   def getLayerList(self):
-    return self.data.get("layers", [])
+    return self.data.get("LAYERS", [])
 
   def updateLayerList(self):
     layers = []
@@ -285,11 +334,11 @@ class ExportSettings:
       layer.id = index
       layer.jsLayerId = index      # "{}_{}".format(itemId, layerId[:8])
 
-    self.data["layers"] = layers
+    self.data["LAYERS"] = layers
 
   def getItemByLayerId(self, layerId):
     if layerId is not None:
-      for layer in self.data.get("layers", []):
+      for layer in self.data.get("LAYERS", []):
         if layer.layerId == layerId:
           return layer
     return None

@@ -256,3 +256,8 @@ def templateDir():
 
 def temporaryOutputDir():
   return QDir.tempPath() + "/Qgis2threejs"
+
+
+def settingsFilePath():
+  proj_path = QgsProject.instance().fileName()
+  return proj_path + ".qto3settings" if proj_path else None
