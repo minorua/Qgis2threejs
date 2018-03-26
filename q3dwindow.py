@@ -138,6 +138,10 @@ class Q3DViewerInterface:
     dialog.setLayer(layer)
     return dialog.page.properties()
 
+  def clearExportSettings(self):
+    self.controller.settings.clear()
+    self.controller.settings.updateLayerList()
+
 
 class Q3DWindow(QMainWindow):
 
@@ -209,6 +213,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
+    self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
@@ -233,6 +238,11 @@ class Q3DWindow(QMainWindow):
     self.ui.statusbar.addPermanentWidget(w)
     self.ui.checkBoxPreview = w
     self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)
+
+  def clearExportSettings(self):
+    if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
+      self.ui.treeView.uncheckAll()
+      self.iface.clearExportSettings()
 
   def alwaysOnTopToggled(self, checked):
     if checked:

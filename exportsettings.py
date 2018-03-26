@@ -119,6 +119,9 @@ class ExportSettings:
     self._quadtree = None
     self._templateConfig = None
 
+  def clear(self):
+    self.data = {}
+
   def worldProperties(self):
     return self.data.get(ObjectTreeItem.ITEM_WORLD, {})
 
@@ -181,7 +184,7 @@ class ExportSettings:
     logMessage("Export settings loaded from file:" + filepath)
 
     # transform layer dict to Layer object
-    settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings["LAYERS"]]
+    settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings.get("LAYERS", [])]
 
     self.loadSettings(settings)
     return True

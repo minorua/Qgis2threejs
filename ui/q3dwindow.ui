@@ -56,8 +56,9 @@
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="separator"/>
-    <addaction name="actionReload"/>
+    <addaction name="actionClearAllSettings"/>
     <addaction name="separator"/>
+    <addaction name="actionReload"/>
     <addaction name="actionResetCameraPosition"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
@@ -333,6 +334,11 @@
    </property>
    <property name="text">
     <string>glTF (.gltf)</string>
+   </property>
+  </action>
+  <action name="actionClearAllSettings">
+   <property name="text">
+    <string>Clear All Settings</string>
    </property>
   </action>
  </widget>

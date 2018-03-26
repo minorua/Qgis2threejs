@@ -102,6 +102,11 @@ class Q3DTreeView(QTreeView):
     for layer in layers:
       self.addLayer(layer)
 
+  def uncheckAll(self):
+    for parent in self.layerParentItem.values():
+      for idx in range(parent.rowCount()):
+        parent.child(idx).setCheckState(Qt.Unchecked)
+
   def treeItemChanged(self, item):
     layer = self.iface.controller.settings.getItemByLayerId(item.data())
     if layer is None:
