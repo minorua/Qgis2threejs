@@ -184,7 +184,6 @@ class ExportSettings:
     settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings["LAYERS"]]
 
     self.loadSettings(settings)
-    self.updateLayerList()
     return True
 
   def saveSettings(self, filepath=None):
@@ -315,6 +314,8 @@ class ExportSettings:
         item = self.getItemByLayerId(layer.id())
         if item is None:
           item = Layer.fromQgsMapLayer(layer)
+        else:
+          item.name = layer.name()    # update layer name
         layers.append(item)
 
     # DEM provider plugins

@@ -27,7 +27,7 @@ from . import q3dconst
 
 
 class Q3DTreeView(QTreeView):
-  """tree view and layer management"""
+  """layer tree view"""
 
   def __init__(self, parent=None):
     QTreeView.__init__(self, parent)
