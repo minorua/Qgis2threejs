@@ -69,34 +69,23 @@ class ThreeJSExporter:
 
   def exportLayers(self):
     layers = []
-    for index, layer in enumerate(self.settings.getLayerList()):
-      if layer.visible == False:
-        continue
-
-      if layer.geomType == q3dconst.TYPE_DEM:
-        layers.append(self.exportDEMLayer(layer))
-      else:
-        layers.append(self.exportVectorLayer(layer))
-
+    for layer in self.settings.getLayerList():
+      if layer.visible:
+        layers.append(self.exportLayer(layer))
     return layers
 
-  def exportDEMLayer(self, layer):
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
+  def exportLayer(self, layer):
+    if layer.geomType == q3dconst.TYPE_DEM:
+      exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
+    else:
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     return exporter.build()
 
-  def demExporters(self, layer):
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
-    yield exporter
-
-    for blockExporter in exporter.blocks():
-      yield blockExporter
-
-  def exportVectorLayer(self, layer):
-    exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
-    return exporter.build()
-
-  def vectorExporters(self, layer):
-    exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
+  def exporters(self, layer):
+    if layer.geomType == q3dconst.TYPE_DEM:
+      exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
+    else:
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     yield exporter
 
     for blockExporter in exporter.blocks():
@@ -160,20 +149,15 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index += 1
     return self._index
 
-  def exportDEMLayer(self, layer):
+  def exportLayer(self, layer):
     title = "L{0}".format(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputdatadir, title)
     urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
 
-    exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
-    return exporter.build(True)
-
-  def exportVectorLayer(self, layer):
-    title = "L{0}".format(self.nextLayerIndex())
-    pathRoot = os.path.join(self.settings.outputdatadir, title)
-    urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
-
-    exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+    if layer.geomType == q3dconst.TYPE_DEM:
+      exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+    else:
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     return exporter.build(True)
 
   def filesToCopy(self):

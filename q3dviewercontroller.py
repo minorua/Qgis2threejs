@@ -88,21 +88,12 @@ class Q3DViewerController:
 
   def _exportLayer(self, layer):
     if self.iface and self.previewEnabled:
-      if layer.geomType == q3dconst.TYPE_DEM:
-        for exporter in self.exporter.demExporters(layer):
-          if self.aborted:
-            return False
-          self.iface.loadJSONObject(exporter.build())
-          QgsApplication.processEvents()
-            # NOTE: process events only for the calling thread
-
-      elif layer.geomType in [q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON]:
-        for exporter in self.exporter.vectorExporters(layer):
-          if self.aborted:
-            return False
-          self.iface.loadJSONObject(exporter.build())
-          QgsApplication.processEvents()
-
+      for exporter in self.exporter.exporters(layer):
+        if self.aborted:
+          return False
+        self.iface.loadJSONObject(exporter.build())
+        QgsApplication.processEvents()
+          # NOTE: process events only for the calling thread
       layer.updated = False
       return True
 
