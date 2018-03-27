@@ -23,52 +23,11 @@ import struct
 
 from osgeo import gdal
 from PyQt5.QtCore import QSize
-from qgis.core import QgsMapLayer, QgsRectangle, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsWkbTypes
 
 from .gdal2threejs import Raster
 from .geometry import Point
 from .rotatedrect import RotatedRect
-from .quadtree import DEMQuadTree
-
-
-class ObjectTreeItem:
-
-  ITEM_WORLD = "WORLD"
-  ITEM_CONTROLS = "CTRL"
-  ITEM_DEM = "DEM"
-  ITEM_OPTDEM = "OPTDEM"
-  ITEM_POINT = "POINT"
-  ITEM_LINE = "LINE"
-  ITEM_POLYGON = "POLYGON"
-  topItemIds = [ITEM_WORLD, ITEM_CONTROLS, ITEM_DEM, ITEM_OPTDEM, ITEM_POINT, ITEM_LINE, ITEM_POLYGON]
-  topItemNames = ["World", "Controls", "DEM", "Additional DEM", "Point", "Line", "Polygon"]
-  geomType2id = {QgsWkbTypes.PointGeometry: ITEM_POINT, QgsWkbTypes.LineGeometry: ITEM_LINE, QgsWkbTypes.PolygonGeometry: ITEM_POLYGON}
-
-  @classmethod
-  def topItemIndex(cls, id):
-    return cls.topItemIds.index(id)
-
-  @classmethod
-  def idByGeomType(cls, geomType):
-    return cls.geomType2id.get(geomType)
-
-  @classmethod
-  def geomTypeById(cls, id):
-    for geomType in cls.geomType2id:
-      if cls.geomType2id[geomType] == id:
-        return geomType
-    return None
-
-  @classmethod
-  def parentIdByLayer(cls, layer):
-    layerType = layer.type()
-    if layerType == QgsMapLayer.VectorLayer:
-      return cls.idByGeomType(layer.geometryType())
-
-    if layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
-      return cls.ITEM_OPTDEM
-
-    return None
 
 
 class MapTo3D:
@@ -148,7 +107,6 @@ class FlatDEMProvider:
     return self.value
 
 
-#TODO; move to propertyreader.py
 def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
   width, height = canvasSize.width(), canvasSize.height()
   size = 100 * sizeLevel
@@ -164,26 +122,3 @@ def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
       height = int(height / roughening + 0.9) * roughening
 
   return QSize(width + 1, height + 1)
-
-
-#TODO: move to quadtree.py
-def createQuadTree(extent, p):
-  """
-  args:
-    p -- demProperties
-  """
-  try:
-    cx, cy, w, h = map(float, [p["lineEdit_centerX"], p["lineEdit_centerY"], p["lineEdit_rectWidth"], p["lineEdit_rectHeight"]])
-  except ValueError:
-    return None
-
-  # normalize
-  c = extent.normalizePoint(cx, cy)
-  hw = 0.5 * w / extent.width()
-  hh = 0.5 * h / extent.height()
-
-  quadtree = DEMQuadTree()
-  if not quadtree.buildTreeByRect(QgsRectangle(c.x() - hw, c.y() - hh, c.x() + hw, c.y() + hh), p["spinBox_Height"]):
-    return None
-
-  return quadtree

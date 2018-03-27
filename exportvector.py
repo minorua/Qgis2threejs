@@ -27,7 +27,6 @@ from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
-from .qgis2threejscore import ObjectTreeItem
 from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeRegistry
 

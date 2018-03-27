@@ -27,7 +27,6 @@ from PyQt5.QtCore import QDir
 from .datamanager import ImageManager, ModelManager
 from .exportdem import DEMLayerExporter
 from .exportvector import VectorLayerExporter
-from .qgis2threejscore import ObjectTreeItem
 from . import q3dconst
 from . import qgis2threejstools as tools
 
@@ -70,7 +69,7 @@ class ThreeJSExporter:
 
   def exportLayers(self):
     layers = []
-    for index, layer in enumerate(self.settings.data["LAYERS"]):
+    for index, layer in enumerate(self.settings.getLayerList()):
       if layer.visible == False:
         continue
 
@@ -133,7 +132,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # options in html file
     options = []
-    world = self.settings.get(ObjectTreeItem.ITEM_WORLD, {})
+    world = self.settings.get(self.settings.WORLD, {})
     if world.get("radioButton_Color", False):
       options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 

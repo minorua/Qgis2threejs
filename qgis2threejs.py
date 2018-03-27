@@ -27,7 +27,7 @@ from PyQt5.QtGui import QIcon
 
 from qgis.core import QgsProject
 
-from .qgis2threejstools import logMessage, removeTemporaryOutputDir
+from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
 from .q3dviewercontroller import Q3DViewerController
 from .q3dwindow import Q3DWindow
 
@@ -37,9 +37,6 @@ class Qgis2threejs:
   def __init__(self, iface):
     # Save reference to the QGIS interface
     self.iface = iface
-
-    # initialize plugin directory
-    self.plugin_dir = os.path.dirname(QFile.decodeName(__file__))
 
     # initialize locale
     #locale = QSettings().value("locale/userLocale")[0:2]
@@ -52,11 +49,6 @@ class Qgis2threejs:
     #  if qVersion() > '4.3.3':
     #    QCoreApplication.installTranslator(self.translator)
 
-
-    self.exportSettings = {}
-    self.lastTreeItemData = None
-    self.settingsFilePath = None
-
     self.currentProjectPath = None
 
     # exporter
@@ -64,7 +56,7 @@ class Qgis2threejs:
 
   def initGui(self):
     # Create action that will start plugin configuration
-    icon = QIcon(os.path.join(self.plugin_dir, "icon.png"))
+    icon = QIcon(pluginDir("icon.png"))
     self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejsExporter")
 
@@ -114,18 +106,3 @@ class Qgis2threejs:
 
   def launchExporterWithPreviewDisabled(self):
     self.launchExporter(False, False)
-
-  def loadExportSettings(self, filename):
-    import json
-    with open(filename) as f:
-      self.exportSettings = json.load(f)
-
-  def saveExportSettings(self, filename):
-    import json
-    try:
-      with open(filename, "w", encoding="UTF-8") as f:
-        json.dump(self.exportSettings, f, ensure_ascii=False, indent=2, sort_keys=True)
-      return True
-    except Exception as e:
-      logMessage("Failed to save export settings: " + str(e))
-      return False

@@ -33,7 +33,7 @@ class Q3DViewerController:
 
     if settings is None:
       defaultSettings = {}
-      settings = ExportSettings(True)
+      settings = ExportSettings()
       settings.loadSettings(defaultSettings)
       settings.setMapCanvas(qgis_iface.mapCanvas())
 

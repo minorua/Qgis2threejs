@@ -28,7 +28,7 @@ from . import q3dconst
 from .conf import def_vals
 from .pluginmanager import pluginManager
 from .rotatedrect import RotatedRect
-from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider
+from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
 
 
@@ -83,10 +83,11 @@ class Layer:
 
 class ExportSettings:
 
-  def __init__(self, localBrowsingMode=True):
-    """localBrowsingMode: not implemented yet"""
-    self.localBrowsingMode = localBrowsingMode
+  WORLD = "WORLD"
+  CONTROLS = "CTRL"
+  LAYERS = "LAYERS"
 
+  def __init__(self):
     self.data = {}
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
@@ -108,23 +109,23 @@ class ExportSettings:
     self.data = {}
 
   def worldProperties(self):
-    return self.data.get(ObjectTreeItem.ITEM_WORLD, {})
+    return self.data.get(ExportSettings.WORLD, {})
 
   def setWorldProperties(self, properties):
-    self.data[ObjectTreeItem.ITEM_WORLD] = properties
+    self.data[ExportSettings.WORLD] = properties
     self._mapTo3d = None
 
   def coordsInWGS84(self):
-    return self.data.get(ObjectTreeItem.ITEM_WORLD, {}).get("radioButton_WGS84", False)
+    return self.worldProperties().get("radioButton_WGS84", False)
 
   def controls(self):
-    ctrl = self.data.get(ObjectTreeItem.ITEM_CONTROLS, {}).get("comboBox_Controls")
+    ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
     if ctrl:
       return ctrl
     return QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
 
   def setControls(self, name):
-    self.data[ObjectTreeItem.ITEM_CONTROLS] = {"comboBox_Controls": name}
+    self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
 
   def loadSettings(self, settings):
     self.data = settings
@@ -154,7 +155,7 @@ class ExportSettings:
     logMessage("Export settings loaded from file:" + filepath)
 
     # transform layer dict to Layer object
-    settings["LAYERS"] = [Layer.fromDict(lyr) for lyr in settings.get("LAYERS", [])]
+    settings[ExportSettings.LAYERS] = [Layer.fromDict(lyr) for lyr in settings.get(ExportSettings.LAYERS, [])]
 
     self.loadSettings(settings)
     return True
@@ -213,7 +214,7 @@ class ExportSettings:
     if self.mapSettings is None:
       return None
 
-    world = self.data.get(ObjectTreeItem.ITEM_WORLD, {})
+    world = self.worldProperties()
     baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
     verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
     verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
@@ -263,7 +264,7 @@ class ExportSettings:
     return FlatDEMProvider()
 
   def getLayerList(self):
-    return self.data.get("LAYERS", [])
+    return self.data.get(ExportSettings.LAYERS, [])
 
   def updateLayerList(self):
     layers = []
@@ -298,11 +299,11 @@ class ExportSettings:
       layer.id = index
       layer.jsLayerId = index      # "{}_{}".format(itemId, layerId[:8])
 
-    self.data["LAYERS"] = layers
+    self.data[ExportSettings.LAYERS] = layers
 
   def getItemByLayerId(self, layerId):
     if layerId is not None:
-      for layer in self.data.get("LAYERS", []):
+      for layer in self.getLayerList():
         if layer.layerId == layerId:
           return layer
     return None
