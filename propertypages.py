@@ -214,7 +214,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
-  def __init__(self, dialog, parent=None):      #TODO: dialog -> canvas, dialog
+  def __init__(self, dialog, parent=None):
     PropertyPage.__init__(self, PAGE_DEM, dialog, parent)
     Ui_DEMPropertiesWidget.setupUi(self, self)
 
@@ -280,7 +280,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
-    for i in [4, 2, 1]:   #TODO: conf.py
+    for i in [4, 2, 1]:
       percent = i * 100
       text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
       self.comboBox_TextureSize.addItem(text, percent)
@@ -457,7 +457,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # set up z/m button
     wkbType = mapLayer.wkbType()
     hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
-                       QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]  #TODO: ,MultiPolygon25D
+                       QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]  #TODO: [Polygon z/m support] ,MultiPolygon25D
     hasZ = hasZ or (wkbType // 1000 in [1, 3])
     hasM = (wkbType // 1000 in [2, 3])
     self.radioButton_zValue.setEnabled(hasZ)
@@ -504,7 +504,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def setupStyleWidgets(self, index=None):
     # notice 3D model is experimental
-    #TODO: to tooltip
+    #TODO: [Point - Model] to tooltip
     is_experimental = self.comboBox_ObjectType.currentData() in ["JSON model", "COLLADA model"]
     self.label_ObjectTypeMessage.setVisible(is_experimental)
 

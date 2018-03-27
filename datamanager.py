@@ -113,8 +113,6 @@ class ImageManager(DataManager):
 
     if transp_background:
       settings.setBackgroundColor(QColor(Qt.transparent))
-    #else:    #TODO: remove
-      #settings.setBackgroundColor(self.exportSettings.canvas.canvasColor())
 
     has_pluginlayer = False
     for layer in settings.layers():
@@ -146,13 +144,6 @@ class ImageManager(DataManager):
     settings.setBackgroundColor(old_backgroundColor)
 
     return image
-
-    #if exportSettings.localBrowsingMode:
-    #else:
-    #  texfilename = os.path.splitext(htmlfilename)[0] + "_%d.png" % plane_index
-    #  image.save(texfilename)
-    #  texSrc = os.path.split(texfilename)[1]
-    #  tex["src"] = texSrc
 
   def image(self, index):
     image = self._list[index]

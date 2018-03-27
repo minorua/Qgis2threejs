@@ -111,7 +111,7 @@ class VectorPropertyReader:
         return sl.strokeColor().name().replace("#", "0x")
 
       if sl and symbol.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
+        expr = sl.dataDefinedProperty("color")    #TODO: [QGIS 3]
         if expr:
           # data defined color
           rgb = expr.evaluate(f, f.fields())
@@ -140,7 +140,7 @@ class VectorPropertyReader:
     else:
       sl = symbol.symbolLayer(0)
       if sl and symbol.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")    #TODO: QGIS 3
+        expr = sl.dataDefinedProperty("color")    #TODO: [QGIS 3]
         if expr:
           # data defined opacity
           cs_rgba = expr.evaluate(f, f.fields())
@@ -149,7 +149,7 @@ class VectorPropertyReader:
             alpha = rgba[3] / 255
 
     if alpha is None:
-      alpha = 1         #TODO: QGIS 3 symbol.alpha()
+      alpha = 1         #TODO: [QGIS 3] symbol.alpha()
                         # 'QgsMarkerSymbol' object has no attribute 'alpha'
 
     return self.layer.opacity() * alpha    # opacity = layer_opacity * feature_opacity
@@ -179,7 +179,6 @@ class VectorPropertyReader:
     self.expressionContext.setFeature(f)
 
   # read values from style widgets
-  #TODO: rename this to styleValues
   def values(self, f):
     assert(f is not None)
     vals = []
@@ -215,7 +214,7 @@ class VectorPropertyReader:
         vals.append(widgetValues["checkBox"])
 
       elif widgetType == StyleWidget.HEIGHT:
-        #TODO
+        #TODO [Height widget] new height widget
         if widgetValues["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
           vals.append(self.toFloat(widgetValues["editText"]))
         else:

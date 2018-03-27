@@ -82,7 +82,7 @@ class Q3DTreeView(QTreeView):
     item.setCheckable(True)
     item.setCheckState(Qt.Checked if layer.visible else Qt.Unchecked)
     item.setData(layer.layerId)
-    item.setIcon(self.icons[layer.geomType])    #TODO: icon for each object type
+    item.setIcon(self.icons[layer.geomType])
     item.setEditable(False)
 
     self.layerParentItem[layer.geomType].appendRow([item])
@@ -112,18 +112,14 @@ class Q3DTreeView(QTreeView):
     if layer is None:
       return
 
-    visible = bool(item.checkState() == Qt.Checked)
-
-    if layer.geomType == q3dconst.TYPE_IMAGE:    #TODO: image
-      return
-
-    layer.visible = visible
-    if visible:
+    if item.checkState() == Qt.Checked:
+      layer.visible = True
       if layer.properties is None:
         layer.properties = self.iface.getDefaultProperties(layer)
 
       self.iface.exportLayer(layer)
     else:
+      # remove layer objects from the scene
       obj = {
         "type": "layer",
         "id": layer.jsLayerId,

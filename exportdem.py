@@ -23,6 +23,7 @@ import struct
 from PyQt5.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
 
+from .conf import debug_mode
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import PolygonGeometry, TriangleMesh, Triangles, dissolvePolygonsOnCanvas
@@ -53,9 +54,11 @@ class DEMLayerExporter(LayerExporter):
     d = {
       "type": "layer",
       "id": self.layer.jsLayerId,
-      "properties": p,
-      "PROPERTIES": self.properties    # for debug
+      "properties": p
       }
+
+    if debug_mode:
+      d["PROPERTIES"] = self.properties
 
     # DEM block
     if export_blocks:
@@ -82,7 +85,7 @@ class DEMLayerExporter(LayerExporter):
         clip_geometry = dissolvePolygonsOnCanvas(self.settings, clip_layer)
 
     # surroundings
-    surroundings = self.properties.get("checkBox_Surroundings", False)    #TODO: if prop.layerId else False   (GSIElevProvider?)
+    surroundings = self.properties.get("checkBox_Surroundings", False)    #TODO: [GSIElevProvider] if prop.layerId else False
     roughening = self.properties["spinBox_Roughening"] if surroundings else 1
     size = self.properties["spinBox_Size"] if surroundings else 1
     size2 = size * size
@@ -148,7 +151,7 @@ class DEMBlockExporter:
     self.pathRoot = pathRoot
     self.urlRoot = urlRoot
 
-    #TODO: stats
+    #TODO: [Custom Plane] stats
     #self.orig_stats = {"max": max(grid_values), "min": min(grid_values)}
     #self.rect = QgsRectangle(offsetX - plane_width * 0.5, offsetY - plane_height * 0.5,
     #                         offsetX + plane_width * 0.5, offsetY + plane_height * 0.5)

@@ -92,7 +92,7 @@ class ExportToWebDialog(QDialog):
     # store last settings
     settings = QSettings()
     settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
-    settings.setValue("/Qgis2threejs/lastControls", self.settings.controls)
+    settings.setValue("/Qgis2threejs/lastControls", self.settings.controls())
 
     if self.ui.checkBox_openPage.isChecked():
       if not openHTMLFile(filename):
@@ -101,5 +101,5 @@ class ExportToWebDialog(QDialog):
     self.close()
 
   def progress(self, percentage=None, statusMsg=None):
-    #TODO
+    #TODO: [Web export] progress
     pass

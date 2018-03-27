@@ -18,7 +18,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-from osgeo import ogr
 from qgis.core import (
   QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
   QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsProject)
@@ -104,30 +103,6 @@ class PointGeometry(Geometry):
     return geom
 
 
-  #TODO: remove
-  @staticmethod
-  def fromOgrGeometry25D(geometry, transform_func):
-    geomType = geometry.GetGeometryType()
-
-    if geomType == ogr.wkbPoint25D:
-      geoms = [geometry]
-    elif geomType == ogr.wkbMultiPoint25D:
-      geoms = [geometry.GetGeometryRef(i) for i in range(geometry.GetGeometryCount())]
-    else:
-      return None
-
-    pts = []
-    for geom in geoms:
-      if hasattr(geom, "GetPoints"):
-        pts += geom.GetPoints()
-      else:
-        pts += [geom.GetPoint(i) for i in range(geom.GetPointCount())]
-
-    point_geom = PointGeometry()
-    point_geom.pts = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
-    return point_geom
-
-
 class LineGeometry(Geometry):
 
   def __init__(self):
@@ -174,29 +149,6 @@ class LineGeometry(Geometry):
         geom.lines = [[transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
     return geom
-
-  #TODO: remove
-  @staticmethod
-  def fromOgrGeometry25D(geometry, transform_func):
-    geomType = geometry.GetGeometryType()
-    if geomType == ogr.wkbLineString25D:
-      geoms = [geometry]
-    elif geomType == ogr.wkbMultiLineString25D:
-      geoms = [geometry.GetGeometryRef(i) for i in range(geometry.GetGeometryCount())]
-    else:
-      return None
-
-    line_geom = LineGeometry()
-    for geom in geoms:
-      if hasattr(geom, "GetPoints"):
-        pts = geom.GetPoints()
-      else:
-        pts = [geom.GetPoint(i) for i in range(geom.GetPointCount())]
-
-      points = [transform_func(pt[0], pt[1], pt[2]) for pt in pts]
-      line_geom.lines.append(points)
-
-    return line_geom
 
 
 class PolygonGeometry(Geometry):
@@ -264,7 +216,7 @@ class PolygonGeometry(Geometry):
 
     return QgsGeometry()
 
-  #TODO: z/m support
+  #TODO: [Polygon z/m support]
   @classmethod
   def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False):
 
@@ -313,18 +265,7 @@ class PolygonGeometry(Geometry):
     return geom
 
 
-  #TODO: remove
-#  @staticmethod
-#  def fromOgrGeometry25D(geometry, transform_func):
-#    pass
-
-
 class GeometryUtils:
-
-  #TODO:
-  @staticmethod
-  def convertToList(qgs_geom, z_func, transform_func, useZM=False):
-    pass
 
   @staticmethod
   def _signedArea(p):
@@ -439,8 +380,6 @@ class Triangles:
     else:
       self.vdict[v.y] = {v.x: vi}
     return vi
-
-#TODO: parameters - extent, layer, projectCrs
 
 
 def dissolvePolygonsOnCanvas(settings, layer):

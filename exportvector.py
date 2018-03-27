@@ -22,9 +22,10 @@
 import json
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
+from .conf import debug_mode
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
-from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh, dissolvePolygonsOnCanvas
+from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejscore import ObjectTreeItem
 from .qgis2threejstools import logMessage
@@ -91,7 +92,7 @@ class VectorLayerExporter(LayerExporter):
 
     # materials
     for feat in self.features:
-      #if self.isCanceled:
+      #if self.isCancelled:
       #  break
 
       feat.material = self.prop.objType.material(self.settings, layer, feat)
@@ -122,23 +123,26 @@ class VectorLayerExporter(LayerExporter):
                     "heightType": int(widgetValues.get("comboData", 0)),
                     "height": float(widgetValues.get("editText", 0)) * self.mapTo3d.multiplierZ}
 
-    d = {}
-    d["materials"] = self.materialManager.buildAll(self.imageManager)
+    data = {}
+    data["materials"] = self.materialManager.buildAll(self.imageManager)
 
     if export_blocks:
-      d["blocks"] = [block.build() for block in self.blocks()]
+      data["blocks"] = [block.build() for block in self.blocks()]
 
-    return {
+    d = {
       "type": "layer",
       "id": self.layer.jsLayerId,
       "properties": p,
-      "data": d,
-      "PROPERTIES": properties    # debug
+      "data": data
       }
+
+    if debug_mode:
+      d["PROPERTIES"] = properties
+    return d
 
   def blocks(self):
     index = 0
-    FEATURE_COUNT = 50    #TODO: VERTEX_COUNT
+    FEATURE_COUNT = 50
 
     def block(blockIndex, features):
       return FeatureBlockExporter(blockIndex, {
@@ -150,7 +154,7 @@ class VectorLayerExporter(LayerExporter):
 
     demProvider = None
     if self.prop.isHeightRelativeToDEM():
-      if self.layer.geomType != QgsWkbTypes.PolygonGeometry or self.prop.objType.name != "Overlay":
+      if self.prop.objType.name != "Overlay":
         demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
     if self.layer.properties.get("radioButton_zValue"):
@@ -185,7 +189,7 @@ class VectorLayerExporter(LayerExporter):
 
   def triangleMesh(self, dem_width=0, dem_height=0):
     if dem_width == 0 and dem_height == 0:
-      #TODO:
+      #TODO: [Polygon - Overlay]
       prop = DEMPropertyReader(layerId, self.settings.get(ObjectTreeItem.ITEM_DEM))
       dem_size = prop.demSize(self.settings.mapSettings.outputSize())
       dem_width = dem_size.width()
@@ -218,6 +222,7 @@ class FeatureBlockExporter:
 
     else:
       return self.data
+
 
 class Feature:
 
@@ -258,7 +263,7 @@ class Feature:
     if self.geomType == QgsWkbTypes.PolygonGeometry:
       g = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
-        #TODO: needs grid size of the DEM layer in export settings.
+        #TODO: [Polygon - Overlay] needs grid size of the DEM layer in export settings.
 
         # create triangle mesh
         hw = 0.5 * mapTo3d.planeWidth
@@ -363,7 +368,7 @@ class VectorLayer(Layer):
 
       # evaluate expression
       altitude = prop.altitude()
-      propVals = prop.values(f)      # TODO: divide into geomProperties, styleProperties
+      propVals = prop.values(f)
 
       attrs = f.attributes() if self.writeAttrs else None
 

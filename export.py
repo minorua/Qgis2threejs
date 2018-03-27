@@ -70,8 +70,8 @@ class ThreeJSExporter:
 
   def exportLayers(self):
     layers = []
-    for index, layer in enumerate(self.settings.data["layers"]):
-      if layer.visible == False:   #TODO: export flag (bool)
+    for index, layer in enumerate(self.settings.data["LAYERS"]):
+      if layer.visible == False:
         continue
 
       if layer.geomType == q3dconst.TYPE_DEM:
@@ -143,7 +143,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     mapping = {
       "title": self.settings.htmlfiletitle,
-      "controls": '<script src="./threejs/%s"></script>' % self.settings.controls,    #TODO: move to self.scripts()
+      "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
       "scenefile": "./data/{0}/scene.json".format(self.settings.htmlfiletitle)
@@ -182,7 +182,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     files = [{"dirs": ["js/threejs"]}]
 
     # controls
-    files.append({"files": ["js/threejs/controls/" + self.settings.controls], "dest": "threejs"})
+    files.append({"files": ["js/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
 
     # template specific libraries (files)
     config = self.settings.templateConfig()
@@ -202,19 +202,19 @@ class ThreeJSFileExporter(ThreeJSExporter):
       files.append(ds)
 
     # proj4js
-    if self.settings.coordsInWGS84:
+    if self.settings.coordsInWGS84():
       files.append({"dirs": ["js/proj4js"]})
 
     # model importer
-    #TODO: files += self.modelManager.filesToCopy()
+    #TODO: [Model] files += self.modelManager.filesToCopy()
 
     return files
 
   def scripts(self):
-    files = []      #TODO: self.modelManager.scripts()
+    files = []      #TODO: [Model] self.modelManager.scripts()
 
     # proj4.js
-    if self.settings.coordsInWGS84:    # display coordinates in latitude and longitude
+    if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
       files.append("proj4js/proj4.js")
 
     # data files

@@ -123,7 +123,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // remove all existing lights
       this.lightGroup.clear();
 
-      // TODO: load light settings and build lights
+      // TODO: [Light settings] load light settings and build lights
     }
 
     // create default lights if this scene has no lights
@@ -164,7 +164,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 
     this.requestRender();
 
-    /* TODO: load models
+    /* TODO: [Model] load models
     // load models
     if (project.models.length > 0) {
       project.models.forEach(function (model, index) {
@@ -366,13 +366,6 @@ limitations:
 
     controls.update();
 
-      /*
-    if (vars.tx !== undefined) {
-      app.controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
-      app.controls.target0.copy(app.controls.target);   // for reset
-    }
-    */
-
     app.labelVisibility = Q3D.Options.label.visible;
 
     // root element of labels
@@ -394,10 +387,6 @@ limitations:
 
     app.modelBuilders = [];
     app._wireframeMode = false;
-
-    // TODO:
-    // wireframe mode setting
-    // if ("wireframe" in app.urlParams) app.setWireframeMode(true);
   };
 
   app.parseUrlParameters = function () {
@@ -795,9 +784,8 @@ limitations:
     app.popup.show();
   };
 
-  // TODO: obj
-  app.showQueryResult = function (point, object) {
-    var layer = app.scene.mapLayers[object.userData.layerId], r = [];
+  app.showQueryResult = function (point, obj) {
+    var layer = app.scene.mapLayers[obj.userData.layerId], r = [];
     if (layer) {
       // layer name
       r.push('<table class="layer">');
@@ -825,7 +813,7 @@ limitations:
       r.push('<table class="attrs">');
       r.push("<caption>Attributes</caption>");
       for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
-        r.push("<tr><td>" + layer.properties.propertyNames[i] + "</td><td>" + object.userData.properties[i] + "</td></tr>");
+        r.push("<tr><td>" + layer.properties.propertyNames[i] + "</td><td>" + obj.userData.properties[i] + "</td></tr>");
       }
       r.push("</table>");
     }
@@ -943,7 +931,6 @@ limitations:
     // create a highlight object (if layer type is Point, slightly bigger than the object)
     // var highlightObject = new Q3D.Group();
     var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
-    // TODO: use polygonOffset?
 
     var clone = object.clone()
     clone.traverse(function (obj) {
@@ -1057,7 +1044,7 @@ limitations:
       }
     };
 
-    // TODO: save QWebView page content as image
+    // TODO: [Save As Image] save QWebView page content as image
     var renderLabels = function (ctx) {
       // context settings
       ctx.textAlign = "center";
@@ -1133,7 +1120,6 @@ limitations:
     var bgcolor = Q3D.Options.bgcolor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
-    // TODO: save QWebView page content as image
     var render_labels = false;    // TODO: (app.labelVisibility && app.labels.length > 0);
     if ((fill_background && bgcolor === null) || render_labels) {
       var canvas = document.createElement("canvas");
@@ -1205,7 +1191,7 @@ Q3D.Material.prototype = {
         opt.map.needsUpdate = true;
         callback();
       }
-      else {    // base64   TODO: remove
+      else {    // base64
         var img = new Image();
         img.onload = function () {
           opt.map.needsUpdate = true;
@@ -1833,7 +1819,6 @@ Q3D.DEMLayer.prototype.getZ = function (x, y) {
   return null;
 };
 
-// TODO: block.width/height
 Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   // does not support multiple blocks
   if (zFunc === undefined) zFunc = function () { return 0; };
@@ -1905,7 +1890,6 @@ Q3D.DEMLayer.prototype.setVisible = function (visible) {
   // if (visible && this.sideVisible === false) this.setSideVisibility(false);
 };
 
-// TODO
 Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {
@@ -2081,7 +2065,7 @@ Q3D.PointLayer.prototype.build = function (features) {
     setSR = function (geom, scale, rotation) {
       scale.set(geom.r, 0, geom.r * sz);
 
-      // TODO: check
+      // TODO: [Point - Disk] check
       var m = new THREE.Matrix4()
       if (90 - geom.d) rotation.applyMatrix(m.makeRotationX((90 - geom.d) * deg2rad));
       if (geom.dd) rotation.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
@@ -2123,7 +2107,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
     var f = features[fidx],
         geom = f.geom;
     var mtl = this.materials.mtl(f.mtl);
-    var image = scene.images[mtl.i];   // TODO:
+    var image = scene.images[mtl.i];   // TODO: [Point - Icon]
 
     // base size is 64 x 64
     var scale = (geom.scale === undefined) ? 1 : geom.scale;
@@ -2143,7 +2127,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
   }
 };
 
-// TODO:
+// TODO: [Model]
 Q3D.PointLayer.prototype.buildModels = function (features) {
   // each feature in this layer
   for (var fid = 0, flen = features.length; fid < flen; fid++) {
@@ -2326,7 +2310,7 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Profile") {
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         bRelativeToDEM = (this.bam == "relative"),  // altitude mode of bottom height
-        dem = scene.mapLayers[0],   // TODO: referenced DEM layer
+        dem = scene.mapLayers[0],   // TODO: [Line - Profile] referenced DEM layer
         z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f, line) {
@@ -2349,7 +2333,7 @@ Q3D.LineLayer.prototype.build = function (features) {
           vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
         }
       }
-      var geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);    // TODO: flat shading
+      var geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
@@ -2461,7 +2445,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   else {    // this.objType == "Overlay"
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
-        dem = scene.mapLayers[0],    // TODO: referenced DEM layer
+        dem = scene.mapLayers[0],    // TODO: [Polygon - Overlay] referenced DEM layer
         z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f) {
@@ -2475,11 +2459,11 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
       // set UVs
       if (materials[f.mtl].i !== undefined) Q3D.Utils.setGeometryUVs(geom, sceneData.width, sceneData.height);
-      // TODO: materials.get(f.mtl).origProp.i
+      // TODO: [Polygon - Overlay] materials.get(f.mtl).origProp.i
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
 
-      // TODO: f.mb and f.ms
+      // TODO: [Polygon - Overlay] f.mb and f.ms
       if (f.mb === undefined && f.ms === undefined) return mesh;
 
       // borders and sides
@@ -2497,7 +2481,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
             vertices = Q3D.Utils.arrayToVec3Array(polygon[j], zFunc);
           }
 
-          // TODO
+          // TODO: [Polygon - Overlay]
           if (f.mb) {
             geom = new THREE.Geometry();
             geom.vertices = vertices;
@@ -2510,7 +2494,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
           }
         }
       }
-      // TODO: mesh.updateWorldMatrix();
+      // TODO: [Polygon - Overlay] mesh.updateWorldMatrix();
       return mesh;
     };
   }
@@ -2529,12 +2513,12 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   this._createObject = createObject;
 };
 
-// TODO:
+// TODO: [Label]
 Q3D.PolygonLayer.prototype.buildLabels = function (features) {
   var zFunc, getPointsFunc = function (f) { return f.geom.centroids; };
   var relativeToDEM = (this.am == "relative");    // altitude mode
   if (relativeToDEM) {
-    var dem = this.scene.mapLayers[0];    // TODO: referenced dem
+    var dem = this.scene.mapLayers[0];    // TODO: [Label] referenced dem
     zFunc = dem.getZ.bind(dem);
   }
 
@@ -2597,7 +2581,7 @@ Q3D.ModelBuilder.Base.prototype = {
     var deg2rad = Math.PI / 180,
         m = new THREE.Matrix4();
 
-    // TODO: f, geom
+    // TODO: [Model] f, geom
     this.features.forEach(function (fet) {
       var layer = this.scene.mapLayers[fet.layerId],
           f = layer.f[fet.featureId];
@@ -2750,32 +2734,6 @@ Q3D.ModelBuilder.COLLADA.prototype.onLoad = function (collada) {
 
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
-
-// [NOT USED]
-Q3D.Utils.setObjectVisibility = function (object, visible) {
-  object.traverse(function (obj) {
-    obj.visible = visible;
-  });
-};
-
-// TODO: REMOVE
-Q3D.Utils.loadTexture = function (url, eventDispatcher) {
-  return THREE.ImageUtils.loadTexture(url, undefined, function (tex) {
-    if (eventDispatcher) eventDispatcher.dispatchEvent({type: "renderRequest"});
-  });
-};
-
-// TODO: remove
-Q3D.Utils.loadTextureBase64 = function (imageData, eventDispatcher) {
-  var texture, image = new Image();
-  image.onload = function () {
-    texture.needsUpdate = true;
-    if (eventDispatcher && !Q3D.Options.exportMode) eventDispatcher.dispatchEvent({type: "renderRequest"});
-  };
-  image.src = imageData;
-  texture = new THREE.Texture(image);
-  return texture;
-};
 
 // Put a stick to given position (for debug)
 Q3D.Utils.putStick = function (x, y, zFunc, h) {

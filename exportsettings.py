@@ -27,7 +27,7 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsM
 from . import q3dconst
 from .conf import def_vals
 from .rotatedrect import RotatedRect
-from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider, createQuadTree
+from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
 
 
@@ -105,10 +105,6 @@ class ExportSettings:
     self.htmlfilename = None
     self.htmlfiletitle = None
 
-    self.exportMode = ExportSettings.PLAIN_SIMPLE
-    self._controls = None
-    self.coordsInWGS84 = False
-
     self.canvas = None
     self.mapSettings = None
     self.baseExtent = None
@@ -116,7 +112,6 @@ class ExportSettings:
 
     # cache
     self._mapTo3d = None
-    self._quadtree = None
     self._templateConfig = None
 
   def clear(self):
@@ -129,15 +124,17 @@ class ExportSettings:
     self.data[ObjectTreeItem.ITEM_WORLD] = properties
     self._mapTo3d = None
 
-  @property
+  def coordsInWGS84(self):
+    return self.data.get(ObjectTreeItem.ITEM_WORLD, {}).get("radioButton_WGS84", False)
+
   def controls(self):
-    if self._controls:
-      return self._controls
+    ctrl = self.data.get(ObjectTreeItem.ITEM_CONTROLS, {}).get("comboBox_Controls")
+    if ctrl:
+      return ctrl
     return QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
 
-  @controls.setter
-  def controls(self, value):
-    self._controls = value
+  def setControls(self, name):
+    self.data[ObjectTreeItem.ITEM_CONTROLS] = {"comboBox_Controls": name}
 
   def loadSettings(self, settings):
     self.data = settings
@@ -148,23 +145,6 @@ class ExportSettings:
 
     # template
     self.setTemplatePath(settings.get("Template", def_vals.template))
-
-    # world
-    world = settings.get(ObjectTreeItem.ITEM_WORLD, {})
-    self.coordsInWGS84 = world.get("radioButton_WGS84", False)    #TODO: remove
-
-    # controls name
-    self._controls = settings.get(ObjectTreeItem.ITEM_CONTROLS, {}).get("comboBox_Controls")
-
-    # export mode
-    #TODO: remove
-    demProperties = settings.get(ObjectTreeItem.ITEM_DEM, {})
-    if self.templateConfig().get("type") == "sphere":
-      self.exportMode = ExportSettings.SPHERE
-    elif demProperties.get("radioButton_Advanced", False):
-      self.exportMode = ExportSettings.PLAIN_MULTI_RES
-    else:
-      self.exportMode = ExportSettings.PLAIN_SIMPLE
 
   def loadSettingsFromFile(self, filepath=None):
     """load settings from a JSON file"""
@@ -250,17 +230,6 @@ class ExportSettings:
     self._mapTo3d = MapTo3D(self.mapSettings, float(baseSize), float(verticalExaggeration), float(verticalShift))
     return self._mapTo3d
 
-  def quadtree(self):
-    if self._quadtree:
-      self._quadtree
-
-    if self.baseExtent is None:
-      return
-
-    properties = self.data.get(ObjectTreeItem.ITEM_DEM, {})
-    self._quadtree = createQuadTree(self.baseExtent, properties)
-    return self._quadtree
-
   def templateConfig(self):
     if self._templateConfig:
       return self._templateConfig
@@ -283,8 +252,6 @@ class ExportSettings:
 
   def checkValidity(self):
     """check validity of export settings. return error message as unicode. return None if valid."""
-    if self.exportMode == ExportSettings.PLAIN_MULTI_RES and self.quadtree() is None:
-      return "Focus point/area is not selected."
     return None
 
   def demProviderByLayerId(self, id):

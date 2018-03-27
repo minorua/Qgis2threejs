@@ -258,37 +258,6 @@ class Q3DWindow(QMainWindow):
       else:
         self.runString("app.resume();")
 
-  #TODO: CopyAction is not possible
-  def dragEnterEvent(self, event):
-    print(str(event.mimeData().formats()))
-    if event.mimeData().hasFormat("application/qgis.layertreemodeldata"):
-      event.setDropAction(Qt.CopyAction)
-      event.accept()
-      # event.acceptProposedAction()
-
-  def dropEvent(self, event):
-    print("Possible actions: ".format(int(event.possibleActions()))) # => 2 (Qt.MoveAction)
-    event.setDropAction(Qt.CopyAction)
-    event.accept()
-    #event.ignore()
-    #event.setAccepted(False)
-    xml = event.mimeData().data("application/qgis.layertreemodeldata").data()
-    print(xml)
-    # b'<layer_tree_model_data>\n <layer-tree-layer expanded="1" checked="Qt::Checked" id="\xe6\xa8\x99\xe6\xba\x96\xe5\x9c\xb0\xe5\x9b\xb320160213181331361" name="\xe6\xa8\x99\xe6\xba\x96\xe5\x9c\xb0\xe5\x9b\xb3">\n  <customproperties/>\n </layer-tree-layer>\n</layer_tree_model_data>\n'
-
-    doc = minidom.parseString(xml)
-    layerId = doc.getElementsByTagName("layer-tree-layer")[0].getAttribute("id")
-    print("Layer {0} has been dropped.".format(layerId))
-    """
-    from PyQt5.QtXml import QDomDocument
-    # ImportError: No module named 'PyQt5.QtXml'
-
-    doc = QDomDocument()
-    doc.setContent(xml)
-    root = doc.documentElement()
-    layerId = root.firstChild().toElement().attribute("id").decode("utf-8")
-    """
-
   def clearConsole(self):
     self.ui.listWidgetDebugView.clear()
 

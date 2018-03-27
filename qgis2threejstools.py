@@ -37,13 +37,9 @@ def getLayersInProject():
     layers.append(tLayer.layer())
   return layers
 
-  #TODO: QgsProject.instance().layerTreeRoot() is a QgsLayerTree object?
-  return QgsProject.instance().layerTreeRoot().layerOrder()
-
 
 def getDEMLayersInProject():
   layers = []
-  #TODO: DEM data provider
   for layer in getLayersInProject():
     if layer.type() == QgsMapLayer.RasterLayer:
       if layer.providerType() == "gdal" and layer.bandCount() == 1:

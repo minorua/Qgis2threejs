@@ -57,12 +57,6 @@ class ObjectTypeBase:
   def setupWidgets(cls, ppage, mapTo3d, layer):
     pass
 
-#TODO: setupWidgets -> widgets?
-#  def widgets(cls, settings, layer):
-#    return [const.Color,
-#            const.Opacity,
-#            {"type": StyleWidget.EXPRESSION, "name": "Height", "defaultValue": 0}]
-
   @classmethod
   def layerProperties(cls, settings, layer):
     return {}
@@ -370,7 +364,7 @@ class OverlayType(PolygonBasicTypeBase):
     ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from overlay"),
                                   (LabelHeightWidgetFunc.RELATIVE, "Height from DEM")])
 
-  #TODO
+  #TODO [Polygon - Overlya]
   @classmethod
   def layerProperties(cls, settings, layer):
     prop = layer.prop
@@ -396,7 +390,7 @@ class OverlayType(PolygonBasicTypeBase):
     g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
     del g["zs"]
 
-    #TODO: mb and ms
+    #TODO: [Polygon - Overlay] mb and ms
     # border
     #if feat.values[2] is not None:
     #  g["mb"] = layer.materialManager.getLineBasicIndex(feat.values[2], feat.values[1])

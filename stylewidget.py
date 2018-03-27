@@ -182,6 +182,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
       self.widget.expression.setExpression(filepath)
 
 
+#TODO: [Height widget] new height widget
 class HeightWidgetFunc(WidgetFuncBase):
 
   ABSOLUTE = 1
