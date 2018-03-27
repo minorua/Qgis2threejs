@@ -31,13 +31,12 @@ from .qgis2threejstools import logMessage, openHTMLFile, temporaryOutputDir
 
 class ExportToWebDialog(QDialog):
 
-  def __init__(self, parent, qgisIface, settings, pluginManager=None):
+  def __init__(self, parent, qgisIface, settings):
     QDialog.__init__(self, parent)
     self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.iface = qgisIface
     self.settings = settings
-    self.pluginManager = pluginManager
 
     from .ui.exporttowebdialog import Ui_ExportToWebDialog
     self.ui = Ui_ExportToWebDialog()

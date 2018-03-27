@@ -27,6 +27,17 @@ from PyQt5.QtCore import QDir, QFile, QSettings
 from .qgis2threejstools import logMessage
 
 
+_pluginManager = None
+
+
+def pluginManager(allPlugins=False):
+  """allPlugins: for debug purpose"""
+  global _pluginManager
+  if _pluginManager is None:
+    _pluginManager = PluginManager(allPlugins)
+  return _pluginManager
+
+
 class PluginManager:
 
   def __init__(self, allPlugins=False):

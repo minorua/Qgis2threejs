@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMe
 from . import q3dconst
 from .conf import debug_mode, plugin_version
 from .exporttowebdialog import ExportToWebDialog
+from .pluginmanager import pluginManager
 from .propertypages import WorldPropertyPage, DEMPropertyPage, VectorPropertyPage
 from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
@@ -119,7 +120,7 @@ class Q3DViewerInterface:
     self.controller.updateScene()
 
   def showLayerPropertiesDialog(self, layer):
-    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)    #, pluginManager)
+    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
     dialog.showLayerProperties(layer)
     return True
@@ -282,7 +283,7 @@ class Q3DWindow(QMainWindow):
     from .pluginsettings import SettingsDialog
     dialog = SettingsDialog(self)
     if dialog.exec_():
-      self.iface.controller.pluginManager.reloadPlugins()
+      pluginManager().reloadPlugins()
 
   def help(self):
     QDesktopServices.openUrl(QUrl("http://qgis2threejs.readthedocs.io/en/docs-release/"))
@@ -301,12 +302,11 @@ class PropertiesDialog(QDialog):
 
   propertiesAccepted = pyqtSignal(str, dict)
 
-  def __init__(self, parent, qgisIface, settings, pluginManager=None):
+  def __init__(self, parent, qgisIface, settings):
     QDialog.__init__(self, parent)
     self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.iface = qgisIface
-    self.pluginManager = pluginManager
     self.settings = settings
     self.mapTo3d = settings.mapTo3d
 

@@ -14,14 +14,14 @@ from PyQt5.QtCore import QSize
 from qgis.core import QgsRectangle
 
 from Qgis2threejs.api import Exporter
-from Qgis2threejs.pluginmanager import PluginManager
+from Qgis2threejs.pluginmanager import pluginManager
 from .utilities import dataPath, outputPath, loadProject
 
 
 class TestPlugins(TestCase):
 
   def setUp(self):
-    pass
+    pluginManager(True)   # enables all plugins
 
   def test01_gsielevtile(self):
     """test exporting with GSI elevation tile plugin"""
@@ -37,7 +37,6 @@ class TestPlugins(TestCase):
     mapSettings.setOutputSize(QSize(width, height))
 
     exporter = Exporter(None, dataPath("gsielevtile.qto3settings"))
-    exporter.settings.pluginManager = PluginManager(True)   # enables all plugins
     exporter.settings.setMapSettings(mapSettings)
     err = exporter.export(outputPath(os.path.join("testproject1", "gsielevtile.html")))
     assert err == Exporter.NO_ERROR, err

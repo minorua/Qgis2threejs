@@ -28,13 +28,12 @@ from .qgis2threejstools import logMessage, pluginDir
 
 class Q3DViewerController:
 
-  def __init__(self, qgis_iface, pluginManager, settings=None):
+  def __init__(self, qgis_iface, settings=None):
     self.qgis_iface = qgis_iface
-    self.pluginManager = pluginManager
 
     if settings is None:
       defaultSettings = {}
-      settings = ExportSettings(pluginManager, True)
+      settings = ExportSettings(True)
       settings.loadSettings(defaultSettings)
       settings.setMapCanvas(qgis_iface.mapCanvas())
 

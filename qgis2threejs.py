@@ -27,7 +27,6 @@ from PyQt5.QtGui import QIcon
 
 from qgis.core import QgsProject
 
-from .pluginmanager import PluginManager
 from .qgis2threejstools import logMessage, removeTemporaryOutputDir
 from .q3dviewercontroller import Q3DViewerController
 from .q3dwindow import Q3DWindow
@@ -53,7 +52,6 @@ class Qgis2threejs:
     #  if qVersion() > '4.3.3':
     #    QCoreApplication.installTranslator(self.translator)
 
-    self.pluginManager = None
 
     self.exportSettings = {}
     self.lastTreeItemData = None
@@ -93,15 +91,9 @@ class Qgis2threejs:
     # remove temporary output directory
     removeTemporaryOutputDir()
 
-  def initManagers(self):
-    if self.pluginManager is None:
-      self.pluginManager = PluginManager()
-
   def launchExporter(self, _, preview=True):
-    self.initManagers()
-
     if self.controller is None:
-      self.controller = Q3DViewerController(self.iface, self.pluginManager)
+      self.controller = Q3DViewerController(self.iface)
 
     if self.controller.iface is None:
       logMessage("Launching Qgis2threejs Exporter...")

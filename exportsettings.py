@@ -26,6 +26,7 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsM
 
 from . import q3dconst
 from .conf import def_vals
+from .pluginmanager import pluginManager
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import ObjectTreeItem, MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
@@ -82,20 +83,9 @@ class Layer:
 
 class ExportSettings:
 
-  # export mode
-  PLAIN_SIMPLE = 0
-  PLAIN_MULTI_RES = 1
-  SPHERE = 2
-
-  #TODO: do not take pluginManager.
-  # one instance should be held in Qgis2threejs plugin, and should not be held in export settings.
-  def __init__(self, pluginManager=None, localBrowsingMode=True):
+  def __init__(self, localBrowsingMode=True):
     """localBrowsingMode: not implemented yet"""
     self.localBrowsingMode = localBrowsingMode
-    self.pluginManager = pluginManager
-    if self.pluginManager is None:
-      from .pluginmanager import PluginManager
-      self.pluginManager = PluginManager()
 
     self.data = {}
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
@@ -259,7 +249,7 @@ class ExportSettings:
       return FlatDEMProvider()
 
     if id.startswith("plugin:"):
-      provider = self.pluginManager.findDEMProvider(id[7:])
+      provider = pluginManager().findDEMProvider(id[7:])
       if provider:
         return provider(str(self.crs.toWkt()))
 
@@ -289,7 +279,7 @@ class ExportSettings:
         layers.append(item)
 
     # DEM provider plugins
-    for plugin in self.pluginManager.demProviderPlugins():
+    for plugin in pluginManager().demProviderPlugins():
       layerId = "plugin:" + plugin.providerId()
       item = self.getItemByLayerId(layerId)
       if item is None:
