@@ -200,6 +200,10 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
+    # close properties dialogs
+    for dlg in self.findChildren(PropertiesDialog):
+      dlg.close()
+
     QMainWindow.closeEvent(self, event)
 
   def keyPressEvent(self, event):
