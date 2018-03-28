@@ -23,6 +23,7 @@
   bottom: 3px;
   font-size: xx-small;
 }
+
 #cover {
   display: none;
   position: absolute;
@@ -32,6 +33,7 @@
   height: 100%;
   background-color: lightgray;
 }
+
 #cover img {
   position: absolute;
   width: 64px;
@@ -40,6 +42,10 @@
   top: 50%;
   -webkit-filter: grayscale(1);
   -webkit-transform: translate3d(-50%, -50%, 0);
+}
+
+#urlbox {
+  display: none;
 }
 </style>
 </head>
@@ -54,8 +60,7 @@
 <div id="popupbody">
  <div id="popupcontent"></div>
  <div id="pageinfo">
-  <h1>Current View URL</h1>
-  <div><input id="urlbox" type="text"></div>
+  <input id="urlbox" type="text">
 
   <h1>Usage</h1>
   <div id="usage"></div>
@@ -82,7 +87,8 @@ and uses the following library:
 <script>
 if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
 
-var container = document.getElementById("webgl");
+var app = Q3D.application,
+    container = document.getElementById("webgl");
 app.init(container);
 
 app.addEventListeners();

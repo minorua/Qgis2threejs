@@ -733,6 +733,7 @@ limitations:
     lines = lines.concat([
       "I : Show Information About Page",
       "L : Toggle Label Visibility",
+      "R : Start / Stop Rotate Animation",
       "W : Wireframe Mode",
       "Shift + R : Reset View",
       "Shift + S : Save Image"
