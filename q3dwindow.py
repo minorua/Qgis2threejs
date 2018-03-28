@@ -62,6 +62,8 @@ class Q3DViewerInterface:
 
   def startApplication(self):
     self.webView.runString("app.start();");
+    if debug_mode:
+      self.webView.runString("displayFPS();");
 
   def setPreviewEnabled(self, enabled):
     self.controller.setPreviewEnabled(enabled)
