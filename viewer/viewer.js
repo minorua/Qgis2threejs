@@ -24,8 +24,8 @@ window.setInterval(function () {
 
 // overrides
 var origRender = app.render;
-app.render = function () {
-  origRender();
+app.render = function (updateControls) {
+  origRender(updateControls);
   app.timer.tickCount++;
 };
 

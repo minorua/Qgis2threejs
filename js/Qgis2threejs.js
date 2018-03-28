@@ -525,6 +525,16 @@ limitations:
           case 76:  // L
             app.setLabelVisibility(!app.labelVisibility);
             return;
+          case 82:  // R
+            if (controls.autoRotate) {
+              controls.autoRotate = false;
+              app.stopAnimation();
+            }
+            else {
+              controls.autoRotate = true;
+              app.startAnimation();
+            }
+            return;
           case 87:  // W
             app.setWireframeMode(!app._wireframeMode);
             return;
@@ -586,6 +596,15 @@ limitations:
     if (app.controls) app.controls.enabled = true;
   };
 
+  app.startAnimation = function () {
+    app.running = true;
+    app.animate();
+  };
+
+  app.stopAnimation = function () {
+    app.running = false;
+  };
+
   // animation loop
   app.animate = function () {
     if (app.running) requestAnimationFrame(app.animate);
@@ -593,7 +612,7 @@ limitations:
   };
 
   app.render = function (updateControls) {
-    if (updateControls && app.controls.update()) return;    // changeEvent handler calls app.render()
+    if (updateControls) app.controls.update();
     app.renderer.render(app.scene, app.camera);
     app.updateLabelPosition();
   };
