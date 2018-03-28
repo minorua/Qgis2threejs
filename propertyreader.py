@@ -182,7 +182,7 @@ class VectorPropertyReader:
   def values(self, f):
     assert(f is not None)
     vals = []
-    for i in range(32):   # big number for style count
+    for i in range(16):   # big number for style count
       p = "styleWidget" + str(i)
       if p not in self.properties:
         break
@@ -212,15 +212,6 @@ class VectorPropertyReader:
 
       elif widgetType == StyleWidget.CHECKBOX:
         vals.append(widgetValues["checkBox"])
-
-      elif widgetType == StyleWidget.HEIGHT:
-        #TODO [Height widget] new height widget
-        if widgetValues["comboData"] in [HeightWidgetFunc.RELATIVE, HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.Z_VALUE] or f is None:
-          vals.append(self.toFloat(widgetValues["editText"]))
-        else:
-          # attribute value + addend
-          fieldName = widgetValues["comboText"].lstrip("+").strip(' "')
-          vals.append(self.toFloat(f.attribute(fieldName)) + self.toFloat(widgetValues["editText"]))
 
       else:
         expr = widgetValues["editText"]

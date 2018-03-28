@@ -27,12 +27,10 @@ from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsProject, QgsWkbTypes
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from .qgis2threejstools import logMessage, shortTextFromSelectedLayerIds
+from .qgis2threejstools import getDEMLayersInProject, logMessage, shortTextFromSelectedLayerIds
 
 
 class WidgetFuncBase:
-
-  FIRST_ATTRIBUTE = 100
 
   def __init__(self, widget):
     self.widget = widget
@@ -182,14 +180,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
       self.widget.expression.setExpression(filepath)
 
 
-#TODO: [Height widget] new height widget
 class HeightWidgetFunc(WidgetFuncBase):
-
-  ABSOLUTE = 1
-  RELATIVE = 2
-  Z_VALUE = 3
-  FIRST_ATTR_ABS = WidgetFuncBase.FIRST_ATTRIBUTE
-  FIRST_ATTR_REL = FIRST_ATTR_ABS + 100
 
   def setup(self, options=None):
     """ options: name, defaultItem, defaultValue, layer """
@@ -198,31 +189,17 @@ class HeightWidgetFunc(WidgetFuncBase):
     self.defaultValue = options.get("defaultValue", 0)
     layer = options.get("layer")
 
+    # set up combo box
     comboBox = self.widget.comboBox
     comboBox.clear()
+    comboBox.addItem("Absolute")
+    for lyr in getDEMLayersInProject():
+      comboBox.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
 
     # z value if layer has
-    if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
-      comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
-      comboBox.insertSeparator(1)
-
-    # relative to DEM
-    comboBox.addItem("Relative to DEM", HeightWidgetFunc.RELATIVE)
-    if layer:
-      index_fieldName = self.numericalFields(layer)
-      for index, fieldName in index_fieldName:
-        comboBox.addItem('+"{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_REL + index)
-        # note: VectorPropertyReader.values() uses item name to get field name
-
-      if index_fieldName:
-        comboBox.insertSeparator(comboBox.count())
-
-    # absolute
-    comboBox.addItem("Absolute value", HeightWidgetFunc.ABSOLUTE)
-    if layer:
-      for index, fieldName in index_fieldName:
-        comboBox.addItem(' "{0}"'.format(fieldName), HeightWidgetFunc.FIRST_ATTR_ABS + index)
-        # note: VectorPropertyReader.values() uses item name to get field name
+    #if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
+    #  comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
+    #  comboBox.insertSeparator(1)
 
     defaultItem = options.get("defaultItem")
     if defaultItem is not None:
@@ -231,21 +208,17 @@ class HeightWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.setCurrentIndex(index)
 
   def comboBoxSelectionChanged(self, index):
-    itemData = self.widget.comboBox.itemData(index)
-    if itemData in [HeightWidgetFunc.ABSOLUTE, HeightWidgetFunc.RELATIVE]:
-      label = "Height"
-      defaultValue = self.defaultValue
-    else:
+    if self.widget.comboBox.itemData(index):
       label = "Addend"
       defaultValue = 0
+    else:
+      label = "Altitude"
+      defaultValue = self.defaultValue
     self.widget.label_2.setText(label)
     self.widget.expression.setExpression(str(defaultValue))
 
   def isCurrentItemRelativeHeight(self):
-    itemData = self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())
-    if itemData is None:    # happens while setting up the height widget
-      return False
-    return itemData == HeightWidgetFunc.RELATIVE or itemData >= HeightWidgetFunc.FIRST_ATTR_REL
+    return self.widget.comboBox.itemData(self.widget.comboBox.currentIndex()) is None
 
 
 class LabelHeightWidgetFunc(WidgetFuncBase):

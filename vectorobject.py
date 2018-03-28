@@ -264,14 +264,13 @@ class ProfileType(LineBasicTypeBase):
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Lower Z", "layer": layer, "defaultItem": HeightWidgetFunc.ABSOLUTE})
+    ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Lower Z", "layer": layer})
 
   @classmethod
   def layerProperties(cls, settings, layer):
     cb = layer.prop.properties["styleWidget2"]["comboData"]
-    isBRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
     return {"am": "relative" if layer.prop.isHeightRelativeToDEM() else "absolute", # altitude mode
-            "bam": "relative" if isBRelative else "absolute"}                       # altitude mode of bottom
+            "bam": "relative" if cb else "absolute"}                       # altitude mode of bottom
 
   @classmethod
   def material(cls, settings, layer, feat):
