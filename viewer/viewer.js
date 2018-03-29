@@ -1,3 +1,5 @@
+if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;
+
 var app = Q3D.application;
 
 // this is the slot connected to the signal which Bridge class object emits
