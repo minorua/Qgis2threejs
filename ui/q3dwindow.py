@@ -141,7 +141,6 @@ class Ui_Q3DWindow(object):
         self.actionSaveAsOBJ.setEnabled(False)
         self.actionSaveAsOBJ.setObjectName("actionSaveAsOBJ")
         self.actionSaveAsGLTF = QtWidgets.QAction(Q3DWindow)
-        self.actionSaveAsGLTF.setEnabled(False)
         self.actionSaveAsGLTF.setObjectName("actionSaveAsGLTF")
         self.actionClearAllSettings = QtWidgets.QAction(Q3DWindow)
         self.actionClearAllSettings.setObjectName("actionClearAllSettings")
@@ -161,8 +160,6 @@ class Ui_Q3DWindow(object):
         self.menuWindow.addAction(self.actionAlwaysOnTop)
         self.menuSaveAs.addAction(self.actionSaveAsImage)
         self.menuSaveAs.addSeparator()
-        self.menuSaveAs.addAction(self.actionSaveAsSTL)
-        self.menuSaveAs.addAction(self.actionSaveAsOBJ)
         self.menuSaveAs.addAction(self.actionSaveAsGLTF)
         self.menuFile.addAction(self.actionExportToWeb)
         self.menuFile.addAction(self.menuSaveAs.menuAction())
@@ -219,7 +216,7 @@ class Ui_Q3DWindow(object):
         self.actionSendFeedback.setText(_translate("Q3DWindow", "Send Feedback"))
         self.actionAbout.setText(_translate("Q3DWindow", "About Qgis2threejs Plugin"))
         self.actionSaveAsOBJ.setText(_translate("Q3DWindow", "Wavefront (.obj)"))
-        self.actionSaveAsGLTF.setText(_translate("Q3DWindow", "glTF (.gltf)"))
+        self.actionSaveAsGLTF.setText(_translate("Q3DWindow", "glTF (.gltf, .glb)"))
         self.actionClearAllSettings.setText(_translate("Q3DWindow", "Clear All Settings"))
 
 from Qgis2threejs.q3dtreeview import Q3DTreeView

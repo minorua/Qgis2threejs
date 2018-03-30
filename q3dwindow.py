@@ -18,13 +18,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from xml.dom import minidom
-
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QObject, QSettings, QUrl, QVariant, pyqtSignal
+from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, QVariant, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMessageBox, QProgressBar
-
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
 from .conf import debug_mode, plugin_version
@@ -218,6 +215,7 @@ class Q3DWindow(QMainWindow):
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+    self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
@@ -284,6 +282,12 @@ class Q3DWindow(QMainWindow):
 
   def saveAsImage(self):
     self.runString("app.showPrintDialog();")
+
+  def saveAsGLTF(self):
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "Binary glTF files (*.glb);;glTF files (*.gltf)")
+    if filename:
+      self.ui.webView.runJavaScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
+      self.runString("saveModelAsGLTF('{0}');".format(filename))
 
   def pluginSettings(self):
     from .pluginsettings import SettingsDialog

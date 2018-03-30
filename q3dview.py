@@ -25,10 +25,10 @@ import os
 from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot, qDebug
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from .conf import debug_mode
-from .qgis2threejstools import pluginDir
+from .qgis2threejstools import logMessage, pluginDir
 
 def base64image(image):
   ba = QByteArray()
@@ -44,17 +44,25 @@ class Bridge(QObject):
   sendData = pyqtSignal("QVariant")
 
   # Python to Python
+  modelDataReceived = pyqtSignal("QByteArray", str)
   imageReceived = pyqtSignal(int, int, "QImage")
 
   def __init__(self, parent=None):
     QObject.__init__(self, parent)
     self._parent = parent
 
-  # examples
   @pyqtSlot(int, int, result=str)
   def mouseUpMessage(self, x, y):
     return "Clicked at ({0}, {1})".format(x, y)
     # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
+
+  @pyqtSlot("QByteArray", str)
+  def saveBytes(self, data, filename):
+    self.modelDataReceived.emit(data, filename)
+
+  @pyqtSlot(str, str)
+  def saveString(self, text, filename):
+    self.modelDataReceived.emit(text.encode("UTF-8"), filename)
 
   @pyqtSlot(int, int, str)
   def saveImage(self, width, height, dataUrl):
@@ -100,6 +108,7 @@ class Q3DView(QWebView):
     self.isViewer = isViewer
     self._enabled = enabled
     self.bridge = Bridge(self)
+    self.bridge.modelDataReceived.connect(self.saveModelData)
     self.bridge.imageReceived.connect(self.saveImage)
 
     self.loadFinished.connect(self.pageLoaded)
@@ -169,6 +178,22 @@ class Q3DView(QWebView):
 
     return self._page.mainFrame().evaluateJavaScript(string)
 
+  def runJavaScriptFile(self, filename):
+    with open(filename, "r") as f:
+      text = f.read()
+    return self._page.mainFrame().evaluateJavaScript(text)
+
+  def saveModelData(self, data, filename):
+    try:
+      with open(filename, "wb") as f:
+        f.write(data)
+
+    except Exception as e:
+      QMessageBox.warning(self, "Failed to save model data.", str(e))
+      return
+
+    logMessage("Successfully saved model data: " + filename)
+
   def saveImage(self, width, height, image):
     if image is None:
       image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
@@ -176,6 +201,6 @@ class Q3DView(QWebView):
       self._page.mainFrame().render(painter)
       painter.end()
 
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG file (*.png)")
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
     if filename:
       image.save(filename)

@@ -1,4 +1,15 @@
-if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;
+// unsupported features of QWebView
+if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;   // for three.min.js (r90)
+// a polyfill for GLTFExporter.js (r90)
+Array.prototype.fill = function (value) {
+  var O = Object(this),
+      len = O.length >>> 0;
+  for (var k = 0; k < len; k++) {
+    O[k] = value;
+  }
+  return O;
+};
+
 
 var app = Q3D.application;
 
@@ -23,6 +34,31 @@ function displayFPS() {
     app.timer.last = now;
     app.timer.tickCount = 0;
   }, 1000);
+}
+
+function saveModelAsGLTF(filename) {
+  console.log("Saving model: " + filename);
+
+  var object = app.scene;   //.mapLayers[Object.keys(app.scene.mapLayers)[0]].objectGroup;
+  var options = {
+    binary: (filename.split(".").pop().toLowerCase() == "glb"),
+    onlyVisible: true
+    //trs: true/false,
+    //truncateDrawRange: true/false,
+  };
+
+  var gltfExporter = new THREE.GLTFExporter();
+  gltfExporter.parse(object, function(result) {
+
+    if (result instanceof ArrayBuffer) {
+      pyObj.saveBytes(new Uint8Array(result), filename);
+    }
+    else {
+      pyObj.saveString(JSON.stringify(result, null, 2), filename);
+    }
+    console.log("Model has been saved.");
+
+  }, options);
 }
 
 // overrides

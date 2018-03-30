@@ -84,8 +84,6 @@
      </property>
      <addaction name="actionSaveAsImage"/>
      <addaction name="separator"/>
-     <addaction name="actionSaveAsSTL"/>
-     <addaction name="actionSaveAsOBJ"/>
      <addaction name="actionSaveAsGLTF"/>
     </widget>
     <addaction name="actionExportToWeb"/>
@@ -329,11 +327,8 @@
    </property>
   </action>
   <action name="actionSaveAsGLTF">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
-    <string>glTF (.gltf)</string>
+    <string>glTF (.gltf, .glb)</string>
    </property>
   </action>
   <action name="actionClearAllSettings">
