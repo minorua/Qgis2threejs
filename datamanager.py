@@ -248,7 +248,7 @@ class MaterialManager(DataManager):
     mtl = (self.SPRITE, (path, transp_background), opacity, False)
     return self._index(mtl)
 
-  def build(self, index, imageManager, filepath=None, url=None):
+  def build(self, index, imageManager, filepath=None, url=None, base64=False):
     mtl = self._list[index]
     mt = {
       self.WIREFRAME: self.MESH_LAMBERT,
@@ -276,8 +276,10 @@ class MaterialManager(DataManager):
         imgIndex = imageManager.imageIndex(imagepath)
 
       if filepath is None:
-        m["image"] = {"object": imageManager.image(imgIndex)}
-        #m["image"] = {"base64": imageManager.base64image(imgIndex)}
+        if base64:
+          m["image"] = {"base64": imageManager.base64image(imgIndex)}
+        else:
+          m["image"] = {"object": imageManager.image(imgIndex)}
       else:
         m["image"] = {"url": url}
         # write image to a file
@@ -304,12 +306,12 @@ class MaterialManager(DataManager):
 
     return m
 
-  def buildAll(self, imageManager, pathRoot=None, urlRoot=None):
+  def buildAll(self, imageManager, pathRoot=None, urlRoot=None, base64=False):
     mList = []
     for i in range(len(self._list)):
       filepath = "{0}_IMG{1}.png".format(pathRoot, i)
       url = "{0}_IMG{1}.png".format(urlRoot, i)
-      mList.append(self.build(i, imageManager, filepath, url))
+      mList.append(self.build(i, imageManager, filepath, url, base64))
     return mList
 
   def write(self, f, imageManager):

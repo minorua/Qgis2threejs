@@ -243,7 +243,7 @@ class DEMBlockExporter:
     # build material
     filepath = None if self.pathRoot is None else "{0}_IMG{1}.png".format(self.pathRoot, self.blockIndex)
     url = None if self.urlRoot is None else "{0}_IMG{1}.png".format(self.urlRoot, self.blockIndex)
-    return self.materialManager.build(mi, self.imageManager, filepath, url)
+    return self.materialManager.build(mi, self.imageManager, filepath, url, self.settings.base64)
 
   def clipped(self):
     mapTo3d = self.settings.mapTo3d()

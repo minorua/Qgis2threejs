@@ -104,13 +104,13 @@ class Q3DViewerController:
     self.previewEnabled = enabled
     self.iface.runString("app.resume();" if enabled else "app.pause();");
     if enabled:
-      self.layersNeedUpdate = True
       self.updateExtent()
-      self.updateScene()
+      self.updateScene(True)
 
-  def updateScene(self):
+  def updateScene(self, update_layers=False):
     s = self.iface.controller.settings
     self.exporting = True
+    self.layersNeedUpdate = self.layersNeedUpdate or update_layers
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Updating scene")
 

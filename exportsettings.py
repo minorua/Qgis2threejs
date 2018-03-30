@@ -101,6 +101,8 @@ class ExportSettings:
     self.baseExtent = None
     self.crs = None
 
+    self.base64 = False
+
     # cache
     self._mapTo3d = None
     self._templateConfig = None

@@ -123,7 +123,7 @@ class VectorLayerExporter(LayerExporter):
                     "height": float(widgetValues.get("editText", 0)) * self.mapTo3d.multiplierZ}
 
     data = {}
-    data["materials"] = self.materialManager.buildAll(self.imageManager)
+    data["materials"] = self.materialManager.buildAll(self.imageManager, base64=self.settings.base64)
 
     if export_blocks:
       data["blocks"] = [block.build() for block in self.blocks()]

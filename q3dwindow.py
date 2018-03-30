@@ -89,6 +89,12 @@ class Q3DViewerInterface:
   def exportLayer(self, layer):
     self.controller.exportLayer(layer)
 
+  def updateScene(self, base64):
+    if base64:
+      self.controller.settings.base64 = True
+    self.controller.updateScene(True)
+    self.controller.settings.base64 = False
+
   def showMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
 
@@ -115,8 +121,7 @@ class Q3DViewerInterface:
     if self.controller.settings.worldProperties() == properties:
       return
     self.controller.settings.setWorldProperties(properties)
-    self.controller.layersNeedUpdate = True
-    self.controller.updateScene()
+    self.controller.updateScene(True)
 
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
@@ -286,6 +291,7 @@ class Q3DWindow(QMainWindow):
   def saveAsGLTF(self):
     filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "Binary glTF files (*.glb);;glTF files (*.gltf)")
     if filename:
+      self.iface.updateScene(True)
       self.ui.webView.runJavaScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
       self.runString("saveModelAsGLTF('{0}');".format(filename))
 
