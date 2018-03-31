@@ -64,7 +64,7 @@ class ExportToWebDialog(QDialog):
     #TODO: check validity
 
     if os.path.exists(filename):
-      if QMessageBox.question(self, "Qgis2threejs", "HTML file already exists. Overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+      if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
 
     # output html file path
