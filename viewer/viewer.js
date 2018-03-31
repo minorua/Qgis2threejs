@@ -39,7 +39,16 @@ function displayFPS() {
 function saveModelAsGLTF(filename) {
   console.log("Saving model: " + filename);
 
-  var object = app.scene;   //.mapLayers[Object.keys(app.scene.mapLayers)[0]].objectGroup;
+  var scene = new THREE.Scene(), layer, group;
+  for (var k in app.scene.mapLayers) {
+    layer = app.scene.mapLayers[k];
+    group = layer.objectGroup;
+    group.rotation.set(-Math.PI / 2, 0, 0);
+    group.name = layer.properties.name;
+    scene.add(group);
+  }
+  scene.updateMatrixWorld();
+
   var options = {
     binary: (filename.split(".").pop().toLowerCase() == "glb"),
     onlyVisible: true
@@ -48,7 +57,7 @@ function saveModelAsGLTF(filename) {
   };
 
   var gltfExporter = new THREE.GLTFExporter();
-  gltfExporter.parse(object, function(result) {
+  gltfExporter.parse(scene, function(result) {
 
     if (result instanceof ArrayBuffer) {
       pyObj.saveBytes(new Uint8Array(result), filename);
