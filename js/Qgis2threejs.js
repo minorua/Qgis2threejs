@@ -276,7 +276,7 @@ limitations:
   var app = {};
   Q3D.application = app;
 
-  app.init = function (container) {
+  app.init = function (container, isOrthoCamera) {
     app.container = container;
     app.running = false;        // if true, animation loop is continued.
 
@@ -313,14 +313,14 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
 
+    // camera
+    app.buildCamera(isOrthoCamera);
+
     // scene
     app.scene = new Q3D.Scene();
     app.scene.addEventListener("renderRequest", function (event) {
       app.render();
     });
-
-    // camera
-    app.buildDefaultCamera();
 
     // restore view (camera position and its target) from URL parameters
     var vars = app.urlParams;
@@ -569,8 +569,13 @@ limitations:
     app.renderer.setSize(width, height);
   };
 
-  app.buildDefaultCamera = function () {
-    app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 1000);
+  app.buildCamera = function (isOrtho) {
+    if (isOrtho) {
+      app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10, 0.1, 1000);
+    }
+    else {
+      app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 1000);
+    }
     app.camera.position.set(0, 100, 100);
   };
 

@@ -134,7 +134,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
       "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
-      "scenefile": "./data/{0}/scene.json".format(self.settings.htmlfiletitle)
+      "scenefile": "./data/{0}/scene.json".format(self.settings.htmlfiletitle),
+      "is_ortho": "true" if self.settings.isOrthoCamera else "false"
       }
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)

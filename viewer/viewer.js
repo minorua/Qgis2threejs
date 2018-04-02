@@ -70,6 +70,13 @@ function saveModelAsGLTF(filename) {
   }, options);
 }
 
+function switchCamera(is_ortho) {
+  app.buildCamera(is_ortho);
+  app.controls.object = app.camera;
+  console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
+  app.render(true);
+}
+
 // overrides
 var origRender = app.render;
 app.render = function (updateControls) {

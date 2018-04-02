@@ -21,7 +21,7 @@
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, QVariant, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from PyQt5.QtWidgets import QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
 from .conf import debug_mode, plugin_version
@@ -217,12 +217,18 @@ class Q3DWindow(QMainWindow):
     self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
     self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
+    self.ui.actionGroupCamera = QActionGroup(self)
+    self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
+    self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
+    self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera)
+
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
+    self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
@@ -249,9 +255,14 @@ class Q3DWindow(QMainWindow):
     self.ui.checkBoxPreview = w
     self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)
 
+  def switchCamera(self, action):
+    self.settings.isOrthoCamera = (action == self.ui.actionOrthographic)
+    self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera else "false"))
+
   def clearExportSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
       self.ui.treeView.uncheckAll()
+      self.ui.actionPerspective.setChecked(True)
       self.iface.clearExportSettings()
 
   def alwaysOnTopToggled(self, checked):

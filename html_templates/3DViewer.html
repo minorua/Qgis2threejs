@@ -51,7 +51,7 @@ if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.d
 var container = document.getElementById("webgl");
 // initialize application
 var app = Q3D.application;
-app.init(container);
+app.init(container, ${is_ortho});
 
 // load the scene
 app.loadJSONFromURL("${scenefile}");

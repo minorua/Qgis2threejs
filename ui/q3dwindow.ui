@@ -44,7 +44,7 @@
       <string>Camera</string>
      </property>
      <addaction name="actionPerspective"/>
-     <addaction name="actionOrthogonal"/>
+     <addaction name="actionOrthographic"/>
     </widget>
     <widget class="QMenu" name="menuControls">
      <property name="title">
@@ -202,19 +202,13 @@
    <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Perspective</string>
    </property>
   </action>
-  <action name="actionOrthogonal">
+  <action name="actionOrthographic">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
    </property>
    <property name="text">
     <string>Orthographic</string>

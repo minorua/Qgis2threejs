@@ -101,6 +101,8 @@ class ExportSettings:
     self.baseExtent = None
     self.crs = None
 
+    self.isOrthoCamera = False
+
     self.base64 = False
 
     # cache
@@ -108,6 +110,7 @@ class ExportSettings:
     self._templateConfig = None
 
   def clear(self):
+    self.isOrthoCamera = False
     self.data = {}
 
   def worldProperties(self):
