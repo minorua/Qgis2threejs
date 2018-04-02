@@ -998,20 +998,6 @@ limitations:
 
       app.render();
 
-      if (Q3D.Options.debugMode && object instanceof THREE.Mesh) {
-        var face = obj.face,
-            geom = object.geometry;
-        if (face) {
-          if (geom instanceof THREE.Geometry) {
-            var v = object.geometry.vertices;
-            console.log(v[face.a], v[face.b], v[face.c]);
-          }
-          else {
-            console.log("Qgis2threejs: [DEBUG] THREE.BufferGeometry");
-          }
-        }
-      }
-
       return;
     }
     app.closePopup();

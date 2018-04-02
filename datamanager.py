@@ -253,10 +253,10 @@ class MaterialManager(DataManager):
     mt = {
       self.WIREFRAME: self.MESH_LAMBERT,
       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
-      self.CANVAS_IMAGE: self.MESH_PHONG,
-      self.MAP_IMAGE: self.MESH_PHONG,
-      self.LAYER_IMAGE: self.MESH_PHONG,
-      self.IMAGE_FILE: self.MESH_PHONG
+      self.CANVAS_IMAGE: self.MESH_LAMBERT,
+      self.MAP_IMAGE: self.MESH_LAMBERT,
+      self.LAYER_IMAGE: self.MESH_LAMBERT,
+      self.IMAGE_FILE: self.MESH_LAMBERT
       }.get(mtl[0], mtl[0])
 
     m = {"type": mt}
@@ -320,10 +320,10 @@ class MaterialManager(DataManager):
 
     toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
                       self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
-                      self.CANVAS_IMAGE: self.MESH_PHONG,
-                      self.MAP_IMAGE: self.MESH_PHONG,
-                      self.LAYER_IMAGE: self.MESH_PHONG,
-                      self.IMAGE_FILE: self.MESH_PHONG}
+                      self.CANVAS_IMAGE: self.MESH_LAMBERT,
+                      self.MAP_IMAGE: self.MESH_LAMBERT,
+                      self.LAYER_IMAGE: self.MESH_LAMBERT,
+                      self.IMAGE_FILE: self.MESH_LAMBERT}
 
     for mtl in self._list[self.writtenCount:]:
       m = {"type": toMaterialType.get(mtl[0], mtl[0])}
