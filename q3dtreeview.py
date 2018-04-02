@@ -112,8 +112,8 @@ class Q3DTreeView(QTreeView):
     if layer is None:
       return
 
-    if item.checkState() == Qt.Checked:
-      layer.visible = True
+    layer.visible = (item.checkState() == Qt.Checked)
+    if layer.visible:
       if layer.properties is None:
         layer.properties = self.iface.getDefaultProperties(layer)
 
