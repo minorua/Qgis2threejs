@@ -2214,24 +2214,24 @@ Q3D.LineLayer.prototype.build = function (features) {
       var group = new Q3D.Group();
 
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
-      var geom, obj, pt;
+      var geom, mesh, pt;
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
         pt1.set(pt[0], pt[1], pt[2]);
 
         if (jointGeom) {
-          obj = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
-          obj.scale.set(f.geom.r, f.geom.r, f.geom.r);
-          obj.position.copy(pt1);
-          group.add(obj);
+          mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
+          mesh.scale.set(f.geom.r, f.geom.r, f.geom.r);
+          mesh.position.copy(pt1);
+          group.add(mesh);
         }
 
         if (i) {
-          obj = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
-          obj.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
-          obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
-          obj.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
-          group.add(obj);
+          mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
+          mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+          mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
+          mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
+          group.add(mesh);
         }
         pt0.copy(pt1);
       }
@@ -2258,7 +2258,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       var geometry = new THREE.Geometry(),
           group = new Q3D.Group();      // used in debug mode
 
-      var geom, obj, dist, quat, rx, rz, wh4, vb4, vf4;
+      var geom, mesh, dist, quat, rx, rz, wh4, vb4, vf4;
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
           pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
           matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
@@ -2277,10 +2277,10 @@ Q3D.LineLayer.prototype.build = function (features) {
         // place a box to the segment
         geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
         if (debugMode) {
-          obj = new THREE.Mesh(geom, materials.mtl(f.mtl));
-          obj.position.set(ptM.x, ptM.y, ptM.z);
-          obj.rotation.set(rx, 0, rz, "ZXY");
-          group.add(obj);
+          mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
+          mesh.position.set(ptM.x, ptM.y, ptM.z);
+          mesh.rotation.set(rx, 0, rz, "ZXY");
+          group.add(mesh);
         }
         else {
           geom.applyMatrix(matrix);
