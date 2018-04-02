@@ -78,7 +78,7 @@ Q3D.Scene = function () {
   this.autoUpdate = false;
 
   // scene is z-up
-  this.rotateX(-Math.PI / 2);
+  this.rotation.x = -Math.PI / 2;
   this.updateMatrixWorld();
 
   this.mapLayers = {};
@@ -2213,7 +2213,7 @@ Q3D.LineLayer.prototype.build = function (features) {
     createObject = function (f, line) {
       var group = new Q3D.Group();
 
-      var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
+      var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
       var geom, obj, pt;
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
@@ -2227,11 +2227,10 @@ Q3D.LineLayer.prototype.build = function (features) {
         }
 
         if (i) {
-          sub.subVectors(pt1, pt0);
           obj = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
           obj.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
           obj.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
-          obj.rotation.set(Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y)), 0, Math.atan2(sub.y, sub.x) - Math.PI / 2, "ZXY");
+          obj.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
           group.add(obj);
         }
         pt0.copy(pt1);
