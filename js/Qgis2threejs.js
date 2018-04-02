@@ -374,7 +374,7 @@ limitations:
 
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
-    app.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.r),
+    app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r),
                                       new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
     app.queryMarker.visible = false;
     app.scene.add(app.queryMarker);
@@ -1374,8 +1374,7 @@ Q3D.DEMBlock.prototype = {
     layer.materials.add(this.material);
 
     // create geometry and mesh
-    var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry,
-        geom = new PlaneGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1),
+    var geom = new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1),
         mesh = new THREE.Mesh(geom, this.material.mtl);
 
     if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
@@ -1443,13 +1442,12 @@ Q3D.DEMBlock.prototype = {
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
 
-    var PlaneGeometry = (Q3D.Options.exportMode) ? THREE.PlaneGeometry : THREE.PlaneBufferGeometry;
     var band_width = -z0 * 2, grid_values = grid.array, w = grid.width, h = grid.height, HALF_PI = Math.PI / 2;
     var i, mesh;
 
     // front and back
-    var geom_fr = new PlaneGeometry(planeWidth, band_width, w - 1, 1),
-        geom_ba = new PlaneGeometry(planeWidth, band_width, w - 1, 1);
+    var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
+        geom_ba = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1);
 
     var k = w * (h - 1);
     if (Q3D.Options.exportMode) {
@@ -1481,8 +1479,8 @@ Q3D.DEMBlock.prototype = {
     parent.add(mesh);
 
     // left and right
-    var geom_le = new PlaneGeometry(band_width, planeHeight, 1, h - 1),
-        geom_ri = new PlaneGeometry(band_width, planeHeight, 1, h - 1);
+    var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
+        geom_ri = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1);
 
     if (Q3D.Options.exportMode) {
       for (i = 0; i < h; i++) {
@@ -1513,7 +1511,7 @@ Q3D.DEMBlock.prototype = {
 
     // bottom
     if (Q3D.Options.exportMode) {
-      var geom = new THREE.PlaneGeometry(planeWidth, planeHeight, w - 1, h - 1);
+      var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, w - 1, h - 1);
     }
     else {
       var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
@@ -1644,7 +1642,7 @@ Q3D.ClippedDEMBlock.prototype = {
       for (var j = 1, m = polygon.length; j < m; j++) {
         shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[j])));
       }
-      geom = new THREE.ShapeGeometry(shape);
+      geom = new THREE.ShapeBufferGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
       mesh.position.z = z0;
       mesh.name = "bottom";
@@ -2076,14 +2074,14 @@ Q3D.PointLayer.prototype.build = function (features) {
     setSR = function (geom, scale, rotation) {
       scale.set(geom.r, geom.r, geom.r);
     };
-    unitGeom = new THREE.SphereGeometry(1, 32, 32);
+    unitGeom = new THREE.SphereBufferGeometry(1, 32, 32);
   }
   else if (objType == "Box") {
     setSR = function (geom, scale, rotation) {
       scale.set(geom.w, geom.h, geom.d);
       rotation.x = rx;
     };
-    unitGeom = new THREE.BoxGeometry(1, 1, 1);
+    unitGeom = new THREE.BoxBufferGeometry(1, 1, 1);
   }
   else if (objType == "Disk") {
     var sz = (this.ns === undefined || this.ns == false) ? this.sceneData.zExaggeration : 1;
@@ -2095,14 +2093,14 @@ Q3D.PointLayer.prototype.build = function (features) {
       if (90 - geom.d) rotation.applyMatrix(m.makeRotationX((90 - geom.d) * deg2rad));
       if (geom.dd) rotation.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
     };
-    unitGeom = new THREE.CylinderGeometry(1, 1, 0, 32);
+    unitGeom = new THREE.CylinderBufferGeometry(1, 1, 0, 32);
   }
   else {  // Cylinder or Cone
     setSR = function (geom, scale, rotation) {
       scale.set(geom.r, geom.h, geom.r);
       rotation.x = rx;
     };
-    unitGeom = (objType == "Cylinder") ? new THREE.CylinderGeometry(1, 1, 1, 32) : new THREE.CylinderGeometry(0, 1, 1, 32);
+    unitGeom = (objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32);
   }
 
   // iteration for features
@@ -2203,11 +2201,11 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Pipe" || objType == "Cone") {
     var jointGeom, cylinGeom;
     if (objType == "Pipe") {
-      jointGeom = new THREE.SphereGeometry(1, 32, 32);
-      cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
+      jointGeom = new THREE.SphereBufferGeometry(1, 32, 32);
+      cylinGeom = new THREE.CylinderBufferGeometry(1, 1, 1, 32);
     }
     else {
-      cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
+      cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
     }
 
     var mesh, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
@@ -2274,7 +2272,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         matrix.compose(ptM, quat, scale1);
 
         // place a box to the segment
-        geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
+        geom = new THREE.BoxBufferGeometry(f.geom.w, dist, f.geom.h);
         if (debugMode) {
           mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
           mesh.position.set(ptM.x, ptM.y, ptM.z);
@@ -2420,7 +2418,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       }
 
       // extruded geometry
-      var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, amount: f.geom.h});
+      var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, amount: f.geom.h});
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
       mesh.position.z = z;
 
@@ -2788,28 +2786,15 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
 };
 
 Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
-  var geom, pt, v;
-  if (Q3D.Options.exportMode) {
-    geom = new THREE.PlaneGeometry(0, 0, vertices.length - 1, 1);
-    v = geom.vertices;
-    for (var i = 0, l = vertices.length; i < l; i++) {
-      pt = vertices[i];
-      v[i].x = v[i + l].x = pt.x;
-      v[i].y = v[i + l].y = pt.y;
-      v[i].z = bzFunc(pt.x, pt.y);
-      v[i + l].z = pt.z;
-    }
-  }
-  else {
-    geom = new THREE.PlaneBufferGeometry(0, 0, vertices.length - 1, 1);
-    v = geom.attributes.position.array;
-    for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k+=3) {
-      pt = vertices[i];
-      v[k] = v[k + l3] = pt.x;
-      v[k + 1] = v[k + l3 + 1] = pt.y;
-      v[k + 2] = bzFunc(pt.x, pt.y);
-      v[k + l3 + 2] = pt.z;
-    }
+  var pt,
+      geom = new THREE.PlaneBufferGeometry(0, 0, vertices.length - 1, 1),
+      v = geom.attributes.position.array;
+  for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k+=3) {
+    pt = vertices[i];
+    v[k] = v[k + l3] = pt.x;
+    v[k + 1] = v[k + l3 + 1] = pt.y;
+    v[k + 2] = bzFunc(pt.x, pt.y);
+    v[k + l3 + 2] = pt.z;
   }
   geom.computeFaceNormals();
   geom.computeVertexNormals();
