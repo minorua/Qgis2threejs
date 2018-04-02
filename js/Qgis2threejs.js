@@ -2258,7 +2258,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         matrix.compose(ptM, quat, scale1);
 
         // place a box to the segment
-        geom = new THREE.BoxBufferGeometry(f.geom.w, dist, f.geom.h);
+        geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
         if (debugMode) {
           mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
           mesh.position.set(ptM.x, ptM.y, ptM.z);
