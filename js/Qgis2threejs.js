@@ -2203,36 +2203,35 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Pipe" || objType == "Cone") {
     var jointGeom, cylinGeom;
     if (objType == "Pipe") {
-      jointGeom = new THREE.SphereGeometry(1, 8, 8);
-      cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 8);
+      jointGeom = new THREE.SphereGeometry(1, 32, 32);
+      cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
     }
     else {
-      cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 8);
+      cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
     }
+
+    var mesh, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
 
     createObject = function (f, line) {
       var group = new Q3D.Group();
 
-      var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
-      var geom, mesh, pt;
-      for (var i = 0, l = line.length; i < l; i++) {
-        pt = line[i];
-        pt1.set(pt[0], pt[1], pt[2]);
+      pt0.set(line[0][0], line[0][1], line[0][2]);
+      for (var i = 1, l = line.length; i < l; i++) {
+        pt1.set(line[i][0], line[i][1], line[i][2]);
 
-        if (jointGeom) {
+        mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
+        mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+        mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
+        mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
+        group.add(mesh);
+
+        if (jointGeom && i < l - 1) {
           mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
           mesh.scale.set(f.geom.r, f.geom.r, f.geom.r);
           mesh.position.copy(pt1);
           group.add(mesh);
         }
 
-        if (i) {
-          mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
-          mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
-          mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
-          mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
-          group.add(mesh);
-        }
         pt0.copy(pt1);
       }
       return group;
