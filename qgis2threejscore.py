@@ -21,6 +21,7 @@
 """
 import struct
 
+from math import floor
 from osgeo import gdal
 from PyQt5.QtCore import QSize
 from qgis.core import QgsMapLayer, QgsWkbTypes
@@ -90,6 +91,21 @@ class GDALDEMProvider(Raster):
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return self._read(1, 1, geotransform)[0]
+
+  def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
+    mx0 = floor((x - xmin) / xres)
+    my0 = floor((y - ymin) / yres)
+    px0 = xmin + xres * mx0
+    py0 = ymin + yres * my0
+    geotransform = [px0, xres, 0, py0 + yres, 0, -yres]
+    z = self._read(2, 2, geotransform)
+
+    sdx = (x - px0) / xres
+    sdy = (y - py0) / yres
+
+    if sdx <= sdy:
+      return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * (1 - sdy)
+    return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * sdy
 
 
 class FlatDEMProvider:

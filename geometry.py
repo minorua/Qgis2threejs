@@ -158,20 +158,20 @@ class PolygonGeometry(Geometry):
     self.centroids = []
     self.split_polygons = []
 
-  def splitPolygon(self, triMesh):
+  def splitPolygon(self, triMesh, z_func):
     """split polygon by TriangleMesh"""
     self.split_polygons = []
-    for polygon in triMesh.splitPolygons(self.toQgsGeometry()):
+    for polygon in triMesh.splitPolygonA(self.toQgsGeometry()):
       boundaries = []
       # outer boundary
-      points = [Point(pt.x(), pt.y(), 0) for pt in polygon[0]]
+      points = [Point(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in polygon[0]]
       if not GeometryUtils.isClockwise(points):
         points.reverse()    # to clockwise
       boundaries.append(points)
 
       # inner boundaries
       for boundary in polygon[1:]:
-        points = [Point(pt.x(), pt.y(), 0) for pt in boundary]
+        points = [Point(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in boundary]
         if GeometryUtils.isClockwise(points):
           points.reverse()    # to counter-clockwise
         boundaries.append(points)
@@ -218,9 +218,8 @@ class PolygonGeometry(Geometry):
 
   #TODO: [Polygon z/m support]
   @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False):
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, useCentroidHeight=True):
 
-    useCentroidHeight = True
     centroidPerPolygon = True
 
     polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
@@ -282,6 +281,7 @@ class GeometryUtils:
 
 
 class TriangleMesh:
+  #TODO: [Overlay] rotated map support
 
   # 0 - 3
   # | / |
@@ -326,7 +326,34 @@ class TriangleMesh:
       if geom.intersects(self.hbands[idx].geometry()):
         yield idx
 
-  def splitPolygons(self, geom):
+  def splitPolygon(self, geom):
+    xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
+
+    polygons = []
+    for x, vi in self.vSplit(geom):
+      for y in self.hIntersects(vi):
+        pt0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
+        pt1 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
+        pt2 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+        pt3 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
+        quad = QgsGeometry.fromPolygonXY([[pt0, pt1, pt2, pt3, pt0]])
+        tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
+
+        if geom.contains(quad):
+          polygons += tris
+        else:
+          for i, tri in enumerate(map(QgsGeometry.fromPolygonXY, tris)):
+            if geom.contains(tri):
+              polygons.append(tris[i])
+            elif geom.intersects(tri):
+              poly = geom.intersection(tri)
+              if poly.isMultipart():
+                polygons += poly.asMultiPolygon()
+              else:
+                polygons.append(poly.asPolygon())
+    return QgsGeometry.fromMultiPolygonXY(polygons)
+
+  def splitPolygonA(self, geom):
     xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
 
     for x, vi in self.vSplit(geom):

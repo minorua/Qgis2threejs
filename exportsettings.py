@@ -27,9 +27,11 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsM
 from . import q3dconst
 from .conf import def_vals
 from .pluginmanager import pluginManager
+from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
+from .vectorobject import objectTypeRegistry
 
 
 class Layer:
@@ -312,3 +314,14 @@ class ExportSettings:
         if layer.layerId == layerId:
           return layer
     return None
+
+  def getPropertyReaderByLayerId(self, layerId, renderContext=None):
+    """renderContext: required if the layer is a vector layer"""
+    layer = self.getItemByLayerId(layerId)
+    if layer is None:
+      return None
+
+    if layer.geomType == q3dconst.TYPE_DEM:
+      return DEMPropertyReader(layer.layerId, layer.properties)
+
+    return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)

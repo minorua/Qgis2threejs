@@ -2452,31 +2452,33 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   else {    // this.objType == "Overlay"
     var relativeToDEM = (this.am == "relative"),    // altitude mode
         sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
-        dem = scene.mapLayers[0],    // TODO: [Polygon - Overlay] referenced DEM layer
         z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f) {
-      var polygons = (relativeToDEM) ? (f.geom.split_polygons || []) : f.geom.polygons;
+      var polygons, zFunc;
 
-      var zFunc;
-      if (relativeToDEM) zFunc = function (x, y) { return dem.getZ(x, y) + f.geom.h; };
-      else zFunc = function (x, y) { return z0 + f.geom.h; };
+      if (f.geom.polygons) {
+        polygons = f.geom.polygons;
+        zFunc = function (x, y) { return z0 + f.geom.h; };
+      }
+      else {
+        polygons = f.geom.split_polygons || [];   // with z values
+      }
 
       var geom = Q3D.Utils.createOverlayGeometry(f.geom.triangles, polygons, zFunc);
 
       // set UVs
-      if (materials[f.mtl].i !== undefined) Q3D.Utils.setGeometryUVs(geom, sceneData.width, sceneData.height);
+      //if (materials[f.mtl].i !== undefined) Q3D.Utils.setGeometryUVs(geom, sceneData.width, sceneData.height);
       // TODO: [Polygon - Overlay] materials.get(f.mtl).origProp.i
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
+      return mesh;
 
       // TODO: [Polygon - Overlay] f.mb and f.ms
       if (f.mb === undefined && f.ms === undefined) return mesh;
 
       // borders and sides
       var bzFunc, geom, vertices;
-      if (sbRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.geom.sb; };
-      else bzFunc = function (x, y) { return z0 + f.geom.sb; };
 
       for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
         var polygon = f.geom.polygons[i];
@@ -2797,11 +2799,18 @@ Q3D.Utils.arrayToVec2Array = function (points) {
 };
 
 Q3D.Utils.arrayToVec3Array = function (points, zFunc) {
-  if (zFunc === undefined) zFunc = function () { return 0; };
   var pt, pts = [];
-  for (var i = 0, l = points.length; i < l; i++) {
-    pt = points[i];
-    pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
+  if (zFunc === undefined) {
+    for (var i = 0, l = points.length; i < l; i++) {
+      pt = points[i];
+      pts.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+    }
+  }
+  else {
+    for (var i = 0, l = points.length; i < l; i++) {
+      pt = points[i];
+      pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
+    }
   }
   return pts;
 };

@@ -386,8 +386,27 @@ class OverlayType(PolygonBasicTypeBase):
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
-    g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
-    del g["zs"]
+    if layer.prop.isHeightRelativeToDEM():
+      g = {}
+
+      polygons = []
+      triangles = Triangles()
+      for polygon in geom.polygons:
+        boundary = polygon[0]
+        if len(polygon) == 1 and len(boundary) == 4:
+          triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
+        else:
+          bnds = [[[pt.x, pt.y, pt.z] for pt in bnd] for bnd in polygon]
+          polygons.append(bnds)
+
+      if triangles.vertices:
+        g["triangles"] = {"v": [[pt.x, pt.y, pt.z] for pt in triangles.vertices], "f": triangles.faces}
+
+      if polygons:
+        g["split_polygons"] = polygons
+    else:
+      g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
+      del g["zs"]
 
     #TODO: [Polygon - Overlay] mb and ms
     # border
@@ -399,27 +418,11 @@ class OverlayType(PolygonBasicTypeBase):
       #g["ms"] = layer.materialManager.getMeshLambertIndex(feat.values[4], feat.values[1], doubleSide=True)
 
       # bottom height of side
-      g["sb"] = feat.values[5] * settings.mapTo3d().multiplierZ
+      g["sb"] = 0   #feat.values[5] * settings.mapTo3d().multiplierZ
 
     # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
     # Vertical shift is not considered (will be shifted in JS).
     g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
-
-    polygons = []
-    triangles = Triangles()
-    for polygon in geom.split_polygons:
-      boundary = polygon[0]
-      if len(polygon) == 1 and len(boundary) == 4:
-        triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
-      else:
-        bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
-        polygons.append(bnds)
-
-    if triangles.vertices:
-      g["triangles"] = {"v": [[pt.x, pt.y] for pt in triangles.vertices], "f": triangles.faces}
-
-    if polygons:
-      g["split_polygons"] = polygons
 
     return g
 

@@ -37,11 +37,12 @@ class VectorLayerExporter(LayerExporter):
     LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
     self.materialManager = MaterialManager()    #TODO: takes imageManager
-    self.triMesh = {}
 
     self.mapTo3d = settings.mapTo3d()
     self.geomType = self.layer.mapLayer.geometryType()
     self.fidx = None
+
+    self.demSize = None
 
   def build(self, export_blocks=False):
     mapLayer = self.layer.mapLayer
@@ -59,11 +60,11 @@ class VectorLayerExporter(LayerExporter):
       return
 
     # prepare triangle mesh
-    geom_type = mapLayer.geometryType()
-    if geom_type == QgsWkbTypes.PolygonGeometry and self.prop.objType.name == "Overlay" and self.prop.isHeightRelativeToDEM():
-      self.progress(None, "Initializing triangle mesh for overlay polygons")
-      self.triangleMesh()
-      self.progress(None, "Writing vector layer: {0}".format(mapLayer.name()))
+    if self.prop.objType.name == "Overlay" and self.prop.isHeightRelativeToDEM():
+      # get the grid size of the DEM layer which polygons overlay
+      demProp = self.settings.getPropertyReaderByLayerId(properties.get("comboBox_altitudeMode"))
+      if demProp:
+        self.demSize = demProp.demSize(mapSettings.outputSize())
 
     layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager)
     self._layer = layer
@@ -104,7 +105,7 @@ class VectorLayerExporter(LayerExporter):
 
     # properties
     p = {
-      "type": gt2str.get(geom_type),
+      "type": gt2str.get(mapLayer.geometryType()),
       "objType": self.prop.objType.name,
       "name": self.layer.name,
       "queryable": 1,
@@ -151,10 +152,9 @@ class VectorLayerExporter(LayerExporter):
         "features": features
         }, self.pathRoot, self.urlRoot)
 
-    demProvider = None
+    demProvider = demSize = None
     if self.prop.isHeightRelativeToDEM():
-      if self.prop.objType.name != "Overlay":
-        demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
+      demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
     if self.layer.properties.get("radioButton_zValue"):
       useZM = Geometry.UseZ
@@ -165,7 +165,7 @@ class VectorLayerExporter(LayerExporter):
 
     feats = []
     for feat in self.features or []:
-      geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.hasLabel)
+      geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.hasLabel, self.settings.baseExtent, self.demSize)
       if geom is None:
         continue
 
@@ -185,22 +185,6 @@ class VectorLayerExporter(LayerExporter):
 
     if len(feats) or index == 0:
       yield block(index, feats)
-
-  def triangleMesh(self, dem_width=0, dem_height=0):
-    if dem_width == 0 and dem_height == 0:
-      #TODO: [Polygon - Overlay]
-      prop = DEMPropertyReader(layerId, self.settings.get(ObjectTreeItem.ITEM_DEM))
-      dem_size = prop.demSize(self.settings.mapSettings.outputSize())
-      dem_width = dem_size.width()
-      dem_height = dem_size.height()
-
-    key = "{0}x{1}".format(dem_width, dem_height)
-    if key not in self.triMesh:
-      mapTo3d = self.settings.mapTo3d()
-      hw = 0.5 * mapTo3d.planeWidth
-      hh = 0.5 * mapTo3d.planeHeight
-      self.triMesh[key] = TriangleMesh(-hw, -hh, hw, hh, dem_width - 1, dem_height - 1)
-    return self.triMesh[key]
 
 
 class FeatureBlockExporter:
@@ -236,11 +220,22 @@ class Feature:
 
     self.material = -1
 
-  def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, calcCentroid=False):
-    """calcCentroid: for polygon geometry"""
+  def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, calcCentroid=False, baseExtent=None, demSize=None):
+    """calcCentroid: for polygon geometry
+       demSize: grid size of the DEM layer which polygons overlay"""
     # z_func: function to get elevation at given point (x, y) on surface
     if demProvider:
-      z_func = lambda x, y: demProvider.readValue(x, y)
+      if self.layerProp.objType.name == "Overlay":
+        #TODO: [Polygon - Overlay] rotated map support
+        center = baseExtent.center()
+        half_width, half_height = baseExtent.width() / 2, baseExtent.height() / 2
+        xmin, ymin = center.x() - half_width, center.y() - half_height
+        xmax, ymax = center.x() + half_width, center.y() + half_height
+        xres, yres = baseExtent.width() / (demSize.width() - 1), baseExtent.height() / (demSize.height() - 1)
+        tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
+        z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
+      else:
+        z_func = lambda x, y: demProvider.readValue(x, y)
     else:
       z_func = lambda x, y: 0
 
@@ -260,18 +255,12 @@ class Feature:
       return None
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
-      g = self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid)
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
-        #TODO: [Polygon - Overlay] needs grid size of the DEM layer in export settings.
-
-        # create triangle mesh
-        hw = 0.5 * mapTo3d.planeWidth
-        hh = 0.5 * mapTo3d.planeHeight
-        tmesh = TriangleMesh(-hw, -hh,
-                             hw, hh,
-                             grid_size.width() - 1, grid_size.height() - 1)
-        g.splitPolygon(tmesh)
-      return g
+        geom = tmesh.splitPolygon(geom)
+        useCentroidHeight = False
+      else:
+        useCentroidHeight = True
+      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid, useCentroidHeight)
 
     else:
       return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
