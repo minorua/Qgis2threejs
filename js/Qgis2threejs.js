@@ -2450,9 +2450,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     };
   }
   else {    // this.objType == "Overlay"
-    var relativeToDEM = (this.am == "relative"),    // altitude mode
-        sbRelativeToDEM = (this.sbm == "relative"), // altitude mode of bottom height of side
-        z0 = sceneData.zShift * sceneData.zScale;
+    var z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f) {
       var polygons, zFunc;
@@ -2466,45 +2464,9 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       }
 
       var geom = Q3D.Utils.createOverlayGeometry(f.geom.triangles, polygons, zFunc);
+      return new THREE.Mesh(geom, materials.mtl(f.mtl));
 
-      // set UVs
-      //if (materials[f.mtl].i !== undefined) Q3D.Utils.setGeometryUVs(geom, sceneData.width, sceneData.height);
-      // TODO: [Polygon - Overlay] materials.get(f.mtl).origProp.i
-
-      var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
-      return mesh;
-
-      // TODO: [Polygon - Overlay] f.mb and f.ms
-      if (f.mb === undefined && f.ms === undefined) return mesh;
-
-      // borders and sides
-      var bzFunc, geom, vertices;
-
-      for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
-        var polygon = f.geom.polygons[i];
-        for (var j = 0, m = polygon.length; j < m; j++) {
-          if (relativeToDEM || sbRelativeToDEM) {
-            vertices = dem.segmentizeLineString(polygon[j], zFunc);
-          }
-          else {
-            vertices = Q3D.Utils.arrayToVec3Array(polygon[j], zFunc);
-          }
-
-          // TODO: [Polygon - Overlay]
-          if (f.mb) {
-            geom = new THREE.Geometry();
-            geom.vertices = vertices;
-            mesh.add(new THREE.Line(geom, materials.mtl(f.mb)));
-          }
-
-          if (f.ms) {
-            geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
-            mesh.add(new THREE.Mesh(geom, materials.mtl(f.ms)));
-          }
-        }
-      }
-      // TODO: [Polygon - Overlay] mesh.updateWorldMatrix();
-      return mesh;
+      //TODO: [Polygon - Overlay] border
     };
   }
 
@@ -2513,7 +2475,6 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
     obj = createObject(f);
-    //obj.userData.featureId = i;
     obj.userData.properties = f.prop;
     this.addObject(obj);
   }

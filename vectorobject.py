@@ -353,24 +353,15 @@ class OverlayType(PolygonBasicTypeBase):
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
 
-    opt = {"name": "Border color",
-           "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-           "defaultItem": ColorWidgetFunc.FEATURE}
-    ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
+    #TODO: [Polygon - Overlay] border
+    # opt = {"name": "Border color",
+    #        "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+    #        "defaultItem": ColorWidgetFunc.FEATURE}
+    # ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
-    ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from overlay"),
-                                  (LabelHeightWidgetFunc.RELATIVE, "Height from DEM")])
-
-  #TODO [Polygon - Overlya]
-  @classmethod
-  def layerProperties(cls, settings, layer):
-    prop = layer.prop
-    cb = prop.properties["styleWidget5"]["comboData"]
-    isSbRelative = (cb == HeightWidgetFunc.RELATIVE or cb >= HeightWidgetFunc.FIRST_ATTR_REL)
-    return {"am": "relative" if prop.isHeightRelativeToDEM() else "absolute",   # altitude mode
-            "sbm": "relative" if isSbRelative else "absolute"}                  # altitude mode of bottom of side
+    #TODO: [Polygon -Overlay] label
+    ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from overlay")])
 
   @classmethod
   def material(cls, settings, layer, feat):
@@ -408,21 +399,11 @@ class OverlayType(PolygonBasicTypeBase):
       g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
       del g["zs"]
 
-    #TODO: [Polygon - Overlay] mb and ms
-    # border
-    #if feat.values[2] is not None:
-    #  g["mb"] = layer.materialManager.getLineBasicIndex(feat.values[2], feat.values[1])
-
-    # side
-    if feat.values[3]:
-      #g["ms"] = layer.materialManager.getMeshLambertIndex(feat.values[4], feat.values[1], doubleSide=True)
-
-      # bottom height of side
-      g["sb"] = 0   #feat.values[5] * settings.mapTo3d().multiplierZ
-
-    # If height mode is relative to DEM, height from DEM. Otherwise from zero altitude.
-    # Vertical shift is not considered (will be shifted in JS).
     g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
+
+    #TODO: [Polygon - Overlay] border
+    # if feat.values[2] is not None:
+    #   g["mb"] = layer.materialManager.getLineBasicIndex(feat.values[2], feat.values[1])
 
     return g
 
