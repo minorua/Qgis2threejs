@@ -503,11 +503,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.setProperties(properties or {})
 
   def setupStyleWidgets(self, index=None):
-    # notice 3D model is experimental
-    #TODO: [Point - Model] to tooltip
-    is_experimental = self.comboBox_ObjectType.currentData() in ["JSON model", "COLLADA model"]
-    self.label_ObjectTypeMessage.setVisible(is_experimental)
-
     # setup widgets
     obj_type = objectTypeRegistry().objectType(self.layer.mapLayer.geometryType(),
                                                self.comboBox_ObjectType.currentData())

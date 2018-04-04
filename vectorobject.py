@@ -409,6 +409,7 @@ class OverlayType(PolygonBasicTypeBase):
 
 
 ### IconType
+#TODO: [Point - Icon]
 class IconType(PointTypeBase):
 
   name = "Icon"
@@ -464,18 +465,22 @@ class ModelTypeBase(PointTypeBase):
             "scale": feat.values[1] * settings.mapTo3d().multiplier}
 
 
+#TODO: [Point - JSON model]
 class JSONModelType(ModelTypeBase):
 
   name = "JSON model"
+  experimental = True
 
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
     ModelTypeBase.setupWidgets(ppage, mapTo3d, layer, "JSON file", "JSON files (*.json *.js);;All files (*.*)")
 
 
+#TODO: [Point - COLLADA model]
 class COLLADAModelType(ModelTypeBase):
 
   name = "COLLADA model"
+  experimental = True
 
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
@@ -487,7 +492,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType, JSONModelType, COLLADAModelType],
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType],    # disabled since v.2.0: IconType, JSONModelType, COLLADAModelType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType]
     }

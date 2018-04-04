@@ -164,7 +164,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 
     this.requestRender();
 
-    /* TODO: [Model] load models
+    /* TODO: [Point - Model] load models
     // load models
     if (project.models.length > 0) {
       project.models.forEach(function (model, index) {
@@ -2136,6 +2136,7 @@ Q3D.PointLayer.prototype.build = function (features) {
   }
 };
 
+// TODO: [Point - Icon]
 Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
@@ -2162,7 +2163,7 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
   }
 };
 
-// TODO: [Model]
+// TODO: [Point - Model]
 Q3D.PointLayer.prototype.buildModels = function (features) {
   // each feature in this layer
   for (var fid = 0, flen = features.length; fid < flen; fid++) {
@@ -2546,6 +2547,7 @@ Q3D.PolygonLayer.prototype.setSideVisibility = function (visible) {
 };
 
 
+// TODO: [Point - Model]
 // Q3D.ModelBuilder
 Q3D.ModelBuilder = {};
 Q3D.ModelBuilder._loaders = {};
