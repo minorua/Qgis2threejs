@@ -1366,18 +1366,11 @@ Q3D.DEMBlock.prototype = {
     if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
 
     var buildGeometry = function (grid_values) {
-      if (Q3D.Options.exportMode) {
-        for (var i = 0, l = geom.vertices.length; i < l; i++) {
-          geom.vertices[i].z = grid_values[i];
-        }
+      var vertices = geom.attributes.position.array;
+      for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+        vertices[j + 2] = grid_values[i];
       }
-      else {
-        var vertices = geom.attributes.position.array;
-        for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-          vertices[j + 2] = grid_values[i];
-        }
-        geom.attributes.position.needsUpdate = true;
-      }
+      geom.attributes.position.needsUpdate = true;
 
       // Calculate normals
       if (layer.properties.shading) {
@@ -1579,7 +1572,8 @@ Q3D.ClippedDEMBlock.prototype = {
   constructor: Q3D.ClippedDEMBlock,
 
   loadJSONObject: function (obj, layer, callback) {
-    var _this = this;
+    var _this = this,
+        grid = obj.grid;
     this.data = obj;
 
     // load material
@@ -1589,19 +1583,51 @@ Q3D.ClippedDEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    var geom = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));
-
-    // set UVs
-    Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
-
-    var mesh = new THREE.Mesh(geom, this.material.mtl);
+    var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
     if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
+
+    var buildGeometry = function (grid_values) {
+      mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));
+
+      // set UVs
+      Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
+
+      if (obj.sides) {
+        _this.buildSides(layer, mesh, Q3D.Options.side.bottomZ);
+        layer.sideVisible = true;
+      }
+    };
+
+    if (grid.array !== undefined) {
+      buildGeometry(grid.array);   // WebKit Bridge
+    }
+    else if (grid.url !== undefined) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", grid.url);
+      xhr.responseType = "arraybuffer";
+
+      xhr.onload = function (event) {
+        var arrayBuffer = xhr.response;
+        if (arrayBuffer) {
+          grid.array = new Float32Array(arrayBuffer)
+          buildGeometry(grid.array);
+        }
+      };
+      xhr.send(null);
+    }
+
     this.obj = mesh;
     return mesh;
   },
 
-  buildSides: function (layer, parent, material, z0) {
-    var polygons = this.clip.polygons,
+  buildSides: function (layer, parent, z0) {
+    var matProp = this.material.origProp,
+        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.side.color,
+                                                  opacity: opacity,
+                                                  transparent: (opacity < 1)});
+
+    var polygons = this.data.clip.polygons,
         zFunc = layer.getZ.bind(layer),
         bzFunc = function (x, y) { return z0; };
 

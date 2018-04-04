@@ -259,7 +259,7 @@ class DEMBlockExporter:
 
     # split polygons with triangle mesh
     geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
-    geom.splitPolygon(tmesh)
+    geom.splitPolygon(tmesh, z_func)
 
     triangles = Triangles()
     split_polygons = []
