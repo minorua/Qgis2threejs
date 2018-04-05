@@ -264,13 +264,7 @@ class ProfileType(LineBasicTypeBase):
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
-    ppage.addStyleWidget(StyleWidget.HEIGHT, {"name": "Lower Z", "layer": layer})
-
-  @classmethod
-  def layerProperties(cls, settings, layer):
-    cb = layer.prop.properties["styleWidget2"]["comboData"]
-    return {"am": "relative" if layer.prop.isHeightRelativeToDEM() else "absolute", # altitude mode
-            "bam": "relative" if cb else "absolute"}                       # altitude mode of bottom
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Other side Z", "layer": layer})
 
   @classmethod
   def material(cls, settings, layer, feat):
@@ -278,15 +272,8 @@ class ProfileType(LineBasicTypeBase):
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
-    multiplierZ = settings.mapTo3d().multiplierZ
-    if layer.prop.isHeightRelativeToDEM():
-      d = {"lines": geom.asList2(),
-           "h": feat.altitude * multiplierZ}
-    else:
-      d = {"lines": geom.asList()}
-
-    d["bh"] = feat.values[2] * multiplierZ
-    return d
+    return {"lines": geom.asList(),
+            "bh": feat.values[2] * settings.mapTo3d().multiplierZ}
 
 
 ### PolygonBasicType

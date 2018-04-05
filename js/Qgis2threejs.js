@@ -2342,33 +2342,18 @@ Q3D.LineLayer.prototype.build = function (features) {
     };
   }
   else if (objType == "Profile") {
-    var relativeToDEM = (this.am == "relative"),    // altitude mode
-        bRelativeToDEM = (this.bam == "relative"),  // altitude mode of bottom height
-        dem = scene.mapLayers[0],   // TODO: [Line - Profile] referenced DEM layer
-        z0 = sceneData.zShift * sceneData.zScale;
+    var z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f, line) {
-      var bzFunc, vertices;
-      if (bRelativeToDEM) bzFunc = function (x, y) { return dem.getZ(x, y) + f.geom.bh; };
-      else bzFunc = function (x, y) { return z0 + f.geom.bh; };
-
-      if (relativeToDEM) {
-        var zFunc = function (x, y) { return dem.getZ(x, y) + f.geom.h; };
-        vertices = dem.segmentizeLineString(line, zFunc);   // line is list of 2D point [x, y]
+      var pt;
+      var vertices = [];
+      for (var i = 0, l = line.length; i < l; i++) {
+        pt = line[i];
+        vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
       }
-      else if (bRelativeToDEM) {
-        vertices = dem.segmentizeLineString(line);          // line is list of 3D point [x, y, z]
-      }
-      else {    // both altitude modes are absolute
-        var pt;
-        vertices = [];
-        for (var i = 0, l = line.length; i < l; i++) {
-          pt = line[i];
-          vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
-        }
-      }
-      var geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
-      return new THREE.Mesh(geom, materials.mtl(f.mtl));
+      var bzFunc = function (x, y) { return z0 + f.geom.bh; };
+      return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
+                            materials.mtl(f.mtl));
     };
   }
 
