@@ -2083,34 +2083,32 @@ Q3D.PointLayer.prototype.build = function (features) {
   var setSR, unitGeom;
 
   if (objType == "Sphere") {
-    setSR = function (geom, scale, rotation) {
-      scale.set(geom.r, geom.r, geom.r);
+    setSR = function (mesh, geom) {
+      mesh.scale.set(geom.r, geom.r, geom.r);
     };
     unitGeom = new THREE.SphereBufferGeometry(1, 32, 32);
   }
   else if (objType == "Box") {
-    setSR = function (geom, scale, rotation) {
-      scale.set(geom.w, geom.h, geom.d);
-      rotation.x = rx;
+    setSR = function (mesh, geom) {
+      mesh.scale.set(geom.w, geom.h, geom.d);
+      mesh.rotation.x = rx;
     };
     unitGeom = new THREE.BoxBufferGeometry(1, 1, 1);
   }
   else if (objType == "Disk") {
+    var xAxis = Q3D.uv.i, zAxis = Q3D.uv.k;
     var sz = (this.ns === undefined || this.ns == false) ? this.sceneData.zExaggeration : 1;
-    setSR = function (geom, scale, rotation) {
-      scale.set(geom.r, 0, geom.r * sz);
-
-      // TODO: [Point - Disk] check
-      var m = new THREE.Matrix4()
-      if (90 - geom.d) rotation.applyMatrix(m.makeRotationX((90 - geom.d) * deg2rad));
-      if (geom.dd) rotation.applyMatrix(m.makeRotationZ(-geom.dd * deg2rad));
+    setSR = function (mesh, geom) {
+      mesh.scale.set(geom.r, 1, geom.r * sz);
+      mesh.rotateOnWorldAxis(xAxis, (90 - geom.d) * deg2rad);
+      mesh.rotateOnWorldAxis(zAxis, -geom.dd * deg2rad);
     };
-    unitGeom = new THREE.CylinderBufferGeometry(1, 1, 0, 32);
+    unitGeom = new THREE.CylinderBufferGeometry(1, 1, 0.0001, 32);
   }
   else {  // Cylinder or Cone
-    setSR = function (geom, scale, rotation) {
-      scale.set(geom.r, geom.h, geom.r);
-      rotation.x = rx;
+    setSR = function (mesh, geom) {
+      mesh.scale.set(geom.r, geom.h, geom.r);
+      mesh.rotation.x = rx;
     };
     unitGeom = (objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32);
   }
@@ -2124,7 +2122,7 @@ Q3D.PointLayer.prototype.build = function (features) {
     z_addend = (geom.h) ? geom.h / 2 : 0;
     for (i = 0, l = geom.pts.length; i < l; i++) {
       mesh = new THREE.Mesh(unitGeom, materials.mtl(f.mtl));
-      setSR(geom, mesh.scale, mesh.rotation);
+      setSR(mesh, geom);
 
       pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
@@ -2221,7 +2219,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
     }
 
-    var mesh, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = new THREE.Vector3(0, 1, 0);
+    var mesh, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = Q3D.uv.j;
 
     createObject = function (f, line) {
       var group = new Q3D.Group();
