@@ -266,6 +266,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # set enablement and visibility of widgets
     self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
+    self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
     self.dispTypeChanged()
 
   def initLayerComboBox(self):
@@ -333,9 +334,12 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
       self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
   def surroundingsToggled(self, checked):
-    self.setLayoutEnabled(self.gridLayout_Surroundings, checked)
+    self.setLayoutVisible(self.gridLayout_Surroundings, checked)
     self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
     self.setWidgetsEnabled([self.radioButton_ImageFile], not checked)
+
+    if checked:
+      self.checkBox_Clip.setChecked(False)
 
     if checked and self.radioButton_ImageFile.isChecked():
       self.radioButton_MapCanvas.setChecked(True)

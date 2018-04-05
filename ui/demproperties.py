@@ -84,7 +84,6 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Clip.setObjectName("checkBox_Clip")
         self.verticalLayout_Clip.addWidget(self.checkBox_Clip)
         self.comboBox_ClipLayer = QtWidgets.QComboBox(self.groupBox_Geometry)
-        self.comboBox_ClipLayer.setEnabled(False)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -212,7 +211,7 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout_2.addItem(spacerItem1)
 
         self.retranslateUi(DEMPropertiesWidget)
-        self.checkBox_Clip.toggled['bool'].connect(self.comboBox_ClipLayer.setEnabled)
+        self.checkBox_Clip.toggled['bool'].connect(self.comboBox_ClipLayer.setVisible)
         self.radioButton_LayerImage.toggled['bool'].connect(self.label_LayerImage.setEnabled)
         self.radioButton_LayerImage.toggled['bool'].connect(self.toolButton_SelectLayer.setEnabled)
         self.radioButton_ImageFile.toggled['bool'].connect(self.lineEdit_ImageFile.setEnabled)

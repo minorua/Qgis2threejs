@@ -183,9 +183,6 @@
         </item>
         <item>
          <widget class="QComboBox" name="comboBox_ClipLayer">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -479,7 +476,7 @@
    <sender>checkBox_Clip</sender>
    <signal>toggled(bool)</signal>
    <receiver>comboBox_ClipLayer</receiver>
-   <slot>setEnabled(bool)</slot>
+   <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>103</x>
