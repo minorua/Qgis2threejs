@@ -317,7 +317,9 @@ class TriangleMesh:
   def vSplit(self, geom):
     """split polygon vertically"""
     for idx in self.vidx.intersects(geom.boundingBox()):
-      yield idx, geom.intersection(self.vbands[idx].geometry())
+      geometry = geom.intersection(self.vbands[idx].geometry())
+      if geometry is not None:
+        yield idx, geometry
 
   def hIntersects(self, geom):
     """indices of horizontal bands that intersect with geom"""
