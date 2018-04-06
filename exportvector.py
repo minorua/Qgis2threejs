@@ -307,7 +307,7 @@ class VectorLayer(Layer):
     self.labelAttrIndex = None
 
     if self.writeAttrs:
-      self.fieldNames = [field.name() for field in layer.fields()]
+      self.fieldNames = [layer.attributeDisplayName(i) for i in layer.attributeList()]
       self.labelAttrIndex = properties.get("comboBox_Label", None)
 
   def hasLabel(self):
