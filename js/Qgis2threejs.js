@@ -1960,47 +1960,35 @@ Q3D.VectorLayer.prototype.clearLabels = function () {
   }
 };
 
-Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc, zFunc) {
+Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
   if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
-  var zShift = this.sceneData.zShift, zScale = this.sceneData.zScale;
+  var zShift = this.sceneData.zShift,
+      zScale = this.sceneData.zScale,
+      z0 = zShift * zScale;
   var prop = this.properties.label,
       pIndex = prop.index,
-      heightType = prop.heightType,
-      connHeight = prop.height;
-
-  // function to get height for both ends of label connector. returns [bottomZ, topZ]
-  var labelHeightFunc = function (f, pt) {
-    var z0 = (zFunc === undefined) ? pt[2] : zFunc(pt[0], pt[1]);
-
-    if (heightType == 1) return [z0, connHeight];      // fixed height
-    if (heightType >= 100) return [z0, (f.prop[heightType - 100] + zShift) * zScale + connHeight];    // data-defined + addend
-
-    // 2: height from point (bottom height if extruded polygon, elevation at centroid of polygon if overlay)
-    // 3: height from top of extruded polygon / from overlay
-    if (heightType == 3) z0 += f.geom.h;
-    return [z0, z0 + connHeight];
-  };
+      isRelative = prop.relative;
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
+  var f, text, pts, pt, pt0, pt1;
 
   for (var i = 0, l = features.length; i < l; i++) {
-    var f = features[i];
-    var text = f.prop[pIndex];
+    f = features[i];
+    text = f.prop[pIndex];
     if (text === null || text === "") continue;
 
-    var pts = getPointsFunc(f);
+    pts = getPointsFunc(f);
     for (var j = 0, m = pts.length; j < m; j++) {
-      var pt = pts[j];
       // create div element for label
       var e = document.createElement("div");
       e.appendChild(document.createTextNode(text));
       e.className = "label";
       this.labelParentElement.appendChild(e);
 
-      var z = labelHeightFunc(f, pt);
-      var pt0 = new THREE.Vector3(pt[0], pt[1], z[0]);    // bottom
-      var pt1 = new THREE.Vector3(pt[0], pt[1], z[1]);    // top
+      pt = pts[j];
+      pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);                                      // bottom
+      pt1 = new THREE.Vector3(pt[0], pt[1], (isRelative) ? pt[2] + f.lh : z0 + f.lh);    // top
 
       // create connector
       var geom = new THREE.Geometry();
@@ -2493,16 +2481,8 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   this._createObject = createObject;
 };
 
-// TODO: [Label]
 Q3D.PolygonLayer.prototype.buildLabels = function (features) {
-  var zFunc, getPointsFunc = function (f) { return f.geom.centroids; };
-  var relativeToDEM = (this.am == "relative");    // altitude mode
-  if (relativeToDEM) {
-    var dem = this.scene.mapLayers[0];    // TODO: [Label] referenced dem
-    zFunc = dem.getZ.bind(dem);
-  }
-
-  Q3D.VectorLayer.prototype.buildLabels.call(this, features, getPointsFunc, zFunc);
+  Q3D.VectorLayer.prototype.buildLabels.call(this, features, function (f) { return f.geom.centroids; });
 };
 
 Q3D.PolygonLayer.prototype.setBorderVisibility = function (visible) {

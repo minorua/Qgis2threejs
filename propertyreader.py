@@ -68,6 +68,7 @@ class VectorPropertyReader:
 
     self._exprs = {}
     self.exprAlt = QgsExpression(properties.get("fieldExpressionWidget_altitude") or "0")
+    self.exprLabel = QgsExpression(properties.get("labelHeightWidget", {}).get("editText") or "0")
 
   def evaluateExpression(self, expr_str, f):
     if expr_str not in self._exprs:
@@ -173,7 +174,10 @@ class VectorPropertyReader:
     return self.properties.get("comboBox_altitudeMode") is not None
 
   def altitude(self):
-    return self.exprAlt.evaluate(self.expressionContext)
+    return float(self.exprAlt.evaluate(self.expressionContext) or 0)
+
+  def labelHeight(self):
+    return float(self.exprLabel.evaluate(self.expressionContext) or 0)
 
   def setContextFeature(self, f):
     self.expressionContext.setFeature(f)

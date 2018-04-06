@@ -291,7 +291,7 @@ class PolygonBasicTypeBase(PolygonTypeBase):
         zsum += sum([pt.z for pt in boundary], -boundary[0].z)
         zcount += len(boundary) - 1
       polygons.append(bnds)
-      zs.append(zsum / zcount)
+      zs.append(zsum / zcount)    #TODO: remove zs
 
     g = {"polygons": polygons, "zs": zs}
     if geom.centroids:
@@ -313,9 +313,6 @@ class ExtrudedType(PolygonBasicTypeBase):
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
            "defaultItem": ColorWidgetFunc.FEATURE}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
-
-    ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from top"),
-                                  (LabelHeightWidgetFunc.RELATIVE, "Height from bottom")])
 
   @classmethod
   def material(cls, settings, layer, feat):
@@ -346,9 +343,6 @@ class OverlayType(PolygonBasicTypeBase):
     #        "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
     #        "defaultItem": ColorWidgetFunc.FEATURE}
     # ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
-
-    #TODO: [Polygon -Overlay] label
-    ppage.setupLabelHeightWidget([(LabelHeightWidgetFunc.RELATIVE_TO_TOP, "Height from overlay")])
 
   @classmethod
   def material(cls, settings, layer, feat):
@@ -382,6 +376,10 @@ class OverlayType(PolygonBasicTypeBase):
 
       if polygons:
         g["split_polygons"] = polygons
+
+      if geom.centroids:
+        g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
+
     else:
       g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
       del g["zs"]

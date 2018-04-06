@@ -223,8 +223,8 @@ class HeightWidgetFunc(WidgetFuncBase):
 
 class LabelHeightWidgetFunc(WidgetFuncBase):
 
+  ABSOLUTE = 0
   RELATIVE = 1
-  RELATIVE_TO_TOP = 2
 
   def setup(self, options=None):
     """ options: defaultValue, layer """
@@ -235,8 +235,8 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
       self.widget.expression.setExpression(str(self.defaultValue))
 
     self.widget.comboBox.clear();
-    for id, text in options.get("items", []):
-      self.widget.comboBox.addItem(text, id)
+    self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
+    self.widget.comboBox.addItem("Relative", self.RELATIVE)
 
     layer = options.get("layer")
     if layer:

@@ -120,8 +120,7 @@ class VectorLayerExporter(LayerExporter):
     if writeAttrs and labelAttrIndex is not None:
       widgetValues = properties.get("labelHeightWidget", {})
       p["label"] = {"index": labelAttrIndex,
-                    "heightType": int(widgetValues.get("comboData", 0)),
-                    "height": float(widgetValues.get("editText", 0)) * self.mapTo3d.multiplierZ}
+                    "relative": widgetValues.get("comboData", 0) == 1}
 
     data = {}
     data["materials"] = self.materialManager.buildAll(self.imageManager, base64=self.settings.base64)
@@ -176,6 +175,9 @@ class VectorLayerExporter(LayerExporter):
       if feat.attributes is not None:
         f["prop"] = feat.attributes
 
+        if feat.labelHeight is not None:
+          f["lh"] = feat.labelHeight
+
       feats.append(f)
 
       if len(feats) == FEATURE_COUNT:
@@ -209,7 +211,7 @@ class FeatureBlockExporter:
 
 class Feature:
 
-  def __init__(self, layer, qGeom, altitude, propValues, attrs=None):
+  def __init__(self, layer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
     self.layerProp = layer.prop
     self.geom = qGeom
     self.geomType = layer.geomType
@@ -217,13 +219,14 @@ class Feature:
     self.altitude = altitude
     self.values = propValues
     self.attributes = attrs
+    self.labelHeight = labelHeight
 
     self.material = -1
 
   def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, calcCentroid=False, baseExtent=None, demSize=None):
     """calcCentroid: for polygon geometry
        demSize: grid size of the DEM layer which polygons overlay"""
-    # z_func: function to get elevation at given point (x, y) on surface
+
     if demProvider:
       if self.layerProp.objType.name == "Overlay":
         #TODO: [Polygon - Overlay] rotated map support
@@ -233,15 +236,12 @@ class Feature:
         xmax, ymax = center.x() + half_width, center.y() + half_height
         xres, yres = baseExtent.width() / (demSize.width() - 1), baseExtent.height() / (demSize.height() - 1)
         tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
-        z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
+        z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres) + self.altitude
       else:
-        z_func = lambda x, y: demProvider.readValue(x, y)
+        z_func = lambda x, y: demProvider.readValue(x, y) + self.altitude
     else:
-      z_func = lambda x, y: 0
-
-    # transform_func: function to transform the map coordinates to 3d coordinates
-    transform_func = lambda x, y, z: mapTo3d.transform(x, y, z + self.altitude)
-
+      z_func = lambda x, y: self.altitude
+ 
     geom = self.geom
     # clip geometry
     if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
@@ -258,12 +258,14 @@ class Feature:
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
         geom = tmesh.splitPolygon(geom)
         useCentroidHeight = False
+        centroidPerPolygon = False
       else:
         useCentroidHeight = True
-      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, calcCentroid, useCentroidHeight)
+        centroidPerPolygon = True
+      return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, calcCentroid, useCentroidHeight, centroidPerPolygon)
 
     else:
-      return self.geomClass.fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
+      return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
 
 
 class Layer:
@@ -327,6 +329,7 @@ class VectorLayer(Layer):
     return obj
 
   def features(self, request=None):
+    mapTo3d = self.settings.mapTo3d()
     baseExtent = self.settings.baseExtent
     baseExtentGeom = baseExtent.geometry()
     rotation = baseExtent.rotation()
@@ -358,10 +361,15 @@ class VectorLayer(Layer):
       altitude = prop.altitude()
       propVals = prop.values(f)
 
-      attrs = f.attributes() if self.writeAttrs else None
+      attrs = labelHeight = None
+      if self.writeAttrs:
+        attrs = f.attributes()
+
+        if self.hasLabel():
+          labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
 
       # create a feature object
-      feat = Feature(self, geom, altitude, propVals, attrs)
+      feat = Feature(self, geom, altitude, propVals, attrs, labelHeight)
       feats.append(feat)
 
     return feats

@@ -218,9 +218,7 @@ class PolygonGeometry(Geometry):
 
   #TODO: [Polygon z/m support]
   @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, useCentroidHeight=True):
-
-    centroidPerPolygon = True
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, useCentroidHeight=True, centroidPerPolygon=False):
 
     polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
     geom = cls()
@@ -230,23 +228,25 @@ class PolygonGeometry(Geometry):
       geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
     for polygon in polygons:
-      if useCentroidHeight or calcCentroid:
+      if calcCentroid or useCentroidHeight:
         centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
         if centroid is None:
-          continue
-        pt = centroid.asPoint()
-        centroidHeight = z_func(pt.x(), pt.y())
-        if calcCentroid and centroidPerPolygon:
-          geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+          centroidHeight = 0
+          if calcCentroid and centroidPerPolygon:
+            geom.centroids.append(transform_func(0, 0, 0))
+        else:
+          pt = centroid.asPoint()
+          centroidHeight = z_func(pt.x(), pt.y())
+          if calcCentroid and centroidPerPolygon:
+            geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
-      if useCentroidHeight:
-        z_func = lambda x, y: centroidHeight
+      z_func2 = (lambda x, y: centroidHeight) if useCentroidHeight else z_func
 
       boundaries = []
       # outer boundary
       points = []
       for pt in polygon[0]:
-        points.append(transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+        points.append(transform_func(pt.x(), pt.y(), z_func2(pt.x(), pt.y())))
 
       if not GeometryUtils.isClockwise(points):
         points.reverse()    # to clockwise
@@ -254,7 +254,7 @@ class PolygonGeometry(Geometry):
 
       # inner boundaries
       for boundary in polygon[1:]:
-        points = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in boundary]
+        points = [transform_func(pt.x(), pt.y(), z_func2(pt.x(), pt.y())) for pt in boundary]
         if GeometryUtils.isClockwise(points):
           points.reverse()    # to counter-clockwise
         boundaries.append(points)
