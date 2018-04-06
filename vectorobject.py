@@ -281,23 +281,8 @@ class PolygonBasicTypeBase(PolygonTypeBase):
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
-    polygons = []
-    zs = []
-    for polygon in geom.polygons:
-      bnds = []
-      zsum = zcount = 0
-      for boundary in polygon:
-        bnds.append([[pt.x, pt.y] for pt in boundary])
-        zsum += sum([pt.z for pt in boundary], -boundary[0].z)
-        zcount += len(boundary) - 1
-      polygons.append(bnds)
-      zs.append(zsum / zcount)    #TODO: remove zs
-
-    g = {"polygons": polygons, "zs": zs}
-    if geom.centroids:
-      g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
-
-    return g
+    return {"polygons": [[[[pt.x, pt.y] for pt in bnd] for bnd in poly] for poly in geom.polygons],
+            "centroids": [[pt.x, pt.y, pt.z] for pt in geom.centroids]}
 
 
 class ExtrudedType(PolygonBasicTypeBase):
@@ -382,7 +367,6 @@ class OverlayType(PolygonBasicTypeBase):
 
     else:
       g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
-      del g["zs"]
 
     g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
 

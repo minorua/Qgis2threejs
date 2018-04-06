@@ -164,7 +164,7 @@ class VectorLayerExporter(LayerExporter):
 
     feats = []
     for feat in self.features or []:
-      geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.hasLabel, self.settings.baseExtent, self.demSize)
+      geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.settings.baseExtent, self.demSize)
       if geom is None:
         continue
 
@@ -223,9 +223,8 @@ class Feature:
 
     self.material = -1
 
-  def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, calcCentroid=False, baseExtent=None, demSize=None):
-    """calcCentroid: for polygon geometry
-       demSize: grid size of the DEM layer which polygons overlay"""
+  def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
+    """demSize: grid size of the DEM layer which polygons overlay"""
 
     if demProvider:
       if self.layerProp.objType.name == "Overlay":
@@ -262,7 +261,7 @@ class Feature:
       else:
         useCentroidHeight = True
         centroidPerPolygon = True
-      return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, calcCentroid, useCentroidHeight, centroidPerPolygon)
+      return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useCentroidHeight, centroidPerPolygon)
 
     else:
       return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)

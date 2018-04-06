@@ -2438,11 +2438,11 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     };
 
     createObject = function (f) {
-      if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.zs[0]);
+      if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.centroids[0][2]);
 
       var group = new THREE.Group();
       for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
-        group.add(createSubObject(f, f.geom.polygons[i], f.geom.zs[i]));
+        group.add(createSubObject(f, f.geom.polygons[i], f.geom.centroids[i][2]));
       }
       return group;
     };

@@ -218,27 +218,26 @@ class PolygonGeometry(Geometry):
 
   #TODO: [Polygon z/m support]
   @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func, calcCentroid=False, useCentroidHeight=True, centroidPerPolygon=False):
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False):
 
     polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
     geom = cls()
-    if calcCentroid and not centroidPerPolygon:
+    if not centroidPerPolygon:
       pt = geometry.centroid().asPoint()
       centroidHeight = z_func(pt.x(), pt.y())
       geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
     for polygon in polygons:
-      if calcCentroid or useCentroidHeight:
-        centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
-        if centroid is None:
-          centroidHeight = 0
-          if calcCentroid and centroidPerPolygon:
-            geom.centroids.append(transform_func(0, 0, 0))
-        else:
-          pt = centroid.asPoint()
-          centroidHeight = z_func(pt.x(), pt.y())
-          if calcCentroid and centroidPerPolygon:
-            geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+      centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
+      if centroid is None:
+        centroidHeight = 0
+        if centroidPerPolygon:
+          geom.centroids.append(transform_func(0, 0, 0))
+      else:
+        pt = centroid.asPoint()
+        centroidHeight = z_func(pt.x(), pt.y())
+        if centroidPerPolygon:
+          geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
       z_func2 = (lambda x, y: centroidHeight) if useCentroidHeight else z_func
 
