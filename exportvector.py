@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 import json
+from PyQt5.QtCore import QVariant
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .conf import debug_mode
@@ -29,6 +30,12 @@ from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, Tr
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeRegistry
+
+
+def json_default(o):
+  if isinstance(o, QVariant):
+    return repr(o)
+  raise TypeError(repr(o) + " is not JSON serializable")
 
 
 class VectorLayerExporter(LayerExporter):
@@ -143,7 +150,7 @@ class VectorLayerExporter(LayerExporter):
     index = 0
     FEATURE_COUNT = 50
 
-    def block(blockIndex, features):
+    def createBlockExporter(blockIndex, features):
       return FeatureBlockExporter(blockIndex, {
         "type": "block",
         "layer": self.layer.jsLayerId,
@@ -181,12 +188,12 @@ class VectorLayerExporter(LayerExporter):
       feats.append(f)
 
       if len(feats) == FEATURE_COUNT:
-        yield block(index, feats)
+        yield createBlockExporter(index, feats)
         index += 1
         feats = []
 
     if len(feats) or index == 0:
-      yield block(index, feats)
+      yield createBlockExporter(index, feats)
 
 
 class FeatureBlockExporter:
@@ -200,7 +207,7 @@ class FeatureBlockExporter:
   def build(self):
     if self.pathRoot is not None:
       with open(self.pathRoot + "_GEOM{0}.json".format(self.blockIndex), "w", encoding="UTF-8") as f:
-        json.dump(self.data, f, ensure_ascii=False, indent=1)
+        json.dump(self.data, f, ensure_ascii=False, indent=1, default=json_default)
 
       url = self.urlRoot + "_GEOM{0}.json".format(self.blockIndex)
       return {"url": url}
