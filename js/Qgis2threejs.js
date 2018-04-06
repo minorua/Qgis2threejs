@@ -1505,7 +1505,7 @@ Q3D.DEMBlock.prototype = {
   },
 
   buildFrame: function (layer, grid, planeWidth, planeHeight, parent, z0) {
-    var matProp = data.material.origProp,
+    var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
     var material = new THREE.LineBasicMaterial({color: Q3D.Options.frame.color,
                                                 opacity: opacity,
