@@ -1858,13 +1858,13 @@ Q3D.DEMLayer.prototype.getZ = function (x, y) {
 Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   // does not support multiple blocks
   if (zFunc === undefined) zFunc = function () { return 0; };
-  var width = this.sceneData.width, height = this.sceneData.height;
-  var xmin = -width / 2, ymax = height / 2;
-  var block = this.blocks[0];
-  var x_segments = block.width - 1,
-      y_segments = block.height - 1;
-  var ix = width / x_segments,
-      iy = height / y_segments;
+  var width = this.sceneData.width,
+      height = this.sceneData.height;
+  var xmin = -width / 2,
+      ymax = height / 2;
+  var grid = this.blocks[0].data.grid,
+      ix = width / (grid.width - 1),
+      iy = height / (grid.height - 1);
 
   var pts = [];
   for (var i = 1, l = lineString.length; i < l; i++) {
