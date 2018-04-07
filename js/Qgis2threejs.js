@@ -713,6 +713,7 @@ limitations:
     }
 
     app._wireframeMode = wireframe;
+    app.render();
   };
 
   app.intersectObjects = function (offsetX, offsetY) {
