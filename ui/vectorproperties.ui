@@ -194,7 +194,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_Features">
      <property name="title">
-      <string>&amp;Feature</string>
+      <string>&amp;Features</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <property name="leftMargin">

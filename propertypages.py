@@ -511,6 +511,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
                           self.dialog.mapTo3d(),     # to calculate default values
                           self.layer.mapLayer)
 
+    self.altitudeModeChanged(self.comboBox_altitudeMode.currentIndex())
+
   def itemChanged(self, item):
     self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
 

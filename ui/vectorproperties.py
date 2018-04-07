@@ -158,7 +158,7 @@ class Ui_VectorPropertiesWidget(object):
         self.radioButton_Expression.setText(_translate("VectorPropertiesWidget", "Expression"))
         self.label_3.setText(_translate("VectorPropertiesWidget", "Mode"))
         self.groupBox_Styles.setTitle(_translate("VectorPropertiesWidget", "&Style"))
-        self.groupBox_Features.setTitle(_translate("VectorPropertiesWidget", "&Feature"))
+        self.groupBox_Features.setTitle(_translate("VectorPropertiesWidget", "&Features"))
         self.radioButton_AllFeatures.setText(_translate("VectorPropertiesWidget", "All features"))
         self.radioButton_IntersectingFeatures.setText(_translate("VectorPropertiesWidget", "Features that intersect with map canvas extent"))
         self.checkBox_Clip.setText(_translate("VectorPropertiesWidget", "Clip geometries"))
