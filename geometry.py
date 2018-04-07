@@ -441,6 +441,9 @@ def dissolvePolygonsOnCanvas(settings, layer):
     else:
       combi = geom
 
+  if combi is None:
+    return None
+
   # clip geom with slightly smaller extent than base extent
   # to make sure that the clipped polygon stays within the base extent
   geom = combi.intersection(baseExtent.clone().scale(0.999999).geometry())
