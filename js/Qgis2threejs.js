@@ -1627,6 +1627,7 @@ Q3D.ClippedDEMBlock.prototype = {
     var material = new THREE.MeshLambertMaterial({color: Q3D.Options.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
+    layer.materials.add(material);
 
     var polygons = this.data.clip.polygons,
         zFunc = layer.getZ.bind(layer),
