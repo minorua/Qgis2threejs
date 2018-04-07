@@ -21,10 +21,11 @@
 """
 import os
 
-from PyQt5.QtCore import QDir, QVariant
+from PyQt5.Qt import QEvent, Qt
+from PyQt5.QtCore import QDir, QObject, QVariant
 from PyQt5.QtWidgets import QWidget, QColorDialog, QComboBox, QFileDialog
 from PyQt5.QtGui import QColor
-from qgis.core import QgsFieldProxyModel, QgsProject, QgsWkbTypes
+from qgis.core import QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .qgis2threejstools import getDEMLayersInProject, logMessage, shortTextFromSelectedLayerIds
@@ -449,6 +450,12 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.func = None
     self.hasValues = False
 
+    # install event filter
+    self.enterKeyFilter = EnterKeyEventFilter(self)
+    for w in self.expression.findChildren(QComboBox):
+      w.installEventFilter(self.enterKeyFilter)
+
+
   def setup(self, funcType=None, options=None):
     if funcType is None:
       # use the function type passed to __init__
@@ -498,3 +505,12 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
   def setValues(self, vals):
     if self.func:
       self.func.setValues(vals)
+
+
+class EnterKeyEventFilter(QObject):
+
+  def eventFilter(self, obj, event):
+    if event.type() == QEvent.KeyPress and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
+      event.ignore()
+      return True
+    return QObject.eventFilter(self, obj, event)
