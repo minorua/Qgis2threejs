@@ -233,6 +233,9 @@ class Feature:
   def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
     """demSize: grid size of the DEM layer which polygons overlay"""
 
+    geom = self.geom
+    rotation = baseExtent.rotation()
+
     if demProvider:
       if self.layerProp.objType.name == "Overlay":
         #TODO: [Polygon - Overlay] rotated map support
@@ -247,8 +250,7 @@ class Feature:
         z_func = lambda x, y: demProvider.readValue(x, y) + self.altitude
     else:
       z_func = lambda x, y: self.altitude
- 
-    geom = self.geom
+
     # clip geometry
     if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
       geom = geom.intersection(clipGeom)
@@ -262,7 +264,13 @@ class Feature:
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
+
+        if rotation:
+          geom.rotate(rotation, baseExtent.center())
         geom = tmesh.splitPolygon(geom)
+        if rotation:
+          geom.rotate(-rotation, baseExtent.center())
+
         useCentroidHeight = False
         centroidPerPolygon = False
       else:
