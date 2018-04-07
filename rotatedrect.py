@@ -215,7 +215,7 @@ class RotatedRect:
   def geometry(self):
     geom = QgsGeometry.fromRect(self._unrotated_rect)
     if self._rotation:
-      geom.rotate(self._rotation, self._center)
+      geom.rotate(-self._rotation, self._center)
     return geom
 
   def vertices(self):
