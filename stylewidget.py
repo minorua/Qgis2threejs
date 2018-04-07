@@ -61,7 +61,7 @@ class WidgetFuncBase:
 
   def setPlaceholderText(self, text):
     try:
-      lineEdit = self.widget.expressionWidget().lineEdit()
+      lineEdit = self.widget.expressionComboBox().lineEdit()
       lineEdit.setPlaceholderText(text)
       lineEdit.setToolTip(text)
     except:
@@ -479,10 +479,9 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     self.setVisible(True)
     self.hasValues = True
 
-  def expressionWidget(self):
+  def expressionComboBox(self):
     for w in self.expression.findChildren(QComboBox):
       return w
-    return None
 
   def comboBoxSelectionChanged(self, index):
     if self.func and index != -1:
