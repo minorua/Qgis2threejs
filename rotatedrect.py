@@ -28,7 +28,7 @@ class RotatedRect:
     args:
       center        -- QgsPointXY
       width, height -- float
-      rotation      -- int/float
+      rotation      -- int/float. in degrees counter-clockwise.
     """
     self._center = center
     self._width = width
