@@ -72,7 +72,6 @@ class LayerSelectDialog(QDialog):
       s = self.mapSettings
 
       c.setCanvasColor(s.backgroundColor())
-      c.setCrsTransformEnabled(s.hasCrsTransformEnabled())
       c.setDestinationCrs(s.destinationCrs())
       c.setRotation(s.rotation())
       c.setExtent(s.extent())
