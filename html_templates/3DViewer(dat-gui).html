@@ -56,6 +56,14 @@ var container = document.getElementById("webgl");
 var app = Q3D.application;
 app.init(container, ${is_ortho});
 
+// set custom plane z range when all objects have been loaded
+app.addEventListener("objectsLoaded", function () {
+  var box = new THREE.Box3().setFromObject(app.scene),
+      zMin = app.scene.toMapCoordinates(0, 0, box.min.y).z,
+      zMax = app.scene.toMapCoordinates(0, 0, box.max.y).z;
+  Q3D.gui.initCustomPlaneFolder(zMin, zMax);
+});
+
 // load the scene
 app.loadJSONFromURL("${scenefile}", function () {
   Q3D.gui.init();   // initialize dat-gui panel

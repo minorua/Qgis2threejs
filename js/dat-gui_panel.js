@@ -24,7 +24,7 @@ Q3D.gui = {
     this.gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.addLayersFolder();
-      this.addCustomPlaneFolder();
+      this.customPlaneFolder = this.gui.addFolder('Custom Plane');
       if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
     }
@@ -46,7 +46,7 @@ Q3D.gui = {
     }
   },
 
-  addCustomPlaneFolder: function () {
+  initCustomPlaneFolder: function (zMin, zMax) {
     var app = Q3D.application,
         scene = app.scene,
         p = scene.userData;
@@ -60,37 +60,20 @@ Q3D.gui = {
       if (!Q3D.isIE) material.side = THREE.DoubleSide;
       customPlane = new THREE.Mesh(geometry, material);
       scene.add(customPlane);
+      Q3D.gui.customPlane = customPlane;
       app.render();
     };
-
-    // Min/Max value for the plane
-    var zMin = 0,
-        zMax = 9000;
-    /* TODO: [dat-gui] custom plane min/max
-    if (layer.type == Q3D.LayerType.DEM) {
-      zMin = layer.stats.min;
-      zMax = layer.stats.max;
-
-      var buffer = (zMax - zMin) * 0.1;
-      if (buffer < 50) buffer = 50;
-      zMin -= buffer;
-      zMax += buffer;
-    }
-    */
     parameters.cp.d = zMin;
 
-    // Create Custom Plane folder
-    var folder = this.gui.addFolder('Custom Plane');
-
     // Plane color
-    folder.addColor(parameters.cp, 'c').name('Color').onChange(function (value) {
+    this.customPlaneFolder.addColor(parameters.cp, 'c').name('Color').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.material.color.setStyle(value);
       app.render();
     });
 
     // Plane altitude
-    folder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
+    this.customPlaneFolder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.position.z = (value + p.zShift) * p.zScale;
       customPlane.updateMatrixWorld();
@@ -98,14 +81,14 @@ Q3D.gui = {
     });
 
     // Plane opacity
-    folder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
+    this.customPlaneFolder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.material.opacity = value;
       app.render();
     });
 
     // Enlarge plane option
-    folder.add(parameters.cp, 'l').name('Enlarge').onChange(function (value) {
+    this.customPlaneFolder.add(parameters.cp, 'l').name('Enlarge').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       if (value) customPlane.scale.set(10, 10, 1);
       else customPlane.scale.set(1, 1, 1);

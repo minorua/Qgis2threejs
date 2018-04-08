@@ -276,6 +276,19 @@ limitations:
   var app = {};
   Q3D.application = app;
 
+  var listeners= {};
+  var dispatchEvent = function (event) {
+    var ls = listeners[event.type] || [];
+    for (var i =0; i < ls.length; i++) {
+      ls[i](event);
+    }
+  };
+
+  app.addEventListener = function (type, listener) {
+    listeners[type] = listeners[type] || [];
+    listeners[type].push(listener);
+  };
+
   app.init = function (container, isOrthoCamera) {
     app.container = container;
     app.running = false;        // if true, animation loop is continued.
@@ -403,14 +416,18 @@ limitations:
     app.scene.loadJSONObject(jsonObject);
   };
 
+  var _loadCounter = 0;
   app.loadJSONFromURL = function (url, callback) {
+    _loadCounter++;
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.responseType = "json";
     xhr.onload = function () {
       app.loadJSONObject(this.response);
+      _loadCounter--;
       if (callback) callback();
+      if (_loadCounter == 0) dispatchEvent({type: "objectsLoaded"});
     };
     xhr.send(null);
 
