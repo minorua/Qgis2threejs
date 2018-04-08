@@ -71,10 +71,12 @@ class ExportToWebDialog(QDialog):
       self.ui.lineEdit_OutputDir.setText(d)
 
   def exportClicked(self):
-    outputDir = self.ui.lineEdit_OutputDir.text()
-    fileTitle = self.ui.lineEdit_FileTitle.text()
+    # template
+    self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
     # output html file name
+    outputDir = self.ui.lineEdit_OutputDir.text()
+    fileTitle = self.ui.lineEdit_FileTitle.text()
     if outputDir == "":
       outputDir = temporaryOutputDir()
       fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
@@ -83,10 +85,8 @@ class ExportToWebDialog(QDialog):
     if os.path.exists(filename):
       if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
-    self.settings.setOutputFilename(filename)
 
-    # template
-    self.settings.setTemplate(self.ui.comboBox_Template.currentData())
+    self.settings.setOutputFilename(filename)
 
     err_msg = self.settings.checkValidity()
     if err_msg is not None:

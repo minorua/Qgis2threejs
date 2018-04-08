@@ -101,17 +101,18 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
   def export(self):
     # create output data directory if not exists
-    if not QDir(self.settings.outputdatadir).exists():
-      QDir().mkpath(self.settings.outputdatadir)
+    dataDir = self.settings.outputDataDirectory()
+    if not QDir(dataDir).exists():
+      QDir().mkpath(dataDir)
 
     # write scene data to a file in json format
     json_object = self.exportScene()
-    with open(os.path.join(self.settings.outputdatadir, "scene.json"), "w") as f:
+    with open(os.path.join(dataDir, "scene.json"), "w") as f:
       json.dump(json_object, f, indent=2)
 
     # copy files
     self.progress(90, "Copying library files")
-    tools.copyFiles(self.filesToCopy(), self.settings.outputdir)
+    tools.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
     # options in html file
     options = []
@@ -123,19 +124,20 @@ class ThreeJSFileExporter(ThreeJSExporter):
     with open(self.settings.templateConfig()["path"], "r", encoding="UTF-8") as f:
       html = f.read()
 
+    title = self.settings.outputFileTitle()
     mapping = {
-      "title": self.settings.htmlfiletitle,
+      "title": title,
       "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
-      "scenefile": "./data/{0}/scene.json".format(self.settings.htmlfiletitle),
+      "scenefile": "./data/{0}/scene.json".format(title),
       "is_ortho": "true" if self.settings.isOrthoCamera else "false"
       }
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)
 
     # write to html file
-    with open(self.settings.htmlfilename, "w", encoding="UTF-8") as f:
+    with open(self.settings.outputFileName(), "w", encoding="UTF-8") as f:
       f.write(html)
 
     return True
@@ -146,8 +148,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
   def exportLayer(self, layer):
     title = "L{0}".format(self.nextLayerIndex())
-    pathRoot = os.path.join(self.settings.outputdatadir, title)
-    urlRoot = "./data/{0}/{1}".format(self.settings.htmlfiletitle, title)
+    pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
+    urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
@@ -193,14 +195,6 @@ class ThreeJSFileExporter(ThreeJSExporter):
     # proj4.js
     if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
       files.append("proj4js/proj4.js")
-
-    # data files
-    filetitle = self.settings.htmlfiletitle
-
-    #if self.multiple_files:
-    #  files += map(lambda x: "%s_%s.js" % (filetitle, x), range(self.jsfile_count))
-    #else:
-    files.append("%s.js" % filetitle)
 
     return ['<script src="./%s"></script>' % fn for fn in files]
 

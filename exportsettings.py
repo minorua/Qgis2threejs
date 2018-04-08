@@ -91,11 +91,6 @@ class ExportSettings:
 
   def __init__(self):
     self.data = {}
-    self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
-
-    self.htmlfilename = None
-    self.htmlfiletitle = None
-
     self.canvas = None
     self.mapSettings = None
     self.baseExtent = None
@@ -135,9 +130,6 @@ class ExportSettings:
   def loadSettings(self, settings):
     self.data = settings
     self._mapTo3d = None
-
-    # output html file path
-    self.setOutputFilename(settings.get("OutputFilename"))
 
   def loadSettingsFromFile(self, filepath=None):
     """load settings from a JSON file"""
@@ -190,14 +182,20 @@ class ExportSettings:
     self.data["Template"] = filepath
     self._templateConfig = None
 
-  def setOutputFilename(self, filepath=None):
-    if not filepath:
-      filepath = temporaryOutputDir() + "/%s.html" % self.timestamp   # temporary file
-    self.htmlfilename = filepath
-    self.htmlfiletitle = os.path.splitext(os.path.basename(filepath))[0]
+  def outputFileName(self):
+    return self.data.get("OutputFilename", "")
 
-    self.outputdir = os.path.split(filepath)[0]
-    self.outputdatadir = os.path.join(self.outputdir, "data", self.htmlfiletitle)
+  def outputFileTitle(self):
+    return os.path.splitext(os.path.basename(self.outputFileName()))[0]
+
+  def outputDirectory(self):
+    return os.path.split(self.outputFileName())[0]
+
+  def outputDataDirectory(self):
+    return os.path.join(self.outputDirectory(), "data", self.outputFileTitle())
+
+  def setOutputFilename(self, filepath=""):
+    self.data["OutputFilename"] = filepath
 
   def setMapCanvas(self, canvas):
     self.setMapSettings(canvas.mapSettings())
