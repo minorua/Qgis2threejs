@@ -1,5 +1,5 @@
 [general]
-filename=3DViewer(dat-gui).html
-description=This template has a dat-gui panel, which allows toggling layer visibility and adding a plane.
+name=3D Viewer with dat-gui panel
+description=This template has a dat-gui panel, which allows changing layer visibility and opacity and adding a plane.
 files=js/Qgis2threejs.js,js/dat-gui_panel.js,css/Qgis2threejs.css
 dirs=js/dat-gui

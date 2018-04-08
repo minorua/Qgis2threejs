@@ -93,8 +93,6 @@ class ExportSettings:
     self.data = {}
     self.timestamp = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
 
-    self.templatePath = None
-
     self.htmlfilename = None
     self.htmlfiletitle = None
 
@@ -141,9 +139,6 @@ class ExportSettings:
     # output html file path
     self.setOutputFilename(settings.get("OutputFilename"))
 
-    # template
-    self.setTemplatePath(settings.get("Template", def_vals.template))
-
   def loadSettingsFromFile(self, filepath=None):
     """load settings from a JSON file"""
     self.data = {}
@@ -187,9 +182,12 @@ class ExportSettings:
       logMessage("Failed to save export settings: " + str(e))
       return False
 
-  def setTemplatePath(self, filepath):
+  def template(self):
+    return self.data.get("Template", def_vals.template)
+
+  def setTemplate(self, filepath):
     """filepath: relative path from html_templates directory or absolute path to a template html file"""
-    self.templatePath = filepath
+    self.data["Template"] = filepath
     self._templateConfig = None
 
   def setOutputFilename(self, filepath=None):
@@ -231,11 +229,7 @@ class ExportSettings:
   def templateConfig(self):
     if self._templateConfig:
       return self._templateConfig
-
-    if not self.templatePath:
-      self.setTemplatePath(def_vals.template)
-
-    self._templateConfig = getTemplateConfig(self.templatePath)
+    self._templateConfig = getTemplateConfig(self.template())
     return self._templateConfig
 
   def wgs84Center(self):

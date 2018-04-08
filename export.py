@@ -100,12 +100,6 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index = -1
 
   def export(self):
-    self.settings.setTemplatePath("3DViewer.html");   # this is a temporal line
-
-    # read configuration of the template
-    templateConfig = self.settings.templateConfig()
-    templatePath = templateConfig["path"]
-
     # create output data directory if not exists
     if not QDir(self.settings.outputdatadir).exists():
       QDir().mkpath(self.settings.outputdatadir)
@@ -126,7 +120,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
     # read html template
-    with open(templatePath, "r", encoding="UTF-8") as f:
+    with open(self.settings.templateConfig()["path"], "r", encoding="UTF-8") as f:
       html = f.read()
 
     mapping = {
@@ -170,7 +164,6 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # template specific libraries (files)
     config = self.settings.templateConfig()
-
     for f in config.get("files", "").strip().split(","):
       p = f.split(">")
       fs = {"files": [p[0]]}

@@ -26,7 +26,8 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from .conf import def_vals
 from .export import ThreeJSFileExporter
-from .qgis2threejstools import logMessage, openHTMLFile, temporaryOutputDir
+from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
+from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 
 class ExportToWebDialog(QDialog):
@@ -38,9 +39,26 @@ class ExportToWebDialog(QDialog):
     self.iface = qgisIface
     self.settings = settings
 
-    from .ui.exporttowebdialog import Ui_ExportToWebDialog
     self.ui = Ui_ExportToWebDialog()
     self.ui.setupUi(self)
+
+    # populate template list items
+    cbox = self.ui.comboBox_Template
+    for i, entry in enumerate(QDir(templateDir()).entryList(["*.html", "*.htm"])):
+      config = getTemplateConfig(entry)
+      cbox.addItem(config.get("name", entry), entry)
+
+      # set tool tip text
+      desc = config.get("description", "")
+      if desc:
+        cbox.setItemData(i, desc, Qt.ToolTipRole)
+
+    templatePath = settings.get("Template")
+    if templatePath:
+      index = cbox.findData(templatePath)
+      if index != -1:
+        cbox.setCurrentIndex(index)
+
     self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
     self.ui.pushButton_Export.clicked.connect(self.exportClicked)
     self.ui.pushButton_Cancel.clicked.connect(self.close)
@@ -56,23 +74,19 @@ class ExportToWebDialog(QDialog):
     outputDir = self.ui.lineEdit_OutputDir.text()
     fileTitle = self.ui.lineEdit_FileTitle.text()
 
+    # output html file name
     if outputDir == "":
       outputDir = temporaryOutputDir()
-      #fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
+      fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
     filename = os.path.join(outputDir, fileTitle + ".html")
-
-    #TODO: check validity
 
     if os.path.exists(filename):
       if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
-
-    # output html file path
     self.settings.setOutputFilename(filename)
 
     # template
-    self.settings.setTemplatePath(self.settings.get("Template", def_vals.template))
-
+    self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
     err_msg = self.settings.checkValidity()
     if err_msg is not None:
@@ -89,9 +103,8 @@ class ExportToWebDialog(QDialog):
     self.progress(100)
 
     # store last settings
-    settings = QSettings()
-    settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
-    settings.setValue("/Qgis2threejs/lastControls", self.settings.controls())
+    # settings = QSettings()
+    # settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
 
     if self.ui.checkBox_openPage.isChecked():
       if not openHTMLFile(filename):
