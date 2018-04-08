@@ -75,18 +75,20 @@ class ExportToWebDialog(QDialog):
     self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
     # output html file name
-    outputDir = self.ui.lineEdit_OutputDir.text()
-    fileTitle = self.ui.lineEdit_FileTitle.text()
-    if outputDir == "":
-      outputDir = temporaryOutputDir()
-      fileTitle += datetime.today().strftime("%Y%m%d%H%M%S")
-    filename = os.path.join(outputDir, fileTitle + ".html")
+    out_dir = self.ui.lineEdit_OutputDir.text()
+    filename = self.ui.lineEdit_Filename.text()
+    is_temporary = (out_dir == "")
+    if is_temporary:
+      out_dir = temporaryOutputDir()
+      #title, ext = os.path.splitext(filename)
+      #filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
 
-    if os.path.exists(filename):
+    filepath = os.path.join(out_dir, filename)
+    if not is_temporary and os.path.exists(filepath):
       if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
         return
 
-    self.settings.setOutputFilename(filename)
+    self.settings.setOutputFilename(filepath)
 
     err_msg = self.settings.checkValidity()
     if err_msg is not None:
@@ -102,12 +104,15 @@ class ExportToWebDialog(QDialog):
 
     self.progress(100)
 
+    if is_temporary:
+      self.settings.setOutputFilename("")
+
     # store last settings
     # settings = QSettings()
     # settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
 
     if self.ui.checkBox_openPage.isChecked():
-      if not openHTMLFile(filename):
+      if not openHTMLFile(filepath):
         return
 
     self.close()
