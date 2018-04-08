@@ -1,5 +1,5 @@
 [general]
 name=3D Viewer
 description=This template is a 3D viewer without any additional libraries.
-files=js/Qgis2threejs.js,css/Qgis2threejs.css
+files=js/Qgis2threejs.js,css/Qgis2threejs.css,icon.png
 dirs=

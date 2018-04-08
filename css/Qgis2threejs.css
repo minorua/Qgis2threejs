@@ -16,18 +16,12 @@ body {
 }
 
 #infobtn {
-  color: white;
-  background: rgba(152, 200, 246, 0.8);
-  border: solid 4px rgba(255, 255, 255, 0.8);
-  border-radius: 20px;
-  box-shadow: 0 0 0 2px rgba(152, 200, 246, 0.3);
+  cursor: pointer;
+}
+
+#infobtn img {
   width: 24px;
   height: 24px;
-  text-align: center;
-  font-family: serif;
-  font-weight: bold;
-  font-size: 24px;
-  cursor: pointer;
 }
 
 /* popup */
