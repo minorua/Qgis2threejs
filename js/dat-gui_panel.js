@@ -31,69 +31,42 @@ Q3D.gui = {
   },
 
   addLayersFolder: function () {
+    var mapLayers = Q3D.application.scene.mapLayers;
     var parameters = this.parameters;
-    var layersFolder = this.gui.addFolder('Layers');
+    var visibleChanged = function (value) { mapLayers[this.object.i].setVisible(value); };
+    var opacityChanged = function (value) { mapLayers[this.object.i].setOpacity(value); };
 
-    var visibleChanged = function (value) { project.layers[this.object.i].setVisible(value); };
-    var opacityChanged = function (value) { project.layers[this.object.i].setOpacity(value); };
-    var sideVisibleChanged = function (value) { project.layers[this.object.i].setSideVisibility(value); };
-
-    project.layers.forEach(function (layer, i) {
-      parameters.lyr[i] = {i: i, v: layer.visible, o: layer.opacity};
-      var folder = layersFolder.addFolder(layer.name);
-      folder.add(parameters.lyr[i], 'v').name('Visible').onChange(visibleChanged);
-
-      if (layer.type == Q3D.LayerType.DEM) {
-        var itemName = '';
-        if (layer.blocks[0].sides) itemName = 'Sides and bottom';
-        else if (layer.blocks[0].frame) itemName = 'Frame';
-
-        if (itemName) {
-          parameters.lyr[i].sv = true;
-          folder.add(parameters.lyr[i], 'sv').name(itemName).onChange(sideVisibleChanged);
-        }
-      }
-      else if (layer.type == Q3D.LayerType.Polygon && layer.objType == 'Overlay') {
-        var j, f = layer.f, m = f.length;
-        for (j = 0; j < m; j++) {
-          if (f[j].mb === undefined) continue;
-          parameters.lyr[i].border = true;
-          folder.add(parameters.lyr[i], 'border').name('Borders').onChange(function (value) {
-            project.layers[this.object.i].setBorderVisibility(value);
-          });
-          break;
-        }
-
-        for (j = 0; j < m; j++) {
-          if (f[j].ms === undefined) continue;
-          parameters.lyr[i].side = true;
-          folder.add(parameters.lyr[i], 'side').name('Sides').onChange(function (value) {
-            project.layers[this.object.i].setSideVisibility(value);
-          });
-          break;
-        }
-      }
-
-      folder.add(parameters.lyr[i], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
-    });
+    var layer, layersFolder = this.gui.addFolder('Layers');
+    for (var layerId in mapLayers) {
+      layer = mapLayers[layerId];
+      parameters.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity};
+      var folder = layersFolder.addFolder(layer.properties.name);
+      folder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
+      folder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+    }
   },
 
   addCustomPlaneFolder: function () {
+    var app = Q3D.application,
+        scene = app.scene,
+        p = scene.userData;
+
     var customPlane;
     var parameters = this.parameters;
     var addPlane = function (color) {
       // Add a new plane in the current scene
-      var geometry = new THREE.PlaneBufferGeometry(project.width, project.height, 1, 1),
+      var geometry = new THREE.PlaneBufferGeometry(p.width,p.height, 1, 1),
           material = new THREE.MeshLambertMaterial({color: color, transparent: true});
       if (!Q3D.isIE) material.side = THREE.DoubleSide;
       customPlane = new THREE.Mesh(geometry, material);
-      Q3D.application.scene.add(customPlane);
+      scene.add(customPlane);
+      app.render();
     };
 
     // Min/Max value for the plane
-    var layer = project.layers[0],
-        zMin = 0,
+    var zMin = 0,
         zMax = 9000;
+    /* TODO: [dat-gui] custom plane min/max
     if (layer.type == Q3D.LayerType.DEM) {
       zMin = layer.stats.min;
       zMax = layer.stats.max;
@@ -103,6 +76,7 @@ Q3D.gui = {
       zMin -= buffer;
       zMax += buffer;
     }
+    */
     parameters.cp.d = zMin;
 
     // Create Custom Plane folder
@@ -112,19 +86,22 @@ Q3D.gui = {
     folder.addColor(parameters.cp, 'c').name('Color').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.material.color.setStyle(value);
+      app.render();
     });
 
-    // Plane height
-    folder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Plane height').onChange(function (value) {
+    // Plane altitude
+    folder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
-      customPlane.position.z = (value + project.zShift) * project.zScale;
+      customPlane.position.z = (value + p.zShift) * p.zScale;
       customPlane.updateMatrixWorld();
+      app.render();
     });
 
     // Plane opacity
     folder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
       customPlane.material.opacity = value;
+      app.render();
     });
 
     // Enlarge plane option
@@ -133,6 +110,7 @@ Q3D.gui = {
       if (value) customPlane.scale.set(10, 10, 1);
       else customPlane.scale.set(1, 1, 1);
       customPlane.updateMatrixWorld();
+      app.render();
     });
   },
 
@@ -140,9 +118,7 @@ Q3D.gui = {
   addCommandsFolder: function () {
     var folder = this.gui.addFolder('Commands');
     if (Q3D.Controls.type == "OrbitControls") {
-      folder.add(this.parameters.cmd, 'rot').name('Auto Rotation').onChange(function (value) {
-        Q3D.application.controls.autoRotate = value;
-      });
+      folder.add(this.parameters.cmd, 'rot').name('Rotate Animation').onChange(Q3D.application.setWireframeMode);
     }
     folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode);
   },

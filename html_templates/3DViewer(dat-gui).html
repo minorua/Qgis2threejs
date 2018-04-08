@@ -41,6 +41,8 @@ and uses the following libraries:
 <script src="./threejs/three.min.js"></script>
 <script src="./Qgis2threejs.js"></script>
 ${controls}
+<script src="./dat-gui/dat.gui.min.js"></script>
+<script src="./dat-gui_panel.js"></script>
 <script>
 var option = Q3D.Options;
 ${options}
@@ -55,17 +57,12 @@ var app = Q3D.application;
 app.init(container, ${is_ortho});
 
 // load the scene
-app.loadJSONFromURL("${scenefile}");
+app.loadJSONFromURL("${scenefile}", function () {
+  Q3D.gui.init();   // initialize dat-gui panel
+});
 
 app.addEventListeners();
 app.start();
-
-</script>
-<script src="./dat-gui/dat.gui.min.js"></script>
-<script src="./dat-gui_panel.js"></script>
-<script>
-// initialize dat-gui panel
-Q3D.gui.init();
 </script>
 </body>
 </html>

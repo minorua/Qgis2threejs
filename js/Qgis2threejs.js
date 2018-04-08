@@ -403,13 +403,14 @@ limitations:
     app.scene.loadJSONObject(jsonObject);
   };
 
-  app.loadJSONFromURL = function (url) {
+  app.loadJSONFromURL = function (url, callback) {
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.responseType = "json";
     xhr.onload = function () {
       app.loadJSONObject(this.response);
+      if (callback) callback();
     };
     xhr.send(null);
 
@@ -526,14 +527,7 @@ limitations:
             app.setLabelVisibility(!app.labelVisibility);
             return;
           case 82:  // R
-            if (controls.autoRotate) {
-              controls.autoRotate = false;
-              app.stopAnimation();
-            }
-            else {
-              controls.autoRotate = true;
-              app.startAnimation();
-            }
+            app.setRotateAnimationMode(!controls.autoRotate);
             return;
           case 87:  // W
             app.setWireframeMode(!app._wireframeMode);
@@ -703,6 +697,17 @@ limitations:
     app.scene.labelRootElement.style.display = (visible) ? "block" : "none";
     app.scene.labelConnectorGroup.visible = visible;
     app.render();
+  };
+
+  app.setRotateAnimationMode = function (rotate) {
+    if (rotate) {
+      controls.autoRotate = true;
+      app.startAnimation();
+    }
+    else {
+      controls.autoRotate = false;
+      app.stopAnimation();
+    }
   };
 
   app.setWireframeMode = function (wireframe) {
@@ -1322,6 +1327,7 @@ Q3D.Materials.prototype.dispose = function () {
 Q3D.Materials.prototype.setOpacity = function (opacity) {
   var material;
   for (var i = 0, l = this.materials.length; i < l; i++) {
+    material = this.materials[i];
     material.mtl.transparent = Boolean(material.origProp.t) || (opacity < 1);
     material.mtl.opacity = opacity;
   }
@@ -1762,12 +1768,14 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 Q3D.MapLayer.prototype.setOpacity = function (opacity) {
   this.materials.setOpacity(opacity);
   this.opacity = opacity;
+  this.requestRender();
 };
 
 Q3D.MapLayer.prototype.setVisible = function (visible) {
   // if (this.visible === visible) return;
   this.visible = visible;
   this.objectGroup.visible = visible;
+  this.requestRender();
 };
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
