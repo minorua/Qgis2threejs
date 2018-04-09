@@ -6,67 +6,88 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>495</width>
-    <height>168</height>
+    <width>482</width>
+    <height>150</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Export to Web</string>
   </property>
-  <layout class="QFormLayout" name="formLayout">
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Output Directory</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLineEdit" name="lineEdit_OutputDir">
-       <property name="toolTip">
-        <string>Leave this empty to export files to temporary directory.</string>
-       </property>
-       <property name="placeholderText">
-        <string>[Temporary directory]</string>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Template</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_Browse">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox_Template">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Browse...</string>
+        <string>Output Directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLineEdit" name="lineEdit_OutputDir">
+         <property name="toolTip">
+          <string>Leave this empty to export files to temporary directory.</string>
+         </property>
+         <property name="placeholderText">
+          <string>[Temporary directory]</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_Browse">
+         <property name="text">
+          <string>Browse...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>HTML Filename</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="lineEdit_Filename">
+       <property name="text">
+        <string>index.html</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="comboBox_Template">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
+   <item>
+    <widget class="QCheckBox" name="checkBox_openPage">
      <property name="text">
-      <string>Template</string>
+      <string>Open exported page in web browser</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>HTML Filename</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <spacer name="horizontalSpacer">
@@ -86,6 +107,9 @@
        <property name="text">
         <string>Export</string>
        </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -96,23 +120,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="6" column="1">
-    <widget class="QCheckBox" name="checkBox_openPage">
-     <property name="text">
-      <string>Open exported page in web browser</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="lineEdit_Filename">
-     <property name="text">
-      <string>index.html</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>
