@@ -144,7 +144,7 @@ class Q3DView(QWebView):
   def pageLoaded(self, ok):
     self.runString("pyObj.sendData.connect(this, dataReceived);")
 
-    if self.iface.controller.settings.isOrthoCamera:
+    if self.iface.controller.settings.isOrthoCamera():
       self.runString("switchCamera(true);")
 
     # start application - enable controls

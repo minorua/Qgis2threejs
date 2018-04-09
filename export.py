@@ -131,7 +131,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
       "scenefile": "./data/{0}/scene.json".format(title),
-      "is_ortho": "true" if self.settings.isOrthoCamera else "false"
+      "is_ortho": "true" if self.settings.isOrthoCamera() else "false"
       }
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)

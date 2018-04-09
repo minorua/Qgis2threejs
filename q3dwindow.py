@@ -220,7 +220,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionGroupCamera = QActionGroup(self)
     self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
     self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
-    self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera)
+    self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
 
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
@@ -256,8 +256,8 @@ class Q3DWindow(QMainWindow):
     self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)
 
   def switchCamera(self, action):
-    self.settings.isOrthoCamera = (action == self.ui.actionOrthographic)
-    self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera else "false"))
+    self.settings.setCamera(action == self.ui.actionOrthographic)
+    self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
 
   def clearExportSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:

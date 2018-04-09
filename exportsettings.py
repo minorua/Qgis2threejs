@@ -86,6 +86,7 @@ class Layer:
 class ExportSettings:
 
   WORLD = "WORLD"
+  CAMERA = "CAMERA"
   CONTROLS = "CTRL"
   LAYERS = "LAYERS"
 
@@ -95,9 +96,6 @@ class ExportSettings:
     self.mapSettings = None
     self.baseExtent = None
     self.crs = None
-
-    self.isOrthoCamera = False
-
     self.base64 = False
 
     # cache
@@ -105,7 +103,6 @@ class ExportSettings:
     self._templateConfig = None
 
   def clear(self):
-    self.isOrthoCamera = False
     self.data = {}
 
   def worldProperties(self):
@@ -117,6 +114,12 @@ class ExportSettings:
 
   def coordsInWGS84(self):
     return self.worldProperties().get("radioButton_WGS84", False)
+
+  def isOrthoCamera(self):
+    return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
+
+  def setCamera(self, is_ortho):
+    self.data[ExportSettings.CAMERA] = "ORTHO" if is_ortho else "PERSPECTIVE"
 
   def controls(self):
     ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
