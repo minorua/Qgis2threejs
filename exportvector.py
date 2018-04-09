@@ -40,6 +40,10 @@ def json_default(o):
 
 class VectorLayerExporter(LayerExporter):
 
+  gt2str = {QgsWkbTypes.PointGeometry: "point",
+            QgsWkbTypes.LineGeometry: "line",
+            QgsWkbTypes.PolygonGeometry: "polygon"}
+
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
     LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
@@ -76,9 +80,6 @@ class VectorLayerExporter(LayerExporter):
     layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager)
     self._layer = layer
 
-    #if noFeature:
-    #  return
-
     self.hasLabel = layer.hasLabel()
     self.clipGeom = None
 
@@ -99,35 +100,7 @@ class VectorLayerExporter(LayerExporter):
 
     # materials
     for feat in self.features:
-      #if self.isCancelled:
-      #  break
-
       feat.material = self.prop.objType.material(self.settings, layer, feat)
-
-    gt2str = {
-      QgsWkbTypes.PointGeometry: "point",
-      QgsWkbTypes.LineGeometry: "line",
-      QgsWkbTypes.PolygonGeometry: "polygon"
-      }
-
-    # properties
-    p = {
-      "type": gt2str.get(mapLayer.geometryType()),
-      "objType": self.prop.objType.name,
-      "name": self.layer.name,
-      "queryable": 1,
-      "visible": self.layer.visible
-      }
-
-    if layer.writeAttrs:
-      p["propertyNames"] = layer.fieldNames
-
-    writeAttrs = properties.get("checkBox_ExportAttrs", False)
-    labelAttrIndex = properties.get("comboBox_Label")
-    if writeAttrs and labelAttrIndex is not None:
-      widgetValues = properties.get("labelHeightWidget", {})
-      p["label"] = {"index": labelAttrIndex,
-                    "relative": widgetValues.get("comboData", 0) == 1}
 
     data = {}
     data["materials"] = self.materialManager.buildAll(self.imageManager, base64=self.settings.base64)
@@ -138,13 +111,29 @@ class VectorLayerExporter(LayerExporter):
     d = {
       "type": "layer",
       "id": self.layer.jsLayerId,
-      "properties": p,
+      "properties": self.layerProperties(),
       "data": data
       }
 
     if debug_mode:
       d["PROPERTIES"] = properties
     return d
+
+  def layerProperties(self):
+    p = LayerExporter.layerProperties(self)
+    p["type"] = self.gt2str.get(self.layer.mapLayer.geometryType())
+    p["objType"] = self.prop.objType.name
+
+    if self._layer.writeAttrs:
+      p["propertyNames"] = self._layer.fieldNames
+
+      if self._layer.labelAttrIndex is not None:
+        p["label"] = {"index": self._layer.labelAttrIndex,
+                      "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
+
+    # object-type-specific properties
+    #p.update(self.prop.objType.layerProperties(self.settings, self))
+    return p
 
   def blocks(self):
     index = 0
@@ -232,13 +221,11 @@ class Feature:
 
   def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
     """demSize: grid size of the DEM layer which polygons overlay"""
-
     geom = self.geom
     rotation = baseExtent.rotation()
 
     if demProvider:
       if self.layerProp.objType.name == "Overlay":
-        #TODO: [Polygon - Overlay] rotated map support
         center = baseExtent.center()
         half_width, half_height = baseExtent.width() / 2, baseExtent.height() / 2
         xmin, ymin = center.x() - half_width, center.y() - half_height
@@ -282,26 +269,15 @@ class Feature:
       return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
 
 
-class Layer:
-
-  def __init__(self, settings, layer, prop):
-    self.settings = settings
-    self.layer = layer
-    self.prop = prop
-
-    self.name = layer.name() if layer else "no title"
-
-  def layerObject(self):
-    return {"q": 1,              #queryable
-            "name": self.name}
-
-
-class VectorLayer(Layer):
+class VectorLayer:
 
   geomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry, QgsWkbTypes.LineGeometry: LineGeometry, QgsWkbTypes.PolygonGeometry: PolygonGeometry}
 
   def __init__(self, settings, layer, prop, materialManager):
-    Layer.__init__(self, settings, layer, prop)
+    self.settings = settings
+    self.layer = layer
+    self.prop = prop
+    self.name = layer.name() if layer else "no title"
     self.materialManager = materialManager
 
     self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
@@ -309,9 +285,8 @@ class VectorLayer(Layer):
     self.geomClass = self.geomType2Class.get(self.geomType)
 
     # attributes
-    properties = prop.properties
-    self.writeAttrs = properties.get("checkBox_ExportAttrs", False)
-    self.labelAttrIndex = properties.get("comboBox_Label", None)
+    self.writeAttrs = prop.properties.get("checkBox_ExportAttrs", False)
+    self.labelAttrIndex = prop.properties.get("comboBox_Label", None)
     self.fieldIndices = []
     self.fieldNames = []
 
@@ -323,27 +298,6 @@ class VectorLayer(Layer):
 
   def hasLabel(self):
     return bool(self.labelAttrIndex is not None)
-
-  def layerObject(self):
-    """layer properties"""
-    mapTo3d = self.settings.mapTo3d()
-    prop = self.prop
-    properties = prop.properties
-
-    obj = Layer.layerObject(self)
-    obj["type"] = {QgsWkbTypes.PointGeometry: "point", QgsWkbTypes.LineGeometry: "line", QgsWkbTypes.PolygonGeometry: "polygon"}.get(self.geomType, "")
-    obj["objType"] = prop.objType.name
-
-    if self.hasLabel():
-      widgetValues = properties.get("labelHeightWidget", {})
-      obj["l"] = {"i": self.labelAttrIndex,
-                  "ht": int(widgetValues.get("comboData", 0)),
-                  "v": float(widgetValues.get("editText", 0)) * mapTo3d.multiplierZ}
-
-    # object-type-specific properties
-    obj.update(self.prop.objType.layerProperties(self.settings, self))
-
-    return obj
 
   def features(self, request=None):
     mapTo3d = self.settings.mapTo3d()

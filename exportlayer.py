@@ -37,6 +37,11 @@ class LayerExporter:
   def build(self):
     pass
 
+  def layerProperties(self):
+    return {"name": self.layer.name,
+            "queryable": 1,
+            "visible": self.layer.visible}
+
 
 def dummyProgress(progress=None, statusMsg=None):
   pass

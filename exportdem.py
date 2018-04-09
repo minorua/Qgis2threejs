@@ -43,18 +43,10 @@ class DEMLayerExporter(LayerExporter):
     if self.provider is None:
       return None
 
-    p = {
-      "type": "dem",
-      "name": self.layer.name,
-      "queryable": 1,
-      "shading": self.properties.get("checkBox_Shading", True),
-      "visible": self.layer.visible
-      }
-
     d = {
       "type": "layer",
       "id": self.layer.jsLayerId,
-      "properties": p
+      "properties": self.layerProperties()
       }
 
     if debug_mode:
@@ -67,6 +59,12 @@ class DEMLayerExporter(LayerExporter):
       d["data"] = []
 
     return d
+
+  def layerProperties(self):
+    p = LayerExporter.layerProperties(self)
+    p["type"] = "dem"
+    p["shading"] = self.properties.get("checkBox_Shading", True)
+    return p
 
   def blocks(self):
     mapTo3d = self.settings.mapTo3d()
