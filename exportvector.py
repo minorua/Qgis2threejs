@@ -311,12 +311,15 @@ class VectorLayer(Layer):
     # attributes
     properties = prop.properties
     self.writeAttrs = properties.get("checkBox_ExportAttrs", False)
-    self.fieldNames = None
-    self.labelAttrIndex = None
+    self.labelAttrIndex = properties.get("comboBox_Label", None)
+    self.fieldIndices = []
+    self.fieldNames = []
 
     if self.writeAttrs:
-      self.fieldNames = [layer.attributeDisplayName(i) for i in layer.attributeList()]
-      self.labelAttrIndex = properties.get("comboBox_Label", None)
+      for index, field in enumerate(layer.fields()):
+        if field.editorWidgetSetup().type() != "Hidden":
+          self.fieldIndices.append(index)
+          self.fieldNames.append(field.displayName())
 
   def hasLabel(self):
     return bool(self.labelAttrIndex is not None)
@@ -350,6 +353,7 @@ class VectorLayer(Layer):
     prop = self.prop
 
     useZ = prop.useZ()
+    fields = self.layer.fields()
 
     feats = []
     for f in self.layer.getFeatures(request or QgsFeatureRequest()):
@@ -377,7 +381,7 @@ class VectorLayer(Layer):
 
       attrs = labelHeight = None
       if self.writeAttrs:
-        attrs = f.attributes()
+        attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
 
         if self.hasLabel():
           labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
