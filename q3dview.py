@@ -24,8 +24,13 @@ import os
 #from PyQt5.Qt import *
 from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot, qDebug
 from PyQt5.QtGui import QImage, QPainter, QPalette
-from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+try:
+  from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+except ModuleNotFoundError:
+  if os.name == "posix":
+    QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
+  raise
 
 from .conf import debug_mode
 from .qgis2threejstools import logMessage, pluginDir
