@@ -361,8 +361,6 @@ class PropertiesDialog(QDialog):
 
   def setLayer(self, layer):
     self.layer = layer
-    self.setWindowTitle("Layer Properties - {0} (Qgis2threejs)".format(layer.name))
-
     if layer.geomType == q3dconst.TYPE_DEM:
       self.page = DEMPropertyPage(self, self)
       self.page.setup(layer)
@@ -386,11 +384,13 @@ class PropertiesDialog(QDialog):
         self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
   def showLayerProperties(self, layer):
+    self.setWindowTitle("Layer Properties - {0}".format(layer.name))
     self.setLayer(layer)
     self.show()
     self.exec_()
 
   def showWorldProperties(self):
+    self.setWindowTitle("World Settings")
     self.page = WorldPropertyPage(self, self)
     self.page.setup(self.settings.worldProperties())
     self.ui.scrollArea.setWidget(self.page)
