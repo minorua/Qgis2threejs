@@ -51,10 +51,9 @@ ${scripts}
 <script>
 if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
 
-var container = document.getElementById("webgl");
-// initialize application
-var app = Q3D.application;
-app.init(container, ${is_ortho});
+var app = Q3D.application,
+    container = document.getElementById("webgl");
+app.init(container, ${is_ortho});   // initialize application
 
 // set custom plane z range when all objects have been loaded
 app.addEventListener("objectsLoaded", function () {
@@ -69,8 +68,8 @@ app.loadJSONFromURL("${scenefile}", function () {
   Q3D.gui.init();   // initialize dat-gui panel
 });
 
-app.addEventListeners();
 app.start();
+
 </script>
 </body>
 </html>

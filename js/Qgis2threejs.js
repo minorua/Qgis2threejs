@@ -342,8 +342,7 @@ limitations:
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // orbit controls
-    app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
-    var controls = app.controls;
+    var controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
     controls.enableKeys = false;
 
     var offset = new THREE.Vector3();
@@ -377,6 +376,7 @@ limitations:
       controls.object.lookAt(controls.target);
     };
 
+    app.controls = controls;
     controls.update();
 
     app.labelVisibility = Q3D.Options.label.visible;
@@ -400,6 +400,20 @@ limitations:
 
     app.modelBuilders = [];
     app._wireframeMode = false;
+
+    // add event listeners
+    window.addEventListener("keydown", app.eventListener.keydown);
+    window.addEventListener("resize", app.eventListener.resize);
+
+    app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
+    app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
+
+    controls.addEventListener("change", function (event) {
+      app.render();
+    });
+
+    var e = Q3D.$("closebtn");
+    if (e) e.addEventListener("click", app.closePopup);
   };
 
   app.parseUrlParameters = function () {
@@ -444,21 +458,6 @@ limitations:
         console.error("An error happened");
       });
     */
-  };
-
-  app.addEventListeners = function () {
-    window.addEventListener("keydown", app.eventListener.keydown);
-    window.addEventListener("resize", app.eventListener.resize);
-
-    app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
-    app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
-
-    app.controls.addEventListener("change", function (event) {
-      app.render();
-    });
-
-    var e = Q3D.$("closebtn");
-    if (e) e.addEventListener("click", app.closePopup);
   };
 
   app.mouseDownPoint = new THREE.Vector2();

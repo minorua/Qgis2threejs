@@ -47,19 +47,15 @@ ${options}
 ${scripts}
 <script>
 if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
-
-var container = document.getElementById("webgl");
-// initialize application
-var app = Q3D.application;
-app.init(container, ${is_ortho});
-
-// load the scene
-app.loadJSONFromURL("${scenefile}");
-
-document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 if ("hidebutton" in app.urlParams) document.getElementById("infobtn").style.display = "none";
 
-app.addEventListeners();
+var app = Q3D.application,
+    container = document.getElementById("webgl");
+
+document.getElementById("infobtn").onclick = app.showInfo.bind(app);
+
+app.init(container, ${is_ortho});       // initialize application
+app.loadJSONFromURL("${scenefile}");    // load the scene
 app.start();
 
 </script>
