@@ -123,8 +123,8 @@ class Ui_Q3DWindow(object):
         self.actionLayer_Panel.setChecked(True)
         self.actionLayer_Panel.setEnabled(False)
         self.actionLayer_Panel.setObjectName("actionLayer_Panel")
-        self.actionClose_Live_Exporter = QtWidgets.QAction(Q3DWindow)
-        self.actionClose_Live_Exporter.setObjectName("actionClose_Live_Exporter")
+        self.actionCloseExporter = QtWidgets.QAction(Q3DWindow)
+        self.actionCloseExporter.setObjectName("actionCloseExporter")
         self.actionPluginSettings = QtWidgets.QAction(Q3DWindow)
         self.actionPluginSettings.setObjectName("actionPluginSettings")
         self.actionHelp = QtWidgets.QAction(Q3DWindow)
@@ -164,7 +164,7 @@ class Ui_Q3DWindow(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionPluginSettings)
         self.menuFile.addSeparator()
-        self.menuFile.addAction(self.actionClose_Live_Exporter)
+        self.menuFile.addAction(self.actionCloseExporter)
         self.menuHelp.addAction(self.actionHelp)
         self.menuHelp.addSeparator()
         self.menuHelp.addAction(self.actionHomePage)
@@ -177,7 +177,7 @@ class Ui_Q3DWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(Q3DWindow)
-        self.actionClose_Live_Exporter.triggered.connect(Q3DWindow.close)
+        self.actionCloseExporter.triggered.connect(Q3DWindow.close)
         QtCore.QMetaObject.connectSlotsByName(Q3DWindow)
 
     def retranslateUi(self, Q3DWindow):
@@ -207,7 +207,7 @@ class Ui_Q3DWindow(object):
         self.actionResetCameraPosition.setShortcut(_translate("Q3DWindow", "Shift+R"))
         self.actionOrbit.setText(_translate("Q3DWindow", "Orbit"))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
-        self.actionClose_Live_Exporter.setText(_translate("Q3DWindow", "E&xit Exporter"))
+        self.actionCloseExporter.setText(_translate("Q3DWindow", "Close Exporter"))
         self.actionPluginSettings.setText(_translate("Q3DWindow", "Plugin Settings.."))
         self.actionHelp.setText(_translate("Q3DWindow", "&Help"))
         self.actionHomePage.setText(_translate("Q3DWindow", "Plugin Home Page"))

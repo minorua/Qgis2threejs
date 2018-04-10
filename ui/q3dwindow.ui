@@ -91,7 +91,7 @@
     <addaction name="separator"/>
     <addaction name="actionPluginSettings"/>
     <addaction name="separator"/>
-    <addaction name="actionClose_Live_Exporter"/>
+    <addaction name="actionCloseExporter"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -282,9 +282,9 @@
     <string>Layer Panel</string>
    </property>
   </action>
-  <action name="actionClose_Live_Exporter">
+  <action name="actionCloseExporter">
    <property name="text">
-    <string>E&amp;xit Exporter</string>
+    <string>Close Exporter</string>
    </property>
   </action>
   <action name="actionPluginSettings">
@@ -347,7 +347,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionClose_Live_Exporter</sender>
+   <sender>actionCloseExporter</sender>
    <signal>triggered()</signal>
    <receiver>Q3DWindow</receiver>
    <slot>close()</slot>
