@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-25 16:45+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:2
+msgid "Programmatic Export Using Python"
+msgstr "Pythonを用いたエクスポート"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:4
+msgid ""
+"Do you want to export many scenes to web? You can do it programmatically "
+"using Python!"
+msgstr "多くのシーンをWebへエクスポートしたいですか? Pythonを使えばプログラマティックにエクスポートをすることができます!"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:8
+msgid "Step 1"
+msgstr "ステップ 1"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:10
+msgid ""
+"You need to prepare an export settings file. The export settings contains "
+"various items, so you might want to create the settings file using the "
+"plugin dialog."
+msgstr ""
+"エクスポート設定ファイルを準備します。エクスポート設定には多くの項目があるのでプラグインのダイアログを用いて設定ファイルを作成するのがよいでしょう。"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:14
+msgid "Procedure:"
+msgstr "手順:"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:18
+msgid "Configure the export settings."
+msgstr "エクスポート設定を行う。"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:19
+msgid ""
+"Click the Run button to see the export on the web browser and check that the"
+" the settings are good."
+msgstr "RunボタンをクリックしてWebブラウザで出力を見ます。設定が好ましいかどうかチェックして下さい。"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:21
+msgid ""
+"Open the plugin dialog again. Click the settings button at the bottom-left "
+"corner, and then save the export settings to a file (file extension is "
+"``.qto3settings``)."
+msgstr ""
+"プラグインダイアログを再度開きます。左下の設定ボタンをクリックしてエクスポート設定をファイルに保存します (拡張子は  "
+"``.qto3settings`` )。"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:26
+msgid "Step 2"
+msgstr "ステップ2"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:28
+msgid ""
+"You are ready to play with Python. Let's open the QGIS Python console (you "
+"need QGIS version 2.4 or later)."
+msgstr ""
+"Pythonによるエクスポートの準備ができました。QGIS Pythonコンソールを開きましょう (バージョン2.4以降のQGISが必要です)。"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:89
+msgid "Exported scene examples:"
+msgstr "エクスポートされたシーンの例:"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:91
+msgid ""
+"`Kyoto <https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Kyoto.html>`__, `Osaka "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Osaka.html>`__, `Nara "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Nara.html>`__, `Ehime "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Ehime.html>`__"
+msgstr ""
+"`京都 <https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Kyoto.html>`__, `大阪 "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Osaka.html>`__, `奈良 "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Nara.html>`__, `愛媛 "
+"<https://dl.dropboxusercontent.com/u/21526091/qgis-"
+"plugins/samples/python_export/pref_offices/Ehime.html>`__"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:96
+msgid ""
+"Sources: Geospatial Information Authority of Japan. `GSI Tiles "
+"<http://portal.cyberjapan.jp/help/development/>`__ (Orthophoto and elevation"
+" tile)"
+msgstr ""
+"国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+"(写真と標高タイル)を用いて作成しました"
+
+#: ..\..\source\ProgrammaticExportUsingPython.rst:16
+msgid ""
+"Open a project and click the Qgis2threejs icon in the web tool bar to open "
+"the plugin dialog."
+msgstr "プロジェクトを開き、WebツールバーのQgis2threejsアイコンをクリックしてプラグインダイアログを開きます。"
+
+#~ msgid "**This feature will be added in version 1.4**"
+#~ msgstr "**この機能はバージョン1.4で追加されます**"
