@@ -53,11 +53,12 @@ class ExportToWebDialog(QDialog):
       if desc:
         cbox.setItemData(i, desc, Qt.ToolTipRole)
 
-    templatePath = settings.get("Template")
-    if templatePath:
-      index = cbox.findData(templatePath)
-      if index != -1:
-        cbox.setCurrentIndex(index)
+    index = cbox.findData(settings.template())
+    if index != -1:
+      cbox.setCurrentIndex(index)
+
+    # output directory
+    self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
 
     self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
     self.ui.pushButton_Export.clicked.connect(self.exportClicked)
