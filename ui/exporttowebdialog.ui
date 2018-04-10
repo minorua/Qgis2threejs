@@ -123,6 +123,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_Template</tabstop>
+  <tabstop>lineEdit_OutputDir</tabstop>
+  <tabstop>pushButton_Browse</tabstop>
+  <tabstop>lineEdit_Filename</tabstop>
+  <tabstop>checkBox_openPage</tabstop>
+  <tabstop>pushButton_Export</tabstop>
+  <tabstop>pushButton_Cancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

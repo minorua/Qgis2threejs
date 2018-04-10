@@ -65,6 +65,12 @@ class Ui_ExportToWebDialog(object):
 
         self.retranslateUi(ExportToWebDialog)
         QtCore.QMetaObject.connectSlotsByName(ExportToWebDialog)
+        ExportToWebDialog.setTabOrder(self.comboBox_Template, self.lineEdit_OutputDir)
+        ExportToWebDialog.setTabOrder(self.lineEdit_OutputDir, self.pushButton_Browse)
+        ExportToWebDialog.setTabOrder(self.pushButton_Browse, self.lineEdit_Filename)
+        ExportToWebDialog.setTabOrder(self.lineEdit_Filename, self.checkBox_openPage)
+        ExportToWebDialog.setTabOrder(self.checkBox_openPage, self.pushButton_Export)
+        ExportToWebDialog.setTabOrder(self.pushButton_Export, self.pushButton_Cancel)
 
     def retranslateUi(self, ExportToWebDialog):
         _translate = QtCore.QCoreApplication.translate

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>297</width>
-    <height>328</height>
+    <width>292</width>
+    <height>309</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -180,6 +180,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_BaseSize</tabstop>
+  <tabstop>lineEdit_zFactor</tabstop>
+  <tabstop>lineEdit_zShift</tabstop>
+  <tabstop>radioButton_Sky</tabstop>
+  <tabstop>radioButton_Color</tabstop>
+  <tabstop>lineEdit_Color</tabstop>
+  <tabstop>toolButton_Color</tabstop>
+  <tabstop>radioButton_ProjectCRS</tabstop>
+  <tabstop>radioButton_WGS84</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

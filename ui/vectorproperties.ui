@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>354</width>
-    <height>481</height>
+    <width>321</width>
+    <height>374</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -351,6 +351,18 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>comboBox_ObjectType</tabstop>
+  <tabstop>radioButton_zValue</tabstop>
+  <tabstop>radioButton_mValue</tabstop>
+  <tabstop>radioButton_Expression</tabstop>
+  <tabstop>comboBox_altitudeMode</tabstop>
+  <tabstop>radioButton_AllFeatures</tabstop>
+  <tabstop>radioButton_IntersectingFeatures</tabstop>
+  <tabstop>checkBox_Clip</tabstop>
+  <tabstop>checkBox_ExportAttrs</tabstop>
+  <tabstop>comboBox_Label</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

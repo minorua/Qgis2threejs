@@ -452,6 +452,29 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>horizontalSlider_DEMSize</tabstop>
+  <tabstop>checkBox_Surroundings</tabstop>
+  <tabstop>spinBox_Size</tabstop>
+  <tabstop>spinBox_Roughening</tabstop>
+  <tabstop>checkBox_Clip</tabstop>
+  <tabstop>comboBox_ClipLayer</tabstop>
+  <tabstop>radioButton_MapCanvas</tabstop>
+  <tabstop>radioButton_LayerImage</tabstop>
+  <tabstop>toolButton_SelectLayer</tabstop>
+  <tabstop>radioButton_ImageFile</tabstop>
+  <tabstop>lineEdit_ImageFile</tabstop>
+  <tabstop>toolButton_ImageFile</tabstop>
+  <tabstop>radioButton_SolidColor</tabstop>
+  <tabstop>lineEdit_Color</tabstop>
+  <tabstop>toolButton_Color</tabstop>
+  <tabstop>comboBox_TextureSize</tabstop>
+  <tabstop>spinBox_Opacity</tabstop>
+  <tabstop>checkBox_TransparentBackground</tabstop>
+  <tabstop>checkBox_Shading</tabstop>
+  <tabstop>checkBox_Sides</tabstop>
+  <tabstop>checkBox_Frame</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

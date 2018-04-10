@@ -32,6 +32,7 @@ class Ui_SettingsDialog(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.verticalLayout_3.addWidget(self.groupBox)
         self.groupBox_2 = QtWidgets.QGroupBox(SettingsDialog)
+        self.groupBox_2.setEnabled(False)
         self.groupBox_2.setObjectName("groupBox_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_2)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -64,6 +65,10 @@ class Ui_SettingsDialog(object):
         self.buttonBox.accepted.connect(SettingsDialog.accept)
         self.buttonBox.rejected.connect(SettingsDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(SettingsDialog)
+        SettingsDialog.setTabOrder(self.lineEdit_BrowserPath, self.pushButton_Browse)
+        SettingsDialog.setTabOrder(self.pushButton_Browse, self.tableWidget_Plugins)
+        SettingsDialog.setTabOrder(self.tableWidget_Plugins, self.textBrowser_Plugin)
+        SettingsDialog.setTabOrder(self.textBrowser_Plugin, self.buttonBox)
 
     def retranslateUi(self, SettingsDialog):
         _translate = QtCore.QCoreApplication.translate
@@ -71,6 +76,6 @@ class Ui_SettingsDialog(object):
         self.groupBox.setTitle(_translate("SettingsDialog", "General"))
         self.label.setText(_translate("SettingsDialog", "Web browser path"))
         self.pushButton_Browse.setText(_translate("SettingsDialog", "Browse..."))
-        self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features (Plugins)"))
+        self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features"))
         self.label_2.setText(_translate("SettingsDialog", "Description"))
 

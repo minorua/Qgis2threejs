@@ -46,8 +46,11 @@
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_2">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
-      <string>Optional Features (Plugins)</string>
+      <string>Optional Features</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -95,6 +98,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_BrowserPath</tabstop>
+  <tabstop>pushButton_Browse</tabstop>
+  <tabstop>tableWidget_Plugins</tabstop>
+  <tabstop>textBrowser_Plugin</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

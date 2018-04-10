@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName("VectorPropertiesWidget")
-        VectorPropertiesWidget.resize(354, 481)
+        VectorPropertiesWidget.resize(321, 374)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -146,6 +146,15 @@ class Ui_VectorPropertiesWidget(object):
         self.retranslateUi(VectorPropertiesWidget)
         self.radioButton_IntersectingFeatures.toggled['bool'].connect(self.checkBox_Clip.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)
+        VectorPropertiesWidget.setTabOrder(self.comboBox_ObjectType, self.radioButton_zValue)
+        VectorPropertiesWidget.setTabOrder(self.radioButton_zValue, self.radioButton_mValue)
+        VectorPropertiesWidget.setTabOrder(self.radioButton_mValue, self.radioButton_Expression)
+        VectorPropertiesWidget.setTabOrder(self.radioButton_Expression, self.comboBox_altitudeMode)
+        VectorPropertiesWidget.setTabOrder(self.comboBox_altitudeMode, self.radioButton_AllFeatures)
+        VectorPropertiesWidget.setTabOrder(self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures)
+        VectorPropertiesWidget.setTabOrder(self.radioButton_IntersectingFeatures, self.checkBox_Clip)
+        VectorPropertiesWidget.setTabOrder(self.checkBox_Clip, self.checkBox_ExportAttrs)
+        VectorPropertiesWidget.setTabOrder(self.checkBox_ExportAttrs, self.comboBox_Label)
 
     def retranslateUi(self, VectorPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate

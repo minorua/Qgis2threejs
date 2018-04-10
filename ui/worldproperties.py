@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WorldPropertiesWidget(object):
     def setupUi(self, WorldPropertiesWidget):
         WorldPropertiesWidget.setObjectName("WorldPropertiesWidget")
-        WorldPropertiesWidget.resize(297, 328)
+        WorldPropertiesWidget.resize(292, 309)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(WorldPropertiesWidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.groupBox_1 = QtWidgets.QGroupBox(WorldPropertiesWidget)
@@ -90,6 +90,14 @@ class Ui_WorldPropertiesWidget(object):
         self.radioButton_Color.toggled['bool'].connect(self.lineEdit_Color.setEnabled)
         self.radioButton_Color.toggled['bool'].connect(self.toolButton_Color.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(WorldPropertiesWidget)
+        WorldPropertiesWidget.setTabOrder(self.lineEdit_BaseSize, self.lineEdit_zFactor)
+        WorldPropertiesWidget.setTabOrder(self.lineEdit_zFactor, self.lineEdit_zShift)
+        WorldPropertiesWidget.setTabOrder(self.lineEdit_zShift, self.radioButton_Sky)
+        WorldPropertiesWidget.setTabOrder(self.radioButton_Sky, self.radioButton_Color)
+        WorldPropertiesWidget.setTabOrder(self.radioButton_Color, self.lineEdit_Color)
+        WorldPropertiesWidget.setTabOrder(self.lineEdit_Color, self.toolButton_Color)
+        WorldPropertiesWidget.setTabOrder(self.toolButton_Color, self.radioButton_ProjectCRS)
+        WorldPropertiesWidget.setTabOrder(self.radioButton_ProjectCRS, self.radioButton_WGS84)
 
     def retranslateUi(self, WorldPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate
