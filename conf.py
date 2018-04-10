@@ -23,23 +23,15 @@ debug_mode = 1
   # 0. no debug info
   # 1. JS console, qDebug
   # 2. JS console, qDebug, log file, "debug" element
-live_in_another_process = False
 
-class DefaultSettings:
 
-  def __init__(self):
-    # template
-    self.template = "3DViewer(dat-gui).html"
+class def_vals:
 
-    # world
-    self.baseSize = 100
-    self.zExaggeration = 1.0
-    self.zShift = 0
+  template = "3DViewer.html"
 
-    # controls
-    self.controls = "OrbitControls.js"    # last selected one has priority
+  # world
+  baseSize = 100
+  zExaggeration = 1.0
+  zShift = 0
 
-  def __getattr__(self, name):
-    raise AttributeError
-
-def_vals = DefaultSettings()
+  controls = "OrbitControls.js"    # last selected one has priority
