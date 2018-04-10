@@ -5,8 +5,7 @@
 # add OSGeo4W/bin to PATH
 export PATH=$PATH:/c/OSGeo4W/bin
 
-p=`pwd`
-PLUGINNAME=`basename ${p}`
+PLUGINNAME=Qgis2threejs
 echo ${PLUGINNAME} release process started
 
 # clean up
@@ -15,7 +14,7 @@ rm -f ${PLUGINNAME}.zip
 
 # version check
 echo [Check] js/Qgis2threejs.js version updated?
-echo [Check] plugin_version in settings.py updated?
+echo [Check] plugin_version in conf.py updated?
 echo [Check] metadata.txt version updated?
 echo -n [Check] docs/conf.py version updated? [y/n]...
 read ret
@@ -26,7 +25,7 @@ git branch -D release.sh > /dev/null 2>&1
 git checkout -b release.sh
 
 echo [Task] set debug_mode=0
-sed -i 's/debug_mode = 1/debug_mode = 0/g' *.py
+sed -i 's/debug_mode = ./debug_mode = 0/g' conf.py
 
 # echo [Task] translation release
 # lrelease i18n/*.ts
