@@ -28,8 +28,6 @@ from PyQt5.QtGui import QIcon
 from qgis.core import QgsProject
 
 from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
-from .q3dviewercontroller import Q3DViewerController
-from .q3dwindow import Q3DWindow
 
 
 class Qgis2threejs:
@@ -59,13 +57,12 @@ class Qgis2threejs:
     icon = QIcon(pluginDir("icon.png"))
     self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejsExporter")
-
     self.actionNP = QAction(icon, "Qgis2threejs Exporter (No Preview)", self.iface.mainWindow())
     self.actionNP.setObjectName("Qgis2threejsExporterNoPreview")
 
-    # connect the action to the launchExporter method
-    self.action.triggered.connect(self.launchExporter)
-    self.actionNP.triggered.connect(self.launchExporterWithPreviewDisabled)
+    # connect the action to the openExporter method
+    self.action.triggered.connect(self.openExporter)
+    self.actionNP.triggered.connect(self.openExporterWithPreviewDisabled)
 
     # Add toolbar button and web menu items
     name = "Qgis2threejs"
@@ -83,12 +80,15 @@ class Qgis2threejs:
     # remove temporary output directory
     removeTemporaryOutputDir()
 
-  def launchExporter(self, _, preview=True):
+  def openExporter(self, _, preview=True):
+    from .q3dviewercontroller import Q3DViewerController
+    from .q3dwindow import Q3DWindow
+
     if self.controller is None:
       self.controller = Q3DViewerController(self.iface)
 
     if self.controller.iface is None:
-      logMessage("Launching Qgis2threejs Exporter...")
+      logMessage("Opening Qgis2threejs Exporter...")
 
       proj_path = QgsProject.instance().fileName()
       if proj_path != self.currentProjectPath:
@@ -101,8 +101,7 @@ class Qgis2threejs:
       self.liveExporter.show()
     else:
       logMessage("Qgis2threejs Exporter is already running.")
-
       self.liveExporter.activateWindow()
 
-  def launchExporterWithPreviewDisabled(self):
-    self.launchExporter(False, False)
+  def openExporterWithPreviewDisabled(self):
+    self.openExporter(False, False)
