@@ -77,8 +77,8 @@ class Q3DViewerInterface:
 
     self.webView.bridge.sendData.emit(QVariant(obj))
 
-  def runString(self, string):
-    self.webView.runString(string)
+  def runString(self, string, message=""):
+    self.webView.runString(string, message)
 
   def abort(self):
     self.controller.abort()
@@ -285,8 +285,8 @@ class Q3DWindow(QMainWindow):
   def runInputBoxString(self):
     self.runString(self.ui.lineEditInputBox.text())
 
-  def runString(self, string):
-    self.ui.webView.runString(string)
+  def runString(self, string, message=""):
+    self.ui.webView.runString(string, message)
 
   def exportToWeb(self):
     dialog = ExportToWebDialog(self, self.qgisIface, self.settings)

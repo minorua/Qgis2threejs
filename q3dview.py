@@ -169,14 +169,14 @@ class Q3DView(QWebView):
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")
 
-  def runString(self, string):
+  def runString(self, string, message=""):
     if debug_mode:
-      self.wnd.printConsoleMessage(string, sourceID="runString")
-      qDebug("runString: {}\n".format(string))
+      self.wnd.printConsoleMessage(message if message else string, sourceID="runString")
+      qDebug("runString: {}\n".format(message if message else string))
 
       if debug_mode == 2:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._page.logfile.write("{} runString: {}\n".format(now, string))
+        self._page.logfile.write("{} runString: {}\n".format(now, message if message else string))
         self._page.logfile.flush()
 
     return self._page.mainFrame().evaluateJavaScript(string)
