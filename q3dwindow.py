@@ -89,7 +89,7 @@ class Q3DViewerInterface:
   def exportLayer(self, layer):
     self.controller.exportLayer(layer)
 
-  def updateScene(self, base64):
+  def updateScene(self, base64=False):
     if base64:
       self.controller.settings.base64 = True
     self.controller.updateScene(True)

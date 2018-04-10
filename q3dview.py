@@ -149,19 +149,14 @@ class Q3DView(QWebView):
   def pageLoaded(self, ok):
     self.runString("pyObj.sendData.connect(this, dataReceived);")
 
-    if self.iface.controller.settings.isOrthoCamera():
-      self.runString("switchCamera(true);")
-
     # start application - enable controls
     self.iface.startApplication()
 
-    if self._enabled:
-      # create scene and layers
-      self.iface.exportScene()
+    if self.iface.controller.settings.isOrthoCamera():
+      self.runString("switchCamera(true);")
 
-      for layer in self.iface.controller.settings.getLayerList():
-        if layer.visible:
-          self.iface.exportLayer(layer)
+    if self._enabled:
+      self.iface.updateScene()
     else:
       self.iface.setPreviewEnabled(False)
 
