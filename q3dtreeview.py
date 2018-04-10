@@ -117,7 +117,7 @@ class Q3DTreeView(QTreeView):
       if layer.properties is None:
         layer.properties = self.iface.getDefaultProperties(layer)
 
-      self.iface.exportLayer(layer)
+      self.iface.updateLayer(layer)
     else:
       # remove layer objects from the scene
       obj = {

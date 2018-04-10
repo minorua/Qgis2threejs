@@ -47,7 +47,7 @@ class Q3DViewerController:
     self.iface = None
     self.previewEnabled = True
     self.aborted = False  # layer export aborted
-    self.exporting = False
+    self.updating = False
     self.layersNeedUpdate = False
 
     self.message1 = "Press ESC key to abort processing"
@@ -66,27 +66,72 @@ class Q3DViewerController:
     self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
   def abort(self):
-    if self.exporting:
+    if self.updating:
       self.iface.showMessage("Aborting processing...")
       self.aborted = True
 
-  def exportScene(self):
-    if self.iface:
-      self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
-      self.iface.loadJSONObject(self.exporter.exportScene(False))
+  def setPreviewEnabled(self, enabled):
+    if self.iface is None:
+      return
 
-  def exportLayer(self, layer):
-    self.exporting = True
+    self.previewEnabled = enabled
+    self.iface.runString("app.resume();" if enabled else "app.pause();");
+    if enabled:
+      self.updateExtent()
+      self.updateScene()
+
+  def updateScene(self, update_world=True, update_layers=True):
+    if not self.iface:
+      return
+
+    s = self.iface.controller.settings
+    self.updating = True
+    self.layersNeedUpdate = self.layersNeedUpdate or update_layers
     self.iface.showMessage(self.message1)
-    self.iface.progress(0, "Exporting {0}...".format(layer.name))
+    self.iface.progress(0, "Updating scene")
 
-    self._exportLayer(layer)
+    # export scene
+    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+    self.iface.loadJSONObject(self.exporter.exportScene(False))
 
-    self.exporting = self.aborted = False
+    if update_world:
+      # update background color
+      ws = s.worldProperties()
+      params = "{0}, 1".format(ws.get("lineEdit_Color", 0)) if ws.get("radioButton_Color") else "0, 0"
+      self.iface.runString("app.renderer.setClearColor({0});".format(params))
+
+      # coordinate display (geographic/projected)
+      if ws.get("radioButton_WGS84", False):
+        with open(pluginDir("js/proj4js/proj4.js"), "r") as f:
+          self.iface.runString(f.read())
+      else:
+        self.iface.runString("proj4 = undefined;")
+
+    if update_layers:
+      layers = s.getLayerList()
+      for idx, layer in enumerate(layers):
+        self.iface.progress(idx / len(layers) * 100, "Updating layers")
+        if layer.updated or (self.layersNeedUpdate and layer.visible):
+          if not self._updateLayer(layer):
+            break
+      self.layersNeedUpdate = False
+
+    self.updating = self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
 
-  def _exportLayer(self, layer):
+  def updateLayer(self, layer):
+    self.updating = True
+    self.iface.showMessage(self.message1)
+    self.iface.progress(0, "Exporting {0}...".format(layer.name))
+
+    self._updateLayer(layer)
+
+    self.updating = self.aborted = False
+    self.iface.progress()
+    self.iface.clearMessage()
+
+  def _updateLayer(self, layer):
     if self.iface and self.previewEnabled:
       for exporter in self.exporter.exporters(layer):
         if self.aborted:
@@ -97,50 +142,6 @@ class Q3DViewerController:
       layer.updated = False
       return True
 
-  def setPreviewEnabled(self, enabled):
-    if self.iface is None:
-      return
-
-    self.previewEnabled = enabled
-    self.iface.runString("app.resume();" if enabled else "app.pause();");
-    if enabled:
-      self.updateExtent()
-      self.updateScene(True)
-
-  def updateScene(self, update_layers=False):
-    s = self.iface.controller.settings
-    self.exporting = True
-    self.layersNeedUpdate = self.layersNeedUpdate or update_layers
-    self.iface.showMessage(self.message1)
-    self.iface.progress(0, "Updating scene")
-
-    self.exportScene()
-
-    # update background color
-    ws = s.worldProperties()
-    params = "{0}, 1".format(ws.get("lineEdit_Color", 0)) if ws.get("radioButton_Color") else "0, 0"
-    self.iface.runString("app.renderer.setClearColor({0});".format(params))
-
-    # coordinate display (geographic/projected)
-    if ws.get("radioButton_WGS84", False):
-      with open(pluginDir("js/proj4js/proj4.js"), "r") as f:
-        self.iface.runString(f.read())
-    else:
-      self.iface.runString("proj4 = undefined;")
-
-    # update layers
-    layers = s.getLayerList()
-    for idx, layer in enumerate(layers):
-      self.iface.progress(idx / len(layers) * 100, "Updating layers")
-      if layer.updated or (self.layersNeedUpdate and layer.visible):
-        if not self._exportLayer(layer):
-          break
-
-    self.layersNeedUpdate = False
-    self.exporting = self.aborted = False
-    self.iface.progress()
-    self.iface.clearMessage()
-
   def updateExtent(self):
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
@@ -149,20 +150,20 @@ class Q3DViewerController:
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
     if self.iface and self.previewEnabled:
-      self.exporting = True
+      self.updating = True
       self.iface.showMessage(self.message1)
       self.iface.progress(0, "Updating layers")
       layers = self.iface.controller.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100)
         if layer.visible:
-          if not self._exportLayer(layer):
+          if not self._updateLayer(layer):
             break
       self.layersNeedUpdate = False
-      self.exporting = self.aborted = False
+      self.updating = self.aborted = False
       self.iface.progress()
       self.iface.clearMessage()
 
   def canvasExtentChanged(self):
     self.layersNeedUpdate = True
-    self.exportScene()
+    self.updateScene(False, False)
