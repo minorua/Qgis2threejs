@@ -435,7 +435,7 @@ limitations:
 
     var onError = function (e) {
       if (location.protocol == "file:") {
-        app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki'>plugin wiki</a> for details.", "Error", true);
+        app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/BrowserSupport'>plugin wiki</a> for details.", "Error", true);
       }
     };
 
