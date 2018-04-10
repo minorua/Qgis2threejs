@@ -432,32 +432,31 @@ limitations:
 
   var _loadCounter = 0;
   app.loadJSONFromURL = function (url, callback) {
+
+    var onError = function (e) {
+      if (location.protocol == "file:") {
+        app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki'>plugin wiki</a> for details.", "Error", true);
+      }
+    };
+
     _loadCounter++;
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-      app.loadJSONObject(this.response);
-      _loadCounter--;
-      if (callback) callback();
-      if (_loadCounter == 0) dispatchEvent({type: "objectsLoaded"});
-    };
-    xhr.send(null);
-
-    /* latest three.js has THREE.FileLoader()
-    var loader = new THREE.FileLoader();
-    loader.setResponseType("json");
-    loader.load(url, app.loadJSON,    // url, onLoad
-      // onProcess
-      function (xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + "% loaded");
-      },
-      // onError
-      function (xhr) {
-        console.error("An error happened");
-      });
-    */
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", url, true);
+      xhr.responseType = "json";
+      xhr.onload = function () {
+        app.loadJSONObject(this.response);
+        _loadCounter--;
+        if (callback) callback();
+        if (_loadCounter == 0) dispatchEvent({type: "objectsLoaded"});
+      };
+      xhr.onerror = onError;    // for Chrome
+      xhr.send(null);
+    }
+    catch (e){      // for IE
+      onError(e);
+    }
   };
 
   app.mouseDownPoint = new THREE.Vector2();
