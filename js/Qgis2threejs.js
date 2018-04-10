@@ -1217,7 +1217,7 @@ Q3D.Material.prototype = {
     if (m.image !== undefined) {
       var image = m.image;
       if (image.url !== undefined) {
-        opt.map = THREE.ImageUtils.loadTexture(image.url, undefined, callback);
+        opt.map = new THREE.TextureLoader().load(image.url, callback);
       }
       else if (image.object !== undefined) {    // WebKit Bridge
         opt.map = new THREE.Texture(image.object.toImageData());
