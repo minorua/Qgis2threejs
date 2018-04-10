@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ComboEditWidget(object):
     def setupUi(self, ComboEditWidget):
         ComboEditWidget.setObjectName("ComboEditWidget")
-        ComboEditWidget.resize(235, 58)
+        ComboEditWidget.resize(228, 52)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -23,7 +23,7 @@ class Ui_ComboEditWidget(object):
         self.formLayout.setContentsMargins(0, 2, 0, 2)
         self.formLayout.setObjectName("formLayout")
         self.label_1 = QtWidgets.QLabel(ComboEditWidget)
-        self.label_1.setMinimumSize(QtCore.QSize(50, 0))
+        self.label_1.setMinimumSize(QtCore.QSize(60, 0))
         self.label_1.setObjectName("label_1")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_1)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -36,7 +36,7 @@ class Ui_ComboEditWidget(object):
         self.horizontalLayout.addWidget(self.checkBox)
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
         self.label_2 = QtWidgets.QLabel(ComboEditWidget)
-        self.label_2.setMinimumSize(QtCore.QSize(50, 0))
+        self.label_2.setMinimumSize(QtCore.QSize(60, 0))
         self.label_2.setText("")
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)

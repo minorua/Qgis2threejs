@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WorldPropertiesWidget(object):
     def setupUi(self, WorldPropertiesWidget):
         WorldPropertiesWidget.setObjectName("WorldPropertiesWidget")
-        WorldPropertiesWidget.resize(292, 309)
+        WorldPropertiesWidget.resize(268, 309)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(WorldPropertiesWidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.groupBox_1 = QtWidgets.QGroupBox(WorldPropertiesWidget)
@@ -57,6 +57,7 @@ class Ui_WorldPropertiesWidget(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.radioButton_Color = QtWidgets.QRadioButton(self.groupBox_2)
+        self.radioButton_Color.setMinimumSize(QtCore.QSize(110, 0))
         self.radioButton_Color.setObjectName("radioButton_Color")
         self.horizontalLayout_2.addWidget(self.radioButton_Color)
         self.lineEdit_Color = QtWidgets.QLineEdit(self.groupBox_2)
@@ -67,8 +68,6 @@ class Ui_WorldPropertiesWidget(object):
         self.toolButton_Color.setEnabled(False)
         self.toolButton_Color.setObjectName("toolButton_Color")
         self.horizontalLayout_2.addWidget(self.toolButton_Color)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout_3.addWidget(self.groupBox_2)
         self.groupBox_3 = QtWidgets.QGroupBox(WorldPropertiesWidget)
@@ -83,8 +82,8 @@ class Ui_WorldPropertiesWidget(object):
         self.radioButton_WGS84.setObjectName("radioButton_WGS84")
         self.verticalLayout.addWidget(self.radioButton_WGS84)
         self.verticalLayout_3.addWidget(self.groupBox_3)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_3.addItem(spacerItem1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem)
 
         self.retranslateUi(WorldPropertiesWidget)
         self.radioButton_Color.toggled['bool'].connect(self.lineEdit_Color.setEnabled)
