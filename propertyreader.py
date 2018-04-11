@@ -92,7 +92,19 @@ class VectorPropertyReader:
       return None
 
     if mode == ColorWidgetFunc.EXPRESSION:
-      return self.evaluateExpression(widgetValues["editText"], f)
+      val = self.evaluateExpression(widgetValues["editText"], f)
+      try:
+        if isinstance(val, str):
+          a = val.split(",")
+          if len(a) >= 3:
+            a = [max(0, min(int(c), 255)) for c in a[:3]]
+            return "0x{:02x}{:02x}{:02x}".format(a[0], a[1], a[2])
+          return val.replace("#", "0x")
+
+        raise
+      except:
+        logMessage("Wrong color value: {}".format(val))
+        return "0"
 
     if mode == ColorWidgetFunc.RANDOM or f is None:
       if len(colorNames) == 0:
@@ -108,18 +120,19 @@ class VectorPropertyReader:
       symbol = self.layer.renderer().symbols()[0]
     else:
       sl = symbol.symbolLayer(0)
-      if sl and isBorder:
-        return sl.strokeColor().name().replace("#", "0x")
+      if sl:
+        if isBorder:
+          return sl.strokeColor().name().replace("#", "0x")
 
-      if sl and symbol.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")    #TODO: [QGIS 3]
-        if expr:
-          # data defined color
-          rgb = expr.evaluate(f, f.fields())
+        if symbol.hasDataDefinedProperties():
+          expr = sl.dataDefinedProperty("color")
+          if expr:
+            # data defined color
+            rgb = expr.evaluate(f, f.fields())
 
-          # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-          r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
-          return "0x{0:02x}{1:02x}{2:02x}".format(r, g, b)
+            # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
+            r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
+            return "0x{:02x}{:02x}{:02x}".format(r, g, b)
 
     return symbol.color().name().replace("#", "0x")
 
@@ -133,27 +146,12 @@ class VectorPropertyReader:
       except ValueError:
         return 1
 
-    alpha = None
     symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
       logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
       symbol = self.layer.renderer().symbols()[0]
-    else:
-      sl = symbol.symbolLayer(0)
-      if sl and symbol.hasDataDefinedProperties():
-        expr = sl.dataDefinedProperty("color")    #TODO: [QGIS 3]
-        if expr:
-          # data defined opacity
-          cs_rgba = expr.evaluate(f, f.fields())
-          rgba = cs_rgba.split(",")
-          if len(rgba) == 4:
-            alpha = rgba[3] / 255
-
-    if alpha is None:
-      alpha = 1         #TODO: [QGIS 3] symbol.alpha()
-                        # 'QgsMarkerSymbol' object has no attribute 'alpha'
-
-    return self.layer.opacity() * alpha    # opacity = layer_opacity * feature_opacity
+    #TODO [data defined property]
+    return self.layer.opacity() * symbol.opacity()
 
   @classmethod
   def toFloat(cls, val):
