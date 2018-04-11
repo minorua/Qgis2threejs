@@ -12,6 +12,7 @@ Array.prototype.fill = function (value) {
 
 
 var app = Q3D.application;
+app.timer = {tickCount: 0};
 
 // this is the slot connected to the signal which Bridge class object emits
 function dataReceived(jsonObject) {
@@ -19,10 +20,7 @@ function dataReceived(jsonObject) {
 }
 
 function displayFPS() {
-  app.timer = {
-    tickCount: 0,
-    last: Date.now()
-  };
+  app.timer.last = Date.now();
 
   window.setInterval(function () {
     var now = Date.now(),
