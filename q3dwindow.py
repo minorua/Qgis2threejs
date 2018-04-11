@@ -172,6 +172,7 @@ class Q3DWindow(QMainWindow):
     self.setupStatusBar(self.iface, preview)
     self.ui.treeView.setup(self.iface)
     self.ui.webView.setup(self, self.iface, isViewer, preview)
+    self.ui.dockWidgetConsole.hide()
 
     self.iface.fetchLayerList()
 
