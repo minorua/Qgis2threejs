@@ -19,15 +19,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
-
-from PyQt5.QtCore import QFile    #, QSettings, QTranslator, qVersion
+# from PyQt5.QtCore import QSettings, QTranslator, qVersion
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 
 from qgis.core import QgsProject
 
 from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
+from .q3dviewercontroller import Q3DViewerController
+from .q3dwindow import Q3DWindow
 
 
 class Qgis2threejs:
@@ -81,9 +81,6 @@ class Qgis2threejs:
     removeTemporaryOutputDir()
 
   def openExporter(self, _, preview=True):
-    from .q3dviewercontroller import Q3DViewerController
-    from .q3dwindow import Q3DWindow
-
     if self.controller is None:
       self.controller = Q3DViewerController(self.iface)
 
