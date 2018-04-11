@@ -21,7 +21,7 @@
 """
 from qgis.core import QgsWkbTypes
 
-from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, HeightWidgetFunc, LabelHeightWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from Qgis2threejs.geometry import Triangles
 
 

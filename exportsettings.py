@@ -18,7 +18,6 @@
  ***************************************************************************/
 """
 import os
-import datetime
 import json
 
 from PyQt5.QtCore import QSettings
@@ -30,7 +29,7 @@ from .pluginmanager import pluginManager
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .rotatedrect import RotatedRect
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
-from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath, temporaryOutputDir
+from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 from .vectorobject import objectTypeRegistry
 
 

@@ -35,7 +35,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .conf import def_vals
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import getLayersInProject, logMessage
-from .stylewidget import StyleWidget, LabelHeightWidgetFunc
+from .stylewidget import StyleWidget
 from . import qgis2threejstools as tools
 from .vectorobject import objectTypeRegistry
 

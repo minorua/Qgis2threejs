@@ -20,7 +20,6 @@
 """
 from qgis.core import QgsApplication
 
-from . import q3dconst
 from .export import ThreeJSExporter
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, pluginDir

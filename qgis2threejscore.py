@@ -24,7 +24,6 @@ import struct
 from math import floor
 from osgeo import gdal
 from PyQt5.QtCore import QSize
-from qgis.core import QgsMapLayer, QgsWkbTypes
 
 from .gdal2threejs import Raster
 from .geometry import Point

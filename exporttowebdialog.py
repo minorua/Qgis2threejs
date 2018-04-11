@@ -18,13 +18,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from datetime import datetime
 import os
 from PyQt5.Qt import Qt
-from PyQt5.QtCore import QDir, QSettings
+from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
-from .conf import def_vals
 from .export import ThreeJSFileExporter
 from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog

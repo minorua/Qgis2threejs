@@ -26,7 +26,7 @@ from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextU
 
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
-from .stylewidget import StyleWidget, HeightWidgetFunc, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 colorNames = []
 

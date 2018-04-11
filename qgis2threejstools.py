@@ -31,6 +31,7 @@ from qgis.core import NULL, QgsMapLayer, QgsMessageLog, QgsProject
 
 from .conf import debug_mode
 
+
 def getLayersInProject():
   layers = []
   for tLayer in QgsProject.instance().layerTreeRoot().findLayers():

@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QDir
 
-from .datamanager import ImageManager, ModelManager
+from .datamanager import ImageManager   #, ModelManager
 from .exportdem import DEMLayerExporter
 from .exportvector import VectorLayerExporter
 from . import q3dconst

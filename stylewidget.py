@@ -188,7 +188,6 @@ class HeightWidgetFunc(WidgetFuncBase):
     options = options or {}
     WidgetFuncBase.setup(self, options.get("name", "Mode"))
     self.defaultValue = options.get("defaultValue", 0)
-    layer = options.get("layer")
 
     # set up combo box
     comboBox = self.widget.comboBox

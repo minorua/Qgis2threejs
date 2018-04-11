@@ -27,7 +27,7 @@ from .conf import debug_mode
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
-from .propertyreader import DEMPropertyReader, VectorPropertyReader
+from .propertyreader import VectorPropertyReader
 from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeRegistry
 
@@ -147,7 +147,7 @@ class VectorLayerExporter(LayerExporter):
         "features": features
         }, self.pathRoot, self.urlRoot)
 
-    demProvider = demSize = None
+    demProvider = None
     if self.prop.isHeightRelativeToDEM():
       demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
 
@@ -305,8 +305,6 @@ class VectorLayer:
     baseExtentGeom = baseExtent.geometry()
     rotation = baseExtent.rotation()
     prop = self.prop
-
-    useZ = prop.useZ()
     fields = self.layer.fields()
 
     feats = []
