@@ -1451,20 +1451,12 @@ Q3D.DEMBlock.prototype = {
         geom_ba = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1);
 
     var k = w * (h - 1);
-    if (Q3D.Options.exportMode) {
-      for (i = 0; i < w; i++) {
-        geom_fr.vertices[i].y = grid_values[k + i];
-        geom_ba.vertices[i].y = grid_values[w - 1 - i];
-      }
-    }
-    else {
-      var vertices_fr = geom_fr.attributes.position.array,
-          vertices_ba = geom_ba.attributes.position.array;
+    var vertices_fr = geom_fr.attributes.position.array,
+        vertices_ba = geom_ba.attributes.position.array;
 
-      for (i = 0; i < w; i++) {
-        vertices_fr[i * 3 + 1] = grid_values[k + i];
-        vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
-      }
+    for (i = 0; i < w; i++) {
+      vertices_fr[i * 3 + 1] = grid_values[k + i];
+      vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
     }
     mesh = new THREE.Mesh(geom_fr, material);
     mesh.rotation.x = HALF_PI;
@@ -1483,20 +1475,12 @@ Q3D.DEMBlock.prototype = {
     var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
         geom_ri = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1);
 
-    if (Q3D.Options.exportMode) {
-      for (i = 0; i < h; i++) {
-        geom_le.vertices[i * 2 + 1].x = grid_values[w * i];
-        geom_ri.vertices[i * 2].x = -grid_values[w * (i + 1) - 1];
-      }
-    }
-    else {
-      var vertices_le = geom_le.attributes.position.array,
-          vertices_ri = geom_ri.attributes.position.array;
+    var vertices_le = geom_le.attributes.position.array,
+        vertices_ri = geom_ri.attributes.position.array;
 
-      for (i = 0; i < h; i++) {
-        vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
-        vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
-      }
+    for (i = 0; i < h; i++) {
+      vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
+      vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
     }
     mesh = new THREE.Mesh(geom_le, material);
     mesh.rotation.y = -HALF_PI;
