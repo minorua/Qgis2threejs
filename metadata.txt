@@ -51,7 +51,7 @@ category=Web
 homepage=https://github.com/minorua/Qgis2threejs
 tracker=https://github.com/minorua/Qgis2threejs
 repository=https://github.com/minorua/Qgis2threejs
-icon=icon.png
+icon=Qgis2threejs.png
 # experimental flag
 experimental=True
 

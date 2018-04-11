@@ -54,7 +54,7 @@ class Qgis2threejs:
 
   def initGui(self):
     # Create action that will start plugin configuration
-    icon = QIcon(pluginDir("icon.png"))
+    icon = QIcon(pluginDir("Qgis2threejs.png"))
     self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejsExporter")
     self.actionNP = QAction(icon, "Qgis2threejs Exporter (No Preview)", self.iface.mainWindow())

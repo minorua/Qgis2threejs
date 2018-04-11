@@ -68,7 +68,7 @@ class Q3DViewerInterface:
     elem = "document.getElementById('cover')"
     self.webView.runString("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
     if not enabled:
-      self.webView.runString("{}.innerHTML = '<img src=\"../icon.png\">';".format(elem))
+      self.webView.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
@@ -161,7 +161,7 @@ class Q3DWindow(QMainWindow):
     #else:
     #  self.iface = Q3DConnector(self)
 
-    self.setWindowIcon(QIcon(pluginDir("icon.png")))
+    self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
