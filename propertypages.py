@@ -557,7 +557,3 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def addStyleWidget(self, funcType=None, options=None):
     self.styleWidgets[self.styleWidgetCount].setup(funcType, options)
     self.styleWidgetCount += 1
-
-  #TODO: remove
-  def setupLabelHeightWidget(self, item_list):
-    self.labelHeightWidget.setup(options={"items": item_list})

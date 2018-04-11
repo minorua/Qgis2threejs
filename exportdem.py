@@ -149,11 +149,6 @@ class DEMBlockExporter:
     self.pathRoot = pathRoot
     self.urlRoot = urlRoot
 
-    #TODO: [Custom Plane] stats
-    #self.orig_stats = {"max": max(grid_values), "min": min(grid_values)}
-    #self.rect = QgsRectangle(offsetX - plane_width * 0.5, offsetY - plane_height * 0.5,
-    #                         offsetX + plane_width * 0.5, offsetY + plane_height * 0.5)
-
   def build(self):
     mapTo3d = self.settings.mapTo3d()
     shift = mapTo3d.verticalShift

@@ -280,7 +280,6 @@ class GeometryUtils:
 
 
 class TriangleMesh:
-  #TODO: [Overlay] rotated map support
 
   # 0 - 3
   # | / |
