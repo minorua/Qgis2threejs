@@ -103,9 +103,9 @@ class Q3DViewerController:
       # coordinate display (geographic/projected)
       if ws.get("radioButton_WGS84", False):
         with open(pluginDir("js/proj4js/proj4.js"), "r") as f:
-          self.iface.runString(f.read(), "proj4.js loaded")
+          self.iface.runString(f.read(), "// proj4.js enabled")
       else:
-        self.iface.runString("proj4 = undefined;")
+        self.iface.runString("proj4 = undefined;", "// proj4 not enabled")
 
     if update_layers:
       layers = s.getLayerList()

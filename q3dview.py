@@ -170,8 +170,8 @@ class Q3DView(QWebView):
     self.runString("app.controls.reset();")
 
   def runString(self, string, message=""):
+    self.wnd.printConsoleMessage(message if message else string, sourceID="runString")
     if debug_mode:
-      self.wnd.printConsoleMessage(message if message else string, sourceID="runString")
       qDebug("runString: {}\n".format(message if message else string))
 
       if debug_mode == 2:

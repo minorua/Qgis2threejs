@@ -285,6 +285,7 @@ class Q3DWindow(QMainWindow):
 
   def runInputBoxString(self):
     self.runString(self.ui.lineEditInputBox.text())
+    self.ui.lineEditInputBox.clear()
 
   def runString(self, string, message=""):
     self.ui.webView.runString(string, message)
