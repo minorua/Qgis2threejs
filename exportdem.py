@@ -226,7 +226,7 @@ class DEMBlockExporter:
 
     elif self.properties.get("radioButton_LayerImage", False):
       layerids = self.properties.get("layerImageIds", [])
-      mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.settings.baseExtent, opacity, transp_background)
+      mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, opacity, transp_background)
 
     elif self.properties.get("radioButton_ImageFile", False):
       filepath = self.properties.get("lineEdit_ImageFile", "")
