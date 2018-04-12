@@ -638,20 +638,24 @@ limitations:
 
     var camera = app.camera,
         camera_pos = camera.position,
+        c2t = app.controls.target.clone().sub(camera_pos),
+        c2l = new THREE.Vector3(),
         pt = new THREE.Vector3();
 
-    // make list of [connector object, distance to camera]
-    var obj_dist = [];
-    var connGroup, conn, pt0;
+    // make list of [connector object, pt, distance to camera]
+    var obj_dist = [], connGroup, conn, pt0;
     for (var i = 0, l = rootGroup.children.length; i < l; i++) {
       connGroup = rootGroup.children[i];
-      if (connGroup.visible) {
-        for (var k = 0, m = connGroup.children.length; k < m; k++) {
-          conn = connGroup.children[k];
-          pt0 = conn.geometry.vertices[0];
-          pt.set(pt0.x, pt0.z, -pt0.y);
-          obj_dist.push([conn, camera_pos.distanceTo(pt)]);
-        }
+      if (!connGroup.visible) continue;
+      for (var k = 0, m = connGroup.children.length; k < m; k++) {
+        conn = connGroup.children[k];
+        pt0 = conn.geometry.vertices[0];
+        pt.set(pt0.x, pt0.z, -pt0.y);
+
+        if (c2l.subVectors(pt, camera_pos).dot(c2t) > 0)      // label is in front
+          obj_dist.push([conn, pt0, camera_pos.distanceTo(pt)]);
+        else    // label is in back
+          conn.userData.elem.style.display = "none";
       }
     }
 
@@ -659,50 +663,39 @@ limitations:
 
     // sort label objects in descending order of distances
     obj_dist.sort(function (a, b) {
-      if (a[1] < b[1]) return 1;
-      if (a[1] > b[1]) return -1;
+      if (a[2] < b[2]) return 1;
+      if (a[2] > b[2]) return -1;
       return 0;
     });
 
     var widthHalf = app.width / 2,
         heightHalf = app.height / 2,
         autosize = Q3D.Options.label.autoSize,
-        c2t = app.controls.target.clone().sub(camera_pos),
-        c2l = new THREE.Vector3(),
-        v = new THREE.Vector3();
+        minFontSize = Q3D.Options.label.minFontSize;
 
-    var label, e, x, y, pt, dist, fontSize;
-    var minFontSize = Q3D.Options.label.minFontSize;
+    var label, dist, x, y, e, fontSize;
     for (var i = 0, l = obj_dist.length; i < l; i++) {
       label = obj_dist[i][0];
-      dist = obj_dist[i][1];
+      pt0 = obj_dist[i][1];
+      dist = obj_dist[i][2];
 
+      // calculate label position
+      pt.set(pt0.x, pt0.z, -pt0.y).project(camera);
+      x = (pt.x * widthHalf) + widthHalf;
+      y = -(pt.y * heightHalf) + heightHalf;
+
+      // set label position
       e = label.userData.elem;
-      pt0 = label.geometry.vertices[0];
-      pt.set(pt0.x, pt0.z, -pt0.y);
-      if (c2l.subVectors(pt, camera_pos).dot(c2t) > 0) {
-        // label is in front
-        // calculate label position
-        v.copy(pt).project(camera);
-        x = (v.x * widthHalf) + widthHalf;
-        y = -(v.y * heightHalf) + heightHalf;
+      e.style.display = "block";
+      e.style.left = (x - (e.offsetWidth / 2)) + "px";
+      e.style.top = (y - (e.offsetHeight / 2)) + "px";
+      e.style.zIndex = i + 1;
 
-        // set label position
-        e.style.display = "block";
-        e.style.left = (x - (e.offsetWidth / 2)) + "px";
-        e.style.top = (y - (e.offsetHeight / 2)) + "px";
-        e.style.zIndex = i + 1;
-
-        // set font size
-        if (autosize) {
-          if (dist < 10) dist = 10;
-          fontSize = Math.max(Math.round(1000 / dist), minFontSize);
-          e.style.fontSize = fontSize + "px";
-        }
-      }
-      else {
-        // label is in back
-        e.style.display = "none";
+      // set font size
+      if (autosize) {
+        if (dist < 10) dist = 10;
+        fontSize = Math.max(Math.round(1000 / dist), minFontSize);
+        e.style.fontSize = fontSize + "px";
       }
     }
   };
@@ -1076,8 +1069,7 @@ limitations:
       }
     };
 
-    // TODO: [Save As Image] save QWebView page content as image
-    var labels = [];
+    var labels = [];    // list of [label point, text]
     if (app.labelVisibility) {
       var rootGroup = app.scene.labelConnectorGroup, connGroup, conn, pt;
       for (var i = 0; i < rootGroup.children.length; i++) {
@@ -1086,7 +1078,7 @@ limitations:
         for (var k = 0; k < connGroup.children.length; k++) {
           conn = connGroup.children[k];
           pt = conn.geometry.vertices[0];
-          labels.push({pt: new THREE.Vector3(pt.x, pt.z, -pt.y),
+          labels.push({pt: new THREE.Vector3(pt.x, pt.z, -pt.y),      // in world coordinates
                        text: conn.userData.elem.textContent});
         }
       }
