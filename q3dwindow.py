@@ -299,7 +299,7 @@ class Q3DWindow(QMainWindow):
     self.runString("app.showPrintDialog();")
 
   def saveAsGLTF(self):
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "Binary glTF files (*.glb);;glTF files (*.gltf)")
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
       self.ui.webView.runJavaScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
