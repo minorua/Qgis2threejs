@@ -520,7 +520,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     name = self.comboBox_ObjectType.currentData()
     only_clipped = False
 
-    if name in ["Profile", "Overlay"] and index:
+    if name == "Overlay" and index:
       only_clipped = True
       self.radioButton_IntersectingFeatures.setChecked(True)
       self.checkBox_Clip.setChecked(True)
