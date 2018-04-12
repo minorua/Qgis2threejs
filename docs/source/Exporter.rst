@@ -1,48 +1,144 @@
 Exporter
 ========
 
-.. note:: Now updating for Qgis2threejs version 2.0.
+.. note:: Now being updated for Qgis2threejs version 2.0.
+
+.. contents:: Contents
+   :local:
+   :depth: 1
+
+Window
+------
+
+When the Qgis2threejs exporter window opens first time, `Layers` panel is on the left side of the window
+and preview is on the right side.
 
 .. image:: ./images/exporter1.png
 
+In this plugin, the word "export settings" means all configuration settings for a 3D scene,
+which consist of world settings, camera settings, each layer settings and so on.
+You can configure them via `Scene <#scene>`__ menu and `Layers` panel.
 
-General Scene Settings
-----------------------
+In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
+To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
+`Properties` from context menu (right click menu).
 
-World
-~~~~~
+Export settings are automatically saved to a ``.qto3settings`` file under the same directory
+as the project file if you are working with a project file. Later the export settings of
+the project will be automatically loaded into the exporter.
+
+If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
+For example, you might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update,
+
+
+Menu
+----
+
+File
+^^^^
+* Export to Web...
+    Exports files necessary for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
+    section.
+
+* Save Scene As - Image (.png)
+    Saves rendered scene image to a PNG file.
+
+* Save Scene As - glTF (.gltf,.glb)
+    Saves 3D model of current scene in glTF format.
+
+* Exporter Settings...
+    Opens Exporter Settings dialog. See `Exporter Settings Dialog <#exporter-settings>`__
+
+* Close Exporter
+    Closes Qgis2threejs Exporter.
+
+Scene
+^^^^^
+
+* World Settings...
+    Opens World settings dialog. See `World Settings <#world-settings>`__ section.
+
+* Camera
+    Changes the camera. See `Camera Settings <#camera-settings>`__ section.
+
+* Controls
+    Changes the controls. See `Controls Settings <#controls-settings>`__ section.
+
+* Clear All Settings
+    Clears current export settings.
+
+* Reload (F5)
+    Reloads current scene.
+
+* Reset Camera Position (Shift+R)
+    Returns camera position to initial position and resets its view target to initial point (3D world origin).
+
+Window
+^^^^^^
+* Panels
+    * Layers
+
+    * Console
+        Console panel displays information for debugging, mainly JavaScript side information.
+        Python side debug information is logged to log messages panel of QGIS window.
+        You can enter and execute JavaScript statements.
+
+* Always on Top
+    Brings the exporter window to front of all other application windows.
+
+Help
+^^^^
+* Help
+    Opens the plugin document in default browser. Internet connection is required.
+
+* Plugin Homepage
+    Opens the plugin homepage in default browser. Internet connection is required.
+
+* Send feedback
+    Opens the plugin bug tracker in default browser. Internet connection is required.
+
+* About Qgis2threejs Plugin
+    Displays the plugin version you are using.
+
+
+World Settings
+--------------
+
+World settings dialog controls some basic configuration settings for current scene.
+Click on ``Scene - World Settings...`` menu entry to open the dialog.
 
 .. image:: ./images/world_settings.png
 
-* Base size
+* Scale and Shift
+    * Base size
 
-   Enter a size in 3D world that corresponds to the map canvas width. The
-   default value is 100.
+        Size in 3D world that corresponds to the map canvas width. The
+        default value is 100.
 
-* Vertical exaggeration
+    * Vertical exaggeration
 
-   Vertical exaggeration factor. This value affects terrain shape and z
-   positions of all vector 3D objects. This also affects 3D object height
-   of some object types with volume. Object types to be affected:
+        Vertical exaggeration factor. This value affects terrain shape and z
+        positions of all vector 3D objects. This also affects 3D object height
+        of some object types with volume. Object types to be affected:
 
-    | Point : Cylinder, Cube, Cone
-    | Polygon : Extruded
+         | Point : Cylinder, Cube, Cone
+         | Polygon : Extruded
 
-   3D objects of the following types have volume, but their heights aren't
-   affected by this factor:
+        3D objects of the following types have volume, but their heights aren't
+        affected by this factor:
 
-    | Point : Sphere, JSON model, COLLADA model
-    | Line : Pipe, Cone, Box
+         | Point : Sphere
+         | Line : Pipe, Cone, Box
 
-   The default value is 1.5.
+        The default value is 1.0.
 
-* Vertical shift
+    * Vertical shift
 
-   Vertical shift for all objects. If you want to export high altitude
-   and narrow area, you should adjust the object positions to be
-   displayed at the center of browser by changing this value. If you set
-   the value to -1000, all objects are shifted down by 1000 in the unit of
-   map CRS.
+        Vertical shift for all objects. If you want to export high altitude
+        and narrow area, you should adjust the object positions to be
+        displayed at the center of browser by changing this value. If you set
+        the value to -1000, all objects are shifted down by 1000 in the unit of
+        map CRS.
 
 * Background
 
@@ -57,72 +153,74 @@ World
    `Proj4js <https://github.com/proj4js/proj4js>`__ doesn't support current
    map CRS, this option is disabled.
 
-Controls
-~~~~~~~~
+Camera Settings
+---------------
 
-`OrbitControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__ is available.
+* Perspective Camera
+    Shows distant objects as smaller.
 
 
-Layer Settings
---------------
+* Orthographic Camera
 
-DEM
-~~~
 
-You can select a DEM layer from 1-band rasters loaded in QGIS using
-``Add Raster Layer`` (GDAL provider). Selected DEM layer is used to
-calculate z positions of vector objects. You can also select a flat
-plane at zero altitude.
+Controls Settings
+-----------------
 
-Resampling
-^^^^^^^^^^
+Only `OrbitControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__ is available.
 
-* Simple
+
+DEM Layer Settings
+------------------
+
+Geometry
+^^^^^^^^
+
+* Resampling level
 
    Select a DEM resolution from several levels. This resolution is used to
    resample the DEM, but is not for texture.
 
-    * Surroundings option
+* Surroundings
 
-      This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent. Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks (a center block and 8 surrounding blocks) are output. Roughening can be selected from powers of 2 in the range of 1 to 64. If you select 2, grid point spacing is doubled. It means that the number of grid points in the same area becomes 1/4. If map canvas image is selected as the display type, texture image size for each block is maximum 256 x 256.
+   This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
+   Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
+   (a center block and 8 surrounding blocks) are output. Roughening can be selected from powers of 2 in
+   the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
+   means that the number of grid points in the same area becomes 1/4.
 
-* Advanced (quad tree)
+* Clip DEM with polygon layer
 
-   Multiple resolution DEM export. Area you want to focus is output in high
-   resolution and the surroundings are output in low resolution. Draw a
-   rectangle on the map canvas to set focus area. Specifying a point is
-   also possible. The higher QuadTree height, the higher resolution of the
-   focus area. Grid size of each block is 64 x 64.
+   Clips the DEM with a polygon layer. If you have a polygon layer that
+   represents the area that elevation data exist or represents drainage basins,
+   you might want to use this option.
 
-Display type
-^^^^^^^^^^^^
 
-You can choose from map canvas image, layer image, a image file or a
-solid color.
+Material
+^^^^^^^^
 
-* Map canvas image
+* Display type
 
-   Map canvas image is used to texture the main DEM block in simple
-   resampling mode. Each block of surroundings (in simple resampling mode)
-   and quads (in advanced resampling mode) is textured with image rendered
-   with the current map settings.
+   You can choose from map canvas image, layer image, a image file or a
+   solid color.
 
-* Layer image
+   * Map canvas image
 
-   Each block is textured with image rendered with the selected layer(s).
+      Render a texture image with the current map settings for each DEM block.
 
-* Image file
+   * Layer image
 
-   Texture with existing image file such as PNG and JPEG file. TIFF is not
-   supported by some browser. See `Image format
-   support <http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
-   for details.
+      Render a texture image with the selected layer(s) for each DEM block.
 
-* Solid color
+   * Image file
 
-   To select a color, press the button on the right side.
+      Textures the main DEM block with existing image file such as PNG file and JPEG file.
+      TIFF is not supported by some browser. See `Image format
+      support <http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
+      for details.
 
-**Options**
+   * Solid color
+
+      To select a color, press the button on the right side.
 
 * Resolution
 
@@ -130,9 +228,9 @@ solid color.
    either ``Map canvas image`` or ``Layer image`` is selected. You can select a ratio
    to map canvas size from 100, 200 and 400 (%). Image size in pixels follows the percent.
 
-* Transparency
+* Opaciy
 
-   Sets transparency of the DEM. 0 is opaque, and 100 is transparent.
+   Sets opacity of the DEM. 100 is opaque, and 0 is transparent.
 
 * Transparent background (With map canvas image or layer image)
 
@@ -146,76 +244,53 @@ solid color.
 
    Adds a shading effect to the DEM.
 
-Clip
-^^^^
 
-Clips the DEM with a polygon layer. If you have a polygon layer that
-represents the area that elevation data exist or represents drainage basins,
-you might want to use this option.
-
-Sides and frame
-^^^^^^^^^^^^^^^
+Other Options
+^^^^^^^^^^^^^
 
 * Build sides
 
-   This option adds sides and bottom to the DEM. The z position of bottom
+   This option adds sides and bottom to each DEM block. The z position of bottom
    in the 3D world is fixed. You can adjust the height of sides by changing
    the value of vertical shift option in the World panel. If you want to
-   change color, please edit the output JS file directly.
+   change color, edit the output JS file directly.
 
 * Build frame
 
-   This option adds frame to the DEM. If you want to change color, please
-   edit the output JS file directly.
+   This option adds frame to the DEM. If you want to change color, edit the output
+   JS file directly.
 
-Additional DEM
-~~~~~~~~~~~~~~
 
-If you want to export more than one DEM, check the checkbox on the left
-of child item you want. For example of usage, it may be possible to
-cover the terrain with supposed terrain surface of a summit level map,
-or make a 3D heat map.
-
-Some options that are available in main DEM panel cannot be used.
-Resampling mode is limited to simple. Surroundings, sides and frame
-options are not available.
-
-Vector
-~~~~~~
+Vector Layer Settings
+---------------------
 
 Vector layers are grouped into three types: Point, Line and Polygon.
-Common settings for all vector layers:
+Common settings for all types:
 
 * Z coordinate
 
-    ``Mode`` combo box has these items:
+    Specifies object altitude above zero-level or a DEM surface.
 
-    * Z value
+    * Altitude
 
-      This item can be selected when the layer geometries have z coordinates and
-      the layer type is point or line.
+        You can use a expression to specify altitude. The unit is that of the map CRS.
+        When Z value or M value is selected, the evaluated value is added to it.
 
-    * Relative to DEM
+        * Z value
+        This item can be selected when the layer geometries have z coordinates and
+        the layer type is point or line.
 
-      `z = Elevation at vertex + addend`
+        * M value
+        This item can be selected when the layer geometries have m values and
+        the layer type is point or line.
 
-    * +"field name"
+    * Altitude Mode
 
-      `z = Elevation at vertex + field value + addend`
+        * Absolute
+        Altitude is distance above zero-level.
 
-      Only numeric fields are listed in the combo box.
-
-    * Absolute value
-
-      `z = value`
-
-    * "field name"
-
-      `z = field value + addend`
-
-      Only numeric fields are listed in the combo box.
-
-    The unit of the value is that of the map CRS.
+        * Relative to DEM layer
+        Altitude is distance above a DEM surface.
 
 * Style
 
@@ -255,7 +330,7 @@ Point
 Point layers in the project are listed as the child items. The following
 object types are available:
 
-    Sphere, Cylinder, Cone, Box, Disk, Icon, JSON model, COLLADA model
+    Sphere, Cylinder, Cone, Box, Disk
 
 See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -280,79 +355,12 @@ following object types are available:
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
 
-Menu
-----
-* File
-    * Export to Web
-        現在のシーンをWebブラウザで表示するためのファイルを出力します。
-        See `Export to Web Dialog <#exporttowebdialog>`__ section.
-
-    * Save Scene As - Image (.png)
-        現在のシーンを画像に保存します。
-
-    * Save Scene As - glTF (.gltf,.glb)
-        現在のシーンをglTF形式で保存します。
-
-    * Plugin Settings...
-        プラグインの設定ダイアログを開きます。
-
-    * Close Exporter
-        エクスポータを閉じます。
-
-* Scene
-
-    * World Settings...
-        ワールド設定ダイアログを開きます。
-
-    * Camera
-        * Perspective
-            近くのものは大きく、遠くのものは小さく見えるように表示します
-
-        * Orthographic
-
-    * Controls - Orbit
-
-    * Clear All Settings
-        現在のエクスポート設定をクリアします。
-
-    * Reload (F5)
-        ページを再読込します。
-
-    * Reset Camera Position (Shift+R)
-        カメラの位置と向きを初期状態に戻します。
-
-* Window
-    * Panels
-        * Layers
-            現在のプロジェクトに含まれるレイヤが表示されます。
-
-        * Console
-            コンソールにはデバッグのための情報が表示されます。主にJavaScript側のデバッグ情報が表示されます。
-            Python側のデバッグ情報はQGISメインウィンドウのログに表示されます。
-            JavaScriptのステートメントを入力して実行することもできます。
-
-    * Always on Top
-        ウィンドウを最前面に表示します。
-
-* Help
-    * Help
-        ドキュメントをウェブブラウザで開きます。インターネット接続が必要です。
-
-    * Plugin Homepage
-        プラグインのホームページをウェブブラウザで開きます。インターネット接続が必要です。
-
-    * Send feedback
-        プラグインのバグトラッカーをウェブブラウザで開きます。インターネット接続が必要です。
-
-    * About Qgis2threejs Plugin
-        プラグインのバージョンを表示します。
-
 Export to Web Dialog
 --------------------
 
 .. image:: ./images/export_web.png
 
-* Combo box to select a template
+* Template
 
    Select a template from available templates:
 
@@ -377,19 +385,14 @@ Export to Web Dialog
 
 * Export button
 
-   Exporting starts when you press the Run button. When the exporting has
-   been done, the exported page will be opened in web browser. At this
-   time, export settings are automatically saved to a file under the same
-   directory as the project file if you are working with a project file.
-   Later the export settings of the project will be automatically loaded
-   into the plugin.
-
-   Pressing the Help button will open the local document with default web
-   browser.
+   Exporting starts when you press the Export button. When the exporting has
+   been done and `Open exported page in web browser` option is checked, the
+   exported page is opened in default web browser (or a browser specified in
+   `Exporter Settings <#exporter-settings>`__).
 
 
-Plugin Settings
-===============
+Exporter Settings
+-----------------
 
 .. image:: ./images/plugin_settings.png
 
