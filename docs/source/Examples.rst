@@ -3,6 +3,8 @@ Examples
 
 Click the images below to see live examples.
 
+.. note:: These examples were made with previous plugin versions.
+
 .. raw:: html
 
    <!--### Features in Development-->
@@ -37,11 +39,3 @@ Click the images below to see live examples.
   map, shaded relief and elevation tile) / Geological Survey of Japan,
   AIST. `Seamless digital geological map of Japan 1: 200,000
   <https://gbank.gsj.jp/seamless/>`__ |(CC BY-ND 2.1 JP)|
-
-* **Forest basins**: Polygon overlay with texture
-
-  |image - Forest basins in Japan|
-
-  Sources: Geospatial Information Authority of Japan. `GSI Tiles
-  <http://portal.cyberjapan.jp/help/development/>`__
-  (Orthophoto and elevation tile)

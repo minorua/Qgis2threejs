@@ -1,22 +1,6 @@
 .. replace_local_images.txt: Replacements for images. Use local image files.
 
-.. |top image| image:: ./images/topimage.jpg
-.. |dialog image| image:: ./images/dialogs/dialog.png
-   :alt: Dialog image
-
-
 .. Tutorial
-
-.. |CRS icon| image:: ./images/tutorial/crsicon.png
-.. |map canvas1| image:: ./images/tutorial/canvas1.jpg
-   :alt: Canvas image
-.. |plugin icon| image:: ../../icon.png
-.. |dialog image1| image:: ./images/tutorial/dialog.png
-.. |browser image1| image:: ./images/tutorial/browser1.jpg
-   :alt: Web browser image
-.. |browser image2| image:: ./images/tutorial/browser2.jpg
-   :alt: Web browser image
-
 
 .. Object Types
 

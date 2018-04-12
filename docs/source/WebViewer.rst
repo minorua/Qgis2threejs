@@ -1,5 +1,7 @@
-3D Viewer
-=========
+Web Viewer
+==========
+
+.. note:: Now updating for Qgis2threejs version 2.0.
 
 Controls
 --------
@@ -11,13 +13,12 @@ in the about box. Press ``I`` key to show the box.
 Identifying Features
 --------------------
 
-When you click on an object, layer name that the feature (object)
-belongs to and the clicked coordinates (in order of x, y, z) are shown.
-If ``Latitude and longitude (WGS84)`` option (in the
-``Display of coordinates`` group of World page) is selected, longitude and
-latitude are shown in DMS format (degrees, minutes and seconds). If
-``Export attributes`` option of each vector layer is selected, attribute
-list of the clicked feature follows them.
+When you click on a 3D object, layer name that the object belongs to
+and the clicked coordinates (in order of x, y, z) are displayed.
+If ``Latitude and longitude (WGS84)`` option in World Settings is
+selected, longitude and latitude are in DMS format (degrees, minutes
+and seconds). If ``Export attributes`` option of each vector layer
+is selected, attribute values of the clicked feature follows them.
 
 Controls Box
 ------------
@@ -38,8 +39,6 @@ The controls box has:
 
 Rotate Animation
 ----------------
-
-This feature is available with **OrbitControls**.
 
 Pressing ``R`` key starts/stops rotate animation. Camera rotates around
 the camera target clockwise.
@@ -77,9 +76,4 @@ Other parameters:
 * width: canvas width (pixels)
 * height: canvas height (pixels)
 * popup: pop up another window with specified width and height
-
-.. raw:: html
-
-   <!-- TODO: images -->
-
 

@@ -1,99 +1,18 @@
-Export Settings
-===============
+Exporter
+========
 
-Plugin Dialog
--------------
+.. note:: Now updating for Qgis2threejs version 2.0.
 
-|dialog image|
+.. image:: ./images/exporter1.png
 
-In order from the top:
 
-* Combo box to select a template
-
-   Select one from templates with different functions. See
-   `Template <#template>`__ section.
-
-* Tree widget on the left side and panel with widgets on the right side
-
-   Items with check box in the tree widget are optional. When the current
-   item is optional and not checked, widgets on the right side are grayed
-   out.
-
-* Output HTML file path edit box
-
-   Select output HTML file path. Usually, a js file with the same file
-   title that contains whole data of geometries and images is output into
-   the same directory, and some JavaScript library files are copied to
-   under the directory. Leave this empty to output into temporary
-   directory. Temporary files are removed when you close the QGIS
-   application.
-
-* Settings button
-
-   Pop-up menu with the following menu items is shown:
-
-   * Load Settings
-
-      Loads export settings from a settings file.
-
-   * Save Settings As
-
-      Saves export settings to a settings file. Default file extension is
-      ``.qto3settings``.
-
-   * Clear Settings
-
-      Clears current export settings.
-
-   * Plugin Settings
-
-      Shows :doc:`PluginSettings` dialog.
-
-* Run, Close and Help buttons
-
-   Exporting starts when you press the Run button. When the exporting has
-   been done, the exported page will be opened in web browser. At this
-   time, export settings are automatically saved to a file under the same
-   directory as the project file if you are working with a project file.
-   Later the export settings of the project will be automatically loaded
-   into the plugin.
-
-   Pressing the Help button will open the local document with default web
-   browser.
-
-General Settings
-----------------
-
-Template
-~~~~~~~~
-
-Available templates:
-
-* 3DViewer.html
-
-   This template is a 3D viewer without any additional UI library.
-
-* 3DViewer(dat-gui).html
-
-   This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
-   panel, which makes it possible to toggle layer visibility, adjust layer
-   opacity and add a horizontal plane movable in the vertical direction.
-
-* FileExport.html
-
-   This template builds 3D models on the web browser, but doesn't render
-   them. Instead, it has some buttons to save 3D models in `STL
-   format <http://en.wikipedia.org/wiki/STL_%28file_format%29>`__,
-   `Wavrefront OBJ
-   format <http://en.wikipedia.org/wiki/Wavefront_.obj_file>`__ or `COLLADA
-   format <http://en.wikipedia.org/wiki/COLLADA>`__. It also has ability to
-   save the texture image(s).
-
-   These formats are widely supported by 3DCG softwares such as
-   `Blender <http://www.blender.org/>`__.
+General Scene Settings
+----------------------
 
 World
 ~~~~~
+
+.. image:: ./images/world_settings.png
 
 * Base size
 
@@ -141,11 +60,8 @@ World
 Controls
 ~~~~~~~~
 
-Two available controls:
-`OrbitControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__,
-`TrackballControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/TrackballControls.txt>`__.
+`OrbitControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__ is available.
 
-The usage of each control is displayed below the combo box.
 
 Layer Settings
 --------------
@@ -362,3 +278,128 @@ following object types are available:
     Extruded, Overlay
 
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
+
+
+Menu
+----
+* File
+    * Export to Web
+        現在のシーンをWebブラウザで表示するためのファイルを出力します。
+        See `Export to Web Dialog <#exporttowebdialog>`__ section.
+
+    * Save Scene As - Image (.png)
+        現在のシーンを画像に保存します。
+
+    * Save Scene As - glTF (.gltf,.glb)
+        現在のシーンをglTF形式で保存します。
+
+    * Plugin Settings...
+        プラグインの設定ダイアログを開きます。
+
+    * Close Exporter
+        エクスポータを閉じます。
+
+* Scene
+
+    * World Settings...
+        ワールド設定ダイアログを開きます。
+
+    * Camera
+        * Perspective
+            近くのものは大きく、遠くのものは小さく見えるように表示します
+
+        * Orthographic
+
+    * Controls - Orbit
+
+    * Clear All Settings
+        現在のエクスポート設定をクリアします。
+
+    * Reload (F5)
+        ページを再読込します。
+
+    * Reset Camera Position (Shift+R)
+        カメラの位置と向きを初期状態に戻します。
+
+* Window
+    * Panels
+        * Layers
+            現在のプロジェクトに含まれるレイヤが表示されます。
+
+        * Console
+            コンソールにはデバッグのための情報が表示されます。主にJavaScript側のデバッグ情報が表示されます。
+            Python側のデバッグ情報はQGISメインウィンドウのログに表示されます。
+            JavaScriptのステートメントを入力して実行することもできます。
+
+    * Always on Top
+        ウィンドウを最前面に表示します。
+
+* Help
+    * Help
+        ドキュメントをウェブブラウザで開きます。インターネット接続が必要です。
+
+    * Plugin Homepage
+        プラグインのホームページをウェブブラウザで開きます。インターネット接続が必要です。
+
+    * Send feedback
+        プラグインのバグトラッカーをウェブブラウザで開きます。インターネット接続が必要です。
+
+    * About Qgis2threejs Plugin
+        プラグインのバージョンを表示します。
+
+Export to Web Dialog
+--------------------
+
+.. image:: ./images/export_web.png
+
+* Combo box to select a template
+
+   Select a template from available templates:
+
+    * 3DViewer
+
+       This template is a 3D viewer without any additional UI library.
+
+    * 3DViewer(dat-gui)
+
+       This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
+       panel, which makes it possible to toggle layer visibility, adjust layer
+       opacity and add a horizontal plane movable in the vertical direction.
+
+* Output directory and HTML Filename
+
+   Select output HTML file path. Usually, a js file with the same file
+   title that contains whole data of geometries and images is output into
+   the same directory, and some JavaScript library files are copied
+   into the directory. Leave this empty to output into temporary
+   directory. Temporary files are removed when you close the QGIS
+   application.
+
+* Export button
+
+   Exporting starts when you press the Run button. When the exporting has
+   been done, the exported page will be opened in web browser. At this
+   time, export settings are automatically saved to a file under the same
+   directory as the project file if you are working with a project file.
+   Later the export settings of the project will be automatically loaded
+   into the plugin.
+
+   Pressing the Help button will open the local document with default web
+   browser.
+
+
+Plugin Settings
+===============
+
+.. image:: ./images/plugin_settings.png
+
+* Browser path
+
+   If you want to open web page exported from the exporter with a web browser
+   other than the default browser, enter the web browser path in this input box.
+   See `Browser Support <https://github.com/minorua/Qgis2threejs/wiki/Browser-Support>`__ page.
+
+
+* Optional Features
+
+   Not available in version 2.0 yet.

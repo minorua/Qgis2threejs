@@ -1,6 +1,8 @@
 Optional Feature
 ================
 
+.. note:: Now updating for Qgis2threejs version 2.0.
+
 .. raw:: html
 
    <!--To enable these features, you need to go to the settings dialog and check the feature you want to use.

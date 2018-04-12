@@ -1,12 +1,19 @@
 .. Qgis2threejs plugin documentation master file, created by
    sphinx-quickstart on Fri Sep 18 15:17:19 2015.
 
-Welcome to Qgis2threejs plugin's documentation!
-===============================================
+Qgis2threejs plugin documentation
+=================================
 
-|top image|
+.. image:: ./images/top.jpg
 
-Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin. This plugin exports terrain data, map canvas image and vector data to your web browser. You can view 3D objects in the web browser (You need a web browser which supports WebGL).
+.. note:: Now updating for Qgis2threejs version 2.0.
+
+Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin, which visualizes
+DEM data and vector data, in 3D on web browsers. You can build various kinds
+of 3D objects with simple settings panels and view them in web view of exporter.
+If you want to share them in web, you can generate files to publish them to
+web in simple procedure. In addition, you can save the 3D model in glTF format
+for 3DCG or 3D printing.
 
 Table Of Contents:
 
@@ -15,11 +22,7 @@ Table Of Contents:
 
    Examples
    Tutorial
-   ExportSettings
+   Exporter
    ObjectTypes
-   3DViewer
-   PluginSettings
-   Plugins
-   ProgrammaticExportUsingPython
-   API
+   WebViewer
    Development

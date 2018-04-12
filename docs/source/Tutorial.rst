@@ -1,19 +1,21 @@
 Tutorial
 ========
 
+.. note:: Now updating for Qgis2threejs version 2.0.
+
 Let's start using Qgis2threejs plugin!
 
 
 Installing the plugin
 ---------------------
 
-Open the QGIS plugin dialog (``Plugins > Manage and install plugins...``),
+Open the QGIS plugin dialog (``Plugins > Manage and Install Plugins...``),
 and then install Qgis2threejs plugin.
 
 .. hint:: Need help? See the `10.1.2. Installing New Plugins`__ section of
    the QGIS training manual.
 
-__ http://docs.qgis.org/2.8/en/docs/training_manual/qgis_plugins/fetching_plugins.html#basic-fa-installing-new-plugins
+__ http://docs.qgis.org/2.18/en/docs/training_manual/qgis_plugins/fetching_plugins.html#basic-fa-installing-new-plugins
 
 
 Obtaining elevation data
@@ -49,9 +51,8 @@ __ http://earthexplorer.usgs.gov/
 Loading DEM data
 ----------------
 
-Drag & drop the downloaded zip file to QGIS window
-(or load the file using ``Add Raster Layer`` dialog).
-You don't have to unzip it.
+Unzip the downloaded zip file, and then drag & drop ``.hgt`` file
+to QGIS window.
 
 
 CRS setting
@@ -61,18 +62,18 @@ Horizontal unit of SRTM data is degree, whereas vertical unit is meter.
 For appropriate visualization, you need to transform the DEM data to
 a projected CRS. QGIS can perform the CRS transformation on the fly.
 
-So, let's enable the On The Fly CRS transformation and change the map CRS
-to a projected CRS.
+So, let's transform the DEM data to a projected CRS.
 
 Click the |CRS icon| CRS status icon in the bottom-right corner of the window to
-open the project properties dialog. Activate the ``Enable 'on the fly' CRS
-transformation`` checkbox and then select a suitable CRS for the DEM extent.
+open the project properties dialog, and then select a suitable CRS for the DEM extent.
 If you don't know which CRS is best suited, select the Spherical Mercator projection
 (``EPSG:3857``), which is adopted by many web maps.
 
 .. note:: In the Spherical Mercator projection, size of every feature is horizontally
    larger than actual size except features on the equator.
    At latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice.
+
+.. |CRS icon| image:: ./images/tutorial/crsicon.png
 
 
 Layer styling
@@ -83,27 +84,38 @@ richly.
 
 An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` color map):
 
-|map canvas1|
+.. image:: ./images/tutorial/qgis_styling.png
 
 
-Exporting
----------
-
+Open the Exporter
+-----------------
 Zoom to a part of the DEM layer extent as the map canvas is filled by the colorized DEM.
 
 Click the |plugin icon| plugin icon in the web toolbar.
 
-Then, click ``Run`` button in the dialog.
+.. image:: ./images/tutorial/exporter1.png
 
-|dialog image1|
+.. |plugin icon| image:: ./images/Qgis2threejs24.png
 
-3D terrain appears in your web browser!
+Exporting the Scene to Web
+--------------------------
 
-|browser image1|
+.. image:: ./images/export_web.png
 
-If you want to hide the dat-gui controls box at the top-right corner, press ``H`` key.
+Press ``Export`` button.
 
-|browser image2|
+.. image:: ./images/tutorial/browser_edge1.png
+
+
+You can also export the scene with dat-gui panel.
+
+.. image:: ./images/tutorial/browser_edge2.png
+
+You can save the model as a glTF file.
+
+Open glTF file in three.js editor.
+
+.. image:: ./images/tutorial/threejs_editor.png
 
 
 Conclusion
