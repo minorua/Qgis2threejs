@@ -15,10 +15,10 @@ Documentation
   You can download PDF version if you want.
 
 
-Check WebGL Support
--------------------
+Browser Support
+---------------
 
-  Visit http://get.webgl.org/ to check whether your web browser supports WebGL.
+  See [plugin wiki page](https://github.com/minorua/Qgis2threejs/wiki/Browser-Support).
 
 
 Exported Pages Use These JavaScript Libraries
