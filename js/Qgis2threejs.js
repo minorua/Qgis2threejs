@@ -642,12 +642,12 @@ limitations:
 
     // make list of [connector object, distance to camera]
     var obj_dist = [];
-    var layerGroup, conn, pt0;
+    var connGroup, conn, pt0;
     for (var i = 0, l = rootGroup.children.length; i < l; i++) {
-      layerGroup = rootGroup.children[i];
-      if (layerGroup.visible) {
-        for (var k = 0, m = layerGroup.children.length; k < m; k++) {
-          conn = layerGroup.children[k];
+      connGroup = rootGroup.children[i];
+      if (connGroup.visible) {
+        for (var k = 0, m = connGroup.children.length; k < m; k++) {
+          conn = connGroup.children[k];
           pt0 = conn.geometry.vertices[0];
           pt.set(pt0.x, pt0.z, -pt0.y);
           obj_dist.push([conn, camera_pos.distanceTo(pt)]);
@@ -1077,6 +1077,21 @@ limitations:
     };
 
     // TODO: [Save As Image] save QWebView page content as image
+    var labels = [];
+    if (app.labelVisibility) {
+      var rootGroup = app.scene.labelConnectorGroup, connGroup, conn, pt;
+      for (var i = 0; i < rootGroup.children.length; i++) {
+        connGroup = rootGroup.children[i];
+        if (!connGroup.visible) continue;
+        for (var k = 0; k < connGroup.children.length; k++) {
+          conn = connGroup.children[k];
+          pt = conn.geometry.vertices[0];
+          labels.push({pt: new THREE.Vector3(pt.x, pt.z, -pt.y),
+                       text: conn.userData.elem.textContent});
+        }
+      }
+    }
+
     var renderLabels = function (ctx) {
       // context settings
       ctx.textAlign = "center";
@@ -1101,8 +1116,8 @@ limitations:
 
       // make a list of [label index, distance to camera]
       var idx_dist = [];
-      for (var i = 0, l = app.labels.length; i < l; i++) {
-        idx_dist.push([i, camera_pos.distanceTo(app.labels[i].pt)]);
+      for (var i = 0, l = labels.length; i < l; i++) {
+        idx_dist.push([i, camera_pos.distanceTo(labels[i].pt)]);
       }
 
       // sort label indexes in descending order of distances
@@ -1114,8 +1129,7 @@ limitations:
 
       var label, text, x, y;
       for (var i = 0, l = idx_dist.length; i < l; i++) {
-        label = app.labels[idx_dist[i][0]];
-        text = label.e.textContent;
+        label = labels[idx_dist[i][0]];
         if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {    // label is in front
           // calculate label position
           v.copy(label.pt).project(camera);
@@ -1126,11 +1140,11 @@ limitations:
           // outline effect
           ctx.fillStyle = "#FFF";
           for (var j = 0; j < 9; j++) {
-            if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
+            if (j != 4) ctx.fillText(label.text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
           }
 
           ctx.fillStyle = color;
-          ctx.fillText(text, x, y);
+          ctx.fillText(label.text, x, y);
         }
       }
     };
@@ -1152,8 +1166,7 @@ limitations:
     var bgcolor = Q3D.Options.bgcolor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
-    var render_labels = false;    // TODO: (app.labelVisibility && app.labels.length > 0);
-    if ((fill_background && bgcolor === null) || render_labels) {
+    if ((fill_background && bgcolor === null) || labels.length > 0) {
       var canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
@@ -1175,7 +1188,7 @@ limitations:
         ctx.drawImage(image, 0, 0, width, height);
 
         // render labels
-        if (render_labels) renderLabels(ctx);
+        if (labels.length > 0) renderLabels(ctx);
 
         // save canvas image
         saveCanvasImage(canvas);
