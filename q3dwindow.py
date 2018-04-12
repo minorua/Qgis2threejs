@@ -383,7 +383,7 @@ class PropertiesDialog(QDialog):
         self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
   def showLayerProperties(self, layer):
-    self.setWindowTitle("Layer Properties - {0}".format(layer.name))
+    self.setWindowTitle("{0} - Layer Properties".format(layer.name))
     self.setLayer(layer)
     self.show()
     self.exec_()
