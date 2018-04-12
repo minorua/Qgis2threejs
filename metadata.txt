@@ -11,10 +11,10 @@
 [general]
 name=Qgis2threejs
 qgisMinimumVersion=2.99
-qgisMaximumVersion=3.1
+qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
-about=Qgis2threejs plugin exports terrain data, map canvas image and vector data to your web browser. You can view exported 3D objects on web browser which supports WebGL. This plugin uses three.js library.
-version=1.99.0
+about=This plugin visualizes DEM data and vector data, in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter. If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
+version=2.0
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,36 +24,25 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 1.4.2 (release-1.4 branch)
-    - Fix unicode decode error
-
-    Version 1.4.1
-    - Rendering with antialias enabled
-    - Improved height range of custom plane (dat-gui, refs #53)
-    - Skip invalid polygons (fix #71)
-    - Fix feature attribute writing (fix #73)
-
-    Version 1.4
-    - Documentation improved and moved to readthedocs.org
-    - Activate DEM's shading by default to make it easy to create shaded 3D map
-    - Added menu commands for touch screen devices (dat-gui)
-    - Turn off scene.autoUpdate to reduce matrix calculation cost
-    - API for Python
-    - Added some basic test cases
-    - Fix error while exporting with DEM's build frame option (fix #48)
-    - Fix cone type object for point layer (fix #50)
-
+    Version 2.0
+    - Built for QGIS 3.x
+    - Improved GUI - new exporter with preview
+    - Save scene as glTF
+    - Using expression in vector layer properties
+    - Updated three.js library (r90)
+    - Disabled/removed these features: DEM advanced resampling mode, 3 object types (Icon, JSON/COLLADA Model), some object specific settings for Profile and Overlay, FileExporter (Save as STL, OBJ, COLLADA), GSIElevProvider.
+        --- These features were available in version 1.4, but are not available in version 2.0.
 
 # tags are comma separated with spaces allowed
-tags=terrain,WebGL,3D,three.js,web
+tags=3D,terrain,three.js,web,WebGL,glTF
 
 category=Web
 homepage=https://github.com/minorua/Qgis2threejs
-tracker=https://github.com/minorua/Qgis2threejs
+tracker=https://github.com/minorua/Qgis2threejs/issues
 repository=https://github.com/minorua/Qgis2threejs
 icon=Qgis2threejs.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False
