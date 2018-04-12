@@ -2049,10 +2049,9 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.VectorLayer.prototype.setVisible = function (visible) {
-  Q3D.MapLayer.prototype.setVisible.call(this, visible);
-
   if (this.labelParentElement) this.labelParentElement.style.display = (visible) ? "block" : "none";
   if (this.labelConnectorGroup) this.labelConnectorGroup.visible = visible;
+  Q3D.MapLayer.prototype.setVisible.call(this, visible);
 };
 
 
