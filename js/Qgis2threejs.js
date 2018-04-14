@@ -709,11 +709,11 @@ limitations:
 
   app.setRotateAnimationMode = function (rotate) {
     if (rotate) {
-      controls.autoRotate = true;
+      app.controls.autoRotate = true;
       app.startAnimation();
     }
     else {
-      controls.autoRotate = false;
+      app.controls.autoRotate = false;
       app.stopAnimation();
     }
   };
