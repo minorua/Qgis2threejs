@@ -42,7 +42,7 @@ class Q3DTreeView(QTreeView):
       q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg")
       }
 
-    self.actionProperties = QAction("Properties")
+    self.actionProperties = QAction("Properties", self)
     self.actionProperties.triggered.connect(self.showPropertiesDialog)
 
     self.contextMenu = QMenu(self)
