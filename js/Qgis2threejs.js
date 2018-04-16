@@ -1398,8 +1398,8 @@ Q3D.DEMBlock.prototype = {
     // create geometry and mesh
     var geom = new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1),
         mesh = new THREE.Mesh(geom, this.material.mtl);
-
-    if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
+    mesh.position.fromArray(obj.translate);
+    mesh.scale.z = obj.scaleZ;
 
     var buildGeometry = function (grid_values) {
       var vertices = geom.attributes.position.array;
@@ -1597,7 +1597,8 @@ Q3D.ClippedDEMBlock.prototype = {
     layer.materials.add(this.material);
 
     var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
-    if (obj.translate !== undefined) mesh.position.set(obj.translate[0], obj.translate[1], obj.translate[2]);
+    mesh.position.fromArray(obj.translate);
+    mesh.scale.z = obj.scaleZ;
 
     var buildGeometry = function (grid_values) {
       mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));

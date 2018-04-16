@@ -150,23 +150,11 @@ class DEMBlockExporter:
     self.urlRoot = urlRoot
 
   def build(self):
-    mapTo3d = self.settings.mapTo3d()
-    shift = mapTo3d.verticalShift
-    scale = mapTo3d.multiplierZ
-
-    if shift == 0 and scale == 1 and self.edgeRougheness == 1:
+    if self.edgeRougheness == 1:
       ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
     else:
       grid_values = self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent)
-      if shift != 0:
-        grid_values = [x + shift for x in grid_values]
-
-      if scale != 1:
-        grid_values = [x * scale for x in grid_values]
-
-      if self.edgeRougheness != 1:
-        self.processEdges(grid_values, self.edgeRougheness)
-
+      self.processEdges(grid_values, self.edgeRougheness)
       ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
 
     # write grid values to an external binary file
@@ -187,13 +175,15 @@ class DEMBlockExporter:
     # material
     material = self.material()
 
+    mapTo3d = self.settings.mapTo3d()
     b = {"type": "block",
          "layer": self.layer.jsLayerId,
          "block": self.blockIndex,
          "grid": g,
          "width": self.planeWidth,
          "height": self.planeHeight,
-         "translate": [self.offsetX, self.offsetY, 0],
+         "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
+         "scaleZ": mapTo3d.multiplierZ,
          "material": material}
 
     # clipped with polygon layer
