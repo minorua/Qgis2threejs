@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 import struct
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsPoint, QgsProject
 
 from .conf import debug_mode
@@ -154,30 +154,35 @@ class DEMBlockExporter:
     shift = mapTo3d.verticalShift
     scale = mapTo3d.multiplierZ
 
-    grid_values = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
-    if shift != 0:
-      grid_values = [x + shift for x in grid_values]
+    if shift == 0 and scale == 1 and self.edgeRougheness == 1:
+      ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
+    else:
+      grid_values = self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent)
+      if shift != 0:
+        grid_values = [x + shift for x in grid_values]
 
-    if scale != 1:
-      grid_values = [x * scale for x in grid_values]
+      if scale != 1:
+        grid_values = [x * scale for x in grid_values]
 
-    if self.edgeRougheness != 1:
-      self.processEdges(grid_values, self.edgeRougheness)
+      if self.edgeRougheness != 1:
+        self.processEdges(grid_values, self.edgeRougheness)
+
+      ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
 
     # write grid values to an external binary file
     if self.pathRoot is not None:
       with open(self.pathRoot + "_DEM{0}.bin".format(self.blockIndex), "wb") as f:
-        f.write(struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values))
+        f.write(ba)
 
     # block data
     g = {"width": self.grid_size.width(),
          "height": self.grid_size.height()}
 
-    extFileUrl = None if self.urlRoot is None else self.urlRoot + "_DEM{0}.bin".format(self.blockIndex)
-    if extFileUrl is None:
-      g["array"] = grid_values
+    if self.urlRoot is None:
+      g["binary"] = QByteArray(ba)
+      # g["array"] = grid_values
     else:
-      g["url"] = extFileUrl
+      g["url"] = self.urlRoot + "_DEM{0}.bin".format(self.blockIndex)
 
     # material
     material = self.material()

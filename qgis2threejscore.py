@@ -77,19 +77,23 @@ class GDALDEMProvider(Raster):
     # reproject image
     gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
 
-    # load values into an array
     band = warped_ds.GetRasterBand(1)
-    fs = "f" * width * height
-    return struct.unpack(fs, band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32))
+    return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
 
   def read(self, width, height, extent):
+    """read data into a byte array"""
     return self._read(width, height, extent.geotransform(width, height))
+
+  def readValues(self, width, height, extent):
+    """read data into a list"""
+    return struct.unpack("f" * width * height,
+                         self._read(width, height, extent.geotransform(width, height)))
 
   def readValue(self, x, y):
     """get value at the position using 1px * 1px memory raster"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-    return self._read(1, 1, geotransform)[0]
+    return struct.unpack("f", self._read(1, 1, geotransform))[0]
 
   def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
     mx0 = floor((x - xmin) / xres)
@@ -97,7 +101,7 @@ class GDALDEMProvider(Raster):
     px0 = xmin + xres * mx0
     py0 = ymin + yres * my0
     geotransform = [px0, xres, 0, py0 + yres, 0, -yres]
-    z = self._read(2, 2, geotransform)
+    z = struct.unpack("f" * 4, self._read(2, 2, geotransform))
 
     sdx = (x - px0) / xres
     sdy = (y - py0) / yres
@@ -116,6 +120,9 @@ class FlatDEMProvider:
     return "Flat Plane"
 
   def read(self, width, height, extent):
+    return struct.pack("{0}f".format(width * height), *([self.value] * width * height))
+
+  def readValues(self, width, height, extent):
     return [self.value] * width * height
 
   def readValue(self, x, y):
