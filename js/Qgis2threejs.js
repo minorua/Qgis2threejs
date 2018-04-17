@@ -1610,10 +1610,7 @@ Q3D.ClippedDEMBlock.prototype = {
       }
     };
 
-    if (grid.array !== undefined) {
-      buildGeometry(grid.array);   // WebKit Bridge
-    }
-    else if (grid.url !== undefined) {
+    if (grid.url !== undefined) {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", grid.url);
       xhr.responseType = "arraybuffer";
@@ -1626,6 +1623,10 @@ Q3D.ClippedDEMBlock.prototype = {
         }
       };
       xhr.send(null);
+    }
+    else {    // WebKit Bridge
+      if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+      buildGeometry(grid.array);
     }
 
     this.obj = mesh;
