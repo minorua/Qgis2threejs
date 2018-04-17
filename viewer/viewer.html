@@ -44,6 +44,20 @@
   -webkit-transform: translate3d(-50%, -50%, 0);
 }
 
+#messagebar {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 25px;
+  padding: 8px;
+  font-family: sans-serif;
+  vertical-align: middle;
+  background-color: #f0f8ff;
+  border: 1px solid #8e998a;
+}
+
 #urlbox {
   display: none;
 }
@@ -95,6 +109,7 @@ app.init(container, false);
 </script>
 
 <div id="cover"></div>
+<div id="messagebar" onclick="closeMessageBar();"></div>
 <div id="debug"></div>
 </body>
 </html>

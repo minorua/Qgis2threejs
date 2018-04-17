@@ -35,7 +35,7 @@ function displayFPS() {
 }
 
 function saveModelAsGLTF(filename) {
-  console.log("Saving model: " + filename);
+  console.log("Saving model to " + filename);
 
   var scene = new THREE.Scene(), layer, group;
   for (var k in app.scene.mapLayers) {
@@ -64,8 +64,35 @@ function saveModelAsGLTF(filename) {
       pyObj.saveString(JSON.stringify(result, null, 2), filename);
     }
     console.log("Model has been saved.");
+    showMessageBar("Successfully saved the model.", 5000);
 
+    // restore preview
+    for (var k in app.scene.mapLayers) {
+      layer = app.scene.mapLayers[k];
+      group = layer.objectGroup;
+      group.rotation.set(0, 0, 0);
+      app.scene.add(group);
+    }
+    app.scene.updateMatrixWorld();
+    app.render();
   }, options);
+}
+
+var barTimerId = null;
+function showMessageBar(message, timeout) {
+  if (barTimerId !== null) {
+    clearTimeout(barTimerId);
+    barTimerId = null;
+  }
+  if (timeout) barTimerId = setTimeout(closeMessageBar, timeout)
+  var e = document.getElementById("messagebar");
+  e.innerHTML = message;
+  e.style.display = "block";
+}
+
+function closeMessageBar() {
+  document.getElementById("messagebar").style.display = "none";
+  barTimerId = null;
 }
 
 function switchCamera(is_ortho) {
