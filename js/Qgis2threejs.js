@@ -2030,7 +2030,7 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       }
 
       (jsonObject.data.blocks || []).forEach(function (block) {
-        if (block.url !== undefined) app.loadJSONFromURL(block.url);
+        if (block.url !== undefined) Q3D.application.loadJSONFromURL(block.url);
         else {
           this.build(block.features);
           if (this.properties.label !== undefined) this.buildLabels(block.features);
