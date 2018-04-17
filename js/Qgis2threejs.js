@@ -142,7 +142,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // console.assert(jsonObject.properties !== undefined);
 
       // create a layer
-      var type = jsonObject.properties.type
+      var type = jsonObject.properties.type;
       if (type == "dem") layer = new Q3D.DEMLayer();
       else if (type == "point") layer = new Q3D.PointLayer();
       else if (type == "line") layer = new Q3D.LineLayer();
@@ -276,10 +276,10 @@ limitations:
   var app = {};
   Q3D.application = app;
 
-  var listeners= {};
+  var listeners = {};
   var dispatchEvent = function (event) {
     var ls = listeners[event.type] || [];
-    for (var i =0; i < ls.length; i++) {
+    for (var i = 0; i < ls.length; i++) {
       ls[i](event);
     }
   };
@@ -454,7 +454,7 @@ limitations:
       xhr.onerror = onError;    // for Chrome
       xhr.send(null);
     }
-    catch (e){      // for IE
+    catch (e) {      // for IE
       onError(e);
     }
   };
@@ -524,7 +524,7 @@ limitations:
             controls.panLeft(panDelta, controls.object.matrix);
             break;
           case 38:  // UP
-            controls.moveForward(3 * panDelta)    // horizontally forward
+            controls.moveForward(3 * panDelta);    // horizontally forward
             break;
           case 39:  // RIGHT
             controls.panLeft(-panDelta, controls.object.matrix);
@@ -861,7 +861,7 @@ limitations:
 
   app.showPrintDialog = function () {
 
-    function e (tagName, parent, innerHTML) {
+    function e(tagName, parent, innerHTML) {
       var elem = document.createElement(tagName);
       if (parent) parent.appendChild(elem);
       if (innerHTML) elem.innerHTML = innerHTML;
@@ -881,7 +881,7 @@ limitations:
     l1.htmlFor = width.id = width.name = "printwidth";
     width.type = "text";
     width.value = app.width;
-    e("span", d2, "px,")
+    e("span", d2, "px,");
 
     var d3 = e("div", f),
         l2 = e("label", d3, "Height:"),
@@ -938,7 +938,7 @@ limitations:
     f.onsubmit = function () {
       ok.onclick();
       return false;
-    }
+    };
 
     app.popup.show(f, "Save Image", true);   // modal
   };
@@ -971,7 +971,7 @@ limitations:
     // var highlightObject = new Q3D.Group();
     var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
 
-    var clone = object.clone()
+    var clone = object.clone();
     clone.traverse(function (obj) {
       obj.material = app.highlightMaterial;
     });
@@ -1426,7 +1426,7 @@ Q3D.DEMBlock.prototype = {
       xhr.onload = function (event) {
         var arrayBuffer = xhr.response;
         if (arrayBuffer) {
-          grid.array = new Float32Array(arrayBuffer)
+          grid.array = new Float32Array(arrayBuffer);
           buildGeometry(grid.array);
         }
       };
@@ -1621,7 +1621,7 @@ Q3D.ClippedDEMBlock.prototype = {
       xhr.onload = function (event) {
         var arrayBuffer = xhr.response;
         if (arrayBuffer) {
-          grid.array = new Float32Array(arrayBuffer)
+          grid.array = new Float32Array(arrayBuffer);
           buildGeometry(grid.array);
         }
       };
@@ -1833,9 +1833,6 @@ Q3D.DEMLayer.prototype.build = function (blocks) {
 
 // calculate elevation at the coordinates (x, y) on triangle face
 Q3D.DEMLayer.prototype.getZ = function (x, y) {
-  var xmin = -this.sceneData.width / 2,
-      ymax = this.sceneData.height / 2;
-
   for (var i = 0, l = this.blocks.length; i < l; i++) {
     var block = this.blocks[i],
         data = block.data;
@@ -1879,6 +1876,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   var grid = this.blocks[0].data.grid,
       ix = width / (grid.width - 1),
       iy = height / (grid.height - 1);
+  var sort_func = function (a, b) { return a - b; };
 
   var pts = [];
   for (var i = 1, l = lineString.length; i < l; i++) {
@@ -1902,7 +1900,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
       }
     }
 
-    p.sort(function (a, b) { return a - b; });
+    p.sort(sort_func);
 
     var x, y, z, lp = null;
     for (var j = 0, m = p.length; j < m; j++) {
@@ -2715,7 +2713,7 @@ Q3D.Utils.putStick = function (x, y, zFunc, h) {
   if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
   if (h === undefined) h = 0.2;
   if (zFunc === undefined) {
-    zFunc = function (x, y) { return Q3D.application.scene.mapLayers[0].getZ(x, y); }
+    zFunc = function (x, y) { return Q3D.application.scene.mapLayers[0].getZ(x, y); };
   }
   var z = zFunc(x, y);
   var geom = new THREE.Geometry();
@@ -2727,7 +2725,7 @@ Q3D.Utils.putStick = function (x, y, zFunc, h) {
 // convert latitude and longitude in degrees to the following format
 // Ndd°mm′ss.ss″, Eddd°mm′ss.ss″
 Q3D.Utils.convertToDMS = function (lat, lon) {
-  function toDMS (degrees) {
+  function toDMS(degrees) {
     var deg = Math.floor(degrees),
         m = (degrees - deg) * 60,
         min = Math.floor(m),
@@ -2743,7 +2741,7 @@ Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
   var pt,
       geom = new THREE.PlaneBufferGeometry(0, 0, vertices.length - 1, 1),
       v = geom.attributes.position.array;
-  for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k+=3) {
+  for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k += 3) {
     pt = vertices[i];
     v[k] = v[k + l3] = pt.x;
     v[k + 1] = v[k + l3 + 1] = pt.y;
