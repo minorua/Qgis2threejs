@@ -101,7 +101,6 @@ Q3D.Scene.prototype.add = function (object) {
 };
 
 Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
-  var _this = this;
   if (jsonObject.type == "scene") {
     // set properties
     if (jsonObject.properties !== undefined) {
@@ -132,8 +131,8 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     // load layers
     if (jsonObject.layers !== undefined) {
       jsonObject.layers.forEach(function (layer) {
-        _this.loadJSONObject(layer);
-      });
+        this.loadJSONObject(layer);
+      }, this);
     }
   }
   else if (jsonObject.type == "layer") {
@@ -152,9 +151,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         return;
       }
       layer.id = jsonObject.id;
-      layer.addEventListener("renderRequest", function () {
-        _this.requestRender();
-      });
+      layer.addEventListener("renderRequest", this.requestRender.bind(this));
 
       this.mapLayers[jsonObject.id] = layer;
       this.add(layer.objectGroup);
@@ -1608,6 +1605,8 @@ Q3D.ClippedDEMBlock.prototype = {
         _this.buildSides(layer, mesh, Q3D.Options.side.bottomZ);
         layer.sideVisible = true;
       }
+
+      if (callback) callback(_this);    // call callback to request rendering
     };
 
     if (grid.url !== undefined) {
@@ -1704,12 +1703,7 @@ Q3D.MapLayer = function () {
   this.queryable = true;
 
   this.materials = new Q3D.Materials();
-
-  var _this = this;
-  this.materials.addEventListener("renderRequest", function (event) {
-    console.log("renderRequest from materials");
-    _this.requestRender();
-  });
+  this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
 
   this.objectGroup = new Q3D.Group();
   this.queryObjs = [];
@@ -1814,22 +1808,19 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     var index = jsonObject.block;
     this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
-    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, this.requestRender.call(this));
+    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, this.requestRender.bind(this));
     this.addObject(mesh);
   }
 };
 
 Q3D.DEMLayer.prototype.build = function (blocks) {
-  var _this = this;
   // build blocks
   blocks.forEach(function (block) {
     var b = (block.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock()),
-        mesh = b.loadJSONObject(block, _this, function (blk) {
-          _this.requestRender();
-        });
-    _this.addObject(mesh);
-    _this.blocks.push(b);
-  });
+        mesh = b.loadJSONObject(block, this, this.requestRender.bind(this));
+    this.addObject(mesh);
+    this.blocks.push(b);
+  }, this);
 };
 
 // calculate elevation at the coordinates (x, y) on triangle face
