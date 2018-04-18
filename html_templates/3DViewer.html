@@ -54,7 +54,7 @@ var app = Q3D.application,
 document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 
 app.init(container, ${is_ortho});       // initialize application
-app.loadJSONFromURL("${scenefile}");    // load the scene
+app.loadJSONFile("${scenefile}");    // load the scene
 app.start();
 
 </script>

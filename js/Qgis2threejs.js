@@ -427,26 +427,22 @@ limitations:
     app.scene.loadJSONObject(jsonObject);
   };
 
-  var _loadCounter = 0;
-  app.loadJSONFromURL = function (url, callback) {
-
+  var reqCounter = 0;
+  app.loadFile = function (url, type, callback) {
     var onError = function (e) {
       if (location.protocol == "file:") {
         app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/BrowserSupport'>plugin wiki</a> for details.", "Error", true);
       }
     };
-
-    _loadCounter++;
-
+    reqCounter++;
     try {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", url, true);
-      xhr.responseType = "json";
+      xhr.responseType = type;
       xhr.onload = function () {
-        app.loadJSONObject(this.response);
-        _loadCounter--;
-        if (callback) callback();
-        if (_loadCounter == 0) dispatchEvent({type: "objectsLoaded"});
+        reqCounter--;
+        if (callback) callback(this.response);
+        if (reqCounter == 0) dispatchEvent({type: "sceneLoaded"});
       };
       xhr.onerror = onError;    // for Chrome
       xhr.send(null);
@@ -454,6 +450,22 @@ limitations:
     catch (e) {      // for IE
       onError(e);
     }
+  };
+
+  app.loadJSONFile = function (url, callback) {
+    app.loadFile(url, "json", function (obj) {
+      app.loadJSONObject(obj);
+      if (callback) callback(obj);
+    });
+  };
+
+  app.loadTextureFile = function (url, callback) {
+    reqCounter++;
+    return new THREE.TextureLoader().load(url, function () {
+      reqCounter--;
+      if (callback) callback();
+      if (reqCounter == 0) dispatchEvent({type: "sceneLoaded"});
+    });
   };
 
   app.mouseDownPoint = new THREE.Vector2();
@@ -1218,7 +1230,7 @@ Q3D.Material.prototype = {
     if (m.image !== undefined) {
       var image = m.image;
       if (image.url !== undefined) {
-        opt.map = new THREE.TextureLoader().load(image.url, callback);
+        opt.map = Q3D.application.loadTextureFile(image.url, callback);
       }
       else if (image.object !== undefined) {    // WebKit Bridge
         opt.map = new THREE.Texture(image.object.toImageData());
@@ -1416,18 +1428,10 @@ Q3D.DEMBlock.prototype = {
     };
 
     if (grid.url !== undefined) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", grid.url);
-      xhr.responseType = "arraybuffer";
-
-      xhr.onload = function (event) {
-        var arrayBuffer = xhr.response;
-        if (arrayBuffer) {
-          grid.array = new Float32Array(arrayBuffer);
-          buildGeometry(grid.array);
-        }
-      };
-      xhr.send(null);
+      Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+        grid.array = new Float32Array(buf);
+        buildGeometry(grid.array);
+      });
     }
     else {    // WebKit Bridge
       if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
@@ -1610,18 +1614,10 @@ Q3D.ClippedDEMBlock.prototype = {
     };
 
     if (grid.url !== undefined) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", grid.url);
-      xhr.responseType = "arraybuffer";
-
-      xhr.onload = function (event) {
-        var arrayBuffer = xhr.response;
-        if (arrayBuffer) {
-          grid.array = new Float32Array(arrayBuffer);
-          buildGeometry(grid.array);
-        }
-      };
-      xhr.send(null);
+      Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+        grid.array = new Float32Array(buf);
+        buildGeometry(grid.array);
+      });
     }
     else {    // WebKit Bridge
       if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
@@ -2030,7 +2026,7 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       }
 
       (jsonObject.data.blocks || []).forEach(function (block) {
-        if (block.url !== undefined) Q3D.application.loadJSONFromURL(block.url);
+        if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
         else {
           this.build(block.features);
           if (this.properties.label !== undefined) this.buildLabels(block.features);
