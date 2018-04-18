@@ -289,7 +289,7 @@
   </action>
   <action name="actionPluginSettings">
    <property name="text">
-    <string>Plugin Settings..</string>
+    <string>Exporter Settings..</string>
    </property>
   </action>
   <action name="actionHelp">

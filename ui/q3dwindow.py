@@ -208,7 +208,7 @@ class Ui_Q3DWindow(object):
         self.actionOrbit.setText(_translate("Q3DWindow", "Orbit"))
         self.actionLayer_Panel.setText(_translate("Q3DWindow", "Layer Panel"))
         self.actionCloseExporter.setText(_translate("Q3DWindow", "Close Exporter"))
-        self.actionPluginSettings.setText(_translate("Q3DWindow", "Plugin Settings.."))
+        self.actionPluginSettings.setText(_translate("Q3DWindow", "Exporter Settings.."))
         self.actionHelp.setText(_translate("Q3DWindow", "&Help"))
         self.actionHomePage.setText(_translate("Q3DWindow", "Plugin Home Page"))
         self.actionSendFeedback.setText(_translate("Q3DWindow", "Send Feedback"))

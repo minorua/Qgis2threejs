@@ -72,7 +72,7 @@ class Ui_SettingsDialog(object):
 
     def retranslateUi(self, SettingsDialog):
         _translate = QtCore.QCoreApplication.translate
-        SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Qgis2threejs Plugin Settings"))
+        SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Qgis2threejs Exporter Settings"))
         self.groupBox.setTitle(_translate("SettingsDialog", "General"))
         self.label.setText(_translate("SettingsDialog", "Web browser path"))
         self.pushButton_Browse.setText(_translate("SettingsDialog", "Browse..."))
