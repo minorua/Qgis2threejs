@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.0.1
+- Bug fixes
+- Improved DEM load performance
+
 ### Version 2.0
 
 - Built for QGIS 3.x
@@ -12,13 +16,13 @@
 
 
 ### Version 1.4.2
-- Fix unicode decode error
+- Fixed unicode decode error
 
 ### Version 1.4.1
 - Rendering with antialias enabled
 - Improved height range of custom plane (dat-gui, refs #53)
 - Skip invalid polygons (fix #71)
-- Fix feature attribute writing (fix #73)
+- Fixed feature attribute writing (fix #73)
 
 ### Version 1.4
 
@@ -28,8 +32,8 @@
 - Turn off scene.autoUpdate to reduce matrix calculation cost
 - API for Python
 - Added some basic test cases
-- Fix error while exporting with DEM's build frame option (fix #48)
-- Fix cone type object for point layer (fix #50)
+- Fixed error while exporting with DEM's build frame option (fix #48)
+- Fixed cone type object for point layer (fix #50)
 
 
 ### Version 1.3.1
