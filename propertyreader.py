@@ -143,7 +143,8 @@ class VectorPropertyReader:
       try:
         val = self.evaluateExpression(widgetValues["editText"], f)
         return min(max(0, val), 100) / 100
-      except ValueError:
+      except:
+        logMessage("Wrong opacity value: {}".format(val))
         return 1
 
     symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
