@@ -153,7 +153,7 @@ class DEMBlockExporter:
     if self.edgeRougheness == 1:
       ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
     else:
-      grid_values = self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent)
+      grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
       self.processEdges(grid_values, self.edgeRougheness)
       ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
 
