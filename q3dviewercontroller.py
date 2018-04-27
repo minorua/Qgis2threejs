@@ -18,8 +18,10 @@
  *                                                                         *
  ***************************************************************************/
 """
+import time
 from qgis.core import QgsApplication
 
+from .conf import debug_mode
 from .export import ThreeJSExporter
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, pluginDir
@@ -131,15 +133,25 @@ class Q3DViewerController:
     self.iface.clearMessage()
 
   def _updateLayer(self, layer):
-    if self.iface and self.previewEnabled:
-      for exporter in self.exporter.exporters(layer):
-        if self.aborted:
-          return False
-        self.iface.loadJSONObject(exporter.build())
-        QgsApplication.processEvents()
-          # NOTE: process events only for the calling thread
-      layer.updated = False
-      return True
+    if not (self.iface and self.previewEnabled):
+      return False
+
+    ts0 = time.time()
+    tss = []
+    for exporter in self.exporter.exporters(layer):
+      if self.aborted:
+        return False
+      ts1 = time.time()
+      obj = exporter.build()
+      ts2 = time.time()
+      self.iface.loadJSONObject(obj)
+      ts3 = time.time()
+      tss.append([ts2 - ts1, ts3 - ts2])
+      QgsApplication.processEvents()      # NOTE: process events only for the calling thread
+    layer.updated = False
+    if debug_mode:
+      logMessage("updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss])))
+    return True
 
   def updateExtent(self):
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
