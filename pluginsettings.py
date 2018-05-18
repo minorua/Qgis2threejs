@@ -19,10 +19,10 @@
 """
 import configparser
 import os
-from PyQt5.QtCore import Qt, QDir, QFile, QSettings
+from PyQt5.QtCore import Qt, QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import logMessage, pluginDir
 from .ui.settingsdialog import Ui_SettingsDialog
 
 
@@ -43,7 +43,7 @@ class SettingsDialog(QDialog):
     enabled_plugins = QSettings().value("/Qgis2threejs/plugins", "", type=str).split(",")
 
     # initialize plugin table widget
-    plugin_dir = QDir(os.path.join(os.path.dirname(QFile.decodeName(__file__)), "plugins"))
+    plugin_dir = QDir(pluginDir("plugins"))
     plugins = plugin_dir.entryList(QDir.Dirs | QDir.NoSymLinks | QDir.NoDotAndDotDot)
 
     tableWidget = ui.tableWidget_Plugins

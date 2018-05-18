@@ -23,8 +23,8 @@ import importlib
 import os
 import sys
 
-from PyQt5.QtCore import QDir, QFile, QSettings
-from .qgis2threejstools import logMessage
+from PyQt5.QtCore import QDir, QSettings
+from .qgis2threejstools import logMessage, pluginDir
 
 
 _pluginManager = None
@@ -49,7 +49,7 @@ class PluginManager:
     self.plugins = []
 
     if self.allPlugins:
-      plugin_dir = QDir(os.path.join(os.path.dirname(QFile.decodeName(__file__)), "plugins"))
+      plugin_dir = QDir(pluginDir("plugins"))
       plugins = plugin_dir.entryList(QDir.Dirs | QDir.NoSymLinks | QDir.NoDotAndDotDot)
     else:
       p = QSettings().value("/Qgis2threejs/plugins", "", type=str)

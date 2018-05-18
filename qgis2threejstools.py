@@ -241,7 +241,7 @@ def removeDir(dirName):
 
 
 def pluginDir(*subdirs):
-  p = os.path.dirname(QFile.decodeName(__file__))
+  p = os.path.dirname(__file__)
   if subdirs:
     return os.path.join(p, *subdirs)
   return p
