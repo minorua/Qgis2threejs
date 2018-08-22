@@ -74,6 +74,8 @@ class Ui_Q3DWindow(object):
         self.verticalLayout_3.setSpacing(2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.listWidgetDebugView = QtWidgets.QListWidget(self.dockWidgetContents_2)
+        self.listWidgetDebugView.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.listWidgetDebugView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.listWidgetDebugView.setObjectName("listWidgetDebugView")
         self.verticalLayout_3.addWidget(self.listWidgetDebugView)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -142,6 +144,10 @@ class Ui_Q3DWindow(object):
         self.actionSaveAsGLTF.setObjectName("actionSaveAsGLTF")
         self.actionClearAllSettings = QtWidgets.QAction(Q3DWindow)
         self.actionClearAllSettings.setObjectName("actionClearAllSettings")
+        self.actionConsoleCopy = QtWidgets.QAction(Q3DWindow)
+        self.actionConsoleCopy.setObjectName("actionConsoleCopy")
+        self.actionConsoleClear = QtWidgets.QAction(Q3DWindow)
+        self.actionConsoleClear.setObjectName("actionConsoleClear")
         self.menuCamera.addAction(self.actionPerspective)
         self.menuCamera.addAction(self.actionOrthographic)
         self.menuControls.addAction(self.actionOrbit)
@@ -216,6 +222,8 @@ class Ui_Q3DWindow(object):
         self.actionSaveAsOBJ.setText(_translate("Q3DWindow", "Wavefront (.obj)"))
         self.actionSaveAsGLTF.setText(_translate("Q3DWindow", "glTF (.gltf, .glb)"))
         self.actionClearAllSettings.setText(_translate("Q3DWindow", "Clear All Settings"))
+        self.actionConsoleCopy.setText(_translate("Q3DWindow", "Copy"))
+        self.actionConsoleClear.setText(_translate("Q3DWindow", "Clear"))
 
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView

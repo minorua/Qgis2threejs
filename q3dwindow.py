@@ -21,7 +21,7 @@
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, QVariant, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from PyQt5.QtWidgets import QAction, QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
 from .conf import debug_mode, plugin_version
@@ -169,6 +169,7 @@ class Q3DWindow(QMainWindow):
     self.iface = Q3DViewerInterface(qgisIface, self, self.ui.treeView, self.ui.webView, controller)
 
     self.setupMenu()
+    self.setupContextMenu()
     self.setupStatusBar(self.iface, preview)
     self.ui.treeView.setup(self.iface)
     self.ui.webView.setup(self, self.iface, isViewer, preview)
@@ -236,6 +237,13 @@ class Q3DWindow(QMainWindow):
     self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
     self.ui.actionAbout.triggered.connect(self.about)
 
+  def setupContextMenu(self):
+    # console
+    self.ui.actionConsoleCopy.triggered.connect(self.copyConsole)
+    self.ui.actionConsoleClear.triggered.connect(self.clearConsole)
+    self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleCopy)
+    self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleClear)
+
   def setupStatusBar(self, iface, previewEnabled=True):
     w = QProgressBar(self.ui.statusbar)
     w.setObjectName("progressBar")
@@ -276,6 +284,13 @@ class Q3DWindow(QMainWindow):
         self.runString("app.pause();")
       else:
         self.runString("app.resume();")
+
+  def copyConsole(self):
+    # copy selected item(s) text to clipboard
+    indices = self.ui.listWidgetDebugView.selectionModel().selectedIndexes()
+    text = "\n".join([str(index.data(Qt.DisplayRole)) for index in indices])
+    if text:
+      QApplication.clipboard().setText(text)
 
   def clearConsole(self):
     self.ui.listWidgetDebugView.clear()
