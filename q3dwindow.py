@@ -58,27 +58,27 @@ class Q3DViewerInterface:
     self.treeView.setLayerList(settings.getLayerList())
 
   def startApplication(self):
-    self.webView.runString("app.start();");
+    self.runString("app.start();");
     if debug_mode:
-      self.webView.runString("displayFPS();");
+      self.runString("displayFPS();");
 
   def setPreviewEnabled(self, enabled):
     self.controller.setPreviewEnabled(enabled)
 
     elem = "document.getElementById('cover')"
-    self.webView.runString("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
+    self.runString("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
     if not enabled:
-      self.webView.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
+      self.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
     if debug_mode == 2:
-      self.webView.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
+      self.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
     self.webView.bridge.sendData.emit(QVariant(obj))
 
   def runString(self, string, message=""):
-    self.webView.runString(string, message)
+    self.webView.runString(string, message, sourceID="q3dwindow.py")
 
   def abort(self):
     self.controller.abort()
@@ -281,14 +281,24 @@ class Q3DWindow(QMainWindow):
     self.ui.listWidgetDebugView.clear()
 
   def printConsoleMessage(self, message, lineNumber="", sourceID=""):
-    self.ui.listWidgetDebugView.addItem("{} ({}): {}".format(sourceID.split("/")[-1], lineNumber, message))
+    if sourceID:
+      source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
+      text = "{}: {}".format(source, message)
+    else:
+      text = message
+    self.ui.listWidgetDebugView.addItem(text)
 
   def runInputBoxString(self):
-    self.runString(self.ui.lineEditInputBox.text())
+    text = self.ui.lineEditInputBox.text()
+    self.ui.listWidgetDebugView.addItem("> " + text)
+    result = self.ui.webView._page.mainFrame().evaluateJavaScript(text)
+    if result is not None:
+      self.ui.listWidgetDebugView.addItem("<- {}".format(result))
+    self.ui.listWidgetDebugView.scrollToBottom()
     self.ui.lineEditInputBox.clear()
 
-  def runString(self, string, message=""):
-    self.ui.webView.runString(string, message)
+  def runString(self, string, message="", sourceID="Q3DWindow.py"):
+    return self.ui.webView.runString(string, message, sourceID=sourceID)
 
   def exportToWeb(self):
     dialog = ExportToWebDialog(self, self.qgisIface, self.settings)

@@ -169,9 +169,9 @@ class Q3DView(QWebView):
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")
 
-  def runString(self, string, message=""):
-    self.wnd.printConsoleMessage(message if message else string, sourceID="runString")
+  def runString(self, string, message="", sourceID="q3dview.py"):
     if debug_mode:
+      self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
       qDebug("runString: {}\n".format(message if message else string))
 
       if debug_mode == 2:
