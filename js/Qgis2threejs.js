@@ -236,6 +236,29 @@ Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
           z: z / this.userData.zScale + this.userData.origin.z};
 };
 
+// real (geodetic/projected) coordinates to 3D scene coordinates
+Q3D.Scene.prototype.toLocalCoordinates = function (x, y, z, isProjected) {
+  // project x and y coordinates from WGS84 (long, lat)
+  if (!isProjected && typeof proj4 !== "undefined") {
+    pt = proj4(this.userData.proj).forward([x, y]);
+    x = pt[0];
+    y = pt[1];
+  }
+
+  x = (x - this.userData.origin.x) * this.userData.scale;
+  y = (y - this.userData.origin.y) * this.userData.scale;
+  z = (z - this.userData.origin.z) * this.userData.zScale;
+
+  // TODO: rotation
+  if (this.userData.rotation) {
+    var pt = this._rotatePoint({x: x, y: y}, this.userData.rotation);
+    x = pt.x;
+    y = pt.y;
+  }
+
+  return {x: x, y: y, z: z};
+};
+
 // Rotate a point around an origin
 Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
   var theta = degrees * Math.PI / 180,
@@ -338,43 +361,52 @@ limitations:
     if (vars.ux !== undefined) app.camera.up.set(parseFloat(vars.ux), parseFloat(vars.uy), parseFloat(vars.uz));
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
-    // orbit controls
-    var controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
-    controls.enableKeys = false;
+    var controls;
+    if (typeof THREE.DeviceOrientationControls !== "undefined") {
+      controls = new THREE.DeviceOrientationControls(app.camera);
+    }
+    else {
+      controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+      controls.enableKeys = false;
 
-    var offset = new THREE.Vector3();
-    var spherical = new THREE.Spherical();
+      var offset = new THREE.Vector3();
+      var spherical = new THREE.Spherical();
 
-    // orbit controls - custom functions
-    controls.moveForward = function (delta) {
-      offset.copy(controls.object.position).sub(controls.target);
-      var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
-      offset.y = 0;
-      offset.normalize();
-      offset.multiplyScalar(-2 * delta * targetDistance / app.renderer.domElement.clientHeight);
+      // custom functions
+      controls.moveForward = function (delta) {
+        offset.copy(controls.object.position).sub(controls.target);
+        var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
+        offset.y = 0;
+        offset.normalize();
+        offset.multiplyScalar(-2 * delta * targetDistance / app.renderer.domElement.clientHeight);
 
-      controls.object.position.add(offset);
-      controls.target.add(offset);
-    };
-    controls.cameraRotate = function (thetaDelta, phiDelta) {
-      offset.copy(controls.target).sub(controls.object.position);
-      spherical.setFromVector3(offset);
+        controls.object.position.add(offset);
+        controls.target.add(offset);
+      };
+      controls.cameraRotate = function (thetaDelta, phiDelta) {
+        offset.copy(controls.target).sub(controls.object.position);
+        spherical.setFromVector3(offset);
 
-      spherical.theta += thetaDelta;
-      spherical.phi -= phiDelta;
+        spherical.theta += thetaDelta;
+        spherical.phi -= phiDelta;
 
-      // restrict theta/phi to be between desired limits
-      spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
-      spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
-      spherical.makeSafe();
+        // restrict theta/phi to be between desired limits
+        spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
+        spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
+        spherical.makeSafe();
 
-      offset.setFromSpherical(spherical);
-      controls.target.copy(controls.object.position).add(offset);
-      controls.object.lookAt(controls.target);
-    };
+        offset.setFromSpherical(spherical);
+        controls.target.copy(controls.object.position).add(offset);
+        controls.object.lookAt(controls.target);
+      };
+
+      controls.addEventListener("change", function (event) {
+        app.render();
+      });
+    }
 
     app.controls = controls;
-    controls.update();
+    app.controls.update();
 
     app.labelVisibility = Q3D.Options.label.visible;
 
@@ -404,10 +436,6 @@ limitations:
 
     app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
     app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
-
-    controls.addEventListener("change", function (event) {
-      app.render();
-    });
 
     var e = Q3D.$("closebtn");
     if (e) e.addEventListener("click", app.closePopup);
@@ -791,6 +819,8 @@ limitations:
 
     // show box
     // obj: html or element
+    // modal: boolean
+    // TODO: duration
     show: function (obj, title, modal) {
 
       if (modal) app.pause();

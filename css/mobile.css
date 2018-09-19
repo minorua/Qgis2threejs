@@ -1,0 +1,122 @@
+#webgl canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+}
+
+#video {
+  background-color: lightgray;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.switch {
+  position: absolute;
+  display: inline-block;
+  top: 20px;
+  right: 20px;
+  width: 85px;
+  height: 34px;
+}
+
+.switch div {
+  color: gray;
+  margin-top: 8px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-left: 26px;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+.switch input:checked + .slider {
+  background-color: #2196F3;
+}
+
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.btn {
+  color: gray;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  cursor: pointer;
+  position: absolute;
+}
+
+.expand {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 100%;
+}
+.expand input {
+  display: none;
+}
+
+.expand .btn {
+  bottom: 0;
+  right: 0;
+  transition: all .4s;
+}
+
+.expand .btn1 {
+  opacity: 1;
+  z-index: 1;
+}
+
+.expand .btn1 svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.expand input:checked ~ .btn2 {
+  right: 72%;
+}
+
+.expand input:checked ~ .btn3 {
+  right: 48%;
+}
+
+.expand input:checked ~ .btn4 {
+  right: 24%;
+}
