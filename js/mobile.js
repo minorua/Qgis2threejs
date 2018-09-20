@@ -18,6 +18,30 @@ app.resume = function () {
   else orbitControls.enabled = true;
 };
 
+app.eventListener.resize = function () {
+  var width, height;
+  if (ARMode) {
+    var v = document.getElementById("video"),
+        asp = window.innerWidth / window.innerHeight,
+        vasp = v.videoWidth / v.videoHeight,
+        c = app.renderer.domElement;
+    if (vasp > asp) {
+      width = window.innerWidth;
+      height = parseInt(width / vasp);
+    }
+    else {
+      height = window.innerHeight;
+      width = parseInt(height * vasp);
+    }
+  }
+  else {
+    width = window.innerWidth;
+    height = window.innerHeight;
+  }
+  app.setCanvasSize(width, height);
+  app.render();
+};
+
 function initControls() {
   orbitControls = app.controls;
   devControls = new THREE.DeviceOrientationControls(app.camera);
@@ -51,21 +75,7 @@ function startARMode() {
     navigator.getUserMedia({video: {optional: [{sourceId: id}]}}, function (stream) {
       var v = document.getElementById("video");
       v.addEventListener("loadedmetadata", function () {
-        var asp = window.innerWidth / window.innerHeight,
-            vasp = v.videoWidth / v.videoHeight,
-            c = app.renderer.domElement;
-
-        var width, height;
-        if (vasp > asp) {
-          width = window.innerWidth;
-          height = parseInt(width / vasp);
-        }
-        else {
-          height = window.innerHeight;
-          width = parseInt(height * vasp);
-        }
-        app.setCanvasSize(width, height);
-
+        app.eventListener.resize();
         moveToCurrentLocation();
       });
       v.srcObject = stream;
