@@ -1,9 +1,41 @@
+var orbitControls, devControls, oldFOV;
+var ARMode = false;
+
 Q3D.Options.bgcolor = null;
+
 app.start = function () {
-  if (app.controls) app.controls.connect();
+  if (ARMode) devControls.connect();
+  else orbitControls.enabled = true;
 };
 
+app.pause = function () {
+  if (ARMode) devControls.disconnect();
+  else orbitControls.enabled = false;
+};
+
+app.resume = function () {
+  if (ARMode) devControls.connect();
+  else orbitControls.enabled = true;
+};
+
+function initControls() {
+  orbitControls = app.controls;
+  devControls = new THREE.DeviceOrientationControls(app.camera);
+  devControls.alphaOffset = DECLINATION * Math.PI / 180;    // counter-clockwise
+
+  oldFOV = app.camera.fov;
+}
+
 function startARMode() {
+  ARMode = true;
+  app.camera.fov = FOV;
+  app.camera.updateProjectionMatrix();
+  app.camera.position.set(0, 30, 0);
+
+  app.controls = devControls;
+  orbitControls.enabled = false;
+  devControls.connect();
+
   navigator.mediaDevices.enumerateDevices().then(function (devices) {
     // use "camera" facing "back" preferentially
     devices.sort(function (a, b) {
@@ -33,6 +65,8 @@ function startARMode() {
           width = parseInt(height * vasp);
         }
         app.setCanvasSize(width, height);
+
+        moveToCurrentLocation();
       });
       v.srcObject = stream;
     }, function (error) {
@@ -44,13 +78,25 @@ function startARMode() {
 }
 
 function stopARMode() {
-  // TODO
+  ARMode = false;
+
+  app.controls = orbitControls;
+  devControls.disconnect();
+  orbitControls.enabled = true;
+
+  app.camera.position.set(0, 100, 100);
+  app.camera.lookAt(0, 0, 0);
+  orbitControls.target.set(0, 0, 0);
+
   var v = document.getElementById("video");
   v.srcObject = null;
+
+  app.camera.fov = oldFOV;
+  app.camera.updateProjectionMatrix();
   app.setCanvasSize(window.innerWidth, window.innerHeight);
 }
 
-function moveToCurrentLocation() {
+function getCurrentPosition (callback) {
   app.popup.show("Fetching current location...");
 
   navigator.geolocation.getCurrentPosition(function (position) {
@@ -77,35 +123,69 @@ function moveToCurrentLocation() {
       }
     }
 
-    // move camera
-    app.camera.position.set(pt.x, pt.z, -pt.y);
+    callback(pt);
 
     var msg = "Long.: " + pos.longitude +
               "<br>Lat.: " + pos.latitude +
               "<br>(Acc.: " + pos.accuracy +
               ")<br>(Alt.: " + pos.altitude +
               ")<br>(Alt. Acc.: " + pos.altitudeAccuracy + ")";
-    app.popup.show(msg, "Camera position updated");
+    app.popup.show(msg, "Current location");
     setTimeout(function () {
       app.popup.hide();
-    }, 10000);
+    }, 5000);
   },
   function (error) {
     app.popup.hide();
-    alert("Cannot get your current location: " + error.message);
+    alert("Cannot get current location: " + error.message);
   },
   {enableHighAccuracy: true});
+};
+
+function moveToCurrentLocation() {
+  // AR mode is on
+  getCurrentPosition(function (pt) {
+    // move camera
+    app.camera.position.set(pt.x, pt.z, -pt.y);
+  });
 }
 
-document.getElementById("camera-checkbox").addEventListener("change", function () {
+function zoomToCurrentLocation() {
+  // AR mode is off
+  getCurrentPosition(function (pt) {
+    // indicate current position using query marker
+    app.queryMarker.position.set(pt.x, pt.y, pt.z); // this is z-up
+    app.queryMarker.visible = true;
+    app.queryMarker.updateMatrixWorld();
+
+    // zoom in on current position
+    var x = pt.x,
+        y = pt.y - 10.0,
+        z = pt.z + 10.0;
+    app.camera.position.set(x, z, -y);
+    app.camera.lookAt(pt.x, pt.z, -pt.y);
+    orbitControls.target.set(pt.x, pt.z, -pt.y);
+  });
+}
+
+document.getElementById("ar-checkbox").addEventListener("change", function () {
   if (this.checked) startARMode();
   else stopARMode();
 });
 
-document.getElementById("current-location").addEventListener("click", moveToCurrentLocation);
-document.getElementById("info-button").addEventListener("click", function () {
-  alert("TODO");
-  app.showInfo();
+document.getElementById("current-location").addEventListener("click", function () {
+  if (ARMode) moveToCurrentLocation();
+  else zoomToCurrentLocation();
 });
 
+document.getElementById("layers-button").addEventListener("click", function () {
+  alert("TODO");
+});
 
+document.getElementById("settings-button").addEventListener("click", function () {
+  alert("TODO");
+});
+
+document.getElementById("info-button").addEventListener("click", function () {
+  app.showInfo();
+});

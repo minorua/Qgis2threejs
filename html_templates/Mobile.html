@@ -9,6 +9,7 @@
 <script defer src="./fontawesome/solid.min.js"></script>
 <script defer src="./fontawesome/fontawesome.min.js"></script>
 <script src="./threejs/three.min.js"></script>
+<script src="./threejs/OrbitControls.js"></script>
 <script src="./threejs/DeviceOrientationControls.js"></script>
 <script src="./proj4js/proj4.js"></script>
 <script src="./Qgis2threejs.js"></script>
@@ -22,8 +23,8 @@
 
 <!-- buttons -->
 <label class="switch">
-  <div><i class="fas fa-camera"></i></div>
-  <input type="checkbox" id="camera-checkbox">
+  <div>AR</div>
+  <input type="checkbox" id="ar-checkbox">
   <span class="slider"></span>
 </label>
 
@@ -34,8 +35,8 @@
   <label for="expand-checkbox">
     <div class="btn btn1"><i class="fas fa-ellipsis-h fa-2x"></i></div>
   </label>
-  <button class="btn btn2"><i class="fas fa-camera fa-2x"></i></button>
-  <button class="btn btn3"><i class="fas fa-cog fa-2x"></i></button>
+  <button class="btn btn2" id="layers-button"><i class="fas fa-layer-group fa-2x"></i></button>
+  <button class="btn btn3" id="settings-button"><i class="fas fa-cog fa-2x"></i></button>
   <button class="btn btn4" id="info-button"><i class="fas fa-info-circle fa-2x"></i></button>
 </div>
 
@@ -82,10 +83,7 @@ var FOV = 70;             // device camera's field of view
 <script>
 var container = document.getElementById("webgl");
 app.init(container, false);   // initialize application
-app.controls.alphaOffset = DECLINATION * Math.PI / 180;    // counter-clockwise
-app.camera.fov = FOV;
-app.camera.updateProjectionMatrix();
-app.camera.position.set(0, 30, 0);
+initControls();               // initialize controls for AR mode
 
 app.addEventListener("sceneLoaded", function () {});
 
@@ -93,7 +91,7 @@ app.addEventListener("sceneLoaded", function () {});
 app.loadJSONFile("${scenefile}", function () {
   app.start();
   if ("AR" in app.urlParams) {
-    document.getElementById("camera-checkbox").checked = true;
+    document.getElementById("ar-checkbox").checked = true;
     startARMode();
     moveToCurrentLocation();
   }

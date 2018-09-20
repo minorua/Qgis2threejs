@@ -362,10 +362,7 @@ limitations:
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     var controls;
-    if (typeof THREE.DeviceOrientationControls !== "undefined") {
-      controls = new THREE.DeviceOrientationControls(app.camera);
-    }
-    else {
+    if (typeof THREE.OrbitControls !== "undefined") {
       controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
       controls.enableKeys = false;
 
@@ -502,7 +499,7 @@ limitations:
   app.eventListener = {
 
     keydown: function (e) {
-      var controls = app.controls, keyPressed = e.which;
+      var controls = app.controls;
       var panDelta = 3, rotateAngle = 2 * Math.PI / 180;
       if (e.shiftKey && e.ctrlKey) {
         switch (e.keyCode) {
