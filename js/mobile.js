@@ -1,7 +1,6 @@
 var orbitControls, devControls, oldFOV;
 var ARMode = false;
 
-Q3D.Options.bgcolor = null;
 
 app.start = function () {
   if (ARMode) devControls.connect();
@@ -79,6 +78,8 @@ function startARMode() {
         moveToCurrentLocation();
       });
       v.srcObject = stream;
+
+      document.getElementById("webgl").classList.add("transparent");
     }, function (error) {
       alert(error);
     });
@@ -100,6 +101,8 @@ function stopARMode() {
 
   var v = document.getElementById("video");
   v.srcObject = null;
+
+  document.getElementById("webgl").classList.remove("transparent");
 
   app.camera.fov = oldFOV;
   app.camera.updateProjectionMatrix();
