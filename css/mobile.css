@@ -134,6 +134,25 @@ body {
   right: 24%;
 }
 
+.touchme {
+  animation: flash 1s linear infinite normal;
+}
+
+@keyframes flash {
+  0% {
+    border: 0px solid #2196F3;
+    box-shadow: 0px 0px 0px 0px #2196F3;
+  }
+  80% {
+    border: 4px solid rgba(33, 150, 243, 0.75);
+    box-shadow: 0px 0px 0px 4px rgba(33, 150, 243, 0.75);
+  }
+  100% {
+    border: 0px solid #2196F3;
+    box-shadow: 0px 0px 0px 0px #2196F3;
+  }
+}
+
 #layerlist {
   font-family: arial, sans-serif;
   position: absolute;

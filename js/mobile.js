@@ -100,6 +100,7 @@ function startARMode() {
   orbitControls.enabled = false;
   devControls.connect();
   app.startAnimation();
+  document.getElementById("current-location").classList.add("touchme");
 
   navigator.mediaDevices.enumerateDevices().then(function (devices) {
     // use "camera" facing "back" preferentially
@@ -117,7 +118,6 @@ function startARMode() {
       var v = document.getElementById("video");
       v.addEventListener("loadedmetadata", function () {
         app.eventListener.resize();
-        moveToCurrentLocation();
       });
       v.srcObject = stream;
 
@@ -137,6 +137,7 @@ function stopARMode() {
   devControls.disconnect();
   app.stopAnimation();
   orbitControls.enabled = true;
+  document.getElementById("current-location").classList.remove("touchme");
 
   app.camera.position.set(0, 100, 100);
   app.camera.lookAt(0, 0, 0);
@@ -194,6 +195,8 @@ function getCurrentPosition (callback) {
 
 function moveToCurrentLocation() {
   // AR mode is on
+  document.getElementById("current-location").classList.remove("touchme");
+
   getCurrentPosition(function (pt) {
     // move camera
     app.camera.position.set(pt.x, pt.z, -pt.y);
