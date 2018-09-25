@@ -99,6 +99,7 @@ function startARMode() {
   app.controls = devControls;
   orbitControls.enabled = false;
   devControls.connect();
+  app.startAnimation();
 
   navigator.mediaDevices.enumerateDevices().then(function (devices) {
     // use "camera" facing "back" preferentially
@@ -134,6 +135,7 @@ function stopARMode() {
 
   app.controls = orbitControls;
   devControls.disconnect();
+  app.stopAnimation();
   orbitControls.enabled = true;
 
   app.camera.position.set(0, 100, 100);
