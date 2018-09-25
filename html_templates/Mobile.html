@@ -39,6 +39,8 @@
   <button class="btn btn4" id="info-button"><i class="fas fa-info-circle fa-2x"></i></button>
 </div>
 
+<div id="layerlist" class="hidden"></div>
+
 <!-- popup -->
 <div id="popup" style="display:none;">
   <div id="closebtn">&times;</div>
@@ -71,7 +73,6 @@
 <script>
 var app = Q3D.application,
     option = Q3D.Options;
-
 ${options}
 
 var DECLINATION = 7.58;   // magnetic declination
@@ -84,7 +85,9 @@ var container = document.getElementById("webgl");
 app.init(container, false);   // initialize application
 initControls();               // initialize controls for AR mode
 
-app.addEventListener("sceneLoaded", function () {});
+app.addEventListener("sceneLoaded", function () {
+  initLayerList();
+});
 
 // load the scene
 app.loadJSONFile("${scenefile}", function () {

@@ -49,6 +49,47 @@ function initControls() {
   oldFOV = app.camera.fov;
 }
 
+function initLayerList() {
+  var list = document.getElementById("layerlist");
+  var item = document.createElement("div");
+  item.innerHTML = "<input type='checkbox' checked>All layers";
+  item.children[0].addEventListener("change", function () {
+    for (var i = 1; i < list.children.length; i++) {
+      list.children[i].children[0].checked = this.checked;
+    }
+    for (var id in app.scene.mapLayers) {
+      app.scene.mapLayers[id].setVisible(this.checked);
+    }
+  });
+  list.appendChild(item);
+
+  var updateAllLayersCheckbox = function () {
+    var checked = 0, unchecked = 0;
+    for (var i = 1; i < list.children.length; i++) {
+      if (list.children[i].children[0].checked) checked++;
+      else unchecked++;
+    }
+    if (checked && unchecked) list.children[0].children[0].indeterminate = true;
+    else {
+      list.children[0].children[0].indeterminate = false;
+      list.children[0].children[0].checked = Boolean(checked);
+    }
+  };
+
+  Object.keys(app.scene.mapLayers).forEach(function (layerId) {
+    var layer = app.scene.mapLayers[layerId];
+    item = document.createElement("div");
+    item.innerHTML = "<input type='checkbox'" +
+                     ((layer.properties.visible) ? " checked" : "") +
+                     ">" + layer.properties.name;
+    item.children[0].addEventListener("change", function () {
+      layer.setVisible(this.checked);
+      updateAllLayersCheckbox();
+    });
+    list.appendChild(item);
+  });
+}
+
 function startARMode() {
   ARMode = true;
   app.camera.fov = FOV;
@@ -192,7 +233,7 @@ document.getElementById("current-location").addEventListener("click", function (
 });
 
 document.getElementById("layers-button").addEventListener("click", function () {
-  alert("TODO");
+  document.getElementById("layerlist").classList.toggle("hidden");
 });
 
 document.getElementById("settings-button").addEventListener("click", function () {

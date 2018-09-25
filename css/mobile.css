@@ -133,3 +133,31 @@ body {
 .expand input:checked ~ .btn4 {
   right: 24%;
 }
+
+#layerlist {
+  font-family: arial, sans-serif;
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  z-index: 2;
+}
+
+#layerlist div {
+  padding: 6px;
+  background-color: white;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  top: 20px;
+}
+
+#layerlist div:first-child {
+  margin-bottom: 8px;
+}
+
+#layerlist input {
+  margin-right: 8px;
+}
+
+.hidden {
+  display: none;
+}
