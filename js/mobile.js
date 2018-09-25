@@ -159,10 +159,7 @@ function getCurrentPosition (callback) {
     // error message if failed to get current position
     var pos = position.coords;
     if (pos.longitude === undefined || pos.latitude === undefined || pos.altitude === undefined) {
-      app.popup.show("Could not fetch current location.");
-      setTimeout(function () {
-        app.popup.hide();
-      }, 3000);
+      app.popup.show("Could not fetch current location.", "", false, 3000);
       return;
     }
 
@@ -186,10 +183,7 @@ function getCurrentPosition (callback) {
               "<br>(Acc.: " + pos.accuracy +
               ")<br>(Alt.: " + pos.altitude +
               ")<br>(Alt. Acc.: " + pos.altitudeAccuracy + ")";
-    app.popup.show(msg, "Current location");
-    setTimeout(function () {
-      app.popup.hide();
-    }, 5000);
+    app.popup.show(msg, "Current location", false, 5000);
   },
   function (error) {
     app.popup.hide();

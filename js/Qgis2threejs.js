@@ -810,6 +810,8 @@ limitations:
     return html;
   };
 
+  var popupTimerId = null;
+
   app.popup = {
 
     modal: false,
@@ -817,8 +819,8 @@ limitations:
     // show box
     // obj: html or element
     // modal: boolean
-    // TODO: duration
-    show: function (obj, title, modal) {
+    // duration: int [milliseconds]
+    show: function (obj, title, modal, duration) {
 
       if (modal) app.pause();
       else if (this.modal) app.resume();
@@ -844,10 +846,23 @@ limitations:
       }
       Q3D.$("popupbar").innerHTML = title || "";
       Q3D.$("popup").style.display = "block";
+
+      if (popupTimerId !== null) {
+        clearTimeout(popupTimerId);
+        popupTimerId = null;
+      }
+
+      if (duration) {
+        popupTimerId = setTimeout(function () {
+          app.popup.hide();
+        }, duration);
+      }
     },
 
     hide: function () {
       Q3D.$("popup").style.display = "none";
+      if (popupTimerId !== null) clearTimeout(popupTimerId);
+      popupTimerId = null;
       if (this.modal) app.resume();
     }
 
