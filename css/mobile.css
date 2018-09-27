@@ -107,7 +107,7 @@ body {
 .expand .btn {
   bottom: 0;
   right: 0;
-  transition: all .4s;
+  transition: right .4s;
 }
 
 .expand .btn1 {
@@ -158,23 +158,34 @@ body {
   position: absolute;
   left: 20px;
   top: 20px;
-  z-index: 2;
+  overflow: auto;
+  z-index: 9999;
 }
 
-#layerlist div {
+#layerlist > div {
   padding: 6px;
+  margin-bottom: 3px;
   background-color: white;
   border: 1px solid lightgray;
   border-radius: 5px;
-  top: 20px;
 }
 
-#layerlist div:first-child {
-  margin-bottom: 8px;
-}
-
-#layerlist input {
+#layerlist input[type=checkbox] {
   margin-right: 8px;
+}
+
+#layerlist input[type=range] {
+  margin-left: 28px;
+  margin-right: 4px;
+  height: 12px;
+}
+
+#layerlist input[type=range] ~ span {
+  font-size: 12px;
+}
+
+.pressed {
+  background-color: #2196F3;
 }
 
 .hidden {

@@ -51,41 +51,62 @@ function initControls() {
 
 function initLayerList() {
   var list = document.getElementById("layerlist");
-  var item = document.createElement("div");
-  item.innerHTML = "<input type='checkbox' checked>All layers";
-  item.children[0].addEventListener("change", function () {
-    for (var i = 1; i < list.children.length; i++) {
-      list.children[i].children[0].checked = this.checked;
-    }
-    for (var id in app.scene.mapLayers) {
-      app.scene.mapLayers[id].setVisible(this.checked);
-    }
-  });
-  list.appendChild(item);
+  var updateAllLayersCheckbox = function () {};
 
-  var updateAllLayersCheckbox = function () {
-    var checked = 0, unchecked = 0;
-    for (var i = 1; i < list.children.length; i++) {
-      if (list.children[i].children[0].checked) checked++;
-      else unchecked++;
-    }
-    if (checked && unchecked) list.children[0].children[0].indeterminate = true;
-    else {
-      list.children[0].children[0].indeterminate = false;
-      list.children[0].children[0].checked = Boolean(checked);
-    }
-  };
+  if (false) {
+    var item = document.createElement("div");
+    item.innerHTML = "<input type='checkbox' checked>All layers";
+    item.children[0].addEventListener("change", function () {
+      for (var i = 1; i < list.children.length; i++) {
+        list.children[i].children[0].checked = this.checked;
+      }
+      for (var id in app.scene.mapLayers) {
+        app.scene.mapLayers[id].visible = this.checked;
+      }
+    });
+    list.appendChild(item);
+
+    updateAllLayersCheckbox = function () {
+      var checked = 0, unchecked = 0;
+      for (var i = 1; i < list.children.length; i++) {
+        if (list.children[i].children[0].checked) checked++;
+        else unchecked++;
+      }
+      if (checked && unchecked) list.children[0].children[0].indeterminate = true;
+      else {
+        list.children[0].children[0].indeterminate = false;
+        list.children[0].children[0].checked = Boolean(checked);
+      }
+    };
+  }
 
   Object.keys(app.scene.mapLayers).forEach(function (layerId) {
     var layer = app.scene.mapLayers[layerId];
-    item = document.createElement("div");
-    item.innerHTML = "<input type='checkbox'" +
+    var item = document.createElement("div");
+    item.innerHTML = "<div><input type='checkbox'" +
                      ((layer.properties.visible) ? " checked" : "") +
-                     ">" + layer.properties.name;
-    item.children[0].addEventListener("change", function () {
-      layer.setVisible(this.checked);
+                     ">" + layer.properties.name + "</div><div><input type='range'><span></span></div>";
+
+    // visibility checkbox
+    item.querySelector("input[type=checkbox]").addEventListener("change", function () {
+      layer.visible = this.checked;
       updateAllLayersCheckbox();
     });
+
+    // opacity slider
+    var slider = item.querySelector("input[type=range]"),
+        label = item.querySelector("span"),
+        o = parseInt(layer.opacity * 100);
+    slider.value = o;
+    slider.addEventListener("input", function () {
+      label.innerHTML = this.value + " %";
+    });
+    slider.addEventListener("change", function () {
+      label.innerHTML = this.value + " %";
+      layer.opacity = this.value / 100;
+    });
+    label.innerHTML = o + " %";
+
     list.appendChild(item);
   });
 }
@@ -233,6 +254,7 @@ document.getElementById("current-location").addEventListener("click", function (
 
 document.getElementById("layers-button").addEventListener("click", function () {
   document.getElementById("layerlist").classList.toggle("hidden");
+  document.getElementById("layers-button").classList.toggle("pressed");
 });
 
 document.getElementById("settings-button").addEventListener("click", function () {

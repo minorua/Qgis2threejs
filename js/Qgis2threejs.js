@@ -1369,7 +1369,6 @@ Q3D.Materials.prototype.mtl = function (index) {
   return this.materials[index].mtl;
 };
 
-
 Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
   var _this = this, iterated = false;
   var callback = function () {
@@ -1382,9 +1381,6 @@ Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
     this.add(mtl);
   }
   iterated = true;
-
-  // TODO: layer opacity is the average opacity of materials
-  //this.opacity = sum_opacity / this.materials.length;
 };
 
 Q3D.Materials.prototype.dispose = function () {
@@ -1395,6 +1391,14 @@ Q3D.Materials.prototype.dispose = function () {
 };
 
 // opacity
+Q3D.Materials.prototype.opacity = function () {
+  var sum = 0;
+  for (var i = 0, l = this.materials.length; i < l; i++) {
+    sum += this.materials[i].mtl.opacity;
+  }
+  return sum / this.materials.length;
+};
+
 Q3D.Materials.prototype.setOpacity = function (opacity) {
   var material;
   for (var i = 0, l = this.materials.length; i < l; i++) {
@@ -1737,8 +1741,6 @@ Q3D.ClippedDEMBlock.prototype = {
 Q3D.MapLayer
 */
 Q3D.MapLayer = function () {
-  this.opacity = 1;
-  this.visible = true;
   this.queryable = true;
 
   this.materials = new Q3D.Materials();
@@ -1789,7 +1791,7 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   // properties
   if (jsonObject.properties !== undefined) {
     this.properties = jsonObject.properties;
-    this.setVisible((jsonObject.properties.visible !== false) ? true : false);
+    this.visible = (jsonObject.properties.visible !== false) ? true : false;
   }
 
   if (jsonObject.data !== undefined) {
@@ -1804,18 +1806,25 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   this.sceneData = scene.userData;
 };
 
-Q3D.MapLayer.prototype.setOpacity = function (opacity) {
-  this.materials.setOpacity(opacity);
-  this.opacity = opacity;
-  this.requestRender();
-};
+Object.defineProperty(Q3D.MapLayer.prototype, "opacity", {
+  get: function () {
+    return this.materials.opacity();
+  },
+  set: function (value) {
+    this.materials.setOpacity(value);
+    this.requestRender();
+  }
+});
 
-Q3D.MapLayer.prototype.setVisible = function (visible) {
-  // if (this.visible === visible) return;
-  this.visible = visible;
-  this.objectGroup.visible = visible;
-  this.requestRender();
-};
+Object.defineProperty(Q3D.MapLayer.prototype, "visible", {
+  get: function () {
+    return this.objectGroup.visible;
+  },
+  set: function (value) {
+    this.objectGroup.visible = value;
+    this.requestRender();
+  }
+});
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
   this.materials.setWireframeMode(wireframe);
@@ -1964,11 +1973,6 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   return pts;
 };
 
-Q3D.DEMLayer.prototype.setVisible = function (visible) {
-  Q3D.MapLayer.prototype.setVisible.call(this, visible);
-  // if (visible && this.sideVisible === false) this.setSideVisibility(false);
-};
-
 Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {
@@ -2083,11 +2087,16 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   }
 };
 
-Q3D.VectorLayer.prototype.setVisible = function (visible) {
-  if (this.labelParentElement) this.labelParentElement.style.display = (visible) ? "block" : "none";
-  if (this.labelConnectorGroup) this.labelConnectorGroup.visible = visible;
-  Q3D.MapLayer.prototype.setVisible.call(this, visible);
-};
+Object.defineProperty(Q3D.VectorLayer.prototype, "visible", {
+  get: function () {
+    Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").get.call(this);
+  },
+  set: function (value) {
+    Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").set.call(this, value);
+    if (this.labelParentElement) this.labelParentElement.style.display = (value) ? "block" : "none";
+    if (this.labelConnectorGroup) this.labelConnectorGroup.visible = value;
+  }
+});
 
 
 /*

@@ -33,8 +33,8 @@ Q3D.gui = {
   addLayersFolder: function () {
     var mapLayers = Q3D.application.scene.mapLayers;
     var parameters = this.parameters;
-    var visibleChanged = function (value) { mapLayers[this.object.i].setVisible(value); };
-    var opacityChanged = function (value) { mapLayers[this.object.i].setOpacity(value); };
+    var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
+    var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
 
     var layer, layersFolder = this.gui.addFolder('Layers');
     for (var layerId in mapLayers) {
