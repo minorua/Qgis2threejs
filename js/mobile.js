@@ -239,6 +239,7 @@ function zoomToCurrentLocation() {
     app.camera.position.set(x, z, -y);
     app.camera.lookAt(pt.x, pt.z, -pt.y);
     orbitControls.target.set(pt.x, pt.z, -pt.y);
+    app.render(true);
   });
 }
 
