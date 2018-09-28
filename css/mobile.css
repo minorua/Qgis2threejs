@@ -191,3 +191,7 @@ body {
 .hidden {
   display: none;
 }
+
+.action-move {
+  display: inline-block;
+}

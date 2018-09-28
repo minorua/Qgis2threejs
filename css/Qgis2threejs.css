@@ -98,9 +98,25 @@ table.attrs tr:nth-child(odd) {
   background-color: #eeeeee;
 }
 
-
 table.attrs tr td:first-child {
   width: 40%;
+}
+
+.action-btn {
+  display: inline-block;
+  border: 1px solid gray;
+  background-color: #FBFBFB;
+  cursor: pointer;
+  font-size: small;
+  padding: 3px;
+  margin-right: 2px;
+}
+
+.action-zoom {
+}
+
+.action-move {
+  display: none;
 }
 
 /* pageinfo */

@@ -296,6 +296,8 @@ limitations:
   var app = {};
   Q3D.application = app;
 
+  var vec3 = new THREE.Vector3();
+
   var listeners = {};
   var dispatchEvent = function (event) {
     var ls = listeners[event.type] || [];
@@ -874,6 +876,26 @@ limitations:
     app.popup.show();
   };
 
+  app.queryTargetPosition = new THREE.Vector3();  // y-up
+
+  app.cameraAction = {
+    vecZoom: new THREE.Vector3(0, 10, 10),    // y-up
+    moveTo: function (x, y, z) {    // z-up
+      if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
+      else app.camera.position.set(x, z, -y);   // y-up
+      app.render(true);
+    },
+    zoomInTo: function (x, y, z) {    // z-up
+      if (x === undefined) vec3.copy(app.queryTargetPosition);
+      else vec3.set(x, z, -y);   // y-up
+
+      app.camera.position.addVectors(vec3, app.cameraAction.vecZoom);
+      app.camera.lookAt(vec3.x, vec3.y, vec3.z);
+      if (app.controls.target !== undefined) app.controls.target.copy(vec3);
+      app.render(true);
+    }
+  };
+
   app.showQueryResult = function (point, obj) {
     var layer = app.scene.mapLayers[obj.userData.layerId], r = [];
     if (layer) {
@@ -897,6 +919,11 @@ limitations:
     }
 
     r.push("</td></tr></table>");
+
+    // camera actions
+    app.queryTargetPosition.set(point.x, point.z, -point.y);    // y-up
+    r.push('<div class="action-btn action-zoom" onclick="Q3D.application.cameraAction.zoomInTo()">Zoom in here</div>');
+    r.push('<div class="action-btn action-move" onclick="Q3D.application.cameraAction.moveTo()">Move here</div>');
 
     if (layer.properties.propertyNames !== undefined) {
       // attributes

@@ -220,7 +220,7 @@ function moveToCurrentLocation() {
 
   getCurrentPosition(function (pt) {
     // move camera
-    app.camera.position.set(pt.x, pt.z, -pt.y);
+    app.cameraAction.moveTo(pt.x, pt.y, pt.z);
   });
 }
 
@@ -228,18 +228,12 @@ function zoomToCurrentLocation() {
   // AR mode is off
   getCurrentPosition(function (pt) {
     // indicate current position using query marker
-    app.queryMarker.position.set(pt.x, pt.y, pt.z); // this is z-up
+    app.queryMarker.position.set(pt.x, pt.y, pt.z); // z-up
     app.queryMarker.visible = true;
     app.queryMarker.updateMatrixWorld();
 
     // zoom in on current position
-    var x = pt.x,
-        y = pt.y - 10.0,
-        z = pt.z + 10.0;
-    app.camera.position.set(x, z, -y);
-    app.camera.lookAt(pt.x, pt.z, -pt.y);
-    orbitControls.target.set(pt.x, pt.z, -pt.y);
-    app.render(true);
+    app.cameraAction.zoomInTo(pt.x, pt.y, pt.z);
   });
 }
 
