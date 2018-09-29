@@ -1,5 +1,4 @@
 "use strict";
-
 // Qgis2threejs.js
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
@@ -891,9 +890,9 @@ limitations:
 
     e = document.getElementById("qr_attrs");
     if (e) {
-      e.querySelectorAll("tr").forEach(function (r) {
-        e.removeChild(r);
-      });
+      for (var i = e.children.length - 1; i >= 0; i--) {
+        if (e.children[i].tagName == "tr") e.removeChild(e.children[i]);
+      }
 
       if (layer && layer.properties.propertyNames !== undefined) {
         var row;
