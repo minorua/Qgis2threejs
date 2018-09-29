@@ -22,21 +22,61 @@ ${scripts}
   <div id="popupbar"></div>
   <div id="popupbody">
     <div id="popupcontent"></div>
+
+    <!-- query result -->
+    <div id="queryresult">
+      <table class="layer">
+        <caption>Layer name</caption>
+        <tr><td id="qr_layername"></td></tr>
+      </table>
+
+      <table class="coords">
+        <caption>Clicked coordinates</caption>
+        <tr><td id="qr_coords"></td></tr>
+      </table>
+
+      <!-- camera actions -->
+      <div class="action-btn action-zoom" onclick="Q3D.application.cameraAction.zoomInTo()">Zoom in here</div>
+      <div class="action-btn action-move" onclick="Q3D.application.cameraAction.moveTo()">Move here</div>
+
+      <!-- attributes -->
+      <table id="qr_attrs" class="attrs">
+        <caption>Attributes</caption>
+      </table>
+    </div>
+
+    <!-- page info -->
     <div id="pageinfo">
       <h1>Current View URL</h1>
       <div><input id="urlbox" type="text"></div>
 
       <h1>Usage</h1>
-      <div id="usage"></div>
+      <table id="usage">
+        <tr><td colspan="2" class="star">Mouse</td></tr>
+        <tr><td>Left button + Move</td><td>Orbit</td></tr>
+        <tr><td>Middle button + Move</td><td>Zoom</td></tr>
+        <tr><td>Right button + Move</td><td>Pan</td></tr>
+
+        <tr><td colspan="2" class="star">Keys</td></tr>
+        <tr><td>Arrow keys</td><td>Move Horizontally</td></tr>
+        <tr><td>Shift + Arrow keys</td><td>Orbit</td></tr>
+        <tr><td>Ctrl + Arrow keys</td><td>Rotate</td></tr>
+        <tr><td>Shift + Ctrl + Up / Down</td><td>Zoom In / Out</td></tr>
+        <tr><td>L</td><td>Toggle Label Visibility</td></tr>
+        <tr><td>R</td><td>Start / Stop Rotate Animation</td></tr>
+        <tr><td>W</td><td>Wireframe Mode</td></tr>
+        <tr><td>Shift + R</td><td>Reset Camera Position</td></tr>
+        <tr><td>Shift + S</td><td>Save Image</td></tr>
+      </table>
 
       <h1>About</h1>
-      <div id="about">This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin, 
-        and uses the following libraries:
-        <ul>
-          <li>three.js <a href="http://threejs.org/" target="_blank">http://threejs.org/</a> <a href="./threejs/LICENSE" target="_blank" class="license">(LICENSE)</a></li>
-          <li>dat-gui <a href="https://code.google.com/p/dat-gui/" target="_blank">https://code.google.com/p/dat-gui/</a> <a href="./dat-gui/license.txt" target="_blank" class="license">(LICENSE)</a></li>
-          <li id="lib_proj4js" style="display: none;">Proj4js <a href="http://trac.osgeo.org/proj4js/" target="_blank">http://trac.osgeo.org/proj4js/</a> <a href="./proj4js/LICENSE.md" target="_blank" class="license">(LICENSE)</a></li>
-        </ul>
+      <div id="about">
+        This page was made with <a href="http://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin.
+        Dependent JavaScript libraries are
+        <a href="https://threejs.org/" target="_blank">three.js</a>, 
+        <a href="https://code.google.com/p/dat-gui/" target="_blank">dat-gui</a>
+        <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/" target="_blank">Proj4js</a></span>
+        .
       </div>
     </div>
   </div>
@@ -49,7 +89,7 @@ ${scripts}
 var option = Q3D.Options;
 ${options}
 
-if (typeof proj4 !== "undefined") document.getElementById("lib_proj4js").style.display = "list-item";
+if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
 var app = Q3D.application,
     container = document.getElementById("webgl");

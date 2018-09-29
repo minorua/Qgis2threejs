@@ -782,36 +782,6 @@ limitations:
     return {top: top, left: left};
   };
 
-  app.help = function () {
-    var lines = (Q3D.Controls === undefined) ? [] : Q3D.Controls.keyList;
-    if (lines.indexOf("* Keys") == -1) lines.push("* Keys");
-    lines = lines.concat([
-      "I : Show Information About Page",
-      "L : Toggle Label Visibility",
-      "R : Start / Stop Rotate Animation",
-      "W : Wireframe Mode",
-      "Shift + R : Reset View",
-      "Shift + S : Save Image"
-    ]);
-    var html = '<table>';
-    lines.forEach(function (line) {
-      if (line.trim() == "") return;
-
-      if (line[0] == "*") {
-        html += '<tr><td colspan="2" class="star">' + line.substr(1).trim() + "</td></tr>";
-      }
-      else if (line.indexOf(":") == -1) {
-        html += '<tr><td colspan="2">' + line.trim() + "</td></tr>";
-      }
-      else {
-        var p = line.split(":");
-        html += "<tr><td>" + p[0].trim() + "</td><td>" + p[1].trim() + "</td></tr>";
-      }
-    });
-    html += "</table>";
-    return html;
-  };
-
   var popupTimerId = null;
 
   app.popup = {
@@ -819,7 +789,7 @@ limitations:
     modal: false,
 
     // show box
-    // obj: html or element
+    // obj: html, element or content id ("queryresult" or "pageinfo")
     // modal: boolean
     // duration: int [milliseconds]
     show: function (obj, title, modal, duration) {
@@ -830,13 +800,14 @@ limitations:
       this.modal = Boolean(modal);
 
       var content = Q3D.$("popupcontent");
-      if (obj === undefined) {
-        // show page info
-        content.style.display = "none";
-        Q3D.$("pageinfo").style.display = "block";
+      [content, Q3D.$("queryresult"), Q3D.$("pageinfo")].forEach(function (e) {
+        if (e) e.style.display = "none";
+      });
+
+      if (obj == "queryresult" || obj == "pageinfo") {
+        Q3D.$(obj).style.display = "block";
       }
       else {
-        Q3D.$("pageinfo").style.display = "none";
         if (obj instanceof HTMLElement) {
           content.innerHTML = "";
           content.appendChild(obj);
@@ -872,8 +843,7 @@ limitations:
 
   app.showInfo = function () {
     Q3D.$("urlbox").value = app.currentViewUrl();
-    Q3D.$("usage").innerHTML = app.help();
-    app.popup.show();
+    app.popup.show("pageinfo");
   };
 
   app.queryTargetPosition = new THREE.Vector3();  // y-up
@@ -897,44 +867,49 @@ limitations:
   };
 
   app.showQueryResult = function (point, obj) {
-    var layer = app.scene.mapLayers[obj.userData.layerId], r = [];
-    if (layer) {
-      // layer name
-      r.push('<table class="layer">');
-      r.push("<caption>Layer name</caption>");
-      r.push("<tr><td>" + layer.properties.name + "</td></tr>");
-      r.push("</table>");
-    }
+    app.queryTargetPosition.set(point.x, point.z, -point.y);    // y-up
+
+    var layer = app.scene.mapLayers[obj.userData.layerId],
+        e = document.getElementById("qr_layername");
+
+    // layer name
+    if (layer && e) e.innerHTML = layer.properties.name;
 
     // clicked coordinates
     var pt = app.scene.toMapCoordinates(point.x, point.y, point.z);
-    r.push('<table class="coords">');
-    r.push("<caption>Clicked coordinates</caption>");
-    r.push("<tr><td>");
+    e = document.getElementById("qr_coords");
 
-    if (typeof proj4 === "undefined") r.push([pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", "));
-    else {
-      var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
-      r.push(Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2));
-    }
-
-    r.push("</td></tr></table>");
-
-    // camera actions
-    app.queryTargetPosition.set(point.x, point.z, -point.y);    // y-up
-    r.push('<div class="action-btn action-zoom" onclick="Q3D.application.cameraAction.zoomInTo()">Zoom in here</div>');
-    r.push('<div class="action-btn action-move" onclick="Q3D.application.cameraAction.moveTo()">Move here</div>');
-
-    if (layer.properties.propertyNames !== undefined) {
-      // attributes
-      r.push('<table class="attrs">');
-      r.push("<caption>Attributes</caption>");
-      for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
-        r.push("<tr><td>" + layer.properties.propertyNames[i] + "</td><td>" + obj.userData.properties[i] + "</td></tr>");
+    if (e) {
+      if (typeof proj4 === "undefined") {
+        e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
       }
-      r.push("</table>");
+      else {
+        var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
+        e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
+      }
     }
-    app.popup.show(r.join(""));
+
+    e = document.getElementById("qr_attrs");
+    if (e) {
+      e.querySelectorAll("tr").forEach(function (r) {
+        e.removeChild(r);
+      });
+
+      if (layer && layer.properties.propertyNames !== undefined) {
+        var row;
+        for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
+          row = document.createElement("tr");
+          row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
+                          "<td>" + obj.userData.properties[i] + "</td>";
+          e.appendChild(row);
+        }
+        e.style.display = "block";
+      }
+      else {
+        e.style.display = "none";
+      }
+    }
+    app.popup.show("queryresult");
   };
 
   app.showPrintDialog = function () {
