@@ -1,3 +1,8 @@
+"use strict";
+// mobile.js
+// (C) 2018 Minoru Akagi | MIT License
+// https://github.com/minorua/Qgis2threejs
+
 var orbitControls, devControls, oldFOV;
 var ARMode = false;
 
@@ -39,6 +44,13 @@ app.eventListener.resize = function () {
   }
   app.setCanvasSize(width, height);
   app.render();
+};
+
+app.cameraAction._moveTo = app.cameraAction.moveTo;
+app.cameraAction.moveTo = function () {
+  app.cameraAction._moveTo(app.queryTargetPosition.x,
+                           -app.queryTargetPosition.z,
+                           app.queryTargetPosition.y + DH * app.scene.userData.zScale);   // + device height from ground
 };
 
 function initControls() {
