@@ -1,4 +1,5 @@
 body {
+  font-family: arial, sans-serif;
   margin: 0;
   overflow: hidden;
 }
@@ -26,7 +27,6 @@ body {
 
 /* popup */
 #popup {
-  /* background: rgba(255, 255, 255, 0);*/
   position: absolute;
   left: 2px;
   top: 2px;
