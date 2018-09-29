@@ -2091,7 +2091,7 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Object.defineProperty(Q3D.VectorLayer.prototype, "visible", {
   get: function () {
-    Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").get.call(this);
+    return Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").get.call(this);
   },
   set: function (value) {
     Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").set.call(this, value);
