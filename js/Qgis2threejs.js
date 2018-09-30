@@ -456,7 +456,7 @@ limitations:
   };
 
   loadingManager.onProgress = function (url, loaded, total) {
-    document.getElementById("bar").style.width = ((loaded / total) * 100) + "%";
+    document.getElementById("bar").style.width = (loaded / total * 100) + "%";
   };
 
   app.loadFile = function (url, type, callback) {
@@ -780,9 +780,9 @@ limitations:
     return {top: top, left: left};
   };
 
-  var popupTimerId = null;
-
   app.popup = {
+
+    timerId: null,
 
     modal: false,
 
@@ -818,13 +818,13 @@ limitations:
       Q3D.$("popupbar").innerHTML = title || "";
       Q3D.$("popup").style.display = "block";
 
-      if (popupTimerId !== null) {
-        clearTimeout(popupTimerId);
-        popupTimerId = null;
+      if (app.popup.timerId !== null) {
+        clearTimeout(app.popup.timerId);
+        app.popup.timerId = null;
       }
 
       if (duration) {
-        popupTimerId = setTimeout(function () {
+        app.popup.timerId = setTimeout(function () {
           app.popup.hide();
         }, duration);
       }
@@ -832,8 +832,8 @@ limitations:
 
     hide: function () {
       Q3D.$("popup").style.display = "none";
-      if (popupTimerId !== null) clearTimeout(popupTimerId);
-      popupTimerId = null;
+      if (app.popup.timerId !== null) clearTimeout(app.popup.timerId);
+      app.popup.timerId = null;
       if (this.modal) app.resume();
     }
 
