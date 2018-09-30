@@ -449,33 +449,37 @@ limitations:
     return vars;
   };
 
-  app.loadJSONObject = function (jsonObject) {
-    app.scene.loadJSONObject(jsonObject);
+  var loadingManager = new THREE.LoadingManager();
+  loadingManager.onLoad = function () {
+    document.getElementById("bar").classList.add("fadeout");
+    dispatchEvent({type: "sceneLoaded"});
   };
 
-  var reqCounter = 0;
+  loadingManager.onProgress = function (url, loaded, total) {
+    document.getElementById("bar").style.width = ((loaded / total) * 100) + "%";
+  };
+
   app.loadFile = function (url, type, callback) {
+
+    var loader = new THREE.FileLoader(loadingManager);
+    loader.setResponseType(type);
+
     var onError = function (e) {
       if (location.protocol == "file:") {
         app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/BrowserSupport'>plugin wiki</a> for details.", "Error", true);
       }
     };
-    reqCounter++;
+
     try {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", url, true);
-      xhr.responseType = type;
-      xhr.onload = function () {
-        reqCounter--;
-        if (callback) callback(this.response);
-        if (reqCounter == 0) dispatchEvent({type: "sceneLoaded"});
-      };
-      xhr.onerror = onError;    // for Chrome
-      xhr.send(null);
+      loader.load(url, callback, undefined, onError);
     }
     catch (e) {      // for IE
       onError(e);
     }
+  };
+
+  app.loadJSONObject = function (jsonObject) {
+    app.scene.loadJSONObject(jsonObject);
   };
 
   app.loadJSONFile = function (url, callback) {
@@ -486,12 +490,7 @@ limitations:
   };
 
   app.loadTextureFile = function (url, callback) {
-    reqCounter++;
-    return new THREE.TextureLoader().load(url, function () {
-      reqCounter--;
-      if (callback) callback();
-      if (reqCounter == 0) dispatchEvent({type: "sceneLoaded"});
-    });
+    return new THREE.TextureLoader(loadingManager).load(url, callback);
   };
 
   app.mouseDownPoint = new THREE.Vector2();
