@@ -42,6 +42,27 @@
 <!-- layer list -->
 <div id="layerlist" class="hidden"></div>
 
+<!-- settings -->
+<div id="settings" class="hidden">
+  <div>AR mode camera settings</div>
+  <div>
+    <div>
+      <label>
+        Enabled <input type="checkbox" id="camera-enabled" checked>
+      </label>
+    </div>
+    <div>
+      <label>
+        FOV <input type="text" id="fov">
+      </label>
+    </div>
+  </div>
+  <div>
+    <button id="settings-ok">OK</button>
+    <button id="settings-cancel">Cancel</button>
+  </div>
+</div>
+
 <!-- popup -->
 <div id="popup" style="display:none;">
   <div id="closebtn">&times;</div>
@@ -73,9 +94,6 @@
 
     <!-- page info -->
     <div id="pageinfo">
-      <h1>Current View URL</h1>
-      <div><input id="urlbox" type="text"></div>
-
       <h1>Usage</h1>
       <table id="usage">
         <tr><td colspan="2" class="star">Mouse</td></tr>

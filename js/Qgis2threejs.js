@@ -840,7 +840,8 @@ limitations:
   };
 
   app.showInfo = function () {
-    Q3D.$("urlbox").value = app.currentViewUrl();
+    var url = Q3D.$("urlbox");
+    if (url) url.value = app.currentViewUrl();
     app.popup.show("pageinfo");
   };
 

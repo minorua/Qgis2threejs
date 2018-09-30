@@ -249,25 +249,75 @@ function zoomToCurrentLocation() {
   });
 }
 
+// AR mode switch
 document.getElementById("ar-checkbox").addEventListener("change", function () {
   if (this.checked) startARMode();
   else stopARMode();
 });
 
+// current location button
 document.getElementById("current-location").addEventListener("click", function () {
   if (ARMode) moveToCurrentLocation();
   else zoomToCurrentLocation();
 });
 
+// layers, settings and info buttons
+function hideAll() {
+  document.getElementById("layerlist").classList.add("hidden");
+  document.getElementById("layers-button").classList.remove("pressed");
+
+  document.getElementById("settings").classList.add("hidden");
+  document.getElementById("settings-button").classList.remove("pressed");
+
+  app.popup.hide();
+  document.getElementById("info-button").classList.remove("pressed");
+}
+
 document.getElementById("layers-button").addEventListener("click", function () {
-  document.getElementById("layerlist").classList.toggle("hidden");
-  document.getElementById("layers-button").classList.toggle("pressed");
+  var hidden = document.getElementById("layerlist").classList.contains("hidden");
+  hideAll();
+  if (hidden) {
+    document.getElementById("layerlist").classList.remove("hidden");
+    document.getElementById("layers-button").classList.add("pressed");
+  }
 });
 
 document.getElementById("settings-button").addEventListener("click", function () {
-  alert("TODO");
+  var fov = document.getElementById("fov");
+  var hidden = document.getElementById("settings").classList.contains("hidden");
+  hideAll();
+  if (hidden) {
+    fov.value = FOV;
+    document.getElementById("settings").classList.remove("hidden");
+    document.getElementById("settings-button").classList.add("pressed");
+  }
+});
+
+document.getElementById("settings-ok").addEventListener("click", function () {
+  FOV = document.getElementById("fov").value;
+  if (ARMode) {
+    app.camera.fov = FOV;
+    app.camera.updateProjectionMatrix();
+  }
+
+  hideAll();
+});
+
+document.getElementById("settings-cancel").addEventListener("click", function () {
+  hideAll();
 });
 
 document.getElementById("info-button").addEventListener("click", function () {
-  app.showInfo();
+  var active = document.getElementById("info-button").classList.contains("pressed");
+  hideAll();
+  if (!active) {
+    app.showInfo();
+    document.getElementById("info-button").classList.add("pressed");
+  }
 });
+
+app.popup._hide = app.popup.hide;
+app.popup.hide = function () {
+  document.getElementById("info-button").classList.remove("pressed");
+  app.popup._hide();
+};

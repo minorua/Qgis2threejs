@@ -64,6 +64,7 @@ body {
   color: white;
   padding-left: 4px;
   height: 18px;
+  border-radius: 3px 3px 0 0;
 }
 
 #closebtn {
@@ -71,6 +72,7 @@ body {
   background: gray;
   border: 1px solid darkgray;
   border-radius: 4px;
+  line-height: 16px;
   font-size: 16px;
   font-weight: bold;
   width: 16px;
@@ -83,6 +85,7 @@ body {
 #popupbody {
   background-color: white;
   padding: 2px 5px 2px;
+  border-radius: 0 0 3px 3px;
   max-height: 500px;
   overflow: auto;
 }
