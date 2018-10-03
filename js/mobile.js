@@ -123,17 +123,23 @@ function initLayerList() {
   });
 }
 
-function startARMode() {
+function startARMode(position) {
   ARMode = true;
   app.camera.fov = FOV;
   app.camera.updateProjectionMatrix();
-  app.camera.position.set(0, 30, 0);
+
+  if (typeof position === "undefined") {
+    app.camera.position.set(0, 30, 0);
+    document.getElementById("current-location").classList.add("touchme");
+  }
+  else {
+    app.camera.position.copy(position);
+  }
 
   app.controls = devControls;
   orbitControls.enabled = false;
   devControls.connect();
   app.startAnimation();
-  document.getElementById("current-location").classList.add("touchme");
 
   navigator.mediaDevices.enumerateDevices().then(function (devices) {
     // use "camera" facing "back" preferentially
@@ -161,6 +167,13 @@ function startARMode() {
   }).catch(function (error) {
     alert(error.message);
   });
+}
+
+function startARModeHere() {
+  var vec3 = new THREE.Vector3();
+  vec3.copy(app.queryTargetPosition);
+  vec3.y += DH * app.scene.userData.zScale;
+  startARMode(vec3);
 }
 
 function stopARMode() {
