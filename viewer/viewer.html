@@ -52,16 +52,24 @@
   width: 100%;
   height: 25px;
   padding: 8px;
-  font-family: sans-serif;
   vertical-align: middle;
   background-color: #f0f8ff;
   border: 1px solid #8e998a;
+}
+
+#messagebar.warning {
+  background-color: #ffc800;
+  font-size: small;
 }
 
 #urlbox {
   display: none;
 }
 </style>
+<script src="../js/threejs/three.min.js"></script>
+<script src="../js/Qgis2threejs.js"></script>
+<script src="../js/threejs/controls/OrbitControls.js"></script>
+<script src="viewer.js"></script>
 </head>
 <body>
 <div id="webgl"></div>
@@ -135,10 +143,10 @@
 <div id="footer"></div>
 <div id="fps"></div>
 
-<script src="../js/threejs/three.min.js"></script>
-<script src="../js/Qgis2threejs.js"></script>
-<script src="../js/threejs/controls/OrbitControls.js"></script>
-<script src="viewer.js"></script>
+<div id="cover"></div>
+<div id="messagebar" onclick="closeMessageBar();"></div>
+<div id="debug"></div>
+
 <script>
 if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
@@ -146,11 +154,15 @@ var app = Q3D.application,
     container = document.getElementById("webgl");
 app.init(container, false);
 
-// app.start();
+// check extension support of web view
+// see https://github.com/minorua/Qgis2threejs/issues/147
+var gl = app.renderer.context;    // WebGLRenderingContext
+if (gl.getExtension("WEBGL_depth_texture") === null) {
+  var msg = "Any 3D objects not rendered? There is a compatibility issue with QGIS 3D view. " +
+            "You need to restart QGIS to use preview.";
+  showMessageBar(msg);
+  document.getElementById("messagebar").classList.add("warning");
+}
 </script>
-
-<div id="cover"></div>
-<div id="messagebar" onclick="closeMessageBar();"></div>
-<div id="debug"></div>
 </body>
 </html>

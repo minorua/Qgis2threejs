@@ -1,5 +1,6 @@
-// unsupported features of QWebView
-if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;   // for three.min.js (r90)
+// a polyfill for three.min.js (r90)
+if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;
+
 // a polyfill for GLTFExporter.js (r90)
 Array.prototype.fill = function (value) {
   var O = Object(this),
