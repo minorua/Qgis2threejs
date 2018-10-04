@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>340</width>
-    <height>374</height>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -315,6 +315,25 @@
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_Label"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_Others">
+     <property name="title">
+      <string>Other Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="checkBox_Visible">
+        <property name="text">
+         <string>Visible on load</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

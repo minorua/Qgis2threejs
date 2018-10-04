@@ -11,14 +11,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PropertiesDialog(object):
     def setupUi(self, PropertiesDialog):
         PropertiesDialog.setObjectName("PropertiesDialog")
-        PropertiesDialog.resize(348, 474)
+        PropertiesDialog.resize(418, 487)
         self.verticalLayout = QtWidgets.QVBoxLayout(PropertiesDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.scrollArea = QtWidgets.QScrollArea(PropertiesDialog)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 328, 425))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 398, 438))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout.addWidget(self.scrollArea)

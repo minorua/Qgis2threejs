@@ -200,6 +200,10 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Frame = QtWidgets.QCheckBox(self.groupBox_Others)
         self.checkBox_Frame.setObjectName("checkBox_Frame")
         self.verticalLayout_5.addWidget(self.checkBox_Frame)
+        self.checkBox_Visible = QtWidgets.QCheckBox(self.groupBox_Others)
+        self.checkBox_Visible.setChecked(True)
+        self.checkBox_Visible.setObjectName("checkBox_Visible")
+        self.verticalLayout_5.addWidget(self.checkBox_Visible)
         self.verticalLayout_2.addWidget(self.groupBox_Others)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem1)
@@ -264,4 +268,5 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_Others.setTitle(_translate("DEMPropertiesWidget", "&Other Options"))
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides"))
         self.checkBox_Frame.setText(_translate("DEMPropertiesWidget", "Build frame"))
+        self.checkBox_Visible.setText(_translate("DEMPropertiesWidget", "Visible on load"))
 

@@ -231,7 +231,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets += dispTypeButtons
     widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.comboBox_TextureSize, self.checkBox_Shading]
     widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
-    widgets += [self.checkBox_Sides, self.checkBox_Frame]
+    widgets += [self.checkBox_Sides, self.checkBox_Frame, self.checkBox_Visible]
     self.registerPropertyWidgets(widgets)
 
     self.initLayerComboBox()
@@ -417,6 +417,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     widgets += self.styleWidgets
     widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
     widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
+    widgets += [self.checkBox_Visible]
     self.registerPropertyWidgets(widgets)
 
     self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)

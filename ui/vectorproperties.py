@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName("VectorPropertiesWidget")
-        VectorPropertiesWidget.resize(340, 374)
+        VectorPropertiesWidget.resize(340, 410)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -138,6 +138,15 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Label.setObjectName("verticalLayout_Label")
         self.verticalLayout_4.addLayout(self.verticalLayout_Label)
         self.verticalLayout_2.addWidget(self.groupBox_Attrs)
+        self.groupBox_Others = QtWidgets.QGroupBox(VectorPropertiesWidget)
+        self.groupBox_Others.setObjectName("groupBox_Others")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_Others)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.checkBox_Visible = QtWidgets.QCheckBox(self.groupBox_Others)
+        self.checkBox_Visible.setChecked(True)
+        self.checkBox_Visible.setObjectName("checkBox_Visible")
+        self.verticalLayout.addWidget(self.checkBox_Visible)
+        self.verticalLayout_2.addWidget(self.groupBox_Others)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
 
@@ -172,5 +181,7 @@ class Ui_VectorPropertiesWidget(object):
         self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "&Attribute and label"))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes"))
         self.label.setText(_translate("VectorPropertiesWidget", "Label field"))
+        self.groupBox_Others.setTitle(_translate("VectorPropertiesWidget", "Other Options"))
+        self.checkBox_Visible.setText(_translate("VectorPropertiesWidget", "Visible on load"))
 
 from qgis.gui import QgsFieldExpressionWidget
