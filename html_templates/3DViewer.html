@@ -34,8 +34,8 @@ ${scripts}
       </table>
 
       <!-- camera actions -->
-      <div class="action-btn action-zoom" onclick="Q3D.application.cameraAction.zoomInTo()">Zoom in here</div>
-      <div class="action-btn action-move" onclick="Q3D.application.cameraAction.moveTo()">Move here</div>
+      <div class="action-btn action-zoom" onclick="app.cameraAction.zoomInTo(); app.popup.hide();">Zoom in here</div>
+      <div class="action-btn action-move" onclick="app.cameraAction.moveTo(); app.popup.hide();">Move here</div>
 
       <!-- attributes -->
       <table id="qr_attrs" class="attrs">

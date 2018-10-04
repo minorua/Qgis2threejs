@@ -83,8 +83,8 @@
       </table>
 
       <!-- camera actions -->
-      <div class="action-btn action-zoom" onclick="Q3D.application.cameraAction.zoomInTo()">Zoom in here</div>
-      <div class="action-btn action-move" onclick="startARModeHere()">Start AR mode here</div>
+      <div class="action-btn action-zoom" onclick="app.cameraAction.zoomInTo(); app.popup.hide();">Zoom in here</div>
+      <div class="action-btn action-move" onclick="startARModeHere(); app.popup.hide();">Start AR mode here</div>
 
       <!-- attributes -->
       <table id="qr_attrs" class="attrs">

@@ -174,6 +174,7 @@ function startARModeHere() {
   vec3.copy(app.queryTargetPosition);
   vec3.y += DH * app.scene.userData.zScale;
   startARMode(vec3);
+  document.getElementById("ar-checkbox").checked = true;
 }
 
 function stopARMode() {
