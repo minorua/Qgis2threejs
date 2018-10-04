@@ -58,6 +58,11 @@
     </div>
   </div>
   <div>
+    <label>
+      <input type="checkbox" id="save-in-storage"> Save settings in local storage
+    </label>
+  </div>
+  <div>
     <button id="settings-ok">OK</button>
     <button id="settings-cancel">Cancel</button>
   </div>
@@ -143,7 +148,7 @@ var app = Q3D.application;
 <script>
 var container = document.getElementById("webgl");
 app.init(container, false);   // initialize application
-initControls();               // initialize controls for AR mode
+init();                       // initialization for mobile template
 
 app.addEventListener("sceneLoaded", function () {
   initLayerList();

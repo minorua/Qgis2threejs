@@ -220,6 +220,10 @@ body {
   padding: 2px 10px;
 }
 
+#settings > div:nth-child(3) {
+  margin-top: 10px;
+}
+
 #settings > div:last-child {
   margin-top: 3px;
   margin-bottom: 3px;

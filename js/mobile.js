@@ -53,12 +53,24 @@ app.cameraAction.moveTo = function () {
                            app.queryTargetPosition.y + DH * app.scene.userData.zScale);   // + device height from ground
 };
 
-function initControls() {
+function init() {
   orbitControls = app.controls;
   devControls = new THREE.DeviceOrientationControls(app.camera);
   devControls.alphaOffset = -GMA * Math.PI / 180;    // counter-clockwise, in radians
 
+  // store default camera FOV (non-AR mode)
   oldFOV = app.camera.fov;
+
+  // load settings from local storage
+  try {
+    var data = JSON.parse(localStorage.getItem("Qgis2threejs"));
+    if (data) {
+      FOV = data.fov;
+    }
+  }
+  catch (e) {
+    console.log(e);
+  }
 }
 
 function initLayerList() {
@@ -313,6 +325,19 @@ document.getElementById("settings-ok").addEventListener("click", function () {
   }
 
   hideAll();
+
+  // save settings in local storage
+  try {
+    if (document.getElementById("save-in-storage").checked) {
+      var data = {
+        fov: FOV
+      };
+      localStorage.setItem("Qgis2threejs", JSON.stringify(data));
+    }
+  }
+  catch (e) {
+    console.log(e);
+  }
 });
 
 document.getElementById("settings-cancel").addEventListener("click", function () {
