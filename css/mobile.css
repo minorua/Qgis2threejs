@@ -226,6 +226,10 @@ body {
   text-align: center;
 }
 
+#fov {
+  width: 40px;
+}
+
 #popup {
   top: 20px;
   left: 20px;
