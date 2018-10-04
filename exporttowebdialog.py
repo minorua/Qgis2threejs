@@ -55,12 +55,33 @@ class ExportToWebDialog(QDialog):
     if index != -1:
       cbox.setCurrentIndex(index)
 
+    self.templateChanged()
+
     # output directory
     self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
 
+    # template specific settings
+    for key, value in settings.options().items():
+      if key == "GMA":
+        self.ui.lineEdit_GMA.setText(str(value))
+
+    self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
     self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
     self.ui.pushButton_Export.clicked.connect(self.exportClicked)
     self.ui.pushButton_Cancel.clicked.connect(self.close)
+
+  def templateChanged(self, index=None):
+    # update settings widget visibility
+    config = getTemplateConfig(self.ui.comboBox_Template.currentData())
+    options = config.get("options", "")
+    if options == "":
+      self.ui.groupBox.setVisible(False)
+    else:
+      optlist = options.split(",")
+
+      self.ui.groupBox.setVisible(True)
+      for widget in [self.ui.label_GMA, self.ui.lineEdit_GMA]:
+        widget.setVisible("GMA" in optlist)
 
   def browseClicked(self):
     # directory select dialog
@@ -72,6 +93,16 @@ class ExportToWebDialog(QDialog):
   def exportClicked(self):
     # template
     self.settings.setTemplate(self.ui.comboBox_Template.currentData())
+
+    options = self.settings.templateConfig().get("options", "")
+    if options:
+      optlist = options.split(",")
+      if "GMA" in optlist:
+        try:
+          self.settings.setOption("GMA", float(self.ui.lineEdit_GMA.text()))
+        except Exception as e:
+          QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for GMA. Must be a numeric value.")
+          return
 
     # output html file name
     out_dir = self.ui.lineEdit_OutputDir.text()

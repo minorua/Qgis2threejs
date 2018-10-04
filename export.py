@@ -100,6 +100,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index = -1
 
   def export(self):
+    config = self.settings.templateConfig()
+
     # create output data directory if not exists
     dataDir = self.settings.outputDataDirectory()
     if not QDir(dataDir).exists():
@@ -118,10 +120,17 @@ class ThreeJSFileExporter(ThreeJSExporter):
     options = []
     world = self.settings.get(self.settings.WORLD, {})
     if world.get("radioButton_Color", False):
-      options.append("option.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+      options.append("Q3D.Options.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+
+    # template specific options
+    opts = config.get("options", "")
+    if opts:
+      optlist = opts.split(",")
+      for key in optlist:
+        options.append("{0} = {1};".format(key, self.settings.option(key)))
 
     # read html template
-    with open(self.settings.templateConfig()["path"], "r", encoding="UTF-8") as f:
+    with open(config["path"], "r", encoding="UTF-8") as f:
       html = f.read()
 
     title = self.settings.outputFileTitle()

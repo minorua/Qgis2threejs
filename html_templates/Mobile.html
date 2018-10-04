@@ -132,13 +132,12 @@
 <div id="footer"></div>
 
 <script>
-var app = Q3D.application,
-    option = Q3D.Options;
+var DH = 1.5;             // device height from ground (in CRS vertical unit)
+var FOV = 70;             // device camera's field of view
+var GMA = 0;              // grid-magnetic angle (clockwise, in degrees)
 ${options}
 
-var DECLINATION = 7.58;   // magnetic declination
-var DH = 1.5;             // device height from ground (CRS vertical unit)
-var FOV = 70;             // device camera's field of view
+var app = Q3D.application;
 </script>
 <script src="./mobile.js"></script>
 <script>

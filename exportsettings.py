@@ -88,6 +88,7 @@ class ExportSettings:
   CAMERA = "CAMERA"
   CONTROLS = "CTRL"
   LAYERS = "LAYERS"
+  OPTIONS = "OPT"   # template specific settings
 
   def __init__(self):
     self.data = {}
@@ -198,6 +199,16 @@ class ExportSettings:
 
   def setOutputFilename(self, filepath=""):
     self.data["OutputFilename"] = filepath
+
+  def options(self):
+    return self.data.get(ExportSettings.OPTIONS, {})
+
+  def option(self, key):
+    return self.data.get(ExportSettings.OPTIONS, {}).get(key)
+
+  def setOption(self, key, value):
+    self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
+    self.data[ExportSettings.OPTIONS][key] = value
 
   def setMapCanvas(self, canvas):
     self.setMapSettings(canvas.mapSettings())
