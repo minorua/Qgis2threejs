@@ -337,7 +337,7 @@ class Q3DWindow(QMainWindow):
       pluginManager().reloadPlugins()
 
   def help(self):
-    QDesktopServices.openUrl(QUrl("http://qgis2threejs.readthedocs.io/"))
+    QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
 
   def homePage(self):
     QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs"))

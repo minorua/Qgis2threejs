@@ -10,7 +10,7 @@ save the 3D model in glTF format for 3DCG or 3D printing.
 Documentation
 -------------
 
-  Online documentation: http://qgis2threejs.readthedocs.org/
+  Online documentation: https://qgis2threejs.readthedocs.org/
 
   You can download PDF version if you want.
 
@@ -21,12 +21,12 @@ Browser Support
   See [plugin wiki page](https://github.com/minorua/Qgis2threejs/wiki/Browser-Support).
 
 
-Exported Pages Use These JavaScript Libraries
----------------------------------------------
+Dependent JavaScript libraries
+------------------------------
 
-* All exports use [three.js](http://threejs.org)
+* All exports use [three.js](https://threejs.org)
 
-* Exports with `display coordinates in latitude and longitude (WGS84)` option use [Proj4js](http://trac.osgeo.org/proj4js/)
+* Exports with `display coordinates in latitude and longitude (WGS84)` option use [Proj4js](https://trac.osgeo.org/proj4js/)
 
 * Exports based on 3DViewer(dat-gui) template use [dat-gui](https://code.google.com/p/dat-gui/)
 
