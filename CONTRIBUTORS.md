@@ -8,3 +8,4 @@ Many thanks to all the contributors!
 * Josef K https://github.com/jkall
 * Luca Casagrande https://github.com/lucacasagrande
 * Stefano Cudini https://github.com/stefanocudini
+* Steven Sabo https://github.com/DigDigDig
