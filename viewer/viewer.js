@@ -18,6 +18,10 @@ app.timer = {tickCount: 0};
 // this is the slot connected to the signal which Bridge class object emits
 function dataReceived(jsonObject) {
   app.loadJSONObject(jsonObject);
+
+  if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
+    updateNorthArrowRotation(jsonObject.properties.rotation);
+  }
 }
 
 function displayFPS() {
@@ -101,6 +105,22 @@ function switchCamera(is_ortho) {
   app.controls.object = app.camera;
   console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
   app.render(true);
+}
+
+function setNorthArrowVisible(visible) {
+  document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
+  if (visible && app.renderer2 === undefined) {
+    app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+    app.render();
+  }
+}
+
+function updateNorthArrowRotation(rotation) {
+  if (app.scene2 === undefined) return;
+
+  var mesh = app.scene2.children[app.scene2.children.length - 1];
+  mesh.rotation.z = -rotation * Math.PI / 180;
+  mesh.updateMatrixWorld();
 }
 
 // overrides

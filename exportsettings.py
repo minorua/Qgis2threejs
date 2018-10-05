@@ -89,6 +89,7 @@ class ExportSettings:
   CONTROLS = "CTRL"
   LAYERS = "LAYERS"
   OPTIONS = "OPT"   # template specific settings
+  INSETS = "INSETS"
 
   def __init__(self):
     self.data = {}
@@ -330,3 +331,10 @@ class ExportSettings:
       return DEMPropertyReader(layer.layerId, layer.properties)
 
     return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)
+
+  def setNorthArrowVisible(self, visible):
+    self.data[ExportSettings.INSETS] = self.data.get(ExportSettings.INSETS, {})
+    self.data[ExportSettings.INSETS]["NorthArrow"] = visible
+
+  def isNorthArrowVisible(self):
+    return self.data.get(ExportSettings.INSETS, {}).get("NorthArrow", False)

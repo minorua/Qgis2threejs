@@ -58,9 +58,13 @@ class Q3DViewerInterface:
     self.treeView.setLayerList(settings.getLayerList())
 
   def startApplication(self):
-    self.runString("app.start();");
+    self.runString("app.start();")
+
+    if self.controller.settings.isNorthArrowVisible():
+      self.runString("setNorthArrowVisible(true);")
+
     if debug_mode:
-      self.runString("displayFPS();");
+      self.runString("displayFPS();")
 
   def setPreviewEnabled(self, enabled):
     self.controller.setPreviewEnabled(enabled)
@@ -220,6 +224,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
     self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
     self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
+    self.ui.actionNorthArrow.setChecked(self.settings.isNorthArrowVisible())
 
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
@@ -228,6 +233,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
+    self.ui.actionNorthArrow.toggled.connect(self.northArrowToggled)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
@@ -264,6 +270,10 @@ class Q3DWindow(QMainWindow):
   def switchCamera(self, action):
     self.settings.setCamera(action == self.ui.actionOrthographic)
     self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
+
+  def northArrowToggled(self, checked):
+    self.settings.setNorthArrowVisible(checked)
+    self.runString("setNorthArrowVisible({0});".format("true" if checked else "false"))
 
   def clearExportSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:

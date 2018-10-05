@@ -52,9 +52,16 @@
      </property>
      <addaction name="actionOrbit"/>
     </widget>
+    <widget class="QMenu" name="menuInsets">
+     <property name="title">
+      <string>Insets</string>
+     </property>
+     <addaction name="actionNorthArrow"/>
+    </widget>
     <addaction name="actionWorldSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
+    <addaction name="menuInsets"/>
     <addaction name="separator"/>
     <addaction name="actionClearAllSettings"/>
     <addaction name="separator"/>
@@ -345,6 +352,14 @@
   <action name="actionConsoleClear">
    <property name="text">
     <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionNorthArrow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>North Arrow</string>
    </property>
   </action>
  </widget>

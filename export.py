@@ -129,6 +129,11 @@ class ThreeJSFileExporter(ThreeJSExporter):
       for key in optlist:
         options.append("{0} = {1};".format(key, self.settings.option(key)))
 
+    # North arrow
+    insets = self.settings.get(self.settings.INSETS, {})
+    if insets.get("NorthArrow"):
+      options.append("Q3D.Options.northArrow.visible = true;")
+
     # read html template
     with open(config["path"], "r", encoding="UTF-8") as f:
       html = f.read()
