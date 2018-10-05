@@ -14,7 +14,7 @@ Q3D.Options = {
   },
   side: {color: 0xc7ac92, bottomZ: -1.5},
   frame: {color: 0, bottomZ: -1.5},
-  northArrow: {visible: false, color: 0x666666},
+  northArrow: {visible: false, color: 0x666666, cameraDistance: 30},
   label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
   qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
   debugMode: false,
@@ -698,10 +698,10 @@ limitations:
   app.render = function (updateControls) {
     if (updateControls) app.controls.update();
     app.renderer.render(app.scene, app.camera);
+
     if (app.renderer2) {
-      app.camera2.position.copy(app.camera.position);
-      app.camera2.position.sub(app.controls.target);
-      app.camera2.position.setLength(30);
+      app.camera.getWorldDirection(vec3);
+      app.camera2.position.copy(vec3.negate().setLength(Q3D.Options.northArrow.cameraDistance));
       app.camera2.lookAt(app.scene2.position);
 
       app.renderer2.render(app.scene2, app.camera2);
