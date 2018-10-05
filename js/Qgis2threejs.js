@@ -4,6 +4,7 @@
 // https://github.com/minorua/Qgis2threejs
 
 var Q3D = {VERSION: "2.0.1"};
+
 Q3D.Options = {
   bgcolor: null,
   light: {
@@ -12,20 +13,54 @@ Q3D.Options = {
       altitude: 45    // altitude angle
     }
   },
-  side: {color: 0xc7ac92, bottomZ: -1.5},
-  frame: {color: 0, bottomZ: -1.5},
-  northArrow: {visible: false, color: 0x666666, cameraDistance: 30},
-  label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
-  qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
+  side: {
+    color: 0xc7ac92,
+    bottomZ: -1.5
+  },
+  frame: {
+    color: 0,
+    bottomZ: -1.5
+  },
+  northArrow: {
+    color: 0x666666,
+    cameraDistance: 30,
+    visible: false
+  },
+  label: {
+    visible: true,
+    connectorColor: 0xc0c0d0,
+    autoSize: false,
+    minFontSize: 10
+  },
+  qmarker: {
+    r: 0.25,
+    c: 0xffff00,
+    o: 0.8
+  },
   debugMode: false,
   exportMode: false,
   jsonLoader: "JSONLoader"  // JSONLoader or ObjectLoader
 };
 
-Q3D.LayerType = {DEM: "dem", Point: "point", Line: "line", Polygon: "polygon"};
-Q3D.MaterialType = {MeshLambert: 0, MeshPhong: 1, LineBasic: 2, Sprite: 3, Unknown: -1};
-Q3D.uv = {i: new THREE.Vector3(1, 0, 0), j: new THREE.Vector3(0, 1, 0), k: new THREE.Vector3(0, 0, 1)};
-
+// consts
+Q3D.LayerType = {
+  DEM: "dem",
+  Point: "point",
+  Line: "line",
+  Polygon: "polygon"
+};
+Q3D.MaterialType = {
+  MeshLambert: 0,
+  MeshPhong: 1,
+  LineBasic: 2,
+  Sprite: 3,
+  Unknown: -1
+};
+Q3D.uv = {
+  i: new THREE.Vector3(1, 0, 0),
+  j: new THREE.Vector3(0, 1, 0),
+  k: new THREE.Vector3(0, 0, 1)
+};
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
 Q3D.isTouchDevice = ("ontouchstart" in window);
@@ -335,7 +370,8 @@ limitations:
       app.width = container.clientWidth;
       app.height = container.clientHeight;
       app._fullWindow = false;
-    } else {
+    }
+    else {
       app.width = window.innerWidth;
       app.height = window.innerHeight;
       app._fullWindow = true;
@@ -513,7 +549,8 @@ limitations:
           default:
             return;
         }
-      } else if (e.shiftKey) {
+      }
+      else if (e.shiftKey) {
         switch (e.keyCode) {
           case 37:  // LEFT
             controls.rotateLeft(rotateAngle);
@@ -536,7 +573,8 @@ limitations:
           default:
             return;
         }
-      } else if (e.ctrlKey) {
+      }
+      else if (e.ctrlKey) {
         switch (e.keyCode) {
           case 37:  // Ctrl + LEFT
             controls.cameraRotate(rotateAngle, 0);
@@ -553,7 +591,8 @@ limitations:
           default:
             return;
         }
-      } else {
+      }
+      else {
         switch (e.keyCode) {
           case 37:  // LEFT
             controls.panLeft(panDelta, controls.object.matrix);
