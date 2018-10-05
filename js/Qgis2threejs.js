@@ -14,6 +14,7 @@ Q3D.Options = {
   },
   side: {color: 0xc7ac92, bottomZ: -1.5},
   frame: {color: 0, bottomZ: -1.5},
+  northArrow: {visible: false, color: 0x666666},
   label: {visible: true, connectorColor: 0xc0c0d0, autoSize: false, minFontSize: 10},
   qmarker: {r: 0.25, c: 0xffff00, o: 0.8},
   debugMode: false,
@@ -622,6 +623,41 @@ limitations:
     app.camera.position.set(0, 100, 100);
   };
 
+  // rotation: direction to North (clockwise from up (+y), in degrees)
+  app.buildNorthArrow = function (container, rotation) {
+    app.renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true});
+    app.renderer2.setClearColor(0, 0);
+    app.renderer2.setSize(container.clientWidth, container.clientHeight);
+
+    app.container2 = container;
+    app.container2.appendChild(app.renderer2.domElement);
+
+    app.camera2 = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
+    app.camera2.up = app.camera.up;
+
+    app.scene2 = new Q3D.Scene();
+    app.scene2.buildDefaultLights();
+
+    // an arrow object
+    var geometry = new THREE.Geometry();
+    geometry.vertices.push(
+      new THREE.Vector3(-5, -10, -0.5),
+      new THREE.Vector3(0, 10, 0),
+      new THREE.Vector3(0, -7, 1),
+      new THREE.Vector3(5, -10, -0.5)
+    );
+    geometry.faces.push(
+      new THREE.Face3(0, 1, 2),
+      new THREE.Face3(2, 1, 3)
+    );
+    geometry.computeFaceNormals();
+
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.northArrow.color, side: THREE.DoubleSide});
+    var mesh = new THREE.Mesh(geometry, material);
+    if (rotation) mesh.rotation.z = -rotation * Math.PI / 180;
+    app.scene2.add(mesh);
+  };
+
   app.currentViewUrl = function () {
     var c = app.camera.position, t = app.controls.target, u = app.camera.up;
     var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
@@ -662,6 +698,14 @@ limitations:
   app.render = function (updateControls) {
     if (updateControls) app.controls.update();
     app.renderer.render(app.scene, app.camera);
+    if (app.renderer2) {
+      app.camera2.position.copy(app.camera.position);
+      app.camera2.position.sub(app.controls.target);
+      app.camera2.position.setLength(30);
+      app.camera2.lookAt(app.scene2.position);
+
+      app.renderer2.render(app.scene2, app.camera2);
+    }
     app.updateLabelPosition();
   };
 

@@ -14,6 +14,7 @@ ${scripts}
 </head>
 <body>
 <div id="webgl"></div>
+<div id="northarrow"></div>
 <div id="labels"></div>
 
 <!-- popup -->
@@ -96,8 +97,9 @@ var app = Q3D.application,
     container = document.getElementById("webgl");
 app.init(container, ${is_ortho});   // initialize application
 
-// set custom plane z range when all objects have been loaded
+// when all objects have been loaded
 app.addEventListener("sceneLoaded", function () {
+  // set custom plane z range
   var box = new THREE.Box3().setFromObject(app.scene),
       zMin = app.scene.toMapCoordinates(0, 0, box.min.y).z,
       zMax = app.scene.toMapCoordinates(0, 0, box.max.y).z;
@@ -106,11 +108,13 @@ app.addEventListener("sceneLoaded", function () {
 
 // load the scene
 app.loadJSONFile("${scenefile}", function () {
+  app.start();
+
   Q3D.gui.init();   // initialize dat-gui panel
+
+  // North arrow inset
+  if (Q3D.Options.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
 });
-
-app.start();
-
 </script>
 </body>
 </html>

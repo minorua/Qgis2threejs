@@ -249,3 +249,11 @@ table.attrs tr td:first-child {
   color: black;
   font: normal medium sans-serif;
 }
+
+#northarrow {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 100px;
+  height: 100px;
+}

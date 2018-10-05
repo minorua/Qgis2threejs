@@ -12,6 +12,7 @@ ${scripts}
 </head>
 <body>
 <div id="webgl"></div>
+<div id="northarrow"></div>
 <div id="labels"></div>
 
 <!-- popup -->
@@ -95,9 +96,14 @@ var app = Q3D.application,
 document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 
 app.init(container, ${is_ortho});       // initialize application
-app.loadJSONFile("${scenefile}");    // load the scene
-app.start();
 
+// load the scene
+app.loadJSONFile("${scenefile}", function () {
+  app.start();
+
+  // North arrow inset
+  if (Q3D.Options.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+});
 </script>
 </body>
 </html>

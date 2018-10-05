@@ -18,6 +18,7 @@
 
 <video id="video" autoplay></video>
 <div id="webgl"></div>
+<div id="northarrow"></div>
 <div id="labels"></div>
 
 <!-- buttons -->
@@ -157,6 +158,10 @@ app.addEventListener("sceneLoaded", function () {
 // load the scene
 app.loadJSONFile("${scenefile}", function () {
   app.start();
+
+  // North arrow inset
+  if (Q3D.Options.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+
   if ("AR" in app.urlParams) {
     document.getElementById("ar-checkbox").checked = true;
     startARMode();
