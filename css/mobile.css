@@ -97,6 +97,15 @@ body {
   position: absolute;
 }
 
+.btn:focus {
+  outline: none;
+}
+
+#current-location {
+  right: 20px;
+  bottom: 100px;
+}
+
 .expand {
   position: absolute;
   right: 20px;
@@ -236,7 +245,7 @@ body {
 
 #popup {
   top: 20px;
-  left: 20px;
+  left: 4px;
   border: 1px solid gray;
   border-radius: 5px;
 }
@@ -266,4 +275,8 @@ body {
 #pageinfo h1 {
   color: black;
   background-color: lightgray;
+}
+
+.accuracy {
+  font-size: x-large;
 }
