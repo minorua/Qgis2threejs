@@ -445,11 +445,11 @@ limitations:
     app.controls = controls;
     app.controls.update();
 
-    app.labelVisibility = Q3D.Options.label.visible;
+    app.labelVisible = Q3D.Options.label.visible;
 
     // root element of labels
     app.scene.labelRootElement = document.getElementById("labels");
-    app.scene.labelRootElement.style.display = (app.labelVisibility) ? "block" : "none";
+    app.scene.labelRootElement.style.display = (app.labelVisible) ? "block" : "none";
 
     // create a marker for queried point
     var opt = Q3D.Options.qmarker;
@@ -615,7 +615,7 @@ limitations:
             app.showInfo();
             return;
           case 76:  // L
-            app.setLabelVisibility(!app.labelVisibility);
+            app.setLabelVisible(!app.labelVisible);
             return;
           case 82:  // R
             app.setRotateAnimationMode(!controls.autoRotate);
@@ -753,7 +753,7 @@ limitations:
   // update label position
   app.updateLabelPosition = function () {
     var rootGroup = app.scene.labelConnectorGroup;
-    if (!app.labelVisibility || rootGroup.children.length == 0) return;
+    if (!app.labelVisible || rootGroup.children.length == 0) return;
 
     var camera = app.camera,
         camera_pos = camera.position,
@@ -819,8 +819,8 @@ limitations:
     }
   };
 
-  app.setLabelVisibility = function (visible) {
-    app.labelVisibility = visible;
+  app.setLabelVisible = function (visible) {
+    app.labelVisible = visible;
     app.scene.labelRootElement.style.display = (visible) ? "block" : "none";
     app.scene.labelConnectorGroup.visible = visible;
     app.render();
@@ -1207,7 +1207,7 @@ limitations:
     };
 
     var labels = [];    // list of [label point, text]
-    if (app.labelVisibility) {
+    if (app.labelVisible) {
       var rootGroup = app.scene.labelConnectorGroup, connGroup, conn, pt;
       for (var i = 0; i < rootGroup.children.length; i++) {
         connGroup = rootGroup.children[i];
@@ -2059,7 +2059,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   return pts;
 };
 
-Q3D.DEMLayer.prototype.setSideVisibility = function (visible) {
+Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {
     if (obj.name == "side" || obj.name == "bottom" || obj.name == "frame") obj.visible = visible;
@@ -2623,7 +2623,7 @@ Q3D.PolygonLayer.prototype.buildLabels = function (features) {
   Q3D.VectorLayer.prototype.buildLabels.call(this, features, function (f) { return f.geom.centroids; });
 };
 
-Q3D.PolygonLayer.prototype.setBorderVisibility = function (visible) {
+Q3D.PolygonLayer.prototype.setBorderVisible = function (visible) {
   if (this.properties.objType != "Overlay") return;
 
   this.objectGroup.children.forEach(function (parent) {
@@ -2635,7 +2635,7 @@ Q3D.PolygonLayer.prototype.setBorderVisibility = function (visible) {
   this.borderVisible = visible;
 };
 
-Q3D.PolygonLayer.prototype.setSideVisibility = function (visible) {
+Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
   if (this.properties.objType != "Overlay") return;
 
   this.objectGroup.children.forEach(function (parent) {
