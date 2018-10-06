@@ -254,8 +254,8 @@ table.attrs tr td:first-child {
 
 #northarrow {
   position: absolute;
-  left: 18px;
-  bottom: 18px;
-  width: 100px;
-  height: 100px;
+  left: 12px;
+  bottom: 16px;
+  width: 80px;
+  height: 80px;
 }

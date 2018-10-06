@@ -39,7 +39,7 @@ Q3D.Options = {
     }
   },
   northArrow: {
-    color: 0x666666,
+    color: 0x8b4513,
     cameraDistance: 30,
     visible: false
   },
