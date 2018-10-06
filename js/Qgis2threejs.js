@@ -377,8 +377,10 @@ limitations:
       app._fullWindow = true;
     }
 
-    // WebGLRenderer
     var bgcolor = Q3D.Options.bgcolor;
+    if (bgcolor === null) app.container.classList.add("sky");
+
+    // WebGLRenderer
     app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     app.renderer.setSize(app.width, app.height);
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);

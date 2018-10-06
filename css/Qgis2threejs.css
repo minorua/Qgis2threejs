@@ -5,7 +5,9 @@ body {
 }
 
 #webgl {
-  /* sky-like */
+}
+
+.sky {
   background: -webkit-gradient(linear, left top, left bottom, from(#98c8f6), color-stop(0.4, #cbebff), to(#f0f9ff));
   background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%);
 }
