@@ -179,6 +179,10 @@ function startARMode(position) {
   }).catch(function (error) {
     alert(error.message);
   });
+
+  document.querySelectorAll(".action-move").forEach(function (elm) {
+    elm.classList.toggle("hidden");
+  });
 }
 
 function startARModeHere() {
@@ -187,6 +191,11 @@ function startARModeHere() {
   vec3.y += DH * app.scene.userData.zScale;
   startARMode(vec3);
   document.getElementById("ar-checkbox").checked = true;
+}
+
+function moveHere() {
+  app.camera.position.copy(app.queryTargetPosition);
+  app.camera.position.y += DH * app.scene.userData.zScale;
 }
 
 function stopARMode() {
@@ -210,6 +219,10 @@ function stopARMode() {
   app.camera.fov = oldFOV;
   app.camera.updateProjectionMatrix();
   app.setCanvasSize(window.innerWidth, window.innerHeight);
+
+  document.querySelectorAll(".action-move").forEach(function (elm) {
+    elm.classList.toggle("hidden");
+  });
 }
 
 function getCurrentPosition (callback) {
