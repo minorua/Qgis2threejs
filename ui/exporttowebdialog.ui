@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>482</width>
-    <height>208</height>
+    <height>216</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -82,19 +82,19 @@
      <property name="title">
       <string>Template Specific Settings</string>
      </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <property name="fieldGrowthPolicy">
-       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-      </property>
+     <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="QLabel" name="label_GMA">
+       <widget class="QLabel" name="label_MND">
         <property name="text">
-         <string>Grid-Magnetic Angle (clockwise, in degrees)</string>
+         <string>Magnetic North Direction (clockwise from the upper direction of the map, in degrees)</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_GMA">
+       <widget class="QLineEdit" name="lineEdit_MND">
         <property name="maximumSize">
          <size>
           <width>100</width>

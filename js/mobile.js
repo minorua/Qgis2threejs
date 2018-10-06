@@ -56,7 +56,7 @@ app.cameraAction.moveTo = function () {
 function init() {
   orbitControls = app.controls;
   devControls = new THREE.DeviceOrientationControls(app.camera);
-  devControls.alphaOffset = -GMA * Math.PI / 180;    // counter-clockwise, in radians
+  devControls.alphaOffset = -MND * Math.PI / 180;    // counter-clockwise, in radians
 
   // store default camera FOV (non-AR mode)
   oldFOV = app.camera.fov;

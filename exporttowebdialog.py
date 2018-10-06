@@ -62,8 +62,8 @@ class ExportToWebDialog(QDialog):
 
     # template specific settings
     for key, value in settings.options().items():
-      if key == "GMA":
-        self.ui.lineEdit_GMA.setText(str(value))
+      if key == "MND":
+        self.ui.lineEdit_MND.setText(str(value))
 
     self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
     self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
@@ -80,8 +80,8 @@ class ExportToWebDialog(QDialog):
       optlist = options.split(",")
 
       self.ui.groupBox.setVisible(True)
-      for widget in [self.ui.label_GMA, self.ui.lineEdit_GMA]:
-        widget.setVisible("GMA" in optlist)
+      for widget in [self.ui.label_MND, self.ui.lineEdit_MND]:
+        widget.setVisible("MND" in optlist)
 
   def browseClicked(self):
     # directory select dialog
@@ -97,11 +97,11 @@ class ExportToWebDialog(QDialog):
     options = self.settings.templateConfig().get("options", "")
     if options:
       optlist = options.split(",")
-      if "GMA" in optlist:
+      if "MND" in optlist:
         try:
-          self.settings.setOption("GMA", float(self.ui.lineEdit_GMA.text()))
+          self.settings.setOption("MND", float(self.ui.lineEdit_MND.text()))
         except Exception as e:
-          QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for GMA. Must be a numeric value.")
+          QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for M.N. direction. Must be a numeric value.")
           return
 
     # output html file name
