@@ -6,13 +6,28 @@
 var Q3D = {VERSION: "2.0.1"};
 
 Q3D.Options = {
-  bgcolor: null,
-  light: {
-    directional: {
+  bgcolor: null,    // null is sky
+  lights: [
+    {
+      type: "ambient",
+      color: 0x999999,
+      intensity: 1
+    },
+    {
+      type: "directional",
+      color: 0xffffff,
+      intensity: 0.5,
       azimuth: 220,   // note: default light azimuth of gdaldem hillshade is 315.
       altitude: 45    // altitude angle
+    },
+    {
+      type: "directional",
+      color: 0xffffff,
+      intensity: 0.1,
+      azimuth: 40,
+      altitude: -45
     }
-  },
+  ],
   dem: {
     side: {
       color: 0xc7ac92,
@@ -51,6 +66,7 @@ Q3D.LayerType = {
   Line: "line",
   Polygon: "polygon"
 };
+
 Q3D.MaterialType = {
   MeshLambert: 0,
   MeshPhong: 1,
@@ -58,11 +74,13 @@ Q3D.MaterialType = {
   Sprite: 3,
   Unknown: -1
 };
+
 Q3D.uv = {
   i: new THREE.Vector3(1, 0, 0),
   j: new THREE.Vector3(0, 1, 0),
   k: new THREE.Vector3(0, 0, 1)
 };
+
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
 Q3D.isTouchDevice = ("ontouchstart" in window);
@@ -162,7 +180,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // TODO: [Light settings] load light settings and build lights
     }
 
-    // create default lights if this scene has no lights
+    // build default lights if this scene has no lights
     if (this.lightGroup.children.length == 0) this.buildDefaultLights();
 
     // load layers
@@ -227,27 +245,31 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   }
 };
 
-Q3D.Scene.prototype.buildDefaultLights = function () {
-  // ambient light
-  this.lightGroup.add(new THREE.AmbientLight(0x999999));
+Q3D.Scene.prototype.buildLights = function (lights) {
+  var p, light, lambda, phi, x, y, z;
+  var deg2rad = Math.PI / 180;
+  for (var i = 0; i < lights.length; i++) {
+    p = lights[i];
+    if (p.type == "ambient") {
+      this.lightGroup.add(new THREE.AmbientLight(p.color, p.intensity));
+    }
+    else if (p.type == "directional") {
+      lambda = (90 - p.azimuth) * deg2rad;
+      phi = p.altitude * deg2rad;
 
-  // directional lights
-  var opt = Q3D.Options.light.directional, deg2rad = Math.PI / 180;
-  var lambda = (90 - opt.azimuth) * deg2rad;
-  var phi = opt.altitude * deg2rad;
-
-  var x = Math.cos(phi) * Math.cos(lambda),
-      y = Math.cos(phi) * Math.sin(lambda),
+      x = Math.cos(phi) * Math.cos(lambda);
+      y = Math.cos(phi) * Math.sin(lambda);
       z = Math.sin(phi);
 
-  var light1 = new THREE.DirectionalLight(0xffffff, 0.5);
-  light1.position.set(x, y, z);
-  this.lightGroup.add(light1);
+      light = new THREE.DirectionalLight(p.color, p.intensity);
+      light.position.set(x, y, z);
+      this.lightGroup.add(light);
+    }
+  }
+};
 
-  // thin light from the opposite direction
-  var light2 = new THREE.DirectionalLight(0xffffff, 0.1);
-  light2.position.set(-x, -y, -z);
-  this.lightGroup.add(light2);
+Q3D.Scene.prototype.buildDefaultLights = function () {
+  this.buildLights(Q3D.Options.lights);
 };
 
 Q3D.Scene.prototype.requestRender = function () {
