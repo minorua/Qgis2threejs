@@ -251,9 +251,9 @@ function getCurrentPosition (callback) {
 
     callback(pt);
 
-    var msg = "Longitude: " + pos.longitude +
-              "<br>Latitude: " + pos.latitude +
-              "<br>Accuracy: " + Number.parseFloat(pos.accuracy).toFixed(2);
+    var acc = Number.parseFloat(pos.accuracy);
+    acc = (acc > 2) ? acc.toFixed(0) : acc.toFixed(1);
+    var msg = "Accuracy: <span class='accuracy'>" + acc + "</span>m";
     app.popup.show(msg, "Current location", false, 5000);
   },
   function (error) {
