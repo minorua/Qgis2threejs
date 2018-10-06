@@ -13,13 +13,15 @@ Q3D.Options = {
       altitude: 45    // altitude angle
     }
   },
-  side: {
-    color: 0xc7ac92,
-    bottomZ: -1.5
-  },
-  frame: {
-    color: 0,
-    bottomZ: -1.5
+  dem: {
+    side: {
+      color: 0xc7ac92,
+      bottomZ: -1.5
+    },
+    frame: {
+      color: 0,
+      bottomZ: -1.5
+    }
   },
   northArrow: {
     color: 0x666666,
@@ -1548,11 +1550,11 @@ Q3D.DEMBlock.prototype = {
 
       // build sides, bottom and frame
       if (obj.sides) {
-        _this.buildSides(layer, grid, obj.width, obj.height, mesh, Q3D.Options.side.bottomZ);
+        _this.buildSides(layer, grid, obj.width, obj.height, mesh, Q3D.Options.dem.side.bottomZ);
         layer.sideVisible = true;
       }
       if (obj.frame) {
-        _this.buildFrame(layer, grid, obj.width, obj.height, mesh, Q3D.Options.frame.bottomZ);
+        _this.buildFrame(layer, grid, obj.width, obj.height, mesh, Q3D.Options.dem.frame.bottomZ);
         layer.sideVisible = true;
       }
 
@@ -1577,7 +1579,7 @@ Q3D.DEMBlock.prototype = {
   buildSides: function (layer, grid, planeWidth, planeHeight, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.side.color,
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -1652,7 +1654,7 @@ Q3D.DEMBlock.prototype = {
   buildFrame: function (layer, grid, planeWidth, planeHeight, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.LineBasicMaterial({color: Q3D.Options.frame.color,
+    var material = new THREE.LineBasicMaterial({color: Q3D.Options.dem.frame.color,
                                                 opacity: opacity,
                                                 transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -1739,7 +1741,7 @@ Q3D.ClippedDEMBlock.prototype = {
       Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
 
       if (obj.sides) {
-        _this.buildSides(layer, mesh, Q3D.Options.side.bottomZ);
+        _this.buildSides(layer, mesh, Q3D.Options.dem.side.bottomZ);
         layer.sideVisible = true;
       }
 
@@ -1764,7 +1766,7 @@ Q3D.ClippedDEMBlock.prototype = {
   buildSides: function (layer, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.side.color,
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
