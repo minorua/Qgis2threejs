@@ -298,6 +298,7 @@ Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
 // real (geodetic/projected) coordinates to 3D scene coordinates
 Q3D.Scene.prototype.toLocalCoordinates = function (x, y, z, isProjected) {
   // project x and y coordinates from WGS84 (long, lat)
+  var pt;
   if (!isProjected && typeof proj4 !== "undefined") {
     pt = proj4(this.userData.proj).forward([x, y]);
     x = pt[0];
@@ -308,17 +309,15 @@ Q3D.Scene.prototype.toLocalCoordinates = function (x, y, z, isProjected) {
   y = (y - this.userData.origin.y) * this.userData.scale;
   z = (z - this.userData.origin.z) * this.userData.zScale;
 
-  // TODO: rotation
   if (this.userData.rotation) {
-    var pt = this._rotatePoint({x: x, y: y}, this.userData.rotation);
+    pt = this._rotatePoint({x: x, y: y}, -this.userData.rotation);
     x = pt.x;
     y = pt.y;
   }
-
   return {x: x, y: y, z: z};
 };
 
-// Rotate a point around an origin
+// Rotate a point counter-clockwise around an origin
 Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
   var theta = degrees * Math.PI / 180,
       c = Math.cos(theta),
@@ -331,7 +330,6 @@ Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
     y -= origin.y;
   }
 
-  // rotate counter-clockwise
   var xd = x * c - y * s,
       yd = x * s + y * c;
 

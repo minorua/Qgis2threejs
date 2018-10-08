@@ -250,7 +250,7 @@ function getCurrentPosition (callback) {
       if (layer instanceof Q3D.DEMLayer) {
         var z = layer.getZ(pt.x, pt.y);
         if (z !== null) {
-          pt.z = (z + DH) * app.scene.userData.zScale;
+          pt.z = (z + DH + app.scene.userData.zShift) * app.scene.userData.zScale;
           break;
         }
       }
