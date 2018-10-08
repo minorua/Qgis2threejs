@@ -46,9 +46,9 @@ app.eventListener.resize = function () {
   app.render();
 };
 
-app.cameraAction._moveTo = app.cameraAction.moveTo;
-app.cameraAction.moveTo = function () {
-  app.cameraAction._moveTo(app.queryTargetPosition.x,
+app.cameraAction._move = app.cameraAction.move;
+app.cameraAction.move = function () {
+  app.cameraAction._move(app.queryTargetPosition.x,
                            -app.queryTargetPosition.z,
                            app.queryTargetPosition.y + DH * app.scene.userData.zScale);   // + device height from ground
 };
@@ -148,9 +148,12 @@ function startARMode(position) {
     app.camera.position.copy(position);
   }
 
-  app.controls = devControls;
+  orbitControls.autoRotate = false;
   orbitControls.enabled = false;
-  devControls.connect();
+
+  app.controls = devControls;
+  app.controls.connect();
+
   app.startAnimation();
 
   navigator.mediaDevices.enumerateDevices().then(function (devices) {
@@ -183,6 +186,7 @@ function startARMode(position) {
   document.querySelectorAll(".action-move").forEach(function (elm) {
     elm.classList.toggle("hidden");
   });
+  document.querySelector(".action-orbit").classList.add("hidden");
 }
 
 function startARModeHere() {
@@ -201,10 +205,12 @@ function moveHere() {
 function stopARMode() {
   ARMode = false;
 
-  app.controls = orbitControls;
   devControls.disconnect();
+
+  app.controls = orbitControls;
+  app.controls.enabled = true;
+
   app.stopAnimation();
-  orbitControls.enabled = true;
   document.getElementById("current-location").classList.remove("touchme");
 
   app.camera.position.set(0, 100, 100);
@@ -223,6 +229,7 @@ function stopARMode() {
   document.querySelectorAll(".action-move").forEach(function (elm) {
     elm.classList.toggle("hidden");
   });
+  document.querySelector(".action-orbit").classList.remove("hidden");
 }
 
 function getCurrentPosition (callback) {
@@ -269,7 +276,7 @@ function moveToCurrentLocation() {
 
   getCurrentPosition(function (pt) {
     // move camera
-    app.cameraAction.moveTo(pt.x, pt.y, pt.z);
+    app.cameraAction.move(pt.x, pt.y, pt.z);
   });
 }
 
@@ -282,7 +289,7 @@ function zoomToCurrentLocation() {
     app.queryMarker.updateMatrixWorld();
 
     // zoom in on current position
-    app.cameraAction.zoomInTo(pt.x, pt.y, pt.z);
+    app.cameraAction.zoomIn(pt.x, pt.y, pt.z);
   });
 }
 

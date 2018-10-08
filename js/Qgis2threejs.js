@@ -850,13 +850,12 @@ limitations:
     app.render();
   };
 
-  app.setRotateAnimationMode = function (rotate) {
-    if (rotate) {
-      app.controls.autoRotate = true;
+  app.setRotateAnimationMode = function (enabled) {
+    app.controls.autoRotate = enabled;
+    if (enabled) {
       app.startAnimation();
     }
     else {
-      app.controls.autoRotate = false;
       app.stopAnimation();
     }
   };
@@ -957,13 +956,16 @@ limitations:
   app.queryTargetPosition = new THREE.Vector3();  // y-up
 
   app.cameraAction = {
-    vecZoom: new THREE.Vector3(0, 10, 10),    // y-up
-    moveTo: function (x, y, z) {    // z-up
+
+    move: function (x, y, z) {    // z-up
       if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
       else app.camera.position.set(x, z, -y);   // y-up
       app.render(true);
     },
-    zoomInTo: function (x, y, z) {    // z-up
+
+    vecZoom: new THREE.Vector3(0, 10, 10),    // y-up
+
+    zoomIn: function (x, y, z) {    // z-up
       if (x === undefined) vec3.copy(app.queryTargetPosition);
       else vec3.set(x, z, -y);   // y-up
 
@@ -971,7 +973,16 @@ limitations:
       app.camera.lookAt(vec3.x, vec3.y, vec3.z);
       if (app.controls.target !== undefined) app.controls.target.copy(vec3);
       app.render(true);
+    },
+
+    orbit: function (x, y, z) {   // z-up
+      if (app.controls.target === undefined) return;
+
+      if (x === undefined) app.controls.target.copy(app.queryTargetPosition);
+      else app.controls.target.set(x, z, -y);   // y-up
+      app.setRotateAnimationMode(true);
     }
+
   };
 
   app.showQueryResult = function (point, obj) {
