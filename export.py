@@ -120,7 +120,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     options = []
     world = self.settings.get(self.settings.WORLD, {})
     if world.get("radioButton_Color", False):
-      options.append("Q3D.Options.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+      options.append("Q3D.Config.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
 
     # template specific options
     opts = config.get("options", "")
@@ -132,7 +132,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     # North arrow
     insets = self.settings.get(self.settings.INSETS, {})
     if insets.get("NorthArrow"):
-      options.append("Q3D.Options.northArrow.visible = true;")
+      options.append("Q3D.Config.northArrow.visible = true;")
 
     # read html template
     with open(config["path"], "r", encoding="UTF-8") as f:

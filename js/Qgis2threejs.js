@@ -5,7 +5,7 @@
 
 var Q3D = {VERSION: "2.0.1"};
 
-Q3D.Options = {
+Q3D.Config = {
   bgcolor: null,    // null is sky
   lights: [
     {
@@ -223,7 +223,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         if (model.type == "COLLADA") {
           app.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(app.project, model);
         }
-        else if (Q3D.Options.jsonLoader == "ObjectLoader") {
+        else if (Q3D.Config.jsonLoader == "ObjectLoader") {
           app.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(app.project, model);
         }
         else {
@@ -269,7 +269,7 @@ Q3D.Scene.prototype.buildLights = function (lights) {
 };
 
 Q3D.Scene.prototype.buildDefaultLights = function () {
-  this.buildLights(Q3D.Options.lights);
+  this.buildLights(Q3D.Config.lights);
 };
 
 Q3D.Scene.prototype.requestRender = function () {
@@ -401,7 +401,7 @@ limitations:
       app._fullWindow = true;
     }
 
-    var bgcolor = Q3D.Options.bgcolor;
+    var bgcolor = Q3D.Config.bgcolor;
     if (bgcolor === null) app.container.classList.add("sky");
 
     // WebGLRenderer
@@ -469,14 +469,14 @@ limitations:
     app.controls = controls;
     app.controls.update();
 
-    app.labelVisible = Q3D.Options.label.visible;
+    app.labelVisible = Q3D.Config.label.visible;
 
     // root element of labels
     app.scene.labelRootElement = document.getElementById("labels");
     app.scene.labelRootElement.style.display = (app.labelVisible) ? "block" : "none";
 
     // create a marker for queried point
-    var opt = Q3D.Options.qmarker;
+    var opt = Q3D.Config.qmarker;
     app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r),
                                       new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
     app.queryMarker.visible = false;
@@ -717,7 +717,7 @@ limitations:
     );
     geometry.computeFaceNormals();
 
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.northArrow.color, side: THREE.DoubleSide});
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.northArrow.color, side: THREE.DoubleSide});
     var mesh = new THREE.Mesh(geometry, material);
     if (rotation) mesh.rotation.z = -rotation * Math.PI / 180;
     app.scene2.add(mesh);
@@ -766,7 +766,7 @@ limitations:
 
     if (app.renderer2) {
       app.camera.getWorldDirection(vec3);
-      app.camera2.position.copy(vec3.negate().setLength(Q3D.Options.northArrow.cameraDistance));
+      app.camera2.position.copy(vec3.negate().setLength(Q3D.Config.northArrow.cameraDistance));
       app.camera2.lookAt(app.scene2.position);
 
       app.renderer2.render(app.scene2, app.camera2);
@@ -813,8 +813,8 @@ limitations:
 
     var widthHalf = app.width / 2,
         heightHalf = app.height / 2,
-        autosize = Q3D.Options.label.autoSize,
-        minFontSize = Q3D.Options.label.minFontSize;
+        autosize = Q3D.Config.label.autoSize,
+        minFontSize = Q3D.Config.label.minFontSize;
 
     var label, dist, x, y, e, fontSize;
     for (var i = 0, l = obj_dist.length; i < l; i++) {
@@ -1316,7 +1316,7 @@ limitations:
     app.renderer.render(app.scene, app.camera);
 
     // restore clear color
-    var bgcolor = Q3D.Options.bgcolor;
+    var bgcolor = Q3D.Config.bgcolor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
     if ((fill_background && bgcolor === null) || labels.length > 0) {
@@ -1572,11 +1572,11 @@ Q3D.DEMBlock.prototype = {
 
       // build sides, bottom and frame
       if (obj.sides) {
-        _this.buildSides(layer, grid, obj.width, obj.height, mesh, Q3D.Options.dem.side.bottomZ);
+        _this.buildSides(layer, grid, obj.width, obj.height, mesh, Q3D.Config.dem.side.bottomZ);
         layer.sideVisible = true;
       }
       if (obj.frame) {
-        _this.buildFrame(layer, grid, obj.width, obj.height, mesh, Q3D.Options.dem.frame.bottomZ);
+        _this.buildFrame(layer, grid, obj.width, obj.height, mesh, Q3D.Config.dem.frame.bottomZ);
         layer.sideVisible = true;
       }
 
@@ -1601,7 +1601,7 @@ Q3D.DEMBlock.prototype = {
   buildSides: function (layer, grid, planeWidth, planeHeight, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.dem.side.color,
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -1658,7 +1658,7 @@ Q3D.DEMBlock.prototype = {
     parent.add(mesh);
 
     // bottom
-    if (Q3D.Options.exportMode) {
+    if (Q3D.Config.exportMode) {
       var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, w - 1, h - 1);
     }
     else {
@@ -1676,7 +1676,7 @@ Q3D.DEMBlock.prototype = {
   buildFrame: function (layer, grid, planeWidth, planeHeight, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.LineBasicMaterial({color: Q3D.Options.dem.frame.color,
+    var material = new THREE.LineBasicMaterial({color: Q3D.Config.dem.frame.color,
                                                 opacity: opacity,
                                                 transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -1763,7 +1763,7 @@ Q3D.ClippedDEMBlock.prototype = {
       Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
 
       if (obj.sides) {
-        _this.buildSides(layer, mesh, Q3D.Options.dem.side.bottomZ);
+        _this.buildSides(layer, mesh, Q3D.Config.dem.side.bottomZ);
         layer.sideVisible = true;
       }
 
@@ -1788,7 +1788,7 @@ Q3D.ClippedDEMBlock.prototype = {
   buildSides: function (layer, parent, z0) {
     var matProp = this.material.origProp,
         opacity = (matProp.o !== undefined) ? matProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Options.dem.side.color,
+    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -2128,7 +2128,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       pIndex = prop.index,
       isRelative = prop.relative;
 
-  var line_mat = new THREE.LineBasicMaterial({color: Q3D.Options.label.connectorColor});
+  var line_mat = new THREE.LineBasicMaterial({color: Q3D.Config.label.connectorColor});
   var f, text, pts, pt, pt0, pt1;
 
   for (var i = 0, l = features.length; i < l; i++) {
@@ -2399,7 +2399,7 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Box") {
     // In this method, box corners are exposed near joint when both azimuth and slope of
     // the segments of both sides are different. Also, some unnecessary faces are created.
-    var debugMode = Q3D.Options.debugMode;
+    var debugMode = Q3D.Config.debugMode;
     var faces = [], vi;
     vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
           [3, 0, 7], [7, 0, 4],

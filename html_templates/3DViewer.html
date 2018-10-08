@@ -102,7 +102,7 @@ app.loadJSONFile("${scenefile}", function () {
   app.start();
 
   // North arrow inset
-  if (Q3D.Options.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+  if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
 });
 </script>
 </body>
