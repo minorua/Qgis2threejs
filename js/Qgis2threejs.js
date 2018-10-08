@@ -762,13 +762,16 @@ limitations:
     if (updateControls) app.controls.update();
     app.renderer.render(app.scene, app.camera);
 
+    // North arrow
     if (app.renderer2) {
       app.camera.getWorldDirection(vec3);
       app.camera2.position.copy(vec3.negate().setLength(Q3D.Config.northArrow.cameraDistance));
-      app.camera2.lookAt(app.scene2.position);
+      app.camera2.quaternion.copy(app.camera.quaternion);
 
       app.renderer2.render(app.scene2, app.camera2);
     }
+
+    // labels
     app.updateLabelPosition();
   };
 
