@@ -205,8 +205,8 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
-    # close properties dialogs
-    for dlg in self.findChildren(PropertiesDialog):
+    # close properties dialogs and export to web dialog
+    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog)):
       dlg.close()
 
     QMainWindow.closeEvent(self, event)
