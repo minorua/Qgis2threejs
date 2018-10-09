@@ -33,6 +33,7 @@ from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from .conf import def_vals
+from .datamanager import MaterialManager
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import getLayersInProject, logMessage
 from .stylewidget import StyleWidget
@@ -167,7 +168,17 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
     Ui_WorldPropertiesWidget.setupUi(self, self)
 
-    self.registerPropertyWidgets([self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.radioButton_Color, self.lineEdit_Color, self.radioButton_WGS84])
+    widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift,
+               self.comboBox_MaterialType,
+               self.radioButton_Color, self.lineEdit_Color,
+               self.radioButton_WGS84]
+    self.registerPropertyWidgets(widgets)
+
+    # material type
+    self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
+    self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
+    #TODO: self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
+
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):

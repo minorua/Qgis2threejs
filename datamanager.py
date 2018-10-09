@@ -202,9 +202,11 @@ class MaterialManager(DataManager):
 
   ERROR_COLOR = "0"
 
-  def __init__(self):
+  def __init__(self, basicType=MESH_LAMBERT):
     DataManager.__init__(self)
     self.writtenCount = 0
+
+    self.basicMaterialType = basicType
 
   def _indexCol(self, type, color, opacity=1, doubleSide=False):
     if color[0:2] != "0x":
@@ -250,16 +252,9 @@ class MaterialManager(DataManager):
 
   def build(self, index, imageManager, filepath=None, url=None, base64=False):
     mtl = self._list[index]
-    mt = {
-      self.WIREFRAME: self.MESH_LAMBERT,
-      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
-      self.CANVAS_IMAGE: self.MESH_LAMBERT,
-      self.MAP_IMAGE: self.MESH_LAMBERT,
-      self.LAYER_IMAGE: self.MESH_LAMBERT,
-      self.IMAGE_FILE: self.MESH_LAMBERT
-      }.get(mtl[0], mtl[0])
-
-    m = {"type": mt}
+    m = {
+      "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.SPRITE] else self.basicMaterialType
+    }
     transp_background = False
     if mtl[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
       if mtl[0] == self.CANVAS_IMAGE:
@@ -318,15 +313,10 @@ class MaterialManager(DataManager):
     if len(self._list) <= self.writtenCount:
       return
 
-    toMaterialType = {self.WIREFRAME: self.MESH_LAMBERT,
-                      self.MESH_LAMBERT_FLAT: self.MESH_LAMBERT,
-                      self.CANVAS_IMAGE: self.MESH_LAMBERT,
-                      self.MAP_IMAGE: self.MESH_LAMBERT,
-                      self.LAYER_IMAGE: self.MESH_LAMBERT,
-                      self.IMAGE_FILE: self.MESH_LAMBERT}
-
     for mtl in self._list[self.writtenCount:]:
-      m = {"type": toMaterialType.get(mtl[0], mtl[0])}
+      m = {
+        "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.SPRITE] else self.basicMaterialType
+      }
 
       transp_background = False
 

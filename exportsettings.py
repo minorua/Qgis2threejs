@@ -116,6 +116,9 @@ class ExportSettings:
   def coordsInWGS84(self):
     return self.worldProperties().get("radioButton_WGS84", False)
 
+  def materialType(self):
+    return self.worldProperties().get("comboBox_MaterialType", 0)
+
   def isOrthoCamera(self):
     return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
 

@@ -47,7 +47,7 @@ class VectorLayerExporter(LayerExporter):
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
     LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
-    self.materialManager = MaterialManager()    #TODO: takes imageManager
+    self.materialManager = MaterialManager(settings.materialType())    #TODO: takes imageManager
 
     self.mapTo3d = settings.mapTo3d()
     self.geomType = self.layer.mapLayer.geometryType()

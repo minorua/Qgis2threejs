@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>268</width>
-    <height>309</height>
+    <height>411</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,6 +72,25 @@
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_zShift"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Material</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Basic type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox_MaterialType"/>
       </item>
      </layout>
     </widget>

@@ -131,7 +131,7 @@ class DEMBlockExporter:
   def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
     self.settings = settings
     self.imageManager = imageManager
-    self.materialManager = MaterialManager()
+    self.materialManager = MaterialManager(settings.materialType())
 
     self.layer = layer
     self.properties = layer.properties
