@@ -177,7 +177,7 @@ class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
     # material type
     self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
     self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
-    #TODO: self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
+    self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
 
     self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 

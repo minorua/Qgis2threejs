@@ -72,6 +72,7 @@ Q3D.MaterialType = {
   MeshPhong: 1,
   LineBasic: 2,
   Sprite: 3,
+  MeshToon: 4,
   Unknown: -1
 };
 
@@ -1428,6 +1429,10 @@ Q3D.Material.prototype = {
     else if (m.type == Q3D.MaterialType.MeshPhong) {
       if (m.c !== undefined) opt.color = m.c;
       this.mtl = new THREE.MeshPhongMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.MeshToon) {
+      if (m.c !== undefined) opt.color = m.c;
+      this.mtl = new THREE.MeshToonMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.LineBasic) {
       opt.color = m.c;

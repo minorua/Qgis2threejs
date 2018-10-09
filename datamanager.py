@@ -190,6 +190,7 @@ class MaterialManager(DataManager):
   MESH_PHONG = 1
   LINE_BASIC = 2
   SPRITE = 3
+  MESH_TOON = 4
 
   WIREFRAME = 10
   MESH_LAMBERT_SMOOTH = 0
