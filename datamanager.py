@@ -186,15 +186,19 @@ class ImageManager(DataManager):
 
 class MaterialManager(DataManager):
 
+  # following five material types are defined also in JS
+  # first three types are basic material types
   MESH_LAMBERT = 0
   MESH_PHONG = 1
-  LINE_BASIC = 2
-  SPRITE = 3
   MESH_TOON = 4
 
-  WIREFRAME = 10
-  MESH_LAMBERT_SMOOTH = 0
-  MESH_LAMBERT_FLAT = 11
+  LINE_BASIC = 2
+  SPRITE = 3
+
+  # other material types for internal use
+  MESH_MATERIAL = 10
+  MESH_FLAT = 11
+  WIREFRAME = 12
 
   CANVAS_IMAGE = 20
   MAP_IMAGE = 21
@@ -215,14 +219,11 @@ class MaterialManager(DataManager):
     mtl = (type, color, opacity, doubleSide)
     return self._index(mtl)
 
-  def getMeshLambertIndex(self, color, opacity=1, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT, color, opacity, doubleSide)
+  def getMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
+    return self._indexCol(self.MESH_MATERIAL, color, opacity, doubleSide)
 
-  def getSmoothMeshLambertIndex(self, color, opacity=1, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT_SMOOTH, color, opacity, doubleSide)
-
-  def getFlatMeshLambertIndex(self, color, opacity=1, doubleSide=False):
-    return self._indexCol(self.MESH_LAMBERT_FLAT, color, opacity, doubleSide)
+  def getFlatMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
+    return self._indexCol(self.MESH_FLAT, color, opacity, doubleSide)
 
   def getLineBasicIndex(self, color, opacity=1):
     return self._indexCol(self.LINE_BASIC, color, opacity)
@@ -289,7 +290,7 @@ class MaterialManager(DataManager):
     if mtl[0] == self.WIREFRAME:
       m["w"] = 1
 
-    if mtl[0] == self.MESH_LAMBERT_FLAT:
+    if mtl[0] == self.MESH_FLAT:
       m["flat"] = 1
 
     opacity = mtl[2]
@@ -342,7 +343,7 @@ class MaterialManager(DataManager):
       if mtl[0] == self.WIREFRAME:
         m["w"] = 1
 
-      if mtl[0] == self.MESH_LAMBERT_FLAT:
+      if mtl[0] == self.MESH_FLAT:
         m["flat"] = 1
 
       opacity = mtl[2]

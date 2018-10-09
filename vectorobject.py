@@ -98,7 +98,7 @@ class PointBasicTypeBase(PointTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
 
 class SphereType(PointBasicTypeBase):
@@ -220,7 +220,7 @@ class PipeType(LineBasicTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
@@ -247,7 +247,7 @@ class BoxLineType(LineBasicTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
@@ -268,7 +268,7 @@ class ProfileType(LineBasicTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    return layer.materialManager.getFlatMeshLambertIndex(feat.values[0], feat.values[1], doubleSide=True)
+    return layer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
@@ -301,7 +301,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    mtl = {"face": layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1])}
+    mtl = {"face": layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])}
 
     # border
     if feat.values[3] is not None:
@@ -339,7 +339,7 @@ class OverlayType(PolygonBasicTypeBase):
       extent = settings.baseExtent
       return layer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(), extent, feat.values[1])
 
-    return layer.materialManager.getMeshLambertIndex(feat.values[0], feat.values[1], True)
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):

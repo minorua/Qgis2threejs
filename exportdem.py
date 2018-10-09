@@ -224,7 +224,7 @@ class DEMBlockExporter:
       mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
     else:   #.get("radioButton_SolidColor", False)
-      mi = self.materialManager.getMeshLambertIndex(self.properties.get("lineEdit_Color", ""), opacity, True)
+      mi = self.materialManager.getMeshMaterialIndex(self.properties.get("lineEdit_Color", ""), opacity, True)
 
     #elif self.properties.get("radioButton_Wireframe", False):
     #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
