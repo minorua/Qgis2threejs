@@ -1611,41 +1611,40 @@ Q3D.DEMBlock.prototype = {
   },
 
   buildSides: function (layer, grid, planeWidth, planeHeight, parent, z0) {
-    var matProp = this.material.origProp,
-        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
     var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
 
-    var e0 =  z0 / this.data.zScale - this.data.zShift,
-        band_width = -2 * e0,
-        grid_values = grid.array,
+    var grid_values = grid.array,
         w = grid.width,
         h = grid.height,
-        HALF_PI = Math.PI / 2;
-    var i, mesh;
+        k = w * (h - 1);
+
+    var e0 =  z0 / this.data.zScale - this.data.zShift,
+        band_width = -2 * e0;
 
     // front and back
     var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
-        geom_ba = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1);
+        geom_ba = geom_fr.clone();
 
-    var k = w * (h - 1);
     var vertices_fr = geom_fr.attributes.position.array,
         vertices_ba = geom_ba.attributes.position.array;
 
+    var i, mesh;
     for (i = 0; i < w; i++) {
       vertices_fr[i * 3 + 1] = grid_values[k + i];
       vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
     }
     mesh = new THREE.Mesh(geom_fr, material);
-    mesh.rotation.x = HALF_PI;
+    mesh.rotation.x = Math.PI / 2;
     mesh.position.y = -planeHeight / 2;
     mesh.name = "side";
     parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ba, material);
-    mesh.rotation.x = HALF_PI;
+    mesh.rotation.x = Math.PI / 2;
     mesh.rotation.y = Math.PI;
     mesh.position.y = planeHeight / 2;
     mesh.name = "side";
@@ -1653,7 +1652,7 @@ Q3D.DEMBlock.prototype = {
 
     // left and right
     var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
-        geom_ri = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1);
+        geom_ri = geom_le.clone();
 
     var vertices_le = geom_le.attributes.position.array,
         vertices_ri = geom_ri.attributes.position.array;
@@ -1663,23 +1662,24 @@ Q3D.DEMBlock.prototype = {
       vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
     }
     mesh = new THREE.Mesh(geom_le, material);
-    mesh.rotation.y = -HALF_PI;
+    mesh.rotation.y = -Math.PI / 2;
     mesh.position.x = -planeWidth / 2;
     mesh.name = "side";
     parent.add(mesh);
 
     mesh = new THREE.Mesh(geom_ri, material);
-    mesh.rotation.y = HALF_PI;
+    mesh.rotation.y = Math.PI / 2;
     mesh.position.x = planeWidth / 2;
     mesh.name = "side";
     parent.add(mesh);
 
     // bottom
+    var geom;
     if (Q3D.Config.exportMode) {
-      var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, w - 1, h - 1);
+      geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, w - 1, h - 1);
     }
     else {
-      var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
+      geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
     }
     mesh = new THREE.Mesh(geom, material);
     mesh.rotation.x = Math.PI;
@@ -1691,8 +1691,7 @@ Q3D.DEMBlock.prototype = {
   },
 
   buildFrame: function (layer, grid, planeWidth, planeHeight, parent, z0) {
-    var matProp = this.material.origProp,
-        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
     var material = new THREE.LineBasicMaterial({color: Q3D.Config.dem.frame.color,
                                                 opacity: opacity,
                                                 transparent: (opacity < 1)});
@@ -1805,8 +1804,7 @@ Q3D.ClippedDEMBlock.prototype = {
   },
 
   buildSides: function (layer, parent, z0) {
-    var matProp = this.material.origProp,
-        opacity = (matProp.o !== undefined) ? matProp.o : 1;
+    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
     var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
