@@ -1563,9 +1563,21 @@ Q3D.DEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    // create geometry and mesh
-    var geom = new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1),
-        mesh = new THREE.Mesh(geom, this.material.mtl);
+    // create a plane geometry
+    var geom;
+    if (layer.geometryCache) {
+      var params = layer.geometryCache.parameters || {};
+      if (params.width === obj.width && params.height === obj.height &&
+          params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
+        geom = layer.geometryCache.clone();
+        geom.parameters = layer.geometryCache.parameters;
+      }
+    }
+    geom = geom || new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1);
+    layer.geometryCache = geom;
+
+    // create a mesh
+    var mesh = new THREE.Mesh(geom, this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
 
