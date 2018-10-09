@@ -2262,18 +2262,22 @@ Q3D.PointLayer.prototype.build = function (features) {
   var deg2rad = Math.PI / 180, rx = 90 * deg2rad;
   var setSR, unitGeom;
 
+  if (this.cachedGeometryType == objType) {
+    unitGeom = this.geometryCache;
+  }
+
   if (objType == "Sphere") {
     setSR = function (mesh, geom) {
       mesh.scale.set(geom.r, geom.r, geom.r);
     };
-    unitGeom = new THREE.SphereBufferGeometry(1, 32, 32);
+    unitGeom = unitGeom || new THREE.SphereBufferGeometry(1, 32, 32);
   }
   else if (objType == "Box") {
     setSR = function (mesh, geom) {
       mesh.scale.set(geom.w, geom.h, geom.d);
       mesh.rotation.x = rx;
     };
-    unitGeom = new THREE.BoxBufferGeometry(1, 1, 1);
+    unitGeom = unitGeom || new THREE.BoxBufferGeometry(1, 1, 1);
   }
   else if (objType == "Disk") {
     var xAxis = Q3D.uv.i, zAxis = Q3D.uv.k;
@@ -2283,14 +2287,14 @@ Q3D.PointLayer.prototype.build = function (features) {
       mesh.rotateOnWorldAxis(xAxis, (90 - geom.d) * deg2rad);
       mesh.rotateOnWorldAxis(zAxis, -geom.dd * deg2rad);
     };
-    unitGeom = new THREE.CylinderBufferGeometry(1, 1, 0.0001, 32);
+    unitGeom = unitGeom || new THREE.CylinderBufferGeometry(1, 1, 0.0001, 32);
   }
   else {  // Cylinder or Cone
     setSR = function (mesh, geom) {
       mesh.scale.set(geom.r, geom.h, geom.r);
       mesh.rotation.x = rx;
     };
-    unitGeom = (objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32);
+    unitGeom = unitGeom || (objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32);
   }
 
   // iteration for features
@@ -2312,6 +2316,9 @@ Q3D.PointLayer.prototype.build = function (features) {
       this.addObject(mesh);
     }
   }
+
+  this.geometryCache = unitGeom;
+  this.cachedGeometryType = objType;
 };
 
 // TODO: [Point - Icon]
