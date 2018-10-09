@@ -31,7 +31,7 @@ Q3D.Config = {
   dem: {
     side: {
       color: 0xc7ac92,
-      bottomZ: -1.5
+      bottomZ: -1.5     // in world coordinates
     },
     frame: {
       color: 0,
@@ -1567,7 +1567,7 @@ Q3D.DEMBlock.prototype = {
     var geom = new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1),
         mesh = new THREE.Mesh(geom, this.material.mtl);
     mesh.position.fromArray(obj.translate);
-    mesh.scale.z = obj.scaleZ;
+    mesh.scale.z = obj.zScale;
 
     var buildGeometry = function (grid_values) {
       var vertices = geom.attributes.position.array;
@@ -1618,7 +1618,12 @@ Q3D.DEMBlock.prototype = {
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
 
-    var band_width = -z0 * 2, grid_values = grid.array, w = grid.width, h = grid.height, HALF_PI = Math.PI / 2;
+    var e0 =  z0 / this.data.zScale - this.data.zShift,
+        band_width = -2 * e0,
+        grid_values = grid.array,
+        w = grid.width,
+        h = grid.height,
+        HALF_PI = Math.PI / 2;
     var i, mesh;
 
     // front and back
@@ -1678,7 +1683,7 @@ Q3D.DEMBlock.prototype = {
     }
     mesh = new THREE.Mesh(geom, material);
     mesh.rotation.x = Math.PI;
-    mesh.position.z = z0;
+    mesh.position.z = e0;
     mesh.name = "bottom";
     parent.add(mesh);
 
@@ -1694,13 +1699,15 @@ Q3D.DEMBlock.prototype = {
     layer.materials.add(material);
 
     // horizontal rectangle at bottom
-    var hw = planeWidth / 2, hh = planeHeight / 2;
+    var hw = planeWidth / 2,
+        hh = planeHeight / 2,
+        e0 =  z0 / this.data.zScale - this.data.zShift;
     var geom = new THREE.Geometry();
-    geom.vertices.push(new THREE.Vector3(-hw, -hh, z0),
-                       new THREE.Vector3(hw, -hh, z0),
-                       new THREE.Vector3(hw, hh, z0),
-                       new THREE.Vector3(-hw, hh, z0),
-                       new THREE.Vector3(-hw, -hh, z0));
+    geom.vertices.push(new THREE.Vector3(-hw, -hh, e0),
+                       new THREE.Vector3(hw, -hh, e0),
+                       new THREE.Vector3(hw, hh, e0),
+                       new THREE.Vector3(-hw, hh, e0),
+                       new THREE.Vector3(-hw, -hh, e0));
 
     var obj = new THREE.Line(geom, material);
     obj.name = "frame";
@@ -1714,7 +1721,7 @@ Q3D.DEMBlock.prototype = {
     pts.forEach(function (pt) {
       var geom = new THREE.Geometry();
       geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
-                         new THREE.Vector3(pt[0], pt[1], z0));
+                         new THREE.Vector3(pt[0], pt[1], e0));
 
       var obj = new THREE.Line(geom, material);
       obj.name = "frame";
@@ -1766,7 +1773,7 @@ Q3D.ClippedDEMBlock.prototype = {
 
     var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
     mesh.position.fromArray(obj.translate);
-    mesh.scale.z = obj.scaleZ;
+    mesh.scale.z = obj.zScale;
 
     var buildGeometry = function (grid_values) {
       mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));
@@ -1806,8 +1813,9 @@ Q3D.ClippedDEMBlock.prototype = {
     layer.materials.add(material);
 
     var polygons = this.data.clip.polygons,
+        e0 =  z0 / this.data.zScale - this.data.zShift,
         zFunc = layer.getZ.bind(layer),
-        bzFunc = function (x, y) { return z0; };
+        bzFunc = function (x, y) { return e0; };
 
     // make back-side material for bottom
     var mat_back = material.clone();
@@ -1834,7 +1842,7 @@ Q3D.ClippedDEMBlock.prototype = {
       }
       geom = new THREE.ShapeBufferGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
-      mesh.position.z = z0;
+      mesh.position.z = e0;
       mesh.name = "bottom";
       parent.add(mesh);
     }

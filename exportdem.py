@@ -183,7 +183,8 @@ class DEMBlockExporter:
          "width": self.planeWidth,
          "height": self.planeHeight,
          "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
-         "scaleZ": mapTo3d.multiplierZ,
+         "zShift": mapTo3d.verticalShift,
+         "zScale": mapTo3d.multiplierZ,
          "material": material}
 
     # clipped with polygon layer
