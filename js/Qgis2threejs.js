@@ -1420,6 +1420,8 @@ Q3D.Material.prototype = {
       }
     }
 
+    if (m.c !== undefined) opt.color = m.c;
+
     if (m.o !== undefined && m.o < 1) {
       opt.opacity = m.o;
       opt.transparent = true;
@@ -1430,23 +1432,18 @@ Q3D.Material.prototype = {
     if (m.w) opt.wireframe = true;
 
     if (m.type == Q3D.MaterialType.MeshLambert) {
-      if (m.c !== undefined) opt.color = m.c;
       this.mtl = new THREE.MeshLambertMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.MeshPhong) {
-      if (m.c !== undefined) opt.color = m.c;
       this.mtl = new THREE.MeshPhongMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.MeshToon) {
-      if (m.c !== undefined) opt.color = m.c;
       this.mtl = new THREE.MeshToonMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.LineBasic) {
-      opt.color = m.c;
       this.mtl = new THREE.LineBasicMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.LineDashed) {
-      opt.color = m.c;
       opt.dashSize = Q3D.Config.line.dash.dashSize;
       opt.gapSize = Q3D.Config.line.dash.gapSize;
       this.mtl = new THREE.LineDashedMaterial(opt);
