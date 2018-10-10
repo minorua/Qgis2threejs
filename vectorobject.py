@@ -203,8 +203,11 @@ class LineType(LineBasicTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    if feat.values[2]:
-      return layer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
+    try:
+      if feat.values[2]:
+        return layer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
+    except IndexError:    # for backward compatibility (dashed option was added in 2.1)
+      pass
 
     return layer.materialManager.getBasicLineIndex(feat.values[0], feat.values[1])
 
