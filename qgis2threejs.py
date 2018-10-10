@@ -80,9 +80,12 @@ class Qgis2threejs:
     # remove temporary output directory
     removeTemporaryOutputDir()
 
-  def openExporter(self, _, preview=True):
+  def openExporter(self, _, no_preview=False):
     if self.controller is None:
       self.controller = Q3DViewerController(self.iface)
+
+    if no_preview:
+      self.controller.previewEnabled = False
 
     if self.controller.iface is None:
       logMessage("Opening Qgis2threejs Exporter...")
@@ -92,13 +95,15 @@ class Qgis2threejs:
         self.controller.settings.loadSettingsFromFile()   # load export settings from settings file for current project
         self.currentProjectPath = proj_path
 
-      self.controller.previewEnabled = preview
-
-      self.liveExporter = Q3DWindow(self.iface.mainWindow(), self.iface, self.controller, isViewer=True, preview=preview)
+      self.liveExporter = Q3DWindow(self.iface.mainWindow(),
+                                    self.iface,
+                                    self.controller,
+                                    isViewer=True,
+                                    preview=self.controller.previewEnabled)
       self.liveExporter.show()
     else:
       logMessage("Qgis2threejs Exporter is already running.")
       self.liveExporter.activateWindow()
 
   def openExporterWithPreviewDisabled(self):
-    self.openExporter(False, False)
+    self.openExporter(False, True)
