@@ -712,10 +712,10 @@ limitations:
     // an arrow object
     var geometry = new THREE.Geometry();
     geometry.vertices.push(
-      new THREE.Vector3(-5, -10, -0.5),
+      new THREE.Vector3(-5, -10, 0),
       new THREE.Vector3(0, 10, 0),
-      new THREE.Vector3(0, -7, 1),
-      new THREE.Vector3(5, -10, -0.5)
+      new THREE.Vector3(0, -7, 3),
+      new THREE.Vector3(5, -10, 0)
     );
     geometry.faces.push(
       new THREE.Face3(0, 1, 2),
