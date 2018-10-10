@@ -2393,11 +2393,13 @@ Q3D.LineLayer.prototype.build = function (features) {
   }
   else if (objType == "Line") {
     createObject = function (f, line) {
-      var geom = new THREE.Geometry(), pt;
+      var pt, positions = [];
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
-        geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+        positions.push(pt[0], pt[1], pt[2]);
       }
+      var geom = new THREE.BufferGeometry();
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
       return new THREE.Line(geom, materials.mtl(f.mtl));
     };
   }
