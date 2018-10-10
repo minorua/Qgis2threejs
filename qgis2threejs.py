@@ -57,7 +57,7 @@ class Qgis2threejs:
     icon = QIcon(pluginDir("Qgis2threejs.png"))
     self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
     self.action.setObjectName("Qgis2threejsExporter")
-    self.actionNP = QAction(icon, "Qgis2threejs Exporter (No Preview)", self.iface.mainWindow())
+    self.actionNP = QAction(icon, "Qgis2threejs Exporter with Preview Off", self.iface.mainWindow())
     self.actionNP.setObjectName("Qgis2threejsExporterNoPreview")
 
     # connect the action to the openExporter method
@@ -102,7 +102,7 @@ class Qgis2threejs:
                                     preview=self.controller.previewEnabled)
       self.liveExporter.show()
     else:
-      logMessage("Qgis2threejs Exporter is already running.")
+      logMessage("Qgis2threejs Exporter is already open.")
       self.liveExporter.activateWindow()
 
   def openExporterWithPreviewDisabled(self):

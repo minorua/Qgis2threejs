@@ -124,7 +124,7 @@ class Q3DViewerController:
   def updateLayer(self, layer):
     self.updating = True
     self.iface.showMessage(self.message1)
-    self.iface.progress(0, "Exporting {0}...".format(layer.name))
+    self.iface.progress(0, "Building {0}...".format(layer.name))
 
     self._updateLayer(layer)
 
