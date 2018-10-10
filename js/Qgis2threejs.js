@@ -1396,7 +1396,7 @@ Q3D.Material.prototype = {
 
     if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
 
-    if (m.flat) opt.shading = THREE.FlatShading;
+    if (m.flat) opt.flatShading = true;
 
     // texture
     if (m.image !== undefined) {
