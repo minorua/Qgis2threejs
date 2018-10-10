@@ -331,9 +331,17 @@ class Q3DWindow(QMainWindow):
     dialog.exec_()
 
   def saveAsImage(self):
+    if not self.ui.checkBoxPreview.isChecked():
+      QMessageBox.warning(self, "Save Scene as Image", "You need to enable the preview to use this function.")
+      return
+
     self.runString("app.showPrintDialog();")
 
   def saveAsGLTF(self):
+    if not self.ui.checkBoxPreview.isChecked():
+      QMessageBox.warning(self, "Save Scene as glTF", "You need to enable the preview to use this function.")
+      return
+
     filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
