@@ -38,6 +38,12 @@ Q3D.Config = {
       bottomZ: -1.5
     }
   },
+  line: {
+    dash: {
+      dashSize: 1,
+      gapSize: 0.5
+    }
+  },
   northArrow: {
     color: 0x8b4513,
     cameraDistance: 30,
@@ -73,6 +79,7 @@ Q3D.MaterialType = {
   LineBasic: 2,
   Sprite: 3,
   MeshToon: 4,
+  LineDashed: 5,
   Unknown: -1
 };
 
@@ -1438,6 +1445,12 @@ Q3D.Material.prototype = {
       opt.color = m.c;
       this.mtl = new THREE.LineBasicMaterial(opt);
     }
+    else if (m.type == Q3D.MaterialType.LineDashed) {
+      opt.color = m.c;
+      opt.dashSize = Q3D.Config.line.dash.dashSize;
+      opt.gapSize = Q3D.Config.line.dash.gapSize;
+      this.mtl = new THREE.LineDashedMaterial(opt);
+    }
     else {
       opt.color = 0xffffff;
       this.mtl = new THREE.SpriteMaterial(opt);
@@ -1453,6 +1466,7 @@ Q3D.Material.prototype = {
     if (this.mtl instanceof THREE.MeshLambertMaterial) return Q3D.MaterialType.MeshLambert;
     if (this.mtl instanceof THREE.MeshPhongMaterial) return Q3D.MaterialType.MeshPhong;
     if (this.mtl instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.LineBasic;
+    if (this.mtl instanceof THREE.LineDashedMaterial) return Q3D.MaterialType.LineDashed;
     if (this.mtl instanceof THREE.SpriteMaterial) return Q3D.MaterialType.Sprite;
     if (this.mtl === undefined) return undefined;
     if (this.mtl === null) return null;
@@ -2400,7 +2414,10 @@ Q3D.LineLayer.prototype.build = function (features) {
       }
       var geom = new THREE.BufferGeometry();
       geom.addAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-      return new THREE.Line(geom, materials.mtl(f.mtl));
+
+      var obj = new THREE.Line(geom, materials.mtl(f.mtl));
+      if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
+      return obj;
     };
   }
   else if (objType == "Pipe" || objType == "Cone") {

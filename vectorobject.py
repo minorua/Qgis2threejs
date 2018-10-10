@@ -199,9 +199,13 @@ class LineType(LineBasicTypeBase):
   @classmethod
   def setupWidgets(cls, ppage, mapTo3d, layer):
     ppage.initStyleWidgets()
+    ppage.addStyleWidget(StyleWidget.CHECKBOX, {"name": "Dashed", "defaultValue": False})
 
   @classmethod
   def material(cls, settings, layer, feat):
+    if feat.values[2]:
+      return layer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
+
     return layer.materialManager.getLineBasicIndex(feat.values[0], feat.values[1])
 
   @classmethod

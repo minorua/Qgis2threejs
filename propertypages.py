@@ -453,13 +453,16 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     # set up object type combo box
     self.comboBox_ObjectType.blockSignals(True)
     self.comboBox_ObjectType.clear()
+
     for obj_type in objectTypeRegistry().objectTypes(mapLayer.geometryType()):
       self.comboBox_ObjectType.addItem(obj_type.displayName(), obj_type.name)
+
     if properties:
       # restore object type selection
       idx = self.comboBox_ObjectType.findData(properties.get("comboBox_ObjectType"))
       if idx != -1:
         self.comboBox_ObjectType.setCurrentIndex(idx)
+
     self.comboBox_ObjectType.blockSignals(False)
 
     # set up altitude mode combo box

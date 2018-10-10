@@ -186,13 +186,14 @@ class ImageManager(DataManager):
 
 class MaterialManager(DataManager):
 
-  # following five material types are defined also in JS
+  # following six material types are defined also in JS
   # first three types are basic material types
   MESH_LAMBERT = 0
   MESH_PHONG = 1
   MESH_TOON = 4
 
   LINE_BASIC = 2
+  LINE_DASHED = 5
   SPRITE = 3
 
   # other material types for internal use
@@ -228,6 +229,9 @@ class MaterialManager(DataManager):
   def getLineBasicIndex(self, color, opacity=1):
     return self._indexCol(self.LINE_BASIC, color, opacity)
 
+  def getDashedLineIndex(self, color, opacity=1):
+    return self._indexCol(self.LINE_DASHED, color, opacity)
+
   def getWireframeIndex(self, color, opacity=1):
     return self._indexCol(self.WIREFRAME, color, opacity)
 
@@ -255,7 +259,7 @@ class MaterialManager(DataManager):
   def build(self, index, imageManager, filepath=None, url=None, base64=False):
     mtl = self._list[index]
     m = {
-      "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.SPRITE] else self.basicMaterialType
+      "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.LINE_DASHED, self.SPRITE] else self.basicMaterialType
     }
     transp_background = False
     if mtl[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
@@ -317,7 +321,7 @@ class MaterialManager(DataManager):
 
     for mtl in self._list[self.writtenCount:]:
       m = {
-        "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.SPRITE] else self.basicMaterialType
+        "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.LINE_DASHED, self.SPRITE] else self.basicMaterialType
       }
 
       transp_background = False
