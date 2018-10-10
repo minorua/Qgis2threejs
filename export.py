@@ -118,9 +118,9 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # options in html file
     options = []
-    world = self.settings.get(self.settings.WORLD, {})
-    if world.get("radioButton_Color", False):
-      options.append("Q3D.Config.bgcolor = {0};".format(world.get("lineEdit_Color", 0)))
+    sp = self.settings.sceneProperties()
+    if sp.get("radioButton_Color", False):
+      options.append("Q3D.Config.bgcolor = {0};".format(sp.get("lineEdit_Color", 0)))
 
     # template specific options
     opts = config.get("options", "")

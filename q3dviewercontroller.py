@@ -81,7 +81,7 @@ class Q3DViewerController:
       self.updateExtent()
       self.updateScene()
 
-  def updateScene(self, update_world=True, update_layers=True):
+  def updateScene(self, update_scene_settings=True, update_layers=True):
     if not self.iface:
       return
 
@@ -95,14 +95,14 @@ class Q3DViewerController:
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
     self.iface.loadJSONObject(self.exporter.exportScene(False))
 
-    if update_world:
+    if update_scene_settings:
       # update background color
-      ws = s.worldProperties()
-      params = "{0}, 1".format(ws.get("lineEdit_Color", 0)) if ws.get("radioButton_Color") else "0, 0"
+      sp = s.sceneProperties()
+      params = "{0}, 1".format(sp.get("lineEdit_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
       self.iface.runString("app.renderer.setClearColor({0});".format(params))
 
       # coordinate display (geographic/projected)
-      if ws.get("radioButton_WGS84", False):
+      if sp.get("radioButton_WGS84", False):
         with open(pluginDir("js/proj4js/proj4.js"), "r") as f:
           self.iface.runString(f.read(), "// proj4.js enabled")
       else:

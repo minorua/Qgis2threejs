@@ -58,7 +58,7 @@
      </property>
      <addaction name="actionNorthArrow"/>
     </widget>
-    <addaction name="actionWorldSettings"/>
+    <addaction name="actionSceneSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
     <addaction name="menuInsets"/>
@@ -204,9 +204,9 @@
     <string>STL (.stl)</string>
    </property>
   </action>
-  <action name="actionWorldSettings">
+  <action name="actionSceneSettings">
    <property name="text">
-    <string>World Settings...</string>
+    <string>Scene Settings...</string>
    </property>
   </action>
   <action name="actionPerspective">

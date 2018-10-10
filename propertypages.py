@@ -28,7 +28,7 @@ from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
 from qgis.gui import QgsFieldExpressionWidget
 
-from .ui.worldproperties import Ui_WorldPropertiesWidget
+from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
@@ -41,7 +41,7 @@ from . import qgis2threejstools as tools
 from .vectorobject import objectTypeRegistry
 
 PAGE_NONE = 0
-PAGE_WORLD = 1
+PAGE_SCENE = 1
 #PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
@@ -162,11 +162,11 @@ class PropertyPage(QWidget):
         logMessage("[propertypages.py] Cannot restore %s property" % n)
 
 
-class WorldPropertyPage(PropertyPage, Ui_WorldPropertiesWidget):
+class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
   def __init__(self, dialog, parent=None):
-    PropertyPage.__init__(self, PAGE_WORLD, dialog, parent)
-    Ui_WorldPropertiesWidget.setupUi(self, self)
+    PropertyPage.__init__(self, PAGE_SCENE, dialog, parent)
+    Ui_ScenePropertiesWidget.setupUi(self, self)
 
     widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift,
                self.comboBox_MaterialType,

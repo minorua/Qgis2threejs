@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>WorldPropertiesWidget</class>
- <widget class="QWidget" name="WorldPropertiesWidget">
+ <class>ScenePropertiesWidget</class>
+ <widget class="QWidget" name="ScenePropertiesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>268</width>
+    <width>328</width>
     <height>411</height>
    </rect>
   </property>
@@ -17,13 +17,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_1">
      <property name="title">
-      <string>&amp;Scale and shift</string>
+      <string>&amp;World Coordinates</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
       <item row="0" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Base size</string>
+         <string>Block size (width)</string>
         </property>
        </widget>
       </item>
@@ -154,7 +154,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>&amp;Display of coordinates</string>
+      <string>&amp;Display of Coordinates</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>

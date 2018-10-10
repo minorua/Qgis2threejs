@@ -84,7 +84,8 @@ class Layer:
 
 class ExportSettings:
 
-  WORLD = "WORLD"
+  SCENE = "SCENE"
+  WORLD = "WORLD"   # renamed to SCENE
   CAMERA = "CAMERA"
   CONTROLS = "CTRL"
   LAYERS = "LAYERS"
@@ -106,18 +107,18 @@ class ExportSettings:
   def clear(self):
     self.data = {}
 
-  def worldProperties(self):
-    return self.data.get(ExportSettings.WORLD, {})
+  def sceneProperties(self):
+    return self.data.get(ExportSettings.SCENE, self.data.get(ExportSettings.WORLD, {}))   # for backward compatibility
 
-  def setWorldProperties(self, properties):
-    self.data[ExportSettings.WORLD] = properties
+  def setSceneProperties(self, properties):
+    self.data[ExportSettings.SCENE] = properties
     self._mapTo3d = None
 
   def coordsInWGS84(self):
-    return self.worldProperties().get("radioButton_WGS84", False)
+    return self.sceneProperties().get("radioButton_WGS84", False)
 
   def materialType(self):
-    return self.worldProperties().get("comboBox_MaterialType", 0)
+    return self.sceneProperties().get("comboBox_MaterialType", 0)
 
   def isOrthoCamera(self):
     return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
@@ -234,10 +235,10 @@ class ExportSettings:
     if self.mapSettings is None:
       return None
 
-    world = self.worldProperties()
-    baseSize = world.get("lineEdit_BaseSize", def_vals.baseSize)
-    verticalExaggeration = world.get("lineEdit_zFactor", def_vals.zExaggeration)
-    verticalShift = world.get("lineEdit_zShift", def_vals.zShift)
+    sp = self.sceneProperties()
+    baseSize = sp.get("lineEdit_BaseSize", def_vals.baseSize)
+    verticalExaggeration = sp.get("lineEdit_zFactor", def_vals.zExaggeration)
+    verticalShift = sp.get("lineEdit_zShift", def_vals.zShift)
     self._mapTo3d = MapTo3D(self.mapSettings, float(baseSize), float(verticalExaggeration), float(verticalShift))
     return self._mapTo3d
 

@@ -27,7 +27,7 @@ from . import q3dconst
 from .conf import debug_mode, plugin_version
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
-from .propertypages import WorldPropertyPage, DEMPropertyPage, VectorPropertyPage
+from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
 from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
@@ -113,15 +113,15 @@ class Q3DViewerInterface:
       if text is not None:
         bar.setFormat(text)
 
-  def showWorldPropertiesDialog(self):
+  def showScenePropertiesDialog(self):
     dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
-    dialog.propertiesAccepted.connect(self.updateWorldProperties)
-    dialog.showWorldProperties()
+    dialog.propertiesAccepted.connect(self.updateSceneProperties)
+    dialog.showSceneProperties()
 
-  def updateWorldProperties(self, _, properties):
-    if self.controller.settings.worldProperties() == properties:
+  def updateSceneProperties(self, _, properties):
+    if self.controller.settings.sceneProperties() == properties:
       return
-    self.controller.settings.setWorldProperties(properties)
+    self.controller.settings.setSceneProperties(properties)
     self.controller.updateScene()
 
   def showLayerPropertiesDialog(self, layer):
@@ -231,7 +231,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-    self.ui.actionWorldSettings.triggered.connect(self.iface.showWorldPropertiesDialog)
+    self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionNorthArrow.toggled.connect(self.northArrowToggled)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
@@ -412,7 +412,7 @@ class PropertiesDialog(QDialog):
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-      if isinstance(self.page, WorldPropertyPage):
+      if isinstance(self.page, ScenePropertyPage):
         self.propertiesAccepted.emit("", self.page.properties())
       else:
         self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
@@ -423,10 +423,10 @@ class PropertiesDialog(QDialog):
     self.show()
     self.exec_()
 
-  def showWorldProperties(self):
-    self.setWindowTitle("World Settings")
-    self.page = WorldPropertyPage(self, self)
-    self.page.setup(self.settings.worldProperties())
+  def showSceneProperties(self):
+    self.setWindowTitle("Scene Settings")
+    self.page = ScenePropertyPage(self, self)
+    self.page.setup(self.settings.sceneProperties())
     self.ui.scrollArea.setWidget(self.page)
     self.show()
     self.exec_()

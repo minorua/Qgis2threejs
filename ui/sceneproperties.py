@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\worldproperties.ui'
+# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\sceneproperties.ui'
 #
 # Created by: PyQt5 UI code generator 5.5
 #
@@ -8,13 +8,13 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_WorldPropertiesWidget(object):
-    def setupUi(self, WorldPropertiesWidget):
-        WorldPropertiesWidget.setObjectName("WorldPropertiesWidget")
-        WorldPropertiesWidget.resize(268, 411)
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(WorldPropertiesWidget)
+class Ui_ScenePropertiesWidget(object):
+    def setupUi(self, ScenePropertiesWidget):
+        ScenePropertiesWidget.setObjectName("ScenePropertiesWidget")
+        ScenePropertiesWidget.resize(328, 411)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(ScenePropertiesWidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.groupBox_1 = QtWidgets.QGroupBox(WorldPropertiesWidget)
+        self.groupBox_1 = QtWidgets.QGroupBox(ScenePropertiesWidget)
         self.groupBox_1.setObjectName("groupBox_1")
         self.formLayout_3 = QtWidgets.QFormLayout(self.groupBox_1)
         self.formLayout_3.setObjectName("formLayout_3")
@@ -46,7 +46,7 @@ class Ui_WorldPropertiesWidget(object):
         self.lineEdit_zShift.setObjectName("lineEdit_zShift")
         self.formLayout_3.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.lineEdit_zShift)
         self.verticalLayout_3.addWidget(self.groupBox_1)
-        self.groupBox = QtWidgets.QGroupBox(WorldPropertiesWidget)
+        self.groupBox = QtWidgets.QGroupBox(ScenePropertiesWidget)
         self.groupBox.setObjectName("groupBox")
         self.formLayout = QtWidgets.QFormLayout(self.groupBox)
         self.formLayout.setObjectName("formLayout")
@@ -57,7 +57,7 @@ class Ui_WorldPropertiesWidget(object):
         self.comboBox_MaterialType.setObjectName("comboBox_MaterialType")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox_MaterialType)
         self.verticalLayout_3.addWidget(self.groupBox)
-        self.groupBox_2 = QtWidgets.QGroupBox(WorldPropertiesWidget)
+        self.groupBox_2 = QtWidgets.QGroupBox(ScenePropertiesWidget)
         self.groupBox_2.setObjectName("groupBox_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox_2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -81,7 +81,7 @@ class Ui_WorldPropertiesWidget(object):
         self.horizontalLayout_2.addWidget(self.toolButton_Color)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout_3.addWidget(self.groupBox_2)
-        self.groupBox_3 = QtWidgets.QGroupBox(WorldPropertiesWidget)
+        self.groupBox_3 = QtWidgets.QGroupBox(ScenePropertiesWidget)
         self.groupBox_3.setObjectName("groupBox_3")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_3)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -96,34 +96,34 @@ class Ui_WorldPropertiesWidget(object):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem)
 
-        self.retranslateUi(WorldPropertiesWidget)
+        self.retranslateUi(ScenePropertiesWidget)
         self.radioButton_Color.toggled['bool'].connect(self.lineEdit_Color.setEnabled)
         self.radioButton_Color.toggled['bool'].connect(self.toolButton_Color.setEnabled)
-        QtCore.QMetaObject.connectSlotsByName(WorldPropertiesWidget)
-        WorldPropertiesWidget.setTabOrder(self.lineEdit_BaseSize, self.lineEdit_zFactor)
-        WorldPropertiesWidget.setTabOrder(self.lineEdit_zFactor, self.lineEdit_zShift)
-        WorldPropertiesWidget.setTabOrder(self.lineEdit_zShift, self.radioButton_Sky)
-        WorldPropertiesWidget.setTabOrder(self.radioButton_Sky, self.radioButton_Color)
-        WorldPropertiesWidget.setTabOrder(self.radioButton_Color, self.lineEdit_Color)
-        WorldPropertiesWidget.setTabOrder(self.lineEdit_Color, self.toolButton_Color)
-        WorldPropertiesWidget.setTabOrder(self.toolButton_Color, self.radioButton_ProjectCRS)
-        WorldPropertiesWidget.setTabOrder(self.radioButton_ProjectCRS, self.radioButton_WGS84)
+        QtCore.QMetaObject.connectSlotsByName(ScenePropertiesWidget)
+        ScenePropertiesWidget.setTabOrder(self.lineEdit_BaseSize, self.lineEdit_zFactor)
+        ScenePropertiesWidget.setTabOrder(self.lineEdit_zFactor, self.lineEdit_zShift)
+        ScenePropertiesWidget.setTabOrder(self.lineEdit_zShift, self.radioButton_Sky)
+        ScenePropertiesWidget.setTabOrder(self.radioButton_Sky, self.radioButton_Color)
+        ScenePropertiesWidget.setTabOrder(self.radioButton_Color, self.lineEdit_Color)
+        ScenePropertiesWidget.setTabOrder(self.lineEdit_Color, self.toolButton_Color)
+        ScenePropertiesWidget.setTabOrder(self.toolButton_Color, self.radioButton_ProjectCRS)
+        ScenePropertiesWidget.setTabOrder(self.radioButton_ProjectCRS, self.radioButton_WGS84)
 
-    def retranslateUi(self, WorldPropertiesWidget):
+    def retranslateUi(self, ScenePropertiesWidget):
         _translate = QtCore.QCoreApplication.translate
-        WorldPropertiesWidget.setWindowTitle(_translate("WorldPropertiesWidget", "Form"))
-        self.groupBox_1.setTitle(_translate("WorldPropertiesWidget", "&Scale and shift"))
-        self.label_3.setText(_translate("WorldPropertiesWidget", "Base size"))
-        self.label.setText(_translate("WorldPropertiesWidget", "Vertical exaggeration"))
-        self.label_2.setText(_translate("WorldPropertiesWidget", "Vertical shift"))
-        self.groupBox.setTitle(_translate("WorldPropertiesWidget", "Material"))
-        self.label_4.setText(_translate("WorldPropertiesWidget", "Basic type"))
-        self.groupBox_2.setTitle(_translate("WorldPropertiesWidget", "&Background"))
-        self.radioButton_Sky.setText(_translate("WorldPropertiesWidget", "Sky"))
-        self.radioButton_Color.setText(_translate("WorldPropertiesWidget", "Solid color"))
-        self.lineEdit_Color.setPlaceholderText(_translate("WorldPropertiesWidget", "0xrrggbb"))
-        self.toolButton_Color.setText(_translate("WorldPropertiesWidget", "..."))
-        self.groupBox_3.setTitle(_translate("WorldPropertiesWidget", "&Display of coordinates"))
-        self.radioButton_ProjectCRS.setText(_translate("WorldPropertiesWidget", "Coordinates in the project CRS"))
-        self.radioButton_WGS84.setText(_translate("WorldPropertiesWidget", "Latitude and longitude (WGS84)"))
+        ScenePropertiesWidget.setWindowTitle(_translate("ScenePropertiesWidget", "Form"))
+        self.groupBox_1.setTitle(_translate("ScenePropertiesWidget", "&World Coordinates"))
+        self.label_3.setText(_translate("ScenePropertiesWidget", "Block size (width)"))
+        self.label.setText(_translate("ScenePropertiesWidget", "Vertical exaggeration"))
+        self.label_2.setText(_translate("ScenePropertiesWidget", "Vertical shift"))
+        self.groupBox.setTitle(_translate("ScenePropertiesWidget", "Material"))
+        self.label_4.setText(_translate("ScenePropertiesWidget", "Basic type"))
+        self.groupBox_2.setTitle(_translate("ScenePropertiesWidget", "&Background"))
+        self.radioButton_Sky.setText(_translate("ScenePropertiesWidget", "Sky"))
+        self.radioButton_Color.setText(_translate("ScenePropertiesWidget", "Solid color"))
+        self.lineEdit_Color.setPlaceholderText(_translate("ScenePropertiesWidget", "0xrrggbb"))
+        self.toolButton_Color.setText(_translate("ScenePropertiesWidget", "..."))
+        self.groupBox_3.setTitle(_translate("ScenePropertiesWidget", "&Display of Coordinates"))
+        self.radioButton_ProjectCRS.setText(_translate("ScenePropertiesWidget", "Coordinates in the project CRS"))
+        self.radioButton_WGS84.setText(_translate("ScenePropertiesWidget", "Latitude and longitude (WGS84)"))
 
