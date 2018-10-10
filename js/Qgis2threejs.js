@@ -76,10 +76,10 @@ Q3D.LayerType = {
 Q3D.MaterialType = {
   MeshLambert: 0,
   MeshPhong: 1,
-  LineBasic: 2,
-  Sprite: 3,
-  MeshToon: 4,
-  LineDashed: 5,
+  MeshToon: 2,
+  LineBasic: 3,
+  LineDashed: 4,
+  Sprite: 5,
   Unknown: -1
 };
 

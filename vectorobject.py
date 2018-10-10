@@ -206,7 +206,7 @@ class LineType(LineBasicTypeBase):
     if feat.values[2]:
       return layer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
 
-    return layer.materialManager.getLineBasicIndex(feat.values[0], feat.values[1])
+    return layer.materialManager.getBasicLineIndex(feat.values[0], feat.values[1])
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
@@ -309,7 +309,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
     # border
     if feat.values[3] is not None:
-      mtl["border"] = layer.materialManager.getLineBasicIndex(feat.values[3], feat.values[1])
+      mtl["border"] = layer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
     return mtl
 
   @classmethod
@@ -376,7 +376,7 @@ class OverlayType(PolygonBasicTypeBase):
 
     #TODO: [Polygon - Overlay] border
     # if feat.values[2] is not None:
-    #   g["mb"] = layer.materialManager.getLineBasicIndex(feat.values[2], feat.values[1])
+    #   g["mb"] = layer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
 
     return g
 

@@ -190,11 +190,11 @@ class MaterialManager(DataManager):
   # first three types are basic material types
   MESH_LAMBERT = 0
   MESH_PHONG = 1
-  MESH_TOON = 4
+  MESH_TOON = 2
 
-  LINE_BASIC = 2
-  LINE_DASHED = 5
-  SPRITE = 3
+  LINE_BASIC = 3
+  LINE_DASHED = 4
+  SPRITE = 5
 
   # other material types for internal use
   MESH_MATERIAL = 10
@@ -226,7 +226,7 @@ class MaterialManager(DataManager):
   def getFlatMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
     return self._indexCol(self.MESH_FLAT, color, opacity, doubleSide)
 
-  def getLineBasicIndex(self, color, opacity=1):
+  def getBasicLineIndex(self, color, opacity=1):
     return self._indexCol(self.LINE_BASIC, color, opacity)
 
   def getDashedLineIndex(self, color, opacity=1):
