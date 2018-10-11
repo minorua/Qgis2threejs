@@ -3,4 +3,4 @@ name=Mobile
 description=This is a template for mobile devices, which has mobile friendly GUI, device orientation controls and AR feature. In order to use the AR feature (Camera and GPS), you need to upload exported files to a web server supporting SSL.
 files=js/Qgis2threejs.js,js/mobile.js,css/Qgis2threejs.css,css/mobile.css,js/threejs/controls/DeviceOrientationControls.js>threejs
 dirs=js/proj4js,js/fontawesome
-options=MND
+options=AR.MND

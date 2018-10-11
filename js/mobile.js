@@ -3,8 +3,14 @@
 // (C) 2018 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
 
-var orbitControls, devControls, oldFOV;
+Q3D.Config.AR = {
+  DH: 1.5,      // device height from ground (in CRS vertical unit)
+  FOV: 70,      // device camera's field of view
+  MND: 0        // magnetic North direction (clockwise from upper direction of map, in degrees)
+};
+
 var ARMode = false;
+var orbitControls, devControls, oldFOV;
 
 
 app.start = function () {
@@ -50,13 +56,13 @@ app.cameraAction._move = app.cameraAction.move;
 app.cameraAction.move = function () {
   app.cameraAction._move(app.queryTargetPosition.x,
                            -app.queryTargetPosition.z,
-                           app.queryTargetPosition.y + DH * app.scene.userData.zScale);   // + device height from ground
+                           app.queryTargetPosition.y + Q3D.Config.AR.DH * app.scene.userData.zScale);   // + device height from ground
 };
 
 function init() {
   orbitControls = app.controls;
   devControls = new THREE.DeviceOrientationControls(app.camera);
-  devControls.alphaOffset = -MND * Math.PI / 180;    // counter-clockwise, in radians
+  devControls.alphaOffset = -Q3D.Config.AR.MND * Math.PI / 180;    // counter-clockwise, in radians
 
   // store default camera FOV (non-AR mode)
   oldFOV = app.camera.fov;
@@ -65,7 +71,7 @@ function init() {
   try {
     var data = JSON.parse(localStorage.getItem("Qgis2threejs"));
     if (data) {
-      FOV = data.fov;
+      Q3D.Config.AR.FOV = data.fov;
     }
   }
   catch (e) {
@@ -137,7 +143,7 @@ function initLayerList() {
 
 function startARMode(position) {
   ARMode = true;
-  app.camera.fov = FOV;
+  app.camera.fov = Q3D.Config.AR.FOV;
   app.camera.updateProjectionMatrix();
 
   if (typeof position === "undefined") {
@@ -192,14 +198,14 @@ function startARMode(position) {
 function startARModeHere() {
   var vec3 = new THREE.Vector3();
   vec3.copy(app.queryTargetPosition);
-  vec3.y += DH * app.scene.userData.zScale;
+  vec3.y += Q3D.Config.AR.DH * app.scene.userData.zScale;
   startARMode(vec3);
   document.getElementById("ar-checkbox").checked = true;
 }
 
 function moveHere() {
   app.camera.position.copy(app.queryTargetPosition);
-  app.camera.position.y += DH * app.scene.userData.zScale;
+  app.camera.position.y += Q3D.Config.AR.DH * app.scene.userData.zScale;
 }
 
 function stopARMode() {
@@ -250,7 +256,7 @@ function getCurrentPosition (callback) {
       if (layer instanceof Q3D.DEMLayer) {
         var z = layer.getZ(pt.x, pt.y);
         if (z !== null) {
-          pt.z = (z + DH + app.scene.userData.zShift) * app.scene.userData.zScale;
+          pt.z = (z + Q3D.Config.AR.DH + app.scene.userData.zShift) * app.scene.userData.zScale;
           break;
         }
       }
@@ -331,16 +337,16 @@ document.getElementById("settings-button").addEventListener("click", function ()
   var hidden = document.getElementById("settings").classList.contains("hidden");
   hideAll();
   if (hidden) {
-    fov.value = FOV;
+    fov.value = Q3D.Config.AR.FOV;
     document.getElementById("settings").classList.remove("hidden");
     document.getElementById("settings-button").classList.add("pressed");
   }
 });
 
 document.getElementById("settings-ok").addEventListener("click", function () {
-  FOV = document.getElementById("fov").value;
+  Q3D.Config.AR.FOV = document.getElementById("fov").value;
   if (ARMode) {
-    app.camera.fov = FOV;
+    app.camera.fov = Q3D.Config.AR.FOV;
     app.camera.updateProjectionMatrix();
   }
 
@@ -350,7 +356,7 @@ document.getElementById("settings-ok").addEventListener("click", function () {
   try {
     if (document.getElementById("save-in-storage").checked) {
       var data = {
-        fov: FOV
+        fov: Q3D.Config.AR.FOV
       };
       localStorage.setItem("Qgis2threejs", JSON.stringify(data));
     }

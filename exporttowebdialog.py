@@ -62,7 +62,7 @@ class ExportToWebDialog(QDialog):
 
     # template specific settings
     for key, value in settings.options().items():
-      if key == "MND":
+      if key == "AR.MND":
         self.ui.lineEdit_MND.setText(str(value))
 
     self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
@@ -83,7 +83,7 @@ class ExportToWebDialog(QDialog):
 
     if optset:
       for widget in [self.ui.label_MND, self.ui.lineEdit_MND]:
-        widget.setVisible("MND" in optset)
+        widget.setVisible("AR.MND" in optset)
 
   def browseClicked(self):
     # directory select dialog
@@ -102,9 +102,9 @@ class ExportToWebDialog(QDialog):
       if "allVisible" in optlist:
         self.settings.setOption("allVisible", True)
 
-      if "MND" in optlist:
+      if "AR.MND" in optlist:
         try:
-          self.settings.setOption("MND", float(self.ui.lineEdit_MND.text()))
+          self.settings.setOption("AR.MND", float(self.ui.lineEdit_MND.text()))
         except Exception as e:
           QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for M.N. direction. Must be a numeric value.")
           return
