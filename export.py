@@ -118,6 +118,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # options in html file
     options = []
+
     sp = self.settings.sceneProperties()
     if sp.get("radioButton_Color", False):
       options.append("Q3D.Config.bgcolor = {0};".format(sp.get("lineEdit_Color", 0)))
@@ -125,9 +126,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
     # template specific options
     opts = config.get("options", "")
     if opts:
-      optlist = opts.split(",")
-      for key in optlist:
-        options.append("{0} = {1};".format(key, self.settings.option(key)))
+      for key in opts.split(","):
+        options.append("Q3D.Config.{0} = {1};".format(key, tools.pyobj2js(self.settings.option(key))))
 
     # North arrow
     insets = self.settings.get(self.settings.INSETS, {})

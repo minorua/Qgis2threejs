@@ -6,7 +6,8 @@
 var Q3D = {VERSION: "2.0.1"};
 
 Q3D.Config = {
-  bgcolor: null,    // null is sky
+  allVisible: false,  // set every layer visible property to true on load if set to true
+  bgcolor: null,      // null is sky
   lights: [
     {
       type: "ambient",
@@ -1947,7 +1948,7 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   // properties
   if (jsonObject.properties !== undefined) {
     this.properties = jsonObject.properties;
-    this.visible = (jsonObject.properties.visible !== false) ? true : false;
+    this.visible = (jsonObject.properties.visible || Q3D.Config.allVisible) ? true : false;
   }
 
   if (jsonObject.data !== undefined) {

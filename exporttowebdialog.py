@@ -73,15 +73,17 @@ class ExportToWebDialog(QDialog):
   def templateChanged(self, index=None):
     # update settings widget visibility
     config = getTemplateConfig(self.ui.comboBox_Template.currentData())
-    options = config.get("options", "")
-    if options == "":
-      self.ui.groupBox.setVisible(False)
-    else:
-      optlist = options.split(",")
+    optset = set(config.get("options", "").split(","))
+    optset.discard("")
 
-      self.ui.groupBox.setVisible(True)
+    self.ui.label_AllVisible.setVisible("allVisible" in optset)  # label is out of template settings group box
+    optset.discard("allVisible")
+
+    self.ui.groupBox.setVisible(bool(optset))
+
+    if optset:
       for widget in [self.ui.label_MND, self.ui.lineEdit_MND]:
-        widget.setVisible("MND" in optlist)
+        widget.setVisible("MND" in optset)
 
   def browseClicked(self):
     # directory select dialog
@@ -97,6 +99,9 @@ class ExportToWebDialog(QDialog):
     options = self.settings.templateConfig().get("options", "")
     if options:
       optlist = options.split(",")
+      if "allVisible" in optlist:
+        self.settings.setOption("allVisible", True)
+
       if "MND" in optlist:
         try:
           self.settings.setOption("MND", float(self.ui.lineEdit_MND.text()))
