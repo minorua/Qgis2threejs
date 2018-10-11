@@ -826,7 +826,7 @@ limitations:
         autosize = Q3D.Config.label.autoSize,
         minFontSize = Q3D.Config.label.minFontSize;
 
-    var label, dist, x, y, e, fontSize;
+    var label, dist, x, y, e, t, fontSize;
     for (var i = 0, l = obj_dist.length; i < l; i++) {
       label = obj_dist[i][0];
       pt0 = obj_dist[i][1];
@@ -839,10 +839,11 @@ limitations:
 
       // set label position
       e = label.userData.elem;
+      t = "translate(" + (x - (e.offsetWidth / 2)) + "px," + (y - (e.offsetHeight / 2)) + "px)";
       e.style.display = "block";
-      e.style.left = (x - (e.offsetWidth / 2)) + "px";
-      e.style.top = (y - (e.offsetHeight / 2)) + "px";
       e.style.zIndex = i + 1;
+      e.style.webkitTransform = t;
+      e.style.transform = t;
 
       // set font size
       if (autosize) {

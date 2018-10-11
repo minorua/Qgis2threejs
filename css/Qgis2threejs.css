@@ -4,12 +4,34 @@ body {
   overflow: hidden;
 }
 
-#webgl {
+#view {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
-.sky {
+#view.sky {
   background: -webkit-gradient(linear, left top, left bottom, from(#98c8f6), color-stop(0.4, #cbebff), to(#f0f9ff));
   background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%);
+}
+
+#labels {
+}
+
+.label {
+  position: absolute;
+  padding: 2px;
+  text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
+  /*
+  pointer-events: initial;
+  cursor: pointer;
+  */
+}
+
+.print-label {
+  /* these 2 properties are copied to canvas 2D context in renderLabels function of Qgis2threejs.js */
+  color: black;
+  font: normal medium sans-serif;
 }
 
 #progress {
@@ -238,24 +260,11 @@ table.attrs tr td:first-child {
   cursor: pointer;
 }
 
-/* label */
-.label {
-  padding: 2px;
-  text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
-  position: absolute;
-  pointer-events: none;
-}
-
-.print-label {
-  /* these 2 properties are copied to canvas 2D context in renderLabels function of Qgis2threejs.js */
-  color: black;
-  font: normal medium sans-serif;
-}
-
 #northarrow {
   position: absolute;
   left: 12px;
   bottom: 16px;
   width: 80px;
   height: 80px;
+  z-index: 1000;
 }
