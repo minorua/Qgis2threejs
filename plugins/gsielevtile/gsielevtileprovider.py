@@ -27,7 +27,7 @@ import struct
 
 from osgeo import gdal
 from PyQt5.QtCore import QSettings
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPoint, QgsRectangle, QgsProject
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsRectangle, QgsProject
 
 from .downloader import Downloader
 from Qgis2threejs.qgis2threejstools import logMessage
@@ -65,6 +65,7 @@ class GSIElevTileProvider:
     return "GSI Elevation Tile"
 
   def read(self, width, height, extent):
+    """read data into a byte array"""
     # calculate bounding box in EPSG:3857
     geometry = extent.geometry()
     geometry.transform(self.transform)
@@ -84,9 +85,9 @@ class GSIElevTileProvider:
     return self._read(ds, width, height, geotransform)
 
   def readValue(self, x, y):
-    """Get value at the position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
+    """Get value at specified position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
     # coordinate transformation into EPSG:3857
-    pt = self.transform.transform(QgsPoint(x, y))
+    pt = self.transform.transform(QgsPointXY(x, y))
 
     # if the point is not within the bounding box of this data, return nodata value
     if not self.boundingbox.contains(pt):
@@ -97,7 +98,12 @@ class GSIElevTileProvider:
     ds = self.getDataset(pt.x() - hres, pt.y() - hres, pt.x() + hres, pt.y() + hres, res)
 
     geotransform = [x - hres, res, 0, y + hres, 0, -res]
-    return self._read(ds, 1, 1, geotransform)[0]
+    return struct.unpack("f", self._read(ds, 1, 1, geotransform))[0]
+
+  def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
+    #TODO: implement
+    logMessage("GSI Elevation Tile Provider doesn't support Overlay type for now.")
+    return NODATA_VALUE
 
   def _read(self, ds, width, height, geotransform):
     # create a memory dataset
@@ -110,8 +116,7 @@ class GSIElevTileProvider:
 
     # load values into an array
     band = warped_ds.GetRasterBand(1)
-    fs = "f" * width * height
-    return struct.unpack(fs, band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32))
+    return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
 
   def getDataset(self, xmin, ymin, xmax, ymax, mapUnitsPerPixel):
     # calculate zoom level

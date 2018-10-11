@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName("SettingsDialog")
-        SettingsDialog.resize(475, 326)
+        SettingsDialog.resize(475, 356)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(SettingsDialog)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.groupBox = QtWidgets.QGroupBox(SettingsDialog)
@@ -32,7 +32,6 @@ class Ui_SettingsDialog(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.verticalLayout_3.addWidget(self.groupBox)
         self.groupBox_2 = QtWidgets.QGroupBox(SettingsDialog)
-        self.groupBox_2.setEnabled(False)
         self.groupBox_2.setObjectName("groupBox_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_2)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -54,6 +53,9 @@ class Ui_SettingsDialog(object):
         self.textBrowser_Plugin.setOpenExternalLinks(True)
         self.textBrowser_Plugin.setObjectName("textBrowser_Plugin")
         self.verticalLayout.addWidget(self.textBrowser_Plugin)
+        self.label_3 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
         self.verticalLayout_3.addWidget(self.groupBox_2)
         self.buttonBox = QtWidgets.QDialogButtonBox(SettingsDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -78,4 +80,6 @@ class Ui_SettingsDialog(object):
         self.pushButton_Browse.setText(_translate("SettingsDialog", "Browse..."))
         self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features"))
         self.label_2.setText(_translate("SettingsDialog", "Description"))
+        self.label_3.setText(_translate("SettingsDialog", "The changes will be reflected after restarting the exporter.\n"
+""))
 

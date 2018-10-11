@@ -90,7 +90,7 @@ class GDALDEMProvider(Raster):
                          self._read(width, height, extent.geotransform(width, height)))
 
   def readValue(self, x, y):
-    """get value at the position using 1px * 1px memory raster"""
+    """get value at specified position using 1px * 1px memory raster"""
     res = 0.1
     geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
     return struct.unpack("f", self._read(1, 1, geotransform))[0]

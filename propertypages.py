@@ -34,6 +34,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from .conf import def_vals
 from .datamanager import MaterialManager
+from .pluginmanager import pluginManager
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import getLayersInProject, logMessage
 from .stylewidget import StyleWidget
@@ -469,8 +470,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.comboBox_altitudeMode.blockSignals(True)
     self.comboBox_altitudeMode.clear()
     self.comboBox_altitudeMode.addItem("Absolute")
+
+    # DEM layers
     for lyr in tools.getDEMLayersInProject():
       self.comboBox_altitudeMode.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
+
+    # DEM provider plugins
+    for plugin in pluginManager().demProviderPlugins():
+      self.comboBox_altitudeMode.addItem('Relative to "{0}"'.format(plugin.providerName()), "plugin:" + plugin.providerId())
+
     self.comboBox_altitudeMode.blockSignals(False)
 
     # set up z/m button
