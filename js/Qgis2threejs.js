@@ -791,9 +791,11 @@ limitations:
 
     var camera = app.camera,
         camera_pos = camera.position,
-        c2t = app.controls.target.clone().sub(camera_pos),
+        c2t = new THREE.Vector3(),
         c2l = new THREE.Vector3(),
         pt = new THREE.Vector3();
+
+    app.camera.getWorldDirection(c2t);
 
     // make list of [connector object, pt, distance to camera]
     var obj_dist = [], connGroup, conn, pt0;
