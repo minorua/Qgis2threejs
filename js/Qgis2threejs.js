@@ -784,77 +784,82 @@ limitations:
     app.updateLabelPosition();
   };
 
-  // update label position
-  app.updateLabelPosition = function () {
-    var rootGroup = app.scene.labelConnectorGroup;
-    if (!app.labelVisible || rootGroup.children.length == 0) return;
 
-    var camera = app.camera,
-        camera_pos = camera.position,
+  // app.updateLabelPosition()
+  (function () {
+    var camera,
         c2t = new THREE.Vector3(),
-        c2l = new THREE.Vector3(),
-        pt = new THREE.Vector3();
+        c2l = new THREE.Vector3();
 
-    app.camera.getWorldDirection(c2t);
+    app.updateLabelPosition = function () {
+      var rootGroup = app.scene.labelConnectorGroup;
+      if (!app.labelVisible || rootGroup.children.length == 0) return;
 
-    // make list of [connector object, pt, distance to camera]
-    var obj_dist = [], connGroup, conn, pt0;
-    for (var i = 0, l = rootGroup.children.length; i < l; i++) {
-      connGroup = rootGroup.children[i];
-      if (!connGroup.visible) continue;
-      for (var k = 0, m = connGroup.children.length; k < m; k++) {
-        conn = connGroup.children[k];
-        pt0 = conn.geometry.vertices[0];
-        pt.set(pt0.x, pt0.z, -pt0.y);
+      camera = app.camera;
+      camera.getWorldDirection(c2t);
 
-        if (c2l.subVectors(pt, camera_pos).dot(c2t) > 0)      // label is in front
-          obj_dist.push([conn, pt0, camera_pos.distanceTo(pt)]);
-        else    // label is in back
-          conn.userData.elem.style.display = "none";
+      // make list of [connector object, pt, distance to camera]
+      var obj_dist = [],
+          i, l, k, m,
+          connGroup, conn, pt0;
+
+      for (i = 0, l = rootGroup.children.length; i < l; i++) {
+        connGroup = rootGroup.children[i];
+        if (!connGroup.visible) continue;
+        for (k = 0, m = connGroup.children.length; k < m; k++) {
+          conn = connGroup.children[k];
+          pt0 = conn.geometry.vertices[0];
+          vec3.set(pt0.x, pt0.z, -pt0.y);
+
+          if (c2l.subVectors(vec3, camera.position).dot(c2t) > 0)      // label is in front
+            obj_dist.push([conn, pt0, camera.position.distanceTo(vec3)]);
+          else    // label is in back
+            conn.userData.elem.style.display = "none";
+        }
       }
-    }
 
-    if (obj_dist.length == 0) return;
+      if (obj_dist.length == 0) return;
 
-    // sort label objects in descending order of distances
-    obj_dist.sort(function (a, b) {
-      if (a[2] < b[2]) return 1;
-      if (a[2] > b[2]) return -1;
-      return 0;
-    });
+      // sort label objects in descending order of distances
+      obj_dist.sort(function (a, b) {
+        if (a[2] < b[2]) return 1;
+        if (a[2] > b[2]) return -1;
+        return 0;
+      });
 
-    var widthHalf = app.width / 2,
-        heightHalf = app.height / 2,
-        autosize = Q3D.Config.label.autoSize,
-        minFontSize = Q3D.Config.label.minFontSize;
+      var widthHalf = app.width / 2,
+          heightHalf = app.height / 2,
+          autosize = Q3D.Config.label.autoSize,
+          minFontSize = Q3D.Config.label.minFontSize;
 
-    var label, dist, x, y, e, t, fontSize;
-    for (var i = 0, l = obj_dist.length; i < l; i++) {
-      label = obj_dist[i][0];
-      pt0 = obj_dist[i][1];
-      dist = obj_dist[i][2];
+      var label, dist, x, y, e, t, fontSize;
+      for (i = 0, l = obj_dist.length; i < l; i++) {
+        label = obj_dist[i][0];
+        pt0 = obj_dist[i][1];
+        dist = obj_dist[i][2];
 
-      // calculate label position
-      pt.set(pt0.x, pt0.z, -pt0.y).project(camera);
-      x = (pt.x * widthHalf) + widthHalf;
-      y = -(pt.y * heightHalf) + heightHalf;
+        // calculate label position
+        vec3.set(pt0.x, pt0.z, -pt0.y).project(camera);
+        x = (vec3.x * widthHalf) + widthHalf;
+        y = -(vec3.y * heightHalf) + heightHalf;
 
-      // set label position
-      e = label.userData.elem;
-      t = "translate(" + (x - (e.offsetWidth / 2)) + "px," + (y - (e.offsetHeight / 2)) + "px)";
-      e.style.display = "block";
-      e.style.zIndex = i + 1;
-      e.style.webkitTransform = t;
-      e.style.transform = t;
+        // set label position
+        e = label.userData.elem;
+        t = "translate(" + (x - (e.offsetWidth / 2)) + "px," + (y - (e.offsetHeight / 2)) + "px)";
+        e.style.display = "block";
+        e.style.zIndex = i + 1;
+        e.style.webkitTransform = t;
+        e.style.transform = t;
 
-      // set font size
-      if (autosize) {
-        if (dist < 10) dist = 10;
-        fontSize = Math.max(Math.round(1000 / dist), minFontSize);
-        e.style.fontSize = fontSize + "px";
+        // set font size
+        if (autosize) {
+          if (dist < 10) dist = 10;
+          fontSize = Math.max(Math.round(1000 / dist), minFontSize);
+          e.style.fontSize = fontSize + "px";
+        }
       }
-    }
-  };
+    };
+  })();
 
   app.setLabelVisible = function (visible) {
     app.labelVisible = visible;
@@ -1286,15 +1291,16 @@ limitations:
       var widthHalf = width / 2,
           heightHalf = height / 2,
           camera = app.camera,
-          camera_pos = camera.position,
-          c2t = app.controls.target.clone().sub(camera_pos),
+          c2t = new THREE.Vector3(),
           c2l = new THREE.Vector3(),
           v = new THREE.Vector3();
+
+      camera.getWorldDirection(c2t);
 
       // make a list of [label index, distance to camera]
       var idx_dist = [];
       for (var i = 0, l = labels.length; i < l; i++) {
-        idx_dist.push([i, camera_pos.distanceTo(labels[i].pt)]);
+        idx_dist.push([i, camera.position.distanceTo(labels[i].pt)]);
       }
 
       // sort label indexes in descending order of distances
@@ -1307,7 +1313,7 @@ limitations:
       var label, text, x, y;
       for (var i = 0, l = idx_dist.length; i < l; i++) {
         label = labels[idx_dist[i][0]];
-        if (c2l.subVectors(label.pt, camera_pos).dot(c2t) > 0) {    // label is in front
+        if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {    // label is in front
           // calculate label position
           v.copy(label.pt).project(camera);
           x = (v.x * widthHalf) + widthHalf;
