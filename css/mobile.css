@@ -2,17 +2,11 @@ body {
   background-color: #FBFBFB;
 }
 
-#webgl {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-#webgl.transparent {
+#view.transparent {
   background: initial;
 }
 
-#webgl canvas {
+#view canvas {
   position: absolute;
   top: 0;
   left: 0;

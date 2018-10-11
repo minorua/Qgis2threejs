@@ -13,9 +13,10 @@ ${scripts}
 <script src="./dat-gui_panel.js"></script>
 </head>
 <body>
-<div id="webgl"></div>
-<div id="northarrow"></div>
-<div id="labels"></div>
+<div id="view">
+  <div id="labels"></div>
+  <div id="northarrow"></div>
+</div>
 
 <!-- popup -->
 <div id="popup" style="display:none;">
@@ -95,7 +96,7 @@ ${options}
 if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
 var app = Q3D.application,
-    container = document.getElementById("webgl");
+    container = document.getElementById("view");
 app.init(container, ${is_ortho});   // initialize application
 
 // when all objects have been loaded

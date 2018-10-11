@@ -254,7 +254,7 @@ function startARMode(position) {
       });
       v.srcObject = stream;
 
-      document.getElementById("webgl").classList.add("transparent");
+      document.getElementById("view").classList.add("transparent");
     }, function (error) {
       alert(error);
     });
@@ -299,7 +299,7 @@ function stopARMode() {
   var v = document.getElementById("video");
   v.srcObject = null;
 
-  document.getElementById("webgl").classList.remove("transparent");
+  document.getElementById("view").classList.remove("transparent");
 
   app.camera.fov = oldFOV;
   app.camera.updateProjectionMatrix();
