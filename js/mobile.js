@@ -9,7 +9,8 @@ Q3D.Config.AR = {
   MND: 0        // magnetic North direction (clockwise from upper direction of map, in degrees)
 };
 
-var ARMode = false;
+var app = Q3D.application,
+    ARMode = false;
 var orbitControls, devControls, oldFOV;
 
 
@@ -77,6 +78,78 @@ function init() {
   catch (e) {
     console.log(e);
   }
+
+  // add event listeners
+  // AR mode switch
+  document.getElementById("ar-checkbox").addEventListener("change", function () {
+    if (this.checked) startARMode();
+    else stopARMode();
+  });
+
+  // current location button
+  document.getElementById("current-location").addEventListener("click", function () {
+    if (ARMode) moveToCurrentLocation();
+    else zoomToCurrentLocation();
+  });
+
+  // layers button
+  document.getElementById("layers-button").addEventListener("click", function () {
+    var hidden = document.getElementById("layerlist").classList.contains("hidden");
+    hideAll();
+    if (hidden) {
+      document.getElementById("layerlist").classList.remove("hidden");
+      document.getElementById("layers-button").classList.add("pressed");
+    }
+  });
+
+  // settings button
+  document.getElementById("settings-button").addEventListener("click", function () {
+    var fov = document.getElementById("fov");
+    var hidden = document.getElementById("settings").classList.contains("hidden");
+    hideAll();
+    if (hidden) {
+      fov.value = Q3D.Config.AR.FOV;
+      document.getElementById("settings").classList.remove("hidden");
+      document.getElementById("settings-button").classList.add("pressed");
+    }
+  });
+
+  document.getElementById("settings-ok").addEventListener("click", function () {
+    Q3D.Config.AR.FOV = document.getElementById("fov").value;
+    if (ARMode) {
+      app.camera.fov = Q3D.Config.AR.FOV;
+      app.camera.updateProjectionMatrix();
+    }
+
+    hideAll();
+
+    // save settings in local storage
+    try {
+      if (document.getElementById("save-in-storage").checked) {
+        var data = {
+          fov: Q3D.Config.AR.FOV
+        };
+        localStorage.setItem("Qgis2threejs", JSON.stringify(data));
+      }
+    }
+    catch (e) {
+      console.log(e);
+    }
+  });
+
+  document.getElementById("settings-cancel").addEventListener("click", function () {
+    hideAll();
+  });
+
+  // information (about) button
+  document.getElementById("info-button").addEventListener("click", function () {
+    var active = document.getElementById("info-button").classList.contains("pressed");
+    hideAll();
+    if (!active) {
+      app.showInfo();
+      document.getElementById("info-button").classList.add("pressed");
+    }
+  });
 }
 
 function initLayerList() {
@@ -299,18 +372,6 @@ function zoomToCurrentLocation() {
   });
 }
 
-// AR mode switch
-document.getElementById("ar-checkbox").addEventListener("change", function () {
-  if (this.checked) startARMode();
-  else stopARMode();
-});
-
-// current location button
-document.getElementById("current-location").addEventListener("click", function () {
-  if (ARMode) moveToCurrentLocation();
-  else zoomToCurrentLocation();
-});
-
 // layers, settings and info buttons
 function hideAll() {
   document.getElementById("layerlist").classList.add("hidden");
@@ -322,62 +383,6 @@ function hideAll() {
   app.popup.hide();
   document.getElementById("info-button").classList.remove("pressed");
 }
-
-document.getElementById("layers-button").addEventListener("click", function () {
-  var hidden = document.getElementById("layerlist").classList.contains("hidden");
-  hideAll();
-  if (hidden) {
-    document.getElementById("layerlist").classList.remove("hidden");
-    document.getElementById("layers-button").classList.add("pressed");
-  }
-});
-
-document.getElementById("settings-button").addEventListener("click", function () {
-  var fov = document.getElementById("fov");
-  var hidden = document.getElementById("settings").classList.contains("hidden");
-  hideAll();
-  if (hidden) {
-    fov.value = Q3D.Config.AR.FOV;
-    document.getElementById("settings").classList.remove("hidden");
-    document.getElementById("settings-button").classList.add("pressed");
-  }
-});
-
-document.getElementById("settings-ok").addEventListener("click", function () {
-  Q3D.Config.AR.FOV = document.getElementById("fov").value;
-  if (ARMode) {
-    app.camera.fov = Q3D.Config.AR.FOV;
-    app.camera.updateProjectionMatrix();
-  }
-
-  hideAll();
-
-  // save settings in local storage
-  try {
-    if (document.getElementById("save-in-storage").checked) {
-      var data = {
-        fov: Q3D.Config.AR.FOV
-      };
-      localStorage.setItem("Qgis2threejs", JSON.stringify(data));
-    }
-  }
-  catch (e) {
-    console.log(e);
-  }
-});
-
-document.getElementById("settings-cancel").addEventListener("click", function () {
-  hideAll();
-});
-
-document.getElementById("info-button").addEventListener("click", function () {
-  var active = document.getElementById("info-button").classList.contains("pressed");
-  hideAll();
-  if (!active) {
-    app.showInfo();
-    document.getElementById("info-button").classList.add("pressed");
-  }
-});
 
 app.popup._hide = app.popup.hide;
 app.popup.hide = function () {
