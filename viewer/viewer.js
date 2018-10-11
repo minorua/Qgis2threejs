@@ -11,6 +11,7 @@ Array.prototype.fill = function (value) {
   return O;
 };
 
+Q3D.Config.allVisible = true;
 
 var app = Q3D.application;
 app.timer = {tickCount: 0};
