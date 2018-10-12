@@ -97,9 +97,9 @@
       </table>
 
       <!-- camera actions -->
-      <div class="action-btn action-zoom" onclick="app.cameraAction.zoomIn(); app.popup.hide();">Zoom in here</div>
-      <div class="action-btn action-move" onclick="app.cameraAction.move(); app.popup.hide();">Move here</div>
-      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit(); app.popup.hide();">Orbit around here</div>
+      <div class="action-btn action-zoom" onclick="app.cameraAction.zoomIn(); app.closePopup();">Zoom in here</div>
+      <div class="action-btn action-move" onclick="app.cameraAction.move(); app.closePopup();">Move here</div>
+      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit(); app.closePopup();">Orbit around here</div>
 
       <!-- attributes -->
       <table id="qr_attrs_table">
