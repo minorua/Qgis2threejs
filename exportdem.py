@@ -159,7 +159,7 @@ class DEMBlockExporter:
 
     # write grid values to an external binary file
     if self.pathRoot is not None:
-      with open(self.pathRoot + "_DEM{0}.bin".format(self.blockIndex), "wb") as f:
+      with open(self.pathRoot + "{0}.bin".format(self.blockIndex), "wb") as f:
         f.write(ba)
 
     # block data
@@ -170,7 +170,7 @@ class DEMBlockExporter:
       g["binary"] = QByteArray(ba)
       # g["array"] = grid_values
     else:
-      g["url"] = self.urlRoot + "_DEM{0}.bin".format(self.blockIndex)
+      g["url"] = self.urlRoot + "{0}.bin".format(self.blockIndex)
 
     # material
     material = self.material()
@@ -230,8 +230,8 @@ class DEMBlockExporter:
     #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
 
     # build material
-    filepath = None if self.pathRoot is None else "{0}_IMG{1}.png".format(self.pathRoot, self.blockIndex)
-    url = None if self.urlRoot is None else "{0}_IMG{1}.png".format(self.urlRoot, self.blockIndex)
+    filepath = None if self.pathRoot is None else "{0}{1}.png".format(self.pathRoot, self.blockIndex)
+    url = None if self.urlRoot is None else "{0}{1}.png".format(self.urlRoot, self.blockIndex)
     return self.materialManager.build(mi, self.imageManager, filepath, url, self.settings.base64)
 
   def clipped(self):

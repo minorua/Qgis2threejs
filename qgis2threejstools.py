@@ -81,6 +81,17 @@ def pyobj2js(obj, escape=False, quoteHex=True):
   return '"' + str(obj) + '"'
 
 
+def abchex(number):
+  h = ""
+  for c in "{:x}".format(number):
+    i = ord(c)
+    if i >= 97:   # a - f => k - p
+      h += chr(i + 10)
+    else:         # 0 - 9 => a - j
+      h += chr(i + 49)
+  return h
+
+
 def logMessage(message):
   QgsMessageLog.logMessage(str(message), "Qgis2threejs")
 

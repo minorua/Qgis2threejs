@@ -161,7 +161,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     return self._index
 
   def exportLayer(self, layer):
-    title = "L{0}".format(self.nextLayerIndex())
+    title = tools.abchex(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
     urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 

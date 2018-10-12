@@ -181,7 +181,7 @@ class ImageManager(DataManager):
 
   def writeAll(self, pathRoot):
     for i in range(self.count()):
-      self.image(i).save("{}_IMG{}.png".format(pathRoot, i))
+      self.image(i).save("{0}{1}.png".format(pathRoot, i))
 
 
 class MaterialManager(DataManager):
@@ -310,8 +310,8 @@ class MaterialManager(DataManager):
   def buildAll(self, imageManager, pathRoot=None, urlRoot=None, base64=False):
     mList = []
     for i in range(len(self._list)):
-      filepath = "{0}_IMG{1}.png".format(pathRoot, i)
-      url = "{0}_IMG{1}.png".format(urlRoot, i)
+      filepath = "{0}{1}.png".format(pathRoot, i)
+      url = "{0}{1}.png".format(urlRoot, i)
       mList.append(self.build(i, imageManager, filepath, url, base64))
     return mList
 

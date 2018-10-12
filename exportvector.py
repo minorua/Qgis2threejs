@@ -195,10 +195,10 @@ class FeatureBlockExporter:
 
   def build(self):
     if self.pathRoot is not None:
-      with open(self.pathRoot + "_GEOM{0}.json".format(self.blockIndex), "w", encoding="UTF-8") as f:
+      with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="UTF-8") as f:
         json.dump(self.data, f, ensure_ascii=False, indent=1, default=json_default)
 
-      url = self.urlRoot + "_GEOM{0}.json".format(self.blockIndex)
+      url = self.urlRoot + "{0}.json".format(self.blockIndex)
       return {"url": url}
 
     else:
