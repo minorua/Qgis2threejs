@@ -53,8 +53,8 @@ Q3D.Config = {
   label: {
     visible: true,
     connectorColor: 0xc0c0d0,
-    autoSize: false,
-    minFontSize: 10,
+    fixedSize: false,
+    minFontSize: 8,
     queryable: true
   },
   qmarker: {
@@ -830,7 +830,7 @@ limitations:
 
       var widthHalf = app.width / 2,
           heightHalf = app.height / 2,
-          autosize = Q3D.Config.label.autoSize,
+          fixedSize = Q3D.Config.label.fixedSize,
           minFontSize = Q3D.Config.label.minFontSize;
 
       var label, dist, x, y, e, t, fontSize;
@@ -853,7 +853,7 @@ limitations:
         e.style.transform = t;
 
         // set font size
-        if (autosize) {
+        if (!fixedSize) {
           if (dist < 10) dist = 10;
           fontSize = Math.max(Math.round(1000 / dist), minFontSize);
           e.style.fontSize = fontSize + "px";
