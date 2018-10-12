@@ -116,8 +116,9 @@ class VectorPropertyReader:
     # feature color
     symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
-      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.renderer().symbols()[0]
+      logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.layer.name()))
+      return "0"
+
     else:
       sl = symbol.symbolLayer(0)
       if sl:
@@ -149,8 +150,8 @@ class VectorPropertyReader:
 
     symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
     if symbol is None:
-      logMessage('Symbol for feature cannot be found: {0}'.format(self.layer.name()))
-      symbol = self.layer.renderer().symbols()[0]
+      logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.layer.name()))
+      return 1
     #TODO [data defined property]
     return self.layer.opacity() * symbol.opacity()
 
