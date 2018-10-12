@@ -40,7 +40,7 @@ class LayerExporter:
   def layerProperties(self):
     return {"name": self.layer.name,
             "queryable": 1,
-            "visible": self.properties.get("checkBox_Visible", True)}
+            "visible": self.properties.get("checkBox_Visible", True) or self.pathRoot is None}  # always visible in preview
 
 
 def dummyProgress(progress=None, statusMsg=None):
