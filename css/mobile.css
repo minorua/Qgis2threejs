@@ -163,10 +163,6 @@ body {
   border: 4px solid #2196F3;
 }
 
-.hidden {
-  display: none;
-}
-
 #layerlist {
   position: absolute;
   left: 20px;

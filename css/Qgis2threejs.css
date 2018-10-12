@@ -15,6 +15,18 @@ body {
   background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%);
 }
 
+.hidden {
+  display: none;
+}
+
+.queryable {
+  cursor: pointer;
+}
+
+.no-events {
+  pointer-events: none;
+}
+
 #labels {
 }
 
@@ -22,10 +34,6 @@ body {
   position: absolute;
   padding: 2px;
   text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
-  /*
-  pointer-events: initial;
-  cursor: pointer;
-  */
 }
 
 .print-label {
@@ -134,19 +142,19 @@ body {
   padding-left: 5px;
 }
 
-table.layer tr {
+#qr_layername_table tr {
   background-color: #eeeeee;
 }
 
-table.coords tr {
+#qr_coords_table tr {
   background-color: #eeeeee;
 }
 
-table.attrs tr:nth-child(odd) {
+#qr_attrs_table tr:nth-child(odd) {
   background-color: #eeeeee;
 }
 
-table.attrs tr td:first-child {
+#qr_attrs_table tr td:first-child {
   width: 40%;
 }
 

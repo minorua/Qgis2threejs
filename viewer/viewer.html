@@ -86,12 +86,12 @@
 
     <!-- query result -->
     <div id="queryresult">
-      <table class="layer">
+      <table id="qr_layername_table">
         <caption>Layer name</caption>
         <tr><td id="qr_layername"></td></tr>
       </table>
 
-      <table class="coords">
+      <table id="qr_coords_table">
         <caption>Clicked coordinates</caption>
         <tr><td id="qr_coords"></td></tr>
       </table>
@@ -102,7 +102,7 @@
       <div class="action-btn action-orbit" onclick="app.cameraAction.orbit(); app.popup.hide();">Orbit around here</div>
 
       <!-- attributes -->
-      <table id="qr_attrs" class="attrs">
+      <table id="qr_attrs_table">
         <caption>Attributes</caption>
       </table>
     </div>
