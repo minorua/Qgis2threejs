@@ -102,8 +102,7 @@ class GSIElevTileProvider:
 
   def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
     #TODO: implement
-    logMessage("GSI Elevation Tile Provider doesn't support Overlay type for now.")
-    return NODATA_VALUE
+    return readValue(x, y)
 
   def _read(self, ds, width, height, geotransform):
     # create a memory dataset
