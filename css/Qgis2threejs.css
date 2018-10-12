@@ -125,7 +125,7 @@ body {
 /* identify result */
 #popupbody table {
   margin-top: 5px;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   width: 100%;
 }
 
@@ -161,11 +161,12 @@ body {
 .action-btn {
   display: inline-block;
   border: 1px solid gray;
+  border-radius: 2px;
   background-color: #FBFBFB;
   cursor: pointer;
   font-size: small;
-  padding: 3px;
-  margin-right: 2px;
+  padding: 1px;
+  margin-left: 2px;
 }
 
 .action-zoom {
