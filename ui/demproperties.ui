@@ -338,6 +338,26 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="2">
+         <widget class="QSlider" name="horizontalSlider_Opacity">
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>100</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Opacity (%)</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_TextureSize">
           <property name="text">
@@ -345,17 +365,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="comboBox_TextureSize"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Opacity (%)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
+        <item row="2" column="3">
          <widget class="QSpinBox" name="spinBox_Opacity">
           <property name="enabled">
            <bool>true</bool>
@@ -383,14 +393,17 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QCheckBox" name="checkBox_TransparentBackground">
-          <property name="text">
-           <string>Transparent background</string>
-          </property>
-         </widget>
+        <item row="0" column="1" colspan="3">
+         <widget class="QComboBox" name="comboBox_TextureSize"/>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_TransparentBackground">
+        <property name="text">
+         <string>Transparent background</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="checkBox_Shading">
@@ -479,8 +492,6 @@
   <tabstop>lineEdit_Color</tabstop>
   <tabstop>toolButton_Color</tabstop>
   <tabstop>comboBox_TextureSize</tabstop>
-  <tabstop>spinBox_Opacity</tabstop>
-  <tabstop>checkBox_TransparentBackground</tabstop>
   <tabstop>checkBox_Shading</tabstop>
   <tabstop>checkBox_Sides</tabstop>
   <tabstop>checkBox_Frame</tabstop>
@@ -628,6 +639,38 @@
     <hint type="destinationlabel">
      <x>309</x>
      <y>42</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider_Opacity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinBox_Opacity</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>346</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>293</x>
+     <y>346</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox_Opacity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider_Opacity</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>293</x>
+     <y>346</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>177</x>
+     <y>346</y>
     </hint>
    </hints>
   </connection>
