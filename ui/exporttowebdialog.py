@@ -89,7 +89,8 @@ class Ui_ExportToWebDialog(object):
         ExportToWebDialog.setTabOrder(self.comboBox_Template, self.lineEdit_OutputDir)
         ExportToWebDialog.setTabOrder(self.lineEdit_OutputDir, self.pushButton_Browse)
         ExportToWebDialog.setTabOrder(self.pushButton_Browse, self.lineEdit_Filename)
-        ExportToWebDialog.setTabOrder(self.lineEdit_Filename, self.checkBox_openPage)
+        ExportToWebDialog.setTabOrder(self.lineEdit_Filename, self.lineEdit_MND)
+        ExportToWebDialog.setTabOrder(self.lineEdit_MND, self.checkBox_openPage)
         ExportToWebDialog.setTabOrder(self.checkBox_openPage, self.pushButton_Export)
         ExportToWebDialog.setTabOrder(self.pushButton_Export, self.pushButton_Cancel)
 

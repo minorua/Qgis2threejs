@@ -242,9 +242,13 @@ class Ui_DEMPropertiesWidget(object):
         DEMPropertiesWidget.setTabOrder(self.radioButton_SolidColor, self.lineEdit_Color)
         DEMPropertiesWidget.setTabOrder(self.lineEdit_Color, self.toolButton_Color)
         DEMPropertiesWidget.setTabOrder(self.toolButton_Color, self.comboBox_TextureSize)
-        DEMPropertiesWidget.setTabOrder(self.comboBox_TextureSize, self.checkBox_Shading)
+        DEMPropertiesWidget.setTabOrder(self.comboBox_TextureSize, self.horizontalSlider_Opacity)
+        DEMPropertiesWidget.setTabOrder(self.horizontalSlider_Opacity, self.spinBox_Opacity)
+        DEMPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.checkBox_TransparentBackground)
+        DEMPropertiesWidget.setTabOrder(self.checkBox_TransparentBackground, self.checkBox_Shading)
         DEMPropertiesWidget.setTabOrder(self.checkBox_Shading, self.checkBox_Sides)
         DEMPropertiesWidget.setTabOrder(self.checkBox_Sides, self.checkBox_Frame)
+        DEMPropertiesWidget.setTabOrder(self.checkBox_Frame, self.checkBox_Visible)
 
     def retranslateUi(self, DEMPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate

@@ -196,6 +196,7 @@
   <tabstop>lineEdit_BaseSize</tabstop>
   <tabstop>lineEdit_zFactor</tabstop>
   <tabstop>lineEdit_zShift</tabstop>
+  <tabstop>comboBox_MaterialType</tabstop>
   <tabstop>radioButton_Sky</tabstop>
   <tabstop>radioButton_Color</tabstop>
   <tabstop>lineEdit_Color</tabstop>

@@ -189,6 +189,7 @@
   <tabstop>lineEdit_OutputDir</tabstop>
   <tabstop>pushButton_Browse</tabstop>
   <tabstop>lineEdit_Filename</tabstop>
+  <tabstop>lineEdit_MND</tabstop>
   <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>
   <tabstop>pushButton_Cancel</tabstop>
