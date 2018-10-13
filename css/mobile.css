@@ -89,6 +89,7 @@ body {
   height: 54px;
   cursor: pointer;
   position: absolute;
+  z-index: 1000;
 }
 
 .btn:focus {
@@ -118,7 +119,7 @@ body {
 
 .expand .btn1 {
   opacity: 1;
-  z-index: 1;
+  z-index: 1001;
 }
 
 .expand .btn1 svg {
