@@ -2346,7 +2346,7 @@ Q3D.PointLayer.prototype.build = function (features) {
       mesh.scale.set(geom.r, geom.h, geom.r);
       mesh.rotation.x = rx;
     };
-    unitGeom = unitGeom || (objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32);
+    unitGeom = unitGeom || ((objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32));
   }
 
   // iteration for features
