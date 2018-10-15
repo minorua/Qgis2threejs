@@ -23,9 +23,10 @@ import os
 
 from PyQt5.Qt import QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QVariant
-from PyQt5.QtWidgets import QWidget, QColorDialog, QComboBox, QFileDialog
+from PyQt5.QtWidgets import QColorDialog, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout, QWidget
 from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsProject
+from qgis.gui import QgsCompoundColorWidget
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .qgis2threejstools import getDEMLayersInProject, logMessage, shortTextFromSelectedLayerIds
@@ -136,9 +137,21 @@ class ColorWidgetFunc(WidgetFuncBase):
     self.widget.toolButton.setVisible(isRGB)
 
   def toolButtonClicked(self):
-    color = QColorDialog.getColor(QColor(self.widget.expression.expression().replace("0x", "#")))
-    if color.isValid():
-      self.widget.expression.setExpression("'" + color.name().replace("#", "0x") + "'")
+    dlg = QDialog()
+    dlg.setWindowTitle("Select a color")
+    dlg.setLayout(QVBoxLayout())
+
+    widget = QgsCompoundColorWidget()
+    widget.setAllowOpacity(False)
+    dlg.layout().addWidget(widget)
+
+    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    buttonBox.accepted.connect(dlg.accept)
+    buttonBox.rejected.connect(dlg.reject)
+    dlg.layout().addWidget(buttonBox)
+
+    if dlg.exec_():
+      self.widget.expression.setExpression("'" + widget.color().name().replace("#", "0x") + "'")
 
   def setValues(self, vals):
     index = self.widget.comboBox.findData(vals["comboData"])
