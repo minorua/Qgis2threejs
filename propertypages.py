@@ -238,7 +238,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
     widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
     widgets += dispTypeButtons
-    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.lineEdit_Color, self.comboBox_TextureSize, self.checkBox_Shading]
+    widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
     widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
     widgets += [self.checkBox_Sides, self.checkBox_Frame, self.checkBox_Visible]
     self.registerPropertyWidgets(widgets)
@@ -253,7 +253,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       radioButton.toggled.connect(self.dispTypeChanged)
     self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
-    self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, layer=None):
     self.layer = layer
@@ -336,11 +335,6 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
     filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
     if filename:
       self.lineEdit_ImageFile.setText(filename)
-
-  def colorButtonClicked(self):
-    color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
-    if color.isValid():
-      self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
   def surroundingsToggled(self, checked):
     self.setLayoutVisible(self.gridLayout_Surroundings, checked)
