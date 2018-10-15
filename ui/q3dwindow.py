@@ -151,7 +151,6 @@ class Ui_Q3DWindow(object):
         self.actionConsoleClear = QtWidgets.QAction(Q3DWindow)
         self.actionConsoleClear.setObjectName("actionConsoleClear")
         self.actionNorthArrow = QtWidgets.QAction(Q3DWindow)
-        self.actionNorthArrow.setCheckable(True)
         self.actionNorthArrow.setObjectName("actionNorthArrow")
         self.menuCamera.addAction(self.actionPerspective)
         self.menuCamera.addAction(self.actionOrthographic)

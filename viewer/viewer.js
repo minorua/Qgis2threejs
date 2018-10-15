@@ -109,8 +109,18 @@ function switchCamera(is_ortho) {
 
 function setNorthArrowVisible(visible) {
   document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
-  if (visible && app.renderer2 === undefined) {
+  if (visible && app.scene2 === undefined) {
     app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+    app.render();
+  }
+}
+
+function setNorthArrowColor(color) {
+  if (app.scene2 === undefined) {
+    Q3D.Config.northArrow.color = color;
+  }
+  else {
+    app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
     app.render();
   }
 }

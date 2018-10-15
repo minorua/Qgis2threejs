@@ -355,9 +355,6 @@
    </property>
   </action>
   <action name="actionNorthArrow">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>North Arrow</string>
    </property>

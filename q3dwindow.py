@@ -20,7 +20,7 @@
 """
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, QVariant, pyqtSignal
-from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QAction, QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
@@ -60,7 +60,9 @@ class Q3DViewerInterface:
   def startApplication(self):
     self.runString("app.start();")
 
-    if self.controller.settings.isNorthArrowVisible():
+    p = self.controller.settings.northArrow()
+    self.runString("setNorthArrowColor({});".format(p["color"].replace("#", "0x")))
+    if p["visible"]:
       self.runString("setNorthArrowVisible(true);")
 
     if debug_mode:
@@ -205,8 +207,8 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
-    # close properties dialogs and export to web dialog
-    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog)):
+    # close dialogs
+    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog)):
       dlg.close()
 
     QMainWindow.closeEvent(self, event)
@@ -224,7 +226,6 @@ class Q3DWindow(QMainWindow):
     self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
     self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
     self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
-    self.ui.actionNorthArrow.setChecked(self.settings.isNorthArrowVisible())
 
     # signal-slot connections
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
@@ -233,7 +234,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
-    self.ui.actionNorthArrow.toggled.connect(self.northArrowToggled)
+    self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
@@ -270,10 +271,6 @@ class Q3DWindow(QMainWindow):
   def switchCamera(self, action):
     self.settings.setCamera(action == self.ui.actionOrthographic)
     self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
-
-  def northArrowToggled(self, checked):
-    self.settings.setNorthArrowVisible(checked)
-    self.runString("setNorthArrowVisible({0});".format("true" if checked else "false"))
 
   def clearExportSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
@@ -353,6 +350,17 @@ class Q3DWindow(QMainWindow):
     dialog = SettingsDialog(self)
     if dialog.exec_():
       pluginManager().reloadPlugins()
+
+  def showNorthArrowDialog(self):
+    dialog = NorthArrowDialog(self, self.settings)
+    dialog.accepted.connect(self.updateNorthArrow)
+    dialog.show()
+    dialog.exec_()
+
+  def updateNorthArrow(self):
+    p = self.settings.northArrow()
+    self.runString("setNorthArrowColor({0});".format(p.get("color", 0)))
+    self.runString("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
 
   def help(self):
     QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
@@ -446,3 +454,26 @@ class WheelEventFilter(QObject):
     if event.type() == QEvent.Wheel:
       return True
     return QObject.eventFilter(self, obj, event)
+
+
+class NorthArrowDialog(QDialog):
+
+  def __init__(self, parent, settings):
+    QDialog.__init__(self, parent)
+    self.setAttribute(Qt.WA_DeleteOnClose)
+
+    self.settings = settings
+
+    from .ui.northarrowdialog import Ui_NorthArrowDialog
+    self.ui = Ui_NorthArrowDialog()
+    self.ui.setupUi(self)
+
+    p = settings.northArrow()
+    self.ui.groupBox.setChecked(p["visible"])
+    self.ui.colorButton.setColor(QColor(p["color"].replace("0x", "#")))
+
+    self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.accepted)
+    self.accepted.connect(self.updateSettings)
+
+  def updateSettings(self):
+    self.settings.setNorthArrow(self.ui.groupBox.isChecked(), self.ui.colorButton.color().name().replace("#", "0x"))

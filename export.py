@@ -131,8 +131,10 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # North arrow
     insets = self.settings.get(self.settings.INSETS, {})
-    if insets.get("NorthArrow"):
+    p = insets.get("NorthArrow", {})
+    if p.get("visible"):
       options.append("Q3D.Config.northArrow.visible = true;")
+      options.append("Q3D.Config.northArrow.color = {0};".format(p.get("color", 0)))
 
     # read html template
     with open(config["path"], "r", encoding="UTF-8") as f:

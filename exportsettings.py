@@ -336,9 +336,14 @@ class ExportSettings:
 
     return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)
 
-  def setNorthArrowVisible(self, visible):
-    self.data[ExportSettings.INSETS] = self.data.get(ExportSettings.INSETS, {})
-    self.data[ExportSettings.INSETS]["NorthArrow"] = visible
+  def northArrow(self):
+    return self.data.get(ExportSettings.INSETS, {}).get("NorthArrow", {"visible": False, "color": "0x666666"})
 
-  def isNorthArrowVisible(self):
-    return self.data.get(ExportSettings.INSETS, {}).get("NorthArrow", False)
+  def setNorthArrow(self, visible, color=None):
+    insets = self.data.get(ExportSettings.INSETS, {})
+    insets["NorthArrow"] = insets.get("NorthArrow", {})
+    insets["NorthArrow"]["visible"] = visible
+    if color is not None:
+      insets["NorthArrow"]["color"] = color
+
+    self.data[ExportSettings.INSETS] = insets
