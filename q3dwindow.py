@@ -58,12 +58,15 @@ class Q3DViewerInterface:
     self.treeView.setLayerList(settings.getLayerList())
 
   def startApplication(self):
-    self.runString("app.start();")
-
+    # configuration
     p = self.controller.settings.northArrow()
-    self.runString("setNorthArrowColor({});".format(p["color"].replace("#", "0x")))
-    if p["visible"]:
-      self.runString("setNorthArrowVisible(true);")
+    if p.get("visible"):
+      self.runString("Q3D.Config.northArrow.visible = true;")
+      self.runString("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
+
+    # initialize and start app
+    self.runString("init();")
+    self.runString("app.start();")
 
     if debug_mode:
       self.runString("displayFPS();")

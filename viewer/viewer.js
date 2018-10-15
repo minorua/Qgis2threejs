@@ -24,6 +24,25 @@ function dataReceived(jsonObject) {
   }
 }
 
+function init() {
+  var container = document.getElementById("view");
+  app.init(container, false);
+
+  if (Q3D.Config.northArrow.visible) {
+    app.buildNorthArrow(document.getElementById("northarrow"), 0);
+  }
+
+  // check extension support of web view
+  // see https://github.com/minorua/Qgis2threejs/issues/147
+  var gl = app.renderer.context;    // WebGLRenderingContext
+  if (gl.getExtension("WEBGL_depth_texture") === null) {
+    var msg = "Any 3D objects not rendered? There is a compatibility issue with QGIS 3D view. " +
+              "You need to restart QGIS to use preview.";
+    showMessageBar(msg);
+    document.getElementById("messagebar").classList.add("warning");
+  }
+}
+
 function displayFPS() {
   app.timer.last = Date.now();
 

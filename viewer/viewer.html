@@ -152,20 +152,6 @@
 
 <script>
 if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
-
-var app = Q3D.application,
-    container = document.getElementById("view");
-app.init(container, false);
-
-// check extension support of web view
-// see https://github.com/minorua/Qgis2threejs/issues/147
-var gl = app.renderer.context;    // WebGLRenderingContext
-if (gl.getExtension("WEBGL_depth_texture") === null) {
-  var msg = "Any 3D objects not rendered? There is a compatibility issue with QGIS 3D view. " +
-            "You need to restart QGIS to use preview.";
-  showMessageBar(msg);
-  document.getElementById("messagebar").classList.add("warning");
-}
 </script>
 </body>
 </html>
