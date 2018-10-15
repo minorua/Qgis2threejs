@@ -29,7 +29,6 @@ class Ui_NorthArrowDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.colorButton.sizePolicy().hasHeightForWidth())
         self.colorButton.setSizePolicy(sizePolicy)
-        self.colorButton.setText("")
         self.colorButton.setObjectName("colorButton")
         self.gridLayout.addWidget(self.colorButton, 0, 1, 1, 1)
         self.verticalLayout.addWidget(self.groupBox)

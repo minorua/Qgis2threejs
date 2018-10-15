@@ -26,7 +26,7 @@ from PyQt5.QtCore import Qt, QDir, QPoint
 from PyQt5.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
-from qgis.gui import QgsFieldExpressionWidget
+from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
@@ -132,6 +132,8 @@ class PropertyPage(QWidget):
         v = w.values()
       elif isinstance(w, QgsFieldExpressionWidget):
         v = w.expression()
+      elif isinstance(w, QgsColorButton):
+        v = w.color().name().replace("#", "0x")
       else:
         logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
@@ -159,6 +161,8 @@ class PropertyPage(QWidget):
           w.setValues(v)
       elif isinstance(w, QgsFieldExpressionWidget):
         w.setExpression(v)
+      elif isinstance(w, QgsColorButton):
+        w.setColor(QColor(v.replace("0x", "#")))
       else:
         logMessage("[propertypages.py] Cannot restore %s property" % n)
 
@@ -171,7 +175,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
     widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift,
                self.comboBox_MaterialType,
-               self.radioButton_Color, self.lineEdit_Color,
+               self.radioButton_Color, self.colorButton_Color,
                self.radioButton_WGS84]
     self.registerPropertyWidgets(widgets)
 
@@ -179,8 +183,6 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
     self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
     self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
-
-    self.toolButton_Color.clicked.connect(self.colorButtonClicked)
 
   def setup(self, properties=None):
     # restore properties
@@ -206,11 +208,6 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     if not proj_supported:
       self.radioButton_ProjectCRS.setChecked(True)
     self.radioButton_WGS84.setEnabled(proj_supported)
-
-  def colorButtonClicked(self):
-    color = QColorDialog.getColor(QColor(self.lineEdit_Color.text().replace("0x", "#")))
-    if color.isValid():
-      self.lineEdit_Color.setText(color.name().replace("#", "0x"))
 
   def properties(self):
     p = PropertyPage.properties(self)

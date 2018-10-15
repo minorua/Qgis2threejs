@@ -41,9 +41,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="text">
-         <string/>
-        </property>
        </widget>
       </item>
      </layout>
