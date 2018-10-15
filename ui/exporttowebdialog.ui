@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>486</width>
-    <height>232</height>
+    <height>238</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,23 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Template</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox_Template">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -72,6 +55,23 @@
       <widget class="QLineEdit" name="lineEdit_Filename">
        <property name="text">
         <string>index.html</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Template</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="comboBox_Template">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
       </widget>
      </item>
@@ -141,7 +141,7 @@
    <item>
     <widget class="QCheckBox" name="checkBox_openPage">
      <property name="text">
-      <string>Open exported page in web browser</string>
+      <string>Open Exported Page in Web Browser</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -185,10 +185,10 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>comboBox_Template</tabstop>
   <tabstop>lineEdit_OutputDir</tabstop>
   <tabstop>pushButton_Browse</tabstop>
   <tabstop>lineEdit_Filename</tabstop>
+  <tabstop>comboBox_Template</tabstop>
   <tabstop>lineEdit_MND</tabstop>
   <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>
