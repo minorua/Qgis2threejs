@@ -90,7 +90,7 @@ class ExportSettings:
   CONTROLS = "CTRL"
   LAYERS = "LAYERS"
   OPTIONS = "OPT"   # template specific settings
-  INSETS = "INSETS"
+  DECOR = "DECOR"
 
   def __init__(self):
     self.data = {}
@@ -337,19 +337,19 @@ class ExportSettings:
     return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)
 
   def northArrow(self):
-    return self.data.get(ExportSettings.INSETS, {}).get("NorthArrow", {"visible": False, "color": "0x666666"})
+    return self.data.get(ExportSettings.DECOR, {}).get("NorthArrow", {"visible": False, "color": "0x666666"})
 
   def setNorthArrow(self, visible, color=None):
-    insets = self.data.get(ExportSettings.INSETS, {})
-    insets["NorthArrow"] = insets.get("NorthArrow", {})
-    insets["NorthArrow"]["visible"] = visible
+    decor = self.data.get(ExportSettings.DECOR, {})
+    decor["NorthArrow"] = decor.get("NorthArrow", {})
+    decor["NorthArrow"]["visible"] = visible
     if color is not None:
-      insets["NorthArrow"]["color"] = color
+      decor["NorthArrow"]["color"] = color
 
-    self.data[ExportSettings.INSETS] = insets
+    self.data[ExportSettings.DECOR] = decor
 
   def footerLabel(self):
-    return self.data.get(ExportSettings.INSETS, {}).get("FooterLabel", "")
+    return self.data.get(ExportSettings.DECOR, {}).get("FooterLabel", "")
 
   def setFooterLabel(self, text):
-    self.data.get(ExportSettings.INSETS, {})["FooterLabel"] = text
+    self.data.get(ExportSettings.DECOR, {})["FooterLabel"] = text

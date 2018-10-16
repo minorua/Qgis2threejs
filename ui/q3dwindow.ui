@@ -18,7 +18,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -52,9 +61,9 @@
      </property>
      <addaction name="actionOrbit"/>
     </widget>
-    <widget class="QMenu" name="menuInsets">
+    <widget class="QMenu" name="menuDecorations">
      <property name="title">
-      <string>Insets</string>
+      <string>Decorations</string>
      </property>
      <addaction name="actionNorthArrow"/>
      <addaction name="actionFooterLabel"/>
@@ -62,7 +71,7 @@
     <addaction name="actionSceneSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
-    <addaction name="menuInsets"/>
+    <addaction name="menuDecorations"/>
     <addaction name="separator"/>
     <addaction name="actionClearAllSettings"/>
     <addaction name="separator"/>
@@ -130,7 +139,16 @@
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
       <number>0</number>
      </property>
      <item>
@@ -164,7 +182,16 @@
      <property name="spacing">
       <number>2</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
       <number>0</number>
      </property>
      <item>
