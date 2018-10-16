@@ -352,4 +352,6 @@ class ExportSettings:
     return self.data.get(ExportSettings.DECOR, {}).get("FooterLabel", "")
 
   def setFooterLabel(self, text):
-    self.data.get(ExportSettings.DECOR, {})["FooterLabel"] = text
+    decor = self.data.get(ExportSettings.DECOR, {})
+    decor["FooterLabel"] = text
+    self.data[ExportSettings.DECOR] = decor
