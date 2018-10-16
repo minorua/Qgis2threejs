@@ -60,6 +60,13 @@ app.cameraAction.move = function () {
                            app.queryTargetPosition.y + Q3D.Config.AR.DH * app.scene.userData.zScale);   // + device height from ground
 };
 
+app._setRotateAnimationMode = app.setRotateAnimationMode;
+app.setRotateAnimationMode = function (enabled) {
+  app._setRotateAnimationMode(enabled);
+  document.getElementById("stop-button").style.display = (enabled) ? "block" : "none";
+};
+
+
 function init() {
   orbitControls = app.controls;
   devControls = new THREE.DeviceOrientationControls(app.camera);
@@ -149,6 +156,11 @@ function init() {
       app.showInfo();
       document.getElementById("info-button").classList.add("pressed");
     }
+  });
+
+  // stop button
+  document.getElementById("stop-button").addEventListener("click", function () {
+    app.setRotateAnimationMode(false);
   });
 }
 

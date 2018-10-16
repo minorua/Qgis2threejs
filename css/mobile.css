@@ -96,6 +96,15 @@ body {
   outline: none;
 }
 
+#stop-button {
+  top: 5px;
+  left: 5px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.6);
+  display: none;
+}
+
 #current-location {
   right: 20px;
   bottom: 100px;
