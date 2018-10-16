@@ -521,11 +521,23 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		// console.log( 'handleMouseWheel' );
 
-		if ( event.deltaY < 0 ) {
+		var delta = 0;
+
+		if ( event.deltaY !== undefined ) {
+
+			delta = event.deltaY;
+
+		} else if ( event.wheelDelta !== undefined ) {	// WebKit @minorua
+
+			delta = - event.wheelDelta;
+
+		}
+
+		if ( delta < 0 ) {
 
 			dollyOut( getZoomScale() );
 
-		} else if ( event.deltaY > 0 ) {
+		} else if ( delta > 0 ) {
 
 			dollyIn( getZoomScale() );
 
@@ -909,6 +921,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
 	scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
+	scope.domElement.addEventListener( 'mousewheel', onMouseWheel, false );	// WebKit @minorua
 
 	scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
 	scope.domElement.addEventListener( 'touchend', onTouchEnd, false );
