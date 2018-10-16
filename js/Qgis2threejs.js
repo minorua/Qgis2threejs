@@ -644,7 +644,12 @@ limitations:
             controls.moveForward(-3 * panDelta);
             break;
           case 27:  // ESC
-            app.closePopup();
+            if (Q3D.$("popup").style.display != "none") {
+              app.closePopup();
+            }
+            else if (app.controls.autoRotate) {
+              app.setRotateAnimationMode(false);
+            }
             return;
           case 73:  // I
             app.showInfo();
