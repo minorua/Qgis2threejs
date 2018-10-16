@@ -150,7 +150,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
       "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
-      "scenefile": "./data/{0}/scene.json".format(title)
+      "scenefile": "./data/{0}/scene.json".format(title),
+      "footer": self.settings.footerLabel()
       }
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)

@@ -64,6 +64,10 @@ class Q3DViewerInterface:
       self.runString("Q3D.Config.northArrow.visible = true;")
       self.runString("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
 
+    label = self.controller.settings.footerLabel()
+    if label:
+      self.runString('setFooterLabel("{}");'.format(label.replace('"', '\\"')))
+
     # initialize and start app
     self.runString("init();")
     self.runString("app.start();")
@@ -211,7 +215,7 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
     # close dialogs
-    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog)):
+    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog, FooterLabelDialog)):
       dlg.close()
 
     QMainWindow.closeEvent(self, event)
@@ -238,6 +242,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
+    self.ui.actionFooterLabel.triggered.connect(self.showFooterLabelDialog)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
@@ -365,6 +370,15 @@ class Q3DWindow(QMainWindow):
     self.runString("setNorthArrowColor({0});".format(p.get("color", 0)))
     self.runString("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
 
+  def showFooterLabelDialog(self):
+    dialog = FooterLabelDialog(self, self.settings)
+    dialog.accepted.connect(self.updateFooterLabel)
+    dialog.show()
+    dialog.exec_()
+
+  def updateFooterLabel(self):
+    self.runString('setFooterLabel("{0}");'.format(self.settings.footerLabel().replace('"', '\\"')))
+
   def help(self):
     QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
 
@@ -480,3 +494,24 @@ class NorthArrowDialog(QDialog):
 
   def updateSettings(self):
     self.settings.setNorthArrow(self.ui.groupBox.isChecked(), self.ui.colorButton.color().name().replace("#", "0x"))
+
+
+class FooterLabelDialog(QDialog):
+
+  def __init__(self, parent, settings):
+    QDialog.__init__(self, parent)
+    self.setAttribute(Qt.WA_DeleteOnClose)
+
+    self.settings = settings
+
+    from .ui.footerlabeldialog import Ui_FooterLabelDialog
+    self.ui = Ui_FooterLabelDialog()
+    self.ui.setupUi(self)
+
+    self.ui.textEdit.setPlainText(settings.footerLabel())
+
+    self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.accepted)
+    self.accepted.connect(self.updateSettings)
+
+  def updateSettings(self):
+    self.settings.setFooterLabel(self.ui.textEdit.toPlainText())

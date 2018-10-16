@@ -152,6 +152,10 @@ function updateNorthArrowRotation(rotation) {
   mesh.updateMatrixWorld();
 }
 
+function setFooterLabel(html) {
+  document.getElementById("footer").innerHTML = html;
+}
+
 // overrides
 var origRender = app.render;
 app.render = function (updateControls) {

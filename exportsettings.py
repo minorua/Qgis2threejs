@@ -347,3 +347,9 @@ class ExportSettings:
       insets["NorthArrow"]["color"] = color
 
     self.data[ExportSettings.INSETS] = insets
+
+  def footerLabel(self):
+    return self.data.get(ExportSettings.INSETS, {}).get("FooterLabel", "")
+
+  def setFooterLabel(self, text):
+    self.data.get(ExportSettings.INSETS, {})["FooterLabel"] = text

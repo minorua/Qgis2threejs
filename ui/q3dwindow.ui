@@ -57,6 +57,7 @@
       <string>Insets</string>
      </property>
      <addaction name="actionNorthArrow"/>
+     <addaction name="actionFooterLabel"/>
     </widget>
     <addaction name="actionSceneSettings"/>
     <addaction name="menuCamera"/>
@@ -357,6 +358,11 @@
   <action name="actionNorthArrow">
    <property name="text">
     <string>North Arrow</string>
+   </property>
+  </action>
+  <action name="actionFooterLabel">
+   <property name="text">
+    <string>Footer Label</string>
    </property>
   </action>
  </widget>
