@@ -123,6 +123,10 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if sp.get("radioButton_Color", False):
       options.append("Q3D.Config.bgcolor = {0};".format(sp.get("colorButton_Color", 0)))
 
+    # camera
+    if self.settings.isOrthoCamera():
+      options.append("Q3D.Config.camera.ortho = true;")
+
     # template specific options
     opts = config.get("options", "")
     if opts:
@@ -146,8 +150,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
-      "scenefile": "./data/{0}/scene.json".format(title),
-      "is_ortho": "true" if self.settings.isOrthoCamera() else "false"
+      "scenefile": "./data/{0}/scene.json".format(title)
       }
     for key, value in mapping.items():
       html = html.replace("${" + key + "}", value)

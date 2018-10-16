@@ -97,7 +97,8 @@ if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.d
 
 var app = Q3D.application,
     container = document.getElementById("view");
-app.init(container, ${is_ortho});   // initialize application
+
+app.init(container);      // initialize application
 
 // when all objects have been loaded
 app.addEventListener("sceneLoaded", function () {

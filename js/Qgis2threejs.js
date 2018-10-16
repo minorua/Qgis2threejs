@@ -8,6 +8,9 @@ var Q3D = {VERSION: "2.0.1"};
 Q3D.Config = {
   allVisible: false,  // set every layer visible property to true on load if set to true
   bgcolor: null,      // null is sky
+  camera: {
+    ortho: false
+  },
   lights: [
     {
       type: "ambient",
@@ -378,7 +381,7 @@ limitations:
     listeners[type].push(listener);
   };
 
-  app.init = function (container, isOrthoCamera) {
+  app.init = function (container) {
     app.container = container;
     app.running = false;        // if true, animation loop is continued.
 
@@ -419,7 +422,7 @@ limitations:
     app.container.appendChild(app.renderer.domElement);
 
     // camera
-    app.buildCamera(isOrthoCamera);
+    app.buildCamera(Q3D.Config.camera.ortho);
 
     // scene
     app.scene = new Q3D.Scene();

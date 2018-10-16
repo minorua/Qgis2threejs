@@ -95,9 +95,7 @@ if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.d
 var app = Q3D.application,
     container = document.getElementById("view");
 
-document.getElementById("infobtn").onclick = app.showInfo.bind(app);
-
-app.init(container, ${is_ortho});       // initialize application
+app.init(container);           // initialize application
 
 // load the scene
 app.loadJSONFile("${scenefile}", function () {
@@ -106,6 +104,8 @@ app.loadJSONFile("${scenefile}", function () {
   // North arrow inset
   if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
 });
+
+document.getElementById("infobtn").onclick = app.showInfo.bind(app);
 </script>
 </body>
 </html>
