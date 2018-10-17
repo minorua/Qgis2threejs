@@ -279,6 +279,7 @@ function startARMode(position) {
   document.querySelectorAll(".action-move").forEach(function (elm) {
     elm.classList.toggle("hidden");
   });
+  document.querySelector(".action-zoom").classList.add("hidden");
   document.querySelector(".action-orbit").classList.add("hidden");
 }
 
@@ -322,6 +323,7 @@ function stopARMode() {
   document.querySelectorAll(".action-move").forEach(function (elm) {
     elm.classList.toggle("hidden");
   });
+  document.querySelector(".action-zoom").classList.remove("hidden");
   document.querySelector(".action-orbit").classList.remove("hidden");
 }
 
