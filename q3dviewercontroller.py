@@ -99,7 +99,7 @@ class Q3DViewerController:
       # update background color
       sp = s.sceneProperties()
       params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
-      self.iface.runString("app.renderer.setClearColor({0});".format(params))
+      self.iface.runString("setBackgroundColor({0});".format(params))
 
       # coordinate display (geographic/projected)
       if sp.get("radioButton_WGS84", False):

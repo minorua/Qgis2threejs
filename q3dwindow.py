@@ -99,6 +99,7 @@ class Q3DViewerInterface:
   def updateScene(self, base64=False):
     if base64:
       self.controller.settings.base64 = True
+
     self.controller.updateScene()
     self.controller.settings.base64 = False
 
@@ -156,6 +157,7 @@ class Q3DViewerInterface:
   def clearExportSettings(self):
     self.controller.settings.clear()
     self.controller.settings.updateLayerList()
+    self.controller.updateScene()
 
 
 class Q3DWindow(QMainWindow):
@@ -284,7 +286,11 @@ class Q3DWindow(QMainWindow):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
       self.ui.treeView.uncheckAll()
       self.ui.actionPerspective.setChecked(True)
+
       self.iface.clearExportSettings()
+
+      self.updateNorthArrow()
+      self.updateFooterLabel()
 
   def alwaysOnTopToggled(self, checked):
     if checked:

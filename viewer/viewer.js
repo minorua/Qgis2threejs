@@ -119,6 +119,11 @@ function closeMessageBar() {
   barTimerId = null;
 }
 
+function setBackgroundColor(color, alpha) {
+  app.renderer.setClearColor(color, alpha);
+  app.render();
+}
+
 function switchCamera(is_ortho) {
   app.buildCamera(is_ortho);
   app.controls.object = app.camera;
