@@ -97,8 +97,8 @@ body {
 }
 
 #stop-button {
-  top: 5px;
-  left: 5px;
+  top: 20px;
+  left: 20px;
   width: 40px;
   height: 40px;
   background-color: rgba(255, 255, 255, 0.6);
