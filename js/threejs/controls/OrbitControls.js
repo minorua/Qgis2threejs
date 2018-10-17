@@ -822,7 +822,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		if ( scope.enabled === false ) return;
 
-		event.preventDefault();
+		// event.preventDefault();  // comment out @minorua
 
 		switch ( event.touches.length ) {
 
