@@ -239,7 +239,9 @@ function startARMode(position) {
     app.camera.position.copy(position);
   }
 
-  orbitControls.autoRotate = false;
+  if (orbitControls.autoRotate) {
+    app.setRotateAnimationMode(false);
+  }
   orbitControls.enabled = false;
 
   app.controls = devControls;
