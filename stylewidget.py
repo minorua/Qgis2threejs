@@ -23,8 +23,7 @@ import os
 
 from PyQt5.Qt import QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QVariant
-from PyQt5.QtWidgets import QColorDialog, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout, QWidget
-from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout, QWidget
 from qgis.core import QgsFieldProxyModel, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 

@@ -20,7 +20,6 @@
  ***************************************************************************/
 """
 import importlib
-import os
 import sys
 
 from PyQt5.QtCore import QDir, QSettings

@@ -19,9 +19,9 @@
  ***************************************************************************/
 """
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, QVariant, pyqtSignal
+from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import QAction, QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
 from .conf import debug_mode, plugin_version
