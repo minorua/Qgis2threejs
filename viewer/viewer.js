@@ -11,12 +11,17 @@ Array.prototype.fill = function (value) {
   return O;
 };
 
+// WebKit bridge: access to pyObj object
+function fetchData() {
+  return pyObj.data();
+}
+
 
 var app = Q3D.application;
 app.timer = {tickCount: 0};
 
-// this is the slot connected to the signal which Bridge class object emits
-function dataReceived(jsonObject) {
+
+function loadJSONObject(jsonObject) {
   app.loadJSONObject(jsonObject);
 
   if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {

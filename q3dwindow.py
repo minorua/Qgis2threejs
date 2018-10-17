@@ -88,7 +88,7 @@ class Q3DViewerInterface:
     if debug_mode == 2:
       self.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
-    self.webView.bridge.sendData.emit(QVariant(obj))
+    self.webView.sendData(obj)
 
   def runString(self, string, message=""):
     self.webView.runString(string, message, sourceID="q3dwindow.py")

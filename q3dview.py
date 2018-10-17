@@ -22,7 +22,7 @@ from datetime import datetime
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, pyqtSignal, pyqtSlot, qDebug
+from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, QVariant, pyqtSignal, pyqtSlot, qDebug
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 try:
@@ -45,16 +45,21 @@ def base64image(image):
 
 class Bridge(QObject):
 
-  # Python to JS
-  sendData = pyqtSignal("QVariant")
-
-  # Python to Python
+  # Python to Python signals
   modelDataReceived = pyqtSignal("QByteArray", str)
   imageReceived = pyqtSignal(int, int, "QImage")
 
   def __init__(self, parent=None):
     QObject.__init__(self, parent)
     self._parent = parent
+    self.data = QVariant()
+
+  @pyqtSlot(result="QVariant")
+  def data(self):
+    return self.data
+
+  def setData(self, data):
+    self.data = QVariant(data)
 
   @pyqtSlot(int, int, result=str)
   def mouseUpMessage(self, x, y):
@@ -148,8 +153,6 @@ class Q3DView(QWebView):
       self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
   def pageLoaded(self, ok):
-    self.runString("pyObj.sendData.connect(this, dataReceived);")
-
     # start application
     self.iface.startApplication()
 
@@ -160,6 +163,10 @@ class Q3DView(QWebView):
       self.iface.updateScene()
     else:
       self.iface.setPreviewEnabled(False)
+
+  def sendData(self, data):
+    self.bridge.setData(data)
+    self._page.mainFrame().evaluateJavaScript("loadJSONObject(fetchData());")
 
   def showStatusMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
