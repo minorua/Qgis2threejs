@@ -1,7 +1,7 @@
 Exporter
 ========
 
-.. note:: Now being updated for Qgis2threejs version 2.0.
+.. note:: Now being updated for Qgis2threejs version 2.1.
 
 .. contents:: Contents
    :local:
@@ -17,15 +17,15 @@ and preview is on the right side.
 
 In this plugin, the word "export settings" means all configuration settings for a 3D scene,
 which consist of world settings, camera settings, each layer settings and so on.
-You can configure them via `Scene <#scene>`__ menu and `Layers` panel.
+You can configure them via `Scene <#scene>`__ menu, `Layers` panel and `Export to Web` dialog.
 
 In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
 To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
 `Properties` from context menu (right click menu).
 
 Export settings are automatically saved to a ``.qto3settings`` file under the same directory
-as the project file if you are working with a project file. Later the export settings of
-the project will be automatically loaded into the exporter.
+as the project file if you are working with a project file. When you open the exporter later,
+the export settings of the project will be restored.
 
 If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
 For example, you might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update,
@@ -55,14 +55,18 @@ File
 Scene
 ^^^^^
 
-* World Settings...
-    Opens World settings dialog. See `World Settings <#world-settings>`__ section.
+* Scene Settings...
+    Opens Scene settings dialog. See `Scene Settings <#scene-settings>`__ section.
 
 * Camera
     Changes the camera. See `Camera Settings <#camera-settings>`__ section.
 
 * Controls
     Changes the controls. See `Controls Settings <#controls-settings>`__ section.
+
+* Decorations
+    Adds decorations to the view, such as North arrow and footer label.
+    [TODO]
 
 * Clear All Settings
     Clears current export settings.
@@ -77,6 +81,7 @@ Window
 ^^^^^^
 * Panels
     * Layers
+    [TODO]
 
     * Console
         Console panel displays information for debugging, mainly JavaScript side information.
@@ -95,24 +100,25 @@ Help
     Opens the plugin homepage in default browser. Internet connection is required.
 
 * Send feedback
-    Opens the plugin bug tracker in default browser. Internet connection is required.
+    Opens the plugin issue tracking system in default browser. Internet connection is required.
 
 * About Qgis2threejs Plugin
     Displays the plugin version you are using.
 
 
-World Settings
+Scene Settings
 --------------
 
-World settings dialog controls some basic configuration settings for current scene.
-Click on ``Scene - World Settings...`` menu entry to open the dialog.
+Scene settings dialog controls some basic configuration settings for current scene.
+Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
 .. image:: ./images/world_settings.png
 
-* Scale and Shift
-    * Base size
+* World Coordinates
 
-        Size in 3D world that corresponds to the map canvas width. The
+    * Base size (width)
+
+        Size (width) in 3D world that corresponds to the map canvas width. The
         default value is 100.
 
     * Vertical exaggeration
@@ -140,10 +146,27 @@ Click on ``Scene - World Settings...`` menu entry to open the dialog.
         the value to -1000, all objects are shifted down by 1000 in the unit of
         map CRS.
 
+* Material
+
+    * Basic type
+
+        Material type used for most 3D objects. Select a material type from
+        Lambert material, Phong material and Toon material. Default is Lambert
+        material.
+
+        * Lambert material
+        [TODO]
+
+        * Phong material
+        [TODO]
+
+        * Toon material
+        [TODO]
+
 * Background
 
-   Select either sky-like gradient or a solid color for the background of
-   scene. Default is Sky.
+   Select either sky-like gradient or a solid color for the scene background.
+   Default is Sky.
 
 * Display of coordinates
 
@@ -159,15 +182,21 @@ Camera Settings
 * Perspective Camera
     Shows distant objects as smaller.
 
-
 * Orthographic Camera
-
+    [TODO]
 
 Controls Settings
 -----------------
 
-Only `OrbitControls <https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__ is available.
+OrbitControls is available.
 
+===== ======================================================== ===========================
+Ctrl  Mouse / Keys                                             Touch                      
+===== ======================================================== ===========================
+Orbit Left mouse                                               One-finger move            
+Zoom  Middle mouse, or mousewheel                              Two-finger spread or squish
+Pan   Right mouse, or left mouse + ctrl/metaKey, or arrow keys Two-finger move            
+===== ======================================================== ===========================
 
 DEM Layer Settings
 ------------------
@@ -230,19 +259,19 @@ Material
 
 * Opaciy
 
-   Sets opacity of the DEM. 100 is opaque, and 0 is transparent.
+   Sets opacity of DEM object. 100 is opaque, and 0 is transparent.
 
 * Transparent background (With map canvas image or layer image)
 
-   Makes background of the image to be rendered transparent.
+   Makes image background transparent.
 
 * Enable transparency (With image file)
 
-   Enables the image transparency.
+   Enables image transparency.
 
 * Enable shading
 
-   Adds a shading effect to the DEM.
+   Adds a shading effect to DEM surface.
 
 
 Other Options
@@ -260,6 +289,9 @@ Other Options
    This option adds frame to the DEM. If you want to change color, edit the output
    JS file directly.
 
+* Visible on Load
+
+   [TODO]
 
 Vector Layer Settings
 ---------------------
@@ -360,20 +392,6 @@ Export to Web Dialog
 
 .. image:: ./images/export_web.png
 
-* Template
-
-   Select a template from available templates:
-
-    * 3DViewer
-
-       This template is a 3D viewer without any additional UI library.
-
-    * 3DViewer(dat-gui)
-
-       This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
-       panel, which makes it possible to toggle layer visibility, adjust layer
-       opacity and add a horizontal plane movable in the vertical direction.
-
 * Output directory and HTML Filename
 
    Select output HTML file path. Usually, a js file with the same file
@@ -390,6 +408,31 @@ Export to Web Dialog
    exported page is opened in default web browser (or a browser specified in
    `Exporter Settings <#exporter-settings>`__).
 
+* Template
+
+   Select a template from available templates:
+
+    * 3DViewer
+
+       This template is a 3D viewer without any additional UI library.
+
+    * 3DViewer(dat-gui)
+
+       This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
+       panel, which makes it possible to toggle layer visibility, adjust layer
+       opacity and add a horizontal plane movable in the vertical direction.
+
+    * Mobile
+       This is a template for mobile devices, which has mobile friendly GUI,
+       device orientation controls and AR feature. In order to use the AR feature
+       (Camera and GPS), you need to upload exported files to a web server
+       supporting SSL.
+
+       Option
+
+       * Magnetic North Direction
+           Magnetic North direction clockwise from the upper direction of the map,
+           in degrees.
 
 Exporter Settings
 -----------------
@@ -400,9 +443,17 @@ Exporter Settings
 
    If you want to open web page exported from the exporter with a web browser
    other than the default browser, enter the web browser path in this input box.
-   See `Browser Support <https://github.com/minorua/Qgis2threejs/wiki/Browser-Support>`__ page.
+   See `Browser Support <https://github.com/minorua/Qgis2threejs/wiki/Browser-Support>`__ wiki page.
 
 
 * Optional Features
 
-   Not available in version 2.0 yet.
+    * DEM Provider
+
+        * GSI Elevation Tile Provider
+
+            This DEM provider downloads GSI elevation tiles from the web server of
+            Geospatial Information Authority of Japan, and provides elevation data to
+            Qgis2threejs. The tile data covers the area of Japan.
+
+    See `Plugins <https://github.com/minorua/Qgis2threejs/wiki/Plugins>`__ wiki page for further info.

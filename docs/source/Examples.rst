@@ -3,7 +3,7 @@ Examples
 
 Click the images below to see live examples.
 
-.. note:: These examples were made with previous plugin versions.
+.. note:: These examples were made with previous plugin versions (1.x).
 
 .. raw:: html
 
