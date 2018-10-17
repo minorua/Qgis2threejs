@@ -18,7 +18,7 @@
  ***************************************************************************/
 """
 
-plugin_version = "2.0.1"
+plugin_version = "2.1"
 debug_mode = 1
   # 0. no debug info
   # 1. JS console, qDebug

@@ -13,8 +13,8 @@ name=Qgis2threejs
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
-about=This plugin visualizes DEM data and vector data, in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter. If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.0.1
+about=This plugin visualizes DEM data and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter. If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
+version=2.1
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,9 +24,17 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 2.0.1
-    - Bug fixes
-    - Improved DEM load performance
+    Version 2.1
+    - Added a new template for mobile device with experimental AR feature
+    - Added North arrow inset
+    - Accelerate building objects by caching last created geometry
+    - Added basic material type option to scene settings - Lambert/Phong/Toon shading
+    - Added visible on load option
+    - Added dashed option to Line type
+    - Added page load progress bar
+    - Restored GSI elevation tile DEM provider
+    - Use transform CSS property to position labels
+    - Fixed crash on closing exporter in Linux
 
     Version 2.0
     - Built for QGIS 3.x
@@ -38,7 +46,7 @@ changelog=
         --- These features were available in version 1.4, but are not available in version 2.0.
 
 # tags are comma separated with spaces allowed
-tags=3D,terrain,three.js,web,WebGL,glTF
+tags=3D,terrain,three.js,web,WebGL,glTF,AR
 
 category=Web
 homepage=https://github.com/minorua/Qgis2threejs

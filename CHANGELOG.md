@@ -1,5 +1,17 @@
 ## CHANGELOG
 
+### Version 2.1
+- Added a new template for mobile device with experimental AR feature
+- Added North arrow inset
+- Accelerate building objects by caching last created geometry
+- Added basic material type option to scene settings - Lambert/Phong/Toon shading
+- Added visible on load option
+- Added dashed option to Line type
+- Added page load progress bar
+- Restored GSI elevation tile DEM provider
+- Use transform CSS property to position labels
+- Fixed crash on closing exporter in Linux
+
 ### Version 2.0.1
 - Bug fixes
 - Improved DEM load performance
