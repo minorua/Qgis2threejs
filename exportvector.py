@@ -103,7 +103,7 @@ class VectorLayerExporter(LayerExporter):
       feat.material = self.prop.objType.material(self.settings, layer, feat)
 
     data = {}
-    data["materials"] = self.materialManager.buildAll(self.imageManager, base64=self.settings.base64)
+    data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot, base64=self.settings.base64)
 
     if export_blocks:
       data["blocks"] = [block.build() for block in self.blocks()]

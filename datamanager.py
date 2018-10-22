@@ -276,13 +276,16 @@ class MaterialManager(DataManager):
         imagepath, transp_background = mtl[1]
         imgIndex = imageManager.imageIndex(imagepath)
 
+      image = imageManager.image(imgIndex)
+      m["image"] = {"width": image.width(), "height": image.height()}
+
       if filepath is None:
         if base64:
-          m["image"] = {"base64": imageManager.base64image(imgIndex)}
+          m["image"]["base64"] = imageManager.base64image(imgIndex)
         else:
-          m["image"] = {"object": imageManager.image(imgIndex)}
+          m["image"]["object"] = image
       else:
-        m["image"] = {"url": url}
+        m["image"]["url"] = url
         # write image to a file
         imageManager.write(imgIndex, filepath)
     else:
@@ -310,8 +313,11 @@ class MaterialManager(DataManager):
   def buildAll(self, imageManager, pathRoot=None, urlRoot=None, base64=False):
     mList = []
     for i in range(len(self._list)):
-      filepath = "{0}{1}.png".format(pathRoot, i)
-      url = "{0}{1}.png".format(urlRoot, i)
+      if pathRoot is None:
+        filepath = url = None
+      else:
+        filepath = "{0}{1}.png".format(pathRoot, i)
+        url = "{0}{1}.png".format(urlRoot, i)
       mList.append(self.build(i, imageManager, filepath, url, base64))
     return mList
 

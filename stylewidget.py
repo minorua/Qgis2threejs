@@ -190,7 +190,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 
     filepath, _ = QFileDialog.getOpenFileName(None, "Select a file", workdir, self.filterString)
     if filepath:
-      self.widget.expression.setExpression(filepath)
+      self.widget.expression.setExpression("'" + filepath + "'")
 
 
 class HeightWidgetFunc(WidgetFuncBase):

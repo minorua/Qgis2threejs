@@ -418,7 +418,6 @@ class TriangularMeshType(PolygonBasicTypeBase):
 
 
 ### IconType
-#TODO: [Point - Icon]
 class IconType(PointTypeBase):
 
   name = "Icon"
@@ -501,7 +500,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType],    # disabled since v.2.0: IconType, JSONModelType, COLLADAModelType],
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType],    # disabled since v.2.0: JSONModelType, COLLADAModelType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }

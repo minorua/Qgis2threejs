@@ -2370,7 +2370,6 @@ Q3D.PointLayer.prototype.build = function (features) {
 
       pt = geom.pts[i];
       mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
-      //mesh.userData.featureId = fid;
       mesh.userData.properties = f.prop;
 
       f.objIndices.push(this.addObject(mesh));
@@ -2381,28 +2380,23 @@ Q3D.PointLayer.prototype.build = function (features) {
   this.cachedGeometryType = objType;
 };
 
-// TODO: [Point - Icon]
 Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
-  var f, mtl, image, scale, sx, sy, i, l, pt, sprite;
+  var f, mtl, img, sx, sy, i, l, sprite;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
     f.objIndices = [];
+
     mtl = this.materials.mtl(f.mtl);
-    image = scene.images[mtl.i];   // TODO: [Point - Icon]
+    img = this.materials.get(f.mtl).origProp.image;
+    sx = img.width / 64 * f.geom.scale;       // base size is 64 x 64
+    sy = img.height / 64 * f.geom.scale;
 
-    // base size is 64 x 64
-    scale = (geom.scale === undefined) ? 1 : geom.scale;
-    sx = image.width / 64 * scale;
-    sy = image.height / 64 * scale;
-
-    for (i = 0, l = geom.pts.length; i < l; i++) {
-      pt = geom.pts[i];
+    for (i = 0, l = f.geom.pts.length; i < l; i++) {
       sprite = new THREE.Sprite(mtl);
-      sprite.position.set(pt[0], pt[1], pt[2]);
-      sprite.scale.set(sx, sy, scale);
-      //sprite.userData.featureId = fid;
-      sprite.mesh.userData.properties = f.prop;
+      sprite.position.fromArray(f.geom.pts[i]);
+      sprite.scale.set(sx, sy, 1);
+      sprite.userData.properties = f.prop;
 
       f.objIndices.push(this.addObject(sprite));
     }
