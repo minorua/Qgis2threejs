@@ -394,6 +394,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     Ui_VectorPropertiesWidget.setupUi(self, self)
 
     self.layer = None
+    self.hasZ = self.hasM = False
 
     # initialize vector style widgets
     self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
@@ -474,14 +475,14 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     # set up z/m button
     wkbType = mapLayer.wkbType()
-    hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D,
-                       QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]  #TODO: [Polygon z/m support] ,MultiPolygon25D
-    hasZ = hasZ or (wkbType // 1000 in [1, 3])
-    hasM = (wkbType // 1000 in [2, 3])
-    self.radioButton_zValue.setEnabled(hasZ)
-    self.radioButton_mValue.setEnabled(hasM)
+    self.hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.Polygon25D,
+                            QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D, QgsWkbTypes.MultiPolygon25D]
+    self.hasZ = self.hasZ or (wkbType // 1000 in [1, 3])
+    self.hasM = (wkbType // 1000 in [2, 3])
+    self.radioButton_zValue.setEnabled(self.hasZ)
+    self.radioButton_mValue.setEnabled(self.hasM)
 
-    if hasZ:
+    if self.hasZ:
       self.radioButton_zValue.setChecked(True)
     else:
       self.radioButton_Expression.setChecked(True)
@@ -519,8 +520,21 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
   def setupStyleWidgets(self, index=None):
     # setup widgets
-    obj_type = objectTypeRegistry().objectType(self.layer.mapLayer.geometryType(),
+    geomType = self.layer.mapLayer.geometryType()
+    obj_type = objectTypeRegistry().objectType(geomType,
                                                self.comboBox_ObjectType.currentData())
+
+    if geomType == QgsWkbTypes.PolygonGeometry:
+      supportZM = (obj_type.name == "Triangular Mesh")
+      self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
+      self.radioButton_mValue.setEnabled(self.hasM and supportZM)
+      if self.hasZ and supportZM:
+        self.radioButton_zValue.setChecked(True)
+      elif not supportZM:
+        self.radioButton_Expression.setChecked(True)
+
+      self.checkBox_Clip.setVisible(not supportZM)
+
     obj_type.setupWidgets(self,
                           self.dialog.mapTo3d(),     # to calculate default values
                           self.layer.mapLayer)
@@ -534,7 +548,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     name = self.comboBox_ObjectType.currentData()
     only_clipped = False
 
-    if name == "Overlay" and index:
+    if name == "Overlay" and index:   # Overlay + relative to a DEM layer
       only_clipped = True
       self.radioButton_IntersectingFeatures.setChecked(True)
       self.checkBox_Clip.setChecked(True)
@@ -544,6 +558,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
   def zValueRadioButtonToggled(self, toggled=None):
     if toggled != False:
       self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
+
+    name = self.comboBox_ObjectType.currentData()
 
   def exportAttrsToggled(self, checked):
     self.setLayoutEnabled(self.formLayout_Label, checked)

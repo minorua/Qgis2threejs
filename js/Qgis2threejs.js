@@ -2715,7 +2715,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return group;
     };
   }
-  else {    // this.objType == "Overlay"
+  else if (this.objType == "Overlay") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f) {
@@ -2733,6 +2733,31 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
 
       //TODO: [Polygon - Overlay] border
+    };
+  }
+  else {    // this.objType == "Triangular Mesh"
+    createObject = function (f) {
+      var vertices = f.geom.v,
+          indices = f.geom.f;
+
+      var geom = new THREE.Geometry();
+      for (var i = 0, l = vertices.length; i < l; i+=3) {
+        geom.vertices.push(
+          new THREE.Vector3(vertices[i], vertices[i + 1], vertices[i + 2]));
+      }
+
+      for (i = 0, l = indices.length; i < l; i+=3) {
+        geom.faces.push(
+          new THREE.Face3(indices[i], indices[i + 1], indices[i + 2]));
+      }
+      geom.computeFaceNormals();
+      return new THREE.Mesh(geom, materials.mtl(f.mtl));
+
+      // FIXME: no flat shading option with combination of buffer geometry and Lambert material
+      var geom = new THREE.BufferGeometry();
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.v, 3));
+      geom.setIndex(f.geom.f);
+      return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
 

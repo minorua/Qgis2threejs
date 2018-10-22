@@ -89,7 +89,7 @@ class VectorLayerExporter(LayerExporter):
       request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
 
       # geometry for clipping
-      if properties.get("checkBox_Clip"):
+      if properties.get("checkBox_Clip") and self.prop.objType.name != "Triangular Mesh":
         extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
         self.clipGeom = extent.geometry()
 
@@ -250,6 +250,9 @@ class Feature:
       return None
 
     if self.geomType == QgsWkbTypes.PolygonGeometry:
+      if self.layerProp.objType.name == "Triangular Mesh":
+        return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+
       if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
 
         if rotation:
@@ -263,10 +266,10 @@ class Feature:
       else:
         useCentroidHeight = True
         centroidPerPolygon = True
+
       return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useCentroidHeight, centroidPerPolygon)
 
-    else:
-      return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+    return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
 
 
 class VectorLayer:

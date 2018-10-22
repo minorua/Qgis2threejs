@@ -20,7 +20,7 @@
 """
 from qgis.core import (
   QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
-  QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsProject)
+  QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject)
 
 from .qgis2threejstools import logMessage
 
@@ -216,12 +216,62 @@ class PolygonGeometry(Geometry):
 
     return QgsGeometry()
 
-  #TODO: [Polygon z/m support]
   @classmethod
-  def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False):
+  def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False, useZM=Geometry.NotUseZM):
+
+    geom = cls()
+
+    if useZM != Geometry.NotUseZM:
+      g = geometry.constGet()
+      if isinstance(g, QgsPolygon):
+        polygons = [g]
+      elif isinstance(g, QgsMultiPolygon):
+        polygons = [g.geometryN(i) for i in range(g.numGeometries())]
+      else:
+        polygons = []
+
+      if useZM == Geometry.UseZ:
+        for polygon in polygons:
+          boundaries = []
+          # outer boundary
+          bnd = polygon.exteriorRing().points()
+          points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
+          #if not GeometryUtils.isClockwise(points):
+          #  points.reverse()    # to clockwise
+          boundaries.append(points)
+
+          # inner boundaries
+          for i in range(polygon.numInteriorRings()):
+            bnd = polygon.interiorRing(i).points()
+            points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
+            #if GeometryUtils.isClockwise(points):
+            #  points.reverse()    # to counter-clockwise
+            boundaries.append(points)
+
+          geom.polygons.append(boundaries)
+      else:   # UseM
+        for polygon in polygons:
+          boundaries = []
+          # outer boundary
+          bnd = polygon.exteriorRing().points()
+          points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
+          #if not GeometryUtils.isClockwise(points):
+          #  points.reverse()    # to clockwise
+          boundaries.append(points)
+
+          # inner boundaries
+          for i in range(polygon.numInteriorRings()):
+            bnd = polygon.interiorRing(i).points()
+            points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
+            #if GeometryUtils.isClockwise(points):
+            #  points.reverse()    # to counter-clockwise
+            boundaries.append(points)
+
+          geom.polygons.append(boundaries)
+      return geom
 
     polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
-    geom = cls()
+
     if not centroidPerPolygon:
       pt = geometry.centroid().asPoint()
       centroidHeight = z_func(pt.x(), pt.y())
@@ -381,12 +431,14 @@ class TriangleMesh:
                 yield poly.asPolygon()
 
 
-class Triangles:
+class IndexedTriangles2D:
+
+  EMPDICT = {}
 
   def __init__(self):
     self.vertices = []
     self.faces = []
-    self.vdict = {}   # dict to find whether a vertex already exists: [y][x] = vertex index
+    self.vidx = {}   # to find whether a vertex already exists: [y][x] = vertex index
 
   def addTriangle(self, v1, v2, v3):
     vi1 = self._vertexIndex(v1)
@@ -395,17 +447,44 @@ class Triangles:
     self.faces.append([vi1, vi2, vi3])
 
   def _vertexIndex(self, v):
-    x_dict = self.vdict.get(v.y)
-    if x_dict:
-      vi = x_dict.get(v.x)
-      if vi is not None:
-        return vi
+    vi = self.vidx.get(v.y, self.EMPDICT).get(v.x)
+    if vi is not None:
+      return vi
+
     vi = len(self.vertices)
     self.vertices.append(v)
-    if x_dict:
-      x_dict[v.x] = vi
-    else:
-      self.vdict[v.y] = {v.x: vi}
+
+    self.vidx[v.y] = self.vidx.get(v.y, {})
+    self.vidx[v.y][v.x] = vi
+    return vi
+
+
+class IndexedTriangles3D:
+
+  EMPDICT = {}
+
+  def __init__(self):
+    self.vertices = []
+    self.faces = []
+    self.vidx = {}   # to find whether a vertex already exists: [z][y][x] = vertex index
+
+  def addTriangle(self, v1, v2, v3):
+    vi1 = self._vertexIndex(v1)
+    vi2 = self._vertexIndex(v2)
+    vi3 = self._vertexIndex(v3)
+    self.faces.append([vi1, vi2, vi3])
+
+  def _vertexIndex(self, v):
+    vi = self.vidx.get(v.z, self.EMPDICT).get(v.y, self.EMPDICT).get(v.x)
+    if vi is not None:
+      return vi
+
+    vi = len(self.vertices)
+    self.vertices.append(v)
+
+    self.vidx[v.z] = self.vidx.get(v.z, {})
+    self.vidx[v.z][v.y] = self.vidx[v.z].get(v.y, {})
+    self.vidx[v.z][v.y][v.x] = vi
     return vi
 
 

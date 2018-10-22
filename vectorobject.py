@@ -22,7 +22,7 @@
 from qgis.core import QgsWkbTypes
 
 from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
-from Qgis2threejs.geometry import Triangles
+from Qgis2threejs.geometry import IndexedTriangles2D, IndexedTriangles3D
 
 
 _objectTypeRegistry = None
@@ -41,7 +41,7 @@ def tr(source):
 def _():
   tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk")
   tr("Line"), tr("Pipe"), tr("Profile")
-  tr("Extruded"), tr("Overlay")
+  tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
   tr("Icon"), tr("JSON model"), tr("COLLADA model")
 
 
@@ -354,7 +354,7 @@ class OverlayType(PolygonBasicTypeBase):
       g = {}
 
       polygons = []
-      triangles = Triangles()
+      triangles = IndexedTriangles2D()
       for polygon in geom.polygons:
         boundary = polygon[0]
         if len(polygon) == 1 and len(boundary) == 4:
@@ -381,6 +381,39 @@ class OverlayType(PolygonBasicTypeBase):
     # if feat.values[2] is not None:
     #   g["mb"] = layer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
 
+    return g
+
+
+class TriangularMeshType(PolygonBasicTypeBase):
+
+  name = "Triangular Mesh"
+
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
+    ppage.initStyleWidgets()
+
+  @classmethod
+  def material(cls, settings, layer, feat):
+    return layer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
+
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
+    triangles = IndexedTriangles3D()
+    for polygon in geom.polygons:
+      boundary = polygon[0]
+      triangles.addTriangle(boundary[0], boundary[1], boundary[2])
+
+    v = []
+    for pt in triangles.vertices:
+      v.extend([pt.x, pt.y, pt.z])
+
+    f = []
+    for s in triangles.faces:
+      f.extend(s)
+
+    g = {"v": v, "f": f}
+    if geom.centroids:
+      g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
     return g
 
 
@@ -470,7 +503,7 @@ class ObjectTypeRegistry:
     self.objTypes = {
       QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType],    # disabled since v.2.0: IconType, JSONModelType, COLLADAModelType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
-      QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType]
+      QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }
 
   def objectTypes(self, geom_type):

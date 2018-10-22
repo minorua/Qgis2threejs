@@ -26,7 +26,7 @@ from qgis.core import QgsPoint, QgsProject
 from .conf import debug_mode
 from .datamanager import MaterialManager
 from .exportlayer import LayerExporter
-from .geometry import PolygonGeometry, TriangleMesh, Triangles, dissolvePolygonsOnCanvas
+from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
 from .rotatedrect import RotatedRect
 
@@ -250,7 +250,7 @@ class DEMBlockExporter:
     geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
     geom.splitPolygon(tmesh, z_func)
 
-    triangles = Triangles()
+    triangles = IndexedTriangles2D()
     split_polygons = []
     for polygon in geom.split_polygons:
       boundary = polygon[0]
