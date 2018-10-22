@@ -3020,18 +3020,23 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
 };
 
 Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
-  var pt,
-      geom = new THREE.PlaneBufferGeometry(0, 0, vertices.length - 1, 1),
-      v = geom.attributes.position.array;
-  for (var i = 0, k = 0, l = vertices.length, l3 = l * 3; i < l; i++, k += 3) {
+  var geom = new THREE.Geometry(),
+      pt = vertices[0];
+  geom.vertices.push(
+    new THREE.Vector3(pt.x, pt.y, pt.z),
+    new THREE.Vector3(pt.x, pt.y, bzFunc(pt.x, pt.y)));
+
+  for (var i = 1, i2 = 1, l = vertices.length; i < l; i++, i2+=2) {
     pt = vertices[i];
-    v[k] = v[k + l3] = pt.x;
-    v[k + 1] = v[k + l3 + 1] = pt.y;
-    v[k + 2] = bzFunc(pt.x, pt.y);
-    v[k + l3 + 2] = pt.z;
+    geom.vertices.push(
+      new THREE.Vector3(pt.x, pt.y, pt.z),
+      new THREE.Vector3(pt.x, pt.y, bzFunc(pt.x, pt.y)));
+
+    geom.faces.push(
+      new THREE.Face3(i2 - 1, i2, i2 + 1),
+      new THREE.Face3(i2 + 1, i2, i2 + 2));
   }
   geom.computeFaceNormals();
-  geom.computeVertexNormals();
   return geom;
 };
 
