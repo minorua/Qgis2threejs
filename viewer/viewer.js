@@ -29,6 +29,17 @@ function loadJSONObject(jsonObject) {
   }
 }
 
+function loadScriptFile(url) {
+  for (var elm in document.head.getElementsByTagName("script")) {
+    if (elm.src == url) return false;
+  }
+
+  var s = document.createElement("script");
+  s.src = url;
+  document.head.appendChild(s);
+  return true;
+}
+
 function init() {
   var container = document.getElementById("view");
   app.init(container, false);
