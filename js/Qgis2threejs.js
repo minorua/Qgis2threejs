@@ -1631,7 +1631,6 @@ Q3D.DEMBlock.prototype = {
 
       // Calculate normals
       if (layer.properties.shading) {
-        geom.computeFaceNormals();
         geom.computeVertexNormals();
       }
 
