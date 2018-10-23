@@ -401,19 +401,11 @@ limitations:
       container.style.height = app.urlParams.height + "px";
     }
 
-    if (container.clientWidth && container.clientHeight) {
-      app.width = container.clientWidth;
-      app.height = container.clientHeight;
-      app._fullWindow = false;
-    }
-    else {
-      app.width = window.innerWidth;
-      app.height = window.innerHeight;
-      app._fullWindow = true;
-    }
+    app.width = container.clientWidth;
+    app.height = container.clientHeight;
 
     var bgcolor = Q3D.Config.bgcolor;
-    if (bgcolor === null) app.container.classList.add("sky");
+    if (bgcolor === null) container.classList.add("sky");
 
     // WebGLRenderer
     app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
@@ -679,7 +671,7 @@ limitations:
     },
 
     resize: function () {
-      if (app._fullWindow) app.setCanvasSize(window.innerWidth, window.innerHeight);
+      app.setCanvasSize(app.container.clientWidth, app.container.clientHeight);
       app.render();
     }
 
