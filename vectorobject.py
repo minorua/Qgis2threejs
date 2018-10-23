@@ -432,8 +432,8 @@ class IconType(PointTypeBase):
 
   @classmethod
   def material(cls, settings, layer, feat):
-    image_path = feat.values[1]
-    return layer.materialManager.getSpriteIndex(image_path, feat.values[0])
+    path_url = feat.values[1]
+    return layer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):

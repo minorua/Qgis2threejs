@@ -1407,17 +1407,18 @@ limitations:
 Q3D.Material
 */
 Q3D.Material = function () {
+  this.loaded = false;
 };
 
 Q3D.Material.prototype = {
 
   constructor: Q3D.Material,
 
-  // callback is called when texture is loaded
+  // callback is called when material has been completely loaded
   loadJSONObject: function (jsonObject, callback) {
     this.origProp = jsonObject;
 
-    var m = jsonObject, opt = {};
+    var m = jsonObject, opt = {}, defer = false;
 
     if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
 
@@ -1425,23 +1426,26 @@ Q3D.Material.prototype = {
 
     // texture
     if (m.image !== undefined) {
-      var image = m.image;
-      if (image.url !== undefined) {
-        opt.map = Q3D.application.loadTextureFile(image.url, callback);
+      var _this = this;
+      if (m.image.url !== undefined) {
+        opt.map = Q3D.application.loadTextureFile(m.image.url, function () {
+          _this._loadCompleted(callback);
+        });
+        defer = true;
       }
-      else if (image.object !== undefined) {    // WebKit Bridge
-        opt.map = new THREE.Texture(image.object.toImageData());
+      else if (m.image.object !== undefined) {    // WebKit Bridge
+        opt.map = new THREE.Texture(m.image.object.toImageData());
         opt.map.needsUpdate = true;
-        callback();
       }
       else {    // base64
         var img = new Image();
         img.onload = function () {
           opt.map.needsUpdate = true;
-          callback();
+          _this._loadCompleted(callback);
         };
-        img.src = image.base64;
+        img.src = m.image.base64;
         opt.map = new THREE.Texture(img);
+        defer = true;
       }
     }
 
@@ -1477,6 +1481,28 @@ Q3D.Material.prototype = {
       opt.color = 0xffffff;
       this.mtl = new THREE.SpriteMaterial(opt);
     }
+
+    if (!defer) this._loadCompleted(callback);
+  },
+
+  _loadCompleted: function (anotherCallback) {
+    this.loaded = true;
+
+    if (this._callbacks !== undefined) {
+      for (var i = 0; i < this._callbacks.length; i++) {
+        this._callbacks[i]();
+      }
+      this._callbacks = [];
+    }
+
+    if (anotherCallback) anotherCallback();
+  },
+
+  callbackOnLoad: function (callback) {
+    if (this.loaded) return callback();
+
+    if (this._callbacks === undefined) this._callbacks = [];
+    this._callbacks.push(callback);
   },
 
   set: function (material) {
@@ -1540,7 +1566,7 @@ Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
 
   for (var i = 0, l = jsonObject.length; i < l; i++) {
     var mtl = new Q3D.Material();
-    mtl.loadJSONObject(jsonObject[i], callback);    // callback is called when a texture is loaded
+    mtl.loadJSONObject(jsonObject[i], callback);
     this.add(mtl);
   }
   iterated = true;
@@ -2382,25 +2408,32 @@ Q3D.PointLayer.prototype.build = function (features) {
 
 Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
-  var f, mtl, img, sx, sy, i, l, sprite;
-  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
-    f = features[fidx];
+  features.forEach(function (f) {
+    var sprite,
+        objs = [],
+        material = this.materials.get(f.mtl);
+
     f.objIndices = [];
-
-    mtl = this.materials.mtl(f.mtl);
-    img = this.materials.get(f.mtl).origProp.image;
-    sx = img.width / 64 * f.geom.scale;       // base size is 64 x 64
-    sy = img.height / 64 * f.geom.scale;
-
-    for (i = 0, l = f.geom.pts.length; i < l; i++) {
-      sprite = new THREE.Sprite(mtl);
+    for (var i = 0, l = f.geom.pts.length; i < l; i++) {
+      sprite = new THREE.Sprite(material.mtl);
       sprite.position.fromArray(f.geom.pts[i]);
-      sprite.scale.set(sx, sy, 1);
       sprite.userData.properties = f.prop;
 
+      objs.push(sprite);
       f.objIndices.push(this.addObject(sprite));
     }
-  }
+
+    material.callbackOnLoad(function () {
+      var img = material.mtl.map.image;
+      for (var i = 0; i < objs.length; i++) {
+        // base size is 64 x 64
+        objs[i].scale.set(img.width / 64 * f.geom.scale,
+                          img.height / 64 * f.geom.scale,
+                          1);
+        objs[i].updateMatrixWorld();
+      }
+    });
+  }, this);
 };
 
 // TODO: [Point - Model]

@@ -194,7 +194,7 @@ class MaterialManager(DataManager):
 
   LINE_BASIC = 3
   LINE_DASHED = 4
-  SPRITE = 5
+  SPRITE_IMAGE = 5
 
   # other material types for internal use
   MESH_MATERIAL = 10
@@ -210,7 +210,6 @@ class MaterialManager(DataManager):
 
   def __init__(self, basicType=MESH_LAMBERT):
     DataManager.__init__(self)
-    self.writtenCount = 0
 
     self.basicMaterialType = basicType
 
@@ -251,18 +250,18 @@ class MaterialManager(DataManager):
     mtl = (self.IMAGE_FILE, (path, transp_background), opacity, doubleSide)
     return self._index(mtl)
 
-  def getSpriteIndex(self, path, opacity=1):
+  def getSpriteImageIndex(self, path_url, opacity=1):
     transp_background = True
-    mtl = (self.SPRITE, (path, transp_background), opacity, False)
+    mtl = (self.SPRITE_IMAGE, (path_url, transp_background), opacity, False)
     return self._index(mtl)
 
   def build(self, index, imageManager, filepath=None, url=None, base64=False):
     mtl = self._list[index]
     m = {
-      "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.LINE_DASHED, self.SPRITE] else self.basicMaterialType
+      "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.LINE_DASHED, self.SPRITE_IMAGE] else self.basicMaterialType
     }
     transp_background = False
-    if mtl[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE]:
+    if mtl[0] in [self.CANVAS_IMAGE, self.MAP_IMAGE, self.LAYER_IMAGE, self.IMAGE_FILE, self.SPRITE_IMAGE]:
       if mtl[0] == self.CANVAS_IMAGE:
         transp_background = mtl[1]
         imgIndex = imageManager.canvasImageIndex(transp_background)
@@ -272,22 +271,28 @@ class MaterialManager(DataManager):
       elif mtl[0] == self.LAYER_IMAGE:
         layerids, width, height, extent, transp_background = mtl[1]
         imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
-      elif mtl[0] in [self.IMAGE_FILE, self.SPRITE]:
+      elif mtl[0] == self.IMAGE_FILE:
         imagepath, transp_background = mtl[1]
         imgIndex = imageManager.imageIndex(imagepath)
-
-      image = imageManager.image(imgIndex)
-      m["image"] = {"width": image.width(), "height": image.height()}
-
-      if filepath is None:
-        if base64:
-          m["image"]["base64"] = imageManager.base64image(imgIndex)
+      elif mtl[0] == self.SPRITE_IMAGE:
+        path_url, transp_background = mtl[1]
+        if path_url.startswith("http:") or path_url.startswith("https:"):
+          url = path_url
+          filepath = None
         else:
-          m["image"]["object"] = image
+          imgIndex = imageManager.imageIndex(path_url)
+
+      if url is None:
+        if base64:
+          m["image"] = {"base64": imageManager.base64image(imgIndex)}
+        else:
+          m["image"] = {"object": imageManager.image(imgIndex)}
       else:
-        m["image"]["url"] = url
-        # write image to a file
-        imageManager.write(imgIndex, filepath)
+        m["image"] = {"url": url}
+
+        if filepath:
+          # write image to a file
+          imageManager.write(imgIndex, filepath)
     else:
       m["c"] = int(mtl[1], 16)    # color
 
@@ -320,53 +325,6 @@ class MaterialManager(DataManager):
         url = "{0}{1}.png".format(urlRoot, i)
       mList.append(self.build(i, imageManager, filepath, url, base64))
     return mList
-
-  def write(self, f, imageManager):
-    if len(self._list) <= self.writtenCount:
-      return
-
-    for mtl in self._list[self.writtenCount:]:
-      m = {
-        "type": mtl[0] if mtl[0] in [self.LINE_BASIC, self.LINE_DASHED, self.SPRITE] else self.basicMaterialType
-      }
-
-      transp_background = False
-
-      if mtl[0] == self.CANVAS_IMAGE:
-        transp_background = mtl[1]
-        m["i"] = imageManager.canvasImageIndex(transp_background)
-      elif mtl[0] == self.MAP_IMAGE:
-        width, height, extent, transp_background = mtl[1]
-        m["i"] = imageManager.mapImageIndex(width, height, extent, transp_background)
-      elif mtl[0] == self.LAYER_IMAGE:
-        layerids, width, height, extent, transp_background = mtl[1]
-        m["i"] = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
-      elif mtl[0] in [self.IMAGE_FILE, self.SPRITE]:
-        filepath, transp_background = mtl[1]
-        m["i"] = imageManager.imageIndex(filepath)
-      else:
-        m["c"] = mtl[1]
-
-      if transp_background:
-        m["t"] = 1
-
-      if mtl[0] == self.WIREFRAME:
-        m["w"] = 1
-
-      if mtl[0] == self.MESH_FLAT:
-        m["flat"] = 1
-
-      opacity = mtl[2]
-      if opacity < 1:
-        m["o"] = opacity
-
-      # double sides
-      if mtl[3]:
-        m["ds"] = 1
-
-      index = self.writtenCount
-      f.write("lyr.m[{0}] = {1};\n".format(index, tools.pyobj2js(m, quoteHex=False)))
-      self.writtenCount += 1
 
 
 class ModelManager(DataManager):
