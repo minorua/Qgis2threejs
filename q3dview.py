@@ -26,6 +26,7 @@ from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 try:
+  from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
   from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 except ModuleNotFoundError:
   if os.name == "posix":
@@ -118,6 +119,7 @@ class Q3DView(QWebView):
     self.iface = iface
     self.isViewer = isViewer
     self._enabled = enabled
+
     self.bridge = Bridge(self)
     self.bridge.modelDataReceived.connect(self.saveModelData)
     self.bridge.imageReceived.connect(self.saveImage)
@@ -128,6 +130,12 @@ class Q3DView(QWebView):
     self._page.consoleMessage.connect(wnd.printConsoleMessage)
     self._page.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
     self.setPage(self._page)
+
+    # security settings - allow access to remote urls (for Icon)
+    self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
+    origin = self._page.mainFrame().securityOrigin()
+    origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
+    origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
 
     if not isViewer:
       # transparent background
