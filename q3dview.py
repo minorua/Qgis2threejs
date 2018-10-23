@@ -108,6 +108,7 @@ class Q3DView(QWebView):
 
   def __init__(self, parent=None):
     QWebView.__init__(self, parent)
+    self.setAcceptDrops(True)
 
     self.requestQueue = []
     self.isProcessingExclusively = False
@@ -163,6 +164,16 @@ class Q3DView(QWebView):
       self.iface.updateScene()
     else:
       self.iface.setPreviewEnabled(False)
+
+  def dragEnterEvent(self, event):
+    event.acceptProposedAction()
+
+  def dropEvent(self, event):
+    # logMessage(event.mimeData().formats())
+    for url in event.mimeData().urls():
+      self.runString("loadModel('" + url.toString() + "');")
+
+    event.acceptProposedAction()
 
   def sendData(self, data):
     self.bridge.setData(data)

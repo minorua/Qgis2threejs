@@ -29,15 +29,46 @@ function loadJSONObject(jsonObject) {
   }
 }
 
-function loadScriptFile(url) {
+function loadScriptFile(url, callback) {
   for (var elm in document.head.getElementsByTagName("script")) {
-    if (elm.src == url) return false;
+    if (elm.src == url) {
+      if (callback) callback();
+      return false;
+    }
   }
 
   var s = document.createElement("script");
   s.src = url;
+  if (callback) s.onload = callback;
   document.head.appendChild(s);
   return true;
+}
+
+function loadModel(url) {
+  function loadToScene(res) {
+    var q = new THREE.Quaternion();
+    q.setFromAxisAngle(Q3D.uv.i, Math.PI / 2);
+    res.scene.quaternion.multiply(q);
+
+    app.scene.add(res.scene);
+    app.startAnimation();
+    setTimeout(app.stopAnimation, 3000);
+  }
+  var ext = url.split(".").pop();
+  if (ext == "dae") {
+    loadScriptFile("../js/threejs/loaders/ColladaLoader.js", function () {
+      var loader = new THREE.ColladaLoader();
+      loader.load(url, loadToScene);
+    });
+  }
+  else if (ext == "gltf" || ext == "glb") {
+    loadScriptFile("../js/polyfills/promise/promise-7.0.4.min.js", function () {
+      loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
+        var loader = new THREE.GLTFLoader();
+        loader.load(url, loadToScene);
+      });
+    });
+  }
 }
 
 function init() {
