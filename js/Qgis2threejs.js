@@ -66,8 +66,7 @@ Q3D.Config = {
     o: 0.8
   },
   debugMode: false,
-  exportMode: false,
-  jsonLoader: "JSONLoader"  // JSONLoader or ObjectLoader
+  exportMode: false
 };
 
 // consts
@@ -190,10 +189,11 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // remove all existing lights
       this.lightGroup.clear();
 
-      // TODO: [Light settings] load light settings and build lights
+      // build lights if scene data has lights settings
+      // [not implemented yet]
     }
 
-    // build default lights if this scene has no lights
+    // build default lights if this scene has no lights yet
     if (this.lightGroup.children.length == 0) this.buildDefaultLights();
 
     // load layers
@@ -228,23 +228,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     layer.loadJSONObject(jsonObject, this);
 
     this.requestRender();
-
-    /* TODO: [Point - Model] load models
-    // load models
-    if (project.models.length > 0) {
-      project.models.forEach(function (model, index) {
-        if (model.type == "COLLADA") {
-          app.modelBuilders[index] = new Q3D.ModelBuilder.COLLADA(app.project, model);
-        }
-        else if (Q3D.Config.jsonLoader == "ObjectLoader") {
-          app.modelBuilders[index] = new Q3D.ModelBuilder.JSONObject(app.project, model);
-        }
-        else {
-          app.modelBuilders[index] = new Q3D.ModelBuilder.JSON(app.project, model);
-        }
-      });
-    }
-    */
   }
   else if (jsonObject.type == "block") {
     var layer = this.mapLayers[jsonObject.layer];
@@ -2949,189 +2932,6 @@ Q3D.Models.prototype.get = function (index) {
 
 Q3D.Models.prototype.clear = function () {
   this.models = [];
-};
-
-
-// TODO: [Point - Model]
-// Q3D.ModelBuilder
-Q3D.ModelBuilder = {};
-Q3D.ModelBuilder._loaders = {};
-
-
-/*
-Q3D.ModelBuilder.Base
-*/
-Q3D.ModelBuilder.Base = function (scene, obj) {
-  this.scene = scene;
-  this.features = [];
-  this._objects = {};
-
-  this.loaded = false;
-};
-
-Q3D.ModelBuilder.Base.prototype = {
-
-  constructor: Q3D.ModelBuilder.Base,
-
-  addFeature: function (layerId, featureId) {
-    this.features.push({layerId: layerId, featureId: featureId});
-    this.buildObjects();
-  },
-
-  buildObjects: function () {
-    if (!this.loaded) return;
-
-    var deg2rad = Math.PI / 180,
-        m = new THREE.Matrix4();
-
-    // TODO: [Model] f, geom
-    this.features.forEach(function (fet) {
-      var layer = this.scene.mapLayers[fet.layerId],
-          f = layer.f[fet.featureId];
-
-      for (var i = 0, l = f.pts.length; i < l; i++) {
-        var pt = f.pts[i],
-            mesh = this.cloneObject(fet.layerId);
-
-        // rotation
-        if (f.rotateX) mesh.applyMatrix(m.makeRotationX(f.rotateX * deg2rad));
-        if (f.rotateY) mesh.applyMatrix(m.makeRotationY(f.rotateY * deg2rad));
-        if (f.rotateZ) mesh.applyMatrix(m.makeRotationZ(f.rotateZ * deg2rad));
-
-        // scale and position
-        if (f.scale !== undefined) mesh.scale.set(f.scale, f.scale, f.scale);
-        mesh.position.set(pt[0], pt[1], pt[2]);
-
-        mesh.userData.featureId = fet.featureId;
-
-        layer.addObject(mesh);
-      }
-    }, this);
-
-    this.features = [];
-  },
-
-  cloneObject: function (layerId) {
-    if (this.object === undefined) return null;
-
-    // if there is already the object for the layer, return a clone of the object
-    if (layerId in this._objects) return this._objects[layerId].clone();
-
-    var layer = this.scene.mapLayers[layerId];
-
-    // clone the original object
-    var object = this.object.clone();
-
-    if (Object.keys(this._objects).length) {
-      // if this is not the first layer which uses this model, clone materials
-      // and append cloned materials to material list of the layer
-      object.traverse(function (obj) {
-        if (obj instanceof THREE.Mesh === false) return;
-        obj.material = obj.material.clone();
-        layer.materials.add(obj.material);
-      });
-    }
-    else {
-      // if this is the first, append original materials to material list of the layer
-      object.traverse(function (obj) {
-        if (obj instanceof THREE.Mesh === false) return;
-        layer.materials.add(obj.material);
-      });
-    }
-    this._objects[layerId] = object;
-
-    // as properties of the object will be changed, clone the object to keep the original for the layer
-    return object.clone();
-  },
-
-  onLoad: function (object) {
-    this.object = object;
-    this.loaded = true;
-    this.buildObjects();
-  }
-};
-
-
-/*
-Q3D.ModelBuilder.JSON --> Q3D.ModelBuilder.Base
-
- load JSON data and build JSON models
-*/
-Q3D.ModelBuilder.JSON = function (scene, model) {
-  Q3D.ModelBuilder.Base.call(this, scene, model);
-
-  var loaders = Q3D.ModelBuilder._loaders;
-  if (loaders.jsonLoader === undefined) loaders.jsonLoader = new THREE.JSONLoader(true);
-  this.loader = loaders.jsonLoader;
-
-  if (model.src !== undefined) {
-    this.loader.load(model.src, this.onLoad.bind(this));
-  }
-  else if (model.data) {
-    var result = this.loader.parse(JSON.parse(model.data));
-    this.onLoad(result.geometry, result.materials);
-  }
-};
-
-Q3D.ModelBuilder.JSON.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
-Q3D.ModelBuilder.JSON.prototype.constructor = Q3D.ModelBuilder.JSON;
-
-Q3D.ModelBuilder.JSON.prototype.onLoad = function (geometry, materials) {
-  this.geometry = geometry;
-  this.material = new THREE.MeshFaceMaterial(materials);
-  Q3D.ModelBuilder.Base.prototype.onLoad.call(this, new THREE.Mesh(this.geometry, this.material));
-};
-
-
-/*
-Q3D.ModelBuilder.JSONObject --> Q3D.ModelBuilder.Base
-*/
-Q3D.ModelBuilder.JSONObject = function (scene, model) {
-  Q3D.ModelBuilder.Base.call(this, scene, model);
-
-  var loaders = Q3D.ModelBuilder._loaders;
-  if (loaders.jsonObjectLoader === undefined) loaders.jsonObjectLoader = new THREE.ObjectLoader();
-  this.loader = loaders.jsonObjectLoader;
-
-  if (model.src !== undefined) {
-    this.loader.load(model.src, this.onLoad.bind(this));
-  }
-  else if (model.data) {
-    this.onLoad(this.loader.parse(JSON.parse(model.data)));
-  }
-};
-
-Q3D.ModelBuilder.JSONObject.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
-Q3D.ModelBuilder.JSONObject.prototype.constructor = Q3D.ModelBuilder.JSONObject;
-
-
-/*
-Q3D.ModelBuilder.COLLADA --> Q3D.ModelBuilder.Base
-*/
-Q3D.ModelBuilder.COLLADA = function (scene, model) {
-  Q3D.ModelBuilder.Base.call(this, scene, model);
-
-  var loaders = Q3D.ModelBuilder._loaders;
-  if (loaders.colladaLoader === undefined) loaders.colladaLoader = new THREE.ColladaLoader();
-  this.loader = loaders.colladaLoader;
-
-  if (model.src !== undefined) {
-    this.loader.load(model.src, this.onLoad.bind(this));
-  }
-  else if (model.data) {
-    var xmlParser = new DOMParser(),
-        responseXML = xmlParser.parseFromString(model.data, "application/xml"),
-        url = "./";
-    this.onLoad(this.loader.parse(responseXML, undefined, url));
-  }
-};
-
-Q3D.ModelBuilder.COLLADA.prototype = Object.create(Q3D.ModelBuilder.Base.prototype);
-Q3D.ModelBuilder.COLLADA.prototype.constructor = Q3D.ModelBuilder.COLLADA;
-
-Q3D.ModelBuilder.COLLADA.prototype.onLoad = function (collada) {
-  this.collada = collada;
-  Q3D.ModelBuilder.Base.prototype.onLoad.call(this, collada.scene);
 };
 
 
