@@ -75,7 +75,7 @@ function loadModel(url) {
     });
   }
   else if (ext == "gltf" || ext == "glb") {
-    loadScriptFile("../js/polyfills/promise/promise-7.0.4.min.js", function () {
+    loadScriptFile("../js/polyfill/polyfill.min.js", function () {
       loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
         var loader = new THREE.GLTFLoader();
         loader.load(url, loadToScene, undefined, onError);

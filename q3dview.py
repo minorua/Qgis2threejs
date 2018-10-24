@@ -219,8 +219,8 @@ class Q3DView(QWebView):
 
   def loadModelLoaders(self):
     if not self.modelLoadersLoaded:
+      self.loadScriptFile(pluginDir("js/polyfill/polyfill.min.js"))
       self.loadScriptFile(pluginDir("js/threejs/loaders/ColladaLoader.js"))
-      self.loadScriptFile(pluginDir("js/polyfills/promise/promise-7.0.4.min.js"))
       self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
       self.modelLoadersLoaded = True
 
