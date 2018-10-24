@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QDir
 
-from .datamanager import ImageManager, ModelManager
+from .datamanager import ImageManager
 from .exportdem import DEMLayerExporter
 from .exportvector import VectorLayerExporter
 from . import q3dconst
@@ -36,7 +36,6 @@ class ThreeJSExporter:
     self.settings = settings
     self.progress = progress or dummyProgress
     self.imageManager = ImageManager(settings)
-    self.modelManager = ModelManager(settings)
 
   def exportScene(self, export_layers=True):
     crs = self.settings.crs
@@ -79,14 +78,14 @@ class ThreeJSExporter:
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, modelManager=self.modelManager)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     return exporter.build()
 
   def exporters(self, layer):
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, modelManager=self.modelManager)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
     yield exporter
 
     for blockExporter in exporter.blocks():
@@ -99,6 +98,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
     ThreeJSExporter.__init__(self, settings, progress)
 
     self._index = -1
+
+    self.modelManagers = []
 
   def export(self):
     config = self.settings.templateConfig()
@@ -175,7 +176,8 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot, modelManager=self.modelManager)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+      self.modelManagers.append(exporter.modelManager)
     return exporter.build(True)
 
   def filesToCopy(self):
@@ -205,23 +207,33 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if self.settings.coordsInWGS84():
       files.append({"dirs": ["js/proj4js"]})
 
-    files += self.modelManager.filesToCopy()
+    # model loades and model files
+    for manager in self.modelManagers:
+      for f in manager.filesToCopy():
+        if f not in files:
+          files.append(f)
 
     return files
 
   def scripts(self):
-    files = self.modelManager.scripts()
+    files = []
 
     # proj4.js
     if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
-      files.append("proj4js/proj4.js")
+      files.append("./proj4js/proj4.js")
 
-    return ['<script src="./%s"></script>' % fn for fn in files]
+    # model loaders
+    for manager in self.modelManagers:
+      for f in manager.scripts():
+        if f not in files:
+          files.append(f)
+
+    return ['<script src="%s"></script>' % fn for fn in files]
 
 
-def exportToThreeJS(settings, progress=None):
-  exporter = ThreeJSFileExporter(settings, progress)
-  exporter.export()
+# def exportToThreeJS(settings, progress=None):
+#  exporter = ThreeJSFileExporter(settings, progress)
+#  exporter.export()
 
 
 def dummyProgress(progress=None, statusMsg=None):

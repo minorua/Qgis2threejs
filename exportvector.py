@@ -24,7 +24,7 @@ from PyQt5.QtCore import QVariant
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .conf import debug_mode
-from .datamanager import MaterialManager
+from .datamanager import MaterialManager, ModelManager
 from .exportlayer import LayerExporter
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import VectorPropertyReader
@@ -46,9 +46,9 @@ class VectorLayerExporter(LayerExporter):
 
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
     LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
-    self.modelManager = modelManager
 
     self.materialManager = MaterialManager(settings.materialType())    #TODO: takes imageManager
+    self.modelManager = ModelManager(settings)
 
     self.mapTo3d = settings.mapTo3d()
     self.geomType = self.layer.mapLayer.geometryType()
