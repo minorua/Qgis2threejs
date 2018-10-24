@@ -135,6 +135,9 @@ class Q3DViewerController:
     if not (self.iface and self.previewEnabled):
       return False
 
+    if layer.properties.get("comboBox_ObjectType") == "Model File":
+      self.iface.loadModelLoaders()
+
     ts0 = time.time()
     tss = []
     for exporter in self.exporter.exporters(layer):

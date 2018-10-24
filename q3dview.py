@@ -114,6 +114,8 @@ class Q3DView(QWebView):
     self.requestQueue = []
     self.isProcessingExclusively = False
 
+    self.modelLoadersLoaded = False
+
   def setup(self, wnd, iface, isViewer=True, enabled=True):
     self.wnd = wnd
     self.iface = iface
@@ -162,6 +164,8 @@ class Q3DView(QWebView):
       self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
   def pageLoaded(self, ok):
+    self.modelLoadersLoaded = False
+
     # start application
     self.iface.startApplication()
 
@@ -208,10 +212,17 @@ class Q3DView(QWebView):
 
     return self._page.mainFrame().evaluateJavaScript(string)
 
-  def runJavaScriptFile(self, filename):
+  def loadScriptFile(self, filename):
     with open(filename, "r") as f:
-      text = f.read()
-    return self._page.mainFrame().evaluateJavaScript(text)
+      script = f.read()
+    return self.runString(script, "// {} loaded".format(os.path.basename(filename)))
+
+  def loadModelLoaders(self):
+    if not self.modelLoadersLoaded:
+      self.loadScriptFile(pluginDir("js/threejs/loaders/ColladaLoader.js"))
+      self.loadScriptFile(pluginDir("js/polyfills/promise/promise-7.0.4.min.js"))
+      self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
+      self.modelLoadersLoaded = True
 
   def saveModelData(self, data, filename):
     try:

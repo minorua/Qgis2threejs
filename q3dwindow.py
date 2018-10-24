@@ -18,6 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
@@ -92,6 +93,12 @@ class Q3DViewerInterface:
 
   def runString(self, string, message=""):
     self.webView.runString(string, message, sourceID="q3dwindow.py")
+
+  def loadScriptFile(self, filepath):
+    self.webView.loadScriptFile(filepath)
+
+  def loadModelLoaders(self):
+    self.webView.loadModelLoaders()
 
   def abort(self):
     self.controller.abort()
@@ -356,7 +363,7 @@ class Q3DWindow(QMainWindow):
     filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
-      self.ui.webView.runJavaScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
+      self.ui.webView.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
       self.runString("saveModelAsGLTF('{0}');".format(filename))
 
   def pluginSettings(self):
