@@ -2333,6 +2333,9 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       this.models = new Q3D.Models();
       this.models.addEventListener("renderRequest", this.requestRender.bind(this));
     }
+    else {
+      this.models.clear();
+    }
     this.models.loadJSONObject(jsonObject.data.models);
   }
 };
@@ -2857,9 +2860,9 @@ Q3D.Model.prototype = {
   constructor: Q3D.Model,
 
   // callback is called when model has been completely loaded
-  loadJSONObject: function (jsonObject, callback) {
+  load: function (url, callback) {
     var _this = this,
-        ext = jsonObject.url.split(".").pop(),
+        ext = url.split(".").pop(),
         Loader;
     if (ext == "dae") {
       Loader = THREE.ColladaLoader;
@@ -2872,10 +2875,14 @@ Q3D.Model.prototype = {
     }
 
     var loader = new Loader();
-    loader.load(jsonObject.url, function (model) {
+    loader.load(url, function (model) {
       _this.model = model;
       _this._loadCompleted(callback);
     });
+  },
+
+  loadJSONObject: function (jsonObject, callback) {
+    this.load(jsonObject.url, callback);
   },
 
   _loadCompleted: function (anotherCallback) {
@@ -2906,6 +2913,7 @@ Q3D.Models
 */
 Q3D.Models = function () {
   this.models = [];
+  this.cache = {};
 };
 
 Q3D.Models.prototype = Object.create(THREE.EventDispatcher.prototype);
@@ -2917,9 +2925,19 @@ Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
     if (iterated) _this.dispatchEvent({type: "renderRequest"});
   };
 
+  var model, url;
   for (var i = 0, l = jsonObject.length; i < l; i++) {
-    var model = new Q3D.Model();
-    model.loadJSONObject(jsonObject[i], callback);
+    url = jsonObject[i].url;
+
+    if (this.cache[url] !== undefined) {
+      model = this.cache[url];
+    }
+    else {
+      model = new Q3D.Model();
+      model.load(url, callback);
+      this.cache[url] = model;
+    }
+
     this.models.push(model);
   }
   iterated = true;
@@ -2927,6 +2945,10 @@ Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
 
 Q3D.Models.prototype.get = function (index) {
   return this.models[index];
+};
+
+Q3D.Models.prototype.clear = function () {
+  this.models = [];
 };
 
 
