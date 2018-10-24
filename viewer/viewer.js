@@ -46,26 +46,39 @@ function loadScriptFile(url, callback) {
 
 function loadModel(url) {
   function loadToScene(res) {
-    var q = new THREE.Quaternion();
-    q.setFromAxisAngle(Q3D.uv.i, Math.PI / 2);
-    res.scene.quaternion.multiply(q);
+    var boxsize = new THREE.Box3().setFromObject(res.scene).getSize(),
+        scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
 
-    app.scene.add(res.scene);
+    var parent = new THREE.Group();
+    parent.scale.set(scale, scale, scale);
+    parent.rotation.x = Math.PI / 2;
+    parent.add(res.scene);
+    app.scene.add(parent);
+
+    console.log(url + " loaded. scale = " + scale + ", rotation.x = 90 [deg]");
+    showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 4000);
+
     app.startAnimation();
     setTimeout(app.stopAnimation, 3000);
   }
+  function onError(e) {
+    console.log(e.message);
+    showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.');
+    // TODO: warning color
+  }
+
   var ext = url.split(".").pop();
   if (ext == "dae") {
     loadScriptFile("../js/threejs/loaders/ColladaLoader.js", function () {
       var loader = new THREE.ColladaLoader();
-      loader.load(url, loadToScene);
+      loader.load(url, loadToScene, undefined, onError);
     });
   }
   else if (ext == "gltf" || ext == "glb") {
     loadScriptFile("../js/polyfills/promise/promise-7.0.4.min.js", function () {
       loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
         var loader = new THREE.GLTFLoader();
-        loader.load(url, loadToScene);
+        loader.load(url, loadToScene, undefined, onError);
       });
     });
   }
