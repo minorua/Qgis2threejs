@@ -350,17 +350,35 @@ class ModelManager(DataManager):
       l.append({"url": url})
     return l
 
+  def hasColladaModel(self):
+    for f in self._list:
+      _, ext = os.path.splitext(f)
+      if ext == ".dae":
+        return True
+    return False
+
+  def hasGLTFModel(self):
+    for f in self._list:
+      _, ext = os.path.splitext(f)
+      if ext in [".gltf", ".glb"]:
+        return True
+    return False
+
   def filesToCopy(self):
     f = []
     if self._list:
-      f.append({"files": ["js/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
-      f.append({"files": ["js/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
+      if self.hasColladaModel():
+        f.append({"files": ["js/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
+      if self.hasGLTFModel():
+        f.append({"files": ["js/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
       f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
     return f
 
   def scripts(self):
     s = []
     if self._list:
-      s.append("./threejs/loaders/ColladaLoader.js")
-      s.append("./threejs/loaders/GLTFLoader.js")
+      if self.hasColladaModel():
+        s.append("./threejs/loaders/ColladaLoader.js")
+      if self.hasGLTFModel():
+        s.append("./threejs/loaders/GLTFLoader.js")
     return s
