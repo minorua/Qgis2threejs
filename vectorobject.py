@@ -42,7 +42,7 @@ def _():
   tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk")
   tr("Line"), tr("Pipe"), tr("Profile")
   tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
-  tr("Icon"), tr("JSON model"), tr("COLLADA model")
+  tr("Icon"), tr("Model File")
 
 
 class ObjectTypeBase:
@@ -441,58 +441,41 @@ class IconType(PointTypeBase):
             "scale": feat.values[2]}
 
 
-### ModelType
-class ModelTypeBase(PointTypeBase):
+### ModelFileType
+class ModelFileType(PointTypeBase):
+
+  name = "Model File"
+  experimental = True
 
   @classmethod
-  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
+  def setupWidgets(cls, ppage, mapTo3d, layer):
+    filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
+
     ppage.initStyleWidgets(color=False, opacity=False)
-    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": label, "layer": layer, "filterString": filterString})
+    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": layer, "filterString": filterString})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
 
   @classmethod
-  def geometry(cls, settings, layer, feat, geom):
+  def model(cls, settings, layer, feat):
     model_path = feat.values[0]
-    model_type = cls.name.split(" ")[0]
-    index = layer.modelManager.modelIndex(model_path, model_type)
+    return layer.modelManager.modelIndex(model_path)
 
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
     rz = feat.values[4]
     # take map rotation into account
     rotation = settings.baseExtent.rotation()
     if rotation:
       rz = (rz - rotation) % 360    # map rotation is clockwise
 
-    return {"model_index": index,
-            "pts": geom.asList(),
+    return {"pts": geom.asList(),
             "rotateX": feat.values[2],
             "rotateY": feat.values[3],
             "rotateZ": rz,
             "scale": feat.values[1] * settings.mapTo3d().multiplier}
-
-
-#TODO: [Point - JSON model]
-class JSONModelType(ModelTypeBase):
-
-  name = "JSON model"
-  experimental = True
-
-  @classmethod
-  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
-    ModelTypeBase.setupWidgets(ppage, mapTo3d, layer, "JSON file", "JSON files (*.json *.js);;All files (*.*)")
-
-
-#TODO: [Point - COLLADA model]
-class COLLADAModelType(ModelTypeBase):
-
-  name = "COLLADA model"
-  experimental = True
-
-  @classmethod
-  def setupWidgets(cls, ppage, mapTo3d, layer, label, filterString):
-    ModelTypeBase.setupWidgets(ppage, mapTo3d, layer, "COLLADA file", "COLLADA files (*.dae);;All files (*.*)")
 
 
 ### ObjectTypeRegistry
@@ -500,7 +483,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType],    # disabled since v.2.0: JSONModelType, COLLADAModelType],
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType, ModelFileType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }

@@ -2328,12 +2328,19 @@ Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
 Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+  if (jsonObject.type == "layer" && jsonObject.properties.objType == "Model File" && jsonObject.data !== undefined) {
+    if (this.models === undefined) {
+      this.models = new Q3D.Models();
+      this.models.addEventListener("renderRequest", this.requestRender.bind(this));
+    }
+    this.models.loadJSONObject(jsonObject.data.models);
+  }
 };
 
 Q3D.PointLayer.prototype.build = function (features) {
   var objType = this.properties.objType;
   if (objType == "Icon") { this.buildIcons(features); return; }
-  if (objType == "JSON model" || objType == "COLLADA model") { this.buildModels(features); return; }
+  if (objType == "Model File") { this.buildModels(features); return; }
 
   var deg2rad = Math.PI / 180, rx = 90 * deg2rad;
   var setSR, unitGeom;
@@ -2428,13 +2435,30 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
   }, this);
 };
 
-// TODO: [Point - Model]
 Q3D.PointLayer.prototype.buildModels = function (features) {
+  var _this = this,
+      q = new THREE.Quaternion(),
+      e = new THREE.Euler(),
+      deg2rad = Math.PI / 180;
+
   // each feature in this layer
-  for (var fid = 0, flen = features.length; fid < flen; fid++) {
-    var f = features[fid];
-    Q3D.application.modelBuilders[f.model_index].addFeature(this.userData.id, fid);
-  }
+  features.forEach(function (f) {
+    var model = _this.models.get(f.model);
+
+    f.objIndices = [];
+    f.geom.pts.forEach(function (pt) {
+      model.callbackOnLoad(function (m) {
+        var obj = m.scene.clone();
+        obj.scale.set(f.geom.scale, f.geom.scale, f.geom.scale);    // * _this.sceneData.zExaggeration -> objectGroup.scale.z
+        e.set(f.geom.rotateX * deg2rad, f.geom.rotateY * deg2rad, f.geom.rotateZ * deg2rad);
+        obj.quaternion.multiply(q.setFromEuler(e));
+        obj.position.fromArray(pt);
+
+        obj.userData.properties = f.prop;
+        f.objIndices.push(_this.addObject(obj));
+      });
+    });
+  });
 };
 
 Q3D.PointLayer.prototype.buildLabels = function (features) {
@@ -2819,6 +2843,90 @@ Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
     }
   });
   this.sideVisible = visible;
+};
+
+/*
+Q3D.Model
+*/
+Q3D.Model = function () {
+  this.loaded = false;
+};
+
+Q3D.Model.prototype = {
+
+  constructor: Q3D.Model,
+
+  // callback is called when model has been completely loaded
+  loadJSONObject: function (jsonObject, callback) {
+    var _this = this,
+        ext = jsonObject.url.split(".").pop(),
+        Loader;
+    if (ext == "dae") {
+      Loader = THREE.ColladaLoader;
+    }
+    else if (ext == "gltf" || ext == "glb") {
+      Loader = THREE.GLTFLoader;
+    }
+    else {
+      return;
+    }
+
+    var loader = new Loader();
+    loader.load(jsonObject.url, function (model) {
+      _this.model = model;
+      _this._loadCompleted(callback);
+    });
+  },
+
+  _loadCompleted: function (anotherCallback) {
+    this.loaded = true;
+
+    if (this._callbacks !== undefined) {
+      for (var i = 0; i < this._callbacks.length; i++) {
+        this._callbacks[i](this.model);
+      }
+      this._callbacks = [];
+    }
+
+    if (anotherCallback) anotherCallback(this.model);
+  },
+
+  callbackOnLoad: function (callback) {
+    if (this.loaded) return callback(this.model);
+
+    if (this._callbacks === undefined) this._callbacks = [];
+    this._callbacks.push(callback);
+  }
+
+};
+
+
+/*
+Q3D.Models
+*/
+Q3D.Models = function () {
+  this.models = [];
+};
+
+Q3D.Models.prototype = Object.create(THREE.EventDispatcher.prototype);
+Q3D.Models.prototype.constructor = Q3D.Models;
+
+Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
+  var _this = this, iterated = false;
+  var callback = function () {
+    if (iterated) _this.dispatchEvent({type: "renderRequest"});
+  };
+
+  for (var i = 0, l = jsonObject.length; i < l; i++) {
+    var model = new Q3D.Model();
+    model.loadJSONObject(jsonObject[i], callback);
+    this.models.push(model);
+  }
+  iterated = true;
+};
+
+Q3D.Models.prototype.get = function (index) {
+  return this.models[index];
 };
 
 

@@ -21,7 +21,7 @@
 """
 import os
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
@@ -329,46 +329,38 @@ class MaterialManager(DataManager):
 
 class ModelManager(DataManager):
 
-  def __init__(self):
+  def __init__(self, exportSettings):
     DataManager.__init__(self)
-    self._collada = False
+    self.exportSettings = exportSettings
 
-  def modelIndex(self, path, model_type="JSON"):
-    if model_type == "COLLADA":
-      self._collada = True
+  def modelIndex(self, path):
+    return self._index(path)
 
-    model = (model_type, path)
-    return self._index(model)
+  def build(self, export=True):
+    l = []
+    for path_url in self._list:
+      if path_url.startswith("http:") or path_url.startswith("https:"):
+        url = path_url
+      elif export:
+        url = "./data/{}/models/{}".format(self.exportSettings.outputFileTitle(),
+                                           os.path.basename(path_url))
+      else:
+        url = QUrl.fromLocalFile(path_url).toString()
+
+      l.append({"url": url})
+    return l
 
   def filesToCopy(self):
     f = []
-    if self._collada:
+    if self._list:
       f.append({"files": ["js/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
+      f.append({"files": ["js/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
+      f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
     return f
 
   def scripts(self):
     s = []
-    if self._collada:
-      s.append("threejs/loaders/ColladaLoader.js")
+    if self._list:
+      s.append("./threejs/loaders/ColladaLoader.js")
+      s.append("./threejs/loaders/GLTFLoader.js")
     return s
-
-  def write(self, f):
-    if len(self._list) == 0:
-      return
-
-    f.write('\n// 3D model data\n')
-    for index, model in enumerate(self._list):
-      model_type, path = model
-      exists = os.path.exists(path)
-      if exists and os.path.isfile(path):
-        with open(path) as model_file:
-          data = model_file.read().replace("\\", "\\\\").replace("'", "\\'").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n")
-        f.write("project.models[%d] = {type:'%s',data:'%s'};\n" % (index, model_type, data))
-      else:
-        f.write("project.models[%d] = {type:'%s',data:null};\n" % (index, model_type))
-
-        if exists:
-          err_msg = "Not 3D model file path"
-        else:
-          err_msg = "3D model file not found"
-        logMessage("{0}: {1} ({2})".format(err_msg, path, model_type))

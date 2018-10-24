@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QDir
 
-from .datamanager import ImageManager   #, ModelManager
+from .datamanager import ImageManager, ModelManager
 from .exportdem import DEMLayerExporter
 from .exportvector import VectorLayerExporter
 from . import q3dconst
@@ -36,6 +36,7 @@ class ThreeJSExporter:
     self.settings = settings
     self.progress = progress or dummyProgress
     self.imageManager = ImageManager(settings)
+    self.modelManager = ModelManager(settings)
 
   def exportScene(self, export_layers=True):
     crs = self.settings.crs
@@ -78,14 +79,14 @@ class ThreeJSExporter:
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, modelManager=self.modelManager)
     return exporter.build()
 
   def exporters(self, layer):
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, modelManager=self.modelManager)
     yield exporter
 
     for blockExporter in exporter.blocks():
@@ -174,7 +175,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if layer.geomType == q3dconst.TYPE_DEM:
       exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot, modelManager=self.modelManager)
     return exporter.build(True)
 
   def filesToCopy(self):
@@ -204,13 +205,12 @@ class ThreeJSFileExporter(ThreeJSExporter):
     if self.settings.coordsInWGS84():
       files.append({"dirs": ["js/proj4js"]})
 
-    # model importer
-    #TODO: [Model] files += self.modelManager.filesToCopy()
+    files += self.modelManager.filesToCopy()
 
     return files
 
   def scripts(self):
-    files = []      #TODO: [Model] self.modelManager.scripts()
+    files = self.modelManager.scripts()
 
     # proj4.js
     if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude

@@ -44,8 +44,9 @@ class VectorLayerExporter(LayerExporter):
             QgsWkbTypes.LineGeometry: "line",
             QgsWkbTypes.PolygonGeometry: "polygon"}
 
-  def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
+  def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
     LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+    self.modelManager = modelManager
 
     self.materialManager = MaterialManager(settings.materialType())    #TODO: takes imageManager
 
@@ -77,7 +78,7 @@ class VectorLayerExporter(LayerExporter):
       if demProp:
         self.demSize = demProp.demSize(mapSettings.outputSize())
 
-    layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager)
+    layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager, self.modelManager)
     self._layer = layer
 
     self.hasLabel = layer.hasLabel()
@@ -98,12 +99,19 @@ class VectorLayerExporter(LayerExporter):
     self.features = layer.features(request)
     mapLayer.renderer().stopRender(renderContext)
 
-    # materials
-    for feat in self.features:
-      feat.material = self.prop.objType.material(self.settings, layer, feat)
-
+    # materials/models
     data = {}
-    data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot, base64=self.settings.base64)
+    if self.prop.objType.name != "Model File":
+      for feat in self.features:
+        feat.material = self.prop.objType.material(self.settings, layer, feat)
+        feat.model = None
+      data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot, base64=self.settings.base64)
+
+    else:
+      for feat in self.features:
+        feat.material = None
+        feat.model = self.prop.objType.model(self.settings, layer, feat)
+      data["models"] = self.modelManager.build(self.pathRoot is not None)
 
     if export_blocks:
       data["blocks"] = [block.build() for block in self.blocks()]
@@ -166,7 +174,11 @@ class VectorLayerExporter(LayerExporter):
 
       f = {}
       f["geom"] = self.prop.objType.geometry(self.settings, self._layer, feat, geom)
-      f["mtl"] = feat.material
+      if feat.material is not None:
+        f["mtl"] = feat.material
+
+      if feat.model is not None:
+        f["model"] = feat.model
 
       if feat.attributes is not None:
         f["prop"] = feat.attributes
@@ -276,12 +288,13 @@ class VectorLayer:
 
   geomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry, QgsWkbTypes.LineGeometry: LineGeometry, QgsWkbTypes.PolygonGeometry: PolygonGeometry}
 
-  def __init__(self, settings, layer, prop, materialManager):
+  def __init__(self, settings, layer, prop, materialManager, modelManager):
     self.settings = settings
     self.layer = layer
     self.prop = prop
     self.name = layer.name() if layer else "no title"
     self.materialManager = materialManager
+    self.modelManager = modelManager
 
     self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
     self.geomType = layer.geometryType()
