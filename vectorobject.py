@@ -427,7 +427,7 @@ class IconType(PointTypeBase):
     filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
     ppage.initStyleWidgets(color=False)
-    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString})
+    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString, "allowURL": True})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
 
   @classmethod
@@ -452,7 +452,7 @@ class ModelFileType(PointTypeBase):
     filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
 
     ppage.initStyleWidgets(color=False, opacity=False)
-    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": layer, "filterString": filterString})
+    ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": layer, "filterString": filterString, "allowURL": True})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})

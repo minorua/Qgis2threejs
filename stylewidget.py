@@ -165,14 +165,17 @@ class FilePathWidgetFunc(WidgetFuncBase):
   FILEPATH = 1
 
   def setup(self, options=None):
-    """ options: name, label, defaultValue, filterString """
+    """ options: name, label, defaultValue, filterString, allowURL """
     options = options or {}
-    self.lineEditLabel = options.get("label", "Path")
+    self.lineEditLabel = options.get("label", "")
     WidgetFuncBase.setup(self, options.get("name", ""), editLabel=self.lineEditLabel, toolButton=True)
     self.widget.expression.setExpression(str(options.get("defaultValue", "")))
 
     self.widget.comboBox.clear()
-    self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
+    if options.get("allowURL"):
+      self.widget.comboBox.addItem("File path or URL", FilePathWidgetFunc.FILEPATH)
+    else:
+      self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
 
     layer = options.get("layer")
     if layer:
