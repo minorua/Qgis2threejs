@@ -56,15 +56,14 @@ function loadModel(url) {
     app.scene.add(parent);
 
     console.log(url + " loaded. scale = " + scale + ", rotation.x = 90 [deg]");
-    showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 4000);
+    showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
 
     app.startAnimation();
     setTimeout(app.stopAnimation, 3000);
   }
   function onError(e) {
     console.log(e.message);
-    showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.');
-    // TODO: warning color
+    showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
   }
 
   var ext = url.split(".").pop();
@@ -98,8 +97,7 @@ function init() {
   if (gl.getExtension("WEBGL_depth_texture") === null) {
     var msg = "Any 3D objects not rendered? There is a compatibility issue with QGIS 3D view. " +
               "You need to restart QGIS to use preview.";
-    showMessageBar(msg);
-    document.getElementById("messagebar").classList.add("warning");
+    showMessageBar(msg, undefined, true);
   }
 }
 
@@ -163,15 +161,23 @@ function saveModelAsGLTF(filename) {
 }
 
 var barTimerId = null;
-function showMessageBar(message, timeout) {
+function showMessageBar(message, duration, warning) {
   if (barTimerId !== null) {
     clearTimeout(barTimerId);
     barTimerId = null;
   }
-  if (timeout) barTimerId = setTimeout(closeMessageBar, timeout)
+  if (duration) {
+    barTimerId = setTimeout(closeMessageBar, duration);
+  }
   var e = document.getElementById("messagebar");
   e.innerHTML = message;
   e.style.display = "block";
+  if (warning) {
+    e.classList.add("warning");
+  }
+  else {
+    e.classList.remove("warning");
+  }
 }
 
 function closeMessageBar() {
