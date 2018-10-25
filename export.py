@@ -111,7 +111,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
     # write scene data to a file in json format
     json_object = self.exportScene()
-    with open(os.path.join(dataDir, "scene.json"), "w") as f:
+    with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
       json.dump(json_object, f, indent=2)
 
     # copy files
@@ -143,7 +143,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       options.append("Q3D.Config.northArrow.color = {0};".format(p.get("color", 0)))
 
     # read html template
-    with open(config["path"], "r", encoding="UTF-8") as f:
+    with open(config["path"], "r", encoding="utf-8") as f:
       html = f.read()
 
     title = self.settings.outputFileTitle()
@@ -159,7 +159,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       html = html.replace("${" + key + "}", value)
 
     # write to html file
-    with open(self.settings.outputFileName(), "w", encoding="UTF-8") as f:
+    with open(self.settings.outputFileName(), "w", encoding="utf-8") as f:
       f.write(html)
 
     return True

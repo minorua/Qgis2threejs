@@ -148,7 +148,7 @@ class ExportSettings:
         return False
 
     try:
-      with open(filepath, encoding="UTF-8") as f:
+      with open(filepath, "r", encoding="utf-8") as f:
         settings = json.load(f)
     except Exception as e:
       logMessage("Failed to load export settings from file. Error: " + str(e))
@@ -175,7 +175,7 @@ class ExportSettings:
       raise TypeError(repr(obj) + " is not JSON serializable")
 
     try:
-      with open(filepath, "w", encoding="UTF-8") as f:
+      with open(filepath, "w", encoding="utf-8") as f:
         json.dump(self.data, f, ensure_ascii=False, indent=2, default=default, sort_keys=True)
       return True
     except Exception as e:

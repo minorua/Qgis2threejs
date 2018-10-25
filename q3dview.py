@@ -213,7 +213,7 @@ class Q3DView(QWebView):
     return self._page.mainFrame().evaluateJavaScript(string)
 
   def loadScriptFile(self, filename):
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
       script = f.read()
     return self.runString(script, "// {} loaded".format(os.path.basename(filename)))
 

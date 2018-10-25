@@ -60,7 +60,7 @@ class SettingsDialog(QDialog):
 
       parser = configparser.SafeConfigParser()
       try:
-        with open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", encoding="UTF-8") as f:
+        with open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", encoding="utf-8") as f:
           parser.readfp(f)
 
         metadata = dict(parser.items("general"))
