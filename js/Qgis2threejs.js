@@ -556,6 +556,7 @@ limitations:
     }
     loader.load(url, function (model) {
       if (callback) callback(model);
+      app.setIntervalRender(500, 60);
     },
     undefined,
     function (e) {
@@ -789,6 +790,27 @@ limitations:
     app.updateLabelPosition();
   };
 
+  (function () {
+    var _delay, _repeat, _times, _id = null;
+    var func = function () {
+      app.render();
+      if (_repeat <= ++_times) {
+        clearInterval(_id);
+        _id = null;
+      }
+    };
+    app.setIntervalRender = function (delay, repeat) {
+      if (_id === null || _delay != delay) {
+        if (_id !== null) {
+          clearInterval(_id);
+        }
+        _id = setInterval(func, delay);
+        _delay = delay;
+      }
+      _repeat = repeat;
+      _times = 0;
+    };
+  })();
 
   // app.updateLabelPosition()
   (function () {
