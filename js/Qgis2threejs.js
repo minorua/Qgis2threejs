@@ -541,6 +541,28 @@ limitations:
     return new THREE.TextureLoader(loadingManager).load(url, callback);
   };
 
+  app.loadModelFile = function (url, callback) {
+    var loader,
+        ext = url.split(".").pop();
+    if (ext == "dae") {
+      loader = new THREE.ColladaLoader(loadingManager);
+    }
+    else if (ext == "gltf" || ext == "glb") {
+      loader = new THREE.GLTFLoader(loadingManager);
+    }
+    else {
+      console.log("Model file type not supported: " + url);
+      return;
+    }
+    loader.load(url, function (model) {
+      if (callback) callback(model);
+    },
+    undefined,
+    function (e) {
+      console.log("Failed to load model: " + e.message);
+    });
+  };
+
   app.mouseDownPoint = new THREE.Vector2();
   app.mouseUpPoint = new THREE.Vector2();
 
@@ -2844,21 +2866,8 @@ Q3D.Model.prototype = {
 
   // callback is called when model has been completely loaded
   load: function (url, callback) {
-    var _this = this,
-        ext = url.split(".").pop(),
-        Loader;
-    if (ext == "dae") {
-      Loader = THREE.ColladaLoader;
-    }
-    else if (ext == "gltf" || ext == "glb") {
-      Loader = THREE.GLTFLoader;
-    }
-    else {
-      return;
-    }
-
-    var loader = new Loader();
-    loader.load(url, function (model) {
+    var _this = this;
+    Q3D.application.loadModelFile(url, function (model) {
       _this.model = model;
       _this._loadCompleted(callback);
     });
