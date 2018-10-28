@@ -560,7 +560,7 @@ limitations:
     },
     undefined,
     function (e) {
-      console.log("Failed to load model: " + e.message);
+      console.log("Failed to load model: " + url);
     });
   };
 

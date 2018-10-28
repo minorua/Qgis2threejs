@@ -433,7 +433,9 @@ class IconType(PointTypeBase):
   @classmethod
   def material(cls, settings, layer, feat):
     path_url = feat.values[1]
-    return layer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
+    if path_url:
+      return layer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
+    return None
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
@@ -461,7 +463,9 @@ class ModelFileType(PointTypeBase):
   @classmethod
   def model(cls, settings, layer, feat):
     model_path = feat.values[0]
-    return layer.modelManager.modelIndex(model_path)
+    if model_path:
+      return layer.modelManager.modelIndex(model_path)
+    return None
 
   @classmethod
   def geometry(cls, settings, layer, feat, geom):
