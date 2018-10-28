@@ -3,7 +3,7 @@ Q3D.gui = {
   type: "dat-gui",
 
   parameters: {
-    lyr: [],
+    lyr: {},
     cp: {
       c: "#ffffff",
       d: 0,
