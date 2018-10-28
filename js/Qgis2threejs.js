@@ -1598,6 +1598,26 @@ Q3D.Materials.prototype.dispose = function () {
   this.materials = [];
 };
 
+Q3D.Materials.prototype.addFromObject3D = function (object) {
+  var _this = this, mtls = [];
+
+  object.traverse(function (obj) {
+    if (obj.material === undefined) return;
+    ((obj.material instanceof Array) ? obj.material : [obj.material]).forEach(function (mtl) {
+      if (mtls.indexOf(mtl) == -1) {
+        mtls.push(mtl);
+      }
+    });
+  });
+
+  var material;
+  for (var i = 0, l = mtls.length; i < l; i++) {
+    material = new Q3D.Material();
+    material.set(mtls[i]);
+    this.materials.push(material);
+  }
+};
+
 // opacity
 Q3D.Materials.prototype.opacity = function () {
   if (this.materials.length == 0) return 1;
@@ -2359,8 +2379,13 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer" && jsonObject.properties.objType == "Model File" && jsonObject.data !== undefined) {
     if (this.models === undefined) {
+      var _this = this;
+
       this.models = new Q3D.Models();
-      this.models.addEventListener("renderRequest", this.requestRender.bind(this));
+      this.models.addEventListener("modelLoaded", function (event) {
+        _this.materials.addFromObject3D(event.model.scene);
+        _this.requestRender();
+      });
     }
     else {
       this.models.clear();
@@ -2936,9 +2961,9 @@ Q3D.Models.prototype = Object.create(THREE.EventDispatcher.prototype);
 Q3D.Models.prototype.constructor = Q3D.Models;
 
 Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
-  var _this = this, iterated = false;
-  var callback = function () {
-    if (iterated) _this.dispatchEvent({type: "renderRequest"});
+  var _this = this;
+  var callback = function (model) {
+    _this.dispatchEvent({type: "modelLoaded", model: model});
   };
 
   var model, url;
@@ -2956,7 +2981,6 @@ Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
 
     this.models.push(model);
   }
-  iterated = true;
 };
 
 Q3D.Models.prototype.get = function (index) {
