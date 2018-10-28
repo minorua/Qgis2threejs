@@ -1600,6 +1600,8 @@ Q3D.Materials.prototype.dispose = function () {
 
 // opacity
 Q3D.Materials.prototype.opacity = function () {
+  if (this.materials.length == 0) return 1;
+
   var sum = 0;
   for (var i = 0, l = this.materials.length; i < l; i++) {
     sum += this.materials[i].mtl.opacity;
