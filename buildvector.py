@@ -25,7 +25,7 @@ from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, Qg
 
 from .conf import debug_mode
 from .datamanager import MaterialManager, ModelManager
-from .exportlayer import LayerExporter
+from .buildlayer import LayerBuilder
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import VectorPropertyReader
 from .qgis2threejstools import logMessage
@@ -38,14 +38,14 @@ def json_default(o):
   raise TypeError(repr(o) + " is not JSON serializable")
 
 
-class VectorLayerExporter(LayerExporter):
+class VectorLayerBuilder(LayerBuilder):
 
   gt2str = {QgsWkbTypes.PointGeometry: "point",
             QgsWkbTypes.LineGeometry: "line",
             QgsWkbTypes.PolygonGeometry: "polygon"}
 
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
-    LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+    LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
     self.materialManager = MaterialManager(settings.materialType())    #TODO: takes imageManager
     self.modelManager = ModelManager(settings)
@@ -56,7 +56,7 @@ class VectorLayerExporter(LayerExporter):
 
     self.demSize = None
 
-  def build(self, export_blocks=False):
+  def build(self, build_blocks=False):
     mapLayer = self.layer.mapLayer
     if mapLayer is None:
       return
@@ -113,7 +113,7 @@ class VectorLayerExporter(LayerExporter):
         feat.model = self.prop.objType.model(self.settings, layer, feat)
       data["models"] = self.modelManager.build(self.pathRoot is not None)
 
-    if export_blocks:
+    if build_blocks:
       data["blocks"] = [block.build() for block in self.blocks()]
 
     d = {
@@ -128,7 +128,7 @@ class VectorLayerExporter(LayerExporter):
     return d
 
   def layerProperties(self):
-    p = LayerExporter.layerProperties(self)
+    p = LayerBuilder.layerProperties(self)
     p["type"] = self.gt2str.get(self.layer.mapLayer.geometryType())
     p["objType"] = self.prop.objType.name
 
@@ -147,8 +147,8 @@ class VectorLayerExporter(LayerExporter):
     index = 0
     FEATURE_COUNT = 50
 
-    def createBlockExporter(blockIndex, features):
-      return FeatureBlockExporter(blockIndex, {
+    def createBlockBuilder(blockIndex, features):
+      return FeatureBlockBuilder(blockIndex, {
         "type": "block",
         "layer": self.layer.jsLayerId,
         "block": blockIndex,
@@ -191,15 +191,15 @@ class VectorLayerExporter(LayerExporter):
       feats.append(f)
 
       if len(feats) == FEATURE_COUNT:
-        yield createBlockExporter(index, feats)
+        yield createBlockBuilder(index, feats)
         index += 1
         feats = []
 
     if len(feats) or index == 0:
-      yield createBlockExporter(index, feats)
+      yield createBlockBuilder(index, feats)
 
 
-class FeatureBlockExporter:
+class FeatureBlockBuilder:
   
   def __init__(self, blockIndex, data, pathRoot=None, urlRoot=None):
     self.blockIndex = blockIndex

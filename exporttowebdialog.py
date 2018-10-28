@@ -23,7 +23,7 @@ from PyQt5.Qt import Qt
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
-from .export import ThreeJSFileExporter
+from .build import ThreeJSExporter
 from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
@@ -134,7 +134,7 @@ class ExportToWebDialog(QDialog):
     self.progress(0)
 
     # export
-    exporter = ThreeJSFileExporter(self.settings, self.progress)
+    exporter = ThreeJSExporter(self.settings, self.progress)
     exporter.export()
 
     self.progress(100)

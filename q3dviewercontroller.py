@@ -22,7 +22,7 @@ import time
 from qgis.core import QgsApplication
 
 from .conf import debug_mode
-from .export import ThreeJSExporter
+from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, pluginDir
 
@@ -43,7 +43,7 @@ class Q3DViewerController:
         logMessage(err_msg or "Invalid settings")
 
     self.settings = settings
-    self.exporter = ThreeJSExporter(settings)
+    self.exporter = ThreeJSBuilder(settings)
 
     self.iface = None
     self.previewEnabled = True
@@ -93,7 +93,7 @@ class Q3DViewerController:
 
     # export scene
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
-    self.iface.loadJSONObject(self.exporter.exportScene(False))
+    self.iface.loadJSONObject(self.exporter.buildScene(False))
 
     if update_scene_settings:
       # update background color
@@ -140,7 +140,7 @@ class Q3DViewerController:
 
     ts0 = time.time()
     tss = []
-    for exporter in self.exporter.exporters(layer):
+    for exporter in self.exporter.builders(layer):
       if self.aborted:
         return False
       ts1 = time.time()

@@ -25,21 +25,21 @@ from qgis.core import QgsPoint, QgsProject
 
 from .conf import debug_mode
 from .datamanager import MaterialManager
-from .exportlayer import LayerExporter
+from .buildlayer import LayerBuilder
 from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
 from .rotatedrect import RotatedRect
 
 
-class DEMLayerExporter(LayerExporter):
+class DEMLayerBuilder(LayerBuilder):
 
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
     """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
-    LayerExporter.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+    LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
     self.provider = settings.demProviderByLayerId(layer.layerId)
     self.prop = DEMPropertyReader(layer.layerId, layer.properties)
 
-  def build(self, export_blocks=False):
+  def build(self, build_blocks=False):
     if self.provider is None:
       return None
 
@@ -53,7 +53,7 @@ class DEMLayerExporter(LayerExporter):
       d["PROPERTIES"] = self.properties
 
     # DEM block
-    if export_blocks:
+    if build_blocks:
       d["data"] = [block.build() for block in self.blocks()]
     else:
       d["data"] = []
@@ -61,7 +61,7 @@ class DEMLayerExporter(LayerExporter):
     return d
 
   def layerProperties(self):
-    p = LayerExporter.layerProperties(self)
+    p = LayerBuilder.layerProperties(self)
     p["type"] = "dem"
     p["shading"] = self.properties.get("checkBox_Shading", True)
     return p
@@ -108,25 +108,25 @@ class DEMLayerExporter(LayerExporter):
         grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughening + 1),
                           max(2, (base_grid_size.height() - 1) // roughening + 1))
 
-      block = DEMBlockExporter(self.settings,
-                               self.imageManager,
-                               self.layer,
-                               blockIndex,
-                               self.provider,
-                               grid_size,
-                               extent,
-                               mapTo3d.planeWidth,
-                               mapTo3d.planeHeight,
-                               offsetX=mapTo3d.planeWidth * sx,
-                               offsetY=mapTo3d.planeHeight * sy,
-                               edgeRougheness=roughening if is_center else 1,
-                               clip_geometry=clip_geometry if is_center else None,
-                               pathRoot=self.pathRoot,
-                               urlRoot=self.urlRoot)
+      block = DEMBlockBuilder(self.settings,
+                              self.imageManager,
+                              self.layer,
+                              blockIndex,
+                              self.provider,
+                              grid_size,
+                              extent,
+                              mapTo3d.planeWidth,
+                              mapTo3d.planeHeight,
+                              offsetX=mapTo3d.planeWidth * sx,
+                              offsetY=mapTo3d.planeHeight * sy,
+                              edgeRougheness=roughening if is_center else 1,
+                              clip_geometry=clip_geometry if is_center else None,
+                              pathRoot=self.pathRoot,
+                              urlRoot=self.urlRoot)
       yield block
 
 
-class DEMBlockExporter:
+class DEMBlockBuilder:
 
   def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
     self.settings = settings

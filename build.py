@@ -25,19 +25,19 @@ import os
 from PyQt5.QtCore import QDir
 
 from .datamanager import ImageManager
-from .exportdem import DEMLayerExporter
-from .exportvector import VectorLayerExporter
+from .builddem import DEMLayerBuilder
+from .buildvector import VectorLayerBuilder
 from . import q3dconst
 from . import qgis2threejstools as tools
 
-class ThreeJSExporter:
+class ThreeJSBuilder:
 
   def __init__(self, settings, progress=None):
     self.settings = settings
     self.progress = progress or dummyProgress
     self.imageManager = ImageManager(settings)
 
-  def exportScene(self, export_layers=True):
+  def buildScene(self, build_layers=True):
     crs = self.settings.crs
     extent = self.settings.baseExtent
     rect = extent.unrotatedRect()
@@ -62,40 +62,40 @@ class ThreeJSExporter:
         }
       }
 
-    if export_layers:
-      obj["layers"] = self.exportLayers()
+    if build_layers:
+      obj["layers"] = self.buildLayers()
 
     return obj
 
-  def exportLayers(self):
+  def buildLayers(self):
     layers = []
     for layer in self.settings.getLayerList():
       if layer.visible:
-        layers.append(self.exportLayer(layer))
+        layers.append(self.buildLayer(layer))
     return layers
 
-  def exportLayer(self, layer):
+  def buildLayer(self, layer):
     if layer.geomType == q3dconst.TYPE_DEM:
-      exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
+      builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
-    return exporter.build()
+      builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+    return builder.build()
 
-  def exporters(self, layer):
+  def builders(self, layer):
     if layer.geomType == q3dconst.TYPE_DEM:
-      exporter = DEMLayerExporter(self.settings, self.imageManager, layer)
+      builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer)
-    yield exporter
+      builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+    yield builder
 
-    for blockExporter in exporter.blocks():
-      yield blockExporter
+    for blockBuilder in builder.blocks():
+      yield blockBuilder
 
 
-class ThreeJSFileExporter(ThreeJSExporter):
+class ThreeJSExporter(ThreeJSBuilder):
 
   def __init__(self, settings, progress=None):
-    ThreeJSExporter.__init__(self, settings, progress)
+    ThreeJSBuilder.__init__(self, settings, progress)
 
     self._index = -1
 
@@ -110,7 +110,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
       QDir().mkpath(dataDir)
 
     # write scene data to a file in json format
-    json_object = self.exportScene()
+    json_object = self.buildScene()
     with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
       json.dump(json_object, f, indent=2)
 
@@ -168,17 +168,17 @@ class ThreeJSFileExporter(ThreeJSExporter):
     self._index += 1
     return self._index
 
-  def exportLayer(self, layer):
+  def buildLayer(self, layer):
     title = tools.abchex(self.nextLayerIndex())
     pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
     urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
     if layer.geomType == q3dconst.TYPE_DEM:
-      exporter = DEMLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+      builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
     else:
-      exporter = VectorLayerExporter(self.settings, self.imageManager, layer, pathRoot, urlRoot)
-      self.modelManagers.append(exporter.modelManager)
-    return exporter.build(True)
+      builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+      self.modelManagers.append(builder.modelManager)
+    return builder.build(True)
 
   def filesToCopy(self):
     # three.js library
@@ -232,7 +232,7 @@ class ThreeJSFileExporter(ThreeJSExporter):
 
 
 # def exportToThreeJS(settings, progress=None):
-#  exporter = ThreeJSFileExporter(settings, progress)
+#  exporter = ThreeJSExporter(settings, progress)
 #  exporter.export()
 
 

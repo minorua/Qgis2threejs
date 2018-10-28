@@ -21,7 +21,7 @@
 """
 
 
-class LayerExporter:
+class LayerBuilder:
 
   def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
     self.settings = settings
