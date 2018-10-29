@@ -32,7 +32,7 @@ from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
-from .conf import def_vals
+from .conf import DEF_SETS
 from .datamanager import MaterialManager
 from .pluginmanager import pluginManager
 from .qgis2threejscore import calculateDEMSize
@@ -189,9 +189,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     if properties:
       self.setProperties(properties)
     else:
-      self.lineEdit_BaseSize.setText(str(def_vals.baseSize))
-      self.lineEdit_zFactor.setText(str(def_vals.zExaggeration))
-      self.lineEdit_zShift.setText(str(def_vals.zShift))
+      self.lineEdit_BaseSize.setText(str(DEF_SETS.BASE_SIZE))
+      self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
+      self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
 
     # Supported projections
     # https://github.com/proj4js/proj4js
@@ -213,11 +213,11 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     p = PropertyPage.properties(self)
     # check validity
     if not is_number(self.lineEdit_BaseSize.text()):
-      p["lineEdit_BaseSize"] = str(def_vals.baseSize)
+      p["lineEdit_BaseSize"] = str(DEF_SETS.BASE_SIZE)
     if not is_number(self.lineEdit_zFactor.text()):
-      p["lineEdit_zFactor"] = str(def_vals.zExaggeration)
+      p["lineEdit_zFactor"] = str(DEF_SETS.Z_EXAGGERATION)
     if not is_number(self.lineEdit_zShift.text()):
-      p["lineEdit_zShift"] = str(def_vals.zShift)
+      p["lineEdit_zShift"] = str(DEF_SETS.Z_SHIFT)
     return p
 
 

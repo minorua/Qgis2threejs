@@ -25,7 +25,7 @@ from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 
 from . import q3dconst
-from .conf import debug_mode, plugin_version
+from .conf import DEBUG_MODE, PLUGIN_VERSION
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
@@ -73,7 +73,7 @@ class Q3DViewerInterface:
     self.runString("init();")
     self.runString("app.start();")
 
-    if debug_mode:
+    if DEBUG_MODE:
       self.runString("displayFPS();")
 
   def setPreviewEnabled(self, enabled):
@@ -86,7 +86,7 @@ class Q3DViewerInterface:
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
-    if debug_mode == 2:
+    if DEBUG_MODE == 2:
       self.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
     self.webView.sendData(obj)
@@ -402,7 +402,7 @@ class Q3DWindow(QMainWindow):
     QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs/issues"))
 
   def about(self):
-    QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(plugin_version), QMessageBox.Ok)
+    QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(PLUGIN_VERSION), QMessageBox.Ok)
 
 
 class PropertiesDialog(QDialog):

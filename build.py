@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QDir
 
-from .conf import debug_mode
+from .conf import DEBUG_MODE
 from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -113,7 +113,7 @@ class ThreeJSExporter(ThreeJSBuilder):
     # write scene data to a file in json format
     json_object = self.buildScene()
     with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
-      json.dump(json_object, f, indent=2 if debug_mode else None)
+      json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
     # copy files
     self.progress(90, "Copying library files")

@@ -29,7 +29,7 @@ from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray,
 from PyQt5.QtWidgets import QMessageBox
 from qgis.core import NULL, QgsMapLayer, QgsMessageLog, QgsProject
 
-from .conf import debug_mode
+from .conf import DEBUG_MODE
 
 
 def getLayersInProject():
@@ -149,7 +149,7 @@ def getTemplateConfig(template_path):
   config = {"path": abspath}
   for item in parser.items("general"):
     config[item[0]] = item[1]
-  if debug_mode:
+  if DEBUG_MODE:
     qDebug("config: " + str(config))
   return config
 
@@ -157,16 +157,16 @@ def getTemplateConfig(template_path):
 def copyFile(source, dest, overwrite=False):
   if os.path.exists(dest):
     if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
-      if debug_mode:
+      if DEBUG_MODE:
         qDebug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
       QFile.remove(dest)
     else:
-      if debug_mode:
+      if DEBUG_MODE:
         qDebug("File already exists: %s" % dest)
       return False
 
   ret = QFile.copy(source, dest)
-  if debug_mode:
+  if DEBUG_MODE:
     if ret:
       qDebug("File copied: %s to %s" % (source, dest))
     else:
@@ -177,16 +177,16 @@ def copyFile(source, dest, overwrite=False):
 def copyDir(source, dest, overwrite=False):
   if os.path.exists(dest):
     if overwrite:
-      if debug_mode:
+      if DEBUG_MODE:
         qDebug("Existing dir removed: %s" % dest)
       shutil.rmtree(dest)
     else:
-      if debug_mode:
+      if DEBUG_MODE:
         qDebug("Dir already exists: %s" % dest)
       return False
 
   shutil.copytree(source, dest)
-  if debug_mode:
+  if DEBUG_MODE:
     qDebug("Dir copied: %s to %s" % (source, dest))
   return True
 
@@ -198,7 +198,7 @@ def copyFiles(filesToCopy, out_dir):
     subdirs = item.get("subdirs", False)
     overwrite = item.get("overwrite", False)
 
-    if debug_mode:
+    if DEBUG_MODE:
       qDebug(str(item))
       qDebug("dest dir: %s" % dest_dir)
 

@@ -21,7 +21,7 @@
 import time
 from qgis.core import QgsApplication
 
-from .conf import debug_mode
+from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, pluginDir
@@ -151,7 +151,7 @@ class Q3DViewerController:
       tss.append([ts2 - ts1, ts3 - ts2])
       QgsApplication.processEvents()      # NOTE: process events only for the calling thread
     layer.updated = False
-    if debug_mode:
+    if DEBUG_MODE:
       logMessage("updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss])))
     return True
 

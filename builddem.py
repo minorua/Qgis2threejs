@@ -23,7 +23,7 @@ import struct
 from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsPoint, QgsProject
 
-from .conf import debug_mode
+from .conf import DEBUG_MODE
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
@@ -49,7 +49,7 @@ class DEMLayerBuilder(LayerBuilder):
       "properties": self.layerProperties()
       }
 
-    if debug_mode:
+    if DEBUG_MODE:
       d["PROPERTIES"] = self.properties
 
     # DEM block

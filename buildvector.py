@@ -23,7 +23,7 @@ import json
 from PyQt5.QtCore import QVariant
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
-from .conf import BLOCK_FEATURES, debug_mode
+from .conf import BLOCK_FEATURES, DEBUG_MODE
 from .datamanager import MaterialManager, ModelManager
 from .buildlayer import LayerBuilder
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
@@ -123,7 +123,7 @@ class VectorLayerBuilder(LayerBuilder):
       "data": data
       }
 
-    if debug_mode:
+    if DEBUG_MODE:
       d["PROPERTIES"] = properties
     return d
 
@@ -209,7 +209,7 @@ class FeatureBlockBuilder:
   def build(self):
     if self.pathRoot is not None:
       with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
-        json.dump(self.data, f, ensure_ascii=False, indent=2 if debug_mode else None, default=json_default)
+        json.dump(self.data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
 
       url = self.urlRoot + "{0}.json".format(self.blockIndex)
       return {"url": url}

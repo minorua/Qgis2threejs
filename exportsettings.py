@@ -24,7 +24,7 @@ from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from . import q3dconst
-from .conf import def_vals
+from .conf import DEF_SETS
 from .pluginmanager import pluginManager
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .rotatedrect import RotatedRect
@@ -130,7 +130,7 @@ class ExportSettings:
     ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
     if ctrl:
       return ctrl
-    return QSettings().value("/Qgis2threejs/lastControls", def_vals.controls, type=str)
+    return QSettings().value("/Qgis2threejs/lastControls", DEF_SETS.CONTROLS, type=str)
 
   def setControls(self, name):
     self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
@@ -183,7 +183,7 @@ class ExportSettings:
       return False
 
   def template(self):
-    return self.data.get("Template", def_vals.template)
+    return self.data.get("Template", DEF_SETS.TEMPLATE)
 
   def setTemplate(self, filepath):
     """filepath: relative path from html_templates directory or absolute path to a template html file"""
@@ -236,9 +236,9 @@ class ExportSettings:
       return None
 
     sp = self.sceneProperties()
-    baseSize = sp.get("lineEdit_BaseSize", def_vals.baseSize)
-    verticalExaggeration = sp.get("lineEdit_zFactor", def_vals.zExaggeration)
-    verticalShift = sp.get("lineEdit_zShift", def_vals.zShift)
+    baseSize = sp.get("lineEdit_BaseSize", DEF_SETS.BASE_SIZE)
+    verticalExaggeration = sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION)
+    verticalShift = sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT)
     self._mapTo3d = MapTo3D(self.mapSettings, float(baseSize), float(verticalExaggeration), float(verticalShift))
     return self._mapTo3d
 

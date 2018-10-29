@@ -33,7 +33,7 @@ except ModuleNotFoundError:
     QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
   raise
 
-from .conf import debug_mode
+from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage, pluginDir
 
 def base64image(image):
@@ -92,14 +92,14 @@ class Q3DWebPage(QWebPage):
   def __init__(self, parent=None):
     QWebPage.__init__(self, parent)
 
-    if debug_mode == 2:
+    if DEBUG_MODE == 2:
       # open log file
       self.logfile = open(pluginDir("q3dview.log"), "w")
 
   def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
     self.consoleMessage.emit(message, lineNumber, sourceID)
 
-    if debug_mode == 2:
+    if DEBUG_MODE == 2:
       now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
       self.logfile.flush()
@@ -160,7 +160,7 @@ class Q3DView(QWebView):
 
   def addJSObject(self):
     self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-    if debug_mode:
+    if DEBUG_MODE:
       self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
   def pageLoaded(self, ok):
@@ -201,11 +201,11 @@ class Q3DView(QWebView):
     self.runString("app.controls.reset();")
 
   def runString(self, string, message="", sourceID="q3dview.py"):
-    if debug_mode:
+    if DEBUG_MODE:
       self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
       qDebug("runString: {}\n".format(message if message else string))
 
-      if debug_mode == 2:
+      if DEBUG_MODE == 2:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._page.logfile.write("{} runString: {}\n".format(now, message if message else string))
         self._page.logfile.flush()

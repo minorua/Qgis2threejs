@@ -23,7 +23,7 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 from qgis.core import QgsNetworkAccessManager
 import threading
 
-debug_mode = 0
+DEBUG_MODE = 0
 
 
 class Downloader(QObject):
@@ -196,11 +196,11 @@ class Downloader(QObject):
       return self.fetchedFiles
 
   def log(self, msg):
-    if debug_mode:
+    if DEBUG_MODE:
       qDebug(msg)
 
   def logT(self, msg):
-    if debug_mode:
+    if DEBUG_MODE:
       qDebug("%s: %s" % (str(threading.current_thread()), msg))
 
   def finishedCount(self):

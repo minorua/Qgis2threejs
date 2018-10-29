@@ -18,22 +18,24 @@
  ***************************************************************************/
 """
 
-plugin_version = "2.1"
-debug_mode = 1
+# general
+PLUGIN_VERSION = "2.1"
+DEBUG_MODE = 1
   # 0. no debug info
   # 1. JS console, qDebug
   # 2. JS console, qDebug, log file, "debug" element
 
+# vector layer
 BLOCK_FEATURES = 50   # max number of features in a block of vector layer features
 
+# default export settings
+class DEF_SETS:
 
-class def_vals:
-
-  template = "3DViewer.html"
+  TEMPLATE = "3DViewer.html"
 
   # world
-  baseSize = 100
-  zExaggeration = 1.0
-  zShift = 0
+  BASE_SIZE = 100
+  Z_EXAGGERATION = 1.0
+  Z_SHIFT = 0
 
-  controls = "OrbitControls.js"    # last selected one has priority
+  CONTROLS = "OrbitControls.js"    # last selected one has priority
