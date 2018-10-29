@@ -2420,14 +2420,22 @@ Q3D.PointLayer.prototype.build = function (features) {
     unitGeom = unitGeom || new THREE.BoxBufferGeometry(1, 1, 1);
   }
   else if (objType == "Disk") {
-    var xAxis = Q3D.uv.i, zAxis = Q3D.uv.k;
-    var sz = (this.ns === undefined || this.ns == false) ? this.sceneData.zExaggeration : 1;
+    var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated
     setSR = function (mesh, geom) {
       mesh.scale.set(geom.r, 1, geom.r * sz);
-      mesh.rotateOnWorldAxis(xAxis, (90 - geom.d) * deg2rad);
-      mesh.rotateOnWorldAxis(zAxis, -geom.dd * deg2rad);
+      mesh.rotateOnWorldAxis(Q3D.uv.i, (90 - geom.d) * deg2rad);
+      mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
     };
     unitGeom = unitGeom || new THREE.CylinderBufferGeometry(1, 1, 0.0001, 32);
+  }
+  else if (objType == "Plane") {
+    var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated
+    setSR = function (mesh, geom) {
+      mesh.scale.set(geom.w, geom.l * sz, 1);
+      mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
+      mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
+    };
+    unitGeom = unitGeom || new THREE.PlaneBufferGeometry(1, 1, 1, 1);
   }
   else {  // Cylinder or Cone
     setSR = function (mesh, geom) {

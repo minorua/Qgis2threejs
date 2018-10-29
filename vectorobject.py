@@ -39,7 +39,7 @@ def tr(source):
 
 
 def _():
-  tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk")
+  tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
   tr("Line"), tr("Pipe"), tr("Profile")
   tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
   tr("Icon"), tr("Model File")
@@ -183,6 +183,37 @@ class DiskType(PointBasicTypeBase):
     return {"pts": geom.asList(),
             "r": feat.values[2] * settings.mapTo3d().multiplier,
             "d": feat.values[3],
+            "dd": dd}
+
+
+class PlaneType(PointBasicTypeBase):
+
+  name = "Plane"
+
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
+    ppage.initStyleWidgets()
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Length", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+
+  @classmethod
+  def material(cls, settings, layer, feat):
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
+    dd = feat.values[5]
+    # take map rotation into account
+    rotation = settings.baseExtent.rotation()
+    if rotation:
+      dd = (dd + rotation) % 360
+
+    return {"pts": geom.asList(),
+            "w": feat.values[2] * settings.mapTo3d().multiplier,
+            "l": feat.values[3] * settings.mapTo3d().multiplier,
+            "d": feat.values[4],
             "dd": dd}
 
 
@@ -487,7 +518,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, IconType, ModelFileType],
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, IconType, ModelFileType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }
