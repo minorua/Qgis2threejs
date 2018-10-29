@@ -210,7 +210,7 @@ class FeatureBlockBuilder:
   def build(self):
     if self.pathRoot is not None:
       with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
-        json.dump(self.data, f, ensure_ascii=False, indent=1, default=json_default)
+        json.dump(self.data, f, ensure_ascii=False, indent=2 if debug_mode else None, default=json_default)
 
       url = self.urlRoot + "{0}.json".format(self.blockIndex)
       return {"url": url}
