@@ -2422,11 +2422,11 @@ Q3D.PointLayer.prototype.build = function (features) {
   else if (objType == "Disk") {
     var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated
     setSR = function (mesh, geom) {
-      mesh.scale.set(geom.r, 1, geom.r * sz);
-      mesh.rotateOnWorldAxis(Q3D.uv.i, (90 - geom.d) * deg2rad);
+      mesh.scale.set(geom.r, geom.r * sz, 1);
+      mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
       mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
     };
-    unitGeom = unitGeom || new THREE.CylinderBufferGeometry(1, 1, 0.0001, 32);
+    unitGeom = unitGeom || new THREE.CircleBufferGeometry(1, 32);
   }
   else if (objType == "Plane") {
     var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated

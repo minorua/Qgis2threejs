@@ -173,6 +173,10 @@ class DiskType(PointBasicTypeBase):
     ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
 
   @classmethod
+  def material(cls, settings, layer, feat):
+    return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+
+  @classmethod
   def geometry(cls, settings, layer, feat, geom):
     dd = feat.values[4]
     # take map rotation into account
