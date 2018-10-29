@@ -24,6 +24,8 @@ debug_mode = 1
   # 1. JS console, qDebug
   # 2. JS console, qDebug, log file, "debug" element
 
+BLOCK_FEATURES = 50   # max number of features in a block of vector layer features
+
 
 class def_vals:
 
