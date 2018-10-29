@@ -2514,13 +2514,30 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
     f.geom.pts.forEach(function (pt) {
       model.callbackOnLoad(function (m) {
         var obj = m.scene.clone();
-        obj.scale.set(f.geom.scale, f.geom.scale, f.geom.scale);    // * _this.sceneData.zExaggeration -> objectGroup.scale.z
-        e.set(f.geom.rotateX * deg2rad, f.geom.rotateY * deg2rad, f.geom.rotateZ * deg2rad);
-        obj.quaternion.multiply(q.setFromEuler(e));
-        obj.position.fromArray(pt);
+        obj.scale.set(f.geom.scale, f.geom.scale, f.geom.scale);
 
-        obj.userData.properties = f.prop;
-        f.objIndices.push(_this.addObject(obj));
+        if (obj.rotation.x) {   // == -Math.PI / 2 (z-up model)
+          // reset coordinate system to z-up and specified rotation
+          obj.rotation.set(0, 0, 0);
+          obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
+                                                       f.geom.rotateY * deg2rad,
+                                                       f.geom.rotateZ * deg2rad)));
+        }
+        else {
+          // y-up to z-up and specified rotation
+          obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
+                                                       f.geom.rotateY * deg2rad,
+                                                       f.geom.rotateZ * deg2rad)));
+          obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
+        }
+
+        var parent = new THREE.Group();
+        parent.scale.set(1, 1, _this.sceneData.zExaggeration);
+        parent.position.fromArray(pt);
+        parent.userData.properties = f.prop;
+        parent.add(obj);
+
+        f.objIndices.push(_this.addObject(parent));
       });
     });
   });

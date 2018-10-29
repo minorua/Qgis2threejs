@@ -55,7 +55,7 @@ function loadModel(url) {
     parent.add(res.scene);
     app.scene.add(parent);
 
-    console.log(url + " loaded. scale = " + scale + ", rotation.x = 90 [deg]");
+    console.log(url + " loaded. scale = " + scale);
     showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
 
     app.setIntervalRender(250, 20);
