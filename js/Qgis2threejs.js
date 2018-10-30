@@ -693,10 +693,10 @@ limitations:
 
   app.buildCamera = function (isOrtho) {
     if (isOrtho) {
-      app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10, 0.1, 1000);
+      app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10, 0.1, 10000);
     }
     else {
-      app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 1000);
+      app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 10000);
     }
     app.camera.position.set(0, 100, 100);
   };
