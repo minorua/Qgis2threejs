@@ -55,10 +55,16 @@ function loadModel(url) {
     parent.add(res.scene);
     app.scene.add(parent);
 
-    console.log(url + " loaded. scale = " + scale);
-    showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
-
     app.setIntervalRender(250, 20);
+
+    var sceneScale = app.scene.userData.scale,
+        objScale = scale / sceneScale;
+
+    console.log("Model " + url + " loaded.")
+    console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
+    console.log("Use scene reload (F5) to clear the added object.");
+
+    showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
   }
   function onError(e) {
     console.log(e.message);
