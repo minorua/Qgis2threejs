@@ -114,6 +114,9 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
     <addaction name="actionHomePage"/>
@@ -338,20 +341,32 @@
    <property name="text">
     <string>&amp;Help</string>
    </property>
+   <property name="toolTip">
+    <string>Open plugin document in default browser.</string>
+   </property>
   </action>
   <action name="actionHomePage">
    <property name="text">
     <string>Plugin Home Page</string>
+   </property>
+   <property name="toolTip">
+    <string>Open plugin homepage in default browser.</string>
    </property>
   </action>
   <action name="actionSendFeedback">
    <property name="text">
     <string>Send Feedback</string>
    </property>
+   <property name="toolTip">
+    <string>Open plugin issue tracking system in default browser.</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About Qgis2threejs Plugin</string>
+   </property>
+   <property name="toolTip">
+    <string>Display this plugin version.</string>
    </property>
   </action>
   <action name="actionSaveAsOBJ">

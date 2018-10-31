@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\q3dwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.5
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -42,6 +42,7 @@ class Ui_Q3DWindow(object):
         self.menuSaveAs = QtWidgets.QMenu(self.menuFile)
         self.menuSaveAs.setObjectName("menuSaveAs")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
+        self.menuHelp.setToolTipsVisible(True)
         self.menuHelp.setObjectName("menuHelp")
         Q3DWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(Q3DWindow)
@@ -226,9 +227,13 @@ class Ui_Q3DWindow(object):
         self.actionCloseExporter.setText(_translate("Q3DWindow", "Close Exporter"))
         self.actionPluginSettings.setText(_translate("Q3DWindow", "Exporter Settings.."))
         self.actionHelp.setText(_translate("Q3DWindow", "&Help"))
+        self.actionHelp.setToolTip(_translate("Q3DWindow", "Open plugin document in default browser."))
         self.actionHomePage.setText(_translate("Q3DWindow", "Plugin Home Page"))
+        self.actionHomePage.setToolTip(_translate("Q3DWindow", "Open plugin homepage in default browser."))
         self.actionSendFeedback.setText(_translate("Q3DWindow", "Send Feedback"))
+        self.actionSendFeedback.setToolTip(_translate("Q3DWindow", "Open plugin issue tracking system in default browser."))
         self.actionAbout.setText(_translate("Q3DWindow", "About Qgis2threejs Plugin"))
+        self.actionAbout.setToolTip(_translate("Q3DWindow", "Display this plugin version."))
         self.actionSaveAsOBJ.setText(_translate("Q3DWindow", "Wavefront (.obj)"))
         self.actionSaveAsGLTF.setText(_translate("Q3DWindow", "glTF (.gltf, .glb)"))
         self.actionClearAllSettings.setText(_translate("Q3DWindow", "Clear All Settings"))

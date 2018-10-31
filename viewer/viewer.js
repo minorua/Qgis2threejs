@@ -62,7 +62,7 @@ function loadModel(url) {
 
     console.log("Model " + url + " loaded.")
     console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
-    console.log("Use scene reload (F5) to clear the added object.");
+    console.log("To clear the added object, use scene reload (F5).");
 
     showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
   }
