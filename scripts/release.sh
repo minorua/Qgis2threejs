@@ -16,7 +16,7 @@ rm -f ${PLUGINNAME}.zip
 echo [Check] js/Qgis2threejs.js version updated?
 echo [Check] plugin_version in conf.py updated?
 echo [Check] metadata.txt version updated?
-echo -n [Check] docs/conf.py version updated? [y/n]...
+echo -n [Check] README.md version updated? [y/n]...
 read ret
 if [ ${ret} != "y" ]; then exit; fi
 
@@ -24,8 +24,8 @@ if [ ${ret} != "y" ]; then exit; fi
 git branch -D release.sh > /dev/null 2>&1
 git checkout -b release.sh
 
-echo [Task] set debug_mode=0
-sed -i 's/debug_mode = ./debug_mode = 0/g' conf.py
+echo [Task] set DEBUG_MODE=0
+sed -i 's/DEBUG_MODE = ./DEBUG_MODE = 0/g' conf.py
 
 # echo [Task] translation release
 # lrelease i18n/*.ts
