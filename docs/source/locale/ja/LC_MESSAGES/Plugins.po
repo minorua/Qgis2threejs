@@ -14,15 +14,15 @@ msgstr ""
 "X-Language: ja_JP\n"
 "X-Source-Language: C\n"
 
-#: ..\..\source\Plugins.rst:2
+#: ../../source/Plugins.rst:2
 msgid "Optional Feature"
 msgstr "オプションの機能"
 
-#: ..\..\source\Plugins.rst:14
+#: ../../source/Plugins.rst:16
 msgid "GSI Elevation Tile Provider (DEM Provider)"
 msgstr "地理院標高タイルプロバイダ (DEMプロバイダ)"
 
-#: ..\..\source\Plugins.rst:16
+#: ../../source/Plugins.rst:18
 msgid ""
 "This DEM provider downloads GSI Tiles (elevation) from the web server of "
 "Geospatial Information Authority of Japan, and provides elevation data to "
@@ -32,23 +32,27 @@ msgid ""
 "follow `Geospatial Information Authority of Japan Website Terms of Use "
 "<http://www.gsi.go.jp/ENGLISH/page_e30286.html>`__."
 msgstr ""
-"このDEMプロバイダは国土地理院のWebサーバから地理院標高タイルをダウンロードしてQgis2threejsに標高データを供給します。タイル化された標高データは\"XYZタイル\"として知られる一般的な地図タイルにもとづいており、それぞれのタイルデータはCSV形式で提供されます。日本の領域をズームレベル0～14でカバーします。利用にあたっては "
-"`国土地理院コンテンツ利用規約 "
+"このDEMプロバイダは国土地理院のWebサーバから地理院標高タイルをダウンロードしてQgis2threejsに標高データを供給します。タイル化された標高データは\"XYZタイル\"として知られる一般的な地図タイルにもとづいており、それぞれのタイルデータはCSV形式で提供されます。日本の領域をズームレベル0～14でカバーします。利用にあたっては"
+" `国土地理院コンテンツ利用規約 "
 "<http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html>`__ "
 "をよく読んで、それに従って下さい。"
 
-#: ..\..\source\Plugins.rst:24
+#: ../../source/Plugins.rst:26
 msgid "Technical information (in Japanese):"
 msgstr "技術情報:"
 
-#: ..\..\source\Plugins.rst:26
+#: ../../source/Plugins.rst:28
 msgid ""
 "Specification of elevation tile: "
 "http://maps.gsi.go.jp/development/demtile.html"
 msgstr "標高タイルの詳細仕様: http://maps.gsi.go.jp/development/demtile.html "
 
-#: ..\..\source\Plugins.rst:10
+#: ../../source/Plugins.rst:12
 msgid ""
 "To use this feature, you need to go to the settings dialog and activate the "
 "feature."
 msgstr "この機能を使用するには設定ダイアログで機能を有効化する必要があります。"
+
+#: ../../source/Plugins.rst:4
+msgid "Now being updated for Qgis2threejs version 2.0."
+msgstr ""

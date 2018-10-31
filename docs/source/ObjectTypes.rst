@@ -1,7 +1,7 @@
 Object Types
 ============
 
-.. note:: Now being updated for Qgis2threejs version 2.0.
+.. note:: Now being updated for Qgis2threejs version 2.2.
 
 .. contents::
    :depth: 1
@@ -15,7 +15,8 @@ Point Layer
 -----------
 
 `Sphere <#sphere>`__ \| `Cylinder <#cylinder>`__ \| `Cone <#cone>`__ \|
-`Box <#box>`__ \| `Disk <#disk>`__
+`Box <#box>`__ \| `Disk <#disk>`__ \| `Plane <#plane>`__ \|
+`Icon <#icon>`__ \| `Model File <#model-file>`__
 
 
 .. index:: Sphere
@@ -46,7 +47,7 @@ Sphere with specified radius, color and transparency
 
 **three.js geometry class:**
 
-    `SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
+    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
 
 .. raw:: html
 
@@ -83,7 +84,7 @@ Cylinder with specified radius, height, color and transparency
 
 **three.js geometry class:**
 
-    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
 
 .. raw:: html
 
@@ -120,7 +121,7 @@ Cone with specified radius, height, color and transparency
 
 **three.js geometry class:**
 
-    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
 
 .. raw:: html
 
@@ -159,7 +160,7 @@ Box with specified width, depth, height, color and transparency
 
 **three.js geometry class:**
 
-    `BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
+    `BoxBufferGeometry <https://threejs.org/docs/#api/en/geometries/BoxBufferGeometry>`__
 
 .. raw:: html
 
@@ -188,9 +189,9 @@ Disk with specified radius, orientation, color and transparency
 * Radius
     Numerical value.
 * Dip
-    In degrees. See `Strike and dip - Wikipedia <http://en.wikipedia.org/wiki/Strike_and_dip>`__.
+    Numerical value in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
 * Dip direction
-    In degrees.
+    Numerical value in degrees.
 
 **Origin** :
 
@@ -198,7 +199,134 @@ Disk with specified radius, orientation, color and transparency
 
 **three.js geometry class:**
 
-    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    `CircleBufferGeometry <https://threejs.org/docs/#api/en/geometries/CircleBufferGeometry>`__
+
+.. raw:: html
+
+   </td></tr></table>
+
+
+.. index:: Plane
+
+Plane
+~~~~~
+
+Plane with specified length, width, orientation, color and transparency
+
+.. raw:: html
+
+   <table><tr><td width="256">
+
+|image06|
+
+.. raw:: html
+
+   </td><td>
+
+**Specific settings** :
+
+* Width
+    Numerical value.
+* Length
+    Numerical value.
+* Dip
+    Numerical value in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
+* Dip direction
+    Numerical value in degrees.
+
+**Origin** :
+
+    center of plane
+
+**three.js geometry class:**
+
+    `PlaneBufferGeometry <https://threejs.org/docs/#api/en/geometries/PlaneBufferGeometry>`__
+
+.. raw:: html
+
+   </td></tr></table>
+
+
+.. index:: Icon
+
+Icon
+~~~~
+
+Image which always faces towards the camera. When an image file on local file system is specified,
+the image file is copied to the export destination. When an image file on a web server is
+specified, the model file is not copied.
+
+.. raw:: html
+
+   <table><tr><td width="256">
+
+|image07|
+
+.. raw:: html
+
+   </td><td>
+
+**Specific settings** :
+
+* Image file
+    File path or URL.
+
+* Scale
+    Numerical value.
+
+**Origin** :
+
+    center of sprite
+
+**three.js object class:**
+
+    `Sprite <https://threejs.org/docs/#api/en/objects/Sprite>`__
+
+.. raw:: html
+
+   </td></tr></table>
+
+
+.. index:: Model-File
+
+Model File
+~~~~~~~~~~
+
+Load 3D model from supported format model file. COLLADA (*.dae) and glTF (*.gltf, *.glb) are supported.
+When a model file on local file system is specified, the model file is copied to the export destination.
+You need to copy the relevant files such as texture image after export. When a model file on a web server is
+specified, the model file is not copied.
+
+.. raw:: html
+
+   <table><tr><td width="256">
+
+|image08|
+
+.. raw:: html
+
+   </td><td>
+
+**Specific settings** :
+
+* Model file
+    File path or URL.
+
+* Scale
+    Numerical value.
+
+* Rotation (x)
+    Numerical value in degrees.
+
+* Rotation (y)
+    Numerical value in degrees.
+
+* Rotation (z)
+    Numerical value in degrees.
+
+**Origin** :
+
+    origin of model
 
 .. raw:: html
 
@@ -237,14 +365,14 @@ Line
 
 **three.js object class:**
 
-    `Line <http://threejs.org/docs/#Reference/Objects/Line>`__
+    `Line <https://threejs.org/docs/#api/en/objects/Line>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem).
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem).
 
 
 .. index:: Pipe
@@ -252,7 +380,7 @@ Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem).
 Pipe
 ~~~~
 
-Places a cylinder to each line segment and a sphere to each point.
+Places a cylinder to each line segment and a sphere to each vertex.
 
 .. raw:: html
 
@@ -271,16 +399,16 @@ Places a cylinder to each line segment and a sphere to each point.
 
 **three.js geometry classes:**
 
-    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
     and
-    `SphereGeoemtry <http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__
+    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (airphoto,
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto,
 dem).
 
 
@@ -309,14 +437,14 @@ direction.
 
 **three.js geometry class:**
 
-    `CylinderGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__
+    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
 `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
 (Rivers. MILT of Japan).
 
@@ -347,16 +475,16 @@ Places a box to each line segment.
 
 **three.js geometry class:**
 
-    `BoxGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__
+    `BoxGeometry <https://threejs.org/docs/#api/en/geometries/BoxGeometry>`__
     and
-    `Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__
+    `Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (airphoto,
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto,
 dem).
 
 
@@ -365,11 +493,7 @@ dem).
 Profile
 ~~~~~~~
 
-Makes a vertical plane under each line segment. When
-the altitude mode of z coordinate is ``Relative to DEM`` or
-``+ "field name"``, each linestring is split into segments using
-a triangle mesh generated from DEM and every upper edge is located
-at the relative height from the mesh surface.
+Makes a vertical plane under each line segment.
 
 .. raw:: html
 
@@ -388,7 +512,7 @@ at the relative height from the mesh surface.
 
 **three.js geometry class:**
 
-    `PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
+    `Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__
 
 .. raw:: html
 
@@ -403,8 +527,7 @@ Image was created with SRTM3 elevation data.
 Polygon Layer
 -------------
 
-`Extruded <#extruded>`__ \| `Overlay <#overlay>`__
-
+`Extruded <#extruded>`__ \| `Overlay <#overlay>`__ \| `Triangular Mesh <#triangular-mesh>`__
 
 .. index:: Extruded
 
@@ -430,16 +553,16 @@ Extruded polygon with specified height, color and transparency
 
 **three.js geometry class:**
 
-    `ExtrudeGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__
+    `ExtrudeBufferGeometry <https://threejs.org/docs/#api/en/geometries/ExtrudeBufferGeometry>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
 OpenStreetMap (© OpenStreetMap contributors,
-`License <http://www.openstreetmap.org/copyright>`__).
+`License <https://www.openstreetmap.org/copyright>`__).
 
 
 .. index:: Overlay
@@ -448,11 +571,10 @@ Overlay
 ~~~~~~~
 
 Overlay polygon draped on the main DEM with specified color, border color and
-transparency. When the altitude mode of z coordinate is ``Relative to DEM`` or
-``+ "field name"``, each polygon is split into triangles using a triangle
-mesh generated from DEM, and is located at the relative height from
-the mesh surface. Otherwise, creates a flat polygon at a specified altitude.
-You can add side to each polygon if you want.
+transparency. When the altitude mode is ``Relative to DEM layer``, each polygon
+is split into triangles using a triangle mesh generated from the DEM, and is
+located at the relative height from the mesh surface. Otherwise, creates a flat
+polygon at a specified altitude.
 
 .. raw:: html
 
@@ -469,16 +591,44 @@ You can add side to each polygon if you want.
 
 **three.js classes:**
 
-    `Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__,
-    `Line <http://threejs.org/docs/#Reference/Objects/Line>`__
-    and
-    `PlaneGeometry <http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__
+    `Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__
 
 .. raw:: html
 
    </td></tr></table>
 
 Image was created with `GSI
-Tiles <http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and
+Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
 `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
 (Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
+
+
+.. index:: Triangular-Mesh
+
+Triangular Mesh
+~~~~~~~~~~~~~~~
+
+Build 3D objects from 3D triangular geometries. All layer geometries are assumed to be triangles.
+If you want to use polygon data that doesn't consist of triangles, perform triangulation
+using tessellation algorithm of Processing first.
+
+.. raw:: html
+
+   <table><tr><td width="256">
+
+|image23|
+
+.. raw:: html
+
+   </td><td>
+
+**Specific settings** :
+
+
+**three.js classes:**
+
+    `Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__
+
+.. raw:: html
+
+   </td></tr></table>

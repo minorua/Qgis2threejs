@@ -14,25 +14,40 @@ msgstr ""
 "X-Language: ja_JP\n"
 "X-Source-Language: C\n"
 
-#: ..\..\source\index.rst:5
-msgid "Welcome to Qgis2threejs plugin's documentation!"
-msgstr "Qgis2threejsプラグインのドキュメントへようこそ!"
-
-#: ..\..\source\index.rst:7
-msgid "|top image|"
-msgstr "|top image|"
-
-#: ..\..\source\index.rst:9
-msgid ""
-"Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin. This plugin "
-"exports terrain data, map canvas image and vector data to your web browser. "
-"You can view 3D objects in the web browser (You need a web browser which "
-"supports WebGL)."
-msgstr ""
-"Qgis2threejsプラグインは `QGIS <http://qgis.org/>`_ "
-"のプラグインです。このプラグインは地形データやマップキャンバスの画像、ベクタデータをWebブラウザにエクスポートします。Webブラウザの中で3Dのオブジェクトを見ることができます "
-"(WebGLをサポートするWebブラウザが必要です)。"
-
-#: ..\..\source\index.rst:11
+#: ../../source/index.rst:18
 msgid "Table Of Contents:"
 msgstr "目次:"
+
+#: ../../source/index.rst:5
+msgid "Qgis2threejs plugin documentation"
+msgstr ""
+
+#: ../../source/index.rst:9
+msgid "Now being updated for coming Qgis2threejs version 2.2."
+msgstr ""
+
+#: ../../source/index.rst:11
+msgid ""
+"Qgis2threejs plugin is a `QGIS <https://qgis.org/>`_ plugin, which "
+"visualizes DEM data and vector data in 3D on web browsers. You can build "
+"various kinds of 3D objects with simple settings panels and view them in web"
+" view of exporter. If you want to share them in web, you can generate files "
+"to publish them to web in simple procedure. In addition, you can save the 3D"
+" model in glTF format for 3DCG or 3D printing."
+msgstr ""
+
+#~ msgid "Welcome to Qgis2threejs plugin's documentation!"
+#~ msgstr "Qgis2threejsプラグインのドキュメントへようこそ!"
+
+#~ msgid "|top image|"
+#~ msgstr "|top image|"
+
+#~ msgid ""
+#~ "Qgis2threejs plugin is a `QGIS <http://qgis.org/>`_ plugin. This plugin "
+#~ "exports terrain data, map canvas image and vector data to your web browser. "
+#~ "You can view 3D objects in the web browser (You need a web browser which "
+#~ "supports WebGL)."
+#~ msgstr ""
+#~ "Qgis2threejsプラグインは `QGIS <http://qgis.org/>`_ "
+#~ "のプラグインです。このプラグインは地形データやマップキャンバスの画像、ベクタデータをWebブラウザにエクスポートします。Webブラウザの中で3Dのオブジェクトを見ることができます"
+#~ " (WebGLをサポートするWebブラウザが必要です)。"

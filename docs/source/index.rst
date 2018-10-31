@@ -6,7 +6,7 @@ Qgis2threejs plugin documentation
 
 .. image:: ./images/top.jpg
 
-.. note:: Now being updated for Qgis2threejs version 2.1.
+.. note:: Now being updated for Qgis2threejs version 2.2.
 
 Qgis2threejs plugin is a `QGIS <https://qgis.org/>`_ plugin, which visualizes
 DEM data and vector data in 3D on web browsers. You can build various kinds
@@ -24,5 +24,5 @@ Table Of Contents:
    Tutorial
    Exporter
    ObjectTypes
-   WebViewer
+   WebViewerTemplates
    Development

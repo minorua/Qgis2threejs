@@ -19,6 +19,7 @@
 .. |image15| image:: ./images/line/Profile.jpg
 .. |image21| image:: ./images/polygon/Extruded.jpg
 .. |image22| image:: ./images/polygon/Overlay.jpg
+.. |image23| image:: ./images/no_image.png
 
 .. |image - Mt. Fuji| image:: ./images/examples/mt_fuji.jpg
    :target: https://minorua.github.io/qgis/plugins/qgis2threejs/examples/threejs/mt_fuji.html

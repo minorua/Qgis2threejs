@@ -12,7 +12,7 @@ install Qgis2threejs plugin.
 .. hint:: Need help? See the `10.1.2. Installing New Plugins`__ section of
    the QGIS training manual.
 
-__ http://docs.qgis.org/2.18/en/docs/training_manual/qgis_plugins/fetching_plugins.html#basic-fa-installing-new-plugins
+__ https://docs.qgis.org/2.18/en/docs/training_manual/qgis_plugins/fetching_plugins.html#basic-fa-installing-new-plugins
 
 
 Obtain elevation data
@@ -25,7 +25,7 @@ NASA released elevation data generated from NASA's
 We can use the data freely. Elevation data version 2.1 can be
 downloaded from the `distribution site`__.
 
-__ http://www2.jpl.nasa.gov/srtm/index.html
+__ https://www2.jpl.nasa.gov/srtm/index.html
 __ https://dds.cr.usgs.gov/srtm/
 
 Download a zip file that contains elevation data of the area you are
@@ -34,16 +34,16 @@ file contains a ``.hgt`` file, which is readable by the GDAL.
 
 ..
   .. tip:: If the area extends over two or more files, you might want to
-      create a virtual mosaic using `Build Virtual Raster (Catalog)`__
-      tool of GdalTools.
-  __ http://docs.qgis.org/2.18/en/docs/user_manual/plugins/plugins_gdaltools.html#miscellaneous
+      create a virtual mosaic using `Build Virtual Raster`__
+      algorithm of Processing GDAL algorithms.
+  __ https://docs.qgis.org/2.18/en/docs/user_manual/processing_algs/gdalogr/gdal_miscellaneous.html#build-virtual-raster
 ..
 
 .. tip:: Do you have time to explore new high-resolution SRTM
    elevation data? You can download 1 arc-second SRTM data from
    the `EarthExplorer`__ (User registration required).
 
-__ http://earthexplorer.usgs.gov/
+__ https://earthexplorer.usgs.gov/
 
 
 Load DEM data
@@ -118,7 +118,7 @@ Select a directory to export the scene and press ``Export`` button.
 Open the .html file with a web browser. You can see exported scene in web browser.
 
 .. note:: Some web browsers do not allow loading data files on local file system via Ajax.
-   Please see `Browser Support page of wiki`__ for details.
+   Please see `Browser Support`__ page of wiki for details.
 
 __ https://github.com/minorua/Qgis2threejs/wiki/Browser-Support
 

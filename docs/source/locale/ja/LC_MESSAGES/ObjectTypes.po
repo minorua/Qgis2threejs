@@ -14,248 +14,152 @@ msgstr ""
 "X-Language: ja_JP\n"
 "X-Source-Language: C\n"
 
-#: ..\..\source\ObjectTypes.rst:2
+#: ../../source/ObjectTypes.rst:2
 msgid "Object Types"
 msgstr "オブジェクトタイプ"
 
-#: ..\..\source\ObjectTypes.rst:4
-msgid "`Point Layer <#point-layer>`__"
-msgstr "`ポイントレイヤ <#point-layer>`__"
-
-#: ..\..\source\ObjectTypes.rst:5
-msgid "`Line Layer <#line-layer>`__"
-msgstr "`ラインレイヤ <#line-layer>`__"
-
-#: ..\..\source\ObjectTypes.rst:6
-msgid "`Polygon Layer <#polygon-layer>`__"
-msgstr "`ポリゴンレイヤ <#polygon-layer>`__"
-
-#: ..\..\source\ObjectTypes.rst:13
+#: ../../source/ObjectTypes.rst:15
 msgid "Point Layer"
 msgstr "ポイントレイヤ"
 
-#: ..\..\source\ObjectTypes.rst:15
-msgid ""
-"`Sphere <#sphere>`__ \\| `Cylinder <#cylinder>`__ \\| `Cone <#cone>`__ \\| "
-"`Box <#box>`__ \\| `Disk <#disk>`__ \\| `Icon <#icon>`__ \\| `JSON model "
-"<#json-model>`__ \\| `COLLADA model <#collada-model>`__"
-msgstr ""
-"`Sphere <#sphere>`__ \\| `Cylinder <#cylinder>`__ \\| `Cone <#cone>`__ \\| "
-"`Box <#box>`__ \\| `Disk <#disk>`__ \\| `Icon <#icon>`__ \\| `JSON model "
-"<#json-model>`__ \\| `COLLADA model <#collada-model>`__"
-
-#: ..\..\source\ObjectTypes.rst:23
+#: ../../source/ObjectTypes.rst:24
 msgid "Sphere"
 msgstr "Sphere (球)"
 
-#: ..\..\source\ObjectTypes.rst:25
+#: ../../source/ObjectTypes.rst:26
 msgid "Sphere with specified radius, color and transparency"
 msgstr "指定された半径や色、透過度の球体"
 
-#: ..\..\source\ObjectTypes.rst:31
+#: ../../source/ObjectTypes.rst:32
 msgid "|image01|"
 msgstr "|image01|"
 
-#: ..\..\source\ObjectTypes.rst:37 ..\..\source\ObjectTypes.rst:72
-#: ..\..\source\ObjectTypes.rst:109 ..\..\source\ObjectTypes.rst:146
-#: ..\..\source\ObjectTypes.rst:185 ..\..\source\ObjectTypes.rst:224
-#: ..\..\source\ObjectTypes.rst:259 ..\..\source\ObjectTypes.rst:296
-#: ..\..\source\ObjectTypes.rst:344 ..\..\source\ObjectTypes.rst:377
-#: ..\..\source\ObjectTypes.rst:415 ..\..\source\ObjectTypes.rst:451
-#: ..\..\source\ObjectTypes.rst:494 ..\..\source\ObjectTypes.rst:536
-#: ..\..\source\ObjectTypes.rst:577
+#: ../../source/ObjectTypes.rst:38 ../../source/ObjectTypes.rst:73
+#: ../../source/ObjectTypes.rst:110 ../../source/ObjectTypes.rst:147
+#: ../../source/ObjectTypes.rst:186 ../../source/ObjectTypes.rst:225
+#: ../../source/ObjectTypes.rst:275 ../../source/ObjectTypes.rst:308
+#: ../../source/ObjectTypes.rst:346 ../../source/ObjectTypes.rst:382
+#: ../../source/ObjectTypes.rst:421 ../../source/ObjectTypes.rst:463
+#: ../../source/ObjectTypes.rst:503 ../../source/ObjectTypes.rst:537
 msgid "**Specific settings** :"
 msgstr "**特有の設定項目** :"
 
-#: ..\..\source\ObjectTypes.rst:40 ..\..\source\ObjectTypes.rst:74
-#: ..\..\source\ObjectTypes.rst:111 ..\..\source\ObjectTypes.rst:187
-#: ..\..\source\ObjectTypes.rst:380 ..\..\source\ObjectTypes.rst:418
+#: ../../source/ObjectTypes.rst:41 ../../source/ObjectTypes.rst:75
+#: ../../source/ObjectTypes.rst:112 ../../source/ObjectTypes.rst:188
+#: ../../source/ObjectTypes.rst:311 ../../source/ObjectTypes.rst:349
 msgid "Radius"
 msgstr "Radius (半径)"
 
-#: ..\..\source\ObjectTypes.rst:40 ..\..\source\ObjectTypes.rst:75
-#: ..\..\source\ObjectTypes.rst:77 ..\..\source\ObjectTypes.rst:112
-#: ..\..\source\ObjectTypes.rst:114 ..\..\source\ObjectTypes.rst:149
-#: ..\..\source\ObjectTypes.rst:151 ..\..\source\ObjectTypes.rst:153
-#: ..\..\source\ObjectTypes.rst:188 ..\..\source\ObjectTypes.rst:229
-#: ..\..\source\ObjectTypes.rst:264 ..\..\source\ObjectTypes.rst:302
-#: ..\..\source\ObjectTypes.rst:380 ..\..\source\ObjectTypes.rst:418
-#: ..\..\source\ObjectTypes.rst:454 ..\..\source\ObjectTypes.rst:456
-#: ..\..\source\ObjectTypes.rst:539
+#: ../../source/ObjectTypes.rst:41 ../../source/ObjectTypes.rst:76
+#: ../../source/ObjectTypes.rst:78 ../../source/ObjectTypes.rst:113
+#: ../../source/ObjectTypes.rst:115 ../../source/ObjectTypes.rst:150
+#: ../../source/ObjectTypes.rst:152 ../../source/ObjectTypes.rst:154
+#: ../../source/ObjectTypes.rst:189 ../../source/ObjectTypes.rst:228
+#: ../../source/ObjectTypes.rst:230 ../../source/ObjectTypes.rst:311
+#: ../../source/ObjectTypes.rst:349 ../../source/ObjectTypes.rst:385
+#: ../../source/ObjectTypes.rst:387 ../../source/ObjectTypes.rst:466
 msgid "Numerical value."
 msgstr "数値."
 
-#: ..\..\source\ObjectTypes.rst:42 ..\..\source\ObjectTypes.rst:79
-#: ..\..\source\ObjectTypes.rst:116 ..\..\source\ObjectTypes.rst:155
-#: ..\..\source\ObjectTypes.rst:194 ..\..\source\ObjectTypes.rst:231
-#: ..\..\source\ObjectTypes.rst:272 ..\..\source\ObjectTypes.rst:310
+#: ../../source/ObjectTypes.rst:43 ../../source/ObjectTypes.rst:80
+#: ../../source/ObjectTypes.rst:117 ../../source/ObjectTypes.rst:156
+#: ../../source/ObjectTypes.rst:195 ../../source/ObjectTypes.rst:236
 msgid "**Origin** :"
 msgstr "**原点** :"
 
-#: ..\..\source\ObjectTypes.rst:44
+#: ../../source/ObjectTypes.rst:45
 msgid "center of sphere"
 msgstr "球の中心"
 
-#: ..\..\source\ObjectTypes.rst:58
+#: ../../source/ObjectTypes.rst:59
 msgid "Cylinder"
 msgstr "Cylinder (円柱)"
 
-#: ..\..\source\ObjectTypes.rst:60
+#: ../../source/ObjectTypes.rst:61
 msgid "Cylinder with specified radius, height, color and transparency"
 msgstr "指定された半径、高さ、色、透過度の円柱"
 
-#: ..\..\source\ObjectTypes.rst:66
+#: ../../source/ObjectTypes.rst:67
 msgid "|image02|"
 msgstr "|image02|"
 
-#: ..\..\source\ObjectTypes.rst:77 ..\..\source\ObjectTypes.rst:114
-#: ..\..\source\ObjectTypes.rst:153 ..\..\source\ObjectTypes.rst:456
-#: ..\..\source\ObjectTypes.rst:539
+#: ../../source/ObjectTypes.rst:78 ../../source/ObjectTypes.rst:115
+#: ../../source/ObjectTypes.rst:154 ../../source/ObjectTypes.rst:387
+#: ../../source/ObjectTypes.rst:466
 msgid "Height"
 msgstr "Height (高さ)"
 
-#: ..\..\source\ObjectTypes.rst:81 ..\..\source\ObjectTypes.rst:118
-#: ..\..\source\ObjectTypes.rst:157
+#: ../../source/ObjectTypes.rst:82 ../../source/ObjectTypes.rst:119
+#: ../../source/ObjectTypes.rst:158
 msgid "center of bottom (if height > 0)"
 msgstr "底面の中心 (高さが正の場合)"
 
-#: ..\..\source\ObjectTypes.rst:95 ..\..\source\ObjectTypes.rst:400
+#: ../../source/ObjectTypes.rst:96 ../../source/ObjectTypes.rst:331
 msgid "Cone"
 msgstr "Cone (円錐)"
 
-#: ..\..\source\ObjectTypes.rst:97
+#: ../../source/ObjectTypes.rst:98
 msgid "Cone with specified radius, height, color and transparency"
 msgstr "指定された半径、高さ、色、透過度の円錐"
 
-#: ..\..\source\ObjectTypes.rst:103
+#: ../../source/ObjectTypes.rst:104
 msgid "|image03|"
 msgstr "|image03|"
 
-#: ..\..\source\ObjectTypes.rst:132 ..\..\source\ObjectTypes.rst:437
+#: ../../source/ObjectTypes.rst:133 ../../source/ObjectTypes.rst:368
 msgid "Box"
 msgstr "Box (直方体)"
 
-#: ..\..\source\ObjectTypes.rst:134
+#: ../../source/ObjectTypes.rst:135
 msgid "Box with specified width, depth, height, color and transparency"
 msgstr "指定された幅、奥行き、高さ、色、透過度の直方体"
 
-#: ..\..\source\ObjectTypes.rst:140
+#: ../../source/ObjectTypes.rst:141
 msgid "|image04|"
 msgstr "|image04|"
 
-#: ..\..\source\ObjectTypes.rst:148 ..\..\source\ObjectTypes.rst:453
+#: ../../source/ObjectTypes.rst:149 ../../source/ObjectTypes.rst:227
+#: ../../source/ObjectTypes.rst:384
 msgid "Width"
 msgstr "Width (幅)"
 
-#: ..\..\source\ObjectTypes.rst:150
+#: ../../source/ObjectTypes.rst:151
 msgid "Depth"
 msgstr "Depth (奥行き)"
 
-#: ..\..\source\ObjectTypes.rst:171
+#: ../../source/ObjectTypes.rst:172
 msgid "Disk"
 msgstr "Disk (円盤)"
 
-#: ..\..\source\ObjectTypes.rst:173
+#: ../../source/ObjectTypes.rst:174
 msgid "Disk with specified radius, orientation, color and transparency"
 msgstr "指定された半径、姿勢、色、透過度の円盤"
 
-#: ..\..\source\ObjectTypes.rst:179
+#: ../../source/ObjectTypes.rst:180 ../../source/ObjectTypes.rst:219
 msgid "|image05|"
 msgstr "|image05|"
 
-#: ..\..\source\ObjectTypes.rst:189
+#: ../../source/ObjectTypes.rst:190 ../../source/ObjectTypes.rst:231
 msgid "Dip"
 msgstr "Dip (傾斜角)"
 
-#: ..\..\source\ObjectTypes.rst:192
+#: ../../source/ObjectTypes.rst:193 ../../source/ObjectTypes.rst:234
 msgid "Dip direction"
 msgstr "Dip direction (傾斜方向)"
 
-#: ..\..\source\ObjectTypes.rst:192 ..\..\source\ObjectTypes.rst:266
-#: ..\..\source\ObjectTypes.rst:268 ..\..\source\ObjectTypes.rst:270
-#: ..\..\source\ObjectTypes.rst:304 ..\..\source\ObjectTypes.rst:306
-#: ..\..\source\ObjectTypes.rst:308
+#: ../../source/ObjectTypes.rst:193 ../../source/ObjectTypes.rst:234
 msgid "In degrees."
 msgstr "角度."
 
-#: ..\..\source\ObjectTypes.rst:196
+#: ../../source/ObjectTypes.rst:197
 msgid "center of disk"
 msgstr "円盤の中心"
 
-#: ..\..\source\ObjectTypes.rst:210
-msgid "Icon"
-msgstr "Icon (アイコン)"
-
-#: ..\..\source\ObjectTypes.rst:212
-msgid "Image which always faces towards the camera"
-msgstr "常にカメラに正面を向ける画像"
-
-#: ..\..\source\ObjectTypes.rst:218
-msgid "|image06|"
-msgstr "|image06|"
-
-#: ..\..\source\ObjectTypes.rst:226
-msgid "Image file"
-msgstr "Image file (画像ファイル)"
-
-#: ..\..\source\ObjectTypes.rst:227 ..\..\source\ObjectTypes.rst:262
-msgid "File path."
-msgstr "ファイルパス."
-
-#: ..\..\source\ObjectTypes.rst:229 ..\..\source\ObjectTypes.rst:263
-#: ..\..\source\ObjectTypes.rst:301
-msgid "Scale"
-msgstr "Scale (スケール)"
-
-#: ..\..\source\ObjectTypes.rst:233
-msgid "center of image"
-msgstr "画像の中心"
-
-#: ..\..\source\ObjectTypes.rst:247
-msgid "JSON model"
-msgstr "JSON model (JSONモデル)"
-
-#: ..\..\source\ObjectTypes.rst:253
-msgid "|image07|"
-msgstr "|image07|"
-
-#: ..\..\source\ObjectTypes.rst:261
-msgid "JSON file"
-msgstr "JSON file (JSONファイル)"
-
-#: ..\..\source\ObjectTypes.rst:265 ..\..\source\ObjectTypes.rst:303
-msgid "Rotation (x)"
-msgstr "Rotation (x) (x軸回転)"
-
-#: ..\..\source\ObjectTypes.rst:267 ..\..\source\ObjectTypes.rst:305
-msgid "Rotation (y)"
-msgstr "Rotation (y) (y軸回転)"
-
-#: ..\..\source\ObjectTypes.rst:270 ..\..\source\ObjectTypes.rst:308
-msgid "Rotation (z)"
-msgstr "Rotation (z) (z軸回転)"
-
-#: ..\..\source\ObjectTypes.rst:274 ..\..\source\ObjectTypes.rst:312
-msgid "origin of model"
-msgstr "モデルの原点"
-
-#: ..\..\source\ObjectTypes.rst:284
-msgid "COLLADA model"
-msgstr "COLLADA model (COLLADAモデル)"
-
-#: ..\..\source\ObjectTypes.rst:290
-msgid "|image08|"
-msgstr "|image08|"
-
-#: ..\..\source\ObjectTypes.rst:299
-msgid "COLLADA file"
-msgstr "COLLADA file (COLLADAファイル)"
-
-#: ..\..\source\ObjectTypes.rst:323
+#: ../../source/ObjectTypes.rst:254
 msgid "Line Layer"
 msgstr "ラインレイヤ"
 
-#: ..\..\source\ObjectTypes.rst:325
+#: ../../source/ObjectTypes.rst:256
 msgid ""
 "`Line <#line>`__ \\| `Pipe <#pipe>`__ \\| `Cone <#cone>`__ \\| `Box "
 "<#box>`__ \\| `Profile <#profile>`__"
@@ -263,302 +167,504 @@ msgstr ""
 "`Line <#line>`__ \\| `Pipe <#pipe>`__ \\| `Cone <#cone>`__ \\| `Box "
 "<#box>`__ \\| `Profile <#profile>`__"
 
-#: ..\..\source\ObjectTypes.rst:332
+#: ../../source/ObjectTypes.rst:263
 msgid "Line"
 msgstr "Line (ライン)"
 
-#: ..\..\source\ObjectTypes.rst:338
+#: ../../source/ObjectTypes.rst:269
 msgid "|image11|"
 msgstr "|image11|"
 
-#: ..\..\source\ObjectTypes.rst:346
+#: ../../source/ObjectTypes.rst:277
 msgid "no specific settings"
 msgstr "設定項目なし"
 
-#: ..\..\source\ObjectTypes.rst:356
-msgid ""
-"Image was created with `GSI Tiles "
-"<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem)."
-msgstr ""
-"画像は `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
-"(写真と標高タイル)を用いて作成しました。"
-
-#: ..\..\source\ObjectTypes.rst:363
+#: ../../source/ObjectTypes.rst:294
 msgid "Pipe"
 msgstr "Pipe (パイプ)"
 
-#: ..\..\source\ObjectTypes.rst:371
+#: ../../source/ObjectTypes.rst:302
 msgid "|image12|"
 msgstr "|image12|"
 
-#: ..\..\source\ObjectTypes.rst:392 ..\..\source\ObjectTypes.rst:468
-msgid ""
-"Image was created with `GSI Tiles "
-"<http://portal.cyberjapan.jp/help/development/>`__ (airphoto, dem)."
-msgstr ""
-"画像は `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
-"(簡易空中写真と標高タイル)を用いて作成しました。"
-
-#: ..\..\source\ObjectTypes.rst:402
+#: ../../source/ObjectTypes.rst:333
 msgid ""
 "Places a cone to each line segment. Heading of cone is forward direction."
 msgstr "各線分に円錐を配置します。円錐の尖った方は順方向を向きます。"
 
-#: ..\..\source\ObjectTypes.rst:409
+#: ../../source/ObjectTypes.rst:340
 msgid "|image13|"
 msgstr "|image13|"
 
-#: ..\..\source\ObjectTypes.rst:428
-msgid ""
-"Image was created with `GSI Tiles "
-"<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and `National "
-"Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Rivers. MILT "
-"of Japan)."
-msgstr ""
-"画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
-"(写真と標高タイル)と国土交通省の `国土数値情報 <http://nlftp.mlit.go.jp/ksj/>`__ "
-"(河川データ)を用いて作成しました。"
-
-#: ..\..\source\ObjectTypes.rst:439
+#: ../../source/ObjectTypes.rst:370
 msgid "Places a box to each line segment."
 msgstr "各線分に直方体を配置します。"
 
-#: ..\..\source\ObjectTypes.rst:445
+#: ../../source/ObjectTypes.rst:376
 msgid "|image14|"
 msgstr "|image14|"
 
-#: ..\..\source\ObjectTypes.rst:476
+#: ../../source/ObjectTypes.rst:407
 msgid "Profile"
 msgstr "Profile (縦断面)"
 
-#: ..\..\source\ObjectTypes.rst:488
+#: ../../source/ObjectTypes.rst:415
 msgid "|image15|"
 msgstr "|image15|"
 
-#: ..\..\source\ObjectTypes.rst:497
-msgid "Lower Z"
-msgstr "Lower Z (下辺のZ)"
-
-#: ..\..\source\ObjectTypes.rst:497
-msgid "Z coordinate of lower edge."
-msgstr "下縁のZ座標."
-
-#: ..\..\source\ObjectTypes.rst:507
+#: ../../source/ObjectTypes.rst:434
 msgid "Image was created with SRTM3 elevation data."
 msgstr "画像はSRTM3標高データを用いて作成しました。"
 
-#: ..\..\source\ObjectTypes.rst:514
+#: ../../source/ObjectTypes.rst:441
 msgid "Polygon Layer"
 msgstr "ポリゴンレイヤ"
 
-#: ..\..\source\ObjectTypes.rst:516
+#: ../../source/ObjectTypes.rst:443
 msgid "`Extruded <#extruded>`__ \\| `Overlay <#overlay>`__"
 msgstr "`Extruded <#extruded>`__ \\| `Overlay <#overlay>`__"
 
-#: ..\..\source\ObjectTypes.rst:522
+#: ../../source/ObjectTypes.rst:449
 msgid "Extruded"
 msgstr "Extrueded (押し出されたポリゴン)"
 
-#: ..\..\source\ObjectTypes.rst:524
+#: ../../source/ObjectTypes.rst:451
 msgid "Extruded polygon with specified height, color and transparency"
 msgstr "指定された高さ、色、透過度の押し出されたポリゴン"
 
-#: ..\..\source\ObjectTypes.rst:530
+#: ../../source/ObjectTypes.rst:457
 msgid "|image21|"
 msgstr "|image21|"
 
-#: ..\..\source\ObjectTypes.rst:549
-msgid ""
-"Image was created with `GSI Tiles "
-"<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and "
-"OpenStreetMap (© OpenStreetMap contributors, `License "
-"<http://www.openstreetmap.org/copyright>`__)."
-msgstr ""
-"画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
-"(写真と標高タイル)とOpenStreetMap (© OpenStreetMap contributors, `ライセンス "
-"<http://www.openstreetmap.org/copyright>`__)を用いて作成しました。"
-
-#: ..\..\source\ObjectTypes.rst:558
+#: ../../source/ObjectTypes.rst:485
 msgid "Overlay"
 msgstr "Overlay (オーバーレイ)"
 
-#: ..\..\source\ObjectTypes.rst:571
+#: ../../source/ObjectTypes.rst:497 ../../source/ObjectTypes.rst:531
 msgid "|image22|"
 msgstr "|image22|"
 
-#: ..\..\source\ObjectTypes.rst:579
-msgid "Border color"
-msgstr "Border color (枠線の色)"
-
-#: ..\..\source\ObjectTypes.rst:580
-msgid "Side"
-msgstr "Side (側面)"
-
-#: ..\..\source\ObjectTypes.rst:581
-msgid "Check this option to add side to each polygon."
-msgstr "各ポリゴンに側面をつけるにはこのオプションをチェックします。"
-
-#: ..\..\source\ObjectTypes.rst:582
-msgid "Side color"
-msgstr "Side color (側面の色)"
-
-#: ..\..\source\ObjectTypes.rst:584
-msgid "Side lower Z"
-msgstr "Side lower Z (側面の下辺のZ)"
-
-#: ..\..\source\ObjectTypes.rst:584
-msgid "Z coordinate of lower edge of side."
-msgstr "側面の下縁のZ座標."
-
-#: ..\..\source\ObjectTypes.rst:597
-msgid ""
-"Image was created with `GSI Tiles "
-"<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and `National "
-"Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Sediment "
-"Disaster Hazard Area. Provided by Okayama prefecture, Japan)."
-msgstr ""
-"画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
-"(写真と標高タイル)と国土交通省の `国土数値情報 <http://nlftp.mlit.go.jp/ksj/>`__ "
-"(土砂災害危険箇所データ、岡山県提供)を用いて作成しました。"
-
-#: ..\..\source\ObjectTypes.rst:190
-msgid ""
-"In degrees. See `Strike and dip - Wikipedia "
-"<http://en.wikipedia.org/wiki/Strike_and_dip>`__."
-msgstr ""
-"傾斜角度。 `Strike and dip - Wikipedia "
-"<http://en.wikipedia.org/wiki/Strike_and_dip>`__ を参照して下さい。"
-
-#: ..\..\source\ObjectTypes.rst:299
-msgid ""
-"File path (.dae). If the model has texture images, they need to be copied to "
-"the destination directory manually."
-msgstr "ファイルパス (.dae)。 モデルがテクスチャ画像を持つ場合は手作業で出力ディレクトリにコピーする必要があります。"
-
-#: ..\..\source\ObjectTypes.rst:46 ..\..\source\ObjectTypes.rst:83
-#: ..\..\source\ObjectTypes.rst:120 ..\..\source\ObjectTypes.rst:159
-#: ..\..\source\ObjectTypes.rst:198 ..\..\source\ObjectTypes.rst:420
-#: ..\..\source\ObjectTypes.rst:458 ..\..\source\ObjectTypes.rst:499
-#: ..\..\source\ObjectTypes.rst:541
+#: ../../source/ObjectTypes.rst:47 ../../source/ObjectTypes.rst:84
+#: ../../source/ObjectTypes.rst:121 ../../source/ObjectTypes.rst:160
+#: ../../source/ObjectTypes.rst:199 ../../source/ObjectTypes.rst:240
+#: ../../source/ObjectTypes.rst:351 ../../source/ObjectTypes.rst:389
+#: ../../source/ObjectTypes.rst:426 ../../source/ObjectTypes.rst:468
 msgid "**three.js geometry class:**"
 msgstr "**three.jsジオメトリクラス:**"
 
-#: ..\..\source\ObjectTypes.rst:48
-msgid ""
-"`SphereGeoemtry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
-msgstr ""
-"`SphereGeoemtry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:85 ..\..\source\ObjectTypes.rst:122
-#: ..\..\source\ObjectTypes.rst:200 ..\..\source\ObjectTypes.rst:422
-msgid ""
-"`CylinderGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__"
-msgstr ""
-"`CylinderGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:161
-msgid ""
-"`BoxGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__"
-msgstr ""
-"`BoxGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:235 ..\..\source\ObjectTypes.rst:348
+#: ../../source/ObjectTypes.rst:279
 msgid "**three.js object class:**"
 msgstr "**three.jsオブジェクトクラス:**"
 
-#: ..\..\source\ObjectTypes.rst:237
-msgid "`Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__"
-msgstr "`Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__"
-
-#: ..\..\source\ObjectTypes.rst:350
-msgid "`Line <http://threejs.org/docs/#Reference/Objects/Line>`__"
-msgstr "`Line <http://threejs.org/docs/#Reference/Objects/Line>`__"
-
-#: ..\..\source\ObjectTypes.rst:382
+#: ../../source/ObjectTypes.rst:313
 msgid "**three.js geometry classes:**"
 msgstr "**three.jsジオメトリクラス:**"
 
-#: ..\..\source\ObjectTypes.rst:384
-msgid ""
-"`CylinderGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__ "
-"and `SphereGeoemtry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
-msgstr ""
-"`CylinderGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__ と "
-"`SphereGeoemtry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:460
-msgid ""
-"`BoxGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__ and "
-"`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__"
-msgstr ""
-"`BoxGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__ と "
-"`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:501
-msgid ""
-"`PlaneGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
-msgstr ""
-"`PlaneGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:543
-msgid ""
-"`ExtrudeGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__"
-msgstr ""
-"`ExtrudeGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__"
-
-#: ..\..\source\ObjectTypes.rst:586
+#: ../../source/ObjectTypes.rst:506 ../../source/ObjectTypes.rst:540
 msgid "**three.js classes:**"
 msgstr "**three.jsクラス:**"
 
-#: ..\..\source\ObjectTypes.rst:588
-msgid ""
-"`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__, `Line "
-"<http://threejs.org/docs/#Reference/Objects/Line>`__ and `PlaneGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
+#: ../../source/ObjectTypes.rst:4
+msgid "Now being updated for coming Qgis2threejs version 2.2."
 msgstr ""
-"`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__, `Line "
-"<http://threejs.org/docs/#Reference/Objects/Line>`__, `PlaneGeometry "
-"<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
 
-#: ..\..\source\ObjectTypes.rst:365
-msgid "Places a cylinder to each line segment and a sphere to each point."
-msgstr "各線分に円柱を、各点に球体を配置します。"
-
-#: ..\..\source\ObjectTypes.rst:478
+#: ../../source/ObjectTypes.rst:17
 msgid ""
-"Makes a vertical plane under each line segment. When the altitude mode of z "
-"coordinate is ``Relative to DEM`` or ``+ \"field name\"``, each linestring "
-"is split into segments using a triangle mesh generated from DEM and every "
-"upper edge is located at the relative height from the mesh surface."
+"`Sphere <#sphere>`__ \\| `Cylinder <#cylinder>`__ \\| `Cone <#cone>`__ \\| "
+"`Box <#box>`__ \\| `Disk <#disk>`__ \\| `Plane <#plane>`__"
 msgstr ""
-"各線分の下に鉛直の面を作ります。Z座標の標高モードが ``Relative to DEM`` か ``+ \"field name\"`` "
-"の場合は各ラインストリングはDEMから生成された三角形メッシュを用いて線分に分割され、上辺は三角形メッシュからの相対的な標高に位置します。"
 
-#: ..\..\source\ObjectTypes.rst:560
+#: ../../source/ObjectTypes.rst:49
+msgid ""
+"`SphereBufferGeoemtry "
+"<https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:86 ../../source/ObjectTypes.rst:123
+#: ../../source/ObjectTypes.rst:353
+msgid ""
+"`CylinderBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:162
+msgid ""
+"`BoxBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/BoxBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:191 ../../source/ObjectTypes.rst:232
+msgid ""
+"In degrees. See `Strike and dip - Wikipedia "
+"<https://en.wikipedia.org/wiki/Strike_and_dip>`__."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:201
+msgid ""
+"`CircleBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/CircleBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:211
+msgid "Plane"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:213
+msgid ""
+"Plane with specified length, width, orientation, color and transparency"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:229
+msgid "Length"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:238
+msgid "center of plane"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:242
+msgid ""
+"`PlaneBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/PlaneBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:281
+msgid "`Line <https://threejs.org/docs/#api/en/objects/Line>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:287
+msgid ""
+"Image was created with `GSI Tiles "
+"<https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem)."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:296
+msgid "Places a cylinder to each line segment and a sphere to each vertex."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:315
+msgid ""
+"`CylinderBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__ and "
+"`SphereBufferGeoemtry "
+"<https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:323 ../../source/ObjectTypes.rst:399
+msgid ""
+"Image was created with `GSI Tiles "
+"<https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto, dem)."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:359
+msgid ""
+"Image was created with `GSI Tiles "
+"<https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and "
+"`National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ "
+"(Rivers. MILT of Japan)."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:391
+msgid ""
+"`BoxGeometry <https://threejs.org/docs/#api/en/geometries/BoxGeometry>`__ "
+"and `Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:409
+msgid "Makes a vertical plane under each line segment."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:424
+msgid "Other side Z"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:424
+msgid "Z coordinate of the other side edge."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:428 ../../source/ObjectTypes.rst:508
+#: ../../source/ObjectTypes.rst:542
+msgid "`Geometry <https://threejs.org/docs/#api/en/core/Geometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:470
+msgid ""
+"`ExtrudeBufferGeometry "
+"<https://threejs.org/docs/#api/en/geometries/ExtrudeBufferGeometry>`__"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:476
+msgid ""
+"Image was created with `GSI Tiles "
+"<https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and "
+"OpenStreetMap (© OpenStreetMap contributors, `License "
+"<https://www.openstreetmap.org/copyright>`__)."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:487
 msgid ""
 "Overlay polygon draped on the main DEM with specified color, border color "
-"and transparency. When the altitude mode of z coordinate is ``Relative to "
-"DEM`` or ``+ \"field name\"``, each polygon is split into triangles using a "
-"triangle mesh generated from DEM, and is located at the relative height from "
-"the mesh surface. Otherwise, creates a flat polygon at a specified altitude. "
-"You can add side to each polygon if you want."
+"and transparency. When the altitude mode is ``Relative to DEM layer``, each "
+"polygon is split into triangles using a triangle mesh generated from the "
+"DEM, and is located at the relative height from the mesh surface. Otherwise,"
+" creates a flat polygon at a specified altitude."
 msgstr ""
-"指定された色、枠線の色、透過度のメインのDEMに被せられたオーバーレイポリゴン。Z座標の標高モードが ``Relative to DEM`` か ``+ "
-"\"field name\"`` "
-"の場合は各ポリゴンはDEMから生成された三角形メッシュを用いて三角形に分割され、メッシュ面からの相対的な標高に位置します。そうではない場合は指定された標高に平面的なポリゴンを作成します。各ポリゴンに側面をつけることもできます。"
+
+#: ../../source/ObjectTypes.rst:514 ../../source/ObjectTypes.rst:548
+msgid ""
+"Image was created with `GSI Tiles "
+"<https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and "
+"`National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ "
+"(Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan)."
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:523
+msgid "Triangular Mesh"
+msgstr ""
+
+#: ../../source/ObjectTypes.rst:525
+msgid "[TODO]"
+msgstr ""
+
+#~ msgid "`Point Layer <#point-layer>`__"
+#~ msgstr "`ポイントレイヤ <#point-layer>`__"
+
+#~ msgid "`Line Layer <#line-layer>`__"
+#~ msgstr "`ラインレイヤ <#line-layer>`__"
+
+#~ msgid "`Polygon Layer <#polygon-layer>`__"
+#~ msgstr "`ポリゴンレイヤ <#polygon-layer>`__"
+
+#~ msgid ""
+#~ "`Sphere <#sphere>`__ \\| `Cylinder <#cylinder>`__ \\| `Cone <#cone>`__ \\| "
+#~ "`Box <#box>`__ \\| `Disk <#disk>`__ \\| `Icon <#icon>`__ \\| `JSON model "
+#~ "<#json-model>`__ \\| `COLLADA model <#collada-model>`__"
+#~ msgstr ""
+#~ "`Sphere <#sphere>`__ \\| `Cylinder <#cylinder>`__ \\| `Cone <#cone>`__ \\| "
+#~ "`Box <#box>`__ \\| `Disk <#disk>`__ \\| `Icon <#icon>`__ \\| `JSON model "
+#~ "<#json-model>`__ \\| `COLLADA model <#collada-model>`__"
+
+#~ msgid "Icon"
+#~ msgstr "Icon (アイコン)"
+
+#~ msgid "Image which always faces towards the camera"
+#~ msgstr "常にカメラに正面を向ける画像"
+
+#~ msgid "|image06|"
+#~ msgstr "|image06|"
+
+#~ msgid "Image file"
+#~ msgstr "Image file (画像ファイル)"
+
+#~ msgid "File path."
+#~ msgstr "ファイルパス."
+
+#~ msgid "Scale"
+#~ msgstr "Scale (スケール)"
+
+#~ msgid "center of image"
+#~ msgstr "画像の中心"
+
+#~ msgid "JSON model"
+#~ msgstr "JSON model (JSONモデル)"
+
+#~ msgid "|image07|"
+#~ msgstr "|image07|"
+
+#~ msgid "JSON file"
+#~ msgstr "JSON file (JSONファイル)"
+
+#~ msgid "Rotation (x)"
+#~ msgstr "Rotation (x) (x軸回転)"
+
+#~ msgid "Rotation (y)"
+#~ msgstr "Rotation (y) (y軸回転)"
+
+#~ msgid "Rotation (z)"
+#~ msgstr "Rotation (z) (z軸回転)"
+
+#~ msgid "origin of model"
+#~ msgstr "モデルの原点"
+
+#~ msgid "COLLADA model"
+#~ msgstr "COLLADA model (COLLADAモデル)"
+
+#~ msgid "|image08|"
+#~ msgstr "|image08|"
+
+#~ msgid "COLLADA file"
+#~ msgstr "COLLADA file (COLLADAファイル)"
+
+#~ msgid ""
+#~ "Image was created with `GSI Tiles "
+#~ "<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem)."
+#~ msgstr ""
+#~ "画像は `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+#~ "(写真と標高タイル)を用いて作成しました。"
+
+#~ msgid ""
+#~ "Image was created with `GSI Tiles "
+#~ "<http://portal.cyberjapan.jp/help/development/>`__ (airphoto, dem)."
+#~ msgstr ""
+#~ "画像は `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+#~ "(簡易空中写真と標高タイル)を用いて作成しました。"
+
+#~ msgid ""
+#~ "Image was created with `GSI Tiles "
+#~ "<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and `National "
+#~ "Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Rivers. MILT "
+#~ "of Japan)."
+#~ msgstr ""
+#~ "画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+#~ "(写真と標高タイル)と国土交通省の `国土数値情報 <http://nlftp.mlit.go.jp/ksj/>`__ "
+#~ "(河川データ)を用いて作成しました。"
+
+#~ msgid "Lower Z"
+#~ msgstr "Lower Z (下辺のZ)"
+
+#~ msgid "Z coordinate of lower edge."
+#~ msgstr "下縁のZ座標."
+
+#~ msgid ""
+#~ "Image was created with `GSI Tiles "
+#~ "<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and "
+#~ "OpenStreetMap (© OpenStreetMap contributors, `License "
+#~ "<http://www.openstreetmap.org/copyright>`__)."
+#~ msgstr ""
+#~ "画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+#~ "(写真と標高タイル)とOpenStreetMap (© OpenStreetMap contributors, `ライセンス "
+#~ "<http://www.openstreetmap.org/copyright>`__)を用いて作成しました。"
+
+#~ msgid "Border color"
+#~ msgstr "Border color (枠線の色)"
+
+#~ msgid "Side"
+#~ msgstr "Side (側面)"
+
+#~ msgid "Check this option to add side to each polygon."
+#~ msgstr "各ポリゴンに側面をつけるにはこのオプションをチェックします。"
+
+#~ msgid "Side color"
+#~ msgstr "Side color (側面の色)"
+
+#~ msgid "Side lower Z"
+#~ msgstr "Side lower Z (側面の下辺のZ)"
+
+#~ msgid "Z coordinate of lower edge of side."
+#~ msgstr "側面の下縁のZ座標."
+
+#~ msgid ""
+#~ "Image was created with `GSI Tiles "
+#~ "<http://portal.cyberjapan.jp/help/development/>`__ (ort, dem) and `National "
+#~ "Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Sediment "
+#~ "Disaster Hazard Area. Provided by Okayama prefecture, Japan)."
+#~ msgstr ""
+#~ "画像は国土地理院の `地理院タイル <http://portal.cyberjapan.jp/help/development/>`__ "
+#~ "(写真と標高タイル)と国土交通省の `国土数値情報 <http://nlftp.mlit.go.jp/ksj/>`__ "
+#~ "(土砂災害危険箇所データ、岡山県提供)を用いて作成しました。"
+
+#~ msgid ""
+#~ "In degrees. See `Strike and dip - Wikipedia "
+#~ "<http://en.wikipedia.org/wiki/Strike_and_dip>`__."
+#~ msgstr ""
+#~ "傾斜角度。 `Strike and dip - Wikipedia "
+#~ "<http://en.wikipedia.org/wiki/Strike_and_dip>`__ を参照して下さい。"
+
+#~ msgid ""
+#~ "File path (.dae). If the model has texture images, they need to be copied to"
+#~ " the destination directory manually."
+#~ msgstr "ファイルパス (.dae)。 モデルがテクスチャ画像を持つ場合は手作業で出力ディレクトリにコピーする必要があります。"
+
+#~ msgid ""
+#~ "`SphereGeoemtry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
+#~ msgstr ""
+#~ "`SphereGeoemtry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
+
+#~ msgid ""
+#~ "`CylinderGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__"
+#~ msgstr ""
+#~ "`CylinderGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__"
+
+#~ msgid ""
+#~ "`BoxGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__"
+#~ msgstr ""
+#~ "`BoxGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__"
+
+#~ msgid "`Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__"
+#~ msgstr "`Sprite <http://threejs.org/docs/#Reference/Objects/Sprite>`__"
+
+#~ msgid "`Line <http://threejs.org/docs/#Reference/Objects/Line>`__"
+#~ msgstr "`Line <http://threejs.org/docs/#Reference/Objects/Line>`__"
+
+#~ msgid ""
+#~ "`CylinderGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__ "
+#~ "and `SphereGeoemtry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
+#~ msgstr ""
+#~ "`CylinderGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/CylinderGeometry>`__ と"
+#~ " `SphereGeoemtry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/SphereGeometry>`__"
+
+#~ msgid ""
+#~ "`BoxGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__ and "
+#~ "`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__"
+#~ msgstr ""
+#~ "`BoxGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry>`__ と "
+#~ "`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__"
+
+#~ msgid ""
+#~ "`PlaneGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
+#~ msgstr ""
+#~ "`PlaneGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
+
+#~ msgid ""
+#~ "`ExtrudeGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__"
+#~ msgstr ""
+#~ "`ExtrudeGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/ExtrudeGeometry>`__"
+
+#~ msgid ""
+#~ "`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__, `Line "
+#~ "<http://threejs.org/docs/#Reference/Objects/Line>`__ and `PlaneGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
+#~ msgstr ""
+#~ "`Geometry <http://threejs.org/docs/#Reference/Core/Geometry>`__, `Line "
+#~ "<http://threejs.org/docs/#Reference/Objects/Line>`__, `PlaneGeometry "
+#~ "<http://threejs.org/docs/#Reference/Extras.Geometries/PlaneGeometry>`__"
+
+#~ msgid "Places a cylinder to each line segment and a sphere to each point."
+#~ msgstr "各線分に円柱を、各点に球体を配置します。"
+
+#~ msgid ""
+#~ "Makes a vertical plane under each line segment. When the altitude mode of z "
+#~ "coordinate is ``Relative to DEM`` or ``+ \"field name\"``, each linestring "
+#~ "is split into segments using a triangle mesh generated from DEM and every "
+#~ "upper edge is located at the relative height from the mesh surface."
+#~ msgstr ""
+#~ "各線分の下に鉛直の面を作ります。Z座標の標高モードが ``Relative to DEM`` か ``+ \"field name\"`` "
+#~ "の場合は各ラインストリングはDEMから生成された三角形メッシュを用いて線分に分割され、上辺は三角形メッシュからの相対的な標高に位置します。"
+
+#~ msgid ""
+#~ "Overlay polygon draped on the main DEM with specified color, border color "
+#~ "and transparency. When the altitude mode of z coordinate is ``Relative to "
+#~ "DEM`` or ``+ \"field name\"``, each polygon is split into triangles using a "
+#~ "triangle mesh generated from DEM, and is located at the relative height from"
+#~ " the mesh surface. Otherwise, creates a flat polygon at a specified "
+#~ "altitude. You can add side to each polygon if you want."
+#~ msgstr ""
+#~ "指定された色、枠線の色、透過度のメインのDEMに被せられたオーバーレイポリゴン。Z座標の標高モードが ``Relative to DEM`` か ``+"
+#~ " \"field name\"`` "
+#~ "の場合は各ポリゴンはDEMから生成された三角形メッシュを用いて三角形に分割され、メッシュ面からの相対的な標高に位置します。そうではない場合は指定された標高に平面的なポリゴンを作成します。各ポリゴンに側面をつけることもできます。"

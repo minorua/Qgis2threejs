@@ -1,7 +1,7 @@
 Exporter
 ========
 
-.. note:: Now being updated for Qgis2threejs version 2.1.
+.. note:: Now being updated for Qgis2threejs version 2.2.
 
 .. contents:: Contents
    :local:
@@ -10,8 +10,7 @@ Exporter
 Window
 ------
 
-When the Qgis2threejs exporter window opens first time, `Layers` panel is on the left side of the window
-and preview is on the right side.
+Qgis2threejs exporter window has `Layers` panel on the left side and preview on the right side.
 
 .. image:: ./images/exporter1.png
 
@@ -24,7 +23,7 @@ To open layer properties dialog and configure settings for the layer, double-cli
 `Properties` from context menu (right click menu).
 
 Export settings are automatically saved to a ``.qto3settings`` file under the same directory
-as the project file if you are working with a project file. When you open the exporter later,
+as the currently open project file if you are working with a project file. When you open the exporter later,
 the export settings of the project will be restored.
 
 If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
@@ -32,78 +31,78 @@ For example, you might want to uncheck it to avoid waiting for updating 3D objec
 
 
 Menu
-----
-
-File
 ^^^^
-* Export to Web...
-    Exports files necessary for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
-    section.
 
-* Save Scene As - Image (.png)
-    Saves rendered scene image to a PNG file.
+* File
 
-* Save Scene As - glTF (.gltf,.glb)
-    Saves 3D model of current scene in glTF format.
+   * Export to Web...
+      Exports files necessary for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
+      section.
 
-* Exporter Settings...
-    Opens Exporter Settings dialog. See `Exporter Settings Dialog <#exporter-settings>`__
+   * Save Scene As - Image (.png)
+      Saves rendered scene image to a PNG file.
 
-* Close Exporter
-    Closes Qgis2threejs Exporter.
+   * Save Scene As - glTF (.gltf,.glb)
+      Saves 3D model of current scene in glTF format.
 
-Scene
-^^^^^
+   * Exporter Settings...
+      Opens Exporter Settings dialog. See `Exporter Settings Dialog <#exporter-settings>`__
 
-* Scene Settings...
-    Opens Scene settings dialog. See `Scene Settings <#scene-settings>`__ section.
+   * Close Exporter
+      Closes Qgis2threejs Exporter.
 
-* Camera
-    Changes the camera. See `Camera Settings <#camera-settings>`__ section.
+* Scene
 
-* Controls
-    Changes the controls. See `Controls Settings <#controls-settings>`__ section.
+   * Scene Settings...
+      Opens Scene settings dialog. See `Scene Settings <#scene-settings>`__ section.
 
-* Decorations
-    Adds decorations to the view, such as North arrow and footer label.
-    [TODO]
+   * Camera
+      Changes the camera. See `Camera Settings <#camera-settings>`__ section.
 
-* Clear All Settings
-    Clears current export settings.
+   * Controls
+      Changes the controls. See `Controls Settings <#controls-settings>`__ section.
 
-* Reload (F5)
-    Reloads current scene.
+   * Decorations
+      Add decorations to the view, such as North arrow and footer label.
+      See `Decorations <#decorations>`__ section.
 
-* Reset Camera Position (Shift+R)
-    Returns camera position to initial position and resets its view target to initial point (3D world origin).
+   * Clear All Settings
+      Clears current export settings.
 
-Window
-^^^^^^
-* Panels
-    * Layers
-    [TODO]
+   * Reload (F5)
+      Reloads current scene.
 
-    * Console
-        Console panel displays information for debugging, mainly JavaScript side information.
-        Python side debug information is logged to log messages panel of QGIS window.
-        You can enter and execute JavaScript statements.
+   * Reset Camera Position (Shift+R)
+      Returns camera position to initial position and resets its view target to initial point (3D world origin).
 
-* Always on Top
-    Brings the exporter window to front of all other application windows.
+* Window
 
-Help
-^^^^
+   * Panels
+      * Layers
+          Toggles Layers panel visibility.
+
+      * Console
+          Toggles console panel visibility.
+          Console panel displays information for debugging, mainly JavaScript side information.
+          Python side debug information is logged to log messages panel in QGIS window.
+          You can enter and execute JavaScript statements.
+
+   * Always on Top
+      Brings the exporter window to front of all other application windows.
+
 * Help
-    Opens the plugin document in default browser. Internet connection is required.
 
-* Plugin Homepage
-    Opens the plugin homepage in default browser. Internet connection is required.
+   * Help
+      Opens the plugin document in default browser. Internet connection is required.
 
-* Send feedback
-    Opens the plugin issue tracking system in default browser. Internet connection is required.
+   * Plugin Homepage
+      Opens the plugin homepage in default browser. Internet connection is required.
 
-* About Qgis2threejs Plugin
-    Displays the plugin version you are using.
+   * Send feedback
+      Opens the plugin issue tracking system in default browser. Internet connection is required.
+
+   * About Qgis2threejs Plugin
+      Displays the plugin version you are using.
 
 
 Scene Settings
@@ -150,18 +149,12 @@ Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
     * Basic type
 
-        Material type used for most 3D objects. Select a material type from
-        Lambert material, Phong material and Toon material. Default is Lambert
-        material.
-
-        * Lambert material
-        [TODO]
-
-        * Phong material
-        [TODO]
-
-        * Toon material
-        [TODO]
+        MateMaterial type applied to most 3D objects, except for Icon, Model File and Line type objects.
+        Select a material type from
+        `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
+        `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
+        `Toon material <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__.
+        Default is Lambert material.
 
 * Background
 
@@ -180,10 +173,12 @@ Camera Settings
 ---------------
 
 * Perspective Camera
-    Shows distant objects as smaller.
+
+    Renders closer objects as bigger and farther objects as smaller.
 
 * Orthographic Camera
-    [TODO]
+
+    Rendered object size doesn't depend on the distance from the camera.
 
 Controls Settings
 -----------------
@@ -197,6 +192,19 @@ Orbit Left mouse                                               One-finger move
 Zoom  Middle mouse, or mousewheel                              Two-finger spread or squish
 Pan   Right mouse, or left mouse + ctrl/metaKey, or arrow keys Two-finger move            
 ===== ======================================================== ===========================
+
+
+Decorations
+-----------
+
+* North arrow
+
+Adds an arrow that indicates the direction of grid North.
+
+* Footer label
+
+Adds a label to lower-left corner of the page.
+
 
 DEM Layer Settings
 ------------------
@@ -244,7 +252,7 @@ Material
 
       Textures the main DEM block with existing image file such as PNG file and JPEG file.
       TIFF is not supported by some browser. See `Image format
-      support <http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
+      support <https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
       for details.
 
    * Solid color
@@ -261,11 +269,11 @@ Material
 
    Sets opacity of DEM object. 100 is opaque, and 0 is transparent.
 
-* Transparent background (With map canvas image or layer image)
+* Transparent background (When map canvas image or layer image is chosen)
 
    Makes image background transparent.
 
-* Enable transparency (With image file)
+* Enable transparency (When image file is chosen)
 
    Enables image transparency.
 
@@ -291,7 +299,8 @@ Other Options
 
 * Visible on Load
 
-   [TODO]
+   Whether the layer is visible on page load or not.
+
 
 Vector Layer Settings
 ---------------------
@@ -301,28 +310,28 @@ Common settings for all types:
 
 * Z coordinate
 
-    Specifies object altitude above zero-level or a DEM surface.
-
-    * Altitude
-
-        You can use a expression to specify altitude. The unit is that of the map CRS.
-        When Z value or M value is selected, the evaluated value is added to it.
-
-        * Z value
-        This item can be selected when the layer geometries have z coordinates and
-        the layer type is point or line.
-
-        * M value
-        This item can be selected when the layer geometries have m values and
-        the layer type is point or line.
-
     * Altitude Mode
 
         * Absolute
         Altitude is distance above zero-level.
 
-        * Relative to DEM layer
-        Altitude is distance above a DEM surface.
+        * Relative to a DEM layer
+        Altitude is distance above surface of selected DEM.
+
+    * Altitude
+
+        You can use an expression to define altitude of objects above zero-level or
+        surface of selected DEM layer. This means that object altitude can be defined
+        using field values. The unit is that of the map CRS.
+
+        * Expression
+        A numeric value, field or more complex expression (QGIS expressions).
+
+        * Z value / M value
+        Uses z coordinate or m value of each vertex. the evaluated value is added to it.
+
+        These options can be chosen when the layer geometries have z coordinates or m values.
+        Cannot be chosen when the object type is Extruded or Overlay (polygon).
 
 * Style
 
@@ -332,7 +341,7 @@ Common settings for all types:
 
 * Feature
 
-   Select the features to be output.
+   Select the features to be exported.
 
     * All features
 
@@ -362,7 +371,7 @@ Point
 Point layers in the project are listed as the child items. The following
 object types are available:
 
-    Sphere, Cylinder, Cone, Box, Disk
+    Sphere, Cylinder, Cone, Box, Disk, Plane, Model File
 
 See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -382,13 +391,15 @@ Polygon
 Polygon layers in the project are listed as the child items. The
 following object types are available:
 
-    Extruded, Overlay
+    Extruded, Overlay, Triangular Mesh
 
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
 
 Export to Web Dialog
 --------------------
+
+[TODO IMAGE]
 
 .. image:: ./images/export_web.png
 
@@ -405,8 +416,8 @@ Export to Web Dialog
 
    Exporting starts when you press the Export button. When the exporting has
    been done and `Open exported page in web browser` option is checked, the
-   exported page is opened in default web browser (or a browser specified in
-   `Exporter Settings <#exporter-settings>`__).
+   exported page is opened in default web browser (or a web browser specified
+   in `Exporter Settings <#exporter-settings>`__).
 
 * Template
 
@@ -423,6 +434,7 @@ Export to Web Dialog
        opacity and add a horizontal plane movable in the vertical direction.
 
     * Mobile
+
        This is a template for mobile devices, which has mobile friendly GUI,
        device orientation controls and AR feature. In order to use the AR feature
        (Camera and GPS), you need to upload exported files to a web server
@@ -431,15 +443,18 @@ Export to Web Dialog
        Option
 
        * Magnetic North Direction
-           Magnetic North direction clockwise from the upper direction of the map,
-           in degrees.
+           Magnetic North direction clockwise from the upper direction of the map, in degrees.
+           This value will be set to 0 if map canvas is rotated so that magnetic North direction is
+           same as the map upper direction. Otherwise, the value should be determined taking account of
+           grid magnetic angle (angle between grid North and magnetic North) and map rotation.
+           Used to determine device camera direction.
 
 Exporter Settings
 -----------------
 
 .. image:: ./images/plugin_settings.png
 
-* Browser path
+* Web browser path
 
    If you want to open web page exported from the exporter with a web browser
    other than the default browser, enter the web browser path in this input box.
@@ -448,12 +463,4 @@ Exporter Settings
 
 * Optional Features
 
-    * DEM Provider
-
-        * GSI Elevation Tile Provider
-
-            This DEM provider downloads GSI elevation tiles from the web server of
-            Geospatial Information Authority of Japan, and provides elevation data to
-            Qgis2threejs. The tile data covers the area of Japan.
-
-    See `Plugins <https://github.com/minorua/Qgis2threejs/wiki/Plugins>`__ wiki page for further info.
+    See `Plugins <https://github.com/minorua/Qgis2threejs/wiki/Plugins>`__ wiki page.
