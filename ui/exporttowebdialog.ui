@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>486</width>
-    <height>238</height>
+    <width>602</width>
+    <height>220</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -113,16 +113,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_AllVisible">
-     <property name="text">
-      <string>Ragardless of &quot;Visible on load&quot; layer setting, all exported layers are displayed on page load.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>

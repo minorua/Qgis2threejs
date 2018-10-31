@@ -76,9 +76,7 @@ class ExportToWebDialog(QDialog):
     optset = set(config.get("options", "").split(","))
     optset.discard("")
 
-    self.ui.label_AllVisible.setVisible("allVisible" in optset)  # label is out of template settings group box
-    optset.discard("allVisible")
-
+    # template settings group box
     self.ui.groupBox.setVisible(bool(optset))
 
     if optset:
@@ -99,8 +97,6 @@ class ExportToWebDialog(QDialog):
     options = self.settings.templateConfig().get("options", "")
     if options:
       optlist = options.split(",")
-      if "allVisible" in optlist:
-        self.settings.setOption("allVisible", True)
 
       if "AR.MND" in optlist:
         try:

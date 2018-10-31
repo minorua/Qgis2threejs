@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\exporttowebdialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.5
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ExportToWebDialog(object):
     def setupUi(self, ExportToWebDialog):
         ExportToWebDialog.setObjectName("ExportToWebDialog")
-        ExportToWebDialog.resize(486, 238)
+        ExportToWebDialog.resize(602, 220)
         self.verticalLayout = QtWidgets.QVBoxLayout(ExportToWebDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout = QtWidgets.QFormLayout()
@@ -61,10 +61,6 @@ class Ui_ExportToWebDialog(object):
         self.lineEdit_MND.setObjectName("lineEdit_MND")
         self.gridLayout.addWidget(self.lineEdit_MND, 1, 1, 1, 1)
         self.verticalLayout.addWidget(self.groupBox)
-        self.label_AllVisible = QtWidgets.QLabel(ExportToWebDialog)
-        self.label_AllVisible.setWordWrap(True)
-        self.label_AllVisible.setObjectName("label_AllVisible")
-        self.verticalLayout.addWidget(self.label_AllVisible)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.checkBox_openPage = QtWidgets.QCheckBox(ExportToWebDialog)
@@ -107,7 +103,6 @@ class Ui_ExportToWebDialog(object):
         self.groupBox.setTitle(_translate("ExportToWebDialog", "Template Settings"))
         self.label_MND.setText(_translate("ExportToWebDialog", "Magnetic North Direction (clockwise from the upper direction of the map, in degrees)"))
         self.lineEdit_MND.setText(_translate("ExportToWebDialog", "0"))
-        self.label_AllVisible.setText(_translate("ExportToWebDialog", "Ragardless of \"Visible on load\" layer setting, all exported layers are displayed on page load."))
         self.checkBox_openPage.setText(_translate("ExportToWebDialog", "Open Exported Page in Web Browser"))
         self.pushButton_Export.setText(_translate("ExportToWebDialog", "Export"))
         self.pushButton_Cancel.setText(_translate("ExportToWebDialog", "Cancel"))
