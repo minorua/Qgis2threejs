@@ -1,4 +1,4 @@
-Qgis2threejs plugin - version 2.1
+Qgis2threejs plugin - version 2.2
 =================================
 
   This is a [QGIS](https://qgis.org/) plugin, which visualizes DEM data and vector data in 3D on web
@@ -28,9 +28,11 @@ Dependent JavaScript libraries and resources
 
 * [Proj4js](https://trac.osgeo.org/proj4js/)
 
-* Exports based on 3DViewer(dat-gui) template use [dat-gui](https://code.google.com/p/dat-gui/)
+* [dat-gui](https://code.google.com/p/dat-gui/) for export based on 3DViewer(dat-gui) template
 
-* Exports based on Mobile template use [Font Awesome](https://fontawesome.com/) icons
+* [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
+
+* JavaScript [polyfill](https://github.com/inexorabletash/polyfill) for glTF export function
 
 License
 =======

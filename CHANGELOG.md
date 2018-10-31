@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### Version 2.2
+- Added Triangular Mesh type for polygon layer
+- Added Plane type for point layer (width, height, orientation)
+- Restored Icon type for point layer
+- Added Model File type for point layer (COLLADA and glTF)
+- Drag & drop model preview
+
 ### Version 2.1
 - Added a new template for mobile device with experimental AR feature
 - Added North arrow inset
