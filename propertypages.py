@@ -200,7 +200,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
               "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
     proj = QgsProject.instance().crs().toProj4()
-    m = re.search("\+proj=(\w+)", proj)
+    m = re.search(r"\+proj=(\w+)", proj)
     proj_supported = bool(m and m.group(1) in projs)
 
     if not proj_supported:
