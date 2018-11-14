@@ -23,18 +23,17 @@ from PyQt5.Qt import Qt
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
-from .build import ThreeJSExporter
+from .export import ThreeJSExporter
 from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 
 class ExportToWebDialog(QDialog):
 
-  def __init__(self, parent, qgisIface, settings):
+  def __init__(self, parent, settings):
     QDialog.__init__(self, parent)
     self.setAttribute(Qt.WA_DeleteOnClose)
 
-    self.iface = qgisIface
     self.settings = settings
 
     self.ui = Ui_ExportToWebDialog()

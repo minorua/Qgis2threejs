@@ -87,39 +87,23 @@ class Bridge(QObject):
 
 class Q3DWebPage(QWebPage):
 
-  consoleMessage = pyqtSignal(str, int, str)
+  initialized = pyqtSignal()
 
   def __init__(self, parent=None):
     QWebPage.__init__(self, parent)
+
+    self.modelLoadersLoaded = False
 
     if DEBUG_MODE == 2:
       # open log file
       self.logfile = open(pluginDir("q3dview.log"), "w")
 
-  def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-    self.consoleMessage.emit(message, lineNumber, sourceID)
-
-    if DEBUG_MODE == 2:
-      now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
-      self.logfile.flush()
-
-
-class Q3DView(QWebView):
-
-  def __init__(self, parent=None):
-    QWebView.__init__(self, parent)
-    self.setAcceptDrops(True)
-
-    self.requestQueue = []
-    self.isProcessingExclusively = False
-
-    self.modelLoadersLoaded = False
-
-  def setup(self, wnd, iface, isViewer=True, enabled=True):
-    self.wnd = wnd
+  def setup(self, iface, wnd=None, enabled=True):
+    """iface: Q3DInterface or Q3DViewerInterface
+       wnd: Q3DWindow or None (off-screen mode)"""
     self.iface = iface
-    self.isViewer = isViewer
+    self.wnd = wnd or DummyWindow()
+    self.offScreen = bool(wnd is None)
     self._enabled = enabled
 
     self.bridge = Bridge(self)
@@ -127,41 +111,26 @@ class Q3DView(QWebView):
     self.bridge.imageReceived.connect(self.saveImage)
 
     self.loadFinished.connect(self.pageLoaded)
+    self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
 
-    self._page = Q3DWebPage(self)
-    self._page.consoleMessage.connect(wnd.printConsoleMessage)
-    self._page.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
-    self.setPage(self._page)
-
-    # security settings - allow access to remote urls (for Icon)
-    self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
-    origin = self._page.mainFrame().securityOrigin()
+    # security settings
+    origin = self.mainFrame().securityOrigin()
     origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
     origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
 
-    if not isViewer:
+    if False and self.offScreen:
       # transparent background
-      palette = self._page.palette()
+      palette = self.palette()
       palette.setBrush(QPalette.Base, Qt.transparent)
-      self._page.setPalette(palette)
-      self.setAttribute(Qt.WA_OpaquePaintEvent, False)
+      self.setPalette(palette)
+      #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
-    self.renderId = None    # for renderer
-
-    filetitle = "viewer" if isViewer else "layer"
-    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", filetitle + ".html").replace("\\", "/")
+    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "viewer.html").replace("\\", "/")
     self.myUrl = QUrl.fromLocalFile(url)
-    self.setUrl(self.myUrl)
+    self.mainFrame().setUrl(self.myUrl)
 
-  def reloadPage(self):
-    self.wnd.clearConsole()
-    self.setUrl(self.myUrl)
-    #self.reload()
-
-  def addJSObject(self):
-    self._page.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-    if DEBUG_MODE:
-      self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
+  def reload(self):
+    self.mainFrame().setUrl(self.myUrl)
 
   def pageLoaded(self, ok):
     self.modelLoadersLoaded = False
@@ -172,45 +141,32 @@ class Q3DView(QWebView):
     if self.iface.controller.settings.isOrthoCamera():
       self.runString("switchCamera(true);")
 
+    self.initialized.emit()
+
+    if self.offScreen:
+      return
+
     if self._enabled:
       self.iface.updateScene()
     else:
       self.iface.setPreviewEnabled(False)
 
-  def dragEnterEvent(self, event):
-    event.acceptProposedAction()
-
-  def dropEvent(self, event):
-    # logMessage(event.mimeData().formats())
-    for url in event.mimeData().urls():
-      self.runString("loadModel('" + url.toString() + "');")
-
-    event.acceptProposedAction()
-
-  def sendData(self, data):
-    self.bridge.setData(data)
-    self._page.mainFrame().evaluateJavaScript("loadJSONObject(fetchData());")
-
-  def showStatusMessage(self, msg):
-    self.wnd.ui.statusbar.showMessage(msg)
-
-  def reload(self):
-    pass
-
-  def resetCameraPosition(self):
-    self.runString("app.controls.reset();")
-
   def runString(self, string, message="", sourceID="q3dview.py"):
     if DEBUG_MODE:
       self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
-      qDebug("runString: {}\n".format(message if message else string))
+      qDebug("runString: {}\n".format(message if message else string).encode("utf-8"))
 
       if DEBUG_MODE == 2:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._page.logfile.write("{} runString: {}\n".format(now, message if message else string))
         self._page.logfile.flush()
 
-    return self._page.mainFrame().evaluateJavaScript(string)
+    return self.mainFrame().evaluateJavaScript(string)
+
+  def addJSObject(self):
+    self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
+    if DEBUG_MODE:
+      self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
   def loadScriptFile(self, filename):
     with open(filename, "r", encoding="utf-8") as f:
@@ -224,24 +180,90 @@ class Q3DView(QWebView):
       self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
       self.modelLoadersLoaded = True
 
+  def resetCameraPosition(self):
+    self.runString("app.controls.reset();")
+
+  def sendData(self, data):
+    self.bridge.setData(data)
+    self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData());")
+
   def saveModelData(self, data, filename):
     try:
       with open(filename, "wb") as f:
         f.write(data)
 
+      logMessage("Successfully saved model data: " + filename)
     except Exception as e:
       QMessageBox.warning(self, "Failed to save model data.", str(e))
-      return
-
-    logMessage("Successfully saved model data: " + filename)
 
   def saveImage(self, width, height, image):
     if image is None:
       image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
       painter = QPainter(image)
-      self._page.mainFrame().render(painter)
+      self.mainFrame().render(painter)
       painter.end()
 
     filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
     if filename:
       image.save(filename)
+
+  def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
+    self.wnd.printConsoleMessage(message, lineNumber, sourceID)
+
+    if DEBUG_MODE == 2:
+      now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
+      self.logfile.flush()
+
+
+class Q3DView(QWebView):
+
+  def __init__(self, parent=None):
+    QWebView.__init__(self, parent)
+    self.setAcceptDrops(True)
+
+    self._page = Q3DWebPage(self)
+    self.setPage(self._page)
+
+  def setup(self, iface, wnd=None, enabled=True):
+    self.iface = iface
+    self.wnd = wnd
+    self._page.setup(iface, wnd, enabled)
+
+    # security settings - allow access to remote urls (for Icon)
+    self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
+
+  def reloadPage(self):
+    self.wnd.clearConsole()
+    self._page.reload()
+
+  def dragEnterEvent(self, event):
+    event.acceptProposedAction()
+
+  def dropEvent(self, event):
+    # logMessage(event.mimeData().formats())
+    for url in event.mimeData().urls():
+      self.runString("loadModel('" + url.toString() + "');")
+
+    event.acceptProposedAction()
+
+  #def reload(self):
+  #  pass
+
+  def showStatusMessage(self, msg):
+    self.wnd.ui.statusbar.showMessage(msg)
+
+  def sendData(self, data):
+    self._page.sendData(data)
+
+  def resetCameraPosition(self):
+    self._page.resetCameraPosition()
+
+  def runString(self, string, message="", sourceID="q3dview.py"):
+    self._page.runString(string, message, sourceID)
+
+
+class DummyWindow:
+
+  def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+    logMessage(message)

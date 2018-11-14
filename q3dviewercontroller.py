@@ -40,13 +40,13 @@ class Q3DViewerController:
 
       err_msg = settings.checkValidity()
       if err_msg:
-        logMessage(err_msg or "Invalid settings")
+        logMessage("Invalid settings: " + err_msg)
 
     self.settings = settings
     self.exporter = ThreeJSBuilder(settings)
 
     self.iface = None
-    self.previewEnabled = True
+    self.previewEnabled = True    #TODO: rename to enabled
     self.aborted = False  # layer export aborted
     self.updating = False
     self.layersNeedUpdate = False
@@ -57,12 +57,14 @@ class Q3DViewerController:
     """iface: Q3DViewerInterface"""
     self.iface = iface
 
-    self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
-    self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
-
   def disconnectFromIface(self):
     self.iface = None
 
+  def connectToMapCanvas(self):
+    self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
+    self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
+
+  def disconnectFromMapCanvas(self):
     self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
     self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
@@ -81,23 +83,25 @@ class Q3DViewerController:
       self.updateExtent()
       self.updateScene()
 
-  def updateScene(self, update_scene_settings=True, update_layers=True):
+  def updateScene(self, update_scene_settings=True, update_layers=True, update_extent=True, base64=False):
     if not self.iface:
       return
 
-    s = self.iface.controller.settings
+    self.settings.base64 = base64
     self.updating = True
     self.layersNeedUpdate = self.layersNeedUpdate or update_layers
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Updating scene")
 
-    # export scene
-    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+    if update_extent:
+      self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+
+    # build scene
     self.iface.loadJSONObject(self.exporter.buildScene(False))
 
     if update_scene_settings:
       # update background color
-      sp = s.sceneProperties()
+      sp = self.settings.sceneProperties()
       params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
       self.iface.runString("setBackgroundColor({0});".format(params))
 
@@ -108,7 +112,7 @@ class Q3DViewerController:
         self.iface.runString("proj4 = undefined;", "// proj4 not enabled")
 
     if update_layers:
-      layers = s.getLayerList()
+      layers = self.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100, "Updating layers")
         if layer.updated or (self.layersNeedUpdate and layer.visible):
@@ -119,6 +123,7 @@ class Q3DViewerController:
     self.updating = self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
+    self.settings.base64 = False
 
   def updateLayer(self, layer):
     self.updating = True

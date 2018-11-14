@@ -18,7 +18,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
@@ -29,29 +28,27 @@ from .conf import DEBUG_MODE, PLUGIN_VERSION
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
+from .q3dinterface import Q3DInterface
 from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
 
-class Q3DViewerInterface:
+class Q3DViewerInterface(Q3DInterface):
 
-  def __init__(self, qgisIface, wnd, treeView, webView, controller):
-    self.qgisIface = qgisIface
+  def __init__(self, webPage, wnd, treeView):
+    super().__init__(webPage)
     self.wnd = wnd
     self.treeView = treeView
-    self.webView = webView
-
-    self.connectToController(controller)
 
   def connectToController(self, controller):
-    self.controller = controller
-    controller.connectToIface(self)
+    super().connectToController(controller)
+    controller.connectToMapCanvas()
 
   def disconnectFromController(self):
     if self.controller:
-      self.controller.disconnectFromIface()
-    self.controller = None
+      self.controller.disconnectFromMapCanvas()
+      super().disconnectFromController()
 
   def fetchLayerList(self):
     settings = self.controller.settings
@@ -59,18 +56,9 @@ class Q3DViewerInterface:
     self.treeView.setLayerList(settings.getLayerList())
 
   def startApplication(self):
-    # configuration
-    p = self.controller.settings.northArrow()
-    if p.get("visible"):
-      self.runString("Q3D.Config.northArrow.visible = true;")
-      self.runString("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
+    super().startApplication()
 
-    label = self.controller.settings.footerLabel()
-    if label:
-      self.runString('setFooterLabel("{}");'.format(label.replace('"', '\\"')))
-
-    # initialize and start app
-    self.runString("init();")
+    # start app
     self.runString("app.start();")
 
     if DEBUG_MODE:
@@ -84,34 +72,8 @@ class Q3DViewerInterface:
     if not enabled:
       self.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
-  def loadJSONObject(self, obj):
-    # display the content of the object in the debug element
-    if DEBUG_MODE == 2:
-      self.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
-
-    self.webView.sendData(obj)
-
-  def runString(self, string, message=""):
-    self.webView.runString(string, message, sourceID="q3dwindow.py")
-
-  def loadScriptFile(self, filepath):
-    self.webView.loadScriptFile(filepath)
-
   def loadModelLoaders(self):
-    self.webView.loadModelLoaders()
-
-  def abort(self):
-    self.controller.abort()
-
-  def updateScene(self, base64=False):
-    if base64:
-      self.controller.settings.base64 = True
-
-    self.controller.updateScene()
-    self.controller.settings.base64 = False
-
-  def updateLayer(self, layer):
-    self.controller.updateLayer(layer)
+    self.webPage.loadModelLoaders()
 
   def showMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
@@ -131,7 +93,7 @@ class Q3DViewerInterface:
         bar.setFormat(text)
 
   def showScenePropertiesDialog(self):
-    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
+    dialog = PropertiesDialog(self.wnd, self.controller.settings)
     dialog.propertiesAccepted.connect(self.updateSceneProperties)
     dialog.showSceneProperties()
 
@@ -142,9 +104,9 @@ class Q3DViewerInterface:
     self.controller.updateScene()
 
   def showLayerPropertiesDialog(self, layer):
-    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
+    dialog = PropertiesDialog(self.wnd, self.controller.settings)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
-    dialog.showLayerProperties(layer)
+    dialog.showLayerProperties(self.wnd.qgisIface, layer)
     return True
 
   def updateLayerProperties(self, layerId, properties):
@@ -157,7 +119,7 @@ class Q3DViewerInterface:
       self.updateLayer(layer)
 
   def getDefaultProperties(self, layer):
-    dialog = PropertiesDialog(self.wnd, self.qgisIface, self.controller.settings)
+    dialog = PropertiesDialog(self.wnd, self.controller.settings)
     dialog.setLayer(layer)
     return dialog.page.properties()
 
@@ -169,32 +131,24 @@ class Q3DViewerInterface:
 
 class Q3DWindow(QMainWindow):
 
-  def __init__(self, parent, qgisIface, controller, isViewer=True, preview=True):
+  def __init__(self, parent, qgisIface, controller, preview=True):
     QMainWindow.__init__(self, parent)
     self.qgisIface = qgisIface
-    self.isViewer = isViewer
     self.settings = controller.settings
-
-    #if live_in_another_process:
-    #  self.iface = SocketClient(serverName, self)
-    #  self.iface.notified.connect(self.notified)
-    #  self.iface.requestReceived.connect(self.requestReceived)
-    #  self.iface.responseReceived.connect(self.responseReceived)
-    #else:
-    #  self.iface = Q3DConnector(self)
 
     self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
     self.ui = Ui_Q3DWindow()
     self.ui.setupUi(self)
 
-    self.iface = Q3DViewerInterface(qgisIface, self, self.ui.treeView, self.ui.webView, controller)
+    self.iface = Q3DViewerInterface(self.ui.webView._page, self, self.ui.treeView)
+    self.iface.connectToController(controller)
 
     self.setupMenu()
     self.setupContextMenu()
     self.setupStatusBar(self.iface, preview)
     self.ui.treeView.setup(self.iface)
-    self.ui.webView.setup(self, self.iface, isViewer, preview)
+    self.ui.webView.setup(self.iface, self, preview)
     self.ui.dockWidgetConsole.hide()
 
     self.iface.fetchLayerList()
@@ -307,7 +261,7 @@ class Q3DWindow(QMainWindow):
     self.show()
 
   def changeEvent(self, event):
-    if self.isViewer and event.type() == QEvent.WindowStateChange:
+    if event.type() == QEvent.WindowStateChange:
       if self.windowState() & Qt.WindowMinimized:
         self.runString("app.pause();")
       else:
@@ -344,7 +298,7 @@ class Q3DWindow(QMainWindow):
     return self.ui.webView.runString(string, message, sourceID=sourceID)
 
   def exportToWeb(self):
-    dialog = ExportToWebDialog(self, self.qgisIface, self.settings)
+    dialog = ExportToWebDialog(self, self.settings)
     dialog.show()
     dialog.exec_()
 
@@ -363,8 +317,8 @@ class Q3DWindow(QMainWindow):
     filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
-      self.ui.webView.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
-      self.runString("saveModelAsGLTF('{0}');".format(filename))
+      self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
+      self.runString("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
   def pluginSettings(self):
     from .pluginsettings import SettingsDialog
@@ -409,11 +363,10 @@ class PropertiesDialog(QDialog):
 
   propertiesAccepted = pyqtSignal(str, dict)
 
-  def __init__(self, parent, qgisIface, settings):
+  def __init__(self, parent, settings):
     QDialog.__init__(self, parent)
     self.setAttribute(Qt.WA_DeleteOnClose)
 
-    self.iface = qgisIface
     self.settings = settings
     self.mapTo3d = settings.mapTo3d
 
@@ -463,7 +416,8 @@ class PropertiesDialog(QDialog):
       else:
         self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
-  def showLayerProperties(self, layer):
+  def showLayerProperties(self, qgisIface, layer):
+    self.qgisIface = qgisIface
     self.setWindowTitle("{0} - Layer Properties".format(layer.name))
     self.setLayer(layer)
     self.show()

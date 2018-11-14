@@ -23,9 +23,9 @@ import os
 import re
 
 from PyQt5.QtCore import Qt, QDir, QPoint
-from PyQt5.QtWidgets import QCheckBox, QColorDialog, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor
-from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsWkbTypes
+from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
@@ -199,9 +199,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
               "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
-    canvas = self.dialog.iface.mapCanvas()
-    mapSettings = canvas.mapSettings()
-    proj = mapSettings.destinationCrs().toProj4()
+    proj = QgsProject.instance().crs().toProj4()
     m = re.search("\+proj=(\w+)", proj)
     proj_supported = bool(m and m.group(1) in projs)
 
@@ -285,7 +283,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
-    canvas = self.dialog.iface.mapCanvas()
+    canvas = self.dialog.qgisIface.mapCanvas()
     outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
@@ -295,7 +293,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.comboBox_TextureSize.addItem(text, percent)
 
   def resolutionSliderChanged(self, v):
-    canvas = self.dialog.iface.mapCanvas()
+    canvas = self.dialog.qgisIface.mapCanvas()
     canvasSize = canvas.mapSettings().outputSize()
     resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
@@ -316,7 +314,7 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
     from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
-    dialog.setMapSettings(self.dialog.iface.mapCanvas().mapSettings())
+    dialog.setMapSettings(self.dialog.qgisIface.mapCanvas().mapSettings())
     if not dialog.exec_():
       return
 
