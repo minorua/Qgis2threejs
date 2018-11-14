@@ -22,7 +22,7 @@
 import json
 import os
 
-from PyQt5.QtCore import QDir, QFileInfo, QSize
+from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from PyQt5.QtGui import QImage, QPainter
 
 from .conf import DEBUG_MODE
@@ -187,8 +187,12 @@ class BridgeExporterBase(ThreeJSExporter):
     self.iface = Q3DInterface(self.page)
     self.iface.connectToController(controller)
 
+    loop = QEventLoop()
+    self.page.initialized.connect(loop.quit)
+
     self.page.setViewportSize(QSize(width, height))
     self.page.setup(self.iface)
+    loop.exec_()
 
   def destroyWebPage(self):
     if self.page:
