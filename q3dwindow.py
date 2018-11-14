@@ -72,9 +72,6 @@ class Q3DViewerInterface(Q3DInterface):
     if not enabled:
       self.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
-  def loadModelLoaders(self):
-    self.webPage.loadModelLoaders()
-
   def showMessage(self, msg):
     self.wnd.ui.statusbar.showMessage(msg)
 

@@ -66,6 +66,9 @@ class Q3DInterface:
   def loadScriptFile(self, filepath):
     self.webPage.loadScriptFile(filepath)
 
+  def loadModelLoaders(self):
+    self.webPage.loadModelLoaders()
+
   def abort(self):
     self.controller.abort()
 
