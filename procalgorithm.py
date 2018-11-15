@@ -20,6 +20,7 @@
 
 import os
 import qgis
+from PyQt5.QtCore import QSize
 from qgis.core import (QgsCoordinateTransform,
                        QgsGeometry,
                        QgsProcessing,
@@ -30,7 +31,8 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFolderDestination,
                        QgsProcessingParameterNumber,
-                       QgsRectangle)
+                       QgsRectangle,
+                       QgsWkbTypes)
 
 from .conf import DEBUG_MODE
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
@@ -44,6 +46,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
   Exporter = ThreeJSExporter
 
   INPUT = "INPUT"
+  SCALE = "SCALE"
+  BUFFER = "BUFFER"
+  TEX_WIDTH = "TEX_WIDTH"
+  TEX_HEIGHT = "TEX_HEIGHT"
   TITLE_FIELD = "TITLE"
   SETTINGS = "SETTINGS"
   OUTPUT = "OUTPUT"
@@ -63,6 +69,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     return string
     #return QCoreApplication.translate("Qgis2threejsAlg", string)
 
+  def addAdvancedParameter(self, param):
+    param.setFlags(param.flags() | param.FlagAdvanced)
+    self.addParameter(param)
+
   def initAlgorithm(self, config):
     if DEBUG_MODE:
       logMessage("initAlgorithm(): {}".format(self.__class__.__name__))
@@ -77,27 +87,62 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     self.addParameter(
       QgsProcessingParameterFeatureSource(
         self.INPUT,
-        self.tr('Coverage layer'),
+        self.tr('Coverage Layer'),
         [QgsProcessing.TypeVectorAnyGeometry]
       )
     )
 
     self.addParameter(
       QgsProcessingParameterField(self.TITLE_FIELD,
-        self.tr('Title field'),
+        self.tr('Title Field'),
         None,
         self.INPUT,
         QgsProcessingParameterField.Any
       )
     )
 
-    param = QgsProcessingParameterFile(self.SETTINGS,
-      self.tr('Export settings file (.qto3settings)'),
-      extension="qto3settings",
-      optional=True
+    self.addAdvancedParameter(
+      QgsProcessingParameterEnum(
+        self.SCALE,
+        self.tr("Scale Mode"),
+        ["Fit to Geometry", "Fixed Scale (based on map canvas)"]
+      )
     )
-    param.setFlags(param.flags() | param.FlagAdvanced)
-    self.addParameter(param)
+
+    self.addAdvancedParameter(
+      QgsProcessingParameterNumber(
+        self.BUFFER,
+        self.tr("Buffer (%)"),
+        defaultValue=10
+      )
+    )
+
+    self.addAdvancedParameter(
+      QgsProcessingParameterNumber(
+        self.TEX_WIDTH,
+        self.tr("Texture base width (px)"),
+        defaultValue=1024
+      )
+    )
+
+    self.addAdvancedParameter(
+      QgsProcessingParameterNumber(
+        self.TEX_HEIGHT,
+        self.tr('Texture base height (px)\n'\
+                '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'\
+                '    or map canvas (in "Fixed scale" scale mode).'),
+        defaultValue=0
+        #,optional=True
+      )
+    )
+
+    self.addAdvancedParameter(
+      QgsProcessingParameterFile(self.SETTINGS,
+        self.tr('Export Settings File (.qto3settings)'),
+        extension="qto3settings",
+        optional=True
+      )
+    )
 
   def prepareAlgorithm(self, parameters, context, feedback):
     source = self.parameterAsSource(parameters, self.INPUT, context)
@@ -120,14 +165,17 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     source = self.parameterAsSource(parameters, self.INPUT, context)
     title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)
+    fixed_scale = self.parameterAsEnum(parameters, self.SCALE, context)   # == 1
+    buf = self.parameterAsDouble(parameters, self.BUFFER, context)
+    tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
+    tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
     out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
-
-    rotation = 0
 
     mapSettings = self.controller.settings.mapSettings
     baseExtent = self.controller.settings.baseExtent
-    half_width = baseExtent.width() / 2
-    half_height = baseExtent.height() / 2
+    rotation = 0      #TODO: mapSettings.rotation()
+    orig_size = mapSettings.outputSize()
+    orig_tex_height = tex_height
 
     total = source.featureCount()
     for current, feature in enumerate(source.getFeatures()):
@@ -140,14 +188,29 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       # extent
       geometry = QgsGeometry(feature.geometry())
       geometry.transform(self.transform)
-      center= geometry.centroid().asPoint()
+      center = geometry.centroid().asPoint()
 
-      if rotation:
-        RotatedRect(center, baseExtent.width(), baseExtent.height(), rotation).toMapSettings(mapSettings)
+      if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
+        tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
+        rect = RotatedRect(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
       else:
-        rect = QgsRectangle(center.x() - half_width, center.y() - half_height,
-                            center.x() + half_width, center.y() + half_height)
-        mapSettings.setExtent(rect)
+        #TODO rotation support: geometry.rotate(rotation, center)
+        rect = geometry.boundingBox().scaled(1 + buf / 100)
+        if orig_tex_height:
+          tex_height = orig_tex_height
+          tex_ratio = tex_width / tex_height
+          rect_ratio = rect.width() / rect.height()
+          if tex_ratio > rect_ratio:
+            rect = RotatedRect(rect.center(), rect.height() * tex_ratio, rect.height(), rotation)
+          else:
+            rect = RotatedRect(rect.center(), rect.width(), rect.width() / tex_ratio, rotation)
+        else:
+          # fit to buffered geometry bounding box
+          rect = RotatedRect(rect.center(), rect.width(), rect.height(), rotation)
+          tex_height = tex_width * rect.height() / rect.width()
+
+      rect.toMapSettings(mapSettings)
+      mapSettings.setOutputSize(QSize(tex_width, tex_height))
 
       self.controller.settings.setMapSettings(mapSettings)
 
@@ -173,8 +236,7 @@ class ExportAlgorithm(AlgorithmBase):
       QgsProcessingParameterEnum(
         self.TEMPLATE,
         self.tr("Template"),
-        templates,
-        allowMultiple=False
+        templates
       )
     )
 
@@ -183,6 +245,10 @@ class ExportAlgorithm(AlgorithmBase):
 
   def displayName(self):
     return self.tr("Export as Web Page")
+
+  #def prepareAlgorithm(self, parameters, context, feedback):
+    #TODO: template
+  #  return True
 
   def export(self, title, out_dir, feedback):
     # scene title
@@ -212,7 +278,7 @@ class ExportImageAlgorithm(AlgorithmBase):
     self.addParameter(
       QgsProcessingParameterNumber(
         self.WIDTH,
-        self.tr("Image width"),
+        self.tr("Image Width"),
         defaultValue=2480,
         minValue=1)
     )
@@ -220,7 +286,7 @@ class ExportImageAlgorithm(AlgorithmBase):
     self.addParameter(
       QgsProcessingParameterNumber(
         self.HEIGHT,
-        self.tr("Image height"),
+        self.tr("Image Height"),
         defaultValue=1748,
         minValue=1)
     )
@@ -237,6 +303,7 @@ class ExportImageAlgorithm(AlgorithmBase):
     width = self.parameterAsInt(parameters, self.WIDTH, context)
     height = self.parameterAsInt(parameters, self.HEIGHT, context)
 
+    feedback.setProgressText("Preparing a web page for off-screen rendering...")
     self.exporter.initWebPage(self.controller, width, height)
     return True
 
@@ -278,6 +345,7 @@ class ExportModelAlgorithm(AlgorithmBase):
 
     self.modelType = "gltf"
 
+    feedback.setProgressText("Preparing a web page for 3D model export...")
     self.exporter.initWebPage(self.controller, 500, 500)
     return True
 
