@@ -168,14 +168,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     fixed_scale = self.parameterAsEnum(parameters, self.SCALE, context)   # == 1
     buf = self.parameterAsDouble(parameters, self.BUFFER, context)
     tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
-    tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
+    orig_tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
     out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
 
     mapSettings = self.controller.settings.mapSettings
     baseExtent = self.controller.settings.baseExtent
-    rotation = 0      #TODO: mapSettings.rotation()
+    rotation = mapSettings.rotation()
     orig_size = mapSettings.outputSize()
-    orig_tex_height = tex_height
 
     total = source.featureCount()
     for current, feature in enumerate(source.getFeatures()):
@@ -194,19 +193,20 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
         rect = RotatedRect(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
       else:
-        #TODO rotation support: geometry.rotate(rotation, center)
+        geometry.rotate(rotation, center)
         rect = geometry.boundingBox().scaled(1 + buf / 100)
+        center = RotatedRect.rotatePoint(rect.center(), rotation, center)
         if orig_tex_height:
           tex_height = orig_tex_height
           tex_ratio = tex_width / tex_height
           rect_ratio = rect.width() / rect.height()
           if tex_ratio > rect_ratio:
-            rect = RotatedRect(rect.center(), rect.height() * tex_ratio, rect.height(), rotation)
+            rect = RotatedRect(center, rect.height() * tex_ratio, rect.height(), rotation)
           else:
-            rect = RotatedRect(rect.center(), rect.width(), rect.width() / tex_ratio, rotation)
+            rect = RotatedRect(center, rect.width(), rect.width() / tex_ratio, rotation)
         else:
           # fit to buffered geometry bounding box
-          rect = RotatedRect(rect.center(), rect.width(), rect.height(), rotation)
+          rect = RotatedRect(center, rect.width(), rect.height(), rotation)
           tex_height = tex_width * rect.height() / rect.width()
 
       rect.toMapSettings(mapSettings)
