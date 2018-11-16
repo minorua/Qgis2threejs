@@ -108,7 +108,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     self.addParameter(
       QgsProcessingParameterBoolean(
         self.CF_FILTER,
-        self.tr("Highlight Current Feature")
+        self.tr("Current Feature Filter")
       )
     )
 
@@ -157,6 +157,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
   def prepareAlgorithm(self, parameters, context, feedback):
     source = self.parameterAsSource(parameters, self.INPUT, context)
+    source_layer = self.parameterAsLayer(parameters, self.INPUT, context)
+    cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
     settings_path = self.parameterAsString(parameters, self.SETTINGS, context)
 
     self.transform = QgsCoordinateTransform(source.sourceCrs(),
@@ -166,6 +168,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
     self.controller = Q3DViewerController(qgis_iface)
     self.controller.settings.loadSettingsFromFile(settings_path or None)
+
+    if source_layer not in self.controller.settings.mapSettings.layers():
+      msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
+      feedback.reportError(msg, True)
+      return False
 
     self.exporter = self.Exporter(self.controller.settings)
     return True
@@ -337,7 +344,8 @@ class ExportImageAlgorithm(AlgorithmBase):
     return self.tr("Export as Image")
 
   def prepareAlgorithm(self, parameters, context, feedback):
-    super().prepareAlgorithm(parameters, context, feedback)
+    if not super().prepareAlgorithm(parameters, context, feedback):
+      return False
 
     width = self.parameterAsInt(parameters, self.WIDTH, context)
     height = self.parameterAsInt(parameters, self.HEIGHT, context)
@@ -380,7 +388,8 @@ class ExportModelAlgorithm(AlgorithmBase):
     return self.tr("Export as 3D Model")
 
   def prepareAlgorithm(self, parameters, context, feedback):
-    super().prepareAlgorithm(parameters, context, feedback)
+    if not super().prepareAlgorithm(parameters, context, feedback):
+      return False
 
     self.modelType = "gltf"
 
