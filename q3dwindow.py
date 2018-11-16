@@ -101,9 +101,9 @@ class Q3DViewerInterface(Q3DInterface):
     self.controller.updateScene()
 
   def showLayerPropertiesDialog(self, layer):
-    dialog = PropertiesDialog(self.wnd, self.controller.settings)
+    dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
     dialog.propertiesAccepted.connect(self.updateLayerProperties)
-    dialog.showLayerProperties(self.wnd.qgisIface, layer)
+    dialog.showLayerProperties(layer)
     return True
 
   def updateLayerProperties(self, layerId, properties):
@@ -116,7 +116,7 @@ class Q3DViewerInterface(Q3DInterface):
       self.updateLayer(layer)
 
   def getDefaultProperties(self, layer):
-    dialog = PropertiesDialog(self.wnd, self.controller.settings)
+    dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
     dialog.setLayer(layer)
     return dialog.page.properties()
 
@@ -360,12 +360,14 @@ class PropertiesDialog(QDialog):
 
   propertiesAccepted = pyqtSignal(str, dict)
 
-  def __init__(self, parent, settings):
+  def __init__(self, parent, settings, qgisIface=None):
+    """qgisIface: required for DEM properties page"""
     QDialog.__init__(self, parent)
     self.setAttribute(Qt.WA_DeleteOnClose)
 
     self.settings = settings
     self.mapTo3d = settings.mapTo3d
+    self.qgisIface = qgisIface
 
     self.wheelFilter = WheelEventFilter()
 
@@ -392,7 +394,7 @@ class PropertiesDialog(QDialog):
   def setLayer(self, layer):
     self.layer = layer
     if layer.geomType == q3dconst.TYPE_DEM:
-      self.page = DEMPropertyPage(self, self)
+      self.page = DEMPropertyPage(self.qgisIface, self, self)
       self.page.setup(layer)
     elif layer.geomType == q3dconst.TYPE_IMAGE:
       return
@@ -413,8 +415,7 @@ class PropertiesDialog(QDialog):
       else:
         self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
 
-  def showLayerProperties(self, qgisIface, layer):
-    self.qgisIface = qgisIface
+  def showLayerProperties(self, layer):
     self.setWindowTitle("{0} - Layer Properties".format(layer.name))
     self.setLayer(layer)
     self.show()

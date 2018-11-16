@@ -221,9 +221,11 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
-  def __init__(self, dialog, parent=None):
+  def __init__(self, qgisIface, dialog, parent=None):
     PropertyPage.__init__(self, PAGE_DEM, dialog, parent)
     Ui_DEMPropertiesWidget.setupUi(self, self)
+
+    self.qgisIface = qgisIface
 
     # set read only to line edits of spin boxes
     self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
@@ -252,7 +254,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
     self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
-  def setup(self, layer=None):
+  def setup(self, layer):
     self.layer = layer
     properties = layer.properties
 
@@ -283,7 +285,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
 
   def initTextureSizeComboBox(self):
-    canvas = self.dialog.qgisIface.mapCanvas()
+    canvas = self.qgisIface.mapCanvas()
     outsize = canvas.mapSettings().outputSize()
 
     self.comboBox_TextureSize.clear()
@@ -293,7 +295,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
       self.comboBox_TextureSize.addItem(text, percent)
 
   def resolutionSliderChanged(self, v):
-    canvas = self.dialog.qgisIface.mapCanvas()
+    canvas = self.qgisIface.mapCanvas()
     canvasSize = canvas.mapSettings().outputSize()
     resolutionLevel = self.horizontalSlider_DEMSize.value()
     roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
@@ -314,7 +316,7 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
     from .layerselectdialog import LayerSelectDialog
     dialog = LayerSelectDialog(self)
     dialog.initTree(self.layerImageIds)
-    dialog.setMapSettings(self.dialog.qgisIface.mapCanvas().mapSettings())
+    dialog.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
     if not dialog.exec_():
       return
 
