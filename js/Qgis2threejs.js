@@ -498,6 +498,8 @@ limitations:
   };
 
   app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
+    app.loadingManager.isLoading = false;
+
     app.render();
     document.getElementById("bar").classList.add("fadeout");
     dispatchEvent({type: "sceneLoaded"});
@@ -505,6 +507,13 @@ limitations:
   function (url, loaded, total) {   // onProgress
     document.getElementById("bar").style.width = (loaded / total * 100) + "%";
   });
+
+  app.loadingManager.onStart = function () {
+    app.loadingManager.isLoading = true;
+  };
+
+  app.loadingManager.isLoading = false;
+
 
   app.loadFile = function (url, type, callback) {
 

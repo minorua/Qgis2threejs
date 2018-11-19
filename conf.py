@@ -39,3 +39,6 @@ class DEF_SETS:
   Z_SHIFT = 0
 
   CONTROLS = "OrbitControls.js"    # last selected one has priority
+
+# processing export
+LOAD_TIMEOUT = 600000

@@ -100,7 +100,7 @@ var app = Q3D.application,
 
 app.init(container);      // initialize application
 
-// when all objects have been loaded
+// when all relevant files have been loaded into the scene
 app.addEventListener("sceneLoaded", function () {
   // set custom plane z range
   var box = new THREE.Box3().setFromObject(app.scene),

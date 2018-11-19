@@ -25,7 +25,7 @@ import os
 from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from PyQt5.QtGui import QImage, QPainter
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, LOAD_TIMEOUT
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -221,6 +221,8 @@ class ImageExporter(BridgeExporterBase):
     # update scene
     self.iface.controller.updateScene(update_extent=False)
 
+    self.page.waitForSceneLoaded(LOAD_TIMEOUT)
+
     # render scene
     size = self.page.viewportSize()
     image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
@@ -249,6 +251,8 @@ class ModelExporter(BridgeExporterBase):
 
     # update scene
     self.iface.controller.updateScene(update_extent=False, base64=True)
+
+    self.page.waitForSceneLoaded(LOAD_TIMEOUT)
 
     # save model
     self.page.runString("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))

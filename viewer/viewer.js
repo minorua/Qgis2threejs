@@ -98,6 +98,10 @@ function init(offScreen) {
     app.buildNorthArrow(document.getElementById("northarrow"), 0);
   }
 
+  app.addEventListener("sceneLoaded", function () {
+    pyObj.onSceneLoaded();
+  });
+
   // check extension support of web view
   // see https://github.com/minorua/Qgis2threejs/issues/147
   var gl = app.renderer.context;    // WebGLRenderingContext

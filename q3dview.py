@@ -22,7 +22,8 @@ from datetime import datetime
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import Qt, QByteArray, QBuffer, QDir, QIODevice, QObject, QUrl, QVariant, pyqtSignal, pyqtSlot, qDebug
+from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QTimer, QUrl, QVariant,
+                          pyqtSignal, pyqtSlot, qDebug)
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 try:
@@ -47,6 +48,7 @@ def base64image(image):
 class Bridge(QObject):
 
   # Python to Python signals
+  sceneLoaded = pyqtSignal()
   modelDataReceived = pyqtSignal("QByteArray", str)
   imageReceived = pyqtSignal(int, int, "QImage")
 
@@ -61,6 +63,10 @@ class Bridge(QObject):
 
   def setData(self, data):
     self.data = QVariant(data)
+
+  @pyqtSlot()
+  def onSceneLoaded(self):
+    self.sceneLoaded.emit()
 
   @pyqtSlot(int, int, result=str)
   def mouseUpMessage(self, x, y):
@@ -88,6 +94,7 @@ class Bridge(QObject):
 class Q3DWebPage(QWebPage):
 
   initialized = pyqtSignal()
+  sceneLoaded = pyqtSignal()
 
   def __init__(self, parent=None):
     QWebPage.__init__(self, parent)
@@ -108,6 +115,7 @@ class Q3DWebPage(QWebPage):
     self.exportMode = exportMode
 
     self.bridge = Bridge(self)
+    self.bridge.sceneLoaded.connect(self.sceneLoaded)
     self.bridge.modelDataReceived.connect(self.saveModelData)
     self.bridge.imageReceived.connect(self.saveImage)
 
@@ -183,6 +191,17 @@ class Q3DWebPage(QWebPage):
 
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")
+
+  def waitForSceneLoaded(self, timeout=None):
+    loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
+    if not loading:
+      return
+
+    loop = QEventLoop()
+    self.sceneLoaded.connect(loop.quit)
+    if timeout:
+      QTimer.singleShot(timeout, loop.quit)
+    loop.exec_()
 
   def sendData(self, data):
     self.bridge.setData(data)
