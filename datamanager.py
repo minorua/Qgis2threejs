@@ -100,7 +100,7 @@ class ImageManager(DataManager):
     old_outputSize = settings.outputSize()
     old_extent = settings.extent()
     old_rotation = settings.rotation()
-    old_layerids = settings.layerIds()
+    old_layers = settings.layers()
     old_backgroundColor = settings.backgroundColor()
 
     # map settings
@@ -140,7 +140,7 @@ class ImageManager(DataManager):
     settings.setOutputSize(old_outputSize)
     settings.setExtent(old_extent)
     settings.setRotation(old_rotation)
-    settings.setLayers(tools.getLayersByLayerIds(old_layerids))
+    settings.setLayers(old_layers)
     settings.setBackgroundColor(old_backgroundColor)
 
     return image

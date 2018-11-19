@@ -200,6 +200,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                                                           clayer.wkbType(),
                                                           clayer.crs())
       layers = [cf_layer if lyr == clayer else lyr for lyr in mapSettings.layers()]
+      mapSettings.setLayers(layers)
 
       doc = QDomDocument("qgis")
       clayer.exportNamedStyle(doc)
@@ -215,8 +216,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         cf_layer.deleteFeatures([f.id() for f in cf_layer.getFeatures()])
         cf_layer.addFeature(feature)
         cf_layer.commitChanges()
-
-        mapSettings.setLayers(layers)   #TODO: why need this?
 
       title = feature.attribute(title_field)
       feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
