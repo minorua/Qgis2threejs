@@ -29,11 +29,11 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterBoolean,
                        QgsProcessingParameterEnum,
-                       QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterField,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFolderDestination,
                        QgsProcessingParameterNumber,
+                       QgsProcessingParameterVectorLayer,
                        QgsWkbTypes)
 
 from .conf import DEBUG_MODE
@@ -88,7 +88,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     )
 
     self.addParameter(
-      QgsProcessingParameterFeatureSource(  #TODO: VectorLayer
+      QgsProcessingParameterVectorLayer(
         self.INPUT,
         self.tr("Coverage Layer"),
         [QgsProcessing.TypeVectorAnyGeometry]
@@ -156,12 +156,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     )
 
   def prepareAlgorithm(self, parameters, context, feedback):
-    source = self.parameterAsSource(parameters, self.INPUT, context)
-    source_layer = self.parameterAsLayer(parameters, self.INPUT, context)
+    clayer = self.parameterAsLayer(parameters, self.INPUT, context)
     cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
     settings_path = self.parameterAsString(parameters, self.SETTINGS, context)
 
-    self.transform = QgsCoordinateTransform(source.sourceCrs(),
+    self.transform = QgsCoordinateTransform(clayer.crs(),
                                             context.project().crs(),
                                             context.project())
 
@@ -169,7 +168,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     self.controller = Q3DViewerController(qgis_iface)
     self.controller.settings.loadSettingsFromFile(settings_path or None)
 
-    if source_layer not in self.controller.settings.mapSettings.layers():
+    if clayer not in self.controller.settings.mapSettings.layers():
       msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
       feedback.reportError(msg, True)
       return False
@@ -181,8 +180,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     if DEBUG_MODE:
       logMessage("processAlgorithm(): {}".format(self.__class__.__name__))
 
-    source = self.parameterAsSource(parameters, self.INPUT, context)
-    source_layer = self.parameterAsLayer(parameters, self.INPUT, context)
+    clayer = self.parameterAsLayer(parameters, self.INPUT, context)
     title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)
     cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
     fixed_scale = self.parameterAsEnum(parameters, self.SCALE, context)   # == 1
@@ -197,35 +195,28 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     orig_size = mapSettings.outputSize()
 
     if cf_filter:
-      #TODO: FIX ME
-      #cf_layer = QgsMemoryProviderUtils.createMemoryLayer("current feature",
-      #                                                    source_layer.fields(),
-      #                                                    source_layer.wkbType(),
-      #                                                    source_layer.crs())
+      cf_layer = QgsMemoryProviderUtils.createMemoryLayer("current feature",
+                                                          clayer.fields(),
+                                                          clayer.wkbType(),
+                                                          clayer.crs())
+      layers = [cf_layer if lyr == clayer else lyr for lyr in mapSettings.layers()]
 
       doc = QDomDocument("qgis")
-      source_layer.exportNamedStyle(doc)
+      clayer.exportNamedStyle(doc)
+      cf_layer.importNamedStyle(doc)
 
-      orig_layers = mapSettings.layers()
-
-    total = source.featureCount()
-    for current, feature in enumerate(source.getFeatures()):
+    total = clayer.featureCount()
+    for current, feature in enumerate(clayer.getFeatures()):
       if feedback.isCanceled():
         break
 
       if cf_filter:
-        cf_layer = QgsMemoryProviderUtils.createMemoryLayer("current feature",
-                                                            source_layer.fields(),
-                                                            source_layer.wkbType(),
-                                                            source_layer.crs())
         cf_layer.startEditing()
+        cf_layer.deleteFeatures([f.id() for f in cf_layer.getFeatures()])
         cf_layer.addFeature(feature)
         cf_layer.commitChanges()
 
-        cf_layer.importNamedStyle(doc)
-
-        layers = [cf_layer if lyr == source_layer else lyr for lyr in orig_layers]
-        mapSettings.setLayers(layers)
+        mapSettings.setLayers(layers)   #TODO: why need this?
 
       title = feature.attribute(title_field)
       feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
