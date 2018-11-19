@@ -88,7 +88,9 @@ function loadModel(url) {
   }
 }
 
-function init() {
+function init(offScreen) {
+  if (offScreen) document.getElementById("progress").style.display = "none";
+
   var container = document.getElementById("view");
   app.init(container, false);
 

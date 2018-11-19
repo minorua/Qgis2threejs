@@ -98,13 +98,14 @@ class Q3DWebPage(QWebPage):
       # open log file
       self.logfile = open(pluginDir("q3dview.log"), "w")
 
-  def setup(self, iface, wnd=None, enabled=True):
+  def setup(self, iface, wnd=None, enabled=True, exportMode=False):
     """iface: Q3DInterface or Q3DViewerInterface
        wnd: Q3DWindow or None (off-screen mode)"""
     self.iface = iface
     self.wnd = wnd or DummyWindow()
     self.offScreen = bool(wnd is None)
     self._enabled = enabled
+    self.exportMode = exportMode
 
     self.bridge = Bridge(self)
     self.bridge.modelDataReceived.connect(self.saveModelData)
@@ -136,7 +137,7 @@ class Q3DWebPage(QWebPage):
     self.modelLoadersLoaded = False
 
     # start application
-    self.iface.startApplication()
+    self.iface.startApplication(offScreen=self.offScreen, exportMode=self.exportMode)
 
     if self.iface.controller.settings.isOrthoCamera():
       self.runString("switchCamera(true);")

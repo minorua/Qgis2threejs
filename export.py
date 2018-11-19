@@ -179,6 +179,7 @@ class BridgeExporterBase(ThreeJSExporter):
 
   def __init__(self, settings, progress=None):
     super().__init__(settings, progress)
+    self.exportMode = False
     self.page = None
 
   def initWebPage(self, controller, width, height):
@@ -191,7 +192,7 @@ class BridgeExporterBase(ThreeJSExporter):
     self.page.initialized.connect(loop.quit)
 
     self.page.setViewportSize(QSize(width, height))
-    self.page.setup(self.iface)
+    self.page.setup(self.iface, exportMode=self.exportMode)
     loop.exec_()
 
   def destroyWebPage(self):
@@ -233,6 +234,7 @@ class ModelExporter(BridgeExporterBase):
 
   def __init__(self, settings, progress=None):
     super().__init__(settings, progress)
+    self.exportMode = True
 
   def initWebPage(self, controller, width, height):
     super().initWebPage(controller, width, height)

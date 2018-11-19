@@ -39,8 +39,11 @@ class Q3DInterface:
       self.controller.disconnectFromIface()
     self.controller = None
 
-  def startApplication(self):
+  def startApplication(self, offScreen=False, exportMode=False):
     # configuration
+    if exportMode:
+      self.runString("Q3D.Config.exportMode = true;")
+
     p = self.controller.settings.northArrow()
     if p.get("visible"):
       self.runString("Q3D.Config.northArrow.visible = true;")
@@ -51,7 +54,7 @@ class Q3DInterface:
       self.runString('setFooterLabel("{}");'.format(label.replace('"', '\\"')))
 
     # initialize app
-    self.runString("init();")
+    self.runString("init({});".format("true" if offScreen else ""))
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element

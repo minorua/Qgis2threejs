@@ -55,8 +55,8 @@ class Q3DViewerInterface(Q3DInterface):
     settings.updateLayerList()
     self.treeView.setLayerList(settings.getLayerList())
 
-  def startApplication(self):
-    super().startApplication()
+  def startApplication(self, offScreen=False, exportMode=False):
+    super().startApplication(offScreen, exportMode)
 
     # start app
     self.runString("app.start();")
