@@ -55,7 +55,7 @@ function loadModel(url) {
     parent.add(res.scene);
     app.scene.add(parent);
 
-    app.setIntervalRender(250, 20);
+    app.render();
 
     var sceneScale = app.scene.userData.scale,
         objScale = scale / sceneScale;
@@ -74,14 +74,14 @@ function loadModel(url) {
   var ext = url.split(".").pop();
   if (ext == "dae") {
     loadScriptFile("../js/threejs/loaders/ColladaLoader.js", function () {
-      var loader = new THREE.ColladaLoader();
+      var loader = new THREE.ColladaLoader(app.loadingManager);
       loader.load(url, loadToScene, undefined, onError);
     });
   }
   else if (ext == "gltf" || ext == "glb") {
     loadScriptFile("../js/polyfill/polyfill.min.js", function () {
       loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
-        var loader = new THREE.GLTFLoader();
+        var loader = new THREE.GLTFLoader(app.loadingManager);
         loader.load(url, loadToScene, undefined, onError);
       });
     });

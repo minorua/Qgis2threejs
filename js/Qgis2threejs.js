@@ -497,19 +497,18 @@ limitations:
     return vars;
   };
 
-  var loadingManager = new THREE.LoadingManager();
-  loadingManager.onLoad = function () {
+  app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
+    app.render();
     document.getElementById("bar").classList.add("fadeout");
     dispatchEvent({type: "sceneLoaded"});
-  };
-
-  loadingManager.onProgress = function (url, loaded, total) {
+  },
+  function (url, loaded, total) {   // onProgress
     document.getElementById("bar").style.width = (loaded / total * 100) + "%";
-  };
+  });
 
   app.loadFile = function (url, type, callback) {
 
-    var loader = new THREE.FileLoader(loadingManager);
+    var loader = new THREE.FileLoader(app.loadingManager);
     loader.setResponseType(type);
 
     var onError = function (e) {
@@ -538,27 +537,23 @@ limitations:
   };
 
   app.loadTextureFile = function (url, callback) {
-    return new THREE.TextureLoader(loadingManager).load(url, callback);
+    return new THREE.TextureLoader(app.loadingManager).load(url, callback);
   };
 
   app.loadModelFile = function (url, callback) {
     var loader,
         ext = url.split(".").pop();
     if (ext == "dae") {
-      loader = new THREE.ColladaLoader(loadingManager);
+      loader = new THREE.ColladaLoader(app.loadingManager);
     }
     else if (ext == "gltf" || ext == "glb") {
-      loader = new THREE.GLTFLoader(loadingManager);
+      loader = new THREE.GLTFLoader(app.loadingManager);
     }
     else {
       console.log("Model file type not supported: " + url);
       return;
     }
-    loader.load(url, function (model) {
-      if (callback) callback(model);
-      app.setIntervalRender(500, 60);
-    },
-    undefined,
+    loader.load(url, callback, undefined,
     function (e) {
       console.log("Failed to load model: " + url);
     });
@@ -790,6 +785,7 @@ limitations:
     app.updateLabelPosition();
   };
 
+  // TODO: remove [obsolete] app.setIntervalRender
   (function () {
     var _delay, _repeat, _times, _id = null;
     var func = function () {
