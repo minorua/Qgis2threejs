@@ -49,9 +49,10 @@ class Q3DInterface:
       self.runString("Q3D.Config.northArrow.visible = true;")
       self.runString("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
 
-    label = self.controller.settings.footerLabel()
-    if label:
-      self.runString('setFooterLabel("{}");'.format(label.replace('"', '\\"')))
+    header = self.controller.settings.headerLabel()
+    footer = self.controller.settings.footerLabel()
+    if header or footer:
+      self.runString('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
 
     # initialize app
     self.runString("init({});".format("true" if offScreen else ""))

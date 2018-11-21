@@ -97,6 +97,7 @@ class ThreeJSExporter(ThreeJSBuilder):
       "options": "\n".join(options),
       "scripts": "\n".join(self.scripts()),
       "scenefile": "./data/{0}/scene.json".format(title),
+      "header": self.settings.headerLabel(),
       "footer": self.settings.footerLabel()
       }
     for key, value in mapping.items():

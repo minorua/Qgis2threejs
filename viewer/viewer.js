@@ -234,8 +234,9 @@ function updateNorthArrowRotation(rotation) {
   mesh.updateMatrixWorld();
 }
 
-function setFooterLabel(html) {
-  document.getElementById("footer").innerHTML = html;
+function setHFLabel(header, footer) {
+  document.getElementById("header").innerHTML = header;
+  document.getElementById("footer").innerHTML = footer;
 }
 
 // overrides

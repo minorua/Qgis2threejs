@@ -175,7 +175,7 @@ class Q3DWindow(QMainWindow):
     settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
     # close dialogs
-    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog, FooterLabelDialog)):
+    for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog, HFLabelDialog)):
       dlg.close()
 
     QMainWindow.closeEvent(self, event)
@@ -202,7 +202,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
-    self.ui.actionFooterLabel.triggered.connect(self.showFooterLabelDialog)
+    self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
     self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
@@ -248,7 +248,7 @@ class Q3DWindow(QMainWindow):
       self.iface.clearExportSettings()
 
       self.updateNorthArrow()
-      self.updateFooterLabel()
+      self.updateHFLabel()
 
   def alwaysOnTopToggled(self, checked):
     if checked:
@@ -334,14 +334,15 @@ class Q3DWindow(QMainWindow):
     self.runString("setNorthArrowColor({0});".format(p.get("color", 0)))
     self.runString("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
 
-  def showFooterLabelDialog(self):
-    dialog = FooterLabelDialog(self, self.settings)
-    dialog.accepted.connect(self.updateFooterLabel)
+  def showHFLabelDialog(self):
+    dialog = HFLabelDialog(self, self.settings)
+    dialog.accepted.connect(self.updateHFLabel)
     dialog.show()
     dialog.exec_()
 
-  def updateFooterLabel(self):
-    self.runString('setFooterLabel("{0}");'.format(self.settings.footerLabel().replace('"', '\\"')))
+  def updateHFLabel(self):
+    self.runString('setHFLabel("{0}", "{1}");'.format(self.settings.headerLabel().replace('"', '\\"'),
+                                                      self.settings.footerLabel().replace('"', '\\"')))
 
   def help(self):
     QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
@@ -461,7 +462,7 @@ class NorthArrowDialog(QDialog):
     self.settings.setNorthArrow(self.ui.groupBox.isChecked(), self.ui.colorButton.color().name().replace("#", "0x"))
 
 
-class FooterLabelDialog(QDialog):
+class HFLabelDialog(QDialog):
 
   def __init__(self, parent, settings):
     QDialog.__init__(self, parent)
@@ -469,14 +470,16 @@ class FooterLabelDialog(QDialog):
 
     self.settings = settings
 
-    from .ui.footerlabeldialog import Ui_FooterLabelDialog
-    self.ui = Ui_FooterLabelDialog()
+    from .ui.hflabeldialog import Ui_HFLabelDialog
+    self.ui = Ui_HFLabelDialog()
     self.ui.setupUi(self)
 
-    self.ui.textEdit.setPlainText(settings.footerLabel())
+    self.ui.textEdit_Header.setPlainText(settings.headerLabel())
+    self.ui.textEdit_Footer.setPlainText(settings.footerLabel())
 
     self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.accepted)
     self.accepted.connect(self.updateSettings)
 
   def updateSettings(self):
-    self.settings.setFooterLabel(self.ui.textEdit.toPlainText())
+    self.settings.setHeaderLabel(self.ui.textEdit_Header.toPlainText())
+    self.settings.setFooterLabel(self.ui.textEdit_Footer.toPlainText())

@@ -63,6 +63,12 @@ body {
   transition: all .4s;
 }
 
+#header {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+}
+
 #footer {
   position: absolute;
   left: 5px;

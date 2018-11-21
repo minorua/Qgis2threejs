@@ -153,13 +153,13 @@ class Ui_Q3DWindow(object):
         self.actionConsoleClear.setObjectName("actionConsoleClear")
         self.actionNorthArrow = QtWidgets.QAction(Q3DWindow)
         self.actionNorthArrow.setObjectName("actionNorthArrow")
-        self.actionFooterLabel = QtWidgets.QAction(Q3DWindow)
-        self.actionFooterLabel.setObjectName("actionFooterLabel")
+        self.actionHeaderFooterLabel = QtWidgets.QAction(Q3DWindow)
+        self.actionHeaderFooterLabel.setObjectName("actionHeaderFooterLabel")
         self.menuCamera.addAction(self.actionPerspective)
         self.menuCamera.addAction(self.actionOrthographic)
         self.menuControls.addAction(self.actionOrbit)
         self.menuDecorations.addAction(self.actionNorthArrow)
-        self.menuDecorations.addAction(self.actionFooterLabel)
+        self.menuDecorations.addAction(self.actionHeaderFooterLabel)
         self.menuScene.addAction(self.actionSceneSettings)
         self.menuScene.addAction(self.menuCamera.menuAction())
         self.menuScene.addAction(self.menuControls.menuAction())
@@ -240,7 +240,7 @@ class Ui_Q3DWindow(object):
         self.actionConsoleCopy.setText(_translate("Q3DWindow", "Copy"))
         self.actionConsoleClear.setText(_translate("Q3DWindow", "Clear"))
         self.actionNorthArrow.setText(_translate("Q3DWindow", "North Arrow"))
-        self.actionFooterLabel.setText(_translate("Q3DWindow", "Footer Label"))
+        self.actionHeaderFooterLabel.setText(_translate("Q3DWindow", "Header/Footer Labels"))
 
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView

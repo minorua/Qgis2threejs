@@ -1,28 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FooterLabelDialog</class>
- <widget class="QDialog" name="FooterLabelDialog">
+ <class>HFLabelDialog</class>
+ <widget class="QDialog" name="HFLabelDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>532</width>
-    <height>136</height>
+    <height>231</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Footer Label Dialog</string>
+   <string>Header/Footer Label Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Label Text</string>
+      <string>Header Label Text</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="textEdit">
+    <widget class="QTextEdit" name="textEdit_Header">
+     <property name="placeholderText">
+      <string>Enter text that you want to display at page top. It can contain valid HTML tags.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Footer Label Text</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="textEdit_Footer">
      <property name="placeholderText">
       <string>Enter text that you want to display at page bottom. It can contain valid HTML tags.</string>
      </property>
@@ -40,12 +54,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>textEdit_Header</tabstop>
+  <tabstop>textEdit_Footer</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>FooterLabelDialog</receiver>
+   <receiver>HFLabelDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -61,7 +79,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>FooterLabelDialog</receiver>
+   <receiver>HFLabelDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
