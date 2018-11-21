@@ -23,12 +23,16 @@ import qgis
 from PyQt5.QtCore import QSize
 from PyQt5.QtXml import QDomDocument
 from qgis.core import (QgsCoordinateTransform,
+                       QgsExpression,
+                       QgsExpressionContext,
+                       QgsExpressionContextUtils,
                        QgsGeometry,
                        QgsMemoryProviderUtils,
                        QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterBoolean,
                        QgsProcessingParameterEnum,
+                       QgsProcessingParameterExpression,
                        QgsProcessingParameterField,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFolderDestination,
@@ -55,7 +59,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
   TITLE_FIELD = "TITLE"
   CF_FILTER = "CF_FILTER"
   SETTINGS = "SETTINGS"
+  HEADER = "HEADER"
+  FOOTER = "FOOTER"
   OUTPUT = "OUTPUT"
+
+  def __init__(self):
+    super().__init__()
+
+    self.controller = None
 
   def createInstance(self):
     if DEBUG_MODE:
@@ -76,9 +87,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     param.setFlags(param.flags() | param.FlagAdvanced)
     self.addParameter(param)
 
-  def initAlgorithm(self, config):
+  def initAlgorithm(self, config, label=True):
     if DEBUG_MODE:
       logMessage("initAlgorithm(): {}".format(self.__class__.__name__))
+
+    qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
+    self.controller = Q3DViewerController(qgis_iface)
+    self.controller.settings.loadSettingsFromFile(None)
 
     self.addParameter(
       QgsProcessingParameterFolderDestination(
@@ -147,6 +162,25 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       )
     )
 
+    if label:
+      self.addAdvancedParameter(
+        QgsProcessingParameterExpression(
+          self.HEADER,
+          self.tr("Header Label"),
+          "'{}'".format(self.controller.settings.headerLabel().replace("'", "''")),
+          self.INPUT
+        )
+      )
+
+      self.addAdvancedParameter(
+        QgsProcessingParameterExpression(
+          self.FOOTER,
+          self.tr("Footer Label"),
+          "'{}'".format(self.controller.settings.footerLabel().replace("'", "''")),
+          self.INPUT
+        )
+      )
+
     self.addAdvancedParameter(
       QgsProcessingParameterFile(self.SETTINGS,
         self.tr('Export Settings File (.qto3settings)'),
@@ -164,8 +198,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                                             context.project().crs(),
                                             context.project())
 
-    qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
-    self.controller = Q3DViewerController(qgis_iface)
     self.controller.settings.loadSettingsFromFile(settings_path or None)
 
     if clayer not in self.controller.settings.mapSettings.layers():
@@ -187,7 +219,12 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     buf = self.parameterAsDouble(parameters, self.BUFFER, context)
     tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
     orig_tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
+    header_exp = QgsExpression(self.parameterAsExpression(parameters, self.HEADER, context))
+    footer_exp = QgsExpression(self.parameterAsExpression(parameters, self.FOOTER, context))
     out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
+
+    exp_context = QgsExpressionContext()
+    exp_context.appendScope(QgsExpressionContextUtils.layerScope(clayer))
 
     mapSettings = self.controller.settings.mapSettings
     baseExtent = self.controller.settings.baseExtent
@@ -249,6 +286,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       mapSettings.setOutputSize(QSize(tex_width, tex_height))
 
       self.controller.settings.setMapSettings(mapSettings)
+
+      # labels
+      exp_context.setFeature(feature)
+      self.controller.settings.setHeaderLabel(header_exp.evaluate(exp_context))
+      self.controller.settings.setFooterLabel(footer_exp.evaluate(exp_context))
 
       self.export(title, out_dir, feedback)
 
@@ -369,7 +411,7 @@ class ExportModelAlgorithm(AlgorithmBase):
   Exporter = ModelExporter
 
   def initAlgorithm(self, config):
-    super().initAlgorithm(config)
+    super().initAlgorithm(config, label=False)
 
   def name(self):
     return 'exportmodel'

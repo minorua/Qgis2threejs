@@ -224,6 +224,10 @@ class ImageExporter(BridgeExporterBase):
 
     self.page.waitForSceneLoaded(LOAD_TIMEOUT)
 
+    # header and footer labels
+    self.page.runString('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
+                                                         self.settings.footerLabel().replace('"', '\\"')))
+
     # render scene
     size = self.page.viewportSize()
     image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)

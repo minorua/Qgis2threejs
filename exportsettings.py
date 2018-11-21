@@ -353,7 +353,7 @@ class ExportSettings:
 
   def setHeaderLabel(self, text):
     decor = self.data.get(ExportSettings.DECOR, {})
-    decor["HeaderLabel"] = text
+    decor["HeaderLabel"] = str(text)
     self.data[ExportSettings.DECOR] = decor
 
   def footerLabel(self):
@@ -361,6 +361,6 @@ class ExportSettings:
 
   def setFooterLabel(self, text):
     decor = self.data.get(ExportSettings.DECOR, {})
-    decor["FooterLabel"] = text
+    decor["FooterLabel"] = str(text)
     self.data[ExportSettings.DECOR] = decor
 
