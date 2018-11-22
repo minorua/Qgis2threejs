@@ -199,6 +199,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                                             context.project())
 
     self.controller.settings.loadSettingsFromFile(settings_path or None)
+    self.controller.settings.updateLayerList()
 
     if clayer not in self.controller.settings.mapSettings.layers():
       msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')

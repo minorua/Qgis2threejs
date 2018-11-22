@@ -284,6 +284,9 @@ class ExportSettings:
     return self.data.get(ExportSettings.LAYERS, [])
 
   def updateLayerList(self):
+    """Updates layer elements in settings using current project layer structure.
+       Adds layer elements newly added to the project and removes layer elements
+       deleted from the project. Also, renumbers layer ID."""
     layers = []
 
     # DEM and Vector layers
