@@ -157,7 +157,8 @@ class Q3DViewerController:
       QgsApplication.processEvents()      # NOTE: process events only for the calling thread
     layer.updated = False
     if DEBUG_MODE:
-      logMessage("updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss])))
+      msg = "updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss]))
+      logMessage(msg, False)
     return True
 
   def updateExtent(self):

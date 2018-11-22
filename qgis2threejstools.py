@@ -27,7 +27,7 @@ import webbrowser
 
 from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from PyQt5.QtWidgets import QMessageBox
-from qgis.core import NULL, QgsMapLayer, QgsMessageLog, QgsProject
+from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
 from .conf import DEBUG_MODE
 
@@ -92,8 +92,8 @@ def abchex(number):
   return h
 
 
-def logMessage(message):
-  QgsMessageLog.logMessage(str(message), "Qgis2threejs")
+def logMessage(message, warning=True):
+  QgsMessageLog.logMessage(str(message), "Qgis2threejs", Qgis.Warning if warning else Qgis.Info, warning)
 
 
 def shortTextFromSelectedLayerIds(layerIds):

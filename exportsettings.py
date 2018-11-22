@@ -154,7 +154,7 @@ class ExportSettings:
       logMessage("Failed to load export settings from file. Error: " + str(e))
       return False
 
-    logMessage("Export settings loaded from file:" + filepath)
+    logMessage("Export settings loaded from file:" + filepath, False)
 
     # transform layer dict to Layer object
     settings[ExportSettings.LAYERS] = [Layer.fromDict(lyr) for lyr in settings.get(ExportSettings.LAYERS, [])]

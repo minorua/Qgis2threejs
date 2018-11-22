@@ -167,8 +167,8 @@ class Q3DWebPage(QWebPage):
 
       if DEBUG_MODE == 2:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._page.logfile.write("{} runString: {}\n".format(now, message if message else string))
-        self._page.logfile.flush()
+        self.logfile.write("{} runString: {}\n".format(now, message if message else string))
+        self.logfile.flush()
 
     return self.mainFrame().evaluateJavaScript(string)
 
@@ -212,7 +212,7 @@ class Q3DWebPage(QWebPage):
       with open(filename, "wb") as f:
         f.write(data)
 
-      logMessage("Successfully saved model data: " + filename)
+      logMessage("Successfully saved model data: " + filename, False)
     except Exception as e:
       QMessageBox.warning(self, "Failed to save model data.", str(e))
 
@@ -286,4 +286,4 @@ class Q3DView(QWebView):
 class DummyWindow:
 
   def printConsoleMessage(self, message, lineNumber="", sourceID=""):
-    logMessage(message)
+    logMessage(message, False)
