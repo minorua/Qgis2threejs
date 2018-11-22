@@ -194,14 +194,25 @@ class Q3DWebPage(QWebPage):
 
   def waitForSceneLoaded(self, timeout=None):
     loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
+
+    if DEBUG_MODE:
+      logMessage("waitForSceneLoaded: loading={}".format(loading), False)
+
     if not loading:
-      return
+      return False
 
     loop = QEventLoop()
     self.sceneLoaded.connect(loop.quit)
+    #TODO: self.sceneLoadError.connect(loop.quit)
+    #TODO: userCancelSignal.connect(loop.quit)
     if timeout:
       QTimer.singleShot(timeout, loop.quit)
     loop.exec_()
+
+    #TODO:
+    # if error:
+    #   return err_msg
+    return False
 
   def sendData(self, data):
     self.bridge.setData(data)

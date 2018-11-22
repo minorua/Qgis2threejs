@@ -25,7 +25,7 @@ import os
 from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from PyQt5.QtGui import QImage, QPainter
 
-from .conf import DEBUG_MODE, LOAD_TIMEOUT
+from .conf import DEBUG_MODE, P_LOAD_TIMEOUT
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -222,7 +222,7 @@ class ImageExporter(BridgeExporterBase):
     # update scene
     self.iface.controller.updateScene(update_extent=False)
 
-    self.page.waitForSceneLoaded(LOAD_TIMEOUT)
+    err = self.page.waitForSceneLoaded(P_LOAD_TIMEOUT)    #TODO: pass userCancelSignal
 
     # header and footer labels
     self.page.runString('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
@@ -257,7 +257,7 @@ class ModelExporter(BridgeExporterBase):
     # update scene
     self.iface.controller.updateScene(update_extent=False, base64=True)
 
-    self.page.waitForSceneLoaded(LOAD_TIMEOUT)
+    err = self.page.waitForSceneLoaded(P_LOAD_TIMEOUT)
 
     # save model
     self.page.runString("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))

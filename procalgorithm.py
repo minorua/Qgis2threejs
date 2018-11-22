@@ -264,6 +264,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
       title = feature.attribute(title_field)
       feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
+      logMessage("Exporting {}...".format(title), False)
 
       # extent
       geometry = QgsGeometry(feature.geometry())

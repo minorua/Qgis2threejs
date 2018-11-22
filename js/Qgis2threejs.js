@@ -353,6 +353,8 @@ limitations:
 
   var listeners = {};
   var dispatchEvent = function (event) {
+    if (Q3D.Config.debugMode) console.log("about to dispatch " + event + " event.");
+
     var ls = listeners[event.type] || [];
     for (var i = 0; i < ls.length; i++) {
       ls[i](event);
@@ -502,18 +504,18 @@ limitations:
 
     app.render();
     document.getElementById("bar").classList.add("fadeout");
+
     dispatchEvent({type: "sceneLoaded"});
   },
   function (url, loaded, total) {   // onProgress
     document.getElementById("bar").style.width = (loaded / total * 100) + "%";
-  });
+  });   // TODO: error handling - sceneLoadError event
 
   app.loadingManager.onStart = function () {
     app.loadingManager.isLoading = true;
   };
 
   app.loadingManager.isLoading = false;
-
 
   app.loadFile = function (url, type, callback) {
 
@@ -562,9 +564,17 @@ limitations:
       console.log("Model file type not supported: " + url);
       return;
     }
-    loader.load(url, callback, undefined,
+
+    app.loadingManager.itemStart("M" + url);
+
+    loader.load(url, function (model) {
+      if (callback) callback(model);
+      app.loadingManager.itemEnd("M" + url);
+    },
+    undefined,
     function (e) {
       console.log("Failed to load model: " + url);
+      app.loadingManager.itemError("M" + url);
     });
   };
 

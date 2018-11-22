@@ -41,5 +41,5 @@ class DEF_SETS:
   CONTROLS = "OrbitControls.js"    # last selected one has priority
 
 # processing export
-LOAD_TIMEOUT = 600000
+P_LOAD_TIMEOUT = 60000
 P_OPEN_DIRECTORY = True
