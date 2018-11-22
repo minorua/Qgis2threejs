@@ -25,7 +25,7 @@ import os
 from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from PyQt5.QtGui import QImage, QPainter
 
-from .conf import DEBUG_MODE, P_LOAD_TIMEOUT
+from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -45,7 +45,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     self.modelManagers = []
 
-  def export(self):
+  def export(self, cancelSignal=None):    #TODO
     config = self.settings.templateConfig()
 
     # create output data directory if not exists
@@ -212,7 +212,7 @@ class ImageExporter(BridgeExporterBase):
   def __init__(self, settings, progress=None):
     super().__init__(settings, progress)
 
-  def export(self, filepath):
+  def export(self, filepath, cancelSignal=None):
     if self.page is None:
       return False
 
@@ -222,7 +222,7 @@ class ImageExporter(BridgeExporterBase):
     # update scene
     self.iface.controller.updateScene(update_extent=False)
 
-    err = self.page.waitForSceneLoaded(P_LOAD_TIMEOUT)    #TODO: pass userCancelSignal
+    err = self.page.waitForSceneLoaded(cancelSignal)
 
     # header and footer labels
     self.page.runString('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
@@ -247,7 +247,7 @@ class ModelExporter(BridgeExporterBase):
     super().initWebPage(controller, width, height)
     self.page.loadScriptFile(tools.pluginDir("js/threejs/exporters/GLTFExporter.js"))
 
-  def export(self, filepath):
+  def export(self, filepath, cancelSignal=None):
     if self.page is None:
       return False
 
@@ -257,7 +257,7 @@ class ModelExporter(BridgeExporterBase):
     # update scene
     self.iface.controller.updateScene(update_extent=False, base64=True)
 
-    err = self.page.waitForSceneLoaded(P_LOAD_TIMEOUT)
+    err = self.page.waitForSceneLoaded(cancelSignal)
 
     # save model
     self.page.runString("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))

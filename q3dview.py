@@ -192,7 +192,7 @@ class Q3DWebPage(QWebPage):
   def resetCameraPosition(self):
     self.runString("app.controls.reset();")
 
-  def waitForSceneLoaded(self, timeout=None):
+  def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
     loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
 
     if DEBUG_MODE:
@@ -203,15 +203,30 @@ class Q3DWebPage(QWebPage):
 
     loop = QEventLoop()
     self.sceneLoaded.connect(loop.quit)
-    #TODO: self.sceneLoadError.connect(loop.quit)
-    #TODO: userCancelSignal.connect(loop.quit)
-    if timeout:
-      QTimer.singleShot(timeout, loop.quit)
-    loop.exec_()
 
-    #TODO:
-    # if error:
-    #   return err_msg
+    def error():
+      loop.exit(1)
+
+    def userCancel():
+      loop.exit(2)
+
+    def timeOut():
+      loop.exit(3)
+
+    #TODO: self.sceneLoadError.connect(error)
+
+    if cancelSignal:
+      cancelSignal.connect(userCancel)
+
+    if timeout:
+      timer = QTimer()
+      timer.setSingleShot(True)
+      timer.timeout.connect(timeOut)
+      timer.start(timeout)
+
+    err = loop.exec_()
+    if err:
+      return {1: "error", 2: "canceled", 3: "timeout"}[err]
     return False
 
   def sendData(self, data):
