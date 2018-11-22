@@ -20,7 +20,7 @@
 
 import os
 import qgis
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QDir, QSize
 from PyQt5.QtXml import QDomDocument
 from qgis.core import (QgsCoordinateTransform,
                        QgsExpression,
@@ -40,10 +40,10 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterVectorLayer,
                        QgsWkbTypes)
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
 from .q3dviewercontroller import Q3DViewerController
-from .qgis2threejstools import logMessage
+from .qgis2threejstools import logMessage, openDirectory
 from .rotatedrect import RotatedRect
 
 
@@ -220,12 +220,19 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     buf = self.parameterAsDouble(parameters, self.BUFFER, context)
     tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
     orig_tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
+
     header_exp = QgsExpression(self.parameterAsExpression(parameters, self.HEADER, context))
     footer_exp = QgsExpression(self.parameterAsExpression(parameters, self.FOOTER, context))
-    out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
 
     exp_context = QgsExpressionContext()
     exp_context.appendScope(QgsExpressionContextUtils.layerScope(clayer))
+
+    out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
+    if not QDir(out_dir).exists():
+      QDir().mkpath(out_dir)
+
+    if DEBUG_MODE:
+      openDirectory(out_dir)
 
     mapSettings = self.controller.settings.mapSettings
     baseExtent = self.controller.settings.baseExtent
@@ -296,6 +303,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       self.export(title, out_dir, feedback)
 
       feedback.setProgress(int(current / total * 100))
+
+    if P_OPEN_DIRECTORY and not DEBUG_MODE:
+      openDirectory(out_dir)
 
     return {}
 

@@ -26,6 +26,7 @@ import shutil
 import webbrowser
 
 from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QMessageBox
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
@@ -128,6 +129,10 @@ def openHTMLFile(htmlfilename):
       QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
       return False
   return True
+
+
+def openDirectory(dir_path):
+  QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
 
 
 def base64image(image):

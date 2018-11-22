@@ -42,3 +42,4 @@ class DEF_SETS:
 
 # processing export
 LOAD_TIMEOUT = 600000
+P_OPEN_DIRECTORY = True
