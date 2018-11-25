@@ -490,9 +490,7 @@ limitations:
     // create a marker for queried point
     var opt = Q3D.Config.qmarker;
     app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r),
-                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
-    app.queryMarker.visible = false;
-    app.scene.add(app.queryMarker);
+                                     new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
 
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
     if (!Q3D.isIE) app.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
@@ -1215,7 +1213,7 @@ limitations:
 
   app.closePopup = function () {
     app.popup.hide();
-    app.queryMarker.visible = false;
+    app.scene.remove(app.queryMarker);
     app.highlightFeature(null);
     app.render();
     if (app._canvasImageUrl) {
@@ -1267,8 +1265,7 @@ limitations:
       // query marker
       pt = {x: obj.point.x, y: -obj.point.z, z: obj.point.y};  // obj's coordinate system is y-up
       app.queryMarker.position.set(pt.x, pt.y, pt.z);              // this is z-up
-      app.queryMarker.visible = true;
-      app.queryMarker.updateMatrixWorld();
+      app.scene.add(app.queryMarker);
 
       // get layerId of clicked object
       var layerId, object = obj.object;
@@ -2349,7 +2346,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       if (Q3D.Config.label.queryable) {
         var obj = this.objectGroup.children[f.objIndices[0]];
         e.onclick = function () {
-          app.queryMarker.visible = false;
+          app.scene.remove(app.queryMarker);
           app.highlightFeature(obj);
           app.render();
           app.showQueryResult({x: pt[0], y: pt[1], z: pt[2]}, obj, true);
