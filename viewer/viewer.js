@@ -88,6 +88,14 @@ function loadModel(url) {
   }
 }
 
+function loadStart(name) {
+  app.loadingManager.itemStart(name);
+}
+
+function loadEnd(name) {
+  app.loadingManager.itemEnd(name);
+}
+
 function init(offScreen) {
   if (offScreen) document.getElementById("progress").style.display = "none";
 

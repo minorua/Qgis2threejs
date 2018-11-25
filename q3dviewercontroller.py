@@ -112,6 +112,8 @@ class Q3DViewerController:
         self.iface.runString("proj4 = undefined;", "// proj4 not enabled")
 
     if update_layers:
+      self.iface.runString('loadStart("LYRS");')
+
       layers = self.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100, "Updating layers")
@@ -119,6 +121,7 @@ class Q3DViewerController:
           if not self._updateLayer(layer):
             break
       self.layersNeedUpdate = False
+      self.iface.runString('loadEnd("LYRS");')
 
     self.updating = self.aborted = False
     self.iface.progress()
@@ -140,6 +143,8 @@ class Q3DViewerController:
     if not (self.iface and self.previewEnabled):
       return False
 
+    self.iface.runString('loadStart("L{}");'.format(layer.jsLayerId))
+
     if layer.properties.get("comboBox_ObjectType") == "Model File":
       self.iface.loadModelLoaders()
 
@@ -155,7 +160,10 @@ class Q3DViewerController:
       ts3 = time.time()
       tss.append([ts2 - ts1, ts3 - ts2])
       QgsApplication.processEvents()      # NOTE: process events only for the calling thread
+
     layer.updated = False
+    self.iface.runString('loadEnd("L{}");'.format(layer.jsLayerId))
+
     if DEBUG_MODE:
       msg = "updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss]))
       logMessage(msg, False)
@@ -172,14 +180,18 @@ class Q3DViewerController:
       self.updating = True
       self.iface.showMessage(self.message1)
       self.iface.progress(0, "Updating layers")
+      self.iface.runString('loadStart("LYRS");')
+
       layers = self.iface.controller.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100)
         if layer.visible:
           if not self._updateLayer(layer):
             break
+
       self.layersNeedUpdate = False
       self.updating = self.aborted = False
+      self.iface.runString('loadEnd("LYRS");')
       self.iface.progress()
       self.iface.clearMessage()
 

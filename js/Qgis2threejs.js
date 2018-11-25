@@ -7,6 +7,7 @@ var Q3D = {VERSION: "2.2"};
 
 Q3D.Config = {
   allVisible: false,  // set every layer visible property to true on load if set to true
+  autoZShift: true,
   bgcolor: null,      // null is sky
   camera: {
     ortho: false
@@ -336,6 +337,25 @@ Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
   return {x: xd, y: yd};
 };
 
+Q3D.Scene.prototype.adjustZShift = function () {
+  this.position.y = 0;  // initialize
+
+  var box = new THREE.Box3().setFromObject(this),
+      zmin = box.min.y / this.userData.zScale + this.userData.origin.z;
+
+  console.log("adjustZShift: " + zmin);
+
+  this.userData.zShiftA = -zmin;
+  this.userData.origin.z = -(this.userData.zShift + this.userData.zShiftA);
+
+  this.position.y = this.userData.zShiftA * this.userData.zScale;
+  this.updateMatrixWorld();
+
+  this.dispatchEvent({type: "zShiftAdjusted", sceneData: this.userData});
+
+  this.requestRender();
+};
+
 
 /*
 Q3D.application
@@ -361,9 +381,14 @@ limitations:
     }
   };
 
-  app.addEventListener = function (type, listener) {
+  app.addEventListener = function (type, listener, prepend) {
     listeners[type] = listeners[type] || [];
-    listeners[type].push(listener);
+    if (prepend) {
+      listeners[type].unshift(listener);
+    }
+    else {
+      listeners[type].push(listener);
+    }
   };
 
   app.init = function (container) {
@@ -479,6 +504,13 @@ limitations:
     app._wireframeMode = false;
 
     // add event listeners
+    app.addEventListener("sceneLoaded", function () {
+      if (Q3D.Config.autoZShift) {
+        app.scene.adjustZShift();
+      }
+      app.render();
+    }, true);
+
     window.addEventListener("keydown", app.eventListener.keydown);
     window.addEventListener("resize", app.eventListener.resize);
 
@@ -502,7 +534,6 @@ limitations:
   app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
     app.loadingManager.isLoading = false;
 
-    app.render();
     document.getElementById("bar").classList.add("fadeout");
 
     dispatchEvent({type: "sceneLoaded"});
@@ -1716,17 +1747,7 @@ Q3D.DEMBlock.prototype = {
         geom.computeVertexNormals();
       }
 
-      // build sides, bottom and frame
-      if (obj.sides) {
-        _this.buildSides(layer, grid, obj.width, obj.height, mesh, Q3D.Config.dem.side.bottomZ);
-        layer.sideVisible = true;
-      }
-      if (obj.frame) {
-        _this.buildFrame(layer, grid, obj.width, obj.height, mesh, Q3D.Config.dem.frame.bottomZ);
-        layer.sideVisible = true;
-      }
-
-      if (callback) callback(_this);    // call callback to request rendering
+      if (callback) callback();
     };
 
     if (grid.url !== undefined) {
@@ -1744,14 +1765,17 @@ Q3D.DEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, grid, planeWidth, planeHeight, parent, z0) {
+  buildSides: function (layer, parent, z0) {
     var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
     var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
 
-    var grid_values = grid.array,
+    var planeWidth = this.data.width,
+        planeHeight = this.data.height,
+        grid = this.data.grid,
+        grid_values = grid.array,
         w = grid.width,
         h = grid.height,
         k = w * (h - 1);
@@ -1824,12 +1848,16 @@ Q3D.DEMBlock.prototype = {
     parent.updateMatrixWorld();
   },
 
-  buildFrame: function (layer, grid, planeWidth, planeHeight, parent, z0) {
+  buildFrame: function (layer, parent, z0) {
     var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
     var material = new THREE.LineBasicMaterial({color: Q3D.Config.dem.frame.color,
                                                 opacity: opacity,
                                                 transparent: (opacity < 1)});
     layer.materials.add(material);
+
+    var grid = this.data.grid,
+        planeWidth = this.data.width,
+        planeHeight = this.data.height;
 
     // horizontal rectangle at bottom
     var hw = planeWidth / 2,
@@ -1914,12 +1942,7 @@ Q3D.ClippedDEMBlock.prototype = {
       // set UVs
       Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
 
-      if (obj.sides) {
-        _this.buildSides(layer, mesh, Q3D.Config.dem.side.bottomZ);
-        layer.sideVisible = true;
-      }
-
-      if (callback) callback(_this);    // call callback to request rendering
+      if (callback) callback();
     };
 
     if (grid.url !== undefined) {
@@ -2111,6 +2134,7 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  var _this = this;
   if (jsonObject.type == "layer") {
     Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
     if (jsonObject.data !== undefined) this.build(jsonObject.data);
@@ -2119,7 +2143,30 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     var index = jsonObject.block;
     this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
-    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, this.requestRender.bind(this));
+    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function () {
+      if (jsonObject.sides || jsonObject.frame) {
+        _this.sideVisible = true;
+
+        var buildSides = function () {
+          // build sides, bottom and frame
+          if (jsonObject.sides) {
+            _this.blocks[index].buildSides(_this, mesh, Q3D.Config.dem.side.bottomZ);
+          }
+          if (jsonObject.frame) {
+            _this.blocks[index].buildFrame(_this, mesh, Q3D.Config.dem.frame.bottomZ);
+          }
+          _this.requestRender();
+        };
+
+        if (Q3D.Config.autoZShift) {
+          scene.addEventListener("zShiftAdjusted", buildSides);
+        }
+        else {
+          buildSides();
+        }
+      }
+      _this.requestRender();
+    });
     this.addObject(mesh);
   }
 };
