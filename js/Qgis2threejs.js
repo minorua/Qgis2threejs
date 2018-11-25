@@ -343,13 +343,14 @@ Q3D.Scene.prototype.adjustZShift = function () {
   var box = new THREE.Box3().setFromObject(this),
       zmin = box.min.y / this.userData.zScale + this.userData.origin.z;
 
-  console.log("adjustZShift: " + zmin);
-
   this.userData.zShiftA = -zmin;
   this.userData.origin.z = -(this.userData.zShift + this.userData.zShiftA);
 
   this.position.y = this.userData.zShiftA * this.userData.zScale;
+  this.lightGroup.position.z = -this.position.y;    // keep positions of lights in world coordinates
   this.updateMatrixWorld();
+
+  console.log("z shift adjusted: " + this.userData.zShiftA);
 
   this.dispatchEvent({type: "zShiftAdjusted", sceneData: this.userData});
 
