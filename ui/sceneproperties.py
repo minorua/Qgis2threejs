@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\sceneproperties.ui'
 #
-# Created by: PyQt5 UI code generator 5.5
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -42,9 +42,15 @@ class Ui_ScenePropertiesWidget(object):
         self.label_2 = QtWidgets.QLabel(self.groupBox_1)
         self.label_2.setObjectName("label_2")
         self.formLayout_3.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_2)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.lineEdit_zShift = QtWidgets.QLineEdit(self.groupBox_1)
         self.lineEdit_zShift.setObjectName("lineEdit_zShift")
-        self.formLayout_3.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.lineEdit_zShift)
+        self.horizontalLayout.addWidget(self.lineEdit_zShift)
+        self.checkBox_autoZShift = QtWidgets.QCheckBox(self.groupBox_1)
+        self.checkBox_autoZShift.setObjectName("checkBox_autoZShift")
+        self.horizontalLayout.addWidget(self.checkBox_autoZShift)
+        self.formLayout_3.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
         self.verticalLayout_3.addWidget(self.groupBox_1)
         self.groupBox = QtWidgets.QGroupBox(ScenePropertiesWidget)
         self.groupBox.setObjectName("groupBox")
@@ -99,13 +105,16 @@ class Ui_ScenePropertiesWidget(object):
 
         self.retranslateUi(ScenePropertiesWidget)
         self.radioButton_Color.toggled['bool'].connect(self.colorButton_Color.setEnabled)
+        self.checkBox_autoZShift.toggled['bool'].connect(self.lineEdit_zShift.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(ScenePropertiesWidget)
         ScenePropertiesWidget.setTabOrder(self.lineEdit_BaseSize, self.lineEdit_zFactor)
         ScenePropertiesWidget.setTabOrder(self.lineEdit_zFactor, self.lineEdit_zShift)
-        ScenePropertiesWidget.setTabOrder(self.lineEdit_zShift, self.comboBox_MaterialType)
+        ScenePropertiesWidget.setTabOrder(self.lineEdit_zShift, self.checkBox_autoZShift)
+        ScenePropertiesWidget.setTabOrder(self.checkBox_autoZShift, self.comboBox_MaterialType)
         ScenePropertiesWidget.setTabOrder(self.comboBox_MaterialType, self.radioButton_Sky)
         ScenePropertiesWidget.setTabOrder(self.radioButton_Sky, self.radioButton_Color)
-        ScenePropertiesWidget.setTabOrder(self.radioButton_Color, self.radioButton_ProjectCRS)
+        ScenePropertiesWidget.setTabOrder(self.radioButton_Color, self.colorButton_Color)
+        ScenePropertiesWidget.setTabOrder(self.colorButton_Color, self.radioButton_ProjectCRS)
         ScenePropertiesWidget.setTabOrder(self.radioButton_ProjectCRS, self.radioButton_WGS84)
 
     def retranslateUi(self, ScenePropertiesWidget):
@@ -115,6 +124,8 @@ class Ui_ScenePropertiesWidget(object):
         self.label_3.setText(_translate("ScenePropertiesWidget", "Block size (width)"))
         self.label.setText(_translate("ScenePropertiesWidget", "Vertical exaggeration"))
         self.label_2.setText(_translate("ScenePropertiesWidget", "Vertical shift"))
+        self.checkBox_autoZShift.setToolTip(_translate("ScenePropertiesWidget", "Automatic vertical shift adjustment"))
+        self.checkBox_autoZShift.setText(_translate("ScenePropertiesWidget", "Auto"))
         self.groupBox.setTitle(_translate("ScenePropertiesWidget", "Material"))
         self.label_4.setText(_translate("ScenePropertiesWidget", "Basic type"))
         self.groupBox_2.setTitle(_translate("ScenePropertiesWidget", "&Background"))

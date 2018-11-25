@@ -173,7 +173,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     PropertyPage.__init__(self, PAGE_SCENE, dialog, parent)
     Ui_ScenePropertiesWidget.setupUi(self, self)
 
-    widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift,
+    widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                self.comboBox_MaterialType,
                self.radioButton_Color, self.colorButton_Color,
                self.radioButton_WGS84]

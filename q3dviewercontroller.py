@@ -100,6 +100,9 @@ class Q3DViewerController:
     self.iface.loadJSONObject(self.exporter.buildScene(False))
 
     if update_scene_settings:
+      # automatic z shift adjustment
+      self.iface.runString("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
+
       # update background color
       sp = self.settings.sceneProperties()
       params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"

@@ -7,7 +7,7 @@ var Q3D = {VERSION: "2.2"};
 
 Q3D.Config = {
   allVisible: false,  // set every layer visible property to true on load if set to true
-  autoZShift: true,
+  autoZShift: false,  // automatic z shift adjustment
   bgcolor: null,      // null is sky
   camera: {
     ortho: false

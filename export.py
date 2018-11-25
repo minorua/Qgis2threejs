@@ -66,7 +66,10 @@ class ThreeJSExporter(ThreeJSBuilder):
     options = []
 
     sp = self.settings.sceneProperties()
-    if sp.get("radioButton_Color", False):
+    if sp.get("checkBox_autoZShift"):
+      options.append("Q3D.Config.autoZShift = true;")
+
+    if sp.get("radioButton_Color"):
       options.append("Q3D.Config.bgcolor = {0};".format(sp.get("colorButton_Color", 0)))
 
     # camera
