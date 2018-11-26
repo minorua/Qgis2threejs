@@ -1711,7 +1711,7 @@ Q3D.DEMBlock.prototype = {
     // load material
     this.material = new Q3D.Material();
     this.material.loadJSONObject(obj.material, function () {
-      if (callback) callback(_this);
+      layer.requestRender();
     });
     layer.materials.add(this.material);
 
@@ -1745,7 +1745,7 @@ Q3D.DEMBlock.prototype = {
         geom.computeVertexNormals();
       }
 
-      if (callback) callback();
+      if (callback) callback(mesh);
     };
 
     if (grid.url !== undefined) {
@@ -1926,7 +1926,7 @@ Q3D.ClippedDEMBlock.prototype = {
     // load material
     this.material = new Q3D.Material();
     this.material.loadJSONObject(obj.material, function () {
-      if (callback) callback(_this);
+      layer.requestRender();
     });
     layer.materials.add(this.material);
 
@@ -1940,7 +1940,7 @@ Q3D.ClippedDEMBlock.prototype = {
       // set UVs
       Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
 
-      if (callback) callback();
+      if (callback) callback(mesh);
     };
 
     if (grid.url !== undefined) {
@@ -2132,51 +2132,50 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  var _this = this;
   if (jsonObject.type == "layer") {
     Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
-    if (jsonObject.data !== undefined) this.build(jsonObject.data);
+    if (jsonObject.data !== undefined) {
+      jsonObject.data.forEach(function (obj) {
+        this.buildBlock(obj, scene);
+      }, this);
+    }
   }
   else if (jsonObject.type == "block") {
-    var index = jsonObject.block;
-    this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
-
-    var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function () {
-      if (jsonObject.sides || jsonObject.frame) {
-        _this.sideVisible = true;
-
-        var buildSides = function () {
-          // build sides, bottom and frame
-          if (jsonObject.sides) {
-            _this.blocks[index].buildSides(_this, mesh, Q3D.Config.dem.side.bottomZ);
-          }
-          if (jsonObject.frame) {
-            _this.blocks[index].buildFrame(_this, mesh, Q3D.Config.dem.frame.bottomZ);
-          }
-          _this.requestRender();
-        };
-
-        if (Q3D.Config.autoZShift) {
-          scene.addEventListener("zShiftAdjusted", buildSides);
-        }
-        else {
-          buildSides();
-        }
-      }
-      _this.requestRender();
-    });
-    this.addObject(mesh);
+    this.buildBlock(jsonObject, scene);
   }
 };
 
-Q3D.DEMLayer.prototype.build = function (blocks) {
-  // build blocks
-  blocks.forEach(function (block) {
-    var b = (block.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock()),
-        mesh = b.loadJSONObject(block, this, this.requestRender.bind(this));
-    this.addObject(mesh);
-    this.blocks.push(b);
-  }, this);
+Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
+  var _this = this;
+
+  var index = jsonObject.block;
+  this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
+
+  var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
+    if (jsonObject.sides || jsonObject.frame) {
+      _this.sideVisible = true;
+
+      var buildSides = function () {
+        // build sides, bottom and frame
+        if (jsonObject.sides) {
+          _this.blocks[index].buildSides(_this, m, Q3D.Config.dem.side.bottomZ);
+        }
+        if (jsonObject.frame) {
+          _this.blocks[index].buildFrame(_this, m, Q3D.Config.dem.frame.bottomZ);
+        }
+        _this.requestRender();
+      };
+
+      if (Q3D.Config.autoZShift) {
+        scene.addEventListener("zShiftAdjusted", buildSides);
+      }
+      else {
+        buildSides();
+      }
+    }
+    _this.requestRender();
+  });
+  this.addObject(mesh);
 };
 
 // calculate elevation at the coordinates (x, y) on triangle face
