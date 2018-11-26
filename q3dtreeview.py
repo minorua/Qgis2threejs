@@ -102,6 +102,16 @@ class Q3DTreeView(QTreeView):
     for layer in layers:
       self.addLayer(layer)
 
+  def updateLayersCheckState(self, layers):
+    self.blockSignals(True)
+    for parent in self.layerParentItem.values():
+      for row in range(parent.rowCount()):
+        item = parent.child(row)
+        layer = self.iface.controller.settings.getItemByLayerId(item.data())
+        item.setCheckState(Qt.Checked if layer and layer.visible else Qt.Unchecked)
+
+    self.blockSignals(False)
+
   def uncheckAll(self):
     for parent in self.layerParentItem.values():
       for idx in range(parent.rowCount()):

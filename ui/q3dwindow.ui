@@ -73,8 +73,6 @@
     <addaction name="menuControls"/>
     <addaction name="menuDecorations"/>
     <addaction name="separator"/>
-    <addaction name="actionClearAllSettings"/>
-    <addaction name="separator"/>
     <addaction name="actionReload"/>
     <addaction name="actionResetCameraPosition"/>
    </widget>
@@ -103,12 +101,23 @@
      <addaction name="separator"/>
      <addaction name="actionSaveAsGLTF"/>
     </widget>
+    <widget class="QMenu" name="menuExport_Settings">
+     <property name="title">
+      <string>Export Settings</string>
+     </property>
+     <addaction name="actionLoadSettings"/>
+     <addaction name="actionSaveSettings"/>
+     <addaction name="separator"/>
+     <addaction name="actionClearSettings"/>
+    </widget>
     <addaction name="actionExportToWeb"/>
     <addaction name="menuSaveAs"/>
     <addaction name="separator"/>
+    <addaction name="menuExport_Settings"/>
+    <addaction name="separator"/>
     <addaction name="actionPluginSettings"/>
     <addaction name="separator"/>
-    <addaction name="actionCloseExporter"/>
+    <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -327,14 +336,14 @@
     <string>Layer Panel</string>
    </property>
   </action>
-  <action name="actionCloseExporter">
+  <action name="actionClose">
    <property name="text">
-    <string>Close Exporter</string>
+    <string>Close</string>
    </property>
   </action>
   <action name="actionPluginSettings">
    <property name="text">
-    <string>Exporter Settings..</string>
+    <string>Plugin Settings..</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -382,9 +391,9 @@
     <string>glTF (.gltf, .glb)</string>
    </property>
   </action>
-  <action name="actionClearAllSettings">
+  <action name="actionClearSettings">
    <property name="text">
-    <string>Clear All Settings</string>
+    <string>Clear</string>
    </property>
   </action>
   <action name="actionConsoleCopy">
@@ -407,6 +416,16 @@
     <string>Header/Footer Labels</string>
    </property>
   </action>
+  <action name="actionSaveSettings">
+   <property name="text">
+    <string>Save...</string>
+   </property>
+  </action>
+  <action name="actionLoadSettings">
+   <property name="text">
+    <string>Load...</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -424,7 +443,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionCloseExporter</sender>
+   <sender>actionClose</sender>
    <signal>triggered()</signal>
    <receiver>Q3DWindow</receiver>
    <slot>close()</slot>

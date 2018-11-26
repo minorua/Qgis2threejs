@@ -18,10 +18,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from qgis.core import QgsProject
 
 from . import q3dconst
 from .conf import DEBUG_MODE, PLUGIN_VERSION
@@ -198,12 +200,14 @@ class Q3DWindow(QMainWindow):
     self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
     self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
     self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+    self.ui.actionLoadSettings.triggered.connect(self.loadSettings)
+    self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
+    self.ui.actionClearSettings.triggered.connect(self.clearSettings)
     self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
     self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
     self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-    self.ui.actionClearAllSettings.triggered.connect(self.clearExportSettings)
     self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
@@ -240,7 +244,35 @@ class Q3DWindow(QMainWindow):
     self.settings.setCamera(action == self.ui.actionOrthographic)
     self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
 
-  def clearExportSettings(self):
+  def loadSettings(self):
+    # file open dialog
+    directory = QgsProject.instance().homePath() #or QDir.homePath()
+    filterString = "Settings files (*.qto3settings);;All files (*.*)"
+    filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+    if not filename:
+      return
+
+    self.settings.loadSettingsFromFile(filename)
+    self.settings.updateLayerList()
+    self.ui.treeView.updateLayersCheckState(self.settings.getLayerList())
+    self.iface.updateScene()
+    self.updateNorthArrow()
+    self.updateHFLabel()
+
+  def saveSettings(self):
+    # file save dialog
+    directory = QgsProject.instance().homePath() #or QDir.homePath()
+    filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
+    if not filename:
+      return
+
+    # append .qto3settings extension if filename doesn't have
+    if os.path.splitext(filename)[1].lower() != ".qto3settings":
+      filename += ".qto3settings"
+
+    self.settings.saveSettings(filename)
+
+  def clearSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
       self.ui.treeView.uncheckAll()
       self.ui.actionPerspective.setChecked(True)
