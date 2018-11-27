@@ -11,18 +11,20 @@ the Free Software Foundation; either version 2 of the License, or
 import importlib
 import os
 import sys
-from unittest import TestCase
+from qgis.testing import start_app, unittest
 
-from .utilities import pluginPath
+from utilities import pluginPath
+
+QGISAPP = start_app()
 
 
-class TestBasic(TestCase):
+class TestBasic(unittest.TestCase):
 
   def test01_import(self):
-    """import test"""
+    """module import test"""
     plugin_dir = pluginPath()
     imported = 0
-    for package_dir in ["", "/objects", "/plugins/gsielevtile"]:
+    for package_dir in ["", "/plugins/gsielevtile"]:
       for filename in os.listdir(plugin_dir + package_dir):
         if filename[-3:] != ".py" or filename == "__init__.py":
           continue
@@ -45,5 +47,4 @@ class TestBasic(TestCase):
 
 
 if __name__ == "__main__":
-  import unittest
   unittest.main()

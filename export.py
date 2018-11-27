@@ -110,8 +110,6 @@ class ThreeJSExporter(ThreeJSBuilder):
     with open(self.settings.outputFileName(), "w", encoding="utf-8") as f:
       f.write(html)
 
-    return True
-
   def nextLayerIndex(self):
     self._index += 1
     return self._index
@@ -217,7 +215,7 @@ class ImageExporter(BridgeExporterBase):
 
   def export(self, filepath, cancelSignal=None):
     if self.page is None:
-      return False
+      return "page not initialized"
 
     # prepare output directory
     self.mkdir(filepath)
@@ -230,7 +228,6 @@ class ImageExporter(BridgeExporterBase):
     # header and footer labels
     self.page.runString('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
                                                          self.settings.footerLabel().replace('"', '\\"')))
-
     # render scene
     size = self.page.viewportSize()
     image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
@@ -238,6 +235,8 @@ class ImageExporter(BridgeExporterBase):
     self.page.mainFrame().render(painter)
     painter.end()
     image.save(filepath)
+
+    return err
 
 
 class ModelExporter(BridgeExporterBase):
@@ -252,7 +251,7 @@ class ModelExporter(BridgeExporterBase):
 
   def export(self, filepath, cancelSignal=None):
     if self.page is None:
-      return False
+      return "page not initialized"
 
     # prepare output directory
     self.mkdir(filepath)
@@ -264,3 +263,5 @@ class ModelExporter(BridgeExporterBase):
 
     # save model
     self.page.runString("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))
+
+    return err

@@ -21,7 +21,7 @@ from Qgis2threejs.qgis2threejstools import getLayersByLayerIds
 
 
 def pluginPath(subdir=None):
-  tests_dir = os.path.dirname(os.path.abspath(__file__).decode(sys.getfilesystemencoding()))
+  tests_dir = os.path.dirname(os.path.abspath(__file__))
   plugin_dir = os.path.dirname(tests_dir)
   if subdir is None:
     return plugin_dir
@@ -29,14 +29,24 @@ def pluginPath(subdir=None):
 
 
 def dataPath(subdir=None):
-  data_path = pluginPath(os.path.join("tests", "data"))
+  data_path = "E:/qgis2threejs_test_dev/data"   # [work in progress]
+  #data_path = pluginPath(os.path.join("tests", "data"))
+  if subdir is None:
+    return data_path
+  return os.path.join(data_path, subdir)
+
+
+def expectedDataPath(subdir=None):
+  data_path = "E:/qgis2threejs_test_dev/expected"   # [work in progress]
+  #data_path = pluginPath(os.path.join("tests", "expected"))
   if subdir is None:
     return data_path
   return os.path.join(data_path, subdir)
 
 
 def outputPath(subdir=None):
-  data_path = pluginPath(os.path.join("tests", "output"))
+  data_path = "E:/qgis2threejs_test_dev/output"   # [work in progress]
+  #data_path = pluginPath(os.path.join("tests", "output"))
   if subdir is None:
     return data_path
   return os.path.join(data_path, subdir)
@@ -57,16 +67,16 @@ def loadProject(filename):
   assert os.path.exists(filename), "project file does not exist: " + filename
 
   # load the project
-  QgsProject.instance().read(QFileInfo(filename))
+  QgsProject.instance().read(filename)
   assert QgsProject.instance().mapLayers(), "no layers in map layer registry"
 
   doc = QDomDocument()
-  with open(filename) as f:
+  with open(filename, encoding="utf-8") as f:
     doc.setContent(f.read())
 
   # map settings
   mapSettings = QgsMapSettings()
-  mapSettings.readXML(doc.elementsByTagName("mapcanvas").at(0))
+  mapSettings.readXml(doc.elementsByTagName("mapcanvas").at(0))
 
   # visible layers
   layerIds = []
