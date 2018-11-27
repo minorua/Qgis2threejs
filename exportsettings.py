@@ -296,7 +296,9 @@ class ExportSettings:
         if item is None:
           item = Layer.fromQgsMapLayer(layer)
         else:
-          item.name = layer.name()    # update layer name
+          # update layer and layer name
+          item.mapLayer = layer
+          item.name = layer.name()
         layers.append(item)
 
     # DEM provider plugins
