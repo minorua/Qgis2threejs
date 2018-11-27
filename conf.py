@@ -37,6 +37,7 @@ class DEF_SETS:
   BASE_SIZE = 100
   Z_EXAGGERATION = 1.0
   Z_SHIFT = 0
+  AUTO_Z_SHIFT = False
 
   CONTROLS = "OrbitControls.js"    # last selected one has priority
 

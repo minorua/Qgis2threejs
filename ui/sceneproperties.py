@@ -105,7 +105,6 @@ class Ui_ScenePropertiesWidget(object):
 
         self.retranslateUi(ScenePropertiesWidget)
         self.radioButton_Color.toggled['bool'].connect(self.colorButton_Color.setEnabled)
-        self.checkBox_autoZShift.toggled['bool'].connect(self.lineEdit_zShift.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(ScenePropertiesWidget)
         ScenePropertiesWidget.setTabOrder(self.lineEdit_BaseSize, self.lineEdit_zFactor)
         ScenePropertiesWidget.setTabOrder(self.lineEdit_zFactor, self.lineEdit_zShift)

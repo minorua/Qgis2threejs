@@ -192,6 +192,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
       self.lineEdit_BaseSize.setText(str(DEF_SETS.BASE_SIZE))
       self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
       self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
+      self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
 
     # Supported projections
     # https://github.com/proj4js/proj4js
