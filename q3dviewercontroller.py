@@ -29,14 +29,15 @@ from .qgis2threejstools import logMessage, pluginDir
 
 class Q3DViewerController:
 
-  def __init__(self, qgis_iface, settings=None):
+  def __init__(self, qgis_iface=None, settings=None):
     self.qgis_iface = qgis_iface
 
     if settings is None:
       defaultSettings = {}
       settings = ExportSettings()
       settings.loadSettings(defaultSettings)
-      settings.setMapCanvas(qgis_iface.mapCanvas())
+      if qgis_iface:
+        settings.setMapCanvas(qgis_iface.mapCanvas())
 
       err_msg = settings.checkValidity()
       if err_msg:
@@ -61,12 +62,14 @@ class Q3DViewerController:
     self.iface = None
 
   def connectToMapCanvas(self):
-    self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
-    self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
+    if self.qgis_iface:
+      self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
+      self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
 
   def disconnectFromMapCanvas(self):
-    self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
-    self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
+    if self.qgis_iface:
+      self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
+      self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
 
   def abort(self):
     if self.updating:
@@ -93,7 +96,7 @@ class Q3DViewerController:
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Updating scene")
 
-    if update_extent:
+    if update_extent and self.qgis_iface:
       self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
     # build scene
