@@ -97,10 +97,17 @@ function loadEnd(name) {
 }
 
 function init(offScreen) {
-  if (offScreen) document.getElementById("progress").style.display = "none";
-
   var container = document.getElementById("view");
   app.init(container, false);
+
+  if (offScreen) {
+    document.getElementById("progress").style.display = "none";
+    app.osRender = app.render;
+    app.render = function () {};    // not necessary to render scene before scene has been completely loaded
+    app.addEventListener("sceneLoaded", function () {
+      app.osRender(); app.osRender();   // render scene twice for output stability
+    });
+  }
 
   if (Q3D.Config.northArrow.visible) {
     app.buildNorthArrow(document.getElementById("northarrow"), 0);
