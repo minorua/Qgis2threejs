@@ -6,7 +6,7 @@ tests/cache
 tests/output
 *.aux.xml
 *.qgs~
-*.qto3settings
+*.qgs.qto3settings
 *.log
 viewer/debug.html
 viewer/debug.js
