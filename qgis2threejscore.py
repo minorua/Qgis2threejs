@@ -65,8 +65,6 @@ class GDALDEMProvider(Raster):
     self.driver = gdal.GetDriverByName("MEM")
     self.dest_wkt = dest_wkt
     self.source_wkt = source_wkt
-    if source_wkt:
-      self.ds.SetProjection(str(source_wkt))
 
   def _read(self, width, height, geotransform):
     # create a memory dataset
@@ -75,7 +73,7 @@ class GDALDEMProvider(Raster):
     warped_ds.SetGeoTransform(geotransform)
 
     # reproject image
-    gdal.ReprojectImage(self.ds, warped_ds, None, None, gdal.GRA_Bilinear)
+    gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, gdal.GRA_Bilinear)
 
     band = warped_ds.GetRasterBand(1)
     return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
