@@ -1778,7 +1778,7 @@ Q3D.DEMBlock.prototype = {
         h = grid.height,
         k = w * (h - 1);
 
-    var e0 =  z0 / this.data.zScale - this.data.zShift,
+    var e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
         band_width = -2 * e0;
 
     // front and back
@@ -1860,7 +1860,7 @@ Q3D.DEMBlock.prototype = {
     // horizontal rectangle at bottom
     var hw = planeWidth / 2,
         hh = planeHeight / 2,
-        e0 =  z0 / this.data.zScale - this.data.zShift;
+        e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0);
     var geom = new THREE.Geometry();
     geom.vertices.push(new THREE.Vector3(-hw, -hh, e0),
                        new THREE.Vector3(hw, -hh, e0),
@@ -1966,7 +1966,7 @@ Q3D.ClippedDEMBlock.prototype = {
     layer.materials.add(material);
 
     var polygons = this.data.clip.polygons,
-        e0 =  z0 / this.data.zScale - this.data.zShift,
+        e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
         zFunc = layer.getZ.bind(layer),
         bzFunc = function (x, y) { return e0; };
 
@@ -2167,7 +2167,13 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
       };
 
       if (Q3D.Config.autoZShift) {
-        scene.addEventListener("zShiftAdjusted", buildSides);
+        scene.addEventListener("zShiftAdjusted", function (event) {
+          // set adjusted z shift to every block
+          _this.blocks.forEach(function (block) {
+            block.data.zShiftA = event.sceneData.zShiftA;
+          });
+          buildSides();
+        });
       }
       else {
         buildSides();
