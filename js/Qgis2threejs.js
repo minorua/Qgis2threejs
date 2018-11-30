@@ -2342,8 +2342,8 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
     getPointsFunc(f).forEach(function (pt) {
       // create div element for label
       e = document.createElement("div");
-      e.appendChild(document.createTextNode(text));
       e.className = "label";
+      e.innerHTML = text;
       this.labelParentElement.appendChild(e);
 
       pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);                                      // bottom
