@@ -355,9 +355,6 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
 
   def properties(self):
     p = PropertyPage.properties(self)
-    item = self.dialog.currentItem
-    if item is not None:
-      p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
     if self.layerImageIds:
       p["layerImageIds"] = self.layerImageIds
     return p
@@ -435,11 +432,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.layer = layer
     mapLayer = layer.mapLayer
     properties = layer.properties
-
-    if self.dialog.currentItem:
-      self.setEnabled(self.dialog.currentItem.data(0, Qt.CheckStateRole) == Qt.Checked)
-    else:
-      self.setEnabled(True)
 
     for i in range(self.STYLE_MAX_COUNT):
       self.styleWidgets[i].hide()
@@ -567,11 +559,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     self.labelHeightWidget.setEnabled(checked)
 
   def properties(self):
-    p = PropertyPage.properties(self)
-    item = self.dialog.currentItem
-    if item is not None:
-      p["visible"] = item.data(0, Qt.CheckStateRole) == Qt.Checked
-    return p
+    return PropertyPage.properties(self)
 
   def initStyleWidgets(self, color=True, opacity=True):
     self.styleWidgetCount = 0

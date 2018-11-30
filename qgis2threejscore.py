@@ -25,10 +25,9 @@ from math import floor
 from osgeo import gdal
 from PyQt5.QtCore import QSize
 
-from .gdal2threejs import Raster
 from .geometry import Point
 from .rotatedrect import RotatedRect
-
+from .qgis2threejstools import logMessage
 
 class MapTo3D:
 
@@ -58,17 +57,28 @@ class MapTo3D:
     return self.transform(pt.x, pt.y, pt.z)
 
 
-class GDALDEMProvider(Raster):
+class GDALDEMProvider:
 
   def __init__(self, filename, dest_wkt, source_wkt=None):
-    Raster.__init__(self, filename)
-    self.driver = gdal.GetDriverByName("MEM")
+    self.filename = filename
     self.dest_wkt = dest_wkt
     self.source_wkt = source_wkt
 
+    self.mem_driver = gdal.GetDriverByName("MEM")
+
+    filename_utf8 = filename.encode("utf-8") if isinstance(filename, str) else filename
+    self.ds = gdal.Open(filename_utf8, gdal.GA_ReadOnly)
+
+    if self.ds is None:
+      logMessage("Cannot open file: " + filename)
+      self.ds = self.mem_driver.Create("", 1, 1, 1, gdal.GDT_Float32)
+ 
+    self.width = self.ds.RasterXSize
+    self.height = self.ds.RasterYSize
+
   def _read(self, width, height, geotransform):
     # create a memory dataset
-    warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
+    warped_ds = self.mem_driver.Create("", width, height, 1, gdal.GDT_Float32)
     warped_ds.SetProjection(self.dest_wkt)
     warped_ds.SetGeoTransform(geotransform)
 

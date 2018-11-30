@@ -416,8 +416,6 @@ class PropertiesDialog(QDialog):
 
     self.wheelFilter = WheelEventFilter()
 
-    self.currentItem = None
-
     # Set up the user interface from Designer.
     self.ui = Ui_PropertiesDialog()
     self.ui.setupUi(self)
