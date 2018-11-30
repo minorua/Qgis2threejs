@@ -177,7 +177,7 @@ class ThreeJSExporter(ThreeJSBuilder):
     return ['<script src="%s"></script>' % fn for fn in files]
 
 
-class BridgeExporterBase(ThreeJSExporter):
+class BridgeExporterBase(ThreeJSBuilder):
 
   def __init__(self, settings, progress=None):
     super().__init__(settings, progress)
