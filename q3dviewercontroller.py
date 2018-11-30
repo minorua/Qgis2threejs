@@ -149,7 +149,7 @@ class Q3DViewerController:
     if not (self.iface and self.previewEnabled):
       return False
 
-    self.iface.runScript('loadStart("L{}");'.format(layer.jsLayerId))
+    self.iface.runScript('loadStart("L{}");  // {}'.format(layer.jsLayerId, layer.name))
 
     if layer.properties.get("comboBox_ObjectType") == "Model File":
       self.iface.loadModelLoaders()
