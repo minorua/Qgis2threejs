@@ -42,30 +42,30 @@ class Q3DInterface:
   def startApplication(self, offScreen=False, exportMode=False):
     # configuration
     if exportMode:
-      self.runString("Q3D.Config.exportMode = true;")
+      self.runScript("Q3D.Config.exportMode = true;")
 
     p = self.controller.settings.northArrow()
     if p.get("visible"):
-      self.runString("Q3D.Config.northArrow.visible = true;")
-      self.runString("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
+      self.runScript("Q3D.Config.northArrow.visible = true;")
+      self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
 
     header = self.controller.settings.headerLabel()
     footer = self.controller.settings.footerLabel()
     if header or footer:
-      self.runString('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
+      self.runScript('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
 
     # initialize app
-    self.runString("init({});".format("true" if offScreen else ""))
+    self.runScript("init({});".format("true" if offScreen else ""))
 
   def loadJSONObject(self, obj):
     # display the content of the object in the debug element
     if DEBUG_MODE == 2:
-      self.runString("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
+      self.runScript("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
     self.webPage.sendData(obj)
 
-  def runString(self, string, message=""):
-    self.webPage.runString(string, message, sourceID="q3dwindow.py")
+  def runScript(self, string, message=""):
+    self.webPage.runScript(string, message, sourceID="q3dwindow.py")
 
   def loadScriptFile(self, filepath):
     self.webPage.loadScriptFile(filepath)

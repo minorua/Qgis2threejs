@@ -62,18 +62,18 @@ class Q3DViewerInterface(Q3DInterface):
     super().startApplication(offScreen, exportMode)
 
     # start app
-    self.runString("app.start();")
+    self.runScript("app.start();")
 
     if DEBUG_MODE:
-      self.runString("displayFPS();")
+      self.runScript("displayFPS();")
 
   def setPreviewEnabled(self, enabled):
     self.controller.setPreviewEnabled(enabled)
 
     elem = "document.getElementById('cover')"
-    self.runString("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
+    self.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
     if not enabled:
-      self.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
+      self.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
   def showMessage(self, msg, timeout=0):
     self.wnd.ui.statusbar.showMessage(msg, timeout)
@@ -243,7 +243,7 @@ class Q3DWindow(QMainWindow):
 
   def switchCamera(self, action):
     self.settings.setCamera(action == self.ui.actionOrthographic)
-    self.runString("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
+    self.runScript("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
 
   def loadSettings(self):
     # file open dialog
@@ -293,9 +293,9 @@ class Q3DWindow(QMainWindow):
   def changeEvent(self, event):
     if event.type() == QEvent.WindowStateChange:
       if self.windowState() & Qt.WindowMinimized:
-        self.runString("app.pause();")
+        self.runScript("app.pause();")
       else:
-        self.runString("app.resume();")
+        self.runScript("app.resume();")
 
   def copyConsole(self):
     # copy selected item(s) text to clipboard
@@ -324,8 +324,8 @@ class Q3DWindow(QMainWindow):
     self.ui.listWidgetDebugView.scrollToBottom()
     self.ui.lineEditInputBox.clear()
 
-  def runString(self, string, message="", sourceID="Q3DWindow.py"):
-    return self.ui.webView.runString(string, message, sourceID=sourceID)
+  def runScript(self, string, message="", sourceID="Q3DWindow.py"):
+    return self.ui.webView.runScript(string, message, sourceID=sourceID)
 
   def exportToWeb(self):
     dialog = ExportToWebDialog(self, self.settings)
@@ -350,7 +350,7 @@ class Q3DWindow(QMainWindow):
     if filename:
       self.iface.updateScene(base64=True)
       self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
-      self.runString("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
+      self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
   def pluginSettings(self):
     from .pluginsettings import SettingsDialog
@@ -366,8 +366,8 @@ class Q3DWindow(QMainWindow):
 
   def updateNorthArrow(self):
     p = self.settings.northArrow()
-    self.runString("setNorthArrowColor({0});".format(p.get("color", 0)))
-    self.runString("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
+    self.runScript("setNorthArrowColor({0});".format(p.get("color", 0)))
+    self.runScript("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
 
   def showHFLabelDialog(self):
     dialog = HFLabelDialog(self, self.settings)
@@ -376,7 +376,7 @@ class Q3DWindow(QMainWindow):
     dialog.exec_()
 
   def updateHFLabel(self):
-    self.runString('setHFLabel("{0}", "{1}");'.format(self.settings.headerLabel().replace('"', '\\"'),
+    self.runScript('setHFLabel("{0}", "{1}");'.format(self.settings.headerLabel().replace('"', '\\"'),
                                                       self.settings.footerLabel().replace('"', '\\"')))
 
   def help(self):

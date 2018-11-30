@@ -227,7 +227,7 @@ class ImageExporter(BridgeExporterBase):
     err = self.page.waitForSceneLoaded(cancelSignal)
 
     # header and footer labels
-    self.page.runString('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
+    self.page.runScript('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
                                                          self.settings.footerLabel().replace('"', '\\"')))
     # render scene
     size = self.page.viewportSize()
@@ -269,6 +269,6 @@ class ModelExporter(BridgeExporterBase):
     err = self.page.waitForSceneLoaded(cancelSignal)
 
     # save model
-    self.page.runString("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))
+    self.page.runScript("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))
 
     return err

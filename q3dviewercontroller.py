@@ -81,7 +81,7 @@ class Q3DViewerController:
       return
 
     self.previewEnabled = enabled
-    self.iface.runString("app.resume();" if enabled else "app.pause();");
+    self.iface.runScript("app.resume();" if enabled else "app.pause();");
     if enabled:
       self.updateExtent()
       self.updateScene()
@@ -105,20 +105,20 @@ class Q3DViewerController:
     if update_scene_settings:
       sp = self.settings.sceneProperties()
       # automatic z shift adjustment
-      self.iface.runString("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
+      self.iface.runScript("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
 
       # update background color
       params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
-      self.iface.runString("setBackgroundColor({0});".format(params))
+      self.iface.runScript("setBackgroundColor({0});".format(params))
 
       # coordinate display (geographic/projected)
       if sp.get("radioButton_WGS84", False):
         self.iface.loadScriptFile(pluginDir("js/proj4js/proj4.js"))
       else:
-        self.iface.runString("proj4 = undefined;", "// proj4 not enabled")
+        self.iface.runScript("proj4 = undefined;", "// proj4 not enabled")
 
     if update_layers:
-      self.iface.runString('loadStart("LYRS");')
+      self.iface.runScript('loadStart("LYRS");')
 
       layers = self.settings.getLayerList()
       for idx, layer in enumerate(layers):
@@ -127,7 +127,7 @@ class Q3DViewerController:
           if not self._updateLayer(layer):
             break
       self.layersNeedUpdate = False
-      self.iface.runString('loadEnd("LYRS");')
+      self.iface.runScript('loadEnd("LYRS");')
 
     self.updating = self.aborted = False
     self.iface.progress()
@@ -149,7 +149,7 @@ class Q3DViewerController:
     if not (self.iface and self.previewEnabled):
       return False
 
-    self.iface.runString('loadStart("L{}");'.format(layer.jsLayerId))
+    self.iface.runScript('loadStart("L{}");'.format(layer.jsLayerId))
 
     if layer.properties.get("comboBox_ObjectType") == "Model File":
       self.iface.loadModelLoaders()
@@ -168,7 +168,7 @@ class Q3DViewerController:
       QgsApplication.processEvents()      # NOTE: process events only for the calling thread
 
     layer.updated = False
-    self.iface.runString('loadEnd("L{}");'.format(layer.jsLayerId))
+    self.iface.runScript('loadEnd("L{}");'.format(layer.jsLayerId))
 
     if DEBUG_MODE:
       msg = "updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss]))
@@ -186,7 +186,7 @@ class Q3DViewerController:
       self.updating = True
       self.iface.showMessage(self.message1)
       self.iface.progress(0, "Updating layers")
-      self.iface.runString('loadStart("LYRS");')
+      self.iface.runScript('loadStart("LYRS");')
 
       layers = self.iface.controller.settings.getLayerList()
       for idx, layer in enumerate(layers):
@@ -197,7 +197,7 @@ class Q3DViewerController:
 
       self.layersNeedUpdate = False
       self.updating = self.aborted = False
-      self.iface.runString('loadEnd("LYRS");')
+      self.iface.runScript('loadEnd("LYRS");')
       self.iface.progress()
       self.iface.clearMessage()
 

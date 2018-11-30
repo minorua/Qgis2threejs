@@ -148,7 +148,7 @@ class Q3DWebPage(QWebPage):
     self.iface.startApplication(offScreen=self.offScreen, exportMode=self.exportMode)
 
     if self.iface.controller.settings.isOrthoCamera():
-      self.runString("switchCamera(true);")
+      self.runScript("switchCamera(true);")
 
     self.initialized.emit()
 
@@ -160,14 +160,14 @@ class Q3DWebPage(QWebPage):
     else:
       self.iface.setPreviewEnabled(False)
 
-  def runString(self, string, message="", sourceID="q3dview.py"):
+  def runScript(self, string, message="", sourceID="q3dview.py"):
     if DEBUG_MODE:
       self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
-      qDebug("runString: {}\n".format(message if message else string).encode("utf-8"))
+      qDebug("runScript: {}\n".format(message if message else string).encode("utf-8"))
 
       if DEBUG_MODE == 2:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.logfile.write("{} runString: {}\n".format(now, message if message else string))
+        self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
         self.logfile.flush()
 
     return self.mainFrame().evaluateJavaScript(string)
@@ -180,7 +180,7 @@ class Q3DWebPage(QWebPage):
   def loadScriptFile(self, filename):
     with open(filename, "r", encoding="utf-8") as f:
       script = f.read()
-    return self.runString(script, "// {} loaded".format(os.path.basename(filename)))
+    return self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
 
   def loadModelLoaders(self):
     if not self.modelLoadersLoaded:
@@ -198,7 +198,7 @@ class Q3DWebPage(QWebPage):
     self.mainFrame().evaluateJavaScript("setCameraState(fetchData())")
 
   def resetCameraState(self):
-    self.runString("app.controls.reset();")
+    self.runScript("app.controls.reset();")
 
   def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
     loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
@@ -303,7 +303,7 @@ class Q3DView(QWebView):
   def dropEvent(self, event):
     # logMessage(event.mimeData().formats())
     for url in event.mimeData().urls():
-      self.runString("loadModel('" + url.toString() + "');")
+      self.runScript("loadModel('" + url.toString() + "');")
 
     event.acceptProposedAction()
 
@@ -319,8 +319,8 @@ class Q3DView(QWebView):
   def resetCameraState(self):
     self._page.resetCameraState()
 
-  def runString(self, string, message="", sourceID="q3dview.py"):
-    self._page.runString(string, message, sourceID)
+  def runScript(self, string, message="", sourceID="q3dview.py"):
+    self._page.runScript(string, message, sourceID)
 
 
 class DummyWindow:
