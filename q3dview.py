@@ -22,7 +22,7 @@ from datetime import datetime
 import os
 
 #from PyQt5.Qt import *
-from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QTimer, QUrl, QVariant,
+from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
                           pyqtSignal, pyqtSlot, qDebug)
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -189,7 +189,15 @@ class Q3DWebPage(QWebPage):
       self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
       self.modelLoadersLoaded = True
 
-  def resetCameraPosition(self):
+  def cameraState(self):
+    return self.mainFrame().evaluateJavaScript("cameraState()")
+
+  def setCameraState(self, state):
+    """set camera position and camera target"""
+    self.bridge.setData(state)
+    self.mainFrame().evaluateJavaScript("setCameraState(fetchData())")
+
+  def resetCameraState(self):
     self.runString("app.controls.reset();")
 
   def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
@@ -231,7 +239,7 @@ class Q3DWebPage(QWebPage):
 
   def sendData(self, data):
     self.bridge.setData(data)
-    self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData());")
+    self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData())")
 
   def saveModelData(self, data, filename):
     try:
@@ -242,14 +250,20 @@ class Q3DWebPage(QWebPage):
     except Exception as e:
       QMessageBox.warning(self, "Failed to save model data.", str(e))
 
-  def saveImage(self, width, height, image):
-    if image is None:
-      image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-      painter = QPainter(image)
-      self.mainFrame().render(painter)
-      painter.end()
+  def renderImage(self, width, height):
+    old_size = self.viewportSize()
+    self.setViewportSize(QSize(width, height))
 
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
+    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+    painter = QPainter(image)
+    self.mainFrame().render(painter)
+    painter.end()
+
+    self.setViewportSize(old_size)
+    return image
+
+  def saveImage(self, width, height, image):
+    filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
     if filename:
       image.save(filename)
 
@@ -302,8 +316,8 @@ class Q3DView(QWebView):
   def sendData(self, data):
     self._page.sendData(data)
 
-  def resetCameraPosition(self):
-    self._page.resetCameraPosition()
+  def resetCameraState(self):
+    self._page.resetCameraState()
 
   def runString(self, string, message="", sourceID="q3dview.py"):
     self._page.runString(string, message, sourceID)

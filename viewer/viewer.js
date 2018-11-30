@@ -223,6 +223,22 @@ function switchCamera(is_ortho) {
   app.render(true);
 }
 
+// current camera position and its target
+function cameraState() {
+  var p = app.camera.position, t = app.controls.target;
+  return {
+    position: {x: p.x, y: p.y, z: p.z},
+      target: {x: t.x, y: t.y, z: t.z}
+  };
+}
+
+function setCameraState(state) {
+  var p = state.position, t = state.target;
+  app.camera.position.set(p.x, p.y, p.z);
+  app.controls.target.set(t.x, t.y, t.z);
+  app.camera.lookAt(app.controls.target);
+}
+
 function setNorthArrowVisible(visible) {
   document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
   if (visible && app.scene2 === undefined) {

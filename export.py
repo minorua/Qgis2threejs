@@ -213,12 +213,13 @@ class ImageExporter(BridgeExporterBase):
   def __init__(self, settings, progress=None):
     super().__init__(settings, progress)
 
-  def export(self, filepath, cancelSignal=None):
+  def render(self, cameraState=None, cancelSignal=None):
     if self.page is None:
-      return "page not initialized"
+      return QImage(), "page not initialized"
 
-    # prepare output directory
-    self.mkdir(filepath)
+    # set camera position and camera target
+    if cameraState:
+      self.page.setCameraState(cameraState)
 
     # update scene
     self.iface.controller.updateScene(update_extent=False)
@@ -234,8 +235,14 @@ class ImageExporter(BridgeExporterBase):
     painter = QPainter(image)
     self.page.mainFrame().render(painter)
     painter.end()
-    image.save(filepath)
+    return image, err
 
+  def export(self, filepath, cameraState=None, cancelSignal=None):
+    # prepare output directory
+    self.mkdir(filepath)
+
+    image, err = self.render(cameraState, cancelSignal)
+    image.save(filepath)
     return err
 
 

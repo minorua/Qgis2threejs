@@ -24,6 +24,7 @@ from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 from qgis.core import QgsProject
+from PyQt5.QtWidgets import QApplication
 
 from . import q3dconst
 from .conf import DEBUG_MODE, PLUGIN_VERSION
@@ -74,8 +75,8 @@ class Q3DViewerInterface(Q3DInterface):
     if not enabled:
       self.runString("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
 
-  def showMessage(self, msg):
-    self.wnd.ui.statusbar.showMessage(msg)
+  def showMessage(self, msg, timeout=0):
+    self.wnd.ui.statusbar.showMessage(msg, timeout)
 
   def clearMessage(self):
     self.wnd.ui.statusbar.clearMessage()
@@ -208,7 +209,7 @@ class Q3DWindow(QMainWindow):
     self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
     self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
     self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-    self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraPosition)
+    self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraState)
     self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
     self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
     self.ui.actionHelp.triggered.connect(self.help)
@@ -336,14 +337,16 @@ class Q3DWindow(QMainWindow):
       QMessageBox.warning(self, "Save Scene as Image", "You need to enable the preview to use this function.")
       return
 
-    self.runString("app.showPrintDialog();")
+    from .imagesavedialog import ImageSaveDialog
+    dialog = ImageSaveDialog(self)
+    dialog.exec_()
 
   def saveAsGLTF(self):
     if not self.ui.checkBoxPreview.isChecked():
       QMessageBox.warning(self, "Save Scene as glTF", "You need to enable the preview to use this function.")
       return
 
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene As"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene as glTF"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
       self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))

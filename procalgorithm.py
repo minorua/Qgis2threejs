@@ -352,7 +352,7 @@ class ExportAlgorithm(AlgorithmBase):
       return False
 
     # export
-    err = self.exporter.export(feedback.canceled)
+    err = self.exporter.export(cancelSignal=feedback.canceled)
     return True
 
 
@@ -413,7 +413,7 @@ class ExportImageAlgorithm(AlgorithmBase):
       return False
 
     # export
-    err = self.exporter.export(filepath, feedback.canceled)
+    err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
 
     return True
 
@@ -456,6 +456,6 @@ class ExportModelAlgorithm(AlgorithmBase):
       return False
 
     # export
-    err = self.exporter.export(filepath, feedback.canceled)
+    err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
 
     return True
