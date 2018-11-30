@@ -135,6 +135,7 @@ class Q3DWindow(QMainWindow):
     QMainWindow.__init__(self, parent)
     self.qgisIface = qgisIface
     self.settings = controller.settings
+    self.lastDir = None
 
     self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
@@ -247,7 +248,7 @@ class Q3DWindow(QMainWindow):
 
   def loadSettings(self):
     # file open dialog
-    directory = QgsProject.instance().homePath() #or QDir.homePath()
+    directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
     filterString = "Settings files (*.qto3settings);;All files (*.*)"
     filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
     if not filename:
@@ -260,9 +261,11 @@ class Q3DWindow(QMainWindow):
     self.updateNorthArrow()
     self.updateHFLabel()
 
+    self.lastDir = os.path.dirname(filename)
+
   def saveSettings(self):
     # file save dialog
-    directory = QgsProject.instance().homePath() #or QDir.homePath()
+    directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
     filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
     if not filename:
       return
@@ -272,6 +275,8 @@ class Q3DWindow(QMainWindow):
       filename += ".qto3settings"
 
     self.settings.saveSettings(filename)
+
+    self.lastDir = os.path.dirname(filename)
 
   def clearSettings(self):
     if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
@@ -346,11 +351,15 @@ class Q3DWindow(QMainWindow):
       QMessageBox.warning(self, "Save Scene as glTF", "You need to enable the preview to use this function.")
       return
 
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene as glTF"), QDir.homePath(), "glTF files (*.gltf);;Binary glTF files (*.glb)")
+    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene as glTF"),
+                                              self.lastDir or QDir.homePath(),
+                                              "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
       self.iface.updateScene(base64=True)
       self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
       self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
+
+      self.lastDir = os.path.dirname(filename)
 
   def pluginSettings(self):
     from .pluginsettings import SettingsDialog
