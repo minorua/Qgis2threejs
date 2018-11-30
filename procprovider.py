@@ -21,7 +21,6 @@
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsProcessingProvider
 
-from .procalgorithm import ExportAlgorithm, ExportImageAlgorithm, ExportModelAlgorithm
 from .qgis2threejstools import pluginDir
 
 
@@ -29,14 +28,16 @@ class Qgis2threejsProvider(QgsProcessingProvider):
 
   def __init__(self):
     QgsProcessingProvider.__init__(self)
-
-    self.alglist = [ExportAlgorithm(), ExportImageAlgorithm(), ExportModelAlgorithm()]
+    self.algs = []
 
   def unload(self):
     pass
 
   def loadAlgorithms(self):
-    for alg in self.alglist:
+    from .procalgorithm import ExportAlgorithm, ExportImageAlgorithm, ExportModelAlgorithm
+
+    self.algs = [ExportAlgorithm(), ExportImageAlgorithm(), ExportModelAlgorithm()]
+    for alg in self.algs:
       self.addAlgorithm( alg )
 
   def id(self):
