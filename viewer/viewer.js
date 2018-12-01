@@ -24,7 +24,12 @@ app.timer = {tickCount: 0};
 function loadJSONObject(jsonObject) {
   app.loadJSONObject(jsonObject);
 
-  if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
+  if (jsonObject.type == "layer") {
+    if (Q3D.Config.autoZShift && jsonObject.properties !== undefined && jsonObject.properties.visible === false) {
+      app.scene.adjustZShift();
+    }
+  }
+  else if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
     updateNorthArrowRotation(jsonObject.properties.rotation);
   }
 }

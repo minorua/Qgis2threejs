@@ -338,17 +338,31 @@ Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
 };
 
 Q3D.Scene.prototype.adjustZShift = function () {
-  this.position.y = 0;  // initialize
-
-  var box = new THREE.Box3().setFromObject(this),
-      zmin = box.min.y / this.userData.zScale + this.userData.origin.z;
-
-  this.userData.zShiftA = -zmin;
-  this.userData.origin.z = -(this.userData.zShift + this.userData.zShiftA);
-
-  this.position.y = this.userData.zShiftA * this.userData.zScale;
-  this.lightGroup.position.z = -this.position.y;    // keep positions of lights in world coordinates
+  // initialize
+  this.userData.zShiftA = 0;
+  this.position.y = 0;
   this.updateMatrixWorld();
+
+  var box = new THREE.Box3();
+  for (var id in this.mapLayers) {
+    if (this.mapLayers[id].visible) {
+      box.union(this.mapLayers[id].boundingBox());
+    }
+  }
+
+  // bbox zmin in map coordinates
+  var zmin = (box.min.y === Infinity) ? 0 : (box.min.y / this.userData.zScale - this.userData.zShift);
+
+  // shift scene so that bbox zmin becomes zero
+  this.userData.zShiftA = -zmin;
+  this.position.y = this.userData.zShiftA * this.userData.zScale;
+
+  // keep positions of lights in world coordinates
+  this.lightGroup.position.z = -this.position.y;
+
+  this.updateMatrixWorld();
+
+  this.userData.origin.z = -(this.userData.zShift + this.userData.zShiftA);
 
   console.log("z shift adjusted: " + this.userData.zShiftA);
 
@@ -2072,22 +2086,25 @@ Q3D.MapLayer.prototype.removeAllObjects = function () {
 };
 
 Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  // properties
-  if (jsonObject.properties !== undefined) {
-    this.properties = jsonObject.properties;
-    this.visible = (jsonObject.properties.visible || Q3D.Config.allVisible) ? true : false;
-  }
-
-  if (jsonObject.data !== undefined) {
-    this.removeAllObjects();
-
-    // materials
-    if (jsonObject.data.materials !== undefined) {
-      this.materials.loadJSONObject(jsonObject.data.materials);
+  if (jsonObject.type == "layer") {
+    // properties
+    if (jsonObject.properties !== undefined) {
+      this.properties = jsonObject.properties;
+      this.visible = (jsonObject.properties.visible || Q3D.Config.allVisible) ? true : false;
     }
-  }
 
-  this.sceneData = scene.userData;
+    if (jsonObject.data !== undefined) {
+      this.removeAllObjects();
+
+      // materials
+      if (jsonObject.data.materials !== undefined) {
+        this.materials.loadJSONObject(jsonObject.data.materials);
+      }
+    }
+
+    this.sceneData = scene.userData;
+    this._bbox = undefined;
+  }
 };
 
 Object.defineProperty(Q3D.MapLayer.prototype, "opacity", {
@@ -2109,6 +2126,13 @@ Object.defineProperty(Q3D.MapLayer.prototype, "visible", {
     this.requestRender();
   }
 });
+
+Q3D.MapLayer.prototype.boundingBox = function (forceUpdate) {
+  if (!this._bbox || forceUpdate) {
+    this._bbox = new THREE.Box3().setFromObject(this.objectGroup);
+  }
+  return this._bbox;
+}
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
   this.materials.setWireframeMode(wireframe);
@@ -2132,8 +2156,8 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
-    Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
     if (jsonObject.data !== undefined) {
       jsonObject.data.forEach(function (obj) {
         this.buildBlock(obj, scene);
@@ -2167,12 +2191,13 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
       };
 
       if (Q3D.Config.autoZShift) {
-        scene.addEventListener("zShiftAdjusted", function (event) {
+        scene.addEventListener("zShiftAdjusted", function listener(event) {
           // set adjusted z shift to every block
           _this.blocks.forEach(function (block) {
             block.data.zShiftA = event.sceneData.zShiftA;
           });
           buildSides();
+          scene.removeEventListener("zShiftAdjusted", listener);
         });
       }
       else {
@@ -2379,8 +2404,8 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 };
 
 Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
-    Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
     if (jsonObject.data !== undefined) {
       this.clearLabels();
 
