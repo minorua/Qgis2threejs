@@ -27,7 +27,7 @@ from qgis.core import QgsApplication, QgsProject
 
 from .procprovider import Qgis2threejsProvider
 from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
-from .q3dviewercontroller import Q3DViewerController
+from .q3dcontroller import Q3DController
 from .q3dwindow import Q3DWindow
 
 
@@ -89,7 +89,7 @@ class Qgis2threejs:
 
   def openExporter(self, _, no_preview=False):
     if self.controller is None:
-      self.controller = Q3DViewerController(self.iface)
+      self.controller = Q3DController(self.iface)
 
     if no_preview:
       self.controller.previewEnabled = False

@@ -15,7 +15,7 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
 from qgis.testing import start_app, unittest
 
 from Qgis2threejs.export import ImageExporter
-from Qgis2threejs.q3dviewercontroller import Q3DViewerController
+from Qgis2threejs.q3dcontroller import Q3DController
 from Qgis2threejs.rotatedrect import RotatedRect
 from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath, loadProject
 
@@ -37,7 +37,7 @@ class TestImageExport(unittest.TestCase):
     mapSettings = loadProject(dataPath("testproject1.qgs"))
 
     # viewer controller
-    controller = Q3DViewerController()
+    controller = Q3DController()
     controller.settings.loadSettingsFromFile(dataPath("scene1.qto3settings"))
     controller.settings.updateLayerList()
 

@@ -22,7 +22,7 @@ from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
 
 from .export import ImageExporter
-from .q3dviewercontroller import Q3DViewerController
+from .q3dcontroller import Q3DController
 from .qgis2threejstools import logMessage
 from .ui.imagesavedialog import Ui_ImageSaveDialog
 
@@ -49,7 +49,7 @@ class ImageSaveDialog(QDialog):
 
     ###############
     # in other way
-    controller = Q3DViewerController(self.wnd.qgisIface)
+    controller = Q3DController(self.wnd.qgisIface)
     controller.settings = self.wnd.settings
 
     # create an exporter

@@ -27,7 +27,7 @@ from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, pluginDir
 
 
-class Q3DViewerController:
+class Q3DController:
 
   def __init__(self, qgis_iface=None, settings=None):
     self.qgis_iface = qgis_iface

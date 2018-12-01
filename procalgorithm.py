@@ -42,7 +42,7 @@ from qgis.core import (QgsCoordinateTransform,
 
 from .conf import DEBUG_MODE, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
-from .q3dviewercontroller import Q3DViewerController
+from .q3dcontroller import Q3DController
 from .qgis2threejstools import logMessage, openDirectory
 from .rotatedrect import RotatedRect
 
@@ -92,7 +92,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       logMessage("initAlgorithm(): {}".format(self.__class__.__name__), False)
 
     qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
-    self.controller = Q3DViewerController(qgis_iface)
+    self.controller = Q3DController(qgis_iface)
     self.controller.settings.loadSettingsFromFile(None)
 
     self.addParameter(
