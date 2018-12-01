@@ -76,8 +76,11 @@ class Q3DInterface:
   def abort(self):
     self.controller.abort()
 
-  def updateScene(self, base64=False):
-    self.controller.updateScene(base64=base64)
+  def settings(self):
+    return self.controller.settings
+
+  def updateScene(self, update_scene_settings=True, update_layers=True, update_extent=True, base64=False):
+    self.controller.updateScene(update_scene_settings, update_layers, update_extent, base64)
 
   def updateLayer(self, layer):
     self.controller.updateLayer(layer)

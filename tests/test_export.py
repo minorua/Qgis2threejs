@@ -42,8 +42,8 @@ class TestImageExport(unittest.TestCase):
     controller.settings.updateLayerList()
 
     # create an exporter
-    exporter = ImageExporter(controller.settings)
-    exporter.initWebPage(controller, OUT_WIDTH, OUT_HEIGHT)
+    exporter = ImageExporter(controller)
+    exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
 
     # extent
     RotatedRect(mapSettings.extent().center(),
@@ -57,8 +57,6 @@ class TestImageExport(unittest.TestCase):
     # export
     filename = "scene1.png"
     err = exporter.export(outputPath(filename))
-
-    exporter.destroyWebPage()
 
     assert not err, err
     assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "exported image is different from expected."

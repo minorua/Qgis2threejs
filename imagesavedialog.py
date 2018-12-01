@@ -53,8 +53,8 @@ class ImageSaveDialog(QDialog):
     controller.settings = self.wnd.settings
 
     # create an exporter
-    exporter = ImageExporter(controller.settings)
-    exporter.initWebPage(controller, width, height)
+    exporter = ImageExporter(controller)
+    exporter.initWebPage(width, height)
 
     # get current camera state
     cameraState = self.wnd.ui.webView.page().cameraState()
@@ -62,7 +62,6 @@ class ImageSaveDialog(QDialog):
     # render image
     image, err = exporter.render(cameraState=cameraState)
 
-    exporter.destroyWebPage()
     return image
 
   def copyToClipboard(self):

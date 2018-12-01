@@ -177,30 +177,30 @@ class ThreeJSExporter(ThreeJSBuilder):
     return ['<script src="%s"></script>' % fn for fn in files]
 
 
-class BridgeExporterBase(ThreeJSBuilder):
+class BridgeExporterBase:
 
-  def __init__(self, settings, progress=None):
-    super().__init__(settings, progress)
+  def __init__(self, controller):
     self.exportMode = False
-    self.page = None
 
-  def initWebPage(self, controller, width, height):
     self.page = Q3DWebPage()
 
     self.iface = Q3DInterface(self.page)
     self.iface.connectToController(controller)
 
+  def __del__(self):
+    self.page.deleteLater()
+
+  def initWebPage(self, width, height):
     loop = QEventLoop()
     self.page.initialized.connect(loop.quit)
-
     self.page.setViewportSize(QSize(width, height))
-    self.page.setup(self.iface, exportMode=self.exportMode)
-    loop.exec_()
 
-  def destroyWebPage(self):
-    if self.page:
-      self.page.deleteLater()
-      self.page = None
+    if self.page.mainFrame().url().isEmpty():
+      self.page.setup(self.iface, exportMode=self.exportMode)
+    else:
+      self.page.reload()
+
+    loop.exec_()
 
   def mkdir(self, filepath):
     dir = QFileInfo(filepath).dir()
@@ -209,9 +209,6 @@ class BridgeExporterBase(ThreeJSBuilder):
 
 
 class ImageExporter(BridgeExporterBase):
-
-  def __init__(self, settings, progress=None):
-    super().__init__(settings, progress)
 
   def render(self, cameraState=None, cancelSignal=None):
     if self.page is None:
@@ -222,13 +219,14 @@ class ImageExporter(BridgeExporterBase):
       self.page.setCameraState(cameraState)
 
     # update scene
-    self.iface.controller.updateScene(update_extent=False)
+    self.iface.updateScene(update_extent=False)
 
     err = self.page.waitForSceneLoaded(cancelSignal)
 
     # header and footer labels
-    self.page.runScript('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
-                                                         self.settings.footerLabel().replace('"', '\\"')))
+    s = self.iface.settings()
+    self.page.runScript('setHFLabel("{}", "{}");'.format(s.headerLabel().replace('"', '\\"'),
+                                                         s.footerLabel().replace('"', '\\"')))
     # render scene
     size = self.page.viewportSize()
     image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
@@ -248,12 +246,12 @@ class ImageExporter(BridgeExporterBase):
 
 class ModelExporter(BridgeExporterBase):
 
-  def __init__(self, settings, progress=None):
-    super().__init__(settings, progress)
+  def __init__(self, controller):
+    super().__init__(controller)
     self.exportMode = True
 
-  def initWebPage(self, controller, width, height):
-    super().initWebPage(controller, width, height)
+  def initWebPage(self, width, height):
+    super().initWebPage(width, height)
     self.page.loadScriptFile(tools.pluginDir("js/threejs/exporters/GLTFExporter.js"))
 
   def export(self, filepath, cancelSignal=None):
@@ -264,7 +262,7 @@ class ModelExporter(BridgeExporterBase):
     self.mkdir(filepath)
 
     # update scene
-    self.iface.controller.updateScene(update_extent=False, base64=True)
+    self.iface.updateScene(update_extent=False, base64=True)
 
     err = self.page.waitForSceneLoaded(cancelSignal)
 

@@ -206,7 +206,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       feedback.reportError(msg, True)
       return False
 
-    self.exporter = self.Exporter(self.controller.settings)
+    self.exporter = self.Exporter(self.controller)
     return True
 
   def processAlgorithm(self, parameters, context, feedback):
@@ -395,12 +395,8 @@ class ExportImageAlgorithm(AlgorithmBase):
     height = self.parameterAsInt(parameters, self.HEIGHT, context)
 
     feedback.setProgressText("Preparing a web page for off-screen rendering...")
-    self.exporter.initWebPage(self.controller, width, height)
+    self.exporter.initWebPage(width, height)
     return True
-
-  def postProcessAlgorithm(self, context, feedback):
-    self.exporter.destroyWebPage()
-    return {}
 
   def export(self, title, out_dir, feedback):
     # image path
@@ -438,12 +434,8 @@ class ExportModelAlgorithm(AlgorithmBase):
     self.modelType = "gltf"
 
     feedback.setProgressText("Preparing a web page for 3D model export...")
-    self.exporter.initWebPage(self.controller, 500, 500)
+    self.exporter.initWebPage(500, 500)
     return True
-
-  def postProcessAlgorithm(self, context, feedback):
-    self.exporter.destroyWebPage()
-    return {}
 
   def export(self, title, out_dir, feedback):
     # model path
