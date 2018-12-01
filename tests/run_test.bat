@@ -14,6 +14,6 @@ set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\=/%/apps/%QGIS_PACKAGE%
 set PYTHONHOME=%OSGEO4W_ROOT%\apps\Python%PY_VERSION%
 set PYTHONPATH=%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\python
 
-python3 run_test.py
+python3 run_test.py 2>&1 | tee test.log
 
 pause

@@ -45,7 +45,10 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     self.modelManagers = []
 
-  def export(self, cancelSignal=None):    #TODO
+  def export(self, filename=None, cancelSignal=None):
+    if filename:
+      self.settings.setOutputFilename(filename)
+
     config = self.settings.templateConfig()
 
     # create output data directory if not exists
@@ -202,8 +205,8 @@ class BridgeExporterBase:
 
     loop.exec_()
 
-  def mkdir(self, filepath):
-    dir = QFileInfo(filepath).dir()
+  def mkdir(self, filename):
+    dir = QFileInfo(filename).dir()
     if not dir.exists():
       QDir().mkpath(dir.absolutePath())
 
@@ -235,12 +238,12 @@ class ImageExporter(BridgeExporterBase):
     painter.end()
     return image, err
 
-  def export(self, filepath, cameraState=None, cancelSignal=None):
+  def export(self, filename, cameraState=None, cancelSignal=None):
     # prepare output directory
-    self.mkdir(filepath)
+    self.mkdir(filename)
 
     image, err = self.render(cameraState, cancelSignal)
-    image.save(filepath)
+    image.save(filename)
     return err
 
 
@@ -254,12 +257,12 @@ class ModelExporter(BridgeExporterBase):
     super().initWebPage(width, height)
     self.page.loadScriptFile(tools.pluginDir("js/threejs/exporters/GLTFExporter.js"))
 
-  def export(self, filepath, cancelSignal=None):
+  def export(self, filename, cancelSignal=None):
     if self.page is None:
       return "page not initialized"
 
     # prepare output directory
-    self.mkdir(filepath)
+    self.mkdir(filename)
 
     # update scene
     self.iface.updateScene(update_extent=False, base64=True)
@@ -267,6 +270,6 @@ class ModelExporter(BridgeExporterBase):
     err = self.page.waitForSceneLoaded(cancelSignal)
 
     # save model
-    self.page.runScript("saveModelAsGLTF('{0}');".format(filepath.replace("\\", "\\\\")))
+    self.page.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
     return err

@@ -9,12 +9,12 @@ the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
 import os
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QFileInfo, QSize
 from PyQt5.QtGui import QImage
 from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
 from qgis.testing import start_app, unittest
 
-from Qgis2threejs.export import ImageExporter
+from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter
 from Qgis2threejs.q3dcontroller import Q3DController
 from Qgis2threejs.rotatedrect import RotatedRect
 from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath, loadProject
@@ -27,23 +27,17 @@ class TestImageExport(unittest.TestCase):
   def setUp(self):
     pass
 
-  def test01_export_scene1(self):
-    """test image export with testproject1.qgs and scene1.qto3settings"""
-
-    OUT_WIDTH, OUT_HEIGHT = (1024, 768)
+  def createController(self, project_path, settings_path):
+    """load a project and export settings, and create a controller"""
     TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 
     # load a test project
-    mapSettings = loadProject(dataPath("testproject1.qgs"))
+    mapSettings = loadProject(project_path)
 
     # viewer controller
     controller = Q3DController()
-    controller.settings.loadSettingsFromFile(dataPath("scene1.qto3settings"))
+    controller.settings.loadSettingsFromFile(settings_path)
     controller.settings.updateLayerList()
-
-    # create an exporter
-    exporter = ImageExporter(controller)
-    exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
 
     # extent
     RotatedRect(mapSettings.extent().center(),
@@ -53,13 +47,51 @@ class TestImageExport(unittest.TestCase):
     # texture size
     mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
     controller.settings.setMapSettings(mapSettings)
+    return controller
 
-    # export
-    filename = "scene1.png"
-    err = exporter.export(outputPath(filename))
+  def test01_export_scene1_webpage(self):
+    """test web page export with testproject1.qgs and scene1.qto3settings"""
+
+    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+
+    out_path = outputPath("scene1.html")
+
+    exporter = ThreeJSExporter(controller.settings)
+    err = exporter.export(out_path)
 
     assert not err, err
-    assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "exported image is different from expected."
+
+  def test02_export_scene1_image(self):
+    """test image export with testproject1.qgs and scene1.qto3settings"""
+
+    OUT_WIDTH, OUT_HEIGHT = (1024, 768)
+
+    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+
+    filename = "scene1.png"
+    out_path = outputPath(filename)
+
+    exporter = ImageExporter(controller)
+    exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
+    err = exporter.export(out_path)
+
+    assert not err, err
+    assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
+
+  def test03_export_scene1_glTF(self):
+    """test glTF export with testproject1.qgs and scene1.qto3settings"""
+
+    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+
+    filename = "scene1.gltf"
+    out_path = outputPath(filename)
+
+    exporter = ModelExporter(controller)
+    exporter.initWebPage(100, 100)
+    err = exporter.export(out_path)
+
+    assert not err, err
+    assert QFileInfo(out_path).size(), "Empty output file"
 
 
 if __name__ == "__main__":
