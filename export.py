@@ -165,11 +165,15 @@ class ThreeJSExporter(ThreeJSBuilder):
     return files
 
   def scripts(self):
-    files = []
+    config = self.settings.templateConfig()
+    s = config.get("scripts", "").strip()
+    files = s.split(",") if s else []
 
     # proj4.js
     if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
-      files.append("./proj4js/proj4.js")
+      proj4 = "./proj4js/proj4.js"
+      if proj4 not in files:
+        files.append(proj4)
 
     # model loaders
     for manager in self.modelManagers:
