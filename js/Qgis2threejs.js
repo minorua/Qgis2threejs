@@ -2929,7 +2929,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return group;
     };
   }
-  else if (this.objType == "Overlay") {
+  else if (this.properties.objType == "Overlay") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f) {
@@ -2949,7 +2949,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       //TODO: [Polygon - Overlay] border
     };
   }
-  else {    // this.objType == "Triangular Mesh"
+  else {    // this.properties.objType == "Triangular Mesh"
     createObject = function (f) {
       var vertices = f.geom.v,
           indices = f.geom.f;
