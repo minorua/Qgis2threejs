@@ -27,36 +27,32 @@ class TestImageExport(unittest.TestCase):
   def setUp(self):
     pass
 
-  def createController(self, project_path, settings_path):
-    """load a project and export settings, and create a controller"""
+  def loadProject(self, filename):
+    """load a project"""
     TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 
-    # load a test project
-    mapSettings = loadProject(project_path)
-
-    # viewer controller
-    controller = Q3DController()
-    controller.settings.loadSettingsFromFile(settings_path)
-    controller.settings.updateLayerList()
+    mapSettings = loadProject(filename)
 
     # extent
     RotatedRect(mapSettings.extent().center(),
                 mapSettings.extent().height(),
                 mapSettings.extent().height(), 0).toMapSettings(mapSettings)
 
-    # texture size
+    # texture base size
     mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
-    controller.settings.setMapSettings(mapSettings)
-    return controller
+
+    return mapSettings
 
   def test01_export_scene1_webpage(self):
     """test web page export with testproject1.qgs and scene1.qto3settings"""
 
-    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
     out_path = outputPath("scene1.html")
 
-    exporter = ThreeJSExporter(controller.settings)
+    exporter = ThreeJSExporter()
+    exporter.loadSettings(dataPath("scene1.qto3settings"))
+    exporter.setMapSettings(mapSettings)
     err = exporter.export(out_path)
 
     assert not err, err
@@ -66,13 +62,16 @@ class TestImageExport(unittest.TestCase):
 
     OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 
-    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
     filename = "scene1.png"
     out_path = outputPath(filename)
 
-    exporter = ImageExporter(controller)
+    exporter = ImageExporter()
+    exporter.loadSettings(dataPath("scene1.qto3settings"))
+    exporter.setMapSettings(mapSettings)
     exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
+
     err = exporter.export(out_path)
 
     assert not err, err
@@ -81,13 +80,16 @@ class TestImageExport(unittest.TestCase):
   def test03_export_scene1_glTF(self):
     """test glTF export with testproject1.qgs and scene1.qto3settings"""
 
-    controller = self.createController(dataPath("testproject1.qgs"), dataPath("scene1.qto3settings"))
+    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
     filename = "scene1.gltf"
     out_path = outputPath(filename)
 
-    exporter = ModelExporter(controller)
+    exporter = ModelExporter()
+    exporter.loadSettings(dataPath("scene1.qto3settings"))
+    exporter.setMapSettings(mapSettings)
     exporter.initWebPage(100, 100)
+
     err = exporter.export(out_path)
 
     assert not err, err

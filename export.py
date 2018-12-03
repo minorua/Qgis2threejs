@@ -29,6 +29,8 @@ from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
+from .exportsettings import ExportSettings
+from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
 from .qgis2threejstools import logMessage
@@ -38,12 +40,19 @@ from . import qgis2threejstools as tools
 
 class ThreeJSExporter(ThreeJSBuilder):
 
-  def __init__(self, settings, progress=None):
-    ThreeJSBuilder.__init__(self, settings, progress)
+  def __init__(self, settings=None, progress=None):
+    ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress)
 
     self._index = -1
 
     self.modelManagers = []
+
+  def loadSettings(self, filename=None):
+    self.settings.loadSettingsFromFile(filename)
+    self.settings.updateLayerList()
+
+  def setMapSettings(self, settings):
+    self.settings.setMapSettings(settings)
 
   def export(self, filename=None, cancelSignal=None):
     if filename:
@@ -186,16 +195,23 @@ class ThreeJSExporter(ThreeJSBuilder):
 
 class BridgeExporterBase:
 
-  def __init__(self, controller):
+  def __init__(self, controller=None):
     self.exportMode = False
 
     self.page = Q3DWebPage()
 
     self.iface = Q3DInterface(self.page)
-    self.iface.connectToController(controller)
+    self.iface.connectToController(controller or Q3DController())
 
   def __del__(self):
     self.page.deleteLater()
+
+  def loadSettings(self, filename=None):
+    self.iface.settings().loadSettingsFromFile(filename)
+    self.iface.settings().updateLayerList()
+
+  def setMapSettings(self, settings):
+    self.iface.settings().setMapSettings(settings)
 
   def initWebPage(self, width, height):
     loop = QEventLoop()
@@ -253,7 +269,7 @@ class ImageExporter(BridgeExporterBase):
 
 class ModelExporter(BridgeExporterBase):
 
-  def __init__(self, controller):
+  def __init__(self, controller=None):
     super().__init__(controller)
     self.exportMode = True
 
