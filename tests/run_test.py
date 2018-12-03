@@ -21,10 +21,16 @@ from qgis.testing import start_app
 plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def runTest():
+def runTest(debug_mode=None):
   # python path setting
   plugins_dir = os.path.dirname(plugin_dir)
   sys.path.append(plugins_dir)
+
+  from Qgis2threejs import conf
+
+  if debug_mode is not None:
+    conf.DEBUG_MODE = debug_mode
+  print("DEBUG_MODE is {}.".format(conf.DEBUG_MODE))
 
   # initialize output directory
   from utilities import initOutputDir
@@ -36,6 +42,12 @@ def runTest():
 
 
 if __name__ == "__main__":
+  import argparse
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2],
+                      help="debug mode (0: OFF, 1 or 2: ON)")
+  args = parser.parse_args()
+
   QgsApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
   QGISAPP = start_app()
 
@@ -47,4 +59,4 @@ if __name__ == "__main__":
   manager.setCache(cache)
 
   # run test!
-  runTest()
+  runTest(args.debug)
