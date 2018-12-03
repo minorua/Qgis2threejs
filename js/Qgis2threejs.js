@@ -85,6 +85,7 @@ Q3D.MaterialType = {
   LineBasic: 3,
   LineDashed: 4,
   Sprite: 5,
+  Point: 6,
   Unknown: -1
 };
 
@@ -1546,6 +1547,10 @@ Q3D.Material.prototype = {
     else if (m.type == Q3D.MaterialType.MeshToon) {
       this.mtl = new THREE.MeshToonMaterial(opt);
     }
+    else if (m.type == Q3D.MaterialType.Point) {
+      opt.size = m.s;
+      this.mtl = new THREE.PointsMaterial(opt);
+    }
     else if (m.type == Q3D.MaterialType.LineBasic) {
       this.mtl = new THREE.LineBasicMaterial(opt);
     }
@@ -2486,6 +2491,7 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Q3D.PointLayer.prototype.build = function (features) {
   var objType = this.properties.objType;
+  if (objType == "Point") { this.buildPoints(features); return; }
   if (objType == "Icon") { this.buildIcons(features); return; }
   if (objType == "Model File") { this.buildModels(features); return; }
 
@@ -2558,6 +2564,22 @@ Q3D.PointLayer.prototype.build = function (features) {
 
   this.geometryCache = unitGeom;
   this.cachedGeometryType = objType;
+};
+
+Q3D.PointLayer.prototype.buildPoints = function (features) {
+  var f, geom, obj;
+  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+    f = features[fidx];
+
+    geom = new THREE.BufferGeometry();
+    geom.addAttribute("position",
+                      new THREE.BufferAttribute(new Float32Array(f.geom.pts), 3));
+
+    obj = new THREE.Points(geom, this.materials.mtl(f.mtl));
+    obj.userData.properties = f.prop;
+
+    f.objIndices = [this.addObject(obj)];
+  }
 };
 
 Q3D.PointLayer.prototype.buildIcons = function (features) {

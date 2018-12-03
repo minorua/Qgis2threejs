@@ -39,7 +39,7 @@ def tr(source):
 
 
 def _():
-  tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
+  tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
   tr("Line"), tr("Pipe"), tr("Profile")
   tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
   tr("Icon"), tr("Model File")
@@ -99,6 +99,27 @@ class PointBasicTypeBase(PointTypeBase):
   @classmethod
   def material(cls, settings, layer, feat):
     return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+
+
+class PointType(ObjectTypeBase):
+
+  name = "Point"
+
+  @classmethod
+  def setupWidgets(cls, ppage, mapTo3d, layer):
+    ppage.initStyleWidgets()
+    ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Size", "defaultValue": 1, "layer": layer})
+
+  @classmethod
+  def material(cls, settings, layer, feat):
+    return layer.materialManager.getPointMaterialIndex(feat.values[0], feat.values[1], feat.values[2])
+
+  @classmethod
+  def geometry(cls, settings, layer, feat, geom):
+    v = []
+    for pt in geom.asList():
+      v.extend(pt)
+    return {"pts": v}
 
 
 class SphereType(PointBasicTypeBase):
@@ -522,7 +543,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, IconType, ModelFileType],
+      QgsWkbTypes.PointGeometry: [PointType, SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, IconType, ModelFileType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }
