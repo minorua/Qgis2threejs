@@ -92,7 +92,7 @@ class Qgis2threejs:
       self.controller = Q3DController(self.iface)
 
     if no_preview:
-      self.controller.previewEnabled = False
+      self.controller.enabled = False
 
     if self.controller.iface is None:
       logMessage("Opening Qgis2threejs Exporter...", False)
@@ -105,7 +105,7 @@ class Qgis2threejs:
       self.liveExporter = Q3DWindow(self.iface.mainWindow(),
                                     self.iface,
                                     self.controller,
-                                    preview=self.controller.previewEnabled)
+                                    preview=self.controller.enabled)
       self.liveExporter.show()
     else:
       logMessage("Qgis2threejs Exporter is already open.")

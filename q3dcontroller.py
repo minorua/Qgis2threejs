@@ -47,7 +47,7 @@ class Q3DController:
     self.exporter = ThreeJSBuilder(settings)
 
     self.iface = None
-    self.previewEnabled = True    #TODO: rename to enabled
+    self.enabled = True
     self.aborted = False  # layer export aborted
     self.updating = False
     self.layersNeedUpdate = False
@@ -80,19 +80,18 @@ class Q3DController:
     if self.iface is None:
       return
 
-    self.previewEnabled = enabled
+    self.enabled = enabled
     self.iface.runScript("app.resume();" if enabled else "app.pause();");
     if enabled:
-      self.updateExtent()
-      self.updateScene()
+      self.buildScene()
 
-  def updateScene(self, update_scene_settings=True, update_layers=True, update_extent=True, base64=False):
+  def buildScene(self, update_scene_settings=True, build_layers=True, update_extent=True, base64=False):
     if not self.iface:
       return
 
     self.settings.base64 = base64
     self.updating = True
-    self.layersNeedUpdate = self.layersNeedUpdate or update_layers
+    self.layersNeedUpdate = self.layersNeedUpdate or build_layers
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Updating scene")
 
@@ -117,14 +116,14 @@ class Q3DController:
       else:
         self.iface.runScript("proj4 = undefined;", "// proj4 not enabled")
 
-    if update_layers:
+    if build_layers:
       self.iface.runScript('loadStart("LYRS");')
 
       layers = self.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100, "Updating layers")
         if layer.updated or (self.layersNeedUpdate and layer.visible):
-          if not self._updateLayer(layer):
+          if not self._buildLayer(layer):
             break
       self.layersNeedUpdate = False
       self.iface.runScript('loadEnd("LYRS");')
@@ -134,19 +133,19 @@ class Q3DController:
     self.iface.clearMessage()
     self.settings.base64 = False
 
-  def updateLayer(self, layer):
+  def buildLayer(self, layer):
     self.updating = True
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Building {0}...".format(layer.name))
 
-    self._updateLayer(layer)
+    self._buildLayer(layer)
 
     self.updating = self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
 
-  def _updateLayer(self, layer):
-    if not (self.iface and self.previewEnabled):
+  def _buildLayer(self, layer):
+    if not (self.iface and self.enabled):
       return False
 
     self.iface.runScript('loadStart("L{}");  // {}'.format(layer.jsLayerId, layer.name))
@@ -182,7 +181,7 @@ class Q3DController:
     # update map settings
     self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    if self.iface and self.previewEnabled:
+    if self.iface and self.enabled:
       self.updating = True
       self.iface.showMessage(self.message1)
       self.iface.progress(0, "Updating layers")
@@ -192,7 +191,7 @@ class Q3DController:
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100)
         if layer.visible:
-          if not self._updateLayer(layer):
+          if not self._buildLayer(layer):
             break
 
       self.layersNeedUpdate = False
@@ -203,4 +202,4 @@ class Q3DController:
 
   def canvasExtentChanged(self):
     self.layersNeedUpdate = True
-    self.updateScene(False, False)
+    self.buildScene(update_scene_settings=False, build_layers=False)

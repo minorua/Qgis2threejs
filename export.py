@@ -241,8 +241,8 @@ class ImageExporter(BridgeExporterBase):
     if cameraState:
       self.page.setCameraState(cameraState)
 
-    # update scene
-    self.iface.updateScene(update_extent=False)
+    # build scene
+    self.iface.buildScene(update_extent=False)
 
     err = self.page.waitForSceneLoaded(cancelSignal)
 
@@ -284,8 +284,8 @@ class ModelExporter(BridgeExporterBase):
     # prepare output directory
     self.mkdir(filename)
 
-    # update scene
-    self.iface.updateScene(update_extent=False, base64=True)
+    # build scene
+    self.iface.buildScene(update_extent=False, base64=True)
 
     err = self.page.waitForSceneLoaded(cancelSignal)
 

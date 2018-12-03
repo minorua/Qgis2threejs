@@ -101,7 +101,7 @@ class Q3DViewerInterface(Q3DInterface):
     if self.controller.settings.sceneProperties() == properties:
       return
     self.controller.settings.setSceneProperties(properties)
-    self.controller.updateScene()
+    self.controller.buildScene()
 
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
@@ -116,7 +116,7 @@ class Q3DViewerInterface(Q3DInterface):
     layer.updated = True
 
     if layer.visible:
-      self.updateLayer(layer)
+      self.buildLayer(layer)
 
   def getDefaultProperties(self, layer):
     dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
@@ -126,7 +126,7 @@ class Q3DViewerInterface(Q3DInterface):
   def clearExportSettings(self):
     self.controller.settings.clear()
     self.controller.settings.updateLayerList()
-    self.controller.updateScene()
+    self.controller.buildScene()
 
 
 class Q3DWindow(QMainWindow):
@@ -257,7 +257,7 @@ class Q3DWindow(QMainWindow):
     self.settings.loadSettingsFromFile(filename)
     self.settings.updateLayerList()
     self.ui.treeView.updateLayersCheckState(self.settings.getLayerList())
-    self.iface.updateScene()
+    self.iface.buildScene()
     self.updateNorthArrow()
     self.updateHFLabel()
 
@@ -355,7 +355,7 @@ class Q3DWindow(QMainWindow):
                                               self.lastDir or QDir.homePath(),
                                               "glTF files (*.gltf);;Binary glTF files (*.glb)")
     if filename:
-      self.iface.updateScene(base64=True)
+      self.iface.buildScene(base64=True)
       self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
       self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
