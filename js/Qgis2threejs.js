@@ -1996,11 +1996,11 @@ Q3D.ClippedDEMBlock.prototype = {
 
     var geom, mesh, shape, vertices;
     for (var i = 0, l = polygons.length; i < l; i++) {
-      var polygon = polygons[i];
+      var bnds = polygons[i];
 
       // sides
-      for (var j = 0, m = polygon.length; j < m; j++) {
-        vertices = layer.segmentizeLineString(polygon[j], zFunc);
+      for (var j = 0, m = bnds.length; j < m; j++) {
+        vertices = layer.segmentizeLineString(bnds[j].reverse(), zFunc);    // vertex order is counter clockwise (when boundary is outer)
         geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
         mesh = new THREE.Mesh(geom, material);
         mesh.name = "side";
@@ -2008,9 +2008,9 @@ Q3D.ClippedDEMBlock.prototype = {
       }
 
       // bottom
-      shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
-      for (var j = 1, m = polygon.length; j < m; j++) {
-        shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[j])));
+      shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(bnds[0]));
+      for (var j = 1, m = bnds.length; j < m; j++) {
+        shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(bnds[j])));
       }
       geom = new THREE.ShapeBufferGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
