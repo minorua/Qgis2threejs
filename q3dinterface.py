@@ -82,8 +82,8 @@ class Q3DInterface:
   def buildScene(self, update_scene_settings=True, build_layers=True, update_extent=True, base64=False):
     self.controller.buildScene(update_scene_settings, build_layers, update_extent, base64)
 
-  def updateLayer(self, layer):
-    self.controller.updateLayer(layer)
+  def buildLayer(self, layer):
+    self.controller.buildLayer(layer)
 
   def showMessage(self, msg):
     logMessage(msg)
