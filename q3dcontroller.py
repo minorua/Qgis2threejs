@@ -59,7 +59,7 @@ class Q3DController:
     self.iface = iface
 
   def disconnectFromIface(self):
-    self.iface = None
+    self.iface = Mock()
 
   def connectToMapCanvas(self):
     if self.qgis_iface:
@@ -77,7 +77,7 @@ class Q3DController:
       self.aborted = True
 
   def setPreviewEnabled(self, enabled):
-    if self.iface is None:
+    if not self.iface:
       return
 
     self.enabled = enabled
@@ -156,7 +156,7 @@ class Q3DController:
     ts0 = time.time()
     tss = []
     for exporter in self.exporter.builders(layer):
-      if self.aborted:
+      if self.aborted or not self.iface:
         return False
       ts1 = time.time()
       obj = exporter.build()
@@ -203,3 +203,18 @@ class Q3DController:
   def canvasExtentChanged(self):
     self.layersNeedUpdate = True
     self.buildScene(update_scene_settings=False, build_layers=False)
+
+#logMessage=print
+
+class Mock:
+
+  def __init__(self, *args, **kwargs):
+    pass
+
+  def __getattr__(self, attr):
+    if DEBUG_MODE:
+      logMessage("Mock: {}".format(attr), False)
+    return Mock
+
+  def __bool__(self):
+    return False

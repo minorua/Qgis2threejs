@@ -94,7 +94,7 @@ class Qgis2threejs:
     if no_preview:
       self.controller.enabled = False
 
-    if self.controller.iface is None:
+    if not self.controller.iface:
       logMessage("Opening Qgis2threejs Exporter...", False)
 
       proj_path = QgsProject.instance().fileName()
