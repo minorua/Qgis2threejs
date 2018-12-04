@@ -49,6 +49,7 @@ class Bridge(QObject):
 
   # Python to Python signals
   sceneLoaded = pyqtSignal()
+  sceneLoadError = pyqtSignal()
   modelDataReceived = pyqtSignal("QByteArray", str)
   imageReceived = pyqtSignal(int, int, "QImage")
 
@@ -67,6 +68,10 @@ class Bridge(QObject):
   @pyqtSlot()
   def onSceneLoaded(self):
     self.sceneLoaded.emit()
+
+  @pyqtSlot()
+  def onSceneLoadError(self):
+    self.sceneLoadError.emit()
 
   @pyqtSlot(int, int, result=str)
   def mouseUpMessage(self, x, y):
@@ -95,6 +100,7 @@ class Q3DWebPage(QWebPage):
 
   initialized = pyqtSignal()
   sceneLoaded = pyqtSignal()
+  sceneLoadError = pyqtSignal()
 
   def __init__(self, parent=None):
     QWebPage.__init__(self, parent)
@@ -116,6 +122,7 @@ class Q3DWebPage(QWebPage):
 
     self.bridge = Bridge(self)
     self.bridge.sceneLoaded.connect(self.sceneLoaded)
+    self.bridge.sceneLoadError.connect(self.sceneLoadError)
     self.bridge.modelDataReceived.connect(self.saveModelData)
     self.bridge.imageReceived.connect(self.saveImage)
 
@@ -210,7 +217,6 @@ class Q3DWebPage(QWebPage):
       return False
 
     loop = QEventLoop()
-    self.sceneLoaded.connect(loop.quit)
 
     def error():
       loop.exit(1)
@@ -221,7 +227,8 @@ class Q3DWebPage(QWebPage):
     def timeOut():
       loop.exit(3)
 
-    #TODO: self.sceneLoadError.connect(error)
+    self.sceneLoaded.connect(loop.quit)
+    self.sceneLoadError.connect(error)
 
     if cancelSignal:
       cancelSignal.connect(userCancel)

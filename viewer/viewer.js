@@ -126,6 +126,10 @@ function init(offScreen) {
     pyObj.onSceneLoaded();
   });
 
+  app.addEventListener("sceneLoadError", function () {
+    pyObj.onSceneLoadError();
+  });
+
   // check extension support of web view
   // see https://github.com/minorua/Qgis2threejs/issues/147
   var gl = app.renderer.context;    // WebGLRenderingContext

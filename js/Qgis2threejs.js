@@ -561,7 +561,12 @@ limitations:
     function (url, loaded, total) {
       // onProgress
       document.getElementById("bar").style.width = (loaded / total * 100) + "%";
-    });   // TODO: error handling - sceneLoadError event
+    },
+    function () {
+      app.loadingManager.isLoading = false;
+
+      dispatchEvent({type: "sceneLoadError"});
+    });
 
     app.loadingManager.onStart = function () {
       app.loadingManager.isLoading = true;
