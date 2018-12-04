@@ -545,22 +545,32 @@ limitations:
     return vars;
   };
 
-  app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
+  app.initLoadingManager = function () {
+    if (app.loadingManager) {
+      app.loadingManager.onLoad = app.loadingManager.onProgress = app.loadingManager.onError = undefined;
+    }
+
+    app.loadingManager = new THREE.LoadingManager(function () {
+      // onLoad
+      app.loadingManager.isLoading = false;
+
+      document.getElementById("bar").classList.add("fadeout");
+
+      dispatchEvent({type: "sceneLoaded"});
+    },
+    function (url, loaded, total) {
+      // onProgress
+      document.getElementById("bar").style.width = (loaded / total * 100) + "%";
+    });   // TODO: error handling - sceneLoadError event
+
+    app.loadingManager.onStart = function () {
+      app.loadingManager.isLoading = true;
+    };
+
     app.loadingManager.isLoading = false;
-
-    document.getElementById("bar").classList.add("fadeout");
-
-    dispatchEvent({type: "sceneLoaded"});
-  },
-  function (url, loaded, total) {   // onProgress
-    document.getElementById("bar").style.width = (loaded / total * 100) + "%";
-  });   // TODO: error handling - sceneLoadError event
-
-  app.loadingManager.onStart = function () {
-    app.loadingManager.isLoading = true;
   };
 
-  app.loadingManager.isLoading = false;
+  app.initLoadingManager();
 
   app.loadFile = function (url, type, callback) {
 

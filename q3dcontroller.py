@@ -51,6 +51,7 @@ class Q3DController:
     self.aborted = False  # layer export aborted
     self.updating = False
     self.layersNeedUpdate = False
+    self.sceneUpdateRequested = False
 
     self.message1 = "Press ESC key to abort processing"
 
@@ -63,18 +64,19 @@ class Q3DController:
 
   def connectToMapCanvas(self):
     if self.qgis_iface:
-      self.qgis_iface.mapCanvas().renderComplete.connect(self.canvasUpdated)
-      self.qgis_iface.mapCanvas().extentsChanged.connect(self.canvasExtentChanged)
+      self.qgis_iface.mapCanvas().renderComplete.connect(self.requestSceneUpdate)
+      self.qgis_iface.mapCanvas().extentsChanged.connect(self.updateExtent)
 
   def disconnectFromMapCanvas(self):
     if self.qgis_iface:
-      self.qgis_iface.mapCanvas().renderComplete.disconnect(self.canvasUpdated)
-      self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.canvasExtentChanged)
+      self.qgis_iface.mapCanvas().renderComplete.disconnect(self.requestSceneUpdate)
+      self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.updateExtent)
 
   def abort(self):
     if self.updating:
-      self.iface.showMessage("Aborting processing...")
       self.aborted = True
+      self.iface.runScript("loadAborted();")
+      self.iface.showMessage("Aborting processing...")
 
   def setPreviewEnabled(self, enabled):
     if not self.iface:
@@ -85,8 +87,8 @@ class Q3DController:
     if enabled:
       self.buildScene()
 
-  def buildScene(self, update_scene_settings=True, build_layers=True, update_extent=True, base64=False):
-    if not self.iface:
+  def buildScene(self, update_scene_settings=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
+    if not (self.iface and self.enabled):
       return
 
     self.settings.base64 = base64
@@ -98,8 +100,8 @@ class Q3DController:
     if update_extent and self.qgis_iface:
       self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-    # build scene
-    self.iface.loadJSONObject(self.exporter.buildScene(False))
+    if build_scene:
+      self.iface.loadJSONObject(self.exporter.buildScene(False))
 
     if update_scene_settings:
       sp = self.settings.sceneProperties()
@@ -132,6 +134,10 @@ class Q3DController:
     self.iface.progress()
     self.iface.clearMessage()
     self.settings.base64 = False
+
+    if self.sceneUpdateRequested:
+      self.sceneUpdateRequested = False
+      self.buildScene()
 
   def buildLayer(self, layer):
     self.updating = True
@@ -174,37 +180,18 @@ class Q3DController:
       logMessage(msg, False)
     return True
 
+  def requestSceneUpdate(self, _=None):
+    if self.updating:
+      self.sceneUpdateRequested = True
+      self.abort()
+    else:
+      self.sceneUpdateRequested = False
+      self.buildScene(update_scene_settings=False)
+
   def updateExtent(self):
-    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
-
-  def canvasUpdated(self, painter):
-    # update map settings
-    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
-
-    if self.iface and self.enabled:
-      self.updating = True
-      self.iface.showMessage(self.message1)
-      self.iface.progress(0, "Updating layers")
-      self.iface.runScript('loadStart("LYRS");')
-
-      layers = self.iface.controller.settings.getLayerList()
-      for idx, layer in enumerate(layers):
-        self.iface.progress(idx / len(layers) * 100)
-        if layer.visible:
-          if not self._buildLayer(layer):
-            break
-
-      self.layersNeedUpdate = False
-      self.updating = self.aborted = False
-      self.iface.runScript('loadEnd("LYRS");')
-      self.iface.progress()
-      self.iface.clearMessage()
-
-  def canvasExtentChanged(self):
     self.layersNeedUpdate = True
-    self.buildScene(update_scene_settings=False, build_layers=False)
+    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
-#logMessage=print
 
 class Mock:
 

@@ -79,8 +79,12 @@ class Q3DInterface:
   def settings(self):
     return self.controller.settings
 
-  def buildScene(self, update_scene_settings=True, build_layers=True, update_extent=True, base64=False):
-    self.controller.buildScene(update_scene_settings, build_layers, update_extent, base64)
+  def buildScene(self, update_scene_settings=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
+    self.controller.buildScene(update_scene_settings=update_scene_settings,
+                               build_layers=build_layers,
+                               build_scene=build_scene,
+                               update_extent=update_extent,
+                               base64=base64)
 
   def buildLayer(self, layer):
     self.controller.buildLayer(layer)

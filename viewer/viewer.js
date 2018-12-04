@@ -101,6 +101,10 @@ function loadEnd(name) {
   app.loadingManager.itemEnd(name);
 }
 
+function loadAborted() {
+  app.initLoadingManager();
+}
+
 function init(offScreen) {
   var container = document.getElementById("view");
   app.init(container, false);
