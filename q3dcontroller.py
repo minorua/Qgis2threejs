@@ -44,7 +44,7 @@ class Q3DController:
         logMessage("Invalid settings: " + err_msg)
 
     self.settings = settings
-    self.exporter = ThreeJSBuilder(settings)
+    self.builder = ThreeJSBuilder(settings)
 
     self.iface = None
     self.enabled = True
@@ -98,10 +98,10 @@ class Q3DController:
     self.iface.progress(0, "Updating scene")
 
     if update_extent and self.qgis_iface:
-      self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+      self.builder.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
     if build_scene:
-      self.iface.loadJSONObject(self.exporter.buildScene(False))
+      self.iface.loadJSONObject(self.builder.buildScene(False))
 
     if update_scene_settings:
       sp = self.settings.sceneProperties()
@@ -161,11 +161,11 @@ class Q3DController:
 
     ts0 = time.time()
     tss = []
-    for exporter in self.exporter.builders(layer):
+    for builder in self.builder.builders(layer):
       if self.aborted or not self.iface:
         return False
       ts1 = time.time()
-      obj = exporter.build()
+      obj = builder.build()
       ts2 = time.time()
       self.iface.loadJSONObject(obj)
       ts3 = time.time()
@@ -190,7 +190,7 @@ class Q3DController:
 
   def updateExtent(self):
     self.layersNeedUpdate = True
-    self.exporter.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+    self.builder.settings.setMapCanvas(self.qgis_iface.mapCanvas())
 
 
 class Mock:
