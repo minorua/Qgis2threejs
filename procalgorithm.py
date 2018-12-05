@@ -49,8 +49,6 @@ from .rotatedrect import RotatedRect
 
 class AlgorithmBase(QgsProcessingAlgorithm):
 
-  Exporter = ThreeJSExporter
-
   INPUT = "INPUT"
   SCALE = "SCALE"
   BUFFER = "BUFFER"
@@ -205,8 +203,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
       msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
       feedback.reportError(msg, True)
       return False
-
-    self.exporter = self.Exporter(self.controller)
     return True
 
   def processAlgorithm(self, parameters, context, feedback):
@@ -336,9 +332,10 @@ class ExportAlgorithm(AlgorithmBase):
   def displayName(self):
     return self.tr("Export as Web Page")
 
-  #def prepareAlgorithm(self, parameters, context, feedback):
-    #TODO: template
-  #  return True
+  def prepareAlgorithm(self, parameters, context, feedback):
+    super().prepareAlgorithm(parameters, context, feedback)
+    self.exporter = ThreeJSExporter(self.controller.settings)
+    return True
 
   def export(self, title, out_dir, feedback):
     # scene title
@@ -358,7 +355,6 @@ class ExportAlgorithm(AlgorithmBase):
 
 class ExportImageAlgorithm(AlgorithmBase):
 
-  Exporter = ImageExporter
   WIDTH = "WIDTH"
   HEIGHT = "HEIGHT"
 
@@ -395,6 +391,8 @@ class ExportImageAlgorithm(AlgorithmBase):
     height = self.parameterAsInt(parameters, self.HEIGHT, context)
 
     feedback.setProgressText("Preparing a web page for off-screen rendering...")
+
+    self.exporter = ImageExporter(self.controller)
     self.exporter.initWebPage(width, height)
     return True
 
@@ -416,8 +414,6 @@ class ExportImageAlgorithm(AlgorithmBase):
 
 class ExportModelAlgorithm(AlgorithmBase):
 
-  Exporter = ModelExporter
-
   def initAlgorithm(self, config):
     super().initAlgorithm(config, label=False)
 
@@ -434,6 +430,8 @@ class ExportModelAlgorithm(AlgorithmBase):
     self.modelType = "gltf"
 
     feedback.setProgressText("Preparing a web page for 3D model export...")
+
+    self.exporter = ModelExporter(self.controller)
     self.exporter.initWebPage(500, 500)
     return True
 
