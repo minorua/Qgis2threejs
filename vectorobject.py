@@ -359,7 +359,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
     opt = {"name": "Border color",
            "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-           "defaultItem": ColorWidgetFunc.FEATURE}
+           "defaultItem": OptionalColorWidgetFunc.NONE}
     ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
   @classmethod
