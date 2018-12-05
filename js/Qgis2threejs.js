@@ -16,12 +16,12 @@ Q3D.Config = {
     {
       type: "ambient",
       color: 0x999999,
-      intensity: 1
+      intensity: 0.8
     },
     {
       type: "directional",
       color: 0xffffff,
-      intensity: 0.5,
+      intensity: 0.7,
       azimuth: 220,   // note: default light azimuth of gdaldem hillshade is 315.
       altitude: 45    // altitude angle
     },
