@@ -453,6 +453,9 @@ class PropertiesDialog(QDialog):
   def buttonClicked(self, button):
     role = self.ui.buttonBox.buttonRole(button)
     if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+      if role == QDialogButtonBox.AcceptRole:
+        self.hide()
+
       if isinstance(self.page, ScenePropertyPage):
         self.propertiesAccepted.emit("", self.page.properties())
       else:
