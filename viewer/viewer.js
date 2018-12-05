@@ -93,7 +93,11 @@ function loadModel(url) {
   }
 }
 
-function loadStart(name) {
+function loadStart(name, initialize) {
+  if (initialize) {
+    app.initLoadingManager();
+  }
+
   app.loadingManager.itemStart(name);
 }
 
@@ -102,7 +106,6 @@ function loadEnd(name) {
 }
 
 function loadAborted() {
-  app.initLoadingManager();
 }
 
 function init(offScreen) {

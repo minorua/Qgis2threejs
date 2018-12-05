@@ -77,6 +77,7 @@ class Q3DController:
       self.aborted = True
       self.iface.runScript("loadAborted();")
       self.iface.showMessage("Aborting processing...")
+      logMessage("***** scene/layer building aborted *****", False)
 
   def setPreviewEnabled(self, enabled):
     if not self.iface:
@@ -119,16 +120,18 @@ class Q3DController:
         self.iface.runScript("proj4 = undefined;", "// proj4 not enabled")
 
     if build_layers:
-      self.iface.runScript('loadStart("LYRS");')
+      self.iface.runScript('loadStart("LYRS", true);')
 
       layers = self.settings.getLayerList()
       for idx, layer in enumerate(layers):
         self.iface.progress(idx / len(layers) * 100, "Updating layers")
         if layer.updated or (self.layersNeedUpdate and layer.visible):
-          if not self._buildLayer(layer):
+          if not self._buildLayer(layer) or self.aborted:
             break
-      self.layersNeedUpdate = False
       self.iface.runScript('loadEnd("LYRS");')
+
+      if not self.aborted:
+        self.layersNeedUpdate = False
 
     self.updating = self.aborted = False
     self.iface.progress()
@@ -143,15 +146,17 @@ class Q3DController:
     self.updating = True
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Building {0}...".format(layer.name))
+    self.iface.runScript('loadStart("LYR", true);')
 
     self._buildLayer(layer)
 
+    self.iface.runScript('loadEnd("LYR");')
     self.updating = self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
 
   def _buildLayer(self, layer):
-    if not (self.iface and self.enabled):
+    if not (self.iface and self.enabled) or self.aborted:
       return False
 
     self.iface.runScript('loadStart("L{}");  // {}'.format(layer.jsLayerId, layer.name))
@@ -190,7 +195,8 @@ class Q3DController:
 
   def updateExtent(self):
     self.layersNeedUpdate = True
-    self.builder.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+    if self.updating:
+      self.abort()
 
 
 class Mock:
