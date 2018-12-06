@@ -138,7 +138,7 @@ function init(offScreen) {
   var gl = app.renderer.context;    // WebGLRenderingContext
   if (gl.getExtension("WEBGL_depth_texture") === null) {
     var msg = "Any 3D objects not rendered? There is a compatibility issue with QGIS 3D view. " +
-              "You need to restart QGIS to use preview.";
+              "You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
     showMessageBar(msg, undefined, true);
   }
 }
