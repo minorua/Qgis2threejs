@@ -19,7 +19,7 @@
 """
 
 # general
-PLUGIN_VERSION = "2.2"
+PLUGIN_VERSION = "2.3"
 DEBUG_MODE = 1
   # 0. no debug info
   # 1. JS console, qDebug

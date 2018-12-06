@@ -3,7 +3,7 @@
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
 
-var Q3D = {VERSION: "2.2"};
+var Q3D = {VERSION: "2.3"};
 
 Q3D.Config = {
   allVisible: false,  // set every layer visible property to true on load if set to true

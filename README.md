@@ -1,4 +1,4 @@
-Qgis2threejs plugin - version 2.2
+Qgis2threejs plugin - version 2.3
 =================================
 
   This is a [QGIS](https://qgis.org/) plugin, which visualizes DEM data and vector data in 3D on web

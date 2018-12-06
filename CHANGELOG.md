@@ -1,5 +1,15 @@
 ## CHANGELOG
 
+### Version 2.3
+- Added export algorithms for Processing
+- Added automatic z shift adjustment option
+- Added Point type for point layer
+- Fixed clipped DEM side building (fix #159)
+- Fixed Overlay building
+- Fixed model file load with Mobile template
+- Fixed crash when continuously zooming map canvas with the exporter window open
+- API and offscreen rendering
+
 ### Version 2.2
 - Added Triangular Mesh type for polygon layer
 - Added Plane type for point layer (width, height, orientation)

@@ -14,7 +14,7 @@ qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=This plugin visualizes DEM data and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter. If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.2
+version=2.3
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,12 +24,15 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 2.2
-    - Added Triangular Mesh type for polygon layer
-    - Added Plane type for point layer (width, height, orientation)
-    - Restored Icon type for point layer
-    - Added Model File type for point layer (COLLADA and glTF)
-    - Drag & drop model preview
+    Version 2.3
+    - Added export algorithms for Processing
+    - Added automatic z shift adjustment option
+    - Added Point type for point layer
+    - Fixed clipped DEM side building (fix #159)
+    - Fixed Overlay building
+    - Fixed model file load with Mobile template
+    - Fixed crash when continuously zooming map canvas with the exporter window open
+    - API and offscreen rendering
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,three.js,web,WebGL,glTF,AR
