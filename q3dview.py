@@ -163,7 +163,7 @@ class Q3DWebPage(QWebPage):
       return
 
     if self._enabled:
-      self.iface.buildScene()
+      self.iface.requestSceneUpdate()
     else:
       self.iface.setPreviewEnabled(False)
 

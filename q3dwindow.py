@@ -92,6 +92,15 @@ class Q3DViewerInterface(Q3DInterface):
       if text is not None:
         bar.setFormat(text)
 
+  def requestSceneUpdate(self, update_all=True):
+    self.controller.requestSceneUpdate(update_all=update_all)
+
+  def requestLayerUpdate(self, layer):
+    self.controller.requestLayerUpdate(layer)
+
+  def cancelLayerUpdateRequest(self, layer):
+    self.controller.cancelLayerUpdateRequest(layer)
+
   def showScenePropertiesDialog(self):
     dialog = PropertiesDialog(self.wnd, self.controller.settings)
     dialog.propertiesAccepted.connect(self.updateSceneProperties)
@@ -101,7 +110,7 @@ class Q3DViewerInterface(Q3DInterface):
     if self.controller.settings.sceneProperties() == properties:
       return
     self.controller.settings.setSceneProperties(properties)
-    self.controller.buildScene()
+    self.requestSceneUpdate()
 
   def showLayerPropertiesDialog(self, layer):
     dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
@@ -116,7 +125,7 @@ class Q3DViewerInterface(Q3DInterface):
     layer.updated = True
 
     if layer.visible:
-      self.buildLayer(layer)
+      self.requestLayerUpdate(layer)
 
   def getDefaultProperties(self, layer):
     dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
@@ -126,7 +135,7 @@ class Q3DViewerInterface(Q3DInterface):
   def clearExportSettings(self):
     self.controller.settings.clear()
     self.controller.settings.updateLayerList()
-    self.controller.buildScene()
+    self.controller.requestSceneUpdate()
 
 
 class Q3DWindow(QMainWindow):

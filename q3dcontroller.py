@@ -19,15 +19,20 @@
  ***************************************************************************/
 """
 import time
+from PyQt5.QtCore import QTimer
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
-from .exportsettings import ExportSettings
+from .exportsettings import ExportSettings, Layer
 from .qgis2threejstools import logMessage, pluginDir
 
 
 class Q3DController:
+
+  # requests
+  BUILD_SCENE_ALL = 1   # build scene
+  BUILD_SCENE = 2       # build scene, but do not update background color, coordinates display mode and so on
 
   def __init__(self, qgis_iface=None, settings=None):
     self.qgis_iface = qgis_iface
@@ -51,9 +56,18 @@ class Q3DController:
     self.aborted = False  # layer export aborted
     self.updating = False
     self.layersNeedUpdate = False
-    self.sceneUpdateRequested = False
+
+    self.requestQueue = []
+    self.timer = QTimer()
+    self.timer.setInterval(1)
+    self.timer.setSingleShot(True)
+    self.timer.timeout.connect(self._processRequests)
 
     self.message1 = "Press ESC key to abort processing"
+
+  def __del__(self):
+    self.timer.stop()
+    self.timer.deleteLater()
 
   def connectToIface(self, iface):
     """iface: Q3DViewerInterface"""
@@ -73,7 +87,7 @@ class Q3DController:
       self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.updateExtent)
 
   def abort(self):
-    if self.updating:
+    if self.updating and not self.aborted:
       self.aborted = True
       self.iface.runScript("loadAborted();")
       self.iface.showMessage("Aborting processing...")
@@ -88,13 +102,18 @@ class Q3DController:
     if enabled:
       self.buildScene()
 
-  def buildScene(self, update_scene_settings=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
+  def buildScene(self, update_scene_all=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
     if not (self.iface and self.enabled):
       return
 
+    if self.updating:
+      logMessage("Previous building is still in progress. Cannot start to build scene.")
+      return
+
+    self.updating = self.BUILD_SCENE_ALL if update_scene_all else self.BUILD_SCENE
     self.settings.base64 = base64
-    self.updating = True
     self.layersNeedUpdate = self.layersNeedUpdate or build_layers
+
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Updating scene")
 
@@ -104,7 +123,7 @@ class Q3DController:
     if build_scene:
       self.iface.loadJSONObject(self.builder.buildScene(False))
 
-    if update_scene_settings:
+    if update_scene_all:
       sp = self.settings.sceneProperties()
       # automatic z shift adjustment
       self.iface.runScript("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
@@ -133,17 +152,19 @@ class Q3DController:
       if not self.aborted:
         self.layersNeedUpdate = False
 
-    self.updating = self.aborted = False
+    self.updating = None
+    self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
     self.settings.base64 = False
-
-    if self.sceneUpdateRequested:
-      self.sceneUpdateRequested = False
-      self.buildScene()
+    return True
 
   def buildLayer(self, layer):
-    self.updating = True
+    if self.updating:
+      logMessage('Previous building is still in progress. Cannot start to build layer "{}".'.format(layer.name))
+      return False
+
+    self.updating = layer
     self.iface.showMessage(self.message1)
     self.iface.progress(0, "Building {0}...".format(layer.name))
     self.iface.runScript('loadStart("LYR", true);')
@@ -151,9 +172,11 @@ class Q3DController:
     self._buildLayer(layer)
 
     self.iface.runScript('loadEnd("LYR");')
-    self.updating = self.aborted = False
+    self.updating = None
+    self.aborted = False
     self.iface.progress()
     self.iface.clearMessage()
+    return True
 
   def _buildLayer(self, layer):
     if not (self.iface and self.enabled) or self.aborted:
@@ -185,16 +208,62 @@ class Q3DController:
       logMessage(msg, False)
     return True
 
-  def requestSceneUpdate(self, _=None):
+  def processRequests(self):
+    self.timer.stop()
+    if self.requestQueue:
+      self.timer.start()
+
+  def _processRequests(self):
+    if self.updating or not self.requestQueue:
+      return
+
+    if self.BUILD_SCENE_ALL in self.requestQueue:
+      self.requestQueue.clear()
+      self.buildScene()
+
+    elif self.BUILD_SCENE in self.requestQueue:
+      self.requestQueue.clear()
+      self.buildScene(update_scene_all=False)
+
+    else:
+      layer = self.requestQueue.pop(0)
+      self.requestQueue = [i for i in self.requestQueue if i != layer]    # remove layer from queue
+      self.buildLayer(layer)
+
+    self.processRequests()
+
+  def requestSceneUpdate(self, _=None, update_all=False):
+    self.requestQueue.append(self.BUILD_SCENE_ALL if update_all else self.BUILD_SCENE)
+
     if self.updating:
-      self.sceneUpdateRequested = True
       self.abort()
     else:
-      self.sceneUpdateRequested = False
-      self.buildScene(update_scene_settings=False)
+      self.processRequests()
+
+  def requestLayerUpdate(self, layer):
+    if not isinstance(layer, Layer):
+      return
+
+    self.requestQueue.append(layer)
+
+    if self.updating == layer:
+      self.abort()
+    else:
+      self.processRequests()
+
+  def cancelLayerUpdateRequest(self, layer):
+    if not isinstance(layer, Layer):
+      return
+
+    # remove layer from queue
+    self.requestQueue = [i for i in self.requestQueue if i != layer]
+
+    if self.updating == layer:
+      self.abort()
 
   def updateExtent(self):
     self.layersNeedUpdate = True
+    self.requestQueue.clear()
     if self.updating:
       self.abort()
 
