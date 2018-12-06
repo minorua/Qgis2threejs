@@ -543,7 +543,7 @@ class ObjectTypeRegistry:
 
   def __init__(self):
     self.objTypes = {
-      QgsWkbTypes.PointGeometry: [PointType, SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, IconType, ModelFileType],
+      QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, PointType, IconType, ModelFileType],
       QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
       QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
     }
