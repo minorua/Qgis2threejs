@@ -1,7 +1,7 @@
 Object Types
 ============
 
-.. note:: Now being updated for Qgis2threejs version 2.2.
+.. note:: Now being updated for Qgis2threejs version 2.3.
 
 .. contents::
    :depth: 1
@@ -15,7 +15,7 @@ Point Layer
 -----------
 
 `Sphere <#sphere>`__ \| `Cylinder <#cylinder>`__ \| `Cone <#cone>`__ \|
-`Box <#box>`__ \| `Disk <#disk>`__ \| `Plane <#plane>`__ \|
+`Box <#box>`__ \| `Disk <#disk>`__ \| `Plane <#plane>`__ \| `Point <#point>`__ \|
 `Icon <#icon>`__ \| `Model File <#model-file>`__
 
 
@@ -247,6 +247,40 @@ Plane with specified length, width, orientation, color and transparency
    </td></tr></table>
 
 
+.. index:: Point
+
+Point
+~~~~~
+
+
+.. raw:: html
+
+   <table><tr><td width="256">
+
+|image09|
+
+.. raw:: html
+
+   </td><td>
+
+**Specific settings** :
+
+* Radius
+    Numerical value.
+
+**Origin** :
+
+    center of sprite
+
+**three.js geometry class:**
+
+    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
+
+.. raw:: html
+
+   </td></tr></table>
+
+
 .. index:: Icon
 
 Icon
@@ -292,7 +326,7 @@ specified, the model file is not copied.
 Model File
 ~~~~~~~~~~
 
-Load 3D model from supported format model file. COLLADA (*.dae) and glTF (*.gltf, *.glb) are supported.
+Load 3D model from supported format model file. ``COLLADA (*.dae)`` and ``glTF (*.gltf, *.glb)`` are supported.
 When a model file on local file system is specified, the model file is copied to the export destination.
 You need to copy the relevant files such as texture image after export. When a model file on a web server is
 specified, the model file is not copied.

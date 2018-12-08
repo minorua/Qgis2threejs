@@ -62,7 +62,7 @@ a projected CRS. QGIS can perform the CRS transformation on the fly.
 
 So, let's change the *current project CRS* to a *projected CRS*.
 
-Click the |CRS icon| CRS status icon in the bottom-right corner of the window to
+Click the CRS status icon |crs_icon| in the bottom-right corner of the window to
 open the project properties dialog, and then select a suitable CRS for the DEM extent.
 If you don't know which CRS is best suited, select the Spherical Mercator projection
 (``EPSG:3857``), which is adopted by many web maps.
@@ -70,8 +70,6 @@ If you don't know which CRS is best suited, select the Spherical Mercator projec
 .. note:: In the Spherical Mercator projection, every feature size is horizontally
    larger than actual size except those of features on the equator.
    At latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice.
-
-.. |CRS icon| image:: ./images/tutorial/crsicon.png
 
 
 Layer styling
@@ -87,7 +85,7 @@ An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` color m
 Open the Exporter
 -----------------
 Zoom to a part of the DEM layer extent as the map canvas is filled by the colorized DEM layer,
-and then click the |plugin icon| plugin icon in the web toolbar to open the Qgis2threejs exporter.
+and then click the plugin icon |plugin_icon| in the web toolbar to open the Qgis2threejs exporter.
 
 There is Layers panel on the left side of the window, which lists map layers in current QGIS project.
 Layer items are grouped into DEM, Point, Line and Polygon. DEM layer group has 1-band raster layers
@@ -102,14 +100,12 @@ under the DEM layer group.
 
 A 3D terrain object with map canvas image draped on it shows up in the preview.
 
-.. |plugin icon| image:: ./images/Qgis2threejs24.png
-
 
 Exporting the Scene to Web
 --------------------------
 Click on the ``File - Export to Web...`` menu entry to open this dialog.
 
-.. image:: ./images/export_web.png
+|export_to_web_dialog|
 
 Select a directory to export the scene and press ``Export`` button.
 

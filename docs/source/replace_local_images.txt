@@ -1,6 +1,17 @@
 .. replace_local_images.txt: Replacements for images. Use local image files.
 
+.. |plugin_icon| image:: ./images/Qgis2threejs24.png
+.. |crs_icon| image:: ./images/tutorial/crsicon.png
+
 .. Tutorial
+
+.. Exporter
+
+.. Dialogs
+.. |export_to_web_dialog| image:: ./images/dialogs/export_web.png
+.. |plugin_settings_dialog| image:: ./images/dialogs/plugin_settings.png
+.. |scene_settings_dialog| image:: ./images/dialogs/scene_settings.png
+.. |processing_export_web_dialog| image:: ./images/dialogs/processing_web.png
 
 .. Object Types
 
@@ -12,6 +23,7 @@
 .. |image06| image:: ./images/no_image.png
 .. |image07| image:: ./images/no_image.png
 .. |image08| image:: ./images/no_image.png
+.. |image09| image:: ./images/no_image.png
 .. |image11| image:: ./images/line/Line.png
 .. |image12| image:: ./images/line/Pipe.jpg
 .. |image13| image:: ./images/line/ConeL.jpg

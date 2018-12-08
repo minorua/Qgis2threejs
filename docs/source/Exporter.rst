@@ -1,8 +1,6 @@
 Exporter
 ========
 
-.. note:: Now being updated for Qgis2threejs version 2.2.
-
 .. contents:: Contents
    :local:
    :depth: 1
@@ -15,7 +13,7 @@ Qgis2threejs exporter window has `Layers` panel on the left side and preview on 
 .. image:: ./images/exporter1.png
 
 In this plugin, the word "export settings" means all configuration settings for a 3D scene,
-which consist of world settings, camera settings, each layer settings and so on.
+which consist of scene settings, camera settings, each layer settings and so on.
 You can configure them via `Scene <#scene>`__ menu, `Layers` panel and `Export to Web` dialog.
 
 In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
@@ -111,7 +109,7 @@ Scene Settings
 Scene settings dialog controls some basic configuration settings for current scene.
 Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
-.. image:: ./images/world_settings.png
+|scene_settings_dialog|
 
 * World Coordinates
 
@@ -149,7 +147,7 @@ Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
     * Basic type
 
-        MateMaterial type applied to most 3D objects, except for Icon, Model File and Line type objects.
+        MateMaterial type applied to most 3D objects, except for Point, Icon, Model File and Line type objects.
         Select a material type from
         `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
         `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
@@ -199,11 +197,12 @@ Decorations
 
 * North arrow
 
-Adds an arrow that indicates the direction of grid North.
+   Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.
 
-* Footer label
+* Header/Footer label
 
-Adds a label to lower-left corner of the page.
+   Adds a header label to top-left corner of the web page and/or a footer label to lower-left corner.
+   Label text can contain valid HTML tags for styling.
 
 
 DEM Layer Settings
@@ -310,28 +309,32 @@ Common settings for all types:
 
 * Z coordinate
 
-    * Altitude Mode
+   * Altitude Mode
 
-        * Absolute
-        Altitude is distance above zero-level.
+      * Absolute
 
-        * Relative to a DEM layer
-        Altitude is distance above surface of selected DEM.
+         Altitude is distance above zero-level.
 
-    * Altitude
+      * Relative to a DEM layer
 
-        You can use an expression to define altitude of objects above zero-level or
-        surface of selected DEM layer. This means that object altitude can be defined
-        using field values. The unit is that of the map CRS.
+         Altitude is distance above surface of selected DEM.
 
-        * Expression
-        A numeric value, field or more complex expression (QGIS expressions).
+   * Altitude
 
-        * Z value / M value
-        Uses z coordinate or m value of each vertex. the evaluated value is added to it.
+      You can use an expression to define altitude of objects above zero-level or
+      surface of selected DEM layer. This means that object altitude can be defined
+      using field values. The unit is that of the map CRS.
 
-        These options can be chosen when the layer geometries have z coordinates or m values.
-        Cannot be chosen when the object type is Extruded or Overlay (polygon).
+      * Expression
+
+         A numeric value, field or more complex expression (QGIS expressions).
+
+      * Z value / M value
+
+         Uses z coordinate or m value of each vertex. the evaluated value is added to it.
+
+         These options can be chosen when the layer geometries have z coordinates or m values.
+         Cannot be chosen when the object type is Extruded or Overlay (polygon).
 
 * Style
 
@@ -343,17 +346,17 @@ Common settings for all types:
 
    Select the features to be exported.
 
-    * All features
+   * All features
 
       All features of the layer are exported.
 
-    * Features that intersect with map canvas extent
+   * Features that intersect with map canvas extent
 
       Features on the map canvas are exported.
 
-        * Clip geometries
+      * Clip geometries
 
-          This option is available with Line/Polygon layer. If checked, geometries are clipped by the extent of map canvas.
+         This option is available with Line/Polygon layer. If checked, geometries are clipped by the extent of map canvas.
 
 * Attribute and label
 
@@ -396,12 +399,12 @@ following object types are available:
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
 
+.. _export_web_dialog:
+
 Export to Web Dialog
 --------------------
 
-[TODO IMAGE]
-
-.. image:: ./images/export_web.png
+|export_to_web_dialog|
 
 * Output directory and HTML Filename
 
@@ -452,7 +455,7 @@ Export to Web Dialog
 Exporter Settings
 -----------------
 
-.. image:: ./images/plugin_settings.png
+|plugin_settings_dialog|
 
 * Web browser path
 

@@ -26,3 +26,5 @@ call make html
 
 echo opening the index.html...
 build\html\index.html
+
+pause
