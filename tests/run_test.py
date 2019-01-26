@@ -11,7 +11,7 @@ the Free Software Foundation; either version 2 of the License, or
 import sys
 import os
 import unittest
-from PyQt5.Qt import Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 import qgis

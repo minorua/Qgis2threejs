@@ -19,8 +19,7 @@
  ***************************************************************************/
 """
 import os
-from PyQt5.Qt import Qt
-from PyQt5.QtCore import QDir
+from PyQt5.QtCore import Qt, QDir
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from .export import ThreeJSExporter
