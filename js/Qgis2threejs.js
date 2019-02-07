@@ -448,7 +448,7 @@ limitations:
       app.render();
     });
 
-    // restore view (camera position and its target) from URL parameters
+    // restore camera position (and its target) from URL parameters
     var vars = app.urlParams;
     if (vars.cx !== undefined) app.camera.position.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
     if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
@@ -458,10 +458,13 @@ limitations:
       controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
       controls.enableKeys = false;
 
+      // restore target (focus location) from URL parameters
+      if (vars.tx !== undefined) controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+
+      // custom functions
       var offset = new THREE.Vector3();
       var spherical = new THREE.Spherical();
 
-      // custom functions
       controls.moveForward = function (delta) {
         offset.copy(controls.object.position).sub(controls.target);
         var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
@@ -814,7 +817,6 @@ limitations:
     var c = app.camera.position, t = app.controls.target, u = app.camera.up;
     var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
     if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
-    if (u.x || u.y || u.z != 1) hash += "&ux=" + u.x + "&uy=" + u.y + "&uz=" + u.z;
     return window.location.href.split("#")[0] + hash;
   };
 
