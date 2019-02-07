@@ -8,29 +8,27 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
-import os
-from PyQt5.QtCore import QFileInfo, QSize
-from PyQt5.QtGui import QImage
-from qgis.core import QgsCoordinateReferenceSystem, QgsMapSettings, QgsRectangle
+from PyQt5.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
+from PyQt5.QtGui import QImage, QPainter
+from PyQt5.QtWebKitWidgets import QWebPage
 from qgis.testing import start_app, unittest
 
 from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter
-from Qgis2threejs.q3dcontroller import Q3DController
 from Qgis2threejs.rotatedrect import RotatedRect
 from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath, loadProject
 
+OUT_WIDTH, OUT_HEIGHT = (1024, 768)
+TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 QGISAPP = start_app()
 
 
-class TestImageExport(unittest.TestCase):
+class TestExport(unittest.TestCase):
 
   def setUp(self):
     pass
 
   def loadProject(self, filename):
     """load a project"""
-    TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
-
     mapSettings = loadProject(filename)
 
     # extent
@@ -57,10 +55,42 @@ class TestImageExport(unittest.TestCase):
 
     assert not err, err
 
-  def test02_export_scene1_image(self):
-    """test image export with testproject1.qgs and scene1.qto3settings"""
+  def test02_check_scene1_webpage(self):
+    """render exported web page and check page capture"""
 
-    OUT_WIDTH, OUT_HEIGHT = (1024, 768)
+    html_path = outputPath("scene1.html")
+
+    url = QUrl.fromLocalFile(html_path)
+    url = QUrl(url.toString() + "#cx=-20&cy=16&cz=-34&tx=-2&ty=0&tz=8")
+
+    loop = QEventLoop()
+    page = QWebPage()
+    page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
+    page.loadFinished.connect(loop.quit)
+    page.mainFrame().setUrl(url)
+    loop.exec_()
+
+    page.mainFrame().evaluateJavaScript('document.getElementById("progress").style.display = "none";')
+
+    timer = QTimer()
+    timer.timeout.connect(loop.quit)
+    timer.start(100)
+    while page.mainFrame().evaluateJavaScript("app.loadingManager.isLoading"):
+      loop.exec_()
+
+    timer.stop()
+
+    image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format_ARGB32_Premultiplied)
+    painter = QPainter(image)
+    page.mainFrame().render(painter)
+    painter.end()
+
+    filename = "scene1_qwebpage.png"
+    image.save(outputPath(filename))
+    assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
+
+  def test11_export_scene1_image(self):
+    """test image export with testproject1.qgs and scene1.qto3settings"""
 
     mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
@@ -77,7 +107,7 @@ class TestImageExport(unittest.TestCase):
     assert not err, err
     assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
 
-  def test03_export_scene1_glTF(self):
+  def test21_export_scene1_glTF(self):
     """test glTF export with testproject1.qgs and scene1.qto3settings"""
 
     mapSettings = self.loadProject(dataPath("testproject1.qgs"))
