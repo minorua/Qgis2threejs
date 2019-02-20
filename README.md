@@ -1,8 +1,8 @@
-Qgis2threejs plugin - version 2.3
-=================================
+Qgis2threejs plugin - version 2.3.1
+===================================
 
-  This is a [QGIS](https://qgis.org/) plugin, which visualizes DEM data and vector data in 3D on web
-browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter.
+  This is a [QGIS](https://qgis.org/) plugin which visualizes DEM and vector data in 3D on web browsers.
+You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter.
 If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can
 save the 3D model in glTF format for 3DCG or 3D printing.
 

@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.3.1
+- Do not import Qt module from PyQt5.Qt (fix #162 and #134)
+- Fixed initial camera target position (fix #163)
+
 ### Version 2.3
 - Added export algorithms for Processing
 - Added automatic z shift adjustment option
