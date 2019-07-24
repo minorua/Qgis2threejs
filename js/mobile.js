@@ -261,7 +261,7 @@ function startARMode(position) {
     });
 
     var id = devices[0].deviceId;
-    navigator.getUserMedia({video: {optional: [{sourceId: id}]}}, function (stream) {
+    navigator.mediaDevices.getUserMedia({video: {optional: [{sourceId: id}]}}, function (stream) {
       var v = document.getElementById("video");
       v.addEventListener("loadedmetadata", function () {
         app.eventListener.resize();
