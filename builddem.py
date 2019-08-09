@@ -197,7 +197,7 @@ class DEMBlockBuilder:
 
         # frame
         if self.properties.get("checkBox_Frame", False) and not self.properties.get("checkBox_Clip", False):
-            b["frame"] = True 
+            b["frame"] = True
 
         return b
 
