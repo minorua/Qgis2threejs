@@ -32,10 +32,177 @@ from .qgis2threejstools import logMessage
 from .vectorobject import objectTypeRegistry
 
 
+GeomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry,
+                  QgsWkbTypes.LineGeometry: LineGeometry,
+                  QgsWkbTypes.PolygonGeometry: PolygonGeometry}
+
+
 def json_default(o):
     if isinstance(o, QVariant):
         return repr(o)
     raise TypeError(repr(o) + " is not JSON serializable")
+
+
+class Feature:
+
+    def __init__(self, layer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
+        self.layerProp = layer.prop
+        self.geomType = layer.geomType
+        self.geom = qGeom
+        self.altitude = altitude
+        self.values = propValues
+        self.attributes = attrs
+        self.labelHeight = labelHeight
+
+        self.material = -1
+
+    def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
+        """demSize: grid size of the DEM layer which polygons overlay"""
+        geom = self.geom
+        rotation = baseExtent.rotation()
+
+        if demProvider:
+            if self.layerProp.objType.name == "Overlay":
+                center = baseExtent.center()
+                half_width, half_height = baseExtent.width() / 2, baseExtent.height() / 2
+                xmin, ymin = center.x() - half_width, center.y() - half_height
+                xmax, ymax = center.x() + half_width, center.y() + half_height
+                xres, yres = baseExtent.width() / (demSize.width() - 1), baseExtent.height() / (demSize.height() - 1)
+                tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
+                z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres) + self.altitude
+            else:
+                z_func = lambda x, y: demProvider.readValue(x, y) + self.altitude
+        else:
+            z_func = lambda x, y: self.altitude
+
+        # clip geometry
+        if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
+            geom = geom.intersection(clipGeom)
+            if geom is None:
+                return None
+
+        # skip if geometry is empty or null
+        if geom.isEmpty() or geom.isNull():
+            logMessage("empty/null geometry skipped")
+            return None
+
+        geomClass = GeomType2Class.get(self.geomType)
+
+        if self.geomType == QgsWkbTypes.PolygonGeometry:
+            if self.layerProp.objType.name == "Triangular Mesh":
+                return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+
+            if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
+
+                if rotation:
+                    geom.rotate(rotation, baseExtent.center())
+                geom = tmesh.splitPolygon(geom)
+                if rotation:
+                    geom.rotate(-rotation, baseExtent.center())
+
+                useCentroidHeight = False
+                centroidPerPolygon = False
+            else:
+                useCentroidHeight = True
+                centroidPerPolygon = True
+
+            return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useCentroidHeight, centroidPerPolygon)
+
+        return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+
+
+class VectorLayer:
+
+    def __init__(self, settings, layer, prop, materialManager, modelManager):
+        self.settings = settings
+        self.layer = layer
+        self.prop = prop
+        self.name = layer.name() if layer else "no title"
+        self.materialManager = materialManager
+        self.modelManager = modelManager
+
+        self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
+        self.geomType = layer.geometryType()
+
+        # attributes
+        self.writeAttrs = prop.properties.get("checkBox_ExportAttrs", False)
+        self.labelAttrIndex = prop.properties.get("comboBox_Label", None)
+        self.fieldIndices = []
+        self.fieldNames = []
+
+        if self.writeAttrs:
+            for index, field in enumerate(layer.fields()):
+                if field.editorWidgetSetup().type() != "Hidden":
+                    self.fieldIndices.append(index)
+                    self.fieldNames.append(field.displayName())
+
+    def hasLabel(self):
+        return bool(self.labelAttrIndex is not None)
+
+    def features(self, request=None):
+        mapTo3d = self.settings.mapTo3d()
+        baseExtent = self.settings.baseExtent
+        baseExtentGeom = baseExtent.geometry()
+        rotation = baseExtent.rotation()
+        prop = self.prop
+        fields = self.layer.fields()
+
+        feats = []
+        for f in self.layer.getFeatures(request or QgsFeatureRequest()):
+            geometry = f.geometry()
+            if geometry is None:
+                logMessage("null geometry skipped")
+                continue
+
+            # coordinate transformation - layer crs to project crs
+            geom = QgsGeometry(geometry)
+            if geom.transform(self.transform) != 0:
+                logMessage("Failed to transform geometry")
+                continue
+
+            # check if geometry intersects with the base extent (rotated rect)
+            if rotation and not baseExtentGeom.intersects(geom):
+                continue
+
+            # set feature to expression context
+            prop.setContextFeature(f)
+
+            # evaluate expression
+            altitude = prop.altitude()
+            propVals = prop.values(f)
+
+            attrs = labelHeight = None
+            if self.writeAttrs:
+                attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
+
+                if self.hasLabel():
+                    labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
+
+            # create a feature object
+            feat = Feature(self, geom, altitude, propVals, attrs, labelHeight)
+            feats.append(feat)
+
+        return feats
+
+
+class FeatureBlockBuilder:
+
+    def __init__(self, blockIndex, data, pathRoot=None, urlRoot=None):
+        self.blockIndex = blockIndex
+        self.data = data
+        self.pathRoot = pathRoot
+        self.urlRoot = urlRoot
+
+    def build(self):
+        if self.pathRoot is not None:
+            with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
+                json.dump(self.data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
+
+            url = self.urlRoot + "{0}.json".format(self.blockIndex)
+            return {"url": url}
+
+        else:
+            return self.data
 
 
 class VectorLayerBuilder(LayerBuilder):
@@ -196,167 +363,3 @@ class VectorLayerBuilder(LayerBuilder):
 
         if len(feats) or index == 0:
             yield createBlockBuilder(index, feats)
-
-
-class FeatureBlockBuilder:
-
-    def __init__(self, blockIndex, data, pathRoot=None, urlRoot=None):
-        self.blockIndex = blockIndex
-        self.data = data
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
-
-    def build(self):
-        if self.pathRoot is not None:
-            with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
-                json.dump(self.data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
-
-            url = self.urlRoot + "{0}.json".format(self.blockIndex)
-            return {"url": url}
-
-        else:
-            return self.data
-
-
-class Feature:
-
-    def __init__(self, layer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
-        self.layerProp = layer.prop
-        self.geom = qGeom
-        self.geomType = layer.geomType
-        self.geomClass = layer.geomType2Class.get(layer.geomType)
-        self.altitude = altitude
-        self.values = propValues
-        self.attributes = attrs
-        self.labelHeight = labelHeight
-
-        self.material = -1
-
-    def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
-        """demSize: grid size of the DEM layer which polygons overlay"""
-        geom = self.geom
-        rotation = baseExtent.rotation()
-
-        if demProvider:
-            if self.layerProp.objType.name == "Overlay":
-                center = baseExtent.center()
-                half_width, half_height = baseExtent.width() / 2, baseExtent.height() / 2
-                xmin, ymin = center.x() - half_width, center.y() - half_height
-                xmax, ymax = center.x() + half_width, center.y() + half_height
-                xres, yres = baseExtent.width() / (demSize.width() - 1), baseExtent.height() / (demSize.height() - 1)
-                tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
-                z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres) + self.altitude
-            else:
-                z_func = lambda x, y: demProvider.readValue(x, y) + self.altitude
-        else:
-            z_func = lambda x, y: self.altitude
-
-        # clip geometry
-        if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
-            geom = geom.intersection(clipGeom)
-            if geom is None:
-                return None
-
-        # skip if geometry is empty or null
-        if geom.isEmpty() or geom.isNull():
-            logMessage("empty/null geometry skipped")
-            return None
-
-        if self.geomType == QgsWkbTypes.PolygonGeometry:
-            if self.layerProp.objType.name == "Triangular Mesh":
-                return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
-
-            if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
-
-                if rotation:
-                    geom.rotate(rotation, baseExtent.center())
-                geom = tmesh.splitPolygon(geom)
-                if rotation:
-                    geom.rotate(-rotation, baseExtent.center())
-
-                useCentroidHeight = False
-                centroidPerPolygon = False
-            else:
-                useCentroidHeight = True
-                centroidPerPolygon = True
-
-            return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useCentroidHeight, centroidPerPolygon)
-
-        return self.geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
-
-
-class VectorLayer:
-
-    geomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry, QgsWkbTypes.LineGeometry: LineGeometry, QgsWkbTypes.PolygonGeometry: PolygonGeometry}
-
-    def __init__(self, settings, layer, prop, materialManager, modelManager):
-        self.settings = settings
-        self.layer = layer
-        self.prop = prop
-        self.name = layer.name() if layer else "no title"
-        self.materialManager = materialManager
-        self.modelManager = modelManager
-
-        self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
-        self.geomType = layer.geometryType()
-        self.geomClass = self.geomType2Class.get(self.geomType)
-
-        # attributes
-        self.writeAttrs = prop.properties.get("checkBox_ExportAttrs", False)
-        self.labelAttrIndex = prop.properties.get("comboBox_Label", None)
-        self.fieldIndices = []
-        self.fieldNames = []
-
-        if self.writeAttrs:
-            for index, field in enumerate(layer.fields()):
-                if field.editorWidgetSetup().type() != "Hidden":
-                    self.fieldIndices.append(index)
-                    self.fieldNames.append(field.displayName())
-
-    def hasLabel(self):
-        return bool(self.labelAttrIndex is not None)
-
-    def features(self, request=None):
-        mapTo3d = self.settings.mapTo3d()
-        baseExtent = self.settings.baseExtent
-        baseExtentGeom = baseExtent.geometry()
-        rotation = baseExtent.rotation()
-        prop = self.prop
-        fields = self.layer.fields()
-
-        feats = []
-        for f in self.layer.getFeatures(request or QgsFeatureRequest()):
-            geometry = f.geometry()
-            if geometry is None:
-                logMessage("null geometry skipped")
-                continue
-
-            # coordinate transformation - layer crs to project crs
-            geom = QgsGeometry(geometry)
-            if geom.transform(self.transform) != 0:
-                logMessage("Failed to transform geometry")
-                continue
-
-            # check if geometry intersects with the base extent (rotated rect)
-            if rotation and not baseExtentGeom.intersects(geom):
-                continue
-
-            # set feature to expression context
-            prop.setContextFeature(f)
-
-            # evaluate expression
-            altitude = prop.altitude()
-            propVals = prop.values(f)
-
-            attrs = labelHeight = None
-            if self.writeAttrs:
-                attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
-
-                if self.hasLabel():
-                    labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
-
-            # create a feature object
-            feat = Feature(self, geom, altitude, propVals, attrs, labelHeight)
-            feats.append(feat)
-
-        return feats
