@@ -469,7 +469,6 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
         for w in self.expression.findChildren(QComboBox):
             w.installEventFilter(self.enterKeyFilter)
 
-
     def setup(self, funcType=None, options=None):
         if funcType is None:
             # use the function type passed to __init__

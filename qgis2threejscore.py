@@ -29,6 +29,7 @@ from .geometry import Point
 from .rotatedrect import RotatedRect
 from .qgis2threejstools import logMessage
 
+
 class MapTo3D:
 
     def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):

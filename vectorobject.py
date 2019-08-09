@@ -27,6 +27,7 @@ from Qgis2threejs.geometry import IndexedTriangles2D, IndexedTriangles3D
 
 _objectTypeRegistry = None
 
+
 def objectTypeRegistry():
     global _objectTypeRegistry
     if _objectTypeRegistry is None:

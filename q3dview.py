@@ -37,6 +37,7 @@ except ModuleNotFoundError:
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage, pluginDir
 
+
 def base64image(image):
     ba = QByteArray()
     buffer = QBuffer(ba)

@@ -47,5 +47,6 @@ class TestPlugins(unittest.TestCase):
         err = exporter.export(outputPath(os.path.join("testproject1", "gsielevtile.html")))
         assert err == Exporter.NO_ERROR, err
 
+
 if __name__ == "__main__":
     unittest.main()

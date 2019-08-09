@@ -29,6 +29,8 @@ DEBUG_MODE = 1
 BLOCK_FEATURES = 50   # max number of features in a block of vector layer features
 
 # default export settings
+
+
 class DEF_SETS:
 
     TEMPLATE = "3DViewer.html"
@@ -40,6 +42,7 @@ class DEF_SETS:
     AUTO_Z_SHIFT = False
 
     CONTROLS = "OrbitControls.js"    # last selected one has priority
+
 
 # processing export
 P_OPEN_DIRECTORY = True
