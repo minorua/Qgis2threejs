@@ -249,7 +249,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
             self.defaultValue = options["defaultValue"]
             self.widget.expression.setExpression(str(self.defaultValue))
 
-        self.widget.comboBox.clear();
+        self.widget.comboBox.clear()
         self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
         self.widget.comboBox.addItem("Relative", self.RELATIVE)
 

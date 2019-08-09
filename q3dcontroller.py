@@ -98,7 +98,7 @@ class Q3DController:
             return
 
         self.enabled = enabled
-        self.iface.runScript("app.resume();" if enabled else "app.pause();");
+        self.iface.runScript("app.resume();" if enabled else "app.pause();")
         if enabled:
             self.buildScene()
 
