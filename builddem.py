@@ -83,7 +83,7 @@ class DEMLayerBuilder(LayerBuilder):
                 clip_geometry = dissolvePolygonsOnCanvas(self.settings, clip_layer)
 
         # surroundings
-        surroundings = self.properties.get("checkBox_Surroundings", False)    #TODO: [GSIElevProvider] if prop.layerId else False
+        surroundings = self.properties.get("checkBox_Surroundings", False)  # TODO: [GSIElevProvider] if prop.layerId else False
         roughening = self.properties["spinBox_Roughening"] if surroundings else 1
         size = self.properties["spinBox_Size"] if surroundings else 1
         size2 = size * size
@@ -210,9 +210,9 @@ class DEMBlockBuilder:
         # display type
         canvas_size = self.settings.mapSettings.outputSize()
         if self.properties.get("radioButton_MapCanvas", False):
-            #if texture_scale == 1:
+            # if texture_scale == 1:
             #  mi = self.materialManager.getCanvasImageIndex(opacity, transp_background)
-            #else:
+            # else:
             mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, opacity, transp_background)
 
         elif self.properties.get("radioButton_LayerImage", False):
@@ -223,10 +223,10 @@ class DEMBlockBuilder:
             filepath = self.properties.get("lineEdit_ImageFile", "")
             mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
-        else:   #.get("radioButton_SolidColor", False)
+        else:  # .get("radioButton_SolidColor", False)
             mi = self.materialManager.getMeshMaterialIndex(self.properties.get("colorButton_Color", ""), opacity, True)
 
-        #elif self.properties.get("radioButton_Wireframe", False):
+        # elif self.properties.get("radioButton_Wireframe", False):
         #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
 
         # build material

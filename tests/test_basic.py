@@ -35,11 +35,11 @@ class TestBasic(unittest.TestCase):
                 module += "." + filename[:-3]
 
                 if module not in sys.modules:
-                    #print "load: " + module
+                    # print "load: " + module
                     importlib.import_module(module)
                 else:
-                    #print "reload: " + module
-                    #reload(sys.modules[module])
+                    # print "reload: " + module
+                    # reload(sys.modules[module])
                     pass
                 imported += 1
 

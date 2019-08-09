@@ -152,7 +152,7 @@ class VectorPropertyReader:
         if symbol is None:
             logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.layer.name()))
             return 1
-        #TODO [data defined property]
+        # TODO [data defined property]
         return self.layer.opacity() * symbol.opacity()
 
     @classmethod

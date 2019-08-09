@@ -23,13 +23,13 @@ QGISAPP = start_app()
 class TestPlugins(unittest.TestCase):
 
     def setUp(self):
-        return #TODO
+        return  # TODO
 
         pluginManager(True)   # enables all plugins
 
     def test01_gsielevtile(self):
         """test exporting with GSI elevation tile plugin"""
-        return #TODO
+        return  # TODO
 
         projectPath = dataPath("testproject1.qgs")
         mapSettings = loadProject(projectPath)

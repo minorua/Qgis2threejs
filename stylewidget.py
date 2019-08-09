@@ -212,7 +212,7 @@ class HeightWidgetFunc(WidgetFuncBase):
             comboBox.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
 
         # z value if layer has
-        #if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
+        # if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
         #  comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
         #  comboBox.insertSeparator(1)
 
@@ -348,7 +348,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
         self.widget.label_2.setVisible(isRGB or isLayer)
 
         #self.widget.expression.setPlaceholderText("0xrrggbb" if isRGB else "")
-        #self.widget.expression.setReadOnly(isLayer)
+        # self.widget.expression.setReadOnly(isLayer)
         self.widget.expression.setVisible(isRGB or isLayer)
 
         if isRGB:

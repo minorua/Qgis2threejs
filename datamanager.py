@@ -166,7 +166,7 @@ class ImageManager(DataManager):
             layerids, width, height, extent, transp_background = image[1]
             return self.renderedImage(width, height, extent, transp_background, layerids)
 
-        #imageType == self.CANVAS_IMAGE:
+        # imageType == self.CANVAS_IMAGE:
         transp_background = image[1]
         return self.mapCanvasImage(transp_background)
 

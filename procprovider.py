@@ -38,7 +38,7 @@ class Qgis2threejsProvider(QgsProcessingProvider):
 
         self.algs = [ExportAlgorithm(), ExportImageAlgorithm(), ExportModelAlgorithm()]
         for alg in self.algs:
-            self.addAlgorithm( alg )
+            self.addAlgorithm(alg)
 
     def id(self):
         return "Qgis2threejs"

@@ -147,5 +147,5 @@ class ExportToWebDialog(QDialog):
         self.close()
 
     def progress(self, percentage=None, statusMsg=None):
-        #TODO: [Web export] progress
+        # TODO: [Web export] progress
         pass

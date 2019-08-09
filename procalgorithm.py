@@ -74,12 +74,12 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     def flags(self):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
-    #def tags(self):
+    # def tags(self):
     #  return []
 
     def tr(self, string):
         return string
-        #return QCoreApplication.translate("Qgis2threejsAlg", string)
+        # return QCoreApplication.translate("Qgis2threejsAlg", string)
 
     def addAdvancedParameter(self, param):
         param.setFlags(param.flags() | param.FlagAdvanced)
@@ -156,7 +156,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                         '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'\
                         '    or map canvas (in "Fixed scale" scale mode).'),
                 defaultValue=0
-                #,optional=True
+                # ,optional=True
             )
         )
 

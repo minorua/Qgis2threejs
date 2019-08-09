@@ -47,7 +47,7 @@ class VectorLayerBuilder(LayerBuilder):
     def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
         LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
-        self.materialManager = MaterialManager(settings.materialType())    #TODO: takes imageManager
+        self.materialManager = MaterialManager(settings.materialType())  # TODO: takes imageManager
         self.modelManager = ModelManager(settings)
 
         self.mapTo3d = settings.mapTo3d()

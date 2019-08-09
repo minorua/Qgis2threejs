@@ -236,7 +236,7 @@ class PolygonGeometry(Geometry):
                     # outer boundary
                     bnd = polygon.exteriorRing().points()
                     points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
-                    #if not GeometryUtils.isClockwise(points):
+                    # if not GeometryUtils.isClockwise(points):
                     #  points.reverse()    # to clockwise
                     boundaries.append(points)
 
@@ -244,7 +244,7 @@ class PolygonGeometry(Geometry):
                     for i in range(polygon.numInteriorRings()):
                         bnd = polygon.interiorRing(i).points()
                         points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
-                        #if GeometryUtils.isClockwise(points):
+                        # if GeometryUtils.isClockwise(points):
                         #  points.reverse()    # to counter-clockwise
                         boundaries.append(points)
 
@@ -255,7 +255,7 @@ class PolygonGeometry(Geometry):
                     # outer boundary
                     bnd = polygon.exteriorRing().points()
                     points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
-                    #if not GeometryUtils.isClockwise(points):
+                    # if not GeometryUtils.isClockwise(points):
                     #  points.reverse()    # to clockwise
                     boundaries.append(points)
 
@@ -263,7 +263,7 @@ class PolygonGeometry(Geometry):
                     for i in range(polygon.numInteriorRings()):
                         bnd = polygon.interiorRing(i).points()
                         points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
-                        #if GeometryUtils.isClockwise(points):
+                        # if GeometryUtils.isClockwise(points):
                         #  points.reverse()    # to counter-clockwise
                         boundaries.append(points)
 

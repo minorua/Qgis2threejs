@@ -314,7 +314,7 @@ class Q3DView(QWebView):
 
         event.acceptProposedAction()
 
-    #def reload(self):
+    # def reload(self):
     #  pass
 
     def showStatusMessage(self, msg):

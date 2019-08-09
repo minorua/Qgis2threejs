@@ -245,7 +245,7 @@ class Q3DWindow(QMainWindow):
 
         w = QCheckBox(self.ui.statusbar)
         w.setObjectName("checkBoxPreview")
-        w.setText("Preview")     #_translate("Q3DWindow", "Preview"))
+        w.setText("Preview")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
         self.ui.statusbar.addPermanentWidget(w)
         self.ui.checkBoxPreview = w
@@ -435,7 +435,7 @@ class PropertiesDialog(QDialog):
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
         #self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        #self.activateWindow()
+        # self.activateWindow()
 
     def closeEvent(self, event):
         # save dialog geometry

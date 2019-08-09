@@ -41,7 +41,7 @@ class Qgis2threejs:
         #locale = QSettings().value("locale/userLocale")[0:2]
         #localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{0}.qm'.format(locale))
 
-        #if os.path.exists(localePath):
+        # if os.path.exists(localePath):
         #  self.translator = QTranslator()
         #  self.translator.load(localePath)
 

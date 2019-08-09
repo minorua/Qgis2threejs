@@ -93,7 +93,7 @@ class PolygonTypeBase(ObjectTypeBase):
     geometryType = QgsWkbTypes.PolygonGeometry
 
 
-### PointBasicType
+# PointBasicType
 class PointBasicTypeBase(PointTypeBase):
 
     @classmethod
@@ -242,7 +242,7 @@ class PlaneType(PointBasicTypeBase):
                 "dd": dd}
 
 
-### LineBasicType
+# LineBasicType
 class LineBasicTypeBase(LineTypeBase):
 
     pass
@@ -339,7 +339,7 @@ class ProfileType(LineBasicTypeBase):
                 "bh": feat.values[2] * settings.mapTo3d().multiplierZ}
 
 
-### PolygonBasicType
+# PolygonBasicType
 class PolygonBasicTypeBase(PolygonTypeBase):
 
     @classmethod
@@ -386,7 +386,7 @@ class OverlayType(PolygonBasicTypeBase):
     def setupWidgets(cls, ppage, mapTo3d, layer):
         ppage.initStyleWidgets()
 
-        #TODO: [Polygon - Overlay] border
+        # TODO: [Polygon - Overlay] border
         # opt = {"name": "Border color",
         #        "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
         #        "defaultItem": ColorWidgetFunc.FEATURE}
@@ -433,7 +433,7 @@ class OverlayType(PolygonBasicTypeBase):
 
         g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
 
-        #TODO: [Polygon - Overlay] border
+        # TODO: [Polygon - Overlay] border
         # if feat.values[2] is not None:
         #   g["mb"] = layer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
 
@@ -473,7 +473,7 @@ class TriangularMeshType(PolygonBasicTypeBase):
         return g
 
 
-### IconType
+# IconType
 class IconType(PointTypeBase):
 
     name = "Icon"
@@ -499,7 +499,7 @@ class IconType(PointTypeBase):
                 "scale": feat.values[2]}
 
 
-### ModelFileType
+# ModelFileType
 class ModelFileType(PointTypeBase):
 
     name = "Model File"
@@ -538,7 +538,7 @@ class ModelFileType(PointTypeBase):
                 "scale": feat.values[1] * settings.mapTo3d().multiplier}
 
 
-### ObjectTypeRegistry
+# ObjectTypeRegistry
 class ObjectTypeRegistry:
 
     def __init__(self):
