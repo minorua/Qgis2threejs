@@ -22,41 +22,41 @@ plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def runTest(debug_mode=None):
-  # python path setting
-  plugins_dir = os.path.dirname(plugin_dir)
-  sys.path.append(plugins_dir)
+    # python path setting
+    plugins_dir = os.path.dirname(plugin_dir)
+    sys.path.append(plugins_dir)
 
-  from Qgis2threejs import conf
+    from Qgis2threejs import conf
 
-  if debug_mode is not None:
-    conf.DEBUG_MODE = debug_mode
-  print("DEBUG_MODE is {}.".format(conf.DEBUG_MODE))
+    if debug_mode is not None:
+        conf.DEBUG_MODE = debug_mode
+    print("DEBUG_MODE is {}.".format(conf.DEBUG_MODE))
 
-  # initialize output directory
-  from utilities import initOutputDir
-  initOutputDir()
+    # initialize output directory
+    from utilities import initOutputDir
+    initOutputDir()
 
-  plugin_name = os.path.basename(plugin_dir)
-  suite = unittest.TestLoader().discover(plugin_name + ".tests")
-  unittest.TextTestRunner(verbosity=2).run(suite)
+    plugin_name = os.path.basename(plugin_dir)
+    suite = unittest.TestLoader().discover(plugin_name + ".tests")
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 if __name__ == "__main__":
-  import argparse
-  parser = argparse.ArgumentParser()
-  parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2],
-                      help="debug mode (0: OFF, 1 or 2: ON)")
-  args = parser.parse_args()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2],
+                        help="debug mode (0: OFF, 1 or 2: ON)")
+    args = parser.parse_args()
 
-  QgsApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
-  QGISAPP = start_app()
+    QgsApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+    QGISAPP = start_app()
 
-  # set up network disk cache
-  manager = QgsNetworkAccessManager.instance()
-  cache = QNetworkDiskCache(manager)
-  cache.setCacheDirectory(os.path.join(plugin_dir, "tests", "cache"))
-  cache.setMaximumCacheSize(50 * 1024 * 1024)
-  manager.setCache(cache)
+    # set up network disk cache
+    manager = QgsNetworkAccessManager.instance()
+    cache = QNetworkDiskCache(manager)
+    cache.setCacheDirectory(os.path.join(plugin_dir, "tests", "cache"))
+    cache.setMaximumCacheSize(50 * 1024 * 1024)
+    manager.setCache(cache)
 
-  # run test!
-  runTest(args.debug)
+    # run test!
+    runTest(args.debug)

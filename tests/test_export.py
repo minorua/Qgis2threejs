@@ -24,107 +24,107 @@ QGISAPP = start_app()
 
 class TestExport(unittest.TestCase):
 
-  def setUp(self):
-    pass
+    def setUp(self):
+        pass
 
-  def loadProject(self, filename):
-    """load a project"""
-    mapSettings = loadProject(filename)
+    def loadProject(self, filename):
+        """load a project"""
+        mapSettings = loadProject(filename)
 
-    # extent
-    RotatedRect(mapSettings.extent().center(),
-                mapSettings.extent().height(),
-                mapSettings.extent().height(), 0).toMapSettings(mapSettings)
+        # extent
+        RotatedRect(mapSettings.extent().center(),
+                    mapSettings.extent().height(),
+                    mapSettings.extent().height(), 0).toMapSettings(mapSettings)
 
-    # texture base size
-    mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
+        # texture base size
+        mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
 
-    return mapSettings
+        return mapSettings
 
-  def test01_export_scene1_webpage(self):
-    """test web page export with testproject1.qgs and scene1.qto3settings"""
+    def test01_export_scene1_webpage(self):
+        """test web page export with testproject1.qgs and scene1.qto3settings"""
 
-    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
-    out_path = outputPath("scene1.html")
+        out_path = outputPath("scene1.html")
 
-    exporter = ThreeJSExporter()
-    exporter.loadSettings(dataPath("scene1.qto3settings"))
-    exporter.setMapSettings(mapSettings)
-    err = exporter.export(out_path)
+        exporter = ThreeJSExporter()
+        exporter.loadSettings(dataPath("scene1.qto3settings"))
+        exporter.setMapSettings(mapSettings)
+        err = exporter.export(out_path)
 
-    assert not err, err
+        assert not err, err
 
-  def test02_check_scene1_webpage(self):
-    """render exported web page and check page capture"""
+    def test02_check_scene1_webpage(self):
+        """render exported web page and check page capture"""
 
-    html_path = outputPath("scene1.html")
+        html_path = outputPath("scene1.html")
 
-    url = QUrl.fromLocalFile(html_path)
-    url = QUrl(url.toString() + "#cx=-20&cy=16&cz=-34&tx=-2&ty=0&tz=8")
+        url = QUrl.fromLocalFile(html_path)
+        url = QUrl(url.toString() + "#cx=-20&cy=16&cz=-34&tx=-2&ty=0&tz=8")
 
-    loop = QEventLoop()
-    page = QWebPage()
-    page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
-    page.loadFinished.connect(loop.quit)
-    page.mainFrame().setUrl(url)
-    loop.exec_()
+        loop = QEventLoop()
+        page = QWebPage()
+        page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
+        page.loadFinished.connect(loop.quit)
+        page.mainFrame().setUrl(url)
+        loop.exec_()
 
-    page.mainFrame().evaluateJavaScript('document.getElementById("progress").style.display = "none";')
+        page.mainFrame().evaluateJavaScript('document.getElementById("progress").style.display = "none";')
 
-    timer = QTimer()
-    timer.timeout.connect(loop.quit)
-    timer.start(100)
-    while page.mainFrame().evaluateJavaScript("app.loadingManager.isLoading"):
-      loop.exec_()
+        timer = QTimer()
+        timer.timeout.connect(loop.quit)
+        timer.start(100)
+        while page.mainFrame().evaluateJavaScript("app.loadingManager.isLoading"):
+            loop.exec_()
 
-    timer.stop()
+        timer.stop()
 
-    image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format_ARGB32_Premultiplied)
-    painter = QPainter(image)
-    page.mainFrame().render(painter)
-    painter.end()
+        image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format_ARGB32_Premultiplied)
+        painter = QPainter(image)
+        page.mainFrame().render(painter)
+        painter.end()
 
-    filename = "scene1_qwebpage.png"
-    image.save(outputPath(filename))
-    assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
+        filename = "scene1_qwebpage.png"
+        image.save(outputPath(filename))
+        assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
 
-  def test11_export_scene1_image(self):
-    """test image export with testproject1.qgs and scene1.qto3settings"""
+    def test11_export_scene1_image(self):
+        """test image export with testproject1.qgs and scene1.qto3settings"""
 
-    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
-    filename = "scene1.png"
-    out_path = outputPath(filename)
+        filename = "scene1.png"
+        out_path = outputPath(filename)
 
-    exporter = ImageExporter()
-    exporter.loadSettings(dataPath("scene1.qto3settings"))
-    exporter.setMapSettings(mapSettings)
-    exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
+        exporter = ImageExporter()
+        exporter.loadSettings(dataPath("scene1.qto3settings"))
+        exporter.setMapSettings(mapSettings)
+        exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
 
-    err = exporter.export(out_path)
+        err = exporter.export(out_path)
 
-    assert not err, err
-    assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
+        assert not err, err
+        assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
 
-  def test21_export_scene1_glTF(self):
-    """test glTF export with testproject1.qgs and scene1.qto3settings"""
+    def test21_export_scene1_glTF(self):
+        """test glTF export with testproject1.qgs and scene1.qto3settings"""
 
-    mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
-    filename = "scene1.gltf"
-    out_path = outputPath(filename)
+        filename = "scene1.gltf"
+        out_path = outputPath(filename)
 
-    exporter = ModelExporter()
-    exporter.loadSettings(dataPath("scene1.qto3settings"))
-    exporter.setMapSettings(mapSettings)
-    exporter.initWebPage(100, 100)
+        exporter = ModelExporter()
+        exporter.loadSettings(dataPath("scene1.qto3settings"))
+        exporter.setMapSettings(mapSettings)
+        exporter.initWebPage(100, 100)
 
-    err = exporter.export(out_path)
+        err = exporter.export(out_path)
 
-    assert not err, err
-    assert QFileInfo(out_path).size(), "Empty output file"
+        assert not err, err
+        assert QFileInfo(out_path).size(), "Empty output file"
 
 
 if __name__ == "__main__":
-  unittest.main()
+    unittest.main()

@@ -29,65 +29,65 @@ from . import q3dconst
 
 class ThreeJSBuilder:
 
-  def __init__(self, settings, progress=None):
-    self.settings = settings
-    self.progress = progress or dummyProgress
-    self.imageManager = ImageManager(settings)
+    def __init__(self, settings, progress=None):
+        self.settings = settings
+        self.progress = progress or dummyProgress
+        self.imageManager = ImageManager(settings)
 
-  def buildScene(self, build_layers=True):
-    crs = self.settings.crs
-    extent = self.settings.baseExtent
-    rect = extent.unrotatedRect()
-    mapTo3d = self.settings.mapTo3d()
-    wgs84Center = self.settings.wgs84Center()
+    def buildScene(self, build_layers=True):
+        crs = self.settings.crs
+        extent = self.settings.baseExtent
+        rect = extent.unrotatedRect()
+        mapTo3d = self.settings.mapTo3d()
+        wgs84Center = self.settings.wgs84Center()
 
-    obj = {
-      "type": "scene",
-      "properties": {
-        "height": mapTo3d.planeHeight,
-        "width": mapTo3d.planeWidth,
-        "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
-        "crs": str(crs.authid()),
-        "proj": crs.toProj4(),
-        "rotation": extent.rotation(),
-        "wgs84Center": {
-          "lat": wgs84Center.y(),
-          "lon": wgs84Center.x()
-          },
-        "zExaggeration": mapTo3d.verticalExaggeration,
-        "zShift": mapTo3d.verticalShift
+        obj = {
+            "type": "scene",
+            "properties": {
+                "height": mapTo3d.planeHeight,
+                "width": mapTo3d.planeWidth,
+                "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
+                "crs": str(crs.authid()),
+                "proj": crs.toProj4(),
+                "rotation": extent.rotation(),
+                "wgs84Center": {
+                    "lat": wgs84Center.y(),
+                    "lon": wgs84Center.x()
+                },
+                "zExaggeration": mapTo3d.verticalExaggeration,
+                "zShift": mapTo3d.verticalShift
+            }
         }
-      }
 
-    if build_layers:
-      obj["layers"] = self.buildLayers()
+        if build_layers:
+            obj["layers"] = self.buildLayers()
 
-    return obj
+        return obj
 
-  def buildLayers(self):
-    layers = []
-    for layer in self.settings.getLayerList():
-      if layer.visible:
-        layers.append(self.buildLayer(layer))
-    return layers
+    def buildLayers(self):
+        layers = []
+        for layer in self.settings.getLayerList():
+            if layer.visible:
+                layers.append(self.buildLayer(layer))
+        return layers
 
-  def buildLayer(self, layer):
-    if layer.geomType == q3dconst.TYPE_DEM:
-      builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
-    else:
-      builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
-    return builder.build()
+    def buildLayer(self, layer):
+        if layer.geomType == q3dconst.TYPE_DEM:
+            builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
+        else:
+            builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+        return builder.build()
 
-  def builders(self, layer):
-    if layer.geomType == q3dconst.TYPE_DEM:
-      builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
-    else:
-      builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
-    yield builder
+    def builders(self, layer):
+        if layer.geomType == q3dconst.TYPE_DEM:
+            builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
+        else:
+            builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+        yield builder
 
-    for blockBuilder in builder.blocks():
-      yield blockBuilder
+        for blockBuilder in builder.blocks():
+            yield blockBuilder
 
 
 def dummyProgress(progress=None, statusMsg=None):
-  pass
+    pass

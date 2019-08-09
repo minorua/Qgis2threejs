@@ -21,9 +21,9 @@
 # general
 PLUGIN_VERSION = "2.3.1"
 DEBUG_MODE = 1
-  # 0. no debug info
-  # 1. JS console, qDebug
-  # 2. JS console, qDebug, log file, "debug" element
+# 0. no debug info
+# 1. JS console, qDebug
+# 2. JS console, qDebug, log file, "debug" element
 
 # vector layer
 BLOCK_FEATURES = 50   # max number of features in a block of vector layer features
@@ -31,15 +31,15 @@ BLOCK_FEATURES = 50   # max number of features in a block of vector layer featur
 # default export settings
 class DEF_SETS:
 
-  TEMPLATE = "3DViewer.html"
+    TEMPLATE = "3DViewer.html"
 
-  # world
-  BASE_SIZE = 100
-  Z_EXAGGERATION = 1.0
-  Z_SHIFT = 0
-  AUTO_Z_SHIFT = False
+    # world
+    BASE_SIZE = 100
+    Z_EXAGGERATION = 1.0
+    Z_SHIFT = 0
+    AUTO_Z_SHIFT = False
 
-  CONTROLS = "OrbitControls.js"    # last selected one has priority
+    CONTROLS = "OrbitControls.js"    # last selected one has priority
 
 # processing export
 P_OPEN_DIRECTORY = True

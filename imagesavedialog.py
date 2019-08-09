@@ -29,58 +29,58 @@ from .ui.imagesavedialog import Ui_ImageSaveDialog
 
 class ImageSaveDialog(QDialog):
 
-  def __init__(self, parent):
-    QDialog.__init__(self, parent)
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
 
-    self.wnd = parent
+        self.wnd = parent
 
-    self.ui = Ui_ImageSaveDialog()
-    self.ui.setupUi(self)
-    self.ui.pushButton_Copy.clicked.connect(self.copyToClipboard)
+        self.ui = Ui_ImageSaveDialog()
+        self.ui.setupUi(self)
+        self.ui.pushButton_Copy.clicked.connect(self.copyToClipboard)
 
-    size = self.wnd.ui.webView.size()
-    self.ui.spinBox_Width.setValue(size.width())
-    height = self.ui.spinBox_Height.setValue(size.height())
+        size = self.wnd.ui.webView.size()
+        self.ui.spinBox_Width.setValue(size.width())
+        height = self.ui.spinBox_Height.setValue(size.height())
 
-  def renderImage(self):
-    width = self.ui.spinBox_Width.value()
-    height = self.ui.spinBox_Height.value()
-    return self.wnd.ui.webView.page().renderImage(width, height)
+    def renderImage(self):
+        width = self.ui.spinBox_Width.value()
+        height = self.ui.spinBox_Height.value()
+        return self.wnd.ui.webView.page().renderImage(width, height)
 
-    ###############
-    # in other way
-    controller = Q3DController(self.wnd.qgisIface)
-    controller.settings = self.wnd.settings
+        ###############
+        # in other way
+        controller = Q3DController(self.wnd.qgisIface)
+        controller.settings = self.wnd.settings
 
-    # create an exporter
-    exporter = ImageExporter(controller)
-    exporter.initWebPage(width, height)
+        # create an exporter
+        exporter = ImageExporter(controller)
+        exporter.initWebPage(width, height)
 
-    # get current camera state
-    cameraState = self.wnd.ui.webView.page().cameraState()
+        # get current camera state
+        cameraState = self.wnd.ui.webView.page().cameraState()
 
-    # render image
-    image, err = exporter.render(cameraState=cameraState)
+        # render image
+        image, err = exporter.render(cameraState=cameraState)
 
-    return image
+        return image
 
-  def copyToClipboard(self):
-    self.setEnabled(False)
+    def copyToClipboard(self):
+        self.setEnabled(False)
 
-    image = self.renderImage()
-    QApplication.clipboard().setImage(image)
+        image = self.renderImage()
+        QApplication.clipboard().setImage(image)
 
-    self.setEnabled(True)
-    self.wnd.ui.statusbar.showMessage(self.tr("Image has been rendered and copied to clipboad."), 5000)
+        self.setEnabled(True)
+        self.wnd.ui.statusbar.showMessage(self.tr("Image has been rendered and copied to clipboad."), 5000)
 
-  def accept(self):
-    filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save scene image as"), QDir.homePath(), "PNG files (*.png)")
-    if not filename:
-      return
+    def accept(self):
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save scene image as"), QDir.homePath(), "PNG files (*.png)")
+        if not filename:
+            return
 
-    self.setEnabled(False)
+        self.setEnabled(False)
 
-    image = self.renderImage()
-    image.save(filename)
+        image = self.renderImage()
+        image.save(filename)
 
-    super().accept()
+        super().accept()

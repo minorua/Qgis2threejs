@@ -27,310 +27,310 @@ from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, 
 from PyQt5.QtGui import QImage, QPainter, QPalette
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 try:
-  from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
-  from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+    from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
+    from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 except ModuleNotFoundError:
-  if os.name == "posix":
-    QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
-  raise
+    if os.name == "posix":
+        QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
+    raise
 
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage, pluginDir
 
 def base64image(image):
-  ba = QByteArray()
-  buffer = QBuffer(ba)
-  buffer.open(QIODevice.WriteOnly)
-  image.save(buffer, "PNG")
-  return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
+    ba = QByteArray()
+    buffer = QBuffer(ba)
+    buffer.open(QIODevice.WriteOnly)
+    image.save(buffer, "PNG")
+    return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 class Bridge(QObject):
 
-  # Python to Python signals
-  sceneLoaded = pyqtSignal()
-  sceneLoadError = pyqtSignal()
-  modelDataReceived = pyqtSignal("QByteArray", str)
-  imageReceived = pyqtSignal(int, int, "QImage")
+    # Python to Python signals
+    sceneLoaded = pyqtSignal()
+    sceneLoadError = pyqtSignal()
+    modelDataReceived = pyqtSignal("QByteArray", str)
+    imageReceived = pyqtSignal(int, int, "QImage")
 
-  def __init__(self, parent=None):
-    QObject.__init__(self, parent)
-    self._parent = parent
-    self.data = QVariant()
+    def __init__(self, parent=None):
+        QObject.__init__(self, parent)
+        self._parent = parent
+        self.data = QVariant()
 
-  @pyqtSlot(result="QVariant")
-  def data(self):
-    return self.data
+    @pyqtSlot(result="QVariant")
+    def data(self):
+        return self.data
 
-  def setData(self, data):
-    self.data = QVariant(data)
+    def setData(self, data):
+        self.data = QVariant(data)
 
-  @pyqtSlot()
-  def onSceneLoaded(self):
-    self.sceneLoaded.emit()
+    @pyqtSlot()
+    def onSceneLoaded(self):
+        self.sceneLoaded.emit()
 
-  @pyqtSlot()
-  def onSceneLoadError(self):
-    self.sceneLoadError.emit()
+    @pyqtSlot()
+    def onSceneLoadError(self):
+        self.sceneLoadError.emit()
 
-  @pyqtSlot(int, int, result=str)
-  def mouseUpMessage(self, x, y):
-    return "Clicked at ({0}, {1})".format(x, y)
-    # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
+    @pyqtSlot(int, int, result=str)
+    def mouseUpMessage(self, x, y):
+        return "Clicked at ({0}, {1})".format(x, y)
+        # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
 
-  @pyqtSlot("QByteArray", str)
-  def saveBytes(self, data, filename):
-    self.modelDataReceived.emit(data, filename)
+    @pyqtSlot("QByteArray", str)
+    def saveBytes(self, data, filename):
+        self.modelDataReceived.emit(data, filename)
 
-  @pyqtSlot(str, str)
-  def saveString(self, text, filename):
-    self.modelDataReceived.emit(text.encode("UTF-8"), filename)
+    @pyqtSlot(str, str)
+    def saveString(self, text, filename):
+        self.modelDataReceived.emit(text.encode("UTF-8"), filename)
 
-  @pyqtSlot(int, int, str)
-  def saveImage(self, width, height, dataUrl):
-    image = None
-    if dataUrl:
-      ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
-      image = QImage()
-      image.loadFromData(ba)
-    self.imageReceived.emit(width, height, image)
+    @pyqtSlot(int, int, str)
+    def saveImage(self, width, height, dataUrl):
+        image = None
+        if dataUrl:
+            ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+            image = QImage()
+            image.loadFromData(ba)
+        self.imageReceived.emit(width, height, image)
 
 
 class Q3DWebPage(QWebPage):
 
-  initialized = pyqtSignal()
-  sceneLoaded = pyqtSignal()
-  sceneLoadError = pyqtSignal()
+    initialized = pyqtSignal()
+    sceneLoaded = pyqtSignal()
+    sceneLoadError = pyqtSignal()
 
-  def __init__(self, parent=None):
-    QWebPage.__init__(self, parent)
+    def __init__(self, parent=None):
+        QWebPage.__init__(self, parent)
 
-    self.modelLoadersLoaded = False
+        self.modelLoadersLoaded = False
 
-    if DEBUG_MODE == 2:
-      # open log file
-      self.logfile = open(pluginDir("q3dview.log"), "w")
+        if DEBUG_MODE == 2:
+            # open log file
+            self.logfile = open(pluginDir("q3dview.log"), "w")
 
-  def setup(self, iface, wnd=None, enabled=True, exportMode=False):
-    """iface: Q3DInterface or Q3DViewerInterface
-       wnd: Q3DWindow or None (off-screen mode)"""
-    self.iface = iface
-    self.wnd = wnd or DummyWindow()
-    self.offScreen = bool(wnd is None)
-    self._enabled = enabled
-    self.exportMode = exportMode
+    def setup(self, iface, wnd=None, enabled=True, exportMode=False):
+        """iface: Q3DInterface or Q3DViewerInterface
+           wnd: Q3DWindow or None (off-screen mode)"""
+        self.iface = iface
+        self.wnd = wnd or DummyWindow()
+        self.offScreen = bool(wnd is None)
+        self._enabled = enabled
+        self.exportMode = exportMode
 
-    self.bridge = Bridge(self)
-    self.bridge.sceneLoaded.connect(self.sceneLoaded)
-    self.bridge.sceneLoadError.connect(self.sceneLoadError)
-    self.bridge.modelDataReceived.connect(self.saveModelData)
-    self.bridge.imageReceived.connect(self.saveImage)
+        self.bridge = Bridge(self)
+        self.bridge.sceneLoaded.connect(self.sceneLoaded)
+        self.bridge.sceneLoadError.connect(self.sceneLoadError)
+        self.bridge.modelDataReceived.connect(self.saveModelData)
+        self.bridge.imageReceived.connect(self.saveImage)
 
-    self.loadFinished.connect(self.pageLoaded)
-    self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
+        self.loadFinished.connect(self.pageLoaded)
+        self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
 
-    # security settings
-    origin = self.mainFrame().securityOrigin()
-    origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
-    origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
+        # security settings
+        origin = self.mainFrame().securityOrigin()
+        origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
+        origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
 
-    if False and self.offScreen:
-      # transparent background
-      palette = self.palette()
-      palette.setBrush(QPalette.Base, Qt.transparent)
-      self.setPalette(palette)
-      #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
+        if False and self.offScreen:
+            # transparent background
+            palette = self.palette()
+            palette.setBrush(QPalette.Base, Qt.transparent)
+            self.setPalette(palette)
+            #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
-    url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "viewer.html").replace("\\", "/")
-    self.myUrl = QUrl.fromLocalFile(url)
-    self.mainFrame().setUrl(self.myUrl)
+        url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "viewer.html").replace("\\", "/")
+        self.myUrl = QUrl.fromLocalFile(url)
+        self.mainFrame().setUrl(self.myUrl)
 
-  def reload(self):
-    self.mainFrame().setUrl(self.myUrl)
+    def reload(self):
+        self.mainFrame().setUrl(self.myUrl)
 
-  def pageLoaded(self, ok):
-    self.modelLoadersLoaded = False
+    def pageLoaded(self, ok):
+        self.modelLoadersLoaded = False
 
-    # start application
-    self.iface.startApplication(offScreen=self.offScreen, exportMode=self.exportMode)
+        # start application
+        self.iface.startApplication(offScreen=self.offScreen, exportMode=self.exportMode)
 
-    if self.iface.controller.settings.isOrthoCamera():
-      self.runScript("switchCamera(true);")
+        if self.iface.controller.settings.isOrthoCamera():
+            self.runScript("switchCamera(true);")
 
-    self.initialized.emit()
+        self.initialized.emit()
 
-    if self.offScreen:
-      return
+        if self.offScreen:
+            return
 
-    if self._enabled:
-      self.iface.requestSceneUpdate()
-    else:
-      self.iface.setPreviewEnabled(False)
+        if self._enabled:
+            self.iface.requestSceneUpdate()
+        else:
+            self.iface.setPreviewEnabled(False)
 
-  def runScript(self, string, message="", sourceID="q3dview.py"):
-    if DEBUG_MODE:
-      self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
-      qDebug("runScript: {}\n".format(message if message else string).encode("utf-8"))
+    def runScript(self, string, message="", sourceID="q3dview.py"):
+        if DEBUG_MODE:
+            self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
+            qDebug("runScript: {}\n".format(message if message else string).encode("utf-8"))
 
-      if DEBUG_MODE == 2:
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
-        self.logfile.flush()
+            if DEBUG_MODE == 2:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
+                self.logfile.flush()
 
-    return self.mainFrame().evaluateJavaScript(string)
+        return self.mainFrame().evaluateJavaScript(string)
 
-  def addJSObject(self):
-    self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-    if DEBUG_MODE:
-      self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
+    def addJSObject(self):
+        self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
+        if DEBUG_MODE:
+            self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
-  def loadScriptFile(self, filename):
-    with open(filename, "r", encoding="utf-8") as f:
-      script = f.read()
-    return self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
+    def loadScriptFile(self, filename):
+        with open(filename, "r", encoding="utf-8") as f:
+            script = f.read()
+        return self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
 
-  def loadModelLoaders(self):
-    if not self.modelLoadersLoaded:
-      self.loadScriptFile(pluginDir("js/polyfill/polyfill.min.js"))
-      self.loadScriptFile(pluginDir("js/threejs/loaders/ColladaLoader.js"))
-      self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
-      self.modelLoadersLoaded = True
+    def loadModelLoaders(self):
+        if not self.modelLoadersLoaded:
+            self.loadScriptFile(pluginDir("js/polyfill/polyfill.min.js"))
+            self.loadScriptFile(pluginDir("js/threejs/loaders/ColladaLoader.js"))
+            self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
+            self.modelLoadersLoaded = True
 
-  def cameraState(self):
-    return self.mainFrame().evaluateJavaScript("cameraState()")
+    def cameraState(self):
+        return self.mainFrame().evaluateJavaScript("cameraState()")
 
-  def setCameraState(self, state):
-    """set camera position and camera target"""
-    self.bridge.setData(state)
-    self.mainFrame().evaluateJavaScript("setCameraState(fetchData())")
+    def setCameraState(self, state):
+        """set camera position and camera target"""
+        self.bridge.setData(state)
+        self.mainFrame().evaluateJavaScript("setCameraState(fetchData())")
 
-  def resetCameraState(self):
-    self.runScript("app.controls.reset();")
+    def resetCameraState(self):
+        self.runScript("app.controls.reset();")
 
-  def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
-    loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
+    def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
+        loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
 
-    if DEBUG_MODE:
-      logMessage("waitForSceneLoaded: loading={}".format(loading), False)
+        if DEBUG_MODE:
+            logMessage("waitForSceneLoaded: loading={}".format(loading), False)
 
-    if not loading:
-      return False
+        if not loading:
+            return False
 
-    loop = QEventLoop()
+        loop = QEventLoop()
 
-    def error():
-      loop.exit(1)
+        def error():
+            loop.exit(1)
 
-    def userCancel():
-      loop.exit(2)
+        def userCancel():
+            loop.exit(2)
 
-    def timeOut():
-      loop.exit(3)
+        def timeOut():
+            loop.exit(3)
 
-    self.sceneLoaded.connect(loop.quit)
-    self.sceneLoadError.connect(error)
+        self.sceneLoaded.connect(loop.quit)
+        self.sceneLoadError.connect(error)
 
-    if cancelSignal:
-      cancelSignal.connect(userCancel)
+        if cancelSignal:
+            cancelSignal.connect(userCancel)
 
-    if timeout:
-      timer = QTimer()
-      timer.setSingleShot(True)
-      timer.timeout.connect(timeOut)
-      timer.start(timeout)
+        if timeout:
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(timeOut)
+            timer.start(timeout)
 
-    err = loop.exec_()
-    if err:
-      return {1: "error", 2: "canceled", 3: "timeout"}[err]
-    return False
+        err = loop.exec_()
+        if err:
+            return {1: "error", 2: "canceled", 3: "timeout"}[err]
+        return False
 
-  def sendData(self, data):
-    self.bridge.setData(data)
-    self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData())")
+    def sendData(self, data):
+        self.bridge.setData(data)
+        self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData())")
 
-  def saveModelData(self, data, filename):
-    try:
-      with open(filename, "wb") as f:
-        f.write(data)
+    def saveModelData(self, data, filename):
+        try:
+            with open(filename, "wb") as f:
+                f.write(data)
 
-      logMessage("Successfully saved model data: " + filename, False)
-    except Exception as e:
-      QMessageBox.warning(self, "Failed to save model data.", str(e))
+            logMessage("Successfully saved model data: " + filename, False)
+        except Exception as e:
+            QMessageBox.warning(self, "Failed to save model data.", str(e))
 
-  def renderImage(self, width, height):
-    old_size = self.viewportSize()
-    self.setViewportSize(QSize(width, height))
+    def renderImage(self, width, height):
+        old_size = self.viewportSize()
+        self.setViewportSize(QSize(width, height))
 
-    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-    painter = QPainter(image)
-    self.mainFrame().render(painter)
-    painter.end()
+        image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+        painter = QPainter(image)
+        self.mainFrame().render(painter)
+        painter.end()
 
-    self.setViewportSize(old_size)
-    return image
+        self.setViewportSize(old_size)
+        return image
 
-  def saveImage(self, width, height, image):
-    filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
-    if filename:
-      image.save(filename)
+    def saveImage(self, width, height, image):
+        filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
+        if filename:
+            image.save(filename)
 
-  def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-    self.wnd.printConsoleMessage(message, lineNumber, sourceID)
+    def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
+        self.wnd.printConsoleMessage(message, lineNumber, sourceID)
 
-    if DEBUG_MODE == 2:
-      now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
-      self.logfile.flush()
+        if DEBUG_MODE == 2:
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
+            self.logfile.flush()
 
 
 class Q3DView(QWebView):
 
-  def __init__(self, parent=None):
-    QWebView.__init__(self, parent)
-    self.setAcceptDrops(True)
+    def __init__(self, parent=None):
+        QWebView.__init__(self, parent)
+        self.setAcceptDrops(True)
 
-    self._page = Q3DWebPage(self)
-    self.setPage(self._page)
+        self._page = Q3DWebPage(self)
+        self.setPage(self._page)
 
-  def setup(self, iface, wnd=None, enabled=True):
-    self.iface = iface
-    self.wnd = wnd
-    self._page.setup(iface, wnd, enabled)
+    def setup(self, iface, wnd=None, enabled=True):
+        self.iface = iface
+        self.wnd = wnd
+        self._page.setup(iface, wnd, enabled)
 
-    # security settings - allow access to remote urls (for Icon)
-    self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
+        # security settings - allow access to remote urls (for Icon)
+        self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
 
-  def reloadPage(self):
-    self.wnd.clearConsole()
-    self._page.reload()
+    def reloadPage(self):
+        self.wnd.clearConsole()
+        self._page.reload()
 
-  def dragEnterEvent(self, event):
-    event.acceptProposedAction()
+    def dragEnterEvent(self, event):
+        event.acceptProposedAction()
 
-  def dropEvent(self, event):
-    # logMessage(event.mimeData().formats())
-    for url in event.mimeData().urls():
-      self.runScript("loadModel('" + url.toString() + "');")
+    def dropEvent(self, event):
+        # logMessage(event.mimeData().formats())
+        for url in event.mimeData().urls():
+            self.runScript("loadModel('" + url.toString() + "');")
 
-    event.acceptProposedAction()
+        event.acceptProposedAction()
 
-  #def reload(self):
-  #  pass
+    #def reload(self):
+    #  pass
 
-  def showStatusMessage(self, msg):
-    self.wnd.ui.statusbar.showMessage(msg)
+    def showStatusMessage(self, msg):
+        self.wnd.ui.statusbar.showMessage(msg)
 
-  def sendData(self, data):
-    self._page.sendData(data)
+    def sendData(self, data):
+        self._page.sendData(data)
 
-  def resetCameraState(self):
-    self._page.resetCameraState()
+    def resetCameraState(self):
+        self._page.resetCameraState()
 
-  def runScript(self, string, message="", sourceID="q3dview.py"):
-    self._page.runScript(string, message, sourceID)
+    def runScript(self, string, message="", sourceID="q3dview.py"):
+        self._page.runScript(string, message, sourceID)
 
 
 class DummyWindow:
 
-  def printConsoleMessage(self, message, lineNumber="", sourceID=""):
-    logMessage(message, False)
+    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+        logMessage(message, False)

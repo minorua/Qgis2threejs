@@ -49,403 +49,403 @@ from .rotatedrect import RotatedRect
 
 class AlgorithmBase(QgsProcessingAlgorithm):
 
-  INPUT = "INPUT"
-  SCALE = "SCALE"
-  BUFFER = "BUFFER"
-  TEX_WIDTH = "TEX_WIDTH"
-  TEX_HEIGHT = "TEX_HEIGHT"
-  TITLE_FIELD = "TITLE"
-  CF_FILTER = "CF_FILTER"
-  SETTINGS = "SETTINGS"
-  HEADER = "HEADER"
-  FOOTER = "FOOTER"
-  OUTPUT = "OUTPUT"
+    INPUT = "INPUT"
+    SCALE = "SCALE"
+    BUFFER = "BUFFER"
+    TEX_WIDTH = "TEX_WIDTH"
+    TEX_HEIGHT = "TEX_HEIGHT"
+    TITLE_FIELD = "TITLE"
+    CF_FILTER = "CF_FILTER"
+    SETTINGS = "SETTINGS"
+    HEADER = "HEADER"
+    FOOTER = "FOOTER"
+    OUTPUT = "OUTPUT"
 
-  def __init__(self):
-    super().__init__()
+    def __init__(self):
+        super().__init__()
 
-    self.controller = None
+        self.controller = None
 
-  def createInstance(self):
-    if DEBUG_MODE:
-      logMessage("createInstance(): {}".format(self.__class__.__name__), False)
-    return self.__class__()
+    def createInstance(self):
+        if DEBUG_MODE:
+            logMessage("createInstance(): {}".format(self.__class__.__name__), False)
+        return self.__class__()
 
-  def flags(self):
-    return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+    def flags(self):
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
-  #def tags(self):
-  #  return []
+    #def tags(self):
+    #  return []
 
-  def tr(self, string):
-    return string
-    #return QCoreApplication.translate("Qgis2threejsAlg", string)
+    def tr(self, string):
+        return string
+        #return QCoreApplication.translate("Qgis2threejsAlg", string)
 
-  def addAdvancedParameter(self, param):
-    param.setFlags(param.flags() | param.FlagAdvanced)
-    self.addParameter(param)
+    def addAdvancedParameter(self, param):
+        param.setFlags(param.flags() | param.FlagAdvanced)
+        self.addParameter(param)
 
-  def initAlgorithm(self, config, label=True):
-    if DEBUG_MODE:
-      logMessage("initAlgorithm(): {}".format(self.__class__.__name__), False)
+    def initAlgorithm(self, config, label=True):
+        if DEBUG_MODE:
+            logMessage("initAlgorithm(): {}".format(self.__class__.__name__), False)
 
-    qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
-    self.controller = Q3DController(qgis_iface)
-    self.controller.settings.loadSettingsFromFile(None)
+        qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
+        self.controller = Q3DController(qgis_iface)
+        self.controller.settings.loadSettingsFromFile(None)
 
-    self.addParameter(
-      QgsProcessingParameterFolderDestination(
-        self.OUTPUT,
-        self.tr("Output Directory")
-      )
-    )
-
-    self.addParameter(
-      QgsProcessingParameterVectorLayer(
-        self.INPUT,
-        self.tr("Coverage Layer"),
-        [QgsProcessing.TypeVectorAnyGeometry]
-      )
-    )
-
-    self.addParameter(
-      QgsProcessingParameterField(
-        self.TITLE_FIELD,
-        self.tr("Title Field"),
-        None,
-        self.INPUT,
-        QgsProcessingParameterField.Any
-      )
-    )
-
-    self.addParameter(
-      QgsProcessingParameterBoolean(
-        self.CF_FILTER,
-        self.tr("Current Feature Filter")
-      )
-    )
-
-    self.addAdvancedParameter(
-      QgsProcessingParameterEnum(
-        self.SCALE,
-        self.tr("Scale Mode"),
-        ["Fit to Geometry", "Fixed Scale (based on map canvas)"]
-      )
-    )
-
-    self.addAdvancedParameter(
-      QgsProcessingParameterNumber(
-        self.BUFFER,
-        self.tr("Buffer (%)"),
-        defaultValue=10
-      )
-    )
-
-    self.addAdvancedParameter(
-      QgsProcessingParameterNumber(
-        self.TEX_WIDTH,
-        self.tr("Texture base width (px)"),
-        defaultValue=1024
-      )
-    )
-
-    self.addAdvancedParameter(
-      QgsProcessingParameterNumber(
-        self.TEX_HEIGHT,
-        self.tr('Texture base height (px)\n'\
-                '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'\
-                '    or map canvas (in "Fixed scale" scale mode).'),
-        defaultValue=0
-        #,optional=True
-      )
-    )
-
-    if label:
-      self.addAdvancedParameter(
-        QgsProcessingParameterExpression(
-          self.HEADER,
-          self.tr("Header Label"),
-          "'{}'".format(self.controller.settings.headerLabel().replace("'", "''")),
-          self.INPUT
+        self.addParameter(
+            QgsProcessingParameterFolderDestination(
+                self.OUTPUT,
+                self.tr("Output Directory")
+            )
         )
-      )
 
-      self.addAdvancedParameter(
-        QgsProcessingParameterExpression(
-          self.FOOTER,
-          self.tr("Footer Label"),
-          "'{}'".format(self.controller.settings.footerLabel().replace("'", "''")),
-          self.INPUT
+        self.addParameter(
+            QgsProcessingParameterVectorLayer(
+                self.INPUT,
+                self.tr("Coverage Layer"),
+                [QgsProcessing.TypeVectorAnyGeometry]
+            )
         )
-      )
 
-    self.addAdvancedParameter(
-      QgsProcessingParameterFile(self.SETTINGS,
-        self.tr('Export Settings File (.qto3settings)'),
-        extension="qto3settings",
-        optional=True
-      )
-    )
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.TITLE_FIELD,
+                self.tr("Title Field"),
+                None,
+                self.INPUT,
+                QgsProcessingParameterField.Any
+            )
+        )
 
-  def prepareAlgorithm(self, parameters, context, feedback):
-    clayer = self.parameterAsLayer(parameters, self.INPUT, context)
-    cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
-    settings_path = self.parameterAsString(parameters, self.SETTINGS, context)
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.CF_FILTER,
+                self.tr("Current Feature Filter")
+            )
+        )
 
-    self.transform = QgsCoordinateTransform(clayer.crs(),
-                                            context.project().crs(),
-                                            context.project())
+        self.addAdvancedParameter(
+            QgsProcessingParameterEnum(
+                self.SCALE,
+                self.tr("Scale Mode"),
+                ["Fit to Geometry", "Fixed Scale (based on map canvas)"]
+            )
+        )
 
-    self.controller.settings.loadSettingsFromFile(settings_path or None)
-    self.controller.settings.updateLayerList()
+        self.addAdvancedParameter(
+            QgsProcessingParameterNumber(
+                self.BUFFER,
+                self.tr("Buffer (%)"),
+                defaultValue=10
+            )
+        )
 
-    if clayer not in self.controller.settings.mapSettings.layers():
-      msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
-      feedback.reportError(msg, True)
-      return False
-    return True
+        self.addAdvancedParameter(
+            QgsProcessingParameterNumber(
+                self.TEX_WIDTH,
+                self.tr("Texture base width (px)"),
+                defaultValue=1024
+            )
+        )
 
-  def processAlgorithm(self, parameters, context, feedback):
-    if DEBUG_MODE:
-      logMessage("processAlgorithm(): {}".format(self.__class__.__name__), False)
+        self.addAdvancedParameter(
+            QgsProcessingParameterNumber(
+                self.TEX_HEIGHT,
+                self.tr('Texture base height (px)\n'\
+                        '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'\
+                        '    or map canvas (in "Fixed scale" scale mode).'),
+                defaultValue=0
+                #,optional=True
+            )
+        )
 
-    clayer = self.parameterAsLayer(parameters, self.INPUT, context)
-    title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)
-    cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
-    fixed_scale = self.parameterAsEnum(parameters, self.SCALE, context)   # == 1
-    buf = self.parameterAsDouble(parameters, self.BUFFER, context)
-    tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
-    orig_tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
+        if label:
+            self.addAdvancedParameter(
+                QgsProcessingParameterExpression(
+                    self.HEADER,
+                    self.tr("Header Label"),
+                    "'{}'".format(self.controller.settings.headerLabel().replace("'", "''")),
+                    self.INPUT
+                )
+            )
 
-    header_exp = QgsExpression(self.parameterAsExpression(parameters, self.HEADER, context))
-    footer_exp = QgsExpression(self.parameterAsExpression(parameters, self.FOOTER, context))
+            self.addAdvancedParameter(
+                QgsProcessingParameterExpression(
+                    self.FOOTER,
+                    self.tr("Footer Label"),
+                    "'{}'".format(self.controller.settings.footerLabel().replace("'", "''")),
+                    self.INPUT
+                )
+            )
 
-    exp_context = QgsExpressionContext()
-    exp_context.appendScope(QgsExpressionContextUtils.layerScope(clayer))
+        self.addAdvancedParameter(
+            QgsProcessingParameterFile(self.SETTINGS,
+                                       self.tr('Export Settings File (.qto3settings)'),
+                                       extension="qto3settings",
+                                       optional=True
+                                       )
+        )
 
-    out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
-    if not QDir(out_dir).exists():
-      QDir().mkpath(out_dir)
+    def prepareAlgorithm(self, parameters, context, feedback):
+        clayer = self.parameterAsLayer(parameters, self.INPUT, context)
+        cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
+        settings_path = self.parameterAsString(parameters, self.SETTINGS, context)
 
-    if DEBUG_MODE:
-      openDirectory(out_dir)
+        self.transform = QgsCoordinateTransform(clayer.crs(),
+                                                context.project().crs(),
+                                                context.project())
 
-    mapSettings = self.controller.settings.mapSettings
-    baseExtent = self.controller.settings.baseExtent
-    rotation = mapSettings.rotation()
-    orig_size = mapSettings.outputSize()
+        self.controller.settings.loadSettingsFromFile(settings_path or None)
+        self.controller.settings.updateLayerList()
 
-    if cf_filter:
-      cf_layer = QgsMemoryProviderUtils.createMemoryLayer("current feature",
-                                                          clayer.fields(),
-                                                          clayer.wkbType(),
-                                                          clayer.crs())
-      layers = [cf_layer if lyr == clayer else lyr for lyr in mapSettings.layers()]
-      mapSettings.setLayers(layers)
+        if clayer not in self.controller.settings.mapSettings.layers():
+            msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
+            feedback.reportError(msg, True)
+            return False
+        return True
 
-      doc = QDomDocument("qgis")
-      clayer.exportNamedStyle(doc)
-      cf_layer.importNamedStyle(doc)
+    def processAlgorithm(self, parameters, context, feedback):
+        if DEBUG_MODE:
+            logMessage("processAlgorithm(): {}".format(self.__class__.__name__), False)
 
-    total = clayer.featureCount()
-    for current, feature in enumerate(clayer.getFeatures()):
-      if feedback.isCanceled():
-        break
+        clayer = self.parameterAsLayer(parameters, self.INPUT, context)
+        title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)
+        cf_filter = self.parameterAsBool(parameters, self.CF_FILTER, context)
+        fixed_scale = self.parameterAsEnum(parameters, self.SCALE, context)   # == 1
+        buf = self.parameterAsDouble(parameters, self.BUFFER, context)
+        tex_width = self.parameterAsInt(parameters, self.TEX_WIDTH, context)
+        orig_tex_height = self.parameterAsInt(parameters, self.TEX_HEIGHT, context)
 
-      if cf_filter:
-        cf_layer.startEditing()
-        cf_layer.deleteFeatures([f.id() for f in cf_layer.getFeatures()])
-        cf_layer.addFeature(feature)
-        cf_layer.commitChanges()
+        header_exp = QgsExpression(self.parameterAsExpression(parameters, self.HEADER, context))
+        footer_exp = QgsExpression(self.parameterAsExpression(parameters, self.FOOTER, context))
 
-      title = feature.attribute(title_field)
-      feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
-      logMessage("Exporting {}...".format(title), False)
+        exp_context = QgsExpressionContext()
+        exp_context.appendScope(QgsExpressionContextUtils.layerScope(clayer))
 
-      # extent
-      geometry = QgsGeometry(feature.geometry())
-      geometry.transform(self.transform)
-      center = geometry.centroid().asPoint()
+        out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
+        if not QDir(out_dir).exists():
+            QDir().mkpath(out_dir)
 
-      if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
-        tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
-        rect = RotatedRect(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
-      else:
-        geometry.rotate(rotation, center)
-        rect = geometry.boundingBox().scaled(1 + buf / 100)
-        center = RotatedRect.rotatePoint(rect.center(), rotation, center)
-        if orig_tex_height:
-          tex_height = orig_tex_height
-          tex_ratio = tex_width / tex_height
-          rect_ratio = rect.width() / rect.height()
-          if tex_ratio > rect_ratio:
-            rect = RotatedRect(center, rect.height() * tex_ratio, rect.height(), rotation)
-          else:
-            rect = RotatedRect(center, rect.width(), rect.width() / tex_ratio, rotation)
-        else:
-          # fit to buffered geometry bounding box
-          rect = RotatedRect(center, rect.width(), rect.height(), rotation)
-          tex_height = tex_width * rect.height() / rect.width()
+        if DEBUG_MODE:
+            openDirectory(out_dir)
 
-      rect.toMapSettings(mapSettings)
-      mapSettings.setOutputSize(QSize(tex_width, tex_height))
+        mapSettings = self.controller.settings.mapSettings
+        baseExtent = self.controller.settings.baseExtent
+        rotation = mapSettings.rotation()
+        orig_size = mapSettings.outputSize()
 
-      self.controller.settings.setMapSettings(mapSettings)
+        if cf_filter:
+            cf_layer = QgsMemoryProviderUtils.createMemoryLayer("current feature",
+                                                                clayer.fields(),
+                                                                clayer.wkbType(),
+                                                                clayer.crs())
+            layers = [cf_layer if lyr == clayer else lyr for lyr in mapSettings.layers()]
+            mapSettings.setLayers(layers)
 
-      # labels
-      exp_context.setFeature(feature)
-      self.controller.settings.setHeaderLabel(header_exp.evaluate(exp_context))
-      self.controller.settings.setFooterLabel(footer_exp.evaluate(exp_context))
+            doc = QDomDocument("qgis")
+            clayer.exportNamedStyle(doc)
+            cf_layer.importNamedStyle(doc)
 
-      self.export(title, out_dir, feedback)
+        total = clayer.featureCount()
+        for current, feature in enumerate(clayer.getFeatures()):
+            if feedback.isCanceled():
+                break
 
-      feedback.setProgress(int(current / total * 100))
+            if cf_filter:
+                cf_layer.startEditing()
+                cf_layer.deleteFeatures([f.id() for f in cf_layer.getFeatures()])
+                cf_layer.addFeature(feature)
+                cf_layer.commitChanges()
 
-    if P_OPEN_DIRECTORY and not DEBUG_MODE:
-      openDirectory(out_dir)
+            title = feature.attribute(title_field)
+            feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
+            logMessage("Exporting {}...".format(title), False)
 
-    return {}
+            # extent
+            geometry = QgsGeometry(feature.geometry())
+            geometry.transform(self.transform)
+            center = geometry.centroid().asPoint()
 
-  def export(self, title):
-    pass
+            if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
+                tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
+                rect = RotatedRect(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
+            else:
+                geometry.rotate(rotation, center)
+                rect = geometry.boundingBox().scaled(1 + buf / 100)
+                center = RotatedRect.rotatePoint(rect.center(), rotation, center)
+                if orig_tex_height:
+                    tex_height = orig_tex_height
+                    tex_ratio = tex_width / tex_height
+                    rect_ratio = rect.width() / rect.height()
+                    if tex_ratio > rect_ratio:
+                        rect = RotatedRect(center, rect.height() * tex_ratio, rect.height(), rotation)
+                    else:
+                        rect = RotatedRect(center, rect.width(), rect.width() / tex_ratio, rotation)
+                else:
+                    # fit to buffered geometry bounding box
+                    rect = RotatedRect(center, rect.width(), rect.height(), rotation)
+                    tex_height = tex_width * rect.height() / rect.width()
+
+            rect.toMapSettings(mapSettings)
+            mapSettings.setOutputSize(QSize(tex_width, tex_height))
+
+            self.controller.settings.setMapSettings(mapSettings)
+
+            # labels
+            exp_context.setFeature(feature)
+            self.controller.settings.setHeaderLabel(header_exp.evaluate(exp_context))
+            self.controller.settings.setFooterLabel(footer_exp.evaluate(exp_context))
+
+            self.export(title, out_dir, feedback)
+
+            feedback.setProgress(int(current / total * 100))
+
+        if P_OPEN_DIRECTORY and not DEBUG_MODE:
+            openDirectory(out_dir)
+
+        return {}
+
+    def export(self, title):
+        pass
 
 
 class ExportAlgorithm(AlgorithmBase):
 
-  TEMPLATE = "TEMPLATE"
+    TEMPLATE = "TEMPLATE"
 
-  def initAlgorithm(self, config):
-    super().initAlgorithm(config)
+    def initAlgorithm(self, config):
+        super().initAlgorithm(config)
 
-    templates = ["3DViewer.html", "3DViewer(dat-gui).html", "Mobile.html"]
-    self.addParameter(
-      QgsProcessingParameterEnum(
-        self.TEMPLATE,
-        self.tr("Template"),
-        templates
-      )
-    )
+        templates = ["3DViewer.html", "3DViewer(dat-gui).html", "Mobile.html"]
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                self.TEMPLATE,
+                self.tr("Template"),
+                templates
+            )
+        )
 
-  def name(self):
-    return 'exportweb'
+    def name(self):
+        return 'exportweb'
 
-  def displayName(self):
-    return self.tr("Export as Web Page")
+    def displayName(self):
+        return self.tr("Export as Web Page")
 
-  def prepareAlgorithm(self, parameters, context, feedback):
-    super().prepareAlgorithm(parameters, context, feedback)
-    self.exporter = ThreeJSExporter(self.controller.settings)
-    return True
+    def prepareAlgorithm(self, parameters, context, feedback):
+        super().prepareAlgorithm(parameters, context, feedback)
+        self.exporter = ThreeJSExporter(self.controller.settings)
+        return True
 
-  def export(self, title, out_dir, feedback):
-    # scene title
-    filename = "{}.html".format(title)
-    filepath = os.path.join(out_dir, filename)
-    self.controller.settings.setOutputFilename(filepath)
+    def export(self, title, out_dir, feedback):
+        # scene title
+        filename = "{}.html".format(title)
+        filepath = os.path.join(out_dir, filename)
+        self.controller.settings.setOutputFilename(filepath)
 
-    err_msg = self.controller.settings.checkValidity()
-    if err_msg:
-      feedback.reportError("Invalid settings: " + err_msg)
-      return False
+        err_msg = self.controller.settings.checkValidity()
+        if err_msg:
+            feedback.reportError("Invalid settings: " + err_msg)
+            return False
 
-    # export
-    err = self.exporter.export(cancelSignal=feedback.canceled)
-    return True
+        # export
+        err = self.exporter.export(cancelSignal=feedback.canceled)
+        return True
 
 
 class ExportImageAlgorithm(AlgorithmBase):
 
-  WIDTH = "WIDTH"
-  HEIGHT = "HEIGHT"
+    WIDTH = "WIDTH"
+    HEIGHT = "HEIGHT"
 
-  def initAlgorithm(self, config):
-    super().initAlgorithm(config)
+    def initAlgorithm(self, config):
+        super().initAlgorithm(config)
 
-    self.addParameter(
-      QgsProcessingParameterNumber(
-        self.WIDTH,
-        self.tr("Image Width"),
-        defaultValue=2480,
-        minValue=1)
-    )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WIDTH,
+                self.tr("Image Width"),
+                defaultValue=2480,
+                minValue=1)
+        )
 
-    self.addParameter(
-      QgsProcessingParameterNumber(
-        self.HEIGHT,
-        self.tr("Image Height"),
-        defaultValue=1748,
-        minValue=1)
-    )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.HEIGHT,
+                self.tr("Image Height"),
+                defaultValue=1748,
+                minValue=1)
+        )
 
-  def name(self):
-    return 'exportimage'
+    def name(self):
+        return 'exportimage'
 
-  def displayName(self):
-    return self.tr("Export as Image")
+    def displayName(self):
+        return self.tr("Export as Image")
 
-  def prepareAlgorithm(self, parameters, context, feedback):
-    if not super().prepareAlgorithm(parameters, context, feedback):
-      return False
+    def prepareAlgorithm(self, parameters, context, feedback):
+        if not super().prepareAlgorithm(parameters, context, feedback):
+            return False
 
-    width = self.parameterAsInt(parameters, self.WIDTH, context)
-    height = self.parameterAsInt(parameters, self.HEIGHT, context)
+        width = self.parameterAsInt(parameters, self.WIDTH, context)
+        height = self.parameterAsInt(parameters, self.HEIGHT, context)
 
-    feedback.setProgressText("Preparing a web page for off-screen rendering...")
+        feedback.setProgressText("Preparing a web page for off-screen rendering...")
 
-    self.exporter = ImageExporter(self.controller)
-    self.exporter.initWebPage(width, height)
-    return True
+        self.exporter = ImageExporter(self.controller)
+        self.exporter.initWebPage(width, height)
+        return True
 
-  def export(self, title, out_dir, feedback):
-    # image path
-    filename = "{}.png".format(title)
-    filepath = os.path.join(out_dir, filename)
+    def export(self, title, out_dir, feedback):
+        # image path
+        filename = "{}.png".format(title)
+        filepath = os.path.join(out_dir, filename)
 
-    err_msg = self.controller.settings.checkValidity()
-    if err_msg:
-      feedback.reportError("Invalid settings: " + err_msg)
-      return False
+        err_msg = self.controller.settings.checkValidity()
+        if err_msg:
+            feedback.reportError("Invalid settings: " + err_msg)
+            return False
 
-    # export
-    err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
+        # export
+        err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
 
-    return True
+        return True
 
 
 class ExportModelAlgorithm(AlgorithmBase):
 
-  def initAlgorithm(self, config):
-    super().initAlgorithm(config, label=False)
+    def initAlgorithm(self, config):
+        super().initAlgorithm(config, label=False)
 
-  def name(self):
-    return 'exportmodel'
+    def name(self):
+        return 'exportmodel'
 
-  def displayName(self):
-    return self.tr("Export as 3D Model")
+    def displayName(self):
+        return self.tr("Export as 3D Model")
 
-  def prepareAlgorithm(self, parameters, context, feedback):
-    if not super().prepareAlgorithm(parameters, context, feedback):
-      return False
+    def prepareAlgorithm(self, parameters, context, feedback):
+        if not super().prepareAlgorithm(parameters, context, feedback):
+            return False
 
-    self.modelType = "gltf"
+        self.modelType = "gltf"
 
-    feedback.setProgressText("Preparing a web page for 3D model export...")
+        feedback.setProgressText("Preparing a web page for 3D model export...")
 
-    self.exporter = ModelExporter(self.controller)
-    self.exporter.initWebPage(500, 500)
-    return True
+        self.exporter = ModelExporter(self.controller)
+        self.exporter.initWebPage(500, 500)
+        return True
 
-  def export(self, title, out_dir, feedback):
-    # model path
-    filename = "{}.{}".format(title, self.modelType)
-    filepath = os.path.join(out_dir, filename)
+    def export(self, title, out_dir, feedback):
+        # model path
+        filename = "{}.{}".format(title, self.modelType)
+        filepath = os.path.join(out_dir, filename)
 
-    err_msg = self.controller.settings.checkValidity()
-    if err_msg:
-      feedback.reportError("Invalid settings: " + err_msg)
-      return False
+        err_msg = self.controller.settings.checkValidity()
+        if err_msg:
+            feedback.reportError("Invalid settings: " + err_msg)
+            return False
 
-    # export
-    err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
+        # export
+        err = self.exporter.export(filepath, cancelSignal=feedback.canceled)
 
-    return True
+        return True

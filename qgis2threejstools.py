@@ -34,243 +34,243 @@ from .conf import DEBUG_MODE
 
 
 def getLayersInProject():
-  layers = []
-  for tLayer in QgsProject.instance().layerTreeRoot().findLayers():
-    layers.append(tLayer.layer())
-  return layers
+    layers = []
+    for tLayer in QgsProject.instance().layerTreeRoot().findLayers():
+        layers.append(tLayer.layer())
+    return layers
 
 
 def getDEMLayersInProject():
-  layers = []
-  for layer in getLayersInProject():
-    if layer.type() == QgsMapLayer.RasterLayer:
-      if layer.providerType() == "gdal" and layer.bandCount() == 1:
-        layers.append(layer)
-  return layers
+    layers = []
+    for layer in getLayersInProject():
+        if layer.type() == QgsMapLayer.RasterLayer:
+            if layer.providerType() == "gdal" and layer.bandCount() == 1:
+                layers.append(layer)
+    return layers
 
 
 def getLayersByLayerIds(layerIds):
-  layers = []
-  for id in layerIds:
-    layer = QgsProject.instance().mapLayer(id)
-    if layer:
-      layers.append(layer)
-  return layers
+    layers = []
+    for id in layerIds:
+        layer = QgsProject.instance().mapLayer(id)
+        if layer:
+            layers.append(layer)
+    return layers
 
 
 def pyobj2js(obj, escape=False, quoteHex=True):
-  if isinstance(obj, dict):
-    items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
-    return "{" + ",".join(items) + "}"
-  elif isinstance(obj, list):
-    items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
-    return "[" + ",".join(items) + "]"
-  elif isinstance(obj, bool):
-    return "true" if obj else "false"
-  elif isinstance(obj, str):
-    if escape:
-      return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
-    if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
-      return obj
-    return '"' + obj + '"'
-  elif isinstance(obj, bytes):
-    return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
-  elif isinstance(obj, (int, float)):
-    return obj
-  elif obj == NULL:   # qgis.core.NULL
-    return "null"
-  return '"' + str(obj) + '"'
+    if isinstance(obj, dict):
+        items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
+        return "{" + ",".join(items) + "}"
+    elif isinstance(obj, list):
+        items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
+        return "[" + ",".join(items) + "]"
+    elif isinstance(obj, bool):
+        return "true" if obj else "false"
+    elif isinstance(obj, str):
+        if escape:
+            return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
+        if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
+            return obj
+        return '"' + obj + '"'
+    elif isinstance(obj, bytes):
+        return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
+    elif isinstance(obj, (int, float)):
+        return obj
+    elif obj == NULL:   # qgis.core.NULL
+        return "null"
+    return '"' + str(obj) + '"'
 
 
 def abchex(number):
-  h = ""
-  for c in "{:x}".format(number):
-    i = ord(c)
-    if i >= 97:   # a - f => k - p
-      h += chr(i + 10)
-    else:         # 0 - 9 => a - j
-      h += chr(i + 49)
-  return h
+    h = ""
+    for c in "{:x}".format(number):
+        i = ord(c)
+        if i >= 97:   # a - f => k - p
+            h += chr(i + 10)
+        else:         # 0 - 9 => a - j
+            h += chr(i + 49)
+    return h
 
 
 def logMessage(message, warning=True):
-  QgsMessageLog.logMessage(str(message), "Qgis2threejs", Qgis.Warning if warning else Qgis.Info, warning)
+    QgsMessageLog.logMessage(str(message), "Qgis2threejs", Qgis.Warning if warning else Qgis.Info, warning)
 
 
 def shortTextFromSelectedLayerIds(layerIds):
-  count = len(layerIds)
-  return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
+    count = len(layerIds)
+    return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
 
-  #
-  if count == 0:
-    return "0 layer"
+    #
+    if count == 0:
+        return "0 layer"
 
-  layer = QgsProject.instance().mapLayer(layerIds[0])
-  if layer is None:
-    return "Layer not found"
+    layer = QgsProject.instance().mapLayer(layerIds[0])
+    if layer is None:
+        return "Layer not found"
 
-  text = '"{0}"'.format(layer.name())
-  if count > 1:
-    text += " and {0} layer".format(count - 1)
-  if count > 2:
-    text += "s"
-  return text
+    text = '"{0}"'.format(layer.name())
+    if count > 1:
+        text += " and {0} layer".format(count - 1)
+    if count > 2:
+        text += "s"
+    return text
 
 
 def openHTMLFile(htmlfilename):
-  url = QUrl.fromLocalFile(htmlfilename).toString()
-  settings = QSettings()
-  browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
-  if browserPath == "":
-    # open default web browser
-    webbrowser.open(url, new=2)    # new=2: new tab if possible
-  else:
-    if not QProcess.startDetached(browserPath, [url]):
-      QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
-      return False
-  return True
+    url = QUrl.fromLocalFile(htmlfilename).toString()
+    settings = QSettings()
+    browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
+    if browserPath == "":
+        # open default web browser
+        webbrowser.open(url, new=2)    # new=2: new tab if possible
+    else:
+        if not QProcess.startDetached(browserPath, [url]):
+            QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
+            return False
+    return True
 
 
 def openDirectory(dir_path):
-  QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
+    QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
 
 
 def base64image(image):
-  ba = QByteArray()
-  buffer = QBuffer(ba)
-  buffer.open(QIODevice.WriteOnly)
-  image.save(buffer, "PNG")
-  return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
+    ba = QByteArray()
+    buffer = QBuffer(ba)
+    buffer.open(QIODevice.WriteOnly)
+    image.save(buffer, "PNG")
+    return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 def getTemplateConfig(template_path):
-  abspath = os.path.join(templateDir(), template_path)
-  meta_path = os.path.splitext(abspath)[0] + ".txt"
+    abspath = os.path.join(templateDir(), template_path)
+    meta_path = os.path.splitext(abspath)[0] + ".txt"
 
-  if not os.path.exists(meta_path):
-    return {}
-  parser = configparser.ConfigParser()
-  parser.read(meta_path)
-  config = {"path": abspath}
-  for item in parser.items("general"):
-    config[item[0]] = item[1]
-  if DEBUG_MODE:
-    qDebug("config: " + str(config))
-  return config
+    if not os.path.exists(meta_path):
+        return {}
+    parser = configparser.ConfigParser()
+    parser.read(meta_path)
+    config = {"path": abspath}
+    for item in parser.items("general"):
+        config[item[0]] = item[1]
+    if DEBUG_MODE:
+        qDebug("config: " + str(config))
+    return config
 
 
 def copyFile(source, dest, overwrite=False):
-  if os.path.exists(dest):
-    if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
-      if DEBUG_MODE:
-        qDebug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
-      QFile.remove(dest)
-    else:
-      if DEBUG_MODE:
-        qDebug("File already exists: %s" % dest)
-      return False
+    if os.path.exists(dest):
+        if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
+            if DEBUG_MODE:
+                qDebug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
+            QFile.remove(dest)
+        else:
+            if DEBUG_MODE:
+                qDebug("File already exists: %s" % dest)
+            return False
 
-  ret = QFile.copy(source, dest)
-  if DEBUG_MODE:
-    if ret:
-      qDebug("File copied: %s to %s" % (source, dest))
-    else:
-      qDebug("Failed to copy file: %s to %s" % (source, dest))
-  return ret
+    ret = QFile.copy(source, dest)
+    if DEBUG_MODE:
+        if ret:
+            qDebug("File copied: %s to %s" % (source, dest))
+        else:
+            qDebug("Failed to copy file: %s to %s" % (source, dest))
+    return ret
 
 
 def copyDir(source, dest, overwrite=False):
-  if os.path.exists(dest):
-    if overwrite:
-      if DEBUG_MODE:
-        qDebug("Existing dir removed: %s" % dest)
-      shutil.rmtree(dest)
-    else:
-      if DEBUG_MODE:
-        qDebug("Dir already exists: %s" % dest)
-      return False
+    if os.path.exists(dest):
+        if overwrite:
+            if DEBUG_MODE:
+                qDebug("Existing dir removed: %s" % dest)
+            shutil.rmtree(dest)
+        else:
+            if DEBUG_MODE:
+                qDebug("Dir already exists: %s" % dest)
+            return False
 
-  shutil.copytree(source, dest)
-  if DEBUG_MODE:
-    qDebug("Dir copied: %s to %s" % (source, dest))
-  return True
+    shutil.copytree(source, dest)
+    if DEBUG_MODE:
+        qDebug("Dir copied: %s to %s" % (source, dest))
+    return True
 
 
 def copyFiles(filesToCopy, out_dir):
-  plugin_dir = pluginDir()
-  for item in filesToCopy:
-    dest_dir = os.path.join(out_dir, item.get("dest", ""))
-    subdirs = item.get("subdirs", False)
-    overwrite = item.get("overwrite", False)
+    plugin_dir = pluginDir()
+    for item in filesToCopy:
+        dest_dir = os.path.join(out_dir, item.get("dest", ""))
+        subdirs = item.get("subdirs", False)
+        overwrite = item.get("overwrite", False)
 
-    if DEBUG_MODE:
-      qDebug(str(item))
-      qDebug("dest dir: %s" % dest_dir)
+        if DEBUG_MODE:
+            qDebug(str(item))
+            qDebug("dest dir: %s" % dest_dir)
 
-    # make destination directory
-    QDir().mkpath(dest_dir)
-
-    # copy files
-    for f in item.get("files", []):
-      fi = QFileInfo(f)
-      dest = os.path.join(dest_dir, fi.fileName())
-      if fi.isRelative():
-        copyFile(os.path.join(plugin_dir, f), dest, overwrite)
-      else:
-        copyFile(f, dest, overwrite)
-
-    # copy directories
-    for d in item.get("dirs", []):
-      fi = QFileInfo(d)
-      source = os.path.join(plugin_dir, d) if fi.isRelative() else d
-      dest = os.path.join(dest_dir, fi.fileName())
-      if subdirs:
-        copyDir(source, dest, overwrite)
-      else:
         # make destination directory
-        QDir().mkpath(dest)
+        QDir().mkpath(dest_dir)
 
-        # copy files in the source directory
-        filenames = QDir(source).entryList(QDir.Files)
-        for filename in filenames:
-          copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
+        # copy files
+        for f in item.get("files", []):
+            fi = QFileInfo(f)
+            dest = os.path.join(dest_dir, fi.fileName())
+            if fi.isRelative():
+                copyFile(os.path.join(plugin_dir, f), dest, overwrite)
+            else:
+                copyFile(f, dest, overwrite)
+
+        # copy directories
+        for d in item.get("dirs", []):
+            fi = QFileInfo(d)
+            source = os.path.join(plugin_dir, d) if fi.isRelative() else d
+            dest = os.path.join(dest_dir, fi.fileName())
+            if subdirs:
+                copyDir(source, dest, overwrite)
+            else:
+                # make destination directory
+                QDir().mkpath(dest)
+
+                # copy files in the source directory
+                filenames = QDir(source).entryList(QDir.Files)
+                for filename in filenames:
+                    copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
 
 def removeTemporaryFiles(filelist):
-  for file in filelist:
-    QFile.remove(file)
+    for file in filelist:
+        QFile.remove(file)
 
 
 def removeTemporaryOutputDir():
-  removeDir(temporaryOutputDir())
+    removeDir(temporaryOutputDir())
 
 
 def removeDir(dirName):
-  d = QDir(dirName)
-  if d.exists():
-    for info in d.entryInfoList(QDir.Dirs | QDir.Files | QDir.NoDotAndDotDot):
-      if info.isDir():
-        removeDir(info.absoluteFilePath())
-      else:
-        d.remove(info.fileName())
-    d.rmdir(dirName)
+    d = QDir(dirName)
+    if d.exists():
+        for info in d.entryInfoList(QDir.Dirs | QDir.Files | QDir.NoDotAndDotDot):
+            if info.isDir():
+                removeDir(info.absoluteFilePath())
+            else:
+                d.remove(info.fileName())
+        d.rmdir(dirName)
 
 
 def pluginDir(*subdirs):
-  p = os.path.dirname(__file__)
-  if subdirs:
-    return os.path.join(p, *subdirs)
-  return p
+    p = os.path.dirname(__file__)
+    if subdirs:
+        return os.path.join(p, *subdirs)
+    return p
 
 
 def templateDir():
-  return pluginDir("html_templates")
+    return pluginDir("html_templates")
 
 
 def temporaryOutputDir():
-  return QDir.tempPath() + "/Qgis2threejs"
+    return QDir.tempPath() + "/Qgis2threejs"
 
 
 def settingsFilePath():
-  proj_path = QgsProject.instance().fileName()
-  return proj_path + ".qto3settings" if proj_path else None
+    proj_path = QgsProject.instance().fileName()
+    return proj_path + ".qto3settings" if proj_path else None

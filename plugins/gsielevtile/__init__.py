@@ -21,25 +21,25 @@
 
 class GSIElevTilePlugin:
 
-  @staticmethod
-  def name():
-    return "GSI Elevation Tile Plugin"
+    @staticmethod
+    def name():
+        return "GSI Elevation Tile Plugin"
 
-  @staticmethod
-  def type():
-    return "demprovider"
+    @staticmethod
+    def type():
+        return "demprovider"
 
-  @staticmethod
-  def providerName():
-    return "GSI Elevation Tile"
+    @staticmethod
+    def providerName():
+        return "GSI Elevation Tile"
 
-  @staticmethod
-  def providerId():
-    return "gsielevtile"
+    @staticmethod
+    def providerId():
+        return "gsielevtile"
 
-  @staticmethod
-  def providerClass():
-    from .gsielevtileprovider import GSIElevTileProvider
-    return GSIElevTileProvider
+    @staticmethod
+    def providerClass():
+        from .gsielevtileprovider import GSIElevTileProvider
+        return GSIElevTileProvider
 
 plugin_class = GSIElevTilePlugin

@@ -23,25 +23,25 @@
 
 class LayerBuilder:
 
-  def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
-    self.settings = settings
-    self.imageManager = imageManager
+    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
+        self.settings = settings
+        self.imageManager = imageManager
 
-    self.layer = layer
-    self.properties = layer.properties
+        self.layer = layer
+        self.properties = layer.properties
 
-    self.pathRoot = pathRoot
-    self.urlRoot = urlRoot
-    self.progress = progress or dummyProgress
+        self.pathRoot = pathRoot
+        self.urlRoot = urlRoot
+        self.progress = progress or dummyProgress
 
-  def build(self):
-    pass
+    def build(self):
+        pass
 
-  def layerProperties(self):
-    return {"name": self.layer.name,
-            "queryable": 1,
-            "visible": self.properties.get("checkBox_Visible", True) or self.pathRoot is None}  # always visible in preview
+    def layerProperties(self):
+        return {"name": self.layer.name,
+                "queryable": 1,
+                "visible": self.properties.get("checkBox_Visible", True) or self.pathRoot is None}  # always visible in preview
 
 
 def dummyProgress(progress=None, statusMsg=None):
-  pass
+    pass

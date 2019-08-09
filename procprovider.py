@@ -26,29 +26,29 @@ from .qgis2threejstools import pluginDir
 
 class Qgis2threejsProvider(QgsProcessingProvider):
 
-  def __init__(self):
-    QgsProcessingProvider.__init__(self)
-    self.algs = []
+    def __init__(self):
+        QgsProcessingProvider.__init__(self)
+        self.algs = []
 
-  def unload(self):
-    pass
+    def unload(self):
+        pass
 
-  def loadAlgorithms(self):
-    from .procalgorithm import ExportAlgorithm, ExportImageAlgorithm, ExportModelAlgorithm
+    def loadAlgorithms(self):
+        from .procalgorithm import ExportAlgorithm, ExportImageAlgorithm, ExportModelAlgorithm
 
-    self.algs = [ExportAlgorithm(), ExportImageAlgorithm(), ExportModelAlgorithm()]
-    for alg in self.algs:
-      self.addAlgorithm( alg )
+        self.algs = [ExportAlgorithm(), ExportImageAlgorithm(), ExportModelAlgorithm()]
+        for alg in self.algs:
+            self.addAlgorithm( alg )
 
-  def id(self):
-    return "Qgis2threejs"
+    def id(self):
+        return "Qgis2threejs"
 
-  def name(self):
-    # tr
-    return "Qgis2threejs"
+    def name(self):
+        # tr
+        return "Qgis2threejs"
 
-  def longName(self):
-    return self.name()
+    def longName(self):
+        return self.name()
 
-  def icon(self):
-    return QIcon(pluginDir("Qgis2threejs.png"))
+    def icon(self):
+        return QIcon(pluginDir("Qgis2threejs.png"))
