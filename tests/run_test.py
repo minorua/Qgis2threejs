@@ -48,8 +48,12 @@ if __name__ == "__main__":
                         help="debug mode (0: OFF, 1 or 2: ON)")
     args = parser.parse_args()
 
+    # start QGIS application
     QgsApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     QGISAPP = start_app()
+
+    # make sure that application startup log has been written
+    sys.stdout.flush()
 
     # set up network disk cache
     manager = QgsNetworkAccessManager.instance()
