@@ -368,4 +368,3 @@ class ExportSettings:
         decor = self.data.get(ExportSettings.DECOR, {})
         decor["FooterLabel"] = str(text)
         self.data[ExportSettings.DECOR] = decor
-
