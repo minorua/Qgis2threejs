@@ -31,7 +31,7 @@ DEBUG_MODE = 1
 RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
 
 # vector layer
-BLOCK_FEATURES = 50   # max number of features in a block of vector layer features
+FEATURES_PER_BLOCK = 50   # max number of features in a data block
 
 # default export settings
 

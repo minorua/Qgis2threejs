@@ -51,8 +51,8 @@ class Bridge(QObject):
     # Python to Python signals
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
-    modelDataReceived = pyqtSignal("QByteArray", str)
-    imageReceived = pyqtSignal(int, int, "QImage")
+    modelDataReady = pyqtSignal("QByteArray", str)
+    imageReady = pyqtSignal(int, int, "QImage")
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
@@ -81,11 +81,11 @@ class Bridge(QObject):
 
     @pyqtSlot("QByteArray", str)
     def saveBytes(self, data, filename):
-        self.modelDataReceived.emit(data, filename)
+        self.modelDataReady.emit(data, filename)
 
     @pyqtSlot(str, str)
     def saveString(self, text, filename):
-        self.modelDataReceived.emit(text.encode("UTF-8"), filename)
+        self.modelDataReady.emit(text.encode("UTF-8"), filename)
 
     @pyqtSlot(int, int, str)
     def saveImage(self, width, height, dataUrl):
@@ -94,7 +94,7 @@ class Bridge(QObject):
             ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
             image = QImage()
             image.loadFromData(ba)
-        self.imageReceived.emit(width, height, image)
+        self.imageReady.emit(width, height, image)
 
 
 class Q3DWebPage(QWebPage):
@@ -124,8 +124,8 @@ class Q3DWebPage(QWebPage):
         self.bridge = Bridge(self)
         self.bridge.sceneLoaded.connect(self.sceneLoaded)
         self.bridge.sceneLoadError.connect(self.sceneLoadError)
-        self.bridge.modelDataReceived.connect(self.saveModelData)
-        self.bridge.imageReceived.connect(self.saveImage)
+        self.bridge.modelDataReady.connect(self.saveModelData)
+        self.bridge.imageReady.connect(self.saveImage)
 
         self.loadFinished.connect(self.pageLoaded)
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)

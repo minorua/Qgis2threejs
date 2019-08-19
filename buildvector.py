@@ -23,7 +23,7 @@ import json
 from PyQt5.QtCore import QVariant
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
-from .conf import BLOCK_FEATURES, DEBUG_MODE
+from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .datamanager import MaterialManager, ModelManager
 from .buildlayer import LayerBuilder
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
@@ -356,7 +356,7 @@ class VectorLayerBuilder(LayerBuilder):
 
             feats.append(f)
 
-            if len(feats) == BLOCK_FEATURES:
+            if len(feats) == FEATURES_PER_BLOCK:
                 yield createBlockBuilder(index, feats)
                 index += 1
                 feats = []
