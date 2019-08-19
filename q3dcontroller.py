@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 import time
-from PyQt5.QtCore import QObject, QTimer, pyqtSignal
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal, qDebug
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE
@@ -272,8 +272,8 @@ class Q3DController(QObject):
         if layer.properties.get("comboBox_ObjectType") == "Model File":
             self.iface.loadModelLoaders()
 
-        ts0 = time.time()
-        tss = []
+        t0 = t4 = time.time()
+        dlist = []
         i = 0
         for builder in self.builder.builders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
@@ -281,14 +281,18 @@ class Q3DController(QObject):
                 self.iface.runScript("loadAborted();")
                 logMessage("***** layer building aborted *****", False)
                 return False
-            ts1 = time.time()
+
+            t1 = time.time()
             obj = builder.build()
-            ts2 = time.time()
+            t2 = time.time()
+
             self.iface.loadJSONObject(obj)
-            ts3 = time.time()
-            tss.append([ts2 - ts1, ts3 - ts2])
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1
+
+            t3 = time.time()
+            dlist.append([t1 - t4, t2 - t1, t3 - t2])
+            t4 = t3
 
         layer.updated = False
 
@@ -296,8 +300,10 @@ class Q3DController(QObject):
         self.iface.progress()
 
         if DEBUG_MODE:
-            msg = "updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss]))
-            logMessage(msg, False)
+            dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
+            qDebug("{0} layer updated: {1:.3f}s\n{2}\n".format(layer.name,
+                                                               time.time() - t0,
+                                                               dlist).encode("utf-8"))
         return True
 
     def hideLayer(self, layer):

@@ -171,7 +171,7 @@ class Q3DWebPage(QWebPage):
     def runScript(self, string, message="", sourceID="q3dview.py"):
         if DEBUG_MODE:
             self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
-            qDebug("runScript: {}\n".format(message if message else string).encode("utf-8"))
+            qDebug("runScript: {}".format(message if message else string).encode("utf-8"))
 
             if DEBUG_MODE == 2:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
