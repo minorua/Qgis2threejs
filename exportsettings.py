@@ -102,7 +102,6 @@ class Layer:
 class ExportSettings:
 
     SCENE = "SCENE"
-    WORLD = "WORLD"   # renamed to SCENE
     CAMERA = "CAMERA"
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
@@ -111,7 +110,6 @@ class ExportSettings:
 
     def __init__(self):
         self.data = {}
-        self.canvas = None
         self.mapSettings = None
         self.baseExtent = None
         self.crs = None
@@ -125,7 +123,7 @@ class ExportSettings:
         self.data = {}
 
     def sceneProperties(self):
-        return self.data.get(ExportSettings.SCENE, self.data.get(ExportSettings.WORLD, {}))   # for backward compatibility
+        return self.data.get(ExportSettings.SCENE, {})
 
     def setSceneProperties(self, properties):
         self.data[ExportSettings.SCENE] = properties
@@ -232,13 +230,8 @@ class ExportSettings:
         self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
         self.data[ExportSettings.OPTIONS][key] = value
 
-    def setMapCanvas(self, canvas):
-        self.setMapSettings(canvas.mapSettings())
-        self.canvas = canvas
-
     def setMapSettings(self, settings):
         """settings: QgsMapSettings"""
-        self.canvas = None
         self._mapTo3d = None
         self.mapSettings = settings
 

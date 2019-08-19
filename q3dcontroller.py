@@ -198,7 +198,7 @@ class Q3DController(QObject):
         self.iface.progress(0, "Updating scene")
 
         if update_extent and self.mapCanvas:
-            self.builder.settings.setMapCanvas(self.mapCanvas)
+            self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
 
         if build_scene:
             self.iface.loadJSONObject(self.builder.buildScene(False))
