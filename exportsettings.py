@@ -38,14 +38,31 @@ class Layer:
     def __init__(self, layerId, name, geomType, properties=None, visible=False):
         self.layerId = layerId
         self.name = name
-        self.geomType = geomType
+        self.geomType = geomType        # q3dconst.TYPE_XXX
         self.properties = properties
         self.visible = visible
 
-        self.id = None
         self.jsLayerId = None
         self.mapLayer = None
         self.updated = False
+
+    def clone(self):
+        c = Layer(self.layerId, self.name, self.geomType, self.properties, self.visible)
+        c.jsLayerId = self.jsLayerId
+        c.mapLayer = self.mapLayer
+        c.updated = self.updated
+        return c
+
+    def copyTo(self, t):
+        t.layerId = self.layerId
+        t.name = self.name
+        t.geomType = self.geomType
+        t.properties = self.properties
+        t.visible = self.visible
+
+        t.jsLayerId = self.jsLayerId
+        t.mapLayer = self.mapLayer
+        t.updated = self.updated
 
     def toDict(self):
         return {"layerId": self.layerId,
@@ -316,10 +333,9 @@ class ExportSettings:
             item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM)
         layers.append(item)
 
-        # update id and jsLayerId
+        # update jsLayerId
         for index, layer in enumerate(layers):
-            layer.id = index
-            layer.jsLayerId = index      # "{}_{}".format(itemId, layerId[:8])
+            layer.jsLayerId = index
 
         self.data[ExportSettings.LAYERS] = layers
 

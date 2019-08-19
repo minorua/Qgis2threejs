@@ -20,17 +20,18 @@
 """
 import os
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QDir, QObject, QSettings, QUrl, pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QDir, QObject, QSettings, QThread, QUrl
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
-from qgis.core import QgsProject
-from PyQt5.QtWidgets import QApplication
+from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
-from .conf import DEBUG_MODE, PLUGIN_VERSION
+from .conf import RUN_CNTLR_IN_BKGND, DEBUG_MODE, PLUGIN_VERSION
+from .exportsettings import Layer
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
+from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
@@ -39,24 +40,16 @@ from .ui.q3dwindow import Ui_Q3DWindow
 
 class Q3DViewerInterface(Q3DInterface):
 
-    def __init__(self, webPage, wnd, treeView):
-        super().__init__(webPage)
+    sceneUpdateRequest = pyqtSignal(object)     # param: scene properties dict or 0 (if properties do not changes)
+    layerUpdateRequest = pyqtSignal(Layer)      # param: Layer object
+    clearSettingsRequest = pyqtSignal()
+    abortRequest = pyqtSignal()
+    previewStateChanged = pyqtSignal(bool)
+
+    def __init__(self, settings, webPage, wnd, treeView, parent=None):
+        super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
         self.treeView = treeView
-
-    def connectToController(self, controller):
-        super().connectToController(controller)
-        controller.connectToMapCanvas()
-
-    def disconnectFromController(self):
-        if self.controller:
-            self.controller.disconnectFromMapCanvas()
-            super().disconnectFromController()
-
-    def fetchLayerList(self):
-        settings = self.controller.settings
-        settings.updateLayerList()
-        self.treeView.setLayerList(settings.getLayerList())
 
     def startApplication(self, offScreen=False, exportMode=False):
         super().startApplication(offScreen, exportMode)
@@ -67,16 +60,11 @@ class Q3DViewerInterface(Q3DInterface):
         if DEBUG_MODE:
             self.runScript("displayFPS();")
 
-    def setPreviewEnabled(self, enabled):
-        self.controller.setPreviewEnabled(enabled)
-
-        elem = "document.getElementById('cover')"
-        self.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
-        if not enabled:
-            self.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
-
-    def showMessage(self, msg, timeout=0):
-        self.wnd.ui.statusbar.showMessage(msg, timeout)
+    def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
+        if show_in_msg_bar:
+            self.wnd.qgisIface.messageBar().pushMessage("Qgis2threejs Error", msg, level=Qgis.Warning, duration=timeout)
+        else:
+            self.wnd.ui.statusbar.showMessage(msg, timeout)
 
     def clearMessage(self):
         self.wnd.ui.statusbar.clearMessage()
@@ -92,83 +80,93 @@ class Q3DViewerInterface(Q3DInterface):
             if text is not None:
                 bar.setFormat(text)
 
-    def requestSceneUpdate(self, update_all=True):
-        self.controller.requestSceneUpdate(update_all=update_all)
+    def requestSceneUpdate(self, properties=0):
+        self.sceneUpdateRequest.emit(properties)
 
     def requestLayerUpdate(self, layer):
-        self.controller.requestLayerUpdate(layer)
-
-    def cancelLayerUpdateRequest(self, layer):
-        self.controller.cancelLayerUpdateRequest(layer)
+        self.layerUpdateRequest.emit(layer)
 
     def showScenePropertiesDialog(self):
-        dialog = PropertiesDialog(self.wnd, self.controller.settings)
+        dialog = PropertiesDialog(self.wnd, self.settings)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
         dialog.showSceneProperties()
 
     def updateSceneProperties(self, _, properties):
-        if self.controller.settings.sceneProperties() == properties:
-            return
-        self.controller.settings.setSceneProperties(properties)
-        self.requestSceneUpdate()
+        if self.settings.sceneProperties() != properties:
+            self.requestSceneUpdate(properties)
 
     def showLayerPropertiesDialog(self, layer):
-        dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
+        dialog = PropertiesDialog(self.wnd, self.settings, self.wnd.qgisIface)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
         dialog.showLayerProperties(layer)
         return True
 
     def updateLayerProperties(self, layerId, properties):
         # save layer properties
-        layer = self.controller.settings.getItemByLayerId(layerId)
-        layer.properties = properties
-        layer.updated = True
+        layer = self.settings.getItemByLayerId(layerId).clone()
+        if layer.properties != properties:
+            layer.updated = True
 
-        if layer.visible:
-            self.requestLayerUpdate(layer)
+        layer.properties = properties
+        self.requestLayerUpdate(layer)
 
     def getDefaultProperties(self, layer):
-        dialog = PropertiesDialog(self.wnd, self.controller.settings, self.wnd.qgisIface)
+        dialog = PropertiesDialog(self.wnd, self.settings, self.wnd.qgisIface)
         dialog.setLayer(layer)
         return dialog.page.properties()
 
     def clearExportSettings(self):
-        self.controller.settings.clear()
-        self.controller.settings.updateLayerList()
-        self.controller.requestSceneUpdate()
+        self.clearSettingsRequest.emit()
 
 
 class Q3DWindow(QMainWindow):
 
-    def __init__(self, parent, qgisIface, controller, preview=True):
-        QMainWindow.__init__(self, parent)
+    def __init__(self, qgisIface, settings, preview=True):
+        QMainWindow.__init__(self, parent=qgisIface.mainWindow())
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
+        # update layer list and set map settings
+        settings.updateLayerList()
+        settings.setMapSettings(qgisIface.mapCanvas().mapSettings())
+
         self.qgisIface = qgisIface
-        self.settings = controller.settings
+        self.settings = settings
         self.lastDir = None
+
+        self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
+
+        self.controller = Q3DController(settings, self.thread)
+        self.controller.enabled = preview
+
+        if self.thread:
+            self.thread.finished.connect(self.controller.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+
+            # start worker thread event loop
+            self.thread.start()
 
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        self.iface = Q3DViewerInterface(self.ui.webView._page, self, self.ui.treeView)
-        self.iface.connectToController(controller)
+        self.iface = Q3DViewerInterface(settings, self.ui.webView._page, self, self.ui.treeView, parent=self)
+        self.iface.connectToController(self.controller)
 
         self.setupMenu()
         self.setupContextMenu()
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface)
+        self.ui.treeView.setLayerList(settings.getLayerList())
         self.ui.webView.setup(self.iface, self, preview)
         self.ui.dockWidgetConsole.hide()
 
-        self.iface.fetchLayerList()
-
         # signal-slot connections
+        # map canvas
+        self.controller.connectToMapCanvas(qgisIface.mapCanvas())
+
         # console
         self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
-
-        # to disconnect from map canvas when window is closed
-        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.alwaysOnTopToggled(False)
 
@@ -179,6 +177,7 @@ class Q3DWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.iface.disconnectFromController()
+        self.controller.disconnectFromMapCanvas()
 
         # save export settings to a settings file
         self.settings.saveSettings()
@@ -186,6 +185,11 @@ class Q3DWindow(QMainWindow):
         settings = QSettings()
         settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
         settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+
+        # stop worker thread event loop
+        if self.thread:
+            self.thread.quit()
+            self.thread.wait()
 
         # close dialogs
         for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog, HFLabelDialog)):
@@ -249,7 +253,7 @@ class Q3DWindow(QMainWindow):
         w.setChecked(previewEnabled)
         self.ui.statusbar.addPermanentWidget(w)
         self.ui.checkBoxPreview = w
-        self.ui.checkBoxPreview.toggled.connect(iface.setPreviewEnabled)
+        self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
 
     def switchCamera(self, action):
         self.settings.setCamera(action == self.ui.actionOrthographic)
@@ -266,7 +270,7 @@ class Q3DWindow(QMainWindow):
         self.settings.loadSettingsFromFile(filename)
         self.settings.updateLayerList()
         self.ui.treeView.updateLayersCheckState(self.settings.getLayerList())
-        self.iface.buildScene()
+        self.iface.requestSceneUpdate()
         self.updateNorthArrow()
         self.updateHFLabel()
 

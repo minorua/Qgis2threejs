@@ -25,9 +25,9 @@ from PyQt5.QtGui import QIcon
 
 from qgis.core import QgsApplication, QgsProject
 
+from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
 from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
-from .q3dcontroller import Q3DController
 from .q3dwindow import Q3DWindow
 
 
@@ -49,9 +49,9 @@ class Qgis2threejs:
         #    QCoreApplication.installTranslator(self.translator)
 
         self.currentProjectPath = None
-
-        # exporter
-        self.controller = None    # Q3DController
+        self.exportSettings = None
+        self.liveExporter = None
+        self.previewEnabled = True      # last preview state
 
     def initGui(self):
         # create actions
@@ -88,28 +88,31 @@ class Qgis2threejs:
         removeTemporaryOutputDir()
 
     def openExporter(self, _, no_preview=False):
-        if self.controller is None:
-            self.controller = Q3DController(self.iface)
-
-        if no_preview:
-            self.controller.enabled = False
-
-        if not self.controller.iface:
-            logMessage("Opening Qgis2threejs Exporter...", False)
-
-            proj_path = QgsProject.instance().fileName()
-            if proj_path != self.currentProjectPath:
-                self.controller.settings.loadSettingsFromFile()   # load export settings from settings file for current project
-                self.currentProjectPath = proj_path
-
-            self.liveExporter = Q3DWindow(self.iface.mainWindow(),
-                                          self.iface,
-                                          self.controller,
-                                          preview=self.controller.enabled)
-            self.liveExporter.show()
-        else:
+        if self.liveExporter:
             logMessage("Qgis2threejs Exporter is already open.")
             self.liveExporter.activateWindow()
+            return
+
+        proj_path = QgsProject.instance().fileName()
+        if proj_path != self.currentProjectPath:
+            self.exportSettings = ExportSettings()
+            self.exportSettings.loadSettingsFromFile()   # load export settings from settings file for current project
+            self.currentProjectPath = proj_path
+
+        elif self.exportSettings is None:
+            self.exportSettings = ExportSettings()
+
+        logMessage("Opening Qgis2threejs Exporter...", False)
+        self.liveExporter = Q3DWindow(self.iface,
+                                      self.exportSettings,
+                                      preview=self.previewEnabled and not no_preview)
+        self.liveExporter.show()
+        self.liveExporter.destroyed.connect(self.exporterDestroyed)
 
     def openExporterWithPreviewDisabled(self):
         self.openExporter(False, True)
+
+    def exporterDestroyed(self, obj):
+        logMessage("Qgis2threejs Exporter has closed.")
+        self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
+        self.liveExporter = None

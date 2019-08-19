@@ -107,7 +107,7 @@ class Q3DTreeView(QTreeView):
         for parent in self.layerParentItem.values():
             for row in range(parent.rowCount()):
                 item = parent.child(row)
-                layer = self.iface.controller.settings.getItemByLayerId(item.data())
+                layer = self.iface.settings.getItemByLayerId(item.data())
                 item.setCheckState(Qt.Checked if layer and layer.visible else Qt.Unchecked)
 
         self.blockSignals(False)
@@ -118,28 +118,15 @@ class Q3DTreeView(QTreeView):
                 parent.child(idx).setCheckState(Qt.Unchecked)
 
     def treeItemChanged(self, item):
-        layer = self.iface.controller.settings.getItemByLayerId(item.data())
+        layer = self.iface.settings.getItemByLayerId(item.data())
         if layer is None:
             return
 
         layer.visible = (item.checkState() == Qt.Checked)
-        if layer.visible:
-            if layer.properties is None:
-                layer.properties = self.iface.getDefaultProperties(layer)
+        if layer.visible and layer.properties is None:
+            layer.properties = self.iface.getDefaultProperties(layer)
 
-            self.iface.requestLayerUpdate(layer)
-        else:
-            self.iface.cancelLayerUpdateRequest(layer)
-
-            # remove layer objects from the scene
-            obj = {
-                "type": "layer",
-                "id": layer.jsLayerId,
-                "properties": {
-                    "visible": False
-                }
-            }
-            self.iface.loadJSONObject(obj)
+        self.iface.requestLayerUpdate(layer)
 
     def showContextMenu(self, pos):
         if self.model().data(self.indexAt(pos), Qt.UserRole + 1) is not None:
@@ -148,6 +135,6 @@ class Q3DTreeView(QTreeView):
     def showPropertiesDialog(self, _=None):
         # open layer properties dialog
         data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
-        layer = self.iface.controller.settings.getItemByLayerId(data)
+        layer = self.iface.settings.getItemByLayerId(data)
         if layer is not None:
             self.iface.showLayerPropertiesDialog(layer)

@@ -20,10 +20,15 @@
 
 # general
 PLUGIN_VERSION = "2.3.1"
+
+# DEBUG_MODE
+#  0. no debug info
+#  1. JS console, qDebug
+#  2. JS console, qDebug, log file, "debug" element
 DEBUG_MODE = 1
-# 0. no debug info
-# 1. JS console, qDebug
-# 2. JS console, qDebug, log file, "debug" element
+
+# multi-threading
+RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
 
 # vector layer
 BLOCK_FEATURES = 50   # max number of features in a block of vector layer features

@@ -22,7 +22,6 @@ from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
 
 from .export import ImageExporter
-from .q3dcontroller import Q3DController
 from .qgis2threejstools import logMessage
 from .ui.imagesavedialog import Ui_ImageSaveDialog
 
@@ -47,13 +46,10 @@ class ImageSaveDialog(QDialog):
         height = self.ui.spinBox_Height.value()
         return self.wnd.ui.webView.page().renderImage(width, height)
 
-        ###############
         # in other way
-        controller = Q3DController(self.wnd.qgisIface)
-        controller.settings = self.wnd.settings
-
         # create an exporter
-        exporter = ImageExporter(controller)
+        self.wnd.settings.setMapSettings(self.wnd.qgisIface.mapCanvas().mapSettings())
+        exporter = ImageExporter(self.wnd.settings)
         exporter.initWebPage(width, height)
 
         # get current camera state

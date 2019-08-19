@@ -18,13 +18,18 @@
  *                                                                         *
  ***************************************************************************/
 """
+from PyQt5.QtCore import QObject
+
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
 
 
-class Q3DInterface:
+class Q3DInterface(QObject):
 
-    def __init__(self, webPage, controller=None):
+    def __init__(self, settings, webPage, controller=None, parent=None):
+        super().__init__(parent)
+
+        self.settings = settings
         self.webPage = webPage
 
         if controller:
@@ -89,7 +94,7 @@ class Q3DInterface:
     def buildLayer(self, layer):
         self.controller.buildLayer(layer)
 
-    def showMessage(self, msg):
+    def showMessage(self, msg, _=False):
         logMessage(msg)
 
     def clearMessage(self):

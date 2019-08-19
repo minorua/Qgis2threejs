@@ -195,23 +195,24 @@ class ThreeJSExporter(ThreeJSBuilder):
 
 class BridgeExporterBase:
 
-    def __init__(self, controller=None):
+    def __init__(self, settings):
+        self.settings = settings
+        self.controller = Q3DController(settings)
         self.exportMode = False
 
         self.page = Q3DWebPage()
-
-        self.iface = Q3DInterface(self.page)
-        self.iface.connectToController(controller or Q3DController())
+        self.iface = Q3DInterface(settings, self.page)
+        self.iface.connectToController(self.controller)
 
     def __del__(self):
         self.page.deleteLater()
 
     def loadSettings(self, filename=None):
-        self.iface.settings().loadSettingsFromFile(filename)
-        self.iface.settings().updateLayerList()
+        self.settings.loadSettingsFromFile(filename)
+        self.settings.updateLayerList()
 
     def setMapSettings(self, settings):
-        self.iface.settings().setMapSettings(settings)
+        self.settings.setMapSettings(settings)
 
     def initWebPage(self, width, height):
         loop = QEventLoop()
@@ -247,9 +248,8 @@ class ImageExporter(BridgeExporterBase):
         err = self.page.waitForSceneLoaded(cancelSignal)
 
         # header and footer labels
-        s = self.iface.settings()
-        self.page.runScript('setHFLabel("{}", "{}");'.format(s.headerLabel().replace('"', '\\"'),
-                                                             s.footerLabel().replace('"', '\\"')))
+        self.page.runScript('setHFLabel("{}", "{}");'.format(self.settings.headerLabel().replace('"', '\\"'),
+                                                             self.settings.footerLabel().replace('"', '\\"')))
         # render scene
         size = self.page.viewportSize()
         image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
@@ -269,8 +269,8 @@ class ImageExporter(BridgeExporterBase):
 
 class ModelExporter(BridgeExporterBase):
 
-    def __init__(self, controller=None):
-        super().__init__(controller)
+    def __init__(self, settings):
+        super().__init__(settings)
         self.exportMode = True
 
     def initWebPage(self, width, height):

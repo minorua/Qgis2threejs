@@ -93,6 +93,17 @@ function loadModel(url) {
   }
 }
 
+function hideLayer(layerId) {
+  var layer = app.scene.mapLayers[layerId];
+  if (layer !== undefined) layer.visible = false;
+}
+
+function hideAllLayers() {
+  for (var id in app.scene.mapLayers) {
+    app.scene.mapLayers[id].visible = false;
+  }
+}
+
 function loadStart(name, initialize) {
   if (initialize) {
     app.initLoadingManager();

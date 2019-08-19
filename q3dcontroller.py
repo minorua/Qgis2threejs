@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- Q3DControllerLive
+ Q3DController
 
                               -------------------
         begin                : 2016-02-10
@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 import time
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE
@@ -28,21 +28,96 @@ from .exportsettings import ExportSettings, Layer
 from .qgis2threejstools import logMessage, pluginDir
 
 
-class Q3DController:
+class Q3DControllerInterface(QObject):
+
+    # signals
+    dataReady = pyqtSignal(dict)                # data
+    scriptReady = pyqtSignal(str, str)          # script, msg_shown_in_log_panel
+    messageReady = pyqtSignal(str, int, bool)        # message, timeout, show_in_msg_bar
+    progressUpdated = pyqtSignal(int, str)
+    loadScriptRequest = pyqtSignal(str)
+    loadModelLoadersRequest = pyqtSignal()
+
+    def __init__(self, controller=None):
+        super().__init__(parent=controller)
+
+        self.controller = controller
+        self.iface = None
+
+    def connectToIface(self, iface):
+        """iface: web view side interface (Q3DInterface or its subclass)"""
+        self.iface = iface
+
+        self.dataReady.connect(iface.loadJSONObject)
+        self.scriptReady.connect(iface.runScript)
+        self.messageReady.connect(iface.showMessage)
+        self.progressUpdated.connect(iface.progress)
+        self.loadScriptRequest.connect(iface.loadScriptFile)
+        self.loadModelLoadersRequest.connect(iface.loadModelLoaders)
+
+        iface.sceneUpdateRequest.connect(self.controller.requestSceneUpdate)
+        iface.layerUpdateRequest.connect(self.controller.requestLayerUpdate)
+        iface.clearSettingsRequest.connect(self.controller.clearExportSettings)
+        iface.abortRequest.connect(self.controller.abort)
+        iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
+
+    def disconnectFromIface(self):
+        self.dataReady.disconnect(self.iface.loadJSONObject)
+        self.scriptReady.disconnect(self.iface.runScript)
+        self.messageReady.disconnect(self.iface.showMessage)
+        self.progressUpdated.disconnect(self.iface.progress)
+        self.loadScriptRequest.disconnect(self.iface.loadScriptFile)
+        self.loadModelLoadersRequest.disconnect(self.iface.loadModelLoaders)
+
+        self.iface.sceneUpdateRequest.disconnect(self.controller.requestSceneUpdate)
+        self.iface.layerUpdateRequest.disconnect(self.controller.requestLayerUpdate)
+        self.iface.clearSettingsRequest.disconnect(self.controller.clearExportSettings)
+        self.iface.abortRequest.disconnect(self.controller.abort)
+        self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
+        self.iface = None
+
+    def loadJSONObject(self, obj):
+        self.dataReady.emit(obj)
+
+    def runScript(self, script, msg=""):
+        self.scriptReady.emit(script, msg)
+
+    def showMessage(self, msg, timeout=0):
+        """show message in status bar. timeout: in milli-seconds"""
+        self.messageReady.emit(msg, timeout, False)
+
+    def clearMessage(self):
+        """clear message in status bar"""
+        self.messageReady.emit("", 0, False)
+
+    def showMessageBar(self, msg="", timeout=10):
+        """show message bar (error message only). timeout: in seconds"""
+        msg = msg or "An error has occurred. See message log (Qgis2threejs) for more details."
+        self.messageReady.emit(msg, timeout, True)
+
+    def progress(self, percentage=100, text=""):
+        self.progressUpdated.emit(percentage, text)
+
+    def loadScriptFile(self, filepath):
+        self.loadScriptRequest.emit(filepath)
+
+    def loadModelLoaders(self):
+        self.loadModelLoadersRequest.emit()
+
+
+class Q3DController(QObject):
 
     # requests
     BUILD_SCENE_ALL = 1   # build scene
     BUILD_SCENE = 2       # build scene, but do not update background color, coordinates display mode and so on
 
-    def __init__(self, qgis_iface=None, settings=None):
-        self.qgis_iface = qgis_iface
+    def __init__(self, settings=None, thread=None, parent=None):
+        super().__init__(parent)
 
         if settings is None:
             defaultSettings = {}
             settings = ExportSettings()
             settings.loadSettings(defaultSettings)
-            if qgis_iface:
-                settings.setMapCanvas(qgis_iface.mapCanvas())
 
             err_msg = settings.checkValidity()
             if err_msg:
@@ -51,74 +126,79 @@ class Q3DController:
         self.settings = settings
         self.builder = ThreeJSBuilder(settings)
 
-        self.iface = None
+        self.iface = Q3DControllerInterface(self)
         self.enabled = True
         self.aborted = False  # layer export aborted
         self.updating = False
+        self.updatingLayerId = None
         self.layersNeedUpdate = False
+        self.mapCanvas = None
 
         self.requestQueue = []
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
+
+        # move to worker thread
+        if thread:
+            self.moveToThread(thread)
+
         self.timer.timeout.connect(self._processRequests)
 
-        self.message1 = "Press ESC key to abort processing"
+        self.MSG1 = "Press ESC key to abort processing"
 
     def __del__(self):
         self.timer.stop()
-        self.timer.deleteLater()
 
     def connectToIface(self, iface):
-        """iface: Q3DViewerInterface"""
-        self.iface = iface
+        """iface: Q3DInterface or its subclass"""
+        self.iface.connectToIface(iface)
 
     def disconnectFromIface(self):
-        self.iface = Mock()
+        self.iface.disconnectFromIface()
+        # self.iface = Mock()
 
-    def connectToMapCanvas(self):
-        if self.qgis_iface:
-            self.qgis_iface.mapCanvas().renderComplete.connect(self.requestSceneUpdate)
-            self.qgis_iface.mapCanvas().extentsChanged.connect(self.updateExtent)
+    def connectToMapCanvas(self, canvas):
+        self.mapCanvas = canvas
+        self.mapCanvas.renderComplete.connect(self._requestSceneUpdate)
+        self.mapCanvas.extentsChanged.connect(self.updateExtent)
 
     def disconnectFromMapCanvas(self):
-        if self.qgis_iface:
-            self.qgis_iface.mapCanvas().renderComplete.disconnect(self.requestSceneUpdate)
-            self.qgis_iface.mapCanvas().extentsChanged.disconnect(self.updateExtent)
+        if self.mapCanvas:
+            self.mapCanvas.renderComplete.disconnect(self._requestSceneUpdate)
+            self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
+            self.mapCanvas = None
 
     def abort(self):
         if self.updating and not self.aborted:
             self.aborted = True
-            self.iface.runScript("loadAborted();")
             self.iface.showMessage("Aborting processing...")
-            logMessage("***** scene/layer building aborted *****", False)
 
     def setPreviewEnabled(self, enabled):
-        if not self.iface:
-            return
-
         self.enabled = enabled
         self.iface.runScript("app.resume();" if enabled else "app.pause();")
-        if enabled:
+
+        elem = "document.getElementById('cover')"
+        self.iface.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
+        if not enabled:
+            self.iface.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
+        else:
             self.buildScene()
 
     def buildScene(self, update_scene_all=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
-        if not (self.iface and self.enabled):
-            return
-
         if self.updating:
             logMessage("Previous building is still in progress. Cannot start to build scene.")
             return
 
-        self.updating = self.BUILD_SCENE_ALL if update_scene_all else self.BUILD_SCENE
+        self.updating = True
         self.settings.base64 = base64
         self.layersNeedUpdate = self.layersNeedUpdate or build_layers
 
-        self.iface.showMessage(self.message1)
+        self.iface.showMessage(self.MSG1)
         self.iface.progress(0, "Updating scene")
 
-        if update_extent and self.qgis_iface:
-            self.builder.settings.setMapCanvas(self.qgis_iface.mapCanvas())
+        if update_extent and self.mapCanvas:
+            self.builder.settings.setMapCanvas(self.mapCanvas)
 
         if build_scene:
             self.iface.loadJSONObject(self.builder.buildScene(False))
@@ -142,17 +222,19 @@ class Q3DController:
             self.iface.runScript('loadStart("LYRS", true);')
 
             layers = self.settings.getLayerList()
-            for idx, layer in enumerate(layers):
+            for idx, layer in enumerate(sorted(layers, key=lambda lyr: lyr.geomType)):
                 self.iface.progress(idx / len(layers) * 100, "Updating layers")
                 if layer.updated or (self.layersNeedUpdate and layer.visible):
-                    if not self._buildLayer(layer) or self.aborted:
+                    ret = self._buildLayer(layer)
+                    if not ret or self.aborted:
                         break
             self.iface.runScript('loadEnd("LYRS");')
 
             if not self.aborted:
                 self.layersNeedUpdate = False
 
-        self.updating = None
+        self.updating = False
+        self.updatingLayerId = None
         self.aborted = False
         self.iface.progress()
         self.iface.clearMessage()
@@ -160,37 +242,44 @@ class Q3DController:
         return True
 
     def buildLayer(self, layer):
+        if isinstance(layer, dict):
+            layer = Layer.fromDict(layer)
+
         if self.updating:
-            logMessage('Previous building is still in progress. Cannot start to build layer "{}".'.format(layer.name))
+            logMessage('Previous building is still in progress. Cannot start building layer "{}".'.format(layer.name))
             return False
 
-        self.updating = layer
-        self.iface.showMessage(self.message1)
-        self.iface.progress(0, "Building {0}...".format(layer.name))
+        self.updating = True
+        self.updatingLayerId = layer.layerId
+        self.iface.showMessage(self.MSG1)
         self.iface.runScript('loadStart("LYR", true);')
 
-        self._buildLayer(layer)
+        aborted = self._buildLayer(layer)
 
         self.iface.runScript('loadEnd("LYR");')
-        self.updating = None
+        self.updating = False
+        self.updatingLayerId = None
         self.aborted = False
-        self.iface.progress()
         self.iface.clearMessage()
-        return True
+
+        return aborted
 
     def _buildLayer(self, layer):
-        if not (self.iface and self.enabled) or self.aborted:
-            return False
-
         self.iface.runScript('loadStart("L{}");  // {}'.format(layer.jsLayerId, layer.name))
+        pmsg = "Building {0}...".format(layer.name)
+        self.iface.progress(0, pmsg)
 
         if layer.properties.get("comboBox_ObjectType") == "Model File":
             self.iface.loadModelLoaders()
 
         ts0 = time.time()
         tss = []
+        i = 0
         for builder in self.builder.builders(layer):
-            if self.aborted or not self.iface:
+            self.iface.progress(i / (i + 4) * 100, pmsg)
+            if self.aborted:
+                self.iface.runScript("loadAborted();")
+                logMessage("***** layer building aborted *****", False)
                 return False
             ts1 = time.time()
             obj = builder.build()
@@ -199,14 +288,23 @@ class Q3DController:
             ts3 = time.time()
             tss.append([ts2 - ts1, ts3 - ts2])
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
+            i += 1
 
         layer.updated = False
+
         self.iface.runScript('loadEnd("L{}");'.format(layer.jsLayerId))
+        self.iface.progress()
 
         if DEBUG_MODE:
             msg = "updating {0} costed {1:.3f}s:\n{2}".format(layer.name, time.time() - ts0, "\n".join(["{:.3f} {:.3f}".format(ts[0], ts[1]) for ts in tss]))
             logMessage(msg, False)
         return True
+
+    def hideLayer(self, layer):
+        self.iface.runScript('hideLayer("{}")'.format(layer.jsLayerId));
+
+    def hideAllLayers(self):
+        self.iface.runScript("hideAllLayers()");
 
     def processRequests(self):
         self.timer.stop()
@@ -214,25 +312,40 @@ class Q3DController:
             self.timer.start()
 
     def _processRequests(self):
-        if self.updating or not self.requestQueue:
+        if not self.enabled or self.updating or not self.requestQueue:
             return
 
-        if self.BUILD_SCENE_ALL in self.requestQueue:
-            self.requestQueue.clear()
-            self.buildScene()
+        try:
+            if self.BUILD_SCENE_ALL in self.requestQueue:
+                self.requestQueue.clear()
+                self.buildScene()
 
-        elif self.BUILD_SCENE in self.requestQueue:
-            self.requestQueue.clear()
-            self.buildScene(update_scene_all=False)
+            elif self.BUILD_SCENE in self.requestQueue:
+                self.requestQueue.clear()
+                self.buildScene(update_scene_all=False)
 
-        else:
-            layer = self.requestQueue.pop(0)
-            self.requestQueue = [i for i in self.requestQueue if i != layer]    # remove layer from queue
-            self.buildLayer(layer)
+            else:
+                layer = self.requestQueue.pop(0)
+                if layer.visible:
+                    self.buildLayer(layer)
+                else:
+                    self.hideLayer(layer)
+
+        except Exception as e:
+            import traceback
+            logMessage(traceback.format_exc())
+
+            self.iface.showMessageBar()
 
         self.processRequests()
 
-    def requestSceneUpdate(self, _=None, update_all=False):
+    def requestSceneUpdate(self, properties=0, update_all=True):
+        if DEBUG_MODE:
+            logMessage("Scene update was requested: {}".format(properties))
+
+        if isinstance(properties, dict):
+            self.settings.setSceneProperties(properties)
+
         self.requestQueue.append(self.BUILD_SCENE_ALL if update_all else self.BUILD_SCENE)
 
         if self.updating:
@@ -241,25 +354,40 @@ class Q3DController:
             self.processRequests()
 
     def requestLayerUpdate(self, layer):
-        if not isinstance(layer, Layer):
+        if DEBUG_MODE:
+            logMessage("Layer update for {} was requested.".format(layer.layerId))
+
+        # update layer properties and its state in export settings
+        lyr = self.settings.getItemByLayerId(layer.layerId)
+        if lyr is None:
             return
 
-        self.requestQueue.append(layer)
+        layer.copyTo(lyr)
 
-        if self.updating == layer:
+        self.requestQueue = [i for i in self.requestQueue if i.layerId != layer.layerId]
+
+        if self.updatingLayerId == layer.layerId:
+            self.requestQueue.append(layer)
             self.abort()
+
+        elif layer.visible:
+            self.requestQueue.append(layer)
+
+            if not self.updating:
+                self.processRequests()
+
         else:
-            self.processRequests()
+            # immediately hide the layer
+            self.hideLayer(layer)
 
-    def cancelLayerUpdateRequest(self, layer):
-        if not isinstance(layer, Layer):
-            return
+    def clearExportSettings(self):
+        self.settings.clear()
+        self.settings.updateLayerList()
+        self.requestSceneUpdate()
+        self.hideAllLayers()
 
-        # remove layer from queue
-        self.requestQueue = [i for i in self.requestQueue if i != layer]
-
-        if self.updating == layer:
-            self.abort()
+    def _requestSceneUpdate(self, _=None):
+        self.requestSceneUpdate(update_all=False)
 
     def updateExtent(self):
         self.layersNeedUpdate = True

@@ -42,7 +42,7 @@ from qgis.core import (QgsCoordinateTransform,
 
 from .conf import DEBUG_MODE, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
-from .q3dcontroller import Q3DController
+from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, openDirectory
 from .rotatedrect import RotatedRect
 
@@ -64,7 +64,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     def __init__(self):
         super().__init__()
 
-        self.controller = None
+        self.settings = ExportSettings()
 
     def createInstance(self):
         if DEBUG_MODE:
@@ -90,8 +90,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             logMessage("initAlgorithm(): {}".format(self.__class__.__name__), False)
 
         qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
-        self.controller = Q3DController(qgis_iface)
-        self.controller.settings.loadSettingsFromFile(None)
+        self.settings.loadSettingsFromFile()
+        self.settings.setMapSettings(qgis_iface.mapCanvas().mapSettings())
 
         self.addParameter(
             QgsProcessingParameterFolderDestination(
@@ -165,7 +165,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 QgsProcessingParameterExpression(
                     self.HEADER,
                     self.tr("Header Label"),
-                    "'{}'".format(self.controller.settings.headerLabel().replace("'", "''")),
+                    "'{}'".format(self.settings.headerLabel().replace("'", "''")),
                     self.INPUT
                 )
             )
@@ -174,7 +174,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 QgsProcessingParameterExpression(
                     self.FOOTER,
                     self.tr("Footer Label"),
-                    "'{}'".format(self.controller.settings.footerLabel().replace("'", "''")),
+                    "'{}'".format(self.settings.footerLabel().replace("'", "''")),
                     self.INPUT
                 )
             )
@@ -196,10 +196,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                                                 context.project().crs(),
                                                 context.project())
 
-        self.controller.settings.loadSettingsFromFile(settings_path or None)
-        self.controller.settings.updateLayerList()
+        self.settings.loadSettingsFromFile(settings_path or None)
+        self.settings.updateLayerList()
 
-        if clayer not in self.controller.settings.mapSettings.layers():
+        if clayer not in self.settings.mapSettings.layers():
             msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
             feedback.reportError(msg, True)
             return False
@@ -230,8 +230,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if DEBUG_MODE:
             openDirectory(out_dir)
 
-        mapSettings = self.controller.settings.mapSettings
-        baseExtent = self.controller.settings.baseExtent
+        mapSettings = self.settings.mapSettings
+        baseExtent = self.settings.baseExtent
         rotation = mapSettings.rotation()
         orig_size = mapSettings.outputSize()
 
@@ -290,12 +290,12 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             rect.toMapSettings(mapSettings)
             mapSettings.setOutputSize(QSize(tex_width, tex_height))
 
-            self.controller.settings.setMapSettings(mapSettings)
+            self.settings.setMapSettings(mapSettings)
 
             # labels
             exp_context.setFeature(feature)
-            self.controller.settings.setHeaderLabel(header_exp.evaluate(exp_context))
-            self.controller.settings.setFooterLabel(footer_exp.evaluate(exp_context))
+            self.settings.setHeaderLabel(header_exp.evaluate(exp_context))
+            self.settings.setFooterLabel(footer_exp.evaluate(exp_context))
 
             self.export(title, out_dir, feedback)
 
@@ -334,16 +334,16 @@ class ExportAlgorithm(AlgorithmBase):
 
     def prepareAlgorithm(self, parameters, context, feedback):
         super().prepareAlgorithm(parameters, context, feedback)
-        self.exporter = ThreeJSExporter(self.controller.settings)
+        self.exporter = ThreeJSExporter(self.settings)
         return True
 
     def export(self, title, out_dir, feedback):
         # scene title
         filename = "{}.html".format(title)
         filepath = os.path.join(out_dir, filename)
-        self.controller.settings.setOutputFilename(filepath)
+        self.settings.setOutputFilename(filepath)
 
-        err_msg = self.controller.settings.checkValidity()
+        err_msg = self.settings.checkValidity()
         if err_msg:
             feedback.reportError("Invalid settings: " + err_msg)
             return False
@@ -392,7 +392,7 @@ class ExportImageAlgorithm(AlgorithmBase):
 
         feedback.setProgressText("Preparing a web page for off-screen rendering...")
 
-        self.exporter = ImageExporter(self.controller)
+        self.exporter = ImageExporter(self.settings)
         self.exporter.initWebPage(width, height)
         return True
 
@@ -401,7 +401,7 @@ class ExportImageAlgorithm(AlgorithmBase):
         filename = "{}.png".format(title)
         filepath = os.path.join(out_dir, filename)
 
-        err_msg = self.controller.settings.checkValidity()
+        err_msg = self.settings.checkValidity()
         if err_msg:
             feedback.reportError("Invalid settings: " + err_msg)
             return False
@@ -431,7 +431,7 @@ class ExportModelAlgorithm(AlgorithmBase):
 
         feedback.setProgressText("Preparing a web page for 3D model export...")
 
-        self.exporter = ModelExporter(self.controller)
+        self.exporter = ModelExporter(self.settings)
         self.exporter.initWebPage(500, 500)
         return True
 
@@ -440,7 +440,7 @@ class ExportModelAlgorithm(AlgorithmBase):
         filename = "{}.{}".format(title, self.modelType)
         filepath = os.path.join(out_dir, filename)
 
-        err_msg = self.controller.settings.checkValidity()
+        err_msg = self.settings.checkValidity()
         if err_msg:
             feedback.reportError("Invalid settings: " + err_msg)
             return False
