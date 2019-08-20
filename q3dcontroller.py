@@ -270,7 +270,7 @@ class Q3DController(QObject):
         self.iface.progress(0, pmsg)
 
         if layer.properties.get("comboBox_ObjectType") == "Model File":
-            self.iface.loadModelLoaders()
+            self.iface.loadModelLoaders()   # need to load model loaders synchronously
 
         t0 = t4 = time.time()
         dlist = []

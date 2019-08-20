@@ -44,24 +44,6 @@ class Q3DInterface(QObject):
             self.controller.disconnectFromIface()
         self.controller = None
 
-    def startApplication(self, offScreen=False, exportMode=False):
-        # configuration
-        if exportMode:
-            self.runScript("Q3D.Config.exportMode = true;")
-
-        p = self.controller.settings.northArrow()
-        if p.get("visible"):
-            self.runScript("Q3D.Config.northArrow.visible = true;")
-            self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
-
-        header = self.controller.settings.headerLabel()
-        footer = self.controller.settings.footerLabel()
-        if header or footer:
-            self.runScript('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
-
-        # initialize app
-        self.runScript("init({});".format("true" if offScreen else ""))
-
     def loadJSONObject(self, obj):
         # display the content of the object in the debug element
         if DEBUG_MODE == 2:

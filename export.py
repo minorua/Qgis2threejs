@@ -216,11 +216,11 @@ class BridgeExporterBase:
 
     def initWebPage(self, width, height):
         loop = QEventLoop()
-        self.page.initialized.connect(loop.quit)
+        self.page.ready.connect(loop.quit)
         self.page.setViewportSize(QSize(width, height))
 
         if self.page.mainFrame().url().isEmpty():
-            self.page.setup(self.iface, exportMode=self.exportMode)
+            self.page.setup(self.settings, exportMode=self.exportMode)
         else:
             self.page.reload()
 
@@ -236,7 +236,7 @@ class ImageExporter(BridgeExporterBase):
 
     def render(self, cameraState=None, cancelSignal=None):
         if self.page is None:
-            return QImage(), "page not initialized"
+            return QImage(), "page not ready"
 
         # set camera position and camera target
         if cameraState:
@@ -279,7 +279,7 @@ class ModelExporter(BridgeExporterBase):
 
     def export(self, filename, cancelSignal=None):
         if self.page is None:
-            return "page not initialized"
+            return "page not ready"
 
         # prepare output directory
         self.mkdir(filename)

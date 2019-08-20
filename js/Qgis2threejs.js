@@ -2756,7 +2756,6 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Box") {
     // In this method, box corners are exposed near joint when both azimuth and slope of
     // the segments of both sides are different. Also, some unnecessary faces are created.
-    var debugMode = Q3D.Config.debugMode;
     var faces = [], vi;
     vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
           [3, 0, 7], [7, 0, 4],
@@ -2791,16 +2790,14 @@ Q3D.LineLayer.prototype.build = function (features) {
 
         // place a box to the segment
         geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
-        if (debugMode) {
-          mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
-          mesh.position.set(ptM.x, ptM.y, ptM.z);
-          mesh.rotation.set(rx, 0, rz, "ZXY");
-          group.add(mesh);
-        }
-        else {
-          geom.applyMatrix(matrix);
-          geometry.merge(geom);
-        }
+
+        // mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
+        // mesh.position.set(ptM.x, ptM.y, ptM.z);
+        // mesh.rotation.set(rx, 0, rz, "ZXY");
+        // group.add(mesh);
+
+        geom.applyMatrix(matrix);
+        geometry.merge(geom);
 
         // joint
         // 4 vertices of backward side of current segment
@@ -2819,13 +2816,9 @@ Q3D.LineLayer.prototype.build = function (features) {
           geom = new THREE.Geometry();
           geom.vertices = vf4.concat(vb4);
           geom.faces = faces;
-          if (debugMode) {
-            geom.computeFaceNormals();
-            group.add(new THREE.Mesh(geom));
-          }
-          else {
-            geometry.merge(geom);
-          }
+          // geom.computeFaceNormals();
+          // group.add(new THREE.Mesh(geom));
+          geometry.merge(geom);
         }
 
         // 4 vertices of forward side
@@ -2839,7 +2832,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         pt0.copy(pt1);
       }
 
-      if (debugMode) return group;
+      // return group;
 
       geometry.mergeVertices();
       geometry.computeFaceNormals();
@@ -2988,7 +2981,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       //TODO: [Polygon - Overlay] border
     };
   }
-  else {    // this.properties.objType == "Triangular Mesh"
+  else {    // objType == "Triangular Mesh"
     createObject = function (f) {
       var vertices = f.geom.v,
           indices = f.geom.f;

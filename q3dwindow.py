@@ -40,6 +40,7 @@ from .ui.q3dwindow import Ui_Q3DWindow
 
 class Q3DViewerInterface(Q3DInterface):
 
+    pageLoadFinished = pyqtSignal(bool, bool)   # param: off screen, export mode
     sceneUpdateRequest = pyqtSignal(object)     # param: scene properties dict or 0 (if properties do not changes)
     layerUpdateRequest = pyqtSignal(Layer)      # param: Layer object
     clearSettingsRequest = pyqtSignal()
@@ -50,15 +51,6 @@ class Q3DViewerInterface(Q3DInterface):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
         self.treeView = treeView
-
-    def startApplication(self, offScreen=False, exportMode=False):
-        super().startApplication(offScreen, exportMode)
-
-        # start app
-        self.runScript("app.start();")
-
-        if DEBUG_MODE:
-            self.runScript("displayFPS();")
 
     def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
         if show_in_msg_bar:
@@ -158,7 +150,7 @@ class Q3DWindow(QMainWindow):
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface)
         self.ui.treeView.setLayerList(settings.getLayerList())
-        self.ui.webView.setup(self.iface, self, preview)
+        self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
 
         # signal-slot connections

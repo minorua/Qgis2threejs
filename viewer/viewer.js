@@ -119,11 +119,11 @@ function loadEnd(name) {
 function loadAborted() {
 }
 
-function init(offScreen) {
+function init(off_screen, ortho_camera, debug_mode) {
   var container = document.getElementById("view");
   app.init(container, false);
 
-  if (offScreen) {
+  if (off_screen) {
     document.getElementById("progress").style.display = "none";
     app.osRender = app.render;
     app.render = function () {};    // not necessary to render scene before scene has been completely loaded
@@ -143,6 +143,15 @@ function init(offScreen) {
   app.addEventListener("sceneLoadError", function () {
     pyObj.onSceneLoadError();
   });
+
+  if (ortho_camera) {
+    switchCamera(true);
+  }
+
+  if (debug_mode) {
+    displayFPS();
+    if (debug_mode == 2) Q3D.Config.debugMode = true;
+  }
 
   // check extension support of web view
   // see https://github.com/minorua/Qgis2threejs/issues/147

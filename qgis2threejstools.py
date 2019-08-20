@@ -58,6 +58,10 @@ def getLayersByLayerIds(layerIds):
     return layers
 
 
+def js_bool(o):
+    return "true" if o else "false"
+
+
 def pyobj2js(obj, escape=False, quoteHex=True):
     if isinstance(obj, dict):
         items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]

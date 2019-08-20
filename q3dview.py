@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     raise
 
 from .conf import DEBUG_MODE
-from .qgis2threejstools import logMessage, pluginDir
+from .qgis2threejstools import js_bool, logMessage, pluginDir
 
 
 def base64image(image):
@@ -99,7 +99,7 @@ class Bridge(QObject):
 
 class Q3DWebPage(QWebPage):
 
-    initialized = pyqtSignal()
+    ready = pyqtSignal()
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
 
@@ -112,13 +112,11 @@ class Q3DWebPage(QWebPage):
             # open log file
             self.logfile = open(pluginDir("q3dview.log"), "w")
 
-    def setup(self, iface, wnd=None, enabled=True, exportMode=False):
-        """iface: Q3DInterface or Q3DViewerInterface
-           wnd: Q3DWindow or None (off-screen mode)"""
-        self.iface = iface
+    def setup(self, settings, wnd=None, exportMode=False):
+        """wnd: Q3DWindow or None (off-screen mode)"""
+        self.settings = settings
         self.wnd = wnd or DummyWindow()
         self.offScreen = bool(wnd is None)
-        self._enabled = enabled
         self.exportMode = exportMode
 
         self.bridge = Bridge(self)
@@ -135,12 +133,12 @@ class Q3DWebPage(QWebPage):
         origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
         origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
 
-        if False and self.offScreen:
-            # transparent background
-            palette = self.palette()
-            palette.setBrush(QPalette.Base, Qt.transparent)
-            self.setPalette(palette)
-            #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
+        # if self.offScreen:
+        #     # transparent background
+        #     palette = self.palette()
+        #     palette.setBrush(QPalette.Base, Qt.transparent)
+        #     self.setPalette(palette)
+        #     #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
         url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "viewer.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
@@ -152,21 +150,26 @@ class Q3DWebPage(QWebPage):
     def pageLoaded(self, ok):
         self.modelLoadersLoaded = False
 
-        # start application
-        self.iface.startApplication(offScreen=self.offScreen, exportMode=self.exportMode)
+        # configuration
+        if self.exportMode:
+            self.runScript("Q3D.Config.exportMode = true;")
 
-        if self.iface.controller.settings.isOrthoCamera():
-            self.runScript("switchCamera(true);")
+        p = self.settings.northArrow()
+        if p.get("visible"):
+            self.runScript("Q3D.Config.northArrow.visible = true;")
+            self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
 
-        self.initialized.emit()
+        header = self.settings.headerLabel()
+        footer = self.settings.footerLabel()
+        if header or footer:
+            self.runScript('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
 
-        if self.offScreen:
-            return
+        # call init()
+        self.runScript("init({}, {}, {});".format(js_bool(self.offScreen),
+                                                  js_bool(self.settings.isOrthoCamera()),
+                                                  DEBUG_MODE))
 
-        if self._enabled:
-            self.iface.requestSceneUpdate(0)
-        else:
-            self.iface.setPreviewEnabled(False)
+        self.ready.emit()
 
     def runScript(self, string, message="", sourceID="q3dview.py"):
         if DEBUG_MODE:
@@ -186,6 +189,7 @@ class Q3DWebPage(QWebPage):
             self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
     def loadScriptFile(self, filename):
+        """evaluate a script file without using a script tag to load script synchronously"""
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()
         return self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
@@ -293,13 +297,25 @@ class Q3DView(QWebView):
         self._page = Q3DWebPage(self)
         self.setPage(self._page)
 
-    def setup(self, iface, wnd=None, enabled=True):
-        self.iface = iface
-        self.wnd = wnd
-        self._page.setup(iface, wnd, enabled)
-
         # security settings - allow access to remote urls (for Icon)
         self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
+
+    def setup(self, iface, settings, wnd=None, enabled=True):
+        self.iface = iface
+        self.wnd = wnd
+        self._enabled = enabled     # whether preview is enabled at start
+
+        self._page.ready.connect(self.pageReady)
+        self._page.setup(settings, wnd)
+
+    def pageReady(self):
+        # start app
+        self.runScript("app.start();")
+
+        if self._enabled:
+            self.iface.requestSceneUpdate()
+        else:
+            self.iface.previewStateChanged.emit(False)
 
     def reloadPage(self):
         self.wnd.clearConsole()
