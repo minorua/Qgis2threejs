@@ -93,14 +93,19 @@ function loadModel(url) {
   }
 }
 
-function hideLayer(layerId) {
+function hideLayer(layerId, remove_obj) {
   var layer = app.scene.mapLayers[layerId];
-  if (layer !== undefined) layer.visible = false;
+  if (layer !== undefined) {
+    layer.visible = false;
+    if (remove_obj) layer.removeAllObjects();
+  }
 }
 
-function hideAllLayers() {
+function hideAllLayers(remove_obj) {
   for (var id in app.scene.mapLayers) {
-    app.scene.mapLayers[id].visible = false;
+    var layer = app.scene.mapLayers[id];
+    layer.visible = false;
+    if (remove_obj) layer.removeAllObjects();
   }
 }
 
