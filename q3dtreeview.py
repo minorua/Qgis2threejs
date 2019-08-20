@@ -124,7 +124,7 @@ class Q3DTreeView(QTreeView):
 
         layer.visible = (item.checkState() == Qt.Checked)
         if layer.visible and layer.properties is None:
-            layer.properties = self.iface.getDefaultProperties(layer)
+            layer.properties = self.iface.wnd.getDefaultProperties(layer)
 
         self.iface.requestLayerUpdate(layer)
 
@@ -137,4 +137,4 @@ class Q3DTreeView(QTreeView):
         data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
         layer = self.iface.settings.getItemByLayerId(data)
         if layer is not None:
-            self.iface.showLayerPropertiesDialog(layer)
+            self.iface.wnd.showLayerPropertiesDialog(layer)

@@ -19,6 +19,7 @@
 """
 import os
 import json
+from copy import deepcopy
 
 from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsProject, QgsWkbTypes
@@ -47,7 +48,7 @@ class Layer:
         self.updated = False
 
     def clone(self):
-        c = Layer(self.layerId, self.name, self.geomType, self.properties, self.visible)
+        c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
         c.jsLayerId = self.jsLayerId
         c.mapLayer = self.mapLayer
         c.updated = self.updated
@@ -57,7 +58,7 @@ class Layer:
         t.layerId = self.layerId
         t.name = self.name
         t.geomType = self.geomType
-        t.properties = self.properties
+        t.properties = deepcopy(self.properties)
         t.visible = self.visible
 
         t.jsLayerId = self.jsLayerId

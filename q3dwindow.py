@@ -20,7 +20,7 @@
 """
 import os
 from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import pyqtSignal, QDir, QObject, QSettings, QThread, QUrl
+from PyQt5.QtCore import QDir, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 from qgis.core import Qgis, QgsProject
@@ -78,26 +78,6 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
-
-    def showLayerPropertiesDialog(self, layer):
-        dialog = PropertiesDialog(self.wnd, self.settings, self.wnd.qgisIface)
-        dialog.propertiesAccepted.connect(self.updateLayerProperties)
-        dialog.showLayerProperties(layer)
-        return True
-
-    def updateLayerProperties(self, layerId, properties):
-        # save layer properties
-        layer = self.settings.getItemByLayerId(layerId).clone()
-        if layer.properties != properties:
-            layer.updated = True
-
-        layer.properties = properties
-        self.requestLayerUpdate(layer)
-
-    def getDefaultProperties(self, layer):
-        dialog = PropertiesDialog(self.wnd, self.settings, self.wnd.qgisIface)
-        dialog.setLayer(layer)
-        return dialog.page.properties()
 
     def clearExportSettings(self):
         self.clearSettingsRequest.emit()
@@ -368,9 +348,27 @@ class Q3DWindow(QMainWindow):
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
         dialog.showSceneProperties()
 
-    def updateSceneProperties(self, _, properties):
+    # @pyqtSlot(dict)
+    def updateSceneProperties(self, properties):
         if self.settings.sceneProperties() != properties:
             self.iface.requestSceneUpdate(properties)
+
+    def showLayerPropertiesDialog(self, layer):
+        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
+        dialog.propertiesAccepted.connect(self.updateLayerProperties)
+        dialog.showLayerProperties(layer)
+
+    # @pyqtSlot(Layer)
+    def updateLayerProperties(self, layer):
+        orig_layer = self.settings.getItemByLayerId(layer.layerId)
+        if layer.properties != orig_layer.properties:
+            layer.updated = True
+        self.iface.requestLayerUpdate(layer)
+
+    def getDefaultProperties(self, layer):
+        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
+        dialog.setLayer(layer)
+        return dialog.page.properties()
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self, self.settings)
@@ -408,7 +406,7 @@ class Q3DWindow(QMainWindow):
 
 class PropertiesDialog(QDialog):
 
-    propertiesAccepted = pyqtSignal(str, dict)
+    propertiesAccepted = pyqtSignal(object)
 
     def __init__(self, parent, settings, qgisIface=None):
         """qgisIface: required for DEM properties page"""
@@ -430,9 +428,6 @@ class PropertiesDialog(QDialog):
         settings = QSettings()
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
-        #self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        # self.activateWindow()
-
     def closeEvent(self, event):
         # save dialog geometry
         settings = QSettings()
@@ -440,15 +435,15 @@ class PropertiesDialog(QDialog):
         QDialog.closeEvent(self, event)
 
     def setLayer(self, layer):
-        self.layer = layer
-        if layer.geomType == q3dconst.TYPE_DEM:
+        self.layer = layer.clone()      # create a copy of Layer object
+        if self.layer.geomType == q3dconst.TYPE_DEM:
             self.page = DEMPropertyPage(self.qgisIface, self, self)
-            self.page.setup(layer)
-        elif layer.geomType == q3dconst.TYPE_IMAGE:
+            self.page.setup(self.layer)
+        elif self.layer.geomType == q3dconst.TYPE_IMAGE:
             return
         else:
             self.page = VectorPropertyPage(self, self)
-            self.page.setup(layer)
+            self.page.setup(self.layer)
         self.ui.scrollArea.setWidget(self.page)
 
         # disable wheel event for ComboBox widgets
@@ -462,9 +457,10 @@ class PropertiesDialog(QDialog):
                 self.hide()
 
             if isinstance(self.page, ScenePropertyPage):
-                self.propertiesAccepted.emit("", self.page.properties())
+                self.propertiesAccepted.emit(self.page.properties())
             else:
-                self.propertiesAccepted.emit(self.layer.layerId, self.page.properties())
+                self.layer.properties = self.page.properties()
+                self.propertiesAccepted.emit(self.layer)
 
     def showLayerProperties(self, layer):
         self.setWindowTitle("{0} - Layer Properties".format(layer.name))
