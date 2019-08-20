@@ -79,15 +79,6 @@ class Q3DViewerInterface(Q3DInterface):
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
 
-    def showScenePropertiesDialog(self):
-        dialog = PropertiesDialog(self.wnd, self.settings)
-        dialog.propertiesAccepted.connect(self.updateSceneProperties)
-        dialog.showSceneProperties()
-
-    def updateSceneProperties(self, _, properties):
-        if self.settings.sceneProperties() != properties:
-            self.requestSceneUpdate(properties)
-
     def showLayerPropertiesDialog(self, layer):
         dialog = PropertiesDialog(self.wnd, self.settings, self.wnd.qgisIface)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
@@ -211,7 +202,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
         self.ui.actionClearSettings.triggered.connect(self.clearSettings)
         self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-        self.ui.actionSceneSettings.triggered.connect(self.iface.showScenePropertiesDialog)
+        self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
@@ -371,6 +362,15 @@ class Q3DWindow(QMainWindow):
         dialog = SettingsDialog(self)
         if dialog.exec_():
             pluginManager().reloadPlugins()
+
+    def showScenePropertiesDialog(self):
+        dialog = PropertiesDialog(self, self.settings)
+        dialog.propertiesAccepted.connect(self.updateSceneProperties)
+        dialog.showSceneProperties()
+
+    def updateSceneProperties(self, _, properties):
+        if self.settings.sceneProperties() != properties:
+            self.iface.requestSceneUpdate(properties)
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self, self.settings)
