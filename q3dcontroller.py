@@ -222,8 +222,7 @@ class Q3DController(QObject):
             self.iface.runScript('loadStart("LYRS", true);')
 
             layers = self.settings.getLayerList()
-            for idx, layer in enumerate(sorted(layers, key=lambda lyr: lyr.geomType)):
-                self.iface.progress(idx / len(layers) * 100, "Updating layers")
+            for layer in sorted(layers, key=lambda lyr: lyr.geomType):
                 if layer.updated or (self.layersNeedUpdate and layer.visible):
                     ret = self._buildLayer(layer)
                     if not ret or self.aborted:
@@ -260,6 +259,7 @@ class Q3DController(QObject):
         self.updating = False
         self.updatingLayerId = None
         self.aborted = False
+        self.iface.progress()
         self.iface.clearMessage()
 
         return aborted
@@ -297,7 +297,6 @@ class Q3DController(QObject):
         layer.updated = False
 
         self.iface.runScript('loadEnd("L{}");'.format(layer.jsLayerId))
-        self.iface.progress()
 
         if DEBUG_MODE:
             dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
