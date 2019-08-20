@@ -169,7 +169,10 @@ class Q3DController(QObject):
             self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
 
-    def abort(self):
+    def abort(self, clear_queue=True):
+        if clear_queue:
+            self.requestQueue.clear()
+
         if self.updating and not self.aborted:
             self.aborted = True
             self.iface.showMessage("Aborting processing...")
@@ -182,6 +185,7 @@ class Q3DController(QObject):
         self.iface.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
         if not enabled:
             self.iface.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
+            self.abort()
         else:
             self.buildScene()
 
@@ -354,7 +358,7 @@ class Q3DController(QObject):
         self.requestQueue.append(self.BUILD_SCENE_ALL if update_all else self.BUILD_SCENE)
 
         if self.updating:
-            self.abort()
+            self.abort(clear_queue=False)
         else:
             self.processRequests()
 
@@ -373,7 +377,7 @@ class Q3DController(QObject):
 
         if self.updatingLayerId == layer.layerId:
             self.requestQueue.append(layer)
-            self.abort()
+            self.abort(clear_queue=False)
 
         elif layer.visible:
             self.requestQueue.append(layer)
@@ -398,7 +402,7 @@ class Q3DController(QObject):
         self.layersNeedUpdate = True
         self.requestQueue.clear()
         if self.updating:
-            self.abort()
+            self.abort(clear_queue=False)
 
 
 class Mock:

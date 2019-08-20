@@ -167,8 +167,7 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
     def closeEvent(self, event):
-        self.iface.disconnectFromController()
-        self.controller.disconnectFromMapCanvas()
+        self.iface.abortRequest.emit()
 
         # save export settings to a settings file
         self.settings.saveSettings()
