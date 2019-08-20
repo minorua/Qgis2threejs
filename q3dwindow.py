@@ -40,9 +40,8 @@ from .ui.q3dwindow import Ui_Q3DWindow
 
 class Q3DViewerInterface(Q3DInterface):
 
-    pageLoadFinished = pyqtSignal(bool, bool)   # param: off screen, export mode
-    sceneUpdateRequest = pyqtSignal(object)     # param: scene properties dict or 0 (if properties do not changes)
-    layerUpdateRequest = pyqtSignal(Layer)      # param: Layer object
+    updateSceneRequest = pyqtSignal(object)     # param: scene properties dict or 0 (if properties do not changes)
+    updateLayerRequest = pyqtSignal(Layer)      # param: Layer object
     clearSettingsRequest = pyqtSignal()
     abortRequest = pyqtSignal()
     previewStateChanged = pyqtSignal(bool)
@@ -73,10 +72,10 @@ class Q3DViewerInterface(Q3DInterface):
                 bar.setFormat(text)
 
     def requestSceneUpdate(self, properties=0):
-        self.sceneUpdateRequest.emit(properties)
+        self.updateSceneRequest.emit(properties)
 
     def requestLayerUpdate(self, layer):
-        self.layerUpdateRequest.emit(layer)
+        self.updateLayerRequest.emit(layer)
 
     def showScenePropertiesDialog(self):
         dialog = PropertiesDialog(self.wnd, self.settings)

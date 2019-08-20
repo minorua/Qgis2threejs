@@ -55,8 +55,8 @@ class Q3DControllerInterface(QObject):
         self.loadScriptRequest.connect(iface.loadScriptFile)
         self.loadModelLoadersRequest.connect(iface.loadModelLoaders)
 
-        iface.sceneUpdateRequest.connect(self.controller.requestSceneUpdate)
-        iface.layerUpdateRequest.connect(self.controller.requestLayerUpdate)
+        iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
+        iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
         iface.clearSettingsRequest.connect(self.controller.clearExportSettings)
         iface.abortRequest.connect(self.controller.abort)
         iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
@@ -69,8 +69,8 @@ class Q3DControllerInterface(QObject):
         self.loadScriptRequest.disconnect(self.iface.loadScriptFile)
         self.loadModelLoadersRequest.disconnect(self.iface.loadModelLoaders)
 
-        self.iface.sceneUpdateRequest.disconnect(self.controller.requestSceneUpdate)
-        self.iface.layerUpdateRequest.disconnect(self.controller.requestLayerUpdate)
+        self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
+        self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
         self.iface.clearSettingsRequest.disconnect(self.controller.clearExportSettings)
         self.iface.abortRequest.disconnect(self.controller.abort)
         self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
