@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- RotatedRect
+ MapExtent
                               -------------------
         begin                : 2015-03-05
         copyright            : (C) 2015 Minoru Akagi
@@ -21,7 +21,7 @@ import math
 from qgis.core import QgsPointXY, QgsRectangle, QgsGeometry
 
 
-class RotatedRect:
+class MapExtent:
 
     def __init__(self, center, width, height, rotation=0):
         """
@@ -37,7 +37,7 @@ class RotatedRect:
         self._updateDerived()
 
     def clone(self):
-        return RotatedRect(self._center, self._width, self._height, self._rotation)
+        return MapExtent(self._center, self._width, self._height, self._rotation)
 
     def _updateDerived(self):
         self._unrotated_rect = self._unrotatedRect()
@@ -132,7 +132,7 @@ class RotatedRect:
             ymax = ur_rect.yMinimum() + norm_rect.yMaximum() * ur_rect.height()
 
         rect = QgsRectangle(xmin, ymin, xmax, ymax)
-        return RotatedRect(rect.center(), rect.width(), rect.height()).rotate(self._rotation, self._center)
+        return MapExtent(rect.center(), rect.width(), rect.height()).rotate(self._rotation, self._center)
 
     @classmethod
     def fromMapSettings(cls, mapSettings):
@@ -232,8 +232,8 @@ class RotatedRect:
         return pts
 
     def __repr__(self):
-        return "RotatedRect(c:{0}, w:{1}, h:{2}, r:{3})".format(self._center.toString(), self._width, self._height, self._rotation)
+        return "MapExtent(c:{0}, w:{1}, h:{2}, r:{3})".format(self._center.toString(), self._width, self._height, self._rotation)
 
         # print coordinates of vertices
         pts = self.verticies()
-        return "RotatedRect:" + ",".join(["P{0}({1})".format(x_y[0], x_y[1].toString()) for x_y in enumerate(pts)])
+        return "MapExtent:" + ",".join(["P{0}({1})".format(x_y[0], x_y[1].toString()) for x_y in enumerate(pts)])

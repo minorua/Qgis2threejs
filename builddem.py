@@ -28,7 +28,7 @@ from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
 from .propertyreader import DEMPropertyReader
-from .rotatedrect import RotatedRect
+from .mapextent import MapExtent
 
 
 class DEMLayerBuilder(LayerBuilder):
@@ -104,7 +104,7 @@ class DEMLayerBuilder(LayerBuilder):
                 grid_size = base_grid_size
             else:
                 block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
-                extent = RotatedRect(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
+                extent = MapExtent(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
                 grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughening + 1),
                                   max(2, (base_grid_size.height() - 1) // roughening + 1))
 

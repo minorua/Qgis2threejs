@@ -14,7 +14,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from qgis.testing import start_app, unittest
 
 from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter
-from Qgis2threejs.rotatedrect import RotatedRect
+from Qgis2threejs.mapextent import MapExtent
 from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath, loadProject
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
@@ -32,7 +32,7 @@ class TestExport(unittest.TestCase):
         mapSettings = loadProject(filename)
 
         # extent
-        RotatedRect(mapSettings.extent().center(),
+        MapExtent(mapSettings.extent().center(),
                     mapSettings.extent().height(),
                     mapSettings.extent().height(), 0).toMapSettings(mapSettings)
 

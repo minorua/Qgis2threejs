@@ -44,7 +44,7 @@ from .conf import DEBUG_MODE, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, openDirectory
-from .rotatedrect import RotatedRect
+from .mapextent import MapExtent
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
@@ -269,25 +269,25 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
                 tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
-                rect = RotatedRect(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
+                extent = MapExtent(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
             else:
                 geometry.rotate(rotation, center)
                 rect = geometry.boundingBox().scaled(1 + buf / 100)
-                center = RotatedRect.rotatePoint(rect.center(), rotation, center)
+                center = MapExtent.rotatePoint(rect.center(), rotation, center)
                 if orig_tex_height:
                     tex_height = orig_tex_height
                     tex_ratio = tex_width / tex_height
                     rect_ratio = rect.width() / rect.height()
                     if tex_ratio > rect_ratio:
-                        rect = RotatedRect(center, rect.height() * tex_ratio, rect.height(), rotation)
+                        extent = MapExtent(center, rect.height() * tex_ratio, rect.height(), rotation)
                     else:
-                        rect = RotatedRect(center, rect.width(), rect.width() / tex_ratio, rotation)
+                        extent = MapExtent(center, rect.width(), rect.width() / tex_ratio, rotation)
                 else:
                     # fit to buffered geometry bounding box
-                    rect = RotatedRect(center, rect.width(), rect.height(), rotation)
+                    extent = MapExtent(center, rect.width(), rect.height(), rotation)
                     tex_height = tex_width * rect.height() / rect.width()
 
-            rect.toMapSettings(mapSettings)
+            extent.toMapSettings(mapSettings)
             mapSettings.setOutputSize(QSize(tex_width, tex_height))
 
             self.settings.setMapSettings(mapSettings)

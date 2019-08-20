@@ -27,7 +27,7 @@ from . import q3dconst
 from .conf import DEF_SETS
 from .pluginmanager import pluginManager
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
-from .rotatedrect import RotatedRect
+from .mapextent import MapExtent
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 from .vectorobject import objectTypeRegistry
@@ -235,7 +235,7 @@ class ExportSettings:
         self._mapTo3d = None
         self.mapSettings = settings
 
-        self.baseExtent = RotatedRect.fromMapSettings(settings)
+        self.baseExtent = MapExtent.fromMapSettings(settings)
         self.crs = settings.destinationCrs()
 
     def mapTo3d(self):

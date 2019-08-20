@@ -26,7 +26,7 @@ from osgeo import gdal
 from PyQt5.QtCore import QSize
 
 from .geometry import Point
-from .rotatedrect import RotatedRect
+from .mapextent import MapExtent
 from .qgis2threejstools import logMessage
 
 
@@ -35,7 +35,7 @@ class MapTo3D:
     def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):
         # map canvas
         self.rotation = mapSettings.rotation()
-        self.mapExtent = RotatedRect.fromMapSettings(mapSettings)
+        self.mapExtent = MapExtent.fromMapSettings(mapSettings)
 
         # 3d
         canvas_size = mapSettings.outputSize()
