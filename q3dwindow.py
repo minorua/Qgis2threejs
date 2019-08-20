@@ -40,26 +40,25 @@ from .ui.q3dwindow import Ui_Q3DWindow
 
 class Q3DViewerInterface(Q3DInterface):
 
-    updateSceneRequest = pyqtSignal(object)     # param: scene properties dict or 0 (if properties do not changes)
-    updateLayerRequest = pyqtSignal(Layer)      # param: Layer object
+    abortRequest = pyqtSignal(bool)                 # param: cancel all requests in queue
+    updateSceneRequest = pyqtSignal(object, bool)   # params: scene properties dict or 0 (if properties do not changes), update all
+    updateLayerRequest = pyqtSignal(Layer)          # param: Layer object
     clearSettingsRequest = pyqtSignal()
-    abortRequest = pyqtSignal()
-    previewStateChanged = pyqtSignal(bool)
+    previewStateChanged = pyqtSignal(bool)          # param: visible
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
         self.treeView = treeView
 
+    # @pyqtSlot(str, int, bool)
     def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
         if show_in_msg_bar:
             self.wnd.qgisIface.messageBar().pushMessage("Qgis2threejs Error", msg, level=Qgis.Warning, duration=timeout)
         else:
             self.wnd.ui.statusbar.showMessage(msg, timeout)
 
-    def clearMessage(self):
-        self.wnd.ui.statusbar.clearMessage()
-
+    # @pyqtSlot(int, str)
     def progress(self, percentage=100, text=None):
         bar = self.wnd.ui.progressBar
         if percentage == 100:
@@ -71,8 +70,11 @@ class Q3DViewerInterface(Q3DInterface):
             if text is not None:
                 bar.setFormat(text)
 
-    def requestSceneUpdate(self, properties=0):
-        self.updateSceneRequest.emit(properties)
+    def abort(self):
+        self.abortRequest.emit(True)
+
+    def requestSceneUpdate(self, properties=0, update_all=True):
+        self.updateSceneRequest.emit(properties, update_all)
 
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
@@ -142,7 +144,7 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.iface = Q3DViewerInterface(settings, self.ui.webView._page, self, self.ui.treeView, parent=self)
-        self.iface.connectToController(self.controller)
+        self.controller.connectToIface(self.iface)
 
         self.setupMenu()
         self.setupContextMenu()
@@ -167,7 +169,7 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
     def closeEvent(self, event):
-        self.iface.abortRequest.emit()
+        self.iface.abort()
 
         # save export settings to a settings file
         self.settings.saveSettings()
@@ -358,7 +360,7 @@ class Q3DWindow(QMainWindow):
                                                   self.lastDir or QDir.homePath(),
                                                   "glTF files (*.gltf);;Binary glTF files (*.glb)")
         if filename:
-            self.iface.buildScene(base64=True)
+            self.controller.buildScene(base64=True)
             self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 

@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 import time
-from PyQt5.QtCore import QObject, QTimer, pyqtSignal, qDebug
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE
@@ -50,30 +50,32 @@ class Q3DControllerInterface(QObject):
 
         self.dataReady.connect(iface.loadJSONObject)
         self.scriptReady.connect(iface.runScript)
-        self.messageReady.connect(iface.showMessage)
-        self.progressUpdated.connect(iface.progress)
         self.loadScriptRequest.connect(iface.loadScriptFile)
         self.loadModelLoadersRequest.connect(iface.loadModelLoaders)
+        self.messageReady.connect(iface.showMessage)
+        self.progressUpdated.connect(iface.progress)
 
-        iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
-        iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
-        iface.clearSettingsRequest.connect(self.controller.clearExportSettings)
-        iface.abortRequest.connect(self.controller.abort)
-        iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
+        if hasattr(iface, "abortRequest"):
+            iface.abortRequest.connect(self.controller.abort)
+            iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
+            iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
+            iface.clearSettingsRequest.connect(self.controller.clearExportSettings)
+            iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
 
     def disconnectFromIface(self):
         self.dataReady.disconnect(self.iface.loadJSONObject)
         self.scriptReady.disconnect(self.iface.runScript)
-        self.messageReady.disconnect(self.iface.showMessage)
-        self.progressUpdated.disconnect(self.iface.progress)
         self.loadScriptRequest.disconnect(self.iface.loadScriptFile)
         self.loadModelLoadersRequest.disconnect(self.iface.loadModelLoaders)
+        self.messageReady.disconnect(self.iface.showMessage)
+        self.progressUpdated.disconnect(self.iface.progress)
 
-        self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
-        self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
-        self.iface.clearSettingsRequest.disconnect(self.controller.clearExportSettings)
-        self.iface.abortRequest.disconnect(self.controller.abort)
-        self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
+        if hasattr(self.iface, "abortRequest"):
+            self.iface.abortRequest.disconnect(self.controller.abort)
+            self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
+            self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
+            self.iface.clearSettingsRequest.disconnect(self.controller.clearExportSettings)
+            self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
         self.iface = None
 
     def loadJSONObject(self, obj):
@@ -168,26 +170,6 @@ class Q3DController(QObject):
             self.mapCanvas.renderComplete.disconnect(self._requestSceneUpdate)
             self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
-
-    def abort(self, clear_queue=True):
-        if clear_queue:
-            self.requestQueue.clear()
-
-        if self.updating and not self.aborted:
-            self.aborted = True
-            self.iface.showMessage("Aborting processing...")
-
-    def setPreviewEnabled(self, enabled):
-        self.enabled = enabled
-        self.iface.runScript("app.resume();" if enabled else "app.pause();")
-
-        elem = "document.getElementById('cover')"
-        self.iface.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
-        if not enabled:
-            self.iface.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
-            self.abort()
-        else:
-            self.buildScene()
 
     def buildScene(self, update_scene_all=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
         if self.updating:
@@ -350,6 +332,16 @@ class Q3DController(QObject):
 
         self.processRequests()
 
+    @pyqtSlot(bool)
+    def abort(self, clear_queue=True):
+        if clear_queue:
+            self.requestQueue.clear()
+
+        if self.updating and not self.aborted:
+            self.aborted = True
+            self.iface.showMessage("Aborting processing...")
+
+    @pyqtSlot(object, bool)
     def requestSceneUpdate(self, properties=0, update_all=True):
         if DEBUG_MODE:
             logMessage("Scene update was requested: {}".format(properties))
@@ -364,6 +356,7 @@ class Q3DController(QObject):
         else:
             self.processRequests()
 
+    @pyqtSlot(Layer)
     def requestLayerUpdate(self, layer):
         if DEBUG_MODE:
             logMessage("Layer update for {} was requested.".format(layer.layerId))
@@ -391,15 +384,31 @@ class Q3DController(QObject):
             # immediately hide the layer
             self.hideLayer(layer)
 
+    @pyqtSlot()
     def clearExportSettings(self):
         self.settings.clear()
         self.settings.updateLayerList()
         self.requestSceneUpdate()
         self.hideAllLayers()
 
+    @pyqtSlot(bool)
+    def setPreviewEnabled(self, enabled):
+        self.enabled = enabled
+        self.iface.runScript("app.resume();" if enabled else "app.pause();")
+
+        elem = "document.getElementById('cover')"
+        self.iface.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
+        if not enabled:
+            self.iface.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
+            self.abort()
+        else:
+            self.buildScene()
+
+    # @pyqtSlot(QPainter)
     def _requestSceneUpdate(self, _=None):
         self.requestSceneUpdate(update_all=False)
 
+    # @pyqtSlot()
     def updateExtent(self):
         self.layersNeedUpdate = True
         self.requestQueue.clear()

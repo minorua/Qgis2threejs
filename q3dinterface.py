@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
@@ -26,24 +26,13 @@ from .qgis2threejstools import logMessage
 
 class Q3DInterface(QObject):
 
-    def __init__(self, settings, webPage, controller=None, parent=None):
+    def __init__(self, settings, webPage, parent=None):
         super().__init__(parent)
 
         self.settings = settings
         self.webPage = webPage
 
-        if controller:
-            self.connectToController(controller)
-
-    def connectToController(self, controller):
-        self.controller = controller
-        self.controller.connectToIface(self)
-
-    def disconnectFromController(self):
-        if self.controller:
-            self.controller.disconnectFromIface()
-        self.controller = None
-
+    @pyqtSlot(dict)
     def loadJSONObject(self, obj):
         # display the content of the object in the debug element
         if DEBUG_MODE == 2:
@@ -51,36 +40,22 @@ class Q3DInterface(QObject):
 
         self.webPage.sendData(obj)
 
+    @pyqtSlot(str, str)
     def runScript(self, string, message=""):
         self.webPage.runScript(string, message, sourceID="q3dwindow.py")
 
+    @pyqtSlot(str)
     def loadScriptFile(self, filepath):
         self.webPage.loadScriptFile(filepath)
 
+    @pyqtSlot()
     def loadModelLoaders(self):
         self.webPage.loadModelLoaders()
 
-    def abort(self):
-        self.controller.abort()
-
-    def settings(self):
-        return self.controller.settings
-
-    def buildScene(self, update_scene_all=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
-        self.controller.buildScene(update_scene_all=update_scene_all,
-                                   build_layers=build_layers,
-                                   build_scene=build_scene,
-                                   update_extent=update_extent,
-                                   base64=base64)
-
-    def buildLayer(self, layer):
-        self.controller.buildLayer(layer)
-
-    def showMessage(self, msg, _=False):
+    # @pyqtSlot(str, int, bool)     # pyqtSlot override bug in PyQt5?
+    def showMessage(self, msg, _1=0, _2=False):
         logMessage(msg)
 
-    def clearMessage(self):
-        pass
-
+    # @pyqtSlot(int, str)
     def progress(self, percentage=100, text=None):
         pass

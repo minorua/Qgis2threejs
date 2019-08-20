@@ -202,7 +202,7 @@ class BridgeExporterBase:
 
         self.page = Q3DWebPage()
         self.iface = Q3DInterface(settings, self.page)
-        self.iface.connectToController(self.controller)
+        self.controller.connectToIface(self.iface)
 
     def __del__(self):
         self.page.deleteLater()
@@ -243,7 +243,7 @@ class ImageExporter(BridgeExporterBase):
             self.page.setCameraState(cameraState)
 
         # build scene
-        self.iface.buildScene(update_extent=False)
+        self.controller.buildScene(update_extent=False)
 
         err = self.page.waitForSceneLoaded(cancelSignal)
 
@@ -285,7 +285,7 @@ class ModelExporter(BridgeExporterBase):
         self.mkdir(filename)
 
         # build scene
-        self.iface.buildScene(update_extent=False, base64=True)
+        self.controller.buildScene(update_extent=False, base64=True)
 
         err = self.page.waitForSceneLoaded(cancelSignal)
 
