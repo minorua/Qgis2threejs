@@ -45,6 +45,7 @@ class Q3DViewerInterface(Q3DInterface):
     updateLayerRequest = pyqtSignal(Layer)          # param: Layer object
     updateDecorationRequest = pyqtSignal(str, dict) # params: decoration name (e.g. NorthArrow, Label), properties dict
     updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
+    switchCameraRequest = pyqtSignal(bool)          # params: is ortho camera
     previewStateChanged = pyqtSignal(bool)          # param: visible
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
@@ -82,6 +83,9 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestDecorationUpdate(self, name, properties):
         self.updateDecorationRequest.emit(name, properties)
+
+    def requestCameraSwitch(self, is_ortho=False):
+        self.switchCameraRequest.emit(is_ortho)
 
     def requestExportSettingsUpdate(self, settings):
         self.updateExportSettingsRequest.emit(settings)
@@ -223,8 +227,7 @@ class Q3DWindow(QMainWindow):
         self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
 
     def switchCamera(self, action):
-        self.settings.setCamera(action == self.ui.actionOrthographic)
-        self.runScript("switchCamera({0});".format("true" if self.settings.isOrthoCamera() else "false"))
+        self.iface.requestCameraSwitch(action == self.ui.actionOrthographic)
 
     def loadSettings(self):
         # file open dialog

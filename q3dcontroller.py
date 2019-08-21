@@ -61,6 +61,7 @@ class Q3DControllerInterface(QObject):
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
             iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
             iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
+            iface.switchCameraRequest.connect(self.controller.requestCameraSwitch)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
 
     def disconnectFromIface(self):
@@ -77,6 +78,7 @@ class Q3DControllerInterface(QObject):
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
             self.iface.updateDecorationRequest.disconnect(self.controller.requestDecorationUpdate)
             self.iface.updateExportSettingsRequest.disconnect(self.controller.requestExportSettingsUpdate)
+            self.iface.switchCameraRequest.disconnect(self.controller.requestCameraSwitch)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
         self.iface = None
 
@@ -405,13 +407,23 @@ class Q3DController(QObject):
     def requestExportSettingsUpdate(self, settings):
         if self.updating:
             self.abort()
-        self.hideAllLayers()
 
+        self.hideAllLayers()
         settings.copyTo(self.settings)
-        self.requestSceneUpdate()
+
+        # camera and decorations
+        self.requestCameraSwitch(self.settings.isOrthoCamera())
 
         for name in ExportSettings.DECOR_LIST:
             self.requestDecorationUpdate(name, self.settings.decorationProperties(name))
+
+        # scene
+        self.requestSceneUpdate()
+
+    @pyqtSlot(bool)
+    def requestCameraSwitch(self, is_ortho=False):
+        self.settings.setCamera(is_ortho)
+        self.iface.runScript("switchCamera({0});".format(js_bool(is_ortho)))
 
     @pyqtSlot(bool)
     def setPreviewEnabled(self, enabled):
