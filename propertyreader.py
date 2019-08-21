@@ -51,24 +51,23 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-    def __init__(self, objectTypeManager, renderContext, layer, properties):
-        assert(properties is not None)
+    def __init__(self, objectTypeManager, renderContext, renderer, mapLayer, properties):
         self.renderContext = renderContext
+        self.renderer = renderer
+        self.mapLayer = mapLayer
         self.expressionContext = QgsExpressionContext()
-        self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(layer))
-        self.layer = layer
-        properties = properties or {}
-        self.properties = properties
+        self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(mapLayer))
+        self.properties = properties or {}
 
-        if properties:
-            self.objType = objectTypeManager.objectType(layer.geometryType(), properties["comboBox_ObjectType"])
-            self.visible = properties.get("visible", True)
+        if self.properties:
+            self.objType = objectTypeManager.objectType(mapLayer.geometryType(), self.properties["comboBox_ObjectType"])
+            self.visible = self.properties.get("visible", True)
         else:
             self.visible = False
 
         self._exprs = {}
-        self.exprAlt = QgsExpression(properties.get("fieldExpressionWidget_altitude") or "0")
-        self.exprLabel = QgsExpression(properties.get("labelHeightWidget", {}).get("editText") or "0")
+        self.exprAlt = QgsExpression(self.properties.get("fieldExpressionWidget_altitude") or "0")
+        self.exprLabel = QgsExpression(self.properties.get("labelHeightWidget", {}).get("editText") or "0")
 
     def evaluateExpression(self, expr_str, f):
         if expr_str not in self._exprs:
@@ -114,9 +113,9 @@ class VectorPropertyReader:
             return QColor(colorName).name().replace("#", "0x")
 
         # feature color
-        symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
+        symbol = self.renderer.symbolForFeature(f, self.renderContext)
         if symbol is None:
-            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.layer.name()))
+            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
             return "0"
 
         else:
@@ -148,12 +147,12 @@ class VectorPropertyReader:
                 logMessage("Wrong opacity value: {}".format(val))
                 return 1
 
-        symbol = self.layer.renderer().symbolForFeature(f, self.renderContext)
+        symbol = self.renderer.symbolForFeature(f, self.renderContext)
         if symbol is None:
-            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.layer.name()))
+            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
             return 1
         # TODO [data defined property]
-        return self.layer.opacity() * symbol.opacity()
+        return self.mapLayer.opacity() * symbol.opacity()
 
     @classmethod
     def toFloat(cls, val):

@@ -40,7 +40,7 @@ class Layer:
         self.layerId = layerId
         self.name = name
         self.geomType = geomType        # q3dconst.TYPE_XXX
-        self.properties = properties
+        self.properties = properties or {}
         self.visible = visible
 
         self.jsLayerId = None
@@ -357,7 +357,7 @@ class ExportSettings:
                     return layer
         return None
 
-    def getPropertyReaderByLayerId(self, layerId, renderContext=None):
+    def getPropertyReaderByLayerId(self, layerId, renderContext=None, renderer=None):
         """renderContext: required if the layer is a vector layer"""
         layer = self.getItemByLayerId(layerId)
         if layer is None:
@@ -366,7 +366,7 @@ class ExportSettings:
         if layer.geomType == q3dconst.TYPE_DEM:
             return DEMPropertyReader(layer.layerId, layer.properties)
 
-        return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)
+        return VectorPropertyReader(objectTypeRegistry(), renderContext, renderer, layer.mapLayer, layer.properties)
 
     def decorationProperties(self, name):
         decor = self.data.get(ExportSettings.DECOR, {})

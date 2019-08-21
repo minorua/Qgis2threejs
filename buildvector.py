@@ -232,8 +232,9 @@ class VectorLayerBuilder(LayerBuilder):
         baseExtent = self.settings.baseExtent
         mapSettings = self.settings.mapSettings
         renderContext = QgsRenderContext.fromMapSettings(mapSettings)
+        renderer = mapLayer.renderer().clone()      # clone feature renderer
 
-        self.prop = VectorPropertyReader(objectTypeRegistry(), renderContext, mapLayer, properties)
+        self.prop = VectorPropertyReader(objectTypeRegistry(), renderContext, renderer, mapLayer, properties)
         if self.prop.objType is None:
             logMessage("Object type not found")
             return
@@ -262,9 +263,9 @@ class VectorLayerBuilder(LayerBuilder):
                 self.clipGeom = extent.geometry()
 
         # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
-        mapLayer.renderer().startRender(renderContext, mapLayer.fields())
+        renderer.startRender(renderContext, mapLayer.fields())
         self.features = layer.features(request)
-        mapLayer.renderer().stopRender(renderContext)
+        renderer.stopRender(renderContext)
 
         # materials/models
         data = {}
