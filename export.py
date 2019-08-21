@@ -95,8 +95,7 @@ class ThreeJSExporter(ThreeJSBuilder):
                 options.append("Q3D.Config.{0} = {1};".format(key, tools.pyobj2js(self.settings.option(key))))
 
         # North arrow
-        decor = self.settings.get(self.settings.DECOR, {})
-        p = decor.get("NorthArrow", {})
+        p = self.settings.decorationProperties("NorthArrow")
         if p.get("visible"):
             options.append("Q3D.Config.northArrow.visible = true;")
             options.append("Q3D.Config.northArrow.color = {0};".format(p.get("color", 0)))

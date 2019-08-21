@@ -22,7 +22,7 @@ import json
 from copy import deepcopy
 
 from PyQt5.QtCore import QSettings
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsMapSettings, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from .conf import DEF_SETS
@@ -99,6 +99,9 @@ class Layer:
 
         return None
 
+    def __deepcopy__(self, memo):
+        return self.clone()
+
 
 class ExportSettings:
 
@@ -108,6 +111,8 @@ class ExportSettings:
     LAYERS = "LAYERS"
     OPTIONS = "OPT"   # template specific settings
     DECOR = "DECOR"
+
+    DECOR_LIST = ["NorthArrow", "Label"]
 
     def __init__(self):
         self.data = {}
@@ -122,6 +127,18 @@ class ExportSettings:
 
     def clear(self):
         self.data = {}
+
+    def clone(self):
+        s = ExportSettings()
+        self.copyTo(s)
+        return s
+
+    def copyTo(self, t):
+        t.data = deepcopy(self.data)
+        t.mapSettings = QgsMapSettings(self.mapSettings)
+        t.baseExtent = self.baseExtent.clone()
+        t.crs = self.crs
+        t.base64 = self.base64
 
     def sceneProperties(self):
         return self.data.get(ExportSettings.SCENE, {})
@@ -351,30 +368,35 @@ class ExportSettings:
 
         return VectorPropertyReader(objectTypeRegistry(), renderContext, layer.mapLayer, layer.properties)
 
-    def northArrow(self):
-        return self.data.get(ExportSettings.DECOR, {}).get("NorthArrow", {"visible": False, "color": "0x666666"})
-
-    def setNorthArrow(self, visible, color=None):
+    def decorationProperties(self, name):
         decor = self.data.get(ExportSettings.DECOR, {})
-        decor["NorthArrow"] = decor.get("NorthArrow", {})
-        decor["NorthArrow"]["visible"] = visible
-        if color is not None:
-            decor["NorthArrow"]["color"] = color
+        if name == "Label":
+            p = decor.get("Label")
+            if p:
+                return p
+            # for backward compatibility
+            return {"Header": decor.get("HeaderLabel", ""),
+                    "Footer": decor.get("FooterLabel", "")}
 
+        return decor.get(name, {})
+
+    def setDecorationProperties(self, name, properties):
+        decor = self.data.get(ExportSettings.DECOR, {})
+        decor[name] = properties
         self.data[ExportSettings.DECOR] = decor
 
     def headerLabel(self):
-        return self.data.get(ExportSettings.DECOR, {}).get("HeaderLabel", "")
+        return self.decorationProperties("Label").get("Header", "")
 
     def setHeaderLabel(self, text):
-        decor = self.data.get(ExportSettings.DECOR, {})
-        decor["HeaderLabel"] = str(text)
-        self.data[ExportSettings.DECOR] = decor
+        p = self.decorationProperties("Label")
+        p["Header"] = str(text)
+        self.setDecorationProperties("Label", p)
 
     def footerLabel(self):
-        return self.data.get(ExportSettings.DECOR, {}).get("FooterLabel", "")
+        return self.decorationProperties("Label").get("Footer", "")
 
     def setFooterLabel(self, text):
-        decor = self.data.get(ExportSettings.DECOR, {})
-        decor["FooterLabel"] = str(text)
-        self.data[ExportSettings.DECOR] = decor
+        p = self.decorationProperties("Label")
+        p["Footer"] = str(text)
+        self.setDecorationProperties("Label", p)

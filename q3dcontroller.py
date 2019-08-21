@@ -25,7 +25,7 @@ from qgis.core import QgsApplication
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings, Layer
-from .qgis2threejstools import logMessage, pluginDir
+from .qgis2threejstools import js_bool, logMessage, pluginDir
 
 
 class Q3DControllerInterface(QObject):
@@ -59,7 +59,8 @@ class Q3DControllerInterface(QObject):
             iface.abortRequest.connect(self.controller.abort)
             iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
-            iface.clearSettingsRequest.connect(self.controller.clearExportSettings)
+            iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
+            iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
 
     def disconnectFromIface(self):
@@ -74,7 +75,8 @@ class Q3DControllerInterface(QObject):
             self.iface.abortRequest.disconnect(self.controller.abort)
             self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
-            self.iface.clearSettingsRequest.disconnect(self.controller.clearExportSettings)
+            self.iface.updateDecorationRequest.disconnect(self.controller.requestDecorationUpdate)
+            self.iface.updateExportSettingsRequest.disconnect(self.controller.requestExportSettingsUpdate)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
         self.iface = None
 
@@ -384,12 +386,32 @@ class Q3DController(QObject):
             # immediately hide the layer
             self.hideLayer(layer)
 
-    @pyqtSlot()
-    def clearExportSettings(self):
-        self.settings.clear()
-        self.settings.updateLayerList()
-        self.requestSceneUpdate()
+    @pyqtSlot(str, dict)
+    def requestDecorationUpdate(self, name, properties):
+        if name == "NorthArrow":
+            self.iface.runScript("setNorthArrowColor({0});".format(properties.get("color", 0)))
+            self.iface.runScript("setNorthArrowVisible({0});".format(js_bool(properties.get("visible"))))
+
+        elif name == "Label":
+            self.iface.runScript('setHFLabel("{0}", "{1}");'.format(properties.get("Header", "").replace('"', '\\"'),
+                                                                    properties.get("Footer", "").replace('"', '\\"')))
+
+        else:
+            return
+
+        self.settings.setDecorationProperties(name, properties)
+
+    @pyqtSlot(ExportSettings)
+    def requestExportSettingsUpdate(self, settings):
+        if self.updating:
+            self.abort()
         self.hideAllLayers()
+
+        settings.copyTo(self.settings)
+        self.requestSceneUpdate()
+
+        for name in ExportSettings.DECOR_LIST:
+            self.requestDecorationUpdate(name, self.settings.decorationProperties(name))
 
     @pyqtSlot(bool)
     def setPreviewEnabled(self, enabled):

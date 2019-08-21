@@ -27,7 +27,7 @@ from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
 from .conf import RUN_CNTLR_IN_BKGND, DEBUG_MODE, PLUGIN_VERSION
-from .exportsettings import Layer
+from .exportsettings import ExportSettings, Layer
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
@@ -43,7 +43,8 @@ class Q3DViewerInterface(Q3DInterface):
     abortRequest = pyqtSignal(bool)                 # param: cancel all requests in queue
     updateSceneRequest = pyqtSignal(object, bool)   # params: scene properties dict or 0 (if properties do not changes), update all
     updateLayerRequest = pyqtSignal(Layer)          # param: Layer object
-    clearSettingsRequest = pyqtSignal()
+    updateDecorationRequest = pyqtSignal(str, dict) # params: decoration name (e.g. NorthArrow, Label), properties dict
+    updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
     previewStateChanged = pyqtSignal(bool)          # param: visible
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
@@ -79,8 +80,11 @@ class Q3DViewerInterface(Q3DInterface):
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
 
-    def clearExportSettings(self):
-        self.clearSettingsRequest.emit()
+    def requestDecorationUpdate(self, name, properties):
+        self.updateDecorationRequest.emit(name, properties)
+
+    def requestExportSettingsUpdate(self, settings):
+        self.updateExportSettingsRequest.emit(settings)
 
 
 class Q3DWindow(QMainWindow):
@@ -230,12 +234,14 @@ class Q3DWindow(QMainWindow):
         if not filename:
             return
 
-        self.settings.loadSettingsFromFile(filename)
-        self.settings.updateLayerList()
-        self.ui.treeView.updateLayersCheckState(self.settings.getLayerList())
-        self.iface.requestSceneUpdate()
-        self.updateNorthArrow()
-        self.updateHFLabel()
+        self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
+
+        settings = self.settings.clone()
+        settings.loadSettingsFromFile(filename)
+        settings.updateLayerList()
+        self.ui.treeView.updateLayersCheckState(settings)
+
+        self.iface.requestExportSettingsUpdate(settings)
 
         self.lastDir = os.path.dirname(filename)
 
@@ -255,14 +261,17 @@ class Q3DWindow(QMainWindow):
         self.lastDir = os.path.dirname(filename)
 
     def clearSettings(self):
-        if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") == QMessageBox.Yes:
-            self.ui.treeView.uncheckAll()
-            self.ui.actionPerspective.setChecked(True)
+        if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") != QMessageBox.Yes:
+            return
 
-            self.iface.clearExportSettings()
+        self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
+        self.ui.actionPerspective.setChecked(True)
 
-            self.updateNorthArrow()
-            self.updateHFLabel()
+        settings = self.settings.clone()
+        settings.clear()
+        settings.updateLayerList()
+
+        self.iface.requestExportSettingsUpdate(settings)
 
     def alwaysOnTopToggled(self, checked):
         if checked:
@@ -371,25 +380,16 @@ class Q3DWindow(QMainWindow):
         return dialog.page.properties()
 
     def showNorthArrowDialog(self):
-        dialog = NorthArrowDialog(self, self.settings)
-        dialog.accepted.connect(self.updateNorthArrow)
+        dialog = NorthArrowDialog(self.settings.decorationProperties("NorthArrow"), self)
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestDecorationUpdate("NorthArrow", p))
         dialog.show()
         dialog.exec_()
-
-    def updateNorthArrow(self):
-        p = self.settings.northArrow()
-        self.runScript("setNorthArrowColor({0});".format(p.get("color", 0)))
-        self.runScript("setNorthArrowVisible({0});".format("true" if p.get("visible") else "false"))
 
     def showHFLabelDialog(self):
-        dialog = HFLabelDialog(self, self.settings)
-        dialog.accepted.connect(self.updateHFLabel)
+        dialog = HFLabelDialog(self.settings.decorationProperties("Label"), self)
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestDecorationUpdate("Label", p))
         dialog.show()
         dialog.exec_()
-
-    def updateHFLabel(self):
-        self.runScript('setHFLabel("{0}", "{1}");'.format(self.settings.headerLabel().replace('"', '\\"'),
-                                                          self.settings.footerLabel().replace('"', '\\"')))
 
     def help(self):
         QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
@@ -406,7 +406,7 @@ class Q3DWindow(QMainWindow):
 
 class PropertiesDialog(QDialog):
 
-    propertiesAccepted = pyqtSignal(object)
+    propertiesAccepted = pyqtSignal(object)     # dict if scene else Layer
 
     def __init__(self, parent, settings, qgisIface=None):
         """qgisIface: required for DEM properties page"""
@@ -453,9 +453,6 @@ class PropertiesDialog(QDialog):
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
         if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-            if role == QDialogButtonBox.AcceptRole:
-                self.hide()
-
             if isinstance(self.page, ScenePropertyPage):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
@@ -487,45 +484,47 @@ class WheelEventFilter(QObject):
 
 class NorthArrowDialog(QDialog):
 
-    def __init__(self, parent, settings):
+    propertiesAccepted = pyqtSignal(dict)
+
+    def __init__(self, properties, parent=None):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.settings = settings
 
         from .ui.northarrowdialog import Ui_NorthArrowDialog
         self.ui = Ui_NorthArrowDialog()
         self.ui.setupUi(self)
+        self.ui.buttonBox.clicked.connect(self.buttonClicked)
 
-        p = settings.northArrow()
-        self.ui.groupBox.setChecked(p["visible"])
-        self.ui.colorButton.setColor(QColor(p["color"].replace("0x", "#")))
+        self.ui.groupBox.setChecked(properties.get("visible", False))
+        self.ui.colorButton.setColor(QColor(properties.get("color", "0x666666").replace("0x", "#")))
 
-        self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.accepted)
-        self.accepted.connect(self.updateSettings)
-
-    def updateSettings(self):
-        self.settings.setNorthArrow(self.ui.groupBox.isChecked(), self.ui.colorButton.color().name().replace("#", "0x"))
+    def buttonClicked(self, button):
+        role = self.ui.buttonBox.buttonRole(button)
+        if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+            visible = self.ui.groupBox.isChecked()
+            color = self.ui.colorButton.color().name().replace("#", "0x")
+            self.propertiesAccepted.emit({"visible": visible,
+                                          "color": color})
 
 
 class HFLabelDialog(QDialog):
 
-    def __init__(self, parent, settings):
+    propertiesAccepted = pyqtSignal(dict)
+
+    def __init__(self, properties, parent=None):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.settings = settings
 
         from .ui.hflabeldialog import Ui_HFLabelDialog
         self.ui = Ui_HFLabelDialog()
         self.ui.setupUi(self)
+        self.ui.buttonBox.clicked.connect(self.buttonClicked)
 
-        self.ui.textEdit_Header.setPlainText(settings.headerLabel())
-        self.ui.textEdit_Footer.setPlainText(settings.footerLabel())
+        self.ui.textEdit_Header.setPlainText(properties.get("Header", ""))
+        self.ui.textEdit_Footer.setPlainText(properties.get("Footer", ""))
 
-        self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.accepted)
-        self.accepted.connect(self.updateSettings)
-
-    def updateSettings(self):
-        self.settings.setHeaderLabel(self.ui.textEdit_Header.toPlainText())
-        self.settings.setFooterLabel(self.ui.textEdit_Footer.toPlainText())
+    def buttonClicked(self, button):
+        role = self.ui.buttonBox.buttonRole(button)
+        if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+            self.propertiesAccepted.emit({"Header": self.ui.textEdit_Header.toPlainText(),
+                                          "Footer": self.ui.textEdit_Footer.toPlainText()})

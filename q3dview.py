@@ -154,7 +154,7 @@ class Q3DWebPage(QWebPage):
         if self.exportMode:
             self.runScript("Q3D.Config.exportMode = true;")
 
-        p = self.settings.northArrow()
+        p = self.settings.decorationProperties("NorthArrow")
         if p.get("visible"):
             self.runScript("Q3D.Config.northArrow.visible = true;")
             self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
