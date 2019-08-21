@@ -58,10 +58,9 @@ def is_number(val):
 
 class PropertyPage(QWidget):
 
-    def __init__(self, pageType, dialog, parent=None):
+    def __init__(self, pageType, parent=None):
         QWidget.__init__(self, parent)
         self.pageType = pageType
-        self.dialog = dialog
         self.propertyWidgets = []
 
     def itemChanged(self, item):
@@ -169,8 +168,8 @@ class PropertyPage(QWidget):
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
-    def __init__(self, dialog, parent=None):
-        PropertyPage.__init__(self, PAGE_SCENE, dialog, parent)
+    def __init__(self, parent=None):
+        PropertyPage.__init__(self, PAGE_SCENE, parent)
         Ui_ScenePropertiesWidget.setupUi(self, self)
 
         widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
@@ -222,11 +221,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
-    def __init__(self, qgisIface, dialog, parent=None):
-        PropertyPage.__init__(self, PAGE_DEM, dialog, parent)
+    def __init__(self, parent=None):
+        PropertyPage.__init__(self, PAGE_DEM, parent)
         Ui_DEMPropertiesWidget.setupUi(self, self)
-
-        self.qgisIface = qgisIface
 
         # set read only to line edits of spin boxes
         self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
@@ -245,7 +242,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.registerPropertyWidgets(widgets)
 
         self.initLayerComboBox()
-        self.initTextureSizeComboBox()
 
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
         self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
@@ -255,9 +251,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
-    def setup(self, layer):
+    def setup(self, layer, mapSettings):
         self.layer = layer
+        self.mapSettings = mapSettings
         properties = layer.properties
+
+        self.initTextureSizeComboBox(mapSettings)
 
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
@@ -280,31 +279,35 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     def initLayerComboBox(self):
         # list of polygon layers
+        self.comboBox_ClipLayer.blockSignals(True)
         self.comboBox_ClipLayer.clear()
         for layer in getLayersInProject():
             if layer.type() == QgsMapLayer.VectorLayer and layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
 
-    def initTextureSizeComboBox(self):
-        canvas = self.qgisIface.mapCanvas()
-        outsize = canvas.mapSettings().outputSize()
+        self.comboBox_ClipLayer.blockSignals(False)
 
+    def initTextureSizeComboBox(self, mapSettings):
+        outsize = mapSettings.outputSize()
+
+        self.comboBox_TextureSize.blockSignals(True)
         self.comboBox_TextureSize.clear()
         for i in [4, 2, 1]:
             percent = i * 100
             text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
             self.comboBox_TextureSize.addItem(text, percent)
 
+        self.comboBox_TextureSize.blockSignals(False)
+
     def resolutionSliderChanged(self, v):
-        canvas = self.qgisIface.mapCanvas()
-        canvasSize = canvas.mapSettings().outputSize()
+        outsize = self.mapSettings.outputSize()
         resolutionLevel = self.horizontalSlider_DEMSize.value()
         roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
-        demSize = calculateDEMSize(canvasSize, resolutionLevel, roughening)
+        demSize = calculateDEMSize(outsize, resolutionLevel, roughening)
 
-        mupp = canvas.mapUnitsPerPixel()
-        xres = (mupp * canvasSize.width()) / (demSize.width() - 1)
-        yres = (mupp * canvasSize.height()) / (demSize.height() - 1)
+        mupp = self.mapSettings.mapUnitsPerPixel()
+        xres = (mupp * outsize.width()) / (demSize.width() - 1)
+        yres = (mupp * outsize.height()) / (demSize.height() - 1)
 
         tip = """Level {0}
 Grid Size: {1} x {2}
@@ -317,7 +320,7 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
         from .layerselectdialog import LayerSelectDialog
         dialog = LayerSelectDialog(self)
         dialog.initTree(self.layerImageIds)
-        dialog.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
+        dialog.setMapSettings(self.mapSettings)
         if not dialog.exec_():
             return
 
@@ -387,8 +390,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     STYLE_MAX_COUNT = 6
 
-    def __init__(self, dialog, parent=None):
-        PropertyPage.__init__(self, PAGE_VECTOR, dialog, parent)
+    def __init__(self, parent=None):
+        PropertyPage.__init__(self, PAGE_VECTOR, parent)
         Ui_VectorPropertiesWidget.setupUi(self, self)
 
         self.layer = None
@@ -428,8 +431,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             btn.toggled.connect(self.zValueRadioButtonToggled)
         self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
-    def setup(self, layer):
+    def setup(self, layer, mapTo3d):
         self.layer = layer
+        self.mapTo3d = mapTo3d
         mapLayer = layer.mapLayer
         properties = layer.properties
 
@@ -488,7 +492,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         # set up label height widget
         if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": defaultLabelHeight / self.dialog.mapTo3d().multiplierZ})
+            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
         else:
             self.labelHeightWidget.hide()
 
@@ -529,7 +533,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             self.checkBox_Clip.setVisible(not supportZM)
 
         obj_type.setupWidgets(self,
-                              self.dialog.mapTo3d(),     # to calculate default values
+                              self.mapTo3d,         # to calculate default values
                               self.layer.mapLayer)
 
         self.altitudeModeChanged(self.comboBox_altitudeMode.currentIndex())

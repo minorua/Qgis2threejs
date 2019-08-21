@@ -356,7 +356,7 @@ class Q3DWindow(QMainWindow):
             pluginManager().reloadPlugins()
 
     def showScenePropertiesDialog(self):
-        dialog = PropertiesDialog(self, self.settings)
+        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
         dialog.showSceneProperties()
 
@@ -366,7 +366,7 @@ class Q3DWindow(QMainWindow):
             self.iface.requestSceneUpdate(properties)
 
     def showLayerPropertiesDialog(self, layer):
-        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
+        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
         dialog.showLayerProperties(layer)
 
@@ -378,7 +378,7 @@ class Q3DWindow(QMainWindow):
         self.iface.requestLayerUpdate(layer)
 
     def getDefaultProperties(self, layer):
-        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
+        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.setLayer(layer)
         return dialog.page.properties()
 
@@ -411,13 +411,11 @@ class PropertiesDialog(QDialog):
 
     propertiesAccepted = pyqtSignal(object)     # dict if scene else Layer
 
-    def __init__(self, parent, settings, qgisIface=None):
-        """qgisIface: required for DEM properties page"""
+    def __init__(self, settings, qgisIface, parent=None):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.settings = settings
-        self.mapTo3d = settings.mapTo3d
         self.qgisIface = qgisIface
 
         self.wheelFilter = WheelEventFilter()
@@ -440,13 +438,15 @@ class PropertiesDialog(QDialog):
     def setLayer(self, layer):
         self.layer = layer.clone()      # create a copy of Layer object
         if self.layer.geomType == q3dconst.TYPE_DEM:
-            self.page = DEMPropertyPage(self.qgisIface, self, self)
-            self.page.setup(self.layer)
+            self.page = DEMPropertyPage(self)
+            self.page.setup(self.layer,
+                            self.qgisIface.mapCanvas().mapSettings())
         elif self.layer.geomType == q3dconst.TYPE_IMAGE:
             return
         else:
-            self.page = VectorPropertyPage(self, self)
-            self.page.setup(self.layer)
+            self.page = VectorPropertyPage(self)
+            self.page.setup(self.layer,
+                            self.settings.mapTo3d())
         self.ui.scrollArea.setWidget(self.page)
 
         # disable wheel event for ComboBox widgets
@@ -470,7 +470,7 @@ class PropertiesDialog(QDialog):
 
     def showSceneProperties(self):
         self.setWindowTitle("Scene Settings")
-        self.page = ScenePropertyPage(self, self)
+        self.page = ScenePropertyPage(self)
         self.page.setup(self.settings.sceneProperties())
         self.ui.scrollArea.setWidget(self.page)
         self.show()
