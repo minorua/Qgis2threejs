@@ -31,7 +31,6 @@ from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .mapextent import MapExtent
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
-from .vectorobject import objectTypeRegistry
 
 
 class Layer:
@@ -366,7 +365,7 @@ class ExportSettings:
         if layer.geomType == q3dconst.TYPE_DEM:
             return DEMPropertyReader(layer.layerId, layer.properties)
 
-        return VectorPropertyReader(objectTypeRegistry(), renderContext, renderer, layer.mapLayer, layer.properties)
+        return VectorPropertyReader(renderContext, renderer, layer.mapLayer, layer.properties)
 
     def decorationProperties(self, name):
         decor = self.data.get(ExportSettings.DECOR, {})

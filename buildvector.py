@@ -29,7 +29,7 @@ from .datamanager import MaterialManager, ModelManager
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import VectorPropertyReader
 from .qgis2threejstools import logMessage
-from .vectorobject import objectTypeRegistry
+from .vectorobject import ObjectType
 
 
 GeomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry,
@@ -72,7 +72,7 @@ class Feature:
 
         z_func = lambda x, y: z0_func(x, y) + self.altitude
 
-        if self.geomType != QgsWkbTypes.PolygonGeometry or self.layerProp.objType.name == "Triangular Mesh":        #TODO: typeId
+        if self.geomType != QgsWkbTypes.PolygonGeometry or self.layerProp.objType == ObjectType.TriangularMesh:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
         # geometry type is polygon and object type is Overlay
@@ -207,7 +207,7 @@ class VectorLayerBuilder(LayerBuilder):
         renderContext = QgsRenderContext.fromMapSettings(self.settings.mapSettings)
         renderer = mapLayer.renderer().clone()      # clone feature renderer
 
-        self.prop = VectorPropertyReader(objectTypeRegistry(), renderContext, renderer, mapLayer, properties)
+        self.prop = VectorPropertyReader(renderContext, renderer, mapLayer, properties)
         if self.prop.objType is None:
             logMessage("Object type not found")
             return
@@ -225,7 +225,7 @@ class VectorLayerBuilder(LayerBuilder):
                                                                        QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
-            if properties.get("checkBox_Clip") and self.prop.objType.name != "Triangular Mesh":
+            if properties.get("checkBox_Clip") and self.prop.objType != ObjectType.TriangularMesh:
                 extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
                 self.clipGeom = extent.geometry()
 
@@ -236,7 +236,7 @@ class VectorLayerBuilder(LayerBuilder):
         renderer.startRender(renderContext, mapLayer.fields())
 
         # materials/models
-        if self.prop.objType.name != "Model File":
+        if self.prop.objType != ObjectType.ModelFile:
             for feat in layer.features(request):
                 feat.material = self.prop.objType.material(self.settings, layer, feat)
                 feat.model = None
@@ -306,7 +306,7 @@ class VectorLayerBuilder(LayerBuilder):
             demId = self.layer.properties.get("comboBox_altitudeMode")
             demProvider = self.settings.demProviderByLayerId(demId)
 
-            if self.prop.objType.name == "Overlay":
+            if self.prop.objType == ObjectType.Overlay:
                 # get the grid size of the DEM layer which polygons overlay
                 demProp = self.settings.getPropertyReaderByLayerId(demId)
                 demSize = demProp.demSize(self.settings.mapSettings.outputSize())

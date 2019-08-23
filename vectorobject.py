@@ -25,27 +25,6 @@ from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, OptionalColor
 from Qgis2threejs.geometry import IndexedTriangles2D, IndexedTriangles3D
 
 
-_objectTypeRegistry = None
-
-
-def objectTypeRegistry():
-    global _objectTypeRegistry
-    if _objectTypeRegistry is None:
-        _objectTypeRegistry = ObjectTypeRegistry()
-    return _objectTypeRegistry
-
-
-def tr(source):
-    return source
-
-
-def _():
-    tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
-    tr("Line"), tr("Pipe"), tr("Profile")
-    tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
-    tr("Icon"), tr("Model File")
-
-
 class ObjectTypeBase:
 
     experimental = False
@@ -539,21 +518,55 @@ class ModelFileType(PointTypeBase):
                 "scale": feat.values[1] * settings.mapTo3d().multiplier}
 
 
-# ObjectTypeRegistry
-class ObjectTypeRegistry:
+class ObjectType:
 
-    def __init__(self):
-        self.objTypes = {
-            QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, PointType, IconType, ModelFileType],
-            QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
-            QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
-        }
+    # point
+    Sphere = SphereType
+    Cylinder = CylinderType
+    Cone = ConeType
+    Box = BoxType
+    Disk = DiskType
+    Plane = PlaneType
+    Point = PointType
+    Icon = IconType
+    ModelFile = ModelFileType
 
-    def objectTypes(self, geom_type):
-        return self.objTypes.get(geom_type, [])
+    # line
+    Line = LineType
+    Pipe = PipeType
+    ConeLine = ConeLineType
+    BoxLine = BoxLineType
+    Profile = ProfileType
 
-    def objectType(self, geom_type, name):
-        for obj_type in self.objectTypes(geom_type):
+    # polygon
+    Extruded = ExtrudedType
+    Overlay = OverlayType
+    TriangularMesh = TriangularMeshType
+
+    Grouped = {QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType,
+                                           PlaneType, PointType, IconType, ModelFileType],
+               QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
+               QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
+    }
+
+    @classmethod
+    def typesByGeomType(cls, geom_type):
+        return cls.Grouped.get(geom_type, [])
+
+    @classmethod
+    def typeByName(cls, name, geom_type):
+        for obj_type in cls.typesByGeomType(geom_type):
             if obj_type.name == name:
                 return obj_type
         return None
+
+
+def tr(source):
+    return source
+
+
+def _():
+    tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
+    tr("Line"), tr("Pipe"), tr("Profile")
+    tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
+    tr("Icon"), tr("Model File")

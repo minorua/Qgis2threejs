@@ -27,6 +27,7 @@ from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextU
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import logMessage
 from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .vectorobject import ObjectType
 
 colorNames = []
 
@@ -51,7 +52,7 @@ class DEMPropertyReader:
 
 class VectorPropertyReader:
 
-    def __init__(self, objectTypeManager, renderContext, renderer, mapLayer, properties):
+    def __init__(self, renderContext, renderer, mapLayer, properties):
         self.renderContext = renderContext
         self.renderer = renderer
         self.mapLayer = mapLayer
@@ -60,7 +61,7 @@ class VectorPropertyReader:
         self.properties = properties or {}
 
         if self.properties:
-            self.objType = objectTypeManager.objectType(mapLayer.geometryType(), self.properties["comboBox_ObjectType"])
+            self.objType = ObjectType.typeByName(self.properties["comboBox_ObjectType"], mapLayer.geometryType())
             self.visible = self.properties.get("visible", True)
         else:
             self.visible = False

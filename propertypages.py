@@ -39,7 +39,7 @@ from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import getLayersInProject, logMessage
 from .stylewidget import StyleWidget
 from . import qgis2threejstools as tools
-from .vectorobject import objectTypeRegistry
+from .vectorobject import ObjectType
 
 PAGE_NONE = 0
 PAGE_SCENE = 1
@@ -444,7 +444,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboBox_ObjectType.blockSignals(True)
         self.comboBox_ObjectType.clear()
 
-        for obj_type in objectTypeRegistry().objectTypes(mapLayer.geometryType()):
+        for obj_type in ObjectType.typesByGeomType(mapLayer.geometryType()):
             self.comboBox_ObjectType.addItem(obj_type.displayName(), obj_type.name)
 
         if properties:
@@ -518,11 +518,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     def setupStyleWidgets(self, index=None):
         # setup widgets
         geomType = self.layer.mapLayer.geometryType()
-        obj_type = objectTypeRegistry().objectType(geomType,
-                                                   self.comboBox_ObjectType.currentData())
+        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), geomType)
 
         if geomType == QgsWkbTypes.PolygonGeometry:
-            supportZM = (obj_type.name == "Triangular Mesh")
+            supportZM = (obj_type == ObjectType.TriangularMesh)
             self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
             self.radioButton_mValue.setEnabled(self.hasM and supportZM)
             if self.hasZ and supportZM:

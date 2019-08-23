@@ -1,4 +1,4 @@
-# Layer type
+# Layer Type
 TYPE_DEM = 0
 TYPE_POINT = 1
 TYPE_LINESTRING = 2
