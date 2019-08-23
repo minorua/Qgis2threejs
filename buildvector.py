@@ -147,7 +147,6 @@ class VectorLayer:
         prop = self.prop
         fields = self.layer.fields()
 
-        feats = []
         for f in self.layer.getFeatures(request or QgsFeatureRequest()):
             geometry = f.geometry()
             if geometry is None:
@@ -179,10 +178,7 @@ class VectorLayer:
                     labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
 
             # create a feature object
-            feat = Feature(self, geom, altitude, propVals, attrs, labelHeight)
-            feats.append(feat)
-
-        return feats
+            yield Feature(self, geom, altitude, propVals, attrs, labelHeight)
 
 
 class FeatureBlockBuilder:
@@ -262,24 +258,28 @@ class VectorLayerBuilder(LayerBuilder):
                 extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
                 self.clipGeom = extent.geometry()
 
+        self.features = []
+        data = {}
+
         # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
         renderer.startRender(renderContext, mapLayer.fields())
-        self.features = layer.features(request)
-        renderer.stopRender(renderContext)
 
         # materials/models
-        data = {}
         if self.prop.objType.name != "Model File":
-            for feat in self.features:
+            for feat in layer.features(request):
                 feat.material = self.prop.objType.material(self.settings, layer, feat)
                 feat.model = None
+                self.features.append(feat)
             data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot, base64=self.settings.base64)
 
         else:
-            for feat in self.features:
+            for feat in layer.features(request):
                 feat.material = None
                 feat.model = self.prop.objType.model(self.settings, layer, feat)
+                self.features.append(feat)
             data["models"] = self.modelManager.build(self.pathRoot is not None)
+
+        renderer.stopRender(renderContext)
 
         if build_blocks:
             data["blocks"] = [block.build() for block in self.blocks()]
