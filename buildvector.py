@@ -24,8 +24,8 @@ from PyQt5.QtCore import QVariant
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
 
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
-from .datamanager import MaterialManager, ModelManager
 from .buildlayer import LayerBuilder
+from .datamanager import MaterialManager, ModelManager
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
 from .propertyreader import VectorPropertyReader
 from .qgis2threejstools import logMessage
@@ -56,25 +56,9 @@ class Feature:
 
         self.material = -1
 
-    def geometry(self, mapTo3d, useZM=Geometry.NotUseZM, demProvider=None, clipGeom=None, baseExtent=None, demSize=None):
-        """demSize: grid size of the DEM layer which polygons overlay"""
+    def geometry(self, z0_func, transform_func, useZM=Geometry.NotUseZM, clipGeom=None, baseExtent=None, tmesh=None):
+
         geom = self.geom
-        rotation = baseExtent.rotation()
-
-        if demProvider:
-            if self.layerProp.objType.name == "Overlay":
-                center = baseExtent.center()
-                half_width, half_height = baseExtent.width() / 2, baseExtent.height() / 2
-                xmin, ymin = center.x() - half_width, center.y() - half_height
-                xmax, ymax = center.x() + half_width, center.y() + half_height
-                xres, yres = baseExtent.width() / (demSize.width() - 1), baseExtent.height() / (demSize.height() - 1)
-                tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
-                z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres) + self.altitude
-            else:
-                z_func = lambda x, y: demProvider.readValue(x, y) + self.altitude
-        else:
-            z_func = lambda x, y: self.altitude
-
         # clip geometry
         if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
             geom = geom.intersection(clipGeom)
@@ -86,29 +70,27 @@ class Feature:
             logMessage("empty/null geometry skipped")
             return None
 
-        geomClass = GeomType2Class.get(self.geomType)
+        z_func = lambda x, y: z0_func(x, y) + self.altitude
 
-        if self.geomType == QgsWkbTypes.PolygonGeometry:
-            if self.layerProp.objType.name == "Triangular Mesh":
-                return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+        if self.geomType != QgsWkbTypes.PolygonGeometry or self.layerProp.objType.name == "Triangular Mesh":        #TODO: typeId
+            return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
-            if self.layerProp.objType.name == "Overlay" and self.layerProp.isHeightRelativeToDEM():
-
-                if rotation:
-                    geom.rotate(rotation, baseExtent.center())
+        # geometry type is polygon and object type is Overlay
+        if tmesh:
+            if baseExtent.rotation():
+                geom.rotate(baseExtent.rotation(), baseExtent.center())
                 geom = tmesh.splitPolygon(geom)
-                if rotation:
-                    geom.rotate(-rotation, baseExtent.center())
-
-                useCentroidHeight = False
-                centroidPerPolygon = False
+                geom.rotate(-baseExtent.rotation(), baseExtent.center())
             else:
-                useCentroidHeight = True
-                centroidPerPolygon = True
+                geom = tmesh.splitPolygon(geom)
 
-            return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useCentroidHeight, centroidPerPolygon)
+            useCentroidHeight = False
+            centroidPerPolygon = False
+        else:
+            useCentroidHeight = True
+            centroidPerPolygon = True
 
-        return geomClass.fromQgsGeometry(geom, z_func, mapTo3d.transform, useZM=useZM)
+        return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func, useCentroidHeight, centroidPerPolygon)
 
 
 class VectorLayer:
@@ -213,11 +195,7 @@ class VectorLayerBuilder(LayerBuilder):
         self.materialManager = MaterialManager(settings.materialType())  # TODO: takes imageManager
         self.modelManager = ModelManager(settings)
 
-        self.mapTo3d = settings.mapTo3d()
         self.geomType = self.layer.mapLayer.geometryType()
-        self.fidx = None
-
-        self.demSize = None
 
     def build(self, build_blocks=False):
         mapLayer = self.layer.mapLayer
@@ -226,21 +204,13 @@ class VectorLayerBuilder(LayerBuilder):
 
         properties = self.layer.properties
         baseExtent = self.settings.baseExtent
-        mapSettings = self.settings.mapSettings
-        renderContext = QgsRenderContext.fromMapSettings(mapSettings)
+        renderContext = QgsRenderContext.fromMapSettings(self.settings.mapSettings)
         renderer = mapLayer.renderer().clone()      # clone feature renderer
 
         self.prop = VectorPropertyReader(objectTypeRegistry(), renderContext, renderer, mapLayer, properties)
         if self.prop.objType is None:
             logMessage("Object type not found")
             return
-
-        # prepare triangle mesh
-        if self.prop.objType.name == "Overlay" and self.prop.isHeightRelativeToDEM():
-            # get the grid size of the DEM layer which polygons overlay
-            demProp = self.settings.getPropertyReaderByLayerId(properties.get("comboBox_altitudeMode"))
-            if demProp:
-                self.demSize = demProp.demSize(mapSettings.outputSize())
 
         layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager, self.modelManager)
         self._layer = layer
@@ -251,7 +221,8 @@ class VectorLayerBuilder(LayerBuilder):
         # feature request
         request = QgsFeatureRequest()
         if properties.get("radioButton_IntersectingFeatures", False):
-            request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+            request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(),
+                                                                       QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
             if properties.get("checkBox_Clip") and self.prop.objType.name != "Triangular Mesh":
@@ -270,7 +241,8 @@ class VectorLayerBuilder(LayerBuilder):
                 feat.material = self.prop.objType.material(self.settings, layer, feat)
                 feat.model = None
                 self.features.append(feat)
-            data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot, base64=self.settings.base64)
+            data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot,
+                                                              base64=self.settings.base64)
 
         else:
             for feat in layer.features(request):
@@ -308,23 +280,19 @@ class VectorLayerBuilder(LayerBuilder):
                               "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
 
         # object-type-specific properties
-        #p.update(self.prop.objType.layerProperties(self.settings, self))
+        # p.update(self.prop.objType.layerProperties(self.settings, self))
         return p
 
+    def createBlockBuilder(self, blockIndex, features):
+        return FeatureBlockBuilder(blockIndex, {
+            "type": "block",
+            "layer": self.layer.jsLayerId,
+            "block": blockIndex,
+            "features": features
+        }, self.pathRoot, self.urlRoot)
+
     def blocks(self):
-        index = 0
-
-        def createBlockBuilder(blockIndex, features):
-            return FeatureBlockBuilder(blockIndex, {
-                "type": "block",
-                "layer": self.layer.jsLayerId,
-                "block": blockIndex,
-                "features": features
-            }, self.pathRoot, self.urlRoot)
-
-        demProvider = None
-        if self.prop.isHeightRelativeToDEM():
-            demProvider = self.settings.demProviderByLayerId(self.layer.properties.get("comboBox_altitudeMode"))
+        baseExtent = self.settings.baseExtent
 
         if self.layer.properties.get("radioButton_zValue"):
             useZM = Geometry.UseZ
@@ -333,14 +301,46 @@ class VectorLayerBuilder(LayerBuilder):
         else:
             useZM = Geometry.NotUseZM
 
+        demProvider = tmesh = None
+        if self.prop.isHeightRelativeToDEM():
+            demId = self.layer.properties.get("comboBox_altitudeMode")
+            demProvider = self.settings.demProviderByLayerId(demId)
+
+            if self.prop.objType.name == "Overlay":
+                # get the grid size of the DEM layer which polygons overlay
+                demProp = self.settings.getPropertyReaderByLayerId(demId)
+                demSize = demProp.demSize(self.settings.mapSettings.outputSize())
+
+                # prepare triangle mesh
+                center = baseExtent.center()
+                half_width, half_height = (baseExtent.width() / 2,
+                                           baseExtent.height() / 2)
+                xmin, ymin = (center.x() - half_width,
+                              center.y() - half_height)
+                xmax, ymax = (center.x() + half_width,
+                              center.y() + half_height)
+                xres, yres = (baseExtent.width() / (demSize.width() - 1),
+                              baseExtent.height() / (demSize.height() - 1))
+
+                tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
+                z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
+            else:
+                z_func = lambda x, y: demProvider.readValue(x, y)
+        else:
+            z_func = lambda x, y: 0
+
+        transform_func = self.settings.mapTo3d().transform
+        obj_geom_func = self.prop.objType.geometry
+
+        index = 0
         feats = []
         for feat in self.features or []:
-            geom = feat.geometry(self.mapTo3d, useZM, demProvider, self.clipGeom, self.settings.baseExtent, self.demSize)
+            geom = feat.geometry(z_func, transform_func, useZM, self.clipGeom, baseExtent, tmesh)
             if geom is None:
                 continue
 
             f = {}
-            f["geom"] = self.prop.objType.geometry(self.settings, self._layer, feat, geom)
+            f["geom"] = obj_geom_func(self.settings, self._layer, feat, geom)
 
             if feat.material is not None:
                 f["mtl"] = feat.material
@@ -358,9 +358,9 @@ class VectorLayerBuilder(LayerBuilder):
             feats.append(f)
 
             if len(feats) == FEATURES_PER_BLOCK:
-                yield createBlockBuilder(index, feats)
+                yield self.createBlockBuilder(index, feats)
                 index += 1
                 feats = []
 
         if len(feats) or index == 0:
-            yield createBlockBuilder(index, feats)
+            yield self.createBlockBuilder(index, feats)
