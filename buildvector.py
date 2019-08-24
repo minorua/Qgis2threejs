@@ -56,20 +56,13 @@ class Feature:
 
         self.material = -1
 
-    def geometry(self, z0_func, transform_func, useZM=Geometry.NotUseZM, clipGeom=None, baseExtent=None, tmesh=None):
-
-        geom = self.geom
+    def clipGeometry(self, clip_geom):
         # clip geometry
-        if clipGeom and self.geomType in [QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry]:
-            geom = geom.intersection(clipGeom)
-            if geom is None:
-                return None
+        self.geom = self.geom.intersection(clip_geom)
+        return self.geom
 
-        # skip if geometry is empty or null
-        if geom.isEmpty() or geom.isNull():
-            logMessage("empty/null geometry skipped")
-            return None
-
+    def geometry(self, z0_func, transform_func, useZM=Geometry.NotUseZM, baseExtent=None, tmesh=None):
+        geom = self.geom
         z_func = lambda x, y: z0_func(x, y) + self.altitude
 
         if self.geomType != QgsWkbTypes.PolygonGeometry or self.layerProp.objType == ObjectType.TriangularMesh:
@@ -95,16 +88,16 @@ class Feature:
 
 class VectorLayer:
 
-    def __init__(self, settings, layer, prop, materialManager, modelManager):
+    def __init__(self, settings, mapLayer, prop, materialManager, modelManager):
         self.settings = settings
-        self.layer = layer
+        self.mapLayer = mapLayer
         self.prop = prop
-        self.name = layer.name() if layer else "no title"
+        self.name = mapLayer.name() if mapLayer else "no title"
         self.materialManager = materialManager
         self.modelManager = modelManager
 
-        self.transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
-        self.geomType = layer.geometryType()
+        self.transform = QgsCoordinateTransform(mapLayer.crs(), settings.crs, QgsProject.instance())
+        self.geomType = mapLayer.geometryType()
 
         # attributes
         self.writeAttrs = prop.properties.get("checkBox_ExportAttrs", False)
@@ -113,7 +106,7 @@ class VectorLayer:
         self.fieldNames = []
 
         if self.writeAttrs:
-            for index, field in enumerate(layer.fields()):
+            for index, field in enumerate(mapLayer.fields()):
                 if field.editorWidgetSetup().type() != "Hidden":
                     self.fieldIndices.append(index)
                     self.fieldNames.append(field.displayName())
@@ -127,9 +120,9 @@ class VectorLayer:
         baseExtentGeom = baseExtent.geometry()
         rotation = baseExtent.rotation()
         prop = self.prop
-        fields = self.layer.fields()
+        fields = self.mapLayer.fields()
 
-        for f in self.layer.getFeatures(request or QgsFeatureRequest()):
+        for f in self.mapLayer.getFeatures(request or QgsFeatureRequest()):
             geometry = f.geometry()
             if geometry is None:
                 logMessage("null geometry skipped")
@@ -165,22 +158,109 @@ class VectorLayer:
 
 class FeatureBlockBuilder:
 
-    def __init__(self, blockIndex, data, pathRoot=None, urlRoot=None):
-        self.blockIndex = blockIndex
-        self.data = data
+    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=None, z_func=None, tmesh=None):
+        self.settings = settings
+        self.vlayer = vlayer
+        self.jsLayerId = jsLayerId
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
 
+        self.blockIndex = None
+        self.features = []
+
+        p = vlayer.prop.properties
+        if useZM is None:
+            if p.get("radioButton_zValue"):
+                useZM = Geometry.UseZ
+            elif p.get("radioButton_mValue"):
+                useZM = Geometry.UseM
+            else:
+                useZM = Geometry.NotUseZM
+        self.useZM = useZM
+
+        if z_func is None:
+            baseExtent = settings.baseExtent
+            if vlayer.prop.isHeightRelativeToDEM():
+                demId = p.get("comboBox_altitudeMode")
+                demProvider = settings.demProviderByLayerId(demId)
+
+                if vlayer.prop.objType == ObjectType.Overlay:
+                    # get the grid size of the DEM layer which polygons overlay
+                    demProp = settings.getPropertyReaderByLayerId(demId)
+                    demSize = demProp.demSize(settings.mapSettings.outputSize())
+
+                    # prepare triangle mesh
+                    center = baseExtent.center()
+                    half_width, half_height = (baseExtent.width() / 2,
+                                               baseExtent.height() / 2)
+                    xmin, ymin = (center.x() - half_width,
+                                  center.y() - half_height)
+                    xmax, ymax = (center.x() + half_width,
+                                  center.y() + half_height)
+                    xres, yres = (baseExtent.width() / (demSize.width() - 1),
+                                  baseExtent.height() / (demSize.height() - 1))
+
+                    tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
+                    z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
+                else:
+                    z_func = lambda x, y: demProvider.readValue(x, y)
+            else:
+                z_func = lambda x, y: 0
+
+        self.z_func = z_func
+        self.tmesh = tmesh
+
+    def clone(self):
+        return FeatureBlockBuilder(self.settings, self.vlayer, self.jsLayerId,
+                                   self.pathRoot, self.urlRoot,
+                                   self.useZM, self.z_func, self.tmesh)
+
+    def setBlockIndex(self, index):
+        self.blockIndex = index
+
+    def setFeatures(self, features):
+        self.features = features
+
     def build(self):
+        obj_geom_func = self.vlayer.prop.objType.geometry
+        transform_func = self.settings.mapTo3d().transform
+
+        feats = []
+        for f in self.features:
+            d = {}
+            d["geom"] = obj_geom_func(self.settings, self.vlayer, f,
+                                      f.geometry(self.z_func, transform_func, self.useZM,
+                                                 self.settings.baseExtent, self.tmesh))
+
+            if f.material is not None:
+                d["mtl"] = f.material
+            elif f.model is not None:
+                d["model"] = f.model
+
+            if f.attributes is not None:
+                d["prop"] = f.attributes
+
+                if f.labelHeight is not None:
+                    d["lh"] = f.labelHeight
+
+            feats.append(d)
+
+        data = {
+            "type": "block",
+            "layer": self.jsLayerId,
+            "block": self.blockIndex,
+            "features": feats
+        }
+
         if self.pathRoot is not None:
             with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
-                json.dump(self.data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
+                json.dump(data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
 
             url = self.urlRoot + "{0}.json".format(self.blockIndex)
             return {"url": url}
 
         else:
-            return self.data
+            return data
 
 
 class VectorLayerBuilder(LayerBuilder):
@@ -196,6 +276,7 @@ class VectorLayerBuilder(LayerBuilder):
         self.modelManager = ModelManager(settings)
 
         self.geomType = self.layer.mapLayer.geometryType()
+        self.clipGeom = None
 
     def build(self, build_blocks=False):
         mapLayer = self.layer.mapLayer
@@ -212,17 +293,14 @@ class VectorLayerBuilder(LayerBuilder):
             logMessage("Object type not found")
             return
 
-        layer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager, self.modelManager)
-        self._layer = layer
-
-        self.hasLabel = layer.hasLabel()
-        self.clipGeom = None
+        vlayer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager, self.modelManager)
+        self.vlayer = vlayer
 
         # feature request
         request = QgsFeatureRequest()
         if properties.get("radioButton_IntersectingFeatures", False):
-            request.setFilterRect(layer.transform.transformBoundingBox(baseExtent.boundingBox(),
-                                                                       QgsCoordinateTransform.ReverseTransform))
+            request.setFilterRect(vlayer.transform.transformBoundingBox(baseExtent.boundingBox(),
+                                                                        QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
             if properties.get("checkBox_Clip") and self.prop.objType != ObjectType.TriangularMesh:
@@ -237,17 +315,17 @@ class VectorLayerBuilder(LayerBuilder):
 
         # materials/models
         if self.prop.objType != ObjectType.ModelFile:
-            for feat in layer.features(request):
-                feat.material = self.prop.objType.material(self.settings, layer, feat)
+            for feat in vlayer.features(request):
+                feat.material = self.prop.objType.material(self.settings, vlayer, feat)
                 feat.model = None
                 self.features.append(feat)
             data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot,
                                                               base64=self.settings.base64)
 
         else:
-            for feat in layer.features(request):
+            for feat in vlayer.features(request):
                 feat.material = None
-                feat.model = self.prop.objType.model(self.settings, layer, feat)
+                feat.model = self.prop.objType.model(self.settings, vlayer, feat)
                 self.features.append(feat)
             data["models"] = self.modelManager.build(self.pathRoot is not None)
 
@@ -272,95 +350,44 @@ class VectorLayerBuilder(LayerBuilder):
         p["type"] = self.gt2str.get(self.layer.mapLayer.geometryType())
         p["objType"] = self.prop.objType.name
 
-        if self._layer.writeAttrs:
-            p["propertyNames"] = self._layer.fieldNames
+        if self.vlayer.writeAttrs:
+            p["propertyNames"] = self.vlayer.fieldNames
 
-            if self._layer.labelAttrIndex is not None:
-                p["label"] = {"index": self._layer.labelAttrIndex,
+            if self.vlayer.labelAttrIndex is not None:
+                p["label"] = {"index": self.vlayer.labelAttrIndex,
                               "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
 
         # object-type-specific properties
         # p.update(self.prop.objType.layerProperties(self.settings, self))
         return p
 
-    def createBlockBuilder(self, blockIndex, features):
-        return FeatureBlockBuilder(blockIndex, {
-            "type": "block",
-            "layer": self.layer.jsLayerId,
-            "block": blockIndex,
-            "features": features
-        }, self.pathRoot, self.urlRoot)
-
     def blocks(self):
-        baseExtent = self.settings.baseExtent
-
-        if self.layer.properties.get("radioButton_zValue"):
-            useZM = Geometry.UseZ
-        elif self.layer.properties.get("radioButton_mValue"):
-            useZM = Geometry.UseM
-        else:
-            useZM = Geometry.NotUseZM
-
-        demProvider = tmesh = None
-        if self.prop.isHeightRelativeToDEM():
-            demId = self.layer.properties.get("comboBox_altitudeMode")
-            demProvider = self.settings.demProviderByLayerId(demId)
-
-            if self.prop.objType == ObjectType.Overlay:
-                # get the grid size of the DEM layer which polygons overlay
-                demProp = self.settings.getPropertyReaderByLayerId(demId)
-                demSize = demProp.demSize(self.settings.mapSettings.outputSize())
-
-                # prepare triangle mesh
-                center = baseExtent.center()
-                half_width, half_height = (baseExtent.width() / 2,
-                                           baseExtent.height() / 2)
-                xmin, ymin = (center.x() - half_width,
-                              center.y() - half_height)
-                xmax, ymax = (center.x() + half_width,
-                              center.y() + half_height)
-                xres, yres = (baseExtent.width() / (demSize.width() - 1),
-                              baseExtent.height() / (demSize.height() - 1))
-
-                tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
-                z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
-            else:
-                z_func = lambda x, y: demProvider.readValue(x, y)
-        else:
-            z_func = lambda x, y: 0
-
-        transform_func = self.settings.mapTo3d().transform
-        obj_geom_func = self.prop.objType.geometry
+        builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot)
 
         index = 0
         feats = []
-        for feat in self.features or []:
-            geom = feat.geometry(z_func, transform_func, useZM, self.clipGeom, baseExtent, tmesh)
-            if geom is None:
+        for f in self.features or []:
+            if self.clipGeom and self.geomType != QgsWkbTypes.PointGeometry:
+                if f.clipGeometry(self.clipGeom) is None:
+                    continue
+
+            # skip if geometry is empty or null
+            if f.geom.isEmpty() or f.geom.isNull():
+                if not self.clipGeom:
+                    logMessage("empty/null geometry skipped")
                 continue
-
-            f = {}
-            f["geom"] = obj_geom_func(self.settings, self._layer, feat, geom)
-
-            if feat.material is not None:
-                f["mtl"] = feat.material
-            elif feat.model is not None:
-                f["model"] = feat.model
-            else:   # no material nor model
-                continue
-
-            if feat.attributes is not None:
-                f["prop"] = feat.attributes
-
-                if feat.labelHeight is not None:
-                    f["lh"] = feat.labelHeight
 
             feats.append(f)
 
             if len(feats) == FEATURES_PER_BLOCK:
-                yield self.createBlockBuilder(index, feats)
+                b = builder.clone()
+                b.setBlockIndex(index)
+                b.setFeatures(feats)
+                yield b
                 index += 1
                 feats = []
 
         if len(feats) or index == 0:
-            yield self.createBlockBuilder(index, feats)
+            builder.setBlockIndex(index)
+            builder.setFeatures(feats)
+            yield builder
