@@ -20,15 +20,18 @@
  ***************************************************************************/
 """
 import json
+import random
 from PyQt5.QtCore import QVariant
-from qgis.core import QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes
+from PyQt5.QtGui import QColor
+from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils,
+                       QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes)
 
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
-from .propertyreader import VectorPropertyReader
 from .qgis2threejstools import logMessage
+from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
 
@@ -45,9 +48,10 @@ def json_default(o):
 
 class Feature:
 
-    def __init__(self, layer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
-        self.layerProp = layer.prop
-        self.geomType = layer.geomType
+    def __init__(self, vlayer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
+        self.geomType = vlayer.geomType
+        self.objectType = vlayer.objectType
+
         self.geom = qGeom
         self.altitude = altitude
         self.values = propValues
@@ -65,7 +69,7 @@ class Feature:
         geom = self.geom
         z_func = lambda x, y: z0_func(x, y) + self.altitude
 
-        if self.geomType != QgsWkbTypes.PolygonGeometry or self.layerProp.objType == ObjectType.TriangularMesh:
+        if self.geomType != QgsWkbTypes.PolygonGeometry or self.objectType == ObjectType.TriangularMesh:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
         # geometry type is polygon and object type is Overlay
@@ -88,39 +92,54 @@ class Feature:
 
 class VectorLayer:
 
-    def __init__(self, settings, mapLayer, prop, materialManager, modelManager):
+    def __init__(self, settings, layer, materialManager, modelManager):
+        """layer: Layer object"""
         self.settings = settings
-        self.mapLayer = mapLayer
-        self.prop = prop
-        self.name = mapLayer.name() if mapLayer else "no title"
+        self.renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
+
+        self.mapLayer = layer.mapLayer
+        self.name = self.mapLayer.name() if self.mapLayer else "no title"
+        self.properties = layer.properties
+
+        self.expressionContext = QgsExpressionContext()
+        self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
+
+        self.objectType = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"),
+                                                self.mapLayer.geometryType())
+
         self.materialManager = materialManager
         self.modelManager = modelManager
 
-        self.transform = QgsCoordinateTransform(mapLayer.crs(), settings.crs, QgsProject.instance())
-        self.geomType = mapLayer.geometryType()
+        self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
+        self.geomType = self.mapLayer.geometryType()
 
         # attributes
-        self.writeAttrs = prop.properties.get("checkBox_ExportAttrs", False)
-        self.labelAttrIndex = prop.properties.get("comboBox_Label", None)
+        self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
+        self.labelAttrIndex = self.properties.get("comboBox_Label", None)
         self.fieldIndices = []
         self.fieldNames = []
 
         if self.writeAttrs:
-            for index, field in enumerate(mapLayer.fields()):
+            for index, field in enumerate(self.mapLayer.fields()):
                 if field.editorWidgetSetup().type() != "Hidden":
                     self.fieldIndices.append(index)
                     self.fieldNames.append(field.displayName())
 
-    def hasLabel(self):
-        return bool(self.labelAttrIndex is not None)
+        # expressions
+        self._exprs = {}
+        self.exprAlt = QgsExpression(self.properties.get("fieldExpressionWidget_altitude") or "0")
+        self.exprLabel = QgsExpression(self.properties.get("labelHeightWidget", {}).get("editText") or "0")
 
     def features(self, request=None):
         mapTo3d = self.settings.mapTo3d()
         baseExtent = self.settings.baseExtent
         baseExtentGeom = baseExtent.geometry()
         rotation = baseExtent.rotation()
-        prop = self.prop
         fields = self.mapLayer.fields()
+
+        # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
+        self.renderer = self.mapLayer.renderer().clone()
+        self.renderer.startRender(self.renderContext, self.mapLayer.fields())
 
         for f in self.mapLayer.getFeatures(request or QgsFeatureRequest()):
             geometry = f.geometry()
@@ -139,21 +158,171 @@ class VectorLayer:
                 continue
 
             # set feature to expression context
-            prop.setContextFeature(f)
+            self.expressionContext.setFeature(f)
 
             # evaluate expression
-            altitude = prop.altitude()
-            propVals = prop.values(f)
+            altitude = float(self.exprAlt.evaluate(self.expressionContext) or 0)
+            swVals = self.styleWidgetValues(f)
 
             attrs = labelHeight = None
             if self.writeAttrs:
                 attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
 
                 if self.hasLabel():
-                    labelHeight = prop.labelHeight() * mapTo3d.multiplierZ
+                    labelHeight = float(self.exprLabel.evaluate(self.expressionContext) or 0) * mapTo3d.multiplierZ
 
             # create a feature object
-            yield Feature(self, geom, altitude, propVals, attrs, labelHeight)
+            yield Feature(self, geom, altitude, swVals, attrs, labelHeight)
+
+        self.renderer.stopRender(self.renderContext)
+
+    def evaluateExpression(self, expr_str, f):
+        if expr_str not in self._exprs:
+            self._exprs[expr_str] = QgsExpression(expr_str)
+
+        self.expressionContext.setFeature(f)
+        return self._exprs[expr_str].evaluate(self.expressionContext)
+
+    def readFillColor(self, vals, f):
+        return self._readColor(vals, f)
+
+    def readBorderColor(self, vals, f):
+        return self._readColor(vals, f, isBorder=True)
+
+    # read color from COLOR or OPTIONAL_COLOR widget
+    def _readColor(self, widgetValues, f, isBorder=False):
+        global colorNames
+
+        mode = widgetValues["comboData"]
+        if mode == OptionalColorWidgetFunc.NONE:
+            return None
+
+        if mode == ColorWidgetFunc.EXPRESSION:
+            val = self.evaluateExpression(widgetValues["editText"], f)
+            try:
+                if isinstance(val, str):
+                    a = val.split(",")
+                    if len(a) >= 3:
+                        a = [max(0, min(int(c), 255)) for c in a[:3]]
+                        return "0x{:02x}{:02x}{:02x}".format(a[0], a[1], a[2])
+                    return val.replace("#", "0x")
+
+                raise
+            except:
+                logMessage("Wrong color value: {}".format(val))
+                return "0"
+
+        if mode == ColorWidgetFunc.RANDOM or f is None:
+            if len(colorNames) == 0:
+                colorNames = QColor.colorNames()
+            colorName = random.choice(colorNames)
+            colorNames.remove(colorName)
+            return QColor(colorName).name().replace("#", "0x")
+
+        # feature color
+        symbol = self.renderer.symbolForFeature(f, self.renderContext)
+        if symbol is None:
+            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
+            return "0"
+
+        else:
+            sl = symbol.symbolLayer(0)
+            if sl:
+                if isBorder:
+                    return sl.strokeColor().name().replace("#", "0x")
+
+                if symbol.hasDataDefinedProperties():
+                    expr = sl.dataDefinedProperty("color")
+                    if expr:
+                        # data defined color
+                        rgb = expr.evaluate(f, f.fields())
+
+                        # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
+                        r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
+                        return "0x{:02x}{:02x}{:02x}".format(r, g, b)
+
+        return symbol.color().name().replace("#", "0x")
+
+    def readOpacity(self, widgetValues, f):
+        vals = widgetValues
+
+        if vals["comboData"] == OpacityWidgetFunc.EXPRESSION:
+            try:
+                val = self.evaluateExpression(widgetValues["editText"], f)
+                return min(max(0, val), 100) / 100
+            except:
+                logMessage("Wrong opacity value: {}".format(val))
+                return 1
+
+        symbol = self.renderer.symbolForFeature(f, self.renderContext)
+        if symbol is None:
+            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
+            return 1
+        # TODO [data defined property]
+        return self.mapLayer.opacity() * symbol.opacity()
+
+    @classmethod
+    def toFloat(cls, val):
+        try:
+            return float(val)
+        except Exception as e:
+            logMessage('{0} (value: {1})'.format(e.message, str(val)))
+            return 0
+
+    # functions to read values from height widget (z coordinate)
+    def useZ(self):
+        return self.properties.get("radioButton_zValue", False)
+
+    def useM(self):
+        return self.properties.get("radioButton_mValue", False)
+
+    def isHeightRelativeToDEM(self):
+        return self.properties.get("comboBox_altitudeMode") is not None
+
+    def hasLabel(self):
+        return bool(self.labelAttrIndex is not None)
+
+    # read values from style widgets
+    def styleWidgetValues(self, f):
+        vals = []
+        for i in range(16):   # big number for style count
+            widgetValues = self.properties.get("styleWidget" + str(i))
+            if not widgetValues:
+                break
+
+            widgetType = widgetValues["type"]
+            comboData = widgetValues.get("comboData")
+            if widgetType == StyleWidget.COLOR:
+                vals.append(self.readFillColor(widgetValues, f))
+
+            elif widgetType == StyleWidget.OPTIONAL_COLOR:
+                vals.append(self.readBorderColor(widgetValues, f))
+
+            elif widgetType == StyleWidget.COLOR_TEXTURE:
+                if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
+                    vals.append(comboData)
+                elif comboData == ColorTextureWidgetFunc.LAYER:
+                    vals.append(widgetValues.get("layerIds", []))
+                else:
+                    vals.append(self.readFillColor(widgetValues, f))
+
+            elif widgetType == StyleWidget.OPACITY:
+                vals.append(self.readOpacity(widgetValues, f))
+
+            elif widgetType == StyleWidget.CHECKBOX:
+                vals.append(widgetValues["checkBox"])
+
+            else:
+                expr = widgetValues["editText"]
+                val = self.evaluateExpression(expr, f)
+                if val is None:
+                    logMessage("Failed to evaluate expression: " + expr)
+                    if widgetType == StyleWidget.FILEPATH:
+                        val = ""
+                    else:
+                        val = 0
+                vals.append(val)
+        return vals
 
 
 class FeatureBlockBuilder:
@@ -168,7 +337,7 @@ class FeatureBlockBuilder:
         self.blockIndex = None
         self.features = []
 
-        p = vlayer.prop.properties
+        p = vlayer.properties
         if useZM is None:
             if p.get("radioButton_zValue"):
                 useZM = Geometry.UseZ
@@ -180,11 +349,11 @@ class FeatureBlockBuilder:
 
         if z_func is None:
             baseExtent = settings.baseExtent
-            if vlayer.prop.isHeightRelativeToDEM():
+            if vlayer.isHeightRelativeToDEM():
                 demLayerId = p.get("comboBox_altitudeMode")
                 demProvider = settings.demProviderByLayerId(demLayerId)
 
-                if vlayer.prop.objType == ObjectType.Overlay:
+                if vlayer.objectType == ObjectType.Overlay:
                     # get the grid size of the DEM layer which polygons overlay
                     demSize = settings.demGridSize(demLayerId)
 
@@ -221,7 +390,7 @@ class FeatureBlockBuilder:
         self.features = features
 
     def build(self):
-        obj_geom_func = self.vlayer.prop.objType.geometry
+        obj_geom_func = self.vlayer.objectType.geometry
         transform_func = self.settings.mapTo3d().transform
 
         feats = []
@@ -278,44 +447,37 @@ class VectorLayerBuilder(LayerBuilder):
         self.clipGeom = None
 
     def build(self, build_blocks=False):
-        mapLayer = self.layer.mapLayer
-        if mapLayer is None:
+        if self.layer.mapLayer is None:
             return
 
-        properties = self.layer.properties
-        baseExtent = self.settings.baseExtent
-        renderContext = QgsRenderContext.fromMapSettings(self.settings.mapSettings)
-        renderer = mapLayer.renderer().clone()      # clone feature renderer
-
-        self.prop = VectorPropertyReader(renderContext, renderer, mapLayer, properties)
-        if self.prop.objType is None:
+        vlayer = VectorLayer(self.settings, self.layer, self.materialManager, self.modelManager)
+        if vlayer.objectType is None:
             logMessage("Object type not found")
             return
 
-        vlayer = VectorLayer(self.settings, mapLayer, self.prop, self.materialManager, self.modelManager)
         self.vlayer = vlayer
+
+        baseExtent = self.settings.baseExtent
+        p = self.layer.properties
 
         # feature request
         request = QgsFeatureRequest()
-        if properties.get("radioButton_IntersectingFeatures", False):
+        if p.get("radioButton_IntersectingFeatures", False):
             request.setFilterRect(vlayer.transform.transformBoundingBox(baseExtent.boundingBox(),
                                                                         QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
-            if properties.get("checkBox_Clip") and self.prop.objType != ObjectType.TriangularMesh:
+            if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.TriangularMesh:
                 extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
                 self.clipGeom = extent.geometry()
 
         self.features = []
         data = {}
 
-        # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
-        renderer.startRender(renderContext, mapLayer.fields())
-
         # materials/models
-        if self.prop.objType != ObjectType.ModelFile:
+        if vlayer.objectType != ObjectType.ModelFile:
             for feat in vlayer.features(request):
-                feat.material = self.prop.objType.material(self.settings, vlayer, feat)
+                feat.material = vlayer.objectType.material(self.settings, vlayer, feat)
                 feat.model = None
                 self.features.append(feat)
             data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot,
@@ -324,11 +486,9 @@ class VectorLayerBuilder(LayerBuilder):
         else:
             for feat in vlayer.features(request):
                 feat.material = None
-                feat.model = self.prop.objType.model(self.settings, vlayer, feat)
+                feat.model = vlayer.objectType.model(self.settings, vlayer, feat)
                 self.features.append(feat)
             data["models"] = self.modelManager.build(self.pathRoot is not None)
-
-        renderer.stopRender(renderContext)
 
         if build_blocks:
             data["blocks"] = [block.build() for block in self.blocks()]
@@ -341,13 +501,13 @@ class VectorLayerBuilder(LayerBuilder):
         }
 
         if DEBUG_MODE:
-            d["PROPERTIES"] = properties
+            d["PROPERTIES"] = p
         return d
 
     def layerProperties(self):
         p = LayerBuilder.layerProperties(self)
         p["type"] = self.gt2str.get(self.layer.mapLayer.geometryType())
-        p["objType"] = self.prop.objType.name
+        p["objType"] = self.vlayer.objectType.name
 
         if self.vlayer.writeAttrs:
             p["propertyNames"] = self.vlayer.fieldNames
@@ -357,7 +517,7 @@ class VectorLayerBuilder(LayerBuilder):
                               "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
 
         # object-type-specific properties
-        # p.update(self.prop.objType.layerProperties(self.settings, self))
+        # p.update(self.vlayer.objectType.layerProperties(self.settings, self))
         return p
 
     def blocks(self):
