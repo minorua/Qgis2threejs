@@ -181,13 +181,12 @@ class FeatureBlockBuilder:
         if z_func is None:
             baseExtent = settings.baseExtent
             if vlayer.prop.isHeightRelativeToDEM():
-                demId = p.get("comboBox_altitudeMode")
-                demProvider = settings.demProviderByLayerId(demId)
+                demLayerId = p.get("comboBox_altitudeMode")
+                demProvider = settings.demProviderByLayerId(demLayerId)
 
                 if vlayer.prop.objType == ObjectType.Overlay:
                     # get the grid size of the DEM layer which polygons overlay
-                    demProp = settings.getPropertyReaderByLayerId(demId)
-                    demSize = demProp.demSize(settings.mapSettings.outputSize())
+                    demSize = settings.demGridSize(demLayerId)
 
                     # prepare triangle mesh
                     center = baseExtent.center()

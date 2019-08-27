@@ -27,7 +27,6 @@ from .conf import DEBUG_MODE
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
-from .propertyreader import DEMPropertyReader
 from .mapextent import MapExtent
 
 
@@ -37,7 +36,6 @@ class DEMLayerBuilder(LayerBuilder):
         """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
         LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
         self.provider = settings.demProviderByLayerId(layer.layerId)
-        self.prop = DEMPropertyReader(layer.layerId, layer.properties)
 
     def build(self, build_blocks=False):
         if self.provider is None:
@@ -71,7 +69,7 @@ class DEMLayerBuilder(LayerBuilder):
         baseExtent = self.settings.baseExtent
         center = baseExtent.center()
         rotation = baseExtent.rotation()
-        base_grid_size = self.prop.demSize(self.settings.mapSettings.outputSize())
+        base_grid_size = self.settings.demGridSize(self.layer.layerId)
 
         # clipping
         clip_geometry = None

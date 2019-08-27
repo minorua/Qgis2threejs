@@ -21,7 +21,7 @@ import os
 import json
 from copy import deepcopy
 
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QSettings, QSize
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsMapSettings, QgsProject, QgsWkbTypes
 
 from . import q3dconst
@@ -29,7 +29,7 @@ from .conf import DEF_SETS
 from .pluginmanager import pluginManager
 from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .mapextent import MapExtent
-from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider
+from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateDEMSize
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 
 
@@ -306,6 +306,18 @@ class ExportSettings:
                 return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
 
         return FlatDEMProvider()
+
+    def demGridSize(self, layerId):
+        if layerId == "FLAT":
+            return QSize(2, 2)
+
+        layer = self.getItemByLayerId(layerId)
+        if layer is None:
+            return None
+
+        sizeLevel = layer.properties.get("horizontalSlider_DEMSize", 2)
+        roughening = layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings", False) else 0
+        return calculateDEMSize(self.mapSettings.outputSize(), sizeLevel, roughening)
 
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])
