@@ -27,7 +27,6 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsM
 from . import q3dconst
 from .conf import DEF_SETS
 from .pluginmanager import pluginManager
-from .propertyreader import DEMPropertyReader, VectorPropertyReader
 from .mapextent import MapExtent
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateDEMSize
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
@@ -367,17 +366,6 @@ class ExportSettings:
                 if layer.layerId == layerId:
                     return layer
         return None
-
-    def getPropertyReaderByLayerId(self, layerId, renderContext=None, renderer=None):
-        """renderContext: required if the layer is a vector layer"""
-        layer = self.getItemByLayerId(layerId)
-        if layer is None:
-            return None
-
-        if layer.geomType == q3dconst.TYPE_DEM:
-            return DEMPropertyReader(layer.layerId, layer.properties)
-
-        return VectorPropertyReader(renderContext, renderer, layer.mapLayer, layer.properties)
 
     def decorationProperties(self, name):
         decor = self.data.get(ExportSettings.DECOR, {})
