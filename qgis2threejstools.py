@@ -35,8 +35,9 @@ from .conf import DEBUG_MODE
 
 def getLayersInProject():
     layers = []
-    for tLayer in QgsProject.instance().layerTreeRoot().findLayers():
-        layers.append(tLayer.layer())
+    for tl in QgsProject.instance().layerTreeRoot().findLayers():
+        if tl.layer():
+            layers.append(tl.layer())
     return layers
 
 
