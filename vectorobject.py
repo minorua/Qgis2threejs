@@ -34,19 +34,19 @@ class ObjectTypeBase:
         return tr(cls.name)
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
+        pass
+
+    # @classmethod
+    # def layerProperties(cls, settings, layer):
+    #     return {}
+
+    @classmethod
+    def material(cls, settings, vlayer, feat):
         pass
 
     @classmethod
-    def layerProperties(cls, settings, layer):
-        return {}
-
-    @classmethod
-    def material(cls, settings, layer, feat):
-        pass
-
-    @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         pass
 
     @classmethod
@@ -77,8 +77,8 @@ class PolygonTypeBase(ObjectTypeBase):
 class PointBasicTypeBase(PointTypeBase):
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
 
 class PointType(ObjectTypeBase):
@@ -86,16 +86,16 @@ class PointType(ObjectTypeBase):
     name = "Point"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Size", "defaultValue": 1, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Size", "defaultValue": 1, "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getPointMaterialIndex(feat.values[0], feat.values[1], feat.values[2])
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getPointMaterialIndex(feat.values[0], feat.values[1], feat.values[2])
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         v = []
         for pt in geom.asList():
             v.extend(pt)
@@ -107,12 +107,12 @@ class SphereType(PointBasicTypeBase):
     name = "Sphere"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         return {"pts": geom.asList(),
                 "r": feat.values[2] * settings.mapTo3d().multiplier}
 
@@ -122,13 +122,13 @@ class CylinderType(PointBasicTypeBase):
     name = "Cylinder"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         mapTo3d = settings.mapTo3d()
         r = feat.values[2] * mapTo3d.multiplier
         return {"pts": geom.asList(),
@@ -146,15 +146,15 @@ class BoxType(PointBasicTypeBase):
     name = "Box"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
         val = cls.defaultValue(mapTo3d)
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Depth", "defaultValue": val, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Depth", "defaultValue": val, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         mapTo3d = settings.mapTo3d()
         return {"pts": geom.asList(),
                 "w": feat.values[2] * mapTo3d.multiplier,
@@ -167,18 +167,18 @@ class DiskType(PointBasicTypeBase):
     name = "Disk"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         dd = feat.values[4]
         # take map rotation into account
         rotation = settings.baseExtent.rotation()
@@ -196,19 +196,19 @@ class PlaneType(PointBasicTypeBase):
     name = "Plane"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Length", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Length", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         dd = feat.values[5]
         # take map rotation into account
         rotation = settings.baseExtent.rotation()
@@ -233,22 +233,22 @@ class LineType(LineBasicTypeBase):
     name = "Line"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
         ppage.addStyleWidget(StyleWidget.CHECKBOX, {"name": "Dashed", "defaultValue": False})
 
     @classmethod
-    def material(cls, settings, layer, feat):
+    def material(cls, settings, vlayer, feat):
         try:
             if feat.values[2]:
-                return layer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
+                return vlayer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
         except IndexError:    # for backward compatibility (dashed option was added in 2.1)
             pass
 
-        return layer.materialManager.getBasicLineIndex(feat.values[0], feat.values[1])
+        return vlayer.materialManager.getBasicLineIndex(feat.values[0], feat.values[1])
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         return {"lines": geom.asList()}
 
 
@@ -257,16 +257,16 @@ class PipeType(LineBasicTypeBase):
     name = "Pipe"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         r = feat.values[2] * settings.mapTo3d().multiplier
         return {"lines": geom.asList(),
                 "r": r}
@@ -282,18 +282,18 @@ class BoxLineType(LineBasicTypeBase):
     name = "Box"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
         val = cls.defaultValue(mapTo3d)
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": val, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": val, "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         multiplier = settings.mapTo3d().multiplier
         return {"lines": geom.asList(),
                 "w": feat.values[2] * multiplier,
@@ -305,16 +305,16 @@ class ProfileType(LineBasicTypeBase):
     name = "Profile"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Other side Z", "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Other side Z", "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         return {"lines": geom.asList(),
                 "bh": feat.values[2] * settings.mapTo3d().multiplierZ}
 
@@ -323,7 +323,7 @@ class ProfileType(LineBasicTypeBase):
 class PolygonBasicTypeBase(PolygonTypeBase):
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         return {"polygons": [[[[pt.x, pt.y] for pt in bnd] for bnd in poly] for poly in geom.polygons],
                 "centroids": [[pt.x, pt.y, pt.z] for pt in geom.centroids]}
 
@@ -333,9 +333,9 @@ class ExtrudedType(PolygonBasicTypeBase):
     name = "Extruded"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": layer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
 
         opt = {"name": "Border color",
                "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
@@ -343,17 +343,17 @@ class ExtrudedType(PolygonBasicTypeBase):
         ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        mtl = {"face": layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])}
+    def material(cls, settings, vlayer, feat):
+        mtl = {"face": vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])}
 
         # border
         if feat.values[3] is not None:
-            mtl["border"] = layer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
+            mtl["border"] = vlayer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
         return mtl
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
-        g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
+    def geometry(cls, settings, vlayer, feat, geom):
+        g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
         g["h"] = feat.values[2] * settings.mapTo3d().multiplierZ
         return g
 
@@ -363,7 +363,7 @@ class OverlayType(PolygonBasicTypeBase):
     name = "Overlay"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
 
         # TODO: [Polygon - Overlay] border
@@ -373,20 +373,20 @@ class OverlayType(PolygonBasicTypeBase):
         # ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
     @classmethod
-    def material(cls, settings, layer, feat):
+    def material(cls, settings, vlayer, feat):
         if feat.values[0] == ColorTextureWidgetFunc.MAP_CANVAS:
-            return layer.materialManager.getCanvasImageIndex(feat.values[1])
+            return vlayer.materialManager.getCanvasImageIndex(feat.values[1])
 
         if isinstance(feat.values[0], list):   # LAYER
             size = settings.mapSettings.outputSize()
-            extent = settings.baseExtent
-            return layer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(), extent, feat.values[1])
+            return vlayer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(),
+                                                             settings.baseExtent, feat.values[1])
 
-        return layer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
+        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
-        if layer.prop.isHeightRelativeToDEM():
+    def geometry(cls, settings, vlayer, feat, geom):
+        if vlayer.isHeightRelativeToDEM():
             g = {}
 
             polygons = []
@@ -409,13 +409,13 @@ class OverlayType(PolygonBasicTypeBase):
                 g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
 
         else:
-            g = PolygonBasicTypeBase.geometry(settings, layer, feat, geom)
+            g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
 
         g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
 
         # TODO: [Polygon - Overlay] border
         # if feat.values[2] is not None:
-        #   g["mb"] = layer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
+        #   g["mb"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
 
         return g
 
@@ -425,15 +425,15 @@ class TriangularMeshType(PolygonBasicTypeBase):
     name = "Triangular Mesh"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
 
     @classmethod
-    def material(cls, settings, layer, feat):
-        return layer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         triangles = IndexedTriangles3D()
         for polygon in geom.polygons:
             boundary = polygon[0]
@@ -459,22 +459,22 @@ class IconType(PointTypeBase):
     name = "Icon"
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
         ppage.initStyleWidgets(color=False)
-        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": layer, "filterString": filterString, "allowURL": True})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": mapLayer, "filterString": filterString, "allowURL": True})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": mapLayer})
 
     @classmethod
-    def material(cls, settings, layer, feat):
+    def material(cls, settings, vlayer, feat):
         path_url = feat.values[1]
         if path_url:
-            return layer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
+            return vlayer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
         return None
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         return {"pts": geom.asList(),
                 "scale": feat.values[2]}
 
@@ -486,25 +486,25 @@ class ModelFileType(PointTypeBase):
     experimental = True
 
     @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, layer):
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
 
         ppage.initStyleWidgets(color=False, opacity=False)
-        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": layer, "filterString": filterString, "allowURL": True})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": layer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": layer})
+        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": mapLayer, "filterString": filterString, "allowURL": True})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
 
     @classmethod
-    def model(cls, settings, layer, feat):
+    def model(cls, settings, vlayer, feat):
         model_path = feat.values[0]
         if model_path:
-            return layer.modelManager.modelIndex(model_path)
+            return vlayer.modelManager.modelIndex(model_path)
         return None
 
     @classmethod
-    def geometry(cls, settings, layer, feat, geom):
+    def geometry(cls, settings, vlayer, feat, geom):
         rz = feat.values[4]
         # take map rotation into account
         rotation = settings.baseExtent.rotation()
