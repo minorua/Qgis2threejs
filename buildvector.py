@@ -109,6 +109,7 @@ class VectorLayer:
 
         self.materialManager = materialManager
         self.modelManager = modelManager
+        self.colorNames = []        # for random color
 
         self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
         self.geomType = self.mapLayer.geometryType()
@@ -191,8 +192,6 @@ class VectorLayer:
 
     # read color from COLOR or OPTIONAL_COLOR widget
     def _readColor(self, widgetValues, f, isBorder=False):
-        global colorNames
-
         mode = widgetValues["comboData"]
         if mode == OptionalColorWidgetFunc.NONE:
             return None
@@ -213,11 +212,10 @@ class VectorLayer:
                 return "0"
 
         if mode == ColorWidgetFunc.RANDOM or f is None:
-            if len(colorNames) == 0:
-                colorNames = QColor.colorNames()
-            colorName = random.choice(colorNames)
-            colorNames.remove(colorName)
-            return QColor(colorName).name().replace("#", "0x")
+            self.colorNames = self.colorNames or QColor.colorNames()
+            color = random.choice(self.colorNames)
+            self.colorNames.remove(color)
+            return QColor(color).name().replace("#", "0x")
 
         # feature color
         symbol = self.renderer.symbolForFeature(f, self.renderContext)
