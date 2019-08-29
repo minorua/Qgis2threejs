@@ -277,25 +277,31 @@ class PolygonGeometry(Geometry):
             centroidHeight = z_func(pt.x(), pt.y())
             geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
-        for polygon in polygons:
-            centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
-            if centroid is None:
-                centroidHeight = 0
-                if centroidPerPolygon:
-                    geom.centroids.append(transform_func(0, 0, 0))
-            else:
-                pt = centroid.asPoint()
-                centroidHeight = z_func(pt.x(), pt.y())
-                if centroidPerPolygon:
-                    geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+        cache = FunctionCacheXY(z_func)
+        z_func = cache.func
 
-            z_func2 = (lambda x, y: centroidHeight) if useCentroidHeight else z_func
+        for polygon in polygons:
+
+            if useCentroidHeight or centroidPerPolygon:
+                centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
+                if centroid is None:
+                    centroidHeight = 0
+                    if centroidPerPolygon:
+                        geom.centroids.append(transform_func(0, 0, 0))
+                else:
+                    pt = centroid.asPoint()
+                    centroidHeight = z_func(pt.x(), pt.y())
+                    if centroidPerPolygon:
+                        geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
+
+                if useCentroidHeight:
+                    z_func = (lambda x, y: centroidHeight)
 
             boundaries = []
             # outer boundary
             points = []
             for pt in polygon[0]:
-                points.append(transform_func(pt.x(), pt.y(), z_func2(pt.x(), pt.y())))
+                points.append(transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
 
             if not GeometryUtils.isClockwise(points):
                 points.reverse()    # to clockwise
@@ -303,7 +309,7 @@ class PolygonGeometry(Geometry):
 
             # inner boundaries
             for boundary in polygon[1:]:
-                points = [transform_func(pt.x(), pt.y(), z_func2(pt.x(), pt.y())) for pt in boundary]
+                points = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in boundary]
                 if GeometryUtils.isClockwise(points):
                     points.reverse()    # to counter-clockwise
                 boundaries.append(points)
@@ -311,6 +317,25 @@ class PolygonGeometry(Geometry):
             geom.polygons.append(boundaries)
 
         return geom
+
+
+class FunctionCacheXY:
+
+    def __init__(self, func):
+        self._func = func
+        self.cache = {}
+
+    def clearCache():
+        self.cache = {}
+
+    def func(self, x, y):
+        xz = self.cache.get(y, {})
+        z = xz.get(x)
+        if z is None:
+            z = self._func(x, y)
+            xz[x] = z
+            self.cache[y] = xz
+        return z
 
 
 class GeometryUtils:
