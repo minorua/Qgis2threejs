@@ -519,7 +519,9 @@ class VectorLayerBuilder(LayerBuilder):
 
     def blocks(self):
         builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot)
-
+        one_per_block = (self.vlayer.objectType == ObjectType.Overlay
+                         and self.vlayer.isHeightRelativeToDEM()
+                         and self.pathRoot is None)
         index = 0
         feats = []
         for f in self.features or []:
@@ -535,7 +537,7 @@ class VectorLayerBuilder(LayerBuilder):
 
             feats.append(f)
 
-            if len(feats) == FEATURES_PER_BLOCK:
+            if len(feats) == FEATURES_PER_BLOCK or one_per_block:
                 b = builder.clone()
                 b.setBlockIndex(index)
                 b.setFeatures(feats)
