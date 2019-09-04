@@ -21,12 +21,12 @@
 """
 import struct
 from PyQt5.QtCore import QByteArray, QSize
-from qgis.core import QgsPoint, QgsProject
+from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
 from .conf import DEBUG_MODE
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import PolygonGeometry, TriangleMesh, IndexedTriangles2D, dissolvePolygonsOnCanvas
+from .geometry import Point, PolygonGeometry, TINGeometry, TriangleMesh, dissolvePolygonsOnCanvas
 from .mapextent import MapExtent
 
 
@@ -187,7 +187,7 @@ class DEMBlockBuilder:
 
         # clipped with polygon layer
         if self.clip_geometry:
-            b["clip"] = self.clipped()
+            b["clip"] = self.clipped(self.clip_geometry)
 
         # sides and bottom
         if self.properties.get("checkBox_Sides", False):
@@ -232,36 +232,29 @@ class DEMBlockBuilder:
         url = None if self.urlRoot is None else "{0}{1}.png".format(self.urlRoot, self.blockIndex)
         return self.materialManager.build(mi, self.imageManager, filepath, url, self.settings.base64)
 
-    def clipped(self):
+    def clipped(self, clip_geometry):
         mapTo3d = self.settings.mapTo3d()
         z_func = lambda x, y: 0
         transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
 
-        # create triangle mesh
-        hw = 0.5 * mapTo3d.planeWidth
-        hh = 0.5 * mapTo3d.planeHeight
-        tmesh = TriangleMesh(-hw, -hh,
-                             hw, hh,
-                             self.grid_size.width() - 1, self.grid_size.height() - 1)
+        # create a triangle mesh and split polygons with the mesh
+        tmesh = TriangleMesh(self.extent, self.grid_size.width() - 1,
+                                          self.grid_size.height() - 1)
 
-        # split polygons with triangle mesh
-        geom = PolygonGeometry.fromQgsGeometry(self.clip_geometry, z_func, transform_func)
-        geom.splitPolygon(tmesh, z_func)
+        if self.extent.rotation():
+            geom = QgsGeometry(clip_geometry)
+            geom.rotate(self.extent.rotation(), self.extent.center())
+            geom = tmesh.splitPolygon(geom)
+            geom.rotate(-self.extent.rotation(), self.extent.center())
+        else:
+            geom = tmesh.splitPolygon(clip_geometry)
 
-        triangles = IndexedTriangles2D()
-        split_polygons = []
-        for polygon in geom.split_polygons:
-            boundary = polygon[0]
-            if len(polygon) == 1 and len(boundary) == 4:
-                triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
-            else:
-                bnds = [[[pt.x, pt.y] for pt in bnd] for bnd in polygon]
-                split_polygons.append(bnds)
+        tin = TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=False, drop_z=True, ccw2d=True)
+        d = tin.toDict2()
 
-        return {"polygons": geom.asList2(),
-                "triangles": {"v": [[pt.x, pt.y] for pt in triangles.vertices],
-                              "f": triangles.faces},
-                "split_polygons": split_polygons}
+        geom = PolygonGeometry.fromQgsGeometry(clip_geometry, z_func, transform_func)
+        d["polygons"] = geom.asList2()
+        return d
 
     def processEdges(self, grid_values, roughness):
         grid_width = self.grid_size.width()

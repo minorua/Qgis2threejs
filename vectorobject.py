@@ -387,27 +387,7 @@ class OverlayType(PolygonBasicTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         if vlayer.isHeightRelativeToDEM():
-            g = {}
-
-            polygons = []
-            triangles = IndexedTriangles2D()
-            for polygon in geom.polygons:
-                boundary = polygon[0]
-                if len(polygon) == 1 and len(boundary) == 4:
-                    triangles.addTriangle(boundary[0], boundary[2], boundary[1])    # vertex order should be counter-clockwise
-                else:
-                    bnds = [[[pt.x, pt.y, pt.z] for pt in bnd] for bnd in polygon]
-                    polygons.append(bnds)
-
-            if triangles.vertices:
-                g["triangles"] = {"v": [[pt.x, pt.y, pt.z] for pt in triangles.vertices], "f": triangles.faces}
-
-            if polygons:
-                g["split_polygons"] = polygons
-
-            if geom.centroids:
-                g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
-
+            g = geom.toDict(flat=False)
         else:
             g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
 
@@ -434,22 +414,7 @@ class TriangularMeshType(PolygonBasicTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        triangles = IndexedTriangles3D()
-        for polygon in geom.polygons:
-            boundary = polygon[0]
-            triangles.addTriangle(boundary[0], boundary[1], boundary[2])
-
-        v = []
-        for pt in triangles.vertices:
-            v.extend([pt.x, pt.y, pt.z])
-
-        f = []
-        for s in triangles.faces:
-            f.extend(s)
-
-        g = {"v": v, "f": f}
-        if geom.centroids:
-            g["centroids"] = [[pt.x, pt.y, pt.z] for pt in geom.centroids]
+        g = geom.toDict(flat=True)
         return g
 
 

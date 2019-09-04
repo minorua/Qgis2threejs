@@ -20,8 +20,10 @@
 """
 from qgis.core import (
     QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
-    QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject)
+    QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject,
+    QgsTessellator, QgsWkbTypes)
 
+from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
 
 
@@ -156,11 +158,10 @@ class PolygonGeometry(Geometry):
     def __init__(self):
         self.polygons = []
         self.centroids = []
-        self.split_polygons = []
 
     def splitPolygon(self, triMesh, z_func):
         """split polygon by TriangleMesh"""
-        self.split_polygons = []
+        split_polygons = []
         for polygon in triMesh.splitPolygonA(self.toQgsGeometry()):
             boundaries = []
             # outer boundary
@@ -176,22 +177,20 @@ class PolygonGeometry(Geometry):
                     points.reverse()    # to counter-clockwise
                 boundaries.append(points)
 
-            self.split_polygons.append(boundaries)
+            split_polygons.append(boundaries)
+
+        return self.toQgsGeometry(split_polygons)
 
     def asList(self):
         p = []
         for boundaries in self.polygons:
             # outer boundary
             pts = [[pt.x, pt.y, pt.z] for pt in boundaries[0]]
-            if not GeometryUtils.isClockwise(boundaries[0]):
-                pts.reverse()   # to clockwise
             b = [pts]
 
             # inner boundaries
             for boundary in boundaries[1:]:
                 pts = [[pt.x, pt.y, pt.z] for pt in boundary]
-                if GeometryUtils.isClockwise(boundary):
-                    pts.reverse()   # to counter-clockwise
                 b.append(pts)
             p.append(b)
         return p
@@ -205,80 +204,29 @@ class PolygonGeometry(Geometry):
             p.append(b)
         return p
 
-    def toQgsGeometry(self):
-        count = len(self.polygons)
+    def toQgsGeometry(self, polygons=None):
+        if polygons is None:
+            polygons = self.polygons
+        count = len(polygons)
         if count > 1:
-            polys = [polygonToQgsPolygon(poly) for poly in self.polygons]
+            polys = [polygonToQgsPolygon(poly) for poly in polygons]
             return QgsGeometry.fromMultiPolygonXY(polys)
 
         if count == 1:
-            return QgsGeometry.fromPolygonXY(polygonToQgsPolygon(self.polygons[0]))
+            return QgsGeometry.fromPolygonXY(polygonToQgsPolygon(polygons[0]))
 
         return QgsGeometry()
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False, useZM=Geometry.NotUseZM):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False):
 
         geom = cls()
-
-        if useZM != Geometry.NotUseZM:
-            g = geometry.constGet()
-            if isinstance(g, QgsPolygon):
-                polygons = [g]
-            elif isinstance(g, QgsMultiPolygon):
-                polygons = [g.geometryN(i) for i in range(g.numGeometries())]
-            else:
-                polygons = []
-
-            if useZM == Geometry.UseZ:
-                for polygon in polygons:
-                    boundaries = []
-                    # outer boundary
-                    bnd = polygon.exteriorRing().points()
-                    points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
-                    # if not GeometryUtils.isClockwise(points):
-                    #  points.reverse()    # to clockwise
-                    boundaries.append(points)
-
-                    # inner boundaries
-                    for i in range(polygon.numInteriorRings()):
-                        bnd = polygon.interiorRing(i).points()
-                        points = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in bnd]
-                        # if GeometryUtils.isClockwise(points):
-                        #  points.reverse()    # to counter-clockwise
-                        boundaries.append(points)
-
-                    geom.polygons.append(boundaries)
-            else:   # UseM
-                for polygon in polygons:
-                    boundaries = []
-                    # outer boundary
-                    bnd = polygon.exteriorRing().points()
-                    points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
-                    # if not GeometryUtils.isClockwise(points):
-                    #  points.reverse()    # to clockwise
-                    boundaries.append(points)
-
-                    # inner boundaries
-                    for i in range(polygon.numInteriorRings()):
-                        bnd = polygon.interiorRing(i).points()
-                        points = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in bnd]
-                        # if GeometryUtils.isClockwise(points):
-                        #  points.reverse()    # to counter-clockwise
-                        boundaries.append(points)
-
-                    geom.polygons.append(boundaries)
-            return geom
-
         polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
 
         if not centroidPerPolygon:
             pt = geometry.centroid().asPoint()
             centroidHeight = z_func(pt.x(), pt.y())
             geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
-
-        cache = FunctionCacheXY(z_func)
-        z_func = cache.func
 
         for polygon in polygons:
 
@@ -319,13 +267,129 @@ class PolygonGeometry(Geometry):
         return geom
 
 
+class TINGeometry(Geometry):
+
+    def __init__(self):
+        self.triangles = []
+        self.centroids = []
+
+    def toDict(self, flat=False):
+        tris = IndexedTriangles3D()
+        for v0, v1, v2 in self.triangles:
+            tris.addTriangle(v0, v1, v2)
+
+        if flat:
+            v = []
+            for pt in tris.vertices:
+                v.extend([pt.x, pt.y, pt.z])
+
+            f = []
+            for c in tris.faces:
+                f.extend(c)
+
+        else:
+            v = [[pt.x, pt.y, pt.z] for pt in tris.vertices]
+            f = tris.faces
+
+        d = {"triangles": {"v": v, "f": f}}
+        if self.centroids:
+            d["centroids"] = [[pt.x, pt.y, pt.z] for pt in self.centroids]
+        return d
+
+    def toDict2(self, flat=False):
+        tris = IndexedTriangles2D()
+        for v0, v1, v2 in self.triangles:
+            tris.addTriangle(v0, v1, v2)
+
+        if flat:
+            v = []
+            for pt in tris.vertices:
+                v.extend([pt.x, pt.y])
+
+            f = []
+            for c in tris.faces:
+                f.extend(c)
+
+        else:
+            v = [[pt.x, pt.y] for pt in tris.vertices]
+            f = tris.faces
+
+        d = {"triangles": {"v": v,"f": f}}
+        if self.centroids:
+            d["centroids"] = [[pt.x, pt.y] for pt in self.centroids]
+        return d
+
+    def toQgsGeometry(self):
+        """not implemented yet"""
+        pass
+
+    @classmethod
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=False, drop_z=False, ccw2d=False):
+        geom = cls()
+
+        if z_func:
+            cache = FunctionCacheXY(z_func)
+            z_func = cache.func
+        else:
+            z_func = lambda x, y: 0
+
+        if drop_z:
+            g = geometry.get()
+            g.dropZValue()
+        else:
+            g = geometry.constGet()
+
+        if centroid:
+            pt = g.centroid()
+            geom.centroids.append(transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())))
+
+        if isinstance(g, QgsPolygon):
+            polygons = [g]
+        elif isinstance(g, QgsMultiPolygon):
+            polygons = [g.geometryN(i) for i in range(g.numGeometries())]
+        else:
+            logMessage("PolygonGeometry: {} is not supported yet.".format(type(g).__name__))
+            polygons = []
+
+        # triangulation
+        tes = QgsTessellator(0, 0, False)
+        addPolygon = tes.addPolygon
+        for poly in polygons: addPolygon(poly, 0)
+
+        data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
+        # mp = tes.asMultiPolygon()     # not available
+
+        # transform vertices
+        if drop_z:
+            v_func = lambda x, y, z: transform_func(x, y, z_func(x, y))
+        else:
+            v_func = lambda x, y, z: transform_func(x, y, z + z_func(x, y))
+
+        vertices = [v_func(x, -my, z) for x, z, my in [data[i:i + 3] for i in range(0, len(data), 3)]]
+
+        if ccw2d:
+            # orient triangles to counter-clockwise order
+            tris = []
+            for v0, v1, v2 in [vertices[i:i + 3] for i in range(0, len(vertices), 3)]:
+                if GeometryUtils.isClockwise([v0, v1, v2, v0]):
+                    tris.append([v0, v2, v1])
+                else:
+                    tris.append([v0, v1, v2])
+            geom.triangles = tris
+        else:
+            # use original vertex order
+            geom.triangles = [vertices[i:i + 3] for i in range(0, len(vertices), 3)]
+
+        return geom
+
+
 class FunctionCacheXY:
 
     def __init__(self, func):
         self._func = func
         self.cache = {}
 
-    def clearCache():
+    def clearCache(self):
         self.cache = {}
 
     def func(self, x, y):
@@ -360,33 +424,47 @@ class TriangleMesh:
     # | / |
     # 1 - 2
 
-    def __init__(self, xmin, ymin, xmax, ymax, x_segments, y_segments):
-        self.vbands = []
-        self.hbands = []
-        self.vidx = QgsSpatialIndex()
-        self.hidx = QgsSpatialIndex()
+    def __init__(self, extent, x_segments, y_segments):
 
+        center = extent.center()
+        half_width, half_height = (extent.width() / 2,
+                                   extent.height() / 2)
+        xmin, ymin = (center.x() - half_width,
+                      center.y() - half_height)
+        xmax, ymax = (center.x() + half_width,
+                      center.y() + half_height)
         xres = (xmax - xmin) / x_segments
         yres = (ymax - ymin) / y_segments
-        self.xmin, self.ymax, self.xres, self.yres = xmin, ymax, xres, yres
+
+        self.xmin, self.ymax, self.xres, self.yres = (xmin, ymax, xres, yres)
+
+        vbands = []
+        hbands = []
+        vidx = QgsSpatialIndex()
+        hidx = QgsSpatialIndex()
 
         def addVBand(idx, geom):
             f = QgsFeature(idx)
             f.setGeometry(geom)
-            self.vbands.append(f)
-            self.vidx.insertFeature(f)
+            vbands.append(f)
+            vidx.insertFeature(f)
 
         def addHBand(idx, geom):
             f = QgsFeature(idx)
             f.setGeometry(geom)
-            self.hbands.append(f)
-            self.hidx.insertFeature(f)
+            hbands.append(f)
+            hidx.insertFeature(f)
 
         for x in range(x_segments):
             addVBand(x, QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin, xmin + (x + 1) * xres, ymax)))
 
         for y in range(y_segments):
             addHBand(y, QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres, xmax, ymax - y * yres)))
+
+        self.vbands = vbands
+        self.hbands = hbands
+        self.vidx = vidx
+        self.hidx = hidx
 
     def vSplit(self, geom):
         """split polygon vertically"""
@@ -402,31 +480,7 @@ class TriangleMesh:
                 yield idx
 
     def splitPolygon(self, geom):
-        xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
-
-        polygons = []
-        for x, vi in self.vSplit(geom):
-            for y in self.hIntersects(vi):
-                pt0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
-                pt1 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
-                pt2 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
-                pt3 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
-                quad = QgsGeometry.fromPolygonXY([[pt0, pt1, pt2, pt3, pt0]])
-                tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
-
-                if geom.contains(quad):
-                    polygons += tris
-                else:
-                    for i, tri in enumerate(map(QgsGeometry.fromPolygonXY, tris)):
-                        if geom.contains(tri):
-                            polygons.append(tris[i])
-                        elif geom.intersects(tri):
-                            poly = geom.intersection(tri)
-                            if poly.isMultipart():
-                                polygons += poly.asMultiPolygon()
-                            else:
-                                polygons.append(poly.asPolygon())
-        return QgsGeometry.fromMultiPolygonXY(polygons)
+        return QgsGeometry.fromMultiPolygonXY(list(self.splitPolygonA(geom)))
 
     def splitPolygonA(self, geom):
         xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
@@ -449,11 +503,26 @@ class TriangleMesh:
                             yield tris[i]
                         elif geom.intersects(tri):
                             poly = geom.intersection(tri)
-                            if poly.isMultipart():
-                                for sp in poly.asMultiPolygon():
-                                    yield sp
-                            else:
+                            wkbType = poly.wkbType()
+                            if wkbType == QgsWkbTypes.Polygon:
                                 yield poly.asPolygon()
+
+                            elif wkbType == QgsWkbTypes.MultiPolygon:
+                                for bnd in poly.asMultiPolygon():
+                                    yield bnd
+
+                            elif wkbType == QgsWkbTypes.GeometryCollection:
+                                for poly2 in poly.asGeometryCollection():
+                                    if DEBUG_MODE:
+                                        logMessage("A geometry collection was generated. wkbType: {}".format(poly2.wkbType()))
+
+                                    wkbType = poly2.wkbType()
+                                    if wkbType == QgsWkbTypes.Polygon:
+                                        yield poly2.asPolygon()
+
+                                    elif wkbType == QgsWkbTypes.MultiPolygon:
+                                        for bnd in poly2.asMultiPolygon():
+                                            yield bnd
 
 
 class IndexedTriangles2D:

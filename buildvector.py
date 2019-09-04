@@ -29,7 +29,7 @@ from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionConte
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
-from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TriangleMesh
+from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry, TriangleMesh
 from .qgis2threejstools import logMessage
 from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
@@ -69,11 +69,14 @@ class Feature:
         geom = self.geom
         z_func = lambda x, y: z0_func(x, y) + self.altitude
 
-        if self.geomType != QgsWkbTypes.PolygonGeometry or self.objectType == ObjectType.TriangularMesh:
+        if self.geomType != QgsWkbTypes.PolygonGeometry:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
-        # geometry type is polygon and object type is Overlay
+        if self.objectType == ObjectType.TriangularMesh:
+            return TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=True)
+
         if tmesh:
+            # Overlay above DEM surface
             if baseExtent.rotation():
                 geom.rotate(baseExtent.rotation(), baseExtent.center())
                 geom = tmesh.splitPolygon(geom)
@@ -81,13 +84,12 @@ class Feature:
             else:
                 geom = tmesh.splitPolygon(geom)
 
-            useCentroidHeight = False
-            centroidPerPolygon = False
-        else:
-            useCentroidHeight = True
-            centroidPerPolygon = True
+            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, centroid=True, drop_z=True, ccw2d=True)
 
-        return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func, useCentroidHeight, centroidPerPolygon)
+        else:
+            return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func,
+                                                   useCentroidHeight=True,
+                                                   centroidPerPolygon=True)
 
 
 class VectorLayer:
@@ -355,18 +357,12 @@ class FeatureBlockBuilder:
                     # get the grid size of the DEM layer which polygons overlay
                     demSize = settings.demGridSize(demLayerId)
 
-                    # prepare triangle mesh
-                    center = baseExtent.center()
-                    half_width, half_height = (baseExtent.width() / 2,
-                                               baseExtent.height() / 2)
-                    xmin, ymin = (center.x() - half_width,
-                                  center.y() - half_height)
-                    xmax, ymax = (center.x() + half_width,
-                                  center.y() + half_height)
+                    # prepare a triangle mesh
+                    tmesh = TriangleMesh(baseExtent, demSize.width() - 1, demSize.height() - 1)
+
                     xres, yres = (baseExtent.width() / (demSize.width() - 1),
                                   baseExtent.height() / (demSize.height() - 1))
 
-                    tmesh = TriangleMesh(xmin, ymin, xmax, ymax, demSize.width() - 1, demSize.height() - 1)
                     z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
                 else:
                     z_func = lambda x, y: demProvider.readValue(x, y)

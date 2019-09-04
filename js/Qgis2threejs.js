@@ -1971,7 +1971,7 @@ Q3D.ClippedDEMBlock.prototype = {
     mesh.scale.z = obj.zScale;
 
     var buildGeometry = function (grid_values) {
-      mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, obj.clip.split_polygons, layer.getZ.bind(layer));
+      mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, [], layer.getZ.bind(layer));
 
       // set UVs
       Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
@@ -2971,9 +2971,6 @@ Q3D.PolygonLayer.prototype.build = function (features) {
         polygons = f.geom.polygons;
         zFunc = function (x, y) { return z0 + f.geom.h; };
       }
-      else {
-        polygons = f.geom.split_polygons || [];   // with z values
-      }
 
       var geom = Q3D.Utils.createOverlayGeometry(f.geom.triangles, polygons, zFunc);
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
@@ -3228,15 +3225,17 @@ Q3D.Utils.arrayToFace3Array = function (faces) {
 };
 
 Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
+  polygons = polygons || [];
+
   var geom = new THREE.Geometry();
 
-  // vertices and faces
+  // triangles
   if (triangles !== undefined) {
     geom.vertices = Q3D.Utils.arrayToVec3Array(triangles.v, zFunc);
     geom.faces = Q3D.Utils.arrayToFace3Array(triangles.f);
   }
 
-  // split-polygons
+  // polygons
   for (var i = 0, l = polygons.length; i < l; i++) {
     var polygon = polygons[i];
     var poly_geom = new THREE.Geometry(),
@@ -3261,7 +3260,6 @@ Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
 
     geom.merge(poly_geom);
   }
-  geom.mergeVertices();
   geom.computeFaceNormals();
   geom.computeVertexNormals();
   return geom;
