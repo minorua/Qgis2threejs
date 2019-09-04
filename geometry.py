@@ -295,7 +295,7 @@ class TINGeometry(Geometry):
 
         d = {"triangles": {"v": v, "f": f}}
         if self.centroids:
-            d["centroids"] = [[pt.x, pt.y, pt.z] for pt in self.centroids]
+            d["centroids"] = [[pt.x, pt.y, pt.z if pt.z == pt.z else 0] for pt in self.centroids]
         return d
 
     def toDict2(self, flat=False):
