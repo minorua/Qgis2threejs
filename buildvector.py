@@ -360,6 +360,9 @@ class FeatureBlockBuilder:
                     # prepare a triangle mesh
                     tmesh = TriangleMesh(baseExtent, demSize.width() - 1, demSize.height() - 1)
 
+                    center = baseExtent.center()
+                    xmin, ymin = (center.x() - baseExtent.width() / 2,
+                                  center.y() - baseExtent.height() / 2)
                     xres, yres = (baseExtent.width() / (demSize.width() - 1),
                                   baseExtent.height() / (demSize.height() - 1))
 

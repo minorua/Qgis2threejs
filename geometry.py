@@ -155,6 +155,8 @@ class LineGeometry(Geometry):
 
 class PolygonGeometry(Geometry):
 
+    """No 3D support"""
+
     def __init__(self):
         self.polygons = []
         self.centroids = []
@@ -440,37 +442,33 @@ class TriangleMesh:
 
         vbands = []
         hbands = []
-        vidx = QgsSpatialIndex()
-        hidx = QgsSpatialIndex()
-
-        def addVBand(idx, geom):
-            f = QgsFeature(idx)
-            f.setGeometry(geom)
-            vbands.append(f)
-            vidx.insertFeature(f)
-
-        def addHBand(idx, geom):
-            f = QgsFeature(idx)
-            f.setGeometry(geom)
-            hbands.append(f)
-            hidx.insertFeature(f)
 
         for x in range(x_segments):
-            addVBand(x, QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin, xmin + (x + 1) * xres, ymax)))
+            f = QgsFeature(x)
+            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin,
+                                                            xmin + (x + 1) * xres, ymax)))
+            vbands.append(f)
 
         for y in range(y_segments):
-            addHBand(y, QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres, xmax, ymax - y * yres)))
+            f = QgsFeature(y)
+            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres,
+                                                            xmax, ymax - y * yres)))
+            hbands.append(f)
 
         self.vbands = vbands
         self.hbands = hbands
-        self.vidx = vidx
-        self.hidx = hidx
+
+        self.vidx = QgsSpatialIndex()
+        self.vidx.addFeatures(vbands)
+
+        self.hidx = QgsSpatialIndex()
+        self.hidx.addFeatures(hbands)
 
     def vSplit(self, geom):
         """split polygon vertically"""
         for idx in self.vidx.intersects(geom.boundingBox()):
             geometry = geom.intersection(self.vbands[idx].geometry())
-            if geometry is not None:
+            if geometry:
                 yield idx, geometry
 
     def hIntersects(self, geom):
