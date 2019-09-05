@@ -321,7 +321,7 @@ class Q3DWindow(QMainWindow):
         return self.ui.webView.runScript(string, message, sourceID=sourceID)
 
     def exportToWeb(self):
-        dialog = ExportToWebDialog(self, self.settings)
+        dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
         dialog.show()
         dialog.exec_()
 

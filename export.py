@@ -82,16 +82,16 @@ class ThreeJSExporter(ThreeJSBuilder):
             options.append("Q3D.Config.autoZShift = true;")
 
         if sp.get("radioButton_Color"):
-            options.append("Q3D.Config.bgcolor = {0};".format(sp.get("colorButton_Color", 0)))
+            options.append("Q3D.Config.bgColor = {0};".format(sp.get("colorButton_Color", 0)))
 
         # camera
         if self.settings.isOrthoCamera():
-            options.append("Q3D.Config.camera.ortho = true;")
+            options.append("Q3D.Config.orthoCamera = true;")
 
-        # template specific options
-        opts = config.get("options", "")
+        # web export options
+        opts = self.settings.options()
         if opts:
-            for key in opts.split(","):
+            for key in opts:
                 options.append("Q3D.Config.{0} = {1};".format(key, tools.pyobj2js(self.settings.option(key))))
 
         # North arrow

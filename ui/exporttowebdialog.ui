@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>602</width>
-    <height>220</height>
+    <height>252</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,7 +78,23 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="groupBox_General">
+     <property name="title">
+      <string>General Settings</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="checkBox_PreserveViewpoint">
+        <property name="text">
+         <string>Preserve the Current Viewpoint</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_Template">
      <property name="title">
       <string>Template Settings</string>
      </property>
@@ -129,17 +145,17 @@
     </spacer>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBox_openPage">
-     <property name="text">
-      <string>Open Exported Page in Web Browser</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QCheckBox" name="checkBox_openPage">
+       <property name="text">
+        <string>Open Exported Page in Web Browser</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
@@ -179,6 +195,7 @@
   <tabstop>pushButton_Browse</tabstop>
   <tabstop>lineEdit_Filename</tabstop>
   <tabstop>comboBox_Template</tabstop>
+  <tabstop>checkBox_PreserveViewpoint</tabstop>
   <tabstop>lineEdit_MND</tabstop>
   <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>

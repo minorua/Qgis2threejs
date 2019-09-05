@@ -29,16 +29,20 @@ from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 class ExportToWebDialog(QDialog):
 
-    def __init__(self, parent, settings):
+    def __init__(self, settings, page, parent=None):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.settings = settings
+        self.page = page
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
 
-        # populate template list items
+        # output directory
+        self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
+
+        # template combo box
         cbox = self.ui.comboBox_Template
         for i, entry in enumerate(QDir(templateDir()).entryList(["*.html", "*.htm"])):
             config = getTemplateConfig(entry)
@@ -55,10 +59,10 @@ class ExportToWebDialog(QDialog):
 
         self.templateChanged()
 
-        # output directory
-        self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
+        # general settings
+        self.ui.checkBox_PreserveViewpoint.setChecked(bool(settings.option("viewpoint")))
 
-        # template specific settings
+        # template settings
         for key, value in settings.options().items():
             if key == "AR.MND":
                 self.ui.lineEdit_MND.setText(str(value))
@@ -75,7 +79,7 @@ class ExportToWebDialog(QDialog):
         optset.discard("")
 
         # template settings group box
-        self.ui.groupBox.setVisible(bool(optset))
+        self.ui.groupBox_Template.setVisible(bool(optset))
 
         if optset:
             for widget in [self.ui.label_MND, self.ui.lineEdit_MND]:
@@ -92,6 +96,12 @@ class ExportToWebDialog(QDialog):
         # template
         self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
+        self.settings.clearOptions()
+        # save general settings
+        if self.ui.checkBox_PreserveViewpoint.isChecked():
+            self.settings.setOption("viewpoint", self.page.cameraState())
+
+        # save template settings
         options = self.settings.templateConfig().get("options", "")
         if options:
             optlist = options.split(",")

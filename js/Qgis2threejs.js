@@ -6,12 +6,16 @@
 var Q3D = {VERSION: "2.3.1"};
 
 Q3D.Config = {
-  allVisible: false,  // set every layer visible property to true on load if set to true
+  // scene
   autoZShift: false,  // automatic z shift adjustment
-  bgcolor: null,      // null is sky
-  camera: {
-    ortho: false
+  bgColor: null,      // null is sky
+  // camera
+  orthoCamera: false,
+  viewpoint: {                    // note: y-up
+    pos: {x: 0, y: 100, z: 100},  // initial camera position
+    lookAt: {x: 0, y: 0, z:0}
   },
+  // light
   lights: [
     {
       type: "ambient",
@@ -33,9 +37,10 @@ Q3D.Config = {
       altitude: -45
     }
   ],
+  // layer
   dem: {
     side: {
-      bottomZ: -1.5     // in world coordinates
+      bottomZ: -1.5     // in the unit of world coordinates
     },
     frame: {
       color: 0,
@@ -48,11 +53,6 @@ Q3D.Config = {
       gapSize: 0.5
     }
   },
-  northArrow: {
-    color: 0x8b4513,
-    cameraDistance: 30,
-    visible: false
-  },
   label: {
     visible: true,
     connectorColor: 0xc0c0d0,
@@ -60,11 +60,19 @@ Q3D.Config = {
     minFontSize: 8,
     queryable: true
   },
+  // decoration
+  northArrow: {
+    color: 0x8b4513,
+    cameraDistance: 30,
+    visible: false
+  },
+
   qmarker: {
     r: 0.25,
     c: 0xffff00,
     o: 0.8
   },
+  allVisible: false,  // set every layer visible property to true on load if set to true
   debugMode: false,
   exportMode: false
 };
@@ -429,7 +437,7 @@ limitations:
     app.width = container.clientWidth;
     app.height = container.clientHeight;
 
-    var bgcolor = Q3D.Config.bgcolor;
+    var bgcolor = Q3D.Config.bgColor;
     if (bgcolor === null) container.classList.add("sky");
 
     // WebGLRenderer
@@ -438,8 +446,13 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
 
+    // set viewpoint if specified by URL parameters
+    var vars = app.urlParams;
+    if (vars.cx !== undefined) Q3D.Config.viewpoint.pos = {x: parseFloat(vars.cx), y: parseFloat(vars.cy), z: parseFloat(vars.cz)};
+    if (vars.tx !== undefined) Q3D.Config.viewpoint.lookAt = {x: parseFloat(vars.tx), y: parseFloat(vars.ty), z: parseFloat(vars.tz)};
+
     // camera
-    app.buildCamera(Q3D.Config.camera.ortho);
+    app.buildCamera(Q3D.Config.orthoCamera);
 
     // scene
     app.scene = new Q3D.Scene();
@@ -447,18 +460,13 @@ limitations:
       app.render();
     });
 
-    // restore camera position (and its target) from URL parameters
-    var vars = app.urlParams;
-    if (vars.cx !== undefined) app.camera.position.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
-    if (vars.tx !== undefined) app.camera.lookAt(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
-
     var controls;
     if (typeof THREE.OrbitControls !== "undefined") {
       controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
       controls.enableKeys = false;
 
-      // restore target (focus location) from URL parameters
-      if (vars.tx !== undefined) controls.target.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
+      var t = Q3D.Config.viewpoint.lookAt;
+      controls.target.set(t.x, t.y, t.z);
 
       // custom functions
       var offset = new THREE.Vector3();
@@ -767,14 +775,19 @@ limitations:
     app.renderer.setSize(width, height);
   };
 
-  app.buildCamera = function (isOrtho) {
-    if (isOrtho) {
+  app.buildCamera = function (is_ortho) {
+    if (is_ortho) {
       app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10, 0.1, 10000);
     }
     else {
       app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 10000);
     }
-    app.camera.position.set(0, 100, 100);
+
+    var v = Q3D.Config.viewpoint,
+        p = v.pos,
+        t = v.lookAt;
+    app.camera.position.set(p.x, p.y, p.z);
+    app.camera.lookAt(t.x, t.y, t.z);
   };
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
@@ -1455,7 +1468,7 @@ limitations:
     app.renderer.render(app.scene, app.camera);
 
     // restore clear color
-    var bgcolor = Q3D.Config.bgcolor;
+    var bgcolor = Q3D.Config.bgColor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
     if ((fill_background && bgcolor === null) || labels.length > 0) {

@@ -107,8 +107,8 @@ class ExportSettings:
     CAMERA = "CAMERA"
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
-    OPTIONS = "OPT"   # template specific settings
     DECOR = "DECOR"
+    OPTIONS = "OPT"   # web export options
 
     DECOR_LIST = ["NorthArrow", "Label"]
 
@@ -245,6 +245,9 @@ class ExportSettings:
     def setOption(self, key, value):
         self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
         self.data[ExportSettings.OPTIONS][key] = value
+
+    def clearOptions(self):
+        self.data[ExportSettings.OPTIONS] = {}
 
     def setMapSettings(self, settings):
         """settings: QgsMapSettings"""
