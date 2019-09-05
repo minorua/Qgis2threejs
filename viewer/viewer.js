@@ -1,16 +1,3 @@
-// a polyfill for three.min.js (r90)
-if (typeof ImageBitmap === "undefined") ImageBitmap = HTMLImageElement;
-
-// a polyfill for GLTFExporter.js (r90)
-Array.prototype.fill = function (value) {
-  var O = Object(this),
-      len = O.length >>> 0;
-  for (var k = 0; k < len; k++) {
-    O[k] = value;
-  }
-  return O;
-};
-
 // WebKit bridge: access to pyObj object
 function fetchData() {
   return pyObj.data();
