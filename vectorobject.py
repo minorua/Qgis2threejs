@@ -460,6 +460,8 @@ class ModelFileType(PointTypeBase):
         ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
         ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
         ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.COMBOBOX, {"name": "Rotation order", "defaultValue": "XYZ",
+                                                    "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]})
 
     @classmethod
     def model(cls, settings, vlayer, feat):
@@ -476,11 +478,15 @@ class ModelFileType(PointTypeBase):
         if rotation:
             rz = (rz - rotation) % 360    # map rotation is clockwise
 
-        return {"pts": geom.asList(),
-                "rotateX": feat.values[2],
-                "rotateY": feat.values[3],
-                "rotateZ": rz,
-                "scale": feat.values[1] * settings.mapTo3d().multiplier}
+        d = {"pts": geom.asList(),
+             "rotateX": feat.values[2],
+             "rotateY": feat.values[3],
+             "rotateZ": rz,
+             "scale": feat.values[1] * settings.mapTo3d().multiplier}
+
+        if feat.values[5] != "XYZ":
+            d["rotateO"] = feat.values[5]
+        return d
 
 
 class ObjectType:

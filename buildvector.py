@@ -312,6 +312,9 @@ class VectorLayer:
             elif widgetType == StyleWidget.CHECKBOX:
                 vals.append(widgetValues["checkBox"])
 
+            elif widgetType == StyleWidget.COMBOBOX:
+                vals.append(widgetValues["comboData"])
+
             else:
                 expr = widgetValues["editText"]
                 val = self.evaluateExpression(expr, f)

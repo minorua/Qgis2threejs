@@ -2652,13 +2652,15 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
           obj.rotation.set(0, 0, 0);
           obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
                                                        f.geom.rotateY * deg2rad,
-                                                       f.geom.rotateZ * deg2rad)));
+                                                       f.geom.rotateZ * deg2rad,
+                                                       f.geom.rotateO || "XYZ")));
         }
         else {
           // y-up to z-up and specified rotation
           obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
                                                        f.geom.rotateY * deg2rad,
-                                                       f.geom.rotateZ * deg2rad)));
+                                                       f.geom.rotateZ * deg2rad,
+                                                       f.geom.rotateO || "XYZ")));
           obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
         }
 

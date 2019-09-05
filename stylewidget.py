@@ -429,6 +429,33 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
         self.widget.toolButton.setVisible(visible)
 
 
+class ComboBoxWidgetFunc(WidgetFuncBase):
+
+    def setup(self, options=None):
+        """ options: name, items, defaultValue"""
+        options = options or {}
+        WidgetFuncBase.setup(self, options.get("name", ""), lineEdit=None)
+
+        self.widget.comboBox.clear()
+        for item in options.get("items", []):
+            self.widget.comboBox.addItem(item, item)
+
+        def_val = options.get("defaultValue")
+        if def_val:
+            index = self.widget.comboBox.findData(def_val)
+            if index != -1:
+                self.widget.comboBox.setCurrentIndex(index)
+
+    def values(self):
+        return {"type": self.widget.funcType,
+                "comboData": self.widget.comboBox.itemData(self.widget.comboBox.currentIndex())}
+
+    def setValues(self, vals):
+        index = self.widget.comboBox.findData(vals["comboData"])
+        if index != -1:
+            self.widget.comboBox.setCurrentIndex(index)
+
+
 class StyleWidget(QWidget, Ui_ComboEditWidget):
     # function types
     EXPRESSION = 1
@@ -440,6 +467,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     OPTIONAL_COLOR = 7
     COLOR_TEXTURE = 8
     CHECKBOX = 9
+    COMBOBOX = 10
 
     type2funcClass = {EXPRESSION: ExpressionWidgetFunc,
                       COLOR: ColorWidgetFunc,
@@ -449,7 +477,8 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                       OPACITY: OpacityWidgetFunc,
                       OPTIONAL_COLOR: OptionalColorWidgetFunc,
                       COLOR_TEXTURE: ColorTextureWidgetFunc,
-                      CHECKBOX: CheckBoxWidgetFunc}
+                      CHECKBOX: CheckBoxWidgetFunc,
+                      COMBOBOX: ComboBoxWidgetFunc}
 
     FIELDTYPE_ALL = 0
     FIELDTYPE_NUMBER = 1
