@@ -238,7 +238,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         widgets += dispTypeButtons
         widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
         widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
-        widgets += [self.checkBox_Sides, self.checkBox_Frame, self.checkBox_Visible]
+        widgets += [self.checkBox_Sides, self.toolButton_SideColor, self.checkBox_Frame, self.checkBox_Visible]
         self.registerPropertyWidgets(widgets)
 
         self.initLayerComboBox()
@@ -265,7 +265,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if not properties:
             properties = self.properties()
             properties["comboBox_TextureSize"] = 100
-            properties["checkBox_Sides"] = True
+            properties["toolButton_SideColor"] = DEF_SETS.SIDE_COLOR
 
         # restore properties of the layer
         self.setProperties(properties)

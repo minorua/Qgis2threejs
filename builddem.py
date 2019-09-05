@@ -23,7 +23,7 @@ import struct
 from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import Point, PolygonGeometry, TINGeometry, TriangleMesh, dissolvePolygonsOnCanvas
@@ -191,7 +191,7 @@ class DEMBlockBuilder:
 
         # sides and bottom
         if self.properties.get("checkBox_Sides", False):
-            b["sides"] = True
+            b["sides"] = {"color": int(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), 16)}
 
         # frame
         if self.properties.get("checkBox_Frame", False) and not self.properties.get("checkBox_Clip", False):

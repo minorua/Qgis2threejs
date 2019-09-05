@@ -35,7 +35,6 @@ Q3D.Config = {
   ],
   dem: {
     side: {
-      color: 0xc7ac92,
       bottomZ: -1.5     // in world coordinates
     },
     frame: {
@@ -1799,9 +1798,9 @@ Q3D.DEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, parent, z0) {
+  buildSides: function (layer, parent, color, z0) {
     var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
+    var material = new THREE.MeshLambertMaterial({color: color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -1994,9 +1993,9 @@ Q3D.ClippedDEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, parent, z0) {
+  buildSides: function (layer, parent, color, z0) {
     var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.dem.side.color,
+    var material = new THREE.MeshLambertMaterial({color: color,
                                                   opacity: opacity,
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
@@ -2198,14 +2197,17 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
   this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
   var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
+
     if (jsonObject.sides || jsonObject.frame) {
+
       _this.sideVisible = true;
 
       var buildSides = function () {
-        // build sides, bottom and frame
+        // build sides and bottom
         if (jsonObject.sides) {
-          _this.blocks[index].buildSides(_this, m, Q3D.Config.dem.side.bottomZ);
+          _this.blocks[index].buildSides(_this, m, jsonObject.sides.color, Q3D.Config.dem.side.bottomZ);
         }
+        // build frame
         if (jsonObject.frame) {
           _this.blocks[index].buildFrame(_this, m, Q3D.Config.dem.frame.bottomZ);
         }

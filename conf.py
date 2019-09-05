@@ -48,6 +48,8 @@ class DEF_SETS:
 
     CONTROLS = "OrbitControls.js"    # last selected one has priority
 
+    # dem
+    SIDE_COLOR = "0xccbbaa"
 
 # processing export
 P_OPEN_DIRECTORY = True

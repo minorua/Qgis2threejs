@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\demproperties.ui'
 #
-# Created by: PyQt5 UI code generator 5.5
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -97,6 +97,7 @@ class Ui_DEMPropertiesWidget(object):
         self.label_5.setObjectName("label_5")
         self.verticalLayout_4.addWidget(self.label_5)
         self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(6, -1, -1, -1)
         self.verticalLayout.setSpacing(4)
         self.verticalLayout.setObjectName("verticalLayout")
         self.radioButton_MapCanvas = QtWidgets.QRadioButton(self.groupBox_Material)
@@ -195,10 +196,22 @@ class Ui_DEMPropertiesWidget(object):
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.groupBox_Others)
         self.verticalLayout_5.setContentsMargins(-1, 6, -1, 6)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.checkBox_Sides = QtWidgets.QCheckBox(self.groupBox_Others)
         self.checkBox_Sides.setChecked(True)
         self.checkBox_Sides.setObjectName("checkBox_Sides")
-        self.verticalLayout_5.addWidget(self.checkBox_Sides)
+        self.horizontalLayout.addWidget(self.checkBox_Sides)
+        self.toolButton_SideColor = QgsColorButton(self.groupBox_Others)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.toolButton_SideColor.sizePolicy().hasHeightForWidth())
+        self.toolButton_SideColor.setSizePolicy(sizePolicy)
+        self.toolButton_SideColor.setText("")
+        self.toolButton_SideColor.setObjectName("toolButton_SideColor")
+        self.horizontalLayout.addWidget(self.toolButton_SideColor)
+        self.verticalLayout_5.addLayout(self.horizontalLayout)
         self.checkBox_Frame = QtWidgets.QCheckBox(self.groupBox_Others)
         self.checkBox_Frame.setObjectName("checkBox_Frame")
         self.verticalLayout_5.addWidget(self.checkBox_Frame)
@@ -221,6 +234,7 @@ class Ui_DEMPropertiesWidget(object):
         self.horizontalSlider_Opacity.valueChanged['int'].connect(self.spinBox_Opacity.setValue)
         self.spinBox_Opacity.valueChanged['int'].connect(self.horizontalSlider_Opacity.setValue)
         self.radioButton_SolidColor.toggled['bool'].connect(self.colorButton_Color.setEnabled)
+        self.checkBox_Sides.toggled['bool'].connect(self.toolButton_SideColor.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
         DEMPropertiesWidget.setTabOrder(self.horizontalSlider_DEMSize, self.checkBox_Surroundings)
         DEMPropertiesWidget.setTabOrder(self.checkBox_Surroundings, self.spinBox_Size)
@@ -234,13 +248,15 @@ class Ui_DEMPropertiesWidget(object):
         DEMPropertiesWidget.setTabOrder(self.radioButton_ImageFile, self.lineEdit_ImageFile)
         DEMPropertiesWidget.setTabOrder(self.lineEdit_ImageFile, self.toolButton_ImageFile)
         DEMPropertiesWidget.setTabOrder(self.toolButton_ImageFile, self.radioButton_SolidColor)
-        DEMPropertiesWidget.setTabOrder(self.radioButton_SolidColor, self.comboBox_TextureSize)
+        DEMPropertiesWidget.setTabOrder(self.radioButton_SolidColor, self.colorButton_Color)
+        DEMPropertiesWidget.setTabOrder(self.colorButton_Color, self.comboBox_TextureSize)
         DEMPropertiesWidget.setTabOrder(self.comboBox_TextureSize, self.horizontalSlider_Opacity)
         DEMPropertiesWidget.setTabOrder(self.horizontalSlider_Opacity, self.spinBox_Opacity)
         DEMPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.checkBox_TransparentBackground)
         DEMPropertiesWidget.setTabOrder(self.checkBox_TransparentBackground, self.checkBox_Shading)
         DEMPropertiesWidget.setTabOrder(self.checkBox_Shading, self.checkBox_Sides)
-        DEMPropertiesWidget.setTabOrder(self.checkBox_Sides, self.checkBox_Frame)
+        DEMPropertiesWidget.setTabOrder(self.checkBox_Sides, self.toolButton_SideColor)
+        DEMPropertiesWidget.setTabOrder(self.toolButton_SideColor, self.checkBox_Frame)
         DEMPropertiesWidget.setTabOrder(self.checkBox_Frame, self.checkBox_Visible)
 
     def retranslateUi(self, DEMPropertiesWidget):
@@ -249,7 +265,7 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_Geometry.setTitle(_translate("DEMPropertiesWidget", "&Geometry"))
         self.label_Resampling.setText(_translate("DEMPropertiesWidget", "Resampling level"))
         self.label_ResamplingLevel.setText(_translate("DEMPropertiesWidget", "2"))
-        self.checkBox_Surroundings.setText(_translate("DEMPropertiesWidget", "Surroundings"))
+        self.checkBox_Surroundings.setText(_translate("DEMPropertiesWidget", "Surrounding blocks"))
         self.label_3.setText(_translate("DEMPropertiesWidget", "Roughening"))
         self.label_2.setText(_translate("DEMPropertiesWidget", "Size"))
         self.checkBox_Clip.setText(_translate("DEMPropertiesWidget", "Clip DEM with polygon layer"))
