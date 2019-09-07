@@ -72,7 +72,7 @@ class Feature:
         if self.geomType != QgsWkbTypes.PolygonGeometry:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
-        if self.objectType == ObjectType.TriangularMesh:
+        if self.objectType == ObjectType.Polygon:
             return TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=True)
 
         if tmesh:
@@ -467,7 +467,7 @@ class VectorLayerBuilder(LayerBuilder):
                                                                         QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
-            if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.TriangularMesh:
+            if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.Polygon:
                 extent = baseExtent.clone().scale(0.999999)   # clip with slightly smaller extent than map canvas extent
                 self.clipGeom = extent.geometry()
 

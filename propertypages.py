@@ -521,7 +521,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), geomType)
 
         if geomType == QgsWkbTypes.PolygonGeometry:
-            supportZM = (obj_type == ObjectType.TriangularMesh)
+            supportZM = (obj_type == ObjectType.Polygon)
             self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
             self.radioButton_mValue.setEnabled(self.hasM and supportZM)
             if self.hasZ and supportZM:

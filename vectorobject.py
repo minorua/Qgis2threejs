@@ -328,7 +328,29 @@ class PolygonBasicTypeBase(PolygonTypeBase):
                 "centroids": [[pt.x, pt.y, pt.z] for pt in geom.centroids]}
 
 
+class PolygonType(PolygonBasicTypeBase):
+
+    """3d polygon support: yes"""
+
+    name = "Polygon"
+
+    @classmethod
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
+        ppage.initStyleWidgets()
+
+    @classmethod
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
+
+    @classmethod
+    def geometry(cls, settings, vlayer, feat, geom):
+        g = geom.toDict(flat=True)
+        return g
+
+
 class ExtrudedType(PolygonBasicTypeBase):
+
+    """3d polygon support: no"""
 
     name = "Extruded"
 
@@ -359,6 +381,8 @@ class ExtrudedType(PolygonBasicTypeBase):
 
 
 class OverlayType(PolygonBasicTypeBase):
+
+    """3d polygon support: no"""
 
     name = "Overlay"
 
@@ -397,24 +421,6 @@ class OverlayType(PolygonBasicTypeBase):
         # if feat.values[2] is not None:
         #   g["mb"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
 
-        return g
-
-
-class TriangularMeshType(PolygonBasicTypeBase):
-
-    name = "Triangular Mesh"
-
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
-
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        g = geom.toDict(flat=True)
         return g
 
 
@@ -510,14 +516,14 @@ class ObjectType:
     Profile = ProfileType
 
     # polygon
+    Polygon = PolygonType
     Extruded = ExtrudedType
     Overlay = OverlayType
-    TriangularMesh = TriangularMeshType
 
     Grouped = {QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType,
                                            PlaneType, PointType, IconType, ModelFileType],
                QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
-               QgsWkbTypes.PolygonGeometry: [ExtrudedType, OverlayType, TriangularMeshType]
+               QgsWkbTypes.PolygonGeometry: [PolygonType, ExtrudedType, OverlayType]
     }
 
     @classmethod
@@ -529,6 +535,11 @@ class ObjectType:
         for obj_type in cls.typesByGeomType(geom_type):
             if obj_type.name == name:
                 return obj_type
+
+        # for backward compatibility
+        if name == "Triangular Mesh":
+            return PolygonType
+
         return None
 
 
@@ -539,5 +550,5 @@ def tr(source):
 def _():
     tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
     tr("Line"), tr("Pipe"), tr("Profile")
-    tr("Extruded"), tr("Overlay"), tr("Triangular Mesh")
+    tr("Polygon"), tr("Extruded"), tr("Overlay")
     tr("Icon"), tr("Model File")
