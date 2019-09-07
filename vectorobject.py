@@ -300,9 +300,9 @@ class BoxLineType(LineBasicTypeBase):
                 "h": feat.values[3] * multiplier}
 
 
-class ProfileType(LineBasicTypeBase):
+class WallType(LineBasicTypeBase):
 
-    name = "Profile"
+    name = "Wall"
 
     @classmethod
     def setupWidgets(cls, ppage, mapTo3d, mapLayer):
@@ -513,7 +513,7 @@ class ObjectType:
     Pipe = PipeType
     ConeLine = ConeLineType
     BoxLine = BoxLineType
-    Profile = ProfileType
+    Wall = WallType
 
     # polygon
     Polygon = PolygonType
@@ -522,7 +522,7 @@ class ObjectType:
 
     Grouped = {QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType,
                                            PlaneType, PointType, IconType, ModelFileType],
-               QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, ProfileType],
+               QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, WallType],
                QgsWkbTypes.PolygonGeometry: [PolygonType, ExtrudedType, OverlayType]
     }
 
@@ -540,6 +540,9 @@ class ObjectType:
         if name == "Triangular Mesh":
             return PolygonType
 
+        if name == "Profile":
+            return WallType
+
         return None
 
 
@@ -549,6 +552,6 @@ def tr(source):
 
 def _():
     tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
-    tr("Line"), tr("Pipe"), tr("Profile")
+    tr("Line"), tr("Pipe"), tr("Wall")
     tr("Polygon"), tr("Extruded"), tr("Overlay")
     tr("Icon"), tr("Model File")
