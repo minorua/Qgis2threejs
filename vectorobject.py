@@ -359,8 +359,8 @@ class ExtrudedType(PolygonBasicTypeBase):
         ppage.initStyleWidgets()
         ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
 
-        opt = {"name": "Border color",
-               "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+        opt = {"name": "Edge color",
+               "itemText": {OptionalColorWidgetFunc.NONE: "(No Edge)"},
                "defaultItem": OptionalColorWidgetFunc.NONE}
         ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
@@ -368,9 +368,9 @@ class ExtrudedType(PolygonBasicTypeBase):
     def material(cls, settings, vlayer, feat):
         mtl = {"face": vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])}
 
-        # border
+        # edges
         if feat.values[3] is not None:
-            mtl["border"] = vlayer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
+            mtl["edge"] = vlayer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
         return mtl
 
     @classmethod

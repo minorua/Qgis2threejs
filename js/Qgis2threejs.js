@@ -2958,13 +2958,13 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       }
 
       // extruded geometry
-      var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, amount: f.geom.h});
+      var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
       mesh.position.z = z;
 
-      if (f.mtl.border !== undefined) {
-        // border
-        var border, pt, pts, zFunc = function (x, y) { return 0; };
+      if (f.mtl.edge !== undefined) {
+        // edges
+        var edge, pt, pts, zFunc = function (x, y) { return 0; };
 
         for (i = 0, l = polygon.length; i < l; i++) {
           pts = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc);
@@ -2972,12 +2972,12 @@ Q3D.PolygonLayer.prototype.build = function (features) {
           geom = new THREE.Geometry();
           geom.vertices = pts;
 
-          border = new THREE.Line(geom, materials.mtl(f.mtl.border));
-          mesh.add(border);
+          edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
+          mesh.add(edge);
 
-          border = new THREE.Line(geom, materials.mtl(f.mtl.border));
-          border.position.z = f.geom.h;
-          mesh.add(border);
+          edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
+          edge.position.z = f.geom.h;
+          mesh.add(edge);
 
           // vertical lines
           for (j = 0, m = geom.vertices.length - 1; j < m; j++) {
@@ -2985,8 +2985,8 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
             geom = new THREE.Geometry();
             geom.vertices.push(pt, new THREE.Vector3(pt.x, pt.y, pt.z + f.geom.h));
-            border = new THREE.Line(geom, materials.mtl(f.mtl.border));
-            mesh.add(border);
+            edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
+            mesh.add(edge);
           }
         }
       }
