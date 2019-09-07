@@ -120,7 +120,7 @@ class Ui_ScenePropertiesWidget(object):
         _translate = QtCore.QCoreApplication.translate
         ScenePropertiesWidget.setWindowTitle(_translate("ScenePropertiesWidget", "Form"))
         self.groupBox_1.setTitle(_translate("ScenePropertiesWidget", "&World Coordinates"))
-        self.label_3.setText(_translate("ScenePropertiesWidget", "Block size (width)"))
+        self.label_3.setText(_translate("ScenePropertiesWidget", "Base width"))
         self.label.setText(_translate("ScenePropertiesWidget", "Vertical exaggeration"))
         self.label_2.setText(_translate("ScenePropertiesWidget", "Vertical shift"))
         self.checkBox_autoZShift.setToolTip(_translate("ScenePropertiesWidget", "Automatic vertical shift adjustment"))
