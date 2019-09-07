@@ -151,8 +151,6 @@ class Q3DController(QObject):
 
         self.timer.timeout.connect(self._processRequests)
 
-        self.MSG1 = "Press ESC key to abort processing"
-
     def __del__(self):
         self.timer.stop()
 
@@ -184,7 +182,6 @@ class Q3DController(QObject):
         self.settings.base64 = base64
         self.layersNeedUpdate = self.layersNeedUpdate or build_layers
 
-        self.iface.showMessage(self.MSG1)
         self.iface.progress(0, "Updating scene")
 
         if update_extent and self.mapCanvas:
@@ -240,7 +237,6 @@ class Q3DController(QObject):
 
         self.updating = True
         self.updatingLayerId = layer.layerId
-        self.iface.showMessage(self.MSG1)
         self.iface.runScript('loadStart("LYR", true);')
 
         aborted = self._buildLayer(layer)
