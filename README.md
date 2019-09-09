@@ -37,6 +37,6 @@ Dependent JavaScript libraries and resources
 License
 =======
 
-  Python modules of Qgis2threejs plugin are released under the GNU Public License (GPL) Version 2.
+  Python source code is released under the GNU Public License (GPL) Version 2.
 
 _Copyright (c) 2013 Minoru Akagi_
