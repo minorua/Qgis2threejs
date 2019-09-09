@@ -61,7 +61,7 @@ class Q3DViewerInterface(Q3DInterface):
             self.wnd.ui.statusbar.showMessage(msg, timeout)
 
     # @pyqtSlot(int, str)
-    def progress(self, percentage=100, text=None):
+    def progress(self, percentage=100, msg=None):
         bar = self.wnd.ui.progressBar
         if percentage == 100:
             bar.setVisible(False)
@@ -69,8 +69,8 @@ class Q3DViewerInterface(Q3DInterface):
         else:
             bar.setVisible(True)
             bar.setValue(percentage)
-            if text is not None:
-                bar.setFormat(text)
+            if msg is not None:
+                bar.setFormat(msg)
 
     def abort(self):
         self.abortRequest.emit(True)

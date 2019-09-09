@@ -379,5 +379,5 @@ class DEMBlocks:
         return stats
 
 
-def dummyProgress(progress=None, statusMsg=None):
+def dummyProgress(percentage=None, msg=None):
     pass

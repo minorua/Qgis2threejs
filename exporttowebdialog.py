@@ -19,8 +19,9 @@
  ***************************************************************************/
 """
 import os
-from PyQt5.QtCore import Qt, QDir
+from PyQt5.QtCore import Qt, QDir, QEventLoop
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
+from qgis.core import QgsApplication
 
 from .export import ThreeJSExporter
 from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
@@ -38,6 +39,7 @@ class ExportToWebDialog(QDialog):
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
+        self.ui.progressBar.setVisible(False)
 
         # output directory
         self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
@@ -156,6 +158,18 @@ class ExportToWebDialog(QDialog):
 
         self.close()
 
-    def progress(self, percentage=None, statusMsg=None):
-        # TODO: [Web export] progress
-        pass
+    def progress(self, percentage=None, msg=None):
+        pbar = self.ui.progressBar
+
+        if percentage is not None:
+            pbar.setValue(percentage)
+            if percentage == 100:
+                pbar.setVisible(False)
+                pbar.setFormat("")
+            else:
+                pbar.setVisible(True)
+
+        if msg is not None:
+            pbar.setFormat(msg)
+
+        QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)

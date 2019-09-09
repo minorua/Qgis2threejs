@@ -35,6 +35,7 @@ class ThreeJSBuilder:
         self.imageManager = ImageManager(settings)
 
     def buildScene(self, build_layers=True):
+        self.progress(10, "Building scene")
         crs = self.settings.crs
         extent = self.settings.baseExtent
         rect = extent.unrotatedRect()
@@ -66,9 +67,12 @@ class ThreeJSBuilder:
 
     def buildLayers(self):
         layers = []
-        for layer in self.settings.getLayerList():
-            if layer.visible:
-                layers.append(self.buildLayer(layer))
+        layer_list = [layer for layer in self.settings.getLayerList() if layer.visible]
+        total = len(layer_list)
+        for i, layer in enumerate(layer_list):
+            self.progress(int(i / total * 80) + 10, "Building {} layer".format(layer.name))
+            layers.append(self.buildLayer(layer))
+
         return layers
 
     def buildLayer(self, layer):
@@ -89,5 +93,5 @@ class ThreeJSBuilder:
             yield blockBuilder
 
 
-def dummyProgress(progress=None, statusMsg=None):
+def dummyProgress(percentage=None, msg=None):
     pass

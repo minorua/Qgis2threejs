@@ -101,8 +101,8 @@ class Q3DControllerInterface(QObject):
         msg = msg or "An error has occurred. See message log (Qgis2threejs) for more details."
         self.messageReady.emit(msg, timeout, True)
 
-    def progress(self, percentage=100, text=""):
-        self.progressUpdated.emit(percentage, text)
+    def progress(self, percentage=100, msg=""):
+        self.progressUpdated.emit(percentage, msg)
 
     def loadScriptFile(self, filepath):
         self.loadScriptRequest.emit(filepath)

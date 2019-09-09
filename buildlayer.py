@@ -43,5 +43,5 @@ class LayerBuilder:
                 "visible": self.properties.get("checkBox_Visible", True) or self.pathRoot is None}  # always visible in preview
 
 
-def dummyProgress(progress=None, statusMsg=None):
+def dummyProgress(percentage=None, msg=None):
     pass

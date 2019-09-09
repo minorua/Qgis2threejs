@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ExportToWebDialog(object):
     def setupUi(self, ExportToWebDialog):
         ExportToWebDialog.setObjectName("ExportToWebDialog")
-        ExportToWebDialog.resize(602, 252)
+        ExportToWebDialog.resize(580, 252)
         self.verticalLayout = QtWidgets.QVBoxLayout(ExportToWebDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout = QtWidgets.QFormLayout()
@@ -79,6 +79,13 @@ class Ui_ExportToWebDialog(object):
         self.horizontalLayout_3.addWidget(self.checkBox_openPage)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem1)
+        self.progressBar = QtWidgets.QProgressBar(ExportToWebDialog)
+        self.progressBar.setMinimumSize(QtCore.QSize(160, 0))
+        self.progressBar.setProperty("value", 24)
+        self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBar.setFormat("")
+        self.progressBar.setObjectName("progressBar")
+        self.horizontalLayout_3.addWidget(self.progressBar)
         self.pushButton_Export = QtWidgets.QPushButton(ExportToWebDialog)
         self.pushButton_Export.setDefault(True)
         self.pushButton_Export.setObjectName("pushButton_Export")

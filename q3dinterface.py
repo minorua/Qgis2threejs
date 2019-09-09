@@ -57,5 +57,5 @@ class Q3DInterface(QObject):
         logMessage(msg)
 
     # @pyqtSlot(int, str)
-    def progress(self, percentage=100, text=None):
+    def progress(self, percentage=100, msg=None):
         pass
