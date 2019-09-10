@@ -59,6 +59,16 @@ class Geometry:
     UseZ = 1
     UseM = 2
 
+    @classmethod
+    def singleGeometriesXY(cls, geom):
+        return []
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
+        return []
+
 
 class PointGeometry(Geometry):
 
@@ -83,19 +93,11 @@ class PointGeometry(Geometry):
     def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
         geom = cls()
         if useZM == Geometry.NotUseZM:
-            pts = geometry.asMultiPoint() if geometry.isMultipart() else [geometry.asPoint()]
+            pts = cls.singleGeometriesXY(geometry)
             geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
 
         else:
-            g = geometry.constGet()
-            if isinstance(g, QgsPoint):
-                pts = [g]
-            elif isinstance(g, QgsMultiPoint):
-                pts = [g.geometryN(i) for i in range(g.numGeometries())]
-            else:
-                logMessage("Unknown point geometry type: " + type(g))
-                pts = []
-
+            pts = cls.singleGeometries(geometry.constGet())
             if useZM == Geometry.UseZ:
                 geom.pts = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in pts]
 
@@ -103,6 +105,33 @@ class PointGeometry(Geometry):
                 geom.pts = [transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in pts]
 
         return geom
+
+    @classmethod
+    def singleGeometriesXY(cls, geom):
+        """geom: a QgsGeometry object"""
+        wt = geom.wkbType()
+        if wt == QgsWkbTypes.GeometryCollection:
+            geoms = []
+            for g in geom.asGeometryCollection():
+                geoms.extend(cls.singleGeometriesXY(g))
+            return geoms
+
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.Point:
+            return geom.asMultiPoint() if geom.isMultipart() else [geom.asPoint()]
+
+        return []
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+
+        if isinstance(geom, QgsPoint):
+            return [geom]
+
+        if isinstance(geom, QgsMultiPoint):
+            return [geom.geometryN(i) for i in range(geom.numGeometries())]
+
+        return super().singleGeometries(geom)
 
 
 class LineGeometry(Geometry):
@@ -131,19 +160,11 @@ class LineGeometry(Geometry):
     def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
         geom = cls()
         if useZM == Geometry.NotUseZM:
-            lines = geometry.asMultiPolyline() if geometry.isMultipart() else [geometry.asPolyline()]
+            lines = cls.singleGeometriesXY(geometry)
             geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
         else:
-            g = geometry.constGet()
-            if isinstance(g, QgsLineString):
-                lines = [g.points()]
-            elif isinstance(g, QgsMultiLineString):
-                lines = [g.geometryN(i).points() for i in range(g.numGeometries())]
-            else:
-                logMessage("Unknown line geometry type: " + type(g))
-                lines = []
-
+            lines = cls.singleGeometries(geometry.constGet())
             if useZM == Geometry.UseZ:
                 geom.lines = [[transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
@@ -151,6 +172,33 @@ class LineGeometry(Geometry):
                 geom.lines = [[transform_func(pt.x(), pt.y(), pt.m() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
         return geom
+
+    @classmethod
+    def singleGeometriesXY(cls, geom):
+        """geom: a QgsGeometry object"""
+        wt = geom.wkbType()
+        if wt == QgsWkbTypes.GeometryCollection:
+            geoms = []
+            for g in geom.asGeometryCollection():
+                geoms.extend(cls.singleGeometriesXY(g))
+            return geoms
+
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.LineString:
+            return geom.asMultiPolyline() if geom.isMultipart() else [geom.asPolyline()]
+
+        return []
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+
+        if isinstance(geom, QgsLineString):
+            return [geom.points()]
+
+        if isinstance(geom, QgsMultiLineString):
+            return [geom.geometryN(i).points() for i in range(geom.numGeometries())]
+
+        return super().singleGeometries(geom)
 
 
 class PolygonGeometry(Geometry):
@@ -223,14 +271,13 @@ class PolygonGeometry(Geometry):
     def fromQgsGeometry(cls, geometry, z_func, transform_func, useCentroidHeight=True, centroidPerPolygon=False):
 
         geom = cls()
-        polygons = geometry.asMultiPolygon() if geometry.isMultipart() else [geometry.asPolygon()]
 
         if not centroidPerPolygon:
             pt = geometry.centroid().asPoint()
             centroidHeight = z_func(pt.x(), pt.y())
             geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
-        for polygon in polygons:
+        for polygon in cls.singleGeometriesXY(geometry):
 
             if useCentroidHeight or centroidPerPolygon:
                 centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
@@ -268,8 +315,35 @@ class PolygonGeometry(Geometry):
 
         return geom
 
+    @classmethod
+    def singleGeometriesXY(cls, geom):
+        """geom: a QgsGeometry object"""
+        wt = geom.wkbType()
+        if wt == QgsWkbTypes.GeometryCollection:
+            geoms = []
+            for g in geom.asGeometryCollection():
+                geoms.extend(cls.singleGeometriesXY(g))
+            return geoms
 
-class TINGeometry(Geometry):
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.Polygon:
+            return geom.asMultiPolygon() if geom.isMultipart() else [geom.asPolygon()]
+
+        return []
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+
+        if isinstance(geom, QgsPolygon):
+            return [geom]
+
+        if isinstance(geom, QgsMultiPolygon):
+            return [geom.geometryN(i) for i in range(geom.numGeometries())]
+
+        return super().singleGeometries(geom)
+
+
+class TINGeometry(PolygonGeometry):
 
     def __init__(self):
         self.triangles = []
@@ -321,10 +395,6 @@ class TINGeometry(Geometry):
             d["centroids"] = [[pt.x, pt.y] for pt in self.centroids]
         return d
 
-    def toQgsGeometry(self):
-        """not implemented yet"""
-        pass
-
     @classmethod
     def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=False, drop_z=False, ccw2d=False):
         geom = cls()
@@ -345,18 +415,10 @@ class TINGeometry(Geometry):
             pt = g.centroid()
             geom.centroids.append(transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())))
 
-        if isinstance(g, QgsPolygon):
-            polygons = [g]
-        elif isinstance(g, QgsMultiPolygon):
-            polygons = [g.geometryN(i) for i in range(g.numGeometries())]
-        else:
-            logMessage("PolygonGeometry: {} is not supported yet.".format(type(g).__name__))
-            polygons = []
-
         # triangulation
         tes = QgsTessellator(0, 0, False)
         addPolygon = tes.addPolygon
-        for poly in polygons: addPolygon(poly, 0)
+        for poly in cls.singleGeometries(g): addPolygon(poly, 0)
 
         data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
         # mp = tes.asMultiPolygon()     # not available
@@ -501,26 +563,8 @@ class TriangleMesh:
                             yield tris[i]
                         elif geom.intersects(tri):
                             poly = geom.intersection(tri)
-                            wkbType = poly.wkbType()
-                            if wkbType == QgsWkbTypes.Polygon:
-                                yield poly.asPolygon()
-
-                            elif wkbType == QgsWkbTypes.MultiPolygon:
-                                for bnd in poly.asMultiPolygon():
-                                    yield bnd
-
-                            elif wkbType == QgsWkbTypes.GeometryCollection:
-                                for poly2 in poly.asGeometryCollection():
-                                    if DEBUG_MODE:
-                                        logMessage("A geometry collection was generated. wkbType: {}".format(poly2.wkbType()))
-
-                                    wkbType = poly2.wkbType()
-                                    if wkbType == QgsWkbTypes.Polygon:
-                                        yield poly2.asPolygon()
-
-                                    elif wkbType == QgsWkbTypes.MultiPolygon:
-                                        for bnd in poly2.asMultiPolygon():
-                                            yield bnd
+                            for p in PolygonGeometry.singleGeometriesXY(poly):
+                                yield p
 
 
 class IndexedTriangles2D:
