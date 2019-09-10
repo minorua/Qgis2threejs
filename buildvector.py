@@ -73,7 +73,8 @@ class Feature:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
         if self.objectType == ObjectType.Polygon:
-            return TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=True)
+            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, centroid=True,
+                                               drop_z=(useZM == Geometry.NotUseZM))
 
         if tmesh:
             # Overlay above DEM surface
