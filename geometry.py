@@ -18,6 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from math import floor
 from qgis.core import (
     QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject,
@@ -53,7 +54,7 @@ def polygonToQgsPolygon(polygon):
     return [lineToQgsPolyline(line) for line in polygon]
 
 
-class Geometry:
+class VectorGeometry:
 
     NotUseZM = 0
     UseZ = 1
@@ -70,7 +71,7 @@ class Geometry:
         return []
 
 
-class PointGeometry(Geometry):
+class PointGeometry(VectorGeometry):
 
     def __init__(self):
         self.pts = []
@@ -90,15 +91,15 @@ class PointGeometry(Geometry):
         return QgsGeometry()
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=VectorGeometry.NotUseZM):
         geom = cls()
-        if useZM == Geometry.NotUseZM:
+        if useZM == VectorGeometry.NotUseZM:
             pts = cls.singleGeometriesXY(geometry)
             geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
 
         else:
             pts = cls.singleGeometries(geometry.constGet())
-            if useZM == Geometry.UseZ:
+            if useZM == VectorGeometry.UseZ:
                 geom.pts = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in pts]
 
             else:   # UseM
@@ -134,7 +135,7 @@ class PointGeometry(Geometry):
         return super().singleGeometries(geom)
 
 
-class LineGeometry(Geometry):
+class LineGeometry(VectorGeometry):
 
     def __init__(self):
         self.lines = []
@@ -157,15 +158,15 @@ class LineGeometry(Geometry):
         return QgsGeometry()
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=Geometry.NotUseZM):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=VectorGeometry.NotUseZM):
         geom = cls()
-        if useZM == Geometry.NotUseZM:
+        if useZM == VectorGeometry.NotUseZM:
             lines = cls.singleGeometriesXY(geometry)
             geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
         else:
             lines = cls.singleGeometries(geometry.constGet())
-            if useZM == Geometry.UseZ:
+            if useZM == VectorGeometry.UseZ:
                 geom.lines = [[transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
             else:   # UseM
@@ -201,7 +202,7 @@ class LineGeometry(Geometry):
         return super().singleGeometries(geom)
 
 
-class PolygonGeometry(Geometry):
+class PolygonGeometry(VectorGeometry):
 
     """No 3D support"""
 
@@ -209,10 +210,10 @@ class PolygonGeometry(Geometry):
         self.polygons = []
         self.centroids = []
 
-    def splitPolygon(self, triMesh, z_func):
-        """split polygon by TriangleMesh"""
+    def splitPolygon(self, grid, z_func):
+        """split polygon by triangular grid"""
         split_polygons = []
-        for polygon in triMesh.splitPolygonA(self.toQgsGeometry()):
+        for polygon in grid.splitPolygonA(self.toQgsGeometry()):
             boundaries = []
             # outer boundary
             points = [Point(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in polygon[0]]
@@ -396,7 +397,7 @@ class TINGeometry(PolygonGeometry):
         return d
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=False, drop_z=False, ccw2d=False):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False, ccw2d=False):
         geom = cls()
 
         if z_func:
@@ -477,41 +478,60 @@ class GeometryUtils:
         return area / 2
 
     @staticmethod
+    def _signedAreaA(p):
+        """Calculates signed area of polygon."""
+        area = 0
+        for i in range(len(p) - 1):
+            area += (p[i].x() - p[i + 1].x()) * (p[i].y() + p[i + 1].y())
+        return area / 2
+
+    @staticmethod
     def isClockwise(linearRing):
         """Returns whether given linear ring is clockwise."""
-        return GeometryUtils._signedArea(linearRing) < 0
+        if isinstance(linearRing[0], Point):
+            return GeometryUtils._signedArea(linearRing) < 0
+        else:
+            return GeometryUtils._signedAreaA(linearRing) < 0
 
 
-class TriangleMesh:
+class GridGeometry:
 
-    # 0 - 3
-    # | / |
-    # 1 - 2
+    """
+    Triangular grid geometry
+    """
 
-    def __init__(self, extent, x_segments, y_segments):
+    def __init__(self, extent, x_segments, y_segments, values=None):
+        self.extent = extent
+        self.x_segments = x_segments
+        self.y_segments = y_segments
+        self.values = values
 
         center = extent.center()
         half_width, half_height = (extent.width() / 2,
                                    extent.height() / 2)
-        xmin, ymin = (center.x() - half_width,
-                      center.y() - half_height)
-        xmax, ymax = (center.x() + half_width,
-                      center.y() + half_height)
-        xres = (xmax - xmin) / x_segments
-        yres = (ymax - ymin) / y_segments
+        self.xmin, self.ymin = (center.x() - half_width,
+                                center.y() - half_height)
+        self.xmax, self.ymax = (center.x() + half_width,
+                                center.y() + half_height)
+        self.xres = extent.width() / x_segments
+        self.yres = extent.height() / y_segments
 
-        self.xmin, self.ymax, self.xres, self.yres = (xmin, ymax, xres, yres)
+        self.vbands = self.hbands = None
+
+    def setupBands(self):
+        xmin, ymin, xmax, ymax = (self.xmin, self.ymin, self.xmax, self.ymax)
+        xres, yres = (self.xres, self.yres)
 
         vbands = []
         hbands = []
 
-        for x in range(x_segments):
+        for x in range(self.x_segments):
             f = QgsFeature(x)
             f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin,
                                                             xmin + (x + 1) * xres, ymax)))
             vbands.append(f)
 
-        for y in range(y_segments):
+        for y in range(self.y_segments):
             f = QgsFeature(y)
             f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres,
                                                             xmax, ymax - y * yres)))
@@ -539,20 +559,39 @@ class TriangleMesh:
             if geom.intersects(self.hbands[idx].geometry()):
                 yield idx
 
-    def splitPolygon(self, geom):
-        return QgsGeometry.fromMultiPolygonXY(list(self.splitPolygonA(geom)))
+    def splitPolygonXY(self, geom):
+        return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
 
-    def splitPolygonA(self, geom):
-        xmin, ymax, xres, yres = self.xmin, self.ymax, self.xres, self.yres
+    def splitPolygon(self, geom):
+        polygons = QgsMultiPolygon()
+        for poly in self._splitPolygon(geom):
+            bnd = QgsLineString()
+            for pt in poly[0]:
+                bnd.addVertex(QgsPoint(pt.x(), pt.y(), self.valueOnSurface(pt.x(), pt.y()) or 0))
+
+            p = QgsPolygon()
+            p.setExteriorRing(bnd)
+            polygons.addGeometry(p)
+
+        return QgsGeometry(polygons)
+
+    def _splitPolygon(self, geom):
+        if self.vbands is None:
+            self.setupBands()
+
+        xmin, ymax, xres, yres = (self.xmin, self.ymax, self.xres, self.yres)
 
         for x, vi in self.vSplit(geom):
             for y in self.hIntersects(vi):
-                pt0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
-                pt1 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
-                pt2 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
-                pt3 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
-                quad = QgsGeometry.fromPolygonXY([[pt0, pt1, pt2, pt3, pt0]])
-                tris = [[[pt0, pt1, pt3, pt0]], [[pt3, pt1, pt2, pt3]]]
+                # 0 - 1
+                # | / |
+                # 2 - 3
+                v0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
+                v1 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
+                v2 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
+                v3 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
+                quad = QgsGeometry.fromPolygonXY([[v0, v2, v3, v1, v0]])
+                tris = [[[v0, v2, v1, v0]], [[v1, v2, v3, v1]]]
 
                 if geom.contains(quad):
                     yield tris[0]
@@ -562,9 +601,45 @@ class TriangleMesh:
                         if geom.contains(tri):
                             yield tris[i]
                         elif geom.intersects(tri):
-                            poly = geom.intersection(tri)
-                            for p in PolygonGeometry.singleGeometriesXY(poly):
-                                yield p
+                            for poly in PolygonGeometry.singleGeometriesXY(geom.intersection(tri)):
+                                if GeometryUtils.isClockwise(poly[0]):
+                                    poly[0].reverse()         # to CCW
+                                yield poly
+
+    def value(self, x, y):
+        return self.values[x + y * (self.x_segments + 1)]
+
+    def valueOnSurface(self, x, y):
+        pt = self.extent.normalizePoint(x, y)
+        if pt.x() < 0 or 1 < pt.x() or pt.y() < 0 or 1 < pt.y():
+            return None
+
+        mx = pt.x() * self.x_segments
+        my = pt.y() * self.y_segments
+        mx0 = floor(mx)
+        my0 = floor(my)
+        sdx = mx - mx0
+        sdy = my - my0
+
+        if mx0 == self.x_segments:  # on right edge
+            mx0 -= 1
+            sdx = 1
+        if my0 == self.y_segments:  # on top edge
+            my0 -= 1
+            sdy = 1
+
+        # 0 - 1
+        # | / |
+        # 2 - 3
+        myi = self.y_segments + 1 - my0
+        z0 = self.value(mx0, myi)
+        z1 = self.value(mx0 + 1, myi)
+        z2 = self.value(mx0, myi + 1)
+        z3 = self.value(mx0 + 1, myi + 1)
+
+        if sdx <= sdy:
+            return z0 + (z1 - z0) * sdx + (z2 - z0) * (1 - sdy)
+        return z3 + (z2 - z3) * (1 - sdx) + (z1 - z3) * sdy
 
 
 class IndexedTriangles2D:

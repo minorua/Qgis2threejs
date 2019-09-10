@@ -25,7 +25,7 @@ from math import floor
 from osgeo import gdal
 from PyQt5.QtCore import QSize
 
-from .geometry import Point
+from .geometry import Point, GridGeometry
 from .mapextent import MapExtent
 from .qgis2threejstools import logMessage
 
@@ -95,8 +95,12 @@ class GDALDEMProvider:
 
     def readValues(self, width, height, extent):
         """read data into a list"""
-        return struct.unpack("f" * width * height,
-                             self._read(width, height, extent.geotransform(width, height)))
+        return struct.unpack("f" * width * height, self.read(width, height, extent))
+
+    def readAsGridGeometry(self, width, height, extent):
+        return GridGeometry(extent,
+                            width - 1, height - 1,
+                            self.readValues(width, height, extent))
 
     def readValue(self, x, y):
         """get value at specified position using 1px * 1px memory raster"""
@@ -133,6 +137,11 @@ class FlatDEMProvider:
 
     def readValues(self, width, height, extent):
         return [self.value] * width * height
+
+    def readAsGridGeometry(self, width, height, extent):
+        return GridGeometry(extent,
+                            width - 1, height - 1,
+                            [self.value] * width * height)
 
     def readValue(self, x, y):
         return self.value

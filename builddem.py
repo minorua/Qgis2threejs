@@ -26,7 +26,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import Point, PolygonGeometry, TINGeometry, TriangleMesh, dissolvePolygonsOnCanvas
+from .geometry import Point, PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
 from .mapextent import MapExtent
 
 
@@ -237,19 +237,19 @@ class DEMBlockBuilder:
         z_func = lambda x, y: 0
         transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
 
-        # create a triangle mesh and split polygons with the mesh
-        tmesh = TriangleMesh(self.extent, self.grid_size.width() - 1,
-                                          self.grid_size.height() - 1)
+        # create a grid geometry and split polygons with the grid
+        grid = GridGeometry(self.extent, self.grid_size.width() - 1,
+                                         self.grid_size.height() - 1)
 
         if self.extent.rotation():
             geom = QgsGeometry(clip_geometry)
             geom.rotate(self.extent.rotation(), self.extent.center())
-            geom = tmesh.splitPolygon(geom)
+            geom = grid.splitPolygonXY(geom)
             geom.rotate(-self.extent.rotation(), self.extent.center())
         else:
-            geom = tmesh.splitPolygon(clip_geometry)
+            geom = grid.splitPolygonXY(clip_geometry)
 
-        tin = TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=False, drop_z=True, ccw2d=True)
+        tin = TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=False, drop_z=True)
         d = tin.toDict2()
 
         geom = PolygonGeometry.fromQgsGeometry(clip_geometry, z_func, transform_func)

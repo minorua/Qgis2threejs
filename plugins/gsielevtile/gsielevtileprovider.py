@@ -84,6 +84,15 @@ class GSIElevTileProvider:
         geotransform = extent.geotransform(width, height)
         return self._read(ds, width, height, geotransform)
 
+    def readValues(self, width, height, extent):
+        """read data into a list"""
+        return struct.unpack("f" * width * height, self.read(width, height, extent))
+
+    def readAsGridGeometry(self, width, height, extent):
+        return GridGeometry(extent,
+                            width - 1, height - 1,
+                            self.readValues(width, height, extent))
+
     def readValue(self, x, y):
         """Get value at specified position using 1px * 1px memory raster. The value is calculated using a tile of max zoom level"""
         # coordinate transformation into EPSG:3857

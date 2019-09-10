@@ -29,7 +29,7 @@ from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionConte
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
-from .geometry import Geometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry, TriangleMesh
+from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry, GridGeometry
 from .qgis2threejstools import logMessage
 from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
@@ -65,7 +65,7 @@ class Feature:
         self.geom = self.geom.intersection(clip_geom)
         return self.geom
 
-    def geometry(self, z0_func, transform_func, useZM=Geometry.NotUseZM, baseExtent=None, tmesh=None):
+    def geometry(self, z0_func, transform_func, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
         geom = self.geom
         z_func = lambda x, y: z0_func(x, y) + self.altitude
 
@@ -73,19 +73,19 @@ class Feature:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
 
         if self.objectType == ObjectType.Polygon:
-            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, centroid=True,
-                                               drop_z=(useZM == Geometry.NotUseZM))
+            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func,
+                                               drop_z=(useZM == VectorGeometry.NotUseZM))
 
-        if tmesh:
+        if grid:
             # Overlay above DEM surface
             if baseExtent.rotation():
                 geom.rotate(baseExtent.rotation(), baseExtent.center())
-                geom = tmesh.splitPolygon(geom)
+                geom = grid.splitPolygon(geom)
                 geom.rotate(-baseExtent.rotation(), baseExtent.center())
             else:
-                geom = tmesh.splitPolygon(geom)
+                geom = grid.splitPolygon(geom)
 
-            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, centroid=True, drop_z=True, ccw2d=True)
+            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func)
 
         else:
             return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func,
@@ -331,7 +331,7 @@ class VectorLayer:
 
 class FeatureBlockBuilder:
 
-    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=None, z_func=None, tmesh=None):
+    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=None, z_func=None, grid=None):
         self.settings = settings
         self.vlayer = vlayer
         self.jsLayerId = jsLayerId
@@ -344,14 +344,16 @@ class FeatureBlockBuilder:
         p = vlayer.properties
         if useZM is None:
             if p.get("radioButton_zValue"):
-                useZM = Geometry.UseZ
+                useZM = VectorGeometry.UseZ
             elif p.get("radioButton_mValue"):
-                useZM = Geometry.UseM
+                useZM = VectorGeometry.UseM
             else:
-                useZM = Geometry.NotUseZM
+                useZM = VectorGeometry.NotUseZM
         self.useZM = useZM
 
         if z_func is None:
+            z_func = lambda x, y: 0
+
             baseExtent = settings.baseExtent
             if vlayer.isHeightRelativeToDEM():
                 demLayerId = p.get("comboBox_altitudeMode")
@@ -361,28 +363,24 @@ class FeatureBlockBuilder:
                     # get the grid size of the DEM layer which polygons overlay
                     demSize = settings.demGridSize(demLayerId)
 
-                    # prepare a triangle mesh
-                    tmesh = TriangleMesh(baseExtent, demSize.width() - 1, demSize.height() - 1)
+                    # prepare a grid geometry
+                    grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), baseExtent)
 
                     center = baseExtent.center()
                     xmin, ymin = (center.x() - baseExtent.width() / 2,
                                   center.y() - baseExtent.height() / 2)
                     xres, yres = (baseExtent.width() / (demSize.width() - 1),
                                   baseExtent.height() / (demSize.height() - 1))
-
-                    z_func = lambda x, y: demProvider.readValueOnTriangles(x, y, xmin, ymin, xres, yres)
                 else:
                     z_func = lambda x, y: demProvider.readValue(x, y)
-            else:
-                z_func = lambda x, y: 0
 
         self.z_func = z_func
-        self.tmesh = tmesh
+        self.grid = grid
 
     def clone(self):
         return FeatureBlockBuilder(self.settings, self.vlayer, self.jsLayerId,
                                    self.pathRoot, self.urlRoot,
-                                   self.useZM, self.z_func, self.tmesh)
+                                   self.useZM, self.z_func, self.grid)
 
     def setBlockIndex(self, index):
         self.blockIndex = index
@@ -391,6 +389,7 @@ class FeatureBlockBuilder:
         self.features = features
 
     def build(self):
+        be = self.settings.baseExtent
         obj_geom_func = self.vlayer.objectType.geometry
         transform_func = self.settings.mapTo3d().transform
 
@@ -398,8 +397,7 @@ class FeatureBlockBuilder:
         for f in self.features:
             d = {}
             d["geom"] = obj_geom_func(self.settings, self.vlayer, f,
-                                      f.geometry(self.z_func, transform_func, self.useZM,
-                                                 self.settings.baseExtent, self.tmesh))
+                                      f.geometry(self.z_func, transform_func, self.useZM, be, self.grid))
 
             if f.material is not None:
                 d["mtl"] = f.material
