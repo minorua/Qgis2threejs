@@ -67,8 +67,14 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # write scene data to a file in json format
         json_object = self.buildScene()
-        with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
-            json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
+        if self.settings.localMode:
+            with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
+                f.write("app.loadJSONObject(")
+                json.dump(json_object, f, indent=2)
+                f.write(");")
+        else:
+            with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
+                json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
         # copy files
         self.progress(90, "Copying library files")
@@ -110,7 +116,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
             "options": "\n".join(options),
             "scripts": "\n".join(self.scripts()),
-            "scenefile": "./data/{0}/scene.json".format(title),
+            "scenefile": "./data/{0}/scene.{1}".format(title, "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel()
         }
@@ -127,8 +133,12 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def buildLayer(self, layer):
         title = tools.abchex(self.nextLayerIndex())
-        pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
-        urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
+
+        if self.settings.localMode:
+            pathRoot = urlRoot = None
+        else:
+            pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
+            urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
         if layer.geomType == q3dconst.TYPE_DEM:
             builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)

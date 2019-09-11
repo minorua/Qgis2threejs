@@ -63,6 +63,7 @@ class ExportToWebDialog(QDialog):
 
         # general settings
         self.ui.checkBox_PreserveViewpoint.setChecked(bool(settings.option("viewpoint")))
+        self.ui.checkBox_LocalMode.setChecked(bool(settings.option("localMode")))
 
         # template settings
         for key, value in settings.options().items():
@@ -103,6 +104,11 @@ class ExportToWebDialog(QDialog):
         if self.ui.checkBox_PreserveViewpoint.isChecked():
             self.settings.setOption("viewpoint", self.page.cameraState())
 
+        local_mode = self.ui.checkBox_LocalMode.isChecked()
+        if local_mode:
+            self.settings.setOption("localMode", True)
+        self.settings.localMode = self.settings.base64 = local_mode
+
         # save template settings
         options = self.settings.templateConfig().get("options", "")
         if options:
@@ -132,7 +138,7 @@ class ExportToWebDialog(QDialog):
         self.settings.setOutputFilename(filepath)
 
         err_msg = self.settings.checkValidity()
-        if err_msg is not None:
+        if err_msg:
             QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
             return
 
@@ -148,9 +154,7 @@ class ExportToWebDialog(QDialog):
         if is_temporary:
             self.settings.setOutputFilename("")
 
-        # store last settings
-        # settings = QSettings()
-        # settings.setValue("/Qgis2threejs/lastTemplate", self.settings.templatePath)
+        self.settings.localMode = self.settings.base64 = False
 
         if self.ui.checkBox_openPage.isChecked():
             if not openHTMLFile(filepath):

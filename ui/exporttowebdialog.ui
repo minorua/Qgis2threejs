@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
-    <height>252</height>
+    <width>588</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -90,6 +90,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_LocalMode">
+        <property name="text">
+         <string>Enable the Viewer to Run Locally</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -145,14 +152,33 @@
     </spacer>
    </item>
    <item>
+    <widget class="QCheckBox" name="checkBox_openPage">
+     <property name="text">
+      <string>Open the Viewer in a Web Browser</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QCheckBox" name="checkBox_openPage">
-       <property name="text">
-        <string>Open Exported Page in Web Browser</string>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
        </property>
-       <property name="checked">
-        <bool>true</bool>
+       <property name="value">
+        <number>24</number>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="format">
+        <string notr="true"/>
        </property>
       </widget>
      </item>
@@ -168,25 +194,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QProgressBar" name="progressBar">
-       <property name="minimumSize">
-        <size>
-         <width>160</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="value">
-        <number>24</number>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="format">
-        <string notr="true"/>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_Export">
@@ -216,7 +223,6 @@
   <tabstop>comboBox_Template</tabstop>
   <tabstop>checkBox_PreserveViewpoint</tabstop>
   <tabstop>lineEdit_MND</tabstop>
-  <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>
   <tabstop>pushButton_Cancel</tabstop>
  </tabstops>

@@ -617,6 +617,17 @@ limitations:
     });
   };
 
+  app.loadSceneFile = function (url, callback) {
+    var ext = url.split(".").pop();
+    if (ext == "json") app.loadJSONFile(url, callback);
+    else if (ext == "js") {
+      var e = document.createElement("script");
+      e.src = url;
+      e.onload = callback;
+      document.body.appendChild(e);
+    }
+  };
+
   app.loadTextureFile = function (url, callback) {
     return new THREE.TextureLoader(app.loadingManager).load(url, callback);
   };

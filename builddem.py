@@ -164,9 +164,10 @@ class DEMBlockBuilder:
         g = {"width": self.grid_size.width(),
              "height": self.grid_size.height()}
 
-        if self.urlRoot is None:
+        if self.settings.localMode:
+            g["array"] = struct.unpack("f" * self.grid_size.width() * self.grid_size.height(), ba)
+        elif self.urlRoot is None:
             g["binary"] = QByteArray(ba)
-            # g["array"] = grid_values
         else:
             g["url"] = self.urlRoot + "{0}.bin".format(self.blockIndex)
 
