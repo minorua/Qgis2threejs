@@ -22,7 +22,7 @@ from math import floor
 from qgis.core import (
     QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject,
-    QgsTessellator, QgsWkbTypes)
+    QgsTessellator, QgsVertexId, QgsWkbTypes)
 
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
@@ -417,7 +417,9 @@ class TINGeometry(PolygonGeometry):
             g = geometry.constGet()
 
         if centroid:
-            z_func_cntr = z_func_cntr or z_func
+            if z_func_cntr is None:
+                # use z coordinate of first vertex (until QgsAbstractGeometry supports z coordinate of centroid)
+                z_func_cntr = lambda x, y: g.vertexAt(QgsVertexId(0, 0, 0)).z()
 
             pt = geometry.centroid().asPoint()
             geom.centroids.append(transform_func(pt.x(), pt.y(), z_func_cntr(pt.x(), pt.y())))
