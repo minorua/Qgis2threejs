@@ -97,7 +97,7 @@ class PointType(ObjectTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         v = []
-        for pt in geom.asList():
+        for pt in geom.toList():
             v.extend(pt)
         return {"pts": v}
 
@@ -113,7 +113,7 @@ class SphereType(PointBasicTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "r": feat.values[2] * settings.mapTo3d().multiplier}
 
 
@@ -131,7 +131,7 @@ class CylinderType(PointBasicTypeBase):
     def geometry(cls, settings, vlayer, feat, geom):
         mapTo3d = settings.mapTo3d()
         r = feat.values[2] * mapTo3d.multiplier
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "r": r,
                 "h": feat.values[3] * mapTo3d.multiplierZ}
 
@@ -156,7 +156,7 @@ class BoxType(PointBasicTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         mapTo3d = settings.mapTo3d()
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "w": feat.values[2] * mapTo3d.multiplier,
                 "d": feat.values[3] * mapTo3d.multiplier,
                 "h": feat.values[4] * mapTo3d.multiplierZ}
@@ -185,7 +185,7 @@ class DiskType(PointBasicTypeBase):
         if rotation:
             dd = (dd + rotation) % 360
 
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "r": feat.values[2] * settings.mapTo3d().multiplier,
                 "d": feat.values[3],
                 "dd": dd}
@@ -215,7 +215,7 @@ class PlaneType(PointBasicTypeBase):
         if rotation:
             dd = (dd + rotation) % 360
 
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "w": feat.values[2] * settings.mapTo3d().multiplier,
                 "l": feat.values[3] * settings.mapTo3d().multiplier,
                 "d": feat.values[4],
@@ -249,7 +249,7 @@ class LineType(LineBasicTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        return {"lines": geom.asList()}
+        return {"lines": geom.toList()}
 
 
 class PipeType(LineBasicTypeBase):
@@ -268,7 +268,7 @@ class PipeType(LineBasicTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         r = feat.values[2] * settings.mapTo3d().multiplier
-        return {"lines": geom.asList(),
+        return {"lines": geom.toList(),
                 "r": r}
 
 
@@ -295,7 +295,7 @@ class BoxLineType(LineBasicTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         multiplier = settings.mapTo3d().multiplier
-        return {"lines": geom.asList(),
+        return {"lines": geom.toList(),
                 "w": feat.values[2] * multiplier,
                 "h": feat.values[3] * multiplier}
 
@@ -315,7 +315,7 @@ class WallType(LineBasicTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        return {"lines": geom.asList(),
+        return {"lines": geom.toList(),
                 "bh": feat.values[2] * settings.mapTo3d().multiplierZ}
 
 
@@ -446,7 +446,7 @@ class IconType(PointTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        return {"pts": geom.asList(),
+        return {"pts": geom.toList(),
                 "scale": feat.values[2]}
 
 
@@ -484,7 +484,7 @@ class ModelFileType(PointTypeBase):
         if rotation:
             rz = (rz - rotation) % 360    # map rotation is clockwise
 
-        d = {"pts": geom.asList(),
+        d = {"pts": geom.toList(),
              "rotateX": feat.values[2],
              "rotateY": feat.values[3],
              "rotateZ": rz,

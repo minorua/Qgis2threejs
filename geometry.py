@@ -76,7 +76,7 @@ class PointGeometry(VectorGeometry):
     def __init__(self):
         self.pts = []
 
-    def asList(self):
+    def toList(self):
         return [[pt.x, pt.y, pt.z] for pt in self.pts]
 
     def toQgsGeometry(self):
@@ -140,10 +140,10 @@ class LineGeometry(VectorGeometry):
     def __init__(self):
         self.lines = []
 
-    def asList(self):
+    def toList(self):
         return [[[pt.x, pt.y, pt.z] for pt in line] for line in self.lines]
 
-    def asList2(self):
+    def toList2(self):
         return [[[pt.x, pt.y] for pt in line] for line in self.lines]
 
     def toQgsGeometry(self):
@@ -232,7 +232,7 @@ class PolygonGeometry(VectorGeometry):
 
         return self.toQgsGeometry(split_polygons)
 
-    def asList(self):
+    def toList(self):
         p = []
         for boundaries in self.polygons:
             # outer boundary
@@ -246,7 +246,7 @@ class PolygonGeometry(VectorGeometry):
             p.append(b)
         return p
 
-    def asList2(self):
+    def toList2(self):
         p = []
         for boundaries in self.polygons:
             b = []

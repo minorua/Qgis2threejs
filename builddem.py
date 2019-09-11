@@ -253,7 +253,7 @@ class DEMBlockBuilder:
         d = tin.toDict2()
 
         geom = PolygonGeometry.fromQgsGeometry(clip_geometry, z_func, transform_func)
-        d["polygons"] = geom.asList2()
+        d["polygons"] = geom.toList2()
         return d
 
     def processEdges(self, grid_values, roughness):
