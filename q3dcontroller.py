@@ -368,7 +368,7 @@ class Q3DController(QObject):
 
         layer.copyTo(lyr)
 
-        self.requestQueue = [i for i in self.requestQueue if i.layerId != layer.layerId]
+        self.requestQueue = [i for i in self.requestQueue if not isinstance(i, Layer) or i.layerId != layer.layerId]
 
         if self.updatingLayerId == layer.layerId:
             self.requestQueue.append(layer)
