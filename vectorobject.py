@@ -361,7 +361,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
         opt = {"name": "Edge color",
                "itemText": {OptionalColorWidgetFunc.NONE: "(No Edge)"},
-               "defaultItem": OptionalColorWidgetFunc.NONE}
+               "defaultValue": OptionalColorWidgetFunc.NONE}
         ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
     @classmethod
@@ -393,7 +393,7 @@ class OverlayType(PolygonBasicTypeBase):
         # TODO: [Polygon - Overlay] border
         # opt = {"name": "Border color",
         #        "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-        #        "defaultItem": ColorWidgetFunc.FEATURE}
+        #        "defaultValue": ColorWidgetFunc.FEATURE}
         # ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
     @classmethod

@@ -199,7 +199,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 class HeightWidgetFunc(WidgetFuncBase):
 
     def setup(self, options=None):
-        """ options: name, defaultItem, defaultValue, layer """
+        """ options: name, defaultValue, defaultValue, layer """
         options = options or {}
         WidgetFuncBase.setup(self, options.get("name", "Mode"))
         self.defaultValue = options.get("defaultValue", 0)
@@ -216,11 +216,11 @@ class HeightWidgetFunc(WidgetFuncBase):
         #  comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
         #  comboBox.insertSeparator(1)
 
-        defaultItem = options.get("defaultItem")
-        if defaultItem is not None:
-            index = self.widget.comboBox.findData(defaultItem)
+        defaultValue = options.get("defaultValue")
+        if defaultValue:
+            index = comboBox.findData(defaultValue)
             if index != -1:
-                self.widget.comboBox.setCurrentIndex(index)
+                comboBox.setCurrentIndex(index)
 
     def comboBoxSelectionChanged(self, index):
         if self.widget.comboBox.itemData(index):
@@ -297,7 +297,7 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
     NONE = 0
 
     def setup(self, options=None):
-        """ options: name, itemText, defaultItem """
+        """ options: name, itemText, defaultValue """
         options = options or {}
         ColorWidgetFunc.setup(self, options)
         self.widget.label_1.setText(options.get("name", "Color"))
@@ -311,7 +311,7 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
             if index != -1:
                 self.widget.comboBox.setItemText(index, text)
 
-        index = self.widget.comboBox.findData(options.get("defaultItem", OptionalColorWidgetFunc.NONE))
+        index = self.widget.comboBox.findData(options.get("defaultValue", OptionalColorWidgetFunc.NONE))
         if index != -1:
             self.widget.comboBox.setCurrentIndex(index)
 
