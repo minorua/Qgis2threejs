@@ -85,7 +85,9 @@ class Feature:
             else:
                 geom = grid.splitPolygon(geom)
 
-            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func)
+            z_func_cntr = lambda x, y: grid.valueOnSurface(x, y) + self.altitude
+
+            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, z_func_cntr=z_func_cntr)
 
         else:
             return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func,
@@ -367,7 +369,7 @@ class FeatureBlockBuilder:
                     grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), baseExtent)
 
                 else:
-                    z_func = lambda x, y: demProvider.readValue(x, y)
+                    z_func = demProvider.readValue      # readValue(x, y)
 
         self.z_func = z_func
         self.grid = grid

@@ -397,7 +397,7 @@ class TINGeometry(PolygonGeometry):
         return d
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False, ccw2d=False):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False, ccw2d=False, z_func_cntr=None):
         geom = cls()
 
         if z_func:
@@ -413,8 +413,10 @@ class TINGeometry(PolygonGeometry):
             g = geometry.constGet()
 
         if centroid:
-            pt = g.centroid()
-            geom.centroids.append(transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())))
+            z_func_cntr = z_func_cntr or z_func
+
+            pt = geometry.centroid().asPoint()
+            geom.centroids.append(transform_func(pt.x(), pt.y(), z_func_cntr(pt.x(), pt.y())))
 
         # triangulation
         tes = QgsTessellator(0, 0, False)
