@@ -21,10 +21,9 @@
 from datetime import datetime
 import os
 
-#from PyQt5.Qt import *
-from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
+from PyQt5.QtCore import (QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
                           pyqtSignal, pyqtSlot, qDebug)
-from PyQt5.QtGui import QImage, QPainter, QPalette
+from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 try:
     from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin

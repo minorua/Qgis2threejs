@@ -26,7 +26,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import Point, PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
+from .geometry import PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
 from .mapextent import MapExtent
 
 

@@ -30,6 +30,7 @@ from PyQt5.QtCore import QSettings
 from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsRectangle, QgsProject
 
 from .downloader import Downloader
+from Qgis2threejs.geometry import GridGeometry
 from Qgis2threejs.qgis2threejstools import logMessage
 
 TILE_SIZE = 256
@@ -111,7 +112,7 @@ class GSIElevTileProvider:
 
     def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
         #TODO: implement
-        return readValue(x, y)
+        return self.readValue(x, y)
 
     def _read(self, ds, width, height, geotransform):
         # create a memory dataset

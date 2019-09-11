@@ -29,7 +29,7 @@ from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionConte
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
-from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry, GridGeometry
+from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .qgis2threejstools import logMessage
 from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
@@ -366,11 +366,6 @@ class FeatureBlockBuilder:
                     # prepare a grid geometry
                     grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), baseExtent)
 
-                    center = baseExtent.center()
-                    xmin, ymin = (center.x() - baseExtent.width() / 2,
-                                  center.y() - baseExtent.height() / 2)
-                    xres, yres = (baseExtent.width() / (demSize.width() - 1),
-                                  baseExtent.height() / (demSize.height() - 1))
                 else:
                     z_func = lambda x, y: demProvider.readValue(x, y)
 

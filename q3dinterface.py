@@ -18,7 +18,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSlot
 
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage

@@ -21,8 +21,7 @@
 """
 from qgis.core import QgsWkbTypes
 
-from Qgis2threejs.stylewidget import StyleWidget, ColorWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
-from Qgis2threejs.geometry import IndexedTriangles2D, IndexedTriangles3D
+from Qgis2threejs.stylewidget import StyleWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 
 class ObjectTypeBase:
