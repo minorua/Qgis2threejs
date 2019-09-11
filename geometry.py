@@ -204,7 +204,7 @@ class LineGeometry(VectorGeometry):
 
 class PolygonGeometry(VectorGeometry):
 
-    """No 3D support"""
+    """No 3D support. Used with Extruded and Overlay (absolute)"""
 
     def __init__(self):
         self.polygons = []
@@ -346,6 +346,8 @@ class PolygonGeometry(VectorGeometry):
 
 class TINGeometry(PolygonGeometry):
 
+    """Used with Polygon and Overlay (relative to DEM)"""
+
     def __init__(self):
         self.triangles = []
         self.centroids = []
@@ -397,12 +399,14 @@ class TINGeometry(PolygonGeometry):
         return d
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False, ccw2d=False, z_func_cntr=None):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, z_func_cntr=None,
+                        drop_z=False, ccw2d=False, use_z_func_cache=False):
         geom = cls()
 
         if z_func:
-            cache = FunctionCacheXY(z_func)
-            z_func = cache.func
+            if use_z_func_cache:
+                cache = FunctionCacheXY(z_func)
+                z_func = cache.func
         else:
             z_func = lambda x, y: 0
 

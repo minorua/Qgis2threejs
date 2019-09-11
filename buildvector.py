@@ -333,46 +333,18 @@ class VectorLayer:
 
 class FeatureBlockBuilder:
 
-    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=None, z_func=None, grid=None):
+    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=VectorGeometry.NotUseZM, z_func=None, grid=None):
         self.settings = settings
         self.vlayer = vlayer
         self.jsLayerId = jsLayerId
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
+        self.useZM = useZM
+        self.z_func = z_func
+        self.grid = grid
 
         self.blockIndex = None
         self.features = []
-
-        p = vlayer.properties
-        if useZM is None:
-            if p.get("radioButton_zValue"):
-                useZM = VectorGeometry.UseZ
-            elif p.get("radioButton_mValue"):
-                useZM = VectorGeometry.UseM
-            else:
-                useZM = VectorGeometry.NotUseZM
-        self.useZM = useZM
-
-        if z_func is None:
-            z_func = lambda x, y: 0
-
-            baseExtent = settings.baseExtent
-            if vlayer.isHeightRelativeToDEM():
-                demLayerId = p.get("comboBox_altitudeMode")
-                demProvider = settings.demProviderByLayerId(demLayerId)
-
-                if vlayer.objectType == ObjectType.Overlay:
-                    # get the grid size of the DEM layer which polygons overlay
-                    demSize = settings.demGridSize(demLayerId)
-
-                    # prepare a grid geometry
-                    grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), baseExtent)
-
-                else:
-                    z_func = demProvider.readValue      # readValue(x, y)
-
-        self.z_func = z_func
-        self.grid = grid
 
     def clone(self):
         return FeatureBlockBuilder(self.settings, self.vlayer, self.jsLayerId,
@@ -517,7 +489,34 @@ class VectorLayerBuilder(LayerBuilder):
         return p
 
     def blocks(self):
-        builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot)
+        z_func = lambda x, y: 0
+        grid = None
+
+        p = self.vlayer.properties
+        if p.get("radioButton_zValue"):
+            useZM = VectorGeometry.UseZ
+        elif p.get("radioButton_mValue"):
+            useZM = VectorGeometry.UseM
+        else:
+            useZM = VectorGeometry.NotUseZM
+
+        if self.vlayer.isHeightRelativeToDEM():
+            demLayerId = p.get("comboBox_altitudeMode")
+            demProvider = self.settings.demProviderByLayerId(demLayerId)
+
+            if self.vlayer.objectType == ObjectType.Overlay:
+                # get the grid size of the DEM layer which polygons overlay
+                demSize = self.settings.demGridSize(demLayerId)
+
+                # prepare a grid geometry
+                grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), self.settings.baseExtent)
+
+            else:
+                z_func = demProvider.readValue      # readValue(x, y)
+
+        builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot,
+                                      useZM, z_func, grid)
+
         one_per_block = (self.vlayer.objectType == ObjectType.Overlay
                          and self.vlayer.isHeightRelativeToDEM()
                          and self.pathRoot is None)
