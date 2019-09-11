@@ -245,9 +245,6 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         """ options: defaultValue, layer """
         WidgetFuncBase.setup(self, "Label height")
         options = options or {}
-        if hasattr(options, "defaultValue"):
-            self.defaultValue = options["defaultValue"]
-            self.widget.expression.setExpression(str(self.defaultValue))
 
         self.widget.comboBox.clear()
         self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
@@ -257,6 +254,10 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         if layer:
             self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
             self.widget.expression.setLayer(layer)
+
+        self.defaultValue = options.get("defaultValue")
+        if self.defaultValue is not None:
+            self.widget.expression.setExpression(str(self.defaultValue))
 
 
 class OpacityWidgetFunc(WidgetFuncBase):

@@ -492,7 +492,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         # set up label height widget
         if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": defaultLabelHeight / mapTo3d.multiplierZ})
+            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": int(defaultLabelHeight / mapTo3d.multiplierZ)})
         else:
             self.labelHeightWidget.hide()
 
