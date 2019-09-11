@@ -120,7 +120,7 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
         self.widget.comboBox.addItem("Expression", ColorWidgetFunc.EXPRESSION)
 
-        self.widget.expression.setExpression(options.get("defaultValue", ""))
+        self.widget.expression.setExpression(str(options.get("defaultValue", "")))
         self.widget.expression.setFilters(QgsFieldProxyModel.String)
         self.setPlaceholderText("e.g. color_rgb(255, 127, 0), '#FF7F00'")
         layer = options.get("layer")
