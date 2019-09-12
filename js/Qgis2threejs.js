@@ -2867,7 +2867,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       return new THREE.Mesh(geometry, materials.mtl(f.mtl));
     };
   }
-  else if (objType == "Profile") {
+  else if (objType == "Wall") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
     createObject = function (f, line) {
