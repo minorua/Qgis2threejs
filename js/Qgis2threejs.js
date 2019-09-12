@@ -2928,34 +2928,18 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Q3D.PolygonLayer.prototype.build = function (features) {
   var createObject,
-      materials = this.materials,
-      sceneData = this.sceneData;
+      materials = this.materials;
 
   if (this.properties.objType == this._lastObjType && this._createObject !== undefined) {
     createObject = this._createObject;
   }
   else if (this.properties.objType == "Polygon") {
     createObject = function (f) {
-      var vertices = f.geom.triangles.v,
-          indices = f.geom.triangles.f;
-
-      var geom = new THREE.Geometry();
-      for (var i = 0, l = vertices.length; i < l; i+=3) {
-        geom.vertices.push(
-          new THREE.Vector3(vertices[i], vertices[i + 1], vertices[i + 2]));
-      }
-
-      for (i = 0, l = indices.length; i < l; i+=3) {
-        geom.faces.push(
-          new THREE.Face3(indices[i], indices[i + 1], indices[i + 2]));
-      }
-      geom.computeFaceNormals();
-      return new THREE.Mesh(geom, materials.mtl(f.mtl));
-
-      // FIXME: no flat shading option with combination of buffer geometry and Lambert material
       var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.v, 3));
-      geom.setIndex(f.geom.f);
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+      geom.setIndex(f.geom.triangles.f);
+      geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
+                                                            // BufferGeometry and Lambert/Toon material.
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
@@ -3015,18 +2999,11 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     };
   }
   else if (this.properties.objType == "Overlay") {
-    var z0 = sceneData.zShift * sceneData.zScale;
-
     createObject = function (f) {
-      var polygons, zFunc;
-
-      if (f.geom.polygons) {
-        polygons = f.geom.polygons;
-        zFunc = function (x, y) { return z0 + f.geom.h; };
-      }
-
-      var geom = Q3D.Utils.createOverlayGeometry(f.geom.triangles, polygons, zFunc);
-      return new THREE.Mesh(geom, materials.mtl(f.mtl));
+      var geom = new THREE.BufferGeometry();
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+      geom.setIndex(f.geom.triangles.f);
+      return new THREE.Mesh(new THREE.Geometry().fromBufferGeometry(geom), materials.mtl(f.mtl));
 
       //TODO: [Polygon - Overlay] border
     };
