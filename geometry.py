@@ -618,12 +618,12 @@ class GridGeometry:
         return self.values[x + y * (self.x_segments + 1)]
 
     def valueOnSurface(self, x, y):
-        pt = self.extent.normalizePoint(x, y)
+        pt = self.extent.normalizePoint(x, y)       # bottom-left corner is (0, 0), top-right is (1. 1)
         if pt.x() < 0 or 1 < pt.x() or pt.y() < 0 or 1 < pt.y():
             return None
 
         mx = pt.x() * self.x_segments
-        my = pt.y() * self.y_segments
+        my = (1 - pt.y()) * self.y_segments     # inverted. top is 0.
         mx0 = floor(mx)
         my0 = floor(my)
         sdx = mx - mx0
@@ -632,22 +632,19 @@ class GridGeometry:
         if mx0 == self.x_segments:  # on right edge
             mx0 -= 1
             sdx = 1
-        if my0 == self.y_segments:  # on top edge
+
+        if my0 == self.y_segments:  # on bottom edge
             my0 -= 1
             sdy = 1
 
-        # 0 - 1
-        # | / |
-        # 2 - 3
-        myi = self.y_segments + 1 - my0
-        z0 = self.value(mx0, myi)
-        z1 = self.value(mx0 + 1, myi)
-        z2 = self.value(mx0, myi + 1)
-        z3 = self.value(mx0 + 1, myi + 1)
+        z0 = self.value(mx0, my0)
+        z1 = self.value(mx0 + 1, my0)
+        z2 = self.value(mx0, my0 + 1)
+        z3 = self.value(mx0 + 1, my0 + 1)
 
         if sdx <= sdy:
-            return z0 + (z1 - z0) * sdx + (z2 - z0) * (1 - sdy)
-        return z3 + (z2 - z3) * (1 - sdx) + (z1 - z3) * sdy
+            return z0 + (z1 - z0) * sdx + (z2 - z0) * sdy
+        return z3 + (z2 - z3) * (1 - sdx) + (z1 - z3) * (1 - sdy)
 
 
 class IndexedTriangles2D:
