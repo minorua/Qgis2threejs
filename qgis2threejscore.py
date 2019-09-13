@@ -57,6 +57,12 @@ class MapTo3D:
     def transformPoint(self, pt):
         return self.transform(pt.x, pt.y, pt.z)
 
+    def transformXY(self, x, y, z=0):
+        n = self.mapExtent.normalizePoint(x, y)
+        return Point((n.x() - 0.5) * self.planeWidth,
+                     (n.y() - 0.5) * self.planeHeight,
+                     z)
+
 
 class GDALDEMProvider:
 

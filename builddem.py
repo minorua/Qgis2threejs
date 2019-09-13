@@ -26,7 +26,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
+from .geometry import VectorGeometry, LineGeometry, PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
 from .mapextent import MapExtent
 
 
@@ -148,47 +148,46 @@ class DEMBlockBuilder:
         self.urlRoot = urlRoot
 
     def build(self):
-        if self.edgeRougheness == 1:
-            ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
-        else:
-            grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
-            self.processEdges(grid_values, self.edgeRougheness)
-            ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
-
-        # write grid values to an external binary file
-        if self.pathRoot is not None:
-            with open(self.pathRoot + "{0}.bin".format(self.blockIndex), "wb") as f:
-                f.write(ba)
+        mapTo3d = self.settings.mapTo3d()
 
         # block data
-        g = {"width": self.grid_size.width(),
-             "height": self.grid_size.height()}
-
-        if self.settings.localMode:
-            g["array"] = struct.unpack("f" * self.grid_size.width() * self.grid_size.height(), ba)
-        elif self.urlRoot is None:
-            g["binary"] = QByteArray(ba)
-        else:
-            g["url"] = self.urlRoot + "{0}.bin".format(self.blockIndex)
-
-        # material
-        material = self.material()
-
-        mapTo3d = self.settings.mapTo3d()
         b = {"type": "block",
              "layer": self.layer.jsLayerId,
              "block": self.blockIndex,
-             "grid": g,
              "width": self.planeWidth,
              "height": self.planeHeight,
              "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
              "zShift": mapTo3d.verticalShift,
              "zScale": mapTo3d.multiplierZ,
-             "material": material}
+             "material": self.material()}
 
-        # clipped with polygon layer
         if self.clip_geometry:
             b["clip"] = self.clipped(self.clip_geometry)
+
+        else:
+            if self.edgeRougheness == 1:
+                ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
+            else:
+                grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
+                self.processEdges(grid_values, self.edgeRougheness)
+                ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
+
+            # write grid values to an external binary file
+            if self.pathRoot is not None:
+                with open(self.pathRoot + "{0}.bin".format(self.blockIndex), "wb") as f:
+                    f.write(ba)
+
+            g = {"width": self.grid_size.width(),
+                 "height": self.grid_size.height()}
+
+            if self.settings.localMode:
+                g["array"] = struct.unpack("f" * self.grid_size.width() * self.grid_size.height(), ba)
+            elif self.urlRoot is None:
+                g["binary"] = QByteArray(ba)
+            else:
+                g["url"] = self.urlRoot + "{0}.bin".format(self.blockIndex)
+
+            b["grid"] = g
 
         # sides and bottom
         if self.properties.get("checkBox_Sides", False):
@@ -234,27 +233,32 @@ class DEMBlockBuilder:
         return self.materialManager.build(mi, self.imageManager, filepath, url, self.settings.base64)
 
     def clipped(self, clip_geometry):
-        mapTo3d = self.settings.mapTo3d()
-        z_func = lambda x, y: 0
-        transform_func = lambda x, y, z: mapTo3d.transform(x, y, z)
+        transform_func = self.settings.mapTo3d().transformXY
 
         # create a grid geometry and split polygons with the grid
-        grid = GridGeometry(self.extent, self.grid_size.width() - 1,
-                                         self.grid_size.height() - 1)
+        grid = self.provider.readAsGridGeometry(self.grid_size.width(), self.grid_size.height(), self.extent)
 
         if self.extent.rotation():
-            geom = QgsGeometry(clip_geometry)
-            geom.rotate(self.extent.rotation(), self.extent.center())
-            geom = grid.splitPolygonXY(geom)
-            geom.rotate(-self.extent.rotation(), self.extent.center())
+            poly = QgsGeometry(clip_geometry)
+            poly.rotate(self.extent.rotation(), self.extent.center())
+
+            bnds = grid.segmentizeBoundaries(poly)
+            polys = grid.splitPolygon(poly)
+
+            bnds.rotate(-self.extent.rotation(), self.extent.center())
+            polys.rotate(-self.extent.rotation(), self.extent.center())
         else:
-            geom = grid.splitPolygonXY(clip_geometry)
+            bnds = grid.segmentizeBoundaries(clip_geometry)
+            polys = grid.splitPolygon(clip_geometry)
 
-        tin = TINGeometry.fromQgsGeometry(geom, None, transform_func, centroid=False, drop_z=True)
-        d = tin.toDict2()
+        tin = TINGeometry.fromQgsGeometry(polys, None, transform_func, centroid=False)
+        d = tin.toDict(flat=True)
 
-        geom = PolygonGeometry.fromQgsGeometry(clip_geometry, z_func, transform_func)
-        d["polygons"] = geom.toList2()
+        polygons = []
+        for bnd in bnds:
+            geom = LineGeometry.fromQgsGeometry(bnd, None, transform_func, useZM=VectorGeometry.UseZ)
+            polygons.append(geom.toList())
+        d["polygons"] = polygons
         return d
 
     def processEdges(self, grid_values, roughness):

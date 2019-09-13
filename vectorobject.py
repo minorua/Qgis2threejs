@@ -410,7 +410,7 @@ class OverlayType(PolygonBasicTypeBase):
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         if vlayer.isHeightRelativeToDEM():
-            g = geom.toDict(flat=False)
+            g = geom.toDict(flat=True)
         else:
             g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
 

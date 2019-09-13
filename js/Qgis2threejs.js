@@ -1799,7 +1799,6 @@ Q3D.DEMBlock.prototype = {
       }
       geom.attributes.position.needsUpdate = true;
 
-      // Calculate normals
       if (layer.properties.shading) {
         geom.computeVertexNormals();
       }
@@ -1989,29 +1988,23 @@ Q3D.ClippedDEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
+    var geom = new THREE.BufferGeometry();
+    geom.addAttribute("position", new THREE.Float32BufferAttribute(obj.clip.triangles.v, 3));
+    geom.setIndex(obj.clip.triangles.f);
+    geom = new THREE.Geometry().fromBufferGeometry(geom);
+    Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
+
+    if (layer.properties.shading) {
+      geom.computeVertexNormals();
+    }
+
+    var mesh = new THREE.Mesh(geom, this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
 
-    var buildGeometry = function (grid_values) {
-      mesh.geometry = Q3D.Utils.createOverlayGeometry(obj.clip.triangles, [], layer.getZ.bind(layer));
-
-      // set UVs
-      Q3D.Utils.setGeometryUVs(mesh.geometry, layer.sceneData.width, layer.sceneData.height);
-
-      if (callback) callback(mesh);
-    };
-
-    if (grid.url !== undefined) {
-      Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
-        grid.array = new Float32Array(buf);
-        buildGeometry(grid.array);
-      });
-    }
-    else {    // WebKit Bridge
-      if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
-      buildGeometry(grid.array);
-    }
+    if (callback) window.setTimeout(function () {
+      callback(mesh);
+    }, 0);
 
     this.obj = mesh;
     return mesh;
@@ -2026,7 +2019,6 @@ Q3D.ClippedDEMBlock.prototype = {
 
     var polygons = this.data.clip.polygons,
         e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
-        zFunc = layer.getZ.bind(layer),
         bzFunc = function (x, y) { return e0; };
 
     // make back-side material for bottom
@@ -2040,7 +2032,7 @@ Q3D.ClippedDEMBlock.prototype = {
 
       // sides
       for (var j = 0, m = bnds.length; j < m; j++) {
-        vertices = layer.segmentizeLineString(bnds[j].reverse(), zFunc);    // vertex order is counter clockwise (when boundary is outer)
+        vertices = Q3D.Utils.arrayToVec3Array(bnds[j]);
         geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
         mesh = new THREE.Mesh(geom, material);
         mesh.name = "side";
@@ -2061,19 +2053,13 @@ Q3D.ClippedDEMBlock.prototype = {
     parent.updateMatrixWorld();
   },
 
+  // not implemented
   getValue: function (x, y) {
-    var grid = this.data.grid;
-    if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
     return null;
   },
 
+  // not implemented
   contains: function (x, y) {
-    var translate = this.data.translate,
-        xmin = translate[0] - this.data.width / 2,
-        xmax = translate[0] + this.data.width / 2,
-        ymin = translate[1] - this.data.height / 2,
-        ymax = translate[1] + this.data.height / 2;
-    if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
     return false;
   }
 
@@ -3003,7 +2989,9 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       var geom = new THREE.BufferGeometry();
       geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
-      return new THREE.Mesh(new THREE.Geometry().fromBufferGeometry(geom), materials.mtl(f.mtl));
+      geom = new THREE.Geometry().fromBufferGeometry(geom);
+      geom.computeVertexNormals();
+      return new THREE.Mesh(geom, materials.mtl(f.mtl));
 
       //TODO: [Polygon - Overlay] border
     };
@@ -3227,47 +3215,6 @@ Q3D.Utils.arrayToFace3Array = function (faces) {
     fs.push(new THREE.Face3(f[0], f[1], f[2]));
   }
   return fs;
-};
-
-Q3D.Utils.createOverlayGeometry = function (triangles, polygons, zFunc) {
-  polygons = polygons || [];
-
-  var geom = new THREE.Geometry();
-
-  // triangles
-  if (triangles !== undefined) {
-    geom.vertices = Q3D.Utils.arrayToVec3Array(triangles.v, zFunc);
-    geom.faces = Q3D.Utils.arrayToFace3Array(triangles.f);
-  }
-
-  // polygons
-  for (var i = 0, l = polygons.length; i < l; i++) {
-    var polygon = polygons[i];
-    var poly_geom = new THREE.Geometry(),
-        holes = [];
-
-    // make Vector3 arrays
-    poly_geom.vertices = Q3D.Utils.arrayToVec3Array(polygon[0], zFunc);
-    for (var j = 1, m = polygon.length; j < m; j++) {
-      holes.push(Q3D.Utils.arrayToVec3Array(polygon[j], zFunc));
-    }
-
-    // triangulate polygon
-    var faces = THREE.ShapeUtils.triangulateShape(poly_geom.vertices, holes);
-
-    // append points of holes to vertices
-    for (var j = 0, m = holes.length; j < m; j++) {
-      Array.prototype.push.apply(poly_geom.vertices, holes[j]);
-    }
-
-    // element of faces is [index1, index2, index3]
-    poly_geom.faces = Q3D.Utils.arrayToFace3Array(faces);
-
-    geom.merge(poly_geom);
-  }
-  geom.computeFaceNormals();
-  geom.computeVertexNormals();
-  return geom;
 };
 
 Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
