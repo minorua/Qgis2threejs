@@ -19,6 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import json
 import struct
 from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
@@ -26,7 +27,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import VectorGeometry, LineGeometry, PolygonGeometry, TINGeometry, GridGeometry, dissolvePolygonsOnCanvas
+from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsOnCanvas
 from .mapextent import MapExtent
 
 
@@ -162,8 +163,16 @@ class DEMBlockBuilder:
              "material": self.material()}
 
         if self.clip_geometry:
-            b["clip"] = self.clipped(self.clip_geometry)
+            geom = self.clipped(self.clip_geometry)
 
+            if self.settings.localMode or self.urlRoot is None:
+                b["geom"] = geom
+            else:
+                tail = "{0}.json".format(self.blockIndex)
+                with open(self.pathRoot + tail, "w", encoding="utf-8") as f:
+                    json.dump(geom, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None)
+
+                b["geom"] = {"url": self.urlRoot + tail}
         else:
             if self.edgeRougheness == 1:
                 ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
@@ -171,11 +180,6 @@ class DEMBlockBuilder:
                 grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
                 self.processEdges(grid_values, self.edgeRougheness)
                 ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
-
-            # write grid values to an external binary file
-            if self.pathRoot is not None:
-                with open(self.pathRoot + "{0}.bin".format(self.blockIndex), "wb") as f:
-                    f.write(ba)
 
             g = {"width": self.grid_size.width(),
                  "height": self.grid_size.height()}
@@ -185,7 +189,11 @@ class DEMBlockBuilder:
             elif self.urlRoot is None:
                 g["binary"] = QByteArray(ba)
             else:
-                g["url"] = self.urlRoot + "{0}.bin".format(self.blockIndex)
+                # write grid values to an binary file
+                tail = "{0}.bin".format(self.blockIndex)
+                with open(self.pathRoot + tail, "wb") as f:
+                    f.write(ba)
+                g["url"] = self.urlRoot + tail
 
             b["grid"] = g
 

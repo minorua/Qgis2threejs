@@ -1814,7 +1814,10 @@ Q3D.DEMBlock.prototype = {
     }
     else {    // WebKit Bridge
       if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
-      buildGeometry(grid.array);
+
+      window.setTimeout(function () {
+        buildGeometry(grid.array);
+      }, 0);
     }
 
     this.obj = mesh;
@@ -1977,9 +1980,8 @@ Q3D.ClippedDEMBlock.prototype = {
   constructor: Q3D.ClippedDEMBlock,
 
   loadJSONObject: function (obj, layer, callback) {
-    var _this = this,
-        grid = obj.grid;
     this.data = obj;
+    var _this = this;
 
     // load material
     this.material = new Q3D.Material();
@@ -1988,23 +1990,37 @@ Q3D.ClippedDEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    var geom = new THREE.BufferGeometry();
-    geom.addAttribute("position", new THREE.Float32BufferAttribute(obj.clip.triangles.v, 3));
-    geom.setIndex(obj.clip.triangles.f);
-    geom = new THREE.Geometry().fromBufferGeometry(geom);
-    Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
-
-    if (layer.properties.shading) {
-      geom.computeVertexNormals();
-    }
-
-    var mesh = new THREE.Mesh(geom, this.material.mtl);
+    var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
 
-    if (callback) window.setTimeout(function () {
-      callback(mesh);
-    }, 0);
+    var buildGeometry = function (obj) {
+      var geom = new THREE.BufferGeometry();
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(obj.triangles.v, 3));
+      geom.setIndex(obj.triangles.f);
+      geom = mesh.geometry.fromBufferGeometry(geom);
+      Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
+
+      if (layer.properties.shading) {
+        geom.computeVertexNormals();
+      }
+
+      geom.verticesNeedUpdate = geom.elementsNeedUpdate = geom.normalsNeedUpdate = geom.uvsNeedUpdate = true;
+
+      _this.data.polygons = obj.polygons;
+      if (callback) callback(mesh);
+    };
+
+    if (obj.geom.url !== undefined) {
+      Q3D.application.loadFile(obj.geom.url, "json", function (obj) {
+        buildGeometry(obj);
+      });
+    }
+    else {    // WebKit Bridge
+      window.setTimeout(function () {
+        buildGeometry(obj.geom);
+      }, 0);
+    }
 
     this.obj = mesh;
     return mesh;
@@ -2017,7 +2033,7 @@ Q3D.ClippedDEMBlock.prototype = {
                                                   transparent: (opacity < 1)});
     layer.materials.add(material);
 
-    var polygons = this.data.clip.polygons,
+    var polygons = this.data.polygons,
         e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
         bzFunc = function (x, y) { return e0; };
 
@@ -2204,7 +2220,7 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
   var _this = this;
 
   var index = jsonObject.block;
-  this.blocks[index] = (jsonObject.clip === undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
+  this.blocks[index] = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
   var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
 
