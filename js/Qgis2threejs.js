@@ -3007,9 +3007,20 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       geom.setIndex(f.geom.triangles.f);
       geom = new THREE.Geometry().fromBufferGeometry(geom);
       geom.computeVertexNormals();
-      return new THREE.Mesh(geom, materials.mtl(f.mtl));
+      var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
 
-      //TODO: [Polygon - Overlay] border
+      if (f.geom.brdr !== undefined) {
+        var bnds, i, l, j, m;
+        for (i = 0, l = f.geom.brdr.length; i < l; i++) {
+          bnds = f.geom.brdr[i];
+          for (j = 0, m = bnds.length; j < m; j++) {
+            geom = new THREE.Geometry();
+            geom.vertices = Q3D.Utils.arrayToVec3Array(bnds[j]);
+            mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
+          }
+        }
+      }
+      return mesh;
     };
   }
 

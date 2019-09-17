@@ -389,36 +389,36 @@ class OverlayType(PolygonBasicTypeBase):
     def setupWidgets(cls, ppage, mapTo3d, mapLayer):
         ppage.initStyleWidgets()
 
-        # TODO: [Polygon - Overlay] border
-        # opt = {"name": "Border color",
-        #        "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-        #        "defaultValue": ColorWidgetFunc.FEATURE}
-        # ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
+        opt = {"name": "Border color",
+               "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+               "defaultValue": OptionalColorWidgetFunc.NONE}
+        ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
 
     @classmethod
     def material(cls, settings, vlayer, feat):
         if feat.values[0] == ColorTextureWidgetFunc.MAP_CANVAS:
-            return vlayer.materialManager.getCanvasImageIndex(feat.values[1])
-
-        if isinstance(feat.values[0], list):   # LAYER
+            m = vlayer.materialManager.getCanvasImageIndex(feat.values[1])
+        elif isinstance(feat.values[0], list):   # LAYER
             size = settings.mapSettings.outputSize()
-            return vlayer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(),
-                                                             settings.baseExtent, feat.values[1])
+            m = vlayer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(),
+                                                          settings.baseExtent, feat.values[1])
+        else:
+            m = vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
+        mtl = {"face": m}
 
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
+        # border
+        if len(feat.values) > 2 and feat.values[2] is not None:
+            mtl["brdr"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
+        return mtl
+
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        if vlayer.isHeightRelativeToDEM():
-            g = geom.toDict(flat=True)
-        else:
-            g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
+        g = geom.toDict(flat=True)  # TINGeometry
 
-        g["h"] = feat.altitude * settings.mapTo3d().multiplierZ
-
-        # TODO: [Polygon - Overlay] border
-        # if feat.values[2] is not None:
-        #   g["mb"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
+        # border
+        if len(feat.values) > 2 and feat.values[2] is not None:
+            g["brdr"] = [bnds.toList() for bnds in geom.bnds_list]
 
         return g
 

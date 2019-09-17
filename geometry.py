@@ -207,7 +207,7 @@ class LineGeometry(VectorGeometry):
 
 class PolygonGeometry(VectorGeometry):
 
-    """No 3D support. Used with Extruded and Overlay (absolute)"""
+    """No z value support. Used with Extruded and Overlay (absolute)"""
 
     def __init__(self):
         self.polygons = []
@@ -257,6 +257,14 @@ class PolygonGeometry(VectorGeometry):
                 b.append([[pt.x, pt.y] for pt in boundary])
             p.append(b)
         return p
+
+    def toLineGeometryList(self):
+        lines = []
+        for poly in self.polygons:
+            line = LineGeometry()
+            line.lines = poly
+            lines.append(line)
+        return lines
 
     def toQgsGeometry(self, polygons=None):
         if polygons is None:

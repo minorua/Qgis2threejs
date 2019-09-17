@@ -76,23 +76,43 @@ class Feature:
             return TINGeometry.fromQgsGeometry(geom, z_func, transform_func,
                                                drop_z=(useZM == VectorGeometry.NotUseZM))
 
-        if grid:
-            # Overlay above DEM surface
-            if baseExtent.rotation():
-                geom.rotate(baseExtent.rotation(), baseExtent.center())
-                geom = grid.splitPolygon(geom)
-                geom.rotate(-baseExtent.rotation(), baseExtent.center())
-            else:
-                geom = grid.splitPolygon(geom)
-
-            z_func_cntr = lambda x, y: grid.valueOnSurface(x, y) + self.altitude
-
-            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func, z_func_cntr=z_func_cntr)
-
-        else:
+        if self.objectType == ObjectType.Extruded:
             return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func,
                                                    useCentroidHeight=True,
                                                    centroidPerPolygon=True)
+
+        # Overlay
+        border = bool(len(self.values) > 2 and self.values[2] is not None)
+        if grid is None:
+            # absolute z coordinate
+            g = TINGeometry.fromQgsGeometry(geom, z_func, transform_func, drop_z=True)
+            if border:
+                g.bnds_list = PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func).toLineGeometryList()
+            return g
+
+        # relative to DEM
+        if baseExtent.rotation():
+            geom.rotate(baseExtent.rotation(), baseExtent.center())
+
+            polys = grid.splitPolygon(geom)
+            polys.rotate(-baseExtent.rotation(), baseExtent.center())
+
+            if border:
+                bnds = grid.segmentizeBoundaries(geom)
+                bnds.rotate(-self.extent.rotation(), self.extent.center())
+        else:
+            polys = grid.splitPolygon(geom)
+            bnds = grid.segmentizeBoundaries(geom)
+
+        z_func_cntr = lambda x, y: grid.valueOnSurface(x, y) + self.altitude
+        g = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, z_func_cntr=z_func_cntr)
+
+        if border:
+            g.bnds_list = []
+            for bnd in bnds:
+                geom = LineGeometry.fromQgsGeometry(bnd, z_func, transform_func, useZM=VectorGeometry.UseZ)
+                g.bnds_list.append(geom)
+        return g
 
 
 class VectorLayer:
