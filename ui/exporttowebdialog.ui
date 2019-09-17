@@ -206,9 +206,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_Cancel">
+      <widget class="QPushButton" name="pushButton_Close">
        <property name="text">
-        <string>Cancel</string>
+        <string>Close</string>
        </property>
       </widget>
      </item>
@@ -222,9 +222,11 @@
   <tabstop>lineEdit_Filename</tabstop>
   <tabstop>comboBox_Template</tabstop>
   <tabstop>checkBox_PreserveViewpoint</tabstop>
+  <tabstop>checkBox_LocalMode</tabstop>
   <tabstop>lineEdit_MND</tabstop>
+  <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>
-  <tabstop>pushButton_Cancel</tabstop>
+  <tabstop>pushButton_Close</tabstop>
  </tabstops>
  <resources/>
  <connections/>

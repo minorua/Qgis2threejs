@@ -73,7 +73,7 @@ class ExportToWebDialog(QDialog):
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
         self.ui.pushButton_Export.clicked.connect(self.exportClicked)
-        self.ui.pushButton_Cancel.clicked.connect(self.close)
+        self.ui.pushButton_Close.clicked.connect(self.close)
 
     def templateChanged(self, index=None):
         # update settings widget visibility
@@ -142,7 +142,7 @@ class ExportToWebDialog(QDialog):
             QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
             return
 
-        self.ui.pushButton_Export.setEnabled(False)
+        self.setEnabled(False)
         self.progress(0)
 
         # export
