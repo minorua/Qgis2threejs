@@ -61,12 +61,24 @@ class VectorGeometry:
     UseM = 2
 
     @classmethod
-    def singleGeometriesXY(cls, geom):
+    def nestedPointXYList(cls, geom):
+        if geom.wkbType() == QgsWkbTypes.GeometryCollection:
+            pts = []
+            for g in geom.asGeometryCollection():
+                pts.extend(cls.nestedPointXYList(g))
+            return pts
+
         return []
 
     @classmethod
-    def singleGeometries(cls, geom):
+    def nestedPointList(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
+        if isinstance(geom, QgsGeometryCollection):
+            pts = []
+            for i in range(geom.numGeometries()):
+                pts.extend(cls.nestedPointXYList(geom.geometryN(i)))
+            return pts
+
         logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
         return []
 
@@ -94,11 +106,11 @@ class PointGeometry(VectorGeometry):
     def fromQgsGeometry(cls, geometry, z_func, transform_func, useZM=VectorGeometry.NotUseZM):
         geom = cls()
         if useZM == VectorGeometry.NotUseZM:
-            pts = cls.singleGeometriesXY(geometry)
+            pts = cls.nestedPointXYList(geometry)
             geom.pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in pts]
 
         else:
-            pts = cls.singleGeometries(geometry.constGet())
+            pts = cls.nestedPointList(geometry.constGet())
             if useZM == VectorGeometry.UseZ:
                 geom.pts = [transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in pts]
 
@@ -108,31 +120,23 @@ class PointGeometry(VectorGeometry):
         return geom
 
     @classmethod
-    def singleGeometriesXY(cls, geom):
+    def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        wt = geom.wkbType()
-        if wt == QgsWkbTypes.GeometryCollection:
-            geoms = []
-            for g in geom.asGeometryCollection():
-                geoms.extend(cls.singleGeometriesXY(g))
-            return geoms
-
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.Point:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.Point:
             return geom.asMultiPoint() if geom.isMultipart() else [geom.asPoint()]
 
-        return []
+        return super().nestedPointXYList(geom)
 
     @classmethod
-    def singleGeometries(cls, geom):
+    def nestedPointList(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
-
         if isinstance(geom, QgsPoint):
             return [geom]
 
         if isinstance(geom, QgsMultiPoint):
             return [geom.geometryN(i) for i in range(geom.numGeometries())]
 
-        return super().singleGeometries(geom)
+        return super().nestedPointList(geom)
 
 
 class LineGeometry(VectorGeometry):
@@ -164,11 +168,11 @@ class LineGeometry(VectorGeometry):
 
         geom = cls()
         if useZM == VectorGeometry.NotUseZM:
-            lines = cls.singleGeometriesXY(geometry)
+            lines = cls.nestedPointXYList(geometry)
             geom.lines = [[transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
         else:
-            lines = cls.singleGeometries(geometry.constGet())
+            lines = cls.nestedPointList(geometry.constGet())
             if useZM == VectorGeometry.UseZ:
                 geom.lines = [[transform_func(pt.x(), pt.y(), pt.z() + z_func(pt.x(), pt.y())) for pt in line] for line in lines]
 
@@ -178,31 +182,23 @@ class LineGeometry(VectorGeometry):
         return geom
 
     @classmethod
-    def singleGeometriesXY(cls, geom):
+    def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        wt = geom.wkbType()
-        if wt == QgsWkbTypes.GeometryCollection:
-            geoms = []
-            for g in geom.asGeometryCollection():
-                geoms.extend(cls.singleGeometriesXY(g))
-            return geoms
-
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.LineString:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.LineString:
             return geom.asMultiPolyline() if geom.isMultipart() else [geom.asPolyline()]
 
-        return []
+        return super().nestedPointXYList(geom)
 
     @classmethod
-    def singleGeometries(cls, geom):
+    def nestedPointList(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
-
         if isinstance(geom, QgsLineString):
             return [geom.points()]
 
         if isinstance(geom, QgsMultiLineString):
             return [geom.geometryN(i).points() for i in range(geom.numGeometries())]
 
-        return super().singleGeometries(geom)
+        return super().nestedPointList(geom)
 
 
 class PolygonGeometry(VectorGeometry):
@@ -289,7 +285,7 @@ class PolygonGeometry(VectorGeometry):
             centroidHeight = z_func(pt.x(), pt.y())
             geom.centroids.append(transform_func(pt.x(), pt.y(), centroidHeight))
 
-        for polygon in cls.singleGeometriesXY(geometry):
+        for polygon in cls.nestedPointXYList(geometry):
 
             if useCentroidHeight or centroidPerPolygon:
                 centroid = QgsGeometry.fromPolygonXY(polygon).centroid()
@@ -328,31 +324,23 @@ class PolygonGeometry(VectorGeometry):
         return geom
 
     @classmethod
-    def singleGeometriesXY(cls, geom):
+    def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        wt = geom.wkbType()
-        if wt == QgsWkbTypes.GeometryCollection:
-            geoms = []
-            for g in geom.asGeometryCollection():
-                geoms.extend(cls.singleGeometriesXY(g))
-            return geoms
-
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(wt)) == QgsWkbTypes.Polygon:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.Polygon:
             return geom.asMultiPolygon() if geom.isMultipart() else [geom.asPolygon()]
 
-        return []
+        return super().nestedPointXYList(geom)
 
     @classmethod
-    def singleGeometries(cls, geom):
+    def nestedPointList(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
-
         if isinstance(geom, QgsPolygon):
             return [geom]
 
         if isinstance(geom, QgsMultiPolygon):
             return [geom.geometryN(i) for i in range(geom.numGeometries())]
 
-        return super().singleGeometries(geom)
+        return super().nestedPointList(geom)
 
 
 class TINGeometry(PolygonGeometry):
@@ -438,7 +426,7 @@ class TINGeometry(PolygonGeometry):
         # triangulation
         tes = QgsTessellator(0, 0, False)
         addPolygon = tes.addPolygon
-        for poly in cls.singleGeometries(g): addPolygon(poly, 0)
+        for poly in cls.nestedPointList(g): addPolygon(poly, 0)
 
         data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
         # mp = tes.asMultiPolygon()     # not available
@@ -620,7 +608,7 @@ class GridGeometry:
                         if geom.contains(tri):
                             yield tris[i]
                         elif geom.intersects(tri):
-                            for poly in PolygonGeometry.singleGeometriesXY(geom.intersection(tri)):
+                            for poly in PolygonGeometry.nestedPointXYList(geom.intersection(tri)):
                                 if GeometryUtils.isClockwise(poly[0]):
                                     poly[0].reverse()         # to CCW
                                 yield poly
@@ -633,7 +621,7 @@ class GridGeometry:
         z_func = self.valueOnSurface
 
         polys = []
-        for polygon in PolygonGeometry.singleGeometriesXY(geom):
+        for polygon in PolygonGeometry.nestedPointXYList(geom):
             rings = QgsMultiLineString()
             for i, bnd in enumerate(polygon):
                 if GeometryUtils.isClockwise(bnd) ^ (i > 0):   # xor
