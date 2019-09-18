@@ -2666,6 +2666,10 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
   // each feature in this layer
   features.forEach(function (f) {
     var model = _this.models.get(f.model);
+    if (model === undefined) {
+      console.log("Model File: There is a missing model.");
+      return;
+    }
 
     f.objIndices = [];
     f.geom.pts.forEach(function (pt) {
