@@ -2085,6 +2085,7 @@ Q3D.ClippedDEMBlock.prototype = {
 Q3D.MapLayer
 */
 Q3D.MapLayer = function () {
+  this.properties = {};
   this.queryable = true;
 
   this.materials = new Q3D.Materials();
@@ -2203,8 +2204,13 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  var old_shading = this.properties.shading;
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
+    if (old_shading != jsonObject.properties.shading) {
+      this.geometryCache = null;
+    }
+
     if (jsonObject.data !== undefined) {
       jsonObject.data.forEach(function (obj) {
         this.buildBlock(obj, scene);
