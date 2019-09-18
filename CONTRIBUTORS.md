@@ -9,3 +9,4 @@ Many thanks to all the contributors!
 * Luca Casagrande https://github.com/lucacasagrande
 * Stefano Cudini https://github.com/stefanocudini
 * Steven Sabo https://github.com/DigDigDig
+* João Gaspar https://github.com/jonnyforestGIS
