@@ -58,26 +58,26 @@ class Feature:
         self.attributes = attrs
         self.labelHeight = labelHeight
 
-        self.material = -1
+        self.material = self.model = None
 
     def clipGeometry(self, clip_geom):
         # clip geometry
         self.geom = self.geom.intersection(clip_geom)
         return self.geom
 
-    def geometry(self, z0_func, transform_func, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
-        geom = self.geom
-        z_func = lambda x, y: z0_func(x, y) + self.altitude
+    def geometry(self, z_func, transform_func, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
+        geom, alt = (self.geom, self.altitude)
+        zf = lambda x, y: z_func(x, y) + alt
 
         if self.geomType != QgsWkbTypes.PolygonGeometry:
-            return GeomType2Class[self.geomType].fromQgsGeometry(geom, z_func, transform_func, useZM=useZM)
+            return GeomType2Class[self.geomType].fromQgsGeometry(geom, zf, transform_func, useZM=useZM)
 
         if self.objectType == ObjectType.Polygon:
-            return TINGeometry.fromQgsGeometry(geom, z_func, transform_func,
+            return TINGeometry.fromQgsGeometry(geom, zf, transform_func,
                                                drop_z=(useZM == VectorGeometry.NotUseZM))
 
         if self.objectType == ObjectType.Extruded:
-            return PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func,
+            return PolygonGeometry.fromQgsGeometry(geom, zf, transform_func,
                                                    useCentroidHeight=True,
                                                    centroidPerPolygon=True)
 
@@ -85,9 +85,9 @@ class Feature:
         border = bool(len(self.values) > 2 and self.values[2] is not None)
         if grid is None:
             # absolute z coordinate
-            g = TINGeometry.fromQgsGeometry(geom, z_func, transform_func, drop_z=True)
+            g = TINGeometry.fromQgsGeometry(geom, zf, transform_func, drop_z=True)
             if border:
-                g.bnds_list = PolygonGeometry.fromQgsGeometry(geom, z_func, transform_func).toLineGeometryList()
+                g.bnds_list = PolygonGeometry.fromQgsGeometry(geom, zf, transform_func).toLineGeometryList()
             return g
 
         # relative to DEM
@@ -104,13 +104,13 @@ class Feature:
             polys = grid.splitPolygon(geom)
             bnds = grid.segmentizeBoundaries(geom)
 
-        z_func_cntr = lambda x, y: grid.valueOnSurface(x, y) + self.altitude
-        g = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, z_func_cntr=z_func_cntr)
+        zf_cntr = lambda x, y: grid.valueOnSurface(x, y) + self.altitude
+        g = TINGeometry.fromQgsGeometry(polys, zf, transform_func, z_func_cntr=zf_cntr)
 
         if border:
             g.bnds_list = []
             for bnd in bnds:
-                geom = LineGeometry.fromQgsGeometry(bnd, z_func, transform_func, useZM=VectorGeometry.UseZ)
+                geom = LineGeometry.fromQgsGeometry(bnd, zf, transform_func, useZM=VectorGeometry.UseZ)
                 g.bnds_list.append(geom)
         return g
 
@@ -428,7 +428,7 @@ class VectorLayerBuilder(LayerBuilder):
     def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
         LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
 
-        self.materialManager = MaterialManager(settings.materialType())  # TODO: takes imageManager
+        self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
 
         self.geomType = self.layer.mapLayer.geometryType()
@@ -466,14 +466,11 @@ class VectorLayerBuilder(LayerBuilder):
         if vlayer.objectType != ObjectType.ModelFile:
             for feat in vlayer.features(request):
                 feat.material = vlayer.objectType.material(self.settings, vlayer, feat)
-                feat.model = None
                 self.features.append(feat)
-            data["materials"] = self.materialManager.buildAll(self.imageManager, self.pathRoot, self.urlRoot,
+            data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
                                                               base64=self.settings.base64)
-
         else:
             for feat in vlayer.features(request):
-                feat.material = None
                 feat.model = vlayer.objectType.model(self.settings, vlayer, feat)
                 self.features.append(feat)
             data["models"] = self.modelManager.build(self.pathRoot is not None)

@@ -199,9 +199,10 @@ class MaterialManager(DataManager):
 
     ERROR_COLOR = "0"
 
-    def __init__(self, basicType=MESH_LAMBERT):
+    def __init__(self, imageManager, basicType=MESH_LAMBERT):
         DataManager.__init__(self)
 
+        self.imageManager = imageManager
         self.basicMaterialType = basicType
 
     def _indexCol(self, type, color, opacity=1, doubleSide=False, opts=None):
@@ -249,7 +250,7 @@ class MaterialManager(DataManager):
         mtl = (self.SPRITE_IMAGE, None, opacity, False, (path_url, transp_background))
         return self._index(mtl)
 
-    def build(self, index, imageManager, filepath=None, url=None, base64=False):
+    def build(self, index, filepath=None, url=None, base64=False):
 
         mt, color, opacity, doubleSide, opts = self._list[index]
         transp_background = False
@@ -261,35 +262,35 @@ class MaterialManager(DataManager):
         if color is None:
             if mt == self.CANVAS_IMAGE:
                 transp_background = opts
-                imgIndex = imageManager.canvasImageIndex(transp_background)
+                imgIndex = self.imageManager.canvasImageIndex(transp_background)
             elif mt == self.MAP_IMAGE:
                 width, height, extent, transp_background = opts
-                imgIndex = imageManager.mapImageIndex(width, height, extent, transp_background)
+                imgIndex = self.imageManager.mapImageIndex(width, height, extent, transp_background)
             elif mt == self.LAYER_IMAGE:
                 layerids, width, height, extent, transp_background = opts
-                imgIndex = imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
+                imgIndex = self.imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
             elif mt == self.IMAGE_FILE:
                 imagepath, transp_background = opts
-                imgIndex = imageManager.imageIndex(imagepath)
+                imgIndex = self.imageManager.imageIndex(imagepath)
             elif mt == self.SPRITE_IMAGE:
                 path_url, transp_background = opts
                 if path_url.startswith("http:") or path_url.startswith("https:"):
                     url = path_url
                     filepath = None
                 else:
-                    imgIndex = imageManager.imageIndex(path_url)
+                    imgIndex = self.imageManager.imageIndex(path_url)
 
             if url is None:
                 if base64:
-                    m["image"] = {"base64": imageManager.base64image(imgIndex)}
+                    m["image"] = {"base64": self.imageManager.base64image(imgIndex)}
                 else:
-                    m["image"] = {"object": imageManager.image(imgIndex)}
+                    m["image"] = {"object": self.imageManager.image(imgIndex)}
             else:
                 m["image"] = {"url": url}
 
                 if filepath:
                     # write image to a file
-                    imageManager.write(imgIndex, filepath)
+                    self.imageManager.write(imgIndex, filepath)
         else:
             m["c"] = int(color, 16)
 
@@ -313,7 +314,7 @@ class MaterialManager(DataManager):
 
         return m
 
-    def buildAll(self, imageManager, pathRoot=None, urlRoot=None, base64=False):
+    def buildAll(self, pathRoot=None, urlRoot=None, base64=False):
         mList = []
         for i in range(len(self._list)):
             if pathRoot is None:
@@ -321,7 +322,7 @@ class MaterialManager(DataManager):
             else:
                 filepath = "{0}{1}.png".format(pathRoot, i)
                 url = "{0}{1}.png".format(urlRoot, i)
-            mList.append(self.build(i, imageManager, filepath, url, base64))
+            mList.append(self.build(i, filepath, url, base64))
         return mList
 
 

@@ -82,7 +82,7 @@ class DEMLayerBuilder(LayerBuilder):
                 clip_geometry = dissolvePolygonsOnCanvas(self.settings, clip_layer)
 
         # surroundings
-        surroundings = self.properties.get("checkBox_Surroundings", False)  # TODO: [GSIElevProvider] if prop.layerId else False
+        surroundings = self.properties.get("checkBox_Surroundings", False)
         roughening = self.properties["spinBox_Roughening"] if surroundings else 1
         size = self.properties["spinBox_Size"] if surroundings else 1
         size2 = size * size
@@ -129,8 +129,7 @@ class DEMBlockBuilder:
 
     def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
         self.settings = settings
-        self.imageManager = imageManager
-        self.materialManager = MaterialManager(settings.materialType())
+        self.materialManager = MaterialManager(imageManager, settings.materialType())
 
         self.layer = layer
         self.properties = layer.properties
@@ -238,7 +237,7 @@ class DEMBlockBuilder:
         # build material
         filepath = None if self.pathRoot is None else "{0}{1}.png".format(self.pathRoot, self.blockIndex)
         url = None if self.urlRoot is None else "{0}{1}.png".format(self.urlRoot, self.blockIndex)
-        return self.materialManager.build(mi, self.imageManager, filepath, url, self.settings.base64)
+        return self.materialManager.build(mi, filepath, url, self.settings.base64)
 
     def clipped(self, clip_geometry):
         transform_func = self.settings.mapTo3d().transformXY
