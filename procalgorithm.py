@@ -125,11 +125,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
         )
 
+        enum = ["Fit to Geometry", "Fixed Scale (based on map canvas)"]
         self.addAdvancedParameter(
             QgsProcessingParameterEnum(
                 self.SCALE,
                 self.tr("Scale Mode"),
-                ["Fit to Geometry", "Fixed Scale (based on map canvas)"]
+                enum,
+                defaultValue=enum[0]
             )
         )
 
