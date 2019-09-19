@@ -97,8 +97,7 @@ class Q3DWindow(QMainWindow):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # update layer list and set map settings
-        settings.updateLayerList()
+        # set map settings
         settings.setMapSettings(qgisIface.mapCanvas().mapSettings())
 
         self.qgisIface = qgisIface
@@ -241,7 +240,6 @@ class Q3DWindow(QMainWindow):
 
         settings = self.settings.clone()
         settings.loadSettingsFromFile(filename)
-        settings.updateLayerList()
         self.ui.treeView.updateLayersCheckState(settings)
 
         self.iface.requestExportSettingsUpdate(settings)

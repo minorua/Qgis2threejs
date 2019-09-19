@@ -49,7 +49,6 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
-        self.settings.updateLayerList()
 
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)
@@ -215,7 +214,6 @@ class BridgeExporterBase:
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
-        self.settings.updateLayerList()
 
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)

@@ -99,8 +99,11 @@ class Qgis2threejs:
             self.exportSettings.loadSettingsFromFile()   # load export settings from settings file for current project
             self.currentProjectPath = proj_path
 
-        elif self.exportSettings is None:
-            self.exportSettings = ExportSettings()
+        else:
+            if self.exportSettings is None:
+                self.exportSettings = ExportSettings()
+
+            self.exportSettings.updateLayerList()
 
         logMessage("Opening Qgis2threejs Exporter...", False)
         self.liveExporter = Q3DWindow(self.iface,

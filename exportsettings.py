@@ -170,6 +170,7 @@ class ExportSettings:
     def loadSettings(self, settings):
         self.data = settings
         self._mapTo3d = None
+        self.updateLayerList()
 
     def loadSettingsFromFile(self, filepath=None):
         """load settings from a JSON file"""
@@ -177,6 +178,7 @@ class ExportSettings:
         if filepath is None:
             filepath = settingsFilePath()   # get settings file path for current project
             if filepath is None:
+                self.updateLayerList()
                 return False
 
         try:
@@ -184,6 +186,7 @@ class ExportSettings:
                 settings = json.load(f)
         except Exception as e:
             logMessage("Failed to load export settings from file. Error: " + str(e))
+            self.updateLayerList()
             return False
 
         logMessage("Export settings loaded from file:" + filepath, False)
