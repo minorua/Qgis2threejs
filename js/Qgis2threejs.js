@@ -1791,6 +1791,7 @@ Q3D.DEMBlock.prototype = {
     var mesh = new THREE.Mesh(geom, this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
+    layer.addObject(mesh);
 
     var buildGeometry = function (grid_values) {
       var vertices = geom.attributes.position.array;
@@ -1814,10 +1815,7 @@ Q3D.DEMBlock.prototype = {
     }
     else {    // WebKit Bridge
       if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
-
-      window.setTimeout(function () {
-        buildGeometry(grid.array);
-      }, 0);
+      buildGeometry(grid.array);
     }
 
     this.obj = mesh;
@@ -1993,6 +1991,7 @@ Q3D.ClippedDEMBlock.prototype = {
     var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
+    layer.addObject(mesh);
 
     var buildGeometry = function (obj) {
       var geom = new THREE.BufferGeometry();
@@ -2017,9 +2016,7 @@ Q3D.ClippedDEMBlock.prototype = {
       });
     }
     else {    // WebKit Bridge
-      window.setTimeout(function () {
-        buildGeometry(obj.geom);
-      }, 0);
+      buildGeometry(obj.geom);
     }
 
     this.obj = mesh;
@@ -2227,8 +2224,7 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
 
   var index = jsonObject.block;
   this.blocks[index] = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
-
-  var mesh = this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
+  this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
 
     if (jsonObject.sides || jsonObject.frame) {
 
@@ -2262,7 +2258,6 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
     }
     _this.requestRender();
   });
-  this.addObject(mesh);
 };
 
 // calculate elevation at the coordinates (x, y) on triangle face
