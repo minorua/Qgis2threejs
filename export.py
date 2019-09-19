@@ -204,17 +204,14 @@ class ThreeJSExporter(ThreeJSBuilder):
 
 class BridgeExporterBase:
 
-    def __init__(self, settings):
-        self.settings = settings
-        self.controller = Q3DController(settings)
+    def __init__(self, settings=None):
+        self.settings = settings or ExportSettings()
+        self.controller = Q3DController(self.settings)
         self.exportMode = False
 
         self.page = Q3DWebPage()
-        self.iface = Q3DInterface(settings, self.page)
+        self.iface = Q3DInterface(self.settings, self.page)
         self.controller.connectToIface(self.iface)
-
-    def __del__(self):
-        self.page.deleteLater()
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
@@ -278,7 +275,7 @@ class ImageExporter(BridgeExporterBase):
 
 class ModelExporter(BridgeExporterBase):
 
-    def __init__(self, settings):
+    def __init__(self, settings=None):
         super().__init__(settings)
         self.exportMode = True
 

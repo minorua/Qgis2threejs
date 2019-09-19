@@ -10,30 +10,23 @@ the Free Software Foundation; either version 2 of the License, or
 """
 import sys
 import os
-import unittest
-from PyQt5.QtCore import Qt
-from PyQt5.QtNetwork import QNetworkDiskCache
+from qgis.testing import unittest
 
-import qgis
-from qgis.core import QgsApplication, QgsNetworkAccessManager
-from qgis.testing import start_app
+from Qgis2threejs import conf
 
 plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 def runTest(debug_mode=None):
     # python path setting
     plugins_dir = os.path.dirname(plugin_dir)
     sys.path.append(plugins_dir)
 
-    from Qgis2threejs import conf
-
     if debug_mode is not None:
         conf.DEBUG_MODE = debug_mode
     print("DEBUG_MODE is {}.".format(conf.DEBUG_MODE))
 
     # initialize output directory
-    from utilities import initOutputDir
+    from .utilities import initOutputDir
     initOutputDir()
 
     plugin_name = os.path.basename(plugin_dir)
@@ -43,6 +36,11 @@ def runTest(debug_mode=None):
 
 if __name__ == "__main__":
     import argparse
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtNetwork import QNetworkDiskCache
+    from qgis.core import QgsApplication, QgsNetworkAccessManager
+    from qgis.testing import start_app
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2],
                         help="debug mode (0: OFF, 1 or 2: ON)")

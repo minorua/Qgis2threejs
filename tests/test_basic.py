@@ -11,11 +11,9 @@ the Free Software Foundation; either version 2 of the License, or
 import importlib
 import os
 import sys
-from qgis.testing import start_app, unittest
+from qgis.testing import unittest
 
-from utilities import pluginPath
-
-QGISAPP = start_app()
+from .utilities import pluginPath
 
 
 class TestBasic(unittest.TestCase):

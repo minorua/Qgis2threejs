@@ -11,13 +11,11 @@ the Free Software Foundation; either version 2 of the License, or
 import os
 from PyQt5.QtCore import QSize
 from qgis.core import QgsRectangle
-from qgis.testing import start_app, unittest
+from qgis.testing import unittest
 
 #from Qgis2threejs.api import Exporter
 from Qgis2threejs.pluginmanager import pluginManager
-from utilities import dataPath, outputPath, loadProject
-
-QGISAPP = start_app()
+from .utilities import dataPath, outputPath, loadProject
 
 
 class TestPlugins(unittest.TestCase):

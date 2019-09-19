@@ -11,7 +11,7 @@ the Free Software Foundation; either version 2 of the License, or
 from PyQt5.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWebKitWidgets import QWebPage
-from qgis.testing import start_app, unittest
+from qgis.testing import unittest
 
 from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter
 from Qgis2threejs.mapextent import MapExtent
@@ -19,7 +19,6 @@ from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath,
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
-QGISAPP = start_app()
 
 
 class TestExport(unittest.TestCase):
@@ -33,8 +32,8 @@ class TestExport(unittest.TestCase):
 
         # extent
         MapExtent(mapSettings.extent().center(),
-                    mapSettings.extent().height(),
-                    mapSettings.extent().height(), 0).toMapSettings(mapSettings)
+                  mapSettings.extent().height(),
+                  mapSettings.extent().height(), 0).toMapSettings(mapSettings)
 
         # texture base size
         mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
