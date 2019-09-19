@@ -199,7 +199,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.settings.loadSettingsFromFile(settings_path or None)
         self.settings.updateLayerList()
 
-        if clayer not in self.settings.mapSettings.layers():
+        if cf_filter and clayer not in self.settings.mapSettings.layers():
             msg = self.tr('Coverage layer must be visible when "Current Feature Filter" option is checked.')
             feedback.reportError(msg, True)
             return False
