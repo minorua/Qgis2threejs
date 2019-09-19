@@ -1988,23 +1988,35 @@ Q3D.ClippedDEMBlock.prototype = {
     });
     layer.materials.add(this.material);
 
-    var mesh = new THREE.Mesh(new THREE.Geometry(), this.material.mtl);
+    var geom = new THREE.BufferGeometry(),
+        mesh = new THREE.Mesh(geom, this.material.mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
     layer.addObject(mesh);
 
     var buildGeometry = function (obj) {
-      var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(obj.triangles.v, 3));
+
+      var vertices = obj.triangles.v,
+          base_width = layer.sceneData.width,
+          base_height = layer.sceneData.height;
+      var normals = [], uvs = [];
+      for (var i = 0, l = vertices.length; i < l; i += 3) {
+        normals.push(0, 0, 1);
+        uvs.push(vertices[i] / base_width + 0.5, vertices[i + 1] / base_height + 0.5);
+      }
+
       geom.setIndex(obj.triangles.f);
-      geom = mesh.geometry.fromBufferGeometry(geom);
-      Q3D.Utils.setGeometryUVs(geom, layer.sceneData.width, layer.sceneData.height);
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      geom.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geom.addAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
 
       if (layer.properties.shading) {
         geom.computeVertexNormals();
       }
 
-      geom.verticesNeedUpdate = geom.elementsNeedUpdate = geom.normalsNeedUpdate = geom.uvsNeedUpdate = true;
+      geom.attributes.position.needsUpdate = true;
+      geom.attributes.normal.needsUpdate = true;
+      geom.attributes.uv.needsUpdate = true;
 
       _this.data.polygons = obj.polygons;
       if (callback) callback(mesh);
@@ -2738,13 +2750,13 @@ Q3D.LineLayer.prototype.build = function (features) {
   }
   else if (objType == "Line") {
     createObject = function (f, line) {
-      var pt, positions = [];
+      var pt, vertices = [];
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
-        positions.push(pt[0], pt[1], pt[2]);
+        vertices.push(pt[0], pt[1], pt[2]);
       }
       var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
       var obj = new THREE.Line(geom, materials.mtl(f.mtl));
       if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
@@ -2935,7 +2947,8 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Q3D.PolygonLayer.prototype.build = function (features) {
   var createObject,
-      materials = this.materials;
+      materials = this.materials,
+      sceneData = this.sceneData;
 
   if (this.properties.objType == this._lastObjType && this._createObject !== undefined) {
     createObject = this._createObject;
@@ -3007,11 +3020,22 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   }
   else if (this.properties.objType == "Overlay") {
     createObject = function (f) {
+
+      var vertices = f.geom.triangles.v,
+          base_width = sceneData.width,
+          base_height = sceneData.height,
+          uvs = [];
+
+      for (var i = 0, l = vertices.length; i < l; i += 3) {
+        uvs.push(vertices[i] / base_width + 0.5, vertices[i + 1] / base_height + 0.5);
+      }
+
       var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
-      geom = new THREE.Geometry().fromBufferGeometry(geom);
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      geom.addAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
       geom.computeVertexNormals();
+
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
 
       if (f.geom.brdr !== undefined) {
