@@ -196,13 +196,17 @@ class DEMBlockBuilder:
 
             b["grid"] = g
 
+        opacity = self.properties.get("spinBox_Opacity", 100) / 100
+
         # sides and bottom
-        if self.properties.get("checkBox_Sides", False):
-            b["sides"] = {"color": int(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), 16)}
+        if self.properties.get("checkBox_Sides"):
+            mi = self.materialManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
+            b["sides"] = {"mtl": self.materialManager.build(mi)}
 
         # frame
-        if self.properties.get("checkBox_Frame", False) and not self.properties.get("checkBox_Clip", False):
-            b["frame"] = True
+        if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
+            mi = self.materialManager.getBasicLineIndex(DEF_SETS.FRAME_COLOR, opacity)
+            b["frame"] = {"mtl": self.materialManager.build(mi)}
 
         return b
 

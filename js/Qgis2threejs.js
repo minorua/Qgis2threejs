@@ -43,7 +43,6 @@ Q3D.Config = {
       bottomZ: -1.5     // in the unit of world coordinates
     },
     frame: {
-      color: 0,
       bottomZ: -1.5
     }
   },
@@ -1822,13 +1821,7 @@ Q3D.DEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, parent, color, z0) {
-    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: color,
-                                                  opacity: opacity,
-                                                  transparent: (opacity < 1)});
-    layer.materials.add(material);
-
+  buildSides: function (layer, parent, material, z0) {
     var planeWidth = this.data.width,
         planeHeight = this.data.height,
         grid = this.data.grid,
@@ -1905,13 +1898,7 @@ Q3D.DEMBlock.prototype = {
     parent.updateMatrixWorld();
   },
 
-  buildFrame: function (layer, parent, z0) {
-    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
-    var material = new THREE.LineBasicMaterial({color: Q3D.Config.dem.frame.color,
-                                                opacity: opacity,
-                                                transparent: (opacity < 1)});
-    layer.materials.add(material);
-
+  buildFrame: function (layer, parent, material, z0) {
     var grid = this.data.grid,
         planeWidth = this.data.width,
         planeHeight = this.data.height;
@@ -2035,13 +2022,7 @@ Q3D.ClippedDEMBlock.prototype = {
     return mesh;
   },
 
-  buildSides: function (layer, parent, color, z0) {
-    var opacity = (this.material.origProp.o !== undefined) ? this.material.origProp.o : 1;
-    var material = new THREE.MeshLambertMaterial({color: color,
-                                                  opacity: opacity,
-                                                  transparent: (opacity < 1)});
-    layer.materials.add(material);
-
+  buildSides: function (layer, parent, material, z0) {
     var polygons = this.data.polygons,
         e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
         bzFunc = function (x, y) { return e0; };
@@ -2243,13 +2224,22 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
       _this.sideVisible = true;
 
       var buildSides = function () {
+        var material;
         // build sides and bottom
         if (jsonObject.sides) {
-          _this.blocks[index].buildSides(_this, m, jsonObject.sides.color, Q3D.Config.dem.side.bottomZ);
+          material = new Q3D.Material();
+          material.loadJSONObject(jsonObject.sides.mtl);
+          _this.materials.add(material);
+
+          _this.blocks[index].buildSides(_this, m, material.mtl, Q3D.Config.dem.side.bottomZ);
         }
         // build frame
         if (jsonObject.frame) {
-          _this.blocks[index].buildFrame(_this, m, Q3D.Config.dem.frame.bottomZ);
+          material = new Q3D.Material();
+          material.loadJSONObject(jsonObject.frame.mtl);
+          _this.materials.add(material);
+
+          _this.blocks[index].buildFrame(_this, m, material.mtl, Q3D.Config.dem.frame.bottomZ);
         }
         _this.requestRender();
       };
