@@ -1907,26 +1907,29 @@ Q3D.DEMBlock.prototype = {
     var hw = planeWidth / 2,
         hh = planeHeight / 2,
         e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0);
-    var geom = new THREE.Geometry();
-    geom.vertices.push(new THREE.Vector3(-hw, -hh, e0),
-                       new THREE.Vector3(hw, -hh, e0),
-                       new THREE.Vector3(hw, hh, e0),
-                       new THREE.Vector3(-hw, hh, e0),
-                       new THREE.Vector3(-hw, -hh, e0));
+    var v = [-hw, -hh, e0,
+              hw, -hh, e0,
+              hw,  hh, e0,
+             -hw,  hh, e0,
+             -hw, -hh, e0];
+
+    var geom = new THREE.BufferGeometry();
+    geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
     var obj = new THREE.Line(geom, material);
     obj.name = "frame";
     parent.add(obj);
 
     // vertical lines at corners
-    var pts = [[-hw, -hh, grid.array[grid.array.length - grid.width]],
-               [hw, -hh, grid.array[grid.array.length - 1]],
-               [hw, hh, grid.array[grid.width - 1]],
-               [-hw, hh, grid.array[0]]];
-    pts.forEach(function (pt) {
-      var geom = new THREE.Geometry();
-      geom.vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]),
-                         new THREE.Vector3(pt[0], pt[1], e0));
+    v = [[-hw, -hh, grid.array[grid.array.length - grid.width]],
+         [ hw, -hh, grid.array[grid.array.length - 1]],
+         [ hw,  hh, grid.array[grid.width - 1]],
+         [-hw,  hh, grid.array[0]]];
+
+    v.forEach(function (p) {
+      var geom = new THREE.BufferGeometry(),
+          vl = [p[0], p[1], p[2], p[0], p[1], e0];
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(vl, 3));
 
       var obj = new THREE.Line(geom, material);
       obj.name = "frame";
