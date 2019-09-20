@@ -74,7 +74,7 @@ Q3D.Config = {
   },
   allVisible: false,  // set every layer visible property to true on load if set to true
   debugMode: false,
-  exportMode: false
+  exportMode: false   // set to true in glTF export mode
 };
 
 // consts
@@ -2058,7 +2058,7 @@ Q3D.ClippedDEMBlock.prototype = {
       // sides
       for (var j = 0, m = bnds.length; j < m; j++) {
         vertices = Q3D.Utils.arrayToVec3Array(bnds[j]);
-        geom = Q3D.Utils.createWallGeometry(vertices, bzFunc);
+        geom = Q3D.Utils.createWallGeometry(vertices, bzFunc, true);
         mesh = new THREE.Mesh(geom, material);
         mesh.name = "side";
         parent.add(mesh);
@@ -2837,12 +2837,6 @@ Q3D.LineLayer.prototype.build = function (features) {
 
         // place a box to the segment
         geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
-
-        // mesh = new THREE.Mesh(geom, materials.mtl(f.mtl));
-        // mesh.position.set(ptM.x, ptM.y, ptM.z);
-        // mesh.rotation.set(rx, 0, rz, "ZXY");
-        // group.add(mesh);
-
         geom.applyMatrix(matrix);
         geometry.merge(geom);
 
@@ -2863,8 +2857,6 @@ Q3D.LineLayer.prototype.build = function (features) {
           geom = new THREE.Geometry();
           geom.vertices = vf4.concat(vb4);
           geom.faces = faces;
-          // geom.computeFaceNormals();
-          // group.add(new THREE.Mesh(geom));
           geometry.merge(geom);
         }
 
@@ -2879,10 +2871,9 @@ Q3D.LineLayer.prototype.build = function (features) {
         pt0.copy(pt1);
       }
 
-      // return group;
-
       geometry.mergeVertices();
       geometry.computeFaceNormals();
+      if (Q3D.Config.exportMode) geometry = new THREE.BufferGeometry().fromGeometry(geometry);
       return new THREE.Mesh(geometry, materials.mtl(f.mtl));
     };
   }
@@ -2958,8 +2949,10 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       var geom = new THREE.BufferGeometry();
       geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
-      geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
-                                                            // BufferGeometry and Lambert/Toon material.
+      if (!Q3D.Config.exportMode) {
+        geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
+                                                              // BufferGeometry and Lambert/Toon material.
+      }
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
@@ -3217,7 +3210,7 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
          ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
-Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
+Q3D.Utils.createWallGeometry = function (vertices, bzFunc, buffer_geom) {
   var geom = new THREE.Geometry(),
       pt = vertices[0];
   geom.vertices.push(
@@ -3235,6 +3228,10 @@ Q3D.Utils.createWallGeometry = function (vertices, bzFunc) {
       new THREE.Face3(i2 + 1, i2, i2 + 2));
   }
   geom.computeFaceNormals();
+
+  if (buffer_geom || Q3D.Config.exportMode) {
+    return new THREE.BufferGeometry().fromGeometry(geom);
+  }
   return geom;
 };
 
