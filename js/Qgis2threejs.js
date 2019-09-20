@@ -2861,6 +2861,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         pt0.copy(pt1);
       }
 
+      geometry.faceVertexUvs = [[]];
       geometry.mergeVertices();
       geometry.computeFaceNormals();
       if (Q3D.Config.exportMode) geometry = new THREE.BufferGeometry().fromGeometry(geometry);
