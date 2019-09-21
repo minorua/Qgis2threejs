@@ -418,7 +418,7 @@ class OverlayType(PolygonBasicTypeBase):
 
         # border
         if len(feat.values) > 2 and feat.values[2] is not None:
-            g["brdr"] = [bnds.toList() for bnds in geom.bnds_list]
+            g["brdr"] = [bnds.toList(flat_line=True) for bnds in geom.bnds_list]
 
         return g
 

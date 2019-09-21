@@ -3034,13 +3034,15 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
 
+      // borders
       if (f.geom.brdr !== undefined) {
         var bnds, i, l, j, m;
         for (i = 0, l = f.geom.brdr.length; i < l; i++) {
           bnds = f.geom.brdr[i];
           for (j = 0, m = bnds.length; j < m; j++) {
-            geom = new THREE.Geometry();
-            geom.vertices = Q3D.Utils.arrayToVec3Array(bnds[j]);
+            geom = new THREE.BufferGeometry(),
+            geom.addAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
+
             mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
           }
         }

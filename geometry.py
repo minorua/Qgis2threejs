@@ -144,8 +144,17 @@ class LineGeometry(VectorGeometry):
     def __init__(self):
         self.lines = []
 
-    def toList(self):
-        return [[[pt.x, pt.y, pt.z] for pt in line] for line in self.lines]
+    def toList(self, flat_line=False):
+        if flat_line:
+            a = []
+            for line in self.lines:
+                v = []
+                for pt in line:
+                    v.extend([pt.x, pt.y, pt.z])
+                a.append(v)
+            return a
+        else:
+            return [[[pt.x, pt.y, pt.z] for pt in line] for line in self.lines]
 
     def toList2(self):
         return [[[pt.x, pt.y] for pt in line] for line in self.lines]
