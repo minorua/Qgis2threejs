@@ -418,7 +418,7 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
                 "checkBox": self.widget.checkBox.isChecked()}
 
     def setValues(self, vals):
-        checked = vals["checkBox"]
+        checked = vals.get("checkBox", False)
         self.widget.checkBox.setChecked(checked)
         for w in self.connectedWidgets:
             w.setEnabled(checked)

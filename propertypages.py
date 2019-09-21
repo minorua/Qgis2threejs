@@ -449,7 +449,15 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         if properties:
             # restore object type selection
-            idx = self.comboBox_ObjectType.findData(properties.get("comboBox_ObjectType"))
+            objType = properties.get("comboBox_ObjectType")
+
+            # for backward compatibility
+            if objType == "Profile":
+                objType = "Wall"
+            elif objType == "Triangular Mesh":
+                objType = "Polygon"
+
+            idx = self.comboBox_ObjectType.findData(objType)
             if idx != -1:
                 self.comboBox_ObjectType.setCurrentIndex(idx)
 
