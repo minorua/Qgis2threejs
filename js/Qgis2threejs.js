@@ -2965,29 +2965,38 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       mesh.position.z = z;
 
       if (f.mtl.edge !== undefined) {
-        // edges
-        var edge, pt, pts, zFunc = function (x, y) { return 0; };
+        // edge
+        var edge, bnd, p, v,
+            h = f.geom.h,
+            mtl = materials.mtl(f.mtl.edge);
 
         for (i = 0, l = polygon.length; i < l; i++) {
-          pts = Q3D.Utils.arrayToVec3Array(polygon[i], zFunc);
+          bnd = polygon[i];
 
-          geom = new THREE.Geometry();
-          geom.vertices = pts;
+          v = [];
+          for (j = 0, m = bnd.length; j < m; j++) {
+            v.push(bnd[j][0], bnd[j][1], 0);
+          }
 
-          edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
+          geom = new THREE.BufferGeometry();
+          geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+          edge = new THREE.Line(geom, mtl);
           mesh.add(edge);
 
-          edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
-          edge.position.z = f.geom.h;
+          edge = new THREE.Line(geom, mtl);
+          edge.position.z = h;
           mesh.add(edge);
 
           // vertical lines
-          for (j = 0, m = geom.vertices.length - 1; j < m; j++) {
-            pt = pts[j];
+          for (j = 0, m = bnd.length - 1; j < m; j++) {
+            v = [bnd[j][0], bnd[j][1], 0,
+                 bnd[j][0], bnd[j][1], h];
 
-            geom = new THREE.Geometry();
-            geom.vertices.push(pt, new THREE.Vector3(pt.x, pt.y, pt.z + f.geom.h));
-            edge = new THREE.Line(geom, materials.mtl(f.mtl.edge));
+            geom = new THREE.BufferGeometry();
+            geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+            edge = new THREE.Line(geom, mtl);
             mesh.add(edge);
           }
         }
