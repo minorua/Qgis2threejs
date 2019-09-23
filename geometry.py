@@ -21,8 +21,8 @@
 from math import ceil, floor
 from qgis.core import (
     QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
-    QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject,
-    QgsTessellator, QgsVertexId, QgsWkbTypes)
+    QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
+    QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
 from .earcut import earcut
 
@@ -76,10 +76,22 @@ class VectorGeometry:
     def nestedPointList(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
         if isinstance(geom, QgsGeometryCollection):
-            pts = []
+            g = []
             for i in range(geom.numGeometries()):
-                pts.extend(cls.nestedPointXYList(geom.geometryN(i)))
-            return pts
+                g.extend(cls.nestedPointList(geom.geometryN(i)))
+            return g
+
+        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
+        return []
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+        if isinstance(geom, QgsGeometryCollection):
+            g = []
+            for i in range(geom.numGeometries()):
+                g.extend(cls.singleGeometries(geom.geometryN(i)))
+            return g
 
         logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
         return []
@@ -139,6 +151,17 @@ class PointGeometry(VectorGeometry):
             return [geom.geometryN(i) for i in range(geom.numGeometries())]
 
         return super().nestedPointList(geom)
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+        if isinstance(geom, QgsPoint):
+            return [geom]
+
+        if isinstance(geom, QgsMultiPoint):
+            return [geom.geometryN(i) for i in range(geom.numGeometries())]
+
+        return super().singleGeometries(geom)
 
 
 class LineGeometry(VectorGeometry):
@@ -210,6 +233,17 @@ class LineGeometry(VectorGeometry):
             return [geom.geometryN(i).points() for i in range(geom.numGeometries())]
 
         return super().nestedPointList(geom)
+
+    @classmethod
+    def singleGeometries(cls, geom):
+        """geom: a subclass object of QgsAbstractGeometry"""
+        if isinstance(geom, QgsLineString):
+            return [geom]
+
+        if isinstance(geom, QgsMultiLineString):
+            return [geom.geometryN(i) for i in range(geom.numGeometries())]
+
+        return super().singleGeometries(geom)
 
 
 class PolygonGeometry(VectorGeometry):
@@ -344,6 +378,11 @@ class PolygonGeometry(VectorGeometry):
 
     @classmethod
     def nestedPointList(cls, geom):
+        logMessage("PolygonGeometry.nestedPointList(): Not implemented yet")
+        return super().nestedPointList(geom)
+
+    @classmethod
+    def singleGeometries(cls, geom):
         """geom: a subclass object of QgsAbstractGeometry"""
         if isinstance(geom, QgsPolygon):
             return [geom]
@@ -351,7 +390,7 @@ class PolygonGeometry(VectorGeometry):
         if isinstance(geom, QgsMultiPolygon):
             return [geom.geometryN(i) for i in range(geom.numGeometries())]
 
-        return super().nestedPointList(geom)
+        return super().singleGeometries(geom)
 
 
 class TINGeometry(PolygonGeometry):
@@ -455,7 +494,7 @@ class TINGeometry(PolygonGeometry):
         else:
             tes = QgsTessellator(0, 0, False)
             addPolygon = tes.addPolygon
-            for poly in cls.nestedPointList(g): addPolygon(poly, 0)
+            for poly in cls.singleGeometries(g): addPolygon(poly, 0)
 
             # mp = tes.asMultiPolygon()     # not available
             data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
