@@ -24,6 +24,8 @@ from qgis.core import (
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsProject,
     QgsTessellator, QgsVertexId, QgsWkbTypes)
 
+from .earcut import earcut
+
 from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
 
@@ -408,7 +410,7 @@ class TINGeometry(PolygonGeometry):
 
     @classmethod
     def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, z_func_cntr=None,
-                        drop_z=False, ccw2d=False, use_z_func_cache=False):
+                             drop_z=False, ccw2d=False, use_z_func_cache=False, use_earcut=False):
         geom = cls()
 
         if z_func:
@@ -432,21 +434,32 @@ class TINGeometry(PolygonGeometry):
             pt = geometry.centroid().asPoint()
             geom.centroids.append(transform_func(pt.x(), pt.y(), z_func_cntr(pt.x(), pt.y())))
 
-        # triangulation
-        tes = QgsTessellator(0, 0, False)
-        addPolygon = tes.addPolygon
-        for poly in cls.nestedPointList(g): addPolygon(poly, 0)
-
-        data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
-        # mp = tes.asMultiPolygon()     # not available
-
-        # transform vertices
+        # vertex transform function
         if drop_z:
             v_func = lambda x, y, z: transform_func(x, y, z_func(x, y))
         else:
             v_func = lambda x, y, z: transform_func(x, y, z + z_func(x, y))
 
-        vertices = [v_func(x, -my, z) for x, z, my in [data[i:i + 3] for i in range(0, len(data), 3)]]
+        # triangulation
+        if use_earcut:
+            vertices = []
+            for poly in cls.nestedPointXYList(geometry):
+                if len(poly) == 1 and len(poly[0]) == 4:
+                    vertices.extend([v_func(pt.x(), pt.y(), 0) for pt in poly[0][0:3]])
+                else:
+                    bnds = [[[pt.x(), pt.y()] for pt in bnd] for bnd in poly]
+                    data = earcut.flatten(bnds)
+                    v = data["vertices"]
+                    triangles = earcut.earcut(v, data["holes"], data["dimensions"])
+                    vertices.extend([v_func(v[2 * i], v[2 * i + 1], 0) for i in triangles])
+        else:
+            tes = QgsTessellator(0, 0, False)
+            addPolygon = tes.addPolygon
+            for poly in cls.nestedPointList(g): addPolygon(poly, 0)
+
+            # mp = tes.asMultiPolygon()     # not available
+            data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
+            vertices = [v_func(x, -my, z) for x, z, my in [data[i:i + 3] for i in range(0, len(data), 3)]]
 
         if ccw2d:
             # orient triangles to counter-clockwise order
@@ -578,12 +591,17 @@ class GridGeometry:
     def splitPolygonXY(self, geom):
         return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
 
-    def splitPolygon(self, geom):
+    def splitPolygon(self, geom, no_z=False):
+        if no_z:
+            z_func = lambda x, y: 0
+        else:
+            z_func = lambda x, y: self.valueOnSurface(x, y) or 0
+
         polygons = QgsMultiPolygon()
         for poly in self._splitPolygon(geom):
             bnd = QgsLineString()
             for pt in poly[0]:
-                bnd.addVertex(QgsPoint(pt.x(), pt.y(), self.valueOnSurface(pt.x(), pt.y()) or 0))
+                bnd.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
 
             p = QgsPolygon()
             p.setExteriorRing(bnd)
