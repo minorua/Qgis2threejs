@@ -448,8 +448,8 @@ class TINGeometry(PolygonGeometry):
         return d
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, z_func_cntr=None,
-                             drop_z=False, ccw2d=False, use_z_func_cache=False, use_earcut=False):
+    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False,
+                             ccw2d=False, use_z_func_cache=False, use_earcut=False):
         geom = cls()
 
         if z_func:
@@ -466,12 +466,14 @@ class TINGeometry(PolygonGeometry):
             g = geometry.constGet()
 
         if centroid:
-            if z_func_cntr is None:
+            if drop_z:
+                zf = z_func
+            else:
                 # use z coordinate of first vertex (until QgsAbstractGeometry supports z coordinate of centroid)
-                z_func_cntr = lambda x, y: g.vertexAt(QgsVertexId(0, 0, 0)).z()
+                zf = lambda x, y: g.vertexAt(QgsVertexId(0, 0, 0)).z() + z_func(pt.x(), pt.y())
 
             pt = geometry.centroid().asPoint()
-            geom.centroids.append(transform_func(pt.x(), pt.y(), z_func_cntr(pt.x(), pt.y())))
+            geom.centroids.append(transform_func(pt.x(), pt.y(), zf(pt.x(), pt.y())))
 
         # vertex transform function
         if drop_z:

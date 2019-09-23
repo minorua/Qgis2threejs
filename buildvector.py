@@ -105,7 +105,7 @@ class Feature:
             bnds = grid.segmentizeBoundaries(geom)
 
         zfg = lambda x, y: grid.valueOnSurface(x, y) + alt
-        g = TINGeometry.fromQgsGeometry(polys, zfg, transform_func, z_func_cntr=zfg, drop_z=True,
+        g = TINGeometry.fromQgsGeometry(polys, zfg, transform_func, drop_z=True,
                                         ccw2d=False, use_z_func_cache=True, use_earcut=True)
 
         if border:
