@@ -489,7 +489,7 @@ class ModelFileType(PointTypeBase):
              "rotateZ": rz,
              "scale": feat.values[1] * settings.mapTo3d().multiplier}
 
-        if feat.values[5] != "XYZ":
+        if len(feat.values) > 5 and feat.values[5] != "XYZ":    # added in 2.4
             d["rotateO"] = feat.values[5]
         return d
 
