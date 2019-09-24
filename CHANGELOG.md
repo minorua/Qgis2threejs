@@ -1,5 +1,21 @@
 ## CHANGELOG
 
+### Version 2.4
+- Build data to load into preview in background
+- Added preserve current viewpoint option to web export
+- Added side color option to DEM
+- Added rotation order option to Model File
+- Triangulate polygons using QgsTessellator for Polygon
+- Triangulate polygons using earcut for Overlay
+- Restored Overlay border option
+- Fixed dat-gui panel for mobile device
+- Renamed scene block size (width) option to base width
+- Renamed Extruded border color option to edge color
+- Renamed Profile type to Wall
+- Renamed Triangular Mesh type to Polygon
+- Updated three.js library to r108
+- Bumped QGIS minimum version to 3.4
+
 ### Version 2.3.1
 - Do not import Qt module from PyQt5.Qt (fix #162 and #134)
 - Fixed initial camera target position (fix #163)

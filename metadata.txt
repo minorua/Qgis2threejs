@@ -13,8 +13,8 @@ name=Qgis2threejs
 qgisMinimumVersion=3.4
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
-about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and view them in web view of exporter. If you want to share them in web, you can generate files to publish them to web in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.3.1
+about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
+version=2.4
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,19 +24,21 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 2.3.1
-    - Do not import Qt module from PyQt5.Qt (fix #162 and #134)
-    - Fixed initial camera target position (fix #163)
-
-    Version 2.3
-    - Added export algorithms for Processing
-    - Added automatic z shift adjustment option
-    - Added Point type for point layer
-    - Fixed clipped DEM side building (fix #159)
-    - Fixed Overlay building
-    - Fixed model file load with Mobile template
-    - Fixed crash when continuously zooming map canvas with the exporter window open
-    - API and offscreen rendering
+    Version 2.4
+    - Build data to load into preview in background
+    - Added preserve current viewpoint option to web export
+    - Added side color option to DEM
+    - Added rotation order option to Model File
+    - Triangulate polygons using QgsTessellator for Polygon
+    - Triangulate polygons using earcut for Overlay
+    - Restored Overlay border option
+    - Fixed dat-gui panel for mobile device
+    - Renamed scene block size (width) option to base width
+    - Renamed Extruded border color option to edge color
+    - Renamed Profile type to Wall
+    - Renamed Triangular Mesh type to Polygon
+    - Updated three.js library to r108
+    - Bumped QGIS minimum version to 3.4
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,three.js,web,WebGL,glTF,AR

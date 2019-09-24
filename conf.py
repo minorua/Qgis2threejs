@@ -19,7 +19,7 @@
 """
 
 # general
-PLUGIN_VERSION = "2.3.1"
+PLUGIN_VERSION = "2.4"
 
 # DEBUG_MODE
 #  0. no debug info
