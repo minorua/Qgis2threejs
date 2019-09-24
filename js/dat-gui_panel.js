@@ -100,9 +100,7 @@ Q3D.gui = {
   // add commands folder for touch screen devices
   addCommandsFolder: function () {
     var folder = this.gui.addFolder('Commands');
-    if (Q3D.Controls.type == "OrbitControls") {
-      folder.add(this.parameters.cmd, 'rot').name('Rotate Animation').onChange(Q3D.application.setWireframeMode);
-    }
+    folder.add(this.parameters.cmd, 'rot').name('Rotate Animation').onChange(Q3D.application.setRotateAnimationMode);
     folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode);
   },
 
