@@ -5,7 +5,7 @@ Examples
 
    <!--### Features in Development-->
 
-* **Mt. Fuji**: Shaded relief map made with SRTM data
+* **Mt. Fuji**: Shaded relief map made with SRTM3 data
 
   |image - Mt. Fuji|
 
