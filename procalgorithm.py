@@ -274,7 +274,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             else:
                 geometry.rotate(rotation, center)
                 rect = geometry.boundingBox().scaled(1 + buf / 100)
-                center = MapExtent.rotatePoint(rect.center(), rotation, center)
+                center = MapExtent.rotateQgsPoint(rect.center(), rotation, center)
                 if orig_tex_height:
                     tex_height = orig_tex_height
                     tex_ratio = tex_width / tex_height

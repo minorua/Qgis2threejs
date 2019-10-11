@@ -25,7 +25,7 @@ from math import floor
 from osgeo import gdal
 from PyQt5.QtCore import QSize
 
-from .geometry import Point, GridGeometry
+from .geometry import GridGeometry
 from .mapextent import MapExtent
 from .qgis2threejstools import logMessage
 
@@ -49,19 +49,16 @@ class MapTo3D:
         self.multiplierZ = self.multiplier * verticalExaggeration
 
     def transform(self, x, y, z=0):
-        n = self.mapExtent.normalizePoint(x, y)
-        return Point((n.x() - 0.5) * self.planeWidth,
-                     (n.y() - 0.5) * self.planeHeight,
-                     (z + self.verticalShift) * self.multiplierZ)
-
-    def transformPoint(self, pt):
-        return self.transform(pt.x, pt.y, pt.z)
+        x, y = self.mapExtent.normalizePoint(x, y)
+        return [(x - 0.5) * self.planeWidth,
+                (y - 0.5) * self.planeHeight,
+                (z + self.verticalShift) * self.multiplierZ]
 
     def transformXY(self, x, y, z=0):
-        n = self.mapExtent.normalizePoint(x, y)
-        return Point((n.x() - 0.5) * self.planeWidth,
-                     (n.y() - 0.5) * self.planeHeight,
-                     z)
+        x, y = self.mapExtent.normalizePoint(x, y)
+        return [(x - 0.5) * self.planeWidth,
+                (y - 0.5) * self.planeHeight,
+                z]
 
 
 class GDALDEMProvider:

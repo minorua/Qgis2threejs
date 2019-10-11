@@ -323,8 +323,8 @@ class PolygonBasicTypeBase(PolygonTypeBase):
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
-        return {"polygons": [[[[pt.x, pt.y] for pt in bnd] for bnd in poly] for poly in geom.polygons],
-                "centroids": [[pt.x, pt.y, pt.z] for pt in geom.centroids]}
+        return {"polygons": geom.toList2(),
+                "centroids": geom.centroids}
 
 
 class PolygonType(PolygonBasicTypeBase):
@@ -418,7 +418,7 @@ class OverlayType(PolygonBasicTypeBase):
 
         # border
         if len(feat.values) > 2 and feat.values[2] is not None:
-            g["brdr"] = [bnds.toList(flat_line=True) for bnds in geom.bnds_list]
+            g["brdr"] = [bnds.toList(flat=True) for bnds in geom.bnds_list]
 
         return g
 

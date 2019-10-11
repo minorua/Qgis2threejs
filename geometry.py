@@ -30,32 +30,6 @@ from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
 
 
-class Point:
-
-    def __init__(self, x, y, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __eq__(self, other):
-        return self.x == other.x and self.y == other.y and self.z == other.z
-
-    def __ne__(self, other):
-        return self.x != other.x or self.y != other.y or self.z != other.z
-
-
-def pointToQgsPoint(point):
-    return QgsPointXY(point.x, point.y)
-
-
-def lineToQgsPolyline(line):
-    return [pointToQgsPoint(pt) for pt in line]
-
-
-def polygonToQgsPolygon(polygon):
-    return [lineToQgsPolyline(line) for line in polygon]
-
-
 class VectorGeometry:
 
     NotUseZM = 0
@@ -103,16 +77,20 @@ class PointGeometry(VectorGeometry):
         self.pts = []
 
     def toList(self):
-        return [[pt.x, pt.y, pt.z] for pt in self.pts]
+        return self.pts
+
+    def toList2(self):
+        return [[x, y] for x, y, z in self.pts]
 
     def toQgsGeometry(self):
         count = len(self.pts)
         if count > 1:
-            pts = [pointToQgsPoint(pt) for pt in self.pts]
+            pts = [QgsPoint(x, y) for x, y, z in self.pts]
             return QgsGeometry.fromMultiPointXY(pts)
 
         if count == 1:
-            return QgsGeometry.fromPointXY(pointToQgsPoint(self.pts[0]))
+            x, y, z = self.pts[0]
+            return QgsGeometry.fromPointXY(QgsPoint(x, y))
 
         return QgsGeometry()
 
@@ -169,29 +147,30 @@ class LineGeometry(VectorGeometry):
     def __init__(self):
         self.lines = []
 
-    def toList(self, flat_line=False):
-        if flat_line:
+    def toList(self, flat=False):
+        if flat:
             a = []
             for line in self.lines:
                 v = []
                 for pt in line:
-                    v.extend([pt.x, pt.y, pt.z])
+                    v.extend(pt)
                 a.append(v)
             return a
         else:
-            return [[[pt.x, pt.y, pt.z] for pt in line] for line in self.lines]
+            return self.lines
 
     def toList2(self):
-        return [[[pt.x, pt.y] for pt in line] for line in self.lines]
+        return [[[x, y] for x, y, z in line] for line in self.lines]
 
     def toQgsGeometry(self):
         count = len(self.lines)
         if count > 1:
-            lines = [lineToQgsPolyline(line) for line in self.lines]
+            lines = [[QgsPointXY(x, y) for x, y, z in line] for line in self.lines]
             return QgsGeometry.fromMultiPolylineXY(lines)
 
         if count == 1:
-            return QgsGeometry.fromPolylineXY(lineToQgsPolyline(self.lines[0]))
+            pts = [QgsPointXY(x, y) for x, y, z in self.lines[0]]
+            return QgsGeometry.fromPolylineXY(pts)
 
         return QgsGeometry()
 
@@ -254,50 +233,27 @@ class PolygonGeometry(VectorGeometry):
         self.polygons = []
         self.centroids = []
 
+    # OBSOLETE
     def splitPolygon(self, grid, z_func):
         """split polygon by triangular grid"""
         split_polygons = []
         for polygon in grid.splitPolygonA(self.toQgsGeometry()):
-            boundaries = []
-            # outer boundary
-            points = [Point(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in polygon[0]]
-            if not GeometryUtils.isClockwise(points):
-                points.reverse()    # to clockwise
-            boundaries.append(points)
+            bnds = []
+            for i, bnd in enumerate(polygon):
+                pts = [[pt.x(), pt.y(), z_func(pt.x(), pt.y())] for pt in bnd]
+                if GeometryUtils.isClockwise(pts) ^ i == 0:
+                    pts.reverse()    # outer boundary to clockwise and inner boundaries to counter-clockwise
+                bnds.append(pts)
 
-            # inner boundaries
-            for boundary in polygon[1:]:
-                points = [Point(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in boundary]
-                if GeometryUtils.isClockwise(points):
-                    points.reverse()    # to counter-clockwise
-                boundaries.append(points)
-
-            split_polygons.append(boundaries)
+            split_polygons.append(bnds)
 
         return self.toQgsGeometry(split_polygons)
 
     def toList(self):
-        p = []
-        for boundaries in self.polygons:
-            # outer boundary
-            pts = [[pt.x, pt.y, pt.z] for pt in boundaries[0]]
-            b = [pts]
-
-            # inner boundaries
-            for boundary in boundaries[1:]:
-                pts = [[pt.x, pt.y, pt.z] for pt in boundary]
-                b.append(pts)
-            p.append(b)
-        return p
+        return self.polygons
 
     def toList2(self):
-        p = []
-        for boundaries in self.polygons:
-            b = []
-            for boundary in boundaries:
-                b.append([[pt.x, pt.y] for pt in boundary])
-            p.append(b)
-        return p
+        return [[[[x, y] for x, y, z in bnd] for bnd in poly] for poly in self.polygons]
 
     def toLineGeometryList(self):
         lines = []
@@ -312,11 +268,12 @@ class PolygonGeometry(VectorGeometry):
             polygons = self.polygons
         count = len(polygons)
         if count > 1:
-            polys = [polygonToQgsPolygon(poly) for poly in polygons]
+            polys = [[[QgsPointXY(x, y) for x, y, z in bnd] for bnd in poly] for poly in polygons]
             return QgsGeometry.fromMultiPolygonXY(polys)
 
         if count == 1:
-            return QgsGeometry.fromPolygonXY(polygonToQgsPolygon(polygons[0]))
+            poly = [[QgsPointXY(x, y) for x, y, z in bnd] for bnd in polygons[0]]
+            return QgsGeometry.fromPolygonXY(poly)
 
         return QgsGeometry()
 
@@ -347,24 +304,14 @@ class PolygonGeometry(VectorGeometry):
                 if useCentroidHeight:
                     z_func = (lambda x, y: centroidHeight)
 
-            boundaries = []
-            # outer boundary
-            points = []
-            for pt in polygon[0]:
-                points.append(transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+            bnds = []
+            for i, bnd in enumerate(polygon):
+                pts = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in bnd]
+                if GeometryUtils.isClockwise(pts) ^ i == 0:
+                    pts.reverse()    # outer boundary to clockwise and inner boundaries to counter-clockwise
+                bnds.append(pts)
 
-            if not GeometryUtils.isClockwise(points):
-                points.reverse()    # to clockwise
-            boundaries.append(points)
-
-            # inner boundaries
-            for boundary in polygon[1:]:
-                points = [transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y())) for pt in boundary]
-                if GeometryUtils.isClockwise(points):
-                    points.reverse()    # to counter-clockwise
-                boundaries.append(points)
-
-            geom.polygons.append(boundaries)
+            geom.polygons.append(bnds)
 
         return geom
 
@@ -409,19 +356,19 @@ class TINGeometry(PolygonGeometry):
         if flat:
             v = []
             for pt in tris.vertices:
-                v.extend([pt.x, pt.y, pt.z])
+                v.extend(pt)
 
             f = []
             for c in tris.faces:
                 f.extend(c)
 
         else:
-            v = [[pt.x, pt.y, pt.z] for pt in tris.vertices]
+            v = tris.vertices
             f = tris.faces
 
         d = {"triangles": {"v": v, "f": f}}
         if self.centroids:
-            d["centroids"] = [[pt.x, pt.y, pt.z if pt.z == pt.z else 0] for pt in self.centroids]
+            d["centroids"] = [[x, y, z if z == z else 0] for x, y, z in self.centroids]
         return d
 
     def toDict2(self, flat=False):
@@ -432,19 +379,19 @@ class TINGeometry(PolygonGeometry):
         if flat:
             v = []
             for pt in tris.vertices:
-                v.extend([pt.x, pt.y])
+                v.extend(pt)
 
             f = []
             for c in tris.faces:
                 f.extend(c)
 
         else:
-            v = [[pt.x, pt.y] for pt in tris.vertices]
+            v = tris.vertices
             f = tris.faces
 
-        d = {"triangles": {"v": v,"f": f}}
+        d = {"triangles": {"v": v, "f": f}}
         if self.centroids:
-            d["centroids"] = [[pt.x, pt.y] for pt in self.centroids]
+            d["centroids"] = [[x, y] for x, y, z in self.centroids]
         return d
 
     @classmethod
@@ -544,7 +491,7 @@ class GeometryUtils:
         """Calculates signed area of polygon."""
         area = 0
         for i in range(len(p) - 1):
-            area += (p[i].x - p[i + 1].x) * (p[i].y + p[i + 1].y)
+            area += (p[i][0] - p[i + 1][0]) * (p[i][1] + p[i + 1][1])
         return area / 2
 
     @staticmethod
@@ -558,10 +505,10 @@ class GeometryUtils:
     @staticmethod
     def isClockwise(linearRing):
         """Returns whether given linear ring is clockwise."""
-        if isinstance(linearRing[0], Point):
-            return GeometryUtils._signedArea(linearRing) < 0
-        else:
+        if hasattr(linearRing[0], "x"):
             return GeometryUtils._signedAreaA(linearRing) < 0
+        else:
+            return GeometryUtils._signedArea(linearRing) < 0
 
 
 class GridGeometry:
@@ -736,12 +683,12 @@ class GridGeometry:
         return self.values[x + y * (self.x_segments + 1)]
 
     def valueOnSurface(self, x, y):
-        pt = self.extent.normalizePoint(x, y)       # bottom-left corner is (0, 0), top-right is (1. 1)
-        if pt.x() < 0 or 1 < pt.x() or pt.y() < 0 or 1 < pt.y():
+        x, y = self.extent.normalizePoint(x, y)       # bottom-left corner is (0, 0), top-right is (1. 1)
+        if x < 0 or 1 < x or y < 0 or 1 < y:
             return None
 
-        mx = pt.x() * self.x_segments
-        my = (1 - pt.y()) * self.y_segments     # inverted. top is 0.
+        mx = x * self.x_segments
+        my = (1 - y) * self.y_segments     # inverted. top is 0.
         mx0 = floor(mx)
         my0 = floor(my)
         sdx = mx - mx0
@@ -781,15 +728,15 @@ class IndexedTriangles2D:
         self.faces.append([vi1, vi2, vi3])
 
     def _vertexIndex(self, v):
-        vi = self.vidx.get(v.y, self.EMPDICT).get(v.x)
+        vi = self.vidx.get(v[1], self.EMPDICT).get(v[0])
         if vi is not None:
             return vi
 
         vi = len(self.vertices)
         self.vertices.append(v)
 
-        self.vidx[v.y] = self.vidx.get(v.y, {})
-        self.vidx[v.y][v.x] = vi
+        self.vidx[v[1]] = self.vidx.get(v[1], {})
+        self.vidx[v[1]][v[0]] = vi
         return vi
 
 
@@ -809,16 +756,16 @@ class IndexedTriangles3D:
         self.faces.append([vi1, vi2, vi3])
 
     def _vertexIndex(self, v):
-        vi = self.vidx.get(v.z, self.EMPDICT).get(v.y, self.EMPDICT).get(v.x)
+        vi = self.vidx.get(v[2], self.EMPDICT).get(v[1], self.EMPDICT).get(v[0])
         if vi is not None:
             return vi
 
         vi = len(self.vertices)
         self.vertices.append(v)
 
-        self.vidx[v.z] = self.vidx.get(v.z, {})
-        self.vidx[v.z][v.y] = self.vidx[v.z].get(v.y, {})
-        self.vidx[v.z][v.y][v.x] = vi
+        self.vidx[v[2]] = self.vidx.get(v[2], {})
+        self.vidx[v[2]][v[1]] = self.vidx[v[2]].get(v[1], {})
+        self.vidx[v[2]][v[1]][v[0]] = vi
         return vi
 
 

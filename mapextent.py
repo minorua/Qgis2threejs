@@ -50,35 +50,36 @@ class MapExtent:
                             center.x() + half_width, center.y() + half_height)
 
     @staticmethod
-    def rotatePoint(point, degrees, origin=None):
+    def rotatePoint(x, y, degrees, origin=None):
         """Rotate point around the origin"""
+        if origin:
+            x = x - origin.x()
+            y = y - origin.y()
+
         theta = degrees * math.pi / 180
         c = math.cos(theta)
         s = math.sin(theta)
-        x = point.x()
-        y = point.y()
-
-        if origin:
-            x -= origin.x()
-            y -= origin.y()
 
         # rotate counter-clockwise
         xd = x * c - y * s
         yd = x * s + y * c
 
         if origin:
-            xd += origin.x()
-            yd += origin.y()
-        return QgsPointXY(xd, yd)
+            return xd + origin.x(), yd + origin.y()
+        return xd, yd
+
+    @staticmethod
+    def rotateQgsPoint(pt, degrees, origin=None):
+        x, y = MapExtent.rotatePoint(pt.x(), pt.y(), degrees, origin)
+        return QgsPointXY(x, y)
 
     def normalizePoint(self, x, y):
         """Normalize given point. In result, lower-left is (0, 0) and upper-right is (1, 1)."""
-        pt = QgsPointXY(x, y)
         if self._rotation:
-            pt = self.rotatePoint(pt, -self._rotation, self._center)
+            x, y = MapExtent.rotatePoint(x, y, -self._rotation, self._center)
         rect = self._unrotated_rect
-        return QgsPointXY((pt.x() - rect.xMinimum()) / rect.width(),
-                          (pt.y() - rect.yMinimum()) / rect.height())
+        return ((x - rect.xMinimum()) / rect.width(),
+                (y - rect.yMinimum()) / rect.height())
 
     def scale(self, s):
         self._width *= s
@@ -95,24 +96,26 @@ class MapExtent:
         self._rotation += degrees
         if origin is None:
             return self
-        self._center = self.rotatePoint(self._center, degrees, origin)
+        self._center = MapExtent.rotateQgsPoint(self._center, degrees, origin)
         self._updateDerived()
         return self
 
-    def point(self, norm_point, y_inverted=False):
+    def point(self, nx, ny, y_inverted=False):
         """
         args:
-          norm_point -- QgsPointXY (0 <= x <= 1, 0 <= y <= 1)
+          nx, ny     -- normalized x and y. 0 <= nx <= 1, 0 <= ny <= 1.
           y_inverted -- If True, lower-left is (0, 1) and upper-right is (1, 0).
                         Or else lower-left is (0, 0) and upper-right is (1, 1).
         """
         ur_rect = self._unrotated_rect
-        x = ur_rect.xMinimum() + norm_point.x() * ur_rect.width()
+        x = ur_rect.xMinimum() + nx * ur_rect.width()
         if y_inverted:
-            y = ur_rect.yMaximum() - norm_point.y() * ur_rect.height()
+            y = ur_rect.yMaximum() - ny * ur_rect.height()
         else:
-            y = ur_rect.yMinimum() + norm_point.y() * ur_rect.height()
-        return self.rotatePoint(QgsPointXY(x, y), self._rotation, self._center)
+            y = ur_rect.yMinimum() + ny * ur_rect.height()
+        if self._rotation:
+            return self.rotatePoint(x, y, self._rotation, self._center)
+        return x, y
 
     def subrectangle(self, norm_rect, y_inverted=False):
         """
@@ -175,14 +178,14 @@ class MapExtent:
 
         if rotation:
             # rotate top-left corner of unrotated extent around center of extent counter-clockwise (map rotates clockwise)
-            rpt = self.rotatePoint(QgsPointXY(ur_rect.xMinimum(), ur_rect.yMaximum()), rotation, center)
+            rx, ry = self.rotatePoint(ur_rect.xMinimum(), ur_rect.yMaximum(), rotation, center)
             res_lr = self._width / segments_x
             res_ul = self._height / segments_y
 
             theta = rotation * math.pi / 180
             c = math.cos(theta)
             s = math.sin(theta)
-            geotransform = [rpt.x(), res_lr * c, res_ul * s, rpt.y(), res_lr * s, -res_ul * c]
+            geotransform = [rx, res_lr * c, res_ul * s, ry, res_lr * s, -res_ul * c]
             if is_grid_point:
                 # top-left corner of extent corresponds to center of top-left pixel.
                 geotransform[0] -= 0.5 * geotransform[1] + 0.5 * geotransform[2]
@@ -227,7 +230,7 @@ class MapExtent:
                QgsPointXY(rect.xMinimum(), rect.yMinimum())]
 
         if self._rotation:
-            return [self.rotatePoint(pt, self._rotation, self._center) for pt in pts]
+            return [self.rotateQgsPoint(pt, self._rotation, self._center) for pt in pts]
 
         return pts
 
