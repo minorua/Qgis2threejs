@@ -60,9 +60,14 @@ class Feature:
 
         self.material = self.model = None
 
-    def clipGeometry(self, clip_geom):
-        # clip geometry
-        self.geom = self.geom.intersection(clip_geom)
+    def clipGeometry(self, extent):
+        r = extent.rotation()
+        if r:
+            self.geom.rotate(r, extent.center())
+
+        self.geom = self.geom.clipped(extent.unrotatedRect())
+        if r:
+            self.geom.rotate(-r, extent.center())
         return self.geom
 
     def geometry(self, z_func, transform_func, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
@@ -433,7 +438,7 @@ class VectorLayerBuilder(LayerBuilder):
         self.modelManager = ModelManager(settings)
 
         self.geomType = self.layer.mapLayer.geometryType()
-        self.clipGeom = None
+        self.clipExtent = None
 
     def build(self, build_blocks=False):
         if self.layer.mapLayer is None:
@@ -457,9 +462,8 @@ class VectorLayerBuilder(LayerBuilder):
 
             # geometry for clipping
             if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.Polygon:
-                extent = baseExtent.clone().scale(0.9999)   # clip with slightly smaller extent than map canvas extent
-                self.clipGeom = extent.geometry()
-
+                self.clipExtent = baseExtent.clone().scale(0.9999)    # clip to slightly smaller extent
+                                                                      # than map canvas extent
         self.features = []
         data = {}
 
@@ -541,13 +545,13 @@ class VectorLayerBuilder(LayerBuilder):
         index = 0
         feats = []
         for f in self.features or []:
-            if self.clipGeom and self.geomType != QgsWkbTypes.PointGeometry:
-                if f.clipGeometry(self.clipGeom) is None:
+            if self.clipExtent and self.geomType != QgsWkbTypes.PointGeometry:
+                if f.clipGeometry(self.clipExtent) is None:
                     continue
 
             # skip if geometry is empty or null
             if f.geom.isEmpty() or f.geom.isNull():
-                if not self.clipGeom:
+                if not self.clipExtent:
                     logMessage("empty/null geometry skipped")
                 continue
 
