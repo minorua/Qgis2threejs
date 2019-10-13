@@ -539,21 +539,29 @@ class GridGeometry:
         xmin, ymin, xmax, ymax = (self.xmin, self.ymin, self.xmax, self.ymax)
         xres, yres = (self.xres, self.yres)
 
+        vrects = []
+        hrects = []
         vbands = []
         hbands = []
 
         for x in range(self.x_segments):
             f = QgsFeature(x)
-            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin + x * xres, ymin,
-                                                            xmin + (x + 1) * xres, ymax)))
+            r = QgsRectangle(xmin + x * xres, ymin,
+                             xmin + (x + 1) * xres, ymax)
+            f.setGeometry(QgsGeometry.fromRect(r))
+            vrects.append(r)
             vbands.append(f)
 
         for y in range(self.y_segments):
             f = QgsFeature(y)
-            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(xmin, ymax - (y + 1) * yres,
-                                                            xmax, ymax - y * yres)))
+            r = QgsRectangle(xmin, ymax - (y + 1) * yres,
+                             xmax, ymax - y * yres)
+            f.setGeometry(QgsGeometry.fromRect(r))
+            hrects.append(r)
             hbands.append(f)
 
+        self.vrects = vrects
+        self.hrects = hrects
         self.vbands = vbands
         self.hbands = hbands
 
@@ -566,14 +574,21 @@ class GridGeometry:
     def vSplit(self, geom):
         """split polygon vertically"""
         for idx in self.vidx.intersects(geom.boundingBox()):
-            geometry = geom.intersection(self.vbands[idx].geometry())
+            geometry = geom.clipped(self.vrects[idx])
+            if geometry:
+                yield idx, geometry
+
+    def hSplit(self, geom):
+        """split polygon horizontally"""
+        for idx in self.hidx.intersects(geom.boundingBox()):
+            geometry = geom.clipped(self.hrects[idx])
             if geometry:
                 yield idx, geometry
 
     def hIntersects(self, geom):
         """indices of horizontal bands that intersect with geom"""
         for idx in self.hidx.intersects(geom.boundingBox()):
-            if geom.intersects(self.hbands[idx].geometry()):
+            if geom.intersects(self.hrects[idx]):
                 yield idx
 
     def splitPolygonXY(self, geom):
@@ -587,46 +602,38 @@ class GridGeometry:
 
         polygons = QgsMultiPolygon()
         for poly in self._splitPolygon(geom):
-            bnd = QgsLineString()
-            for pt in poly[0]:
-                bnd.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
-
             p = QgsPolygon()
-            p.setExteriorRing(bnd)
-            polygons.addGeometry(p)
+            ring = QgsLineString()
+            for pt in poly[0]:
+                ring.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+            p.setExteriorRing(ring)
 
+            for bnd in poly[1:]:
+                ring = QgsLineString()
+                for pt in bnd:
+                    ring.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
+                p.addInteriorRing(ring)
+            polygons.addGeometry(p)
         return QgsGeometry(polygons)
 
     def _splitPolygon(self, geom):
         if self.vbands is None:
             self.setupBands()
 
-        xmin, ymax, xres, yres = (self.xmin, self.ymax, self.xres, self.yres)
+        for x, vc in self.vSplit(geom):
+            for y, c in self.hSplit(vc):
+                if c.isEmpty():
+                    continue
 
-        for x, vi in self.vSplit(geom):
-            for y in self.hIntersects(vi):
-                # 0 - 1
-                # | / |
-                # 2 - 3
-                v0 = QgsPointXY(xmin + x * xres, ymax - y * yres)
-                v1 = QgsPointXY(xmin + (x + 1) * xres, ymax - y * yres)
-                v2 = QgsPointXY(xmin + x * xres, ymax - (y + 1) * yres)
-                v3 = QgsPointXY(xmin + (x + 1) * xres, ymax - (y + 1) * yres)
-                quad = QgsGeometry.fromPolygonXY([[v0, v2, v3, v1, v0]])
-                tris = [[[v0, v2, v1, v0]], [[v1, v2, v3, v1]]]
+                for poly in PolygonGeometry.nestedPointXYList(c):
+                    bnds = [[[pt.x(), pt.y()] for pt in bnd] for bnd in poly]
+                    data = earcut.flatten(bnds)
+                    v = data["vertices"]
+                    triangles = earcut.earcut(v, data["holes"], data["dimensions"])
+                    vertices = [QgsPointXY(v[2 * i], v[2 * i + 1]) for i in triangles]
 
-                if geom.contains(quad):
-                    yield tris[0]
-                    yield tris[1]
-                else:
-                    for i, tri in enumerate(map(QgsGeometry.fromPolygonXY, tris)):
-                        if geom.contains(tri):
-                            yield tris[i]
-                        elif geom.intersects(tri):
-                            for poly in PolygonGeometry.nestedPointXYList(geom.intersection(tri)):
-                                if GeometryUtils.isClockwise(poly[0]):
-                                    poly[0].reverse()         # to CCW
-                                yield poly
+                    for i in range(0, len(vertices), 3):
+                        yield [vertices[i:i + 3]]
 
     def segmentizeBoundaries(self, geom):
         """geom: QgsGeometry (polygon or multi-polygon)"""
@@ -702,10 +709,8 @@ class GridGeometry:
             my0 -= 1
             sdy = 1
 
-        z0 = self.value(mx0, my0)
-        z1 = self.value(mx0 + 1, my0)
-        z2 = self.value(mx0, my0 + 1)
-        z3 = self.value(mx0 + 1, my0 + 1)
+        z0, z1 = (self.value(mx0, my0), self.value(mx0 + 1, my0))
+        z2, z3 = (self.value(mx0, my0 + 1), self.value(mx0 + 1, my0 + 1))
 
         if sdx <= sdy:
             return z0 + (z1 - z0) * sdx + (z2 - z0) * sdy

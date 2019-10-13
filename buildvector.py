@@ -104,7 +104,8 @@ class Feature:
 
             if border:
                 bnds = grid.segmentizeBoundaries(geom)
-                bnds.rotate(-self.extent.rotation(), self.extent.center())
+                for bnd in bnds:
+                    bnd.rotate(-baseExtent.rotation(), baseExtent.center())
         else:
             polys = grid.splitPolygon(geom)
             bnds = grid.segmentizeBoundaries(geom)
