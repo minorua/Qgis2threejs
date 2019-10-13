@@ -137,16 +137,20 @@ class MapExtent:
         rect = QgsRectangle(xmin, ymin, xmax, ymax)
         return MapExtent(rect.center(), rect.width(), rect.height()).rotate(self._rotation, self._center)
 
-    @classmethod
-    def fromMapSettings(cls, mapSettings):
+    @staticmethod
+    def fromRect(rect):
+        return MapExtent(rect.center(), rect.width(), rect.height())
+
+    @staticmethod
+    def fromMapSettings(mapSettings):
         extent = mapSettings.visibleExtent()
         rotation = mapSettings.rotation()
         if rotation == 0:
-            return cls(extent.center(), extent.width(), extent.height())
+            return MapExtent(extent.center(), extent.width(), extent.height())
 
         mupp = mapSettings.mapUnitsPerPixel()
         canvas_size = mapSettings.outputSize()
-        return cls(extent.center(), mupp * canvas_size.width(), mupp * canvas_size.height(), rotation)
+        return MapExtent(extent.center(), mupp * canvas_size.width(), mupp * canvas_size.height(), rotation)
 
     def toMapSettings(self, mapSettings=None):
         if mapSettings is None:
