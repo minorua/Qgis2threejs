@@ -37,6 +37,10 @@ class MapTo3D:
         self.rotation = mapSettings.rotation()
         self.mapExtent = MapExtent.fromMapSettings(mapSettings)
 
+        rect = self.mapExtent.unrotatedRect()
+        self._xmin, self._ymin = (rect.xMinimum(), rect.yMinimum())
+        self._width, self._height = (rect.width(), rect.height())
+
         # 3d
         canvas_size = mapSettings.outputSize()
         self.planeWidth = planeWidth
@@ -56,6 +60,23 @@ class MapTo3D:
 
     def transformXY(self, x, y, z=0):
         x, y = self.mapExtent.normalizePoint(x, y)
+        return [(x - 0.5) * self.planeWidth,
+                (y - 0.5) * self.planeHeight,
+                z]
+
+    def transformRotated(self, x, y, z=0):
+        """transform coordinates of a point of rotated geometry"""
+        x, y = ((x - self._xmin) / self._width,
+                (y - self._ymin) / self._height)
+
+        return [(x - 0.5) * self.planeWidth,
+                (y - 0.5) * self.planeHeight,
+                (z + self.verticalShift) * self.multiplierZ]
+
+    def transformRotatedXY(self, x, y, z=0):
+        x, y = ((x - self._xmin) / self._width,
+                (y - self._ymin) / self._height)
+
         return [(x - 0.5) * self.planeWidth,
                 (y - 0.5) * self.planeHeight,
                 z]

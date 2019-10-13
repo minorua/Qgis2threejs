@@ -244,23 +244,17 @@ class DEMBlockBuilder:
         return self.materialManager.build(mi, filepath, url, self.settings.base64)
 
     def clipped(self, clip_geometry):
-        transform_func = self.settings.mapTo3d().transformXY
+        transform_func = self.settings.mapTo3d().transformRotatedXY
 
         # create a grid geometry and split polygons with the grid
         grid = self.provider.readAsGridGeometry(self.grid_size.width(), self.grid_size.height(), self.extent)
 
         if self.extent.rotation():
-            poly = QgsGeometry(clip_geometry)
-            poly.rotate(self.extent.rotation(), self.extent.center())
+            clip_geometry = QgsGeometry(clip_geometry)
+            clip_geometry.rotate(self.extent.rotation(), self.extent.center())
 
-            bnds = grid.segmentizeBoundaries(poly)
-            polys = grid.splitPolygon(poly)
-
-            bnds.rotate(-self.extent.rotation(), self.extent.center())
-            polys.rotate(-self.extent.rotation(), self.extent.center())
-        else:
-            bnds = grid.segmentizeBoundaries(clip_geometry)
-            polys = grid.splitPolygon(clip_geometry)
+        bnds = grid.segmentizeBoundaries(clip_geometry)
+        polys = grid.splitPolygon(clip_geometry)
 
         tin = TINGeometry.fromQgsGeometry(polys, None, transform_func, centroid=False, use_earcut=True)
         d = tin.toDict(flat=True)

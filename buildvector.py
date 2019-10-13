@@ -70,9 +70,10 @@ class Feature:
             self.geom.rotate(-r, extent.center())
         return self.geom
 
-    def geometry(self, z_func, transform_func, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
+    def geometry(self, z_func, mapTo3d, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
         geom, alt = (self.geom, self.altitude)
         zf = lambda x, y: z_func(x, y) + alt
+        transform_func = mapTo3d.transform
 
         if self.geomType != QgsWkbTypes.PolygonGeometry:
             return GeomType2Class[self.geomType].fromQgsGeometry(geom, zf, transform_func, useZM=useZM)
@@ -96,27 +97,17 @@ class Feature:
             return g
 
         # relative to DEM
+        transform_func = mapTo3d.transformRotated
+
         if baseExtent.rotation():
             geom.rotate(baseExtent.rotation(), baseExtent.center())
 
-            polys = grid.splitPolygon(geom)
-            polys.rotate(-baseExtent.rotation(), baseExtent.center())
-
-            if border:
-                bnds = grid.segmentizeBoundaries(geom)
-                for bnd in bnds:
-                    bnd.rotate(-baseExtent.rotation(), baseExtent.center())
-        else:
-            polys = grid.splitPolygon(geom)
-            bnds = grid.segmentizeBoundaries(geom)
-
+        polys = grid.splitPolygon(geom)
         g = TINGeometry.fromQgsGeometry(polys, zf, transform_func, use_earcut=True)
 
         if border:
-            g.bnds_list = []
-            for bnd in bnds:
-                geom = LineGeometry.fromQgsGeometry(bnd, zf, transform_func, useZM=VectorGeometry.UseZ)
-                g.bnds_list.append(geom)
+            bnds = grid.segmentizeBoundaries(geom)
+            g.bnds_list = [LineGeometry.fromQgsGeometry(bnd, zf, transform_func, useZM=VectorGeometry.UseZ) for bnd in bnds]
         return g
 
 
@@ -385,13 +376,13 @@ class FeatureBlockBuilder:
     def build(self):
         be = self.settings.baseExtent
         obj_geom_func = self.vlayer.objectType.geometry
-        transform_func = self.settings.mapTo3d().transform
+        mapTo3d = self.settings.mapTo3d()
 
         feats = []
         for f in self.features:
             d = {}
             d["geom"] = obj_geom_func(self.settings, self.vlayer, f,
-                                      f.geometry(self.z_func, transform_func, self.useZM, be, self.grid))
+                                      f.geometry(self.z_func, mapTo3d, self.useZM, be, self.grid))
 
             if f.material is not None:
                 d["mtl"] = f.material

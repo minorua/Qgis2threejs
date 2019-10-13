@@ -804,13 +804,13 @@ def dissolvePolygonsOnCanvas(settings, layer):
             logMessage("null geometry skipped")
             continue
 
-        # coordinate transformation - layer crs to project crs
+        # transform geometry from the layer CRS to the project CRS
         geom = QgsGeometry(geometry)
         if geom.transform(transform) != 0:
-            logMessage("Failed to transform geometry")
+            logMessage("Failed to transform geometry to project CRS")
             continue
 
-        # check if geometry intersects with the base extent (rotated rect)
+        # check if geometry intersects with the base extent
         if rotation and not baseExtentGeom.intersects(geom):
             continue
 
