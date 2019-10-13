@@ -598,6 +598,7 @@ class GridGeometry:
             if geometry:
                 yield idx, geometry
 
+    # OBSOLETE
     def hIntersects(self, geom):
         """indices of horizontal bands that intersect with geom"""
         for idx in self.hidx.intersects(geom.boundingBox()):
@@ -607,13 +608,10 @@ class GridGeometry:
     def splitPolygonXY(self, geom):
         return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
 
-    def splitPolygon(self, geom, no_z=False):
-        if no_z:
-            z_func = lambda x, y: 0
-        else:
-            z_func = lambda x, y: self.valueOnSurface(x, y) or 0
-            cache = FunctionCacheXY(z_func)
-            z_func = cache.func
+    def splitPolygon(self, geom):
+        z_func = lambda x, y: self.valueOnSurface(x, y) or 0
+        cache = FunctionCacheXY(z_func)
+        z_func = cache.func
 
         polygons = QgsMultiPolygon()
         for poly in self._splitPolygon(geom):

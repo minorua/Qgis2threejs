@@ -254,7 +254,7 @@ class DEMBlockBuilder:
             poly.rotate(self.extent.rotation(), self.extent.center())
 
             bnds = grid.segmentizeBoundaries(poly)
-            polys = grid.splitPolygon(poly, no_z=True)
+            polys = grid.splitPolygon(poly)
 
             bnds.rotate(-self.extent.rotation(), self.extent.center())
             polys.rotate(-self.extent.rotation(), self.extent.center())
@@ -262,9 +262,7 @@ class DEMBlockBuilder:
             bnds = grid.segmentizeBoundaries(clip_geometry)
             polys = grid.splitPolygon(clip_geometry)
 
-        zf = grid.valueOnSurface
-        tin = TINGeometry.fromQgsGeometry(polys, zf, transform_func, centroid=False, drop_z=True,
-                                          ccw2d=False, use_z_func_cache=True, use_earcut=True)
+        tin = TINGeometry.fromQgsGeometry(polys, None, transform_func, centroid=False, use_earcut=True)
         d = tin.toDict(flat=True)
 
         polygons = []
