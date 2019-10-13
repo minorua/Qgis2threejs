@@ -3015,21 +3015,12 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     };
   }
   else if (this.properties.objType == "Overlay") {
+
     createObject = function (f) {
-
-      var vertices = f.geom.triangles.v,
-          base_width = sceneData.width,
-          base_height = sceneData.height,
-          uvs = [];
-
-      for (var i = 0, l = vertices.length; i < l; i += 3) {
-        uvs.push(vertices[i] / base_width + 0.5, vertices[i + 1] / base_height + 0.5);
-      }
 
       var geom = new THREE.BufferGeometry();
       geom.setIndex(f.geom.triangles.f);
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-      geom.addAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.computeVertexNormals();
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
