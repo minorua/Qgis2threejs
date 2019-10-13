@@ -99,7 +99,7 @@ class Feature:
         if baseExtent.rotation():
             geom.rotate(baseExtent.rotation(), baseExtent.center())
 
-            polys = grid.splitPolygon(geom, no_z=True)
+            polys = grid.splitPolygon(geom)
             polys.rotate(-baseExtent.rotation(), baseExtent.center())
 
             if border:
@@ -110,9 +110,7 @@ class Feature:
             polys = grid.splitPolygon(geom)
             bnds = grid.segmentizeBoundaries(geom)
 
-        zfg = lambda x, y: grid.valueOnSurface(x, y) + alt
-        g = TINGeometry.fromQgsGeometry(polys, zfg, transform_func, drop_z=True,
-                                        ccw2d=False, use_z_func_cache=True, use_earcut=True)
+        g = TINGeometry.fromQgsGeometry(polys, zf, transform_func, use_earcut=True)
 
         if border:
             g.bnds_list = []

@@ -227,7 +227,7 @@ class LineGeometry(VectorGeometry):
 
 class PolygonGeometry(VectorGeometry):
 
-    """No z value support. Used with Extruded and Overlay (absolute)"""
+    """Used with Extruded and Overlay (absolute)"""
 
     def __init__(self):
         self.polygons = []
@@ -325,7 +325,21 @@ class PolygonGeometry(VectorGeometry):
 
     @classmethod
     def nestedPointList(cls, geom):
-        logMessage("PolygonGeometry.nestedPointList(): Not implemented yet")
+        """geom: a subclass object of QgsAbstractGeometry"""
+        if isinstance(geom, QgsPolygon):
+            rings = [geom.exteriorRing().points()]
+            rings += [geom.interiorRing(i).points() for i in range(geom.numInteriorRings())]
+            return [rings]
+
+        if isinstance(geom, QgsMultiPolygon):
+            polys = []
+            for i in range(geom.numGeometries()):
+                g = geom.geometryN(i)
+                rings = [g.exteriorRing().points()]
+                rings += [g.interiorRing(i).points() for i in range(g.numInteriorRings())]
+                polys.append(rings)
+            return polys
+
         return super().nestedPointList(geom)
 
     @classmethod
@@ -431,15 +445,15 @@ class TINGeometry(PolygonGeometry):
         # triangulation
         if use_earcut:
             vertices = []
-            for poly in cls.nestedPointXYList(geometry):
+            for poly in cls.nestedPointList(g):
                 if len(poly) == 1 and len(poly[0]) == 4:
-                    vertices.extend([v_func(pt.x(), pt.y(), 0) for pt in poly[0][0:3]])
+                    vertices.extend([v_func(pt.x(), pt.y(), pt.z()) for pt in poly[0][0:3]])
                 else:
-                    bnds = [[[pt.x(), pt.y()] for pt in bnd] for bnd in poly]
+                    bnds = [[[pt.x(), pt.y(), pt.z()] for pt in bnd] for bnd in poly]
                     data = earcut.flatten(bnds)
                     v = data["vertices"]
-                    triangles = earcut.earcut(v, data["holes"], data["dimensions"])
-                    vertices.extend([v_func(v[2 * i], v[2 * i + 1], 0) for i in triangles])
+                    triangles = earcut.earcut(v, data["holes"], 3)
+                    vertices.extend([v_func(v[3 * i], v[3 * i + 1], v[3 * i + 2]) for i in triangles])
         else:
             tes = QgsTessellator(0, 0, False)
             addPolygon = tes.addPolygon
@@ -524,14 +538,13 @@ class GridGeometry:
         self.values = values
 
         center = extent.center()
-        half_width, half_height = (extent.width() / 2,
-                                   extent.height() / 2)
-        self.xmin, self.ymin = (center.x() - half_width,
-                                center.y() - half_height)
-        self.xmax, self.ymax = (center.x() + half_width,
-                                center.y() + half_height)
-        self.xres = extent.width() / x_segments
-        self.yres = extent.height() / y_segments
+        self.width, self.height = (extent.width(), extent.height())
+        self.xmin, self.ymin = (center.x() - self.width / 2,
+                                center.y() - self.height / 2)
+        self.xmax, self.ymax = (center.x() + self.width / 2,
+                                center.y() + self.height / 2)
+        self.xres = self.width / x_segments
+        self.yres = self.height / y_segments
 
         self.vbands = self.hbands = None
 
@@ -599,6 +612,8 @@ class GridGeometry:
             z_func = lambda x, y: 0
         else:
             z_func = lambda x, y: self.valueOnSurface(x, y) or 0
+            cache = FunctionCacheXY(z_func)
+            z_func = cache.func
 
         polygons = QgsMultiPolygon()
         for poly in self._splitPolygon(geom):
@@ -690,7 +705,8 @@ class GridGeometry:
         return self.values[x + y * (self.x_segments + 1)]
 
     def valueOnSurface(self, x, y):
-        x, y = self.extent.normalizePoint(x, y)       # bottom-left corner is (0, 0), top-right is (1. 1)
+        x = (x - self.xmin) / self.width
+        y = (y - self.ymin) / self.height
         if x < 0 or 1 < x or y < 0 or 1 < y:
             return None
 
