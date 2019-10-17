@@ -239,26 +239,26 @@ class VectorLayer:
             return QColor(color).name().replace("#", "0x")
 
         # feature color
-        symbol = self.renderer.symbolForFeature(f, self.renderContext)
-        if symbol is None:
+        symbols = self.renderer.symbolsForFeature(f, self.renderContext)
+        if not symbols:
             logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
             return "0"
 
-        else:
-            sl = symbol.symbolLayer(0)
-            if sl:
-                if isBorder:
-                    return sl.strokeColor().name().replace("#", "0x")
+        symbol = symbols[0]
+        sl = symbol.symbolLayer(0)
+        if sl:
+            if isBorder:
+                return sl.strokeColor().name().replace("#", "0x")
 
-                if symbol.hasDataDefinedProperties():
-                    expr = sl.dataDefinedProperty("color")
-                    if expr:
-                        # data defined color
-                        rgb = expr.evaluate(f, f.fields())
+            if symbol.hasDataDefinedProperties():
+                expr = sl.dataDefinedProperty("color")
+                if expr:
+                    # data defined color
+                    rgb = expr.evaluate(f, f.fields())
 
-                        # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-                        r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
-                        return "0x{:02x}{:02x}{:02x}".format(r, g, b)
+                    # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
+                    r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
+                    return "0x{:02x}{:02x}{:02x}".format(r, g, b)
 
         return symbol.color().name().replace("#", "0x")
 
@@ -273,11 +273,13 @@ class VectorLayer:
                 logMessage("Wrong opacity value: {}".format(val))
                 return 1
 
-        symbol = self.renderer.symbolForFeature(f, self.renderContext)
-        if symbol is None:
+        symbols = self.renderer.symbolsForFeature(f, self.renderContext)
+        if not symbols:
             logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
             return 1
+
         # TODO [data defined property]
+        symbol = symbols[0]
         return self.mapLayer.opacity() * symbol.opacity()
 
     @classmethod
