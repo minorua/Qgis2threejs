@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 2.3.2
+- Fixed error in logging a message (fix #183)
+
 ### Version 2.3.1
 - Do not import Qt module from PyQt5.Qt (fix #162 and #134)
 - Fixed initial camera target position (fix #163)
