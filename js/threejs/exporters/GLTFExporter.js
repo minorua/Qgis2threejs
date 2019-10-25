@@ -1164,7 +1164,8 @@ THREE.GLTFExporter.prototype = {
 
 				if ( ! geometry.isBufferGeometry ) {
 
-					console.warn( 'GLTFExporter: Exporting THREE.Geometry will increase file size. Use THREE.BufferGeometry instead.' );
+					// @minorua comment out
+					// console.warn( 'GLTFExporter: Exporting THREE.Geometry will increase file size. Use THREE.BufferGeometry instead.' );
 
 					var geometryTemp = new THREE.BufferGeometry();
 					geometryTemp.fromGeometry( geometry );
