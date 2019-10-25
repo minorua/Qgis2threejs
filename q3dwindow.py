@@ -334,14 +334,13 @@ class Q3DWindow(QMainWindow):
 
     def saveAsGLTF(self):
         if not self.ui.checkBoxPreview.isChecked():
-            QMessageBox.warning(self, "Save Scene as glTF", "You need to enable the preview to use this function.")
+            QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
             return
 
-        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene as glTF"),
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Current Scene as glTF"),
                                                   self.lastDir or QDir.homePath(),
                                                   "glTF files (*.gltf);;Binary glTF files (*.glb)")
         if filename:
-            self.controller.buildScene(base64=True)
             self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 

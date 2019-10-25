@@ -772,7 +772,21 @@ THREE.GLTFExporter.prototype = {
 
 				}
 
-				ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
+				// @minorua
+				if ( image instanceof ImageData ) {
+
+					var temp = document.createElement( 'canvas' );
+					temp.width = image.width;
+					temp.height = image.height;
+					temp.getContext( '2d' ).putImageData( image, 0, 0 );
+
+					ctx.drawImage( temp, 0, 0 );
+
+				} else {
+
+					ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
+
+				}
 
 				if ( options.binary === true ) {
 

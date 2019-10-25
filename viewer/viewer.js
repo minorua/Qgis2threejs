@@ -184,10 +184,7 @@ function saveModelAsGLTF(filename) {
   scene.updateMatrixWorld();
 
   var options = {
-    binary: (filename.split(".").pop().toLowerCase() == "glb"),
-    onlyVisible: true
-    //trs: true/false,
-    //truncateDrawRange: true/false,
+    binary: (filename.split(".").pop().toLowerCase() == "glb")
   };
 
   var gltfExporter = new THREE.GLTFExporter();
