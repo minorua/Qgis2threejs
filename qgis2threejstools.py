@@ -94,7 +94,7 @@ def abchex(number):
 
 
 def logMessage(message, warning=True):
-  QgsMessageLog.logMessage(str(message), "Qgis2threejs", Qgis.Warning if warning else Qgis.Info, warning)
+  QgsMessageLog.logMessage(str(message), "Qgis2threejs", Qgis.Warning if warning else Qgis.Info)
 
 
 def shortTextFromSelectedLayerIds(layerIds):
