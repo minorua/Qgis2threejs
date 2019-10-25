@@ -71,9 +71,7 @@ Q3D.Config = {
     c: 0xffff00,
     o: 0.8
   },
-  allVisible: false,  // set every layer visible property to true on load if set to true
-  debugMode: false,
-  exportMode: false   // set to true in glTF export mode
+  allVisible: false   // set every layer visible property to true on load if set to true
 };
 
 // consts
@@ -395,8 +393,6 @@ limitations:
 
   var listeners = {};
   var dispatchEvent = function (event) {
-    if (Q3D.Config.debugMode) console.log("about to dispatch " + event + " event.");
-
     var ls = listeners[event.type] || [];
     for (var i = 0; i < ls.length; i++) {
       ls[i](event);
@@ -1882,13 +1878,7 @@ Q3D.DEMBlock.prototype = {
     parent.add(mesh);
 
     // bottom
-    var geom;
-    if (Q3D.Config.exportMode) {
-      geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, w - 1, h - 1);
-    }
-    else {
-      geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
-    }
+    var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
     mesh = new THREE.Mesh(geom, material);
     mesh.rotation.x = Math.PI;
     mesh.position.z = e0;
@@ -2867,7 +2857,6 @@ Q3D.LineLayer.prototype.build = function (features) {
       geometry.faceVertexUvs = [[]];
       geometry.mergeVertices();
       geometry.computeFaceNormals();
-      if (Q3D.Config.exportMode) geometry = new THREE.BufferGeometry().fromGeometry(geometry);
       return new THREE.Mesh(geometry, materials.mtl(f.mtl));
     };
   }
@@ -2943,10 +2932,8 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       var geom = new THREE.BufferGeometry();
       geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
-      if (!Q3D.Config.exportMode) {
-        geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
-                                                              // BufferGeometry and Lambert/Toon material.
-      }
+      geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
+                                                            // BufferGeometry and Lambert/Toon material.
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
@@ -3225,7 +3212,7 @@ Q3D.Utils.createWallGeometry = function (vertices, bzFunc, buffer_geom) {
   }
   geom.computeFaceNormals();
 
-  if (buffer_geom || Q3D.Config.exportMode) {
+  if (buffer_geom) {
     return new THREE.BufferGeometry().fromGeometry(geom);
   }
   return geom;
