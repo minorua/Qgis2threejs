@@ -70,7 +70,7 @@ class ImageSaveDialog(QDialog):
         self.wnd.ui.statusbar.showMessage(self.tr("Image has been rendered and copied to clipboad."), 5000)
 
     def accept(self):
-        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save scene image as"), QDir.homePath(), "PNG files (*.png)")
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save current view as"), QDir.homePath(), "PNG files (*.png)")
         if not filename:
             return
 

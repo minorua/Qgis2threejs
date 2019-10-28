@@ -53,7 +53,7 @@ class Ui_ImageSaveDialog(object):
 
     def retranslateUi(self, ImageSaveDialog):
         _translate = QtCore.QCoreApplication.translate
-        ImageSaveDialog.setWindowTitle(_translate("ImageSaveDialog", "Save Scene as Image"))
+        ImageSaveDialog.setWindowTitle(_translate("ImageSaveDialog", "Save Current View as Image"))
         self.label.setText(_translate("ImageSaveDialog", "Output width"))
         self.label_2.setText(_translate("ImageSaveDialog", "Output height"))
         self.spinBox_Width.setSuffix(_translate("ImageSaveDialog", " px"))
