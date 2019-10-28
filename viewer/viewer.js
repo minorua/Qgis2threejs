@@ -89,11 +89,9 @@ function loadModel(url) {
     });
   }
   else if (ext == "gltf" || ext == "glb") {
-    loadScriptFile("../js/polyfill/polyfill.min.js", function () {
-      loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
-        var loader = new THREE.GLTFLoader(app.loadingManager);
-        loader.load(url, loadToScene, undefined, onError);
-      });
+    loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
+      var loader = new THREE.GLTFLoader(app.loadingManager);
+      loader.load(url, loadToScene, undefined, onError);
     });
   }
 }

@@ -31,8 +31,6 @@ Dependent JavaScript libraries and resources
 
 * [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
 
-* JavaScript [polyfill](https://github.com/inexorabletash/polyfill) for glTF export function
-
 * Python ported version of [earcut](https://github.com/mapbox/earcut) for Overlay polygon triangulation
 
 License
