@@ -79,4 +79,6 @@ class ImageSaveDialog(QDialog):
         image = self.renderImage()
         image.save(filename)
 
+        self.wnd.ui.statusbar.showMessage(self.tr("Image has been saved to file."), 5000)
+
         super().accept()
