@@ -127,8 +127,8 @@ class ExportToWebDialog(QDialog):
         is_temporary = (out_dir == "")
         if is_temporary:
             out_dir = temporaryOutputDir()
-            #title, ext = os.path.splitext(filename)
-            #filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
+            # title, ext = os.path.splitext(filename)
+            # filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
 
         filepath = os.path.join(out_dir, filename)
         if not is_temporary and os.path.exists(filepath):

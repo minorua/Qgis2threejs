@@ -336,7 +336,7 @@ class ModelManager(DataManager):
         return self._index(path)
 
     def build(self, export=True):
-        l = []
+        a = []
         for path_url in self._list:
             if path_url.startswith("http:") or path_url.startswith("https:"):
                 url = path_url
@@ -346,8 +346,8 @@ class ModelManager(DataManager):
             else:
                 url = QUrl.fromLocalFile(path_url).toString()
 
-            l.append({"url": url})
-        return l
+            a.append({"url": url})
+        return a
 
     def hasColladaModel(self):
         for f in self._list:

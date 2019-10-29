@@ -293,11 +293,11 @@ class Q3DController(QObject):
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
-        self.iface.runScript('hideLayer("{}", true)'.format(layer.jsLayerId));
+        self.iface.runScript('hideLayer("{}", true)'.format(layer.jsLayerId))
 
     def hideAllLayers(self):
         """hide all layers and remove all objects from the layers"""
-        self.iface.runScript("hideAllLayers(true)");
+        self.iface.runScript("hideAllLayers(true)")
 
     def processRequests(self):
         self.timer.stop()

@@ -454,8 +454,7 @@ class VectorLayerBuilder(LayerBuilder):
 
             # geometry for clipping
             if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.Polygon:
-                self.clipExtent = baseExtent.clone().scale(0.9999)    # clip to slightly smaller extent
-                                                                      # than map canvas extent
+                self.clipExtent = baseExtent.clone().scale(0.9999)    # clip to slightly smaller extent than map canvas extent
         self.features = []
         data = {}
 

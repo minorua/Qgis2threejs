@@ -43,7 +43,7 @@ from .vectorobject import ObjectType
 
 PAGE_NONE = 0
 PAGE_SCENE = 1
-#PAGE_CONTROLS = 2
+# PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
 
@@ -70,12 +70,12 @@ class PropertyPage(QWidget):
         for i in range(layout.count()):
             item = layout.itemAt(i)
             w = item.widget()
-            if w is not None:
+            if w:
                 w.setVisible(visible)
                 continue
-            l = item.layout()
-            if l is not None:
-                self.setLayoutVisible(l, visible)
+            lyt = item.layout()
+            if lyt:
+                self.setLayoutVisible(lyt, visible)
 
     def setLayoutsVisible(self, layouts, visible):
         for layout in layouts:
@@ -89,12 +89,12 @@ class PropertyPage(QWidget):
         for i in range(layout.count()):
             item = layout.itemAt(i)
             w = item.widget()
-            if w is not None:
+            if w:
                 w.setEnabled(enabled)
                 continue
-            l = item.layout()
-            if l is not None:
-                self.setLayoutEnabled(l, enabled)
+            lyt = item.layout()
+            if lyt:
+                self.setLayoutEnabled(lyt, enabled)
 
     def setLayoutsEnabled(self, layouts, enabled):
         for layout in layouts:

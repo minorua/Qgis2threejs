@@ -411,7 +411,6 @@ class OverlayType(PolygonBasicTypeBase):
             mtl["brdr"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
         return mtl
 
-
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
         g = geom.toDict(flat=True)  # TINGeometry
@@ -523,7 +522,7 @@ class ObjectType:
                                            PlaneType, PointType, IconType, ModelFileType],
                QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, WallType],
                QgsWkbTypes.PolygonGeometry: [PolygonType, ExtrudedType, OverlayType]
-    }
+               }
 
     @classmethod
     def typesByGeomType(cls, geom_type):

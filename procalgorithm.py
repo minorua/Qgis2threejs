@@ -154,8 +154,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.addAdvancedParameter(
             QgsProcessingParameterNumber(
                 self.TEX_HEIGHT,
-                self.tr('Texture base height (px)\n'\
-                        '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'\
+                self.tr('Texture base height (px)\n'
+                        '    Leave this zero to respect aspect ratio of buffered geometry bounding box (in "Fit to Geometry" scale mode)\n'
                         '    or map canvas (in "Fixed scale" scale mode).'),
                 defaultValue=0
                 # ,optional=True

@@ -40,13 +40,13 @@ from .ui.q3dwindow import Ui_Q3DWindow
 
 class Q3DViewerInterface(Q3DInterface):
 
-    abortRequest = pyqtSignal(bool)                 # param: cancel all requests in queue
-    updateSceneRequest = pyqtSignal(object, bool)   # params: scene properties dict or 0 (if properties do not changes), update all
-    updateLayerRequest = pyqtSignal(Layer)          # param: Layer object
-    updateDecorationRequest = pyqtSignal(str, dict) # params: decoration name (e.g. NorthArrow, Label), properties dict
+    abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
+    updateSceneRequest = pyqtSignal(object, bool)    # params: scene properties dict or 0 (if properties do not changes), update all
+    updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
+    updateDecorationRequest = pyqtSignal(str, dict)  # params: decoration name (e.g. NorthArrow, Label), properties dict
     updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
-    switchCameraRequest = pyqtSignal(bool)          # params: is ortho camera
-    previewStateChanged = pyqtSignal(bool)          # param: visible
+    switchCameraRequest = pyqtSignal(bool)           # params: is ortho camera
+    previewStateChanged = pyqtSignal(bool)           # param: visible
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)

@@ -348,7 +348,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
         self.widget.label_2.setText("Layers" if isLayer else "Value")
         self.widget.label_2.setVisible(isRGB or isLayer)
 
-        #self.widget.expression.setPlaceholderText("0xrrggbb" if isRGB else "")
+        # self.widget.expression.setPlaceholderText("0xrrggbb" if isRGB else "")
         # self.widget.expression.setReadOnly(isLayer)
         self.widget.expression.setVisible(isRGB or isLayer)
 

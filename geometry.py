@@ -409,7 +409,7 @@ class TINGeometry(PolygonGeometry):
 
     @classmethod
     def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False,
-                             ccw2d=False, use_z_func_cache=False, use_earcut=False):
+                        ccw2d=False, use_z_func_cache=False, use_earcut=False):
         geom = cls()
 
         if z_func:
@@ -456,7 +456,8 @@ class TINGeometry(PolygonGeometry):
         else:
             tes = QgsTessellator(0, 0, False)
             addPolygon = tes.addPolygon
-            for poly in cls.singleGeometries(g): addPolygon(poly, 0)
+            for poly in cls.singleGeometries(g):
+                addPolygon(poly, 0)
 
             # mp = tes.asMultiPolygon()     # not available
             data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
