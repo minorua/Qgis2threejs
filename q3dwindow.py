@@ -341,9 +341,12 @@ class Q3DWindow(QMainWindow):
                                                   self.lastDir or QDir.homePath(),
                                                   "glTF files (*.gltf);;Binary glTF files (*.glb)")
         if filename:
+            self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
+
             self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
+            self.ui.statusbar.clearMessage()
             self.lastDir = os.path.dirname(filename)
 
     def pluginSettings(self):
