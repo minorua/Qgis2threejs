@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 from PyQt5.QtCore import QDir
-from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog
 
 from .export import ImageExporter
 from .qgis2threejstools import logMessage
@@ -39,7 +39,7 @@ class ImageSaveDialog(QDialog):
 
         size = self.wnd.ui.webView.size()
         self.ui.spinBox_Width.setValue(size.width())
-        height = self.ui.spinBox_Height.setValue(size.height())
+        self.ui.spinBox_Height.setValue(size.height())
 
     def renderImage(self):
         width = self.ui.spinBox_Width.value()

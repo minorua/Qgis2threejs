@@ -26,7 +26,6 @@ from qgis.core import (
 
 from .earcut import earcut
 
-from .conf import DEBUG_MODE
 from .qgis2threejstools import logMessage
 
 

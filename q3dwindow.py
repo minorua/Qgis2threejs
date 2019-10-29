@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QD
 from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
-from .conf import RUN_CNTLR_IN_BKGND, DEBUG_MODE, PLUGIN_VERSION
+from .conf import RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings, Layer
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager

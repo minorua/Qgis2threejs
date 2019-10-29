@@ -19,7 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-from .conf import DEBUG_MODE
 from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder

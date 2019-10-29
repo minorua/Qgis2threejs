@@ -560,10 +560,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.groupBox_Features.setEnabled(not only_clipped)
 
     def zValueRadioButtonToggled(self, toggled=None):
-        if toggled != False:
+        if toggled:
             self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
-
-        name = self.comboBox_ObjectType.currentData()
 
     def exportAttrsToggled(self, checked):
         self.setLayoutEnabled(self.formLayout_Label, checked)
