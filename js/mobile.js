@@ -34,8 +34,7 @@ app.eventListener.resize = function () {
   if (ARMode) {
     var v = document.getElementById("video"),
         asp = window.innerWidth / window.innerHeight,
-        vasp = v.videoWidth / v.videoHeight,
-        c = app.renderer.domElement;
+        vasp = v.videoWidth / v.videoHeight;
     if (vasp > asp) {
       width = window.innerWidth;
       height = parseInt(width / vasp);
@@ -363,7 +362,7 @@ function getCurrentPosition (callback) {
     alert("Cannot get current location: " + error.message);
   },
   {enableHighAccuracy: true});
-};
+}
 
 function moveToCurrentLocation() {
   // AR mode is on

@@ -123,7 +123,7 @@ Q3D.Group.prototype.add = function (object) {
 };
 
 Q3D.Group.prototype.clear = function () {
-  for (var i = this.children.length - 1 ; i >= 0; i--) {
+  for (var i = this.children.length - 1; i >= 0; i--) {
     this.remove(this.children[i]);
   }
 };
@@ -832,7 +832,7 @@ limitations:
   };
 
   app.currentViewUrl = function () {
-    var c = app.camera.position, t = app.controls.target, u = app.camera.up;
+    var c = app.camera.position, t = app.controls.target;
     var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
     if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
     return window.location.href.split("#")[0] + hash;
@@ -1438,8 +1438,8 @@ limitations:
         return 0;
       });
 
-      var label, text, x, y;
-      for (var i = 0, l = idx_dist.length; i < l; i++) {
+      var label, x, y;
+      for (i = 0, l = idx_dist.length; i < l; i++) {
         label = labels[idx_dist[i][0]];
         if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {    // label is in front
           // calculate label position
@@ -1697,7 +1697,7 @@ Q3D.Materials.prototype.dispose = function () {
 };
 
 Q3D.Materials.prototype.addFromObject3D = function (object) {
-  var _this = this, mtls = [];
+  var mtls = [];
 
   object.traverse(function (obj) {
     if (obj.material === undefined) return;
@@ -1758,8 +1758,7 @@ Q3D.DEMBlock.prototype = {
 
   // obj: json object
   loadJSONObject: function (obj, layer, callback) {
-    var _this = this,
-        grid = obj.grid;
+    var grid = obj.grid;
     this.data = obj;
 
     // load material
@@ -2040,7 +2039,7 @@ Q3D.ClippedDEMBlock.prototype = {
 
       // bottom
       shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(bnds[0]));
-      for (var j = 1, m = bnds.length; j < m; j++) {
+      for (j = 1, m = bnds.length; j < m; j++) {
         shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(bnds[j])));
       }
       geom = new THREE.ShapeBufferGeometry(shape);
@@ -2110,7 +2109,7 @@ Q3D.MapLayer.prototype.removeAllObjects = function () {
   this.materials.dispose();
 
   // remove all child objects from object group
-  for (var i = this.objectGroup.children.length - 1 ; i >= 0; i--) {
+  for (var i = this.objectGroup.children.length - 1; i >= 0; i--) {
     this.objectGroup.remove(this.objectGroup.children[i]);
   }
   this.queryObjs = [];
@@ -2163,7 +2162,7 @@ Q3D.MapLayer.prototype.boundingBox = function (forceUpdate) {
     this._bbox = new THREE.Box3().setFromObject(this.objectGroup);
   }
   return this._bbox;
-}
+};
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
   this.materials.setWireframeMode(wireframe);
@@ -2587,7 +2586,7 @@ Q3D.PointLayer.prototype.build = function (features) {
   var f, geom, z_addend, i, l, mesh, pt;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
-    f.objIndices = []
+    f.objIndices = [];
 
     geom = f.geom;
     z_addend = (geom.h) ? geom.h / 2 : 0;
@@ -2799,10 +2798,9 @@ Q3D.LineLayer.prototype.build = function (features) {
     }
 
     createObject = function (f, line) {
-      var geometry = new THREE.Geometry(),
-          group = new Q3D.Group();      // used in debug mode
+      var geometry = new THREE.Geometry();
 
-      var geom, mesh, dist, quat, rx, rz, wh4, vb4, vf4;
+      var geom, dist, rx, rz, wh4, vb4, vf4;
       var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
           pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
           matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
@@ -2921,8 +2919,7 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Q3D.PolygonLayer.prototype.build = function (features) {
   var createObject,
-      materials = this.materials,
-      sceneData = this.sceneData;
+      materials = this.materials;
 
   if (this.properties.objType == this._lastObjType && this._createObject !== undefined) {
     createObject = this._createObject;
@@ -2953,7 +2950,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
       if (f.mtl.edge !== undefined) {
         // edge
-        var edge, bnd, p, v,
+        var edge, bnd, v,
             h = f.geom.h,
             mtl = materials.mtl(f.mtl.edge);
 
@@ -3018,7 +3015,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
         for (i = 0, l = f.geom.brdr.length; i < l; i++) {
           bnds = f.geom.brdr[i];
           for (j = 0, m = bnds.length; j < m; j++) {
-            geom = new THREE.BufferGeometry(),
+            geom = new THREE.BufferGeometry();
             geom.addAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
 
             mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
