@@ -50,6 +50,7 @@ class Bridge(QObject):
     # Python to Python signals
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
+    statusMessage = pyqtSignal(str, int)
     modelDataReady = pyqtSignal("QByteArray", str)
     imageReady = pyqtSignal(int, int, "QImage")
 
@@ -77,6 +78,10 @@ class Bridge(QObject):
     def mouseUpMessage(self, x, y):
         return "Clicked at ({0}, {1})".format(x, y)
         # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
+
+    @pyqtSlot(str, int)
+    def showStatusMessage(self, message, duration=0):
+        self.statusMessage.emit(message, duration)
 
     @pyqtSlot("QByteArray", str)
     def saveBytes(self, data, filename):
@@ -123,6 +128,8 @@ class Q3DWebPage(QWebPage):
         self.bridge.sceneLoadError.connect(self.sceneLoadError)
         self.bridge.modelDataReady.connect(self.saveModelData)
         self.bridge.imageReady.connect(self.saveImage)
+        if wnd:
+            self.bridge.statusMessage.connect(wnd.ui.statusbar.showMessage)
 
         self.loadFinished.connect(self.pageLoaded)
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
@@ -331,9 +338,6 @@ class Q3DView(QWebView):
 
     # def reload(self):
     #  pass
-
-    def showStatusMessage(self, msg):
-        self.wnd.ui.statusbar.showMessage(msg)
 
     def sendData(self, data):
         self._page.sendData(data)

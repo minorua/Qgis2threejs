@@ -212,8 +212,7 @@ function saveModelAsGLTF(filename) {
     else {
       pyObj.saveString(JSON.stringify(result, null, 2), filename);
     }
-    console.log("Model has been saved.");
-    showMessageBar("Successfully saved the model.", 5000);
+    showStatusMessage("Successfully saved the model.", 5000);
 
     // restore preview
     for (var k in app.scene.mapLayers) {
@@ -250,6 +249,15 @@ function showMessageBar(message, duration, warning) {
 function closeMessageBar() {
   document.getElementById("messagebar").style.display = "none";
   barTimerId = null;
+}
+
+function showStatusMessage(message, duration) {
+  pyObj.showStatusMessage(message, duration || 0);
+  console.log(message);
+}
+
+function clearStatusMessage() {
+  showStatusMessage("");
 }
 
 function setBackgroundColor(color, alpha) {
