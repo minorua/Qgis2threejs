@@ -72,8 +72,6 @@ class ExportToWebDialog(QDialog):
 
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
-        self.ui.pushButton_Export.clicked.connect(self.exportClicked)
-        self.ui.pushButton_Close.clicked.connect(self.close)
 
     def templateChanged(self, index=None):
         # update settings widget visibility
@@ -95,7 +93,9 @@ class ExportToWebDialog(QDialog):
         if d:
             self.ui.lineEdit_OutputDir.setText(d)
 
-    def exportClicked(self):
+    def accept(self):
+        """export"""
+
         # template
         self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
@@ -160,7 +160,7 @@ class ExportToWebDialog(QDialog):
             if not openHTMLFile(filepath):
                 return
 
-        self.close()
+        super().accept()
 
     def progress(self, percentage=None, msg=None):
         pbar = self.ui.progressBar

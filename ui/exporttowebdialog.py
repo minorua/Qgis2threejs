@@ -93,12 +93,14 @@ class Ui_ExportToWebDialog(object):
         self.pushButton_Export.setDefault(True)
         self.pushButton_Export.setObjectName("pushButton_Export")
         self.horizontalLayout_3.addWidget(self.pushButton_Export)
-        self.pushButton_Close = QtWidgets.QPushButton(ExportToWebDialog)
-        self.pushButton_Close.setObjectName("pushButton_Close")
-        self.horizontalLayout_3.addWidget(self.pushButton_Close)
+        self.pushButton_Cancel = QtWidgets.QPushButton(ExportToWebDialog)
+        self.pushButton_Cancel.setObjectName("pushButton_Cancel")
+        self.horizontalLayout_3.addWidget(self.pushButton_Cancel)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
 
         self.retranslateUi(ExportToWebDialog)
+        self.pushButton_Export.clicked.connect(ExportToWebDialog.accept)
+        self.pushButton_Cancel.clicked.connect(ExportToWebDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(ExportToWebDialog)
         ExportToWebDialog.setTabOrder(self.lineEdit_OutputDir, self.pushButton_Browse)
         ExportToWebDialog.setTabOrder(self.pushButton_Browse, self.lineEdit_Filename)
@@ -108,7 +110,7 @@ class Ui_ExportToWebDialog(object):
         ExportToWebDialog.setTabOrder(self.checkBox_LocalMode, self.lineEdit_MND)
         ExportToWebDialog.setTabOrder(self.lineEdit_MND, self.checkBox_openPage)
         ExportToWebDialog.setTabOrder(self.checkBox_openPage, self.pushButton_Export)
-        ExportToWebDialog.setTabOrder(self.pushButton_Export, self.pushButton_Close)
+        ExportToWebDialog.setTabOrder(self.pushButton_Export, self.pushButton_Cancel)
 
     def retranslateUi(self, ExportToWebDialog):
         _translate = QtCore.QCoreApplication.translate
@@ -128,5 +130,5 @@ class Ui_ExportToWebDialog(object):
         self.lineEdit_MND.setText(_translate("ExportToWebDialog", "0"))
         self.checkBox_openPage.setText(_translate("ExportToWebDialog", "Open the Viewer in a Web Browser"))
         self.pushButton_Export.setText(_translate("ExportToWebDialog", "Export"))
-        self.pushButton_Close.setText(_translate("ExportToWebDialog", "Close"))
+        self.pushButton_Cancel.setText(_translate("ExportToWebDialog", "Cancel"))
 

@@ -206,9 +206,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_Close">
+      <widget class="QPushButton" name="pushButton_Cancel">
        <property name="text">
-        <string>Close</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>
@@ -226,8 +226,41 @@
   <tabstop>lineEdit_MND</tabstop>
   <tabstop>checkBox_openPage</tabstop>
   <tabstop>pushButton_Export</tabstop>
-  <tabstop>pushButton_Close</tabstop>
+  <tabstop>pushButton_Cancel</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_Export</sender>
+   <signal>clicked()</signal>
+   <receiver>ExportToWebDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>459</x>
+     <y>274</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>293</x>
+     <y>147</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_Cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>ExportToWebDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>540</x>
+     <y>274</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>293</x>
+     <y>147</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
