@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### Version 2.4.1
+- Fixed clipping self-crossing lines (fix #117)
+- Fixed retrieving a symbol for a feature
+- Renamed DEM roughening option to roughness
+
 ### Version 2.4
 - Build data to load into preview in background
 - Added preserve current viewpoint option to web export

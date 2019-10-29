@@ -14,7 +14,7 @@ qgisMinimumVersion=3.4
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.4
+version=2.4.1
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,6 +24,11 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
+    Version 2.4.1
+    - Fixed clipping self-crossing lines
+    - Fixed retrieving a symbol for a feature
+    - Renamed DEM roughening option to roughness
+
     Version 2.4
     - Build data to load into preview in background
     - Added preserve current viewpoint option to web export

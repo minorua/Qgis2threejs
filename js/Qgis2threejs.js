@@ -3,7 +3,7 @@
 // (C) 2014 Minoru Akagi | MIT License
 // https://github.com/minorua/Qgis2threejs
 
-var Q3D = {VERSION: "2.4"};
+var Q3D = {VERSION: "2.4.1"};
 
 Q3D.Config = {
   // scene
