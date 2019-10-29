@@ -83,7 +83,7 @@ class DEMLayerBuilder(LayerBuilder):
 
         # surroundings
         surroundings = self.properties.get("checkBox_Surroundings", False)
-        roughening = self.properties["spinBox_Roughening"] if surroundings else 1
+        roughness = self.properties["spinBox_Roughening"] if surroundings else 1
         size = self.properties["spinBox_Size"] if surroundings else 1
         size2 = size * size
 
@@ -104,8 +104,8 @@ class DEMLayerBuilder(LayerBuilder):
             else:
                 block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
                 extent = MapExtent(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
-                grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughening + 1),
-                                  max(2, (base_grid_size.height() - 1) // roughening + 1))
+                grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughness + 1),
+                                  max(2, (base_grid_size.height() - 1) // roughness + 1))
 
             block = DEMBlockBuilder(self.settings,
                                     self.imageManager,
@@ -118,7 +118,7 @@ class DEMLayerBuilder(LayerBuilder):
                                     mapTo3d.planeHeight,
                                     offsetX=mapTo3d.planeWidth * sx,
                                     offsetY=mapTo3d.planeHeight * sy,
-                                    edgeRougheness=roughening if is_center else 1,
+                                    edgeRoughness=roughness if is_center else 1,
                                     clip_geometry=clip_geometry if is_center else None,
                                     pathRoot=self.pathRoot,
                                     urlRoot=self.urlRoot)
@@ -127,7 +127,7 @@ class DEMLayerBuilder(LayerBuilder):
 
 class DEMBlockBuilder:
 
-    def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRougheness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
+    def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRoughness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
         self.settings = settings
         self.materialManager = MaterialManager(imageManager, settings.materialType())
 
@@ -142,7 +142,7 @@ class DEMBlockBuilder:
         self.planeHeight = planeHeight
         self.offsetX = offsetX
         self.offsetY = offsetY
-        self.edgeRougheness = edgeRougheness
+        self.edgeRoughness = edgeRoughness
         self.clip_geometry = clip_geometry
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
@@ -173,11 +173,11 @@ class DEMBlockBuilder:
 
                 b["geom"] = {"url": self.urlRoot + tail}
         else:
-            if self.edgeRougheness == 1:
+            if self.edgeRoughness == 1:
                 ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
             else:
                 grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
-                self.processEdges(grid_values, self.edgeRougheness)
+                self.processEdges(grid_values, self.edgeRoughness)
                 ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
 
             g = {"width": self.grid_size.width(),

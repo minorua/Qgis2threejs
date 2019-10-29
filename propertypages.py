@@ -302,8 +302,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     def resolutionSliderChanged(self, v):
         outsize = self.mapSettings.outputSize()
         resolutionLevel = self.horizontalSlider_DEMSize.value()
-        roughening = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
-        demSize = calculateDEMSize(outsize, resolutionLevel, roughening)
+        roughness = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
+        demSize = calculateDEMSize(outsize, resolutionLevel, roughness)
 
         mupp = self.mapSettings.mapUnitsPerPixel()
         xres = (mupp * outsize.width()) / (demSize.width() - 1)

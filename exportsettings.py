@@ -322,8 +322,8 @@ class ExportSettings:
             return None
 
         sizeLevel = layer.properties.get("horizontalSlider_DEMSize", 2)
-        roughening = layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings", False) else 0
-        return calculateDEMSize(self.mapSettings.outputSize(), sizeLevel, roughening)
+        roughness = layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings", False) else 0
+        return calculateDEMSize(self.mapSettings.outputSize(), sizeLevel, roughness)
 
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])

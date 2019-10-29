@@ -171,7 +171,7 @@ class FlatDEMProvider:
         return self.value
 
 
-def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
+def calculateDEMSize(canvasSize, sizeLevel, roughness=0):
     width, height = canvasSize.width(), canvasSize.height()
     size = 100 * sizeLevel
     s = (size * size / (width * height)) ** 0.5
@@ -179,10 +179,10 @@ def calculateDEMSize(canvasSize, sizeLevel, roughening=0):
         width = int(width * s)
         height = int(height * s)
 
-    if roughening:
-        if width % roughening != 0:
-            width = int(width / roughening + 0.9) * roughening
-        if height % roughening != 0:
-            height = int(height / roughening + 0.9) * roughening
+    if roughness:
+        if width % roughness != 0:
+            width = int(width / roughness + 0.9) * roughness
+        if height % roughness != 0:
+            height = int(height / roughness + 0.9) * roughness
 
     return QSize(width + 1, height + 1)

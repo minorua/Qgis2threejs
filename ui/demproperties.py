@@ -266,7 +266,7 @@ class Ui_DEMPropertiesWidget(object):
         self.label_Resampling.setText(_translate("DEMPropertiesWidget", "Resampling level"))
         self.label_ResamplingLevel.setText(_translate("DEMPropertiesWidget", "2"))
         self.checkBox_Surroundings.setText(_translate("DEMPropertiesWidget", "Surrounding blocks"))
-        self.label_3.setText(_translate("DEMPropertiesWidget", "Roughening"))
+        self.label_3.setText(_translate("DEMPropertiesWidget", "Roughness"))
         self.label_2.setText(_translate("DEMPropertiesWidget", "Size"))
         self.checkBox_Clip.setText(_translate("DEMPropertiesWidget", "Clip DEM with polygon layer"))
         self.groupBox_Material.setTitle(_translate("DEMPropertiesWidget", "&Material"))
