@@ -28,7 +28,7 @@ Sphere with specified radius, color and opacity
 
    <table><tr><td width="256">
 
-|image01|
+.. image:: ./images/point/Sphere.jpg
 
 .. raw:: html
 
@@ -63,7 +63,7 @@ Cylinder with specified radius, height, color and opacity
 
    <table><tr><td width="256">
 
-|image02|
+.. image:: ./images/point/Cylinder.jpg
 
 .. raw:: html
 
@@ -100,7 +100,7 @@ Cone with specified radius, height, color and opacity
 
    <table><tr><td width="256">
 
-|image03|
+.. image:: ./images/point/Cone.jpg
 
 .. raw:: html
 
@@ -137,7 +137,7 @@ Box with specified width, depth, height, color and opacity
 
    <table><tr><td width="256">
 
-|image04|
+.. image:: ./images/point/Box.jpg
 
 .. raw:: html
 
@@ -176,7 +176,7 @@ Disk with specified radius, orientation, color and opacity
 
    <table><tr><td width="256">
 
-|image05|
+.. image:: ./images/point/Disk.jpg
 
 .. raw:: html
 
@@ -215,7 +215,7 @@ Plane with specified length, width, orientation, color and opacity
 
    <table><tr><td width="256">
 
-|image06|
+.. image:: ./images/no_image.png
 
 .. raw:: html
 
@@ -255,7 +255,7 @@ Point
 
    <table><tr><td width="256">
 
-|image09|
+.. image:: ./images/no_image.png
 
 .. raw:: html
 
@@ -292,7 +292,7 @@ specified, the model file is not copied.
 
    <table><tr><td width="256">
 
-|image07|
+.. image:: ./images/no_image.png
 
 .. raw:: html
 
@@ -333,7 +333,7 @@ specified, the model file is not copied.
 
    <table><tr><td width="256">
 
-|image08|
+.. image:: ./images/no_image.png
 
 .. raw:: html
 
@@ -376,7 +376,7 @@ Line Layer
 ----------
 
 `Line <#line>`__ \| `Pipe <#pipe>`__ \| `Cone <#cone>`__ \|
-`Box <#box>`__ \| `Profile <#profile>`__
+`Box <#box>`__ \| `Wall <#wall>`__
 
 
 .. index:: Line
@@ -388,7 +388,7 @@ Line
 
    <table><tr><td width="256">
 
-|image11|
+.. image:: ./images/line/Line.png
 
 .. raw:: html
 
@@ -421,7 +421,7 @@ Places a cylinder to each line segment and a sphere to each vertex.
 
    <table><tr><td width="256">
 
-|image12|
+.. image:: ./images/line/Pipe.jpg
 
 .. raw:: html
 
@@ -459,7 +459,7 @@ direction.
 
    <table><tr><td width="256">
 
-|image13|
+.. image:: ./images/line/ConeL.jpg
 
 .. raw:: html
 
@@ -495,7 +495,7 @@ Places a box to each line segment.
 
    <table><tr><td width="256">
 
-|image14|
+.. image:: ./images/line/Box.jpg
 
 .. raw:: html
 
@@ -532,7 +532,7 @@ Makes a vertical wall under each line segment.
 
    <table><tr><td width="256">
 
-|image15|
+.. image:: ./images/line/Wall.jpg
 
 .. raw:: html
 
@@ -568,7 +568,7 @@ Polygon
 
    <table><tr><td width="256">
 
-|image23|
+.. image:: ./images/no_image.png
 
 .. raw:: html
 
@@ -592,7 +592,7 @@ Extruded polygon with specified height, color and opacity
 
    <table><tr><td width="256">
 
-|image21|
+.. image:: ./images/polygon/Extruded.jpg
 
 .. raw:: html
 
@@ -627,7 +627,7 @@ polygon at specified altitude.
 
    <table><tr><td width="256">
 
-|image22|
+.. image:: ./images/polygon/Overlay.jpg
 
 .. raw:: html
 

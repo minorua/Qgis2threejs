@@ -109,7 +109,7 @@ Scene Settings
 Scene settings dialog controls some basic configuration settings for current scene.
 Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
-|scene_settings_dialog|
+.. image:: ./images/dialogs/scene_settings.png
 
 * World Coordinates
 
@@ -208,6 +208,8 @@ Decorations
 DEM Layer Settings
 ------------------
 
+.. image:: ./images/dialogs/dem_layer.png
+
 Geometry
 ^^^^^^^^
 
@@ -216,11 +218,11 @@ Geometry
    Select a DEM resolution from several levels. This resolution is used to
    resample the DEM, but is not for texture.
 
-* Surroundings
+* Surrounding blocks
 
    This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
    Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
-   (a center block and 8 surrounding blocks) are output. Roughening can be selected from powers of 2 in
+   (a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
    the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
    means that the number of grid points in the same area becomes 1/4.
 
@@ -304,6 +306,8 @@ Other Options
 Vector Layer Settings
 ---------------------
 
+.. image:: ./images/dialogs/vector_layer.png
+
 Vector layers are grouped into three types: Point, Line and Polygon.
 Common settings for all types:
 
@@ -315,7 +319,7 @@ Common settings for all types:
 
          Altitude is distance above zero-level.
 
-      * Relative to a DEM layer
+      * Relative to (a DEM layer)
 
          Altitude is distance above surface of selected DEM.
 
@@ -334,7 +338,7 @@ Common settings for all types:
          Uses z coordinate or m value of each vertex. the evaluated value is added to it.
 
          These options can be chosen when the layer geometries have z coordinates or m values.
-         Cannot be chosen when the object type is Extruded or Overlay (polygon).
+         Cannot be chosen when the object type is Extruded or Overlay.
 
 * Style
 
@@ -384,7 +388,7 @@ Line
 Line layers in the project are listed as the child items. The following
 object types are available:
 
-    Line, Pipe, Cone, Box, Profile
+    Line, Pipe, Cone, Box, Wall
 
 See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -394,7 +398,7 @@ Polygon
 Polygon layers in the project are listed as the child items. The
 following object types are available:
 
-    Extruded, Overlay, Triangular Mesh
+    Polygon, Extruded, Overlay
 
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -404,7 +408,7 @@ See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for eac
 Export to Web Dialog
 --------------------
 
-|export_to_web_dialog|
+.. image:: ./images/dialogs/export_to_web.png
 
 * Output directory and HTML Filename
 
@@ -440,8 +444,8 @@ Export to Web Dialog
 
        This is a template for mobile devices, which has mobile friendly GUI,
        device orientation controls and AR feature. In order to use the AR feature
-       (Camera and GPS), you need to upload exported files to a web server
-       supporting SSL.
+       (Camera and GPS), you need to upload exported files to a web server that
+       supports SSL.
 
        Option
 
@@ -452,15 +456,27 @@ Export to Web Dialog
            grid magnetic angle (angle between grid North and magnetic North) and map rotation.
            Used to determine device camera direction.
 
+* General Settings
+
+    * Preserve the Current Viewpoint
+
+        If checked, the current viewpoint of the preview is used as initial viewpoint.
+
+    * Enable the Viewer to Run Locally
+
+        If checked, export all scene data to a .js file to avoid web browser's same origin policy
+        security restrictions. You can view the exported scene without uploading it to a web
+        server, although the total file size will increase and it will take longer to load.
+
 Exporter Settings
 -----------------
 
-|plugin_settings_dialog|
+.. image:: ./images/dialogs/plugin_settings.png
 
 * Web browser path
 
-   If you want to open web page exported from the exporter with a web browser
-   other than the default browser, enter the web browser path in this input box.
+   If you want to run the exported viewer with a web browser other than the default browser,
+   enter path to the web browser in this input box.
    See `Browser Support <https://github.com/minorua/Qgis2threejs/wiki/Browser-Support>`__ wiki page.
 
 

@@ -105,7 +105,7 @@ Exporting the Scene to Web
 --------------------------
 Click on the ``File - Export to Web...`` menu entry to open this dialog.
 
-|export_to_web_dialog|
+.. image:: ./images/dialogs/export_to_web.png
 
 Select a directory to export the scene and press ``Export`` button.
 
@@ -113,7 +113,7 @@ Select a directory to export the scene and press ``Export`` button.
 
 Open the .html file with a web browser. You can see exported scene in web browser.
 
-.. note:: Some web browsers do not allow loading data files on local file system via Ajax.
+.. note:: Many web browsers do not allow loading data files on local file system via Ajax.
    Please see `Browser Support`__ page of wiki for details.
 
 __ https://github.com/minorua/Qgis2threejs/wiki/Browser-Support
