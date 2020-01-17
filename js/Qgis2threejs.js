@@ -2511,7 +2511,6 @@ Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
 Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer" && jsonObject.properties.objType == "Model File" && jsonObject.data !== undefined) {
     if (this.models === undefined) {
       var _this = this;
@@ -2527,6 +2526,8 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     }
     this.models.loadJSONObject(jsonObject.data.models);
   }
+
+  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 };
 
 Q3D.PointLayer.prototype.build = function (features) {
