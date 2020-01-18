@@ -654,6 +654,26 @@ limitations:
     });
   };
 
+
+  app.loadModelData = function (data, ext, resourcePath, callback) {
+
+    if (ext == "dae") {
+      var model = new THREE.ColladaLoader(app.loadingManager).parse(data, resourcePath);
+      if (callback) callback(model);
+    }
+    else if (ext == "gltf" || ext == "glb") {
+      new THREE.GLTFLoader(app.loadingManager).parse(data, resourcePath, function (model) {
+        if (callback) callback(model);
+      }, function (e) {
+        console.log("Failed to load a glTF model: " + e);
+      });
+    }
+    else {
+      console.log("Model file type not supported: " + ext);
+      return;
+    }
+  };
+
   app.mouseDownPoint = new THREE.Vector2();
   app.mouseUpPoint = new THREE.Vector2();
 
@@ -3089,8 +3109,21 @@ Q3D.Model.prototype = {
     });
   },
 
+  loadData: function (data, ext, resourcePath, callback) {
+    var _this = this;
+    Q3D.application.loadModelData(data, ext, resourcePath, function (model) {
+      _this.model = model;
+      _this._loadCompleted(callback);
+    });
+  },
+
   loadJSONObject: function (jsonObject, callback) {
-    this.load(jsonObject.url, callback);
+    if (jsonObject.url !== undefined) {
+      this.load(jsonObject.url, callback);
+    }
+    else {
+      this.loadData(atob(jsonObject.base64), jsonObject.ext, jsonObject.resourcePath, callback);
+    }
   },
 
   _loadCompleted: function (anotherCallback) {
@@ -3135,17 +3168,17 @@ Q3D.Models.prototype.loadJSONObject = function (jsonObject) {
 
   var model, url;
   for (var i = 0, l = jsonObject.length; i < l; i++) {
-    url = jsonObject[i].url;
 
-    if (this.cache[url] !== undefined) {
+    url = jsonObject[i].url;
+    if (url !== undefined && this.cache[url] !== undefined) {
       model = this.cache[url];
     }
     else {
       model = new Q3D.Model();
-      model.load(url, callback);
-      this.cache[url] = model;
-    }
+      model.loadJSONObject(jsonObject[i], callback);
 
+      if (url !== undefined) this.cache[url] = model;
+    }
     this.models.push(model);
   }
 };

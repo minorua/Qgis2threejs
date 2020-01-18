@@ -335,18 +335,24 @@ class ModelManager(DataManager):
     def modelIndex(self, path):
         return self._index(path)
 
-    def build(self, export=True):
+    def build(self, export=True, base64=False):
         a = []
         for path_url in self._list:
             if path_url.startswith("http:") or path_url.startswith("https:"):
-                url = path_url
-            elif export:
-                url = "./data/{}/models/{}".format(self.exportSettings.outputFileTitle(),
-                                                   os.path.basename(path_url))
+                a.append({"url": path_url})
+            elif base64:
+                _, ext = os.path.splitext(path_url)
+                a.append({"base64": tools.base64file(path_url),
+                          "ext": ext[1:],
+                          "resourcePath": "./data/{}/models/".format(self.exportSettings.outputFileTitle())})
             else:
-                url = QUrl.fromLocalFile(path_url).toString()
+                if export:
+                    url = "./data/{}/models/{}".format(self.exportSettings.outputFileTitle(),
+                                                       os.path.basename(path_url))
+                else:
+                    url = QUrl.fromLocalFile(path_url).toString()
 
-            a.append({"url": url})
+                a.append({"url": url})
         return a
 
     def hasColladaModel(self):

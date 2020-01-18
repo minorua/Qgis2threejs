@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 import os
+import base64
 import configparser
 import re
 import shutil
@@ -146,6 +147,15 @@ def base64image(image):
     buffer.open(QIODevice.WriteOnly)
     image.save(buffer, "PNG")
     return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
+
+
+def base64file(file_path):
+    try:
+        with open(file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("ascii")
+    except:
+        logMessage("Cannot read file: {}".format(file_path))
+        return None
 
 
 def getTemplateConfig(template_path):

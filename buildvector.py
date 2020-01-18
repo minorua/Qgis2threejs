@@ -469,8 +469,8 @@ class VectorLayerBuilder(LayerBuilder):
             for feat in vlayer.features(request):
                 feat.model = vlayer.objectType.model(self.settings, vlayer, feat)
                 self.features.append(feat)
-            data["models"] = self.modelManager.build(self.pathRoot is not None)
-
+            data["models"] = self.modelManager.build(self.pathRoot is not None,
+                                                     base64=self.settings.base64)
         if build_blocks:
             data["blocks"] = [block.build() for block in self.blocks()]
 
