@@ -238,6 +238,10 @@ function startARMode(position) {
     app.camera.position.copy(position);
   }
 
+  if (Q3D.Config.bgColor !== null) {
+    app.renderer.setClearColor(0, 0);
+  }
+
   if (orbitControls.autoRotate) {
     app.setRotateAnimationMode(false);
   }
@@ -318,6 +322,8 @@ function stopARMode() {
   app.camera.fov = oldFOV;
   app.camera.updateProjectionMatrix();
   app.setCanvasSize(window.innerWidth, window.innerHeight);
+
+  if (Q3D.Config.bgColor !== null) app.renderer.setClearColor(Q3D.Config.bgColor || 0, 1);
 
   document.querySelectorAll(".action-move").forEach(function (elm) {
     elm.classList.toggle("hidden");
