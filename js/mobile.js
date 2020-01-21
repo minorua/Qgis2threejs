@@ -252,31 +252,16 @@ function startARMode(position) {
 
   app.startAnimation();
 
-  navigator.mediaDevices.enumerateDevices().then(function (devices) {
-    // use "camera" facing "back" preferentially
-    devices.sort(function (a, b) {
-      var p = 0;
-      if ((a.label || "").match(/camera/)) p -= 1;
-      if ((b.label || "").match(/camera/)) p += 1;
-      if ((a.label || "").match(/back/)) p -= 1;
-      if ((b.label || "").match(/back/)) p += 1;
-      return p;
+  navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(function (stream) {
+    var v = document.getElementById("video");
+    v.addEventListener("loadedmetadata", function () {
+      app.eventListener.resize();
     });
+    v.srcObject = stream;
 
-    var id = devices[0].deviceId;
-    navigator.mediaDevices.getUserMedia({video: {optional: [{sourceId: id}]}}, function (stream) {
-      var v = document.getElementById("video");
-      v.addEventListener("loadedmetadata", function () {
-        app.eventListener.resize();
-      });
-      v.srcObject = stream;
-
-      document.getElementById("view").classList.add("transparent");
-    }, function (error) {
-      alert(error);
-    });
+    document.getElementById("view").classList.add("transparent");
   }).catch(function (error) {
-    alert(error.message);
+    alert(error);
   });
 
   document.querySelectorAll(".action-move").forEach(function (elm) {
