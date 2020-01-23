@@ -110,7 +110,7 @@ The controls box has:
 Mobile Template
 ---------------
 
-This is a template for mobile devices, which has mobile friendly GUI, device orientation controls and AR feature.
+This is a template for mobile devices, which has mobile friendly GUI and experimental AR feature.
 In order to use the AR feature (Camera and GPS), you need to upload exported files to a web server supporting SSL.
 
 .. 
