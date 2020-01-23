@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.4.2
+- Fixed scene export with glTF/COLLADA model file (fix #193)
+- Fixed AR camera background in Mobile template (fix #196)
+
 ### Version 2.4.1
 - Fixed clipping self-crossing lines (fix #117)
 - Fixed retrieving a symbol for a feature
