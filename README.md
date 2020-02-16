@@ -27,7 +27,7 @@ Dependent JavaScript libraries and resources
 
 * [Proj4js](https://trac.osgeo.org/proj4js/)
 
-* [dat-gui](https://code.google.com/p/dat-gui/) for export based on 3DViewer(dat-gui) template
+* [dat-gui](https://github.com/dataarts/dat.gui) for export based on 3DViewer(dat-gui) template
 
 * [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
 
