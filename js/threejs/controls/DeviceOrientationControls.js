@@ -3,6 +3,8 @@
  * @author WestLangley / http://github.com/WestLangley
  *
  * W3C Device Orientation control (http://w3c.github.io/deviceorientation/spec-source-orientation.html)
+ *
+ * minorua changed y-up coordinate system to z-up
  */
 
 THREE.DeviceOrientationControls = function( object ) {
@@ -35,7 +37,7 @@ THREE.DeviceOrientationControls = function( object ) {
 
 	var setObjectQuaternion = function() {
 
-		var zee = new THREE.Vector3( 0, 0, 1 );
+		var ex = new THREE.Vector3( 1, 0, 0 ), zee = new THREE.Vector3( 0, 0, 1 );
 
 		var euler = new THREE.Euler();
 
@@ -47,7 +49,9 @@ THREE.DeviceOrientationControls = function( object ) {
 
 			euler.set( beta, alpha, - gamma, 'YXZ' ); // 'ZXY' for the device, but 'YXZ' for us
 
-			quaternion.setFromEuler( euler ); // orient the device
+			quaternion.setFromAxisAngle( ex, Math.PI / 2 ); // z-up world to y-up
+
+			quaternion.multiply( q0.setFromEuler( euler ) ); // orient the device
 
 			quaternion.multiply( q1 ); // camera looks out the back of the device, not the top
 

@@ -55,8 +55,8 @@ app.eventListener.resize = function () {
 app.cameraAction._move = app.cameraAction.move;
 app.cameraAction.move = function () {
   app.cameraAction._move(app.queryTargetPosition.x,
-                           -app.queryTargetPosition.z,
-                           app.queryTargetPosition.y + Q3D.Config.AR.DH * app.scene.userData.zScale);   // + device height from ground
+                         app.queryTargetPosition.y,
+                         app.queryTargetPosition.z + Q3D.Config.AR.DH * app.scene.userData.zScale);   // + device height from ground
 };
 
 app._setRotateAnimationMode = app.setRotateAnimationMode;
@@ -231,7 +231,7 @@ function startARMode(position) {
   app.camera.updateProjectionMatrix();
 
   if (typeof position === "undefined") {
-    app.camera.position.set(0, 30, 0);
+    app.camera.position.set(0, 0, 30);
     document.getElementById("current-location").classList.add("touchme");
   }
   else {
@@ -274,14 +274,14 @@ function startARMode(position) {
 function startARModeHere() {
   var vec3 = new THREE.Vector3();
   vec3.copy(app.queryTargetPosition);
-  vec3.y += Q3D.Config.AR.DH * app.scene.userData.zScale;
+  vec3.z += Q3D.Config.AR.DH * app.scene.userData.zScale;
   startARMode(vec3);
   document.getElementById("ar-checkbox").checked = true;
 }
 
 function moveHere() {
   app.camera.position.copy(app.queryTargetPosition);
-  app.camera.position.y += Q3D.Config.AR.DH * app.scene.userData.zScale;
+  app.camera.position.z += Q3D.Config.AR.DH * app.scene.userData.zScale;
 }
 
 function stopARMode() {
@@ -295,9 +295,12 @@ function stopARMode() {
   app.stopAnimation();
   document.getElementById("current-location").classList.remove("touchme");
 
-  app.camera.position.set(0, 100, 100);
-  app.camera.lookAt(0, 0, 0);
-  orbitControls.target.set(0, 0, 0);
+  var v = Q3D.Config.viewpoint,
+      p = v.pos,
+      t = v.lookAt;
+  app.camera.position.set(p.x, p.y, p.z);
+  app.camera.lookAt(t.x, t.y, t.z);
+  app.controls.target.set(t.x, t.y, t.z);
 
   var v = document.getElementById("video");
   v.srcObject = null;
@@ -369,7 +372,7 @@ function zoomToCurrentLocation() {
   // AR mode is off
   getCurrentPosition(function (pt) {
     // indicate current position using query marker
-    app.queryMarker.position.set(pt.x, pt.y, pt.z); // z-up
+    app.queryMarker.position.set(pt.x, pt.y, pt.z);
     app.queryMarker.visible = true;
     app.queryMarker.updateMatrixWorld();
 

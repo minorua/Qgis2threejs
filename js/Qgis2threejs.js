@@ -11,8 +11,8 @@ Q3D.Config = {
   bgColor: null,      // null is sky
   // camera
   orthoCamera: false,
-  viewpoint: {                    // note: y-up
-    pos: {x: 0, y: 100, z: 100},  // initial camera position
+  viewpoint: {                    // z-up
+    pos: {x: 0, y: -100, z: 100}, // initial camera position
     lookAt: {x: 0, y: 0, z:0}
   },
   // light
@@ -149,10 +149,6 @@ custom function
 Q3D.Scene = function () {
   THREE.Scene.call(this);
   this.autoUpdate = false;
-
-  // scene is z-up
-  this.rotation.x = -Math.PI / 2;
-  this.updateMatrixWorld();
 
   this.mapLayers = {};
 
@@ -463,22 +459,27 @@ limitations:
       var t = Q3D.Config.viewpoint.lookAt;
       controls.target.set(t.x, t.y, t.z);
 
-      // custom functions
+      // custom actions
       var offset = new THREE.Vector3();
       var spherical = new THREE.Spherical();
+      var quat = new THREE.Quaternion().setFromUnitVectors(app.camera.up, new THREE.Vector3(0, 1, 0));
+      var quatInverse = quat.clone().inverse();
 
       controls.moveForward = function (delta) {
         offset.copy(controls.object.position).sub(controls.target);
         var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
-        offset.y = 0;
+        offset.z = 0;
         offset.normalize();
         offset.multiplyScalar(-2 * delta * targetDistance / app.renderer.domElement.clientHeight);
 
         controls.object.position.add(offset);
         controls.target.add(offset);
       };
+
       controls.cameraRotate = function (thetaDelta, phiDelta) {
         offset.copy(controls.target).sub(controls.object.position);
+        offset.applyQuaternion(quat);
+
         spherical.setFromVector3(offset);
 
         spherical.theta += thetaDelta;
@@ -490,6 +491,8 @@ limitations:
         spherical.makeSafe();
 
         offset.setFromSpherical(spherical);
+        offset.applyQuaternion(quatInverse);
+
         controls.target.copy(controls.object.position).add(offset);
         controls.object.lookAt(controls.target);
       };
@@ -809,6 +812,9 @@ limitations:
       app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 10000);
     }
 
+    // magic to change y-up world to z-up
+    app.camera.up.set(0, 0, 1);
+
     var v = Q3D.Config.viewpoint,
         p = v.pos,
         t = v.lookAt;
@@ -951,7 +957,7 @@ limitations:
         for (k = 0, m = connGroup.children.length; k < m; k++) {
           conn = connGroup.children[k];
           pt0 = conn.geometry.vertices[0];
-          vec3.set(pt0.x, pt0.z, -pt0.y);
+          vec3.set(pt0.x, pt0.y, pt0.z);
 
           if (c2l.subVectors(vec3, camera.position).dot(c2t) > 0)      // label is in front
             obj_dist.push([conn, pt0, camera.position.distanceTo(vec3)]);
@@ -981,7 +987,7 @@ limitations:
         dist = obj_dist[i][2];
 
         // calculate label position
-        vec3.set(pt0.x, pt0.z, -pt0.y).project(camera);
+        vec3.set(pt0.x, pt0.y, pt0.z).project(camera);
         x = (vec3.x * widthHalf) + widthHalf;
         y = -(vec3.y * heightHalf) + heightHalf;
 
@@ -1113,21 +1119,21 @@ limitations:
     app.popup.show("pageinfo");
   };
 
-  app.queryTargetPosition = new THREE.Vector3();  // y-up
+  app.queryTargetPosition = new THREE.Vector3();
 
   app.cameraAction = {
 
-    move: function (x, y, z) {    // z-up
+    move: function (x, y, z) {
       if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
-      else app.camera.position.set(x, z, -y);   // y-up
+      else app.camera.position.set(x, y, z);
       app.render(true);
     },
 
-    vecZoom: new THREE.Vector3(0, 10, 10),    // y-up
+    vecZoom: new THREE.Vector3(0, -10, 10),
 
-    zoomIn: function (x, y, z) {    // z-up
+    zoomIn: function (x, y, z) {
       if (x === undefined) vec3.copy(app.queryTargetPosition);
-      else vec3.set(x, z, -y);   // y-up
+      else vec3.set(x, y, z);
 
       app.camera.position.addVectors(vec3, app.cameraAction.vecZoom);
       app.camera.lookAt(vec3.x, vec3.y, vec3.z);
@@ -1135,18 +1141,18 @@ limitations:
       app.render(true);
     },
 
-    orbit: function (x, y, z) {   // z-up
+    orbit: function (x, y, z) {
       if (app.controls.target === undefined) return;
 
       if (x === undefined) app.controls.target.copy(app.queryTargetPosition);
-      else app.controls.target.set(x, z, -y);   // y-up
+      else app.controls.target.set(x, y, z);
       app.setRotateAnimationMode(true);
     }
 
   };
 
   app.showQueryResult = function (point, obj, hide_coords) {
-    app.queryTargetPosition.set(point.x, point.z, -point.y);    // y-up
+    app.queryTargetPosition.set(point.x, point.y, point.z);
 
     var layer = app.scene.mapLayers[obj.userData.layerId],
         e = document.getElementById("qr_layername");
@@ -1334,8 +1340,8 @@ limitations:
       obj = objs[i];
 
       // query marker
-      pt = {x: obj.point.x, y: -obj.point.z, z: obj.point.y};  // obj's coordinate system is y-up
-      app.queryMarker.position.set(pt.x, pt.y, pt.z);              // this is z-up
+      pt = {x: obj.point.x, y: obj.point.y, z: obj.point.z};
+      app.queryMarker.position.set(pt.x, pt.y, pt.z);
       app.scene.add(app.queryMarker);
 
       // get layerId of clicked object
@@ -1416,7 +1422,7 @@ limitations:
         for (var k = 0; k < connGroup.children.length; k++) {
           conn = connGroup.children[k];
           pt = conn.geometry.vertices[0];
-          labels.push({pt: new THREE.Vector3(pt.x, pt.z, -pt.y),      // in world coordinates
+          labels.push({pt: new THREE.Vector3(pt.x, pt.y, pt.z),      // in world coordinates
                        text: conn.userData.elem.textContent});
         }
       }
