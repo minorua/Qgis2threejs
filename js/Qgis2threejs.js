@@ -1929,7 +1929,7 @@ Q3D.DEMBlock.prototype = {
              -hw, -hh, e0];
 
     var geom = new THREE.BufferGeometry();
-    geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+    geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
     var obj = new THREE.Line(geom, material);
     obj.name = "frame";
@@ -1944,7 +1944,7 @@ Q3D.DEMBlock.prototype = {
     v.forEach(function (p) {
       var geom = new THREE.BufferGeometry(),
           vl = [p[0], p[1], p[2], p[0], p[1], e0];
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(vl, 3));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(vl, 3));
 
       var obj = new THREE.Line(geom, material);
       obj.name = "frame";
@@ -2011,9 +2011,9 @@ Q3D.ClippedDEMBlock.prototype = {
       }
 
       geom.setIndex(obj.triangles.f);
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-      geom.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-      geom.addAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
 
       if (layer.properties.shading) {
         geom.computeVertexNormals();
@@ -2639,7 +2639,7 @@ Q3D.PointLayer.prototype.buildPoints = function (features) {
     f = features[fidx];
 
     geom = new THREE.BufferGeometry();
-    geom.addAttribute("position",
+    geom.setAttribute("position",
                       new THREE.BufferAttribute(new Float32Array(f.geom.pts), 3));
 
     obj = new THREE.Points(geom, this.materials.mtl(f.mtl));
@@ -2765,7 +2765,7 @@ Q3D.LineLayer.prototype.build = function (features) {
         vertices.push(pt[0], pt[1], pt[2]);
       }
       var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
       var obj = new THREE.Line(geom, materials.mtl(f.mtl));
       if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
@@ -2954,7 +2954,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
   else if (this.properties.objType == "Polygon") {
     createObject = function (f) {
       var geom = new THREE.BufferGeometry();
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
       geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
                                                             // BufferGeometry and Lambert/Toon material.
@@ -2990,7 +2990,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
           }
 
           geom = new THREE.BufferGeometry();
-          geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+          geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
           edge = new THREE.Line(geom, mtl);
           mesh.add(edge);
@@ -3005,7 +3005,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
                  bnd[j][0], bnd[j][1], h];
 
             geom = new THREE.BufferGeometry();
-            geom.addAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+            geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
             edge = new THREE.Line(geom, mtl);
             mesh.add(edge);
@@ -3031,7 +3031,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
 
       var geom = new THREE.BufferGeometry();
       geom.setIndex(f.geom.triangles.f);
-      geom.addAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.computeVertexNormals();
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
@@ -3043,7 +3043,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
           bnds = f.geom.brdr[i];
           for (j = 0, m = bnds.length; j < m; j++) {
             geom = new THREE.BufferGeometry();
-            geom.addAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
+            geom.setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
 
             mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
           }
