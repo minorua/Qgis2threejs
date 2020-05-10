@@ -332,7 +332,11 @@ class Q3DView(QWebView):
     def dropEvent(self, event):
         # logMessage(event.mimeData().formats())
         for url in event.mimeData().urls():
-            self.runScript("loadModel('" + url.toString() + "');")
+            filename = url.fileName()
+            if filename == "cloud.js":
+                self.runScript("loadPointCloud('{}');".format(url.toString()))
+            else:
+                self.runScript("loadModel('{}');".format(url.toString()))
 
         event.acceptProposedAction()
 

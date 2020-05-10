@@ -657,7 +657,6 @@ limitations:
     });
   };
 
-
   app.loadModelData = function (data, ext, resourcePath, callback) {
 
     if (ext == "dae") {
@@ -674,6 +673,44 @@ limitations:
     else {
       console.log("Model file type not supported: " + ext);
       return;
+    }
+  };
+
+  app.pointclouds = [];
+
+  app.loadPointCloud = function (url, name) {
+
+    var pgroup = new Potree.Group();
+    pgroup.setPointBudget(10000000);
+
+    var group = new Q3D.Group();
+    group.add(pgroup);
+    app.scene.add(group);
+
+    Potree.loadPointCloud(url, name, function(e) {
+      pgroup.add(e.pointcloud);
+
+      app.updatePointCloudPosition(group);
+      app.pointclouds.push(group);
+
+      app.render();
+      app.setIntervalRender(500, 60);
+    });
+
+    return group;
+  };
+
+  app.updatePointCloudPosition = function (group) {
+    var p = app.scene.toLocalCoordinates(0, 0, 0, true),
+        d = app.scene.userData;
+
+    var g, groups = (typeof group === "undefined") ? app.pointclouds : [group];
+    for (var i = 0; i < groups.length; i++) {
+      g = groups[i];
+      g.position.set(p.x, p.y, p.z);
+      g.rotation.z = -d.rotation * Math.PI / 180;
+      g.scale.set(d.scale, d.scale, d.zScale);
+      g.updateMatrixWorld();
     }
   };
 
@@ -895,6 +932,8 @@ limitations:
 
   app.render = function (updateControls) {
     if (updateControls) app.controls.update();
+
+    // render
     app.renderer.render(app.scene, app.camera);
 
     // North arrow
@@ -910,26 +949,25 @@ limitations:
     app.updateLabelPosition();
   };
 
-  // TODO: remove [obsolete] app.setIntervalRender
   (function () {
-    var _delay, _repeat, _times, _id = null;
+    var dly, rpt, times, id = null;
     var func = function () {
       app.render();
-      if (_repeat <= ++_times) {
-        clearInterval(_id);
-        _id = null;
+      if (rpt <= ++times) {
+        clearInterval(id);
+        id = null;
       }
     };
     app.setIntervalRender = function (delay, repeat) {
-      if (_id === null || _delay != delay) {
-        if (_id !== null) {
-          clearInterval(_id);
+      if (id === null || delay != dly) {
+        if (id !== null) {
+          clearInterval(id);
         }
-        _id = setInterval(func, delay);
-        _delay = delay;
+        id = setInterval(func, delay);
+        dly = delay;
       }
-      _repeat = repeat;
-      _times = 0;
+      rpt = repeat;
+      times = 0;
     };
   })();
 
