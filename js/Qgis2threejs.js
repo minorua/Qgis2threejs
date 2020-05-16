@@ -3153,6 +3153,7 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   // if (jsonObject.type == "layer")
   if (this.pcg !== undefined) {
     this.updatePosition(scene);
+    if (jsonObject.properties.opacity != this.opacity) this.opacity = jsonObject.properties.opacity;
     return;
   }
 
@@ -3166,6 +3167,7 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     _this.materials.add(e.pointcloud.material);
 
     _this.updatePosition(scene);
+    _this.opacity = jsonObject.properties.opacity;
     _this.requestRender();
     _this.requestRepeatRender(500, 60);
   });

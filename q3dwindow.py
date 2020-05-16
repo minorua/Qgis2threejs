@@ -31,7 +31,7 @@ from .conf import RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings, Layer
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
-from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
+from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .qgis2threejstools import logMessage, pluginDir
@@ -378,6 +378,12 @@ class Q3DWindow(QMainWindow):
     # @pyqtSlot(Layer)
     def updateLayerProperties(self, layer):
         orig_layer = self.settings.getItemByLayerId(layer.layerId)
+
+        if layer.name != orig_layer.name:
+            item = self.ui.treeView.getItemByLayerId(layer.layerId)
+            if item:
+                item.setText(layer.name)
+
         if layer.properties != orig_layer.properties:
             layer.updated = True
         self.iface.requestLayerUpdate(layer)
@@ -464,8 +470,9 @@ class PropertiesDialog(QDialog):
             self.page = DEMPropertyPage(self)
             self.page.setup(self.layer,
                             self.qgisIface.mapCanvas().mapSettings())
-        elif self.layer.geomType == q3dconst.TYPE_IMAGE:
-            return
+        elif self.layer.geomType == q3dconst.TYPE_POINTCLOUD:
+            self.page = PointCloudPropertyPage(self)
+            self.page.setup(self.layer)
         else:
             self.page = VectorPropertyPage(self)
             self.page.setup(self.layer,
@@ -482,6 +489,9 @@ class PropertiesDialog(QDialog):
             if isinstance(self.page, ScenePropertyPage):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
+                if isinstance(self.page, PointCloudPropertyPage):
+                    self.layer.name = self.page.lineEdit_Name.text()
+
                 self.layer.properties = self.page.properties()
                 self.propertiesAccepted.emit(self.layer)
 

@@ -20,9 +20,10 @@
  ***************************************************************************/
 """
 import os
+import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint
+from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
 from PyQt5.QtWidgets import QCheckBox, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
@@ -31,6 +32,7 @@ from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
+from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from .conf import DEF_SETS
 from .datamanager import MaterialManager
@@ -46,6 +48,7 @@ PAGE_SCENE = 1
 # PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
+PAGE_POINTCLOUD = 5
 
 
 def is_number(val):
@@ -585,3 +588,43 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     def addStyleWidget(self, funcType=None, options=None):
         self.styleWidgets[self.styleWidgetCount].setup(funcType, options)
         self.styleWidgetCount += 1
+
+
+class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
+
+    def __init__(self, parent=None):
+        PropertyPage.__init__(self, PAGE_POINTCLOUD, parent)
+        Ui_PCPropertiesWidget.setupUi(self, self)
+
+        widgets = [self.url, self.spinBox_Opacity, self.checkBox_Visible]
+        self.registerPropertyWidgets(widgets)
+
+    def setup(self, layer):
+        self.lineEdit_Name.setText(layer.name)
+        self.setProperties(layer.properties)
+
+        url = layer.properties.get("url")
+        if url.startswith("file:"):
+            try:
+                with open(QUrl(url).toLocalFile(), "r") as f:
+                    d = json.load(f)
+
+                bbox = d.get("tightBoundingBox", {})
+                html = "<style>span {font-weight: bold;}</style>"
+                html += """
+<span>Number of Points:</span> {:,}<br>
+<span>Bounding Box:</span><br>
+{}, {}, {} :<br>
+{}, {}, {}
+""".format(d.get("points", "Unknown"), bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz"))
+
+                self.textBrowser.setHtml(html)
+                return
+            except:
+                pass
+
+        self.textBrowser.setHtml("No information available.")
+
+    def properties(self):
+        p = PropertyPage.properties(self)
+        return p

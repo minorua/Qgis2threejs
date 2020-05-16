@@ -43,6 +43,7 @@ class PointCloudLayerBuilder(LayerBuilder):
         p = LayerBuilder.layerProperties(self)
         p["type"] = "pc"
         p["url"] = self.properties.get("url")
+        p["opacity"] = self.properties.get("spinBox_Opacity", 100) / 100
         return p
 
     def blocks(self):
