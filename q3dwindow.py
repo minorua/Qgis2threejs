@@ -19,6 +19,7 @@
  ***************************************************************************/
 """
 import os
+from datetime import datetime
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
@@ -47,6 +48,8 @@ class Q3DViewerInterface(Q3DInterface):
     updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
     switchCameraRequest = pyqtSignal(bool)           # params: is ortho camera
     previewStateChanged = pyqtSignal(bool)           # param: visible
+    addLayerRequest = pyqtSignal(Layer)              # param: Layer object
+    removeLayerRequest = pyqtSignal(str)             # param: layerId
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
@@ -191,6 +194,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
+        self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraState)
@@ -266,6 +270,7 @@ class Q3DWindow(QMainWindow):
             return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
+        self.ui.treeView.clearPointCloudLayers()
         self.ui.actionPerspective.setChecked(True)
 
         settings = self.settings.clone()
@@ -382,6 +387,25 @@ class Q3DWindow(QMainWindow):
         dialog.setLayer(layer)
         return dialog.page.properties()
 
+    def showAddPointCloudLayerDialog(self):
+        dialog = AddPointCloudLayerDialog(self)
+        if dialog.exec_():
+            url = dialog.ui.lineEdit_Source.text()
+            self.addPointCloudLayer(url)
+
+    def addPointCloudLayer(self, url):
+        try:
+            name = url.split("/")[-2]
+        except IndexError:
+            name = "No name"
+
+        layerId = "pc:" + name + datetime.now().strftime("%y%m%d%H%M%S")
+        properties = {"url": url}
+
+        layer = Layer(layerId, name, q3dconst.TYPE_POINTCLOUD, properties, visible=True)
+        self.iface.addLayerRequest.emit(layer)
+        self.ui.treeView.addLayer(layer)
+
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self.settings.decorationProperties("NorthArrow"), self)
         dialog.propertiesAccepted.connect(lambda p: self.iface.requestDecorationUpdate("NorthArrow", p))
@@ -420,7 +444,6 @@ class PropertiesDialog(QDialog):
 
         self.wheelFilter = WheelEventFilter()
 
-        # Set up the user interface from Designer.
         self.ui = Ui_PropertiesDialog()
         self.ui.setupUi(self)
         self.ui.buttonBox.clicked.connect(self.buttonClicked)
@@ -531,3 +554,25 @@ class HFLabelDialog(QDialog):
         if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
             self.propertiesAccepted.emit({"Header": self.ui.textEdit_Header.toPlainText(),
                                           "Footer": self.ui.textEdit_Footer.toPlainText()})
+
+
+class AddPointCloudLayerDialog(QDialog):
+
+    def __init__(self, parent=None):
+        QDialog.__init__(self, parent)
+
+        from .ui.addpclayerdialog import Ui_AddPointCloudLayerDialog
+        self.ui = Ui_AddPointCloudLayerDialog()
+        self.ui.setupUi(self)
+        self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
+
+    def browseClicked(self):
+        url = self.ui.lineEdit_Source.text()
+        if url.startswith("file:"):
+            directory = QUrl(url).toLocalFile()
+        else:
+            directory = QDir.homePath()
+        filterString = "Potree cloud.js file (cloud.js);;All files (*.*)"
+        filename, _ = QFileDialog.getOpenFileName(self, "Select Potree cloud.js file", directory, filterString)
+        if filename:
+            self.ui.lineEdit_Source.setText(QUrl.fromLocalFile(filename).toString())

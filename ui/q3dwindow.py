@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\q3dwindow.ui'
+# Form implementation generated from reading ui file 'D:\Documents\minorua\QGIS\plugins\Qgis2threejs\ui\q3dwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Q3DWindow(object):
     def setupUi(self, Q3DWindow):
@@ -33,6 +35,8 @@ class Ui_Q3DWindow(object):
         self.menuControls.setObjectName("menuControls")
         self.menuDecorations = QtWidgets.QMenu(self.menuScene)
         self.menuDecorations.setObjectName("menuDecorations")
+        self.menuLayer = QtWidgets.QMenu(self.menuScene)
+        self.menuLayer.setObjectName("menuLayer")
         self.menuWindow = QtWidgets.QMenu(self.menubar)
         self.menuWindow.setObjectName("menuWindow")
         self.menuPanels = QtWidgets.QMenu(self.menuWindow)
@@ -161,14 +165,18 @@ class Ui_Q3DWindow(object):
         self.actionSaveSettings.setObjectName("actionSaveSettings")
         self.actionLoadSettings = QtWidgets.QAction(Q3DWindow)
         self.actionLoadSettings.setObjectName("actionLoadSettings")
+        self.actionAddPointCloudLayer = QtWidgets.QAction(Q3DWindow)
+        self.actionAddPointCloudLayer.setObjectName("actionAddPointCloudLayer")
         self.menuCamera.addAction(self.actionPerspective)
         self.menuCamera.addAction(self.actionOrthographic)
         self.menuControls.addAction(self.actionOrbit)
         self.menuDecorations.addAction(self.actionNorthArrow)
         self.menuDecorations.addAction(self.actionHeaderFooterLabel)
+        self.menuLayer.addAction(self.actionAddPointCloudLayer)
         self.menuScene.addAction(self.actionSceneSettings)
         self.menuScene.addAction(self.menuCamera.menuAction())
         self.menuScene.addAction(self.menuControls.menuAction())
+        self.menuScene.addAction(self.menuLayer.menuAction())
         self.menuScene.addAction(self.menuDecorations.menuAction())
         self.menuScene.addSeparator()
         self.menuScene.addAction(self.actionReload)
@@ -213,6 +221,7 @@ class Ui_Q3DWindow(object):
         self.menuCamera.setTitle(_translate("Q3DWindow", "Camera"))
         self.menuControls.setTitle(_translate("Q3DWindow", "Controls"))
         self.menuDecorations.setTitle(_translate("Q3DWindow", "Decorations"))
+        self.menuLayer.setTitle(_translate("Q3DWindow", "Layer"))
         self.menuWindow.setTitle(_translate("Q3DWindow", "&Window"))
         self.menuPanels.setTitle(_translate("Q3DWindow", "Panels"))
         self.menuFile.setTitle(_translate("Q3DWindow", "&File"))
@@ -254,6 +263,6 @@ class Ui_Q3DWindow(object):
         self.actionHeaderFooterLabel.setText(_translate("Q3DWindow", "Header/Footer Labels"))
         self.actionSaveSettings.setText(_translate("Q3DWindow", "Save..."))
         self.actionLoadSettings.setText(_translate("Q3DWindow", "Load..."))
-
+        self.actionAddPointCloudLayer.setText(_translate("Q3DWindow", "Add Point Cloud Layer..."))
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView

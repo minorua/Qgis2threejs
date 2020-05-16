@@ -22,6 +22,7 @@ import time
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
+from . import q3dconst
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings, Layer
@@ -63,6 +64,8 @@ class Q3DControllerInterface(QObject):
             iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
             iface.switchCameraRequest.connect(self.controller.requestCameraSwitch)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
+            iface.addLayerRequest.connect(self.controller.addLayer)
+            iface.removeLayerRequest.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
         self.dataReady.disconnect(self.iface.loadJSONObject)
@@ -80,6 +83,9 @@ class Q3DControllerInterface(QObject):
             self.iface.updateExportSettingsRequest.disconnect(self.controller.requestExportSettingsUpdate)
             self.iface.switchCameraRequest.disconnect(self.controller.requestCameraSwitch)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
+            self.iface.addLayerRequest.disconnect(self.controller.addLayer)
+            self.iface.removeLayerRequest.disconnect(self.controller.removeLayer)
+
         self.iface = None
 
     def loadJSONObject(self, obj):
@@ -433,6 +439,18 @@ class Q3DController(QObject):
             self.abort()
         else:
             self.buildScene()
+
+    @pyqtSlot(Layer)
+    def addLayer(self, layer):
+        layer = self.settings.insertLayer(0, layer)
+        self.buildLayer(layer)
+
+    @pyqtSlot(str)
+    def removeLayer(self, layerId):
+        layer = self.settings.getItemByLayerId(layerId)
+        if layer:
+            self.hideLayer(layer)
+            self.settings.removeLayer(layerId)
 
     # @pyqtSlot(QPainter)
     def _requestSceneUpdate(self, _=None):

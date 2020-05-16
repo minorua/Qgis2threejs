@@ -216,8 +216,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       else if (type == "point") layer = new Q3D.PointLayer();
       else if (type == "line") layer = new Q3D.LineLayer();
       else if (type == "polygon") layer = new Q3D.PolygonLayer();
+      else if (type == "pc") layer = new Q3D.PointCloudLayer();
       else {
-        // console.error("unknown layer type:" + type);
+        console.error("unknown layer type:" + type);
         return;
       }
       layer.id = jsonObject.id;
@@ -3132,6 +3133,98 @@ Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
   });
   this.sideVisible = visible;
 };
+
+
+/*
+Q3D.PointCloudLayer --> Q3D.MapLayer
+*/
+Q3D.PointCloudLayer = function () {
+  Q3D.MapLayer.call(this);
+  this.type = Q3D.LayerType.PointCloud;
+  this.timerId = null;
+};
+
+Q3D.PointCloudLayer.prototype = Object.create(Q3D.MapLayer.prototype);
+Q3D.PointCloudLayer.prototype.constructor = Q3D.PointCloudLayer;
+
+Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+  Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+
+  // if (jsonObject.type == "layer")
+  if (this.pcg !== undefined) {
+    this.updatePosition(scene);
+    return;
+  }
+
+  this.pcg = new Potree.Group();
+  this.pcg.setPointBudget(10000000);
+  this.addObject(this.pcg);
+
+  var _this = this;
+  Potree.loadPointCloud(jsonObject.properties.url, jsonObject.properties.name, function(e) {
+    _this.pcg.add(e.pointcloud);
+    _this.materials.add(e.pointcloud.material);
+
+    _this.updatePosition(scene);
+    _this.requestRender();
+    _this.requestRepeatRender(500, 60);
+  });
+};
+
+Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
+  var p = scene.toLocalCoordinates(0, 0, 0, true),
+      d = scene.userData,
+      g = this.objectGroup;
+
+    g.position.set(p.x, p.y, p.z);
+    g.rotation.z = -d.rotation * Math.PI / 180;
+    g.scale.set(d.scale, d.scale, d.zScale);
+    g.updateMatrixWorld();
+};
+
+Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat) {
+    var times = 0, _this = this;
+
+    var func = function () {
+      if (++times <= repeat) _this.requestRender();
+      else {
+        clearInterval(_this.timerId);
+        _this.timerId = null;
+      }
+    };
+
+  if (this.timerId === null || interval != this.timerInterval) {
+    if (this.timerId !== null) {
+      clearInterval(this.timerId);
+    }
+    this.timerId = setInterval(func, interval);
+    this.timerInterval = interval;
+  }
+}
+
+Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
+  get: function () {
+    return this.objectGroup.visible;
+  },
+  set: function (value) {
+    this.objectGroup.visible = value;
+
+    if (value) {
+      if (this.objectGroup.children.length == 0 && this.pcg !== undefined) {
+        this.objectGroup.add(this.pcg);
+      }
+    }
+    else {
+      if (this.objectGroup.children.length == 1) {
+        this.objectGroup.remove(this.objectGroup.children[0]);
+      }
+    }
+
+    this.requestRender();
+    this.requestRepeatRender(500, 60);
+  }
+});
+
 
 /*
 Q3D.Model

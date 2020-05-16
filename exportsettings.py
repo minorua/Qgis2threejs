@@ -73,26 +73,30 @@ class Layer:
     @classmethod
     def fromDict(self, obj):
         id = obj["layerId"]
-        lyr = Layer(id, obj["name"], obj["geomType"], obj["properties"], obj["visible"])
-        lyr.mapLayer = QgsProject.instance().mapLayer(id)
+        gt = obj["geomType"]
+
+        lyr = Layer(id, obj["name"], gt, obj["properties"], obj["visible"])
+
+        if gt != q3dconst.TYPE_POINTCLOUD:
+            lyr.mapLayer = QgsProject.instance().mapLayer(id)
         return lyr
 
     @classmethod
-    def fromQgsMapLayer(cls, layer):
-        lyr = Layer(layer.id(), layer.name(), cls.getGeometryType(layer))
-        lyr.mapLayer = layer
+    def fromQgsMapLayer(cls, mapLayer):
+        lyr = Layer(mapLayer.id(), mapLayer.name(), cls.getGeometryType(mapLayer))
+        lyr.mapLayer = mapLayer
         return lyr
 
     @classmethod
-    def getGeometryType(cls, layer):
-        """layer: QgsMapLayer sub-class object"""
-        layerType = layer.type()
+    def getGeometryType(cls, mapLayer):
+        """mapLayer: QgsMapLayer sub-class object"""
+        layerType = mapLayer.type()
         if layerType == QgsMapLayer.VectorLayer:
             return {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
                     QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON}.get(layer.geometryType())
+                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON}.get(mapLayer.geometryType())
 
-        elif layerType == QgsMapLayer.RasterLayer and layer.providerType() == "gdal" and layer.bandCount() == 1:
+        elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
             return q3dconst.TYPE_DEM
 
         return None
@@ -119,6 +123,8 @@ class ExportSettings:
         self.crs = None
         self.base64 = False
         self.localMode = False
+
+        self.nextJsLayerId = 0
 
         # cache
         self._mapTo3d = None
@@ -328,25 +334,52 @@ class ExportSettings:
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])
 
+    def addLayer(self, layer):
+        """append an additional layer to layer list"""
+        layer = layer.clone()
+        layer.jsLayerId = self.nextJsLayerId
+        self.nextJsLayerId += 1
+
+        layers = self.getLayerList()
+        layers.append(layer)
+        self.data[ExportSettings.LAYERS] = layers
+        return layer
+
+    def insertLayer(self, index, layer):
+        """insert an additional layer to layer list at given index"""
+        layer = layer.clone()
+        layer.jsLayerId = self.nextJsLayerId
+        self.nextJsLayerId += 1
+
+        layers = self.getLayerList()
+        layers.insert(index, layer)
+        self.data[ExportSettings.LAYERS] = layers
+        return layer
+
+    def removeLayer(self, layerId):
+        """remove layer with given layer ID from layer list"""
+        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.getLayerList() if lyr.layerId != layerId]
+
     def updateLayerList(self):
         """Updates layer elements in settings using current project layer structure.
            Adds layer elements newly added to the project and removes layer elements
            deleted from the project. Also, renumbers layer ID."""
-        layers = []
 
-        # DEM and Vector layers
-        for layer in getLayersInProject():
-            if Layer.getGeometryType(layer) is not None:
-                item = self.getItemByLayerId(layer.id())
-                if item is None:
-                    item = Layer.fromQgsMapLayer(layer)
-                else:
-                    # update layer and layer name
-                    item.mapLayer = layer
-                    item.name = layer.name()
-                layers.append(item)
+        # Point cloud layers
+        layers = [lyr for lyr in self.getLayerList() if lyr.layerId.startswith("pc:")]
 
-        # DEM provider plugins
+        # DEM and vector layers
+        for mapLayer in [ml for ml in getLayersInProject() if Layer.getGeometryType(ml) is not None]:
+            item = self.getItemByLayerId(mapLayer.id())
+            if item is None:
+                item = Layer.fromQgsMapLayer(mapLayer)
+            else:
+                # update layer and layer name
+                item.mapLayer = mapLayer
+                item.name = mapLayer.name()
+            layers.append(item)
+
+        # DEM provider plugin layers
         for plugin in pluginManager().demProviderPlugins():
             layerId = "plugin:" + plugin.providerId()
             item = self.getItemByLayerId(layerId)
@@ -361,9 +394,11 @@ class ExportSettings:
             item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM)
         layers.append(item)
 
-        # update jsLayerId
-        for index, layer in enumerate(layers):
-            layer.jsLayerId = index
+        # renumber jsLayerId
+        self.nextJsLayerId = 0
+        for layer in layers:
+            layer.jsLayerId = self.nextJsLayerId
+            self.nextJsLayerId += 1
 
         self.data[ExportSettings.LAYERS] = layers
 

@@ -334,7 +334,7 @@ class Q3DView(QWebView):
         for url in event.mimeData().urls():
             filename = url.fileName()
             if filename == "cloud.js":
-                self.runScript("loadPointCloud('{}');".format(url.toString()))
+                self.wnd.addPointCloudLayer(url.toString())
             else:
                 self.runScript("loadModel('{}');".format(url.toString()))
 

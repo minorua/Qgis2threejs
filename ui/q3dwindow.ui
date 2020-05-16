@@ -68,9 +68,16 @@
      <addaction name="actionNorthArrow"/>
      <addaction name="actionHeaderFooterLabel"/>
     </widget>
+    <widget class="QMenu" name="menuLayer">
+     <property name="title">
+      <string>Layer</string>
+     </property>
+     <addaction name="actionAddPointCloudLayer"/>
+    </widget>
     <addaction name="actionSceneSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
+    <addaction name="menuLayer"/>
     <addaction name="menuDecorations"/>
     <addaction name="separator"/>
     <addaction name="actionReload"/>
@@ -424,6 +431,11 @@
   <action name="actionLoadSettings">
    <property name="text">
     <string>Load...</string>
+   </property>
+  </action>
+  <action name="actionAddPointCloudLayer">
+   <property name="text">
+    <string>Add Point Cloud Layer...</string>
    </property>
   </action>
  </widget>
