@@ -74,7 +74,7 @@ class GSIElevTileProvider:
 
         # if the bounding box doesn't intersect with the bounding box of this data, return a list filled with nodata value
         if not self.boundingbox.intersects(merc_rect):
-            return [NODATA_VALUE] * width * height
+            return struct.pack("f", NODATA_VALUE) * width * height
 
         # get tiles
         over_smpl = 1
