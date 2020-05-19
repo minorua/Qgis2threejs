@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>366</height>
+    <height>398</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>General</string>
+      <string>&amp;General</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
@@ -60,6 +60,12 @@
       </item>
       <item>
        <widget class="QTextBrowser" name="textBrowser">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -74,20 +80,32 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Material</string>
+      <string>&amp;Material</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>Opacity (%)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Opacity (%)</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QSlider" name="horizontalSlider_Opacity">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>22</height>
+           </size>
+          </property>
           <property name="maximum">
            <number>100</number>
           </property>
@@ -104,11 +122,11 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>22</height>
+           </size>
           </property>
           <property name="prefix">
            <string extracomment="%"/>
@@ -129,13 +147,46 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Color Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox_ColorType"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_Color">
+        <property name="text">
+         <string>Color</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QgsColorButton" name="colorButton_Color">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>22</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Other Options</string>
+      <string>&amp;Other Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -166,10 +217,19 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgis.gui</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lineEdit_Name</tabstop>
   <tabstop>url</tabstop>
   <tabstop>textBrowser</tabstop>
+  <tabstop>comboBox_ColorType</tabstop>
+  <tabstop>colorButton_Color</tabstop>
   <tabstop>horizontalSlider_Opacity</tabstop>
   <tabstop>spinBox_Opacity</tabstop>
   <tabstop>checkBox_Visible</tabstop>

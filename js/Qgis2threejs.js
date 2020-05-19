@@ -3148,26 +3148,51 @@ Q3D.PointCloudLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.PointCloudLayer.prototype.constructor = Q3D.PointCloudLayer;
 
 Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+
+  var _this = this;
+  var p = jsonObject.properties;
+  var need_reload = (this.properties.colorType !== p.colorType);
+
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
   // if (jsonObject.type == "layer")
   if (this.pcg !== undefined) {
-    this.updatePosition(scene);
-    if (jsonObject.properties.opacity != this.opacity) this.opacity = jsonObject.properties.opacity;
-    return;
+    if (!need_reload) {
+      this.updatePosition(scene);
+
+      if (p.color !== undefined) this.materials.mtl(0).color = new THREE.Color(p.color);
+      return;
+    }
+
+    this.removeAllObjects();
+
+    var g = this.objectGroup;
+    g.position.set(0, 0, 0);
+    g.rotation.set(0, 0, 0);
+    g.scale.set(1, 1, 1);
+    g.updateMatrixWorld();
   }
 
   this.pcg = new Potree.Group();
   this.pcg.setPointBudget(10000000);
   this.addObject(this.pcg);
 
-  var _this = this;
-  Potree.loadPointCloud(jsonObject.properties.url, jsonObject.properties.name, function(e) {
+  Potree.loadPointCloud(p.url, p.name, function(e) {
     _this.pcg.add(e.pointcloud);
-    _this.materials.add(e.pointcloud.material);
-
     _this.updatePosition(scene);
-    _this.opacity = jsonObject.properties.opacity;
+
+    var mtl = e.pointcloud.material;
+    mtl.pointColorType = Potree.PointColorType[p.colorType];
+
+    if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
+
+    if (p.colorType == "HEIGHT") {
+      var box = new THREE.Box3();
+      box.copy(e.pointcloud.pcoGeometry.tightBoundingBox || e.pointcloud.pcoGeometry.boundingBox).applyMatrix4(e.pointcloud.matrixWorld);
+      mtl.elevationRange = [box.min.z, box.max.z];
+    }
+    _this.materials.add(mtl);
+
     _this.requestRender();
     _this.requestRepeatRender(500, 60);
   });
@@ -3178,22 +3203,22 @@ Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
       d = scene.userData,
       g = this.objectGroup;
 
-    g.position.set(p.x, p.y, p.z);
-    g.rotation.z = -d.rotation * Math.PI / 180;
-    g.scale.set(d.scale, d.scale, d.zScale);
-    g.updateMatrixWorld();
+  g.position.set(p.x, p.y, p.z);
+  g.rotation.z = -d.rotation * Math.PI / 180;
+  g.scale.set(d.scale, d.scale, d.zScale);
+  g.updateMatrixWorld();
 };
 
 Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat) {
-    var times = 0, _this = this;
+  var times = 0, _this = this;
 
-    var func = function () {
-      if (++times <= repeat) _this.requestRender();
-      else {
-        clearInterval(_this.timerId);
-        _this.timerId = null;
-      }
-    };
+  var func = function () {
+    if (++times <= repeat) _this.requestRender();
+    else {
+      clearInterval(_this.timerId);
+      _this.timerId = null;
+    }
+  };
 
   if (this.timerId === null || interval != this.timerInterval) {
     if (this.timerId !== null) {

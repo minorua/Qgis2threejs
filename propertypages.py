@@ -596,8 +596,18 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         PropertyPage.__init__(self, PAGE_POINTCLOUD, parent)
         Ui_PCPropertiesWidget.setupUi(self, self)
 
-        widgets = [self.url, self.spinBox_Opacity, self.checkBox_Visible]
+        widgets = [self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_Visible]
         self.registerPropertyWidgets(widgets)
+
+        color_types = ["RGB", "COLOR", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "POINT_INDEX", "CLASSIFICATION", "RETURN_NUMBER"]
+        # ["RGB", "COLOR", "DEPTH", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "LOD", "POINT_INDEX",
+        #  "CLASSIFICATION", "RETURN_NUMBER", "SOURCE", "NORMAL", "PHONG", "RGB_HEIGHT", "COMPOSITE"]
+
+        for t in color_types:
+            self.comboBox_ColorType.addItem(t, t)
+
+        self.comboBox_ColorType.currentIndexChanged.connect(self.colorTypeChanged)
+        self.colorTypeChanged()
 
     def setup(self, layer):
         self.lineEdit_Name.setText(layer.name)
@@ -628,3 +638,8 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
     def properties(self):
         p = PropertyPage.properties(self)
         return p
+
+    def colorTypeChanged(self, index=None):
+        b = (self.comboBox_ColorType.currentData() == "COLOR")
+        self.label_Color.setEnabled(b)
+        self.colorButton_Color.setEnabled(b)

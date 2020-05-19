@@ -44,6 +44,9 @@ class PointCloudLayerBuilder(LayerBuilder):
         p["type"] = "pc"
         p["url"] = self.properties.get("url")
         p["opacity"] = self.properties.get("spinBox_Opacity", 100) / 100
+        p["colorType"] = self.properties.get("comboBox_ColorType", "RGB")
+        if p["colorType"] == "COLOR":
+            p["color"] = int(self.properties.get("colorButton_Color", 0), 16)
         return p
 
     def blocks(self):
