@@ -3252,6 +3252,19 @@ Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
   }
 });
 
+Q3D.PointCloudLayer.prototype.loadedPointCount = function () {
+  var c = 0, visible = 0, invisible = 0;
+  this.objectGroup.traverse(function (obj) {
+    if (obj instanceof THREE.Points) {
+      c += obj.geometry.getAttribute("position").count;
+      if (obj.visible) visible++;
+      else invisible++;
+    }
+  });
+  console.log("total: " + c + " (visible: " + visible + ", invisible: " + invisible + ")"); // TODO: remove
+  return c;
+};
+
 
 /*
 Q3D.Model

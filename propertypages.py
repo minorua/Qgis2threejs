@@ -613,27 +613,35 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.lineEdit_Name.setText(layer.name)
         self.setProperties(layer.properties)
 
-        url = layer.properties.get("url")
-        if url.startswith("file:"):
+        wnd = self.parent().parent()
+        loaded = wnd.runScript("app.scene.mapLayers[{}].loadedPointCount()".format(layer.jsLayerId))
+        visible = wnd.runScript("app.scene.mapLayers[{}].pcg.children[0].numVisiblePoints".format(layer.jsLayerId))
+
+        total = bbox = None
+
+        url = layer.properties.get("url", "")
+        if url.startswith("file:") and url.endswith("cloud.js"):
             try:
                 with open(QUrl(url).toLocalFile(), "r") as f:
                     d = json.load(f)
 
-                bbox = d.get("tightBoundingBox", {})
-                html = "<style>span {font-weight: bold;}</style>"
-                html += """
-<span>Number of Points:</span> {:,}<br>
-<span>Bounding Box:</span><br>
-{}, {}, {} :<br>
-{}, {}, {}
-""".format(d.get("points", "Unknown"), bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz"))
-
-                self.textBrowser.setHtml(html)
-                return
+                total = d.get("points")
+                bbox = d.get("tightBoundingBox")
             except:
                 pass
 
-        self.textBrowser.setHtml("No information available.")
+        html = "<style>th {text-align:left;padding-right:10px;}</style><table>"
+        html += "<tr><th>Point count</th><td>{}</td></tr>".format("Unknown" if total is None else "{:,}".format(int(total)))
+        html += "<tr><th>Loaded point count</th><td>{}</td></tr>".format("Unknown" if loaded is None else "{:,}".format(int(loaded)))
+        html += "<tr><th>Visible point count</th><td>{}</td></tr>".format("Unknown" if visible is None else "{:,}".format(int(visible)))
+
+        if bbox:
+            html += """
+<tr><th>Bounding box:</ht><td>{:.3f}, {:.3f}, {:.3f} :<br>{:.3f}, {:.3f}, {:.3f}</td></tr>
+""".format(bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz"))
+
+        html += "</table>"
+        self.textBrowser.setHtml(html)
 
     def properties(self):
         p = PropertyPage.properties(self)

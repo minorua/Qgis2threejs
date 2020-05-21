@@ -350,7 +350,7 @@ class Q3DView(QWebView):
         self._page.resetCameraState()
 
     def runScript(self, string, message="", sourceID="q3dview.py"):
-        self._page.runScript(string, message, sourceID)
+        return self._page.runScript(string, message, sourceID)
 
 
 class DummyWindow:
