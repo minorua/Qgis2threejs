@@ -3135,13 +3135,43 @@ Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
 };
 
 
+// Potree
+(function () {
+  if (typeof Potree === "undefined") return;
+
+  class Q3DGRP extends Potree.Group
+  {
+    constructor(layer)
+    {
+      super();
+      this.layer = layer;
+      this.timerId = null;
+    }
+
+    onAfterRender(renderer, scene, camera, geometry, material, group)
+    {
+      super.onAfterRender(renderer, scene, camera, geometry, material, group);
+
+      // repeat rendering as long as there are loading nodes
+      if (Potree.Global.numNodesLoading && this.timerId === null) {
+        var _this = this;
+        _this.timerId = window.setTimeout(function () {
+          _this.timerId = null;
+          _this.layer.requestRender();
+        }, 100);
+      }
+    }
+  }
+  Q3D.PCGroup = Q3DGRP;
+})();
+
+
 /*
 Q3D.PointCloudLayer --> Q3D.MapLayer
 */
 Q3D.PointCloudLayer = function () {
   Q3D.MapLayer.call(this);
   this.type = Q3D.LayerType.PointCloud;
-  this.timerId = null;
 };
 
 Q3D.PointCloudLayer.prototype = Object.create(Q3D.MapLayer.prototype);
@@ -3149,7 +3179,6 @@ Q3D.PointCloudLayer.prototype.constructor = Q3D.PointCloudLayer;
 
 Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
-  var _this = this;
   var p = jsonObject.properties;
   var need_reload = (this.properties.colorType !== p.colorType);
 
@@ -3173,9 +3202,11 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     g.updateMatrixWorld();
   }
 
-  this.pcg = new Potree.Group();
+  this.pcg = new Q3D.PCGroup(this);
   this.pcg.setPointBudget(10000000);
   this.addObject(this.pcg);
+
+  var _this = this;
 
   Potree.loadPointCloud(p.url, p.name, function(e) {
     _this.pcg.add(e.pointcloud);
@@ -3194,7 +3225,6 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     _this.materials.add(mtl);
 
     _this.requestRender();
-    _this.requestRepeatRender(500, 60);
   });
 };
 
@@ -3208,26 +3238,6 @@ Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
   g.scale.set(d.scale, d.scale, d.zScale);
   g.updateMatrixWorld();
 };
-
-Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat) {
-  var times = 0, _this = this;
-
-  var func = function () {
-    if (++times <= repeat) _this.requestRender();
-    else {
-      clearInterval(_this.timerId);
-      _this.timerId = null;
-    }
-  };
-
-  if (this.timerId === null || interval != this.timerInterval) {
-    if (this.timerId !== null) {
-      clearInterval(this.timerId);
-    }
-    this.timerId = setInterval(func, interval);
-    this.timerInterval = interval;
-  }
-}
 
 Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
   get: function () {
@@ -3248,20 +3258,16 @@ Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
     }
 
     this.requestRender();
-    this.requestRepeatRender(500, 60);
   }
 });
 
 Q3D.PointCloudLayer.prototype.loadedPointCount = function () {
-  var c = 0, visible = 0, invisible = 0;
+  var c = 0;
   this.objectGroup.traverse(function (obj) {
     if (obj instanceof THREE.Points) {
       c += obj.geometry.getAttribute("position").count;
-      if (obj.visible) visible++;
-      else invisible++;
     }
   });
-  console.log("total: " + c + " (visible: " + visible + ", invisible: " + invisible + ")"); // TODO: remove
   return c;
 };
 
