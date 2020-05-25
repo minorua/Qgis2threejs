@@ -21,19 +21,22 @@
 from datetime import datetime
 import os
 
-from PyQt5.QtCore import (QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
+from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
                           pyqtSignal, pyqtSlot, qDebug)
 from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
+
+from .conf import DEBUG_MODE
 try:
     from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
     from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+    if DEBUG_MODE:
+        from PyQt5.QtWebKitWidgets import QWebInspector
 except ModuleNotFoundError:
     if os.name == "posix":
         QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
     raise
 
-from .conf import DEBUG_MODE
 from .qgis2threejstools import js_bool, logMessage, pluginDir
 
 
@@ -302,8 +305,12 @@ class Q3DView(QWebView):
         self._page = Q3DWebPage(self)
         self.setPage(self._page)
 
-        # security settings - allow access to remote urls (for Icon)
+        # security setting for Icon, Model File and point cloud layer
         self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
+
+        # web inspector setting
+        if DEBUG_MODE:
+            self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
     def setup(self, iface, settings, wnd=None, enabled=True):
         self.iface = iface
@@ -351,6 +358,23 @@ class Q3DView(QWebView):
 
     def runScript(self, string, message="", sourceID="q3dview.py"):
         return self._page.runScript(string, message, sourceID)
+
+    def showInspector(self):
+        dlg = QDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose)
+        dlg.resize(800, 500)
+        dlg.setWindowTitle("Qgis2threejs Web Inspector")
+
+        wi = QWebInspector(dlg)
+        wi.setPage(self._page)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.addWidget(wi)
+
+        dlg.setLayout(v)
+        dlg.show()
+        dlg.exec_()
 
 
 class DummyWindow:

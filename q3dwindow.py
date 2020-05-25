@@ -23,11 +23,11 @@ from datetime import datetime
 from PyQt5.Qt import QMainWindow, QEvent, Qt
 from PyQt5.QtCore import QDir, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from PyQt5.QtWidgets import QAction, QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
 from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
-from .conf import RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
+from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings, Layer
 from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
@@ -135,6 +135,14 @@ class Q3DWindow(QMainWindow):
         self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
 
+        if DEBUG_MODE:
+            self.ui.actionInspector = QAction(self)
+            self.ui.actionInspector.setObjectName("actionInspector")
+            self.ui.actionInspector.setText("Web Inspector...")
+            self.ui.menuWindow.addSeparator()
+            self.ui.menuWindow.addAction(self.ui.actionInspector)
+            self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
+
         # signal-slot connections
         # map canvas
         self.controller.connectToMapCanvas(qgisIface.mapCanvas())
@@ -165,7 +173,7 @@ class Q3DWindow(QMainWindow):
             self.thread.wait()
 
         # close dialogs
-        for dlg in self.findChildren((PropertiesDialog, ExportToWebDialog, NorthArrowDialog, HFLabelDialog)):
+        for dlg in self.findChildren(QDialog):
             dlg.close()
 
         QMainWindow.closeEvent(self, event)
