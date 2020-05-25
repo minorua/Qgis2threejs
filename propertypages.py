@@ -596,7 +596,7 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         PropertyPage.__init__(self, PAGE_POINTCLOUD, parent)
         Ui_PCPropertiesWidget.setupUi(self, self)
 
-        widgets = [self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_Visible]
+        widgets = [self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_BoxVisible, self.checkBox_Visible]
         self.registerPropertyWidgets(widgets)
 
         color_types = ["RGB", "COLOR", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "POINT_INDEX", "CLASSIFICATION", "RETURN_NUMBER"]

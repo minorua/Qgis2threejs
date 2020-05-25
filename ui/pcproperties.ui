@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>398</height>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -150,7 +150,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Color Type</string>
+         <string>Color type</string>
         </property>
        </widget>
       </item>
@@ -189,6 +189,13 @@
       <string>&amp;Other Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="checkBox_BoxVisible">
+        <property name="text">
+         <string>Show bounding boxes</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QCheckBox" name="checkBox_Visible">
         <property name="text">
@@ -232,6 +239,7 @@
   <tabstop>colorButton_Color</tabstop>
   <tabstop>horizontalSlider_Opacity</tabstop>
   <tabstop>spinBox_Opacity</tabstop>
+  <tabstop>checkBox_BoxVisible</tabstop>
   <tabstop>checkBox_Visible</tabstop>
  </tabstops>
  <resources/>

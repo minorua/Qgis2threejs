@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PCPropertiesWidget(object):
     def setupUi(self, PCPropertiesWidget):
         PCPropertiesWidget.setObjectName("PCPropertiesWidget")
-        PCPropertiesWidget.resize(335, 398)
+        PCPropertiesWidget.resize(335, 420)
         self.verticalLayout = QtWidgets.QVBoxLayout(PCPropertiesWidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(PCPropertiesWidget)
@@ -105,6 +105,9 @@ class Ui_PCPropertiesWidget(object):
         self.groupBox_3.setObjectName("groupBox_3")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox_3)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.checkBox_BoxVisible = QtWidgets.QCheckBox(self.groupBox_3)
+        self.checkBox_BoxVisible.setObjectName("checkBox_BoxVisible")
+        self.verticalLayout_3.addWidget(self.checkBox_BoxVisible)
         self.checkBox_Visible = QtWidgets.QCheckBox(self.groupBox_3)
         self.checkBox_Visible.setChecked(True)
         self.checkBox_Visible.setObjectName("checkBox_Visible")
@@ -123,7 +126,8 @@ class Ui_PCPropertiesWidget(object):
         PCPropertiesWidget.setTabOrder(self.comboBox_ColorType, self.colorButton_Color)
         PCPropertiesWidget.setTabOrder(self.colorButton_Color, self.horizontalSlider_Opacity)
         PCPropertiesWidget.setTabOrder(self.horizontalSlider_Opacity, self.spinBox_Opacity)
-        PCPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.checkBox_Visible)
+        PCPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.checkBox_BoxVisible)
+        PCPropertiesWidget.setTabOrder(self.checkBox_BoxVisible, self.checkBox_Visible)
 
     def retranslateUi(self, PCPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate
@@ -134,8 +138,9 @@ class Ui_PCPropertiesWidget(object):
         self.label_2.setText(_translate("PCPropertiesWidget", "Information"))
         self.groupBox_2.setTitle(_translate("PCPropertiesWidget", "&Material"))
         self.label_17.setText(_translate("PCPropertiesWidget", "Opacity (%)"))
-        self.label_4.setText(_translate("PCPropertiesWidget", "Color Type"))
+        self.label_4.setText(_translate("PCPropertiesWidget", "Color type"))
         self.label_Color.setText(_translate("PCPropertiesWidget", "Color"))
         self.groupBox_3.setTitle(_translate("PCPropertiesWidget", "&Other Options"))
+        self.checkBox_BoxVisible.setText(_translate("PCPropertiesWidget", "Show bounding boxes"))
         self.checkBox_Visible.setText(_translate("PCPropertiesWidget", "Visible on load"))
 from qgis.gui import QgsColorButton

@@ -47,6 +47,7 @@ class PointCloudLayerBuilder(LayerBuilder):
         p["colorType"] = self.properties.get("comboBox_ColorType", "RGB")
         if p["colorType"] == "COLOR":
             p["color"] = int(self.properties.get("colorButton_Color", 0), 16)
+        p["boxVisible"] = self.properties.get("checkBox_BoxVisible", False)
         return p
 
     def blocks(self):

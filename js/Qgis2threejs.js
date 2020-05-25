@@ -3148,6 +3148,13 @@ Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
       this.timerId = null;
     }
 
+    onBeforeRender(renderer, scene, camera, geometry, material, group)
+    {
+      super.onBeforeRender(renderer, scene, camera, geometry, material, group);
+
+      if (this.layer.bbGroup !== undefined) this.layer.bbGroup.setParent();
+    }
+
     onAfterRender(renderer, scene, camera, geometry, material, group)
     {
       super.onAfterRender(renderer, scene, camera, geometry, material, group);
@@ -3162,7 +3169,31 @@ Q3D.PolygonLayer.prototype.setSideVisible = function (visible) {
       }
     }
   }
+
+  class Q3DBBGRP extends Q3D.Group
+  {
+    constructor()
+    {
+      super();
+      this.orphanIndex = 0;
+    }
+
+    setParent()
+    {
+      var c;
+      for (var i = this.orphanIndex; i < this.children.length; i++) {
+        c = this.children[i];
+        c.parent = this;
+        c.matrixAutoUpdate = true;
+        c.updateMatrixWorld();
+      }
+      this.orphanIndex = i;
+    }
+
+  }
+
   Q3D.PCGroup = Q3DGRP;
+  Q3D.PCBBGroup = Q3DBBGRP;
 })();
 
 
@@ -3189,6 +3220,10 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     if (!need_reload) {
       this.updatePosition(scene);
 
+      if (this.pc !== undefined) {
+        this.pc.showBoundingBox = p.boxVisible;
+      }
+
       if (p.color !== undefined) this.materials.mtl(0).color = new THREE.Color(p.color);
       return;
     }
@@ -3209,17 +3244,26 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   var _this = this;
 
   Potree.loadPointCloud(p.url, p.name, function(e) {
+
+    _this.pc = e.pointcloud;
     _this.pcg.add(e.pointcloud);
     _this.updatePosition(scene);
 
-    var mtl = e.pointcloud.material;
+    _this.bbGroup = new Q3D.PCBBGroup();
+    _this.bbGroup.position.copy(_this.pc.position);
+    _this.bbGroup.children = _this.pc.boundingBoxNodes;
+    _this.addObject(_this.bbGroup);
+
+    _this.pc.showBoundingBox = p.boxVisible;
+
+    var mtl = _this.pc.material;
     mtl.pointColorType = Potree.PointColorType[p.colorType];
 
     if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
 
     if (p.colorType == "HEIGHT") {
       var box = new THREE.Box3();
-      box.copy(e.pointcloud.pcoGeometry.tightBoundingBox || e.pointcloud.pcoGeometry.boundingBox).applyMatrix4(e.pointcloud.matrixWorld);
+      box.copy(_this.pc.pcoGeometry.tightBoundingBox || _this.pc.pcoGeometry.boundingBox).applyMatrix4(_this.pc.matrixWorld);
       mtl.elevationRange = [box.min.z, box.max.z];
     }
     _this.materials.add(mtl);
@@ -3246,15 +3290,13 @@ Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
   set: function (value) {
     this.objectGroup.visible = value;
 
+    if (this.pcg === undefined) return;
+
     if (value) {
-      if (this.objectGroup.children.length == 0 && this.pcg !== undefined) {
-        this.objectGroup.add(this.pcg);
-      }
+      this.objectGroup.add(this.pcg);
     }
     else {
-      if (this.objectGroup.children.length == 1) {
-        this.objectGroup.remove(this.objectGroup.children[0]);
-      }
+      this.objectGroup.remove(this.pcg);
     }
 
     this.requestRender();

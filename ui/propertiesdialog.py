@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Users\minorua\.qgis3\python\developing_plugins\Qgis2threejs\ui\propertiesdialog.ui'
+# Form implementation generated from reading ui file 'D:\Documents\minorua\QGIS\plugins\Qgis2threejs\ui\propertiesdialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.5
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_PropertiesDialog(object):
     def setupUi(self, PropertiesDialog):
@@ -36,4 +38,3 @@ class Ui_PropertiesDialog(object):
     def retranslateUi(self, PropertiesDialog):
         _translate = QtCore.QCoreApplication.translate
         PropertiesDialog.setWindowTitle(_translate("PropertiesDialog", "Properties Dialog"))
-
