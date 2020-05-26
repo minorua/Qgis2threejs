@@ -4,7 +4,7 @@
 // https://github.com/minorua/Qgis2threejs
 
 (function () {
-  if (typeof Potree === "undefined") return;
+  Potree.Global.workerPath = Q3D.Config.potreeBasePath || Potree.Global.workerPath;
 
   class Q3DGRP extends Potree.Group
   {
