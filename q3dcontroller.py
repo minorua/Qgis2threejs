@@ -261,6 +261,9 @@ class Q3DController(QObject):
         if layer.geomType == q3dconst.TYPE_POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
             self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
                                         q3dconst.SCRIPT_GLTFLOADER])
+        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+            self.iface.loadScriptFiles([q3dconst.SCRIPT_POTREE,
+                                        q3dconst.SCRIPT_PCLAYER])
 
         t0 = t4 = time.time()
         dlist = []
