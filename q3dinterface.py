@@ -44,13 +44,9 @@ class Q3DInterface(QObject):
     def runScript(self, string, message=""):
         self.webPage.runScript(string, message, sourceID="q3dwindow.py")
 
-    @pyqtSlot(str)
-    def loadScriptFile(self, filepath):
-        self.webPage.loadScriptFile(filepath)
-
-    @pyqtSlot()
-    def loadModelLoaders(self):
-        self.webPage.loadModelLoaders()
+    @pyqtSlot(list, bool)
+    def loadScriptFiles(self, ids, force):
+        self.webPage.loadScriptFiles(ids, force)
 
     # @pyqtSlot(str, int, bool)     # pyqtSlot override bug in PyQt5?
     def showMessage(self, msg, _1=0, _2=False):

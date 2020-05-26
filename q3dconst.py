@@ -1,7 +1,22 @@
-# Layer Type
+# Layer type
 TYPE_DEM = 0
 TYPE_POINT = 1
 TYPE_LINESTRING = 2
 TYPE_POLYGON = 3
 TYPE_POINTCLOUD = 4
-TYPE_IMAGE = 10
+
+# Script ID
+SCRIPT_PROJ4 = 1
+SCRIPT_GLTFLOADER = 2
+SCRIPT_COLLADALOADER = 3
+SCRIPT_GLTFEXPORTER = 4
+SCRIPT_POTREE = 5
+
+# Script path (relative from js directory)
+SCRIPT_PATH = {
+    SCRIPT_PROJ4: "proj4js/proj4.js",
+    SCRIPT_GLTFLOADER: "threejs/loaders/GLTFLoader.js",
+    SCRIPT_COLLADALOADER: "threejs/loaders/ColladaLoader.js",
+    SCRIPT_GLTFEXPORTER: "threejs/exporters/GLTFExporter.js",
+    SCRIPT_POTREE: "potree-core/potree.min.js"
+}

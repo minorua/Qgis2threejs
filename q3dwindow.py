@@ -356,7 +356,7 @@ class Q3DWindow(QMainWindow):
         if filename:
             self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
 
-            self.ui.webView._page.loadScriptFile(pluginDir("js/threejs/exporters/GLTFExporter.js"))
+            self.ui.webView._page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
             self.ui.statusbar.clearMessage()

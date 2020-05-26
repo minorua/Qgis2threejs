@@ -279,7 +279,7 @@ class ModelExporter(BridgeExporterBase):
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
-        self.page.loadScriptFile(tools.pluginDir("js/threejs/exporters/GLTFExporter.js"))
+        self.page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
 
     def export(self, filename, cancelSignal=None):
         if self.page is None:

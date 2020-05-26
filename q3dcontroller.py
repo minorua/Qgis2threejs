@@ -26,7 +26,7 @@ from . import q3dconst
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings, Layer
-from .qgis2threejstools import js_bool, logMessage, pluginDir
+from .qgis2threejstools import js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
@@ -34,10 +34,9 @@ class Q3DControllerInterface(QObject):
     # signals
     dataReady = pyqtSignal(dict)                # data
     scriptReady = pyqtSignal(str, str)          # script, msg_shown_in_log_panel
-    messageReady = pyqtSignal(str, int, bool)        # message, timeout, show_in_msg_bar
+    messageReady = pyqtSignal(str, int, bool)   # message, timeout, show_in_msg_bar
     progressUpdated = pyqtSignal(int, str)
-    loadScriptRequest = pyqtSignal(str)
-    loadModelLoadersRequest = pyqtSignal()
+    loadScriptsRequest = pyqtSignal(list, bool) # list of script ID, force (if False, do not load a script that is already loaded)
 
     def __init__(self, controller=None):
         super().__init__(parent=controller)
@@ -51,8 +50,7 @@ class Q3DControllerInterface(QObject):
 
         self.dataReady.connect(iface.loadJSONObject)
         self.scriptReady.connect(iface.runScript)
-        self.loadScriptRequest.connect(iface.loadScriptFile)
-        self.loadModelLoadersRequest.connect(iface.loadModelLoaders)
+        self.loadScriptsRequest.connect(iface.loadScriptFiles)
         self.messageReady.connect(iface.showMessage)
         self.progressUpdated.connect(iface.progress)
 
@@ -70,8 +68,7 @@ class Q3DControllerInterface(QObject):
     def disconnectFromIface(self):
         self.dataReady.disconnect(self.iface.loadJSONObject)
         self.scriptReady.disconnect(self.iface.runScript)
-        self.loadScriptRequest.disconnect(self.iface.loadScriptFile)
-        self.loadModelLoadersRequest.disconnect(self.iface.loadModelLoaders)
+        self.loadScriptsRequest.disconnect(self.iface.loadScriptFiles)
         self.messageReady.disconnect(self.iface.showMessage)
         self.progressUpdated.disconnect(self.iface.progress)
 
@@ -110,11 +107,11 @@ class Q3DControllerInterface(QObject):
     def progress(self, percentage=100, msg=""):
         self.progressUpdated.emit(percentage, msg)
 
-    def loadScriptFile(self, filepath):
-        self.loadScriptRequest.emit(filepath)
+    def loadScriptFile(self, id, force=False):
+        self.loadScriptsRequest.emit([id], force)
 
-    def loadModelLoaders(self):
-        self.loadModelLoadersRequest.emit()
+    def loadScriptFiles(self, ids, force=False):
+        self.loadScriptsRequest.emit(ids, force)
 
 
 class Q3DController(QObject):
@@ -207,7 +204,7 @@ class Q3DController(QObject):
 
             # coordinate display (geographic/projected)
             if sp.get("radioButton_WGS84", False):
-                self.iface.loadScriptFile(pluginDir("js/proj4js/proj4.js"))
+                self.iface.loadScriptFile(q3dconst.SCRIPT_PROJ4, True)
             else:
                 self.iface.runScript("proj4 = undefined;", "// proj4 not enabled")
 
@@ -261,8 +258,9 @@ class Q3DController(QObject):
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
 
-        if layer.properties.get("comboBox_ObjectType") == "Model File":
-            self.iface.loadModelLoaders()   # need to load model loaders synchronously
+        if layer.geomType == q3dconst.TYPE_POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
+            self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
+                                        q3dconst.SCRIPT_GLTFLOADER])
 
         t0 = t4 = time.time()
         dlist = []

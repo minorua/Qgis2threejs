@@ -37,6 +37,7 @@ except ModuleNotFoundError:
         QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
     raise
 
+from . import q3dconst
 from .qgis2threejstools import js_bool, logMessage, pluginDir
 
 
@@ -113,7 +114,7 @@ class Q3DWebPage(QWebPage):
     def __init__(self, parent=None):
         QWebPage.__init__(self, parent)
 
-        self.modelLoadersLoaded = False
+        self.loadedScripts = {}
 
         if DEBUG_MODE == 2:
             # open log file
@@ -157,7 +158,7 @@ class Q3DWebPage(QWebPage):
         self.mainFrame().setUrl(self.myUrl)
 
     def pageLoaded(self, ok):
-        self.modelLoadersLoaded = False
+        self.loadedScripts = {}
 
         # configuration
         if self.exportMode:
@@ -197,17 +198,22 @@ class Q3DWebPage(QWebPage):
         if DEBUG_MODE:
             self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
 
-    def loadScriptFile(self, filename):
-        """evaluate a script file without using a script tag to load script synchronously"""
+    def loadScriptFile(self, id, force=False):
+        """evaluate a script file without using a script tag. script is loaded synchronously"""
+        if id in self.loadedScripts and not force:
+            return
+
+        filename = pluginDir("js", q3dconst.SCRIPT_PATH[id])
+
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()
-        return self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
 
-    def loadModelLoaders(self):
-        if not self.modelLoadersLoaded:
-            self.loadScriptFile(pluginDir("js/threejs/loaders/ColladaLoader.js"))
-            self.loadScriptFile(pluginDir("js/threejs/loaders/GLTFLoader.js"))
-            self.modelLoadersLoaded = True
+        self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
+        self.loadedScripts[id] = True
+
+    def loadScriptFiles(self, ids, force=False):
+        for id in ids:
+            self.loadScriptFile(id, force)
 
     def cameraState(self):
         return self.mainFrame().evaluateJavaScript("cameraState()")
