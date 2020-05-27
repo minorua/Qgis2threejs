@@ -82,13 +82,13 @@ class Q3DTreeView(QTreeView):
                              (q3dconst.TYPE_POINTCLOUD, "Point Cloud"))
 
         model = QStandardItemModel(0, 1)
-        self.layerParentItem = {}
+        self.layerGroupItems = {}
         for geomType, name in LAYER_GROUP_ITEMS:
             item = QStandardItem(name)
             item.setIcon(self.icons[geomType])
             item.setEditable(False)
 
-            self.layerParentItem[geomType] = item
+            self.layerGroupItems[geomType] = item
             model.invisibleRootItem().appendRow([item])
 
         self.setModel(model)
@@ -105,7 +105,7 @@ class Q3DTreeView(QTreeView):
         item.setIcon(self.icons[layer.geomType])
         item.setEditable(False)
 
-        self.layerParentItem[layer.geomType].appendRow([item])
+        self.layerGroupItems[layer.geomType].appendRow([item])
 
     def addLayers(self, layers):
         for layer in layers:
@@ -117,7 +117,7 @@ class Q3DTreeView(QTreeView):
             item.parent().removeRow(item.row())
 
     def getItemByLayerId(self, layerId):
-        for parent in self.layerParentItem.values():
+        for parent in self.layerGroupItems.values():
             for row in range(parent.rowCount()):
                 item = parent.child(row)
                 if item.data() == layerId:
@@ -126,7 +126,7 @@ class Q3DTreeView(QTreeView):
 
     def updateLayersCheckState(self, settings):
         self.blockSignals(True)
-        for parent in self.layerParentItem.values():
+        for parent in self.layerGroupItems.values():
             for row in range(parent.rowCount()):
                 item = parent.child(row)
                 layer = settings.getItemByLayerId(item.data())
@@ -135,7 +135,7 @@ class Q3DTreeView(QTreeView):
         self.blockSignals(False)
 
     def uncheckAll(self):
-        for parent in self.layerParentItem.values():
+        for parent in self.layerGroupItems.values():
             for idx in range(parent.rowCount()):
                 parent.child(idx).setCheckState(Qt.Unchecked)
 
@@ -158,7 +158,7 @@ class Q3DTreeView(QTreeView):
                 self.contextMenuPC.exec_(self.mapToGlobal(pos))
             else:
                 self.contextMenu.exec_(self.mapToGlobal(pos))
-        elif self.model().itemFromIndex(i) == self.layerParentItem[q3dconst.TYPE_POINTCLOUD]:
+        elif self.model().itemFromIndex(i) == self.layerGroupItems[q3dconst.TYPE_POINTCLOUD]:
             self.contextMenuPCG.exec_(self.mapToGlobal(pos))
 
     def showPropertiesDialog(self, _=None):
@@ -185,6 +185,6 @@ class Q3DTreeView(QTreeView):
         self.removeLayer(layer.layerId)
 
     def clearPointCloudLayers(self):
-        parent = self.layerParentItem[q3dconst.TYPE_POINTCLOUD]
+        parent = self.layerGroupItems[q3dconst.TYPE_POINTCLOUD]
         if parent.hasChildren():
             parent.removeRows(0, parent.rowCount())
