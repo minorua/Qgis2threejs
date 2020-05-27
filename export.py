@@ -29,6 +29,7 @@ from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
+from .buildpointcloud import PointCloudLayerBuilder
 from .exportsettings import ExportSettings
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
@@ -64,7 +65,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         if not QDir(dataDir).exists():
             QDir().mkpath(dataDir)
 
-        # write scene data to a file in json format
+        # export the scene and its layers
         json_object = self.buildScene()
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
@@ -141,6 +142,8 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         if layer.geomType == q3dconst.TYPE_DEM:
             builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+            builder = PointCloudLayerBuilder(self.settings, layer)
         else:
             builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
             self.modelManagers.append(builder.modelManager)
@@ -173,6 +176,13 @@ class ThreeJSExporter(ThreeJSBuilder):
         if self.settings.coordsInWGS84():
             files.append({"dirs": ["js/proj4js"]})
 
+        # layer-specific dependencies
+        for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:  # HACK: lyr.export
+            if layer.geomType == q3dconst.TYPE_POINTCLOUD:
+                files.append({"dirs": ["js/potree-core"], "subdirs": True})
+                files.append({"files": ["js/pointcloudlayer.js"]})
+                break
+
         # model loades and model files
         for manager in self.modelManagers:
             for f in manager.filesToCopy():
@@ -191,6 +201,13 @@ class ThreeJSExporter(ThreeJSBuilder):
             proj4 = "./proj4js/proj4.js"
             if proj4 not in files:
                 files.append(proj4)
+
+        # layer-specific dependencies
+        for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:
+            if layer.geomType == q3dconst.TYPE_POINTCLOUD:
+                files.append("./potree-core/potree.min.js")
+                files.append("./pointcloudlayer.js")
+                break
 
         # model loaders
         for manager in self.modelManagers:

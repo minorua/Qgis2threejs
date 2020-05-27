@@ -27,7 +27,7 @@ class PointCloudLayerBuilder(LayerBuilder):
         """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
         LayerBuilder.__init__(self, settings, None, layer, pathRoot, urlRoot, progress)
 
-    def build(self):
+    def build(self, build_blocks=False):
         d = {
             "type": "layer",
             "id": self.layer.jsLayerId,
