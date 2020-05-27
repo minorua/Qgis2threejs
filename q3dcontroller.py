@@ -101,7 +101,7 @@ class Q3DControllerInterface(QObject):
 
     def showMessageBar(self, msg="", timeout=10):
         """show message bar (error message only). timeout: in seconds"""
-        msg = msg or "An error has occurred. See message log (Qgis2threejs) for more details."
+        msg = msg or "An error has occurred. See log messages panel for details."
         self.messageReady.emit(msg, timeout, True)
 
     def progress(self, percentage=100, msg=""):
