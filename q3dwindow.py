@@ -20,10 +20,11 @@
 """
 import os
 from datetime import datetime
-from PyQt5.Qt import QMainWindow, QEvent, Qt
-from PyQt5.QtCore import QDir, QObject, QSettings, QThread, QUrl, pyqtSignal
+
+from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import QAction, QActionGroup, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QProgressBar
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
+                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject
 
 from . import q3dconst
