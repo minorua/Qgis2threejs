@@ -95,7 +95,7 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       return;
     }
 
-    this.removeAllObjects();
+    this.clearObjects();
 
     var g = this.objectGroup;
     g.position.set(0, 0, 0);

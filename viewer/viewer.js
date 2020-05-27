@@ -93,7 +93,7 @@ function hideLayer(layerId, remove_obj) {
   var layer = app.scene.mapLayers[layerId];
   if (layer !== undefined) {
     layer.visible = false;
-    if (remove_obj) layer.removeAllObjects();
+    if (remove_obj) layer.clearObjects();
   }
 }
 
@@ -101,7 +101,7 @@ function hideAllLayers(remove_obj) {
   for (var id in app.scene.mapLayers) {
     var layer = app.scene.mapLayers[id];
     layer.visible = false;
-    if (remove_obj) layer.removeAllObjects();
+    if (remove_obj) layer.clearObjects();
   }
 }
 

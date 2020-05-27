@@ -2165,7 +2165,7 @@ Q3D.MapLayer.prototype.queryableObjects = function () {
   return (this.visible) ? this.queryObjs : [];
 };
 
-Q3D.MapLayer.prototype.removeAllObjects = function () {
+Q3D.MapLayer.prototype.clearObjects = function () {
   // dispose of geometries
   this.objectGroup.traverse(function (obj) {
     if (obj.geometry) obj.geometry.dispose();
@@ -2190,7 +2190,7 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     }
 
     if (jsonObject.data !== undefined) {
-      this.removeAllObjects();
+      this.clearObjects();
 
       // materials
       if (jsonObject.data.materials !== undefined) {
