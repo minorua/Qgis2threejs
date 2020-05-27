@@ -332,7 +332,7 @@ function getCurrentPosition (callback) {
     }
 
     // get z coordinate of current location from DEM layer if scene has a DEM layer
-    var layer, pt = app.scene.toLocalCoordinates(pos.longitude, pos.latitude, pos.altitude);
+    var layer, pt = app.scene.toWorldCoordinates(pos.longitude, pos.latitude, pos.altitude, true);
     for (var lyrId in app.scene.mapLayers) {
       layer = app.scene.mapLayers[lyrId];
       if (layer instanceof Q3D.DEMLayer) {

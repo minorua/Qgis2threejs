@@ -284,6 +284,7 @@ Q3D.Scene.prototype.queryableObjects = function () {
   return objs;
 };
 
+// 3D world coordinates to map coordinates
 Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
   if (this.userData.rotation) {
     var pt = this._rotatePoint({x: x, y: y}, this.userData.rotation);
@@ -295,11 +296,11 @@ Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
           z: z / this.userData.zScale + this.userData.origin.z};
 };
 
-// real (geodetic/projected) coordinates to 3D scene coordinates
-Q3D.Scene.prototype.toLocalCoordinates = function (x, y, z, isProjected) {
-  // project x and y coordinates from WGS84 (long, lat)
+// map coordinates to 3D world coordinates
+Q3D.Scene.prototype.toWorldCoordinates = function (x, y, z, isLonLat) {
   var pt;
-  if (!isProjected && typeof proj4 !== "undefined") {
+  if (isLonLat && typeof proj4 !== "undefined") {
+    // WGS84 long,lat to map coordinates
     pt = proj4(this.userData.proj).forward([x, y]);
     x = pt[0];
     y = pt[1];
@@ -703,7 +704,7 @@ limitations:
   };
 
   app.updatePointCloudPosition = function (group) {
-    var p = app.scene.toLocalCoordinates(0, 0, 0, true),
+    var p = app.scene.toWorldCoordinates(0, 0, 0),
         d = app.scene.userData;
 
     var g, groups = (typeof group === "undefined") ? app.pointclouds : [group];
