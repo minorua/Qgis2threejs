@@ -34,7 +34,7 @@ from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage
 
 class Layer:
 
-    def __init__(self, layerId, name, geomType, properties=None, visible=False):
+    def __init__(self, layerId, name, geomType, properties=None, visible=True):
         self.layerId = layerId
         self.name = name
         self.geomType = geomType        # q3dconst.TYPE_XXX
@@ -83,7 +83,7 @@ class Layer:
 
     @classmethod
     def fromQgsMapLayer(cls, mapLayer):
-        lyr = Layer(mapLayer.id(), mapLayer.name(), cls.getGeometryType(mapLayer))
+        lyr = Layer(mapLayer.id(), mapLayer.name(), cls.getGeometryType(mapLayer), visible=False)
         lyr.mapLayer = mapLayer
         return lyr
 
@@ -384,14 +384,14 @@ class ExportSettings:
             layerId = "plugin:" + plugin.providerId()
             item = self.getItemByLayerId(layerId)
             if item is None:
-                item = Layer(layerId, plugin.providerName(), q3dconst.TYPE_DEM)
+                item = Layer(layerId, plugin.providerName(), q3dconst.TYPE_DEM, visible=False)
             layers.append(item)
 
         # Flat plane
         layerId = "FLAT"
         item = self.getItemByLayerId(layerId)
         if item is None:
-            item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM)
+            item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM, visible=False)
         layers.append(item)
 
         # renumber jsLayerId
