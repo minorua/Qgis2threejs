@@ -107,6 +107,10 @@ class Q3DTreeView(QTreeView):
 
         self.layerParentItem[layer.geomType].appendRow([item])
 
+    def addLayers(self, layers):
+        for layer in layers:
+            self.addLayer(layer)
+
     def removeLayer(self, layerId):
         item = self.getItemByLayerId(layerId)
         if item:
@@ -119,10 +123,6 @@ class Q3DTreeView(QTreeView):
                 if item.data() == layerId:
                     return item
         return None
-
-    def setLayerList(self, layers):
-        for layer in layers:
-            self.addLayer(layer)
 
     def updateLayersCheckState(self, settings):
         self.blockSignals(True)

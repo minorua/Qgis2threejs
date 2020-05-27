@@ -132,7 +132,7 @@ class Q3DWindow(QMainWindow):
         self.setupContextMenu()
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface)
-        self.ui.treeView.setLayerList(settings.getLayerList())
+        self.ui.treeView.addLayers(settings.getLayerList())
         self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
 
