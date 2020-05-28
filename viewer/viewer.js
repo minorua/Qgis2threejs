@@ -26,9 +26,12 @@ function loadJSONObject(jsonObject) {
   }
 }
 
-function loadScriptFile(url, callback) {
-  for (var elm in document.head.getElementsByTagName("script")) {
-    if (elm.src == url) {
+function loadScriptFile(path, callback) {
+  var url = new URL(path, document.baseURI);
+
+  var elms = document.head.getElementsByTagName("script");
+  for (var i = 0; i < elms.length; i++) {
+    if (elms[i].src == url) {
       if (callback) callback();
       return false;
     }
@@ -42,7 +45,8 @@ function loadScriptFile(url, callback) {
 }
 
 function loadModel(url) {
-  function loadToScene(res) {
+
+  var loadToScene = function (res) {
     var boxsize = new THREE.Box3().setFromObject(res.scene).getSize(),
         scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
 
@@ -62,11 +66,11 @@ function loadModel(url) {
     console.log("To clear the added object, use scene reload (F5).");
 
     showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
-  }
-  function onError(e) {
+  };
+  var onError = function (e) {
     console.log(e.message);
     showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
-  }
+  };
 
   var ext = url.split(".").pop();
   if (ext == "dae") {
