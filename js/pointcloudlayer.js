@@ -135,7 +135,7 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     }
     _this.materials.add(mtl);
 
-    _this.requestRender();
+    _this.requestRepeatRender(300, 60, true);
   });
 };
 
@@ -149,6 +149,26 @@ Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
   g.scale.set(d.scale, d.scale, d.zScale);
   g.updateMatrixWorld();
 };
+
+Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat, watch_loading) {
+
+  if (repeat == 0) return;
+
+  var _this = this, count = 0, timer_id = null;
+
+  var tick_func = function () {
+
+    _this.requestRender();
+
+    if (++count > repeat || (watch_loading && !Potree.Global.numNodesLoading)) {
+      if (timer_id !== null) window.clearInterval(timer_id);
+      return false;
+    }
+    return true;
+  };
+
+  if (tick_func()) timer_id = window.setInterval(tick_func, interval);
+}
 
 Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
   get: function () {
