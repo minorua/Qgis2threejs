@@ -23,8 +23,7 @@ from .buildlayer import LayerBuilder
 
 class PointCloudLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, layer, pathRoot=None, urlRoot=None, progress=None):
-        """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
+    def __init__(self, settings, layer, pathRoot="", urlRoot="", progress=None):
         LayerBuilder.__init__(self, settings, None, layer, pathRoot, urlRoot, progress)
 
     def build(self, build_blocks=False):
