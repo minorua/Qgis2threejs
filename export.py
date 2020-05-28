@@ -113,7 +113,6 @@ class ThreeJSExporter(ThreeJSBuilder):
         title = self.settings.outputFileTitle()
         mapping = {
             "title": title,
-            "controls": '<script src="./threejs/%s"></script>' % self.settings.controls(),
             "options": "\n".join(options),
             "scripts": "\n".join(self.scripts()),
             "scenefile": "./data/{0}/scene.{1}".format(title, "js" if self.settings.localMode else "json"),
@@ -192,15 +191,26 @@ class ThreeJSExporter(ThreeJSBuilder):
         return files
 
     def scripts(self):
+        files = []
+
+        # three.js and controls
+        files.append("./threejs/three.min.js")
+        files.append("./threejs/{}".format(self.settings.controls()))
+
+        # html template config
         config = self.settings.templateConfig()
         s = config.get("scripts", "").strip()
-        files = s.split(",") if s else []
+        if s:
+            files += s.split(",")
 
         # proj4.js
         if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
             proj4 = "./proj4js/proj4.js"
             if proj4 not in files:
                 files.append(proj4)
+
+        # Qgis2threejs.js
+        files.append("./Qgis2threejs.js")
 
         # layer-specific dependencies
         for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:
