@@ -33,9 +33,9 @@ from .mapextent import MapExtent
 
 class DEMLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
+    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
         """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
-        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
     def build(self, build_blocks=False):
@@ -54,6 +54,7 @@ class DEMLayerBuilder(LayerBuilder):
         # DEM block
         if build_blocks:
             d["data"] = [block.build() for block in self.blocks()]
+            self.logMessage("DEM block count: {}".format(len(d["data"])))
         else:
             d["data"] = []
 

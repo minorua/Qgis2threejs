@@ -423,8 +423,8 @@ class VectorLayerBuilder(LayerBuilder):
               QgsWkbTypes.LineGeometry: "line",
               QgsWkbTypes.PolygonGeometry: "polygon"}
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, modelManager=None):
-        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress)
+    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
+        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -440,6 +440,8 @@ class VectorLayerBuilder(LayerBuilder):
         if vlayer.objectType is None:
             logMessage("Object type not found")
             return
+
+        self.logMessage("Object type is {}.".format(vlayer.objectType.name))
 
         self.vlayer = vlayer
 
@@ -469,10 +471,22 @@ class VectorLayerBuilder(LayerBuilder):
             for feat in vlayer.features(request):
                 feat.model = vlayer.objectType.model(self.settings, vlayer, feat)
                 self.features.append(feat)
+
             data["models"] = self.modelManager.build(self.pathRoot is not None,
                                                      base64=self.settings.base64)
+
+            self.logMessage("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.")
+
         if build_blocks:
             data["blocks"] = [block.build() for block in self.blocks()]
+
+            nb = len(data["blocks"])
+            nf = sum([len(block["features"]) for block in data["blocks"]])
+
+            if nb > 1:
+                self.logMessage("{} features were splitted into {} parts.".format(nf, nb))
+            else:
+                self.logMessage("{} feature{}.".format(nf, "s" if nf > 1 else ""))
 
         d = {
             "type": "layer",

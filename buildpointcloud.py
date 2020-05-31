@@ -23,8 +23,8 @@ from .buildlayer import LayerBuilder
 
 class PointCloudLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, layer, pathRoot="", urlRoot="", progress=None):
-        LayerBuilder.__init__(self, settings, None, layer, pathRoot, urlRoot, progress)
+    def __init__(self, settings, layer, pathRoot="", urlRoot="", progress=None, logMessage=None):
+        LayerBuilder.__init__(self, settings, None, layer, pathRoot, urlRoot, progress, logMessage)
 
     def build(self, build_blocks=False):
         d = {
@@ -32,6 +32,15 @@ class PointCloudLayerBuilder(LayerBuilder):
             "id": self.layer.jsLayerId,
             "properties": self.layerProperties()
         }
+
+        if True:        #TODO: if not settings.isPreview:
+            url = d["properties"]["url"]
+            self.logMessage("URL: {}".format(url))
+            if url.startswith("file:"):
+                self.logMessage("""
+Point cloud data files in Potree format will not be copied to the output data directory.
+You need to upload them to a web server and replace the cloud.js file URL in the scene.js{}
+with valid one that points to the cloud.js file on the web server.""".format("" if self.settings.localMode else "on"))
 
         if DEBUG_MODE:
             d["PROPERTIES"] = self.properties

@@ -24,7 +24,6 @@ import base64
 import configparser
 import re
 import shutil
-import webbrowser
 
 from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from PyQt5.QtGui import QDesktopServices
@@ -123,18 +122,18 @@ def shortTextFromSelectedLayerIds(layerIds):
     return text
 
 
-def openHTMLFile(htmlfilename):
-    url = QUrl.fromLocalFile(htmlfilename).toString()
-    settings = QSettings()
-    browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
-    if browserPath == "":
-        # open default web browser
-        webbrowser.open(url, new=2)    # new=2: new tab if possible
-    else:
-        if not QProcess.startDetached(browserPath, [url]):
-            QMessageBox.warning(None, "Qgis2threejs", "Cannot open browser: %s\nSet correct path in settings dialog." % browserPath)
-            return False
-    return True
+def openUrl(url):
+    """url: QUrl object"""
+    if url.fileName().endswith((".html", ".htm")):
+        settings = QSettings()
+        browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
+        if browserPath:
+            if QProcess.startDetached(browserPath, [url.toString()]):
+                return
+            else:
+                logMessage("Incorrect web browser path. Open URL using default web browser.", True)
+
+    QDesktopServices.openUrl(url)
 
 
 def openDirectory(dir_path):

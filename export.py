@@ -34,15 +34,14 @@ from .exportsettings import ExportSettings
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
-from .qgis2threejstools import logMessage
 from . import q3dconst
 from . import qgis2threejstools as tools
 
 
 class ThreeJSExporter(ThreeJSBuilder):
 
-    def __init__(self, settings=None, progress=None):
-        ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress)
+    def __init__(self, settings=None, progress=None, logMessage=None):
+        ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress, logMessage)
 
         self._index = -1
 
@@ -77,7 +76,7 @@ class ThreeJSExporter(ThreeJSBuilder):
                 json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
         # copy files
-        self.progress(90, "Copying library files")
+        self.progress(90, "Copying library files...")
         tools.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
         # options in html file
@@ -140,11 +139,11 @@ class ThreeJSExporter(ThreeJSBuilder):
             urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
         if layer.geomType == q3dconst.TYPE_DEM:
-            builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+            builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot, logMessage=self.logMessage)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
-            builder = PointCloudLayerBuilder(self.settings, layer)
+            builder = PointCloudLayerBuilder(self.settings, layer, logMessage=self.logMessage)
         else:
-            builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot)
+            builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot, logMessage=self.logMessage)
             self.modelManagers.append(builder.modelManager)
         return builder.build(True)
 

@@ -23,7 +23,7 @@
 
 class LayerBuilder:
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None):
+    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
         self.settings = settings
         self.imageManager = imageManager
 
@@ -33,6 +33,7 @@ class LayerBuilder:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
         self.progress = progress or dummyProgress
+        self.logMessage = logMessage or dummyLogMessage
 
     def build(self):
         pass
@@ -44,4 +45,8 @@ class LayerBuilder:
 
 
 def dummyProgress(percentage=None, msg=None):
+    pass
+
+
+def dummyLogMessage(msg, level=None):
     pass

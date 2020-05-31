@@ -23,19 +23,19 @@ from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
-from .qgis2threejstools import logMessage
 from . import q3dconst
 
 
 class ThreeJSBuilder:
 
-    def __init__(self, settings, progress=None):
+    def __init__(self, settings, progress=None, logMessage=None):
         self.settings = settings
         self.progress = progress or dummyProgress
+        self.logMessage = logMessage or dummyLogMessage
         self.imageManager = ImageManager(settings)
 
     def buildScene(self, build_layers=True):
-        self.progress(10, "Building scene")
+        self.progress(5, "Building scene...")
         crs = self.settings.crs
         extent = self.settings.baseExtent
         rect = extent.unrotatedRect()
@@ -60,6 +60,9 @@ class ThreeJSBuilder:
             }
         }
 
+        self.logMessage("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
+        self.logMessage("Z shift: {}".format(mapTo3d.verticalShift))
+
         if build_layers:
             obj["layers"] = self.buildLayers()
 
@@ -70,7 +73,8 @@ class ThreeJSBuilder:
         layer_list = [layer for layer in self.settings.getLayerList() if layer.visible]
         total = len(layer_list)
         for i, layer in enumerate(layer_list):
-            self.progress(int(i / total * 80) + 10, "Building {} layer".format(layer.name))
+            self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
+
             layers.append(self.buildLayer(layer))
 
         return layers
@@ -98,4 +102,8 @@ class ThreeJSBuilder:
 
 
 def dummyProgress(percentage=None, msg=None):
+    pass
+
+
+def dummyLogMessage(msg, level=None):
     pass

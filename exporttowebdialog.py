@@ -19,12 +19,15 @@
  ***************************************************************************/
 """
 import os
-from PyQt5.QtCore import Qt, QDir, QEventLoop
+from datetime import datetime
+
+from PyQt5.QtCore import Qt, QDir, QEventLoop, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
-from qgis.core import QgsApplication
+from qgis.core import Qgis, QgsApplication
 
 from .export import ThreeJSExporter
-from .qgis2threejstools import getTemplateConfig, logMessage, openHTMLFile, templateDir, temporaryOutputDir
+from .qgis2threejstools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 
@@ -36,10 +39,11 @@ class ExportToWebDialog(QDialog):
 
         self.settings = settings
         self.page = page
+        self.logHtml = ""
+        self.logNextIndex = 1
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
-        self.ui.progressBar.setVisible(False)
 
         # output directory
         self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
@@ -73,18 +77,17 @@ class ExportToWebDialog(QDialog):
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
 
+        self.ui.textBrowser.setOpenLinks(False)
+        self.ui.textBrowser.anchorClicked.connect(openUrl)
+
     def templateChanged(self, index=None):
         # update settings widget visibility
         config = getTemplateConfig(self.ui.comboBox_Template.currentData())
         optset = set(config.get("options", "").split(","))
         optset.discard("")
 
-        # template settings group box
-        self.ui.groupBox_Template.setVisible(bool(optset))
-
-        if optset:
-            for widget in [self.ui.label_MND, self.ui.lineEdit_MND]:
-                widget.setVisible("AR.MND" in optset)
+        for widget in [self.ui.label_MND, self.ui.lineEdit_MND, self.ui.label_MND2]:
+            widget.setVisible("AR.MND" in optset)
 
     def browseClicked(self):
         # directory select dialog
@@ -142,38 +145,85 @@ class ExportToWebDialog(QDialog):
             QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
             return
 
-        self.setEnabled(False)
-        self.progress(0)
+        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
+            w.setEnabled(False)
+
+        self.ui.tabWidget.setCurrentIndex(1)
+
+        self.logNextIndex = 1
+        self.logHtml = """
+<style>
+div.progress {margin-top:10px;}
+div.indented {margin-left:3em;}
+th {text-align:left;}
+</style>
+"""
+        self.progress(0, "Export has been started.")
+        t0 = datetime.now()
 
         # export
-        exporter = ThreeJSExporter(self.settings, self.progress)
+        exporter = ThreeJSExporter(self.settings, self.progressNumbered, self.logMessageIndented)
         exporter.export()
 
-        self.progress(100)
+        elapsed = datetime.now() - t0
+        self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds()))
+
+        data_dir = self.settings.outputDataDirectory()
+
+        url_dir = QUrl.fromLocalFile(out_dir)
+        url_data = QUrl.fromLocalFile(data_dir)
+        url_scene = QUrl.fromLocalFile(os.path.join(data_dir, "scene.js" if local_mode else "scene.json"))
+        url_page = QUrl.fromLocalFile(filepath)
+
+        self.logHtml += """
+<br>
+<table>
+<tr><th>Output directory</th><td><a href="{}">{}</a></td></tr>
+<tr><th>Data directory</th><td><a href="{}">{}</a></td></tr>
+<tr><th>Scene file</th><td>{}</td></tr>
+<tr><th>Web page file</th><td><a href="{}">{}</a></td></tr>
+</table>
+""".format(url_dir.toString(), url_dir.toLocalFile(),
+           url_data.toString(), url_data.toLocalFile(),
+                                url_scene.toLocalFile(),
+           url_page.toString(), url_page.toLocalFile())
+
+        self.ui.textBrowser.setHtml(self.logHtml)
+        self.ui.textBrowser.scrollToAnchor("complete")
 
         if is_temporary:
             self.settings.setOutputFilename("")
 
         self.settings.localMode = self.settings.base64 = False
 
-        if self.ui.checkBox_openPage.isChecked():
-            if not openHTMLFile(filepath):
-                return
+        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
+            w.setEnabled(True)
 
-        super().accept()
-
-    def progress(self, percentage=None, msg=None):
-        pbar = self.ui.progressBar
-
+    def progress(self, percentage=None, msg=None, numbered=False):
         if percentage is not None:
-            pbar.setValue(percentage)
-            if percentage == 100:
-                pbar.setVisible(False)
-                pbar.setFormat("")
-            else:
-                pbar.setVisible(True)
+            self.ui.progressBar.setValue(percentage)
 
-        if msg is not None:
-            pbar.setFormat(msg)
+            v = bool(percentage != 100)
+            self.ui.progressBar.setEnabled(v)
+            self.ui.pushButton_Cancel.setEnabled(v)
+
+        if msg:
+            if numbered:
+                msg = "{}. {}".format(self.logNextIndex, msg)
+                self.logNextIndex += 1
+            self.logHtml += "<div class='progress'>{}</div>".format(msg)
+            self.ui.textBrowser.setHtml(self.logHtml)
 
         QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+
+    def progressNumbered(self, percentage=None, msg=None):
+        self.progress(percentage, msg, numbered=True)
+
+    def logMessage(self, msg, level=Qgis.Info, indented=False):
+        self.logHtml += "<div{}>{}</div>".format(" class='indented'" if indented else "", msg)
+        self.ui.textBrowser.setHtml(self.logHtml)
+
+        QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+
+    def logMessageIndented(self, msg, level=Qgis.Info):
+        self.logMessage(msg, level, indented=True)
