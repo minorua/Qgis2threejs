@@ -99,20 +99,19 @@ class ExportToWebDialog(QDialog):
     def accept(self):
         """export"""
 
-        # template
-        self.settings.setTemplate(self.ui.comboBox_Template.currentData())
-
         self.settings.clearOptions()
-        # save general settings
+
+        # general settings
         if self.ui.checkBox_PreserveViewpoint.isChecked():
             self.settings.setOption("viewpoint", self.page.cameraState())
 
         local_mode = self.ui.checkBox_LocalMode.isChecked()
         if local_mode:
             self.settings.setOption("localMode", True)
-        self.settings.localMode = self.settings.base64 = local_mode
 
-        # save template settings
+        # template settings
+        self.settings.setTemplate(self.ui.comboBox_Template.currentData())
+
         options = self.settings.templateConfig().get("options", "")
         if options:
             optlist = options.split(",")
@@ -138,9 +137,17 @@ class ExportToWebDialog(QDialog):
             if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
                 return
 
-        self.settings.setOutputFilename(filepath)
+        if is_temporary:
+            settings = self.settings.clone()
+            settings.setOutputFilename(filepath)
+        else:
+            self.settings.setOutputFilename(filepath)
+            settings = self.settings.clone()
 
-        err_msg = self.settings.checkValidity()
+        settings.isPreview = False
+        settings.localMode = settings.base64 = local_mode
+
+        err_msg = settings.checkValidity()
         if err_msg:
             QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
             return
@@ -162,13 +169,13 @@ th {text-align:left;}
         t0 = datetime.now()
 
         # export
-        exporter = ThreeJSExporter(self.settings, self.progressNumbered, self.logMessageIndented)
+        exporter = ThreeJSExporter(settings, self.progressNumbered, self.logMessageIndented)
         exporter.export()
 
         elapsed = datetime.now() - t0
         self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds()))
 
-        data_dir = self.settings.outputDataDirectory()
+        data_dir = settings.outputDataDirectory()
 
         url_dir = QUrl.fromLocalFile(out_dir)
         url_data = QUrl.fromLocalFile(data_dir)
@@ -190,11 +197,6 @@ th {text-align:left;}
 
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
-
-        if is_temporary:
-            self.settings.setOutputFilename("")
-
-        self.settings.localMode = self.settings.base64 = False
 
         for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
             w.setEnabled(True)

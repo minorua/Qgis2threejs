@@ -100,10 +100,10 @@ class Qgis2threejs:
             self.currentProjectPath = proj_path
 
         else:
-            if self.exportSettings is None:
-                self.exportSettings = ExportSettings()
-
+            self.exportSettings = self.exportSettings or ExportSettings()
             self.exportSettings.updateLayerList()
+
+        self.exportSettings.isPreview = True
 
         logMessage("Opening Qgis2threejs Exporter...", False)
         self.liveExporter = Q3DWindow(self.iface,

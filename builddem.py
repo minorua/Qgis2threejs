@@ -34,7 +34,6 @@ from .mapextent import MapExtent
 class DEMLayerBuilder(LayerBuilder):
 
     def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
-        """if both pathRoot and urlRoot are None, object is built in all_in_dict mode."""
         LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
@@ -165,7 +164,7 @@ class DEMBlockBuilder:
         if self.clip_geometry:
             geom = self.clipped(self.clip_geometry)
 
-            if self.settings.localMode or self.urlRoot is None:
+            if self.settings.localMode or self.settings.isPreview:
                 b["geom"] = geom
             else:
                 tail = "{0}.json".format(self.blockIndex)
@@ -186,7 +185,7 @@ class DEMBlockBuilder:
 
             if self.settings.localMode:
                 g["array"] = struct.unpack("f" * self.grid_size.width() * self.grid_size.height(), ba)
-            elif self.urlRoot is None:
+            elif self.settings.isPreview:
                 g["binary"] = QByteArray(ba)
             else:
                 # write grid values to an binary file

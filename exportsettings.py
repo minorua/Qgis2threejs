@@ -121,7 +121,9 @@ class ExportSettings:
         self.mapSettings = None
         self.baseExtent = None
         self.crs = None
+
         self.base64 = False
+        self.isPreview = False
         self.localMode = False
 
         self.nextJsLayerId = 0
@@ -144,6 +146,9 @@ class ExportSettings:
         t.baseExtent = self.baseExtent.clone()
         t.crs = self.crs
         t.base64 = self.base64
+        t.isPreview = self.isPreview
+        t.localMode = self.localMode
+        t.nextJsLayerId = self.nextJsLayerId
 
     def sceneProperties(self):
         return self.data.get(ExportSettings.SCENE, {})

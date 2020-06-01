@@ -33,7 +33,7 @@ class PointCloudLayerBuilder(LayerBuilder):
             "properties": self.layerProperties()
         }
 
-        if True:        #TODO: if not settings.isPreview:
+        if not self.settings.isPreview:
             url = d["properties"]["url"]
             self.logMessage("URL: {}".format(url))
             if url.startswith("file:"):
