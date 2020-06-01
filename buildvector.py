@@ -403,7 +403,8 @@ class FeatureBlockBuilder:
             "type": "block",
             "layer": self.jsLayerId,
             "block": self.blockIndex,
-            "features": feats
+            "features": feats,
+            "featureCount": len(feats)
         }
 
         if self.pathRoot is not None:
@@ -411,7 +412,7 @@ class FeatureBlockBuilder:
                 json.dump(data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
 
             url = self.urlRoot + "{0}.json".format(self.blockIndex)
-            return {"url": url}
+            return {"url": url, "featureCount": len(feats)}
 
         else:
             return data
@@ -481,7 +482,7 @@ class VectorLayerBuilder(LayerBuilder):
             data["blocks"] = [block.build() for block in self.blocks()]
 
             nb = len(data["blocks"])
-            nf = sum([len(block["features"]) for block in data["blocks"]])
+            nf = sum([block["featureCount"] for block in data["blocks"]])
 
             if nb > 1:
                 self.logMessage("{} features were splitted into {} parts.".format(nf, nb))
