@@ -19,6 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from qgis.core import QgsApplication
 
 
 class LayerBuilder:
@@ -35,8 +36,31 @@ class LayerBuilder:
         self.progress = progress or dummyProgress
         self.logMessage = logMessage or dummyLogMessage
 
+        self._canceled = False
+
     def build(self):
         pass
+
+    @property
+    def canceled(self):
+        if not self._canceled:
+            QgsApplication.processEvents()
+        return self._canceled
+
+    @canceled.setter
+    def canceled(self, value):
+        self._canceled = value
+
+    def cancel(self):
+        self._canceled = True
+
+    def _startBuildBlocks(self, cancelSignal):
+        if cancelSignal:
+            cancelSignal.connect(self.cancel)
+
+    def _endBuildBlocks(self, cancelSignal):
+        if cancelSignal:
+            cancelSignal.disconnect(self.cancel)
 
     def layerProperties(self):
         return {"name": self.layer.name,

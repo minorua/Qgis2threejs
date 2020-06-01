@@ -26,7 +26,7 @@ class PointCloudLayerBuilder(LayerBuilder):
     def __init__(self, settings, layer, pathRoot="", urlRoot="", progress=None, logMessage=None):
         LayerBuilder.__init__(self, settings, None, layer, pathRoot, urlRoot, progress, logMessage)
 
-    def build(self, build_blocks=False):
+    def build(self, build_blocks=False, cancelSignal=None):
         d = {
             "type": "layer",
             "id": self.layer.jsLayerId,

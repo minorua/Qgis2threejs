@@ -170,9 +170,18 @@ th {text-align:left;}
 
         # export
         exporter = ThreeJSExporter(settings, self.progressNumbered, self.logMessageIndented)
-        exporter.export()
+        completed = exporter.export(cancelSignal=self.ui.pushButton_Cancel.clicked)
 
         elapsed = datetime.now() - t0
+
+        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
+            w.setEnabled(True)
+
+        if not completed:
+            self.progress(100, "<br>Export has been canceled.")
+            self.ui.progressBar.setValue(0)
+            return
+
         self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds()))
 
         data_dir = settings.outputDataDirectory()
@@ -197,9 +206,6 @@ th {text-align:left;}
 
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
-
-        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
-            w.setEnabled(True)
 
     def progress(self, percentage=None, msg=None, numbered=False):
         if percentage is not None:

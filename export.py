@@ -65,7 +65,11 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        json_object = self.buildScene()
+        json_object = self.buildScene(cancelSignal=cancelSignal)
+
+        if self.canceled:
+            return False
+
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
                 f.write("app.loadJSONObject(")
@@ -125,11 +129,13 @@ class ThreeJSExporter(ThreeJSBuilder):
         with open(self.settings.outputFileName(), "w", encoding="utf-8") as f:
             f.write(html)
 
+        return True
+
     def nextLayerIndex(self):
         self._index += 1
         return self._index
 
-    def buildLayer(self, layer):
+    def buildLayer(self, layer, cancelSignal=None):
         title = tools.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
@@ -145,7 +151,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         else:
             builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot, logMessage=self.logMessage)
             self.modelManagers.append(builder.modelManager)
-        return builder.build(True)
+        return builder.build(True, cancelSignal)
 
     def filesToCopy(self):
         # three.js library

@@ -19,6 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
+from qgis.core import QgsApplication
+
 from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -34,7 +36,9 @@ class ThreeJSBuilder:
         self.logMessage = logMessage or dummyLogMessage
         self.imageManager = ImageManager(settings)
 
-    def buildScene(self, build_layers=True):
+        self._canceled = False
+
+    def buildScene(self, build_layers=True, cancelSignal=None):
         self.progress(5, "Building scene...")
         crs = self.settings.crs
         extent = self.settings.baseExtent
@@ -64,29 +68,40 @@ class ThreeJSBuilder:
         self.logMessage("Z shift: {}".format(mapTo3d.verticalShift))
 
         if build_layers:
-            obj["layers"] = self.buildLayers()
+            obj["layers"] = self.buildLayers(cancelSignal)
 
         return obj
 
-    def buildLayers(self):
+    def buildLayers(self, cancelSignal=None):
+        if cancelSignal:
+            cancelSignal.connect(self.cancel)
+
         layers = []
         layer_list = [layer for layer in self.settings.getLayerList() if layer.visible]
         total = len(layer_list)
         for i, layer in enumerate(layer_list):
             self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
 
-            layers.append(self.buildLayer(layer))
+            if self.canceled:
+                break
+
+            obj = self.buildLayer(layer, cancelSignal)
+            if obj:
+                layers.append(obj)
+
+        if cancelSignal:
+            cancelSignal.disconnect(self.cancel)
 
         return layers
 
-    def buildLayer(self, layer):
+    def buildLayer(self, layer, cancelSignal=None):
         if layer.geomType == q3dconst.TYPE_DEM:
             builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer)
         else:
             builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
-        return builder.build()
+        return builder.build(cancelSignal=cancelSignal)
 
     def builders(self, layer):
         if layer.geomType == q3dconst.TYPE_DEM:
@@ -99,6 +114,19 @@ class ThreeJSBuilder:
 
         for blockBuilder in builder.blocks():
             yield blockBuilder
+
+    @property
+    def canceled(self):
+        if not self._canceled:
+            QgsApplication.processEvents()
+        return self._canceled
+
+    @canceled.setter
+    def canceled(self, value):
+        self._canceled = value
+
+    def cancel(self):
+        self._canceled = True
 
 
 def dummyProgress(percentage=None, msg=None):

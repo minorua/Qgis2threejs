@@ -37,7 +37,7 @@ class DEMLayerBuilder(LayerBuilder):
         LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
-    def build(self, build_blocks=False):
+    def build(self, build_blocks=False, cancelSignal=None):
         if self.provider is None:
             return None
 
@@ -47,15 +47,28 @@ class DEMLayerBuilder(LayerBuilder):
             "properties": self.layerProperties()
         }
 
-        if DEBUG_MODE:
-            d["PROPERTIES"] = self.properties
-
         # DEM block
         if build_blocks:
-            d["data"] = [block.build() for block in self.blocks()]
-            self.logMessage("DEM block count: {}".format(len(d["data"])))
+            self._startBuildBlocks(cancelSignal)
+
+            data = []
+            for block in self.blocks():
+                if self.canceled:
+                    break
+                data.append(block.build())
+
+            self._endBuildBlocks(cancelSignal)
+
+            d["data"] = data
+            self.logMessage("DEM block count: {}".format(len(data)))
         else:
             d["data"] = []
+
+        if self.canceled:
+            return None
+
+        if DEBUG_MODE:
+            d["PROPERTIES"] = self.properties
 
         return d
 

@@ -433,7 +433,7 @@ class VectorLayerBuilder(LayerBuilder):
         self.geomType = self.layer.mapLayer.geometryType()
         self.clipExtent = None
 
-    def build(self, build_blocks=False):
+    def build(self, build_blocks=False, cancelSignal=None):
         if self.layer.mapLayer is None:
             return
 
@@ -479,15 +479,27 @@ class VectorLayerBuilder(LayerBuilder):
             self.logMessage("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.")
 
         if build_blocks:
-            data["blocks"] = [block.build() for block in self.blocks()]
+            self._startBuildBlocks(cancelSignal)
 
-            nb = len(data["blocks"])
-            nf = sum([block["featureCount"] for block in data["blocks"]])
+            nf = 0
+            blocks = []
+            for block in self.blocks():
+                if self.canceled:
+                    break
+                b = block.build()
+                nf += b["featureCount"]
 
+                blocks.append(b)
+
+            self._endBuildBlocks(cancelSignal)
+
+            nb = len(blocks)
             if nb > 1:
                 self.logMessage("{} features were splitted into {} parts.".format(nf, nb))
             else:
                 self.logMessage("{} feature{}.".format(nf, "s" if nf > 1 else ""))
+
+            data["blocks"] = blocks
 
         d = {
             "type": "layer",
@@ -496,8 +508,12 @@ class VectorLayerBuilder(LayerBuilder):
             "data": data
         }
 
+        if self.canceled:
+            return None
+
         if DEBUG_MODE:
             d["PROPERTIES"] = p
+
         return d
 
     def layerProperties(self):
