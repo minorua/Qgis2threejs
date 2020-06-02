@@ -96,20 +96,20 @@ class ThreeJSBuilder:
 
     def buildLayer(self, layer, cancelSignal=None):
         if layer.geomType == q3dconst.TYPE_DEM:
-            builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
+            builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer)
         else:
-            builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+            builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
         return builder.build(cancelSignal=cancelSignal)
 
     def builders(self, layer):
         if layer.geomType == q3dconst.TYPE_DEM:
-            builder = DEMLayerBuilder(self.settings, self.imageManager, layer)
+            builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer)
         else:
-            builder = VectorLayerBuilder(self.settings, self.imageManager, layer)
+            builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
         yield builder
 
         for blockBuilder in builder.blocks():

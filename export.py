@@ -145,11 +145,11 @@ class ThreeJSExporter(ThreeJSBuilder):
             urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
         if layer.geomType == q3dconst.TYPE_DEM:
-            builder = DEMLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot, logMessage=self.logMessage)
+            builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, logMessage=self.logMessage)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer, logMessage=self.logMessage)
         else:
-            builder = VectorLayerBuilder(self.settings, self.imageManager, layer, pathRoot, urlRoot, logMessage=self.logMessage)
+            builder = VectorLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, logMessage=self.logMessage)
             self.modelManagers.append(builder.modelManager)
         return builder.build(True, cancelSignal)
 

@@ -24,13 +24,12 @@ from qgis.core import QgsApplication
 
 class LayerBuilder:
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
+    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
         self.settings = settings
-        self.imageManager = imageManager
-
         self.layer = layer
         self.properties = layer.properties
 
+        self.imageManager = imageManager
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
         self.progress = progress or dummyProgress

@@ -33,8 +33,8 @@ from .mapextent import MapExtent
 
 class DEMLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
-        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
+        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessage)
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
     def build(self, build_blocks=False, cancelSignal=None):

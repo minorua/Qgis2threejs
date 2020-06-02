@@ -424,8 +424,8 @@ class VectorLayerBuilder(LayerBuilder):
               QgsWkbTypes.LineGeometry: "line",
               QgsWkbTypes.PolygonGeometry: "polygon"}
 
-    def __init__(self, settings, imageManager, layer, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
-        LayerBuilder.__init__(self, settings, imageManager, layer, pathRoot, urlRoot, progress, logMessage)
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
+        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessage)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
