@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>599</width>
-    <height>367</height>
+    <height>391</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -74,11 +74,17 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QLineEdit" name="lineEdit_Filename">
+             <widget class="QLineEdit" name="lineEdit_Filename"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_4">
               <property name="text">
-               <string>index.html</string>
+               <string>Page Title</string>
               </property>
              </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_Title"/>
             </item>
            </layout>
           </item>
@@ -272,6 +278,7 @@
   <tabstop>lineEdit_OutputDir</tabstop>
   <tabstop>pushButton_Browse</tabstop>
   <tabstop>lineEdit_Filename</tabstop>
+  <tabstop>lineEdit_Title</tabstop>
   <tabstop>checkBox_PreserveViewpoint</tabstop>
   <tabstop>checkBox_LocalMode</tabstop>
   <tabstop>comboBox_Template</tabstop>

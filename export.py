@@ -113,12 +113,11 @@ class ThreeJSExporter(ThreeJSBuilder):
         with open(config["path"], "r", encoding="utf-8") as f:
             html = f.read()
 
-        title = self.settings.outputFileTitle()
         mapping = {
-            "title": title,
+            "title": self.settings.title(),
             "options": "\n".join(options),
             "scripts": "\n".join(self.scripts()),
-            "scenefile": "./data/{0}/scene.{1}".format(title, "js" if self.settings.localMode else "json"),
+            "scenefile": "./data/{0}/scene.{1}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel()
         }

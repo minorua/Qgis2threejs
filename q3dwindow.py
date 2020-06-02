@@ -30,7 +30,6 @@ from qgis.core import Qgis, QgsProject
 from . import q3dconst
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings, Layer
-from .exporttowebdialog import ExportToWebDialog
 from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcontroller import Q3DController
@@ -333,6 +332,8 @@ class Q3DWindow(QMainWindow):
         return self.ui.webView.runScript(string, message, sourceID=sourceID)
 
     def exportToWeb(self):
+        from .exporttowebdialog import ExportToWebDialog
+
         dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
         dialog.show()
         dialog.exec_()

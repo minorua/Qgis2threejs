@@ -24,7 +24,7 @@ from datetime import datetime
 from PyQt5.QtCore import Qt, QDir, QEventLoop, QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
-from qgis.core import Qgis, QgsApplication
+from qgis.core import Qgis, QgsApplication, QgsProject
 
 from .export import ThreeJSExporter
 from .qgis2threejstools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
@@ -45,10 +45,20 @@ class ExportToWebDialog(QDialog):
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
 
-        # output directory
-        self.ui.lineEdit_OutputDir.setText(os.path.dirname(settings.outputFileName()))
+        # general settings
+        fn = settings.outputFileName()
+        self.ui.lineEdit_OutputDir.setText(os.path.dirname(fn))
 
-        # template combo box
+        bn = os.path.basename(fn)
+        self.ui.lineEdit_Filename.setText(bn or "index.html")
+
+        title = settings.title() or QgsProject.instance().title() or QgsProject.instance().baseName() or os.path.splitext(bn)[0]
+        self.ui.lineEdit_Title.setText(title)
+
+        self.ui.checkBox_PreserveViewpoint.setChecked(bool(settings.option("viewpoint")))
+        self.ui.checkBox_LocalMode.setChecked(bool(settings.option("localMode")))
+
+        # template settings
         cbox = self.ui.comboBox_Template
         for i, entry in enumerate(QDir(templateDir()).entryList(["*.html", "*.htm"])):
             config = getTemplateConfig(entry)
@@ -65,11 +75,6 @@ class ExportToWebDialog(QDialog):
 
         self.templateChanged()
 
-        # general settings
-        self.ui.checkBox_PreserveViewpoint.setChecked(bool(settings.option("viewpoint")))
-        self.ui.checkBox_LocalMode.setChecked(bool(settings.option("localMode")))
-
-        # template settings
         for key, value in settings.options().items():
             if key == "AR.MND":
                 self.ui.lineEdit_MND.setText(str(value))
@@ -102,6 +107,22 @@ class ExportToWebDialog(QDialog):
         self.settings.clearOptions()
 
         # general settings
+        out_dir = self.ui.lineEdit_OutputDir.text()
+        filename = self.ui.lineEdit_Filename.text()
+        is_temporary = (out_dir == "")
+        if is_temporary:
+            out_dir = temporaryOutputDir()
+            # title, ext = os.path.splitext(filename)
+            # filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
+
+        filepath = os.path.join(out_dir, filename)
+        if not is_temporary and os.path.exists(filepath):
+            if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+                return
+
+        self.settings.setOutputFilename("" if is_temporary else filepath)
+        self.settings.setTitle(self.ui.lineEdit_Title.text())
+
         if self.ui.checkBox_PreserveViewpoint.isChecked():
             self.settings.setOption("viewpoint", self.page.cameraState())
 
@@ -123,26 +144,8 @@ class ExportToWebDialog(QDialog):
                     QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for M.N. direction. Must be a numeric value.")
                     return
 
-        # output html file name
-        out_dir = self.ui.lineEdit_OutputDir.text()
-        filename = self.ui.lineEdit_Filename.text()
-        is_temporary = (out_dir == "")
-        if is_temporary:
-            out_dir = temporaryOutputDir()
-            # title, ext = os.path.splitext(filename)
-            # filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
-
-        filepath = os.path.join(out_dir, filename)
-        if not is_temporary and os.path.exists(filepath):
-            if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
-                return
-
-        if is_temporary:
-            settings = self.settings.clone()
-            settings.setOutputFilename(filepath)
-        else:
-            self.settings.setOutputFilename(filepath)
-            settings = self.settings.clone()
+        # make a copy of export settings
+        settings = self.settings.clone()
 
         settings.isPreview = False
         settings.localMode = settings.base64 = local_mode
@@ -170,7 +173,7 @@ th {text-align:left;}
 
         # export
         exporter = ThreeJSExporter(settings, self.progressNumbered, self.logMessageIndented)
-        completed = exporter.export(cancelSignal=self.ui.pushButton_Cancel.clicked)
+        completed = exporter.export(filepath, cancelSignal=self.ui.pushButton_Cancel.clicked)
 
         elapsed = datetime.now() - t0
 

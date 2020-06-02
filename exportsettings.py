@@ -251,6 +251,12 @@ class ExportSettings:
     def setOutputFilename(self, filepath=""):
         self.data["OutputFilename"] = filepath
 
+    def title(self):
+        return self.data.get("Title", "")
+
+    def setTitle(self, title):
+        self.data["Title"] = title
+
     def options(self):
         return self.data.get(ExportSettings.OPTIONS, {})
 
