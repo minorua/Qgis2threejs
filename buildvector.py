@@ -563,7 +563,7 @@ class VectorLayerBuilder(LayerBuilder):
 
         one_per_block = (self.vlayer.objectType == ObjectType.Overlay
                          and self.vlayer.isHeightRelativeToDEM()
-                         and self.pathRoot is None)
+                         and self.settings.isPreview)
         index = 0
         feats = []
         for f in self.features or []:

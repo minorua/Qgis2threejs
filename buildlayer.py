@@ -65,7 +65,7 @@ class LayerBuilder:
     def layerProperties(self):
         return {"name": self.layer.name,
                 "queryable": 1,
-                "visible": self.properties.get("checkBox_Visible", True) or self.pathRoot is None}  # always visible in preview
+                "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview}  # always visible in preview
 
 
 def dummyProgress(percentage=None, msg=None):
