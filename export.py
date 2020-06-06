@@ -74,7 +74,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
                 f.write("app.loadJSONObject(")
                 json.dump(json_object, f, indent=2)
-                f.write(");")
+                f.write('); window.setTimeout(function () { app.dispatchEvent({type: "sceneLoaded"}); }, 0);')
         else:
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(json_object, f, indent=2 if DEBUG_MODE else None)

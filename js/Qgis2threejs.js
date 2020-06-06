@@ -391,7 +391,7 @@ limitations:
   var vec3 = new THREE.Vector3();
 
   var listeners = {};
-  var dispatchEvent = function (event) {
+  app.dispatchEvent = function (event) {
     var ls = listeners[event.type] || [];
     for (var i = 0; i < ls.length; i++) {
       ls[i](event);
@@ -567,7 +567,7 @@ limitations:
 
       document.getElementById("bar").classList.add("fadeout");
 
-      dispatchEvent({type: "sceneLoaded"});
+      app.dispatchEvent({type: "sceneLoaded"});
     },
     function (url, loaded, total) {
       // onProgress
@@ -576,7 +576,7 @@ limitations:
     function () {
       app.loadingManager.isLoading = false;
 
-      dispatchEvent({type: "sceneLoadError"});
+      app.dispatchEvent({type: "sceneLoadError"});
     });
 
     app.loadingManager.onStart = function () {
