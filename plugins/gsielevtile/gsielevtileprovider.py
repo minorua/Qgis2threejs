@@ -192,7 +192,7 @@ class GSIElevTileProvider:
         files = self.downloader.fetchFiles(urls, downloadTimeout)
 
         for url in urls:
-            data = files[url]
+            data = files.get(url)
             if data:
                 yield numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",").tostring()   # to byte array
             else:
