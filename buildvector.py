@@ -241,7 +241,7 @@ class VectorLayer:
         # feature color
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
+            logMessage("Symbol for feature not found. Please use a simple renderer for {0}.".format(self.name))
             return "0"
 
         symbol = symbols[0]
@@ -275,7 +275,7 @@ class VectorLayer:
 
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage('Symbol for feature not found. Please use a simple renderer for {0}.'.format(self.mapLayer.name()))
+            logMessage("Symbol for feature not found. Please use a simple renderer for {0}.".format(self.name))
             return 1
 
         # TODO [data defined property]
@@ -316,8 +316,36 @@ class VectorLayer:
             if widgetType == StyleWidget.COLOR:
                 vals.append(self.readFillColor(widgetValues, f))
 
+            elif widgetType == StyleWidget.OPACITY:
+                vals.append(self.readOpacity(widgetValues, f))
+
+            elif widgetType in (StyleWidget.EXPRESSION, StyleWidget.LABEL_HEIGHT):
+                expr = widgetValues["editText"]
+                val = self.evaluateExpression(expr, f)
+                if val:
+                    vals.append(val)
+                else:
+                    if val is None:
+                        logMessage("Failed to evaluate expression: {} ({})".format(expr, self.name))
+                    else:       # if val.isNull():
+                        logMessage("NULL was treated as zero. ({})".format(self.name))
+                    vals.append(0)
+
             elif widgetType == StyleWidget.OPTIONAL_COLOR:
                 vals.append(self.readBorderColor(widgetValues, f))
+
+            elif widgetType == StyleWidget.CHECKBOX:
+                vals.append(widgetValues["checkBox"])
+
+            elif widgetType == StyleWidget.COMBOBOX:
+                vals.append(widgetValues["comboData"])
+
+            elif widgetType == StyleWidget.FILEPATH:
+                expr = widgetValues["editText"]
+                val = self.evaluateExpression(expr, f)
+                if val is None:
+                    logMessage("Failed to evaluate expression: " + expr)
+                vals.append(val or "")
 
             elif widgetType == StyleWidget.COLOR_TEXTURE:
                 if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
@@ -327,25 +355,10 @@ class VectorLayer:
                 else:
                     vals.append(self.readFillColor(widgetValues, f))
 
-            elif widgetType == StyleWidget.OPACITY:
-                vals.append(self.readOpacity(widgetValues, f))
-
-            elif widgetType == StyleWidget.CHECKBOX:
-                vals.append(widgetValues["checkBox"])
-
-            elif widgetType == StyleWidget.COMBOBOX:
-                vals.append(widgetValues["comboData"])
-
             else:
-                expr = widgetValues["editText"]
-                val = self.evaluateExpression(expr, f)
-                if val is None:
-                    logMessage("Failed to evaluate expression: " + expr)
-                    if widgetType == StyleWidget.FILEPATH:
-                        val = ""
-                    else:
-                        val = 0
-                vals.append(val)
+                logMessage("Widget type {} not found.".format(widgetType))
+                vals.append(None)
+
         return vals
 
 

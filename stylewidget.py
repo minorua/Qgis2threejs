@@ -461,22 +461,22 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     EXPRESSION = 1
     COLOR = 2
     FILEPATH = 3
-    HEIGHT = 4
+    HEIGHT = 4      # OBSOLETE
     OPACITY = 5
     LABEL_HEIGHT = 6
     OPTIONAL_COLOR = 7
-    COLOR_TEXTURE = 8
+    COLOR_TEXTURE = 8   # OBSOLETE
     CHECKBOX = 9
     COMBOBOX = 10
 
     type2funcClass = {EXPRESSION: ExpressionWidgetFunc,
                       COLOR: ColorWidgetFunc,
                       FILEPATH: FilePathWidgetFunc,
-                      HEIGHT: HeightWidgetFunc,
+                      HEIGHT: HeightWidgetFunc,         # OBSOLETE
                       LABEL_HEIGHT: LabelHeightWidgetFunc,
                       OPACITY: OpacityWidgetFunc,
                       OPTIONAL_COLOR: OptionalColorWidgetFunc,
-                      COLOR_TEXTURE: ColorTextureWidgetFunc,
+                      COLOR_TEXTURE: ColorTextureWidgetFunc,     # OBSOLETE
                       CHECKBOX: CheckBoxWidgetFunc,
                       COMBOBOX: ComboBoxWidgetFunc}
 
