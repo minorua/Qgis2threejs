@@ -19,7 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsApplication
+from qgis.core import Qgis, QgsApplication
 
 from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
@@ -53,7 +53,7 @@ class ThreeJSBuilder:
                 "width": mapTo3d.planeWidth,
                 "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
                 "crs": str(crs.authid()),
-                "proj": crs.toProj4(),
+                "proj": crs.toProj4() if Qgis.QGIS_VERSION_INT < 31000 else crs.toProj(),
                 "rotation": extent.rotation(),
                 "wgs84Center": {
                     "lat": wgs84Center.y(),
