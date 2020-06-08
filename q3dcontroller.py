@@ -262,7 +262,8 @@ class Q3DController(QObject):
             self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
                                         q3dconst.SCRIPT_GLTFLOADER])
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
-            self.iface.loadScriptFiles([q3dconst.SCRIPT_POTREE,
+            self.iface.loadScriptFiles([q3dconst.SCRIPT_FETCH,
+                                        q3dconst.SCRIPT_POTREE,
                                         q3dconst.SCRIPT_PCLAYER])
 
         t0 = t4 = time.time()

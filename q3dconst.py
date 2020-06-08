@@ -12,6 +12,7 @@ SCRIPT_COLLADALOADER = 3
 SCRIPT_GLTFEXPORTER = 4
 SCRIPT_POTREE = 5
 SCRIPT_PCLAYER = 6
+SCRIPT_FETCH = 101
 
 # Script path (relative from js directory)
 SCRIPT_PATH = {
@@ -20,6 +21,6 @@ SCRIPT_PATH = {
     SCRIPT_COLLADALOADER: "threejs/loaders/ColladaLoader.js",
     SCRIPT_GLTFEXPORTER: "threejs/exporters/GLTFExporter.js",
     SCRIPT_POTREE: "potree-core/potree.min.js",
-    SCRIPT_PCLAYER: "pointcloudlayer.js"
-
+    SCRIPT_PCLAYER: "pointcloudlayer.js",
+    SCRIPT_FETCH: "unfetch/unfetch.js"
 }
