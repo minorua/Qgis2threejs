@@ -300,7 +300,7 @@ class ExportSettings:
 
     def wgs84Center(self):
         if self.crs and self.baseExtent:
-            wgs84 = QgsCoordinateReferenceSystem(4326)
+            wgs84 = QgsCoordinateReferenceSystem("EPSG:4326")
             transform = QgsCoordinateTransform(self.crs, wgs84, QgsProject.instance())
             return transform.transform(self.baseExtent.center())
         return None

@@ -46,7 +46,7 @@ class GSIElevTileProvider:
         self.dest_wkt = dest_wkt
 
         # crs transformer, which aims to calculate bbox in EPSG:3857
-        self.crs3857 = QgsCoordinateReferenceSystem(3857)
+        self.crs3857 = QgsCoordinateReferenceSystem("EPSG:3857")
         self.dest_crs = QgsCoordinateReferenceSystem()
         if not self.dest_crs.createFromWkt(dest_wkt):
             logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
