@@ -1,5 +1,5 @@
 function readUsingDataView(event) {
-	performance.mark("laslaz-start");
+	//performance.mark("laslaz-start");
 
 	let buffer = event.data.buffer;
 	let numPoints = event.data.numPoints;
@@ -131,7 +131,7 @@ function readUsingDataView(event) {
 		iIndices[i] = i;
 	}
 
-	performance.mark("laslaz-end");
+	//performance.mark("laslaz-end");
 
 	//{ // print timings
 	//	  performance.measure("laslaz", "laslaz-start", "laslaz-end");
@@ -140,8 +140,8 @@ function readUsingDataView(event) {
 	//	  let debugMessage = `${measure.duration.toFixed(3)} ms, ${numPoints} points, ${dpp.toFixed(3)} µs / point`;
 	//	  console.log(debugMessage);
 	//}
-	performance.clearMarks();
-	performance.clearMeasures();
+	//performance.clearMarks();
+	//performance.clearMeasures();
 
 	let message = {
 		mean: mean,
