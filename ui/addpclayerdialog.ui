@@ -23,14 +23,14 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Potree cloud.js file URL</string>
+         <string>Potree supported file URL</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="lineEdit_Source">
         <property name="placeholderText">
-         <string>file://... or http(s)://...</string>
+         <string>http(s)://... or file://...</string>
         </property>
        </widget>
       </item>

@@ -37,10 +37,11 @@ class PointCloudLayerBuilder(LayerBuilder):
             url = d["properties"]["url"]
             self.logMessage("URL: {}".format(url))
             if url.startswith("file:"):
+                filename = url.split("/")[-1]
                 self.logMessage("""
 Point cloud data files in Potree format will not be copied to the output data directory.
-You need to upload them to a web server and replace the cloud.js file URL in the scene.js{}
-with valid one that points to the cloud.js file on the web server.""".format("" if self.settings.localMode else "on"))
+You need to upload them to a web server and replace the {0} file URL in the scene.js{1}
+with valid one that points to the {0} file on the web server.""".format(filename, "" if self.settings.localMode else "on"))
 
         if DEBUG_MODE:
             d["PROPERTIES"] = self.properties

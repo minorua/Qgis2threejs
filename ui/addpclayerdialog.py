@@ -52,8 +52,8 @@ class Ui_AddPointCloudLayerDialog(object):
         _translate = QtCore.QCoreApplication.translate
         AddPointCloudLayerDialog.setWindowTitle(_translate("AddPointCloudLayerDialog", "Add Point Cloud Layer"))
         self.groupBox.setTitle(_translate("AddPointCloudLayerDialog", "Source"))
-        self.label.setText(_translate("AddPointCloudLayerDialog", "Potree cloud.js file URL"))
-        self.lineEdit_Source.setPlaceholderText(_translate("AddPointCloudLayerDialog", "file://... or http(s)://..."))
+        self.label.setText(_translate("AddPointCloudLayerDialog", "Potree supported file URL"))
+        self.lineEdit_Source.setPlaceholderText(_translate("AddPointCloudLayerDialog", "http(s)://... or file://..."))
         self.pushButton_Browse.setText(_translate("AddPointCloudLayerDialog", "Browse..."))
         self.pushButton_Add.setText(_translate("AddPointCloudLayerDialog", "Add"))
         self.pushButton_Cancel.setText(_translate("AddPointCloudLayerDialog", "Cancel"))

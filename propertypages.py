@@ -620,13 +620,17 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         total = bbox = None
 
         url = layer.properties.get("url", "")
-        if url.startswith("file:") and url.endswith("cloud.js"):
+        if url.startswith("file:") and url.endswith(("cloud.js", "ept.json")):
             try:
                 with open(QUrl(url).toLocalFile(), "r") as f:
                     d = json.load(f)
 
                 total = d.get("points")
-                bbox = d.get("tightBoundingBox")
+                bbox = d.get("tightBoundingBox")        # potree
+                if bbox:
+                    bbox = [bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz")]
+                else:
+                    bbox = d.get("boundsConforming")    # ept
             except:
                 pass
 
@@ -638,7 +642,7 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         if bbox:
             html += """
 <tr><th>Bounding box:</ht><td>{:.3f}, {:.3f}, {:.3f} :<br>{:.3f}, {:.3f}, {:.3f}</td></tr>
-""".format(bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz"))
+""".format(*bbox)
 
         html += "</table>"
         self.textBrowser.setHtml(html)
