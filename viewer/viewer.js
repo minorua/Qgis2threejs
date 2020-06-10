@@ -160,7 +160,7 @@ function init(off_screen, ortho_camera, debug_mode) {
 
   // check extension support of web view
   // see https://github.com/minorua/Qgis2threejs/issues/147
-  var gl = app.renderer.context;    // WebGLRenderingContext
+  var gl = app.renderer.getContext();    // WebGLRenderingContext
   if (gl.getExtension("WEBGL_depth_texture") === null) {
     var msg = "No 3D objects were rendered? There is a compatibility issue with QGIS 3D view. " +
               "You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
