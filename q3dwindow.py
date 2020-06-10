@@ -592,7 +592,7 @@ class AddPointCloudLayerDialog(QDialog):
             directory = QUrl(url).toLocalFile()
         else:
             directory = QDir.homePath()
-        filterString = "Potree supported files (cloud.js ept.json)"
+        filterString = "All supported files (cloud.js ept.json);;Potree format (cloud.js);;Entwine Point Tile format (ept.json)"
         filename, _ = QFileDialog.getOpenFileName(self, "Select a Potree supported file", directory, filterString)
         if filename:
             self.ui.lineEdit_Source.setText(QUrl.fromLocalFile(filename).toString())
