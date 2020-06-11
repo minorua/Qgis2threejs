@@ -67,7 +67,7 @@ Q3D.Config = {
   },
 
   qmarker: {
-    r: 0.25,
+    r: 0.004,
     c: 0xffff00,
     o: 0.8
   },
@@ -516,7 +516,7 @@ limitations:
 
     // create a marker for queried point
     var opt = Q3D.Config.qmarker;
-    app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r),
+    app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r, 32, 32),
                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
 
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
@@ -1375,14 +1375,14 @@ limitations:
   app.canvasClicked = function (e) {
     var canvasOffset = app._offset(app.renderer.domElement);
     var objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
-    var obj, pt;
+    var obj;
 
     for (var i = 0, l = objs.length; i < l; i++) {
       obj = objs[i];
 
       // query marker
-      pt = {x: obj.point.x, y: obj.point.y, z: obj.point.z};
-      app.queryMarker.position.set(pt.x, pt.y, pt.z);
+      app.queryMarker.position.copy(obj.point);
+      app.queryMarker.scale.setScalar(obj.distance);
       app.scene.add(app.queryMarker);
 
       // get layerId of clicked object
@@ -1395,7 +1395,7 @@ limitations:
 
       app.highlightFeature(object);
       app.render();
-      app.showQueryResult(pt, object);
+      app.showQueryResult(obj.point, object);
 
       return;
     }
