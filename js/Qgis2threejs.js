@@ -1589,6 +1589,13 @@ Q3D.Material.prototype = {
 
   constructor: Q3D.Material,
 
+  // material: a THREE.Material-based object
+  set: function (material) {
+    this.mtl = material;
+    this.origProp = {};
+    return this;
+  },
+
   // callback is called when material has been completely loaded
   loadJSONObject: function (jsonObject, callback) {
     this.origProp = jsonObject;
@@ -1684,11 +1691,6 @@ Q3D.Material.prototype = {
     this._callbacks.push(callback);
   },
 
-  set: function (material) {
-    this.mtl = material;
-    this.origProp = {};
-  },
-
   type: function () {
     if (this.mtl instanceof THREE.MeshLambertMaterial) return Q3D.MaterialType.MeshLambert;
     if (this.mtl instanceof THREE.MeshPhongMaterial) return Q3D.MaterialType.MeshPhong;
@@ -1721,11 +1723,11 @@ Q3D.Materials.prototype.constructor = Q3D.Materials;
 
 // material: instance of Q3D.Material object or THREE.Material-based object
 Q3D.Materials.prototype.add = function (material) {
-  if (material instanceof Q3D.Material) this.materials.push(material);
+  if (material instanceof Q3D.Material) {
+    this.materials.push(material);
+  }
   else {
-    var mtl = new Q3D.Material();
-    mtl.set(material);
-    this.materials.push(mtl);
+    this.materials.push(new Q3D.Material().set(material));
   }
 };
 
@@ -1770,11 +1772,8 @@ Q3D.Materials.prototype.addFromObject3D = function (object) {
     });
   });
 
-  var material;
   for (var i = 0, l = mtls.length; i < l; i++) {
-    material = new Q3D.Material();
-    material.set(mtls[i]);
-    this.materials.push(material);
+    this.materials.push(new Q3D.Material().set(mtls[i]));
   }
 };
 
