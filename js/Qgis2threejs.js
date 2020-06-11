@@ -12,8 +12,8 @@ Q3D.Config = {
   // camera
   orthoCamera: false,
   viewpoint: {                    // z-up
-    pos: {x: 0, y: -100, z: 100}, // initial camera position
-    lookAt: {x: 0, y: 0, z:0}
+    pos: new THREE.Vector3(0, -100, 100), // initial camera position
+    lookAt: new THREE.Vector3()
   },
   // light
   lights: [
@@ -246,7 +246,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 };
 
 Q3D.Scene.prototype.buildLights = function (lights) {
-  var p, light, lambda, phi, x, y, z;
+  var p, light, lambda, phi;
   var deg2rad = Math.PI / 180;
   for (var i = 0; i < lights.length; i++) {
     p = lights[i];
@@ -254,15 +254,14 @@ Q3D.Scene.prototype.buildLights = function (lights) {
       this.lightGroup.add(new THREE.AmbientLight(p.color, p.intensity));
     }
     else if (p.type == "directional") {
+      light = new THREE.DirectionalLight(p.color, p.intensity);
+
       lambda = (90 - p.azimuth) * deg2rad;
       phi = p.altitude * deg2rad;
 
-      x = Math.cos(phi) * Math.cos(lambda);
-      y = Math.cos(phi) * Math.sin(lambda);
-      z = Math.sin(phi);
-
-      light = new THREE.DirectionalLight(p.color, p.intensity);
-      light.position.set(x, y, z);
+      light.position.set(Math.cos(phi) * Math.cos(lambda),
+                         Math.cos(phi) * Math.sin(lambda),
+                         Math.sin(phi));
       this.lightGroup.add(light);
     }
   }
@@ -442,8 +441,8 @@ limitations:
 
     // set viewpoint if specified by URL parameters
     var vars = app.urlParams;
-    if (vars.cx !== undefined) Q3D.Config.viewpoint.pos = {x: parseFloat(vars.cx), y: parseFloat(vars.cy), z: parseFloat(vars.cz)};
-    if (vars.tx !== undefined) Q3D.Config.viewpoint.lookAt = {x: parseFloat(vars.tx), y: parseFloat(vars.ty), z: parseFloat(vars.tz)};
+    if (vars.cx !== undefined) Q3D.Config.viewpoint.pos.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
+    if (vars.tx !== undefined) Q3D.Config.viewpoint.lookAt.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // camera
     app.buildCamera(Q3D.Config.orthoCamera);
@@ -458,9 +457,7 @@ limitations:
     if (typeof THREE.OrbitControls !== "undefined") {
       controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
       controls.enableKeys = false;
-
-      var t = Q3D.Config.viewpoint.lookAt;
-      controls.target.set(t.x, t.y, t.z);
+      controls.target.copy(Q3D.Config.viewpoint.lookAt);
 
       // custom actions
       var offset = new THREE.Vector3();
@@ -710,7 +707,7 @@ limitations:
     var g, groups = (typeof group === "undefined") ? app.pointclouds : [group];
     for (var i = 0; i < groups.length; i++) {
       g = groups[i];
-      g.position.set(p.x, p.y, p.z);
+      g.position.copy(p);
       g.rotation.z = -d.rotation * Math.PI / 180;
       g.scale.set(d.scale, d.scale, d.zScale);
       g.updateMatrixWorld();
@@ -855,11 +852,9 @@ limitations:
     // magic to change y-up world to z-up
     app.camera.up.set(0, 0, 1);
 
-    var v = Q3D.Config.viewpoint,
-        p = v.pos,
-        t = v.lookAt;
-    app.camera.position.set(p.x, p.y, p.z);
-    app.camera.lookAt(t.x, t.y, t.z);
+    var v = Q3D.Config.viewpoint;
+    app.camera.position.copy(v.pos);
+    app.camera.lookAt(v.lookAt);
   };
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
@@ -998,7 +993,7 @@ limitations:
         for (k = 0, m = connGroup.children.length; k < m; k++) {
           conn = connGroup.children[k];
           pt0 = conn.geometry.vertices[0];
-          vec3.set(pt0.x, pt0.y, pt0.z);
+          vec3.copy(pt0);
 
           if (c2l.subVectors(vec3, camera.position).dot(c2t) > 0)      // label is in front
             obj_dist.push([conn, pt0, camera.position.distanceTo(vec3)]);
@@ -1028,7 +1023,7 @@ limitations:
         dist = obj_dist[i][2];
 
         // calculate label position
-        vec3.set(pt0.x, pt0.y, pt0.z).project(camera);
+        vec3.copy(pt0).project(camera);
         x = (vec3.x * widthHalf) + widthHalf;
         y = -(vec3.y * heightHalf) + heightHalf;
 
@@ -1177,7 +1172,7 @@ limitations:
       else vec3.set(x, y, z);
 
       app.camera.position.addVectors(vec3, app.cameraAction.vecZoom);
-      app.camera.lookAt(vec3.x, vec3.y, vec3.z);
+      app.camera.lookAt(vec3);
       if (app.controls.target !== undefined) app.controls.target.copy(vec3);
       app.render(true);
     },
@@ -1193,7 +1188,7 @@ limitations:
   };
 
   app.showQueryResult = function (point, obj, hide_coords) {
-    app.queryTargetPosition.set(point.x, point.y, point.z);
+    app.queryTargetPosition.copy(point);
 
     var layer = app.scene.mapLayers[obj.userData.layerId],
         e = document.getElementById("qr_layername");
@@ -1362,7 +1357,7 @@ limitations:
     clone.traverse(function (obj) {
       obj.material = app.highlightMaterial;
     });
-    if (s != 1) clone.scale.set(clone.scale.x * s, clone.scale.y * s, clone.scale.z * s);
+    if (s != 1) clone.scale.multiplyScalar(s);
     // highlightObject.add(clone);
 
     // add the highlight object to the scene
@@ -2612,7 +2607,7 @@ Q3D.PointLayer.prototype.build = function (features) {
 
   if (objType == "Sphere") {
     setSR = function (mesh, geom) {
-      mesh.scale.set(geom.r, geom.r, geom.r);
+      mesh.scale.setScalar(geom.r);
     };
     unitGeom = unitGeom || new THREE.SphereBufferGeometry(1, 32, 32);
   }
@@ -2738,7 +2733,7 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
     f.geom.pts.forEach(function (pt) {
       model.callbackOnLoad(function (m) {
         var obj = m.scene.clone();
-        obj.scale.set(f.geom.scale, f.geom.scale, f.geom.scale);
+        obj.scale.setScalar(f.geom.scale);
 
         if (obj.rotation.x) {   // == -Math.PI / 2 (z-up model)
           // reset coordinate system to z-up and specified rotation
@@ -2828,9 +2823,9 @@ Q3D.LineLayer.prototype.build = function (features) {
     createObject = function (f, line) {
       var group = new Q3D.Group();
 
-      pt0.set(line[0][0], line[0][1], line[0][2]);
+      pt0.fromArray(line[0]);
       for (var i = 1, l = line.length; i < l; i++) {
-        pt1.set(line[i][0], line[i][1], line[i][2]);
+        pt1.fromArray(line[i]);
 
         mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
         mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
@@ -2840,7 +2835,7 @@ Q3D.LineLayer.prototype.build = function (features) {
 
         if (jointGeom && i < l - 1) {
           mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
-          mesh.scale.set(f.geom.r, f.geom.r, f.geom.r);
+          mesh.scale.setScalar(f.geom.r);
           mesh.position.copy(pt1);
           group.add(mesh);
         }
@@ -2873,9 +2868,9 @@ Q3D.LineLayer.prototype.build = function (features) {
           pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
           matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
 
-      pt0.set(line[0][0], line[0][1], line[0][2]);
+      pt0.fromArray(line[0]);
       for (var i = 1, l = line.length; i < l; i++) {
-        pt1.set(line[i][0], line[i][1], line[i][2]);
+        pt1.fromArray(line[i]);
         dist = pt0.distanceTo(pt1);
         sub.subVectors(pt1, pt0);
         rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
