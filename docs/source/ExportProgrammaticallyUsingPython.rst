@@ -27,7 +27,7 @@ You are ready to play with Python. Let's open the QGIS Python console.
 
     from PyQt5.QtCore import QSize
     from Qgis2threejs.export import ThreeJSExporter, ImageExporter    # or ModelExporter
-    from Qgis2threejs.rotatedrect import RotatedRect
+    from Qgis2threejs.mapextent import MapExtent
 
     # texture base size
     TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
@@ -44,7 +44,7 @@ You are ready to play with Python. Let's open the QGIS Python console.
     rotation = 0
 
     # apply the above extent to map settings
-    RotatedRect(center, width, height, rotation).toMapSettings(mapSettings)
+    MapExtent(center, width, height, rotation).toMapSettings(mapSettings)
 
     # texture base size
     mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
