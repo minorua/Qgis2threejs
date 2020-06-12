@@ -9,10 +9,10 @@ Install the plugin
 Open the Plugin Manager (``Plugins > Manage and Install Plugins...``) and
 install Qgis2threejs plugin.
 
-.. hint:: Need help? See the `10.1.2. Installing New Plugins`__ section of
+.. hint:: Need help? See the `10.1. Installing and Managing Plugins`__ section of
    the QGIS training manual.
 
-__ https://docs.qgis.org/2.18/en/docs/training_manual/qgis_plugins/fetching_plugins.html#basic-fa-installing-new-plugins
+__ https://docs.qgis.org/3.10/en/docs/training_manual/qgis_plugins/fetching_plugins.html#ls-installing-and-managing-plugins
 
 
 Obtain elevation data
@@ -20,7 +20,7 @@ Obtain elevation data
 
 If you already have raster DEM data, you can skip this step.
 
-NASA released elevation data generated from NASA's
+NASA published elevation data generated from NASA's
 `Shuttle Radar Topography Mission`__ digital topographic data.
 We can use the data freely. Elevation data version 2.1 can be
 downloaded from the `distribution site`__.
@@ -36,7 +36,7 @@ file contains a ``.hgt`` file, which is readable by the GDAL.
   .. tip:: If the area extends over two or more files, you might want to
       create a virtual mosaic using `Build Virtual Raster`__
       algorithm of Processing GDAL algorithms.
-  __ https://docs.qgis.org/2.18/en/docs/user_manual/processing_algs/gdalogr/gdal_miscellaneous.html#build-virtual-raster
+  __ https://docs.qgis.org/3.10/en/docs/user_manual/processing_algs/gdal/rastermiscellaneous.html#build-virtual-raster
 ..
 
 .. tip:: Do you have time to explore new high-resolution SRTM
@@ -107,24 +107,22 @@ Click on the ``File - Export to Web...`` menu entry to open this dialog.
 
 .. image:: ./images/dialogs/export_to_web.png
 
-Select a directory to export the scene and press ``Export`` button.
+Select a directory to export the scene, check ``Enable the Viewer to Run Locally`` option and press ``Export`` button.
+
+.. note:: Many web browsers do not allow loading data files on local file system via Ajax.
+   With ``Enable the Viewer to Run Locally`` option the plugin outputs geometry and image data into a js file.
 
 .. image:: ./images/tutorial/exported_directory.png
 
 Open the .html file with a web browser. You can see exported scene in web browser.
 
-.. note:: Many web browsers do not allow loading data files on local file system via Ajax.
-   Please see `Browser Support`__ page of wiki for details.
-
-__ https://github.com/minorua/Qgis2threejs/wiki/Browser-Support
-
 .. image:: ./images/tutorial/browser_edge1.png
 
-No description in detail here, but you can publish the exported scene
-just by uploading the exported files to a web server.
+You can publish the exported viewer and data just by uploading the generated folder to
+a web hosting service such as Netlify and GitHub Pages.
 
 .. note:: Please do not forget to ensure that you comply with
-   the Terms and use for the data before publishing the scene to the web.
+   the Terms and use for the data before publishing the data to the web.
 
 
 Save the Scene as glTF
