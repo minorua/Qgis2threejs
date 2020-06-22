@@ -676,44 +676,6 @@ limitations:
     }
   };
 
-  app.pointclouds = [];
-
-  app.loadPointCloud = function (url, name) {
-
-    var pgroup = new Potree.Group();
-    pgroup.setPointBudget(10000000);
-
-    var group = new Q3D.Group();
-    group.add(pgroup);
-    app.scene.add(group);
-
-    Potree.loadPointCloud(url, name, function(e) {
-      pgroup.add(e.pointcloud);
-
-      app.updatePointCloudPosition(group);
-      app.pointclouds.push(group);
-
-      app.render();
-      app.setIntervalRender(500, 60);
-    });
-
-    return group;
-  };
-
-  app.updatePointCloudPosition = function (group) {
-    var p = app.scene.toWorldCoordinates(0, 0, 0),
-        d = app.scene.userData;
-
-    var g, groups = (typeof group === "undefined") ? app.pointclouds : [group];
-    for (var i = 0; i < groups.length; i++) {
-      g = groups[i];
-      g.position.copy(p);
-      g.rotation.z = -d.rotation * Math.PI / 180;
-      g.scale.set(d.scale, d.scale, d.zScale);
-      g.updateMatrixWorld();
-    }
-  };
-
   app.mouseDownPoint = new THREE.Vector2();
   app.mouseUpPoint = new THREE.Vector2();
 

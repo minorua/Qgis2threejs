@@ -20,8 +20,6 @@ function loadJSONObject(jsonObject) {
     }
   }
   else if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
-    if (app.pointclouds.length) app.updatePointCloudPosition();
-
     updateNorthArrowRotation(jsonObject.properties.rotation);
   }
 }
@@ -85,12 +83,6 @@ function loadModel(url) {
       loader.load(url, loadToScene, undefined, onError);
     });
   }
-}
-
-function loadPointCloud(url) {
-  setTimeout(function () {
-    app.loadPointCloud(url);
-  }, 0);
 }
 
 function hideLayer(layerId, remove_obj) {
