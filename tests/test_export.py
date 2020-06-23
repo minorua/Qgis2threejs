@@ -41,7 +41,7 @@ class TestExport(unittest.TestCase):
         return mapSettings
 
     def test01_export_scene1_webpage(self):
-        """test web page export with testproject1.qgs and scene1.qto3settings"""
+        """test web page export"""
 
         mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
@@ -54,7 +54,23 @@ class TestExport(unittest.TestCase):
 
         assert err, "export failed"
 
-    def test02_check_scene1_webpage(self):
+    def test02_export_scene1_webpage_localmode(self):
+        """test web page export in local mode"""
+
+        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+
+        out_path = outputPath("scene1LC.html")
+
+        exporter = ThreeJSExporter()
+        exporter.loadSettings(dataPath("scene1.qto3settings"))
+        exporter.settings.localMode = exporter.settings.base64 = True
+
+        exporter.setMapSettings(mapSettings)
+        err = exporter.export(out_path)
+
+        assert err, "export failed"
+
+    def test03_check_scene1_webpage(self):
         """render exported web page and check page capture"""
 
         html_path = outputPath("scene1.html")
