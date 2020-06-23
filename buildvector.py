@@ -245,20 +245,10 @@ class VectorLayer:
             return "0"
 
         symbol = symbols[0]
-        sl = symbol.symbolLayer(0)
-        if sl:
-            if isBorder:
+        if isBorder:
+            sl = symbol.symbolLayer(0)
+            if sl:
                 return sl.strokeColor().name().replace("#", "0x")
-
-            if symbol.hasDataDefinedProperties():
-                expr = sl.dataDefinedProperty("color")
-                if expr:
-                    # data defined color
-                    rgb = expr.evaluate(f, f.fields())
-
-                    # "rrr,ggg,bbb" (dec) to "0xRRGGBB" (hex)
-                    r, g, b = [max(0, min(int(c), 255)) for c in rgb.split(",")[:3]]
-                    return "0x{:02x}{:02x}{:02x}".format(r, g, b)
 
         return symbol.color().name().replace("#", "0x")
 
@@ -278,7 +268,6 @@ class VectorLayer:
             logMessage("Symbol for feature not found. Please use a simple renderer for {0}.".format(self.name))
             return 1
 
-        # TODO [data defined property]
         symbol = symbols[0]
         return self.mapLayer.opacity() * symbol.opacity()
 
