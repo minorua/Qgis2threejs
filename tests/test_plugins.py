@@ -8,42 +8,51 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
-import os
 from PyQt5.QtCore import QSize
-from qgis.core import QgsRectangle
 from qgis.testing import unittest
 
-#from Qgis2threejs.api import Exporter
+from Qgis2threejs.export import ThreeJSExporter
+from Qgis2threejs.mapextent import MapExtent
 from Qgis2threejs.pluginmanager import pluginManager
 from .utilities import dataPath, outputPath, loadProject
+
+OUT_WIDTH, OUT_HEIGHT = (1024, 768)
+TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 
 
 class TestPlugins(unittest.TestCase):
 
     def setUp(self):
-        return  # TODO
-
         pluginManager(True)   # enables all plugins
+
+    def loadProject(self, filename):
+        """load a project"""
+        mapSettings = loadProject(filename)
+
+        # extent
+        MapExtent(mapSettings.extent().center(),
+                  mapSettings.extent().height(),
+                  mapSettings.extent().height(), 0).toMapSettings(mapSettings)
+
+        # texture base size
+        mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
+
+        return mapSettings
 
     def test01_gsielevtile(self):
         """test exporting with GSI elevation tile plugin"""
-        return  # TODO
+        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
 
-        projectPath = dataPath("testproject1.qgs")
-        mapSettings = loadProject(projectPath)
+        out_path = outputPath("scene1_gsielevtile.html")
 
-        # zoom
-        mapSettings.setExtent(QgsRectangle(-51698, -75431, 21286, -20179))
+        exporter = ThreeJSExporter()
+        exporter.loadSettings(dataPath("gsielevtile.qto3settings"))
+        exporter.settings.localMode = exporter.settings.base64 = True
 
-        # output size
-        width = 800
-        height = width * mapSettings.extent().height() / mapSettings.extent().width()
-        mapSettings.setOutputSize(QSize(width, height))
+        exporter.setMapSettings(mapSettings)
+        err = exporter.export(out_path)
 
-        exporter = Exporter(None, dataPath("gsielevtile.qto3settings"))
-        exporter.settings.setMapSettings(mapSettings)
-        err = exporter.export(outputPath(os.path.join("testproject1", "gsielevtile.html")))
-        assert err == Exporter.NO_ERROR, err
+        assert err, "export failed"
 
 
 if __name__ == "__main__":

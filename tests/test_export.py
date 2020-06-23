@@ -52,7 +52,7 @@ class TestExport(unittest.TestCase):
         exporter.setMapSettings(mapSettings)
         err = exporter.export(out_path)
 
-        assert not err, err
+        assert err, "export failed"
 
     def test02_check_scene1_webpage(self):
         """render exported web page and check page capture"""
@@ -60,7 +60,7 @@ class TestExport(unittest.TestCase):
         html_path = outputPath("scene1.html")
 
         url = QUrl.fromLocalFile(html_path)
-        url = QUrl(url.toString() + "#cx=-20&cy=16&cz=-34&tx=-2&ty=0&tz=8")
+        url = QUrl(url.toString() + "#cx=-20&cy=34&cz=16&tx=-2&ty=-8&tz=0")
 
         loop = QEventLoop()
         page = QWebPage()

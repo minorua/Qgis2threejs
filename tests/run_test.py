@@ -12,21 +12,22 @@ import sys
 import os
 from qgis.testing import unittest
 
-from Qgis2threejs import conf
-
 plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def runTest(debug_mode=None):
     # python path setting
     plugins_dir = os.path.dirname(plugin_dir)
     sys.path.append(plugins_dir)
 
+    from Qgis2threejs import conf
     if debug_mode is not None:
         conf.DEBUG_MODE = debug_mode
+
     print("DEBUG_MODE is {}.".format(conf.DEBUG_MODE))
 
     # initialize output directory
-    from .utilities import initOutputDir
+    from Qgis2threejs.tests.utilities import initOutputDir
     initOutputDir()
 
     plugin_name = os.path.basename(plugin_dir)
