@@ -27,7 +27,7 @@ from qgis.core import QgsFieldProxyModel, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from .qgis2threejstools import getDEMLayersInProject, logMessage, shortTextFromSelectedLayerIds
+from .qgis2threejstools import getDEMLayersInProject, shortTextFromSelectedLayerIds
 
 
 class WidgetFuncBase:

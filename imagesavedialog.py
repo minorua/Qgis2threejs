@@ -22,7 +22,6 @@ from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog
 
 from .export import ImageExporter
-from .qgis2threejstools import logMessage
 from .ui.imagesavedialog import Ui_ImageSaveDialog
 
 

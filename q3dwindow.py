@@ -34,7 +34,7 @@ from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .qgis2threejstools import logMessage, pluginDir
+from .qgis2threejstools import pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 

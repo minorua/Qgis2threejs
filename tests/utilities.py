@@ -10,9 +10,8 @@ the Free Software Foundation; either version 2 of the License, or
 """
 import os
 import shutil
-import sys
 
-from PyQt5.QtCore import QFileInfo, qDebug
+from PyQt5.QtCore import qDebug
 from PyQt5.QtGui import QColor
 from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject

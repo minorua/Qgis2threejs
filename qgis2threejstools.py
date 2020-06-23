@@ -27,7 +27,6 @@ import shutil
 
 from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QMessageBox
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
 from .conf import DEBUG_MODE
