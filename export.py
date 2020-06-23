@@ -236,6 +236,8 @@ class BridgeExporterBase:
 
     def __init__(self, settings=None):
         self.settings = settings or ExportSettings()
+        self.settings.isPreview = True
+
         self.controller = Q3DController(self.settings)
         self.exportMode = False
 
