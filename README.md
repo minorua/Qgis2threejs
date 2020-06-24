@@ -1,5 +1,5 @@
-Qgis2threejs plugin - version 2.4.2
-===================================
+Qgis2threejs plugin
+===================
 
   This is a [QGIS](https://qgis.org/) plugin which visualizes DEM and vector data in 3D on web browsers.
 You can build various kinds of 3D objects with simple settings panels and generate files for web publishing
@@ -27,11 +27,15 @@ Dependent JavaScript libraries and resources
 
 * [Proj4js](https://trac.osgeo.org/proj4js/)
 
+* [Potree Core](https://github.com/tentone/potree-core) for Potree data support
+
 * [dat-gui](https://github.com/dataarts/dat.gui) for export based on 3DViewer(dat-gui) template
 
 * [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
 
 * Python ported version of [earcut](https://github.com/mapbox/earcut) for Overlay polygon triangulation
+
+* [unfetch](https://github.com/developit/unfetch) fetch polyfill
 
 License
 =======
