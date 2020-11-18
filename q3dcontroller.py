@@ -198,6 +198,9 @@ class Q3DController(QObject):
             # automatic z shift adjustment
             self.iface.runScript("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
 
+            # outline effect
+            self.iface.runScript("setOutlineEffectEnabled({});".format("true" if sp.get("checkBox_Outline") else "false"))
+
             # update background color
             params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
             self.iface.runScript("setBackgroundColor({0});".format(params))

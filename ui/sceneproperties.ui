@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>328</width>
-    <height>411</height>
+    <height>442</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,18 +93,32 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Material</string>
+      <string>Material and Effect</string>
      </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Basic type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_MaterialType"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_Outline">
+        <property name="toolTip">
+         <string>Check this to enable outline effect</string>
+        </property>
         <property name="text">
-         <string>Basic type</string>
+         <string>Enable outline effect</string>
         </property>
        </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="comboBox_MaterialType"/>
       </item>
      </layout>
     </widget>
@@ -212,6 +226,7 @@
   <tabstop>lineEdit_zShift</tabstop>
   <tabstop>checkBox_autoZShift</tabstop>
   <tabstop>comboBox_MaterialType</tabstop>
+  <tabstop>checkBox_Outline</tabstop>
   <tabstop>radioButton_Sky</tabstop>
   <tabstop>radioButton_Color</tabstop>
   <tabstop>colorButton_Color</tabstop>
@@ -227,12 +242,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>90</x>
-     <y>232</y>
+     <x>114</x>
+     <y>306</y>
     </hint>
     <hint type="destinationlabel">
-     <x>237</x>
-     <y>232</y>
+     <x>303</x>
+     <y>310</y>
     </hint>
    </hints>
   </connection>

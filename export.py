@@ -175,6 +175,10 @@ class ThreeJSExporter(ThreeJSBuilder):
                 ds["dest"] = p[1]
             files.append(ds)
 
+        # outline effect
+        if self.settings.useOutlineEffect():
+            files.append({"files": ["js/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
+
         # proj4js
         if self.settings.coordsInWGS84():
             files.append({"dirs": ["js/proj4js"]})
@@ -200,6 +204,10 @@ class ThreeJSExporter(ThreeJSBuilder):
         # three.js and controls
         files.append("./threejs/three.min.js")
         files.append("./threejs/{}".format(self.settings.controls()))
+
+        # outline effect
+        if self.settings.useOutlineEffect():
+            files.append("./threejs/OutlineEffect.js")
 
         # html template config
         config = self.settings.templateConfig()

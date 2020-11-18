@@ -249,6 +249,22 @@ function clearStatusMessage() {
   showStatusMessage("");
 }
 
+function setOutlineEffectEnabled(enabled) {
+  if (enabled) {
+    if (THREE.OutlineEffect === undefined) {
+      loadScriptFile("../js/threejs/effects/OutlineEffect.js", function () {
+        app.effect = new THREE.OutlineEffect(app.renderer);
+      });
+    }
+    else if (app.effect !== undefined) {
+      app.effect = new THREE.OutlineEffect(app.renderer);
+    }
+  }
+  else {
+    app.effect = undefined;
+  }
+}
+
 function setBackgroundColor(color, alpha) {
   app.renderer.setClearColor(color, alpha);
   app.render();

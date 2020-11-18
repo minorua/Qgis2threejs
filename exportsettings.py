@@ -163,6 +163,9 @@ class ExportSettings:
     def materialType(self):
         return self.sceneProperties().get("comboBox_MaterialType", 0)
 
+    def useOutlineEffect(self):
+        return self.sceneProperties().get("checkBox_Outline", False)
+
     def isOrthoCamera(self):
         return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
 

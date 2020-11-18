@@ -176,7 +176,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         Ui_ScenePropertiesWidget.setupUi(self, self)
 
         widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
-                   self.comboBox_MaterialType,
+                   self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
                    self.radioButton_WGS84]
         self.registerPropertyWidgets(widgets)
