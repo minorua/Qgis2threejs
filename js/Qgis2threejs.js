@@ -439,6 +439,9 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
 
+    // outline effect
+    if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
+
     // set viewpoint if specified by URL parameters
     var vars = app.urlParams;
     if (vars.cx !== undefined) Q3D.Config.viewpoint.pos.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
@@ -894,7 +897,12 @@ limitations:
     if (updateControls) app.controls.update();
 
     // render
-    app.renderer.render(app.scene, app.camera);
+    if (app.effect) {
+      app.effect.render(app.scene, app.camera);
+    }
+    else {
+      app.renderer.render(app.scene, app.camera);
+    }
 
     // North arrow
     if (app.renderer2) {
@@ -1495,7 +1503,13 @@ limitations:
 
     // render
     app.renderer.preserveDrawingBuffer = true;
-    app.renderer.render(app.scene, app.camera);
+
+    if (app.effect) {
+      app.effect.render(app.scene, app.camera);
+    }
+    else {
+      app.renderer.render(app.scene, app.camera);
+    }
 
     // restore clear color
     var bgcolor = Q3D.Config.bgColor;
