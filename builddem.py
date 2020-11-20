@@ -221,6 +221,11 @@ class DEMBlockBuilder:
             mi = self.materialManager.getBasicLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
             b["edges"] = {"mtl": self.materialManager.build(mi)}
 
+        # wireframe
+        if self.properties.get("checkBox_Wireframe"):
+            mi = self.materialManager.getBasicLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
+            b["wireframe"] = {"mtl": self.materialManager.build(mi)}
+
         return b
 
     def material(self):

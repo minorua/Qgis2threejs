@@ -1993,6 +1993,54 @@ Q3D.DEMBlock.prototype = {
     parent.updateMatrixWorld();
   },
 
+  // add quad wireframe
+  addWireframe: function (layer, parent, material) {
+
+    var grid = this.data.grid,
+        grid_values = grid.array,
+        w = grid.width,
+        h = grid.height,
+        planeWidth = this.data.width,
+        planeHeight = this.data.height,
+        hpw = planeWidth / 2,
+        hph = planeHeight / 2,
+        psw = planeWidth / (w - 1),
+        psh = planeHeight / (h - 1);
+
+    var v, geom, line, x, y, vx, vy, group = new THREE.Group();
+
+    for (x = w - 1; x >= 0; x--) {
+      v = [];
+      vx = -hpw + psw * x;
+
+      for (y = h - 1; y >= 0; y--) {
+        v.push(vx, hph - psh * y, grid_values[x + w * y]);
+      }
+
+      geom = new THREE.BufferGeometry();
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+      group.add(new THREE.Line(geom, material));
+    }
+
+    for (y = h - 1; y >= 0; y--) {
+      v = [];
+      vy = hph - psh * y;
+
+      for (x = w - 1; x >= 0; x--) {
+        v.push(-hpw + psw * x, vy, grid_values[x + w * y]);
+      }
+
+      geom = new THREE.BufferGeometry();
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+      group.add(new THREE.Line(geom, material));
+    }
+
+    parent.add(group);
+    parent.updateMatrixWorld();
+  },
+
   getValue: function (x, y) {
     var grid = this.data.grid;
     if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
@@ -2274,9 +2322,9 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
 
   var index = jsonObject.block;
   this.blocks[index] = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
-  this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
+  this.blocks[index].loadJSONObject(jsonObject, this, function (mesh) {
 
-    if (jsonObject.sides || jsonObject.edges) {
+    if (jsonObject.sides || jsonObject.edges || jsonObject.wireframe) {
 
       _this.sideVisible = true;
 
@@ -2288,7 +2336,7 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
           material.loadJSONObject(jsonObject.sides.mtl);
           _this.materials.add(material);
 
-          _this.blocks[index].buildSides(_this, m, material.mtl, Q3D.Config.dem.side.bottomZ);
+          _this.blocks[index].buildSides(_this, mesh, material.mtl, Q3D.Config.dem.side.bottomZ);
         }
         // edges
         if (jsonObject.edges) {
@@ -2296,7 +2344,15 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
           material.loadJSONObject(jsonObject.edges.mtl);
           _this.materials.add(material);
 
-          _this.blocks[index].addEdges(_this, m, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
+          _this.blocks[index].addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
+        }
+        // wireframe
+        if (jsonObject.wireframe) {
+          material = new Q3D.Material();
+          material.loadJSONObject(jsonObject.wireframe.mtl);
+          _this.materials.add(material);
+
+          _this.blocks[index].addWireframe(_this, mesh, material.mtl);
         }
         _this.requestRender();
       };

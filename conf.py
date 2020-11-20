@@ -51,6 +51,7 @@ class DEF_SETS:
     # dem
     SIDE_COLOR = "0xccbbaa"
     EDGE_COLOR = "0x000000"
+    WIREFRAME_COLOR = "0x000000"
 
 
 # processing export

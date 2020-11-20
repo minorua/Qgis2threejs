@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>598</height>
+    <height>631</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -414,9 +414,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="text">
-         <string/>
-        </property>
        </widget>
       </item>
       <item row="0" column="0">
@@ -429,7 +426,27 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="1">
+       <widget class="QgsColorButton" name="toolButton_EdgeColor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_Frame">
+        <property name="text">
+         <string>Add edges</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="checkBox_Visible">
         <property name="text">
          <string>Visible on load</string>
@@ -439,23 +456,23 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QgsColorButton" name="toolButton_EdgeColor">
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="checkBox_Wireframe">
+        <property name="text">
+         <string>Add quad wireframe</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QgsColorButton" name="toolButton_WireframeColor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_Frame">
-        <property name="text">
-         <string>Add edges</string>
         </property>
        </widget>
       </item>
@@ -508,6 +525,8 @@
   <tabstop>toolButton_SideColor</tabstop>
   <tabstop>checkBox_Frame</tabstop>
   <tabstop>toolButton_EdgeColor</tabstop>
+  <tabstop>checkBox_Wireframe</tabstop>
+  <tabstop>toolButton_WireframeColor</tabstop>
   <tabstop>checkBox_Visible</tabstop>
  </tabstops>
  <resources/>
@@ -519,12 +538,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>103</x>
-     <y>545</y>
+     <x>127</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
-     <x>305</x>
-     <y>547</y>
+     <x>243</x>
+     <y>174</y>
     </hint>
    </hints>
   </connection>
@@ -535,12 +554,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>366</y>
+     <x>122</x>
+     <y>277</y>
     </hint>
     <hint type="destinationlabel">
-     <x>242</x>
-     <y>366</y>
+     <x>183</x>
+     <y>278</y>
     </hint>
    </hints>
   </connection>
@@ -551,12 +570,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>366</y>
+     <x>122</x>
+     <y>277</y>
     </hint>
     <hint type="destinationlabel">
-     <x>367</x>
-     <y>366</y>
+     <x>309</x>
+     <y>278</y>
     </hint>
    </hints>
   </connection>
@@ -567,12 +586,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>57</x>
-     <y>391</y>
+     <x>87</x>
+     <y>303</y>
     </hint>
     <hint type="destinationlabel">
-     <x>225</x>
-     <y>391</y>
+     <x>228</x>
+     <y>304</y>
     </hint>
    </hints>
   </connection>
@@ -583,12 +602,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>57</x>
-     <y>391</y>
+     <x>87</x>
+     <y>303</y>
     </hint>
     <hint type="destinationlabel">
-     <x>386</x>
-     <y>391</y>
+     <x>309</x>
+     <y>304</y>
     </hint>
    </hints>
   </connection>
@@ -599,12 +618,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>103</x>
-     <y>545</y>
+     <x>127</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
-     <x>237</x>
-     <y>639</y>
+     <x>173</x>
+     <y>535</y>
     </hint>
    </hints>
   </connection>
@@ -631,12 +650,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>177</x>
-     <y>346</y>
+     <x>252</x>
+     <y>391</y>
     </hint>
     <hint type="destinationlabel">
-     <x>293</x>
-     <y>346</y>
+     <x>310</x>
+     <y>390</y>
     </hint>
    </hints>
   </connection>
@@ -647,12 +666,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>293</x>
-     <y>346</y>
+     <x>310</x>
+     <y>390</y>
     </hint>
     <hint type="destinationlabel">
-     <x>177</x>
-     <y>346</y>
+     <x>252</x>
+     <y>391</y>
     </hint>
    </hints>
   </connection>
@@ -663,12 +682,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>291</y>
+     <x>122</x>
+     <y>330</y>
     </hint>
     <hint type="destinationlabel">
-     <x>242</x>
-     <y>291</y>
+     <x>309</x>
+     <y>331</y>
     </hint>
    </hints>
   </connection>
@@ -679,12 +698,60 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>448</y>
+     <x>115</x>
+     <y>502</y>
     </hint>
     <hint type="destinationlabel">
-     <x>242</x>
-     <y>448</y>
+     <x>311</x>
+     <y>506</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Clip</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBox_Wireframe</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>167</x>
+     <y>137</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>98</x>
+     <y>566</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Frame</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_EdgeColor</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>533</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>246</x>
+     <y>533</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Wireframe</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolButton_WireframeColor</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>566</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>246</x>
+     <y>566</y>
     </hint>
    </hints>
   </connection>
