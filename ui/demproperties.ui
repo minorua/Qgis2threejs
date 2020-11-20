@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>533</height>
+    <height>598</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -399,54 +399,63 @@
      <property name="title">
       <string>&amp;Other Options</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
+     <layout class="QGridLayout" name="gridLayout_2">
       <property name="topMargin">
        <number>6</number>
       </property>
       <property name="bottomMargin">
        <number>6</number>
       </property>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QCheckBox" name="checkBox_Sides">
-          <property name="text">
-           <string>Build sides</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QgsColorButton" name="toolButton_SideColor">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_Frame">
+      <item row="0" column="1">
+       <widget class="QgsColorButton" name="toolButton_SideColor">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>Build frame</string>
+         <string/>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_Sides">
+        <property name="text">
+         <string>Build sides</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
        <widget class="QCheckBox" name="checkBox_Visible">
         <property name="text">
          <string>Visible on load</string>
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QgsColorButton" name="toolButton_EdgeColor">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_Frame">
+        <property name="text">
+         <string>Add edges</string>
         </property>
        </widget>
       </item>
@@ -498,6 +507,7 @@
   <tabstop>checkBox_Sides</tabstop>
   <tabstop>toolButton_SideColor</tabstop>
   <tabstop>checkBox_Frame</tabstop>
+  <tabstop>toolButton_EdgeColor</tabstop>
   <tabstop>checkBox_Visible</tabstop>
  </tabstops>
  <resources/>

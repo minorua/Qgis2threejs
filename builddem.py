@@ -216,10 +216,10 @@ class DEMBlockBuilder:
             mi = self.materialManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
             b["sides"] = {"mtl": self.materialManager.build(mi)}
 
-        # frame
+        # edges
         if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
-            mi = self.materialManager.getBasicLineIndex(DEF_SETS.FRAME_COLOR, opacity)
-            b["frame"] = {"mtl": self.materialManager.build(mi)}
+            mi = self.materialManager.getBasicLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
+            b["edges"] = {"mtl": self.materialManager.build(mi)}
 
         return b
 

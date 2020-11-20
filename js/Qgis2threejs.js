@@ -41,9 +41,6 @@ Q3D.Config = {
   dem: {
     side: {
       bottomZ: -1.5     // in the unit of world coordinates
-    },
-    frame: {
-      bottomZ: -1.5
     }
   },
   line: {
@@ -1924,42 +1921,73 @@ Q3D.DEMBlock.prototype = {
     parent.updateMatrixWorld();
   },
 
-  buildFrame: function (layer, parent, material, z0) {
-    var grid = this.data.grid,
+  addEdges: function (layer, parent, material, z0) {
+
+    var i, x, y,
+        grid = this.data.grid,
+        grid_values = grid.array,
+        w = grid.width,
+        h = grid.height,
+        k = w * (h - 1),
         planeWidth = this.data.width,
-        planeHeight = this.data.height;
+        planeHeight = this.data.height,
+        hpw = planeWidth / 2,
+        hph = planeHeight / 2,
+        psw = planeWidth / (w - 1),
+        psh = planeHeight / (h - 1);
 
-    // horizontal rectangle at bottom
-    var hw = planeWidth / 2,
-        hh = planeHeight / 2,
-        e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0);
-    var v = [-hw, -hh, e0,
-              hw, -hh, e0,
-              hw,  hh, e0,
-             -hw,  hh, e0,
-             -hw, -hh, e0];
+    var vl = [];
 
-    var geom = new THREE.BufferGeometry();
-    geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+    // terrain edges
+    var vl_fr = [],
+        vl_bk = [],
+        vl_le = [],
+        vl_ri = [];
 
-    var obj = new THREE.Line(geom, material);
-    obj.name = "frame";
-    parent.add(obj);
+    for (i = 0; i < w; i++) {
+      x = -hpw + psw * i;
+      vl_fr.push(x, -hph, grid_values[k + i]);
+      vl_bk.push(x, hph, grid_values[i]);
+    }
 
-    // vertical lines at corners
-    v = [[-hw, -hh, grid.array[grid.array.length - grid.width]],
-         [ hw, -hh, grid.array[grid.array.length - 1]],
-         [ hw,  hh, grid.array[grid.width - 1]],
-         [-hw,  hh, grid.array[0]]];
+    for (i = 0; i < h; i++) {
+      y = hph - psh * i;
+      vl_le.push(-hpw, y, grid_values[w * i]);
+      vl_ri.push(hpw, y, grid_values[w * (i + 1) - 1]);
+    }
 
-    v.forEach(function (p) {
-      var geom = new THREE.BufferGeometry(),
-          vl = [p[0], p[1], p[2], p[0], p[1], e0];
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(vl, 3));
+    vl.push(vl_fr, vl_bk, vl_le, vl_ri);
 
+    if (z0 !== undefined) {
+
+      var e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0);
+
+      // horizontal rectangle at bottom
+      vl.push([-hpw, -hph, e0,
+                hpw, -hph, e0,
+                hpw,  hph, e0,
+               -hpw,  hph, e0,
+               -hpw, -hph, e0]);
+
+      // vertical lines at corners
+      [[-hpw, -hph, grid_values[grid_values.length - w]],
+       [ hpw, -hph, grid_values[grid_values.length - 1]],
+       [ hpw,  hph, grid_values[w - 1]],
+       [-hpw,  hph, grid_values[0]]].forEach(function (v) {
+
+        vl.push([v[0], v[1], v[2], v[0], v[1], e0]);
+
+      });
+    }
+
+    vl.forEach(function (v) {
+
+      var geom = new THREE.BufferGeometry();
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
       var obj = new THREE.Line(geom, material);
       obj.name = "frame";
       parent.add(obj);
+
     });
 
     parent.updateMatrixWorld();
@@ -2248,13 +2276,13 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
   this.blocks[index] = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
   this.blocks[index].loadJSONObject(jsonObject, this, function (m) {
 
-    if (jsonObject.sides || jsonObject.frame) {
+    if (jsonObject.sides || jsonObject.edges) {
 
       _this.sideVisible = true;
 
-      var buildSides = function () {
+      var build = function () {
         var material;
-        // build sides and bottom
+        // sides and bottom
         if (jsonObject.sides) {
           material = new Q3D.Material();
           material.loadJSONObject(jsonObject.sides.mtl);
@@ -2262,13 +2290,13 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
 
           _this.blocks[index].buildSides(_this, m, material.mtl, Q3D.Config.dem.side.bottomZ);
         }
-        // build frame
-        if (jsonObject.frame) {
+        // edges
+        if (jsonObject.edges) {
           material = new Q3D.Material();
-          material.loadJSONObject(jsonObject.frame.mtl);
+          material.loadJSONObject(jsonObject.edges.mtl);
           _this.materials.add(material);
 
-          _this.blocks[index].buildFrame(_this, m, material.mtl, Q3D.Config.dem.frame.bottomZ);
+          _this.blocks[index].addEdges(_this, m, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
         }
         _this.requestRender();
       };
@@ -2279,12 +2307,12 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
           _this.blocks.forEach(function (block) {
             block.data.zShiftA = event.sceneData.zShiftA;
           });
-          buildSides();
+          build();
           scene.removeEventListener("zShiftAdjusted", listener);
         });
       }
       else {
-        buildSides();
+        build();
       }
     }
     _this.requestRender();
@@ -2396,7 +2424,7 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
 Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {
-    if (obj.name == "side" || obj.name == "bottom" || obj.name == "frame") obj.visible = visible;
+    if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
   });
 };
 
