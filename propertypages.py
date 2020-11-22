@@ -250,6 +250,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
         self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
+        self.checkBox_Clip.toggled.connect(self.clipToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
         for radioButton in dispTypeButtons:
             radioButton.toggled.connect(self.dispTypeChanged)
@@ -358,6 +359,11 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
 
         if checked and self.radioButton_ImageFile.isChecked():
             self.radioButton_MapCanvas.setChecked(True)
+
+    def clipToggled(self, checked):
+        if checked:
+            self.checkBox_Frame.setChecked(False)
+            self.checkBox_Wireframe.setChecked(False)
 
     def rougheningChanged(self, v):
         # possible value is a power of 2
