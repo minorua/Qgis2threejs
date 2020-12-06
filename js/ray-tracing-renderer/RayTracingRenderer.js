@@ -1415,10 +1415,10 @@ vec3 getMatNormal(int materialIndex, vec2 uv, vec3 normal, vec3 dp1, vec3 dp2, v
     const indexAttrib = new THREE$1.BufferAttribute(new Uint32Array(indexCount), 1, false);
 
     const mergedGeometry = new THREE$1.BufferGeometry();
-    mergedGeometry.addAttribute('position', positionAttrib);
-    mergedGeometry.addAttribute('normal', normalAttrib);
-    mergedGeometry.addAttribute('uv', uvAttrib);
-    mergedGeometry.addAttribute('materialMeshIndex', materialMeshIndexAttrib);
+    mergedGeometry.setAttribute('position', positionAttrib);
+    mergedGeometry.setAttribute('normal', normalAttrib);
+    mergedGeometry.setAttribute('uv', uvAttrib);
+    mergedGeometry.setAttribute('materialMeshIndex', materialMeshIndexAttrib);
     mergedGeometry.setIndex(indexAttrib);
 
     let currentVertex = 0;
@@ -1454,7 +1454,7 @@ vec3 getMatNormal(int materialIndex, vec2 uv, vec3 normal, vec3 dp1, vec3 dp2, v
     for (const name of attributes) {
       const attrib = bufferGeometry.getAttribute(name);
       if (attrib) {
-        newGeometry.addAttribute(name, attrib.clone());
+        newGeometry.setAttribute(name, attrib.clone());
       }
     }
 
