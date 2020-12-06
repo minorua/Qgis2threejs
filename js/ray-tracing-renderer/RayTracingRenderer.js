@@ -150,7 +150,7 @@
     const ambientLights = [];
     const environmentLights = [];
 
-    scene.traverse(child => {
+    scene.traverseVisible(child => {
       if (child.isMesh) {
         if (!child.geometry) {
           console.warn(child, 'must have a geometry property');
