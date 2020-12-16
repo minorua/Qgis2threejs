@@ -121,12 +121,12 @@ app.addEventListener("sceneLoaded", function () {
 
 // load the scene
 app.loadSceneFile("${scenefile}", function () {
+  app.start();
+
   Q3D.gui.init();   // initialize dat-gui panel
 
   // North arrow inset
   if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
-
-  app.start();
 });
 </script>
 </body>
