@@ -19,9 +19,12 @@ Q3D.gui = {
 
   // initialize gui
   // - setupDefaultItems: default is true
-  init: function (setupDefaultItems) {
-    this.gui = new dat.GUI();
+  // - params: parameter values to pass to dat.GUI constructor
+  init: function (setupDefaultItems, params) {
+
+    this.gui = new dat.GUI(params);
     this.gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
+
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.addLayersFolder();
       this.customPlaneFolder = this.gui.addFolder('Custom Plane');
@@ -36,14 +39,23 @@ Q3D.gui = {
     var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
     var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
 
-    var layer, layersFolder = this.gui.addFolder('Layers');
+    var layer, subfolder,
+        folder = this.gui.addFolder('Layers');
+
     for (var layerId in mapLayers) {
       layer = mapLayers[layerId];
       parameters.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity};
-      var folder = layersFolder.addFolder(layer.properties.name);
-      folder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
-      folder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+      subfolder = folder.addFolder(layer.properties.name);
+      subfolder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
+      subfolder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
     }
+    return folder;
+  },
+
+  customPlaneMaterial: function (color) {
+    var m = new THREE.MeshLambertMaterial({color: color, transparent: true})
+    if (!Q3D.isIE) m.side = THREE.DoubleSide;
+    return m;
   },
 
   initCustomPlaneFolder: function (zMin, zMax) {
@@ -56,8 +68,7 @@ Q3D.gui = {
     var addPlane = function (color) {
       // Add a new plane in the current scene
       var geometry = new THREE.PlaneBufferGeometry(p.width,p.height, 1, 1),
-          material = new THREE.MeshLambertMaterial({color: color, transparent: true});
-      if (!Q3D.isIE) material.side = THREE.DoubleSide;
+          material = Q3D.gui.customPlaneMaterial(color);
       customPlane = new THREE.Mesh(geometry, material);
       scene.add(customPlane);
       Q3D.gui.customPlane = customPlane;
@@ -90,7 +101,7 @@ Q3D.gui = {
     // Enlarge plane option
     this.customPlaneFolder.add(parameters.cp, 'l').name('Enlarge').onChange(function (value) {
       if (customPlane === undefined) addPlane(parameters.cp.c);
-      if (value) customPlane.scale.set(10, 10, 1);
+      if (value) customPlane.scale.set(80, 80, 1);
       else customPlane.scale.set(1, 1, 1);
       customPlane.updateMatrixWorld();
       app.render();
@@ -107,4 +118,5 @@ Q3D.gui = {
   addHelpButton: function () {
     this.gui.add(this.parameters, 'i').name('Help');
   }
+
 };

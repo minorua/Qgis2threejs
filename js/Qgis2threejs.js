@@ -26,8 +26,8 @@ Q3D.Config = {
       type: "directional",
       color: 0xffffff,
       intensity: 0.7,
-      azimuth: 220,   // note: default light azimuth of gdaldem hillshade is 315.
-      altitude: 45    // altitude angle
+      azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
+      altitude: 45    // altitude angle in degrees.
     },
     {
       type: "directional",
@@ -88,6 +88,7 @@ Q3D.MaterialType = {
   LineDashed: 4,
   Sprite: 5,
   Point: 6,
+  MeshStandard: 7,
   Unknown: -1
 };
 
@@ -1636,9 +1637,15 @@ Q3D.Material.prototype = {
       opt.gapSize = Q3D.Config.line.dash.gapSize;
       this.mtl = new THREE.LineDashedMaterial(opt);
     }
-    else {
+    else if (m.type == Q3D.MaterialType.Sprite) {
       opt.color = 0xffffff;
       this.mtl = new THREE.SpriteMaterial(opt);
+    }
+    else {
+      if (m.roughness !== undefined) opt.roughness = m.roughness;
+      if (m.metalness !== undefined) opt.metalness = m.metalness;
+
+      this.mtl = new THREE.MeshStandardMaterial(opt);
     }
 
     if (!defer) this._loadCompleted(callback);
@@ -1670,6 +1677,7 @@ Q3D.Material.prototype = {
     if (this.mtl instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.LineBasic;
     if (this.mtl instanceof THREE.LineDashedMaterial) return Q3D.MaterialType.LineDashed;
     if (this.mtl instanceof THREE.SpriteMaterial) return Q3D.MaterialType.Sprite;
+    if (this.mtl instanceof THREE.MeshStandardMaterial) return Q3D.MaterialType.MeshStandard;
     if (this.mtl === undefined) return undefined;
     if (this.mtl === null) return null;
     return Q3D.MaterialType.Unknown;
