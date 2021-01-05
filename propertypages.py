@@ -24,8 +24,8 @@ import json
 import re
 
 from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QFileDialog, QLineEdit, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
-from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QFileDialog, QLineEdit, QMenu, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt5.QtGui import QColor, QCursor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
@@ -36,6 +36,7 @@ from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from .conf import DEF_SETS
 from .datamanager import MaterialManager
+from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .qgis2threejscore import calculateDEMSize
 from .qgis2threejstools import getLayersInProject, logMessage
@@ -158,6 +159,7 @@ class PropertyPage(QWidget):
                 w.setValue(v)
             elif isinstance(w, QLineEdit):
                 w.setText(v)
+                w.setCursorPosition(0)
             elif isinstance(w, StyleWidget):
                 if len(v):
                     w.setValues(v)
@@ -175,7 +177,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         PropertyPage.__init__(self, PAGE_SCENE, parent)
         Ui_ScenePropertiesWidget.setupUi(self, self)
 
-        widgets = [self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
+        widgets = [self.checkBox_UseCanvasExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
+                   self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation,
+                   self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
                    self.radioButton_WGS84]
@@ -186,15 +190,33 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
         self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
 
-    def setup(self, properties=None):
+        self.checkBox_UseCanvasExtent.toggled.connect(self.useCanvasExtentToggled)
+        self.pushButton_SelectExtent.clicked.connect(self.showSelectExtentMenu)
+
+    def setup(self, properties, mapSettings):
         # restore properties
         if properties:
             self.setProperties(properties)
         else:
+            self.checkBox_UseCanvasExtent.setChecked(True)
             self.lineEdit_BaseSize.setText(str(DEF_SETS.BASE_SIZE))
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
             self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
+
+        # map extent (2D)
+        if self.checkBox_UseCanvasExtent.isChecked():
+            be = MapExtent.fromMapSettings(mapSettings)
+            self.lineEdit_CenterX.setText(str(be.center().x()))
+            self.lineEdit_CenterY.setText(str(be.center().y()))
+            self.lineEdit_Width.setText(str(be.width()))
+            self.lineEdit_Height.setText(str(be.height()))
+            self.lineEdit_Rotation.setText(str(be.rotation()))
+
+            for i in range(self.gridLayout_Extent.count()):
+                w = self.gridLayout_Extent.itemAt(i).widget()
+                if isinstance(w, QLineEdit):
+                    w.setCursorPosition(0)
 
         # Supported projections
         # https://github.com/proj4js/proj4js
@@ -220,6 +242,30 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         if not is_number(self.lineEdit_zShift.text()):
             p["lineEdit_zShift"] = str(DEF_SETS.Z_SHIFT)
         return p
+
+    def useCanvasExtentToggled(self, checked):
+        self.setLayoutEnabled(self.gridLayout_Extent, not checked)
+
+    def showSelectExtentMenu(self):
+        popup = QMenu()
+
+        selectOnCanvasAction = QAction("Select Extent on Canvas", self.pushButton_SelectExtent)
+        useLayerExtentAction = QAction("Use Layer Extent...", self.pushButton_SelectExtent)
+
+        popup.addAction(selectOnCanvasAction)
+        popup.addSeparator()
+        popup.addAction(useLayerExtentAction)
+
+        selectOnCanvasAction.triggered.connect(self.selectExtentOnCanvas)
+        useLayerExtentAction.triggered.connect(self.useLayerExtent)
+
+        popup.exec_(QCursor.pos())
+
+    def selectExtentOnCanvas(self):
+        pass
+
+    def useLayerExtent(self):
+        pass
 
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>328</width>
-    <height>442</height>
+    <width>385</width>
+    <height>585</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,47 +19,11 @@
      <property name="title">
       <string>&amp;World Coordinates</string>
      </property>
-     <layout class="QFormLayout" name="formLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Base width</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="1" colspan="2">
        <widget class="QLineEdit" name="lineEdit_BaseSize">
         <property name="inputMethodHints">
-         <set>Qt::ImhDigitsOnly</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Vertical exaggeration</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="lineEdit_zFactor">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="inputMethodHints">
-         <set>Qt::ImhDigitsOnly</set>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         <set>Qt::ImhFormattedNumbersOnly</set>
         </property>
        </widget>
       </item>
@@ -70,18 +34,145 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Base width</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QCheckBox" name="checkBox_autoZShift">
+        <property name="toolTip">
+         <string>Automatic vertical shift adjustment</string>
+        </property>
+        <property name="text">
+         <string>Auto</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QLineEdit" name="lineEdit_zFactor">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhFormattedNumbersOnly</set>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Vertical exaggeration</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLineEdit" name="lineEdit_zShift"/>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_autoZShift">
-          <property name="toolTip">
-           <string>Automatic vertical shift adjustment</string>
-          </property>
+       <widget class="QLineEdit" name="lineEdit_zShift">
+        <property name="inputMethodHints">
+         <set>Qt::ImhFormattedNumbersOnly</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Map &amp;Extent</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="checkBox_UseCanvasExtent">
+        <property name="text">
+         <string>Use map canvas extent</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <layout class="QGridLayout" name="gridLayout_Extent">
+        <item row="7" column="3">
+         <widget class="QPushButton" name="pushButton_SelectExtent">
           <property name="text">
-           <string>Auto</string>
+           <string>Select...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_Rotation">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Rotation</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="3">
+         <widget class="QLineEdit" name="lineEdit_Height">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Height</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_Width">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Width</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="lineEdit_CenterY">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Center Y</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_CenterX">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly|Qt::ImhLowercaseOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Center X</string>
           </property>
          </widget>
         </item>
@@ -93,30 +184,33 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Material and Effect</string>
+      <string>&amp;Material and Effect</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Basic type</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox_MaterialType"/>
-        </item>
-       </layout>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Material type</string>
+        </property>
+       </widget>
       </item>
-      <item>
+      <item row="1" column="0" colspan="2">
        <widget class="QCheckBox" name="checkBox_Outline">
         <property name="toolTip">
          <string>Check this to enable outline effect</string>
         </property>
         <property name="text">
          <string>Enable outline effect</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox_MaterialType">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -128,8 +222,8 @@
      <property name="title">
       <string>&amp;Background</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0" colspan="2">
        <widget class="QRadioButton" name="radioButton_Sky">
         <property name="text">
          <string>Sky</string>
@@ -139,35 +233,31 @@
         </property>
        </widget>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QRadioButton" name="radioButton_Color">
-          <property name="minimumSize">
-           <size>
-            <width>110</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Solid color</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QgsColorButton" name="colorButton_Color">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="radioButton_Color">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Solid color</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QgsColorButton" name="colorButton_Color">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -225,6 +315,13 @@
   <tabstop>lineEdit_zFactor</tabstop>
   <tabstop>lineEdit_zShift</tabstop>
   <tabstop>checkBox_autoZShift</tabstop>
+  <tabstop>checkBox_UseCanvasExtent</tabstop>
+  <tabstop>lineEdit_CenterX</tabstop>
+  <tabstop>lineEdit_CenterY</tabstop>
+  <tabstop>lineEdit_Width</tabstop>
+  <tabstop>lineEdit_Height</tabstop>
+  <tabstop>lineEdit_Rotation</tabstop>
+  <tabstop>pushButton_SelectExtent</tabstop>
   <tabstop>comboBox_MaterialType</tabstop>
   <tabstop>checkBox_Outline</tabstop>
   <tabstop>radioButton_Sky</tabstop>
