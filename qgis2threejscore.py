@@ -32,24 +32,22 @@ from .qgis2threejstools import logMessage
 
 class MapTo3D:
 
-    def __init__(self, mapSettings, planeWidth=100, verticalExaggeration=1, verticalShift=0):
-        # map canvas
-        self.rotation = mapSettings.rotation()
-        self.mapExtent = MapExtent.fromMapSettings(mapSettings)
+    def __init__(self, mapExtent, planeWidth=100, verticalExaggeration=1, verticalShift=0):
+        # map
+        self.mapExtent = mapExtent
 
-        rect = self.mapExtent.unrotatedRect()
+        rect = mapExtent.unrotatedRect()
         self._xmin, self._ymin = (rect.xMinimum(), rect.yMinimum())
         self._width, self._height = (rect.width(), rect.height())
 
         # 3d
-        canvas_size = mapSettings.outputSize()
         self.planeWidth = planeWidth
-        self.planeHeight = planeWidth * canvas_size.height() / canvas_size.width()
+        self.planeHeight = planeWidth * mapExtent.height() / mapExtent.width()
 
         self.verticalExaggeration = verticalExaggeration
         self.verticalShift = verticalShift
 
-        self.multiplier = planeWidth / self.mapExtent.width()
+        self.multiplier = planeWidth / mapExtent.width()
         self.multiplierZ = self.multiplier * verticalExaggeration
 
     def transform(self, x, y, z=0):

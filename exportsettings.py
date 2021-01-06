@@ -22,7 +22,7 @@ import json
 from copy import deepcopy
 
 from PyQt5.QtCore import QSettings, QSize
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsMapSettings, QgsProject, QgsWkbTypes
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsMapSettings, QgsPointXY, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from .conf import DEF_SETS
@@ -119,7 +119,6 @@ class ExportSettings:
     def __init__(self):
         self.data = {}
         self.mapSettings = None
-        self.baseExtent = None
         self.crs = None
 
         self.base64 = False
@@ -129,6 +128,7 @@ class ExportSettings:
         self.nextJsLayerId = 0
 
         # cache
+        self._baseExtent = None
         self._mapTo3d = None
         self._templateConfig = None
 
@@ -142,8 +142,7 @@ class ExportSettings:
 
     def copyTo(self, t):
         t.data = deepcopy(self.data)
-        t.mapSettings = QgsMapSettings(self.mapSettings)
-        t.baseExtent = self.baseExtent.clone()
+        t.mapSettings = QgsMapSettings(self.mapSettings) if self.mapSettings else None
         t.crs = self.crs
         t.base64 = self.base64
         t.isPreview = self.isPreview
@@ -155,6 +154,7 @@ class ExportSettings:
 
     def setSceneProperties(self, properties):
         self.data[ExportSettings.SCENE] = properties
+        self._baseExtent = None
         self._mapTo3d = None
 
     def coordsInWGS84(self):
@@ -183,6 +183,7 @@ class ExportSettings:
 
     def loadSettings(self, settings):
         self.data = settings
+        self._baseExtent = None
         self._mapTo3d = None
         self.updateLayerList()
 
@@ -275,24 +276,56 @@ class ExportSettings:
 
     def setMapSettings(self, settings):
         """settings: QgsMapSettings"""
+        self._baseExtent = None
         self._mapTo3d = None
         self.mapSettings = settings
 
-        self.baseExtent = MapExtent.fromMapSettings(settings)
-        self.crs = settings.destinationCrs()
+        self.setCrs(settings.destinationCrs())
+
+    def setCrs(self, crs):
+        self.crs = crs
+
+    def baseExtent(self):
+        if self._baseExtent:
+            return self._baseExtent
+
+        sp = self.sceneProperties()
+        if sp.get("checkBox_UseCanvasExtent", True):
+            if self.mapSettings:
+                self._baseExtent = MapExtent.fromMapSettings(self.mapSettings)
+        else:
+            try:
+                self._baseExtent = MapExtent(QgsPointXY(float(sp.get("lineEdit_CenterX", 0)),
+                                                        float(sp.get("lineEdit_CenterY", 0))),
+                                             float(sp.get("lineEdit_Width", 0)),
+                                             float(sp.get("lineEdit_Height", 0)),
+                                             float(sp.get("lineEdit_Rotation", 0)))
+            except ValueError:
+                logMessage("Invalid extent. Check out scene properties.")
+
+        return self._baseExtent
 
     def mapTo3d(self):
         if self._mapTo3d:
             return self._mapTo3d
 
-        if self.mapSettings is None:
+        be = self.baseExtent()
+        if be is None:
             return None
 
         sp = self.sceneProperties()
-        baseSize = sp.get("lineEdit_BaseSize", DEF_SETS.BASE_SIZE)
-        verticalExaggeration = sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION)
-        verticalShift = sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT)
-        self._mapTo3d = MapTo3D(self.mapSettings, float(baseSize), float(verticalExaggeration), float(verticalShift))
+        try:
+            baseSize = float(sp.get("lineEdit_BaseSize", DEF_SETS.BASE_SIZE))
+            zExaggeration = float(sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION))
+            zShift = float(sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT))
+
+            self._mapTo3d = MapTo3D(be, baseSize, zExaggeration, zShift)
+
+        except ValueError:
+            self._mapTo3d = MapTo3D(be, DEF_SETS.BASE_SIZE, DEF_SETS.Z_EXAGGERATION, DEF_SETS.Z_SHIFT)
+
+            logMessage("Invalid setting values. Check out scene properties.")
+
         return self._mapTo3d
 
     def templateConfig(self):
@@ -302,10 +335,10 @@ class ExportSettings:
         return self._templateConfig
 
     def wgs84Center(self):
-        if self.crs and self.baseExtent:
+        if self.crs and self.baseExtent():
             wgs84 = QgsCoordinateReferenceSystem("EPSG:4326")
             transform = QgsCoordinateTransform(self.crs, wgs84, QgsProject.instance())
-            return transform.transform(self.baseExtent.center())
+            return transform.transform(self.baseExtent().center())
         return None
 
     def get(self, key, default=None):

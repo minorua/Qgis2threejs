@@ -41,8 +41,8 @@ class ThreeJSBuilder:
     def buildScene(self, build_layers=True, cancelSignal=None):
         self.progress(5, "Building scene...")
         crs = self.settings.crs
-        extent = self.settings.baseExtent
-        rect = extent.unrotatedRect()
+        be = self.settings.baseExtent()
+        rect = be.unrotatedRect()
         mapTo3d = self.settings.mapTo3d()
         wgs84Center = self.settings.wgs84Center()
 
@@ -54,7 +54,7 @@ class ThreeJSBuilder:
                 "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
                 "crs": str(crs.authid()),
                 "proj": crs.toProj4() if Qgis.QGIS_VERSION_INT < 31000 else crs.toProj(),
-                "rotation": extent.rotation(),
+                "rotation": be.rotation(),
                 "wgs84Center": {
                     "lat": wgs84Center.y(),
                     "lon": wgs84Center.x()

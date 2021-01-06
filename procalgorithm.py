@@ -232,8 +232,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             openDirectory(out_dir)
 
         mapSettings = self.settings.mapSettings
-        baseExtent = self.settings.baseExtent
-        rotation = mapSettings.rotation()
+        be = self.settings.baseExtent()
+        rotation = be.rotation()
         orig_size = mapSettings.outputSize()
 
         if cf_filter:
@@ -270,7 +270,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
                 tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
-                extent = MapExtent(center, baseExtent.width(), baseExtent.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
+                extent = MapExtent(center, be.width(), be.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
             else:
                 geometry.rotate(rotation, center)
                 rect = geometry.boundingBox().scaled(1 + buf / 100)

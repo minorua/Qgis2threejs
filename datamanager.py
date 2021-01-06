@@ -76,9 +76,9 @@ class ImageManager(DataManager):
         return self._index(img)
 
     def mapCanvasImage(self, transp_background=False):
-        """ returns base64 encoded map canvas image """
+        """ returns map canvas image """
         size = self.exportSettings.mapSettings.outputSize()
-        return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent, transp_background)
+        return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent(), transp_background)
 
     def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
         # render layers with QgsMapRendererCustomPainterJob

@@ -154,9 +154,9 @@ class VectorLayer:
 
     def features(self, request=None):
         mapTo3d = self.settings.mapTo3d()
-        baseExtent = self.settings.baseExtent
-        baseExtentGeom = baseExtent.geometry()
-        rotation = baseExtent.rotation()
+        be = self.settings.baseExtent()
+        beGeom = be.geometry()
+        rotation = be.rotation()
         fields = self.mapLayer.fields()
 
         # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
@@ -176,7 +176,7 @@ class VectorLayer:
                 continue
 
             # check if geometry intersects with the base extent (rotated rect)
-            if rotation and not baseExtentGeom.intersects(geom):
+            if rotation and not beGeom.intersects(geom):
                 continue
 
             # set feature to expression context
@@ -378,7 +378,7 @@ class FeatureBlockBuilder:
         self.features = features
 
     def build(self):
-        be = self.settings.baseExtent
+        be = self.settings.baseExtent()
         obj_geom_func = self.vlayer.objectType.geometry
         mapTo3d = self.settings.mapTo3d()
 
@@ -448,18 +448,18 @@ class VectorLayerBuilder(LayerBuilder):
 
         self.vlayer = vlayer
 
-        baseExtent = self.settings.baseExtent
+        be = self.settings.baseExtent()
         p = self.layer.properties
 
         # feature request
         request = QgsFeatureRequest()
         if p.get("radioButton_IntersectingFeatures", False):
-            request.setFilterRect(vlayer.transform.transformBoundingBox(baseExtent.boundingBox(),
+            request.setFilterRect(vlayer.transform.transformBoundingBox(be.boundingBox(),
                                                                         QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
             if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.Polygon:
-                self.clipExtent = baseExtent.clone().scale(0.9999)    # clip to slightly smaller extent than map canvas extent
+                self.clipExtent = be.clone().scale(0.9999)    # clip to slightly smaller extent than map canvas extent
         self.features = []
         data = {}
 
@@ -555,7 +555,7 @@ class VectorLayerBuilder(LayerBuilder):
                 demSize = self.settings.demGridSize(demLayerId)
 
                 # prepare a grid geometry
-                grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), self.settings.baseExtent)
+                grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), self.settings.baseExtent())
 
             else:
                 z_func = demProvider.readValue      # readValue(x, y)

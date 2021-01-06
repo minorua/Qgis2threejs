@@ -180,7 +180,7 @@ class DiskType(PointBasicTypeBase):
     def geometry(cls, settings, vlayer, feat, geom):
         dd = feat.values[4]
         # take map rotation into account
-        rotation = settings.baseExtent.rotation()
+        rotation = settings.baseExtent().rotation()
         if rotation:
             dd = (dd + rotation) % 360
 
@@ -210,7 +210,7 @@ class PlaneType(PointBasicTypeBase):
     def geometry(cls, settings, vlayer, feat, geom):
         dd = feat.values[5]
         # take map rotation into account
-        rotation = settings.baseExtent.rotation()
+        rotation = settings.baseExtent().rotation()
         if rotation:
             dd = (dd + rotation) % 360
 
@@ -401,7 +401,7 @@ class OverlayType(PolygonBasicTypeBase):
         elif isinstance(feat.values[0], list):   # LAYER
             size = settings.mapSettings.outputSize()
             m = vlayer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(),
-                                                          settings.baseExtent, feat.values[1])
+                                                          settings.baseExtent(), feat.values[1])
         else:
             m = vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
         mtl = {"face": m}
@@ -478,7 +478,7 @@ class ModelFileType(PointTypeBase):
     def geometry(cls, settings, vlayer, feat, geom):
         rz = feat.values[4]
         # take map rotation into account
-        rotation = settings.baseExtent.rotation()
+        rotation = settings.baseExtent().rotation()
         if rotation:
             rz = (rz - rotation) % 360    # map rotation is clockwise
 

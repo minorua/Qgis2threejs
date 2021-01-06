@@ -790,14 +790,14 @@ class IndexedTriangles3D:
 
 def dissolvePolygonsOnCanvas(settings, layer):
     """dissolve polygons of the layer and clip the dissolution with base extent"""
-    baseExtent = settings.baseExtent
-    baseExtentGeom = baseExtent.geometry()
-    rotation = baseExtent.rotation()
+    be = settings.baseExtent()
+    beGeom = be.geometry()
+    rotation = be.rotation()
     transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
 
     combi = None
     request = QgsFeatureRequest()
-    request.setFilterRect(transform.transformBoundingBox(baseExtent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+    request.setFilterRect(transform.transformBoundingBox(be.boundingBox(), QgsCoordinateTransform.ReverseTransform))
     for f in layer.getFeatures(request):
         geometry = f.geometry()
         if geometry is None:
@@ -811,7 +811,7 @@ def dissolvePolygonsOnCanvas(settings, layer):
             continue
 
         # check if geometry intersects with the base extent
-        if rotation and not baseExtentGeom.intersects(geom):
+        if rotation and not beGeom.intersects(geom):
             continue
 
         if combi:
@@ -824,7 +824,7 @@ def dissolvePolygonsOnCanvas(settings, layer):
 
     # clip geom with slightly smaller extent than base extent
     # to make sure that the clipped polygon stays within the base extent
-    geom = combi.intersection(baseExtent.clone().scale(0.9999).geometry())
+    geom = combi.intersection(be.clone().scale(0.9999).geometry())
     if geom is None:
         return None
 

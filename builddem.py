@@ -80,9 +80,9 @@ class DEMLayerBuilder(LayerBuilder):
 
     def blocks(self):
         mapTo3d = self.settings.mapTo3d()
-        baseExtent = self.settings.baseExtent
-        center = baseExtent.center()
-        rotation = baseExtent.rotation()
+        be = self.settings.baseExtent()
+        center = be.center()
+        rotation = be.rotation()
         base_grid_size = self.settings.demGridSize(self.layer.layerId)
 
         # clipping
@@ -112,11 +112,11 @@ class DEMLayerBuilder(LayerBuilder):
             is_center = (sx == 0 and sy == 0)
 
             if is_center:
-                extent = baseExtent
+                extent = be
                 grid_size = base_grid_size
             else:
-                block_center = QgsPoint(center.x() + sx * baseExtent.width(), center.y() + sy * baseExtent.height())
-                extent = MapExtent(block_center, baseExtent.width(), baseExtent.height()).rotate(rotation, center)
+                block_center = QgsPoint(center.x() + sx * be.width(), center.y() + sy * be.height())
+                extent = MapExtent(block_center, be.width(), be.height()).rotate(rotation, center)
                 grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughness + 1),
                                   max(2, (base_grid_size.height() - 1) // roughness + 1))
 
