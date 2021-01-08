@@ -137,6 +137,11 @@ class MapExtent:
         rect = QgsRectangle(xmin, ymin, xmax, ymax)
         return MapExtent(rect.center(), rect.width(), rect.height()).rotate(self._rotation, self._center)
 
+    def square(self):
+        """square the extent"""
+        self._width = self._height = max(self._width, self._height)
+        return self
+
     @staticmethod
     def fromRect(rect):
         return MapExtent(rect.center(), rect.width(), rect.height())
@@ -146,17 +151,13 @@ class MapExtent:
         extent = mapSettings.visibleExtent()
         rotation = mapSettings.rotation()
         if rotation == 0:
-            w, h = (extent.width(), extent.height())
-            if square:
-                w = h = max(w, h)
-            return MapExtent(extent.center(), w, h)
+            e = MapExtent(extent.center(), extent.width(), extent.height())
+        else:
+            mupp = mapSettings.mapUnitsPerPixel()
+            canvas_size = mapSettings.outputSize()
+            e = MapExtent(extent.center(), mupp * canvas_size.width(), mupp * canvas_size.height(), rotation)
 
-        mupp = mapSettings.mapUnitsPerPixel()
-        canvas_size = mapSettings.outputSize()
-        w, h = (canvas_size.width(), canvas_size.height())
-        if square:
-            w = h = max(w, h)
-        return MapExtent(extent.center(), mupp * w, mupp * h, rotation)
+        return e.square() if square else e
 
     def toMapSettings(self, mapSettings=None):
         if mapSettings is None:

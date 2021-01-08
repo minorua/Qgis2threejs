@@ -29,6 +29,13 @@ from PyQt5.QtGui import QColor, QCursor
 from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
+HAVE_PROCESSING = False
+try:
+    from processing.gui.RectangleMapTool import RectangleMapTool
+    HAVE_PROCESSING = True
+except:
+    pass
+
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
@@ -65,6 +72,7 @@ class PropertyPage(QWidget):
     def __init__(self, pageType, parent=None):
         QWidget.__init__(self, parent)
         self.pageType = pageType
+        self.dialog = parent
         self.propertyWidgets = []
 
     def itemChanged(self, item):
@@ -227,6 +235,17 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.radioButton_ProjectCRS.setChecked(True)
         self.radioButton_WGS84.setEnabled(proj_supported)
 
+    def initMapTool(self, canvas):
+        try:
+            self.canvas = canvas
+            self.prevMapTool = canvas.mapTool()
+            self.mapTool = RectangleMapTool(canvas)
+            self.mapTool.rectangleCreated.connect(self.updateExtent)
+            return True
+        except:
+            #TODO: hide button
+            return False
+
     def properties(self):
         p = PropertyPage.properties(self)
         # check validity
@@ -238,8 +257,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             p["lineEdit_zShift"] = str(DEF_SETS.Z_SHIFT)
         return p
 
-    def setCanvasExtent(self):
-        be = MapExtent.fromMapSettings(self.mapSettings, self.checkBox_FixAspectRatio.isChecked())
+    def setExtent(self, extent=None):
+        be = extent or MapExtent.fromMapSettings(self.mapSettings, self.checkBox_FixAspectRatio.isChecked())
         self.lineEdit_CenterX.setText(str(be.center().x()))
         self.lineEdit_CenterY.setText(str(be.center().y()))
         self.lineEdit_Width.setText(str(be.width()))
@@ -258,7 +277,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             if self.checkBox_FixAspectRatio.isChecked():
                 self.fixAspectRatioToggled(True)
         else:
-            self.setCanvasExtent()
+            self.setExtent()
 
     def fixAspectRatioToggled(self, checked):
         if self.radioButton_FixedExtent.isChecked():
@@ -276,7 +295,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                 except ValueError:
                     pass
         else:
-            self.setCanvasExtent()
+            self.setExtent()
 
     def widthEditingFinished(self):
         if self.checkBox_FixAspectRatio.isChecked():
@@ -299,7 +318,22 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         popup.exec_(QCursor.pos())
 
     def selectExtentOnCanvas(self):
-        pass
+        if self.canvas:
+            self.canvas.setMapTool(self.mapTool)
+
+            self.dialog.wnd.showMinimized()
+
+    def updateExtent(self):
+        r = self.mapTool.rectangle()
+        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation())
+        self.setExtent(extent.square() if self.checkBox_FixAspectRatio.isChecked() else extent)
+
+        self.mapTool.reset()
+        self.canvas.setMapTool(self.prevMapTool)
+
+        wnd = self.dialog.wnd
+        wnd.showNormal()
+        wnd.activateWindow()
 
     def useLayerExtent(self):
         pass
