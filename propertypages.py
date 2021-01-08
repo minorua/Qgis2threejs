@@ -177,8 +177,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         PropertyPage.__init__(self, PAGE_SCENE, parent)
         Ui_ScenePropertiesWidget.setupUi(self, self)
 
-        widgets = [self.checkBox_UseCanvasExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
-                   self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation,
+        widgets = [self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
+                   self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
                    self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
@@ -190,33 +190,28 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
         self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
 
-        self.checkBox_UseCanvasExtent.toggled.connect(self.useCanvasExtentToggled)
+        self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)
+        self.lineEdit_Width.editingFinished.connect(self.widthEditingFinished)
         self.pushButton_SelectExtent.clicked.connect(self.showSelectExtentMenu)
+        self.checkBox_FixAspectRatio.toggled.connect(self.fixAspectRatioToggled)
 
     def setup(self, properties, mapSettings):
+
+        self.mapSettings = mapSettings
+
         # restore properties
         if properties:
             self.setProperties(properties)
         else:
-            self.checkBox_UseCanvasExtent.setChecked(True)
+            self.radioButton_UseCanvasExtent.setChecked(True)
             self.lineEdit_BaseSize.setText(str(DEF_SETS.BASE_SIZE))
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
             self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
 
         # map extent (2D)
-        if self.checkBox_UseCanvasExtent.isChecked():
-            be = MapExtent.fromMapSettings(mapSettings)
-            self.lineEdit_CenterX.setText(str(be.center().x()))
-            self.lineEdit_CenterY.setText(str(be.center().y()))
-            self.lineEdit_Width.setText(str(be.width()))
-            self.lineEdit_Height.setText(str(be.height()))
-            self.lineEdit_Rotation.setText(str(be.rotation()))
-
-            for i in range(self.gridLayout_Extent.count()):
-                w = self.gridLayout_Extent.itemAt(i).widget()
-                if isinstance(w, QLineEdit):
-                    w.setCursorPosition(0)
+        if self.radioButton_UseCanvasExtent.isChecked():
+            self.fixedExtentToggled(False)
 
         # Supported projections
         # https://github.com/proj4js/proj4js
@@ -243,8 +238,50 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             p["lineEdit_zShift"] = str(DEF_SETS.Z_SHIFT)
         return p
 
-    def useCanvasExtentToggled(self, checked):
-        self.setLayoutEnabled(self.gridLayout_Extent, not checked)
+    def setCanvasExtent(self):
+        be = MapExtent.fromMapSettings(self.mapSettings, self.checkBox_FixAspectRatio.isChecked())
+        self.lineEdit_CenterX.setText(str(be.center().x()))
+        self.lineEdit_CenterY.setText(str(be.center().y()))
+        self.lineEdit_Width.setText(str(be.width()))
+        self.lineEdit_Height.setText(str(be.height()))
+        self.lineEdit_Rotation.setText(str(be.rotation()))
+
+        for i in range(self.gridLayout_Extent.count()):
+            w = self.gridLayout_Extent.itemAt(i).widget()
+            if isinstance(w, QLineEdit):
+                w.setCursorPosition(0)
+
+    def fixedExtentToggled(self, checked):
+        self.setLayoutEnabled(self.gridLayout_Extent, checked)
+
+        if checked:
+            if self.checkBox_FixAspectRatio.isChecked():
+                self.fixAspectRatioToggled(True)
+        else:
+            self.setCanvasExtent()
+
+    def fixAspectRatioToggled(self, checked):
+        if self.radioButton_FixedExtent.isChecked():
+            self.lineEdit_Height.setEnabled(not checked)
+            if checked:
+                try:
+                    w, h = (float(self.lineEdit_Width.text()), float(self.lineEdit_Height.text()))
+                    if w > h:
+                        self.lineEdit_Height.setText(self.lineEdit_Width.text())
+                    else:
+                        self.lineEdit_Width.setText(self.lineEdit_Height.text())
+
+                    self.lineEdit_Width.setCursorPosition(0)
+                    self.lineEdit_Height.setCursorPosition(0)
+                except ValueError:
+                    pass
+        else:
+            self.setCanvasExtent()
+
+    def widthEditingFinished(self):
+        if self.checkBox_FixAspectRatio.isChecked():
+            self.lineEdit_Height.setText(self.lineEdit_Width.text())
+            self.lineEdit_Height.setCursorPosition(0)
 
     def showSelectExtentMenu(self):
         popup = QMenu()

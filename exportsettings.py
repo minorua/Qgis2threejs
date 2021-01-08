@@ -290,10 +290,7 @@ class ExportSettings:
             return self._baseExtent
 
         sp = self.sceneProperties()
-        if sp.get("checkBox_UseCanvasExtent", True):
-            if self.mapSettings:
-                self._baseExtent = MapExtent.fromMapSettings(self.mapSettings)
-        else:
+        if sp.get("radioButton_FixedExtent", False):
             try:
                 self._baseExtent = MapExtent(QgsPointXY(float(sp.get("lineEdit_CenterX", 0)),
                                                         float(sp.get("lineEdit_CenterY", 0))),
@@ -302,6 +299,9 @@ class ExportSettings:
                                              float(sp.get("lineEdit_Rotation", 0)))
             except ValueError:
                 logMessage("Invalid extent. Check out scene properties.")
+
+        elif self.mapSettings:
+            self._baseExtent = MapExtent.fromMapSettings(self.mapSettings, sp.get("checkBox_FixAspectRatio", False))
 
         return self._baseExtent
 

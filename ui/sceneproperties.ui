@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>585</height>
+    <height>657</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -90,29 +90,32 @@
       <string>Map &amp;Extent</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="checkBox_UseCanvasExtent">
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="checkBox_FixAspectRatio">
         <property name="text">
-         <string>Use map canvas extent</string>
+         <string>Fix aspect ratio to 1:1</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="2">
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="radioButton_FixedExtent">
+        <property name="text">
+         <string>Fixed extent</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioButton_UseCanvasExtent">
+        <property name="text">
+         <string>Use map canvas extent</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <layout class="QGridLayout" name="gridLayout_Extent">
-        <item row="7" column="3">
-         <widget class="QPushButton" name="pushButton_SelectExtent">
-          <property name="text">
-           <string>Select...</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="lineEdit_Rotation">
-          <property name="inputMethodHints">
-           <set>Qt::ImhFormattedNumbersOnly</set>
-          </property>
-         </widget>
-        </item>
         <item row="7" column="0">
          <widget class="QLabel" name="label_10">
           <property name="text">
@@ -120,24 +123,10 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="3">
-         <widget class="QLineEdit" name="lineEdit_Height">
-          <property name="inputMethodHints">
-           <set>Qt::ImhFormattedNumbersOnly</set>
-          </property>
-         </widget>
-        </item>
         <item row="4" column="2">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>Height</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="lineEdit_Width">
-          <property name="inputMethodHints">
-           <set>Qt::ImhFormattedNumbersOnly</set>
           </property>
          </widget>
         </item>
@@ -162,17 +151,45 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_CenterX">
-          <property name="inputMethodHints">
-           <set>Qt::ImhFormattedNumbersOnly|Qt::ImhLowercaseOnly</set>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Center X</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="3">
+         <widget class="QPushButton" name="pushButton_SelectExtent">
+          <property name="text">
+           <string>Select...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="3">
+         <widget class="QLineEdit" name="lineEdit_Height">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_Width">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_Rotation">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_CenterX">
+          <property name="inputMethodHints">
+           <set>Qt::ImhFormattedNumbersOnly|Qt::ImhLowercaseOnly</set>
           </property>
          </widget>
         </item>
@@ -315,13 +332,15 @@
   <tabstop>lineEdit_zFactor</tabstop>
   <tabstop>lineEdit_zShift</tabstop>
   <tabstop>checkBox_autoZShift</tabstop>
-  <tabstop>checkBox_UseCanvasExtent</tabstop>
+  <tabstop>radioButton_UseCanvasExtent</tabstop>
+  <tabstop>radioButton_FixedExtent</tabstop>
   <tabstop>lineEdit_CenterX</tabstop>
   <tabstop>lineEdit_CenterY</tabstop>
   <tabstop>lineEdit_Width</tabstop>
   <tabstop>lineEdit_Height</tabstop>
   <tabstop>lineEdit_Rotation</tabstop>
   <tabstop>pushButton_SelectExtent</tabstop>
+  <tabstop>checkBox_FixAspectRatio</tabstop>
   <tabstop>comboBox_MaterialType</tabstop>
   <tabstop>checkBox_Outline</tabstop>
   <tabstop>radioButton_Sky</tabstop>

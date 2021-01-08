@@ -142,15 +142,21 @@ class MapExtent:
         return MapExtent(rect.center(), rect.width(), rect.height())
 
     @staticmethod
-    def fromMapSettings(mapSettings):
+    def fromMapSettings(mapSettings, square=False):
         extent = mapSettings.visibleExtent()
         rotation = mapSettings.rotation()
         if rotation == 0:
-            return MapExtent(extent.center(), extent.width(), extent.height())
+            w, h = (extent.width(), extent.height())
+            if square:
+                w = h = max(w, h)
+            return MapExtent(extent.center(), w, h)
 
         mupp = mapSettings.mapUnitsPerPixel()
         canvas_size = mapSettings.outputSize()
-        return MapExtent(extent.center(), mupp * canvas_size.width(), mupp * canvas_size.height(), rotation)
+        w, h = (canvas_size.width(), canvas_size.height())
+        if square:
+            w = h = max(w, h)
+        return MapExtent(extent.center(), mupp * w, mupp * h, rotation)
 
     def toMapSettings(self, mapSettings=None):
         if mapSettings is None:
