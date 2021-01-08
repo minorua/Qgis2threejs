@@ -38,7 +38,7 @@ from .conf import DEF_SETS
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
-from .qgis2threejscore import calculateDEMSize
+from .qgis2threejscore import calculateGridSegments
 from .qgis2threejstools import getLayersInProject, logMessage
 from .stylewidget import StyleWidget
 from . import qgis2threejstools as tools
@@ -345,10 +345,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
-    def setup(self, layer, mapSettings):
+    def setup(self, layer, extent, mapSettings):
         self.layer = layer
-        self.mapSettings = mapSettings
         properties = layer.properties
+        self.extent = extent
+        self.mapSettings = mapSettings
 
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
@@ -385,20 +386,17 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.comboBox_ClipLayer.blockSignals(False)
 
     def resolutionSliderChanged(self, v):
-        outsize = self.mapSettings.outputSize()
         resolutionLevel = self.horizontalSlider_DEMSize.value()
         roughness = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
-        demSize = calculateDEMSize(outsize, resolutionLevel, roughness)
+        gridSegments = calculateGridSegments(self.extent, resolutionLevel, roughness)
 
-        mupp = self.mapSettings.mapUnitsPerPixel()
-        xres = (mupp * outsize.width()) / (demSize.width() - 1)
-        yres = (mupp * outsize.height()) / (demSize.height() - 1)
-
-        tip = """Level {0}
-Grid Size: {1} x {2}
-Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
-                                           demSize.width(), demSize.height(),
-                                           xres, yres)
+        tip = """Level: {0}
+Grid Segments: {1} x {2}
+Grid Spacing: {3:.5f} x {4:.5f}{5}""".format(resolutionLevel,
+                                             gridSegments.width(), gridSegments.height(),
+                                             self.extent.width() / gridSegments.width(),
+                                             self.extent.height() / gridSegments.height(),
+                                             "" if self.extent.width() == self.extent.height() else " (Approx.)")
         QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
 
     def selectLayerClicked(self):

@@ -169,18 +169,17 @@ class FlatDEMProvider:
         return self.value
 
 
-def calculateDEMSize(canvasSize, sizeLevel, roughness=0):
-    width, height = canvasSize.width(), canvasSize.height()
+def calculateGridSegments(extent, sizeLevel, roughness=0):
+    width, height = extent.width(), extent.height()
     size = 100 * sizeLevel
     s = (size * size / (width * height)) ** 0.5
-    if s < 1:
-        width = int(width * s)
-        height = int(height * s)
+    width = round(width * s)
+    height = round(height * s)
 
     if roughness:
         if width % roughness != 0:
-            width = int(width / roughness + 0.9) * roughness
+            width = int(width / roughness + 0.9999) * roughness
         if height % roughness != 0:
-            height = int(height / roughness + 0.9) * roughness
+            height = int(height / roughness + 0.9999) * roughness
 
-    return QSize(width + 1, height + 1)
+    return QSize(width, height)

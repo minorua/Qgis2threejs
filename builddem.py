@@ -89,7 +89,7 @@ class DEMLayerBuilder(LayerBuilder):
 
         center = be.center()
         rotation = be.rotation()
-        base_grid_size = self.settings.demGridSize(self.layer.layerId)
+        base_grid_seg = self.settings.demGridSegments(self.layer.layerId)
 
         # clipping
         clip_geometry = None
@@ -119,19 +119,19 @@ class DEMLayerBuilder(LayerBuilder):
 
             if is_center:
                 extent = be
-                grid_size = base_grid_size
+                grid_seg = base_grid_seg
             else:
                 block_center = QgsPoint(center.x() + sx * be.width(), center.y() + sy * be.height())
                 extent = MapExtent(block_center, be.width(), be.height()).rotate(rotation, center)
-                grid_size = QSize(max(2, (base_grid_size.width() - 1) // roughness + 1),
-                                  max(2, (base_grid_size.height() - 1) // roughness + 1))
+                grid_seg = QSize(max(1, base_grid_seg.width() // roughness),
+                                 max(1, base_grid_seg.height() // roughness))
 
             block = DEMBlockBuilder(self.settings,
                                     self.imageManager,
                                     self.layer,
                                     blockIndex,
                                     self.provider,
-                                    grid_size,
+                                    grid_seg,
                                     extent,
                                     mapTo3d.planeWidth,
                                     mapTo3d.planeWidth * be.height() / be.width(),
@@ -146,7 +146,7 @@ class DEMLayerBuilder(LayerBuilder):
 
 class DEMBlockBuilder:
 
-    def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_size, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRoughness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
+    def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRoughness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
         self.settings = settings
         self.materialManager = MaterialManager(imageManager, settings.materialType())
 
@@ -155,7 +155,7 @@ class DEMBlockBuilder:
 
         self.blockIndex = blockIndex
         self.provider = provider
-        self.grid_size = grid_size
+        self.grid_seg = grid_seg
         self.extent = extent
         self.planeWidth = planeWidth
         self.planeHeight = planeHeight
@@ -192,18 +192,20 @@ class DEMBlockBuilder:
 
                 b["geom"] = {"url": self.urlRoot + tail}
         else:
-            if self.edgeRoughness == 1:
-                ba = self.provider.read(self.grid_size.width(), self.grid_size.height(), self.extent)
-            else:
-                grid_values = list(self.provider.readValues(self.grid_size.width(), self.grid_size.height(), self.extent))
-                self.processEdges(grid_values, self.edgeRoughness)
-                ba = struct.pack("{0}f".format(self.grid_size.width() * self.grid_size.height()), *grid_values)
+            grid_width, grid_height = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
 
-            g = {"width": self.grid_size.width(),
-                 "height": self.grid_size.height()}
+            if self.edgeRoughness == 1:
+                ba = self.provider.read(grid_width, grid_height, self.extent)
+            else:
+                grid_values = list(self.provider.readValues(grid_width, grid_height, self.extent))
+                self.processEdges(grid_values, self.edgeRoughness)
+                ba = struct.pack("{0}f".format(grid_width * grid_height), *grid_values)
+
+            g = {"width": grid_width,
+                 "height": grid_height}
 
             if self.settings.localMode:
-                g["array"] = struct.unpack("f" * self.grid_size.width() * self.grid_size.height(), ba)
+                g["array"] = struct.unpack("f" * grid_width * grid_height, ba)
             elif self.settings.isPreview:
                 g["binary"] = QByteArray(ba)
             else:
@@ -269,7 +271,7 @@ class DEMBlockBuilder:
         transform_func = self.settings.mapTo3d().transformRotatedXY
 
         # create a grid geometry and split polygons with the grid
-        grid = self.provider.readAsGridGeometry(self.grid_size.width(), self.grid_size.height(), self.extent)
+        grid = self.provider.readAsGridGeometry(self.grid_seg.width() + 1, self.grid_seg.height() + 1, self.extent)
 
         if self.extent.rotation():
             clip_geometry = QgsGeometry(clip_geometry)
@@ -289,10 +291,10 @@ class DEMBlockBuilder:
         return d
 
     def processEdges(self, grid_values, roughness):
-        grid_width = self.grid_size.width()
-        grid_height = self.grid_size.height()
-        rg_grid_width = (grid_width - 1) // roughness + 1
-        rg_grid_height = (grid_height - 1) // roughness + 1
+        grid_width = self.grid_seg.width() + 1
+        grid_height = self.grid_seg.height() + 1
+        rg_grid_width = self.grid_seg.width() // roughness + 1
+        rg_grid_height = self.grid_seg.height() // roughness + 1
         ii = range(roughness)[1:]
 
         for x0 in range(rg_grid_width - 1):

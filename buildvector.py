@@ -551,11 +551,11 @@ class VectorLayerBuilder(LayerBuilder):
             demProvider = self.settings.demProviderByLayerId(demLayerId)
 
             if self.vlayer.objectType == ObjectType.Overlay:
-                # get the grid size of the DEM layer which polygons overlay
-                demSize = self.settings.demGridSize(demLayerId)
+                # get the grid segments of the DEM layer which polygons overlay
+                dem_seg = self.settings.demGridSegments(demLayerId)
 
                 # prepare a grid geometry
-                grid = demProvider.readAsGridGeometry(demSize.width(), demSize.height(), self.settings.baseExtent())
+                grid = demProvider.readAsGridGeometry(dem_seg.width() + 1, dem_seg.height() + 1, self.settings.baseExtent())
 
             else:
                 z_func = demProvider.readValue      # readValue(x, y)

@@ -28,7 +28,7 @@ from . import q3dconst
 from .conf import DEF_SETS
 from .pluginmanager import pluginManager
 from .mapextent import MapExtent
-from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateDEMSize
+from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 
 
@@ -366,17 +366,17 @@ class ExportSettings:
 
         return FlatDEMProvider()
 
-    def demGridSize(self, layerId):
+    def demGridSegments(self, layerId):
         if layerId == "FLAT":
-            return QSize(2, 2)
+            return QSize(1, 1)
 
         layer = self.getItemByLayerId(layerId)
         if layer is None:
             return None
 
-        sizeLevel = layer.properties.get("horizontalSlider_DEMSize", 2)
-        roughness = layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings", False) else 0
-        return calculateDEMSize(self.mapSettings.outputSize(), sizeLevel, roughness)
+        return calculateGridSegments(self.baseExtent(),
+                                     layer.properties.get("horizontalSlider_DEMSize", 2),
+                                     layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
 
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])

@@ -479,6 +479,7 @@ class PropertiesDialog(QDialog):
         if self.layer.geomType == q3dconst.TYPE_DEM:
             self.page = DEMPropertyPage(self)
             self.page.setup(self.layer,
+                            self.settings.baseExtent(),
                             self.qgisIface.mapCanvas().mapSettings())
         elif self.layer.geomType == q3dconst.TYPE_POINTCLOUD:
             self.page = PointCloudPropertyPage(self)
