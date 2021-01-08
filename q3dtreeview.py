@@ -129,7 +129,7 @@ class Q3DTreeView(QTreeView):
         for parent in self.layerGroupItems.values():
             for row in range(parent.rowCount()):
                 item = parent.child(row)
-                layer = settings.getItemByLayerId(item.data())
+                layer = settings.getLayer(item.data())
                 item.setCheckState(Qt.Checked if layer and layer.visible else Qt.Unchecked)
 
         self.blockSignals(False)
@@ -140,7 +140,7 @@ class Q3DTreeView(QTreeView):
                 parent.child(idx).setCheckState(Qt.Unchecked)
 
     def treeItemChanged(self, item):
-        layer = self.iface.settings.getItemByLayerId(item.data())
+        layer = self.iface.settings.getLayer(item.data())
         if layer is None:
             return
 
@@ -164,8 +164,8 @@ class Q3DTreeView(QTreeView):
     def showPropertiesDialog(self, _=None):
         # open layer properties dialog
         data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
-        layer = self.iface.settings.getItemByLayerId(data)
-        if layer is not None:
+        layer = self.iface.settings.getLayer(data)
+        if layer:
             self.iface.wnd.showLayerPropertiesDialog(layer)
 
     def showAddPointCloudLayerDialog(self, _=None):
@@ -174,7 +174,7 @@ class Q3DTreeView(QTreeView):
     def removePointCloudLayer(self, _=None):
         data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
 
-        layer = self.iface.settings.getItemByLayerId(data)
+        layer = self.iface.settings.getLayer(data)
         if layer is None:
             return
 

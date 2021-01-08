@@ -387,7 +387,7 @@ class Q3DWindow(QMainWindow):
 
     # @pyqtSlot(Layer)
     def updateLayerProperties(self, layer):
-        orig_layer = self.settings.getItemByLayerId(layer.layerId)
+        orig_layer = self.settings.getLayer(layer.layerId)
 
         if layer.name != orig_layer.name:
             item = self.ui.treeView.getItemByLayerId(layer.layerId)

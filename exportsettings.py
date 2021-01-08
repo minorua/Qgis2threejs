@@ -370,13 +370,12 @@ class ExportSettings:
         if layerId == "FLAT":
             return QSize(1, 1)
 
-        layer = self.getItemByLayerId(layerId)
-        if layer is None:
-            return None
-
-        return calculateGridSegments(self.baseExtent(),
-                                     layer.properties.get("horizontalSlider_DEMSize", 2),
-                                     layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
+        layer = self.getLayer(layerId)
+        if layer:
+            return calculateGridSegments(self.baseExtent(),
+                                         layer.properties.get("horizontalSlider_DEMSize", 2),
+                                         layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
+        return QSize(1, 1)
 
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])
@@ -417,26 +416,26 @@ class ExportSettings:
 
         # DEM and vector layers
         for mapLayer in [ml for ml in getLayersInProject() if Layer.getGeometryType(ml) is not None]:
-            item = self.getItemByLayerId(mapLayer.id())
-            if item is None:
-                item = Layer.fromQgsMapLayer(mapLayer)
-            else:
+            item = self.getLayer(mapLayer.id())
+            if item:
                 # update layer and layer name
                 item.mapLayer = mapLayer
                 item.name = mapLayer.name()
+            else:
+                item = Layer.fromQgsMapLayer(mapLayer)
             layers.append(item)
 
         # DEM provider plugin layers
         for plugin in pluginManager().demProviderPlugins():
             layerId = "plugin:" + plugin.providerId()
-            item = self.getItemByLayerId(layerId)
+            item = self.getLayer(layerId)
             if item is None:
                 item = Layer(layerId, plugin.providerName(), q3dconst.TYPE_DEM, visible=False)
             layers.append(item)
 
         # Flat plane
         layerId = "FLAT"
-        item = self.getItemByLayerId(layerId)
+        item = self.getLayer(layerId)
         if item is None:
             item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM, visible=False)
         layers.append(item)
@@ -449,7 +448,7 @@ class ExportSettings:
 
         self.data[ExportSettings.LAYERS] = layers
 
-    def getItemByLayerId(self, layerId):
+    def getLayer(self, layerId):
         if layerId is not None:
             for layer in self.getLayerList():
                 if layer.layerId == layerId:

@@ -373,7 +373,7 @@ class Q3DController(QObject):
             logMessage("Layer update for {} was requested.".format(layer.layerId))
 
         # update layer properties and its state in export settings
-        lyr = self.settings.getItemByLayerId(layer.layerId)
+        lyr = self.settings.getLayer(layer.layerId)
         if lyr is None:
             return
 
@@ -452,7 +452,7 @@ class Q3DController(QObject):
 
     @pyqtSlot(str)
     def removeLayer(self, layerId):
-        layer = self.settings.getItemByLayerId(layerId)
+        layer = self.settings.getLayer(layerId)
         if layer:
             self.hideLayer(layer)
             self.settings.removeLayer(layerId)
