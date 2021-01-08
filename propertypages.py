@@ -26,7 +26,7 @@ import re
 from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
 from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QFileDialog, QLineEdit, QMenu, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor, QCursor
-from qgis.core import QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 HAVE_PROCESSING = False
@@ -324,9 +324,11 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.dialog.wnd.showMinimized()
 
     def updateExtent(self):
+        self.checkBox_FixAspectRatio.setChecked(False)
+
         r = self.mapTool.rectangle()
-        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation())
-        self.setExtent(extent.square() if self.checkBox_FixAspectRatio.isChecked() else extent)
+        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation()) # get current map settings
+        self.setExtent(extent)
 
         self.mapTool.reset()
         self.canvas.setMapTool(self.prevMapTool)
@@ -336,7 +338,19 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         wnd.activateWindow()
 
     def useLayerExtent(self):
-        pass
+        from .layerselectdialog import SingleLayerSelectDialog
+        dlg = SingleLayerSelectDialog(self, "Use extent from")
+        dlg.setWindowTitle("Select Extent")
+        if dlg.exec_():
+            layer = dlg.selectedLayer()
+
+            transform = QgsCoordinateTransform(layer.crs(), self.mapSettings.destinationCrs(), QgsProject.instance())
+            r = transform.transformBoundingBox(layer.extent())
+
+            self.checkBox_FixAspectRatio.setChecked(False)
+
+            extent = MapExtent(r.center(), r.width(), r.height())
+            self.setExtent(extent)
 
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):

@@ -17,8 +17,9 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtWidgets import QDialog
-from qgis.core import QgsLayerTreeModel, QgsProject
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+from qgis.core import QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
+from qgis.gui import QgsMapLayerComboBox
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog
 
@@ -79,3 +80,29 @@ class LayerSelectDialog(QDialog):
             self.canvasReady = True
 
         self.ui.canvas.setLayers(self.visibleLayers())
+
+
+class SingleLayerSelectDialog(QDialog):
+
+    def __init__(self, parent=None, label=""):
+
+        QDialog.__init__(self, parent)
+
+        vl = QVBoxLayout()
+        if label:
+            vl.addWidget(QLabel(label))
+
+        self.comboBox = QgsMapLayerComboBox()
+        self.comboBox.setFilters(QgsMapLayerProxyModel.HasGeometry | QgsMapLayerProxyModel.RasterLayer | QgsMapLayerProxyModel.MeshLayer)
+        vl.addWidget(self.comboBox)
+
+        self.buttonBox = QDialogButtonBox()
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        vl.addWidget(self.buttonBox)
+
+        self.setLayout(vl)
+
+    def selectedLayer(self):
+        return self.comboBox.currentLayer()
