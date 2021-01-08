@@ -788,17 +788,19 @@ class IndexedTriangles3D:
         return vi
 
 
-def dissolvePolygonsOnCanvas(settings, layer):
-    """dissolve polygons of the layer and clip the dissolution with base extent"""
-    be = settings.baseExtent()
-    beGeom = be.geometry()
-    rotation = be.rotation()
-    transform = QgsCoordinateTransform(layer.crs(), settings.crs, QgsProject.instance())
+def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
+    """dissolve polygons of the polygon_layer and clip the dissolution with the extent
+       polygon_layer: QgsVectorLayer
+       extent: MapExtent
+       crs: QgsCoordinateReferenceSystem. CRS of the extent"""
+    extGeom = extent.geometry()
+    rotation = extent.rotation()
+    transform = QgsCoordinateTransform(polygon_layer.crs(), crs, QgsProject.instance())
 
     combi = None
     request = QgsFeatureRequest()
-    request.setFilterRect(transform.transformBoundingBox(be.boundingBox(), QgsCoordinateTransform.ReverseTransform))
-    for f in layer.getFeatures(request):
+    request.setFilterRect(transform.transformBoundingBox(extent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+    for f in polygon_layer.getFeatures(request):
         geometry = f.geometry()
         if geometry is None:
             logMessage("null geometry skipped")
@@ -811,7 +813,7 @@ def dissolvePolygonsOnCanvas(settings, layer):
             continue
 
         # check if geometry intersects with the base extent
-        if rotation and not beGeom.intersects(geom):
+        if rotation and not extGeom.intersects(geom):
             continue
 
         if combi:
@@ -822,9 +824,9 @@ def dissolvePolygonsOnCanvas(settings, layer):
     if combi is None:
         return None
 
-    # clip geom with slightly smaller extent than base extent
-    # to make sure that the clipped polygon stays within the base extent
-    geom = combi.intersection(be.clone().scale(0.9999).geometry())
+    # clip geom with slightly smaller extent than the extent
+    # to make sure that the clipped polygon is contained within the extent
+    geom = combi.intersection(extent.clone().scale(0.9999).geometry())
     if geom is None:
         return None
 

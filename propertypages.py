@@ -116,11 +116,9 @@ class PropertyPage(QWidget):
         for w in self.propertyWidgets:
             v = None
             if isinstance(w, QComboBox):
-                index = w.currentIndex()
-                if index == -1:
-                    v = None
-                else:
-                    v = w.itemData(index)
+                v = w.currentData()
+                if v is None and w.isEditable():
+                    v = w.currentText()
             elif isinstance(w, QRadioButton):
                 if not w.isChecked():
                     continue
@@ -153,6 +151,8 @@ class PropertyPage(QWidget):
                     index = w.findData(v)
                     if index != -1:
                         w.setCurrentIndex(index)
+                    elif w.isEditable():
+                        w.setEditText(str(v))
             elif isinstance(w, (QRadioButton, QCheckBox)):  # subclass of QAbstractButton
                 w.setChecked(v)
             elif isinstance(w, (QSlider, QSpinBox)):
@@ -331,6 +331,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.initLayerComboBox()
 
+        self.comboBox_TextureSize.addItem("Map Canvas Width")
+        self.comboBox_TextureSize.insertSeparator(1)
+        self.comboBox_TextureSize.addItem("1024")
+        self.comboBox_TextureSize.addItem("2048")
+
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
         self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
         self.checkBox_Clip.toggled.connect(self.clipToggled)
@@ -345,15 +350,15 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.mapSettings = mapSettings
         properties = layer.properties
 
-        self.initTextureSizeComboBox(mapSettings)
-
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
 
-        # use default properties if properties is not set
-        if not properties:
+        if properties:
+            if "toolButton_EdgeColor" not in properties:        # if loaded properties were saved in plugin version < 2.6
+                properties["comboBox_TextureSize"] = "MCW"
+        else:
+            # use default properties if properties is not set
             properties = self.properties()
-            properties["comboBox_TextureSize"] = 100
             properties["toolButton_SideColor"] = DEF_SETS.SIDE_COLOR
 
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
@@ -378,18 +383,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
                 self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
 
         self.comboBox_ClipLayer.blockSignals(False)
-
-    def initTextureSizeComboBox(self, mapSettings):
-        outsize = mapSettings.outputSize()
-
-        self.comboBox_TextureSize.blockSignals(True)
-        self.comboBox_TextureSize.clear()
-        for i in [4, 2, 1]:
-            percent = i * 100
-            text = "{0} %  ({1} x {2} px)".format(percent, outsize.width() * i, outsize.height() * i)
-            self.comboBox_TextureSize.addItem(text, percent)
-
-        self.comboBox_TextureSize.blockSignals(False)
 
     def resolutionSliderChanged(self, v):
         outsize = self.mapSettings.outputSize()
@@ -455,6 +448,12 @@ Grid Spacing: {3:.5f} x {4:.5f})""".format(resolutionLevel,
 
     def properties(self):
         p = PropertyPage.properties(self)
+
+        try:
+            p["comboBox_TextureSize"] = int(p["comboBox_TextureSize"])
+        except ValueError:
+            p["comboBox_TextureSize"] = "Map Canvas Width"
+
         if self.layerImageIds:
             p["layerImageIds"] = self.layerImageIds
         return p

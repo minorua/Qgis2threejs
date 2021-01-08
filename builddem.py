@@ -27,7 +27,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
-from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsOnCanvas
+from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
 
 
@@ -81,6 +81,12 @@ class DEMLayerBuilder(LayerBuilder):
     def blocks(self):
         mapTo3d = self.settings.mapTo3d()
         be = self.settings.baseExtent()
+
+        if self.properties.get("radioButton_MapCanvas") or self.properties.get("radioButton_LayerImage"):
+            # calculate extent with the same aspect ratio as map image
+            tex_size = DEMPropertyReader.textureSize(self.properties, be, self.settings)
+            be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
+
         center = be.center()
         rotation = be.rotation()
         base_grid_size = self.settings.demGridSize(self.layer.layerId)
@@ -92,12 +98,12 @@ class DEMLayerBuilder(LayerBuilder):
             clip_layerId = self.properties.get("comboBox_ClipLayer")
             clip_layer = QgsProject.instance().mapLayer(clip_layerId) if clip_layerId else None
             if clip_layer:
-                clip_geometry = dissolvePolygonsOnCanvas(self.settings, clip_layer)
+                clip_geometry = dissolvePolygonsWithinExtent(clip_layer, be, self.settings.crs)
 
         # surroundings
         surroundings = self.properties.get("checkBox_Surroundings", False)
-        roughness = self.properties["spinBox_Roughening"] if surroundings else 1
-        size = self.properties["spinBox_Size"] if surroundings else 1
+        roughness = self.properties.get("spinBox_Roughening", 1) if surroundings else 1
+        size = self.properties.get("spinBox_Size", 1) if surroundings else 1
         size2 = size * size
 
         blks = []
@@ -128,7 +134,7 @@ class DEMLayerBuilder(LayerBuilder):
                                     grid_size,
                                     extent,
                                     mapTo3d.planeWidth,
-                                    mapTo3d.planeHeight,
+                                    mapTo3d.planeWidth * be.height() / be.width(),
                                     offsetX=mapTo3d.planeWidth * sx,
                                     offsetY=mapTo3d.planeHeight * sy,
                                     edgeRoughness=roughness if is_center else 1,
@@ -209,7 +215,7 @@ class DEMBlockBuilder:
 
             b["grid"] = g
 
-        opacity = self.properties.get("spinBox_Opacity", 100) / 100
+        opacity = DEMPropertyReader.opacity(self.properties)
 
         # sides and bottom
         if self.properties.get("checkBox_Sides"):
@@ -230,30 +236,28 @@ class DEMBlockBuilder:
 
     def material(self):
         # properties
-        texture_scale = self.properties.get("comboBox_TextureSize", 100) // 100
-        opacity = self.properties.get("spinBox_Opacity", 100) / 100
+        tex_size = DEMPropertyReader.textureSize(self.properties, self.extent, self.settings)
+        opacity = DEMPropertyReader.opacity(self.properties)
         transp_background = self.properties.get("checkBox_TransparentBackground", False)
 
         # display type
-        canvas_size = self.settings.mapSettings.outputSize()
-        if self.properties.get("radioButton_MapCanvas", False):
-            # if texture_scale == 1:
-            #  mi = self.materialManager.getCanvasImageIndex(opacity, transp_background)
-            # else:
-            mi = self.materialManager.getMapImageIndex(canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, opacity, transp_background)
+        if self.properties.get("radioButton_MapCanvas"):
+            mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
+                                                       opacity, transp_background)
 
-        elif self.properties.get("radioButton_LayerImage", False):
+        elif self.properties.get("radioButton_LayerImage"):
             layerids = self.properties.get("layerImageIds", [])
-            mi = self.materialManager.getLayerImageIndex(layerids, canvas_size.width() * texture_scale, canvas_size.height() * texture_scale, self.extent, opacity, transp_background)
+            mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
+                                                         opacity, transp_background)
 
-        elif self.properties.get("radioButton_ImageFile", False):
+        elif self.properties.get("radioButton_ImageFile"):
             filepath = self.properties.get("lineEdit_ImageFile", "")
             mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
-        else:  # .get("radioButton_SolidColor", False)
+        else:  # .get("radioButton_SolidColor")
             mi = self.materialManager.getMeshMaterialIndex(self.properties.get("colorButton_Color", ""), opacity, True)
 
-        # elif self.properties.get("radioButton_Wireframe", False):
+        # elif self.properties.get("radioButton_Wireframe"):
         #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
 
         # build material
@@ -405,6 +409,22 @@ class DEMBlocks:
             stats["max"] = max(block.orig_stats["max"], stats["max"])
             stats["min"] = min(block.orig_stats["min"], stats["min"])
         return stats
+
+
+class DEMPropertyReader:
+
+    @staticmethod
+    def opacity(properties):
+        return properties.get("spinBox_Opacity", 100) / 100
+
+    @staticmethod
+    def textureSize(properties, extent, settings):
+        try:
+            w = int(properties.get("comboBox_TextureSize"))
+        except ValueError:
+            w = settings.mapSettings.outputSize().width()  # map canvas width
+
+        return QSize(w, round(w * extent.height() / extent.width()))
 
 
 def dummyProgress(percentage=None, msg=None):
