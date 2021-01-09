@@ -29,12 +29,11 @@ from PyQt5.QtGui import QColor, QCursor
 from qgis.core import QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
-HAVE_PROCESSING = False
 try:
     from processing.gui.RectangleMapTool import RectangleMapTool
     HAVE_PROCESSING = True
 except:
-    pass
+    HAVE_PROCESSING = False
 
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
@@ -203,9 +202,12 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.pushButton_SelectExtent.clicked.connect(self.showSelectExtentMenu)
         self.checkBox_FixAspectRatio.toggled.connect(self.fixAspectRatioToggled)
 
-    def setup(self, properties, mapSettings):
+    def setup(self, properties, mapSettings, canvas):
 
         self.mapSettings = mapSettings
+
+        if HAVE_PROCESSING:
+            self.initMapTool(canvas)
 
         # restore properties
         if properties:
@@ -243,7 +245,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.mapTool.rectangleCreated.connect(self.updateExtent)
             return True
         except:
-            #TODO: hide button
+            HAVE_PROCESSING = False
             return False
 
     def properties(self):
@@ -305,23 +307,22 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     def showSelectExtentMenu(self):
         popup = QMenu()
 
-        selectOnCanvasAction = QAction("Select Extent on Canvas", self.pushButton_SelectExtent)
+        if HAVE_PROCESSING:
+            selectOnCanvasAction = QAction("Select Extent on Canvas", self.pushButton_SelectExtent)
+            selectOnCanvasAction.triggered.connect(self.selectExtentOnCanvas)
+            popup.addAction(selectOnCanvasAction)
+            popup.addSeparator()
+
         useLayerExtentAction = QAction("Use Layer Extent...", self.pushButton_SelectExtent)
-
-        popup.addAction(selectOnCanvasAction)
-        popup.addSeparator()
-        popup.addAction(useLayerExtentAction)
-
-        selectOnCanvasAction.triggered.connect(self.selectExtentOnCanvas)
         useLayerExtentAction.triggered.connect(self.useLayerExtent)
+        popup.addAction(useLayerExtentAction)
 
         popup.exec_(QCursor.pos())
 
     def selectExtentOnCanvas(self):
-        if self.canvas:
-            self.canvas.setMapTool(self.mapTool)
+        self.canvas.setMapTool(self.mapTool)
 
-            self.dialog.wnd.showMinimized()
+        self.dialog.wnd.showMinimized()
 
     def updateExtent(self):
         self.checkBox_FixAspectRatio.setChecked(False)

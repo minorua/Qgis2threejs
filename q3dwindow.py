@@ -516,8 +516,7 @@ class PropertiesDialog(QDialog):
     def showSceneProperties(self):
         self.setWindowTitle("Scene Settings")
         self.page = ScenePropertyPage(self)
-        self.page.setup(self.settings.sceneProperties(), self.qgisIface.mapCanvas().mapSettings())
-        self.page.initMapTool(self.qgisIface.mapCanvas())
+        self.page.setup(self.settings.sceneProperties(), self.qgisIface.mapCanvas().mapSettings(), self.qgisIface.mapCanvas())
         self.ui.scrollArea.setWidget(self.page)
         self.show()
         self.exec_()
