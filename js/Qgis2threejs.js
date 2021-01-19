@@ -2326,59 +2326,70 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
-  var _this = this;
+  var _this = this,
+      block = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
 
-  var index = jsonObject.block;
-  this.blocks[index] = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
-  this.blocks[index].loadJSONObject(jsonObject, this, function (mesh) {
+  this.blocks[jsonObject.block] = block;
 
-    if (jsonObject.sides || jsonObject.edges || jsonObject.wireframe) {
+  block.loadJSONObject(jsonObject, this, function (mesh) {
 
+    var addEdges = function () {
+      var material = new Q3D.Material();
+      material.loadJSONObject(jsonObject.edges.mtl);
+      _this.materials.add(material);
+
+      block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
+    };
+
+    var buildSides = function () {
+      // sides and bottom
+      var material = new Q3D.Material();
+      material.loadJSONObject(jsonObject.sides.mtl);
+      _this.materials.add(material);
+
+      block.buildSides(_this, mesh, material.mtl, Q3D.Config.dem.side.bottomZ);
       _this.sideVisible = true;
 
-      var build = function () {
-        var material;
-        // sides and bottom
-        if (jsonObject.sides) {
-          material = new Q3D.Material();
-          material.loadJSONObject(jsonObject.sides.mtl);
-          _this.materials.add(material);
+      if (jsonObject.edges) addEdges();
+    };
 
-          _this.blocks[index].buildSides(_this, mesh, material.mtl, Q3D.Config.dem.side.bottomZ);
-        }
-        // edges
-        if (jsonObject.edges) {
-          material = new Q3D.Material();
-          material.loadJSONObject(jsonObject.edges.mtl);
-          _this.materials.add(material);
+    if (jsonObject.wireframe) {
+      var material = new Q3D.Material();
+      material.loadJSONObject(jsonObject.wireframe.mtl);
+      _this.materials.add(material);
 
-          _this.blocks[index].addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
-        }
-        // wireframe
-        if (jsonObject.wireframe) {
-          material = new Q3D.Material();
-          material.loadJSONObject(jsonObject.wireframe.mtl);
-          _this.materials.add(material);
+      block.addWireframe(_this, mesh, material.mtl);
 
-          _this.blocks[index].addWireframe(_this, mesh, material.mtl);
-        }
-        _this.requestRender();
-      };
+      var mtl = block.material.mtl;
+      mtl.polygonOffset = true;
+      mtl.polygonOffsetFactor = 1;
+      mtl.polygonOffsetUnits = 1;
+    }
+
+    if (jsonObject.sides) {
 
       if (Q3D.Config.autoZShift) {
         scene.addEventListener("zShiftAdjusted", function listener(event) {
+
           // set adjusted z shift to every block
-          _this.blocks.forEach(function (block) {
-            block.data.zShiftA = event.sceneData.zShiftA;
+          _this.blocks.forEach(function (blk) {
+            blk.data.zShiftA = event.sceneData.zShiftA;
           });
-          build();
+          buildSides();
+
           scene.removeEventListener("zShiftAdjusted", listener);
+
+          _this.requestRender();
         });
       }
       else {
-        build();
+        buildSides();
       }
     }
+    else if (jsonObject.edges) {
+      addEdges();
+    }
+
     _this.requestRender();
   });
 };
