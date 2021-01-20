@@ -6,15 +6,22 @@
 var Q3D = {VERSION: "2.5"};
 
 Q3D.Config = {
+  // renderer
+  texture: {
+    anisotropy: null    // use max available value if this is set to null
+  },
+
   // scene
   autoZShift: false,  // automatic z shift adjustment
   bgColor: null,      // null is sky
+
   // camera
   orthoCamera: false,
   viewpoint: {                    // z-up
     pos: new THREE.Vector3(0, -100, 100), // initial camera position
     lookAt: new THREE.Vector3()
   },
+
   // light
   lights: [
     {
@@ -37,7 +44,9 @@ Q3D.Config = {
       altitude: -45
     }
   ],
+
   // layer
+  allVisible: false,   // set every layer visible property to true on load if set to true
   dem: {
     side: {
       bottomZ: -1.5     // in the unit of world coordinates
@@ -56,6 +65,7 @@ Q3D.Config = {
     minFontSize: 8,
     queryable: true
   },
+
   // decoration
   northArrow: {
     color: 0x8b4513,
@@ -67,8 +77,7 @@ Q3D.Config = {
     r: 0.004,
     c: 0xffff00,
     o: 0.8
-  },
-  allVisible: false   // set every layer visible property to true on load if set to true
+  }
 };
 
 // consts
@@ -436,6 +445,8 @@ limitations:
     app.renderer.setSize(app.width, app.height);
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
+
+    if (Q3D.Config.texture.anisotropy === null) Q3D.Config.texture.anisotropy = app.renderer.capabilities.getMaxAnisotropy() || 1;
 
     // outline effect
     if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
@@ -1603,6 +1614,7 @@ Q3D.Material.prototype = {
         opt.map = new THREE.Texture(img);
         defer = true;
       }
+      opt.map.anisotropy = Q3D.Config.texture.anisotropy;
     }
 
     if (m.c !== undefined) opt.color = m.c;
