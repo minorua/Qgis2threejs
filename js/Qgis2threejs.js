@@ -26,7 +26,9 @@ Q3D.Config = {
   controls: {
     panSpeed: 1,
     rotateSpeed: 0.5,
-    zoomSpeed: 1
+    zoomSpeed: 1,
+    keyPanSpeed: 4,
+    keyRotateSpeed: 0.5   // per one key event, in degrees
   },
 
   // light
@@ -534,11 +536,13 @@ limitations:
   app.initOrbitControls = function (camera, domElement) {
 
     var controls = new THREE.OrbitControls(camera, domElement);
-    controls.enableKeys = false;
+    controls.enableKeys = false;    // key events are handled in app.eventListener.keydown
 
     controls.panSpeed = Q3D.Config.controls.panSpeed;
     controls.rotateSpeed = Q3D.Config.controls.rotateSpeed;
     controls.zoomSpeed = Q3D.Config.controls.zoomSpeed;
+    controls.keyPanSpeed = Q3D.Config.controls.keyPanSpeed;
+    controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Math.PI / 180;
 
     controls.target.copy(Q3D.Config.viewpoint.lookAt);
 
@@ -547,18 +551,6 @@ limitations:
         spherical = new THREE.Spherical(),
         quat = new THREE.Quaternion().setFromUnitVectors(camera.up, new THREE.Vector3(0, 1, 0)),
         quatInverse = quat.clone().inverse();
-
-    controls.moveForward = function (delta) {
-      offset.copy(controls.object.position).sub(controls.target);
-
-      var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
-      offset.z = 0;
-      offset.normalize();
-      offset.multiplyScalar(-2 * delta * targetDistance / domElement.clientHeight);
-
-      controls.object.position.add(offset);
-      controls.target.add(offset);
-    };
 
     controls.cameraRotate = function (thetaDelta, phiDelta) {
       offset.copy(controls.target).sub(controls.object.position);
@@ -714,7 +706,7 @@ limitations:
 
     keydown: function (e) {
       var controls = app.controls;
-      var panDelta = 3, rotateAngle = 2 * Math.PI / 180;
+
       if (e.shiftKey && e.ctrlKey) {
         switch (e.keyCode) {
           case 38:  // Shift + Ctrl + UP
@@ -730,16 +722,16 @@ limitations:
       else if (e.shiftKey) {
         switch (e.keyCode) {
           case 37:  // LEFT
-            controls.rotateLeft(rotateAngle);
+            controls.rotateLeft(controls.keyRotateAngle);
             break;
           case 38:  // UP
-            controls.rotateUp(rotateAngle);
+            controls.rotateUp(controls.keyRotateAngle);
             break;
           case 39:  // RIGHT
-            controls.rotateLeft(-rotateAngle);
+            controls.rotateLeft(-controls.keyRotateAngle);
             break;
           case 40:  // DOWN
-            controls.rotateUp(-rotateAngle);
+            controls.rotateUp(-controls.keyRotateAngle);
             break;
           case 82:  // Shift + R
             controls.reset();
@@ -754,16 +746,16 @@ limitations:
       else if (e.ctrlKey) {
         switch (e.keyCode) {
           case 37:  // Ctrl + LEFT
-            controls.cameraRotate(rotateAngle, 0);
+            controls.cameraRotate(controls.keyRotateAngle, 0);
             break;
           case 38:  // Ctrl + UP
-            controls.cameraRotate(0, rotateAngle);
+            controls.cameraRotate(0, controls.keyRotateAngle);
             break;
           case 39:  // Ctrl + RIGHT
-            controls.cameraRotate(-rotateAngle, 0);
+            controls.cameraRotate(-controls.keyRotateAngle, 0);
             break;
           case 40:  // Ctrl + DOWN
-            controls.cameraRotate(0, -rotateAngle);
+            controls.cameraRotate(0, -controls.keyRotateAngle);
             break;
           default:
             return;
@@ -772,16 +764,16 @@ limitations:
       else {
         switch (e.keyCode) {
           case 37:  // LEFT
-            controls.panLeft(panDelta, controls.object.matrix);
+            controls.pan(controls.keyPanSpeed, 0);    // horizontally left
             break;
           case 38:  // UP
-            controls.moveForward(3 * panDelta);    // horizontally forward
+            controls.pan(0, controls.keyPanSpeed);    // horizontally forward
             break;
           case 39:  // RIGHT
-            controls.panLeft(-panDelta, controls.object.matrix);
+            controls.pan(-controls.keyPanSpeed, 0);
             break;
           case 40:  // DOWN
-            controls.moveForward(-3 * panDelta);
+            controls.pan(0, -controls.keyPanSpeed);
             break;
           case 27:  // ESC
             if (Q3D.$("popup").style.display != "none") {

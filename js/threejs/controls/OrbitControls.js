@@ -916,7 +916,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	}
 
 	// expose functions @minorua
-	this.panLeft = panLeft;
+	this.pan = pan;
 	this.rotateLeft = rotateLeft;
 	this.rotateUp = rotateUp;
 	this.dollyIn = dollyIn;
