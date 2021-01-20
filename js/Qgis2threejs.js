@@ -415,8 +415,15 @@ limitations:
   };
 
   app.init = function (container) {
+
     app.container = container;
     app.running = false;        // if true, animation loop is continued.
+
+    app.selectedObject = null;
+    app.highlightObject = null;
+
+    app.modelBuilders = [];
+    app._wireframeMode = false;
 
     // URL parameters
     var params = app.parseUrlParameters();
@@ -466,61 +473,14 @@ limitations:
       app.render();
     });
 
-    var controls;
-    if (typeof THREE.OrbitControls !== "undefined") {
-      controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
-      controls.enableKeys = false;
-      controls.target.copy(Q3D.Config.viewpoint.lookAt);
-
-      // custom actions
-      var offset = new THREE.Vector3();
-      var spherical = new THREE.Spherical();
-      var quat = new THREE.Quaternion().setFromUnitVectors(app.camera.up, new THREE.Vector3(0, 1, 0));
-      var quatInverse = quat.clone().inverse();
-
-      controls.moveForward = function (delta) {
-        offset.copy(controls.object.position).sub(controls.target);
-        var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
-        offset.z = 0;
-        offset.normalize();
-        offset.multiplyScalar(-2 * delta * targetDistance / app.renderer.domElement.clientHeight);
-
-        controls.object.position.add(offset);
-        controls.target.add(offset);
-      };
-
-      controls.cameraRotate = function (thetaDelta, phiDelta) {
-        offset.copy(controls.target).sub(controls.object.position);
-        offset.applyQuaternion(quat);
-
-        spherical.setFromVector3(offset);
-
-        spherical.theta += thetaDelta;
-        spherical.phi -= phiDelta;
-
-        // restrict theta/phi to be between desired limits
-        spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
-        spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
-        spherical.makeSafe();
-
-        offset.setFromSpherical(spherical);
-        offset.applyQuaternion(quatInverse);
-
-        controls.target.copy(controls.object.position).add(offset);
-        controls.object.lookAt(controls.target);
-      };
-
-      controls.addEventListener("change", function (event) {
-        app.render();
-      });
+    // controls
+    if (THREE.OrbitControls) {
+      app.initOrbitControls(app.camera, app.renderer.domElement);
+      app.controls.update();
     }
 
-    app.controls = controls;
-    app.controls.update();
-
+    // labels
     app.labelVisible = Q3D.Config.label.visible;
-
-    // root element of labels
     app.scene.labelRootElement = document.getElementById("labels");
     app.scene.labelRootElement.style.display = (app.labelVisible) ? "block" : "none";
 
@@ -530,15 +490,13 @@ limitations:
                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
 
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
+
     if (!Q3D.isIE) app.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
 
-    app.selectedObject = null;
-    app.highlightObject = null;
+    // loading manager
+    app.initLoadingManager();
 
-    app.modelBuilders = [];
-    app._wireframeMode = false;
-
-    // add event listeners
+    // event listeners
     app.addEventListener("sceneLoaded", function () {
       if (Q3D.Config.autoZShift) {
         app.scene.adjustZShift();
@@ -566,24 +524,74 @@ limitations:
     return vars;
   };
 
+  app.initOrbitControls = function (camera, domElement) {
+
+    var controls = new THREE.OrbitControls(camera, domElement);
+    controls.enableKeys = false;
+    controls.target.copy(Q3D.Config.viewpoint.lookAt);
+
+    // custom actions
+    var offset = new THREE.Vector3(),
+        spherical = new THREE.Spherical(),
+        quat = new THREE.Quaternion().setFromUnitVectors(camera.up, new THREE.Vector3(0, 1, 0)),
+        quatInverse = quat.clone().inverse();
+
+    controls.moveForward = function (delta) {
+      offset.copy(controls.object.position).sub(controls.target);
+
+      var targetDistance = offset.length() * Math.tan((controls.object.fov / 2) * Math.PI / 180.0);
+      offset.z = 0;
+      offset.normalize();
+      offset.multiplyScalar(-2 * delta * targetDistance / domElement.clientHeight);
+
+      controls.object.position.add(offset);
+      controls.target.add(offset);
+    };
+
+    controls.cameraRotate = function (thetaDelta, phiDelta) {
+      offset.copy(controls.target).sub(controls.object.position);
+      offset.applyQuaternion(quat);
+
+      spherical.setFromVector3(offset);
+
+      spherical.theta += thetaDelta;
+      spherical.phi -= phiDelta;
+
+      // restrict theta/phi to be between desired limits
+      spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
+      spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
+      spherical.makeSafe();
+
+      offset.setFromSpherical(spherical);
+      offset.applyQuaternion(quatInverse);
+
+      controls.target.copy(controls.object.position).add(offset);
+      controls.object.lookAt(controls.target);
+    };
+
+    controls.addEventListener("change", function (event) {
+      app.render();
+    });
+
+    app.controls = controls;
+  };
+
   app.initLoadingManager = function () {
     if (app.loadingManager) {
       app.loadingManager.onLoad = app.loadingManager.onProgress = app.loadingManager.onError = undefined;
     }
 
-    app.loadingManager = new THREE.LoadingManager(function () {
-      // onLoad
+    app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
       app.loadingManager.isLoading = false;
 
       document.getElementById("bar").classList.add("fadeout");
 
       app.dispatchEvent({type: "sceneLoaded"});
     },
-    function (url, loaded, total) {
-      // onProgress
+    function (url, loaded, total) {   // onProgress
       document.getElementById("bar").style.width = (loaded / total * 100) + "%";
     },
-    function () {
+    function () {   // onError
       app.loadingManager.isLoading = false;
 
       app.dispatchEvent({type: "sceneLoadError"});
@@ -595,8 +603,6 @@ limitations:
 
     app.loadingManager.isLoading = false;
   };
-
-  app.initLoadingManager();
 
   app.loadFile = function (url, type, callback) {
 
