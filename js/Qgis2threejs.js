@@ -419,19 +419,25 @@ limitations:
     app.running = false;        // if true, animation loop is continued.
 
     // URL parameters
-    app.urlParams = app.parseUrlParameters();
-    if ("popup" in app.urlParams) {
+    var params = app.parseUrlParameters();
+    app.urlParams = params;
+
+    if ("popup" in params) {
       // open popup window
       var c = window.location.href.split("?");
-      window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + app.urlParams.width + ",height=" + app.urlParams.height);
+      window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + params.width + ",height=" + params.height);
       app.popup.show("Another window has been opened.");
       return;
     }
 
-    if (app.urlParams.width && app.urlParams.height) {
-      // set container size
-      container.style.width = app.urlParams.width + "px";
-      container.style.height = app.urlParams.height + "px";
+    if (params.anisotropy) Q3D.Config.texture.anisotropy = parseFloat(params.anisotropy) || Q3D.Config.texture.anisotropy;
+
+    if (params.cx !== undefined) Q3D.Config.viewpoint.pos.set(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
+    if (params.tx !== undefined) Q3D.Config.viewpoint.lookAt.set(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
+
+    if (params.width && params.height) {
+      container.style.width = params.width + "px";
+      container.style.height = params.height + "px";
     }
 
     app.width = container.clientWidth;
@@ -450,11 +456,6 @@ limitations:
 
     // outline effect
     if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
-
-    // set viewpoint if specified by URL parameters
-    var vars = app.urlParams;
-    if (vars.cx !== undefined) Q3D.Config.viewpoint.pos.set(parseFloat(vars.cx), parseFloat(vars.cy), parseFloat(vars.cz));
-    if (vars.tx !== undefined) Q3D.Config.viewpoint.lookAt.set(parseFloat(vars.tx), parseFloat(vars.ty), parseFloat(vars.tz));
 
     // camera
     app.buildCamera(Q3D.Config.orthoCamera);
