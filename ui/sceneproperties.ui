@@ -87,7 +87,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
-      <string>Map &amp;Extent</string>
+      <string>Base &amp;Extent</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="4" column="0">

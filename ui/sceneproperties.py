@@ -192,7 +192,7 @@ class Ui_ScenePropertiesWidget(object):
         self.checkBox_autoZShift.setToolTip(_translate("ScenePropertiesWidget", "Automatic vertical shift adjustment"))
         self.checkBox_autoZShift.setText(_translate("ScenePropertiesWidget", "Auto"))
         self.label.setText(_translate("ScenePropertiesWidget", "Vertical exaggeration"))
-        self.groupBox_4.setTitle(_translate("ScenePropertiesWidget", "Map &Extent"))
+        self.groupBox_4.setTitle(_translate("ScenePropertiesWidget", "Base &Extent"))
         self.checkBox_FixAspectRatio.setText(_translate("ScenePropertiesWidget", "Fix aspect ratio to 1:1"))
         self.radioButton_FixedExtent.setText(_translate("ScenePropertiesWidget", "Fixed extent"))
         self.radioButton_UseCanvasExtent.setText(_translate("ScenePropertiesWidget", "Use map canvas extent"))

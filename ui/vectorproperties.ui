@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>340</width>
-    <height>402</height>
+    <width>416</width>
+    <height>446</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -208,7 +208,7 @@
       <item>
        <widget class="QRadioButton" name="radioButton_IntersectingFeatures">
         <property name="text">
-         <string>Features that intersect with map canvas extent</string>
+         <string>Features that intersect with base extent of the scene</string>
         </property>
         <property name="checked">
          <bool>true</bool>
