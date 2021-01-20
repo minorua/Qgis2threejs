@@ -22,6 +22,13 @@ Q3D.Config = {
     lookAt: new THREE.Vector3()
   },
 
+  // controls
+  controls: {
+    panSpeed: 1,
+    rotateSpeed: 0.5,
+    zoomSpeed: 1
+  },
+
   // light
   lights: [
     {
@@ -528,6 +535,11 @@ limitations:
 
     var controls = new THREE.OrbitControls(camera, domElement);
     controls.enableKeys = false;
+
+    controls.panSpeed = Q3D.Config.controls.panSpeed;
+    controls.rotateSpeed = Q3D.Config.controls.rotateSpeed;
+    controls.zoomSpeed = Q3D.Config.controls.zoomSpeed;
+
     controls.target.copy(Q3D.Config.viewpoint.lookAt);
 
     // custom actions
