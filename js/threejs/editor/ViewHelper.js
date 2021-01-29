@@ -1,6 +1,4 @@
-import { UIPanel } from './libs/ui.js';
-
-import * as THREE from '../../build/three.module.js';
+// source: three.js r122 - editor/js/Viewport.ViewHelper.js
 
 function ViewHelper( editorCamera, container ) {
 
@@ -9,13 +7,7 @@ function ViewHelper( editorCamera, container ) {
 	this.animating = false;
 	this.controls = null;
 
-	var panel = new UIPanel();
-	panel.setId( 'viewHelper' );
-	panel.setPosition( 'absolute' );
-	panel.setRight( '0px' );
-	panel.setBottom( '0px' );
-	panel.setHeight( '128px' );
-	panel.setWidth( '128px' );
+	var panel = { dom: container.dom };
 
 	var scope = this;
 
@@ -33,8 +25,6 @@ function ViewHelper( editorCamera, container ) {
 
 	} );
 
-	container.add( panel );
-
 	var color1 = new THREE.Color( '#ff3653' );
 	var color2 = new THREE.Color( '#8adb00' );
 	var color3 = new THREE.Color( '#2c8fff' );
@@ -43,6 +33,7 @@ function ViewHelper( editorCamera, container ) {
 	var raycaster = new THREE.Raycaster();
 	var mouse = new THREE.Vector2();
 	var dummy = new THREE.Object3D();
+	dummy.up.copy( editorCamera.up );
 
 	var camera = new THREE.OrthographicCamera( - 2, 2, 2, - 2, 0, 4 );
 	camera.position.set( 0, 0, 2 );
@@ -158,8 +149,6 @@ function ViewHelper( editorCamera, container ) {
 	var targetPosition = new THREE.Vector3();
 	var targetQuaternion = new THREE.Quaternion();
 
-	var q1 = new THREE.Quaternion();
-	var q2 = new THREE.Quaternion();
 	var radius = 0;
 
 	this.handleClick = function ( event ) {
@@ -169,8 +158,8 @@ function ViewHelper( editorCamera, container ) {
 		var rect = container.dom.getBoundingClientRect();
 		var offsetX = rect.left + ( container.dom.offsetWidth - dim );
 		var offsetY = rect.top + ( container.dom.offsetHeight - dim );
-		mouse.x = ( ( event.clientX - offsetX ) / ( rect.width - offsetX ) ) * 2 - 1;
-		mouse.y = - ( ( event.clientY - offsetY ) / ( rect.bottom - offsetY ) ) * 2 + 1;
+		mouse.x = ( ( event.clientX - offsetX ) / rect.width ) * 2 - 1;
+		mouse.y = - ( ( event.clientY - offsetY ) / rect.height ) * 2 + 1;
 
 		raycaster.setFromCamera( mouse, camera );
 
@@ -181,9 +170,11 @@ function ViewHelper( editorCamera, container ) {
 			var intersection = intersects[ 0 ];
 			var object = intersection.object;
 
-			prepareAnimationData( object, this.controls.center );
+			prepareAnimationData( object, this.controls.target );
 
 			this.animating = true;
+
+			this.dispatchEvent({type: "requestAnimation"});
 
 			return true;
 
@@ -198,18 +189,23 @@ function ViewHelper( editorCamera, container ) {
 	this.update = function ( delta ) {
 
 		var step = delta * turnRate;
-		var focusPoint = this.controls.center;
+		var focusPoint = this.controls.target;
 
 		// animate position by doing a slerp and then scaling the position on the unit sphere
 
-		q1.rotateTowards( q2, step );
-		editorCamera.position.set( 0, 0, 1 ).applyQuaternion( q1 ).multiplyScalar( radius ).add( focusPoint );
+		dummy.quaternion.rotateTowards( targetQuaternion, step );
+		dummy.getWorldDirection( editorCamera.position );
+
+		editorCamera.position.multiplyScalar( radius ).add( focusPoint );
 
 		// animate orientation
 
 		editorCamera.quaternion.rotateTowards( targetQuaternion, step );
 
-		if ( q1.angleTo( q2 ) === 0 ) {
+		if ( dummy.quaternion.angleTo( targetQuaternion ) < 0.01 && editorCamera.quaternion.angleTo( targetQuaternion ) < 0.01 ) {
+
+			editorCamera.position.copy( targetPosition );
+			editorCamera.quaternion.copy( targetQuaternion );
 
 			this.animating = false;
 
@@ -217,38 +213,35 @@ function ViewHelper( editorCamera, container ) {
 
 	};
 
+	var ez = new THREE.Vector3( 0, 0, 1 ),
+      enz = ez.clone().negate();
+
 	function prepareAnimationData( object, focusPoint ) {
 
 		switch ( object.userData.type ) {
 
 			case 'posX':
 				targetPosition.set( 1, 0, 0 );
-				targetQuaternion.setFromEuler( new THREE.Euler( 0, Math.PI * 0.5, 0 ) );
 				break;
 
 			case 'posY':
 				targetPosition.set( 0, 1, 0 );
-				targetQuaternion.setFromEuler( new THREE.Euler( - Math.PI * 0.5, 0, 0 ) );
 				break;
 
 			case 'posZ':
 				targetPosition.set( 0, 0, 1 );
-				targetQuaternion.setFromEuler( new THREE.Euler() );
 				break;
 
 			case 'negX':
 				targetPosition.set( - 1, 0, 0 );
-				targetQuaternion.setFromEuler( new THREE.Euler( 0, - Math.PI * 0.5, 0 ) );
 				break;
 
 			case 'negY':
 				targetPosition.set( 0, - 1, 0 );
-				targetQuaternion.setFromEuler( new THREE.Euler( Math.PI * 0.5, 0, 0 ) );
 				break;
 
 			case 'negZ':
 				targetPosition.set( 0, 0, - 1 );
-				targetQuaternion.setFromEuler( new THREE.Euler( 0, Math.PI, 0 ) );
 				break;
 
 			default:
@@ -263,11 +256,25 @@ function ViewHelper( editorCamera, container ) {
 
 		dummy.position.copy( focusPoint );
 
-		dummy.lookAt( editorCamera.position );
-		q1.copy( dummy.quaternion );
-
 		dummy.lookAt( targetPosition );
-		q2.copy( dummy.quaternion );
+		dummy.getWorldDirection( point );
+		if ( point.angleTo( ez ) < 0.01 ) {	// +z
+			dummy.rotateOnAxis( enz, Math.PI * 0.5 );
+		}
+		else if ( point.angleTo( enz ) < 0.01 ) {	// -z
+			dummy.rotateOnAxis( ez, Math.PI * 0.5 );
+		}
+
+		targetQuaternion.copy( dummy.quaternion );
+
+		dummy.lookAt( editorCamera.position );
+		dummy.getWorldDirection( point );
+		if ( point.angleTo( ez ) < 0.01 ) {	// +z
+			dummy.rotateOnAxis( enz, Math.PI * 0.5 );
+		}
+		else if ( point.angleTo( enz ) < 0.01 ) {	// -z
+			dummy.rotateOnAxis( ez, Math.PI * 0.5 );
+		}
 
 	}
 
@@ -314,5 +321,3 @@ ViewHelper.prototype = Object.assign( Object.create( THREE.Object3D.prototype ),
 	isViewHelper: true
 
 } );
-
-export { ViewHelper };
