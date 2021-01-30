@@ -111,6 +111,7 @@ class ExportSettings:
     CAMERA = "CAMERA"
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
+    NAVIGATION = "NAV"
     DECOR = "DECOR"
     OPTIONS = "OPT"   # web export options
 
@@ -454,6 +455,12 @@ class ExportSettings:
                 if layer.layerId == layerId:
                     return layer
         return None
+
+    def isNavigationVisible(self):
+        return self.data.get(ExportSettings.NAVIGATION, {}).get("visible", True)
+
+    def setNavigationVisible(self, visible):
+        self.data[ExportSettings.NAVIGATION] = {"visible": visible}
 
     def decorationProperties(self, name):
         decor = self.data.get(ExportSettings.DECOR, {})

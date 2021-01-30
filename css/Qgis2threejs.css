@@ -284,3 +284,12 @@ body {
   height: 80px;
   z-index: 1000;
 }
+
+#navigation {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  width: 128px;
+  height: 128px;
+  z-index: 1000;
+}

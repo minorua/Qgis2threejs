@@ -61,6 +61,7 @@ class Q3DControllerInterface(QObject):
             iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
             iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
             iface.switchCameraRequest.connect(self.controller.requestCameraSwitch)
+            iface.navStateChanged.connect(self.controller.setNavigationVisible)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
             iface.addLayerRequest.connect(self.controller.addLayer)
             iface.removeLayerRequest.connect(self.controller.removeLayer)
@@ -431,6 +432,11 @@ class Q3DController(QObject):
     def requestCameraSwitch(self, is_ortho=False):
         self.settings.setCamera(is_ortho)
         self.iface.runScript("switchCamera({0});".format(js_bool(is_ortho)))
+
+    @pyqtSlot(bool)
+    def setNavigationVisible(self, visible):
+        self.settings.setNavigationVisible(visible)
+        self.iface.runScript("setNavigationVisible({0});".format(js_bool(visible)))
 
     @pyqtSlot(bool)
     def setPreviewEnabled(self, enabled):
