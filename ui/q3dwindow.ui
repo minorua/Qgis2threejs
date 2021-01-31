@@ -48,47 +48,16 @@
     <property name="title">
      <string>&amp;Scene</string>
     </property>
-    <widget class="QMenu" name="menuCamera">
-     <property name="title">
-      <string>Camera</string>
-     </property>
-     <addaction name="actionPerspective"/>
-     <addaction name="actionOrthographic"/>
-    </widget>
-    <widget class="QMenu" name="menuControls">
-     <property name="title">
-      <string>Controls</string>
-     </property>
-     <addaction name="actionOrbit"/>
-    </widget>
-    <widget class="QMenu" name="menuDecorations">
-     <property name="title">
-      <string>Decorations</string>
-     </property>
-     <addaction name="actionNorthArrow"/>
-     <addaction name="actionHeaderFooterLabel"/>
-    </widget>
     <widget class="QMenu" name="menuLayer">
      <property name="title">
       <string>Layer</string>
      </property>
      <addaction name="actionAddPointCloudLayer"/>
     </widget>
-    <widget class="QMenu" name="menuNavigation">
-     <property name="title">
-      <string>Navigation</string>
-     </property>
-     <addaction name="actionNavigationWidget"/>
-    </widget>
     <addaction name="actionSceneSettings"/>
-    <addaction name="menuCamera"/>
-    <addaction name="menuControls"/>
-    <addaction name="menuNavigation"/>
     <addaction name="menuLayer"/>
-    <addaction name="menuDecorations"/>
     <addaction name="separator"/>
     <addaction name="actionReload"/>
-    <addaction name="actionResetCameraPosition"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -147,8 +116,39 @@
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menuCamera">
+     <property name="title">
+      <string>Camera</string>
+     </property>
+     <addaction name="actionPerspective"/>
+     <addaction name="actionOrthographic"/>
+    </widget>
+    <widget class="QMenu" name="menuNavigation">
+     <property name="title">
+      <string>Navigation</string>
+     </property>
+     <addaction name="actionNavigationWidget"/>
+    </widget>
+    <widget class="QMenu" name="menuDecorations">
+     <property name="title">
+      <string>Decorations</string>
+     </property>
+     <addaction name="actionNorthArrow"/>
+     <addaction name="actionHeaderFooterLabel"/>
+    </widget>
+    <addaction name="menuCamera"/>
+    <addaction name="menuNavigation"/>
+    <addaction name="menuDecorations"/>
+    <addaction name="separator"/>
+    <addaction name="actionResetCameraPosition"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuScene"/>
+   <addaction name="menuView"/>
    <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -322,20 +322,6 @@
     <string>Shift+R</string>
    </property>
   </action>
-  <action name="actionOrbit">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Orbit</string>
-   </property>
-  </action>
   <action name="actionLayer_Panel">
    <property name="checkable">
     <bool>true</bool>
@@ -422,12 +408,12 @@
   </action>
   <action name="actionNorthArrow">
    <property name="text">
-    <string>North Arrow</string>
+    <string>North Arrow...</string>
    </property>
   </action>
   <action name="actionHeaderFooterLabel">
    <property name="text">
-    <string>Header/Footer Labels</string>
+    <string>Header/Footer Labels...</string>
    </property>
   </action>
   <action name="actionSaveSettings">
