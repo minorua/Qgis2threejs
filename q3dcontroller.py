@@ -59,12 +59,13 @@ class Q3DControllerInterface(QObject):
             iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
             iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
-            iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
+
+            iface.exportSettingsUpdated.connect(self.controller.exportSettingsUpdated)
             iface.cameraChanged.connect(self.controller.switchCamera)
             iface.navStateChanged.connect(self.controller.setNavigationEnabled)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
-            iface.addLayerRequest.connect(self.controller.addLayer)
-            iface.removeLayerRequest.connect(self.controller.removeLayer)
+            iface.layerAdded.connect(self.controller.addLayer)
+            iface.layerRemoved.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
         self.dataReady.disconnect(self.iface.loadJSONObject)
@@ -78,12 +79,13 @@ class Q3DControllerInterface(QObject):
             self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
             self.iface.updateDecorationRequest.disconnect(self.controller.requestDecorationUpdate)
-            self.iface.updateExportSettingsRequest.disconnect(self.controller.requestExportSettingsUpdate)
+
+            self.iface.exportSettingsUpdated.disconnect(self.controller.exportSettingsUpdated)
             self.iface.cameraChanged.disconnect(self.controller.switchCamera)
             self.iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
-            self.iface.addLayerRequest.disconnect(self.controller.addLayer)
-            self.iface.removeLayerRequest.disconnect(self.controller.removeLayer)
+            self.iface.layerAdded.disconnect(self.controller.addLayer)
+            self.iface.layerRemoved.disconnect(self.controller.removeLayer)
 
         self.iface = None
 
@@ -413,7 +415,7 @@ class Q3DController(QObject):
         self.settings.setDecorationProperties(name, properties)
 
     @pyqtSlot(ExportSettings)
-    def requestExportSettingsUpdate(self, settings):
+    def exportSettingsUpdated(self, settings):
         if self.updating:
             self.abort()
 

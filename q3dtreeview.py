@@ -181,7 +181,7 @@ class Q3DTreeView(QTreeView):
         if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.Yes:
             return
 
-        self.iface.removeLayerRequest.emit(layer.layerId)
+        self.iface.layerRemoved.emit(layer.layerId)
         self.removeLayer(layer.layerId)
 
     def clearPointCloudLayers(self):

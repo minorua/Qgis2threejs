@@ -45,12 +45,13 @@ class Q3DViewerInterface(Q3DInterface):
     updateSceneRequest = pyqtSignal(object, bool)    # params: scene properties dict or 0 (if properties do not changes), update all
     updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
     updateDecorationRequest = pyqtSignal(str, dict)  # params: decoration name (e.g. NorthArrow, Label), properties dict
-    updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
+
+    exportSettingsUpdated = pyqtSignal(ExportSettings)    # param: export settings
     cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
     navStateChanged = pyqtSignal(bool)               # param: enabled
     previewStateChanged = pyqtSignal(bool)           # param: enabled
-    addLayerRequest = pyqtSignal(Layer)              # param: Layer object
-    removeLayerRequest = pyqtSignal(str)             # param: layerId
+    layerAdded = pyqtSignal(Layer)                   # param: Layer object
+    layerRemoved = pyqtSignal(str)                   # param: layerId
 
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
@@ -87,9 +88,6 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestDecorationUpdate(self, name, properties):
         self.updateDecorationRequest.emit(name, properties)
-
-    def requestExportSettingsUpdate(self, settings):
-        self.updateExportSettingsRequest.emit(settings)
 
 
 class Q3DWindow(QMainWindow):
@@ -251,7 +249,7 @@ class Q3DWindow(QMainWindow):
         settings.loadSettingsFromFile(filename)
         self.ui.treeView.updateLayersCheckState(settings)
 
-        self.iface.requestExportSettingsUpdate(settings)
+        self.iface.exportSettingsUpdated.emit(settings)
 
         self.lastDir = os.path.dirname(filename)
 
@@ -282,7 +280,7 @@ class Q3DWindow(QMainWindow):
         settings.clear()
         settings.updateLayerList()
 
-        self.iface.requestExportSettingsUpdate(settings)
+        self.iface.exportSettingsUpdated.emit(settings)
 
     def alwaysOnTopToggled(self, checked):
         if checked:
@@ -416,7 +414,7 @@ class Q3DWindow(QMainWindow):
         properties = {"url": url}
 
         layer = Layer(layerId, name, q3dconst.TYPE_POINTCLOUD, properties, visible=True)
-        self.iface.addLayerRequest.emit(layer)
+        self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)
 
     def cameraChanged(self, action):
