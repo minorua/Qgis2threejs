@@ -854,6 +854,8 @@ limitations:
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
   app.buildNorthArrow = function (container, rotation) {
+    container.style.display = "block";
+
     app.renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true});
     app.renderer2.setClearColor(0, 0);
     app.renderer2.setSize(container.clientWidth, container.clientHeight);
@@ -892,6 +894,8 @@ limitations:
   app.buildViewHelper = function (container) {
 
     if (app.renderer3 === undefined) {
+      container.style.display = "block";
+
       app.renderer3 = new THREE.WebGLRenderer({alpha: true, antialias: true});
       app.renderer3.setClearColor(0, 0);
       app.renderer3.setSize(container.clientWidth, container.clientHeight);
