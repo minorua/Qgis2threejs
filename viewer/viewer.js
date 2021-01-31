@@ -116,10 +116,10 @@ function loadEnd(name) {
 function loadAborted() {
 }
 
-function init(off_screen, ortho_camera, debug_mode) {
+function init(off_screen, debug_mode) {
 
   var container = document.getElementById("view");
-  app.init(container, false);
+  app.init(container);
 
   if (off_screen) {
     document.getElementById("progress").style.display = "none";
@@ -141,10 +141,6 @@ function init(off_screen, ortho_camera, debug_mode) {
   app.addEventListener("sceneLoadError", function () {
     pyObj.onSceneLoadError();
   });
-
-  if (ortho_camera) {
-    switchCamera(true);
-  }
 
   if (debug_mode) {
     displayFPS();

@@ -60,7 +60,7 @@ class Q3DControllerInterface(QObject):
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
             iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
             iface.updateExportSettingsRequest.connect(self.controller.requestExportSettingsUpdate)
-            iface.switchCameraRequest.connect(self.controller.requestCameraSwitch)
+            iface.cameraChanged.connect(self.controller.switchCamera)
             iface.navStateChanged.connect(self.controller.setNavigationEnabled)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
             iface.addLayerRequest.connect(self.controller.addLayer)
@@ -79,7 +79,8 @@ class Q3DControllerInterface(QObject):
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
             self.iface.updateDecorationRequest.disconnect(self.controller.requestDecorationUpdate)
             self.iface.updateExportSettingsRequest.disconnect(self.controller.requestExportSettingsUpdate)
-            self.iface.switchCameraRequest.disconnect(self.controller.requestCameraSwitch)
+            self.iface.cameraChanged.disconnect(self.controller.switchCamera)
+            self.iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
             self.iface.addLayerRequest.disconnect(self.controller.addLayer)
             self.iface.removeLayerRequest.disconnect(self.controller.removeLayer)
@@ -420,7 +421,7 @@ class Q3DController(QObject):
         settings.copyTo(self.settings)
 
         # camera and decorations
-        self.requestCameraSwitch(self.settings.isOrthoCamera())
+        self.switchCamera(self.settings.isOrthoCamera())
 
         for name in ExportSettings.DECOR_LIST:
             self.requestDecorationUpdate(name, self.settings.decorationProperties(name))
@@ -429,7 +430,7 @@ class Q3DController(QObject):
         self.requestSceneUpdate()
 
     @pyqtSlot(bool)
-    def requestCameraSwitch(self, is_ortho=False):
+    def switchCamera(self, is_ortho=False):
         self.settings.setCamera(is_ortho)
         self.iface.runScript("switchCamera({0});".format(js_bool(is_ortho)))
 

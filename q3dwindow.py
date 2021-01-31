@@ -46,7 +46,7 @@ class Q3DViewerInterface(Q3DInterface):
     updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
     updateDecorationRequest = pyqtSignal(str, dict)  # params: decoration name (e.g. NorthArrow, Label), properties dict
     updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
-    switchCameraRequest = pyqtSignal(bool)           # params: is ortho camera
+    cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
     navStateChanged = pyqtSignal(bool)               # param: enabled
     previewStateChanged = pyqtSignal(bool)           # param: enabled
     addLayerRequest = pyqtSignal(Layer)              # param: Layer object
@@ -87,9 +87,6 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestDecorationUpdate(self, name, properties):
         self.updateDecorationRequest.emit(name, properties)
-
-    def requestCameraSwitch(self, is_ortho=False):
-        self.switchCameraRequest.emit(is_ortho)
 
     def requestExportSettingsUpdate(self, settings):
         self.updateExportSettingsRequest.emit(settings)
@@ -203,7 +200,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionClearSettings.triggered.connect(self.clearSettings)
         self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
-        self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
+        self.ui.actionGroupCamera.triggered.connect(self.cameraChanged)
         self.ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
         self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
@@ -239,9 +236,6 @@ class Q3DWindow(QMainWindow):
         self.ui.statusbar.addPermanentWidget(w)
         self.ui.checkBoxPreview = w
         self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
-
-    def switchCamera(self, action):
-        self.iface.requestCameraSwitch(action == self.ui.actionOrthographic)
 
     def loadSettings(self):
         # file open dialog
@@ -424,6 +418,9 @@ class Q3DWindow(QMainWindow):
         layer = Layer(layerId, name, q3dconst.TYPE_POINTCLOUD, properties, visible=True)
         self.iface.addLayerRequest.emit(layer)
         self.ui.treeView.addLayer(layer)
+
+    def cameraChanged(self, action):
+        self.iface.cameraChanged.emit(action == self.ui.actionOrthographic)
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self.settings.decorationProperties("NorthArrow"), self)

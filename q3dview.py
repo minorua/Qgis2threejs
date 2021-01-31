@@ -164,6 +164,9 @@ class Q3DWebPage(QWebPage):
         if self.exportMode:
             self.runScript("Q3D.Config.exportMode = true;")
 
+        if self.settings.isOrthoCamera():
+            self.runScript("Q3D.Config.orthoCamera = true;")
+
         p = self.settings.decorationProperties("NorthArrow")
         if p.get("visible"):
             self.runScript("Q3D.Config.northArrow.visible = true;")
@@ -180,9 +183,7 @@ class Q3DWebPage(QWebPage):
             self.runScript('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
 
         # call init()
-        self.runScript("init({}, {}, {});".format(js_bool(self.offScreen),
-                                                  js_bool(self.settings.isOrthoCamera()),
-                                                  DEBUG_MODE))
+        self.runScript("init({}, {});".format(js_bool(self.offScreen), DEBUG_MODE))
 
         self.ready.emit()
 
