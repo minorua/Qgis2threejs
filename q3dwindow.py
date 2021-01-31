@@ -47,7 +47,8 @@ class Q3DViewerInterface(Q3DInterface):
     updateDecorationRequest = pyqtSignal(str, dict)  # params: decoration name (e.g. NorthArrow, Label), properties dict
     updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
     switchCameraRequest = pyqtSignal(bool)           # params: is ortho camera
-    previewStateChanged = pyqtSignal(bool)           # param: visible
+    navStateChanged = pyqtSignal(bool)               # param: enabled
+    previewStateChanged = pyqtSignal(bool)           # param: enabled
     addLayerRequest = pyqtSignal(Layer)              # param: Layer object
     removeLayerRequest = pyqtSignal(str)             # param: layerId
 
@@ -191,6 +192,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
         self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
         self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
+        self.ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
         # signal-slot connections
         self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
@@ -202,6 +204,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         self.ui.actionGroupCamera.triggered.connect(self.switchCamera)
+        self.ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
         self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)

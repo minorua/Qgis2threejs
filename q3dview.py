@@ -169,6 +169,11 @@ class Q3DWebPage(QWebPage):
             self.runScript("Q3D.Config.northArrow.visible = true;")
             self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
 
+        # navigation widget
+        if not self.settings.isNavigationEnabled():
+            self.runScript("Q3D.Config.navigation.enabled = false;")
+
+        # labels
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:

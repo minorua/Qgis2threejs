@@ -159,6 +159,13 @@ class ThreeJSExporter(ThreeJSBuilder):
         # controls
         files.append({"files": ["js/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
 
+        if self.settings.isNavigationEnabled():
+            files.append({"files": ["js/threejs/editor/ViewHelper.js"], "dest": "threejs"})
+
+        # outline effect
+        if self.settings.useOutlineEffect():
+            files.append({"files": ["js/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
+
         # template specific libraries (files)
         config = self.settings.templateConfig()
         for f in config.get("files", "").strip().split(","):
@@ -174,10 +181,6 @@ class ThreeJSExporter(ThreeJSBuilder):
             if len(p) > 1:
                 ds["dest"] = p[1]
             files.append(ds)
-
-        # outline effect
-        if self.settings.useOutlineEffect():
-            files.append({"files": ["js/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
 
         # proj4js
         if self.settings.coordsInWGS84():
@@ -204,6 +207,9 @@ class ThreeJSExporter(ThreeJSBuilder):
         # three.js and controls
         files.append("./threejs/three.min.js")
         files.append("./threejs/{}".format(self.settings.controls()))
+
+        if self.settings.isNavigationEnabled():
+            files.append("./threejs/ViewHelper.js")
 
         # outline effect
         if self.settings.useOutlineEffect():

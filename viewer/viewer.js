@@ -117,6 +117,7 @@ function loadAborted() {
 }
 
 function init(off_screen, ortho_camera, debug_mode) {
+
   var container = document.getElementById("view");
   app.init(container, false);
 
@@ -274,6 +275,11 @@ function switchCamera(is_ortho) {
   app.buildCamera(is_ortho);
   app.controls.object = app.camera;
   console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
+
+  if (app.viewHelper !== undefined) {
+    app.buildViewHelper(document.getElementById("navigation"));
+  }
+
   app.render(true);
 }
 
@@ -291,6 +297,21 @@ function setCameraState(state) {
   app.camera.position.set(p.x, p.y, p.z);
   app.controls.target.set(t.x, t.y, t.z);
   app.camera.lookAt(app.controls.target);
+}
+
+function setNavigationEnabled(enabled) {
+  var elm = document.getElementById("navigation");
+  elm.style.display = (enabled) ? "block" : "none";
+
+  if (enabled) {
+    if (app.viewHelper === undefined) {
+      app.buildViewHelper(elm);
+      app.viewHelper.render(app.renderer3);
+    }
+  }
+  else {
+    app.viewHelper = undefined;
+  }
 }
 
 function setNorthArrowVisible(visible) {

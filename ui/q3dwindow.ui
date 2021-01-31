@@ -41,7 +41,7 @@
      <x>0</x>
      <y>0</y>
      <width>757</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuScene">
@@ -74,9 +74,16 @@
      </property>
      <addaction name="actionAddPointCloudLayer"/>
     </widget>
+    <widget class="QMenu" name="menuNavigation">
+     <property name="title">
+      <string>Navigation</string>
+     </property>
+     <addaction name="actionNavigationWidget"/>
+    </widget>
     <addaction name="actionSceneSettings"/>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
+    <addaction name="menuNavigation"/>
     <addaction name="menuLayer"/>
     <addaction name="menuDecorations"/>
     <addaction name="separator"/>
@@ -436,6 +443,14 @@
   <action name="actionAddPointCloudLayer">
    <property name="text">
     <string>Add Point Cloud Layer...</string>
+   </property>
+  </action>
+  <action name="actionNavigationWidget">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Navigation Widget</string>
    </property>
   </action>
  </widget>
