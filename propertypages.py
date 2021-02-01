@@ -380,10 +380,11 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.initLayerComboBox()
 
-        self.comboBox_TextureSize.addItem("Map Canvas Width")
-        self.comboBox_TextureSize.insertSeparator(1)
+        self.comboBox_TextureSize.addItem("512")
         self.comboBox_TextureSize.addItem("1024")
         self.comboBox_TextureSize.addItem("2048")
+        self.comboBox_TextureSize.insertSeparator(3)
+        self.comboBox_TextureSize.addItem("Map Canvas Width")
 
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
         self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
@@ -404,12 +405,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
 
         if properties:
-            if "toolButton_EdgeColor" not in properties:        # if loaded properties were saved in plugin version < 2.6
-                properties["comboBox_TextureSize"] = "MCW"
+            if "toolButton_EdgeColor" not in properties:        # this means "if loaded properties were saved in plugin version < 2.6"
+                properties["comboBox_TextureSize"] = "Map Canvas Width"
         else:
             # use default properties if properties is not set
             properties = self.properties()
             properties["toolButton_SideColor"] = DEF_SETS.SIDE_COLOR
+            properties["comboBox_TextureSize"] = 1024
 
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
