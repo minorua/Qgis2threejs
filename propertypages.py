@@ -26,7 +26,7 @@ import re
 from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
 from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QFileDialog, QLineEdit, QMenu, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor, QCursor
-from qgis.core import QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import Qgis, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 try:
@@ -229,7 +229,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
                   "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
 
-        proj = QgsProject.instance().crs().toProj4()
+        crs = QgsProject.instance().crs()
+        proj = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
         m = re.search(r"\+proj=(\w+)", proj)
         proj_supported = bool(m and m.group(1) in projs)
 
