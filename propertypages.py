@@ -226,8 +226,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         # Supported projections
         # https://github.com/proj4js/proj4js
         projs = ["longlat", "merc"]
-        projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "gnom", "krovak", "laea", "lcc", "mill", "moll",
-                  "nzmg", "omerc", "poly", "sinu", "somerc", "stere", "sterea", "tmerc", "utm", "vandg"]
+        projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "etmerc", "geocent", "gnom", "krovak", "laea", "lcc", "mill", "moll",
+                  "nzmg", "omerc", "ortho", "poly", "qsc", "robin", "sinu", "somerc", "stere", "sterea", "tmerc", "tpers", "utm", "vandg"]
 
         crs = QgsProject.instance().crs()
         proj = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
