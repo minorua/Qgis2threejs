@@ -111,11 +111,11 @@ class ExportSettings:
     CAMERA = "CAMERA"
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
-    NAVIGATION = "NAV"
-    DECOR = "DECOR"
+    WIDGETS = "WIDGETS"
     OPTIONS = "OPT"   # web export options
+    DECOR = "DECOR"   # obsolete since version 2.6
 
-    DECOR_LIST = ["NorthArrow", "Label"]
+    WIDGET_LIST = ["Navi", "NorthArrow", "Label"]
 
     def __init__(self):
         self.data = {}
@@ -150,37 +150,8 @@ class ExportSettings:
         t.localMode = self.localMode
         t.nextJsLayerId = self.nextJsLayerId
 
-    def sceneProperties(self):
-        return self.data.get(ExportSettings.SCENE, {})
-
-    def setSceneProperties(self, properties):
-        self.data[ExportSettings.SCENE] = properties
-        self._baseExtent = None
-        self._mapTo3d = None
-
-    def coordsInWGS84(self):
-        return self.sceneProperties().get("radioButton_WGS84", False)
-
-    def materialType(self):
-        return self.sceneProperties().get("comboBox_MaterialType", 0)
-
-    def useOutlineEffect(self):
-        return self.sceneProperties().get("checkBox_Outline", False)
-
-    def isOrthoCamera(self):
-        return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
-
-    def setCamera(self, is_ortho):
-        self.data[ExportSettings.CAMERA] = "ORTHO" if is_ortho else "PERSPECTIVE"
-
-    def controls(self):
-        ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
-        if ctrl:
-            return ctrl
-        return QSettings().value("/Qgis2threejs/lastControls", DEF_SETS.CONTROLS, type=str)
-
-    def setControls(self, name):
-        self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
+    def get(self, key, default=None):
+        return self.data.get(key, default)
 
     def loadSettings(self, settings):
         self.data = settings
@@ -232,48 +203,6 @@ class ExportSettings:
         except Exception as e:
             logMessage("Failed to save export settings: " + str(e))
             return False
-
-    def template(self):
-        return self.data.get("Template", DEF_SETS.TEMPLATE)
-
-    def setTemplate(self, filepath):
-        """filepath: relative path from html_templates directory or absolute path to a template html file"""
-        self.data["Template"] = filepath
-        self._templateConfig = None
-
-    def outputFileName(self):
-        return self.data.get("OutputFilename", "")
-
-    def outputFileTitle(self):
-        return os.path.splitext(os.path.basename(self.outputFileName()))[0]
-
-    def outputDirectory(self):
-        return os.path.split(self.outputFileName())[0]
-
-    def outputDataDirectory(self):
-        return os.path.join(self.outputDirectory(), "data", self.outputFileTitle())
-
-    def setOutputFilename(self, filepath=""):
-        self.data["OutputFilename"] = filepath
-
-    def title(self):
-        return self.data.get("Title", "")
-
-    def setTitle(self, title):
-        self.data["Title"] = title
-
-    def options(self):
-        return self.data.get(ExportSettings.OPTIONS, {})
-
-    def option(self, key):
-        return self.data.get(ExportSettings.OPTIONS, {}).get(key)
-
-    def setOption(self, key, value):
-        self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
-        self.data[ExportSettings.OPTIONS][key] = value
-
-    def clearOptions(self):
-        self.data[ExportSettings.OPTIONS] = {}
 
     def setMapSettings(self, settings):
         """settings: QgsMapSettings"""
@@ -329,12 +258,6 @@ class ExportSettings:
 
         return self._mapTo3d
 
-    def templateConfig(self):
-        if self._templateConfig:
-            return self._templateConfig
-        self._templateConfig = getTemplateConfig(self.template())
-        return self._templateConfig
-
     def wgs84Center(self):
         if self.crs and self.baseExtent():
             wgs84 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -342,70 +265,97 @@ class ExportSettings:
             return transform.transform(self.baseExtent().center())
         return None
 
-    def get(self, key, default=None):
-        return self.data.get(key, default)
-
     def checkValidity(self):
-        """check validity of export settings. return error message as unicode. return None if valid."""
+        """check validity of export settings. return error message as str. return None if valid."""
         return None
 
-    def demProviderByLayerId(self, id):
-        if id == "FLAT":
-            return FlatDEMProvider()
+    # web export
+    def template(self):
+        return self.data.get("Template", DEF_SETS.TEMPLATE)
 
-        if id.startswith("plugin:"):
-            provider = pluginManager().findDEMProvider(id[7:])
-            if provider:
-                return provider(str(self.crs.toWkt()))
+    def setTemplate(self, filepath):
+        """filepath: relative path from html_templates directory or absolute path to a template html file"""
+        self.data["Template"] = filepath
+        self._templateConfig = None
 
-            logMessage('Plugin "{0}" not found'.format(id))
+    def templateConfig(self):
+        if self._templateConfig:
+            return self._templateConfig
+        self._templateConfig = getTemplateConfig(self.template())
+        return self._templateConfig
 
-        else:
-            layer = QgsProject.instance().mapLayer(id)
-            if layer:
-                return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+    def outputFileName(self):
+        return self.data.get("OutputFilename", "")
 
-        return FlatDEMProvider()
+    def outputFileTitle(self):
+        return os.path.splitext(os.path.basename(self.outputFileName()))[0]
 
-    def demGridSegments(self, layerId):
-        if layerId == "FLAT":
-            return QSize(1, 1)
+    def outputDirectory(self):
+        return os.path.split(self.outputFileName())[0]
 
-        layer = self.getLayer(layerId)
-        if layer:
-            return calculateGridSegments(self.baseExtent(),
-                                         layer.properties.get("horizontalSlider_DEMSize", 2),
-                                         layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
-        return QSize(1, 1)
+    def outputDataDirectory(self):
+        return os.path.join(self.outputDirectory(), "data", self.outputFileTitle())
 
+    def setOutputFilename(self, filepath=""):
+        self.data["OutputFilename"] = filepath
+
+    def title(self):
+        return self.data.get("Title", "")
+
+    def setTitle(self, title):
+        self.data["Title"] = title
+
+    def options(self):
+        return self.data.get(ExportSettings.OPTIONS, {})
+
+    def option(self, key):
+        return self.data.get(ExportSettings.OPTIONS, {}).get(key)
+
+    def setOption(self, key, value):
+        self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
+        self.data[ExportSettings.OPTIONS][key] = value
+
+    def clearOptions(self):
+        self.data[ExportSettings.OPTIONS] = {}
+
+    # scene
+    def sceneProperties(self):
+        return self.data.get(ExportSettings.SCENE, {})
+
+    def setSceneProperties(self, properties):
+        self.data[ExportSettings.SCENE] = properties
+        self._baseExtent = None
+        self._mapTo3d = None
+
+    def coordsInWGS84(self):
+        return self.sceneProperties().get("radioButton_WGS84", False)
+
+    def materialType(self):
+        return self.sceneProperties().get("comboBox_MaterialType", 0)
+
+    def useOutlineEffect(self):
+        return self.sceneProperties().get("checkBox_Outline", False)
+
+    # camera
+    def isOrthoCamera(self):
+        return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
+
+    def setCamera(self, is_ortho):
+        self.data[ExportSettings.CAMERA] = "ORTHO" if is_ortho else "PERSPECTIVE"
+
+    # controls
+    def controls(self):
+        ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
+        if ctrl:
+            return ctrl
+        return QSettings().value("/Qgis2threejs/lastControls", DEF_SETS.CONTROLS, type=str)
+
+    def setControls(self, name):
+        self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
+
+    # layer
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])
-
-    def addLayer(self, layer):
-        """append an additional layer to layer list"""
-        layer = layer.clone()
-        layer.jsLayerId = self.nextJsLayerId
-        self.nextJsLayerId += 1
-
-        layers = self.getLayerList()
-        layers.append(layer)
-        self.data[ExportSettings.LAYERS] = layers
-        return layer
-
-    def insertLayer(self, index, layer):
-        """insert an additional layer to layer list at given index"""
-        layer = layer.clone()
-        layer.jsLayerId = self.nextJsLayerId
-        self.nextJsLayerId += 1
-
-        layers = self.getLayerList()
-        layers.insert(index, layer)
-        self.data[ExportSettings.LAYERS] = layers
-        return layer
-
-    def removeLayer(self, layerId):
-        """remove layer with given layer ID from layer list"""
-        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.getLayerList() if lyr.layerId != layerId]
 
     def updateLayerList(self):
         """Updates layer elements in settings using current project layer structure.
@@ -456,41 +406,100 @@ class ExportSettings:
                     return layer
         return None
 
-    def isNavigationEnabled(self):
-        return self.data.get(ExportSettings.NAVIGATION, {}).get("enabled", True)
+    def addLayer(self, layer):
+        """append an additional layer to layer list"""
+        layer = layer.clone()
+        layer.jsLayerId = self.nextJsLayerId
+        self.nextJsLayerId += 1
 
-    def setNavigationEnabled(self, enabled):
-        self.data[ExportSettings.NAVIGATION] = {"enabled": enabled}
+        layers = self.getLayerList()
+        layers.append(layer)
+        self.data[ExportSettings.LAYERS] = layers
+        return layer
 
-    def decorationProperties(self, name):
-        decor = self.data.get(ExportSettings.DECOR, {})
+    def insertLayer(self, index, layer):
+        """insert an additional layer to layer list at given index"""
+        layer = layer.clone()
+        layer.jsLayerId = self.nextJsLayerId
+        self.nextJsLayerId += 1
+
+        layers = self.getLayerList()
+        layers.insert(index, layer)
+        self.data[ExportSettings.LAYERS] = layers
+        return layer
+
+    def removeLayer(self, layerId):
+        """remove layer with given layer ID from layer list"""
+        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.getLayerList() if lyr.layerId != layerId]
+
+    # layer - DEM
+    def demProviderByLayerId(self, id):
+        if id == "FLAT":
+            return FlatDEMProvider()
+
+        if id.startswith("plugin:"):
+            provider = pluginManager().findDEMProvider(id[7:])
+            if provider:
+                return provider(str(self.crs.toWkt()))
+
+            logMessage('Plugin "{0}" not found'.format(id))
+
+        else:
+            layer = QgsProject.instance().mapLayer(id)
+            if layer:
+                return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+
+        return FlatDEMProvider()
+
+    def demGridSegments(self, layerId):
+        if layerId == "FLAT":
+            return QSize(1, 1)
+
+        layer = self.getLayer(layerId)
+        if layer:
+            return calculateGridSegments(self.baseExtent(),
+                                         layer.properties.get("horizontalSlider_DEMSize", 2),
+                                         layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
+        return QSize(1, 1)
+
+    # widgets
+    def widgetProperties(self, name):
+        """name: widget name. Navi, NorthArrow or Label."""
+        widgets = self.data.get(ExportSettings.WIDGETS, self.data.get(ExportSettings.DECOR, {}))
+
         if name == "Label":
-            p = decor.get("Label")
+            p = widgets.get("Label")
             if p:
                 return p
             # for backward compatibility
-            return {"Header": decor.get("HeaderLabel", ""),
-                    "Footer": decor.get("FooterLabel", "")}
+            return {"Header": widgets.get("HeaderLabel", ""),
+                    "Footer": widgets.get("FooterLabel", "")}
 
-        return decor.get(name, {})
+        return widgets.get(name, {})
 
-    def setDecorationProperties(self, name, properties):
-        decor = self.data.get(ExportSettings.DECOR, {})
-        decor[name] = properties
-        self.data[ExportSettings.DECOR] = decor
+    def setWidgetProperties(self, name, properties):
+        widgets = self.data.get(ExportSettings.WIDGETS, self.data.get(ExportSettings.DECOR, {}))
+        widgets[name] = properties
+        self.data[ExportSettings.WIDGETS] = widgets
+
+    def isNavigationEnabled(self):
+        return self.widgetProperties("Navi").get("enabled", True)
+
+    def setNavigationEnabled(self, enabled):
+        self.setWidgetProperties("Navi", {"enabled": enabled})
 
     def headerLabel(self):
-        return self.decorationProperties("Label").get("Header", "")
+        return self.widgetProperties("Label").get("Header", "")
 
     def setHeaderLabel(self, text):
-        p = self.decorationProperties("Label")
+        p = self.widgetProperties("Label")
         p["Header"] = str(text)
-        self.setDecorationProperties("Label", p)
+        self.setWidgetProperties("Label", p)
 
     def footerLabel(self):
-        return self.decorationProperties("Label").get("Footer", "")
+        return self.widgetProperties("Label").get("Footer", "")
 
     def setFooterLabel(self, text):
-        p = self.decorationProperties("Label")
+        p = self.widgetProperties("Label")
         p["Footer"] = str(text)
-        self.setDecorationProperties("Label", p)
+        self.setWidgetProperties("Label", p)

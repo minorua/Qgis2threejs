@@ -167,7 +167,7 @@ class Q3DWebPage(QWebPage):
         if self.settings.isOrthoCamera():
             self.runScript("Q3D.Config.orthoCamera = true;")
 
-        p = self.settings.decorationProperties("NorthArrow")
+        p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
             self.runScript("Q3D.Config.northArrow.visible = true;")
             self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))

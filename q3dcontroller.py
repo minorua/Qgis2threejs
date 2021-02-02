@@ -58,7 +58,7 @@ class Q3DControllerInterface(QObject):
             iface.abortRequest.connect(self.controller.abort)
             iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
-            iface.updateDecorationRequest.connect(self.controller.requestDecorationUpdate)
+            iface.updateWidgetRequest.connect(self.controller.requestWidgetUpdate)
 
             iface.exportSettingsUpdated.connect(self.controller.exportSettingsUpdated)
             iface.cameraChanged.connect(self.controller.switchCamera)
@@ -78,7 +78,7 @@ class Q3DControllerInterface(QObject):
             self.iface.abortRequest.disconnect(self.controller.abort)
             self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
-            self.iface.updateDecorationRequest.disconnect(self.controller.requestDecorationUpdate)
+            self.iface.updateWidgetRequest.disconnect(self.controller.requestWidgetUpdate)
 
             self.iface.exportSettingsUpdated.disconnect(self.controller.exportSettingsUpdated)
             self.iface.cameraChanged.disconnect(self.controller.switchCamera)
@@ -400,7 +400,7 @@ class Q3DController(QObject):
             self.hideLayer(layer)
 
     @pyqtSlot(str, dict)
-    def requestDecorationUpdate(self, name, properties):
+    def requestWidgetUpdate(self, name, properties):
         if name == "NorthArrow":
             self.iface.runScript("setNorthArrowColor({0});".format(properties.get("color", 0)))
             self.iface.runScript("setNorthArrowVisible({0});".format(js_bool(properties.get("visible"))))
@@ -412,7 +412,7 @@ class Q3DController(QObject):
         else:
             return
 
-        self.settings.setDecorationProperties(name, properties)
+        self.settings.setWidgetProperties(name, properties)
 
     @pyqtSlot(ExportSettings)
     def exportSettingsUpdated(self, settings):
@@ -422,11 +422,12 @@ class Q3DController(QObject):
         self.hideAllLayers()
         settings.copyTo(self.settings)
 
-        # camera and decorations
+        # camera
         self.switchCamera(self.settings.isOrthoCamera())
 
-        for name in ExportSettings.DECOR_LIST:
-            self.requestDecorationUpdate(name, self.settings.decorationProperties(name))
+        # widgets
+        for name in ExportSettings.WIDGET_LIST:
+            self.requestWidgetUpdate(name, self.settings.widgetProperties(name))
 
         # scene
         self.requestSceneUpdate()

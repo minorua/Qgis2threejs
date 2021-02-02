@@ -127,22 +127,17 @@
      <addaction name="actionPerspective"/>
      <addaction name="actionOrthographic"/>
     </widget>
-    <widget class="QMenu" name="menuNavigation">
+    <widget class="QMenu" name="menuWidgets">
      <property name="title">
-      <string>Navigation</string>
+      <string>Widgets</string>
      </property>
      <addaction name="actionNavigationWidget"/>
-    </widget>
-    <widget class="QMenu" name="menuDecorations">
-     <property name="title">
-      <string>Decorations</string>
-     </property>
+     <addaction name="separator"/>
      <addaction name="actionNorthArrow"/>
      <addaction name="actionHeaderFooterLabel"/>
     </widget>
     <addaction name="menuCamera"/>
-    <addaction name="menuNavigation"/>
-    <addaction name="menuDecorations"/>
+    <addaction name="menuWidgets"/>
     <addaction name="separator"/>
     <addaction name="actionResetCameraPosition"/>
    </widget>

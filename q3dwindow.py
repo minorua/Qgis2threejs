@@ -44,7 +44,7 @@ class Q3DViewerInterface(Q3DInterface):
     abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
     updateSceneRequest = pyqtSignal(object, bool)    # params: scene properties dict or 0 (if properties do not changes), update all
     updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
-    updateDecorationRequest = pyqtSignal(str, dict)  # params: decoration name (e.g. NorthArrow, Label), properties dict
+    updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
 
     exportSettingsUpdated = pyqtSignal(ExportSettings)    # param: export settings
     cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
@@ -86,8 +86,8 @@ class Q3DViewerInterface(Q3DInterface):
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
 
-    def requestDecorationUpdate(self, name, properties):
-        self.updateDecorationRequest.emit(name, properties)
+    def requestWidgetUpdate(self, name, properties):
+        self.updateWidgetRequest.emit(name, properties)
 
 
 class Q3DWindow(QMainWindow):
@@ -235,6 +235,102 @@ class Q3DWindow(QMainWindow):
         self.ui.checkBoxPreview = w
         self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
 
+    def changeEvent(self, event):
+        if event.type() == QEvent.WindowStateChange:
+            if self.windowState() & Qt.WindowMinimized:
+                self.runScript("app.pause();")
+            else:
+                self.runScript("app.resume();")
+
+    def runScript(self, string, message="", sourceID="Q3DWindow.py"):
+        return self.ui.webView.runScript(string, message, sourceID=sourceID)
+
+    # layer tree view
+    def showLayerPropertiesDialog(self, layer):
+        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
+        dialog.propertiesAccepted.connect(self.updateLayerProperties)
+        dialog.showLayerProperties(layer)
+
+    # @pyqtSlot(Layer)
+    def updateLayerProperties(self, layer):
+        orig_layer = self.settings.getLayer(layer.layerId)
+
+        if layer.name != orig_layer.name:
+            item = self.ui.treeView.getItemByLayerId(layer.layerId)
+            if item:
+                item.setText(layer.name)
+
+        if layer.properties != orig_layer.properties:
+            layer.updated = True
+        self.iface.requestLayerUpdate(layer)
+
+    def getDefaultProperties(self, layer):
+        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
+        dialog.setLayer(layer)
+        return dialog.page.properties()
+
+    # console
+    def copyConsole(self):
+        # copy selected item(s) text to clipboard
+        indices = self.ui.listWidgetDebugView.selectionModel().selectedIndexes()
+        text = "\n".join([str(index.data(Qt.DisplayRole)) for index in indices])
+        if text:
+            QApplication.clipboard().setText(text)
+
+    def clearConsole(self):
+        self.ui.listWidgetDebugView.clear()
+
+    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+        if sourceID:
+            source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
+            text = "{}: {}".format(source, message)
+        else:
+            text = message
+        self.ui.listWidgetDebugView.addItem(text)
+
+    def runInputBoxString(self):
+        text = self.ui.lineEditInputBox.text()
+        self.ui.listWidgetDebugView.addItem("> " + text)
+        result = self.ui.webView._page.mainFrame().evaluateJavaScript(text)
+        if result is not None:
+            self.ui.listWidgetDebugView.addItem("<- {}".format(result))
+        self.ui.listWidgetDebugView.scrollToBottom()
+        self.ui.lineEditInputBox.clear()
+
+    # File menu
+    def exportToWeb(self):
+        from .exporttowebdialog import ExportToWebDialog
+
+        dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
+        dialog.show()
+        dialog.exec_()
+
+    def saveAsImage(self):
+        if not self.ui.checkBoxPreview.isChecked():
+            QMessageBox.warning(self, "Save Scene as Image", "You need to enable the preview to use this function.")
+            return
+
+        from .imagesavedialog import ImageSaveDialog
+        dialog = ImageSaveDialog(self)
+        dialog.exec_()
+
+    def saveAsGLTF(self):
+        if not self.ui.checkBoxPreview.isChecked():
+            QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
+            return
+
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Current Scene as glTF"),
+                                                  self.lastDir or QDir.homePath(),
+                                                  "glTF files (*.gltf);;Binary glTF files (*.glb)")
+        if filename:
+            self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
+
+            self.ui.webView._page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
+            self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
+
+            self.ui.statusbar.clearMessage()
+            self.lastDir = os.path.dirname(filename)
+
     def loadSettings(self):
         # file open dialog
         directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
@@ -282,89 +378,13 @@ class Q3DWindow(QMainWindow):
 
         self.iface.exportSettingsUpdated.emit(settings)
 
-    def alwaysOnTopToggled(self, checked):
-        if checked:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-        self.show()
-
-    def changeEvent(self, event):
-        if event.type() == QEvent.WindowStateChange:
-            if self.windowState() & Qt.WindowMinimized:
-                self.runScript("app.pause();")
-            else:
-                self.runScript("app.resume();")
-
-    def copyConsole(self):
-        # copy selected item(s) text to clipboard
-        indices = self.ui.listWidgetDebugView.selectionModel().selectedIndexes()
-        text = "\n".join([str(index.data(Qt.DisplayRole)) for index in indices])
-        if text:
-            QApplication.clipboard().setText(text)
-
-    def clearConsole(self):
-        self.ui.listWidgetDebugView.clear()
-
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
-        if sourceID:
-            source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
-            text = "{}: {}".format(source, message)
-        else:
-            text = message
-        self.ui.listWidgetDebugView.addItem(text)
-
-    def runInputBoxString(self):
-        text = self.ui.lineEditInputBox.text()
-        self.ui.listWidgetDebugView.addItem("> " + text)
-        result = self.ui.webView._page.mainFrame().evaluateJavaScript(text)
-        if result is not None:
-            self.ui.listWidgetDebugView.addItem("<- {}".format(result))
-        self.ui.listWidgetDebugView.scrollToBottom()
-        self.ui.lineEditInputBox.clear()
-
-    def runScript(self, string, message="", sourceID="Q3DWindow.py"):
-        return self.ui.webView.runScript(string, message, sourceID=sourceID)
-
-    def exportToWeb(self):
-        from .exporttowebdialog import ExportToWebDialog
-
-        dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
-        dialog.show()
-        dialog.exec_()
-
-    def saveAsImage(self):
-        if not self.ui.checkBoxPreview.isChecked():
-            QMessageBox.warning(self, "Save Scene as Image", "You need to enable the preview to use this function.")
-            return
-
-        from .imagesavedialog import ImageSaveDialog
-        dialog = ImageSaveDialog(self)
-        dialog.exec_()
-
-    def saveAsGLTF(self):
-        if not self.ui.checkBoxPreview.isChecked():
-            QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
-            return
-
-        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Current Scene as glTF"),
-                                                  self.lastDir or QDir.homePath(),
-                                                  "glTF files (*.gltf);;Binary glTF files (*.glb)")
-        if filename:
-            self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
-
-            self.ui.webView._page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
-            self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
-
-            self.ui.statusbar.clearMessage()
-            self.lastDir = os.path.dirname(filename)
-
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
         dialog = SettingsDialog(self)
         if dialog.exec_():
             pluginManager().reloadPlugins()
 
+    # Scene menu
     def showScenePropertiesDialog(self):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
@@ -374,29 +394,6 @@ class Q3DWindow(QMainWindow):
     def updateSceneProperties(self, properties):
         if self.settings.sceneProperties() != properties:
             self.iface.requestSceneUpdate(properties)
-
-    def showLayerPropertiesDialog(self, layer):
-        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
-        dialog.propertiesAccepted.connect(self.updateLayerProperties)
-        dialog.showLayerProperties(layer)
-
-    # @pyqtSlot(Layer)
-    def updateLayerProperties(self, layer):
-        orig_layer = self.settings.getLayer(layer.layerId)
-
-        if layer.name != orig_layer.name:
-            item = self.ui.treeView.getItemByLayerId(layer.layerId)
-            if item:
-                item.setText(layer.name)
-
-        if layer.properties != orig_layer.properties:
-            layer.updated = True
-        self.iface.requestLayerUpdate(layer)
-
-    def getDefaultProperties(self, layer):
-        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
-        dialog.setLayer(layer)
-        return dialog.page.properties()
 
     def showAddPointCloudLayerDialog(self):
         dialog = AddPointCloudLayerDialog(self)
@@ -417,21 +414,31 @@ class Q3DWindow(QMainWindow):
         self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)
 
+    # View menu
     def cameraChanged(self, action):
         self.iface.cameraChanged.emit(action == self.ui.actionOrthographic)
 
     def showNorthArrowDialog(self):
-        dialog = NorthArrowDialog(self.settings.decorationProperties("NorthArrow"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestDecorationUpdate("NorthArrow", p))
+        dialog = NorthArrowDialog(self.settings.widgetProperties("NorthArrow"), self)
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestWidgetUpdate("NorthArrow", p))
         dialog.show()
         dialog.exec_()
 
     def showHFLabelDialog(self):
-        dialog = HFLabelDialog(self.settings.decorationProperties("Label"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestDecorationUpdate("Label", p))
+        dialog = HFLabelDialog(self.settings.widgetProperties("Label"), self)
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestWidgetUpdate("Label", p))
         dialog.show()
         dialog.exec_()
 
+    # Window menu
+    def alwaysOnTopToggled(self, checked):
+        if checked:
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+        self.show()
+
+    # Help menu
     def help(self):
         QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
 
