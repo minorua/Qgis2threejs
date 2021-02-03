@@ -431,7 +431,7 @@ limitations:
   app.init = function (container) {
 
     app.container = container;
-    app.running = false;        // if true, animation loop is continued.
+    app.animating = false;        // if true, animation loop continues.
 
     app.selectedObject = null;
     app.highlightObject = null;
@@ -926,7 +926,7 @@ limitations:
   };
 
   app.pause = function () {
-    app.running = false;
+    app.animating = false;
     if (app.controls) app.controls.enabled = false;
   };
 
@@ -935,17 +935,17 @@ limitations:
   };
 
   app.startAnimation = function () {
-    app.running = true;
+    app.animating = true;
     app.animate();
   };
 
   app.stopAnimation = function () {
-    app.running = false;
+    app.animating = false;
   };
 
   // animation loop
   app.animate = function () {
-    if (app.running || (app.viewHelper && app.viewHelper.animating)) requestAnimationFrame(app.animate);
+    if (app.animating || (app.viewHelper && app.viewHelper.animating)) requestAnimationFrame(app.animate);
 
     if (app.viewHelper) {
       app.viewHelper.update(clock.getDelta());
