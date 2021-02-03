@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName("VectorPropertiesWidget")
-        VectorPropertiesWidget.resize(416, 446)
+        VectorPropertiesWidget.resize(416, 472)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -142,6 +142,10 @@ class Ui_VectorPropertiesWidget(object):
         self.checkBox_Visible.setChecked(True)
         self.checkBox_Visible.setObjectName("checkBox_Visible")
         self.verticalLayout.addWidget(self.checkBox_Visible)
+        self.checkBox_Clickable = QtWidgets.QCheckBox(self.groupBox_Others)
+        self.checkBox_Clickable.setChecked(True)
+        self.checkBox_Clickable.setObjectName("checkBox_Clickable")
+        self.verticalLayout.addWidget(self.checkBox_Clickable)
         self.verticalLayout_2.addWidget(self.groupBox_Others)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
@@ -180,4 +184,5 @@ class Ui_VectorPropertiesWidget(object):
         self.label.setText(_translate("VectorPropertiesWidget", "Label field"))
         self.groupBox_Others.setTitle(_translate("VectorPropertiesWidget", "Other Options"))
         self.checkBox_Visible.setText(_translate("VectorPropertiesWidget", "Visible on load"))
+        self.checkBox_Clickable.setText(_translate("VectorPropertiesWidget", "Clickable"))
 from qgis.gui import QgsFieldExpressionWidget

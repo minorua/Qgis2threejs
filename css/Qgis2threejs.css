@@ -19,7 +19,7 @@ body {
   display: none !important;
 }
 
-.queryable {
+.clickable {
   cursor: pointer;
 }
 

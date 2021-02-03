@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>416</width>
-    <height>446</height>
+    <height>472</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -318,6 +318,16 @@
        <widget class="QCheckBox" name="checkBox_Visible">
         <property name="text">
          <string>Visible on load</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_Clickable">
+        <property name="text">
+         <string>Clickable</string>
         </property>
         <property name="checked">
          <bool>true</bool>

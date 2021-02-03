@@ -77,7 +77,7 @@ Q3D.Config = {
     connectorColor: 0xc0c0d0,
     fixedSize: false,
     minFontSize: 8,
-    queryable: true
+    clickable: true
   },
 
   // decoration
@@ -296,10 +296,12 @@ Q3D.Scene.prototype.requestRender = function () {
   this.dispatchEvent({type: "renderRequest"});
 };
 
-Q3D.Scene.prototype.queryableObjects = function () {
+Q3D.Scene.prototype.visibleObjects = function () {
   var objs = [];
   for (var id in this.mapLayers) {
-    objs = objs.concat(this.mapLayers[id].queryableObjects());
+    if (this.mapLayers[id].visible) {
+      objs = objs.concat(this.mapLayers[id].objects);
+    }
   }
   return objs;
 };
@@ -1114,7 +1116,7 @@ limitations:
     var ray = new THREE.Raycaster();
     ray.linePrecision = 0.2;
     ray.setFromCamera(vec2, app.camera);
-    return ray.intersectObjects(app.scene.queryableObjects());
+    return ray.intersectObjects(app.scene.visibleObjects());
   };
 
   app._offset = function (elm) {
@@ -1403,29 +1405,35 @@ limitations:
   };
 
   app.canvasClicked = function (e) {
+
     var canvasOffset = app._offset(app.renderer.domElement);
     var objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
-    var obj;
 
+    var obj, o, layer, layerId;
     for (var i = 0, l = objs.length; i < l; i++) {
       obj = objs[i];
+
+      // get layerId of clicked object
+      o = obj.object;
+      while (o) {
+        layerId = o.userData.layerId;
+        if (layerId !== undefined) break;
+        o = o.parent;
+      }
+
+      if (layerId === undefined) break;
+
+      layer = app.scene.mapLayers[layerId];
+      if (!layer.clickable) break;
 
       // query marker
       app.queryMarker.position.copy(obj.point);
       app.queryMarker.scale.setScalar(obj.distance);
       app.scene.add(app.queryMarker);
 
-      // get layerId of clicked object
-      var layerId, object = obj.object;
-      while (object) {
-        layerId = object.userData.layerId;
-        if (layerId !== undefined) break;
-        object = object.parent;
-      }
-
-      app.highlightFeature(object);
+      app.highlightFeature(o);
       app.render();
-      app.showQueryResult(obj.point, object);
+      app.showQueryResult(obj.point, o);
 
       return;
     }
@@ -2257,35 +2265,27 @@ Q3D.MapLayer
 */
 Q3D.MapLayer = function () {
   this.properties = {};
-  this.queryable = true;
 
   this.materials = new Q3D.Materials();
   this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
 
   this.objectGroup = new Q3D.Group();
-  this.queryObjs = [];
+  this.objects = [];
 };
 
 Q3D.MapLayer.prototype = Object.create(THREE.EventDispatcher.prototype);
 Q3D.MapLayer.prototype.constructor = Q3D.MapLayer;
 
-Q3D.MapLayer.prototype.addObject = function (object, queryable) {
-  if (queryable === undefined) queryable = this.queryable;
+Q3D.MapLayer.prototype.addObject = function (object) {
 
   object.userData.layerId = this.id;
   this.objectGroup.add(object);
 
-  if (queryable) {
-    var queryObjs = this.queryObjs;
-    object.traverse(function (obj) {
-      queryObjs.push(obj);
-    });
-  }
+  var o = this.objects;
+  object.traverse(function (obj) {
+    o.push(obj);
+  });
   return this.objectGroup.children.length - 1;
-};
-
-Q3D.MapLayer.prototype.queryableObjects = function () {
-  return (this.visible) ? this.queryObjs : [];
 };
 
 Q3D.MapLayer.prototype.clearObjects = function () {
@@ -2301,7 +2301,7 @@ Q3D.MapLayer.prototype.clearObjects = function () {
   for (var i = this.objectGroup.children.length - 1; i >= 0; i--) {
     this.objectGroup.remove(this.objectGroup.children[i]);
   }
-  this.queryObjs = [];
+  this.objects = [];
 };
 
 Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
@@ -2325,6 +2325,12 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     this._bbox = undefined;
   }
 };
+
+Object.defineProperty(Q3D.MapLayer.prototype, "clickable", {
+  get: function () {
+    return this.properties.clickable;
+  }
+});
 
 Object.defineProperty(Q3D.MapLayer.prototype, "opacity", {
   get: function () {
@@ -2627,7 +2633,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);                                      // bottom
       pt1 = new THREE.Vector3(pt[0], pt[1], (isRelative) ? pt[2] + f.lh : z0 + f.lh);    // top
 
-      if (Q3D.Config.label.queryable) {
+      if (Q3D.Config.label.clickable) {
         var obj = this.objectGroup.children[f.objIndices[0]];
         e.onclick = function () {
           app.scene.remove(app.queryMarker);
@@ -2635,7 +2641,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
           app.render();
           app.showQueryResult({x: pt[0], y: pt[1], z: pt[2]}, obj, true);
         };
-        e.classList.add("queryable");
+        e.classList.add("clickable");
       }
       else {
         e.classList.add("no-events");

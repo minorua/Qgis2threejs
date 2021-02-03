@@ -63,7 +63,7 @@ class LayerBuilder:
 
     def layerProperties(self):
         return {"name": self.layer.name,
-                "queryable": 1,
+                "clickable": self.properties.get("checkBox_Clickable", True),
                 "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview}  # always visible in preview
 
 
