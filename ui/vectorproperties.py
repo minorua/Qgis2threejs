@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName("VectorPropertiesWidget")
-        VectorPropertiesWidget.resize(416, 472)
+        VectorPropertiesWidget.resize(416, 497)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -121,12 +121,6 @@ class Ui_VectorPropertiesWidget(object):
         self.formLayout_Label.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.comboBox_Label = QtWidgets.QComboBox(self.groupBox_Attrs)
         self.comboBox_Label.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_Label.sizePolicy().hasHeightForWidth())
-        self.comboBox_Label.setSizePolicy(sizePolicy)
-        self.comboBox_Label.setMaximumSize(QtCore.QSize(270, 16777215))
         self.comboBox_Label.setObjectName("comboBox_Label")
         self.formLayout_Label.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox_Label)
         self.verticalLayout_4.addLayout(self.formLayout_Label)
@@ -163,6 +157,7 @@ class Ui_VectorPropertiesWidget(object):
         VectorPropertiesWidget.setTabOrder(self.checkBox_Clip, self.checkBox_ExportAttrs)
         VectorPropertiesWidget.setTabOrder(self.checkBox_ExportAttrs, self.comboBox_Label)
         VectorPropertiesWidget.setTabOrder(self.comboBox_Label, self.checkBox_Visible)
+        VectorPropertiesWidget.setTabOrder(self.checkBox_Visible, self.checkBox_Clickable)
 
     def retranslateUi(self, VectorPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate
