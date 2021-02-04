@@ -32,7 +32,7 @@ from .qgis2threejstools import logMessage
 
 class MapTo3D:
 
-    def __init__(self, mapExtent, planeWidth=100, verticalExaggeration=1, verticalShift=0):
+    def __init__(self, mapExtent, baseWidth=100, verticalExaggeration=1, verticalShift=0):
         # map
         self.mapExtent = mapExtent
 
@@ -41,25 +41,25 @@ class MapTo3D:
         self._width, self._height = (rect.width(), rect.height())
 
         # 3d
-        self.planeWidth = planeWidth
-        self.planeHeight = planeWidth * mapExtent.height() / mapExtent.width()
+        self.baseWidth = baseWidth
+        self.baseHeight = baseWidth * mapExtent.height() / mapExtent.width()
 
         self.verticalExaggeration = verticalExaggeration
         self.verticalShift = verticalShift
 
-        self.multiplier = planeWidth / mapExtent.width()
+        self.multiplier = baseWidth / mapExtent.width()
         self.multiplierZ = self.multiplier * verticalExaggeration
 
     def transform(self, x, y, z=0):
         x, y = self.mapExtent.normalizePoint(x, y)
-        return [(x - 0.5) * self.planeWidth,
-                (y - 0.5) * self.planeHeight,
+        return [(x - 0.5) * self.baseWidth,
+                (y - 0.5) * self.baseHeight,
                 (z + self.verticalShift) * self.multiplierZ]
 
     def transformXY(self, x, y, z=0):
         x, y = self.mapExtent.normalizePoint(x, y)
-        return [(x - 0.5) * self.planeWidth,
-                (y - 0.5) * self.planeHeight,
+        return [(x - 0.5) * self.baseWidth,
+                (y - 0.5) * self.baseHeight,
                 z]
 
     def transformRotated(self, x, y, z=0):
@@ -67,16 +67,16 @@ class MapTo3D:
         x, y = ((x - self._xmin) / self._width,
                 (y - self._ymin) / self._height)
 
-        return [(x - 0.5) * self.planeWidth,
-                (y - 0.5) * self.planeHeight,
+        return [(x - 0.5) * self.baseWidth,
+                (y - 0.5) * self.baseHeight,
                 (z + self.verticalShift) * self.multiplierZ]
 
     def transformRotatedXY(self, x, y, z=0):
         x, y = ((x - self._xmin) / self._width,
                 (y - self._ymin) / self._height)
 
-        return [(x - 0.5) * self.planeWidth,
-                (y - 0.5) * self.planeHeight,
+        return [(x - 0.5) * self.baseWidth,
+                (y - 0.5) * self.baseHeight,
                 z]
 
 

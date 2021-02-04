@@ -47,8 +47,8 @@ class ThreeJSBuilder:
         obj = {
             "type": "scene",
             "properties": {
-                "height": mapTo3d.planeHeight,
-                "width": mapTo3d.planeWidth,
+                "width": mapTo3d.baseWidth,
+                "height": mapTo3d.baseHeight,
                 "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
                 "rotation": be.rotation(),
                 "zExaggeration": mapTo3d.verticalExaggeration,
