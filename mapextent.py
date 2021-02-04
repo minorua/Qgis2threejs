@@ -140,6 +140,7 @@ class MapExtent:
     def square(self):
         """square the extent"""
         self._width = self._height = max(self._width, self._height)
+        self._updateDerived()
         return self
 
     @staticmethod

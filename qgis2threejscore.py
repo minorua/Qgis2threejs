@@ -79,6 +79,9 @@ class MapTo3D:
                 (y - 0.5) * self.baseHeight,
                 z]
 
+    def __repr__(self):
+        return "MapTo3D(extent:{0}, base:{1}x{2}, zExag:{3}, zShift:{4})".format(str(self.mapExtent), self.baseWidth, self.baseHeight, self.verticalExaggeration, self.verticalShift)
+
 
 class GDALDEMProvider:
 
