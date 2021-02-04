@@ -354,7 +354,7 @@ Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
 Q3D.Scene.prototype.adjustZShift = function () {
   // initialize
   this.userData.zShiftA = 0;
-  this.position.y = 0;
+  this.position.z = 0;
   this.updateMatrixWorld();
 
   var box = new THREE.Box3();
@@ -365,14 +365,14 @@ Q3D.Scene.prototype.adjustZShift = function () {
   }
 
   // bbox zmin in map coordinates
-  var zmin = (box.min.y === Infinity) ? 0 : (box.min.y / this.userData.zScale - this.userData.zShift);
+  var zmin = (box.min.z === Infinity) ? 0 : (box.min.z / this.userData.zScale - this.userData.zShift);
 
   // shift scene so that bbox zmin becomes zero
   this.userData.zShiftA = -zmin;
-  this.position.y = this.userData.zShiftA * this.userData.zScale;
+  this.position.z = this.userData.zShiftA * this.userData.zScale;
 
-  // keep positions of lights in world coordinates
-  this.lightGroup.position.z = -this.position.y;
+  // keep light positions in world coordinates
+  this.lightGroup.position.z = -this.position.z;
 
   this.updateMatrixWorld();
 
