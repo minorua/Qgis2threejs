@@ -154,25 +154,13 @@ Q3D.Group.prototype.clear = function () {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.mapLayers: an object that holds map layers contained in this scene. the key is layerId.
-            use .loadJSONObject() to add a map layer to this scene.
-.userData: an object that holds metadata (crs, proj, baseExtent, rotation, width, zExaggeration, zShift, wgs84Center)
-           properties of the scene object in JSON data?
-
-.add(object):
-.getObjectByName(layerId): returns the layer object specified by the layer id.
-
---
-custom function
-.loadJSONObject(json_obj): 
-.toMapCoordinates(x, y, z): converts world coordinates to map coordinates
-._rotatePoint(point, degrees, origin): 
+.userData: holds scene properties (baseExtent, rotation, width, zExaggeration, zShift, dispCoord, crs, proj)
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
   this.autoUpdate = false;
 
-  this.mapLayers = {};
+  this.mapLayers = {};    // holds map layers contained in this scene. the key is layerId.
 
   this.lightGroup = new Q3D.Group();
   this.add(this.lightGroup);
@@ -1433,7 +1421,7 @@ limitations:
 
       app.highlightFeature(o);
       app.render();
-      app.showQueryResult(obj.point, o);
+      app.showQueryResult(obj.point, o, !app.scene.userData.dispCoord);
 
       return;
     }

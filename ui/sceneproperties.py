@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ScenePropertiesWidget(object):
     def setupUi(self, ScenePropertiesWidget):
         ScenePropertiesWidget.setObjectName("ScenePropertiesWidget")
-        ScenePropertiesWidget.resize(385, 657)
+        ScenePropertiesWidget.resize(385, 663)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(ScenePropertiesWidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.groupBox_1 = QtWidgets.QGroupBox(ScenePropertiesWidget)
@@ -156,6 +156,9 @@ class Ui_ScenePropertiesWidget(object):
         self.radioButton_WGS84 = QtWidgets.QRadioButton(self.groupBox_3)
         self.radioButton_WGS84.setObjectName("radioButton_WGS84")
         self.verticalLayout.addWidget(self.radioButton_WGS84)
+        self.radioButton_NoCoords = QtWidgets.QRadioButton(self.groupBox_3)
+        self.radioButton_NoCoords.setObjectName("radioButton_NoCoords")
+        self.verticalLayout.addWidget(self.radioButton_NoCoords)
         self.verticalLayout_3.addWidget(self.groupBox_3)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem)
@@ -209,7 +212,8 @@ class Ui_ScenePropertiesWidget(object):
         self.groupBox_2.setTitle(_translate("ScenePropertiesWidget", "&Background"))
         self.radioButton_Sky.setText(_translate("ScenePropertiesWidget", "Sky"))
         self.radioButton_Color.setText(_translate("ScenePropertiesWidget", "Solid color"))
-        self.groupBox_3.setTitle(_translate("ScenePropertiesWidget", "&Display of Coordinates"))
-        self.radioButton_ProjectCRS.setText(_translate("ScenePropertiesWidget", "Coordinates in the project CRS"))
-        self.radioButton_WGS84.setText(_translate("ScenePropertiesWidget", "Latitude and longitude (WGS84)"))
+        self.groupBox_3.setTitle(_translate("ScenePropertiesWidget", "&Coordinate Display"))
+        self.radioButton_ProjectCRS.setText(_translate("ScenePropertiesWidget", "Map coordinates"))
+        self.radioButton_WGS84.setText(_translate("ScenePropertiesWidget", "Latitude and longitude"))
+        self.radioButton_NoCoords.setText(_translate("ScenePropertiesWidget", "None"))
 from qgis.gui import QgsColorButton

@@ -258,13 +258,6 @@ class ExportSettings:
 
         return self._mapTo3d
 
-    def wgs84Center(self):
-        if self.crs and self.baseExtent():
-            wgs84 = QgsCoordinateReferenceSystem("EPSG:4326")
-            transform = QgsCoordinateTransform(self.crs, wgs84, QgsProject.instance())
-            return transform.transform(self.baseExtent().center())
-        return None
-
     def checkValidity(self):
         """check validity of export settings. return error message as str. return None if valid."""
         return None
@@ -327,14 +320,17 @@ class ExportSettings:
         self._baseExtent = None
         self._mapTo3d = None
 
-    def coordsInWGS84(self):
-        return self.sceneProperties().get("radioButton_WGS84", False)
-
     def materialType(self):
         return self.sceneProperties().get("comboBox_MaterialType", 0)
 
     def useOutlineEffect(self):
         return self.sceneProperties().get("checkBox_Outline", False)
+
+    def coordDisplay(self):
+        return not self.sceneProperties().get("radioButton_NoCoords", False)
+
+    def coordLatLon(self):
+        return self.sceneProperties().get("radioButton_WGS84", False)
 
     # camera
     def isOrthoCamera(self):

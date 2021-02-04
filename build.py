@@ -40,11 +40,9 @@ class ThreeJSBuilder:
 
     def buildScene(self, build_layers=True, cancelSignal=None):
         self.progress(5, "Building scene...")
-        crs = self.settings.crs
         be = self.settings.baseExtent()
         rect = be.unrotatedRect()
         mapTo3d = self.settings.mapTo3d()
-        wgs84Center = self.settings.wgs84Center()
 
         obj = {
             "type": "scene",
@@ -52,17 +50,21 @@ class ThreeJSBuilder:
                 "height": mapTo3d.planeHeight,
                 "width": mapTo3d.planeWidth,
                 "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
-                "crs": str(crs.authid()),
-                "proj": crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj(),
                 "rotation": be.rotation(),
-                "wgs84Center": {
-                    "lat": wgs84Center.y(),
-                    "lon": wgs84Center.x()
-                },
                 "zExaggeration": mapTo3d.verticalExaggeration,
                 "zShift": mapTo3d.verticalShift
             }
         }
+
+        if self.settings.coordDisplay():
+            crs = self.settings.crs
+
+            p = obj["properties"]
+            p["dispCoord"] = True
+            p["crs"] = str(crs.authid())
+
+            if self.settings.coordLatLon():
+                p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
         self.logMessage("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
         self.logMessage("Z shift: {}".format(mapTo3d.verticalShift))

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>657</height>
+    <height>663</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -282,13 +282,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>&amp;Display of Coordinates</string>
+      <string>&amp;Coordinate Display</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QRadioButton" name="radioButton_ProjectCRS">
         <property name="text">
-         <string>Coordinates in the project CRS</string>
+         <string>Map coordinates</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -298,7 +298,14 @@
       <item>
        <widget class="QRadioButton" name="radioButton_WGS84">
         <property name="text">
-         <string>Latitude and longitude (WGS84)</string>
+         <string>Latitude and longitude</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_NoCoords">
+        <property name="text">
+         <string>None</string>
         </property>
        </widget>
       </item>
@@ -358,12 +365,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>114</x>
-     <y>306</y>
+     <x>137</x>
+     <y>511</y>
     </hint>
     <hint type="destinationlabel">
-     <x>303</x>
-     <y>310</y>
+     <x>361</x>
+     <y>515</y>
     </hint>
    </hints>
   </connection>

@@ -189,7 +189,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                    self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
-                   self.radioButton_WGS84]
+                   self.radioButton_WGS84, self.radioButton_NoCoords]
         self.registerPropertyWidgets(widgets)
 
         # material type
@@ -234,8 +234,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         m = re.search(r"\+proj=(\w+)", proj)
         proj_supported = bool(m and m.group(1) in projs)
 
-        if not proj_supported:
+        if not proj_supported and not self.radioButton_NoCoords.isChecked():
             self.radioButton_ProjectCRS.setChecked(True)
+
         self.radioButton_WGS84.setEnabled(proj_supported)
 
     def initMapTool(self, canvas):

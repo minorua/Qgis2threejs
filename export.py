@@ -183,7 +183,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             files.append(ds)
 
         # proj4js
-        if self.settings.coordsInWGS84():
+        if self.settings.coordLatLon():
             files.append({"dirs": ["js/proj4js"]})
 
         # layer-specific dependencies
@@ -222,7 +222,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             files += s.split(",")
 
         # proj4.js
-        if self.settings.coordsInWGS84():    # display coordinates in latitude and longitude
+        if self.settings.coordLatLon():    # display coordinates in latitude and longitude format
             proj4 = "./proj4js/proj4.js"
             if proj4 not in files:
                 files.append(proj4)
