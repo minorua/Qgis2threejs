@@ -119,8 +119,8 @@ app.init(container);      // initialize application
 app.addEventListener("sceneLoaded", function () {
   // set custom plane z range
   var box = new THREE.Box3().setFromObject(app.scene),
-      zMin = app.scene.toMapCoordinates(0, 0, box.min.y).z,
-      zMax = app.scene.toMapCoordinates(0, 0, box.max.y).z;
+      zMin = app.scene.toMapCoordinates(0, 0, box.min.z).z,
+      zMax = app.scene.toMapCoordinates(0, 0, box.max.z).z;
   Q3D.gui.initCustomPlaneFolder(zMin, zMax);
 });
 
