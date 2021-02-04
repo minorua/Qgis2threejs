@@ -41,7 +41,6 @@ class ThreeJSBuilder:
     def buildScene(self, build_layers=True, cancelSignal=None):
         self.progress(5, "Building scene...")
         be = self.settings.baseExtent()
-        rect = be.unrotatedRect()
         mapTo3d = self.settings.mapTo3d()
 
         obj = {
@@ -49,8 +48,13 @@ class ThreeJSBuilder:
             "properties": {
                 "width": mapTo3d.baseWidth,
                 "height": mapTo3d.baseHeight,
-                "baseExtent": [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()],
-                "rotation": be.rotation(),
+                "baseExtent": {
+                    "x": be.center().x(),
+                    "y": be.center().y(),
+                    "width": be.width(),
+                    "height": be.height(),
+                    "rotation": be.rotation()
+                },
                 "zExaggeration": mapTo3d.verticalExaggeration,
                 "zShift": mapTo3d.verticalShift
             }

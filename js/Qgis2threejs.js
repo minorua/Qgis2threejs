@@ -154,7 +154,7 @@ Q3D.Group.prototype.clear = function () {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.userData: holds scene properties (baseExtent, rotation, width, zExaggeration, zShift, dispCoord, crs, proj)
+.userData: holds scene properties (baseExtent(x, y, width, height, rotation), width, zExaggeration, zShift, dispCoord, crs, proj)
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
@@ -185,14 +185,11 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
     if (jsonObject.properties !== undefined) {
       this.userData = jsonObject.properties;
 
-      var w = (this.userData.baseExtent[2] - this.userData.baseExtent[0]),
-          h = (this.userData.baseExtent[3] - this.userData.baseExtent[1]);
-
-      this.userData.scale = this.userData.width / w;
+      this.userData.scale = this.userData.width / this.userData.baseExtent.width;
       this.userData.zScale = this.userData.scale * this.userData.zExaggeration;
 
-      this.userData.origin = {x: this.userData.baseExtent[0] + w / 2,
-                              y: this.userData.baseExtent[1] + h / 2,
+      this.userData.origin = {x: this.userData.baseExtent.x,
+                              y: this.userData.baseExtent.y,
                               z: -this.userData.zShift};
     }
 
@@ -296,8 +293,10 @@ Q3D.Scene.prototype.visibleObjects = function () {
 
 // 3D world coordinates to map coordinates
 Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
-  if (this.userData.rotation) {
-    var pt = this._rotatePoint({x: x, y: y}, this.userData.rotation);
+
+  var r = this.userData.baseExtent.rotation;
+  if (r) {
+    var pt = this._rotatePoint({x: x, y: y}, r);
     x = pt.x;
     y = pt.y;
   }
@@ -320,8 +319,9 @@ Q3D.Scene.prototype.toWorldCoordinates = function (x, y, z, isLonLat) {
   y = (y - this.userData.origin.y) * this.userData.scale;
   z = (z - this.userData.origin.z) * this.userData.zScale;
 
-  if (this.userData.rotation) {
-    pt = this._rotatePoint({x: x, y: y}, -this.userData.rotation);
+  var r = this.userData.baseExtent.rotation;
+  if (r) {
+    pt = this._rotatePoint({x: x, y: y}, -r);
     x = pt.x;
     y = pt.y;
   }

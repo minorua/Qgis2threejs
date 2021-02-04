@@ -20,7 +20,7 @@ function loadJSONObject(jsonObject) {
     }
   }
   else if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
-    updateNorthArrowRotation(jsonObject.properties.rotation);
+    updateNorthArrowRotation(jsonObject.properties.baseExtent.rotation);
   }
 }
 
@@ -313,7 +313,7 @@ function setNavigationEnabled(enabled) {
 function setNorthArrowVisible(visible) {
   document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
   if (visible && app.scene2 === undefined) {
-    app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.rotation);
+    app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
     app.render();
   }
 }
