@@ -134,26 +134,25 @@ ${scripts}
 <script>
 ${options}
 
-var container = document.getElementById("view");
+var app = Q3D.application,
+    container = document.getElementById("view");
+
 app.init(container);          // initialize application
 init();                       // initialization for mobile template
 
-app.addEventListener("sceneLoaded", function () {
-  initLayerList();
-});
-
 // load the scene
-app.loadSceneFile("${scenefile}", function () {
+app.loadSceneFile("${scenefile}", function (scene) {
+  // scene file has been loaded
   app.start();
-
-  // North arrow inset
-  if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
 
   if ("AR" in app.urlParams) {
     document.getElementById("ar-checkbox").checked = true;
     startARMode();
     moveToCurrentLocation();
   }
+}, function (scene) {
+  // all relevant files have been loaded
+  initLayerList();
 });
 </script>
 </body>

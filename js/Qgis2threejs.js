@@ -638,13 +638,27 @@ limitations:
     });
   };
 
-  app.loadSceneFile = function (url, callback) {
+  app.loadSceneFile = function (url, sceneFileLoadedCallback, sceneLoadedCallback) {
+
+    var onload = function () {
+      // build North arrow widget
+      if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
+
+      if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
+    };
+
+    if (sceneLoadedCallback) {
+      app.addEventListener("sceneLoaded", function () {
+        sceneLoadedCallback(app.scene);
+      });
+    }
+
     var ext = url.split(".").pop();
-    if (ext == "json") app.loadJSONFile(url, callback);
+    if (ext == "json") app.loadJSONFile(url, onload);
     else if (ext == "js") {
       var e = document.createElement("script");
       e.src = url;
-      e.onload = callback;
+      e.onload = onload;
       document.body.appendChild(e);
     }
   };

@@ -18,12 +18,15 @@ Q3D.gui = {
   },
 
   // initialize gui
+  // - scene
   // - setupDefaultItems: default is true
   // - params: parameter values to pass to dat.GUI constructor
-  init: function (setupDefaultItems, params) {
+  init: function (scene, setupDefaultItems, params) {
+
+    this.scene = scene;
 
     this.gui = new dat.GUI(params);
-    this.gui.domElement.parentElement.style.zIndex = 1000;   // display the panel on the front of labels
+    this.gui.domElement.parentElement.style.zIndex = 2000;   // display the panel on the front of labels
 
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.addLayersFolder();
@@ -34,7 +37,7 @@ Q3D.gui = {
   },
 
   addLayersFolder: function () {
-    var mapLayers = Q3D.application.scene.mapLayers;
+    var mapLayers = this.scene.mapLayers;
     var parameters = this.parameters;
     var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
     var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
@@ -59,12 +62,20 @@ Q3D.gui = {
   },
 
   initCustomPlaneFolder: function (zMin, zMax) {
-    var app = Q3D.application,
-        scene = app.scene,
-        p = scene.userData;
+    var app = Q3D.application;
+
+    var scene = this.scene,
+        p = scene.userData,
+        parameters = this.parameters;
+
+    if (zMin === undefined || zMax === undefined) {
+      var box = new THREE.Box3().setFromObject(scene);
+      if (zMin === undefined) zMin = scene.toMapCoordinates(0, 0, box.min.z).z;
+      if (zMax === undefined) zMax = scene.toMapCoordinates(0, 0, box.max.z).z;
+    }
 
     var customPlane;
-    var parameters = this.parameters;
+
     var addPlane = function (color) {
       // Add a new plane in the current scene
       var geometry = new THREE.PlaneBufferGeometry(p.width,p.height, 1, 1),

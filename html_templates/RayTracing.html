@@ -115,23 +115,21 @@ var app = Q3D.application,
 
 app.init(container);      // initialize application
 
-// when all relevant files have been loaded into the scene
-app.addEventListener("sceneLoaded", function () {
-  // set custom plane z range
-  var box = new THREE.Box3().setFromObject(app.scene),
-      zMin = app.scene.toMapCoordinates(0, 0, box.min.z).z,
-      zMax = app.scene.toMapCoordinates(0, 0, box.max.z).z;
-  Q3D.gui.initCustomPlaneFolder(zMin, zMax);
-});
-
 // load the scene
-app.loadSceneFile("${scenefile}", function () {
+app.loadSceneFile("${scenefile}", function (scene) {
+  // scene file has been loaded
   app.start();
 
-  Q3D.gui.init();   // initialize dat-gui panel
+  Q3D.gui.init(scene);   // initialize dat-gui panel
 
-  // North arrow inset
-  if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
+}, function (scene) {
+  // all relevant files have been loaded
+
+  // custom plane z range
+  var zMin = undefined,
+      zMax = undefined;
+  Q3D.gui.initCustomPlaneFolder(zMin, zMax);
+
 });
 </script>
 </body>

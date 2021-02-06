@@ -98,14 +98,15 @@ var app = Q3D.application,
 app.init(container);           // initialize application
 
 // load the scene
-app.loadSceneFile("${scenefile}", function () {
+app.loadSceneFile("${scenefile}", function (scene) {
+  // scene file has been loaded
   app.start();
+}, function (scene) {
+  // all relevant files have been loaded
 
-  // North arrow inset
-  if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
 });
 
-document.getElementById("infobtn").onclick = app.showInfo.bind(app);
+document.getElementById("infobtn").onclick = app.showInfo;
 </script>
 </body>
 </html>
