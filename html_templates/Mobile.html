@@ -134,11 +134,11 @@ ${scripts}
 <script>
 ${options}
 
-var app = Q3D.application,
-    container = document.getElementById("view");
+var container = document.getElementById("view"),
+    app = Q3D.application;
 
-app.init(container);          // initialize application
-init();                       // initialization for mobile template
+app.init(container);          // initialize viewer
+init();                       // initialization for mobile template (in mobile.js)
 
 // load the scene
 app.loadSceneFile("${scenefile}", function (scene) {

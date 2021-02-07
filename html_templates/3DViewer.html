@@ -92,10 +92,10 @@ Q3D.Config.allVisible = true;
 ${options}
 if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
-var app = Q3D.application,
-    container = document.getElementById("view");
+var container = document.getElementById("view"),
+    app = Q3D.application;
 
-app.init(container);           // initialize application
+app.init(container);       // initialize viewer
 
 // load the scene
 app.loadSceneFile("${scenefile}", function (scene) {

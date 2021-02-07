@@ -94,17 +94,19 @@ ${scripts}
 ${options}
 if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
-var app = Q3D.application,
-    container = document.getElementById("view");
+var container = document.getElementById("view"),
+    app = Q3D.application,
+    gui = Q3D.gui;
 
-app.init(container);      // initialize application
+app.init(container);    // initialize viewer
+gui.init();             // initialize dat-gui panel
 
 // load the scene
 app.loadSceneFile("${scenefile}", function (scene) {
   // scene file has been loaded
   app.start();
 
-  Q3D.gui.init(scene);   // initialize dat-gui panel
+  gui.initLayersFolder(scene);
 
 }, function (scene) {
   // all relevant files have been loaded
@@ -112,7 +114,7 @@ app.loadSceneFile("${scenefile}", function (scene) {
   // custom plane z range
   var zMin = undefined,
       zMax = undefined;
-  Q3D.gui.initCustomPlaneFolder(zMin, zMax);
+  gui.initCustomPlaneFolder(zMin, zMax);
 
 });
 </script>

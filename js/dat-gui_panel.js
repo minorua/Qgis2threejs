@@ -18,41 +18,36 @@ Q3D.gui = {
   },
 
   // initialize gui
-  // - scene
   // - setupDefaultItems: default is true
   // - params: parameter values to pass to dat.GUI constructor
-  init: function (scene, setupDefaultItems, params) {
-
-    this.scene = scene;
+  init: function (setupDefaultItems, params) {
 
     this.gui = new dat.GUI(params);
     this.gui.domElement.parentElement.style.zIndex = 2000;   // display the panel on the front of labels
 
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
-      this.addLayersFolder();
+      this.layersFolder = this.gui.addFolder('Layers');
       this.customPlaneFolder = this.gui.addFolder('Custom Plane');
       if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
     }
   },
 
-  addLayersFolder: function () {
-    var mapLayers = this.scene.mapLayers;
+  initLayersFolder: function (scene) {
+    var mapLayers = scene.mapLayers;
     var parameters = this.parameters;
     var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
     var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
 
-    var layer, subfolder,
-        folder = this.gui.addFolder('Layers');
-
+    var layer, subfolder;
     for (var layerId in mapLayers) {
       layer = mapLayers[layerId];
       parameters.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity};
-      subfolder = folder.addFolder(layer.properties.name);
+      subfolder = this.layersFolder.addFolder(layer.properties.name);
       subfolder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
       subfolder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
     }
-    return folder;
+    return this.layersFolder;
   },
 
   customPlaneMaterial: function (color) {
@@ -62,11 +57,12 @@ Q3D.gui = {
   },
 
   initCustomPlaneFolder: function (zMin, zMax) {
-    var app = Q3D.application;
+    var app = Q3D.application,
+        gui = Q3D.gui;
 
-    var scene = this.scene,
+    var scene = app.scene,
         p = scene.userData,
-        parameters = this.parameters;
+        parameters = gui.parameters;
 
     if (zMin === undefined || zMax === undefined) {
       var box = new THREE.Box3().setFromObject(scene);
@@ -74,47 +70,44 @@ Q3D.gui = {
       if (zMax === undefined) zMax = scene.toMapCoordinates(0, 0, box.max.z).z;
     }
 
-    var customPlane;
-
     var addPlane = function (color) {
       // Add a new plane in the current scene
       var geometry = new THREE.PlaneBufferGeometry(p.width,p.height, 1, 1),
-          material = Q3D.gui.customPlaneMaterial(color);
-      customPlane = new THREE.Mesh(geometry, material);
-      scene.add(customPlane);
-      Q3D.gui.customPlane = customPlane;
+          material = gui.customPlaneMaterial(color);
+      gui.customPlane = new THREE.Mesh(geometry, material);
+      scene.add(gui.customPlane);
       app.render();
     };
     parameters.cp.d = zMin;
 
     // Plane color
     this.customPlaneFolder.addColor(parameters.cp, 'c').name('Color').onChange(function (value) {
-      if (customPlane === undefined) addPlane(parameters.cp.c);
-      customPlane.material.color.setStyle(value);
+      if (gui.customPlane === undefined) addPlane(parameters.cp.c);
+      gui.customPlane.material.color.setStyle(value);
       app.render();
     });
 
     // Plane altitude
     this.customPlaneFolder.add(parameters.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
-      if (customPlane === undefined) addPlane(parameters.cp.c);
-      customPlane.position.z = (value + p.zShift) * p.zScale;
-      customPlane.updateMatrixWorld();
+      if (gui.customPlane === undefined) addPlane(parameters.cp.c);
+      gui.customPlane.position.z = (value + p.zShift) * p.zScale;
+      gui.customPlane.updateMatrixWorld();
       app.render();
     });
 
     // Plane opacity
     this.customPlaneFolder.add(parameters.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
-      if (customPlane === undefined) addPlane(parameters.cp.c);
-      customPlane.material.opacity = value;
+      if (gui.customPlane === undefined) addPlane(parameters.cp.c);
+      gui.customPlane.material.opacity = value;
       app.render();
     });
 
     // Enlarge plane option
     this.customPlaneFolder.add(parameters.cp, 'l').name('Enlarge').onChange(function (value) {
-      if (customPlane === undefined) addPlane(parameters.cp.c);
-      if (value) customPlane.scale.set(80, 80, 1);
-      else customPlane.scale.set(1, 1, 1);
-      customPlane.updateMatrixWorld();
+      if (gui.customPlane === undefined) addPlane(parameters.cp.c);
+      if (value) gui.customPlane.scale.set(80, 80, 1);
+      else gui.customPlane.scale.set(1, 1, 1);
+      gui.customPlane.updateMatrixWorld();
       app.render();
     });
   },

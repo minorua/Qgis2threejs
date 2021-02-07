@@ -72,11 +72,9 @@ Object.assign(Q3D.gui.parameters, {
 });
 
 
-Q3D.application._init = Q3D.application.init;
+function init(container) {
 
-Q3D.application.init = function (container) {
-
-  var app = this,
+  var app = Q3D.application,
       params = Q3D.gui.parameters;
 
   params.ren.w = container.clientWidth;
@@ -84,15 +82,15 @@ Q3D.application.init = function (container) {
 
   app.eventListener.resize = function () {};    // dat-gui panel has canvas size settings
 
-  this._init(container);
+  app.init(container);
 
-  this.rayRenderer = new THREE.RayTracingRenderer();    // https://github.com/hoverinc/ray-tracing-renderer
-  this.rayRenderer.setSize(container.clientWidth, container.clientHeight);
-  this.rayRenderer.domElement.style.display = "none";
-  container.appendChild(this.rayRenderer.domElement);
+  app.rayRenderer = new THREE.RayTracingRenderer();    // https://github.com/hoverinc/ray-tracing-renderer
+  app.rayRenderer.setSize(container.clientWidth, container.clientHeight);
+  app.rayRenderer.domElement.style.display = "none";
+  container.appendChild(app.rayRenderer.domElement);
 
-  this.afrId = null;
-  this.status = 0;
+  app.afrId = null;
+  app.status = 0;
 
   var statusElem = document.getElementById("footer");
 
@@ -140,7 +138,7 @@ Q3D.application.init = function (container) {
     app._setCanvasSize(w, h);
     app.rayRenderer.setSize(w, h);
   };
-};
+}
 
 
 Q3D.gui._init = Q3D.gui.init;
@@ -150,51 +148,12 @@ Q3D.gui.init = function () {
   this._init(false, {width: 340});
 
   var app = Q3D.application,
-      lights = app.scene.lightGroup.children,
-      lightA = lights[0],
-      lightD = lights[1];
-  var folder, subfolder, params = this.parameters;
+      params = this.parameters;
 
-  // Layers
-  folder = this.addLayersFolder();
-  this.customPlaneFolder = folder.addFolder('Custom Plane');
+  this.layersFolder = this.gui.addFolder('Layers');
+  this.lightsFolder = this.gui.addFolder('Lights');
 
-  // Lights
-  folder = this.gui.addFolder('Lights');
-  subfolder = folder.addFolder('Ambient');
-  subfolder.add(params.lt.amb, 'i').min(0).max(1).name('Intensity').onChange(function (value) {
-    lightA.intensity = value;
-    app.render();
-  });
-
-  subfolder = folder.addFolder('Directional');
-  subfolder.add(params.lt.dir, 'i').min(0).max(1).name('Intensity').onChange(function (value) {
-    lightD.intensity = value;
-    app.render();
-  });
-  subfolder.add(params.lt.dir, 's').min(0).max(1).name('Softness').onChange(function (value) {
-    lightD.softness = value;
-    app.render();
-  });
-
-  var deg2rad = Math.PI / 180,
-      dist = app.scene.userData.width;
-
-  var dirChanged = function (value) {
-
-    var lambda = (90 - params.lt.dir.az) * deg2rad,
-        phi = params.lt.dir.alt * deg2rad;
-
-    lightD.position.set(Math.cos(phi) * Math.cos(lambda),
-                        Math.cos(phi) * Math.sin(lambda),
-                        Math.sin(phi)).multiplyScalar(dist);
-    lightD.updateMatrixWorld();
-    app.render();
-  };
-
-  subfolder.add(params.lt.dir, 'az').min(0).max(359).name('Azimuth').onChange(dirChanged);
-  subfolder.add(params.lt.dir, 'alt').min(0).max(90).name('Altitude Angle').onChange(dirChanged);
-
+  var folder;
   folder = this.gui.addFolder('Render');
   folder.addColor(params.ren, 'c').name('Background color').onChange(function (value) {
     app.scene.background.setStyle(value);
@@ -217,14 +176,13 @@ Q3D.gui.init = function () {
   folder.open();
 
   this.addHelpButton();
-
-  dirChanged();
 };
 
-Q3D.gui.addLayersFolder = function () {
+Q3D.gui.initLayersFolder = function (scene) {
   var app = Q3D.application,
-      mapLayers = app.scene.mapLayers;
-  var parameters = this.parameters;
+      mapLayers = scene.mapLayers,
+      params = this.parameters;
+
   var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
   var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
   var onMaterialChanged = function (value) {
@@ -238,23 +196,72 @@ Q3D.gui.addLayersFolder = function () {
     app.render();
   };
 
-  var layer, subfolder,
-      folder = this.gui.addFolder('Layers');
-
+  var layer, subfolder;
   for (var layerId in mapLayers) {
     layer = mapLayers[layerId];
-    parameters.lyr[layerId] = {
+    params.lyr[layerId] = {
       i: layerId,
       v: layer.visible,
       o: layer.opacity,
       m: 0
     };
-    subfolder = folder.addFolder(layer.properties.name);
-    subfolder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
-    subfolder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
-    subfolder.add(parameters.lyr[layerId], 'm', {'Clay (Matte)': 0, 'Metal': 1, 'Glass': 2}).name('Material Type').onChange(onMaterialChanged);
+    subfolder = this.layersFolder.addFolder(layer.properties.name);
+    subfolder.add(params.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
+    subfolder.add(params.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+    subfolder.add(params.lyr[layerId], 'm', {'Clay (Matte)': 0, 'Metal': 1, 'Glass': 2}).name('Material Type').onChange(onMaterialChanged);
   }
-  return folder;
+
+  this.customPlaneFolder = this.layersFolder.addFolder('Custom Plane');
+
+  return this.layersFolder;
+};
+
+Q3D.gui.initLightsFolder = function(scene) {
+
+  var app = Q3D.application,
+      params = this.parameters,
+      lights = scene.lightGroup.children,
+      lightA = lights[0],
+      lightD = lights[1];
+
+  var subfolder;
+  subfolder = this.lightsFolder.addFolder('Ambient');
+  subfolder.add(params.lt.amb, 'i').min(0).max(1).name('Intensity').onChange(function (value) {
+    lightA.intensity = value;
+    app.render();
+  });
+
+  subfolder = this.lightsFolder.addFolder('Directional');
+  subfolder.add(params.lt.dir, 'i').min(0).max(1).name('Intensity').onChange(function (value) {
+    lightD.intensity = value;
+    app.render();
+  });
+  subfolder.add(params.lt.dir, 's').min(0).max(1).name('Softness').onChange(function (value) {
+    lightD.softness = value;
+    app.render();
+  });
+
+  var deg2rad = Math.PI / 180,
+      dist = scene.userData.width;
+
+  var dirChanged = function (value) {
+
+    var lambda = (90 - params.lt.dir.az) * deg2rad,
+        phi = params.lt.dir.alt * deg2rad;
+
+    lightD.position.set(Math.cos(phi) * Math.cos(lambda),
+                        Math.cos(phi) * Math.sin(lambda),
+                        Math.sin(phi)).multiplyScalar(dist);
+    lightD.updateMatrixWorld();
+    app.render();
+  };
+
+  subfolder.add(params.lt.dir, 'az').min(0).max(359).name('Azimuth').onChange(dirChanged);
+  subfolder.add(params.lt.dir, 'alt').min(0).max(90).name('Altitude Angle').onChange(dirChanged);
+
+  dirChanged();
+
+  return this.lightsFolder;
 };
 
 Q3D.gui.customPlaneMaterial = function (color) {
@@ -262,7 +269,6 @@ Q3D.gui.customPlaneMaterial = function (color) {
 };
 
 Q3D.gui._initCustomPlaneFolder = Q3D.gui.initCustomPlaneFolder;
-
 Q3D.gui.initCustomPlaneFolder = function (zMin, zMax) {
 
   Q3D.gui._initCustomPlaneFolder(zMin, zMax);
@@ -280,7 +286,6 @@ Q3D.gui.initCustomPlaneFolder = function (zMin, zMax) {
 };
 
 Q3D.Material.prototype._loadJSONObject = Q3D.Material.prototype.loadJSONObject;
-
 Q3D.Material.prototype.loadJSONObject = function (jsonObject, callback) {
 
   if (jsonObject.type > Q3D.MaterialType.MeshToon) {  // && jsonObject.type != Q3D.MaterialType.MeshStandard
