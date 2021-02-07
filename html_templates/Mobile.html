@@ -145,6 +145,8 @@ app.loadSceneFile("${scenefile}", function (scene) {
   // scene file has been loaded
   app.start();
 
+  initLayerList(scene);
+
   if ("AR" in app.urlParams) {
     document.getElementById("ar-checkbox").checked = true;
     startARMode();
@@ -152,7 +154,7 @@ app.loadSceneFile("${scenefile}", function (scene) {
   }
 }, function (scene) {
   // all relevant files have been loaded
-  initLayerList();
+
 });
 </script>
 </body>

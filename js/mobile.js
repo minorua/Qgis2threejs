@@ -163,39 +163,11 @@ function init() {
   });
 }
 
-function initLayerList() {
+function initLayerList(scene) {
   var list = document.getElementById("layerlist");
-  var updateAllLayersCheckbox = function () {};
 
-  if (false) {
-    var item = document.createElement("div");
-    item.innerHTML = "<input type='checkbox' checked>All layers";
-    item.children[0].addEventListener("change", function () {
-      for (var i = 1; i < list.children.length; i++) {
-        list.children[i].children[0].checked = this.checked;
-      }
-      for (var id in app.scene.mapLayers) {
-        app.scene.mapLayers[id].visible = this.checked;
-      }
-    });
-    list.appendChild(item);
-
-    updateAllLayersCheckbox = function () {
-      var checked = 0, unchecked = 0;
-      for (var i = 1; i < list.children.length; i++) {
-        if (list.children[i].children[0].checked) checked++;
-        else unchecked++;
-      }
-      if (checked && unchecked) list.children[0].children[0].indeterminate = true;
-      else {
-        list.children[0].children[0].indeterminate = false;
-        list.children[0].children[0].checked = Boolean(checked);
-      }
-    };
-  }
-
-  Object.keys(app.scene.mapLayers).forEach(function (layerId) {
-    var layer = app.scene.mapLayers[layerId];
+  Object.keys(scene.mapLayers).forEach(function (layerId) {
+    var layer = scene.mapLayers[layerId];
     var item = document.createElement("div");
     item.innerHTML = "<div><input type='checkbox'" +
                      ((layer.properties.visible) ? " checked" : "") +
@@ -204,7 +176,6 @@ function initLayerList() {
     // visibility checkbox
     item.querySelector("input[type=checkbox]").addEventListener("change", function () {
       layer.visible = this.checked;
-      updateAllLayersCheckbox();
     });
 
     // opacity slider
