@@ -426,14 +426,17 @@ class TINGeometry(PolygonGeometry):
             g = geometry.constGet()
 
         if centroid:
+            pt = geometry.centroid().asPoint()
             if drop_z:
-                zf = z_func
+                c = transform_func(pt.x(), pt.y(), z_func(pt.x(), pt.y()))
             else:
                 # use z coordinate of first vertex (until QgsAbstractGeometry supports z coordinate of centroid)
-                zf = lambda x, y: g.vertexAt(QgsVertexId(0, 0, 0)).z() + z_func(pt.x(), pt.y())
+                try:
+                    c = transform_func(pt.x(), pt.y(), g.vertexAt(QgsVertexId(0, 0, 0)).z() + z_func(pt.x(), pt.y()))
+                except TypeError:   # if isinstance(g, QgsTriangle)
+                    c = transform_func(pt.x(), pt.y(), g.vertexAt(0).z() + z_func(pt.x(), pt.y()))
 
-            pt = geometry.centroid().asPoint()
-            geom.centroids.append(transform_func(pt.x(), pt.y(), zf(pt.x(), pt.y())))
+            geom.centroids.append(c)
 
         # vertex transform function
         if drop_z:
