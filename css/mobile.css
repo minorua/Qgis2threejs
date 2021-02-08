@@ -280,3 +280,8 @@ body {
 .accuracy {
   font-size: x-large;
 }
+
+#navigation {
+  bottom: auto;
+  top: 54px;
+}
