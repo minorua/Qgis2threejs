@@ -123,6 +123,8 @@ app.loadSceneFile("${scenefile}", function (scene) {
   app.start();
 
   gui.initLayersFolder(scene);
+  gui.initLightsFolder(scene);
+  gui.initRenderFolder();
 
 }, function (scene) {
   // all relevant files have been loaded

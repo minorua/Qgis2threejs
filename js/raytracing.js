@@ -147,34 +147,9 @@ Q3D.gui.init = function () {
 
   this._init(false, {width: 340});
 
-  var app = Q3D.application,
-      params = this.parameters;
-
   this.layersFolder = this.gui.addFolder('Layers');
   this.lightsFolder = this.gui.addFolder('Lights');
-
-  var folder;
-  folder = this.gui.addFolder('Render');
-  folder.addColor(params.ren, 'c').name('Background color').onChange(function (value) {
-    app.scene.background.setStyle(value);
-    app.render();
-  });
-
-  var sizeChanged = function (v) {
-    app.setCanvasSize(params.ren.w, params.ren.h);
-    app.render();
-  };
-  folder.add(params.ren, 'w').min(100).max(10000).name('Width').onChange(sizeChanged);
-  folder.add(params.ren, 'h').min(100).max(10000).name('Height').onChange(sizeChanged);
-
-  folder.add(params.ren, 'm').name('Max hardware usage').onChange(function (value) {
-    app.rayRenderer.maxHardwareUsage = value;
-  });
-
-  this.renderButton = folder.add(params.ren, 'render').name('Start Rendering');
-  // folder.add(params, 'save').name('Save Image');
-  folder.open();
-
+  this.renderFolder = this.gui.addFolder('Render');
   this.addHelpButton();
 };
 
@@ -262,6 +237,32 @@ Q3D.gui.initLightsFolder = function(scene) {
   dirChanged();
 
   return this.lightsFolder;
+};
+
+Q3D.gui.initRenderFolder = function () {
+
+  var app = Q3D.application,
+      params = this.parameters;
+
+  this.renderFolder.addColor(params.ren, 'c').name('Background color').onChange(function (value) {
+    app.scene.background.setStyle(value);
+    app.render();
+  });
+
+  var sizeChanged = function (v) {
+    app.setCanvasSize(params.ren.w, params.ren.h);
+    app.render();
+  };
+  this.renderFolder.add(params.ren, 'w').min(100).max(10000).name('Width').onChange(sizeChanged);
+  this.renderFolder.add(params.ren, 'h').min(100).max(10000).name('Height').onChange(sizeChanged);
+
+  this.renderFolder.add(params.ren, 'm').name('Max hardware usage').onChange(function (value) {
+    app.rayRenderer.maxHardwareUsage = value;
+  });
+
+  this.renderButton = this.renderFolder.add(params.ren, 'render').name('Start Rendering');
+  // this.renderFolder.add(params, 'save').name('Save Image');
+  this.renderFolder.open();
 };
 
 Q3D.gui.customPlaneMaterial = function (color) {
