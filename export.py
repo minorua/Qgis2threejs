@@ -86,12 +86,19 @@ class ThreeJSExporter(ThreeJSBuilder):
         # options in html file
         options = []
 
+        # scene
         sp = self.settings.sceneProperties()
         if sp.get("checkBox_autoZShift"):
             options.append("Q3D.Config.autoZShift = true;")
 
         if sp.get("radioButton_Color"):
             options.append("Q3D.Config.bgColor = {0};".format(sp.get("colorButton_Color", 0)))
+
+        if not self.settings.coordDisplay():
+            options.append("Q3D.Config.coord.visible = false;")
+
+        if self.settings.coordLatLon():
+            options.append("Q3D.Config.coord.latlon = true;")
 
         # camera
         if self.settings.isOrthoCamera():

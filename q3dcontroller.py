@@ -199,21 +199,25 @@ class Q3DController(QObject):
 
         if update_scene_all:
             sp = self.settings.sceneProperties()
+            t, f = ("true", "false")
+
             # automatic z shift adjustment
-            self.iface.runScript("Q3D.Config.autoZShift = {};".format("true" if sp.get("checkBox_autoZShift") else "false"))
+            self.iface.runScript("Q3D.Config.autoZShift = {};".format(t if sp.get("checkBox_autoZShift") else f))
 
             # outline effect
-            self.iface.runScript("setOutlineEffectEnabled({});".format("true" if sp.get("checkBox_Outline") else "false"))
+            self.iface.runScript("setOutlineEffectEnabled({});".format(t if sp.get("checkBox_Outline") else f))
 
             # update background color
             params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
             self.iface.runScript("setBackgroundColor({0});".format(params))
 
-            # coordinate display (geographic/projected)
-            if sp.get("radioButton_WGS84", False):
-                self.iface.loadScriptFile(q3dconst.SCRIPT_PROJ4, True)
-            else:
-                self.iface.runScript("proj4 = undefined;", "// proj4 not enabled")
+            # coordinate display
+            self.iface.runScript("Q3D.Config.coord.visible = {};".format(t if self.settings.coordDisplay() else f))
+
+            latlon = self.settings.coordLatLon()
+            self.iface.runScript("Q3D.Config.coord.latlon = {};".format(t if latlon else f))
+            if latlon:
+                self.iface.loadScriptFile(q3dconst.SCRIPT_PROJ4)
 
         if build_layers:
             self.iface.runScript('loadStart("LYRS", true);')

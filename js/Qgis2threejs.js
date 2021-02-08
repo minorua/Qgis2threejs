@@ -91,6 +91,11 @@ Q3D.Config = {
     r: 0.004,
     c: 0xffff00,
     o: 0.8
+  },
+
+  coord: {
+    visible: true,
+    latlon: false
   }
 };
 
@@ -154,7 +159,7 @@ Q3D.Group.prototype.clear = function () {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.userData: holds scene properties (baseExtent(x, y, width, height, rotation), width, zExaggeration, zShift, dispCoord, crs, proj)
+.userData: holds scene properties (baseExtent(x, y, width, height, rotation), width, zExaggeration, zShift, (proj))
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
@@ -1226,7 +1231,7 @@ limitations:
 
   };
 
-  app.showQueryResult = function (point, obj, hide_coords) {
+  app.showQueryResult = function (point, obj, show_coords) {
     app.queryTargetPosition.copy(point);
 
     var layer = app.scene.mapLayers[obj.userData.layerId],
@@ -1238,21 +1243,23 @@ limitations:
     // clicked coordinates
     e = document.getElementById("qr_coords_table");
     if (e) {
-      if (hide_coords) {
-        e.classList.add("hidden");
-      }
-      else {
+      if (show_coords) {
         e.classList.remove("hidden");
 
         var pt = app.scene.toMapCoordinates(point.x, point.y, point.z);
+
         e = document.getElementById("qr_coords");
-        if (typeof proj4 === "undefined") {
-          e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
-        }
-        else {
+
+        if (Q3D.Config.coord.latlon) {
           var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
           e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
         }
+        else {
+          e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
+        }
+      }
+      else {
+        e.classList.add("hidden");
       }
     }
 
@@ -1435,7 +1442,7 @@ limitations:
 
       app.highlightFeature(o);
       app.render();
-      app.showQueryResult(obj.point, o, !app.scene.userData.dispCoord);
+      app.showQueryResult(obj.point, o, Q3D.Config.coord.visible);
 
       return;
     }
@@ -2641,7 +2648,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
           app.scene.remove(app.queryMarker);
           app.highlightFeature(obj);
           app.render();
-          app.showQueryResult({x: pt[0], y: pt[1], z: pt[2]}, obj, true);
+          app.showQueryResult({x: pt[0], y: pt[1], z: pt[2]}, obj, false);
         };
         e.classList.add("clickable");
       }

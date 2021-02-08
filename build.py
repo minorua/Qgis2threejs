@@ -60,15 +60,9 @@ class ThreeJSBuilder:
             }
         }
 
-        if self.settings.coordDisplay():
+        if self.settings.needsProjString():
             crs = self.settings.crs
-
-            p = obj["properties"]
-            p["dispCoord"] = True
-            p["crs"] = str(crs.authid())
-
-            if self.settings.coordLatLon():
-                p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
+            obj["properties"]["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
         self.logMessage("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
         self.logMessage("Z shift: {}".format(mapTo3d.verticalShift))
