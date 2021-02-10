@@ -171,12 +171,12 @@ class Q3DController(QObject):
     def connectToMapCanvas(self, canvas):
         self.mapCanvas = canvas
         self.mapCanvas.renderComplete.connect(self._requestSceneUpdate)
-        self.mapCanvas.extentsChanged.connect(self.updateExtent)
+        # self.mapCanvas.extentsChanged.connect(self.updateExtent)
 
     def disconnectFromMapCanvas(self):
         if self.mapCanvas:
             self.mapCanvas.renderComplete.disconnect(self._requestSceneUpdate)
-            self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
+            # self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
 
     def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True, base64=False):
@@ -471,10 +471,12 @@ class Q3DController(QObject):
         self.requestSceneUpdate(update_all=False)
 
     # @pyqtSlot()
-    def updateExtent(self):
-        self.requestQueue.clear()
-        if self.updating:
-            self.abort(clear_queue=False)
+    # def updateExtent(self):
+    #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):
+    #         return
+    #     self.requestQueue.clear()
+    #     if self.updating:
+    #         self.abort(clear_queue=False)
 
 
 class Mock:
