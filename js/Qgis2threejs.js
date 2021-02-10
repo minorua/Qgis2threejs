@@ -956,6 +956,8 @@ limitations:
   app.animate = function () {
     if (app.animating) {
       requestAnimationFrame(app.animate);
+
+      app.controls.update();
     }
     else if (app.viewHelper && app.viewHelper.animating) {
       requestAnimationFrame(app.animate);
@@ -963,7 +965,7 @@ limitations:
       app.viewHelper.update(clock.getDelta());
     }
 
-    app.render(app.controls.autoRotate);
+    app.render();
   };
 
   app.render = function (updateControls) {
