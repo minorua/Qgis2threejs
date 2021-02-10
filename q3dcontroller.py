@@ -144,7 +144,6 @@ class Q3DController(QObject):
         self.aborted = False  # layer export aborted
         self.updating = False
         self.updatingLayerId = None
-        self.layersNeedUpdate = False
         self.mapCanvas = None
 
         self.requestQueue = []
@@ -180,24 +179,22 @@ class Q3DController(QObject):
             self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
 
-    def buildScene(self, update_scene_all=True, build_layers=True, build_scene=True, update_extent=True, base64=False):
+    def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True, base64=False):
         if self.updating:
             logMessage("Previous building is still in progress. Cannot start to build scene.")
             return
 
         self.updating = True
         self.settings.base64 = base64
-        self.layersNeedUpdate = self.layersNeedUpdate or build_layers
 
         self.iface.progress(0, "Updating scene")
 
         if update_extent and self.mapCanvas:
             self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
 
-        if build_scene:
-            self.iface.loadJSONObject(self.builder.buildScene(False))
+        self.iface.loadJSONObject(self.builder.buildScene(False))
 
-        if update_scene_all:
+        if update_scene_opts:
             sp = self.settings.sceneProperties()
             t, f = ("true", "false")
 
@@ -220,18 +217,7 @@ class Q3DController(QObject):
                 self.iface.loadScriptFile(q3dconst.SCRIPT_PROJ4)
 
         if build_layers:
-            self.iface.runScript('loadStart("LYRS", true);')
-
-            layers = self.settings.getLayerList()
-            for layer in sorted(layers, key=lambda lyr: lyr.geomType):
-                if layer.updated or (self.layersNeedUpdate and layer.visible):
-                    ret = self._buildLayer(layer)
-                    if not ret or self.aborted:
-                        break
-            self.iface.runScript('loadEnd("LYRS");')
-
-            if not self.aborted:
-                self.layersNeedUpdate = False
+            self.buildLayers()
 
         self.updating = False
         self.updatingLayerId = None
@@ -240,6 +226,17 @@ class Q3DController(QObject):
         self.iface.clearMessage()
         self.settings.base64 = False
         return True
+
+    def buildLayers(self):
+        self.iface.runScript('loadStart("LYRS", true);')
+
+        layers = self.settings.getLayerList()
+        for layer in sorted(layers, key=lambda lyr: lyr.geomType):
+            if layer.visible:
+                if not self._buildLayer(layer) or self.aborted:
+                    break
+
+        self.iface.runScript('loadEnd("LYRS");')
 
     def buildLayer(self, layer):
         if isinstance(layer, dict):
@@ -299,8 +296,6 @@ class Q3DController(QObject):
             dlist.append([t1 - t4, t2 - t1, t3 - t2])
             t4 = t3
 
-        layer.updated = False
-
         self.iface.runScript('loadEnd("L{}");'.format(layer.jsLayerId))
 
         if DEBUG_MODE:
@@ -334,7 +329,7 @@ class Q3DController(QObject):
 
             elif self.BUILD_SCENE in self.requestQueue:
                 self.requestQueue.clear()
-                self.buildScene(update_scene_all=False)
+                self.buildScene(update_scene_opts=False)
 
             else:
                 layer = self.requestQueue.pop(0)
@@ -477,7 +472,6 @@ class Q3DController(QObject):
 
     # @pyqtSlot()
     def updateExtent(self):
-        self.layersNeedUpdate = True
         self.requestQueue.clear()
         if self.updating:
             self.abort(clear_queue=False)

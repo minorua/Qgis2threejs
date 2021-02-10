@@ -43,13 +43,11 @@ class Layer:
 
         self.jsLayerId = None
         self.mapLayer = None
-        self.updated = False
 
     def clone(self):
         c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
         c.jsLayerId = self.jsLayerId
         c.mapLayer = self.mapLayer
-        c.updated = self.updated
         return c
 
     def copyTo(self, t):
@@ -61,7 +59,6 @@ class Layer:
 
         t.jsLayerId = self.jsLayerId
         t.mapLayer = self.mapLayer
-        t.updated = self.updated
 
     def toDict(self):
         return {"layerId": self.layerId,

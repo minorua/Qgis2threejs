@@ -261,8 +261,7 @@ class Q3DWindow(QMainWindow):
                 item.setText(layer.name)
 
         if layer.properties != orig_layer.properties:
-            layer.updated = True
-        self.iface.requestLayerUpdate(layer)
+            self.iface.requestLayerUpdate(layer)
 
     def getDefaultProperties(self, layer):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
