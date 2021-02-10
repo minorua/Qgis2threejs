@@ -358,7 +358,7 @@ class Q3DController(QObject):
     @pyqtSlot(object, bool)
     def requestSceneUpdate(self, properties=0, update_all=True):
         if DEBUG_MODE:
-            logMessage("Scene update was requested: {}".format(properties))
+            logMessage("Scene update was requested: {}".format(properties), False)
 
         if isinstance(properties, dict):
             self.settings.setSceneProperties(properties)
@@ -373,7 +373,7 @@ class Q3DController(QObject):
     @pyqtSlot(Layer)
     def requestLayerUpdate(self, layer):
         if DEBUG_MODE:
-            logMessage("Layer update for {} was requested.".format(layer.layerId))
+            logMessage("Layer update for {} was requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"), False)
 
         # update layer properties and its state in export settings
         lyr = self.settings.getLayer(layer.layerId)

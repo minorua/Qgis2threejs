@@ -89,7 +89,7 @@ class Qgis2threejs:
 
     def openExporter(self, _, no_preview=False):
         if self.liveExporter:
-            logMessage("Qgis2threejs Exporter is already open.")
+            logMessage("Qgis2threejs Exporter is already open.", False)
             self.liveExporter.activateWindow()
             return
 
@@ -116,6 +116,6 @@ class Qgis2threejs:
         self.openExporter(False, True)
 
     def exporterDestroyed(self, obj):
-        logMessage("Qgis2threejs Exporter has closed.")
+        logMessage("Qgis2threejs Exporter has closed.", False)
         self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
         self.liveExporter = None
