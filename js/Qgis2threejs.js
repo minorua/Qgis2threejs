@@ -954,11 +954,15 @@ limitations:
 
   // animation loop
   app.animate = function () {
-    if (app.animating || (app.viewHelper && app.viewHelper.animating)) requestAnimationFrame(app.animate);
+    if (app.animating) {
+      requestAnimationFrame(app.animate);
+    }
+    else if (app.viewHelper && app.viewHelper.animating) {
+      requestAnimationFrame(app.animate);
 
-    if (app.viewHelper) {
       app.viewHelper.update(clock.getDelta());
     }
+
     app.render(app.controls.autoRotate);
   };
 
