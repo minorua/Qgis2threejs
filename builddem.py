@@ -87,6 +87,8 @@ class DEMLayerBuilder(LayerBuilder):
             tex_size = DEMPropertyReader.textureSize(self.properties, be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
 
+        planeWidth, planeHeight = (mapTo3d.baseWidth, mapTo3d.baseWidth * be.height() / be.width())
+
         center = be.center()
         rotation = be.rotation()
         base_grid_seg = self.settings.demGridSegments(self.layer.layerId)
@@ -133,10 +135,10 @@ class DEMLayerBuilder(LayerBuilder):
                                     self.provider,
                                     grid_seg,
                                     extent,
-                                    mapTo3d.baseWidth,
-                                    mapTo3d.baseWidth * be.height() / be.width(),
-                                    offsetX=mapTo3d.baseWidth * sx,
-                                    offsetY=mapTo3d.baseHeight * sy,
+                                    planeWidth,
+                                    planeHeight,
+                                    offsetX=planeWidth * sx,
+                                    offsetY=planeHeight * sy,
                                     edgeRoughness=roughness if is_center else 1,
                                     clip_geometry=clip_geometry if is_center else None,
                                     pathRoot=self.pathRoot,
