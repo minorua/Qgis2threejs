@@ -115,9 +115,9 @@ class DEMLayerBuilder(LayerBuilder):
             sx = i % size - (size - 1) // 2
             sy = i // size - (size - 1) // 2
             dist2 = sx * sx + sy * sy
-            blks.append([dist2, i, sx, sy])
+            blks.append([dist2, -sy, sx, sy, i])
 
-        for dist2, blockIndex, sx, sy in sorted(blks):
+        for dist2, _nsy, sx, sy, blockIndex in sorted(blks):
             # self.progress(20 * i / size2 + 10)
             is_center = (sx == 0 and sy == 0)
 
