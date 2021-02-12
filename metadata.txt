@@ -14,7 +14,7 @@ qgisMinimumVersion=3.4
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects with simple settings panels and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.5
+version=2.6
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,9 +24,16 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
-    Version 2.5
-    - Potree data support
-    - Bug fixes
+    Version 2.6
+    - Added navigation widget
+    - Added fixed base extent option and 1:1 aspect ratio option
+    - Added outline effect option
+    - DEM texture width is now specifiable with a numerical value
+    - Added edge option and quad wireframe option to DEM
+    - Added Ray Tracing Renderer template (experimental)
+    - Added view menu
+    - Fixed DEM edge processing between central block and surrounding blocks
+    - Some other bug fixes
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,three.js,web,WebGL,glTF,AR

@@ -35,6 +35,8 @@ Dependent JavaScript libraries and resources
 
 * Python ported version of [earcut](https://github.com/mapbox/earcut) for Overlay polygon triangulation
 
+* [Ray Tracing Renderer](https://github.com/hoverinc/ray-tracing-renderer) for ray tracing renderer template
+
 * [unfetch](https://github.com/developit/unfetch) fetch polyfill
 
 License

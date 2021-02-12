@@ -1,5 +1,16 @@
 ## CHANGELOG
 
+### Version 2.6
+- Added navigation widget
+- Added fixed base extent option and 1:1 aspect ratio option
+- Added outline effect option
+- DEM texture width is now specifiable with a numerical value
+- Added edge option and quad wireframe option to DEM
+- Added Ray Tracing Renderer template (experimental)
+- Added view menu
+- Fixed DEM edge processing between central block and surrounding blocks
+- Some other bug fixes
+
 ### Version 2.5
 - Potree data support
 - Bug fixes
