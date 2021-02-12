@@ -25,7 +25,7 @@ import os
 from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from PyQt5.QtGui import QImage, QPainter
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, PLUGIN_VERSION
 from .build import ThreeJSBuilder
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
@@ -126,7 +126,8 @@ class ThreeJSExporter(ThreeJSBuilder):
             "scripts": "\n".join(self.scripts()),
             "scenefile": "./data/{0}/scene.{1}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
-            "footer": self.settings.footerLabel()
+            "footer": self.settings.footerLabel(),
+            "version": PLUGIN_VERSION
         }
         for key, value in mapping.items():
             html = html.replace("${" + key + "}", value)
