@@ -28,24 +28,23 @@ def pluginPath(subdir=None):
 
 
 def dataPath(subdir=None):
-    data_path = "E:/qgis2threejs_test_dev/data"   # [work in progress]
-    #data_path = pluginPath(os.path.join("tests", "data"))
+    data_path = os.path.join(os.path.dirname(__file__), "data")
     if subdir is None:
         return data_path
     return os.path.join(data_path, subdir)
 
 
 def expectedDataPath(subdir=None):
-    data_path = "E:/qgis2threejs_test_dev/expected"   # [work in progress]
-    #data_path = pluginPath(os.path.join("tests", "expected"))
+    data_path = os.path.join(os.path.dirname(__file__), "expected")
+    if not os.path.isdir(data_path):
+        os.mkdir(data_path)
     if subdir is None:
         return data_path
     return os.path.join(data_path, subdir)
 
 
 def outputPath(subdir=None):
-    data_path = "E:/qgis2threejs_test_dev/output"   # [work in progress]
-    #data_path = pluginPath(os.path.join("tests", "output"))
+    data_path = os.path.join(os.path.dirname(__file__), "output")
     if subdir is None:
         return data_path
     return os.path.join(data_path, subdir)

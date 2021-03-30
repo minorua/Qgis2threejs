@@ -102,6 +102,7 @@ class TestExport(unittest.TestCase):
 
         filename = "scene1_qwebpage.png"
         image.save(outputPath(filename))
+
         assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
 
     def test11_export_scene1_image(self):
