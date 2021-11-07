@@ -10,3 +10,4 @@ tests/output
 *.log
 viewer/debug.html
 viewer/debug.js
+.vscode
