@@ -290,7 +290,7 @@ Q3D.Material.prototype._loadJSONObject = Q3D.Material.prototype.loadJSONObject;
 Q3D.Material.prototype.loadJSONObject = function (jsonObject, callback) {
 
   if (jsonObject.type > Q3D.MaterialType.MeshToon) {  // && jsonObject.type != Q3D.MaterialType.MeshStandard
-    console.warning("This material is not supported by ray tracing renderer: " + jsonObject.type);
+    console.warn("This material is not supported by ray tracing renderer: " + jsonObject.type);
   }
   else {
     if (jsonObject.roughness === undefined) jsonObject.roughness = 1;
