@@ -24,8 +24,9 @@ from datetime import datetime
 from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
-                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar)
-from qgis.core import Qgis, QgsProject
+                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar,
+                             QHeaderView, QTreeWidgetItem, QMenu)
+from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import q3dconst
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
@@ -34,7 +35,7 @@ from .pluginmanager import pluginManager
 from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .qgis2threejstools import pluginDir
+from .qgis2threejstools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -124,12 +125,13 @@ class Q3DWindow(QMainWindow):
         self.controller.connectToIface(self.iface)
 
         self.setupMenu()
-        self.setupContextMenu()
+        self.setupConsole()
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface)
         self.ui.treeView.addLayers(settings.getLayerList())
         self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
+        self.ui.animationPanel.setup(self, settings)
 
         if DEBUG_MODE:
             self.ui.actionInspector = QAction(self)
@@ -157,7 +159,14 @@ class Q3DWindow(QMainWindow):
         self.iface.abort()
 
         # save export settings to a settings file
-        self.settings.saveSettings()
+        try:
+            self.settings.setAnimationData(self.ui.animationPanel.tree.data())
+            self.settings.saveSettings()
+        except Exception as e:
+            import traceback
+            logMessage(traceback.format_exc(), error=True)
+
+            self.iface.showMessage(str(e), show_in_msg_bar=True)
 
         settings = QSettings()
         settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
@@ -181,6 +190,7 @@ class Q3DWindow(QMainWindow):
 
     def setupMenu(self):
         self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
+        self.ui.menuPanels.addAction(self.ui.dockWidgetAnimation.toggleViewAction())
         self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
         self.ui.actionGroupCamera = QActionGroup(self)
@@ -211,7 +221,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         self.ui.actionAbout.triggered.connect(self.about)
 
-    def setupContextMenu(self):
+    def setupConsole(self):
         # console
         self.ui.actionConsoleCopy.triggered.connect(self.copyConsole)
         self.ui.actionConsoleClear.triggered.connect(self.clearConsole)
@@ -247,8 +257,15 @@ class Q3DWindow(QMainWindow):
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
+        # fetch data from animation panel
+        tree = self.ui.animationPanel.tree
+        tree.setLayerDisabled(layer.layerId, True)
+        layer.animationData = tree.layerData(layer.layerId)
+
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
+        dialog.rejected.connect(lambda: tree.setLayerDisabled(layer.layerId, False))
+
         dialog.showLayerProperties(layer)
 
     # @pyqtSlot(Layer)
@@ -262,6 +279,10 @@ class Q3DWindow(QMainWindow):
 
         if layer.properties != orig_layer.properties:
             self.iface.requestLayerUpdate(layer)
+
+        tree = self.ui.animationPanel.tree
+        tree.setLayerData(layer.layerId, layer.animationData)
+        tree.setLayerDisabled(layer.layerId, False)
 
     def getDefaultProperties(self, layer):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
@@ -299,6 +320,8 @@ class Q3DWindow(QMainWindow):
     # File menu
     def exportToWeb(self):
         from .exporttowebdialog import ExportToWebDialog
+
+        self.settings.setAnimationData(self.ui.animationPanel.tree.data())
 
         dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
         dialog.show()
@@ -343,6 +366,7 @@ class Q3DWindow(QMainWindow):
         settings = self.settings.clone()
         settings.loadSettingsFromFile(filename)
         self.ui.treeView.updateLayersCheckState(settings)
+        self.ui.animationPanel.tree.setData(settings.animationData())
 
         self.iface.exportSettingsUpdated.emit(settings)
 
@@ -359,6 +383,7 @@ class Q3DWindow(QMainWindow):
         if os.path.splitext(filename)[1].lower() != ".qto3settings":
             filename += ".qto3settings"
 
+        self.settings.setAnimationData(self.ui.animationPanel.tree.data())
         self.settings.saveSettings(filename)
 
         self.lastDir = os.path.dirname(filename)
@@ -374,6 +399,8 @@ class Q3DWindow(QMainWindow):
         settings = self.settings.clone()
         settings.clear()
         settings.updateLayerList()
+
+        self.ui.animationPanel.tree.setData({})
 
         self.iface.exportSettingsUpdated.emit(settings)
 
@@ -484,15 +511,18 @@ class PropertiesDialog(QDialog):
         if self.layer.geomType == q3dconst.TYPE_DEM:
             self.page = DEMPropertyPage(self)
             self.page.setup(self.layer,
-                            self.settings.baseExtent(),
+                            self.settings,
                             self.qgisIface.mapCanvas().mapSettings())
+
         elif self.layer.geomType == q3dconst.TYPE_POINTCLOUD:
             self.page = PointCloudPropertyPage(self)
             self.page.setup(self.layer)
+
         else:
             self.page = VectorPropertyPage(self)
             self.page.setup(self.layer,
-                            self.settings.mapTo3d())
+                            self.settings)
+
         self.ui.scrollArea.setWidget(self.page)
 
         # disable wheel event for ComboBox widgets
@@ -509,6 +539,7 @@ class PropertiesDialog(QDialog):
                     self.layer.name = self.page.lineEdit_Name.text()
 
                 self.layer.properties = self.page.properties()
+                self.layer.animationData = self.page.animationData()
                 self.propertiesAccepted.emit(self.layer)
 
     def showLayerProperties(self, layer):

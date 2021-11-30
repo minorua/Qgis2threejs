@@ -1,9 +1,9 @@
-// WebKit bridge: access to pyObj object
+//// WebKit bridge: access to pyObj object
 function fetchData() {
   return pyObj.data();
 }
 
-// configuration
+//// configuration
 Q3D.Config.potreeBasePath = document.currentScript.src + "/../../js/potree-core";
 
 
@@ -11,6 +11,7 @@ var app = Q3D.application;
 app.timer = {tickCount: 0};
 
 
+//// load functions
 function loadJSONObject(jsonObject) {
   app.loadJSONObject(jsonObject);
 
@@ -267,6 +268,7 @@ function setBackgroundColor(color, alpha) {
   app.render();
 }
 
+//// camera
 function switchCamera(is_ortho) {
   app.buildCamera(is_ortho);
   app.controls.object = app.camera;
@@ -280,21 +282,34 @@ function switchCamera(is_ortho) {
 }
 
 // current camera position and its target
-function cameraState() {
+function cameraState(flat) {
   var p = app.camera.position, t = app.controls.target;
+  if (flat) {
+    return {
+      x: p.x, y: p.y, z: p.z, fx: t.x, fy: t.y, fz: t.z
+    };
+  }
+
   return {
     pos: {x: p.x, y: p.y, z: p.z},
     lookAt: {x: t.x, y: t.y, z: t.z}
   };
 }
 
-function setCameraState(state) {
-  var p = state.pos, t = state.lookAt;
-  app.camera.position.set(p.x, p.y, p.z);
-  app.controls.target.set(t.x, t.y, t.z);
+function setCameraState(s) {
+  if (s.pos !== undefined) {
+    var p = s.pos, t = s.lookAt;
+    app.camera.position.set(p.x, p.y, p.z);
+    app.controls.target.set(t.x, t.y, t.z);
+  }
+  else {
+    app.camera.position.set(s.x, s.y, s.z);
+    app.controls.target.set(s.fx, s.fy, s.fz);
+  }
   app.camera.lookAt(app.controls.target);
 }
 
+//// widgets
 function setNavigationEnabled(enabled) {
   var elm = document.getElementById("navigation");
   elm.style.display = (enabled) ? "block" : "none";
@@ -341,7 +356,49 @@ function setHFLabel(header, footer) {
   document.getElementById("footer").innerHTML = footer;
 }
 
-// overrides
+//// animation
+function loadKeyframeGroups(groups) {
+  app.animation.keyframes.clear();
+  app.animation.keyframes.load(groups);
+}
+
+function startAnimation(groups) {
+  if (groups) loadKeyframeGroups(groups);
+
+  loadScriptFile("../js/tweenjs/tween.js", function () {
+    app.animation.keyframes.start();
+  });
+}
+
+function stopAnimation() {
+  app.animation.keyframes.stop();
+}
+
+function showNarrativeBox(nar) {
+  var e = document.getElementById("narrativebox");
+  e.classList.remove("visible");
+  document.getElementById("narbody").innerHTML = nar;
+
+  setTimeout(function () {
+    e.classList.add("visible");
+  }, 0);
+}
+
+function closeNarrativeBox() {
+  document.getElementById("narrativebox").classList.remove("visible");
+}
+
+function setLayerOpacity(layerId, opacity) {
+  app.scene.mapLayers[layerId].opacity = opacity;
+}
+
+//// event handlers
+app.animation.keyframes.onStop = function () {
+  pyObj.animationStopped();
+};
+
+
+//// overrides
 var origRender = app.render;
 app.render = function (updateControls) {
   origRender(updateControls);
@@ -357,7 +414,8 @@ app.saveCanvasImage = function (width, height, fill_background) {
   app._saveCanvasImage(width, height, fill_background, saveCanvasImage);
 };
 
-// polyfill for binary glTF export
+//// polyfills
+// for binary glTF export
 // https://developer.mozilla.org/ja/docs/Web/API/HTMLCanvasElement/toBlob
 if (!HTMLCanvasElement.prototype.toBlob) {
   Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {

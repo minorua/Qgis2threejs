@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>335</width>
-    <height>657</height>
+    <width>415</width>
+    <height>739</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -399,6 +399,25 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_Animation">
+     <property name="title">
+      <string>Animation</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="checkBox_Animation">
+        <property name="text">
+         <string>Enable animation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="AnimationPanel" name="animationPanel" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_Others">
      <property name="title">
       <string>&amp;Other Options</string>
@@ -514,6 +533,12 @@
    <extends>QToolButton</extends>
    <header>qgis.gui</header>
   </customwidget>
+  <customwidget>
+   <class>AnimationPanel</class>
+   <extends>QWidget</extends>
+   <header>Qgis2threejs.keyframes</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>horizontalSlider_DEMSize</tabstop>
@@ -535,6 +560,7 @@
   <tabstop>spinBox_Opacity</tabstop>
   <tabstop>checkBox_TransparentBackground</tabstop>
   <tabstop>checkBox_Shading</tabstop>
+  <tabstop>checkBox_Animation</tabstop>
   <tabstop>checkBox_Sides</tabstop>
   <tabstop>toolButton_SideColor</tabstop>
   <tabstop>checkBox_Frame</tabstop>
@@ -542,6 +568,7 @@
   <tabstop>checkBox_Wireframe</tabstop>
   <tabstop>toolButton_WireframeColor</tabstop>
   <tabstop>checkBox_Visible</tabstop>
+  <tabstop>checkBox_Clickable</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -766,6 +793,22 @@
     <hint type="destinationlabel">
      <x>246</x>
      <y>566</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Animation</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>animationPanel</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>166</x>
+     <y>502</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>166</x>
+     <y>523</y>
     </hint>
    </hints>
   </connection>

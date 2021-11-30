@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>416</width>
-    <height>497</height>
+    <height>607</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,7 +108,7 @@
         <item>
          <widget class="QRadioButton" name="radioButton_zValue">
           <property name="text">
-           <string>Z Value</string>
+           <string>Z value</string>
           </property>
           <attribute name="buttonGroup">
            <string notr="true">buttonGroup_altitude</string>
@@ -118,7 +118,7 @@
         <item>
          <widget class="QRadioButton" name="radioButton_mValue">
           <property name="text">
-           <string>M Value</string>
+           <string>M value</string>
           </property>
           <attribute name="buttonGroup">
            <string notr="true">buttonGroup_altitude</string>
@@ -297,6 +297,25 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_Animation">
+     <property name="title">
+      <string>Animation</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QCheckBox" name="checkBox_Animation">
+        <property name="text">
+         <string>Enable animation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="AnimationPanel" name="animationPanel" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_Others">
      <property name="title">
       <string>Other Options</string>
@@ -342,6 +361,12 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>AnimationPanel</class>
+   <extends>QWidget</extends>
+   <header>Qgis2threejs.keyframes</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>QgsFieldExpressionWidget</class>
    <extends>QWidget</extends>
    <header>qgis.gui</header>
@@ -359,6 +384,7 @@
   <tabstop>checkBox_Clip</tabstop>
   <tabstop>checkBox_ExportAttrs</tabstop>
   <tabstop>comboBox_Label</tabstop>
+  <tabstop>checkBox_Animation</tabstop>
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
  </tabstops>
@@ -377,6 +403,22 @@
     <hint type="destinationlabel">
      <x>179</x>
      <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Animation</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>animationPanel</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>207</x>
+     <y>393</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>414</y>
     </hint>
    </hints>
   </connection>

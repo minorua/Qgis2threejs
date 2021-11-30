@@ -177,6 +177,18 @@ class PropertyPage(QWidget):
             else:
                 logMessage("[propertypages.py] Cannot restore %s property" % n)
 
+    def animationData(self):
+        if hasattr(self, "animationPanel"):
+            d = self.animationPanel.tree.layerData()
+            d["enabled"] = self.checkBox_Animation.isChecked()
+            return d
+        return {}
+
+    def setAnimationData(self, data):
+        if hasattr(self, "animationPanel"):
+            self.animationPanel.tree.setLayerData(data)
+            self.checkBox_Animation.setChecked(data.get("enabled", False))
+
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
@@ -362,6 +374,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         PropertyPage.__init__(self, PAGE_DEM, parent)
         Ui_DEMPropertiesWidget.setupUi(self, self)
 
+        self.animationPanel.setVisible(False)
+
         # set read only to line edits of spin boxes
         self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
         self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
@@ -397,15 +411,19 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
-    def setup(self, layer, extent, mapSettings):
+    def setup(self, layer, settings, mapSettings):
         self.layer = layer
-        properties = layer.properties
-        self.extent = extent
+        self.extent = settings.baseExtent()
         self.mapSettings = mapSettings
+
+        # animation group box
+        wnd = self.parent().parent()
+        self.animationPanel.setup(wnd, settings, layer.layerId, self.checkBox_Animation)
 
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
 
+        properties = layer.properties
         if properties:
             if "toolButton_EdgeColor" not in properties:        # this means "if loaded properties were saved in plugin version < 2.6"
                 properties["comboBox_TextureSize"] = "Map Canvas Width"
@@ -544,6 +562,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.layer = None
         self.hasZ = self.hasM = False
 
+        self.animationPanel.setVisible(False)
+
         # initialize vector style widgets
         self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
         self.labelHeightWidget.setObjectName("labelHeightWidget")
@@ -578,9 +598,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             btn.toggled.connect(self.zValueRadioButtonToggled)
         self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
-    def setup(self, layer, mapTo3d):
+    def setup(self, layer, settings):
         self.layer = layer
-        self.mapTo3d = mapTo3d
+        self.mapTo3d = settings.mapTo3d()
         mapLayer = layer.mapLayer
         properties = layer.properties
 
@@ -647,7 +667,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         # set up label height widget
         if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": int(defaultLabelHeight / mapTo3d.multiplierZ)})
+            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
         else:
             self.labelHeightWidget.hide()
 
@@ -666,6 +686,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             fields = mapLayer.fields()
             for i in range(fields.count()):
                 self.comboBox_Label.addItem(fields[i].name(), i)
+
+        # animation group box
+        wnd = self.parent().parent()
+        self.animationPanel.setup(wnd, settings, layer.layerId, self.checkBox_Animation)
 
         # restore other properties for the layer
         self.setProperties(properties or {})

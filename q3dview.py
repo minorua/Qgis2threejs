@@ -57,6 +57,7 @@ class Bridge(QObject):
     statusMessage = pyqtSignal(str, int)
     modelDataReady = pyqtSignal("QByteArray", str)
     imageReady = pyqtSignal(int, int, "QImage")
+    animationStopped = pyqtSignal()
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
@@ -78,11 +79,6 @@ class Bridge(QObject):
     def onSceneLoadError(self):
         self.sceneLoadError.emit()
 
-    @pyqtSlot(int, int, result=str)
-    def mouseUpMessage(self, x, y):
-        return "Clicked at ({0}, {1})".format(x, y)
-        # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
-
     @pyqtSlot(str, int)
     def showStatusMessage(self, message, duration=0):
         self.statusMessage.emit(message, duration)
@@ -103,6 +99,17 @@ class Bridge(QObject):
             image = QImage()
             image.loadFromData(ba)
         self.imageReady.emit(width, height, image)
+
+    @pyqtSlot()
+    def onAnimationStopped(self):
+        self.animationStopped.emit()
+
+    """
+    @pyqtSlot(int, int, result=str)
+    def mouseUpMessage(self, x, y):
+        return "Clicked at ({0}, {1})".format(x, y)
+        # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
+    """
 
 
 class Q3DWebPage(QWebPage):
@@ -134,6 +141,7 @@ class Q3DWebPage(QWebPage):
         self.bridge.imageReady.connect(self.saveImage)
         if wnd:
             self.bridge.statusMessage.connect(wnd.ui.statusbar.showMessage)
+            self.bridge.animationStopped.connect(wnd.ui.animationPanel.animationStopped)
 
         self.loadFinished.connect(self.pageLoaded)
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
@@ -221,8 +229,8 @@ class Q3DWebPage(QWebPage):
         for id in ids:
             self.loadScriptFile(id, force)
 
-    def cameraState(self):
-        return self.mainFrame().evaluateJavaScript("cameraState()")
+    def cameraState(self, flat=False):
+        return self.mainFrame().evaluateJavaScript("cameraState({})".format(1 if flat else 0))
 
     def setCameraState(self, state):
         """set camera position and camera target"""

@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Q3DWindow(object):
     def setupUi(self, Q3DWindow):
         Q3DWindow.setObjectName("Q3DWindow")
-        Q3DWindow.resize(757, 580)
+        Q3DWindow.resize(786, 534)
         Q3DWindow.setAcceptDrops(True)
         self.centralwidget = QtWidgets.QWidget(Q3DWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -26,7 +26,7 @@ class Ui_Q3DWindow(object):
         self.verticalLayout.addWidget(self.webView)
         Q3DWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(Q3DWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 757, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 786, 26))
         self.menubar.setObjectName("menubar")
         self.menuScene = QtWidgets.QMenu(self.menubar)
         self.menuScene.setObjectName("menuScene")
@@ -74,6 +74,16 @@ class Ui_Q3DWindow(object):
         self.verticalLayout_2.addWidget(self.treeView)
         self.dockWidgetLayers.setWidget(self.dockWidgetContents)
         Q3DWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidgetLayers)
+        self.dockWidgetAnimation = QtWidgets.QDockWidget(Q3DWindow)
+        self.dockWidgetAnimation.setObjectName("dockWidgetAnimation")
+        self.animationPanel = AnimationPanel()
+        self.animationPanel.setObjectName("animationPanel")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.animationPanel)
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_4.setSpacing(2)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.dockWidgetAnimation.setWidget(self.animationPanel)
+        Q3DWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidgetAnimation)
         self.dockWidgetConsole = QtWidgets.QDockWidget(Q3DWindow)
         self.dockWidgetConsole.setFloating(False)
         self.dockWidgetConsole.setObjectName("dockWidgetConsole")
@@ -214,6 +224,8 @@ class Ui_Q3DWindow(object):
         self.retranslateUi(Q3DWindow)
         self.actionClose.triggered.connect(Q3DWindow.close)
         QtCore.QMetaObject.connectSlotsByName(Q3DWindow)
+        Q3DWindow.setTabOrder(self.treeView, self.listWidgetDebugView)
+        Q3DWindow.setTabOrder(self.listWidgetDebugView, self.lineEditInputBox)
 
     def retranslateUi(self, Q3DWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -230,6 +242,7 @@ class Ui_Q3DWindow(object):
         self.menuCamera.setTitle(_translate("Q3DWindow", "Camera"))
         self.menuWidgets.setTitle(_translate("Q3DWindow", "Widgets"))
         self.dockWidgetLayers.setWindowTitle(_translate("Q3DWindow", "Layers"))
+        self.dockWidgetAnimation.setWindowTitle(_translate("Q3DWindow", "Animation"))
         self.dockWidgetConsole.setWindowTitle(_translate("Q3DWindow", "Console"))
         self.label.setText(_translate("Q3DWindow", ">>>"))
         self.actionSaveAsSTL.setText(_translate("Q3DWindow", "STL (.stl)"))
@@ -265,5 +278,6 @@ class Ui_Q3DWindow(object):
         self.actionLoadSettings.setText(_translate("Q3DWindow", "Load..."))
         self.actionAddPointCloudLayer.setText(_translate("Q3DWindow", "Add Point Cloud Layer..."))
         self.actionNavigationWidget.setText(_translate("Q3DWindow", "Navigation Widget"))
+from Qgis2threejs.keyframes import AnimationPanel
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView

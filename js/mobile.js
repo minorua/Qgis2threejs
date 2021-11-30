@@ -221,7 +221,7 @@ function startARMode(position) {
   app.controls = devControls;
   app.controls.connect();
 
-  app.startAnimation();
+  app.animation.start();
 
   navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(function (stream) {
     var v = document.getElementById("video");
@@ -263,7 +263,7 @@ function stopARMode() {
   app.controls = orbitControls;
   app.controls.enabled = true;
 
-  app.stopAnimation();
+  app.animation.stop();
   document.getElementById("current-location").classList.remove("touchme");
 
   var v = Q3D.Config.viewpoint,

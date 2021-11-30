@@ -70,6 +70,10 @@ class ThreeJSExporter(ThreeJSBuilder):
         if self.canceled:
             return False
 
+        # animation
+        if self.settings.isAnimationEnabled():
+            json_object["animation"] = self.settings.animationData(export=True)
+
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
                 f.write("app.loadJSONObject(")
@@ -207,6 +211,10 @@ class ThreeJSExporter(ThreeJSBuilder):
                 if f not in files:
                     files.append(f)
 
+        # animation
+        if self.settings.isAnimationEnabled():
+            files.append({"dirs": ["js/tweenjs"]})
+
         return files
 
     def scripts(self):
@@ -234,6 +242,10 @@ class ThreeJSExporter(ThreeJSBuilder):
             proj4 = "./proj4js/proj4.js"
             if proj4 not in files:
                 files.append(proj4)
+
+        # animation
+        if self.settings.isAnimationEnabled():
+            files.append("./tweenjs/tween.js")
 
         # Qgis2threejs.js
         files.append("./Qgis2threejs.js")

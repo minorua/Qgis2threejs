@@ -28,6 +28,7 @@ Q3D.gui = {
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.layersFolder = this.gui.addFolder('Layers');
       this.customPlaneFolder = this.gui.addFolder('Custom Plane');
+      if (window.TWEEN !== undefined) this.addAnimationFolder();
       if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
     }
@@ -110,6 +111,30 @@ Q3D.gui = {
       gui.customPlane.updateMatrixWorld();
       app.render();
     });
+  },
+
+  addAnimationFolder: function () {
+    var k = Q3D.application.animation.keyframes;
+    var btn, folder = this.gui.addFolder('Animation');
+
+    this.parameters.anm = {
+      p: function () {
+        if (k.isActive) {
+          k.pause();
+          btn.name('Resume');
+        }
+        else {
+          if (k.isPaused) k.resume();
+          else k.start();
+          btn.name('Pause');
+        }
+    }};
+    btn = folder.add(this.parameters.anm, 'p').name('Play');
+
+    k.onStop = function () {
+      btn.name('Play');
+    };
+    
   },
 
   // add commands folder for touch screen devices

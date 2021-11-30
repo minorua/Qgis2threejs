@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>599</width>
-    <height>391</height>
+    <width>593</width>
+    <height>532</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,7 +41,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Output Directory</string>
+               <string>Output directory</string>
               </property>
              </widget>
             </item>
@@ -69,7 +69,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>HTML Filename</string>
+               <string>HTML filename</string>
               </property>
              </widget>
             </item>
@@ -79,7 +79,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="label_4">
               <property name="text">
-               <string>Page Title</string>
+               <string>Page title</string>
               </property>
              </widget>
             </item>
@@ -91,14 +91,14 @@
           <item>
            <widget class="QCheckBox" name="checkBox_PreserveViewpoint">
             <property name="text">
-             <string>Preserve the Current Viewpoint</string>
+             <string>Preserve the current viewpoint</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="checkBox_LocalMode">
             <property name="text">
-             <string>Enable the Viewer to Run Locally</string>
+             <string>Enable the viewer to run locally</string>
             </property>
            </widget>
           </item>
@@ -137,7 +137,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_MND">
             <property name="text">
-             <string>Magnetic North Direction</string>
+             <string>Magnetic North direction</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -174,6 +174,45 @@
                <string>degrees</string>
               </property>
              </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Animation">
+         <property name="title">
+          <string>Animation and Storytelling</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="checkBox_Animation">
+            <property name="text">
+             <string>Enable animation</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Camera motion</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="comboBox_CameraMotion"/>
             </item>
            </layout>
           </item>
@@ -283,10 +322,12 @@
   <tabstop>checkBox_LocalMode</tabstop>
   <tabstop>comboBox_Template</tabstop>
   <tabstop>lineEdit_MND</tabstop>
-  <tabstop>textBrowser</tabstop>
+  <tabstop>checkBox_Animation</tabstop>
+  <tabstop>comboBox_CameraMotion</tabstop>
   <tabstop>pushButton_Cancel</tabstop>
   <tabstop>pushButton_Export</tabstop>
   <tabstop>pushButton_Close</tabstop>
+  <tabstop>textBrowser</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -319,6 +360,22 @@
     <hint type="destinationlabel">
      <x>293</x>
      <y>147</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Animation</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>comboBox_CameraMotion</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>372</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>348</x>
+     <y>400</y>
     </hint>
    </hints>
   </connection>

@@ -43,11 +43,13 @@ class Layer:
 
         self.jsLayerId = None
         self.mapLayer = None
+        self.animationData = {}
 
     def clone(self):
         c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
         c.jsLayerId = self.jsLayerId
         c.mapLayer = self.mapLayer
+        c.animationData = deepcopy(self.animationData)
         return c
 
     def copyTo(self, t):
@@ -59,6 +61,7 @@ class Layer:
 
         t.jsLayerId = self.jsLayerId
         t.mapLayer = self.mapLayer
+        t.animationData = deepcopy(self.animationData)
 
     def toDict(self):
         return {"layerId": self.layerId,
@@ -109,6 +112,7 @@ class ExportSettings:
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
     WIDGETS = "WIDGETS"
+    KEYFRAMES = "KEYFRAMES"
     OPTIONS = "OPT"   # web export options
     DECOR = "DECOR"   # obsolete since version 2.6
 
@@ -353,6 +357,12 @@ class ExportSettings:
     def getLayerList(self):
         return self.data.get(ExportSettings.LAYERS, [])
 
+    def layersToExport(self):
+        return [lyr for lyr in self.getLayerList() if lyr.visible]
+
+    def jsLayerIdsToExport(self):
+        return [lyr.jsLayerId for lyr in self.getLayerList() if lyr.visible]
+
     def updateLayerList(self):
         """Updates layer elements in settings using current project layer structure.
            Adds layer elements newly added to the project and removes layer elements
@@ -499,3 +509,45 @@ class ExportSettings:
         p = self.widgetProperties("Label")
         p["Footer"] = str(text)
         self.setWidgetProperties("Label", p)
+
+    # animation
+    def isAnimationEnabled(self):
+        return self.data.get(ExportSettings.KEYFRAMES, {}).get("enabled", False)
+
+    def animationData(self, layerId=None, export=False):
+        d = self.data.get(ExportSettings.KEYFRAMES, {})
+        if not export:
+            if layerId:
+                return d.get("layers", {}).get(layerId, {})
+            return d
+
+        # for export
+        if not d.get("enabled"):
+            return {}
+
+        groups = []
+
+        # camera motion group
+        idx = d.get("cmgIndex", -1)
+        if idx >= 0:
+            groups.append(deepcopyExcept(d["camera"]["groups"][idx], "name"))
+
+        idsToExport = self.jsLayerIdsToExport()
+        for layerId, layer in d.get("layers", {}).items():
+            if layerId in idsToExport:
+                groups += deepcopyExcept(layer["groups"], "name")
+
+        return {"groups": groups}
+
+    def setAnimationData(self, data):
+        d = self.data.get(ExportSettings.KEYFRAMES, {})
+        d.update(data)
+        self.data[ExportSettings.KEYFRAMES] = d
+
+
+def deepcopyExcept(obj, key_to_remove):
+    if isinstance(obj, dict):
+        return {k: deepcopyExcept(v, key_to_remove) if isinstance(v, (dict, list)) else v for k, v in obj.items() if k != key_to_remove}
+    elif isinstance(obj, list):
+        return [deepcopyExcept(v, key_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
+    return obj

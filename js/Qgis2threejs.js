@@ -426,7 +426,6 @@ limitations:
   app.init = function (container) {
 
     app.container = container;
-    app.animating = false;        // if true, animation loop continues.
 
     app.selectedObject = null;
     app.highlightObject = null;
@@ -526,6 +525,11 @@ limitations:
 
     var e = Q3D.$("closebtn");
     if (e) e.addEventListener("click", app.closePopup);
+
+    e = Q3D.$("nextbtn");
+    if (e) e.addEventListener("click", function () {
+      app.animation.keyframes.resume();
+    });
   };
 
   app.parseUrlParameters = function () {
@@ -634,6 +638,7 @@ limitations:
 
   app.loadJSONObject = function (jsonObject) {
     app.scene.loadJSONObject(jsonObject);
+    if (jsonObject.animation !== undefined) app.animation.keyframes.load(jsonObject.animation.groups);
   };
 
   app.loadJSONFile = function (url, callback) {
@@ -935,7 +940,7 @@ limitations:
   };
 
   app.pause = function () {
-    app.animating = false;
+    app.animation.isActive = false;
     if (app.controls) app.controls.enabled = false;
   };
 
@@ -943,21 +948,14 @@ limitations:
     if (app.controls) app.controls.enabled = true;
   };
 
-  app.startAnimation = function () {
-    app.animating = true;
-    app.animate();
-  };
-
-  app.stopAnimation = function () {
-    app.animating = false;
-  };
-
   // animation loop
   app.animate = function () {
-    if (app.animating) {
+
+    if (app.animation.isActive) {
       requestAnimationFrame(app.animate);
 
-      app.controls.update();
+      if (app.animation.keyframes.isActive) TWEEN.update();
+      else if (app.controls.enabled) app.controls.update();
     }
     else if (app.viewHelper && app.viewHelper.animating) {
       requestAnimationFrame(app.animate);
@@ -967,6 +965,251 @@ limitations:
 
     app.render();
   };
+
+  app.animation = {
+
+    isActive: false,
+
+    start: function () {
+      this.isActive = true;
+      app.animate();
+    },
+
+    stop: function () {
+      this.isActive = false;
+    },
+
+    keyframes: {    // keyframe animation
+
+      isActive: false,
+
+      isPaused: false,
+
+      curveFactor: 0,
+
+      easingFunction: function (easing) {
+        var e = (easing || "").split(" "),
+            f = TWEEN.Easing[e[0]];
+
+        if (f && f[e[1]]) return f[e[1]];
+
+        return TWEEN.Easing.Linear.None;    // default easing
+      },
+
+      keyframeGroups: [],
+
+      clear: function () {
+        this.keyframeGroups = [];
+      },
+
+      load: function (group) {
+        if (!Array.isArray(group)) group = [group];
+
+        this.keyframeGroups = this.keyframeGroups.concat(group);
+      },
+
+      start: function () {
+
+        if (this.isActive || this.isPaused) this.stop();
+
+        var _this = this,
+            e = document.getElementById("narrativebox");
+
+        this.keyframeGroups.forEach(function (group) {
+
+          var keyframes = group.keyframes,
+              geFunc = _this.easingFunction(group.easing),
+              prop_list = [];
+
+          group.completed = false;
+          group.currentIndex = 0;
+
+          var showNBox = function (idx) {
+            // narrative box
+            var n = keyframes[idx].narration;
+            if (n && e) {
+              document.getElementById("narbody").innerHTML = n;
+  
+              setTimeout(function () {
+                e.classList.add("visible");
+              }, 0);
+            }
+          };
+
+          var onStart = function () {
+            // pause if narrative box is shown
+            if (keyframes[group.currentIndex].narration) _this.pause();
+            else if (e) e.classList.remove("visible");
+          };
+
+          var onUpdate;
+
+          if (group.layerId === undefined) {
+            // camera motion
+            var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
+            var vec3 = new THREE.Vector3();
+            for (var i = 0; i < keyframes.length; i++) {
+              p = keyframes[i].camera;
+              vec3.set(p.x - p.fx, p.y - p.fy, p.z - p.fz);
+              dist = vec3.length();
+              theta = Math.acos(vec3.z / dist);
+              phi = Math.atan2(vec3.y, vec3.x);
+              p.phi = phi;
+              prop_list.push({fx: p.fx, fy: p.fy, fz: p.fz, d: dist, theta: theta});
+
+              if (i > 0) {
+                dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
+              }
+              p0 = p;
+            }
+
+            var phi0, phi1, dz;
+            onUpdate = function (obj, elapsed, is_first) {
+              phi0 = keyframes[group.currentIndex].camera.phi;
+              phi1 = (is_first) ? phi0 : keyframes[group.currentIndex + 1].camera.phi;
+
+              if (Math.abs(phi1 - phi0) > Math.PI) {  // take the shortest orbiting path
+                phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
+              }
+
+              phi = phi0 * (1 - elapsed) + phi1 * elapsed;
+
+              vec3.set(Math.cos(phi) * Math.sin(obj.theta), 
+                       Math.sin(phi) * Math.sin(obj.theta),
+                       Math.cos(obj.theta)).setLength(obj.d);
+
+              dz = (c) ? (1 - Math.pow(2 * elapsed - 1, 2)) * dist_list[group.currentIndex] * c : 0;
+
+              app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
+              app.camera.lookAt(obj.fx, obj.fy, obj.fz);
+              app.controls.target.set(obj.fx, obj.fy, obj.fz);
+            };              
+
+            // move to camera position of the first keyframe
+            onUpdate(prop_list[0], 1, true);
+          } 
+          else {
+            // layer opacity transition
+            var layer = app.scene.mapLayers[group.layerId];
+            onUpdate = function (obj, elapsed) {
+              layer.opacity = obj.opacity;
+            };
+  
+            for (var i = 0; i < keyframes.length; i++) {
+              prop_list.push({opacity: keyframes[i].opacity});
+            }
+          }
+
+          var onComplete = function (obj) {
+            var index = ++group.currentIndex;
+            if (index == keyframes.length - 1) {
+              group.completed = true;
+
+              var completed = true;
+              for (var i = 0; i < _this.keyframeGroups.length; i++) {
+                if (!_this.keyframeGroups[i].completed) completed = false;
+              }
+
+              if (completed) _this.stop();
+            }
+  
+            // show narrative box if the current keyframe has a narrative content
+            showNBox(index);
+          };
+
+          var tween, t1, t2;
+          for (i = 1; i < keyframes.length; i++) {  
+            t2 = new TWEEN.Tween(prop_list[i - 1])
+                             .to(prop_list[i], keyframes[i].duration)
+                             .delay(keyframes[i - 1].delay)
+                             .easing((keyframes[i].easing) ? _this.easingFunction(keyframes[i].easing) : geFunc)
+                             .onStart(onStart)
+                             .onUpdate(onUpdate)
+                             .onComplete(onComplete);
+            // delay -> [onStart] -> transition [onUpdate] -> [onComplete] 
+  
+            if (i == 1) {
+              tween = t2;
+            }
+            else {
+              t1.chain(t2);
+            }
+            t1 = t2;
+          }
+
+          showNBox(0);
+
+          // start animation
+          tween.start();
+        });
+
+        app.animation.isActive = this.isActive = true;
+        app.animate();
+      },
+
+      stop: function () {
+
+        var tweens = TWEEN.getAll();
+        for (var i = 0; i < tweens.length; i++) {
+          tweens[i].stop();
+        }
+
+        app.animation.isActive = this.isActive = this.isPaused = false;
+        this._pausedTweens = null;
+
+        if (this.onStop) this.onStop();   // to notify the exporter that animation has been stopped
+      },
+
+      pause: function () {
+
+        this._pausedTweens = TWEEN.getAll();
+
+        if (this._pausedTweens.length) {
+          for (var i = 0; i < this._pausedTweens.length; i++) {
+            this._pausedTweens[i].pause();
+          }
+          this.isPaused = true;
+        }
+        app.animation.isActive = this.isActive = false;
+      },
+
+      resume: function () {
+
+        if (!this.isPaused) return;
+
+        for (var i = 0; i < this._pausedTweens.length; i++) {
+          this._pausedTweens[i].resume();
+        }
+        this._pausedTweens = null;
+
+        app.animation.isActive = this.isActive = true;
+        this.isPaused = false;
+
+        app.animate();
+
+        var e = document.getElementById("narrativebox");
+        if (e) e.classList.remove("visible");
+      },
+    },
+
+    orbit: {      // orbit animation
+
+      isActive: false,
+
+      start: function () {
+
+        app.controls.autoRotate = true;
+        app.animation.isActive = this.isActive = true;
+
+        app.animate();
+      },
+
+      stop: function () {
+
+        app.controls.autoRotate = false;
+        app.animation.isActive = this.isActive = false;
+      }
+    }};
 
   app.render = function (updateControls) {
     if (updateControls) app.controls.update();
@@ -1103,12 +1346,11 @@ limitations:
   };
 
   app.setRotateAnimationMode = function (enabled) {
-    app.controls.autoRotate = enabled;
     if (enabled) {
-      app.startAnimation();
+      app.animation.orbit.start();
     }
     else {
-      app.stopAnimation();
+      app.animation.orbit.stop();
     }
   };
 

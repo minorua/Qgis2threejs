@@ -78,6 +78,17 @@ class ExportToWebDialog(QDialog):
             if key == "AR.MND":
                 self.ui.lineEdit_MND.setText(str(value))
 
+        # animation
+        anm = settings.animationData()
+        self.ui.checkBox_Animation.setChecked(anm.get("enabled", False))
+
+        items = ["None"] + [group["name"] for group in anm.get("camera", {}).get("groups", [])]
+        self.ui.comboBox_CameraMotion.addItems(items)
+
+        idx = anm.get("cmgIndex", -1) + 1
+        if idx > 0:
+            self.ui.comboBox_CameraMotion.setCurrentIndex(idx)
+
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
 
@@ -142,6 +153,11 @@ class ExportToWebDialog(QDialog):
                 except Exception as e:
                     QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for M.N. direction. Must be a numeric value.")
                     return
+
+        # animation settings
+        keyframeData = self.settings.animationData()
+        keyframeData["enabled"] = self.ui.checkBox_Animation.isChecked()
+        keyframeData["cmgIndex"] = self.ui.comboBox_CameraMotion.currentIndex() - 1
 
         # make a copy of export settings
         settings = self.settings.clone()

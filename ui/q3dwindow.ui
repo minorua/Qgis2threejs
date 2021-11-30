@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>580</height>
+    <width>786</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -40,7 +40,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>757</width>
+     <width>786</width>
      <height>26</height>
     </rect>
    </property>
@@ -185,6 +185,33 @@
        </property>
       </widget>
      </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetAnimation">
+   <property name="windowTitle">
+    <string>Animation</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="AnimationPanel" name="animationPanel">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
     </layout>
    </widget>
   </widget>
@@ -447,7 +474,18 @@
    <extends>QTreeView</extends>
    <header>Qgis2threejs.q3dtreeview</header>
   </customwidget>
+  <customwidget>
+   <class>AnimationPanel</class>
+   <extends>QWidget</extends>
+   <header>Qgis2threejs.keyframes</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>treeView</tabstop>
+  <tabstop>listWidgetDebugView</tabstop>
+  <tabstop>lineEditInputBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
