@@ -195,7 +195,7 @@ class Q3DWebPage(QWebPage):
 
         self.ready.emit()
 
-    def runScript(self, string, message="", sourceID="q3dview.py"):
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py"):
         if DEBUG_MODE:
             self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
             qDebug("runScript: {}".format(message if message else string).encode("utf-8"))
@@ -204,6 +204,9 @@ class Q3DWebPage(QWebPage):
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
                 self.logfile.flush()
+
+        if data:
+            self.bridge.setData(data)
 
         return self.mainFrame().evaluateJavaScript(string)
 
@@ -376,8 +379,8 @@ class Q3DView(QWebView):
     def resetCameraState(self):
         self._page.resetCameraState()
 
-    def runScript(self, string, message="", sourceID="q3dview.py"):
-        return self._page.runScript(string, message, sourceID)
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py"):
+        return self._page.runScript(string, data, message, sourceID)
 
     def showInspector(self):
         dlg = QDialog(self)

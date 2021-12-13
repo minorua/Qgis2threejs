@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>739</height>
+    <width>504</width>
+    <height>844</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -197,124 +197,72 @@
        <number>6</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Display type</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="spacing">
-         <number>4</number>
-        </property>
-        <property name="leftMargin">
-         <number>6</number>
-        </property>
-        <item>
-         <widget class="QRadioButton" name="radioButton_MapCanvas">
+       <layout class="QGridLayout" name="gridLayout_MtlBtns">
+        <item row="0" column="1">
+         <widget class="QToolButton" name="toolButton_RemoveMtl">
           <property name="text">
-           <string>Map canvas image</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
+           <string>-</string>
           </property>
          </widget>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QRadioButton" name="radioButton_LayerImage">
-            <property name="text">
-             <string>Layer image</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_LayerImage">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_SelectLayer">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Select layer(s)...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="0" column="0">
+         <widget class="QToolButton" name="toolButton_AddMtl">
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_ImageFile">
-          <item>
-           <widget class="QRadioButton" name="radioButton_ImageFile">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Image file</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_ImageFile">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_ImageFile">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Browse...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QRadioButton" name="radioButton_SolidColor">
-            <property name="text">
-             <string>Solid color</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QgsColorButton" name="colorButton_Color">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="0" column="2">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="2" column="2">
+       <widget class="QListWidget" name="listWidget_Materials">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>80</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_Mtl">
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Opacity (%)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_ImageFile">
+          <property name="text">
+           <string>Image file</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_ImageFile"/>
+        </item>
+        <item row="7" column="1">
          <widget class="QSlider" name="horizontalSlider_Opacity">
           <property name="maximum">
            <number>100</number>
@@ -327,21 +275,14 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Opacity (%)</string>
+        <item row="2" column="1" colspan="2">
+         <widget class="QComboBox" name="comboBox_TextureSize">
+          <property name="editable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_TextureSize">
-          <property name="text">
-           <string>Texture width (px)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
+        <item row="7" column="2">
          <widget class="QSpinBox" name="spinBox_Opacity">
           <property name="enabled">
            <bool>true</bool>
@@ -369,31 +310,85 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1" colspan="3">
-         <widget class="QComboBox" name="comboBox_TextureSize">
-          <property name="editable">
+        <item row="1" column="1">
+         <widget class="QLabel" name="label_LayerImage">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QToolButton" name="toolButton_SelectLayer">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Select...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBox_Shading">
+          <property name="text">
+           <string>Enable shading</string>
+          </property>
+          <property name="checked">
            <bool>true</bool>
           </property>
          </widget>
         </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_Color">
+          <property name="text">
+           <string>Color</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_Layers">
+          <property name="text">
+           <string>Layers</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QToolButton" name="toolButton_ImageFile">
+          <property name="text">
+           <string>Browse...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1" colspan="2">
+         <widget class="QgsColorButton" name="colorButton_Color">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_TextureSize">
+          <property name="text">
+           <string>Image width (px)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBox_TransparentBackground">
+          <property name="text">
+           <string>Transparent background</string>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_TransparentBackground">
-        <property name="text">
-         <string>Transparent background</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_Shading">
-        <property name="text">
-         <string>Enable shading</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>
@@ -452,7 +447,7 @@
       <item row="1" column="0">
        <widget class="QCheckBox" name="checkBox_Frame">
         <property name="text">
-         <string>Add edges</string>
+         <string>Add edge lines</string>
         </property>
        </widget>
       </item>
@@ -547,15 +542,14 @@
   <tabstop>spinBox_Roughening</tabstop>
   <tabstop>checkBox_Clip</tabstop>
   <tabstop>comboBox_ClipLayer</tabstop>
-  <tabstop>radioButton_MapCanvas</tabstop>
-  <tabstop>radioButton_LayerImage</tabstop>
+  <tabstop>toolButton_AddMtl</tabstop>
+  <tabstop>toolButton_RemoveMtl</tabstop>
+  <tabstop>listWidget_Materials</tabstop>
   <tabstop>toolButton_SelectLayer</tabstop>
-  <tabstop>radioButton_ImageFile</tabstop>
+  <tabstop>comboBox_TextureSize</tabstop>
   <tabstop>lineEdit_ImageFile</tabstop>
   <tabstop>toolButton_ImageFile</tabstop>
-  <tabstop>radioButton_SolidColor</tabstop>
   <tabstop>colorButton_Color</tabstop>
-  <tabstop>comboBox_TextureSize</tabstop>
   <tabstop>horizontalSlider_Opacity</tabstop>
   <tabstop>spinBox_Opacity</tabstop>
   <tabstop>checkBox_TransparentBackground</tabstop>
@@ -589,70 +583,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_LayerImage</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>label_LayerImage</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>122</x>
-     <y>277</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>183</x>
-     <y>278</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_LayerImage</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolButton_SelectLayer</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>122</x>
-     <y>277</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>309</x>
-     <y>278</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_ImageFile</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineEdit_ImageFile</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>87</x>
-     <y>303</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>228</x>
-     <y>304</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_ImageFile</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolButton_ImageFile</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>87</x>
-     <y>303</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>309</x>
-     <y>304</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>checkBox_Clip</sender>
    <signal>toggled(bool)</signal>
    <receiver>checkBox_Frame</receiver>
@@ -663,8 +593,8 @@
      <y>146</y>
     </hint>
     <hint type="destinationlabel">
-     <x>173</x>
-     <y>535</y>
+     <x>196</x>
+     <y>872</y>
     </hint>
    </hints>
   </connection>
@@ -679,8 +609,8 @@
      <y>42</y>
     </hint>
     <hint type="destinationlabel">
-     <x>309</x>
-     <y>42</y>
+     <x>479</x>
+     <y>60</y>
     </hint>
    </hints>
   </connection>
@@ -691,12 +621,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>252</x>
-     <y>391</y>
+     <x>387</x>
+     <y>536</y>
     </hint>
     <hint type="destinationlabel">
-     <x>310</x>
-     <y>390</y>
+     <x>479</x>
+     <y>535</y>
     </hint>
    </hints>
   </connection>
@@ -707,28 +637,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>310</x>
-     <y>390</y>
+     <x>479</x>
+     <y>535</y>
     </hint>
     <hint type="destinationlabel">
-     <x>252</x>
-     <y>391</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_SolidColor</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>colorButton_Color</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>122</x>
-     <y>330</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>309</x>
-     <y>331</y>
+     <x>387</x>
+     <y>536</y>
     </hint>
    </hints>
   </connection>
@@ -739,12 +653,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>115</x>
-     <y>502</y>
+     <x>138</x>
+     <y>839</y>
     </hint>
     <hint type="destinationlabel">
-     <x>311</x>
-     <y>506</y>
+     <x>480</x>
+     <y>843</y>
     </hint>
    </hints>
   </connection>
@@ -759,8 +673,8 @@
      <y>137</y>
     </hint>
     <hint type="destinationlabel">
-     <x>98</x>
-     <y>566</y>
+     <x>121</x>
+     <y>905</y>
     </hint>
    </hints>
   </connection>
@@ -771,12 +685,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>98</x>
-     <y>533</y>
+     <x>121</x>
+     <y>872</y>
     </hint>
     <hint type="destinationlabel">
-     <x>246</x>
-     <y>533</y>
+     <x>480</x>
+     <y>876</y>
     </hint>
    </hints>
   </connection>
@@ -787,12 +701,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>98</x>
-     <y>566</y>
+     <x>121</x>
+     <y>905</y>
     </hint>
     <hint type="destinationlabel">
-     <x>246</x>
-     <y>566</y>
+     <x>480</x>
+     <y>909</y>
     </hint>
    </hints>
   </connection>
@@ -803,12 +717,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>166</x>
-     <y>502</y>
+     <x>189</x>
+     <y>649</y>
     </hint>
     <hint type="destinationlabel">
-     <x>166</x>
-     <y>523</y>
+     <x>189</x>
+     <y>776</y>
     </hint>
    </hints>
   </connection>

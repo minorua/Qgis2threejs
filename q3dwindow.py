@@ -46,6 +46,7 @@ class Q3DViewerInterface(Q3DInterface):
     updateSceneRequest = pyqtSignal(object, bool)    # params: scene properties dict or 0 (if properties do not changes), update all
     updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
     updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
+    runScriptRequest = pyqtSignal(str, object)       # params: script, data to send to web page
 
     exportSettingsUpdated = pyqtSignal(ExportSettings)    # param: export settings
     cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
@@ -89,6 +90,9 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestWidgetUpdate(self, name, properties):
         self.updateWidgetRequest.emit(name, properties)
+
+    def requestRunScript(self, string, data=None):
+        self.runScriptRequest.emit(string, data)
 
 
 class Q3DWindow(QMainWindow):
@@ -252,8 +256,8 @@ class Q3DWindow(QMainWindow):
             else:
                 self.runScript("app.resume();")
 
-    def runScript(self, string, message="", sourceID="Q3DWindow.py"):
-        return self.ui.webView.runScript(string, message, sourceID=sourceID)
+    def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py"):
+        return self.ui.webView.runScript(string, data, message, sourceID=sourceID)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
@@ -272,13 +276,15 @@ class Q3DWindow(QMainWindow):
     def updateLayerProperties(self, layer):
         orig_layer = self.settings.getLayer(layer.layerId)
 
-        if layer.name != orig_layer.name:
-            item = self.ui.treeView.getItemByLayerId(layer.layerId)
-            if item:
-                item.setText(layer.name)
+        item = self.ui.treeView.itemFromLayerId(layer.layerId)
+        if item and layer.name != orig_layer.name:
+            item.setText(layer.name)
 
         if layer.properties != orig_layer.properties:
             self.iface.requestLayerUpdate(layer)
+
+            if item:
+                self.ui.treeView.updateLayerMaterials(item, layer)
 
         tree = self.ui.animationPanel.tree
         tree.setLayerData(layer.layerId, layer.animationData)

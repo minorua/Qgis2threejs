@@ -38,15 +38,25 @@ Q3D.gui = {
     var mapLayers = scene.mapLayers;
     var parameters = this.parameters;
     var visibleChanged = function (value) { mapLayers[this.object.i].visible = value; };
-    var opacityChanged = function (value) { mapLayers[this.object.i].opacity = value; };
+    var opacityChanged = function (o) { mapLayers[this.object.i].opacity = o; };
+    var mtlChanged = function (idx) { mapLayers[this.object.i].setCurrentMaterial(idx); };
 
-    var layer, subfolder;
+    var layer, folder, mtlNames, i, items;
     for (var layerId in mapLayers) {
       layer = mapLayers[layerId];
-      parameters.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity};
-      subfolder = this.layersFolder.addFolder(layer.properties.name);
-      subfolder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
-      subfolder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+      parameters.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity, m: 0};
+      folder = this.layersFolder.addFolder(layer.properties.name);
+      folder.add(parameters.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
+      folder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
+
+      mtlNames = layer.properties.mtlNames;
+      if (mtlNames.length > 1) {
+        items = {};
+        for (i = 0; i < mtlNames.length; i++) {
+          items[mtlNames[i]] = i;
+        }
+        folder.add(parameters.lyr[layerId], 'm', items).name('Material').onChange(mtlChanged);
+      }
     }
     return this.layersFolder;
   },

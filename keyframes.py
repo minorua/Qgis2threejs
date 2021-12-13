@@ -21,11 +21,11 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QHeaderView, QInputDialog, QMenu, QMessageBox,
-                             QTreeWidget, QTreeWidgetItem, QToolButton, QWidget)
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMessageBox,
+                             QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication, QgsProject
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, DEF_SETS
 from .qgis2threejstools import logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 
@@ -70,20 +70,30 @@ class AnimationPanel(QWidget):
         dataList = []
         flag = False        
         for item in self.tree.selectedItems():
+
+            if item.type() & ATConst.ITEM_KFG_MATERIAL:
+                layerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
+                layer = self.wnd.settings.getLayer(layerId)
+                if layer:
+                    layer = layer.clone()
+                    layer.opt.onlyMaterial = True
+                    layer.opt.allMaterials = True
+                    self.wnd.iface.updateLayerRequest.emit(layer)
+
             data = self.tree.transitionData(item)
             if data:
                 dataList.append(data)
                 flag = True
 
         if flag:
-            self.webPage.bridge.setData(dataList)
-            self.webPage.runScript("startAnimation(fetchData());")
+            if DEBUG_MODE:
+                logMessage("Play: " + str(dataList))
+            self.wnd.iface.runScriptRequest.emit("startAnimation(fetchData());", dataList)
             self.ui.toolButtonPlay.setText("Stop")
             self.isAnimating = True
 
     def stopAnimation(self):
         self.webPage.runScript("stopAnimation();")
-        # self.animationStopped()
 
     # @pyqtSlot()
     def animationStopped(self):
@@ -102,12 +112,23 @@ class AnimationPanel(QWidget):
 class ATConst:
 
     # ITEM TYPES
-    ITEM_NONE = None
-    ITEM_TL_CAMERA = 0  # top level items
-    ITEM_TL_LAYER = 1
-    ITEM_KFG = 2        # key frame group
-    ITEM_KF_CAMERA = 3
-    ITEM_KF_OPACITY = 4
+
+    # TOP LEVEL
+    ITEM_TOPLEVEL = 32
+    ITEM_TL_CAMERA = 32
+    ITEM_TL_LAYER = 33
+
+    # KEYFRAME GROUP
+    ITEM_KFG = 64        
+    ITEM_KFG_CAMERA = 64
+    ITEM_KFG_OPACITY = 65
+    ITEM_KFG_MATERIAL = 66
+
+    # KEYFRAME
+    ITEM_KF = 128
+    ITEM_KF_CAMERA = 128
+    ITEM_KF_OPACITY = 129
+    ITEM_KF_MATERIAL = 130
 
     # ITEM_TL_LAYER
     DATA_LAYER_ID = Qt.UserRole
@@ -115,7 +136,7 @@ class ATConst:
     # COMMON FOR KEYFRAME GROUP AND KEYFRAME
     DATA_EASING = Qt.UserRole + 1
     
-    # ITEM_KFG
+    # KEYFRAME GROUP
     DATA_NEXT_INDEX = Qt.UserRole
 
     # COMMON FOR KEYFRAME
@@ -123,11 +144,26 @@ class ATConst:
     DATA_DELAY = Qt.UserRole + 3
     DATA_NARRATION = Qt.UserRole + 4
 
-    # ITEM_KF_CAMERA
+    # CAMERA KEYFRAME
     DATA_CAMERA = Qt.UserRole
 
-    # ITEM_KF_OPACITY
+    # OPACITY KEYFRAME
     DATA_OPACITY = Qt.UserRole
+
+    # MATERIAL KEYFRAME
+    DATA_MTL_ID = Qt.UserRole
+    DATA_EFFECT = Qt.UserRole + 5
+
+    @classmethod
+    def defaultName(cls, typ):
+        name = ["Camera", "Opacity", "Material"]
+        if typ & cls.ITEM_KFG:
+            return "{} Keyframe Group".format(name[typ - cls.ITEM_KFG])
+
+        if typ & cls.ITEM_KF:
+            return "{} Keyframe".format(name[typ - cls.ITEM_KF])
+
+        return "UNDEF"
 
 
 class AnimationTreeWidget(QTreeWidget):
@@ -215,7 +251,10 @@ class AnimationTreeWidget(QTreeWidget):
           self.actionEasing.append(a)
 
         self.actionOpacity = QAction("Opacity...", self)
-        self.actionOpacity.triggered.connect(self.inputOpacity)
+        self.actionOpacity.triggered.connect(self.addOpacityItem)
+
+        self.actionMaterial = QAction("Material...", self)
+        self.actionMaterial.triggered.connect(self.addMaterialItem)
 
         self.contextMenuKeyframeGroup = QMenu(self)
         self.contextMenuKeyframeGroup.addActions([self.actionEdit,
@@ -237,8 +276,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.contextMenuLayer = QMenu(self)
         self.contextMenuLayer.addAction(self.actionOpacity)
-        self.contextMenuKeyframe.addSeparator()
-        self.contextMenuLayer.addAction(self.actionRemove)
+        self.contextMenuLayer.addAction(self.actionMaterial)
 
         self.contextMenuKeyframeBlank = QMenu(self)
         self.contextMenuKeyframeBlank.addAction(self.actionNewGroup)
@@ -258,18 +296,30 @@ class AnimationTreeWidget(QTreeWidget):
         item.setExpanded(True)
         return item
 
-    def addLayer(self, mapLayerId):
-        mapLayer = QgsProject.instance().mapLayer(mapLayerId)
-        if mapLayer is None:
-            return None
+    def addLayer(self, layerId):
+        layer = self.settings.getLayer(layerId)
+        if not layer:
+            return 
 
-        item = QTreeWidgetItem(self, ["Layer '{}'".format(mapLayer.name())], ATConst.ITEM_TL_LAYER)
-        item.setData(0, ATConst.DATA_LAYER_ID, mapLayerId)
+        item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
+        item.setData(0, ATConst.DATA_LAYER_ID, layerId)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         item.setIcon(0, self.layerIcon) # TODO: point/line/polygon
         item.setExpanded(True)
 
         return item
+
+    def currentLayer(self):
+        item = self.currentItem()
+        if not item:
+            return None
+       
+        while item.parent():
+            item = item.parent()
+
+        if item.type() == ATConst.ITEM_TL_LAYER:
+            layerId = item.data(0, ATConst.DATA_LAYER_ID)
+            return self.settings.getLayer(layerId)
 
     def findLayerItem(self, layerId):
         root = self.invisibleRootItem()
@@ -283,26 +333,36 @@ class AnimationTreeWidget(QTreeWidget):
         if item:
             item.setDisabled(b)
 
+    def setLayerHidden(self, layerId, b=True):
+        item = self.findLayerItem(layerId)
+        if item:
+            item.setHidden(b)
+
     def addNewItem(self):
         item = self.currentItem()
         if item is None:
             return
 
-        t = item.type()
-        if t >= ATConst.ITEM_KFG:
-            top_level = item.parent() if t == ATConst.ITEM_KFG else item.parent().parent()
-
-            if top_level.type() == ATConst.ITEM_TL_CAMERA:
-                self.setCurrentItem(self.addKeyframeItem())
+        typ = item.type()
+        parent = None
+        if typ & ATConst.ITEM_TOPLEVEL:
+            if typ == ATConst.ITEM_TL_CAMERA:
+                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_KFG_CAMERA)
+                self.setCurrentItem(self.addKeyframeItem(parent))
             else:
                 self.contextMenuLayer.popup(QCursor.pos())
+            return
 
-        else:        # t == ATConst.ITEM_CAMERA or t == ATConst.ITEM_LAYER:
-            p = self.addKeyframeGroupItem(item)
-            if t == ATConst.ITEM_TL_CAMERA:
-                p = self.addKeyframeItem(p)
+        gt = typ if typ & ATConst.ITEM_KFG else typ - ATConst.ITEM_KF + ATConst.ITEM_KFG
+        if gt == ATConst.ITEM_KFG_CAMERA:
+            parent = item if typ == ATConst.ITEM_KFG_CAMERA else item.parent()
+            self.setCurrentItem(self.addKeyframeItem(parent))
 
-            self.setCurrentItem(p)
+        elif gt == ATConst.ITEM_KFG_OPACITY:
+            self.addOpacityItem()
+
+        elif gt == ATConst.ITEM_KFG_MATERIAL:
+            self.addMaterialItem()
 
     def removeCurrentItem(self):
         item = self.currentItem()
@@ -315,14 +375,10 @@ class AnimationTreeWidget(QTreeWidget):
 
         item.parent().removeChild(item)
 
-    def addKeyframeGroupItem(self, parent=None, name=None, easing=None):
-        if parent is None:
-            parent = self.invisibleRootItem().child(0)
-            if parent is None:
-                return
+    def addKeyframeGroupItem(self, parent, typ, name=None, easing=None):
 
-        item = QTreeWidgetItem(ATConst.ITEM_KFG)
-        item.setText(0, name or "Keyframe Group {}".format(self.nextKeyframeGroupId))
+        item = QTreeWidgetItem(typ)
+        item.setText(0, name or "{} {}".format(ATConst.defaultName(typ), self.nextKeyframeGroupId))
         item.setData(0, ATConst.DATA_EASING, easing)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled)
         # item.setIcon(0, self.cameraIcon)
@@ -337,14 +393,18 @@ class AnimationTreeWidget(QTreeWidget):
     def addKeyframeItem(self, parent=None, keyframe=None):
         if parent is None:
             item = self.currentItem()
-            t = ATConst.ITEM_NONE if item is None else item.type()
+            if not item:
+                return
 
-            if t > ATConst.ITEM_KFG:
+            t = item.type()
+            if t & ATConst.ITEM_KF:
                 parent = item.parent()
                 iidx = parent.indexOfChild(item) + 1
-            elif t == ATConst.ITEM_KFG:
+            elif t & ATConst.ITEM_KFG:
                 parent = item
                 iidx = 0
+            elif keyframe:
+                pass
             else:
                 return
         else:
@@ -353,15 +413,14 @@ class AnimationTreeWidget(QTreeWidget):
         nextIndex = parent.data(0, ATConst.DATA_NEXT_INDEX) or 1
 
         keyframe = keyframe or {}
-        typ = keyframe.get("type", ATConst.ITEM_KF_CAMERA)
-
+        typ = keyframe.get("type", parent.type() - ATConst.ITEM_KFG + ATConst.ITEM_KF)
         name = keyframe.get("name") or "Keyframe {}".format(nextIndex)
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
 
         item.setData(0, ATConst.DATA_EASING, keyframe.get("easing"))
-        item.setData(0, ATConst.DATA_DURATION, str(keyframe.get("duration", 1000)))  # TODO: const
+        item.setData(0, ATConst.DATA_DURATION, str(keyframe.get("duration", DEF_SETS.ANM_DURATION)))
         item.setData(0, ATConst.DATA_DELAY, str(keyframe.get("delay", 0)))
         item.setData(0, ATConst.DATA_NARRATION, keyframe.get("narration"))
 
@@ -370,6 +429,10 @@ class AnimationTreeWidget(QTreeWidget):
 
         elif typ == ATConst.ITEM_KF_OPACITY:
             item.setData(0, ATConst.DATA_OPACITY, keyframe.get("opacity", 1))
+
+        elif typ == ATConst.ITEM_KF_MATERIAL:
+            item.setData(0, ATConst.DATA_MTL_ID, keyframe.get("mtlId", ""))
+            item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 0))
 
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
         item.setIcon(0, self.keyframeIcon)
@@ -385,40 +448,48 @@ class AnimationTreeWidget(QTreeWidget):
 
     def keyframe(self, item=None):
         item = item or self.currentItem()
-        if item:
-            duration = str(item.data(0, ATConst.DATA_DURATION))
-            delay = str(item.data(0, ATConst.DATA_DELAY))
+        if not item or not (item.type() & ATConst.ITEM_KF):
+            return
 
-            k = {
-                "type": item.type(),
-                "name": item.text(0),
-                "duration": int(duration) if duration.isdigit() else 0,
-                "delay": int(delay) if delay.isdigit() else 0
-            }
-            e = item.data(0, ATConst.DATA_EASING)
-            if e:
-                k["easing"] = e
+        duration = str(item.data(0, ATConst.DATA_DURATION))
+        delay = str(item.data(0, ATConst.DATA_DELAY))
 
-            n = item.data(0, ATConst.DATA_NARRATION)
-            if n:
-                k["narration"] = n
+        k = {
+            "type": item.type(),
+            "name": item.text(0),
+            "duration": int(duration) if duration.isdigit() else 0,
+            "delay": int(delay) if delay.isdigit() else 0
+        }
+        e = item.data(0, ATConst.DATA_EASING)
+        if e:
+            k["easing"] = e
 
-            typ = item.type()
-            if typ == ATConst.ITEM_KF_CAMERA:
-                k["camera"] = item.data(0, ATConst.DATA_CAMERA)
+        n = item.data(0, ATConst.DATA_NARRATION)
+        if n:
+            k["narration"] = n
 
-            elif typ == ATConst.ITEM_KF_OPACITY:
-                opacity = item.data(0, ATConst.DATA_OPACITY)
-                k["opacity"] = opacity
+        typ = item.type()
+        if typ == ATConst.ITEM_KF_CAMERA:
+            k["camera"] = item.data(0, ATConst.DATA_CAMERA)
 
-            return k
+        elif typ == ATConst.ITEM_KF_OPACITY:
+            k["opacity"] = item.data(0, ATConst.DATA_OPACITY)
+
+        elif typ == ATConst.ITEM_KF_MATERIAL:
+            k["mtlId"] = item.data(0, ATConst.DATA_MTL_ID)
+            k["mtlIndex"] = item.parent().indexOfChild(item)
+            k["effect"] = item.data(0, ATConst.DATA_EFFECT) or item.parent().data(0, ATConst.DATA_EFFECT)
+
+        return k
 
     def keyframeGroupData(self, item):
-        typ = item.type() if item else ATConst.ITEM_NONE
+        if not item:
+            return {}
 
-        if typ == ATConst.ITEM_KFG:
+        typ = item.type()
+        if typ & ATConst.ITEM_KFG:
             group = item
-        elif typ > ATConst.ITEM_KFG:
+        elif typ & ATConst.ITEM_KF:
             group = item.parent()
         else:
             return {}
@@ -426,6 +497,7 @@ class AnimationTreeWidget(QTreeWidget):
         items = [group.child(i) for i in range(group.childCount())]
 
         d = {
+            "type": group.type(),
             "name": group.text(0),
             "keyframes": [self.keyframe(item) for item in items]
         }
@@ -477,7 +549,7 @@ class AnimationTreeWidget(QTreeWidget):
             layerItem.removeChild(layerItem.child(0))
 
         for group in data.get("groups", []):
-            parent = self.addKeyframeGroupItem(layerItem, group.get("name"), group.get("easing"))
+            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("easing"))
 
             for keyframe in group.get("keyframes", []):
                 self.addKeyframeItem(parent, keyframe)
@@ -486,7 +558,7 @@ class AnimationTreeWidget(QTreeWidget):
         d = {}
         root = self.invisibleRootItem()
         if self.isPanel:
-            parent = root.child(0)      # = self.cameraMotionGroup
+            parent = root.child(0)      # camera motion
             items = [parent.child(i) for i in range(parent.childCount())]
 
             d["camera"] = {
@@ -508,9 +580,11 @@ class AnimationTreeWidget(QTreeWidget):
 
     def transitionData(self, item=None):
         item = item or self.currentItem()
-        typ = item.type() if item else ATConst.ITEM_NONE
+        if not item:
+            return
 
-        if typ > ATConst.ITEM_KFG:
+        typ = item.type()
+        if typ & ATConst.ITEM_KF:
             parent = item.parent()
             iidx = parent.indexOfChild(item)
             if iidx:
@@ -518,25 +592,29 @@ class AnimationTreeWidget(QTreeWidget):
                 d["keyframes"] = d["keyframes"][iidx - 1:iidx + 1]
                 return d
 
-        elif typ == ATConst.ITEM_KFG:
+        elif typ & ATConst.ITEM_KFG:
             return self.keyframeGroupData(item)
 
     def setData(self, data):
         self.initTree()
-        self.cameraMotionGroup = self.addCameraMotionTLItem()
+        self.cameraTLItem = self.addCameraMotionTLItem()
 
         camera = data.get("camera", {})
 
         for s in camera.get("groups", []):
-            parent = self.addKeyframeGroupItem(self.cameraMotionGroup, s.get("name"), s.get("easing"))
+            parent = self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_KFG_CAMERA, s.get("name"), s.get("easing"))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
 
-        if self.cameraMotionGroup.childCount() == 0:
-            self.addKeyframeGroupItem()
+        if self.cameraTLItem.childCount() == 0:
+            self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_KFG_CAMERA)
 
         for layerId, d in data.get("layers", {}).items():
             self.setLayerData(layerId, d)
+
+            layer = self.settings.getLayer(layerId)
+            if layer:
+                self.setLayerHidden(layerId, not layer.visible)
 
     def currentItemView(self):
         item = self.currentItem()
@@ -549,18 +627,18 @@ class AnimationTreeWidget(QTreeWidget):
             # blank space
             return
 
-        t = item.type()
-        if t == ATConst.ITEM_KFG:
+        typ = item.type()
+        if typ & ATConst.ITEM_KFG:
             m = self.contextMenuKeyframeGroup
             self.actionEasing[0].setVisible(False)
             da = self.actionEasing[1]
 
-        elif t in (ATConst.ITEM_KF_CAMERA, ATConst.ITEM_KF_OPACITY):
+        elif typ & ATConst.ITEM_KF:
             m = self.contextMenuKeyframe
             self.actionEasing[0].setVisible(True)
             da = self.actionEasing[0]
 
-            self.actionUpdateView.setVisible(bool(t == ATConst.ITEM_KF_CAMERA))
+            self.actionUpdateView.setVisible(bool(typ == ATConst.ITEM_KF_CAMERA))
         else:
             return
 
@@ -579,13 +657,16 @@ class AnimationTreeWidget(QTreeWidget):
 
     def currentTreeItemChanged(self, current, previous):
 
-        if current is None:
+        if not current:
             return
 
         if DEBUG_MODE:
-            logMessage(str(self.keyframe(current)))
+            logMessage("Current: " + str(self.keyframe(current)))
 
         typ = current.type()
+        if not (typ & ATConst.ITEM_KF):
+            return
+
         if typ == ATConst.ITEM_KF_CAMERA:
             # restore the view of current keyframe
             k = self.keyframe()
@@ -595,30 +676,73 @@ class AnimationTreeWidget(QTreeWidget):
 
                 n = k.get("narration")
                 if n:
-                    self.webPage.bridge.setData(n)
-                    self.webPage.runScript("showNarrativeBox(fetchData());")
+                    self.webPage.runScript("showNarrativeBox(fetchData());", data=n)
                 else:
                     self.webPage.runScript("closeNarrativeBox();")
 
         elif typ == ATConst.ITEM_KF_OPACITY:
-            mapLayerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
-            layer = self.settings.getLayer(mapLayerId)
+            layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+            layer = self.settings.getLayer(layerId)
             if layer:
                 opacity = current.data(0, ATConst.DATA_OPACITY)
                 self.webPage.runScript("setLayerOpacity({}, {})".format(layer.jsLayerId, opacity))
     
+        elif typ == ATConst.ITEM_KF_MATERIAL:
+            layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+            layer = self.settings.getLayer(layerId)
+            if layer:
+                layer = layer.clone()
+                layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
+                layer.opt.onlyMaterial = True
+                self.wnd.iface.updateLayerRequest.emit(layer)
+
     def easingChanged(self, action):
         easing = action.text()
         self.currentItem().setData(0, ATConst.DATA_EASING, None if easing[0] == "[" else easing)
 
-    def inputOpacity(self):
+    def addOpacityItem(self):
+        item = self.currentItem()
+        if not item:
+            return
+
         val, ok = QInputDialog.getDouble(self, "Layer Opacity", "Opacity (0 - 1)", 1, 0, 1, 2)
         if ok:
-            self.addKeyframeItem(keyframe={
+            parent = None
+            if item.type() == ATConst.ITEM_TL_LAYER:
+                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_KFG_OPACITY)
+ 
+            self.addKeyframeItem(parent, {
                 "type": ATConst.ITEM_KF_OPACITY,
-                "name": "Opacity {}".format(val),
+                "name": "Opacity '{}'".format(val),
                 "opacity": val
                 })
+
+    def addMaterialItem(self):
+        item = self.currentItem()
+        layer = self.currentLayer()
+        if not item or not layer:
+            return
+
+        mtlNames = ["[{}] {}".format(i, mtl.get("name", "")) for i, mtl in enumerate(layer.properties.get("materials", []))]
+
+        if not mtlNames:
+            QMessageBox.warning(self, "Material", "The layer has no materials.")
+            return
+
+        val, ok = QInputDialog.getItem(self, "Material", "Select a material", mtlNames, 0, False)
+        if ok:
+            mtlIdx = int(val.split("]")[0][1:])
+            mtl = layer.properties["materials"][mtlIdx]
+
+            parent = None
+            if item.type() == ATConst.ITEM_TL_LAYER:
+                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_KFG_MATERIAL)
+
+            self.addKeyframeItem(parent, {
+                "type": ATConst.ITEM_KF_MATERIAL,
+                "name": "Material '{}'".format(mtl.get("name", "")),
+                "mtlId": mtl.get("id")
+            })
 
     def showDialog(self):
         item = self.currentItem()
@@ -626,14 +750,26 @@ class AnimationTreeWidget(QTreeWidget):
             return
 
         t = item.type()
-        if t > ATConst.ITEM_KFG:
-            dialog = KeyframeDialog(self)
-        elif t == ATConst.ITEM_KFG:
-            dialog = KeyframeGroupDialog(self)
+        if t & ATConst.ITEM_KF:
+            top_level = item.parent().parent()
+        elif t & ATConst.ITEM_KFG:
+            top_level = item.parent()
+        elif t == ATConst.ITEM_TL_LAYER:
+            top_level = item            
         else:
             return
 
-        dialog.setup(item)
+        layer = None
+        if top_level.type() == ATConst.ITEM_TL_LAYER:
+            layerId = top_level.data(0, ATConst.DATA_LAYER_ID)
+            layer = self.settings.getLayer(layerId)
+
+            if t == ATConst.ITEM_TL_LAYER:
+                self.wnd.showLayerPropertiesDialog(layer)
+                return
+
+        dialog = KeyframeDialog(self)
+        dialog.setup(item, layer)
         dialog.exec_()
 
 
@@ -647,58 +783,82 @@ class KeyframeDialog(QDialog):
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)
 
-    def setup(self, item):
+    def setup(self, item, layer=None):
         self.item = item
+        typ = item.type()
 
         self.ui.lineEditName.setText(item.text(0))
         self.ui.comboBoxEasing.addItem(item.data(0, ATConst.DATA_EASING) or "")
-        self.ui.lineEditDuration.setText(str(item.data(0, ATConst.DATA_DURATION)))
-        self.ui.lineEditDelay.setText(str(item.data(0, ATConst.DATA_DELAY)))
-        self.ui.textEdit.setPlainText(item.data(0, ATConst.DATA_NARRATION) or "")
+
+        if typ & ATConst.ITEM_KF:
+            self.ui.lineEditDuration.setText(str(item.data(0, ATConst.DATA_DURATION)))
+            self.ui.lineEditDelay.setText(str(item.data(0, ATConst.DATA_DELAY)))
+            self.ui.textEdit.setPlainText(item.data(0, ATConst.DATA_NARRATION) or "")
+
+        if typ == ATConst.ITEM_KF_OPACITY:
+            self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY) or 1)
+
+        elif typ == ATConst.ITEM_KF_MATERIAL:
+            for mtl in layer.properties.get("materials", []):
+                self.ui.comboBoxMaterial.addItem(mtl.get("name", ""), mtl.get("id"))
+
+            idx = self.ui.comboBoxMaterial.findData(item.data(0, ATConst.DATA_MTL_ID))
+            if idx > 0:
+                self.ui.comboBoxMaterial.setCurrentIndex(idx)
+
+        if typ in (ATConst.ITEM_KFG_MATERIAL, ATConst.ITEM_KF_MATERIAL):
+
+            if typ == ATConst.ITEM_KF_MATERIAL:
+                self.ui.comboBoxEffect.addItem("Selected one in group", 0)
+
+            self.ui.comboBoxEffect.addItem("Fade in", 1)
+            self.ui.comboBoxEffect.addItem("Slide", 2)
+
+            idx = self.ui.comboBoxEffect.findData(item.data(0, ATConst.DATA_EFFECT))
+            if idx > 0:
+                self.ui.comboBoxEffect.setCurrentIndex(idx)
 
         wth = []
-        if item.type() == ATConst.ITEM_KF_CAMERA:
-            wth = [self.ui.labelOpacity, self.ui.doubleSpinBoxOpacity]
+        if not typ & ATConst.ITEM_KFG and typ != ATConst.ITEM_KF_CAMERA:
+            wth += [self.ui.labelName, self.ui.lineEditName]
 
-        elif item.type() == ATConst.ITEM_KF_OPACITY:
-            self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY) or 1)
-            wth = [self.ui.labelName, self.ui.lineEditName]
+        if typ != ATConst.ITEM_KF_OPACITY:
+            wth += [self.ui.labelOpacity, self.ui.doubleSpinBoxOpacity]
+
+        if typ != ATConst.ITEM_KF_MATERIAL:
+            wth += [self.ui.labelMaterial, self.ui.comboBoxMaterial]
+        
+            if typ != ATConst.ITEM_KFG_MATERIAL:
+                wth += [self.ui.labelEffect, self.ui.comboBoxEffect]
+
+        if not typ & ATConst.ITEM_KF:
+            wth += [self.ui.labelDuration, self.ui.lineEditDuration,
+                    self.ui.labelDelay, self.ui.lineEditDelay,
+                    self.ui.labelNarration, self.ui.textEdit]
 
         for w in wth:
             w.setVisible(False)
 
     def accept(self):
-        if self.item.type() == ATConst.ITEM_KF_CAMERA:
+        typ = self.item.type()
+        if typ & ATConst.ITEM_KFG or typ == ATConst.ITEM_KF_CAMERA:
             self.item.setText(0, self.ui.lineEditName.text())
 
-        elif self.item.type() == ATConst.ITEM_KF_OPACITY:
+        if typ & ATConst.ITEM_KF:
+            self.item.setData(0, ATConst.DATA_DURATION, self.ui.lineEditDuration.text())
+            self.item.setData(0, ATConst.DATA_DELAY, self.ui.lineEditDelay.text())
+            self.item.setData(0, ATConst.DATA_NARRATION, self.ui.textEdit.toPlainText())
+
+        if typ == ATConst.ITEM_KF_OPACITY:
             opacity = self.ui.doubleSpinBoxOpacity.value()
-            self.item.setText(0, "Opacity {}".format(opacity))
+            self.item.setText(0, "Opacity '{}'".format(opacity))
             self.item.setData(0, ATConst.DATA_OPACITY, opacity)
 
-        self.item.setData(0, ATConst.DATA_DURATION, self.ui.lineEditDuration.text())
-        self.item.setData(0, ATConst.DATA_DELAY, self.ui.lineEditDelay.text())
-        self.item.setData(0, ATConst.DATA_NARRATION, self.ui.textEdit.toPlainText())
+        elif typ in (ATConst.ITEM_KFG_MATERIAL, ATConst.ITEM_KF_MATERIAL):
+            if typ == ATConst.ITEM_KF_MATERIAL:
+                self.item.setText(0, "Material '{}'".format(self.ui.comboBoxMaterial.currentText()))
+                self.item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBoxMaterial.currentData())
 
-        QDialog.accept(self)
-
-
-class KeyframeGroupDialog(QDialog):
-
-    def __init__(self, parent):
-        QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
-
-        from .ui.keyframegroupdialog import Ui_KeyframeGroupDialog
-        self.ui = Ui_KeyframeGroupDialog()
-        self.ui.setupUi(self)
-
-    def setup(self, item):
-        self.item = item
-
-        self.ui.lineEditName.setText(item.text(0))
-
-    def accept(self):
-        self.item.setText(0, self.ui.lineEditName.text())
+            self.item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBoxEffect.currentData())
 
         QDialog.accept(self)

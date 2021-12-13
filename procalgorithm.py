@@ -40,7 +40,7 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterVectorLayer,
                        QgsWkbTypes)
 
-from .conf import DEBUG_MODE, P_OPEN_DIRECTORY
+from .conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
 from .exportsettings import ExportSettings
 from .qgis2threejstools import logMessage, openDirectory
@@ -147,7 +147,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.TEX_WIDTH,
                 self.tr("Texture base width (px)"),
-                defaultValue=1024
+                defaultValue=DEF_SETS.TEXTURE_SIZE
             )
         )
 

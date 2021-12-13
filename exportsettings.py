@@ -32,6 +32,13 @@ from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calcula
 from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 
 
+class BuildOptions:
+
+    def __init__(self):
+        self.onlyMaterial = False
+        self.allMaterials = False
+
+
 class Layer:
 
     def __init__(self, layerId, name, geomType, properties=None, visible=True):
@@ -41,9 +48,23 @@ class Layer:
         self.properties = properties or {}
         self.visible = visible
 
+        # internal use
         self.jsLayerId = None
         self.mapLayer = None
         self.animationData = {}
+        self.opt = BuildOptions()
+
+    def material(self, mtlId):
+        for mtl in self.properties.get("materials", []):
+            if mtl.get("id") == mtlId:
+                return mtl
+        return {}
+
+    def mtlIndex(self, mtlId):
+        for i, mtl in enumerate(self.properties.get("materials", [])):
+            if mtl.get("id") == mtlId:
+                return i
+        return None
 
     def clone(self):
         c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
@@ -360,6 +381,9 @@ class ExportSettings:
     def layersToExport(self):
         return [lyr for lyr in self.getLayerList() if lyr.visible]
 
+    def mapLayerIdsToExport(self):
+        return [lyr.layerId for lyr in self.getLayerList() if lyr.visible]
+
     def jsLayerIdsToExport(self):
         return [lyr.jsLayerId for lyr in self.getLayerList() if lyr.visible]
 
@@ -527,12 +551,13 @@ class ExportSettings:
 
         groups = []
 
-        # camera motion group
+        # camera motion
         idx = d.get("cmgIndex", -1)
         if idx >= 0:
             groups.append(deepcopyExcept(d["camera"]["groups"][idx], "name"))
 
-        idsToExport = self.jsLayerIdsToExport()
+        # layer animation
+        idsToExport = self.mapLayerIdsToExport()
         for layerId, layer in d.get("layers", {}).items():
             if layerId in idsToExport:
                 groups += deepcopyExcept(layer["groups"], "name")

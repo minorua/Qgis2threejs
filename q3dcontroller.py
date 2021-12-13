@@ -32,11 +32,11 @@ from .qgis2threejstools import js_bool, logMessage
 class Q3DControllerInterface(QObject):
 
     # signals
-    dataReady = pyqtSignal(dict)                # data
-    scriptReady = pyqtSignal(str, str)          # script, msg_shown_in_log_panel
-    messageReady = pyqtSignal(str, int, bool)   # message, timeout, show_in_msg_bar
+    dataReady = pyqtSignal(dict)                 # data
+    scriptReady = pyqtSignal(str, object, str)   # script, data, msg_shown_in_log_panel
+    messageReady = pyqtSignal(str, int, bool)    # message, timeout, show_in_msg_bar
     progressUpdated = pyqtSignal(int, str)
-    loadScriptsRequest = pyqtSignal(list, bool) # list of script ID, force (if False, do not load a script that is already loaded)
+    loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
 
     def __init__(self, controller=None):
         super().__init__(parent=controller)
@@ -59,6 +59,7 @@ class Q3DControllerInterface(QObject):
             iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
             iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
             iface.updateWidgetRequest.connect(self.controller.requestWidgetUpdate)
+            iface.runScriptRequest.connect(self.controller.requestRunScript)
 
             iface.exportSettingsUpdated.connect(self.controller.exportSettingsUpdated)
             iface.cameraChanged.connect(self.controller.switchCamera)
@@ -79,6 +80,7 @@ class Q3DControllerInterface(QObject):
             self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
             self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
             self.iface.updateWidgetRequest.disconnect(self.controller.requestWidgetUpdate)
+            self.iface.runScriptRequest.disconnect(self.controller.requestRunScript)
 
             self.iface.exportSettingsUpdated.disconnect(self.controller.exportSettingsUpdated)
             self.iface.cameraChanged.disconnect(self.controller.switchCamera)
@@ -92,8 +94,8 @@ class Q3DControllerInterface(QObject):
     def loadJSONObject(self, obj):
         self.dataReady.emit(obj)
 
-    def runScript(self, script, msg=""):
-        self.scriptReady.emit(script, msg)
+    def runScript(self, string, data=None, msg=""):
+        self.scriptReady.emit(string, data, msg)
 
     def showMessage(self, msg, timeout=0):
         """show message in status bar. timeout: in milli-seconds"""
@@ -123,6 +125,7 @@ class Q3DController(QObject):
     # requests
     BUILD_SCENE_ALL = 1   # build scene
     BUILD_SCENE = 2       # build scene, but do not update background color, coordinates display mode and so on
+    RUN_SCRIPT = 3
 
     def __init__(self, settings=None, thread=None, parent=None):
         super().__init__(parent)
@@ -288,7 +291,9 @@ class Q3DController(QObject):
             obj = builder.build()
             t2 = time.time()
 
-            self.iface.loadJSONObject(obj)
+            if obj:
+                self.iface.loadJSONObject(obj)
+    
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1
 
@@ -332,11 +337,14 @@ class Q3DController(QObject):
                 self.buildScene(update_scene_opts=False)
 
             else:
-                layer = self.requestQueue.pop(0)
-                if layer.visible:
-                    self.buildLayer(layer)
+                item = self.requestQueue.pop(0)
+                if isinstance(item, Layer):
+                    if item.visible:
+                        self.buildLayer(item)
+                    else:
+                        self.hideLayer(item)
                 else:
-                    self.hideLayer(layer)
+                    self.iface.runScript(item.get("string") , item.get("data"))
 
         except Exception as e:
             import traceback
@@ -375,27 +383,33 @@ class Q3DController(QObject):
         if DEBUG_MODE:
             logMessage("Layer update for {} was requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"), False)
 
-        # update layer properties and its state in export settings
+        # update layer properties and layer state in worker side export settings
         lyr = self.settings.getLayer(layer.layerId)
-        if lyr is None:
+        if not lyr:
             return
-
         layer.copyTo(lyr)
 
-        self.requestQueue = [i for i in self.requestQueue if not isinstance(i, Layer) or i.layerId != layer.layerId]
+        q = []
+        for i in self.requestQueue:
+            if isinstance(i, Layer) and i.layerId == layer.layerId:
+                if not i.opt.onlyMaterial:
+                    layer.opt.onlyMaterial = False
+            else:
+                q.append(i)
+
+        self.requestQueue = q
 
         if self.updatingLayerId == layer.layerId:
-            self.requestQueue.append(layer)
             self.abort(clear_queue=False)
 
-        elif layer.visible:
+        if layer.visible:
             self.requestQueue.append(layer)
 
             if not self.updating:
                 self.processRequests()
 
         else:
-            # immediately hide the layer
+            # immediately hide layer without adding layer to queue
             self.hideLayer(layer)
 
     @pyqtSlot(str, dict)
@@ -412,6 +426,13 @@ class Q3DController(QObject):
             return
 
         self.settings.setWidgetProperties(name, properties)
+
+    @pyqtSlot(str, object)
+    def requestRunScript(self, string, data=None):
+        self.requestQueue.append({"string": string, "data": data})
+
+        if not self.updating:
+            self.processRequests()
 
     @pyqtSlot(ExportSettings)
     def exportSettingsUpdated(self, settings):

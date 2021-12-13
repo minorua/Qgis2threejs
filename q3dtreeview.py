@@ -19,12 +19,12 @@
  ***************************************************************************/
 """
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QColor, QIcon, QPixmap, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
 from . import q3dconst
-from .qgis2threejstools import pluginDir
+from .qgis2threejstools import logMessage, pluginDir
 
 
 class Q3DTreeView(QTreeView):
@@ -45,7 +45,7 @@ class Q3DTreeView(QTreeView):
         }
 
         self.actionProperties = QAction("Properties", self)
-        self.actionProperties.triggered.connect(self.showPropertiesDialog)
+        self.actionProperties.triggered.connect(self.onDoubleClicked)
 
         self.actionAddPCLayer = QAction("Add Point Cloud layer...", self)
         self.actionAddPCLayer.triggered.connect(self.showAddPointCloudLayerDialog)
@@ -68,12 +68,13 @@ class Q3DTreeView(QTreeView):
         self.contextMenuPC.addAction(self.actionProperties)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-
         self.customContextMenuRequested.connect(self.showContextMenu)
-        self.doubleClicked.connect(self.showPropertiesDialog)
+
+        self.setExpandsOnDoubleClick(False)
+        self.doubleClicked.connect(self.onDoubleClicked)
 
     def setup(self, iface):
-        self.iface = iface
+        self.iface = iface      # Q3DViewerInterface
 
         LAYER_GROUP_ITEMS = ((q3dconst.TYPE_DEM, "DEM"),
                              (q3dconst.TYPE_POINT, "Point"),
@@ -100,29 +101,90 @@ class Q3DTreeView(QTreeView):
         # add a layer item to tree view
         item = QStandardItem(layer.name)
         item.setCheckable(True)
-        item.setCheckState(Qt.Checked if layer.visible else Qt.Unchecked)
         item.setData(layer.layerId)
-        item.setIcon(self.icons[layer.geomType])
+        # item.setIcon(self.icons[layer.geomType])
         item.setEditable(False)
 
+        if layer.visible:
+            item.setCheckState(Qt.Checked)
+
+            font = item.font()
+            font.setBold(True)
+            item.setFont(font)
+
         self.layerGroupItems[layer.geomType].appendRow([item])
+
+        self.updateLayerMaterials(item)
 
     def addLayers(self, layers):
         for layer in layers:
             self.addLayer(layer)
 
     def removeLayer(self, layerId):
-        item = self.getItemByLayerId(layerId)
+        item = self.itemFromLayerId(layerId)
         if item:
             item.parent().removeRow(item.row())
 
-    def getItemByLayerId(self, layerId):
+    def layerFromIndex(self, index):
+        layerId = self.model().data(index, Qt.UserRole + 1)
+        return self.iface.settings.getLayer(layerId)
+
+    def itemFromLayerId(self, layerId):
         for parent in self.layerGroupItems.values():
             for row in range(parent.rowCount()):
                 item = parent.child(row)
                 if item.data() == layerId:
                     return item
         return None
+
+    def iconForMtl(self, mtl):
+        mtype = mtl.get("type")
+        if mtype in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+            return QgsApplication.getThemeIcon("mLayoutItemMap.svg")
+
+        elif mtype == q3dconst.MTL_FILE:
+            return QgsApplication.getThemeIcon("mIconFile.svg")
+
+        elif mtype == q3dconst.MTL_COLOR:
+            color = mtl.get("properties", {}).get("colorButton_Color").replace("0x", "#")
+            if color:
+                pixmap = QPixmap(32, 32)
+                pixmap.fill(QColor(color))
+                return QIcon(pixmap)
+
+        return QIcon()
+
+    def updateLayerMaterials(self, layerItem, layer=None):
+        layerItem.removeRows(0, layerItem.rowCount())
+
+        layer = layer or self.iface.settings.getLayer(layerItem.data())
+        if layer is None or not layer.visible:
+            return
+
+        # add material items if layer has multiple materials
+        mtls = layer.properties.get("materials", [])
+        if len(mtls) < 2:
+            return
+
+        currentId = layer.properties.get("mtlId")
+
+        for mtl in mtls:
+            id = mtl.get("id")
+            item = QStandardItem(mtl.get("name", ""))
+            item.setData(id)
+            item.setIcon(self.iconForMtl(mtl))
+            item.setEditable(False)
+            # item.setCheckable(True)
+            # item.setCheckState(Qt.Unchecked)        # Qt.Checked if layer.visible else Qt.Unchecked)
+
+            if id == currentId:
+                font = item.font()
+                font.setBold(True)
+                item.setFont(font)
+
+            layerItem.appendRow([item])       
+
+        self.expand(layerItem.index())
 
     def updateLayersCheckState(self, settings):
         self.blockSignals(True)
@@ -139,33 +201,81 @@ class Q3DTreeView(QTreeView):
             for idx in range(parent.rowCount()):
                 parent.child(idx).setCheckState(Qt.Unchecked)
 
+    def currentChanged(self, current, previous):
+        QTreeView.currentChanged(self, current, previous)
+
+        idx = current
+        depth = 0
+        while idx.parent().isValid():
+            depth += 1            
+            idx = idx.parent()
+
+        if depth == 2:
+            # DEM material
+            layer = self.layerFromIndex(current.parent())
+            if layer:
+                mtlId = self.model().data(current, Qt.UserRole + 1)  # set with item.setData()
+                layer.properties["mtlId"] = mtlId
+
+                layer = layer.clone()
+                layer.opt.onlyMaterial = True
+                self.iface.updateLayerRequest.emit(layer)
+
+            item = self.model().itemFromIndex(current)
+            parent = item.parent()
+            font = item.font()
+            for row in range(parent.rowCount()):
+                font.setBold(row == item.row())
+                parent.child(row).setFont(font)
+
     def treeItemChanged(self, item):
         layer = self.iface.settings.getLayer(item.data())
         if layer is None:
             return
 
-        layer.visible = (item.checkState() == Qt.Checked)
+        checked = (item.checkState() == Qt.Checked)
+        layer.visible = checked
         if layer.visible and not layer.properties:
             layer.properties = self.iface.wnd.getDefaultProperties(layer)
 
         self.iface.requestLayerUpdate(layer)
 
-    def showContextMenu(self, pos):
-        i = self.indexAt(pos)
-        data = self.model().data(i, Qt.UserRole + 1)
-        if data is not None:
-            if data.startswith("pc:"):
-                self.contextMenuPC.exec_(self.mapToGlobal(pos))
-            else:
-                self.contextMenu.exec_(self.mapToGlobal(pos))
-        elif self.model().itemFromIndex(i) == self.layerGroupItems[q3dconst.TYPE_POINTCLOUD]:
-            self.contextMenuPCG.exec_(self.mapToGlobal(pos))
+        font = item.font()
+        font.setBold(checked)
+        item.setFont(font)
 
-    def showPropertiesDialog(self, _=None):
-        # open layer properties dialog
-        data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
-        layer = self.iface.settings.getLayer(data)
-        if layer:
+        self.updateLayerMaterials(item, layer)
+
+        self.iface.wnd.ui.animationPanel.tree.setLayerHidden(layer.layerId, not checked)
+
+    def indexDepth(self, idx):
+        depth = 0
+        while idx.parent().isValid():
+            depth += 1            
+            idx = idx.parent()
+        return depth    #TODO: self.model().data(idx, Qt.UserRole)
+
+    def showContextMenu(self, pos):
+        idx = self.indexAt(pos)
+        depth = self.indexDepth(idx)
+
+        if depth > 0:
+            layerId = self.model().data(idx if depth == 1 else idx.parent(), Qt.UserRole + 1)
+            if layerId is not None:
+                if layerId.startswith("pc:"):
+                    self.contextMenuPC.exec_(self.mapToGlobal(pos))
+                else:
+                    self.contextMenu.exec_(self.mapToGlobal(pos))
+        else:
+            if self.model().itemFromIndex(idx) == self.layerGroupItems[q3dconst.TYPE_POINTCLOUD]:
+                self.contextMenuPCG.exec_(self.mapToGlobal(pos))
+
+    def onDoubleClicked(self, _=None):
+        idx = self.currentIndex()
+        depth = self.indexDepth(idx)
+
+        if depth > 0:
+            layer = self.layerFromIndex(idx if depth == 1 else idx.parent())
             self.iface.wnd.showLayerPropertiesDialog(layer)
 
     def showAddPointCloudLayerDialog(self, _=None):

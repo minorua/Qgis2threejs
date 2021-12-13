@@ -40,9 +40,9 @@ class Q3DInterface(QObject):
 
         self.webPage.sendData(obj)
 
-    @pyqtSlot(str, str)
-    def runScript(self, string, message=""):
-        self.webPage.runScript(string, message, sourceID="q3dwindow.py")
+    @pyqtSlot(str, object, str)
+    def runScript(self, string, data=None, message=""):
+        self.webPage.runScript(string, data, message, sourceID="q3dwindow.py")
 
     @pyqtSlot(list, bool)
     def loadScriptFiles(self, ids, force):

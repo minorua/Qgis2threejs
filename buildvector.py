@@ -485,10 +485,10 @@ class VectorLayerBuilder(LayerBuilder):
 
             nf = 0
             blocks = []
-            for block in self.blocks():
+            for builder in self.subBuilders():
                 if self.canceled:
                     break
-                b = block.build()
+                b = builder.build()
                 nf += b["featureCount"]
 
                 blocks.append(b)
@@ -534,7 +534,7 @@ class VectorLayerBuilder(LayerBuilder):
         # p.update(self.vlayer.objectType.layerProperties(self.settings, self))
         return p
 
-    def blocks(self):
+    def subBuilders(self):
         z_func = lambda x, y: 0
         grid = None
 

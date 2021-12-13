@@ -62,5 +62,5 @@ with valid one that points to the {0} file on the web server.""".format(filename
 
         return p
 
-    def blocks(self):
+    def subBuilders(self):
         return []

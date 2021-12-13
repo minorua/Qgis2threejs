@@ -112,8 +112,8 @@ class ThreeJSBuilder:
             builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
         yield builder
 
-        for blockBuilder in builder.blocks():
-            yield blockBuilder
+        for builder in builder.subBuilders():
+            yield builder
 
     @property
     def canceled(self):

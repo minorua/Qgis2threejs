@@ -24,6 +24,7 @@ import struct
 from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
+from . import q3dconst
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
@@ -36,11 +37,17 @@ class DEMLayerBuilder(LayerBuilder):
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
         LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessage)
+
         self.provider = settings.demProviderByLayerId(layer.layerId)
+        self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
+        self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False, cancelSignal=None):
         if self.provider is None:
             return None
+
+        if self.layer.opt.onlyMaterial:
+            return None     # do not send "layer" data
 
         d = {
             "type": "layer",
@@ -53,10 +60,10 @@ class DEMLayerBuilder(LayerBuilder):
             self._startBuildBlocks(cancelSignal)
 
             data = []
-            for block in self.blocks():
+            for builder in self.subBuilders():
                 if self.canceled:
                     break
-                data.append(block.build())
+                data.append(builder.build())
 
             self._endBuildBlocks(cancelSignal)
 
@@ -77,15 +84,20 @@ class DEMLayerBuilder(LayerBuilder):
         p = LayerBuilder.layerProperties(self)
         p["type"] = "dem"
         p["shading"] = self.properties.get("checkBox_Shading", True)
+        p["clipped"] = self.properties.get("checkBox_Clip", False)
+        p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         return p
 
-    def blocks(self):
+    def subBuilders(self):
         mapTo3d = self.settings.mapTo3d()
         be = self.settings.baseExtent()
 
-        if self.properties.get("radioButton_MapCanvas") or self.properties.get("radioButton_LayerImage"):
-            # calculate extent with the same aspect ratio as map image
-            tex_size = DEMPropertyReader.textureSize(self.properties, be, self.settings)
+        materials = self.properties.get("materials", [])
+        mtlCount = len(materials)
+
+        if self.mtlBuilder.currentMtlType() in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+            # calculate extent with the same aspect ratio as current material texture image
+            tex_size = DEMPropertyReader.textureSize(self.mtlBuilder.currentMtlProperties(), be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
 
         planeWidth, planeHeight = (mapTo3d.baseWidth, mapTo3d.baseWidth * be.height() / be.width())
@@ -109,7 +121,7 @@ class DEMLayerBuilder(LayerBuilder):
         size = self.properties.get("spinBox_Size", 1) if surroundings else 1
         size2 = size * size
 
-        center_block = None
+        centerBlk = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
         blks = []
         for i in range(size2):
             sx = i % size - (size - 1) // 2
@@ -120,7 +132,6 @@ class DEMLayerBuilder(LayerBuilder):
         for dist2, _nsy, sx, sy, blockIndex in sorted(blks):
             # self.progress(20 * i / size2 + 10)
             is_center = (sx == 0 and sy == 0)
-
             if is_center:
                 extent = be
                 grid_seg = base_grid_seg
@@ -130,64 +141,71 @@ class DEMLayerBuilder(LayerBuilder):
                 grid_seg = QSize(max(1, base_grid_seg.width() // roughness),
                                  max(1, base_grid_seg.height() // roughness))
 
-            block = DEMBlockBuilder(self.settings,
-                                    self.imageManager,
-                                    self.layer,
-                                    blockIndex,
-                                    self.provider,
-                                    grid_seg,
-                                    extent,
-                                    planeWidth,
-                                    planeHeight,
-                                    offsetX=planeWidth * sx,
-                                    offsetY=planeHeight * sy,
-                                    edgeRoughness=roughness if is_center else 1,
-                                    clip_geometry=clip_geometry if is_center else None,
-                                    pathRoot=self.pathRoot,
-                                    urlRoot=self.urlRoot)
-            if is_center:
-                block.roughness = 1
-
-                center_block = block
+            # set up material builder for first/current material
+            if self.layer.opt.allMaterials and len(materials):
+                self.mtlBuilder.setup(blockIndex, extent, materials[0].get("id"), useNow=False)
             else:
-                block.roughness = roughness
+                self.mtlBuilder.setup(blockIndex, extent, useNow=True)
+            yield self.mtlBuilder
 
-                if sx * sx <= 1 and sy * sy <= 1:
-                    block.neighbors.append((sx, sy, center_block, 1))
+            # set up grid builder
+            if not self.layer.opt.onlyMaterial:
+                if is_center:
+                    grdBuilder = centerBlk
+                else:
+                    grdBuilder = self.grdBuilder
+                    if sx * sx <= 1 and sy * sy <= 1:
+                        grdBuilder.neighbors = [(sx, sy, centerBlk, 1)]
 
-            yield block
+                grdBuilder.setup(blockIndex, grid_seg, extent, planeWidth, planeHeight,
+                                 offsetX=planeWidth * sx,
+                                 offsetY=planeHeight * sy,
+                                 roughness=1 if is_center else roughness,
+                                 edgeRoughness=roughness if is_center else 1,
+                                 clip_geometry=clip_geometry if is_center else None)
+                yield grdBuilder
+
+            # set up material builder for remaininig materials
+            if self.layer.opt.allMaterials:
+                for i in range(1, mtlCount):
+                    self.mtlBuilder.setup(blockIndex, extent, materials[i].get("id"), useNow=False)
+                    yield self.mtlBuilder
 
 
-class DEMBlockBuilder:
+class DEMGridBuilder:
 
-    def __init__(self, settings, imageManager, layer, blockIndex, provider, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, edgeRoughness=1, clip_geometry=None, pathRoot=None, urlRoot=None):
+    def __init__(self, settings, mtlManager, layer, provider, pathRoot=None, urlRoot=None):
+
         self.settings = settings
-        self.materialManager = MaterialManager(imageManager, settings.materialType())
+        self.mtlManager = mtlManager
 
         self.layer = layer
         self.properties = layer.properties
 
-        self.blockIndex = blockIndex
         self.provider = provider
+
+        self.pathRoot = pathRoot
+        self.urlRoot = urlRoot
+
+        self.neighbors = []
+
+    def setup(self, blockIndex, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, roughness=1, edgeRoughness=1, clip_geometry=None):
+        self.blockIndex = blockIndex
         self.grid_seg = grid_seg
         self.extent = extent
         self.planeWidth = planeWidth
         self.planeHeight = planeHeight
         self.offsetX = offsetX
         self.offsetY = offsetY
+        self.roughness = roughness
         self.edgeRoughness = edgeRoughness
         self.clip_geometry = clip_geometry
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
 
-        self.roughness = 1
-        self.neighbors = []
         self.edges = None
 
     def build(self):
         mapTo3d = self.settings.mapTo3d()
 
-        # block data
         b = {"type": "block",
              "layer": self.layer.jsLayerId,
              "block": self.blockIndex,
@@ -195,9 +213,10 @@ class DEMBlockBuilder:
              "height": self.planeHeight,
              "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
              "zShift": mapTo3d.verticalShift,
-             "zScale": mapTo3d.multiplierZ,
-             "material": self.material()}
+             "zScale": mapTo3d.multiplierZ
+        }
 
+        # geometry
         if self.clip_geometry:
             geom = self.clipped(self.clip_geometry)
 
@@ -239,51 +258,20 @@ class DEMBlockBuilder:
 
         # sides and bottom
         if self.properties.get("checkBox_Sides"):
-            mi = self.materialManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
-            b["sides"] = {"mtl": self.materialManager.build(mi)}
+            mi = self.mtlManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
+            b["sides"] = {"mtl": self.mtlManager.build(mi)}
 
         # edges
         if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
-            mi = self.materialManager.getBasicLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
-            b["edges"] = {"mtl": self.materialManager.build(mi)}
+            mi = self.mtlManager.getBasicLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
+            b["edges"] = {"mtl": self.mtlManager.build(mi)}
 
         # wireframe
         if self.properties.get("checkBox_Wireframe"):
-            mi = self.materialManager.getBasicLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
-            b["wireframe"] = {"mtl": self.materialManager.build(mi)}
+            mi = self.mtlManager.getBasicLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
+            b["wireframe"] = {"mtl": self.mtlManager.build(mi)}
 
         return b
-
-    def material(self):
-        # properties
-        tex_size = DEMPropertyReader.textureSize(self.properties, self.extent, self.settings)
-        opacity = DEMPropertyReader.opacity(self.properties)
-        transp_background = self.properties.get("checkBox_TransparentBackground", False)
-
-        # display type
-        if self.properties.get("radioButton_MapCanvas"):
-            mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
-                                                       opacity, transp_background)
-
-        elif self.properties.get("radioButton_LayerImage"):
-            layerids = self.properties.get("layerImageIds", [])
-            mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
-                                                         opacity, transp_background)
-
-        elif self.properties.get("radioButton_ImageFile"):
-            filepath = self.properties.get("lineEdit_ImageFile", "")
-            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
-
-        else:  # .get("radioButton_SolidColor")
-            mi = self.materialManager.getMeshMaterialIndex(self.properties.get("colorButton_Color", ""), opacity, True)
-
-        # elif self.properties.get("radioButton_Wireframe"):
-        #  mi = self.materialManager.getWireframeIndex(self.properties["lineEdit_Color"], opacity)
-
-        # build material
-        filepath = None if self.pathRoot is None else "{0}{1}.png".format(self.pathRoot, self.blockIndex)
-        url = None if self.urlRoot is None else "{0}{1}.png".format(self.urlRoot, self.blockIndex)
-        return self.materialManager.build(mi, filepath, url, self.settings.base64)
 
     def clipped(self, clip_geometry):
         transform_func = self.settings.mapTo3d().transformRotatedXY
@@ -364,7 +352,6 @@ class DEMBlockBuilder:
 
             else:
                 logMessage("Edge processing: invalid sx and sy ({}, {})".format(sx, sy))
-
 
     def processEdgesCenter(self, grid_values, roughness):
 
@@ -454,60 +441,86 @@ class DEMBlockBuilder:
         return x, y
 
 
-class DEMBlocks:
+class DEMMaterialBuilder:
 
-    def __init__(self):
-        self.blocks = []
+    def __init__(self, settings, layer, imageManager, pathRoot, urlRoot):
+        self.settings = settings
+        self.materialManager = MaterialManager(imageManager, settings.materialType())
 
-    def appendBlock(self, block):
-        self.blocks.append(block)
+        self.layer = layer
 
-    def appendBlocks(self, blocks):
-        self.blocks += blocks
+        self.pathRoot = pathRoot
+        self.urlRoot = urlRoot
 
-    def processEdges(self):
-        """for now, this function is designed for simple resampling mode with surroundings"""
-        count = len(self.blocks)
-        if count < 9:
-            return
+        self.mtlId = None
 
-        ci = (count - 1) // 2
-        size = int(count ** 0.5)
+    def setup(self, blockIndex, extent, mtlId=None, asBlock=True, useNow=True):
+        self.blockIndex = blockIndex
+        self.extent = extent
+        self.mtlId = mtlId
+        self.asBlock = asBlock
+        self.useNow = useNow
 
-        center = self.blocks[0]
-        blocks = self.blocks[1:ci + 1] + [center] + self.blocks[ci + 1:]
+    def build(self):
+        # properties
+        mtlId = self.mtlId or self.layer.properties.get("mtlId")
+        m = self.layer.material(mtlId)
+        if m:
+            mtlIndex = self.layer.mtlIndex(mtlId)
 
-        grid_width, grid_height, grid_values = center.grid_width, center.grid_height, center.grid_values
-        for istop, neighbor in enumerate([blocks[ci - size], blocks[ci + size]]):
-            if grid_width == neighbor.grid_width:
-                continue
+        else:   # fallback to materials[0]
+            m = self.layer.properties.get("materials", [])
+            m = m[0] if len(m) else {}
+            mtlIndex = 0
 
-            y = grid_height - 1 if not istop else 0
-            for x in range(grid_width):
-                gx, gy = center.gridPointToPoint(x, y)
-                gx, gy = neighbor.pointToGridPoint(gx, gy)
-                grid_values[x + grid_width * y] = neighbor.getValue(gx, gy)
+        p = m.get("properties", {})
+        tex_size = DEMPropertyReader.textureSize(p, self.extent, self.settings)
+        opacity = DEMPropertyReader.opacity(p)
+        transp_background = p.get("checkBox_TransparentBackground", False)
 
-        for isright, neighbor in enumerate([blocks[ci - 1], blocks[ci + 1]]):
-            if grid_height == neighbor.grid_height:
-                continue
+        # material type
+        mtype = m.get("type", q3dconst.MTL_MAPCANVAS)
+        if mtype == q3dconst.MTL_MAPCANVAS:
+            mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
+                                                       opacity, transp_background)
 
-            x = grid_width - 1 if isright else 0
-            for y in range(grid_height):
-                gx, gy = center.gridPointToPoint(x, y)
-                gx, gy = neighbor.pointToGridPoint(gx, gy)
-                grid_values[x + grid_width * y] = neighbor.getValue(gx, gy)
+        elif mtype == q3dconst.MTL_LAYER:
+            layerids = m.get("layerIds", [])
+            mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
+                                                         opacity, transp_background)
 
-    def stats(self):
-        if len(self.blocks) == 0:
-            return {"max": 0, "min": 0}
+        elif mtype == q3dconst.MTL_FILE:
+            filepath = p.get("lineEdit_ImageFile", "")
+            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
-        block = self.blocks[0]
-        stats = {"max": block.orig_stats["max"], "min": block.orig_stats["min"]}
-        for block in self.blocks[1:]:
-            stats["max"] = max(block.orig_stats["max"], stats["max"])
-            stats["min"] = min(block.orig_stats["min"], stats["min"])
-        return stats
+        else:  # q3dconst.MTL_COLOR
+            mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
+
+        # build material
+        filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format() if mtlIndex else "")
+        url = None if self.urlRoot is None else "{}{}{}.png".format(self.urlRoot, self.blockIndex, "_{}".format() if mtlIndex else "")
+
+        d = self.materialManager.build(mi, filepath, url, self.settings.base64)
+        d["mtlIndex"] = mtlIndex
+        d["useNow"] = self.useNow
+        if self.asBlock:
+            return {
+                "type": "block",
+                "layer": self.layer.jsLayerId,
+                "block": self.blockIndex,
+                "materials": [d]
+            }
+        return d
+
+    def currentMtl(self):
+        mtlId = self.mtlId or self.layer.properties.get("mtlId")
+        return self.layer.material(mtlId)
+
+    def currentMtlType(self):
+        return self.currentMtl().get("type", q3dconst.MTL_MAPCANVAS)
+
+    def currentMtlProperties(self):
+        return self.currentMtl().get("properties", {})
 
 
 class DEMPropertyReader:
@@ -519,7 +532,7 @@ class DEMPropertyReader:
     @staticmethod
     def textureSize(properties, extent, settings):
         try:
-            w = int(properties.get("comboBox_TextureSize"))
+            w = int(properties.get("comboBox_TextureSize", DEF_SETS.TEXTURE_SIZE))
         except ValueError:
             w = settings.mapSettings.outputSize().width()  # map canvas width
 

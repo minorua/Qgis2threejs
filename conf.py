@@ -52,7 +52,10 @@ class DEF_SETS:
     SIDE_COLOR = "0xccbbaa"
     EDGE_COLOR = "0x000000"
     WIREFRAME_COLOR = "0x000000"
+    TEXTURE_SIZE = 1024
 
+    # animation
+    ANM_DURATION = 1000     # msec
 
 # processing export
 P_OPEN_DIRECTORY = True

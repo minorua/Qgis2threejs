@@ -155,6 +155,9 @@ class ThreeJSExporter(ThreeJSBuilder):
             pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
             urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
 
+        layer = layer.clone()
+        layer.opt.allMaterials = True
+
         if layer.geomType == q3dconst.TYPE_DEM:
             builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, logMessage=self.logMessage)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:

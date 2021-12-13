@@ -23,10 +23,10 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
-from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QFileDialog, QLineEdit, QMenu, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt5.QtCore import Qt, QDir, QPoint, QUrl, QUuid
+from PyQt5.QtWidgets import QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QLineEdit, QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
 from PyQt5.QtGui import QColor, QCursor
-from qgis.core import Qgis, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 try:
@@ -40,6 +40,7 @@ from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .ui.pcproperties import Ui_PCPropertiesWidget
 
+from . import q3dconst
 from .conf import DEF_SETS
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
@@ -118,9 +119,11 @@ class PropertyPage(QWidget):
     def registerPropertyWidgets(self, widgets):
         self.propertyWidgets = widgets
 
-    def properties(self):
+    def properties(self, widgets=None):
+        widgets = widgets or self.propertyWidgets
+
         p = {}
-        for w in self.propertyWidgets:
+        for w in widgets:
             v = None
             if isinstance(w, QComboBox):
                 v = w.currentData()
@@ -370,23 +373,21 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
+    # item data role for material list widget 
+    MTL_ID = Qt.UserRole
+    MTL_PROPERTIES = Qt.UserRole + 1
+    MTL_LAYERIDS = Qt.UserRole + 2
+
     def __init__(self, parent=None):
         PropertyPage.__init__(self, PAGE_DEM, parent)
         Ui_DEMPropertiesWidget.setupUi(self, self)
 
         self.animationPanel.setVisible(False)
 
-        # set read only to line edits of spin boxes
-        self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
-        self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
-
         self.layer = None
-        self.layerImageIds = []
 
-        dispTypeButtons = [self.radioButton_MapCanvas, self.radioButton_LayerImage, self.radioButton_ImageFile, self.radioButton_SolidColor]
         widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
         widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
-        widgets += dispTypeButtons
         widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
         widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
         widgets += [self.checkBox_Sides, self.toolButton_SideColor,
@@ -394,21 +395,55 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
                     self.checkBox_Wireframe, self.toolButton_WireframeColor, self.checkBox_Visible, self.checkBox_Clickable]
         self.registerPropertyWidgets(widgets)
 
+        # geometry group
         self.initLayerComboBox()
 
-        self.comboBox_TextureSize.addItem("512")
-        self.comboBox_TextureSize.addItem("1024")
-        self.comboBox_TextureSize.addItem("2048")
-        self.comboBox_TextureSize.insertSeparator(3)
-        self.comboBox_TextureSize.addItem("Map Canvas Width")
+        self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
+        self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
 
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
         self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
         self.checkBox_Clip.toggled.connect(self.clipToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
-        for radioButton in dispTypeButtons:
-            radioButton.toggled.connect(self.dispTypeChanged)
-        self.toolButton_SelectLayer.clicked.connect(self.selectLayerClicked)
+
+        # material group
+        self.mtlPropertiesWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
+                                     self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading]
+
+        self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("/symbologyAdd.svg"))
+        self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("/symbologyRemove.svg"))
+
+        self.mtlAddActions = []
+        self.mtlAddActionGroup = QActionGroup(self)
+        for idx, text in enumerate(["Layer Image", "Map Canvas Image", "Image File", "Solid Color"]):
+            a = QAction(text, self)
+            self.mtlAddActions.append(a)
+            self.mtlAddActionGroup.addAction(a)
+
+        self.mtlAddActionGroup.triggered.connect(self.addMaterial)
+
+        self.contextMenuAddMtl = QMenu(self)
+        self.contextMenuAddMtl.addActions(self.mtlAddActions)
+
+        self.mtlRenameAction = QAction("Rename", self)
+        self.mtlRenameAction.triggered.connect(self.renameMtlItem)
+
+        self.contextMenuMtl = QMenu(self)
+        self.contextMenuMtl.addAction(self.mtlRenameAction)
+
+        self.comboBox_TextureSize.addItems(["512", "1024", "2048", "Map Canvas Width"])
+        self.comboBox_TextureSize.insertSeparator(3)
+
+        self.toolButton_AddMtl.clicked.connect(lambda: self.contextMenuAddMtl.popup(QCursor.pos()))
+        self.toolButton_RemoveMtl.clicked.connect(self.removeMaterial)
+
+        self.listWidget_Materials.setDragDropMode(QAbstractItemView.InternalMove)
+        self.listWidget_Materials.setDefaultDropAction(Qt.MoveAction)
+        self.listWidget_Materials.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_Materials.customContextMenuRequested.connect(lambda: self.contextMenuMtl.popup(QCursor.pos()))
+        self.listWidget_Materials.currentItemChanged.connect(self.materialItemChanged)
+        
+        self.toolButton_SelectLayer.clicked.connect(self.showLayerSelectDialog)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
     def setup(self, layer, settings, mapSettings):
@@ -423,28 +458,21 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
 
-        properties = layer.properties
-        if properties:
-            if "toolButton_EdgeColor" not in properties:        # this means "if loaded properties were saved in plugin version < 2.6"
-                properties["comboBox_TextureSize"] = "Map Canvas Width"
-        else:
-            # use default properties if properties is not set
-            properties = self.properties()
-            properties["toolButton_SideColor"] = DEF_SETS.SIDE_COLOR
-            properties["comboBox_TextureSize"] = 1024
+        properties = layer.properties or self.properties()
 
+        if not properties.get("materials"):       # added in 2.7
+            properties["materials"] = self.materials()
+
+        properties["toolButton_SideColor"] = properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR)
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
 
         # restore properties of the layer
         self.setProperties(properties)
 
-        self.updateLayerImageLabel()
-
         # set enablement and visibility of widgets
         self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
         self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
-        self.dispTypeChanged()
 
     def initLayerComboBox(self):
         # list of polygon layers
@@ -463,27 +491,35 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         tip = """Level: {0}
 Grid Segments: {1} x {2}
-Grid Spacing: {3:.5f} x {4:.5f}{5}""".format(resolutionLevel,
-                                             gridSegments.width(), gridSegments.height(),
-                                             self.extent.width() / gridSegments.width(),
-                                             self.extent.height() / gridSegments.height(),
-                                             "" if self.extent.width() == self.extent.height() else " (Approx.)")
+Grid Spacing: {3:.5f} x {4:.5f}{5}"""
+
+        tip = tip.format(resolutionLevel,
+                         gridSegments.width(), gridSegments.height(),
+                         self.extent.width() / gridSegments.width(),
+                         self.extent.height() / gridSegments.height(),
+                         "" if self.extent.width() == self.extent.height() else " (Approx.)")
         QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
 
-    def selectLayerClicked(self):
+    def showLayerSelectDialog(self, item=None):
+        item = item or self.listWidget_Materials.currentItem()
+        if not item:
+            return
+
         from .layerselectdialog import LayerSelectDialog
+
         dialog = LayerSelectDialog(self)
-        dialog.initTree(self.layerImageIds)
+        dialog.initTree(item.data(self.MTL_LAYERIDS) or [])
         dialog.setMapSettings(self.mapSettings)
         if not dialog.exec_():
             return
 
-        layers = dialog.visibleLayers()
-        self.layerImageIds = [layer.id() for layer in layers]
-        self.updateLayerImageLabel()
+        ids = [layer.id() for layer in dialog.visibleLayers()]
+        item.setData(self.MTL_LAYERIDS, ids)
+        self.updateLayerImageLabel(ids)
 
-    def updateLayerImageLabel(self):
-        self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(self.layerImageIds))
+    def updateLayerImageLabel(self, layerIds):
+        logMessage(str(layerIds))
+        self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(layerIds))
 
     def browseClicked(self):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
@@ -497,13 +533,9 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}""".format(resolutionLevel,
     def surroundingsToggled(self, checked):
         self.setLayoutVisible(self.gridLayout_Surroundings, checked)
         self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
-        self.setWidgetsEnabled([self.radioButton_ImageFile], not checked)
 
         if checked:
             self.checkBox_Clip.setChecked(False)
-
-        if checked and self.radioButton_ImageFile.isChecked():
-            self.radioButton_MapCanvas.setChecked(True)
 
     def clipToggled(self, checked):
         if checked:
@@ -517,38 +549,149 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}""".format(resolutionLevel,
 
     def properties(self):
         p = PropertyPage.properties(self)
-
-        try:
-            p["comboBox_TextureSize"] = int(p["comboBox_TextureSize"])
-        except ValueError:
-            p["comboBox_TextureSize"] = "Map Canvas Width"
-
-        if self.layerImageIds:
-            p["layerImageIds"] = self.layerImageIds
+        p["materials"] = self.materials()
         return p
 
     def setProperties(self, properties):
         PropertyPage.setProperties(self, properties)
-        self.layerImageIds = properties.get("layerImageIds", [])
 
-    def dispTypeChanged(self, checked=True):
-        if checked:
-            if self.radioButton_MapCanvas.isChecked():
-                t = 0
-            elif self.radioButton_LayerImage.isChecked():
-                t = 1
-            elif self.radioButton_ImageFile.isChecked():
-                t = 2
-            else:   # self.radioButton_SolidColor.isChecked():
-                t = 3
+        self.setMaterials(properties.get("materials", []))
 
-            self.setWidgetsEnabled([self.label_TextureSize, self.comboBox_TextureSize], t in [0, 1])
+        id = properties.get("mtlId")
+        if id:
+            self.setCurrentMtlItem(id)
 
-            self.checkBox_TransparentBackground.setEnabled(t in [0, 1, 2])
-            if t in [0, 1]:
-                self.checkBox_TransparentBackground.setText("Transparent background")
-            elif t == 2:
-                self.checkBox_TransparentBackground.setText("Enable transparency")
+    def materials(self):
+        self.materialItemChanged(None, self.listWidget_Materials.currentItem())  # update current item data
+
+        mtls = []
+        for row in range(self.listWidget_Materials.count()):
+            item = self.listWidget_Materials.item(row)
+
+            d = {
+                "id": item.data(self.MTL_ID),
+                "name": item.text(),
+                "type": item.type(),
+                "properties": item.data(self.MTL_PROPERTIES) or {}
+            }
+
+            if item.type() == q3dconst.MTL_LAYER:
+                d["layerIds"] = item.data(self.MTL_LAYERIDS) or []
+
+            mtls.append(d)
+
+        if mtls:
+            return mtls
+
+        self.addMaterial()
+        return self.materials()
+
+    def setMaterials(self, materials):
+        self.listWidget_Materials.clear()
+
+        for mtl in materials:
+            item = QListWidgetItem(mtl.get("name", ""), self.listWidget_Materials, mtl.get("type", q3dconst.MTL_MAPCANVAS))
+            item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+            item.setData(self.MTL_ID, mtl.get("id"))
+            item.setData(self.MTL_PROPERTIES, mtl.get("properties"))
+            ids = mtl.get("layerIds")
+            if ids:
+                item.setData(self.MTL_LAYERIDS, ids)
+
+    def addMaterial(self, action=None):
+        id = QUuid.createUuid().toString()[1:9]
+        mtype = self.mtlAddActions.index(action) if action else q3dconst.MTL_MAPCANVAS
+
+        name = {
+            q3dconst.MTL_LAYER: "Layer Image",
+            q3dconst.MTL_MAPCANVAS: "Map Image",
+            q3dconst.MTL_FILE: "Image File",
+            q3dconst.MTL_COLOR: "Solid Color"
+        }.get(mtype, "")
+
+        p = {
+            "spinBox_Opacity": 100,
+            "checkBox_TransparentBackground": False,
+            "checkBox_Shading": True
+        }
+
+        if mtype in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+            p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
+
+        item = QListWidgetItem(name, self.listWidget_Materials, mtype)
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+        item.setData(self.MTL_ID, id)
+        item.setData(self.MTL_PROPERTIES, p)
+
+        if action:
+            self.listWidget_Materials.setCurrentItem(item)
+
+            if mtype == q3dconst.MTL_LAYER:
+                self.showLayerSelectDialog(item)
+
+        return item
+
+    def removeMaterial(self):
+        row = self.listWidget_Materials.currentRow()
+        if row >= 0:
+            item = self.listWidget_Materials.item(row)
+            msg = "Are you sure you want to remove this material '{}'?".format(item.text())
+            if QMessageBox.question(self, "Qgis2threejs", msg) == QMessageBox.Yes:
+                self.listWidget_Materials.takeItem(row)
+
+    def renameMtlItem(self):
+        item = self.listWidget_Materials.currentItem()
+        if item:
+            #name, ok = QInputDialog.getText(self, "Rename", "",)
+            #if ok:
+
+            self.listWidget_Materials.editItem(item)
+
+    def setCurrentMtlItem(self, id):
+        for row in range(self.listWidget_Materials.count()):
+            if self.listWidget_Materials.item(row).data(Qt.UserRole) == id:
+                self.listWidget_Materials.setCurrentRow(row)
+                return
+
+    def materialItemChanged(self, current, previous):
+
+        if previous:
+            previous.setData(self.MTL_PROPERTIES, PropertyPage.properties(self, self.mtlPropertiesWidgets))
+
+        if not current:
+            return
+
+        PropertyPage.setProperties(self, current.data(self.MTL_PROPERTIES) or {})
+
+        mtype = current.type()
+        if mtype == q3dconst.MTL_LAYER:
+            self.updateLayerImageLabel(current.data(self.MTL_LAYERIDS) or [])
+
+        if previous and previous.type() == mtype:
+            return
+
+        # set up widgets for current material type
+        layers = image_size = image_file = color = tb = False
+        if mtype == q3dconst.MTL_LAYER:
+            layers = image_size = tb = True
+
+        elif mtype == q3dconst.MTL_MAPCANVAS:
+            image_size = tb = True
+
+        elif mtype == q3dconst.MTL_FILE:
+            image_file = tb = True
+
+        else:       # q3dconst.MTL_COLOR:
+            color = True
+
+        self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer], layers)
+        self.setWidgetsVisible([self.label_TextureSize, self.comboBox_TextureSize], image_size)
+        self.setWidgetsVisible([self.label_ImageFile, self.lineEdit_ImageFile, self.toolButton_ImageFile], image_file)
+        self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
+        self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
+        #TODO: enable shading
+        if mtype != q3dconst.MTL_COLOR:
+            self.checkBox_TransparentBackground.setText("Enable transparency" if mtype == q3dconst.MTL_FILE else "Transparent background")
 
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):

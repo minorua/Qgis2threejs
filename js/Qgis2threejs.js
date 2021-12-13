@@ -120,6 +120,12 @@ Q3D.MaterialType = {
   Unknown: -1
 };
 
+Q3D.KeyframeType = {
+  CameraMotion: 64,
+  Opacity: 65,
+  Material: 66
+};
+
 Q3D.uv = {
   i: new THREE.Vector3(1, 0, 0),
   j: new THREE.Vector3(0, 1, 0),
@@ -1044,8 +1050,7 @@ limitations:
 
           var onUpdate;
 
-          if (group.layerId === undefined) {
-            // camera motion
+          if (group.type == Q3D.KeyframeType.CameraMotion) {
             var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
             var vec3 = new THREE.Vector3();
             for (var i = 0; i < keyframes.length; i++) {
@@ -1089,15 +1094,44 @@ limitations:
             onUpdate(prop_list[0], 1, true);
           } 
           else {
-            // layer opacity transition
+            // layer animation
             var layer = app.scene.mapLayers[group.layerId];
-            onUpdate = function (obj, elapsed) {
-              layer.opacity = obj.opacity;
-            };
-  
-            for (var i = 0; i < keyframes.length; i++) {
-              prop_list.push({opacity: keyframes[i].opacity});
+
+            if (group.type == Q3D.KeyframeType.Opacity) {
+
+              onUpdate = function (obj, elapsed) {
+                layer.opacity = obj.opacity;
+              };
+    
+              for (var i = 0; i < keyframes.length; i++) {
+                prop_list.push({opacity: keyframes[i].opacity});
+              }
             }
+            else if (group.type == Q3D.KeyframeType.Material) {
+
+              var idx_from = 0,
+                  from = keyframes[0].mtlIndex,
+                  to = keyframes[1].mtlIndex,
+                  effect = keyframes[1].effect;
+
+              onUpdate = function (obj, elapsed) {
+                if (group.currentIndex != idx_from) {
+                  idx_from = group.currentIndex;
+                  from = keyframes[idx_from].mtlIndex;
+                  to = keyframes[idx_from + 1].mtlIndex;
+                  effect = keyframes[idx_from + 1].effect;
+                }
+
+                layer.setTextureAt(from, to, effect, elapsed);
+              };
+
+              for (var i = 0; i < keyframes.length; i++) {
+                prop_list.push({idx: i});
+              }
+
+              layer.setTextureAt(from, to, effect, null);
+            }
+            else return;
           }
 
           var onComplete = function (obj) {
@@ -1905,6 +1939,7 @@ Q3D.Material.prototype = {
   // callback is called when material has been completely loaded
   loadJSONObject: function (jsonObject, callback) {
     this.origProp = jsonObject;
+    this.groupId = jsonObject.mtlIndex;
 
     var m = jsonObject, opt = {}, defer = false;
 
@@ -1924,6 +1959,8 @@ Q3D.Material.prototype = {
       else if (m.image.object !== undefined) {    // WebKit Bridge
         opt.map = new THREE.Texture(m.image.object.toImageData());
         opt.map.needsUpdate = true;
+
+        delete m.image.object
       }
       else {    // base64
         var img = new Image();
@@ -1934,6 +1971,8 @@ Q3D.Material.prototype = {
         img.src = m.image.base64;
         opt.map = new THREE.Texture(img);
         defer = true;
+
+        delete m.image.base64
       }
       opt.map.anisotropy = Q3D.Config.texture.anisotropy;
     }
@@ -2121,30 +2160,69 @@ Q3D.Materials.prototype.setWireframeMode = function (wireframe) {
   }
 };
 
+Q3D.Materials.prototype.removeItem = function (material, dispose) {
+  for (var i = this.materials.length - 1; i >= 0; i--) {
+    if (this.materials[i].mtl === material) {
+      this.materials.splice(i, 1);
+      break;
+    }
+  }
+  if (dispose) material.dispose()
+};
+
+Q3D.Materials.prototype.removeGroupItems = function (groupId) {
+  for (var i = this.materials.length - 1; i >= 0; i--) {
+    if (this.materials[i].groupId === groupId) {
+      this.materials.splice(i, 1);
+    }
+  }
+};
 
 /*
 Q3D.DEMBlock
 */
-Q3D.DEMBlock = function () {};
+Q3D.DEMBlock = function () {
+  this.materials = [];
+  this.currentMtlIndex = 0;
+};
 
 Q3D.DEMBlock.prototype = {
 
   constructor: Q3D.DEMBlock,
 
-  // obj: json object
+  // obj: object decoded from JSON
   loadJSONObject: function (obj, layer, callback) {
-    var grid = obj.grid;
+
     this.data = obj;
 
     // load material
-    this.material = new Q3D.Material();
-    this.material.loadJSONObject(obj.material, function () {
-      layer.requestRender();
-    });
-    layer.materials.add(this.material);
+    var m, mtl;
+    for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
+      m = obj.materials[i];
+
+      mtl = new Q3D.Material();
+      mtl.loadJSONObject(m, function () {
+        layer.requestRender();
+      });
+      this.materials[m.mtlIndex] = mtl;
+
+      if (m.useNow) {
+        if (this.obj) {
+          layer.materials.removeItem(this.obj.material, true);
+  
+          this.obj.material = mtl.mtl;
+
+          layer.materials.add(mtl);
+          layer.requestRender();
+        }
+        this.currentMtlIndex = m.mtlIndex;
+      }
+    }  
+
+    if (obj.grid === undefined) return;
 
     // create a plane geometry
-    var geom;
+    var geom, grid = obj.grid;
     if (layer.geometryCache) {
       var params = layer.geometryCache.parameters || {};
       if (params.width === obj.width && params.height === obj.height &&
@@ -2157,7 +2235,7 @@ Q3D.DEMBlock.prototype = {
     layer.geometryCache = geom;
 
     // create a mesh
-    var mesh = new THREE.Mesh(geom, this.material.mtl);
+    var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
     layer.addObject(mesh);
@@ -2404,7 +2482,10 @@ Q3D.DEMBlock.prototype = {
 /*
 Q3D.ClippedDEMBlock
 */
-Q3D.ClippedDEMBlock = function () {};
+Q3D.ClippedDEMBlock = function () {
+  this.materials = [];
+  this.currentMtlIndex = 0;
+};
 
 Q3D.ClippedDEMBlock.prototype = {
 
@@ -2415,14 +2496,33 @@ Q3D.ClippedDEMBlock.prototype = {
     var _this = this;
 
     // load material
-    this.material = new Q3D.Material();
-    this.material.loadJSONObject(obj.material, function () {
-      layer.requestRender();
-    });
-    layer.materials.add(this.material);
+    var m, mtl;
+    for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
+      m = obj.materials[i];
+
+      mtl = new Q3D.Material();
+      mtl.loadJSONObject(m, function () {
+        layer.requestRender();
+      });
+      this.materials[m.mtlIndex] = mtl;
+
+      if (m.useNow) {
+        if (this.obj) {
+          layer.materials.removeItem(this.obj.material, true);
+  
+          this.obj.material = mtl.mtl;
+
+          layer.materials.add(mtl);
+          layer.requestRender();
+        }
+        this.currentMtlIndex = m.mtlIndex;
+      }
+    }
+
+    if (obj.geom === undefined) return;
 
     var geom = new THREE.BufferGeometry(),
-        mesh = new THREE.Mesh(geom, this.material.mtl);
+        mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
     mesh.position.fromArray(obj.translate);
     mesh.scale.z = obj.zScale;
     layer.addObject(mesh);
@@ -2639,28 +2739,39 @@ Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   var old_shading = this.properties.shading;
+  var old_blockIsClipped = this.properties.clipped;
+
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
     if (old_shading != jsonObject.properties.shading) {
       this.geometryCache = null;
     }
 
+    if (old_blockIsClipped !== jsonObject.properties.clipped) {
+      // DEM type changed
+      this.blocks = [];
+    }
+
     if (jsonObject.data !== undefined) {
       jsonObject.data.forEach(function (obj) {
-        this.buildBlock(obj, scene);
+        this.buildBlock(obj, scene, this);
       }, this);
     }
   }
   else if (jsonObject.type == "block") {
-    this.buildBlock(jsonObject, scene);
+    this.buildBlock(jsonObject, scene, this);
   }
 };
 
-Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene) {
+Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
   var _this = this,
-      block = (jsonObject.grid !== undefined) ? (new Q3D.DEMBlock()) : (new Q3D.ClippedDEMBlock());
+      block = this.blocks[jsonObject.block];
 
-  this.blocks[jsonObject.block] = block;
+  if (block === undefined) {
+    debugger;
+    block = (layer.properties.clipped) ? (new Q3D.ClippedDEMBlock()) : (new Q3D.DEMBlock());
+    this.blocks[jsonObject.block] = block;
+  }
 
   block.loadJSONObject(jsonObject, this, function (mesh) {
 
@@ -2827,6 +2938,24 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
   return pts;
 };
 
+Q3D.DEMLayer.prototype.setCurrentMaterial = function (mtlIndex) {
+
+  this.materials.removeGroupItems(this.currentMtlIndex);
+
+  this.currentMtlIndex = mtlIndex;
+ 
+  var b, m;
+  for (var i = 0, l = this.blocks.length; i < l; i++) {
+    b = this.blocks[i];
+    m = b.materials[mtlIndex];
+    if (m !== undefined) {
+      b.obj.material = m.mtl;
+      this.materials.add(m);      
+    }
+  }
+  this.requestRender();
+};
+
 Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
   this.sideVisible = visible;
   this.objectGroup.traverse(function (obj) {
@@ -2834,6 +2963,104 @@ Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
   });
 };
 
+// texture animation
+Q3D.DEMLayer.prototype.setTextureAt = function (from, to, effect, elapsed) {
+
+  if (elapsed === null) {
+
+    this.anim = [];
+
+    var m, canvas, ctx, opt, mtl;   
+    var img_from, img_to;
+    for (var i = 0; i < this.blocks.length; i++) {
+      m = this.blocks[i].obj.material;
+
+      img_from = this.blocks[i].materials[from].mtl.map.image;
+      img_to = this.blocks[i].materials[to].mtl.map.image;
+
+      canvas = document.createElement("canvas");
+      canvas.width = img_to.width;
+      canvas.height = img_to.height;
+
+      ctx = canvas.getContext("2d");
+
+      opt = {};
+      opt.map = new THREE.CanvasTexture(canvas);
+      opt.transparent = true;
+  
+      mtl = undefined;
+      if (m) { 
+        if (m.isMeshToonMaterial) {
+          mtl = new THREE.MeshToonMaterial(opt);
+        }
+        else if (m.isMeshPhongMaterial) {
+          mtl = new THREE.MeshPhongMaterial(opt);
+        }
+      }  
+      if (mtl === undefined) {
+        mtl = new THREE.MeshLambertMaterial(opt);
+      }
+
+      if (img_from instanceof ImageData) {    // WebKit Bridge
+        var canvas_from = document.createElement("canvas");
+        canvas_from.width = img_from.width;
+        canvas_from.height = img_from.height;
+  
+        var canvas_to = document.createElement("canvas");
+        canvas_to.width = img_to.width;
+        canvas_to.height = img_to.height;
+  
+        var ctx_from = canvas_from.getContext("2d"),
+            ctx_to = canvas_to.getContext("2d");
+  
+        ctx_from.putImageData(img_from, 0, 0);
+        ctx_to.putImageData(img_to, 0, 0);
+  
+        img_from = canvas_from;
+        img_to = canvas_to;
+      }
+
+      this.blocks[i].obj.material = mtl;
+
+      this.materials.add(mtl);
+
+      this.anim.push({
+        img_from: img_from,
+        img_to: img_to,
+        ctx: ctx,
+        tex: mtl.map
+      });
+    }
+  }
+
+  var a, w0, h0, w1, h1, ew0, ew1;
+  for (var i = 0; i < this.anim.length; i++) {
+    a = this.anim[i];
+    w0 = a.img_from.width;
+    h0 = a.img_from.height;
+    w1 = a.img_to.width;
+    h1 = a.img_to.height;
+
+    if (effect == 1) {  // fade in
+      a.ctx.globalAlpha = 1;    // (1 - elapsed);
+      a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
+
+      a.ctx.globalAlpha = elapsed;
+      a.ctx.drawImage(a.img_to, 0, 0, w0, h0, 0, 0, w1, h1);
+    }
+    else if (effect == 2) {  // slide
+      if (elapsed === null) {
+        a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
+      }
+      else {
+        ew0 = w0 * elapsed;
+        ew1 = w1 * elapsed;
+        a.ctx.drawImage(a.img_to, w0 - ew0, 0, ew0, h0, w1 - ew1, 0, ew1, h1);
+      }
+    }
+    a.tex.needsUpdate = true;
+  }
+};
 
 /*
 Q3D.VectorLayer --> Q3D.MapLayer
