@@ -160,9 +160,10 @@ class Q3DWebPage(QWebPage):
 
         url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "viewer.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
-        self.mainFrame().setUrl(self.myUrl)
+        self.reload()
 
     def reload(self):
+        self.bridge.showStatusMessage("Initializing preview...")
         self.mainFrame().setUrl(self.myUrl)
 
     def pageLoaded(self, ok):
@@ -192,6 +193,8 @@ class Q3DWebPage(QWebPage):
 
         # call init()
         self.runScript("init({}, {});".format(js_bool(self.offScreen), DEBUG_MODE))
+
+        self.bridge.showStatusMessage("")
 
         self.ready.emit()
 
