@@ -103,7 +103,7 @@ class ThreeJSBuilder:
             builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
         return builder.build(cancelSignal=cancelSignal)
 
-    def builders(self, layer):
+    def layerBuilders(self, layer):
         if layer.geomType == q3dconst.TYPE_DEM:
             builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:

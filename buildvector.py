@@ -426,8 +426,8 @@ class VectorLayerBuilder(LayerBuilder):
               QgsWkbTypes.LineGeometry: "line",
               QgsWkbTypes.PolygonGeometry: "polygon"}
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
-        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessage)
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessageA=None):
+        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessageA)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -435,19 +435,19 @@ class VectorLayerBuilder(LayerBuilder):
         self.geomType = self.layer.mapLayer.geometryType()
         self.clipExtent = None
 
+        vl = VectorLayer(settings, layer, self.materialManager, self.modelManager)
+        if vl.objectType:
+            self.logMessage("Object type is {}.".format(vl.objectType.name))
+        else:
+            logMessage("Object type not found", error=True)
+
+        self.vlayer = vl
+
     def build(self, build_blocks=False, cancelSignal=None):
-        if self.layer.mapLayer is None:
+        if self.layer.mapLayer is None or self.vlayer.objectType is None:
             return
 
-        vlayer = VectorLayer(self.settings, self.layer, self.materialManager, self.modelManager)
-        if vlayer.objectType is None:
-            logMessage("Object type not found")
-            return
-
-        self.logMessage("Object type is {}.".format(vlayer.objectType.name))
-
-        self.vlayer = vlayer
-
+        vlayer = self.vlayer
         be = self.settings.baseExtent()
         p = self.layer.properties
 
@@ -535,6 +535,9 @@ class VectorLayerBuilder(LayerBuilder):
         return p
 
     def subBuilders(self):
+        if self.vlayer.objectType is None:
+            return
+
         z_func = lambda x, y: 0
         grid = None
 

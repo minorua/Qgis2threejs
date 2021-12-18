@@ -202,11 +202,17 @@ class ThreeJSExporter(ThreeJSBuilder):
             files.append({"dirs": ["js/proj4js"]})
 
         # layer-specific dependencies
+        wl = pc = True
         for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:  # HACK: lyr.export
-            if layer.geomType == q3dconst.TYPE_POINTCLOUD:
+            if layer.geomType == q3dconst.TYPE_LINESTRING:
+                if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
+                    files.append({"dirs": ["js/meshline"]})
+                    wl = False
+
+            elif layer.geomType == q3dconst.TYPE_POINTCLOUD and pc:
                 files.append({"dirs": ["js/potree-core"], "subdirs": True})
                 files.append({"files": ["js/pointcloudlayer.js"]})
-                break
+                pc = False
 
         # model loades and model files
         for manager in self.modelManagers:
@@ -254,11 +260,16 @@ class ThreeJSExporter(ThreeJSBuilder):
         files.append("./Qgis2threejs.js")
 
         # layer-specific dependencies
+        wl = pc = True
         for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:
-            if layer.geomType == q3dconst.TYPE_POINTCLOUD:
+            if layer.geomType == q3dconst.TYPE_LINESTRING:
+                if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
+                    files.append("./meshline/THREE.MeshLine.js")
+                    wl = False
+            elif layer.geomType == q3dconst.TYPE_POINTCLOUD and pc:
                 files.append("./potree-core/potree.min.js")
                 files.append("./pointcloudlayer.js")
-                break
+                pc = False
 
         # model loaders
         for manager in self.modelManagers:

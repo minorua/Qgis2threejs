@@ -272,6 +272,10 @@ class Q3DController(QObject):
         if layer.geomType == q3dconst.TYPE_POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
             self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
                                         q3dconst.SCRIPT_GLTFLOADER])
+
+        elif layer.geomType == q3dconst.TYPE_LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
+            self.iface.loadScriptFiles([q3dconst.SCRIPT_MESHLINE])
+
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
             self.iface.loadScriptFiles([q3dconst.SCRIPT_FETCH,
                                         q3dconst.SCRIPT_POTREE,
@@ -280,7 +284,7 @@ class Q3DController(QObject):
         t0 = t4 = time.time()
         dlist = []
         i = 0
-        for builder in self.builder.builders(layer):
+        for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
                 self.iface.runScript("loadAborted();")

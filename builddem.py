@@ -263,12 +263,12 @@ class DEMGridBuilder:
 
         # edges
         if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
-            mi = self.mtlManager.getBasicLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
+            mi = self.mtlManager.getLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
             b["edges"] = {"mtl": self.mtlManager.build(mi)}
 
         # wireframe
         if self.properties.get("checkBox_Wireframe"):
-            mi = self.mtlManager.getBasicLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
+            mi = self.mtlManager.getLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
             b["wireframe"] = {"mtl": self.mtlManager.build(mi)}
 
         return b

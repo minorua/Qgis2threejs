@@ -112,8 +112,8 @@ Q3D.MaterialType = {
   MeshLambert: 0,
   MeshPhong: 1,
   MeshToon: 2,
-  LineBasic: 3,
-  LineDashed: 4,
+  Line: 3,
+  MeshLine: 4,
   Sprite: 5,
   Point: 6,
   MeshStandard: 7,
@@ -2001,13 +2001,31 @@ Q3D.Material.prototype = {
       opt.size = m.s;
       this.mtl = new THREE.PointsMaterial(opt);
     }
-    else if (m.type == Q3D.MaterialType.LineBasic) {
-      this.mtl = new THREE.LineBasicMaterial(opt);
+    else if (m.type == Q3D.MaterialType.Line) {
+
+      if (m.dashed) {
+        opt.dashSize = Q3D.Config.line.dash.dashSize;
+        opt.gapSize = Q3D.Config.line.dash.gapSize;
+        this.mtl = new THREE.LineDashedMaterial(opt);
+      }
+      else {
+        this.mtl = new THREE.LineBasicMaterial(opt);
+      }
     }
-    else if (m.type == Q3D.MaterialType.LineDashed) {
-      opt.dashSize = Q3D.Config.line.dash.dashSize;
-      opt.gapSize = Q3D.Config.line.dash.gapSize;
-      this.mtl = new THREE.LineDashedMaterial(opt);
+    else if (m.type == Q3D.MaterialType.MeshLine) {
+    
+      opt.lineWidth = m.thickness;
+      if (m.dashed) {
+        opt.dashArray = 0.03;
+        opt.dashRatio = 0.45;
+        opt.dashOffset = 0.015;
+        opt.transparent = true;
+      }
+
+      // opt.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+      // opt.sizeAttenuation = 1;
+
+      this.mtl = new MeshLineMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.Sprite) {
       opt.color = 0xffffff;
@@ -2046,12 +2064,13 @@ Q3D.Material.prototype = {
   type: function () {
     if (this.mtl instanceof THREE.MeshLambertMaterial) return Q3D.MaterialType.MeshLambert;
     if (this.mtl instanceof THREE.MeshPhongMaterial) return Q3D.MaterialType.MeshPhong;
-    if (this.mtl instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.LineBasic;
-    if (this.mtl instanceof THREE.LineDashedMaterial) return Q3D.MaterialType.LineDashed;
+    if (this.mtl instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.Line;
+    if (this.mtl instanceof THREE.LineDashedMaterial) return Q3D.MaterialType.Line;
     if (this.mtl instanceof THREE.SpriteMaterial) return Q3D.MaterialType.Sprite;
     if (this.mtl instanceof THREE.MeshStandardMaterial) return Q3D.MaterialType.MeshStandard;
     if (this.mtl === undefined) return undefined;
     if (this.mtl === null) return null;
+    if (this.mtl.isMeshLineMaterial) return Q3D.MaterialType.MeshLine;
     return Q3D.MaterialType.Unknown;
   },
 
@@ -3441,6 +3460,25 @@ Q3D.LineLayer.prototype.build = function (features) {
 
       var obj = new THREE.Line(geom, materials.mtl(f.mtl));
       if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
+      return obj;
+    };
+  }
+  else if (objType == "Thick Line") {
+    createObject = function (f, line) {
+      debugger;
+      var pt, vertices = [];
+      for (var i = 0, l = line.length; i < l; i++) {
+        pt = line[i];
+        vertices.push(pt[0], pt[1], pt[2]);
+      }
+
+      var line = new MeshLine();
+      line.setPoints(vertices);
+
+      obj = new THREE.Mesh(line, materials.mtl(f.mtl));
+
+      // var obj = new THREE.Line(geom, materials.mtl(f.mtl));
+      // if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
       return obj;
     };
   }

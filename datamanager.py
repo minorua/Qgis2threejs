@@ -182,8 +182,8 @@ class MaterialManager(DataManager):
     MESH_PHONG = 1
     MESH_TOON = 2
 
-    LINE_BASIC = 3
-    LINE_DASHED = 4
+    LINE = 3
+    LINE_MESH = 4
     SPRITE_IMAGE = 5
     POINT = 6
 
@@ -220,11 +220,11 @@ class MaterialManager(DataManager):
     def getPointMaterialIndex(self, color, opacity=1, size=1):
         return self._indexCol(self.POINT, color, opacity, False, size)
 
-    def getBasicLineIndex(self, color, opacity=1):
-        return self._indexCol(self.LINE_BASIC, color, opacity)
+    def getLineIndex(self, color, opacity=1, dashed=False):
+        return self._indexCol(self.LINE, color, opacity, opts=dashed)
 
-    def getDashedLineIndex(self, color, opacity=1):
-        return self._indexCol(self.LINE_DASHED, color, opacity)
+    def getMeshLineIndex(self, color, opacity=1, thickness=1, dashed=False):
+        return self._indexCol(self.LINE_MESH, color, opacity, opts=(thickness, dashed))
 
     def getWireframeIndex(self, color, opacity=1):
         return self._indexCol(self.WIREFRAME, color, opacity)
@@ -256,22 +256,26 @@ class MaterialManager(DataManager):
         transp_background = False
 
         m = {
-            "type": mt if mt in [self.POINT, self.LINE_BASIC, self.LINE_DASHED, self.SPRITE_IMAGE] else self.basicMaterialType
+            "type": mt if mt in [self.POINT, self.LINE, self.LINE_MESH, self.SPRITE_IMAGE] else self.basicMaterialType
         }
 
         if color is None:
             if mt == self.CANVAS_IMAGE:
                 transp_background = opts
                 imgIndex = self.imageManager.canvasImageIndex(transp_background)
+
             elif mt == self.MAP_IMAGE:
                 width, height, extent, transp_background = opts
                 imgIndex = self.imageManager.mapImageIndex(width, height, extent, transp_background)
+
             elif mt == self.LAYER_IMAGE:
                 layerids, width, height, extent, transp_background = opts
                 imgIndex = self.imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
+
             elif mt == self.IMAGE_FILE:
                 imagepath, transp_background = opts
                 imgIndex = self.imageManager.imageIndex(imagepath)
+
             elif mt == self.SPRITE_IMAGE:
                 path_url, transp_background = opts
                 if path_url.startswith("http:") or path_url.startswith("https:"):
@@ -296,6 +300,14 @@ class MaterialManager(DataManager):
 
             if mt == self.POINT:
                 m["s"] = opts   # size
+
+            elif mt == self.LINE:
+                m["dashed"] = opts
+
+            elif mt == self.LINE_MESH:
+                thickness, dashed = opts
+                m["thickness"] = thickness
+                m["dashed"] = dashed
 
         if transp_background:
             m["t"] = 1

@@ -100,7 +100,25 @@
 		this.widthCallback = wcb;
 		this.positions = [];
 		this.counters = [];
-		if (points.length && points[0] instanceof THREE.Vector3) {
+		if (window.Q3D !== undefined) {			// @minorua
+			var cumLengths = [0], length = 0;
+			var i, j, dx, dy, dz, c;
+
+			for (i = 3; i < points.length; i += 3) {
+				dx = points[i] - points[i - 3];
+				dy = points[i + 1] - points[i - 2];
+				dz = points[i + 2] - points[i - 1];
+				length += Math.sqrt(dx * dx + dy * dy + dz * dz);
+				cumLengths.push(length);
+			}
+			for (i = 0, j = 0; j < points.length; i++, j += 3) {
+				c = cumLengths[i] / length;
+				this.positions.push(points[j], points[j + 1], points[j + 2]);
+				this.positions.push(points[j], points[j + 1], points[j + 2]);
+				this.counters.push(c);
+				this.counters.push(c);
+			}
+		} else if (points.length && points[0] instanceof THREE.Vector3) {
 			// could transform Vector3 array into the array used below
 			// but this approach will only loop through the array once
 			// and is more performant

@@ -238,13 +238,33 @@ class LineType(LineBasicTypeBase):
 
     @classmethod
     def material(cls, settings, vlayer, feat):
+        dashed = False
         try:
             if feat.values[2]:
-                return vlayer.materialManager.getDashedLineIndex(feat.values[0], feat.values[1])
+                dashed = True
         except IndexError:    # for backward compatibility (dashed option was added in 2.1)
             pass
 
-        return vlayer.materialManager.getBasicLineIndex(feat.values[0], feat.values[1])
+        return vlayer.materialManager.getLineIndex(feat.values[0], feat.values[1], dashed)
+
+    @classmethod
+    def geometry(cls, settings, vlayer, feat, geom):
+        return {"lines": geom.toList()}
+
+
+class ThickLineType(LineBasicTypeBase):
+
+    name = "Thick Line"
+
+    @classmethod
+    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
+        ppage.initStyleWidgets()
+        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Thickness", "defaultValue": 1, "layer": mapLayer})
+        ppage.addStyleWidget(StyleWidget.CHECKBOX, {"name": "Dashed", "defaultValue": False})
+
+    @classmethod
+    def material(cls, settings, vlayer, feat):
+        return vlayer.materialManager.getMeshLineIndex(feat.values[0], feat.values[1], feat.values[2], feat.values[3])
 
     @classmethod
     def geometry(cls, settings, vlayer, feat, geom):
@@ -369,7 +389,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
         # edges
         if feat.values[3] is not None:
-            mtl["edge"] = vlayer.materialManager.getBasicLineIndex(feat.values[3], feat.values[1])
+            mtl["edge"] = vlayer.materialManager.getLineIndex(feat.values[3], feat.values[1])
         return mtl
 
     @classmethod
@@ -408,7 +428,7 @@ class OverlayType(PolygonBasicTypeBase):
 
         # border
         if len(feat.values) > 2 and feat.values[2] is not None:
-            mtl["brdr"] = vlayer.materialManager.getBasicLineIndex(feat.values[2], feat.values[1])
+            mtl["brdr"] = vlayer.materialManager.getLineIndex(feat.values[2], feat.values[1])
         return mtl
 
     @classmethod
@@ -508,6 +528,7 @@ class ObjectType:
 
     # line
     Line = LineType
+    ThickLine = ThickLineType
     Pipe = PipeType
     ConeLine = ConeLineType
     BoxLine = BoxLineType
@@ -520,7 +541,7 @@ class ObjectType:
 
     Grouped = {QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType,
                                            PlaneType, PointType, IconType, ModelFileType],
-               QgsWkbTypes.LineGeometry: [LineType, PipeType, ConeLineType, BoxLineType, WallType],
+               QgsWkbTypes.LineGeometry: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
                QgsWkbTypes.PolygonGeometry: [PolygonType, ExtrudedType, OverlayType]
                }
 
@@ -550,6 +571,6 @@ def tr(source):
 
 def _():
     tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
-    tr("Line"), tr("Pipe"), tr("Wall")
+    tr("Line"), tr("Thick Line"), tr("Pipe"), tr("Wall")
     tr("Polygon"), tr("Extruded"), tr("Overlay")
     tr("Icon"), tr("Model File")

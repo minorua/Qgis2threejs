@@ -20,6 +20,7 @@ SCRIPT_POTREE = 5
 SCRIPT_PCLAYER = 6
 SCRIPT_OUTLINE = 7
 SCRIPT_VIEWHELPER = 8
+SCRIPT_MESHLINE = 9
 SCRIPT_FETCH = 101
 
 # Script path (relative from js directory)
@@ -32,5 +33,6 @@ SCRIPT_PATH = {
     SCRIPT_PCLAYER: "pointcloudlayer.js",
     SCRIPT_OUTLINE: "threejs/effects/OutlineEffect.js",
     SCRIPT_VIEWHELPER: "threejs/editor/ViewHelper.js",
+    SCRIPT_MESHLINE: "meshline/THREE.MeshLine.js",
     SCRIPT_FETCH: "unfetch/unfetch.js"
 }
