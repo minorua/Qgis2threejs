@@ -20,7 +20,7 @@
 """
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor, QIcon
+from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication
@@ -730,11 +730,10 @@ class AnimationTreeWidget(QTreeWidget):
             if item.type() == ATConst.ITEM_TL_LAYER:
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_OPACITY)
 
-            self.addKeyframeItem(parent, {
-                "type": ATConst.ITEM_OPACITY,
-                "name": "Opacity '{}'".format(val),
-                "opacity": val
-                })
+            self.addKeyframeItem(parent, {"type": ATConst.ITEM_OPACITY,
+                                          "name": "Opacity '{}'".format(val),
+                                          "opacity": val
+                                          })
 
     def addMaterialItem(self):
         item = self.currentItem()

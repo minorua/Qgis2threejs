@@ -22,7 +22,7 @@ import json
 from copy import deepcopy
 
 from PyQt5.QtCore import QSettings, QSize
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer, QgsMapSettings, QgsPointXY, QgsProject, QgsWkbTypes
+from qgis.core import QgsMapLayer, QgsMapSettings, QgsPointXY, QgsProject, QgsWkbTypes
 
 from . import q3dconst
 from .conf import DEF_SETS

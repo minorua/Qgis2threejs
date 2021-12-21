@@ -57,5 +57,6 @@ class DEF_SETS:
     # animation
     ANM_DURATION = 1000     # msec
 
+
 # processing export
 P_OPEN_DIRECTORY = True

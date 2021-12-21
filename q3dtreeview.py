@@ -24,7 +24,6 @@ from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
 from . import q3dconst
-from .qgis2threejstools import logMessage, pluginDir
 
 
 class Q3DTreeView(QTreeView):

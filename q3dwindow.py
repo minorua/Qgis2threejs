@@ -24,8 +24,7 @@ from datetime import datetime
 from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
-                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar,
-                             QHeaderView, QTreeWidgetItem, QMenu)
+                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import q3dconst

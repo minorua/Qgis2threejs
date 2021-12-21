@@ -214,7 +214,7 @@ class DEMGridBuilder:
              "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
              "zShift": mapTo3d.verticalShift,
              "zScale": mapTo3d.multiplierZ
-        }
+             }
 
         # geometry
         if self.clip_geometry:
@@ -497,8 +497,8 @@ class DEMMaterialBuilder:
             mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
 
         # build material
-        filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format() if mtlIndex else "")
-        url = None if self.urlRoot is None else "{}{}{}.png".format(self.urlRoot, self.blockIndex, "_{}".format() if mtlIndex else "")
+        filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")
+        url = None if self.urlRoot is None else "{}{}{}.png".format(self.urlRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")
 
         d = self.materialManager.build(mi, filepath, url, self.settings.base64)
         d["mtlIndex"] = mtlIndex
