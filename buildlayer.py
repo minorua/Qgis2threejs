@@ -24,7 +24,7 @@ from qgis.core import QgsApplication
 
 class LayerBuilder:
 
-    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
+    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None):
         self.settings = settings
         self.layer = layer
         self.properties = layer.properties
@@ -33,7 +33,7 @@ class LayerBuilder:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
         self.progress = progress or dummyProgress
-        self.logMessage = logMessage or dummyLogMessage
+        self.log = log or dummyLogMessage
 
         self._canceled = False
 

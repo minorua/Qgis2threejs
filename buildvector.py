@@ -426,8 +426,8 @@ class VectorLayerBuilder(LayerBuilder):
               QgsWkbTypes.LineGeometry: "line",
               QgsWkbTypes.PolygonGeometry: "polygon"}
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessageA=None):
-        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessageA)
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -437,7 +437,7 @@ class VectorLayerBuilder(LayerBuilder):
 
         vl = VectorLayer(settings, layer, self.materialManager, self.modelManager)
         if vl.objectType:
-            self.logMessage("Object type is {}.".format(vl.objectType.name))
+            self.log("Object type is {}.".format(vl.objectType.name))
         else:
             logMessage("Object type not found", error=True)
 
@@ -478,7 +478,7 @@ class VectorLayerBuilder(LayerBuilder):
             data["models"] = self.modelManager.build(self.pathRoot is not None,
                                                      base64=self.settings.base64)
 
-            self.logMessage("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.")
+            self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.")
 
         if build_blocks:
             self._startBuildBlocks(cancelSignal)
@@ -497,9 +497,9 @@ class VectorLayerBuilder(LayerBuilder):
 
             nb = len(blocks)
             if nb > 1:
-                self.logMessage("{} features were splitted into {} parts.".format(nf, nb))
+                self.log("{} features were splitted into {} parts.".format(nf, nb))
             else:
-                self.logMessage("{} feature{}.".format(nf, "s" if nf > 1 else ""))
+                self.log("{} feature{}.".format(nf, "s" if nf > 1 else ""))
 
             data["blocks"] = blocks
 

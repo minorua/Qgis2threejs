@@ -23,8 +23,8 @@ from .buildlayer import LayerBuilder
 
 class PointCloudLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, layer, progress=None, logMessage=None):
-        LayerBuilder.__init__(self, settings, layer, progress=progress, logMessage=logMessage)
+    def __init__(self, settings, layer, progress=None, log=None):
+        LayerBuilder.__init__(self, settings, layer, progress=progress, log=log)
 
     def build(self, build_blocks=False, cancelSignal=None):
         d = {
@@ -35,10 +35,10 @@ class PointCloudLayerBuilder(LayerBuilder):
 
         if not self.settings.isPreview:
             url = d["properties"]["url"]
-            self.logMessage("URL: {}".format(url))
+            self.log("URL: {}".format(url))
             if url.startswith("file:"):
                 filename = url.split("/")[-1]
-                self.logMessage("""
+                self.log("""
 Point cloud data files in Potree format will not be copied to the output data directory.
 You need to upload them to a web server and replace the {0} file URL in the scene.js{1}
 with valid one that points to the {0} file on the web server.""".format(filename, "" if self.settings.localMode else "on"))

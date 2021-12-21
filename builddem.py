@@ -35,8 +35,8 @@ from .qgis2threejstools import logMessage
 
 class DEMLayerBuilder(LayerBuilder):
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, logMessage=None):
-        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, logMessage)
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
@@ -68,7 +68,7 @@ class DEMLayerBuilder(LayerBuilder):
             self._endBuildBlocks(cancelSignal)
 
             d["data"] = data
-            self.logMessage("DEM block count: {}".format(len(data)))
+            self.log("DEM block count: {}".format(len(data)))
         else:
             d["data"] = []
 

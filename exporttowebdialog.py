@@ -245,11 +245,11 @@ th {text-align:left;}
     def progressNumbered(self, percentage=None, msg=None):
         self.progress(percentage, msg, numbered=True)
 
-    def logMessage(self, msg, level=Qgis.Info, indented=False):
+    def log(self, msg, level=Qgis.Info, indented=False):
         self.logHtml += "<div{}>{}</div>".format(" class='indented'" if indented else "", msg)
         self.ui.textBrowser.setHtml(self.logHtml)
 
         QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
 
     def logMessageIndented(self, msg, level=Qgis.Info):
-        self.logMessage(msg, level, indented=True)
+        self.log(msg, level, indented=True)

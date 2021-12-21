@@ -40,8 +40,8 @@ from . import qgis2threejstools as tools
 
 class ThreeJSExporter(ThreeJSBuilder):
 
-    def __init__(self, settings=None, progress=None, logMessage=None):
-        ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress, logMessage)
+    def __init__(self, settings=None, progress=None, log=None):
+        ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress, log)
 
         self._index = -1
 
@@ -159,11 +159,11 @@ class ThreeJSExporter(ThreeJSBuilder):
         layer.opt.allMaterials = True
 
         if layer.geomType == q3dconst.TYPE_DEM:
-            builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, logMessage=self.logMessage)
+            builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
         elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
-            builder = PointCloudLayerBuilder(self.settings, layer, logMessage=self.logMessage)
+            builder = PointCloudLayerBuilder(self.settings, layer, log=self.log)
         else:
-            builder = VectorLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, logMessage=self.logMessage)
+            builder = VectorLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
             self.modelManagers.append(builder.modelManager)
         return builder.build(True, cancelSignal)
 

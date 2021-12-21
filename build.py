@@ -30,10 +30,10 @@ from . import q3dconst
 
 class ThreeJSBuilder:
 
-    def __init__(self, settings, progress=None, logMessage=None):
+    def __init__(self, settings, progress=None, log=None):
         self.settings = settings
         self.progress = progress or dummyProgress
-        self.logMessage = logMessage or dummyLogMessage
+        self.log = log or dummyLogMessage
         self.imageManager = ImageManager(settings)
 
         self._canceled = False
@@ -64,8 +64,8 @@ class ThreeJSBuilder:
             crs = self.settings.crs
             obj["properties"]["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
-        self.logMessage("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
-        self.logMessage("Z shift: {}".format(mapTo3d.verticalShift))
+        self.log("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
+        self.log("Z shift: {}".format(mapTo3d.verticalShift))
 
         if build_layers:
             obj["layers"] = self.buildLayers(cancelSignal)

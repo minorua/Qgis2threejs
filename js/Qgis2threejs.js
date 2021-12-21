@@ -123,7 +123,8 @@ Q3D.MaterialType = {
 Q3D.KeyframeType = {
   CameraMotion: 64,
   Opacity: 65,
-  Material: 66
+  Material: 66,
+  GrowingLine: 67
 };
 
 Q3D.uv = {
@@ -1035,20 +1036,14 @@ limitations:
             var n = keyframes[idx].narration;
             if (n && e) {
               document.getElementById("narbody").innerHTML = n;
-  
+
               setTimeout(function () {
                 e.classList.add("visible");
               }, 0);
             }
           };
 
-          var onStart = function () {
-            // pause if narrative box is shown
-            if (keyframes[group.currentIndex].narration) _this.pause();
-            else if (e) e.classList.remove("visible");
-          };
-
-          var onUpdate;
+          var onUpdate, _onStart, _onComplete;
 
           if (group.type == Q3D.KeyframeType.CameraMotion) {
             var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
@@ -1079,7 +1074,7 @@ limitations:
 
               phi = phi0 * (1 - elapsed) + phi1 * elapsed;
 
-              vec3.set(Math.cos(phi) * Math.sin(obj.theta), 
+              vec3.set(Math.cos(phi) * Math.sin(obj.theta),
                        Math.sin(phi) * Math.sin(obj.theta),
                        Math.cos(obj.theta)).setLength(obj.d);
 
@@ -1088,11 +1083,11 @@ limitations:
               app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
               app.camera.lookAt(obj.fx, obj.fy, obj.fz);
               app.controls.target.set(obj.fx, obj.fy, obj.fz);
-            };              
+            };
 
             // move to camera position of the first keyframe
             onUpdate(prop_list[0], 1, true);
-          } 
+          }
           else {
             // layer animation
             var layer = app.scene.mapLayers[group.layerId];
@@ -1102,39 +1097,65 @@ limitations:
               onUpdate = function (obj, elapsed) {
                 layer.opacity = obj.opacity;
               };
-    
+
               for (var i = 0; i < keyframes.length; i++) {
                 prop_list.push({opacity: keyframes[i].opacity});
               }
             }
             else if (group.type == Q3D.KeyframeType.Material) {
 
-              var idx_from = 0,
-                  from = keyframes[0].mtlIndex,
-                  to = keyframes[1].mtlIndex,
-                  effect = keyframes[1].effect;
+              var idx_from, from, to, effect;
+
+              _onStart = function () {
+                idx_from = group.currentIndex;
+                from = keyframes[idx_from].mtlIndex;
+                to = keyframes[idx_from + 1].mtlIndex;
+                effect = keyframes[idx_from + 1].effect;
+
+                layer.prepareMtlAnimation(from, to);
+              };
 
               onUpdate = function (obj, elapsed) {
-                if (group.currentIndex != idx_from) {
-                  idx_from = group.currentIndex;
-                  from = keyframes[idx_from].mtlIndex;
-                  to = keyframes[idx_from + 1].mtlIndex;
-                  effect = keyframes[idx_from + 1].effect;
-                }
-
-                layer.setTextureAt(from, to, effect, elapsed);
+                layer.setTextureAt(elapsed, effect);
               };
 
               for (var i = 0; i < keyframes.length; i++) {
                 prop_list.push({idx: i});
               }
+            }
+            else if (group.type == Q3D.KeyframeType.GrowingLine) {
 
-              layer.setTextureAt(from, to, effect, null);
+              onUpdate = function (obj, elapsed) {
+                layer.setLengthPercentage(elapsed);
+              };
+
+              // one effect item to two keyframes
+              var to, kfs = [];
+              for (var i = 0; i < keyframes.length; i++) {
+                to = Object.assign({}, keyframes[i]);
+                to.delay = 0;
+                kfs.push(keyframes[i], to);
+
+                prop_list.push({p: 0}, {p: 1});
+              }
+              keyframes = kfs;
+
+              layer.prepareGrowingAnimation();
             }
             else return;
           }
 
+          var onStart = function () {
+            if (_onStart) _onStart();
+
+            // pause if narrative box is shown
+            if (keyframes[group.currentIndex].narration) _this.pause();
+            else if (e) e.classList.remove("visible");
+          };
+
           var onComplete = function (obj) {
+            if (_onComplete) _onComplete(obj);
+
             var index = ++group.currentIndex;
             if (index == keyframes.length - 1) {
               group.completed = true;
@@ -1146,13 +1167,13 @@ limitations:
 
               if (completed) _this.stop();
             }
-  
+
             // show narrative box if the current keyframe has a narrative content
             showNBox(index);
           };
 
           var tween, t1, t2;
-          for (i = 1; i < keyframes.length; i++) {  
+          for (i = 1; i < keyframes.length; i++) {
             t2 = new TWEEN.Tween(prop_list[i - 1])
                              .to(prop_list[i], keyframes[i].duration)
                              .delay(keyframes[i - 1].delay)
@@ -1160,8 +1181,8 @@ limitations:
                              .onStart(onStart)
                              .onUpdate(onUpdate)
                              .onComplete(onComplete);
-            // delay -> [onStart] -> transition [onUpdate] -> [onComplete] 
-  
+            // delay -> [onStart] -> transition [onUpdate] -> [onComplete]
+
             if (i == 1) {
               tween = t2;
             }
@@ -2013,7 +2034,7 @@ Q3D.Material.prototype = {
       }
     }
     else if (m.type == Q3D.MaterialType.MeshLine) {
-    
+
       opt.lineWidth = m.thickness;
       if (m.dashed) {
         opt.dashArray = 0.03;
@@ -2228,7 +2249,7 @@ Q3D.DEMBlock.prototype = {
       if (m.useNow) {
         if (this.obj) {
           layer.materials.removeItem(this.obj.material, true);
-  
+
           this.obj.material = mtl.mtl;
 
           layer.materials.add(mtl);
@@ -2236,7 +2257,7 @@ Q3D.DEMBlock.prototype = {
         }
         this.currentMtlIndex = m.mtlIndex;
       }
-    }  
+    }
 
     if (obj.grid === undefined) return;
 
@@ -2528,7 +2549,7 @@ Q3D.ClippedDEMBlock.prototype = {
       if (m.useNow) {
         if (this.obj) {
           layer.materials.removeItem(this.obj.material, true);
-  
+
           this.obj.material = mtl.mtl;
 
           layer.materials.add(mtl);
@@ -2787,7 +2808,6 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
       block = this.blocks[jsonObject.block];
 
   if (block === undefined) {
-    debugger;
     block = (layer.properties.clipped) ? (new Q3D.ClippedDEMBlock()) : (new Q3D.DEMBlock());
     this.blocks[jsonObject.block] = block;
   }
@@ -2962,14 +2982,14 @@ Q3D.DEMLayer.prototype.setCurrentMaterial = function (mtlIndex) {
   this.materials.removeGroupItems(this.currentMtlIndex);
 
   this.currentMtlIndex = mtlIndex;
- 
+
   var b, m;
   for (var i = 0, l = this.blocks.length; i < l; i++) {
     b = this.blocks[i];
     m = b.materials[mtlIndex];
     if (m !== undefined) {
       b.obj.material = m.mtl;
-      this.materials.add(m);      
+      this.materials.add(m);
     }
   }
   this.requestRender();
@@ -2983,74 +3003,79 @@ Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
 };
 
 // texture animation
-Q3D.DEMLayer.prototype.setTextureAt = function (from, to, effect, elapsed) {
+Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
 
-  if (elapsed === null) {
+  this.anim = [];
 
-    this.anim = [];
+  var m, canvas, ctx, opt, mtl;
+  var img_from, img_to;
+  for (var i = 0; i < this.blocks.length; i++) {
 
-    var m, canvas, ctx, opt, mtl;   
-    var img_from, img_to;
-    for (var i = 0; i < this.blocks.length; i++) {
-      m = this.blocks[i].obj.material;
+    m = this.blocks[i].obj.material;
 
-      img_from = this.blocks[i].materials[from].mtl.map.image;
-      img_to = this.blocks[i].materials[to].mtl.map.image;
+    img_from = this.blocks[i].materials[from].mtl.map.image;
+    img_to = this.blocks[i].materials[to].mtl.map.image;
 
-      canvas = document.createElement("canvas");
-      canvas.width = img_to.width;
-      canvas.height = img_to.height;
+    canvas = document.createElement("canvas");
+    canvas.width = img_to.width;
+    canvas.height = img_to.height;
 
-      ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d");
 
-      opt = {};
-      opt.map = new THREE.CanvasTexture(canvas);
-      opt.transparent = true;
-  
-      mtl = undefined;
-      if (m) { 
-        if (m.isMeshToonMaterial) {
-          mtl = new THREE.MeshToonMaterial(opt);
-        }
-        else if (m.isMeshPhongMaterial) {
-          mtl = new THREE.MeshPhongMaterial(opt);
-        }
-      }  
-      if (mtl === undefined) {
-        mtl = new THREE.MeshLambertMaterial(opt);
+    opt = {};
+    opt.map = new THREE.CanvasTexture(canvas);
+    opt.transparent = true;
+
+    mtl = undefined;
+    if (m) {
+      if (m.isMeshToonMaterial) {
+        mtl = new THREE.MeshToonMaterial(opt);
       }
-
-      if (img_from instanceof ImageData) {    // WebKit Bridge
-        var canvas_from = document.createElement("canvas");
-        canvas_from.width = img_from.width;
-        canvas_from.height = img_from.height;
-  
-        var canvas_to = document.createElement("canvas");
-        canvas_to.width = img_to.width;
-        canvas_to.height = img_to.height;
-  
-        var ctx_from = canvas_from.getContext("2d"),
-            ctx_to = canvas_to.getContext("2d");
-  
-        ctx_from.putImageData(img_from, 0, 0);
-        ctx_to.putImageData(img_to, 0, 0);
-  
-        img_from = canvas_from;
-        img_to = canvas_to;
+      else if (m.isMeshPhongMaterial) {
+        mtl = new THREE.MeshPhongMaterial(opt);
       }
-
-      this.blocks[i].obj.material = mtl;
-
-      this.materials.add(mtl);
-
-      this.anim.push({
-        img_from: img_from,
-        img_to: img_to,
-        ctx: ctx,
-        tex: mtl.map
-      });
     }
+    if (mtl === undefined) {
+      mtl = new THREE.MeshLambertMaterial(opt);
+    }
+
+    if (img_from instanceof ImageData) {    // WebKit Bridge
+      var canvas_from = document.createElement("canvas");
+      canvas_from.width = img_from.width;
+      canvas_from.height = img_from.height;
+
+      var canvas_to = document.createElement("canvas");
+      canvas_to.width = img_to.width;
+      canvas_to.height = img_to.height;
+
+      var ctx_from = canvas_from.getContext("2d"),
+          ctx_to = canvas_to.getContext("2d");
+
+      ctx_from.putImageData(img_from, 0, 0);
+      ctx_to.putImageData(img_to, 0, 0);
+
+      img_from = canvas_from;
+      img_to = canvas_to;
+    }
+
+    this.blocks[i].obj.material = mtl;
+
+    this.materials.add(mtl);
+
+    this.anim.push({
+      img_from: img_from,
+      img_to: img_to,
+      ctx: ctx,
+      tex: mtl.map
+    });
   }
+};
+
+Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
+
+  if (this.anim === undefined) return;
+
+  effect = effect || 1;
 
   var a, w0, h0, w1, h1, ew0, ew1;
   for (var i = 0; i < this.anim.length; i++) {
@@ -3435,8 +3460,13 @@ Q3D.LineLayer = function () {
 Q3D.LineLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.LineLayer.prototype.constructor = Q3D.LineLayer;
 
-Q3D.LineLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+Q3D.LineLayer.prototype.clearObjects = function () {
+  Q3D.VectorLayer.prototype.clearObjects.call(this);
+
+  if (this.origMtls) {
+    this.origMtls.dispose();
+    this.origMtls = undefined;
+  }
 };
 
 Q3D.LineLayer.prototype.build = function (features) {
@@ -3465,7 +3495,6 @@ Q3D.LineLayer.prototype.build = function (features) {
   }
   else if (objType == "Thick Line") {
     createObject = function (f, line) {
-      debugger;
       var pt, vertices = [];
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
@@ -3620,6 +3649,7 @@ Q3D.LineLayer.prototype.build = function (features) {
     for (i = 0, l = f.geom.lines.length; i < l; i++) {
       obj = createObject(f, f.geom.lines[i]);
       obj.userData.properties = f.prop;
+      obj.userData.mtl = f.mtl;
 
       f.objIndices.push(this.addObject(obj));
     }
@@ -3632,6 +3662,74 @@ Q3D.LineLayer.prototype.build = function (features) {
 Q3D.LineLayer.prototype.buildLabels = function (features) {
   // Line layer doesn't support label
   // Q3D.VectorLayer.prototype.buildLabels.call(this, features);
+};
+
+// prepare for growing line animation
+Q3D.LineLayer.prototype.prepareGrowingAnimation = function () {
+
+  if (this.origMtls !== undefined) return;
+
+  var _this = this;
+
+  this.origMtls = new Q3D.Materials();
+  this.origMtls.materials = this.materials.materials;
+  this.materials.materials = [];
+
+  var opt, m, mtls = this.origMtls.materials;
+
+  for (var i = 0; i < mtls.length; i++) {
+
+    m = mtls[i].mtl;
+
+    if (m.isLineDashedMaterial) {
+      m.gapSize = 1;
+    }
+    else if (m.isMeshLineMaterial) {
+      m.dashArray = 2;
+      m.transparent = true;
+    }
+    else if (m.isLineBasicMaterial) {
+      m = new THREE.LineDashedMaterial({color: m.color});
+    }
+
+    this.materials.add(m);
+  }
+
+  // replace materials
+  this.objectGroup.traverse(function (obj) {
+
+    if (obj.userData.mtl !== undefined) {
+
+      obj.material = _this.materials.mtl(obj.userData.mtl);
+
+      if (obj.material.isLineDashedMaterial) {
+        obj.computeLineDistances();
+
+        var dists = obj.geometry.attributes.lineDistance.array;
+        obj.lineLength = dists[dists.length - 1];
+
+        for (i = 0; i < dists.length; i++) {
+          dists[i] /= obj.lineLength;
+        }
+      }
+    }
+  });
+};
+
+Q3D.LineLayer.prototype.setLengthPercentage = function (percentage) {
+
+  if (this.origMtls === undefined) return;
+
+  var mtl, mtls = this.materials.materials;
+  for (var i = 0; i < mtls.length; i++) {
+    mtl = mtls[i].mtl;
+    if (mtl.isLineDashedMaterial) {
+      mtl.dashSize = percentage;
+    }
+    else if (mtl.isMeshLineMaterial) {
+      mtl.uniforms.dashOffset.value = -percentage;
+    }
+  }
 };
 
 
