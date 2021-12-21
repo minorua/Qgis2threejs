@@ -30,19 +30,17 @@ from .qgis2threejstools import logMessage, pluginDir
 class Q3DTreeView(QTreeView):
     """layer tree view"""
 
+    LAYER_GROUP_ITEMS = ((q3dconst.TYPE_DEM, "DEM"),
+                         (q3dconst.TYPE_POINT, "Point"),
+                         (q3dconst.TYPE_LINESTRING, "Line"),
+                         (q3dconst.TYPE_POLYGON, "Polygon"),
+                         (q3dconst.TYPE_POINTCLOUD, "Point Cloud"))
+
     def __init__(self, parent=None):
         QTreeView.__init__(self, parent)
 
         self.layers = []
         self._index = -1
-
-        self.icons = {
-            q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("/mIconRaster.svg"),
-            q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("/mIconPointLayer.svg"),
-            q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("/mIconLineLayer.svg"),
-            q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("/mIconPolygonLayer.svg"),
-            q3dconst.TYPE_POINTCLOUD: QIcon(pluginDir("images", "pointcloud.svg"))
-        }
 
         self.actionProperties = QAction("Properties", self)
         self.actionProperties.triggered.connect(self.onDoubleClicked)
@@ -73,18 +71,13 @@ class Q3DTreeView(QTreeView):
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.onDoubleClicked)
 
-    def setup(self, iface):
+    def setup(self, iface, icons):
         self.iface = iface      # Q3DViewerInterface
-
-        LAYER_GROUP_ITEMS = ((q3dconst.TYPE_DEM, "DEM"),
-                             (q3dconst.TYPE_POINT, "Point"),
-                             (q3dconst.TYPE_LINESTRING, "Line"),
-                             (q3dconst.TYPE_POLYGON, "Polygon"),
-                             (q3dconst.TYPE_POINTCLOUD, "Point Cloud"))
+        self.icons = icons
 
         model = QStandardItemModel(0, 1)
         self.layerGroupItems = {}
-        for geomType, name in LAYER_GROUP_ITEMS:
+        for geomType, name in self.LAYER_GROUP_ITEMS:
             item = QStandardItem(name)
             item.setIcon(self.icons[geomType])
             item.setEditable(False)
@@ -139,7 +132,10 @@ class Q3DTreeView(QTreeView):
 
     def iconForMtl(self, mtl):
         mtype = mtl.get("type")
-        if mtype in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+        if mtype == q3dconst.MTL_LAYER:
+            return QgsApplication.getThemeIcon("algorithms/mAlgorithmMergeLayers.svg")
+
+        elif mtype == q3dconst.MTL_MAPCANVAS:
             return QgsApplication.getThemeIcon("mLayoutItemMap.svg")
 
         elif mtype == q3dconst.MTL_FILE:
@@ -182,7 +178,7 @@ class Q3DTreeView(QTreeView):
                 font.setBold(True)
                 item.setFont(font)
 
-            layerItem.appendRow([item])       
+            layerItem.appendRow([item])
 
         self.expand(layerItem.index())
 
@@ -207,7 +203,7 @@ class Q3DTreeView(QTreeView):
         idx = current
         depth = 0
         while idx.parent().isValid():
-            depth += 1            
+            depth += 1
             idx = idx.parent()
 
         if depth == 2:
@@ -251,7 +247,7 @@ class Q3DTreeView(QTreeView):
     def indexDepth(self, idx):
         depth = 0
         while idx.parent().isValid():
-            depth += 1            
+            depth += 1
             idx = idx.parent()
         return depth    #TODO: self.model().data(idx, Qt.UserRole)
 

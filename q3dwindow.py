@@ -107,6 +107,7 @@ class Q3DWindow(QMainWindow):
         self.qgisIface = qgisIface
         self.settings = settings
         self.lastDir = None
+        self.loadIcons()
 
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
@@ -131,7 +132,7 @@ class Q3DWindow(QMainWindow):
         self.setupMenu()
         self.setupConsole()
         self.setupStatusBar(self.iface, preview)
-        self.ui.treeView.setup(self.iface)
+        self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.getLayerList())
         self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
@@ -191,6 +192,15 @@ class Q3DWindow(QMainWindow):
         if event.key() == Qt.Key_Escape:
             self.iface.abort()
         QMainWindow.keyPressEvent(self, event)
+
+    def loadIcons(self):
+        self.icons = {
+            q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("mIconRaster.svg"),
+            q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("mIconPointLayer.svg"),
+            q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("mIconLineLayer.svg"),
+            q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg"),
+            q3dconst.TYPE_POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("images", "pointcloud.svg"))
+        }
 
     def setupMenu(self):
         self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())

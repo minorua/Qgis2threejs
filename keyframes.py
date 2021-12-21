@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QWidget)
-from qgis.core import QgsApplication, QgsProject
+from qgis.core import QgsApplication
 
 from . import q3dconst
 from .conf import DEBUG_MODE, DEF_SETS
@@ -198,12 +198,9 @@ class AnimationTreeWidget(QTreeWidget):
         self.isPanel = bool(layerId is None)
         self.isLayerDialog = not self.isPanel
 
-        if self.isPanel:
-            self.cameraIcon = QgsApplication.getThemeIcon("/mIconCamera.svg")
-
-        self.keyframeIcon = QgsApplication.getThemeIcon("/mIconRaster.svg")      #TODO
-        self.layerIcon = QgsApplication.getThemeIcon("/mIconPolygonLayer.svg")   #TODO
-        self.lineIcon = QgsApplication.getThemeIcon("/mIconLineLayer.svg")
+        self.icons = wnd.icons
+        self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
+        self.keyframeIcon = QgsApplication.getThemeIcon("mItemBookmark.svg")
 
         self.initTree()
 
@@ -252,12 +249,12 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionEasing = []
 
         for e in easing:
-          a = QAction(e, self)
-          a.setCheckable(True)
-          a.setActionGroup(self.actionGroupEasing)
+            a = QAction(e, self)
+            a.setCheckable(True)
+            a.setActionGroup(self.actionGroupEasing)
 
-          self.menuEasing.addAction(a)
-          self.actionEasing.append(a)
+            self.menuEasing.addAction(a)
+            self.actionEasing.append(a)
 
         self.actionOpacity = QAction("Change Opacity...", self)
         self.actionOpacity.triggered.connect(self.addOpacityItem)
@@ -315,7 +312,7 @@ class AnimationTreeWidget(QTreeWidget):
         item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-        item.setIcon(0, self.layerIcon) # TODO: point/line/polygon
+        item.setIcon(0, self.icons[layer.geomType])
         item.setExpanded(True)
 
         return item
