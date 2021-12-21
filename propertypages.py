@@ -180,18 +180,6 @@ class PropertyPage(QWidget):
             else:
                 logMessage("[propertypages.py] Cannot restore %s property" % n)
 
-    def animationData(self):
-        if hasattr(self, "animationPanel"):
-            d = self.animationPanel.tree.layerData()
-            d["enabled"] = self.checkBox_Animation.isChecked()
-            return d
-        return {}
-
-    def setAnimationData(self, data):
-        if hasattr(self, "animationPanel"):
-            self.animationPanel.tree.setLayerData(data)
-            self.checkBox_Animation.setChecked(data.get("enabled", False))
-
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
@@ -373,7 +361,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
-    # item data role for material list widget 
+    # item data role for material list widget
     MTL_ID = Qt.UserRole
     MTL_PROPERTIES = Qt.UserRole + 1
     MTL_LAYERIDS = Qt.UserRole + 2
@@ -381,8 +369,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     def __init__(self, parent=None):
         PropertyPage.__init__(self, PAGE_DEM, parent)
         Ui_DEMPropertiesWidget.setupUi(self, self)
-
-        self.animationPanel.setVisible(False)
 
         self.layer = None
 
@@ -442,7 +428,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.listWidget_Materials.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listWidget_Materials.customContextMenuRequested.connect(lambda: self.contextMenuMtl.popup(QCursor.pos()))
         self.listWidget_Materials.currentItemChanged.connect(self.materialItemChanged)
-        
+
         self.toolButton_SelectLayer.clicked.connect(self.showLayerSelectDialog)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
@@ -450,10 +436,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.layer = layer
         self.extent = settings.baseExtent()
         self.mapSettings = mapSettings
-
-        # animation group box
-        wnd = self.parent().parent()
-        self.animationPanel.setup(wnd, settings, layer.layerId, self.checkBox_Animation)
 
         # show/hide resampling slider
         self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
@@ -705,8 +687,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.layer = None
         self.hasZ = self.hasM = False
 
-        self.animationPanel.setVisible(False)
-
         # initialize vector style widgets
         self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
         self.labelHeightWidget.setObjectName("labelHeightWidget")
@@ -829,10 +809,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             fields = mapLayer.fields()
             for i in range(fields.count()):
                 self.comboBox_Label.addItem(fields[i].name(), i)
-
-        # animation group box
-        wnd = self.parent().parent()
-        self.animationPanel.setup(wnd, settings, layer.layerId, self.checkBox_Animation)
 
         # restore other properties for the layer
         self.setProperties(properties or {})

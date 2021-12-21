@@ -270,14 +270,8 @@ class Q3DWindow(QMainWindow):
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
-        # fetch data from animation panel
-        tree = self.ui.animationPanel.tree
-        tree.setLayerDisabled(layer.layerId, True)
-        layer.animationData = tree.layerData(layer.layerId)
-
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
-        dialog.rejected.connect(lambda: tree.setLayerDisabled(layer.layerId, False))
 
         dialog.showLayerProperties(layer)
 
@@ -294,10 +288,6 @@ class Q3DWindow(QMainWindow):
 
             if item:
                 self.ui.treeView.updateLayerMaterials(item, layer)
-
-        tree = self.ui.animationPanel.tree
-        tree.setLayerData(layer.layerId, layer.animationData)
-        tree.setLayerDisabled(layer.layerId, False)
 
     def getDefaultProperties(self, layer):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
@@ -554,7 +544,6 @@ class PropertiesDialog(QDialog):
                     self.layer.name = self.page.lineEdit_Name.text()
 
                 self.layer.properties = self.page.properties()
-                self.layer.animationData = self.page.animationData()
                 self.propertiesAccepted.emit(self.layer)
 
     def showLayerProperties(self, layer):

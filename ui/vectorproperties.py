@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_VectorPropertiesWidget(object):
     def setupUi(self, VectorPropertiesWidget):
         VectorPropertiesWidget.setObjectName("VectorPropertiesWidget")
-        VectorPropertiesWidget.resize(416, 607)
+        VectorPropertiesWidget.resize(416, 545)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(VectorPropertiesWidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -128,17 +128,6 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_Label.setObjectName("verticalLayout_Label")
         self.verticalLayout_4.addLayout(self.verticalLayout_Label)
         self.verticalLayout_2.addWidget(self.groupBox_Attrs)
-        self.groupBox_Animation = QtWidgets.QGroupBox(VectorPropertiesWidget)
-        self.groupBox_Animation.setObjectName("groupBox_Animation")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.groupBox_Animation)
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.checkBox_Animation = QtWidgets.QCheckBox(self.groupBox_Animation)
-        self.checkBox_Animation.setObjectName("checkBox_Animation")
-        self.verticalLayout_5.addWidget(self.checkBox_Animation)
-        self.animationPanel = AnimationPanel(self.groupBox_Animation)
-        self.animationPanel.setObjectName("animationPanel")
-        self.verticalLayout_5.addWidget(self.animationPanel)
-        self.verticalLayout_2.addWidget(self.groupBox_Animation)
         self.groupBox_Others = QtWidgets.QGroupBox(VectorPropertiesWidget)
         self.groupBox_Others.setObjectName("groupBox_Others")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_Others)
@@ -157,7 +146,6 @@ class Ui_VectorPropertiesWidget(object):
 
         self.retranslateUi(VectorPropertiesWidget)
         self.radioButton_IntersectingFeatures.toggled['bool'].connect(self.checkBox_Clip.setEnabled)
-        self.checkBox_Animation.toggled['bool'].connect(self.animationPanel.setVisible)
         QtCore.QMetaObject.connectSlotsByName(VectorPropertiesWidget)
         VectorPropertiesWidget.setTabOrder(self.comboBox_ObjectType, self.comboBox_altitudeMode)
         VectorPropertiesWidget.setTabOrder(self.comboBox_altitudeMode, self.radioButton_Expression)
@@ -168,8 +156,7 @@ class Ui_VectorPropertiesWidget(object):
         VectorPropertiesWidget.setTabOrder(self.radioButton_IntersectingFeatures, self.checkBox_Clip)
         VectorPropertiesWidget.setTabOrder(self.checkBox_Clip, self.checkBox_ExportAttrs)
         VectorPropertiesWidget.setTabOrder(self.checkBox_ExportAttrs, self.comboBox_Label)
-        VectorPropertiesWidget.setTabOrder(self.comboBox_Label, self.checkBox_Animation)
-        VectorPropertiesWidget.setTabOrder(self.checkBox_Animation, self.checkBox_Visible)
+        VectorPropertiesWidget.setTabOrder(self.comboBox_Label, self.checkBox_Visible)
         VectorPropertiesWidget.setTabOrder(self.checkBox_Visible, self.checkBox_Clickable)
 
     def retranslateUi(self, VectorPropertiesWidget):
@@ -190,10 +177,7 @@ class Ui_VectorPropertiesWidget(object):
         self.groupBox_Attrs.setTitle(_translate("VectorPropertiesWidget", "&Attribute and label"))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes"))
         self.label.setText(_translate("VectorPropertiesWidget", "Label field"))
-        self.groupBox_Animation.setTitle(_translate("VectorPropertiesWidget", "Animation"))
-        self.checkBox_Animation.setText(_translate("VectorPropertiesWidget", "Enable animation"))
         self.groupBox_Others.setTitle(_translate("VectorPropertiesWidget", "Other Options"))
         self.checkBox_Visible.setText(_translate("VectorPropertiesWidget", "Visible on load"))
         self.checkBox_Clickable.setText(_translate("VectorPropertiesWidget", "Clickable"))
-from Qgis2threejs.keyframes import AnimationPanel
 from qgis.gui import QgsFieldExpressionWidget

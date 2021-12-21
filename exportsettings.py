@@ -51,7 +51,6 @@ class Layer:
         # internal use
         self.jsLayerId = None
         self.mapLayer = None
-        self.animationData = {}
         self.opt = BuildOptions()
 
     def material(self, mtlId):
@@ -70,7 +69,6 @@ class Layer:
         c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
         c.jsLayerId = self.jsLayerId
         c.mapLayer = self.mapLayer
-        c.animationData = deepcopy(self.animationData)
         return c
 
     def copyTo(self, t):
@@ -82,7 +80,6 @@ class Layer:
 
         t.jsLayerId = self.jsLayerId
         t.mapLayer = self.mapLayer
-        t.animationData = deepcopy(self.animationData)
 
     def toDict(self):
         return {"layerId": self.layerId,

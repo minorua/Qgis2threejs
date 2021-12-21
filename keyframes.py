@@ -46,7 +46,7 @@ class AnimationPanel(QWidget):
 
         self.tree = self.ui.treeWidgetAnimation
 
-    def setup(self, wnd, settings, layer=None, checkbox=None):
+    def setup(self, wnd, settings):
         self.wnd = wnd
         self.webPage = wnd.ui.webView._page
 
@@ -59,7 +59,7 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.clicked.connect(self.tree.removeCurrentItem)
         self.ui.toolButtonPlay.clicked.connect(self.playButtonClicked)
 
-        self.tree.setup(wnd, settings, layer, checkbox)
+        self.tree.setup(wnd, settings)
 
     def playButtonClicked(self, _):
         if self.isAnimating:
@@ -189,14 +189,13 @@ class AnimationTreeWidget(QTreeWidget):
         self.setDragDropMode(QAbstractItemView.InternalMove)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-    def setup(self, wnd, settings=None, layerId=None, checkbox=None):
+        self.setExpandsOnDoubleClick(False)
+
+    def setup(self, wnd, settings=None):
         self.wnd = wnd
         self.webPage = wnd.ui.webView._page if wnd else None
 
         self.settings = settings
-
-        self.isPanel = bool(layerId is None)
-        self.isLayerDialog = not self.isPanel
 
         self.icons = wnd.icons
         self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
@@ -204,14 +203,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.initTree()
 
-        if self.isLayerDialog:
-            d = wnd.ui.animationPanel.tree.layerData(layerId)
-            if checkbox:
-                checkbox.setChecked(d.get("enabled", False))
-
-            self.setLayerData(layerId, d)
-
-        elif settings:
+        if settings:
             self.setData(settings.animationData())
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -335,11 +327,6 @@ class AnimationTreeWidget(QTreeWidget):
             item = root.child(i)
             if item.type() == ATConst.ITEM_TL_LAYER and item.data(0, ATConst.DATA_LAYER_ID) == layerId:
                 return item
-
-    def setLayerDisabled(self, layerId, b=True):
-        item = self.findLayerItem(layerId)
-        if item:
-            item.setDisabled(b)
 
     def setLayerHidden(self, layerId, b=True):
         item = self.findLayerItem(layerId)
@@ -535,14 +522,10 @@ class AnimationTreeWidget(QTreeWidget):
         return d
 
     def layerData(self, layer=None):
-        if layer:
-            layerItem = layer if isinstance(layer, QTreeWidgetItem) else self.findLayerItem(layer)
-        else:
-            if self.isPanel:
-                return {}
-            else:
-                layerItem = self.invisibleRootItem().child(0)
+        if not layer:
+            return {}
 
+        layerItem = layer if isinstance(layer, QTreeWidgetItem) else self.findLayerItem(layer)
         if layerItem is None:
             return {}
 
@@ -561,9 +544,6 @@ class AnimationTreeWidget(QTreeWidget):
         if layerItem is None:
             return
 
-        if self.isPanel:
-            layerItem.setDisabled(not data.get("enabled", False))
-
         for _ in range(layerItem.childCount()):
             layerItem.removeChild(layerItem.child(0))
 
@@ -574,25 +554,20 @@ class AnimationTreeWidget(QTreeWidget):
                 self.addKeyframeItem(parent, keyframe)
 
     def data(self):
-        d = {}
         root = self.invisibleRootItem()
-        if self.isPanel:
-            parent = root.child(0)      # camera motion
-            items = [parent.child(i) for i in range(parent.childCount())]
+        parent = root.child(0)      # camera motion
 
-            d["camera"] = {
-                "groups": [self.keyframeGroupData(item) for item in items]
+        d = {
+            "camera": {
+                "groups": [self.keyframeGroupData(parent.child(i)) for i in range(parent.childCount())]
             }
+        }
 
-            layerItems = [root.child(i) for i in range(1, root.childCount())]
-        else:
-            layerItems = [root.child(0)]
+        layers = {}
+        for item in [root.child(i) for i in range(1, root.childCount())]:
+            layers[item.data(0, ATConst.DATA_LAYER_ID)] = self.layerData(item)
 
-        if len(layerItems):
-            layers = {}
-            for item in layerItems:
-                layers[item.data(0, ATConst.DATA_LAYER_ID)] = self.layerData(item)
-
+        if layers:
             d["layers"] = layers
 
         return d

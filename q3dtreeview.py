@@ -223,6 +223,7 @@ class Q3DTreeView(QTreeView):
                 font.setBold(row == item.row())
                 parent.child(row).setFont(font)
 
+    # checkbox toggled
     def treeItemChanged(self, item):
         layer = self.iface.settings.getLayer(item.data())
         if layer is None:
