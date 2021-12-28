@@ -20,6 +20,7 @@
 
 # general
 PLUGIN_VERSION = "2.6"
+PLUGIN_VERSION_INT = int(float(PLUGIN_VERSION) * 100)
 
 # DEBUG_MODE
 #  0. no debug info

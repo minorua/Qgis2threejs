@@ -14,7 +14,7 @@ rm -f ${PLUGINNAME}.zip
 
 # version check
 echo [Check] js/Qgis2threejs.js version updated?
-echo [Check] plugin_version in conf.py updated?
+echo [Check] PLUGIN_VERSION and PLUGIN_VERSION_INT in conf.py updated?
 echo -n [Check] metadata.txt version updated? [y/n]...
 read ret
 if [ ${ret} != "y" ]; then exit; fi

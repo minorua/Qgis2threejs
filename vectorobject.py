@@ -21,40 +21,39 @@
 """
 from qgis.core import QgsWkbTypes
 
-from Qgis2threejs.stylewidget import StyleWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .q3dconst import PropertyID as PID
+from .stylewidget import StyleWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 
 class ObjectTypeBase:
 
     experimental = False
 
+    def __init__(self, settings, mtlManager=None):
+        self.settings = settings
+        self.mtlManager = mtlManager        # material manager needs to be set before calling .material()
+
+    def setupWidgets(self, ppage):
+        pass
+
+    def material(self, feat):
+        pass
+
+    def geometry(self, feat, geom):
+        pass
+
+    def defaultValue(self):
+        return float("{0:.4g}".format(1.0 / self.settings.mapTo3d().multiplier))
+
+    def defaultValueZ(self):
+        return float("{0:.4g}".format(1.0 / self.settings.mapTo3d().multiplierZ))
+
     @classmethod
     def displayName(cls):
         return tr(cls.name)
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        pass
-
-    # @classmethod
-    # def layerProperties(cls, settings, layer):
+    # def layerProperties(self, layer):
     #     return {}
-
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        pass
-
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        pass
-
-    @classmethod
-    def defaultValue(cls, mapTo3d):
-        return float("{0:.4g}".format(1.0 / mapTo3d.multiplier))
-
-    @classmethod
-    def defaultValueZ(cls, mapTo3d):
-        return float("{0:.4g}".format(1.0 / mapTo3d.multiplierZ))
 
 
 class PointTypeBase(ObjectTypeBase):
@@ -75,26 +74,21 @@ class PolygonTypeBase(ObjectTypeBase):
 # PointBasicType
 class PointBasicTypeBase(PointTypeBase):
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(self, feat):
+        return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
 
 class PointType(ObjectTypeBase):
 
     name = "Point"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Size", "defaultValue": 1, "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(mtlItems=[{"name": "Size", "defaultValue": 1}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getPointMaterialIndex(feat.values[0], feat.values[1], feat.values[2])
+    def material(self, feat):
+        return self.mtlManager.getPointMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         v = []
         for pt in geom.toList():
             v.extend(pt)
@@ -105,34 +99,28 @@ class SphereType(PointBasicTypeBase):
 
     name = "Sphere"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()}])
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"pts": geom.toList(),
-                "r": feat.values[2] * settings.mapTo3d().multiplier}
+                "r": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier}
 
 
 class CylinderType(PointBasicTypeBase):
 
     name = "Cylinder"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()},
+                                      {"name": "Height", "defaultValue": self.defaultValueZ()}])
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        mapTo3d = settings.mapTo3d()
-        r = feat.values[2] * mapTo3d.multiplier
+    def geometry(self, feat, geom):
+        mapTo3d = self.settings.mapTo3d()
+        r = feat.prop(PID.G0) * mapTo3d.multiplier
         return {"pts": geom.toList(),
                 "r": r,
-                "h": feat.values[3] * mapTo3d.multiplierZ}
+                "h": feat.prop(PID.G1) * mapTo3d.multiplierZ}
 
 
 class ConeType(CylinderType):
@@ -144,49 +132,43 @@ class BoxType(PointBasicTypeBase):
 
     name = "Box"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        val = cls.defaultValue(mapTo3d)
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Depth", "defaultValue": val, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        val = self.defaultValue()
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        mapTo3d = settings.mapTo3d()
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": val},
+                                      {"name": "Depth", "defaultValue": val},
+                                      {"name": "Height", "defaultValue": self.defaultValueZ()}])
+
+    def geometry(self, feat, geom):
+        mapTo3d = self.settings.mapTo3d()
         return {"pts": geom.toList(),
-                "w": feat.values[2] * mapTo3d.multiplier,
-                "d": feat.values[3] * mapTo3d.multiplier,
-                "h": feat.values[4] * mapTo3d.multiplierZ}
+                "w": feat.prop(PID.G0) * mapTo3d.multiplier,
+                "d": feat.prop(PID.G1) * mapTo3d.multiplier,
+                "h": feat.prop(PID.G2) * mapTo3d.multiplierZ}
 
 
 class DiskType(PointBasicTypeBase):
 
     name = "Disk"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()},
+                                      {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None},
+                                      {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(self, feat):
+        return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        dd = feat.values[4]
+    def geometry(self, feat, geom):
+        dd = feat.prop(PID.G2)
         # take map rotation into account
-        rotation = settings.baseExtent().rotation()
+        rotation = self.settings.baseExtent().rotation()
         if rotation:
             dd = (dd + rotation) % 360
 
         return {"pts": geom.toList(),
-                "r": feat.values[2] * settings.mapTo3d().multiplier,
-                "d": feat.values[3],
+                "r": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier,
+                "d": feat.prop(PID.G1),
                 "dd": dd}
 
 
@@ -194,30 +176,26 @@ class PlaneType(PointBasicTypeBase):
 
     name = "Plane"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Length", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None, "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": self.defaultValue()},
+                                      {"name": "Length", "defaultValue": self.defaultValue()},
+                                      {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None},
+                                      {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(self, feat):
+        return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        dd = feat.values[5]
+    def geometry(self, feat, geom):
+        dd = feat.prop(PID.G3)
         # take map rotation into account
-        rotation = settings.baseExtent().rotation()
+        rotation = self.settings.baseExtent().rotation()
         if rotation:
             dd = (dd + rotation) % 360
 
         return {"pts": geom.toList(),
-                "w": feat.values[2] * settings.mapTo3d().multiplier,
-                "l": feat.values[3] * settings.mapTo3d().multiplier,
-                "d": feat.values[4],
+                "w": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier,
+                "l": feat.prop(PID.G1) * self.settings.mapTo3d().multiplier,
+                "d": feat.prop(PID.G2),
                 "dd": dd}
 
 
@@ -231,24 +209,13 @@ class LineType(LineBasicTypeBase):
 
     name = "Line"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.CHECKBOX, {"name": "Dashed", "defaultValue": False})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": StyleWidget.CHECKBOX}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        dashed = False
-        try:
-            if feat.values[2]:
-                dashed = True
-        except IndexError:    # for backward compatibility (dashed option was added in 2.1)
-            pass
+    def material(self, feat):
+        return self.mtlManager.getLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
 
-        return vlayer.materialManager.getLineIndex(feat.values[0], feat.values[1], dashed)
-
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"lines": geom.toList()}
 
 
@@ -256,18 +223,14 @@ class ThickLineType(LineBasicTypeBase):
 
     name = "Thick Line"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Thickness", "defaultValue": 1, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.CHECKBOX, {"name": "Dashed", "defaultValue": False})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defaultValue": 1},
+                                     {"name": "Dashed", "type": StyleWidget.CHECKBOX}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshLineIndex(feat.values[0], feat.values[1], feat.values[2], feat.values[3])
+    def material(self, feat):
+        return self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0), feat.prop(PID.M1))
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"lines": geom.toList()}
 
 
@@ -275,18 +238,14 @@ class PipeType(LineBasicTypeBase):
 
     name = "Pipe"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Radius", "defaultValue": cls.defaultValue(mapTo3d), "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(self, feat):
+        return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        r = feat.values[2] * settings.mapTo3d().multiplier
+    def geometry(self, feat, geom):
+        r = feat.prop(PID.G0) * self.settings.mapTo3d().multiplier
         return {"lines": geom.toList(),
                 "r": r}
 
@@ -300,49 +259,40 @@ class BoxLineType(LineBasicTypeBase):
 
     name = "Box"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        val = cls.defaultValue(mapTo3d)
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Width", "defaultValue": val, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": val, "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        val = self.defaultValue()
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": val},
+                                      {"name": "Height", "defaultValue": val}])
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])
+    def material(self, feat):
+        return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        multiplier = settings.mapTo3d().multiplier
+    def geometry(self, feat, geom):
+        multiplier = self.settings.mapTo3d().multiplier
         return {"lines": geom.toList(),
-                "w": feat.values[2] * multiplier,
-                "h": feat.values[3] * multiplier}
+                "w": feat.prop(PID.G0) * multiplier,
+                "h": feat.prop(PID.G1) * multiplier}
 
 
 class WallType(LineBasicTypeBase):
 
     name = "Wall"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Other side Z", "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(otherZ=True)
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], doubleSide=True)
+    def material(self, feat):
+        return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"lines": geom.toList(),
-                "bh": feat.values[2] * settings.mapTo3d().multiplierZ}
+                "bh": feat.prop(PID.Z2) * self.settings.mapTo3d().multiplierZ}
 
 
 # PolygonBasicType
 class PolygonBasicTypeBase(PolygonTypeBase):
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"polygons": geom.toList2(),
                 "centroids": geom.centroids}
 
@@ -353,16 +303,13 @@ class PolygonType(PolygonBasicTypeBase):
 
     name = "Polygon"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets()
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        return vlayer.materialManager.getFlatMeshMaterialIndex(feat.values[0], feat.values[1], True)
+    def material(self, feat):
+        return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         g = geom.toDict(flat=True)
         return g
 
@@ -373,29 +320,23 @@ class ExtrudedType(PolygonBasicTypeBase):
 
     name = "Extruded"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Height", "defaultValue": cls.defaultValueZ(mapTo3d), "layer": mapLayer})
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(geomItems=[{"name": "Height", "defaultValue": self.defaultValueZ()}],
+                           color2={"name": "Edge color",
+                                   "itemText": {OptionalColorWidgetFunc.NONE: "(No Edge)"},
+                                   "defaultValue": OptionalColorWidgetFunc.NONE})
 
-        opt = {"name": "Edge color",
-               "itemText": {OptionalColorWidgetFunc.NONE: "(No Edge)"},
-               "defaultValue": OptionalColorWidgetFunc.NONE}
-        ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
-
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        mtl = {"face": vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1])}
+    def material(self, feat):
+        mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
 
         # edges
-        if feat.values[3] is not None:
-            mtl["edge"] = vlayer.materialManager.getLineIndex(feat.values[3], feat.values[1])
+        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
+            mtl["edge"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
         return mtl
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        g = PolygonBasicTypeBase.geometry(settings, vlayer, feat, geom)
-        g["h"] = feat.values[2] * settings.mapTo3d().multiplierZ
+    def geometry(self, feat, geom):
+        g = PolygonBasicTypeBase.geometry(feat, geom)
+        g["h"] = feat.prop(PID.G0) * self.settings.mapTo3d().multiplierZ
         return g
 
 
@@ -405,38 +346,24 @@ class OverlayType(PolygonBasicTypeBase):
 
     name = "Overlay"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
-        ppage.initStyleWidgets()
+    def setupWidgets(self, ppage):
+        ppage.setupWidgets(color2={"name": "Border color",
+                                   "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
+                                   "defaultValue": OptionalColorWidgetFunc.NONE})
 
-        opt = {"name": "Border color",
-               "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-               "defaultValue": OptionalColorWidgetFunc.NONE}
-        ppage.addStyleWidget(StyleWidget.OPTIONAL_COLOR, opt)
-
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        if feat.values[0] == ColorTextureWidgetFunc.MAP_CANVAS:
-            m = vlayer.materialManager.getCanvasImageIndex(feat.values[1])
-        elif isinstance(feat.values[0], list):   # LAYER
-            size = settings.mapSettings.outputSize()
-            m = vlayer.materialManager.getLayerImageIndex(feat.values[0], size.width(), size.height(),
-                                                          settings.baseExtent(), feat.values[1])
-        else:
-            m = vlayer.materialManager.getMeshMaterialIndex(feat.values[0], feat.values[1], True)
-        mtl = {"face": m}
+    def material(self, feat):
+        mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)}
 
         # border
-        if len(feat.values) > 2 and feat.values[2] is not None:
-            mtl["brdr"] = vlayer.materialManager.getLineIndex(feat.values[2], feat.values[1])
+        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
+            mtl["brdr"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
         return mtl
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         g = geom.toDict(flat=True)  # TINGeometry
 
         # border
-        if len(feat.values) > 2 and feat.values[2] is not None:
+        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
             g["brdr"] = [bnds.toList(flat=True) for bnds in geom.bnds_list]
 
         return g
@@ -447,25 +374,21 @@ class IconType(PointTypeBase):
 
     name = "Icon"
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
+    def setupWidgets(self, ppage):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
-        ppage.initStyleWidgets(color=False)
-        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Image file", "layer": mapLayer, "filterString": filterString, "allowURL": True})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": mapLayer})
+        ppage.setupWidgets(filepath={"name": "Image file", "filterString": filterString, "allowURL": True},
+                           geomItems=[{"name": "Scale", "defaultValue": 1}],
+                           color=False)
 
-    @classmethod
-    def material(cls, settings, vlayer, feat):
-        path_url = feat.values[1]
-        if path_url:
-            return vlayer.materialManager.getSpriteImageIndex(path_url, feat.values[0])
+    def material(self, feat):
+        if feat.prop(PID.PATH):
+            return self.mtlManager.getSpriteImageIndex(feat.prop(PID.PATH), feat.prop(PID.OP))
         return None
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
+    def geometry(self, feat, geom):
         return {"pts": geom.toList(),
-                "scale": feat.values[2]}
+                "scale": feat.prop(PID.G0)}
 
 
 # ModelFileType
@@ -474,42 +397,42 @@ class ModelFileType(PointTypeBase):
     name = "Model File"
     experimental = True
 
-    @classmethod
-    def setupWidgets(cls, ppage, mapTo3d, mapLayer):
+    def __init__(self, settings, modelManager=None):
+        PointTypeBase.__init__(self, settings)
+        self.modelManager = modelManager
+
+    def setupWidgets(self, ppage):
         filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
 
-        ppage.initStyleWidgets(color=False, opacity=False)
-        ppage.addStyleWidget(StyleWidget.FILEPATH, {"name": "Model file", "layer": mapLayer, "filterString": filterString, "allowURL": True})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Scale", "defaultValue": 1, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.EXPRESSION, {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0, "layer": mapLayer})
-        ppage.addStyleWidget(StyleWidget.COMBOBOX, {"name": "Rotation order", "defaultValue": "XYZ",
-                                                    "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]})
+        ppage.setupWidgets(filepath={"name": "Model file", "filterString": filterString, "allowURL": True},
+                           geomItems=[{"name": "Scale", "defaultValue": 1},
+                                      {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0},
+                                      {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0},
+                                      {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0},
+                                      {"name": "Rotation order", "defaultValue": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
+                           color=False,
+                           opacity=False)
 
-    @classmethod
-    def model(cls, settings, vlayer, feat):
-        model_path = feat.values[0]
-        if model_path:
-            return vlayer.modelManager.modelIndex(model_path)
+    def model(self, feat):
+        if feat.prop(PID.PATH):
+            return self.modelManager.modelIndex(feat.prop(PID.PATH))
         return None
 
-    @classmethod
-    def geometry(cls, settings, vlayer, feat, geom):
-        rz = feat.values[4]
+    def geometry(self, feat, geom):
+        rz = feat.prop(PID.G3)
         # take map rotation into account
-        rotation = settings.baseExtent().rotation()
+        rotation = self.settings.baseExtent().rotation()
         if rotation:
             rz = (rz - rotation) % 360    # map rotation is clockwise
 
         d = {"pts": geom.toList(),
-             "rotateX": feat.values[2],
-             "rotateY": feat.values[3],
+             "rotateX": feat.prop(PID.G1),
+             "rotateY": feat.prop(PID.G2),
              "rotateZ": rz,
-             "scale": feat.values[1] * settings.mapTo3d().multiplier}
+             "scale": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier}
 
-        if len(feat.values) > 5 and feat.values[5] != "XYZ":    # added in 2.4
-            d["rotateO"] = feat.values[5]
+        if feat.prop(PID.G4) != "XYZ":    # added in 2.4
+            d["rotateO"] = feat.prop(PID.G4)
         return d
 
 

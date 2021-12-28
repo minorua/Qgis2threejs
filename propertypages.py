@@ -23,8 +23,8 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint, QUrl, QUuid
-from PyQt5.QtWidgets import QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QLineEdit, QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+from PyQt5.QtCore import QSize, Qt, QDir, QPoint, QUrl, QUuid
+from PyQt5.QtWidgets import QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QFormLayout, QLabel, QLineEdit, QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QVBoxLayout, QWidget
 from PyQt5.QtGui import QColor, QCursor
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
@@ -41,7 +41,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from . import q3dconst
-from .conf import DEF_SETS
+from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
@@ -69,14 +69,11 @@ def is_number(val):
 
 class PropertyPage(QWidget):
 
-    def __init__(self, pageType, parent=None):
+    def __init__(self, parent, pageType):
         QWidget.__init__(self, parent)
-        self.pageType = pageType
         self.dialog = parent
+        self.pageType = pageType
         self.propertyWidgets = []
-
-    def itemChanged(self, item):
-        pass
 
     def setLayoutVisible(self, layout, visible):
         for i in range(layout.count()):
@@ -119,11 +116,14 @@ class PropertyPage(QWidget):
     def registerPropertyWidgets(self, widgets):
         self.propertyWidgets = widgets
 
-    def properties(self, widgets=None):
+    def properties(self, widgets=None, only_visible=False):
         widgets = widgets or self.propertyWidgets
 
         p = {}
         for w in widgets:
+            if only_visible and not w.isVisible():
+                continue
+
             v = None
             if isinstance(w, QComboBox):
                 v = w.currentData()
@@ -149,43 +149,50 @@ class PropertyPage(QWidget):
                 logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
 
             p[w.objectName()] = v
+
         return p
 
     def setProperties(self, properties):
-        for n, v in properties.items():
-            w = getattr(self, n, None)
-            if w is None:
+        for w in self.propertyWidgets:
+            v = properties.get(w.objectName())
+            if v is None:
                 continue
+
             if isinstance(w, QComboBox):
-                if v is not None:
-                    index = w.findData(v)
-                    if index != -1:
-                        w.setCurrentIndex(index)
-                    elif w.isEditable():
-                        w.setEditText(str(v))
+                index = w.findData(v)
+                if index != -1:
+                    w.setCurrentIndex(index)
+                elif w.isEditable():
+                    w.setEditText(str(v))
+
             elif isinstance(w, (QRadioButton, QCheckBox)):  # subclass of QAbstractButton
                 w.setChecked(v)
+
             elif isinstance(w, (QSlider, QSpinBox)):
                 w.setValue(v)
+
             elif isinstance(w, QLineEdit):
                 w.setText(v)
                 w.setCursorPosition(0)
+
             elif isinstance(w, StyleWidget):
                 if len(v):
                     w.setValues(v)
+
             elif isinstance(w, QgsFieldExpressionWidget):
                 w.setExpression(v)
+
             elif isinstance(w, QgsColorButton):
                 w.setColor(QColor(v.replace("0x", "#")))
-            else:
-                logMessage("[propertypages.py] Cannot restore %s property" % n)
 
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
-    def __init__(self, parent=None):
-        PropertyPage.__init__(self, PAGE_SCENE, parent)
+    def __init__(self, parent, properties, canvas):
+        PropertyPage.__init__(self, parent, PAGE_SCENE)
         Ui_ScenePropertiesWidget.setupUi(self, self)
+
+        self.mapSettings = canvas.mapSettings()
 
         widgets = [self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
                    self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
@@ -195,22 +202,22 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                    self.radioButton_WGS84, self.radioButton_NoCoords]
         self.registerPropertyWidgets(widgets)
 
-        # material type
-        self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
-        self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
-        self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
-
+        # map extent (2D)
         self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)
         self.lineEdit_Width.editingFinished.connect(self.widthEditingFinished)
         self.pushButton_SelectExtent.clicked.connect(self.showSelectExtentMenu)
         self.checkBox_FixAspectRatio.toggled.connect(self.fixAspectRatioToggled)
 
-    def setup(self, properties, mapSettings, canvas):
-
-        self.mapSettings = mapSettings
+        if self.radioButton_UseCanvasExtent.isChecked():
+            self.fixedExtentToggled(False)
 
         if HAVE_PROCESSING:
             self.initMapTool(canvas)
+
+        # material type
+        self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
+        self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
+        self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
 
         # restore properties
         if properties:
@@ -222,11 +229,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
             self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
 
-        # map extent (2D)
-        if self.radioButton_UseCanvasExtent.isChecked():
-            self.fixedExtentToggled(False)
-
-        # Supported projections
+        # supported projections
         # https://github.com/proj4js/proj4js
         projs = ["longlat", "merc"]
         projs += ["aea", "aeqd", "cass", "cea", "eqc", "eqdc", "etmerc", "geocent", "gnom", "krovak", "laea", "lcc", "mill", "moll",
@@ -253,8 +256,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             HAVE_PROCESSING = False
             return False
 
-    def properties(self):
-        p = PropertyPage.properties(self)
+    def properties(self, only_visible=False):
+        p = PropertyPage.properties(self, only_visible=only_visible)
         # check validity
         if not is_number(self.lineEdit_BaseSize.text()):
             p["lineEdit_BaseSize"] = str(DEF_SETS.BASE_SIZE)
@@ -366,11 +369,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     MTL_PROPERTIES = Qt.UserRole + 1
     MTL_LAYERIDS = Qt.UserRole + 2
 
-    def __init__(self, parent=None):
-        PropertyPage.__init__(self, PAGE_DEM, parent)
+    def __init__(self, parent, layer, settings, mapSettings):
+        PropertyPage.__init__(self, parent, PAGE_DEM)
         Ui_DEMPropertiesWidget.setupUi(self, self)
 
-        self.layer = None
+        self.layer = layer
+        self.extent = settings.baseExtent()
+        self.mapSettings = mapSettings
 
         widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
         widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
@@ -382,6 +387,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.registerPropertyWidgets(widgets)
 
         # geometry group
+        self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
+
         self.initLayerComboBox()
 
         self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
@@ -396,12 +403,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.mtlPropertiesWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
                                      self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading]
 
-        self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("/symbologyAdd.svg"))
-        self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("/symbologyRemove.svg"))
+        self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
+        self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
         self.mtlAddActions = []
         self.mtlAddActionGroup = QActionGroup(self)
-        for idx, text in enumerate(["Layer Image", "Map Canvas Image", "Image File", "Solid Color"]):
+        for text in ["Layer Image", "Map Canvas Image", "Image File", "Solid Color"]:
             a = QAction(text, self)
             self.mtlAddActions.append(a)
             self.mtlAddActionGroup.addAction(a)
@@ -432,24 +439,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_SelectLayer.clicked.connect(self.showLayerSelectDialog)
         self.toolButton_ImageFile.clicked.connect(self.browseClicked)
 
-    def setup(self, layer, settings, mapSettings):
-        self.layer = layer
-        self.extent = settings.baseExtent()
-        self.mapSettings = mapSettings
-
-        # show/hide resampling slider
-        self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
-
-        properties = layer.properties or self.properties()
-
-        if not properties.get("materials"):       # added in 2.7
-            properties["materials"] = self.materials()
+        # restore properties
+        properties = layer.properties
 
         properties["toolButton_SideColor"] = properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR)
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
 
-        # restore properties of the layer
         self.setProperties(properties)
 
         # set enablement and visibility of widgets
@@ -500,7 +496,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.updateLayerImageLabel(ids)
 
     def updateLayerImageLabel(self, layerIds):
-        logMessage(str(layerIds))
         self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(layerIds))
 
     def browseClicked(self):
@@ -529,8 +524,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.spinBox_Roughening.setSingleStep(v)
         self.spinBox_Roughening.setMinimum(max(v // 2, 1))
 
-    def properties(self):
-        p = PropertyPage.properties(self)
+    def properties(self, only_visible=False):
+        p = PropertyPage.properties(self, only_visible=only_visible)
         p["materials"] = self.materials()
         return p
 
@@ -624,9 +619,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def renameMtlItem(self):
         item = self.listWidget_Materials.currentItem()
         if item:
-            #name, ok = QInputDialog.getText(self, "Rename", "",)
-            #if ok:
-
             self.listWidget_Materials.editItem(item)
 
     def setCurrentMtlItem(self, id):
@@ -678,97 +670,42 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
-    STYLE_MAX_COUNT = 6
-
-    def __init__(self, parent=None):
-        PropertyPage.__init__(self, PAGE_VECTOR, parent)
+    def __init__(self, parent, layer, settings):
+        PropertyPage.__init__(self, parent, PAGE_VECTOR)
         Ui_VectorPropertiesWidget.setupUi(self, self)
 
-        self.layer = None
+        self.layer = layer
+        self.settings = settings
+        self.mapTo3d = settings.mapTo3d()
+
         self.hasZ = self.hasM = False
 
-        # initialize vector style widgets
-        self.labelHeightWidget = StyleWidget(StyleWidget.LABEL_HEIGHT)
-        self.labelHeightWidget.setObjectName("labelHeightWidget")
-        self.labelHeightWidget.setEnabled(False)
-        self.verticalLayout_Label.addWidget(self.labelHeightWidget)
-
-        self.styleWidgetCount = 0
-        self.styleWidgets = []
-        for i in range(self.STYLE_MAX_COUNT):
-            objName = "styleWidget" + str(i)
-
-            widget = StyleWidget()
-            widget.setVisible(False)
-            widget.setObjectName(objName)
-            self.styleWidgets.append(widget)
-            self.verticalLayout_Styles.addWidget(widget)
-
-            # assign the widget to property page attribute
-            setattr(self, objName, widget)
-
-        widgets = [self.comboBox_ObjectType]
-        widgets += self.buttonGroup_altitude.buttons() + [self.fieldExpressionWidget_altitude, self.comboBox_altitudeMode]
-        widgets += self.styleWidgets
-        widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
-        widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
-        widgets += [self.checkBox_Visible, self.checkBox_Clickable]
-        self.registerPropertyWidgets(widgets)
-
-        self.comboBox_ObjectType.currentIndexChanged.connect(self.setupStyleWidgets)
-        self.comboBox_altitudeMode.currentIndexChanged.connect(self.altitudeModeChanged)
-        for btn in self.buttonGroup_altitude.buttons():
-            btn.toggled.connect(self.zValueRadioButtonToggled)
-        self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
-
-    def setup(self, layer, settings):
-        self.layer = layer
-        self.mapTo3d = settings.mapTo3d()
         mapLayer = layer.mapLayer
+        geomType = mapLayer.geometryType()
         properties = layer.properties
 
-        for i in range(self.STYLE_MAX_COUNT):
-            self.styleWidgets[i].hide()
-
-        # set up object type combo box
-        self.comboBox_ObjectType.blockSignals(True)
-        self.comboBox_ObjectType.clear()
-
-        for obj_type in ObjectType.typesByGeomType(mapLayer.geometryType()):
-            self.comboBox_ObjectType.addItem(obj_type.displayName(), obj_type.name)
+        # object type
+        for objType in ObjectType.typesByGeomType(geomType):
+            self.comboBox_ObjectType.addItem(objType.displayName(), objType.name)
 
         if properties:
-            # restore object type selection
             objType = properties.get("comboBox_ObjectType")
-
-            # for backward compatibility
-            if objType == "Profile":
-                objType = "Wall"
-            elif objType == "Triangular Mesh":
-                objType = "Polygon"
 
             idx = self.comboBox_ObjectType.findData(objType)
             if idx != -1:
                 self.comboBox_ObjectType.setCurrentIndex(idx)
 
-        self.comboBox_ObjectType.blockSignals(False)
-
-        # set up altitude mode combo box
-        self.comboBox_altitudeMode.blockSignals(True)
-        self.comboBox_altitudeMode.clear()
+        # [z coordinate]
+        # mode combobox
         self.comboBox_altitudeMode.addItem("Absolute")
 
-        # DEM layers
         for lyr in tools.getDEMLayersInProject():
             self.comboBox_altitudeMode.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
 
-        # DEM provider plugins
         for plugin in pluginManager().demProviderPlugins():
             self.comboBox_altitudeMode.addItem('Relative to "{0}"'.format(plugin.providerName()), "plugin:" + plugin.providerId())
 
-        self.comboBox_altitudeMode.blockSignals(False)
-
-        # set up z/m button
+        # z/m buttons
         wkbType = mapLayer.wkbType()
         self.hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.Polygon25D,
                                 QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D, QgsWkbTypes.MultiPolygon25D]
@@ -782,41 +719,80 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         else:
             self.radioButton_Expression.setChecked(True)
 
-        # set up field expression widget
+        # expression
         self.fieldExpressionWidget_altitude.setFilters(QgsFieldProxyModel.Numeric)
         self.fieldExpressionWidget_altitude.setLayer(mapLayer)
         self.fieldExpressionWidget_altitude.setExpression("0")
 
-        # set up label height widget
-        if mapLayer.geometryType() != QgsWkbTypes.LineGeometry:
-            defaultLabelHeight = 5
-            self.labelHeightWidget.setup(options={"layer": mapLayer, "defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
-        else:
-            self.labelHeightWidget.hide()
+        # [geometry]
+        self.geomWidgets = []
+        for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
+            name = "geomWidget{}".format(i)
 
+            w = StyleWidget(self.groupBox_Geometry)
+            w.setObjectName(name)
+
+            self.geomWidgets.append(w)
+            self.verticalLayout_Geometry.addWidget(w)
+
+        # [material]
+        self.comboEdit_Color.setup(StyleWidget.COLOR, mapLayer)
+        self.comboEdit_Color2.setup(StyleWidget.OPTIONAL_COLOR, mapLayer)
+        self.comboEdit_Opacity.setup(StyleWidget.OPACITY, mapLayer)
+
+        self.mtlWidgets = []
+        for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
+            name = "mtlWidget{}".format(i)
+
+            w = StyleWidget(self.groupBox_Material)
+            w.setObjectName(name)
+
+            self.mtlWidgets.append(w)
+            self.verticalLayout_Material.addWidget(w)
+
+        # [features]
         # point layer has no geometry clip option
-        self.checkBox_Clip.setVisible(mapLayer.geometryType() != QgsWkbTypes.PointGeometry)
+        self.checkBox_Clip.setVisible(geomType != QgsWkbTypes.PointGeometry)
 
-        # set up style widgets for selected object type
-        self.setupStyleWidgets()
-
-        # set up label combo box
-        hasPoint = (mapLayer.geometryType() in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
-        self.setLayoutVisible(self.formLayout_Label, hasPoint)
-        self.comboBox_Label.clear()
-        if hasPoint:
+        # [label]
+        hasRPt = (geomType in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
+        self.setLayoutVisible(self.formLayout_Label, hasRPt)
+        self.labelHeightWidget.setVisible(hasRPt)
+        if hasRPt:
             self.comboBox_Label.addItem("(No label)")
             fields = mapLayer.fields()
             for i in range(fields.count()):
                 self.comboBox_Label.addItem(fields[i].name(), i)
 
+            defaultLabelHeight = 5
+            self.labelHeightWidget.setup(StyleWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
+
+        # register widgets
+        widgets = [self.comboBox_ObjectType]
+        widgets += self.buttonGroup_altitude.buttons() + [self.comboBox_altitudeMode, self.fieldExpressionWidget_altitude, self.comboEdit_altitude2]
+        widgets += [self.comboEdit_FilePath]
+        widgets += self.geomWidgets
+        widgets += [self.comboEdit_Color, self.comboEdit_Color2, self.comboEdit_Opacity] + self.mtlWidgets
+        widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
+        widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
+        widgets += [self.checkBox_Visible, self.checkBox_Clickable]
+        self.registerPropertyWidgets(widgets)
+
+        self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeChanged)
+        self.comboBox_altitudeMode.currentIndexChanged.connect(self.altitudeModeChanged)
+        for btn in self.buttonGroup_altitude.buttons():
+            btn.toggled.connect(self.zValueRadioButtonToggled)
+        self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
+
+        # set up style widgets for selected object type
+        self.objectTypeChanged()
+
         # restore other properties for the layer
         self.setProperties(properties or {})
 
-    def setupStyleWidgets(self, index=None):
-        # setup widgets
+    def objectTypeChanged(self, index=None):
         geomType = self.layer.mapLayer.geometryType()
-        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), geomType)
+        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), geomType)(self.settings)
 
         if geomType == QgsWkbTypes.PolygonGeometry:
             supportZM = (obj_type == ObjectType.Polygon)
@@ -829,14 +805,41 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
             self.checkBox_Clip.setVisible(not supportZM)
 
-        obj_type.setupWidgets(self,
-                              self.mapTo3d,         # to calculate default values
-                              self.layer.mapLayer)
+        obj_type.setupWidgets(self)
 
         self.altitudeModeChanged(self.comboBox_altitudeMode.currentIndex())
 
-    def itemChanged(self, item):
-        self.setEnabled(item.data(0, Qt.CheckStateRole) == Qt.Checked)
+    def setupWidgets(self, filepath=None, geomItems=None, color=True, color2=None, opacity=True, mtlItems=None, alt2=False):
+
+        self.comboEdit_altitude2.setVisible(alt2)
+
+        self.groupBox_FilePath.setVisible(bool(filepath))
+        if filepath:
+            self.comboEdit_FilePath.setup(StyleWidget.FILEPATH, self.layer.mapLayer, filepath)
+
+        # geometry
+        geomItems = geomItems or []
+        for i, item in enumerate(geomItems):
+            self.geomWidgets[i].setup(item.get("type", StyleWidget.EXPRESSION), self.layer.mapLayer, item)
+
+        for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
+            self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
+
+        # material
+        self.comboEdit_Color.setVisible(color)
+
+        self.comboEdit_Color2.setVisible(bool(color2))
+        if color2:
+            self.comboEdit_Color2.setup(StyleWidget.OPTIONAL_COLOR, self.layer.mapLayer, color2)
+
+        self.comboEdit_Opacity.setVisible(opacity)
+
+        mtlItems = mtlItems or []
+        for i, item in enumerate(mtlItems):
+            self.mtlWidgets[i].setup(item.get("type", StyleWidget.EXPRESSION), self.layer.mapLayer, item)
+
+        for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
+            self.mtlWidgets[i].setVisible(bool(i < len(mtlItems)))
 
     def altitudeModeChanged(self, index):
         name = self.comboBox_ObjectType.currentData()
@@ -855,36 +858,19 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
     def exportAttrsToggled(self, checked):
         self.setLayoutEnabled(self.formLayout_Label, checked)
-        self.labelHeightWidget.setEnabled(checked)
-
-    def properties(self):
-        return PropertyPage.properties(self)
-
-    def initStyleWidgets(self, color=True, opacity=True):
-        self.styleWidgetCount = 0
-
-        if color:
-            self.addStyleWidget(StyleWidget.COLOR, {"layer": self.layer.mapLayer})
-
-        if opacity:
-            self.addStyleWidget(StyleWidget.OPACITY, {"layer": self.layer.mapLayer})
-
-        for i in range(self.styleWidgetCount, self.STYLE_MAX_COUNT):
-            self.styleWidgets[i].hide()
-
-    def addStyleWidget(self, funcType=None, options=None):
-        self.styleWidgets[self.styleWidgetCount].setup(funcType, options)
-        self.styleWidgetCount += 1
+        self.labelHeightWidget.setVisible(checked)
 
 
 class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
 
-    def __init__(self, parent=None):
-        PropertyPage.__init__(self, PAGE_POINTCLOUD, parent)
+    def __init__(self, parent, layer):
+        PropertyPage.__init__(self, parent, PAGE_POINTCLOUD)
         Ui_PCPropertiesWidget.setupUi(self, self)
 
         widgets = [self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_BoxVisible, self.checkBox_Visible]
         self.registerPropertyWidgets(widgets)
+
+        self.lineEdit_Name.setText(layer.name)
 
         color_types = ["RGB", "COLOR", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "POINT_INDEX", "CLASSIFICATION", "RETURN_NUMBER"]
         # ["RGB", "COLOR", "DEPTH", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "LOD", "POINT_INDEX",
@@ -896,8 +882,6 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.comboBox_ColorType.currentIndexChanged.connect(self.colorTypeChanged)
         self.colorTypeChanged()
 
-    def setup(self, layer):
-        self.lineEdit_Name.setText(layer.name)
         self.setProperties(layer.properties)
 
         wnd = self.parent().parent()
@@ -933,10 +917,6 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
 
         html += "</table>"
         self.textBrowser.setHtml(html)
-
-    def properties(self):
-        p = PropertyPage.properties(self)
-        return p
 
     def colorTypeChanged(self, index=None):
         b = (self.comboBox_ColorType.currentData() == "COLOR")

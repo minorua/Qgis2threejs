@@ -32,22 +32,34 @@ from .qgis2threejstools import getDEMLayersInProject, shortTextFromSelectedLayer
 
 class WidgetFuncBase:
 
-    def __init__(self, widget):
+    def __init__(self, widget, mapLayer):
         self.widget = widget
+        self.mapLayer = mapLayer
 
-    def setup(self, name, editLabel="", lineEdit="", placeholderText="", toolButton=False, checkBox=False):
-        # initialize widgets
-        self.widget.label_1.setText(name)
+    def setup(self, name=None, editLabel="", lineEdit="", placeholderText="", toolButton=False, checkBox=False):
+        # setup widgets
+        b = bool(name is not None)
+        self.widget.label_1.setVisible(b)
+        self.widget.comboBox.setVisible(b)
+        self.widget.checkBox.setVisible(b and checkBox)
+
+        if name:
+            self.widget.label_1.setText(name)
+
         if editLabel:
             self.widget.label_2.setText(editLabel)
+
         self.widget.label_2.setVisible(bool(editLabel))
+
+        b = bool(lineEdit is not None)
         self.widget.expression.setExpression(lineEdit or "")
         self.widget.expression.setLayer(None)
-        self.widget.expression.setVisible(lineEdit is not None)
-        if lineEdit is not None:
+        self.widget.expression.setVisible(b)
+
+        if b:
             self.setPlaceholderText(placeholderText)
+
         self.widget.toolButton.setVisible(toolButton)
-        self.widget.checkBox.setVisible(checkBox)
 
     def resetDefault(self):
         pass
@@ -90,17 +102,15 @@ class WidgetFuncBase:
 class ExpressionWidgetFunc(WidgetFuncBase):
 
     def setup(self, options=None):
-        """ options: name, label, defaultValue, layer """
+        """ options: name, label, defaultValue """
         options = options or {}
-        WidgetFuncBase.setup(self, options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
+        WidgetFuncBase.setup(self, editLabel=options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
 
         self.widget.comboBox.clear()
         self.widget.comboBox.addItem("Expression")
 
-        layer = options.get("layer")
-        if layer:
-            self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
-            self.widget.expression.setLayer(layer)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setLayer(self.mapLayer)
 
 
 class ColorWidgetFunc(WidgetFuncBase):
@@ -122,10 +132,9 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.expression.setExpression(str(options.get("defaultValue", "")))
         self.widget.expression.setFilters(QgsFieldProxyModel.String)
         self.setPlaceholderText("e.g. color_rgb(255, 127, 0), '#FF7F00'")
-        layer = options.get("layer")
-        if layer:
-            self.widget.expression.setFilters(QgsFieldProxyModel.String | QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong)
-            self.widget.expression.setLayer(layer)
+
+        self.widget.expression.setFilters(QgsFieldProxyModel.String | QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong)
+        self.widget.expression.setLayer(self.mapLayer)
 
     def comboBoxSelectionChanged(self, index):
         itemData = self.widget.comboBox.itemData(index)
@@ -176,10 +185,8 @@ class FilePathWidgetFunc(WidgetFuncBase):
         else:
             self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
 
-        layer = options.get("layer")
-        if layer:
-            self.widget.expression.setFilters(QgsFieldProxyModel.String)
-            self.widget.expression.setLayer(layer)
+        self.widget.expression.setFilters(QgsFieldProxyModel.String)
+        self.widget.expression.setLayer(self.mapLayer)
 
         self.filterString = options.get("filterString", "")
 
@@ -198,7 +205,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
 class HeightWidgetFunc(WidgetFuncBase):
 
     def setup(self, options=None):
-        """ options: name, defaultValue, defaultValue, layer """
+        """ options: name, defaultValue, defaultValue """
         options = options or {}
         WidgetFuncBase.setup(self, options.get("name", "Mode"))
         self.defaultValue = options.get("defaultValue", 0)
@@ -241,7 +248,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
     RELATIVE = 1
 
     def setup(self, options=None):
-        """ options: defaultValue, layer """
+        """ options: defaultValue """
         WidgetFuncBase.setup(self, "Label height")
         options = options or {}
 
@@ -249,10 +256,8 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
         self.widget.comboBox.addItem("Relative", self.RELATIVE)
 
-        layer = options.get("layer")
-        if layer:
-            self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
-            self.widget.expression.setLayer(layer)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setLayer(self.mapLayer)
 
         self.defaultValue = options.get("defaultValue")
         if self.defaultValue is not None:
@@ -272,11 +277,9 @@ class OpacityWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Feature style", OpacityWidgetFunc.FEATURE)
         self.widget.comboBox.addItem("Expression", OpacityWidgetFunc.EXPRESSION)
 
-        layer = options.get("layer")
-        if layer:
-            self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
-            self.widget.expression.setLayer(layer)
-            self.setPlaceholderText("numeric (percentage. 0 - 100)")
+        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setLayer(self.mapLayer)
+        self.setPlaceholderText("numeric (percentage. 0 - 100)")
 
     def comboBoxSelectionChanged(self, index):
         itemData = self.widget.comboBox.itemData(index)
@@ -484,12 +487,12 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
     FIELDTYPE_NUMBER = 1
     FIELDTYPE_STRING = 2
 
-    def __init__(self, funcType=None, parent=None):
+    def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.setupUi(self)
         self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)
         self.toolButton.clicked.connect(self.toolButtonClicked)
-        self.funcType = funcType
+        self.funcType = None
         self.func = None
         self.hasValues = False
 
@@ -498,7 +501,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
         for w in self.expression.findChildren(QComboBox):
             w.installEventFilter(self.enterKeyFilter)
 
-    def setup(self, funcType=None, options=None):
+    def setup(self, funcType=None, mapLayer=None, options=None):
         if funcType is None:
             # use the function type passed to __init__
             funcType = self.funcType
@@ -514,7 +517,7 @@ class StyleWidget(QWidget, Ui_ComboEditWidget):
                 self.setVisible(False)
                 self.hasValues = False
                 return
-            self.func = funcClass(self)
+            self.func = funcClass(self, mapLayer)
 
         self.funcType = funcType
         self.func.setup(options)

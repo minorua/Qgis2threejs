@@ -30,6 +30,7 @@ from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
+from .q3dconst import PropertyID as PID
 from .qgis2threejstools import logMessage
 from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
@@ -48,15 +49,14 @@ def json_default(o):
 
 class Feature:
 
-    def __init__(self, vlayer, qGeom, altitude, propValues, attrs=None, labelHeight=None):
+    def __init__(self, vlayer, geom, props, attrs=None):
+
         self.geomType = vlayer.geomType
         self.objectType = vlayer.objectType
 
-        self.geom = qGeom
-        self.altitude = altitude
-        self.values = propValues
-        self.attributes = attrs
-        self.labelHeight = labelHeight
+        self.geom = geom            # an instance of QgsGeometry
+        self.props = props          # a dict
+        self.attributes = attrs     # a list or None
 
         self.material = self.model = None
 
@@ -68,47 +68,55 @@ class Feature:
         self.geom = self.geom.clipped(extent.unrotatedRect())
         if r:
             self.geom.rotate(-r, extent.center())
+
         return self.geom
 
     def geometry(self, z_func, mapTo3d, useZM=VectorGeometry.NotUseZM, baseExtent=None, grid=None):
-        geom, alt = (self.geom, self.altitude)
+        alt = self.prop(PID.ALT, 0)
         zf = lambda x, y: z_func(x, y) + alt
+
         transform_func = mapTo3d.transform
 
         if self.geomType != QgsWkbTypes.PolygonGeometry:
-            return GeomType2Class[self.geomType].fromQgsGeometry(geom, zf, transform_func, useZM=useZM)
+            return GeomType2Class[self.geomType].fromQgsGeometry(self.geom, zf, transform_func, useZM=useZM)
 
         if self.objectType == ObjectType.Polygon:
-            return TINGeometry.fromQgsGeometry(geom, zf, transform_func,
+            return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func,
                                                drop_z=(useZM == VectorGeometry.NotUseZM))
 
         if self.objectType == ObjectType.Extruded:
-            return PolygonGeometry.fromQgsGeometry(geom, zf, transform_func,
+            return PolygonGeometry.fromQgsGeometry(self.geom, zf, transform_func,
                                                    useCentroidHeight=True,
                                                    centroidPerPolygon=True)
 
         # Overlay
-        border = bool(len(self.values) > 2 and self.values[2] is not None)
+        border = bool(self.prop(PID.C2) != OptionalColorWidgetFunc.NONE)
         if grid is None:
             # absolute z coordinate
-            g = TINGeometry.fromQgsGeometry(geom, zf, transform_func, drop_z=True)
+            g = TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True)
             if border:
-                g.bnds_list = PolygonGeometry.fromQgsGeometry(geom, zf, transform_func).toLineGeometryList()
+                g.bnds_list = PolygonGeometry.fromQgsGeometry(self.geom, zf, transform_func).toLineGeometryList()
             return g
 
         # relative to DEM
         transform_func = mapTo3d.transformRotated
 
         if baseExtent.rotation():
-            geom.rotate(baseExtent.rotation(), baseExtent.center())
+            self.geom.rotate(baseExtent.rotation(), baseExtent.center())
 
-        polys = grid.splitPolygon(geom)
+        polys = grid.splitPolygon(self.geom)
         g = TINGeometry.fromQgsGeometry(polys, zf, transform_func, use_earcut=True)
 
         if border:
-            bnds = grid.segmentizeBoundaries(geom)
+            bnds = grid.segmentizeBoundaries(self.geom)
             g.bnds_list = [LineGeometry.fromQgsGeometry(bnd, zf, transform_func, useZM=VectorGeometry.UseZ) for bnd in bnds]
         return g
+
+    def prop(self, pid, def_val=None):
+        return self.props.get(pid, def_val)
+
+    def hasProp(self, pid):
+        return pid in self.props
 
 
 class VectorLayer:
@@ -125,8 +133,10 @@ class VectorLayer:
         self.expressionContext = QgsExpressionContext()
         self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
 
-        self.objectType = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"),
-                                                self.mapLayer.geometryType())
+        OTC = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"),
+                                    self.mapLayer.geometryType())
+
+        self.objectType = OTC(settings, materialManager) if OTC else None
 
         self.materialManager = materialManager
         self.modelManager = modelManager
@@ -149,8 +159,6 @@ class VectorLayer:
 
         # expressions
         self._exprs = {}
-        self.exprAlt = QgsExpression(self.properties.get("fieldExpressionWidget_altitude") or "0")
-        self.exprLabel = QgsExpression(self.properties.get("labelHeightWidget", {}).get("editText") or "0")
 
     def features(self, request=None):
         mapTo3d = self.settings.mapTo3d()
@@ -164,13 +172,14 @@ class VectorLayer:
         self.renderer.startRender(self.renderContext, self.mapLayer.fields())
 
         for f in self.mapLayer.getFeatures(request or QgsFeatureRequest()):
-            geometry = f.geometry()
-            if geometry is None:
+            # geometry
+            geom = f.geometry()
+            if geom is None:
                 logMessage("null geometry skipped")
                 continue
 
             # coordinate transformation - layer crs to project crs
-            geom = QgsGeometry(geometry)
+            geom = QgsGeometry(geom)
             if geom.transform(self.transform) != 0:
                 logMessage("Failed to transform geometry")
                 continue
@@ -182,21 +191,45 @@ class VectorLayer:
             # set feature to expression context
             self.expressionContext.setFeature(f)
 
-            # evaluate expression
-            altitude = float(self.exprAlt.evaluate(self.expressionContext) or 0)
-            swVals = self.styleWidgetValues(f)
+            # properties
+            props = self.evaluateProperties(f)
 
-            attrs = labelHeight = None
+            # attributes and label
             if self.writeAttrs:
                 attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
 
                 if self.hasLabel():
-                    labelHeight = float(self.exprLabel.evaluate(self.expressionContext) or 0) * mapTo3d.multiplierZ
+                    props[PID.LBLH] *= mapTo3d.multiplierZ
+            else:
+                attrs = None
 
-            # create a feature object
-            yield Feature(self, geom, altitude, swVals, attrs, labelHeight)
+            # TODO: props[PID.ATTRS] = attrs
+
+            # TODO: other properties
+
+            # feature object
+            yield Feature(self, geom, props, attrs)
 
         self.renderer.stopRender(self.renderContext)
+
+    def evaluateProperties(self, feat):
+        d = {}
+        for pid, name in PID.PID_NAME_DICT.items():
+            p = self.properties.get(name)
+            if p is None:
+                continue
+
+            val = None
+            if isinstance(p, str):
+                val = self.evaluateExpression(p, feat) or 0
+
+            elif isinstance(p, dict):
+                val = self.evaluateStyleWidget(name, feat)
+
+            if val is not None:
+                d[pid] = val or 0
+
+        return d
 
     def evaluateExpression(self, expr_str, f):
         if expr_str not in self._exprs:
@@ -205,6 +238,61 @@ class VectorLayer:
         self.expressionContext.setFeature(f)
         return self._exprs[expr_str].evaluate(self.expressionContext)
 
+    def evaluateStyleWidget(self, name, feat):
+        wv = self.properties.get(name)
+        if not wv:
+            return None
+
+        t = wv["type"]
+        if t == StyleWidget.COLOR:
+            return self.readFillColor(wv, feat)
+
+        if t == StyleWidget.OPACITY:
+            return self.readOpacity(wv, feat)
+
+        if t in (StyleWidget.EXPRESSION, StyleWidget.LABEL_HEIGHT):
+            expr = wv["editText"] or "0"
+            val = self.evaluateExpression(expr, feat)
+            if val is not None:
+                return val
+
+            if val is None:
+                logMessage("Failed to evaluate expression: {} ({})".format(expr, self.name))
+            else:       # if val.isNull():
+                logMessage("NULL was treated as zero. ({})".format(self.name))
+
+            return 0
+
+        if t == StyleWidget.OPTIONAL_COLOR:
+            return self.readBorderColor(wv, feat)
+
+        if t == StyleWidget.CHECKBOX:
+            return wv["checkBox"]
+
+        if t == StyleWidget.COMBOBOX:
+            return wv["comboData"]
+
+        if t == StyleWidget.FILEPATH:
+            expr = wv["editText"]
+            val = self.evaluateExpression(expr, feat)
+            if val is None:
+                logMessage("Failed to evaluate expression: " + expr)
+
+            return val or ""
+
+        if t == StyleWidget.COLOR_TEXTURE:
+            comboData = wv.get("comboData")
+            if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
+                return comboData
+
+            if comboData == ColorTextureWidgetFunc.LAYER:
+                return wv.get("layerIds", [])
+
+            return self.readFillColor(wv, feat)
+
+        logMessage("Widget type {} not found.".format(t))
+        return None
+
     def readFillColor(self, vals, f):
         return self._readColor(vals, f)
 
@@ -212,13 +300,13 @@ class VectorLayer:
         return self._readColor(vals, f, isBorder=True)
 
     # read color from COLOR or OPTIONAL_COLOR widget
-    def _readColor(self, widgetValues, f, isBorder=False):
-        mode = widgetValues["comboData"]
+    def _readColor(self, wv, f, isBorder=False):
+        mode = wv["comboData"]
         if mode == OptionalColorWidgetFunc.NONE:
             return None
 
         if mode == ColorWidgetFunc.EXPRESSION:
-            val = self.evaluateExpression(widgetValues["editText"], f)
+            val = self.evaluateExpression(wv["editText"], f)
             try:
                 if isinstance(val, str):
                     a = val.split(",")
@@ -252,12 +340,11 @@ class VectorLayer:
 
         return symbol.color().name().replace("#", "0x")
 
-    def readOpacity(self, widgetValues, f):
-        vals = widgetValues
+    def readOpacity(self, wv, f):
 
-        if vals["comboData"] == OpacityWidgetFunc.EXPRESSION:
+        if wv["comboData"] == OpacityWidgetFunc.EXPRESSION:
             try:
-                val = self.evaluateExpression(widgetValues["editText"], f)
+                val = self.evaluateExpression(wv["editText"], f)
                 return min(max(0, val), 100) / 100
             except:
                 logMessage("Wrong opacity value: {}".format(val))
@@ -291,64 +378,6 @@ class VectorLayer:
 
     def hasLabel(self):
         return bool(self.labelAttrIndex is not None)
-
-    # read values from style widgets
-    def styleWidgetValues(self, f):
-        vals = []
-        for i in range(16):   # big number for style count
-            widgetValues = self.properties.get("styleWidget" + str(i))
-            if not widgetValues:
-                break
-
-            widgetType = widgetValues["type"]
-            comboData = widgetValues.get("comboData")
-            if widgetType == StyleWidget.COLOR:
-                vals.append(self.readFillColor(widgetValues, f))
-
-            elif widgetType == StyleWidget.OPACITY:
-                vals.append(self.readOpacity(widgetValues, f))
-
-            elif widgetType in (StyleWidget.EXPRESSION, StyleWidget.LABEL_HEIGHT):
-                expr = widgetValues["editText"]
-                val = self.evaluateExpression(expr, f)
-                if val:
-                    vals.append(val)
-                else:
-                    if val is None:
-                        logMessage("Failed to evaluate expression: {} ({})".format(expr, self.name))
-                    else:       # if val.isNull():
-                        logMessage("NULL was treated as zero. ({})".format(self.name))
-                    vals.append(0)
-
-            elif widgetType == StyleWidget.OPTIONAL_COLOR:
-                vals.append(self.readBorderColor(widgetValues, f))
-
-            elif widgetType == StyleWidget.CHECKBOX:
-                vals.append(widgetValues["checkBox"])
-
-            elif widgetType == StyleWidget.COMBOBOX:
-                vals.append(widgetValues["comboData"])
-
-            elif widgetType == StyleWidget.FILEPATH:
-                expr = widgetValues["editText"]
-                val = self.evaluateExpression(expr, f)
-                if val is None:
-                    logMessage("Failed to evaluate expression: " + expr)
-                vals.append(val or "")
-
-            elif widgetType == StyleWidget.COLOR_TEXTURE:
-                if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
-                    vals.append(comboData)
-                elif comboData == ColorTextureWidgetFunc.LAYER:
-                    vals.append(widgetValues.get("layerIds", []))
-                else:
-                    vals.append(self.readFillColor(widgetValues, f))
-
-            else:
-                logMessage("Widget type {} not found.".format(widgetType))
-                vals.append(None)
-
-        return vals
 
 
 class FeatureBlockBuilder:
@@ -385,8 +414,7 @@ class FeatureBlockBuilder:
         feats = []
         for f in self.features:
             d = {}
-            d["geom"] = obj_geom_func(self.settings, self.vlayer, f,
-                                      f.geometry(self.z_func, mapTo3d, self.useZM, be, self.grid))
+            d["geom"] = obj_geom_func(f, f.geometry(self.z_func, mapTo3d, self.useZM, be, self.grid))
 
             if f.material is not None:
                 d["mtl"] = f.material
@@ -466,13 +494,14 @@ class VectorLayerBuilder(LayerBuilder):
         # materials/models
         if vlayer.objectType != ObjectType.ModelFile:
             for feat in vlayer.features(request):
-                feat.material = vlayer.objectType.material(self.settings, vlayer, feat)
+                feat.material = vlayer.objectType.material(feat)
                 self.features.append(feat)
+
             data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
                                                               base64=self.settings.base64)
         else:
             for feat in vlayer.features(request):
-                feat.model = vlayer.objectType.model(self.settings, vlayer, feat)
+                feat.model = vlayer.objectType.model(feat)
                 self.features.append(feat)
 
             data["models"] = self.modelManager.build(self.pathRoot is not None,

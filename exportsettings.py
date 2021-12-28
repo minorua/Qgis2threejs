@@ -25,7 +25,7 @@ from PyQt5.QtCore import QSettings, QSize
 from qgis.core import QgsMapLayer, QgsMapSettings, QgsPointXY, QgsProject, QgsWkbTypes
 
 from . import q3dconst
-from .conf import DEF_SETS
+from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .pluginmanager import pluginManager
 from .mapextent import MapExtent
 from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
@@ -200,7 +200,16 @@ class ExportSettings:
         # transform layer dict to Layer object
         settings[ExportSettings.LAYERS] = [Layer.fromDict(lyr) for lyr in settings.get(ExportSettings.LAYERS, [])]
 
-        self.loadSettings(settings)
+        if settings.get("Version", 0) < 270:
+            try:
+                self.loadEarlierFormatData(settings)
+            except Exception as e:
+                logMessage("ExportSettings: Failed to load some properties which were saved in an earlier plugin version.")
+
+                if DEBUG_MODE:
+                    raise e
+        else:
+            self.loadSettings(settings)
         return True
 
     def saveSettings(self, filepath=None):
@@ -209,6 +218,8 @@ class ExportSettings:
             filepath = settingsFilePath()
             if filepath is None:
                 return False
+
+        self.data["Version"] = PLUGIN_VERSION_INT
 
         def default(obj):
             if isinstance(obj, Layer):
@@ -565,6 +576,94 @@ class ExportSettings:
         d = self.data.get(ExportSettings.KEYFRAMES, {})
         d.update(data)
         self.data[ExportSettings.KEYFRAMES] = d
+
+    # for backward compatibility
+    def loadEarlierFormatData(self, settings):
+        for layer in settings[ExportSettings.LAYERS]:
+            geomType = layer.geomType
+            p = layer.properties
+
+            objType = p.get("comboBox_ObjectType")
+
+            # two object types were renamed in 2.4
+            if objType == "Profile":
+                p["comboBox_ObjectType"] = "Wall"
+            elif objType == "Triangular Mesh":
+                p["comboBox_ObjectType"] = "Polygon"
+
+            # styleWidgetX were obsoleted since 2.7
+            if objType == "Icon":
+                v = p.get("styleWidget0")
+                if v:
+                    p["comboEdit_Opacity"] = v
+
+                v = p.get("styleWidget1")
+                if v:
+                    p["comboEdit_FilePath"] = v
+
+                self._style2geom(p, 2, 1)
+
+            elif objType == "Model File":
+                v = p.get("styleWidget0")
+                if v:
+                    p["expression_FilePath"] = v
+
+                self._style2geom(p, 1, 5)
+
+            else:
+                # color and opacity
+                v = p.get("styleWidget0")
+                if v:
+                    p["comboEdit_Color"] = v
+
+                v = p.get("styleWidget1")
+                if v:
+                    p["comboEdit_Opacity"] = v
+
+                # other widgets
+                if geomType == q3dconst.TYPE_POINT:
+                    if objType == "Point":
+                        v = p.get("styleWidget2")
+                        if v:
+                            p["mtlWidget0"] = v        # size
+
+                    else:
+                        self._style2geom(p, 2, 4)
+
+                elif geomType == q3dconst.TYPE_LINESTRING:
+                    if objType == "Line":
+                        v = p.get("styleWidget2")
+                        if v:
+                            p["mtlWidget0"] = v    # dashed
+
+                    elif objType == "Wall":
+                        v = p.get("styleWidget2")
+                        if v:
+                            p["comboEdit_altitude2"] = v
+
+                    else:
+                        self._style2geom(p, 2, 2)
+
+                elif geomType == q3dconst.TYPE_POLYGON:
+                    if objType == "Extruded":
+                        self._style2geom(p, 2, 1)
+
+                        v = p.get("styleWidget3")
+                        if v:
+                            p["comboEdit_Color2"] = v
+
+                    elif objType == "Overlay":
+                        v = p.get("styleWidget2")
+                        if v:
+                            p["comboEdit_Color2"] = v
+
+        self.loadSettings(settings)
+
+    def _style2geom(self, properties, offset=0, count=q3dconst.GEOM_WIDGET_MAX_COUNT):
+        for i in range(count):
+            v = properties.get("styleWidget" + str(i + offset))
+            if v:
+                properties["geomWidget" + str(i)] = v
 
 
 def deepcopyExcept(obj, key_to_remove):

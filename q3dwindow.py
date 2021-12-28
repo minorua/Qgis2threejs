@@ -514,19 +514,13 @@ class PropertiesDialog(QDialog):
     def setLayer(self, layer):
         self.layer = layer.clone()      # create a copy of Layer object
         if self.layer.geomType == q3dconst.TYPE_DEM:
-            self.page = DEMPropertyPage(self)
-            self.page.setup(self.layer,
-                            self.settings,
-                            self.qgisIface.mapCanvas().mapSettings())
+            self.page = DEMPropertyPage(self, self.layer, self.settings, self.qgisIface.mapCanvas().mapSettings())
 
         elif self.layer.geomType == q3dconst.TYPE_POINTCLOUD:
-            self.page = PointCloudPropertyPage(self)
-            self.page.setup(self.layer)
+            self.page = PointCloudPropertyPage(self, self.layer)
 
         else:
-            self.page = VectorPropertyPage(self)
-            self.page.setup(self.layer,
-                            self.settings)
+            self.page = VectorPropertyPage(self, self.layer, self.settings)
 
         self.ui.scrollArea.setWidget(self.page)
 
@@ -543,7 +537,7 @@ class PropertiesDialog(QDialog):
                 if isinstance(self.page, PointCloudPropertyPage):
                     self.layer.name = self.page.lineEdit_Name.text()
 
-                self.layer.properties = self.page.properties()
+                self.layer.properties = self.page.properties(only_visible=True)
                 self.propertiesAccepted.emit(self.layer)
 
     def showLayerProperties(self, layer):
@@ -554,8 +548,7 @@ class PropertiesDialog(QDialog):
 
     def showSceneProperties(self):
         self.setWindowTitle("Scene Settings")
-        self.page = ScenePropertyPage(self)
-        self.page.setup(self.settings.sceneProperties(), self.qgisIface.mapCanvas().mapSettings(), self.qgisIface.mapCanvas())
+        self.page = ScenePropertyPage(self, self.settings.sceneProperties(), self.qgisIface.mapCanvas())
         self.ui.scrollArea.setWidget(self.page)
         self.show()
         self.exec_()

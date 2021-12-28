@@ -36,3 +36,49 @@ SCRIPT_PATH = {
     SCRIPT_MESHLINE: "meshline/THREE.MeshLine.js",
     SCRIPT_FETCH: "unfetch/unfetch.js"
 }
+
+# Layer properties
+GEOM_WIDGET_MAX_COUNT = 4
+MTL_WIDGET_MAX_COUNT = 2        # except for color, color2 and opacity
+
+
+class PropertyID:
+
+    ALT = 1
+    ALT2 = 2
+
+    PATH = 3
+
+    G0 = 10
+    G1 = 11
+    G2 = 12
+    G3 = 13
+
+    C = 20
+    C2 = 21
+    OP = 22
+    M0 = 23
+    M1 = 24
+
+    LBLH = 30
+
+    PID_NAME_DICT = {
+        ALT: "fieldExpressionWidget_altitude",
+        ALT2: "comboEdit_altitude2",
+        PATH: "comboEdit_FilePath",
+        C: "comboEdit_Color",
+        C2: "comboEdit_Color2",
+        OP: "comboEdit_Opacity",
+        LBLH: "labelHeightWidget"
+    }
+
+    @classmethod
+    def init(cls):
+        for i in range(GEOM_WIDGET_MAX_COUNT):
+            cls.PID_NAME_DICT[cls.G0 + i] = "geomWidget" + str(i)
+
+        for i in range(MTL_WIDGET_MAX_COUNT):
+            cls.PID_NAME_DICT[cls.M0 + i] = "mtlWidget" + str(i)
+
+
+PropertyID.init()
