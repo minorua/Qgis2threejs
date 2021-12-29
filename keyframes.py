@@ -27,7 +27,7 @@ from qgis.core import QgsApplication
 
 from . import q3dconst
 from .conf import DEBUG_MODE, DEF_SETS
-from .qgis2threejstools import logMessage
+from .tools import logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 
 

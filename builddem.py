@@ -30,7 +30,7 @@ from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
-from .qgis2threejstools import logMessage
+from .tools import logMessage
 
 
 class DEMLayerBuilder(LayerBuilder):

@@ -21,7 +21,7 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 
 from .conf import DEBUG_MODE
-from .qgis2threejstools import logMessage
+from .tools import logMessage
 
 
 class Q3DInterface(QObject):

@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.core import Qgis, QgsApplication, QgsProject
 
 from .export import ThreeJSExporter
-from .qgis2threejstools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
+from .tools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 

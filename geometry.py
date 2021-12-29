@@ -26,7 +26,7 @@ from qgis.core import (
 
 from .earcut import earcut
 
-from .qgis2threejstools import logMessage
+from .tools import logMessage
 
 
 class VectorGeometry:

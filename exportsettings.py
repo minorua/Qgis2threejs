@@ -28,8 +28,8 @@ from . import q3dconst
 from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .pluginmanager import pluginManager
 from .mapextent import MapExtent
-from .qgis2threejscore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
-from .qgis2threejstools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
+from .q3dcore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
+from .tools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 
 
 class BuildOptions:

@@ -25,8 +25,8 @@ from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
-from . import qgis2threejstools as tools
-from .qgis2threejstools import logMessage
+from . import tools
+from .tools import logMessage
 
 
 class DataManager:

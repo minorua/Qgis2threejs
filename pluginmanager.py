@@ -23,7 +23,7 @@ import importlib
 import sys
 
 from PyQt5.QtCore import QDir, QSettings
-from .qgis2threejstools import logMessage, pluginDir
+from .tools import logMessage, pluginDir
 
 
 _pluginManager = None

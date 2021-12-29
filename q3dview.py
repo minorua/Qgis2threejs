@@ -38,7 +38,7 @@ except ModuleNotFoundError:
     raise
 
 from . import q3dconst
-from .qgis2threejstools import js_bool, logMessage, pluginDir
+from .tools import js_bool, logMessage, pluginDir
 
 
 def base64image(image):

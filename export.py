@@ -35,7 +35,7 @@ from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
 from . import q3dconst
-from . import qgis2threejstools as tools
+from . import tools
 
 
 class ThreeJSExporter(ThreeJSBuilder):

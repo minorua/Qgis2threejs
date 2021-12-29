@@ -27,7 +27,7 @@ from PyQt5.QtCore import QSize
 
 from .geometry import GridGeometry
 from .mapextent import MapExtent
-from .qgis2threejstools import logMessage
+from .tools import logMessage
 
 
 class MapTo3D:

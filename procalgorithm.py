@@ -43,7 +43,7 @@ from qgis.core import (QgsCoordinateTransform,
 from .conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
 from .export import ThreeJSExporter, ImageExporter, ModelExporter
 from .exportsettings import ExportSettings
-from .qgis2threejstools import logMessage, openDirectory
+from .tools import logMessage, openDirectory
 from .mapextent import MapExtent
 
 

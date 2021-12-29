@@ -27,7 +27,7 @@ from qgis.core import QgsApplication, QgsProject
 
 from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
-from .qgis2threejstools import logMessage, pluginDir, removeTemporaryOutputDir
+from .tools import logMessage, pluginDir, removeTemporaryOutputDir
 from .q3dwindow import Q3DWindow
 
 

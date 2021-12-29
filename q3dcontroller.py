@@ -26,7 +26,7 @@ from . import q3dconst
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings, Layer
-from .qgis2threejstools import js_bool, logMessage
+from .tools import js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
@@ -297,7 +297,7 @@ class Q3DController(QObject):
 
             if obj:
                 self.iface.loadJSONObject(obj)
-    
+
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1
 

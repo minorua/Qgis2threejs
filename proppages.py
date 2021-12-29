@@ -45,10 +45,10 @@ from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
-from .qgis2threejscore import calculateGridSegments
-from .qgis2threejstools import getLayersInProject, logMessage
+from .q3dcore import calculateGridSegments
+from .tools import getLayersInProject, logMessage
 from .propwidget import PropertyWidget
-from . import qgis2threejstools as tools
+from . import tools
 from .vectorobject import ObjectType
 
 PAGE_NONE = 0
@@ -146,7 +146,7 @@ class PropertyPage(QWidget):
             elif isinstance(w, QgsColorButton):
                 v = w.color().name().replace("#", "0x")
             else:
-                logMessage("[propertypages.py] Not recognized widget type: " + str(type(w)))
+                logMessage("[proppages.py] Not recognized widget type: " + str(type(w)))
 
             p[w.objectName()] = v
 

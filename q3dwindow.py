@@ -31,10 +31,10 @@ from . import q3dconst
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings, Layer
 from .pluginmanager import pluginManager
-from .propertypages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
+from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .qgis2threejstools import logMessage, pluginDir
+from .tools import logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -324,7 +324,7 @@ class Q3DWindow(QMainWindow):
 
     # File menu
     def exportToWeb(self):
-        from .exporttowebdialog import ExportToWebDialog
+        from .exportdialog import ExportToWebDialog
 
         self.settings.setAnimationData(self.ui.animationPanel.tree.data())
 

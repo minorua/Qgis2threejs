@@ -21,7 +21,7 @@ from qgis.core import QgsProcessingProvider
 
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
-from .qgis2threejstools import pluginDir
+from .tools import pluginDir
 
 QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
 
