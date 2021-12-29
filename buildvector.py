@@ -424,8 +424,8 @@ class FeatureBlockBuilder:
             if f.attributes is not None:
                 d["prop"] = f.attributes
 
-                if f.labelHeight is not None:
-                    d["lh"] = f.labelHeight
+                if f.hasProp(PID.LBLH):
+                    d["lh"] = f.prop(PID.LBLH)
 
             feats.append(d)
 

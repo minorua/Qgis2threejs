@@ -756,8 +756,6 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # [label]
         hasRPt = (geomType in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
-        self.setLayoutVisible(self.formLayout_Label, hasRPt)
-        self.labelHeightWidget.setVisible(hasRPt)
         if hasRPt:
             self.comboBox_Label.addItem("(No label)")
             fields = mapLayer.fields()
@@ -766,6 +764,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
             defaultLabelHeight = 5
             self.labelHeightWidget.setup(StyleWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
+
+        self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
 
         # register widgets
         widgets = [self.comboBox_ObjectType]
@@ -857,9 +857,11 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
 
     def exportAttrsToggled(self, checked):
-        self.setLayoutEnabled(self.formLayout_Label, checked)
-        self.labelHeightWidget.setVisible(checked)
+        if checked and self.layer.geomType == q3dconst.TYPE_LINESTRING:
+            return
 
+        self.setWidgetsVisible([self.label, self.comboBox_Label, self.labelHeightWidget], checked)
+        # self.setLayoutVisible(self.gridLayout_Label, checked)   # FIXME: doesn't work correctly...
 
 class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
 
