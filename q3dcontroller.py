@@ -25,7 +25,8 @@ from qgis.core import QgsApplication
 from . import q3dconst
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
-from .exportsettings import ExportSettings, Layer
+from .exportsettings import ExportSettings
+from .q3dcore import Layer
 from .tools import js_bool, logMessage
 
 
@@ -348,7 +349,7 @@ class Q3DController(QObject):
                     else:
                         self.hideLayer(item)
                 else:
-                    self.iface.runScript(item.get("string") , item.get("data"))
+                    self.iface.runScript(item.get("string"), item.get("data"))
 
         except Exception as e:
             import traceback

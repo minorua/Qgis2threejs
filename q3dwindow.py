@@ -29,9 +29,10 @@ from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import q3dconst
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
-from .exportsettings import ExportSettings, Layer
+from .exportsettings import ExportSettings
 from .pluginmanager import pluginManager
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
+from .q3dcore import Layer
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .tools import logMessage, pluginDir

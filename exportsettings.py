@@ -22,105 +22,14 @@ import json
 from copy import deepcopy
 
 from PyQt5.QtCore import QSettings, QSize
-from qgis.core import QgsMapLayer, QgsMapSettings, QgsPointXY, QgsProject, QgsWkbTypes
+from qgis.core import QgsMapSettings, QgsPointXY, QgsProject
 
 from . import q3dconst
 from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .pluginmanager import pluginManager
 from .mapextent import MapExtent
-from .q3dcore import MapTo3D, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
+from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
 from .tools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
-
-
-class BuildOptions:
-
-    def __init__(self):
-        self.onlyMaterial = False
-        self.allMaterials = False
-
-
-class Layer:
-
-    def __init__(self, layerId, name, geomType, properties=None, visible=True):
-        self.layerId = layerId
-        self.name = name
-        self.geomType = geomType        # q3dconst.TYPE_XXX
-        self.properties = properties or {}
-        self.visible = visible
-
-        # internal use
-        self.jsLayerId = None
-        self.mapLayer = None
-        self.opt = BuildOptions()
-
-    def material(self, mtlId):
-        for mtl in self.properties.get("materials", []):
-            if mtl.get("id") == mtlId:
-                return mtl
-        return {}
-
-    def mtlIndex(self, mtlId):
-        for i, mtl in enumerate(self.properties.get("materials", [])):
-            if mtl.get("id") == mtlId:
-                return i
-        return None
-
-    def clone(self):
-        c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
-        c.jsLayerId = self.jsLayerId
-        c.mapLayer = self.mapLayer
-        return c
-
-    def copyTo(self, t):
-        t.layerId = self.layerId
-        t.name = self.name
-        t.geomType = self.geomType
-        t.properties = deepcopy(self.properties)
-        t.visible = self.visible
-
-        t.jsLayerId = self.jsLayerId
-        t.mapLayer = self.mapLayer
-
-    def toDict(self):
-        return {"layerId": self.layerId,
-                "name": self.name,
-                "geomType": self.geomType,
-                "properties": self.properties,
-                "visible": self.visible}
-
-    @classmethod
-    def fromDict(self, obj):
-        id = obj["layerId"]
-        gt = obj["geomType"]
-
-        lyr = Layer(id, obj["name"], gt, obj["properties"], obj["visible"])
-
-        if gt != q3dconst.TYPE_POINTCLOUD:
-            lyr.mapLayer = QgsProject.instance().mapLayer(id)
-        return lyr
-
-    @classmethod
-    def fromQgsMapLayer(cls, mapLayer):
-        lyr = Layer(mapLayer.id(), mapLayer.name(), cls.getGeometryType(mapLayer), visible=False)
-        lyr.mapLayer = mapLayer
-        return lyr
-
-    @classmethod
-    def getGeometryType(cls, mapLayer):
-        """mapLayer: QgsMapLayer sub-class object"""
-        layerType = mapLayer.type()
-        if layerType == QgsMapLayer.VectorLayer:
-            return {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
-                    QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON}.get(mapLayer.geometryType())
-
-        elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
-            return q3dconst.TYPE_DEM
-
-        return None
-
-    def __deepcopy__(self, memo):
-        return self.clone()
 
 
 class ExportSettings:

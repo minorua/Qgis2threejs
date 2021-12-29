@@ -23,8 +23,9 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import QSize, Qt, QDir, QPoint, QUrl, QUuid
-from PyQt5.QtWidgets import QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QFormLayout, QLabel, QLineEdit, QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt, QDir, QPoint, QUrl, QUuid
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QLineEdit,
+                             QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from PyQt5.QtGui import QColor, QCursor
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
@@ -336,7 +337,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.checkBox_FixAspectRatio.setChecked(False)
 
         r = self.mapTool.rectangle()
-        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation()) # get current map settings
+        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation())  # get current map settings
         self.setExtent(extent)
 
         self.mapTool.reset()
@@ -864,6 +865,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         self.setWidgetsVisible([self.label, self.comboBox_Label, self.labelHeightWidget], checked)
         # self.setLayoutVisible(self.gridLayout_Label, checked)   # FIXME: doesn't work correctly...
+
 
 class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
 
