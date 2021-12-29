@@ -22,7 +22,7 @@
 from qgis.core import QgsWkbTypes
 
 from .q3dconst import PropertyID as PID
-from .stylewidget import StyleWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .propwidget import PropertyWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 
 
 class ObjectTypeBase:
@@ -210,7 +210,7 @@ class LineType(LineBasicTypeBase):
     name = "Line"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": StyleWidget.CHECKBOX}])
+        ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
 
     def material(self, feat):
         return self.mtlManager.getLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
@@ -225,7 +225,7 @@ class ThickLineType(LineBasicTypeBase):
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defaultValue": 1},
-                                     {"name": "Dashed", "type": StyleWidget.CHECKBOX}])
+                                     {"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
 
     def material(self, feat):
         return self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0), feat.prop(PID.M1))

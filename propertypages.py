@@ -47,7 +47,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .qgis2threejscore import calculateGridSegments
 from .qgis2threejstools import getLayersInProject, logMessage
-from .stylewidget import StyleWidget
+from .propwidget import PropertyWidget
 from . import qgis2threejstools as tools
 from .vectorobject import ObjectType
 
@@ -139,7 +139,7 @@ class PropertyPage(QWidget):
                 v = w.value()
             elif isinstance(w, QLineEdit):
                 v = w.text()
-            elif isinstance(w, StyleWidget):
+            elif isinstance(w, PropertyWidget):
                 v = w.values()
             elif isinstance(w, QgsFieldExpressionWidget):
                 v = w.expression()
@@ -175,7 +175,7 @@ class PropertyPage(QWidget):
                 w.setText(v)
                 w.setCursorPosition(0)
 
-            elif isinstance(w, StyleWidget):
+            elif isinstance(w, PropertyWidget):
                 if len(v):
                     w.setValues(v)
 
@@ -729,22 +729,22 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
             name = "geomWidget{}".format(i)
 
-            w = StyleWidget(self.groupBox_Geometry)
+            w = PropertyWidget(self.groupBox_Geometry)
             w.setObjectName(name)
 
             self.geomWidgets.append(w)
             self.verticalLayout_Geometry.addWidget(w)
 
         # [material]
-        self.comboEdit_Color.setup(StyleWidget.COLOR, mapLayer)
-        self.comboEdit_Color2.setup(StyleWidget.OPTIONAL_COLOR, mapLayer)
-        self.comboEdit_Opacity.setup(StyleWidget.OPACITY, mapLayer)
+        self.comboEdit_Color.setup(PropertyWidget.COLOR, mapLayer)
+        self.comboEdit_Color2.setup(PropertyWidget.OPTIONAL_COLOR, mapLayer)
+        self.comboEdit_Opacity.setup(PropertyWidget.OPACITY, mapLayer)
 
         self.mtlWidgets = []
         for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
             name = "mtlWidget{}".format(i)
 
-            w = StyleWidget(self.groupBox_Material)
+            w = PropertyWidget(self.groupBox_Material)
             w.setObjectName(name)
 
             self.mtlWidgets.append(w)
@@ -763,7 +763,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
                 self.comboBox_Label.addItem(fields[i].name(), i)
 
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(StyleWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
+            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
 
         self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
 
@@ -784,7 +784,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             btn.toggled.connect(self.zValueRadioButtonToggled)
         self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
-        # set up style widgets for selected object type
+        # set up widgets for selected object type
         self.objectTypeChanged()
 
         # restore other properties for the layer
@@ -813,16 +813,16 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         self.comboEdit_altitude2.setVisible(alt2)
         if alt2:
-            self.comboEdit_altitude2.setup(StyleWidget.EXPRESSION, self.layer.mapLayer, {"name": "Other side Z"})
+            self.comboEdit_altitude2.setup(PropertyWidget.EXPRESSION, self.layer.mapLayer, {"name": "Other side Z"})
 
         self.groupBox_FilePath.setVisible(bool(filepath))
         if filepath:
-            self.comboEdit_FilePath.setup(StyleWidget.FILEPATH, self.layer.mapLayer, filepath)
+            self.comboEdit_FilePath.setup(PropertyWidget.FILEPATH, self.layer.mapLayer, filepath)
 
         # geometry
         geomItems = geomItems or []
         for i, item in enumerate(geomItems):
-            self.geomWidgets[i].setup(item.get("type", StyleWidget.EXPRESSION), self.layer.mapLayer, item)
+            self.geomWidgets[i].setup(item.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, item)
 
         for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
             self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
@@ -832,13 +832,13 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         self.comboEdit_Color2.setVisible(bool(color2))
         if color2:
-            self.comboEdit_Color2.setup(StyleWidget.OPTIONAL_COLOR, self.layer.mapLayer, color2)
+            self.comboEdit_Color2.setup(PropertyWidget.OPTIONAL_COLOR, self.layer.mapLayer, color2)
 
         self.comboEdit_Opacity.setVisible(opacity)
 
         mtlItems = mtlItems or []
         for i, item in enumerate(mtlItems):
-            self.mtlWidgets[i].setup(item.get("type", StyleWidget.EXPRESSION), self.layer.mapLayer, item)
+            self.mtlWidgets[i].setup(item.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, item)
 
         for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
             self.mtlWidgets[i].setVisible(bool(i < len(mtlItems)))

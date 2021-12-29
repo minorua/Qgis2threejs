@@ -32,7 +32,7 @@ from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import PropertyID as PID
 from .qgis2threejstools import logMessage
-from .stylewidget import StyleWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
 
@@ -224,7 +224,7 @@ class VectorLayer:
                 val = self.evaluateExpression(p, feat) or 0
 
             elif isinstance(p, dict):
-                val = self.evaluateStyleWidget(name, feat)
+                val = self.evaluatePropertyWidget(name, feat)
 
             if val is not None:
                 d[pid] = val or 0
@@ -238,19 +238,19 @@ class VectorLayer:
         self.expressionContext.setFeature(f)
         return self._exprs[expr_str].evaluate(self.expressionContext)
 
-    def evaluateStyleWidget(self, name, feat):
+    def evaluatePropertyWidget(self, name, feat):
         wv = self.properties.get(name)
         if not wv:
             return None
 
         t = wv["type"]
-        if t == StyleWidget.COLOR:
+        if t == PropertyWidget.COLOR:
             return self.readFillColor(wv, feat)
 
-        if t == StyleWidget.OPACITY:
+        if t == PropertyWidget.OPACITY:
             return self.readOpacity(wv, feat)
 
-        if t in (StyleWidget.EXPRESSION, StyleWidget.LABEL_HEIGHT):
+        if t in (PropertyWidget.EXPRESSION, PropertyWidget.LABEL_HEIGHT):
             expr = wv["editText"] or "0"
             val = self.evaluateExpression(expr, feat)
             if val is not None:
@@ -263,16 +263,16 @@ class VectorLayer:
 
             return 0
 
-        if t == StyleWidget.OPTIONAL_COLOR:
+        if t == PropertyWidget.OPTIONAL_COLOR:
             return self.readBorderColor(wv, feat)
 
-        if t == StyleWidget.CHECKBOX:
+        if t == PropertyWidget.CHECKBOX:
             return wv["checkBox"]
 
-        if t == StyleWidget.COMBOBOX:
+        if t == PropertyWidget.COMBOBOX:
             return wv["comboData"]
 
-        if t == StyleWidget.FILEPATH:
+        if t == PropertyWidget.FILEPATH:
             expr = wv["editText"]
             val = self.evaluateExpression(expr, feat)
             if val is None:
@@ -280,7 +280,7 @@ class VectorLayer:
 
             return val or ""
 
-        if t == StyleWidget.COLOR_TEXTURE:
+        if t == PropertyWidget.COLOR_TEXTURE:
             comboData = wv.get("comboData")
             if comboData == ColorTextureWidgetFunc.MAP_CANVAS:
                 return comboData

@@ -140,7 +140,7 @@
        </layout>
       </item>
       <item>
-       <widget class="StyleWidget" name="comboEdit_altitude2" native="true"/>
+       <widget class="PropertyWidget" name="comboEdit_altitude2" native="true"/>
       </item>
      </layout>
     </widget>
@@ -152,7 +152,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
-       <widget class="StyleWidget" name="comboEdit_FilePath" native="true"/>
+       <widget class="PropertyWidget" name="comboEdit_FilePath" native="true"/>
       </item>
      </layout>
     </widget>
@@ -176,13 +176,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_Material">
       <item>
-       <widget class="StyleWidget" name="comboEdit_Color" native="true"/>
+       <widget class="PropertyWidget" name="comboEdit_Color" native="true"/>
       </item>
       <item>
-       <widget class="StyleWidget" name="comboEdit_Color2" native="true"/>
+       <widget class="PropertyWidget" name="comboEdit_Color2" native="true"/>
       </item>
       <item>
-       <widget class="StyleWidget" name="comboEdit_Opacity" native="true"/>
+       <widget class="PropertyWidget" name="comboEdit_Opacity" native="true"/>
       </item>
      </layout>
     </widget>
@@ -271,7 +271,7 @@
          </widget>
         </item>
         <item row="1" column="0" colspan="2">
-         <widget class="StyleWidget" name="labelHeightWidget" native="true"/>
+         <widget class="PropertyWidget" name="labelHeightWidget" native="true"/>
         </item>
        </layout>
       </item>
@@ -330,9 +330,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>StyleWidget</class>
+   <class>PropertyWidget</class>
    <extends>QWidget</extends>
-   <header>Qgis2threejs.stylewidget</header>
+   <header>Qgis2threejs.propwidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -459,7 +459,7 @@ class ComboBoxWidgetFunc(WidgetFuncBase):
             self.widget.comboBox.setCurrentIndex(index)
 
 
-class StyleWidget(QWidget, Ui_ComboEditWidget):
+class PropertyWidget(QWidget, Ui_ComboEditWidget):
     # function types
     EXPRESSION = 1
     COLOR = 2
