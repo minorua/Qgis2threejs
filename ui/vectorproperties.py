@@ -73,7 +73,7 @@ class Ui_VectorPropertiesWidget(object):
         self.label_zExpression.setObjectName("label_zExpression")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_zExpression)
         self.verticalLayout_8.addLayout(self.formLayout)
-        self.comboEdit_altitude2 = QtWidgets.QWidget(self.groupBox_zCoordinate)
+        self.comboEdit_altitude2 = StyleWidget(self.groupBox_zCoordinate)
         self.comboEdit_altitude2.setObjectName("comboEdit_altitude2")
         self.verticalLayout_8.addWidget(self.comboEdit_altitude2)
         self.verticalLayout_2.addWidget(self.groupBox_zCoordinate)

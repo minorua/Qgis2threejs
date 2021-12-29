@@ -140,7 +140,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QWidget" name="comboEdit_altitude2" native="true"/>
+       <widget class="StyleWidget" name="comboEdit_altitude2" native="true"/>
       </item>
      </layout>
     </widget>

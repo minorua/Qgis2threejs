@@ -279,14 +279,14 @@ class WallType(LineBasicTypeBase):
     name = "Wall"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(otherZ=True)
+        ppage.setupWidgets(alt2=True)
 
     def material(self, feat):
         return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(),
-                "bh": feat.prop(PID.Z2) * self.settings.mapTo3d().multiplierZ}
+                "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().multiplierZ}
 
 
 # PolygonBasicType

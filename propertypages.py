@@ -812,6 +812,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     def setupWidgets(self, filepath=None, geomItems=None, color=True, color2=None, opacity=True, mtlItems=None, alt2=False):
 
         self.comboEdit_altitude2.setVisible(alt2)
+        if alt2:
+            self.comboEdit_altitude2.setup(StyleWidget.EXPRESSION, self.layer.mapLayer, {"name": "Other side Z"})
 
         self.groupBox_FilePath.setVisible(bool(filepath))
         if filepath:
