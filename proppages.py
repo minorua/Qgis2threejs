@@ -379,7 +379,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.mapSettings = mapSettings
 
         widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
-        widgets += [self.checkBox_Surroundings, self.spinBox_Size, self.spinBox_Roughening]
+        widgets += [self.checkBox_Tiles, self.spinBox_Size, self.spinBox_Roughening]
         widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
         widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
         widgets += [self.checkBox_Sides, self.toolButton_SideColor,
@@ -396,7 +396,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
 
         self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
-        self.checkBox_Surroundings.toggled.connect(self.surroundingsToggled)
+        self.checkBox_Tiles.toggled.connect(self.tilesToggled)
         self.checkBox_Clip.toggled.connect(self.clipToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
 
@@ -450,7 +450,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.setProperties(properties)
 
         # set enablement and visibility of widgets
-        self.surroundingsToggled(self.checkBox_Surroundings.isChecked())
+        self.tilesToggled(self.checkBox_Tiles.isChecked())
         self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
 
     def initLayerComboBox(self):
@@ -465,7 +465,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     def resolutionSliderChanged(self, v):
         resolutionLevel = self.horizontalSlider_DEMSize.value()
-        roughness = self.spinBox_Roughening.value() if self.checkBox_Surroundings.isChecked() else 0
+        roughness = self.spinBox_Roughening.value() if self.checkBox_Tiles.isChecked() else 0
         gridSegments = calculateGridSegments(self.extent, resolutionLevel, roughness)
 
         tip = """Level: {0}
@@ -508,7 +508,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if filename:
             self.lineEdit_ImageFile.setText(filename)
 
-    def surroundingsToggled(self, checked):
+    def tilesToggled(self, checked):
         self.setLayoutVisible(self.gridLayout_Surroundings, checked)
         self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
 

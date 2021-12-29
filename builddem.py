@@ -115,10 +115,10 @@ class DEMLayerBuilder(LayerBuilder):
             if clip_layer:
                 clip_geometry = dissolvePolygonsWithinExtent(clip_layer, be, self.settings.crs)
 
-        # surroundings
-        surroundings = self.properties.get("checkBox_Surroundings", False)
-        roughness = self.properties.get("spinBox_Roughening", 1) if surroundings else 1
-        size = self.properties.get("spinBox_Size", 1) if surroundings else 1
+        # tiles (old name: surrounding blocks)
+        tiles = self.properties.get("checkBox_Tiles", False)
+        roughness = self.properties.get("spinBox_Roughening", 1) if tiles else 1
+        size = self.properties.get("spinBox_Size", 1) if tiles else 1
         size2 = size * size
 
         centerBlk = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)

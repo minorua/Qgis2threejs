@@ -406,7 +406,7 @@ class ExportSettings:
         if layer:
             return calculateGridSegments(self.baseExtent(),
                                          layer.properties.get("horizontalSlider_DEMSize", 2),
-                                         layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Surroundings") else 0)
+                                         layer.properties.get("spinBox_Roughening", 0) if layer.properties.get("checkBox_Tiles") else 0)
         return QSize(1, 1)
 
     # widgets
@@ -492,79 +492,85 @@ class ExportSettings:
             geomType = layer.geomType
             p = layer.properties
 
-            objType = p.get("comboBox_ObjectType")
+            if geomType in (q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON):
+                objType = p.get("comboBox_ObjectType")
 
-            # two object types were renamed in 2.4
-            if objType == "Profile":
-                p["comboBox_ObjectType"] = "Wall"
-            elif objType == "Triangular Mesh":
-                p["comboBox_ObjectType"] = "Polygon"
+                # two object types were renamed in 2.4
+                if objType == "Profile":
+                    p["comboBox_ObjectType"] = "Wall"
+                elif objType == "Triangular Mesh":
+                    p["comboBox_ObjectType"] = "Polygon"
 
-            # styleWidgetX were obsoleted since 2.7
-            if objType == "Icon":
-                v = p.get("styleWidget0")
+                # styleWidgetX were obsoleted since 2.7
+                if objType == "Icon":
+                    v = p.get("styleWidget0")
+                    if v:
+                        p["comboEdit_Opacity"] = v
+
+                    v = p.get("styleWidget1")
+                    if v:
+                        p["comboEdit_FilePath"] = v
+
+                    self._style2geom(p, 2, 1)
+
+                elif objType == "Model File":
+                    v = p.get("styleWidget0")
+                    if v:
+                        p["expression_FilePath"] = v
+
+                    self._style2geom(p, 1, 5)
+
+                else:
+                    # color and opacity
+                    v = p.get("styleWidget0")
+                    if v:
+                        p["comboEdit_Color"] = v
+
+                    v = p.get("styleWidget1")
+                    if v:
+                        p["comboEdit_Opacity"] = v
+
+                    # other widgets
+                    if geomType == q3dconst.TYPE_POINT:
+                        if objType == "Point":
+                            v = p.get("styleWidget2")
+                            if v:
+                                p["mtlWidget0"] = v        # size
+
+                        else:
+                            self._style2geom(p, 2, 4)
+
+                    elif geomType == q3dconst.TYPE_LINESTRING:
+                        if objType == "Line":
+                            v = p.get("styleWidget2")
+                            if v:
+                                p["mtlWidget0"] = v    # dashed
+
+                        elif objType == "Wall":
+                            v = p.get("styleWidget2")
+                            if v:
+                                p["comboEdit_altitude2"] = v
+
+                        else:
+                            self._style2geom(p, 2, 2)
+
+                    elif geomType == q3dconst.TYPE_POLYGON:
+                        if objType == "Extruded":
+                            self._style2geom(p, 2, 1)
+
+                            v = p.get("styleWidget3")
+                            if v:
+                                p["comboEdit_Color2"] = v
+
+                        elif objType == "Overlay":
+                            v = p.get("styleWidget2")
+                            if v:
+                                p["comboEdit_Color2"] = v
+
+            elif geomType == q3dconst.TYPE_DEM:
+                v = p.get("checkBox_Surroundings")      # renamed in 2.7
                 if v:
-                    p["comboEdit_Opacity"] = v
-
-                v = p.get("styleWidget1")
-                if v:
-                    p["comboEdit_FilePath"] = v
-
-                self._style2geom(p, 2, 1)
-
-            elif objType == "Model File":
-                v = p.get("styleWidget0")
-                if v:
-                    p["expression_FilePath"] = v
-
-                self._style2geom(p, 1, 5)
-
-            else:
-                # color and opacity
-                v = p.get("styleWidget0")
-                if v:
-                    p["comboEdit_Color"] = v
-
-                v = p.get("styleWidget1")
-                if v:
-                    p["comboEdit_Opacity"] = v
-
-                # other widgets
-                if geomType == q3dconst.TYPE_POINT:
-                    if objType == "Point":
-                        v = p.get("styleWidget2")
-                        if v:
-                            p["mtlWidget0"] = v        # size
-
-                    else:
-                        self._style2geom(p, 2, 4)
-
-                elif geomType == q3dconst.TYPE_LINESTRING:
-                    if objType == "Line":
-                        v = p.get("styleWidget2")
-                        if v:
-                            p["mtlWidget0"] = v    # dashed
-
-                    elif objType == "Wall":
-                        v = p.get("styleWidget2")
-                        if v:
-                            p["comboEdit_altitude2"] = v
-
-                    else:
-                        self._style2geom(p, 2, 2)
-
-                elif geomType == q3dconst.TYPE_POLYGON:
-                    if objType == "Extruded":
-                        self._style2geom(p, 2, 1)
-
-                        v = p.get("styleWidget3")
-                        if v:
-                            p["comboEdit_Color2"] = v
-
-                    elif objType == "Overlay":
-                        v = p.get("styleWidget2")
-                        if v:
-                            p["comboEdit_Color2"] = v
+                    p["checkBox_Tiles"] = v
 
         self.loadSettings(settings)
 
