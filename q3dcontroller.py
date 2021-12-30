@@ -470,15 +470,12 @@ class Q3DController(QObject):
     @pyqtSlot(bool)
     def setPreviewEnabled(self, enabled):
         self.enabled = enabled
-        self.iface.runScript("app.resume();" if enabled else "app.pause();")
+        self.iface.runScript("setPreviewEnabled({});".format(js_bool(enabled)))
 
-        elem = "document.getElementById('cover')"
-        self.iface.runScript("{}.style.display = '{}';".format(elem, "none" if enabled else "block"))
-        if not enabled:
-            self.iface.runScript("{}.innerHTML = '<img src=\"../Qgis2threejs.png\">';".format(elem))
-            self.abort()
-        else:
+        if enabled:
             self.buildScene()
+        else:
+            self.abort()
 
     @pyqtSlot(Layer)
     def addLayer(self, layer):

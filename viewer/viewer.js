@@ -247,6 +247,19 @@ function clearStatusMessage() {
   showStatusMessage("");
 }
 
+function setPreviewEnabled(enabled) {
+  var e = document.getElementById("cover");
+
+  if (enabled) {
+    app.resume();
+  }
+  else {
+    app.pause();
+    e.innerHTML = '<img src="../Qgis2threejs.png">';
+  }
+  e.style.display = (enabled) ? "none" : "block";
+}
+
 function setOutlineEffectEnabled(enabled) {
   if (enabled) {
     if (THREE.OutlineEffect === undefined) {
