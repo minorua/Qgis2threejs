@@ -47,7 +47,7 @@ from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
-from .q3dconst import LayerType
+from .q3dconst import LayerType, DEMMtlType
 from .tools import getLayersInProject, logMessage
 from .propwidget import PropertyWidget
 from . import tools
@@ -554,7 +554,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 "properties": item.data(self.MTL_PROPERTIES) or {}
             }
 
-            if item.type() == q3dconst.MTL_LAYER:
+            if item.type() == DEMMtlType.LAYER:
                 d["layerIds"] = item.data(self.MTL_LAYERIDS) or []
 
             mtls.append(d)
@@ -569,7 +569,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.listWidget_Materials.clear()
 
         for mtl in materials:
-            item = QListWidgetItem(mtl.get("name", ""), self.listWidget_Materials, mtl.get("type", q3dconst.MTL_MAPCANVAS))
+            item = QListWidgetItem(mtl.get("name", ""), self.listWidget_Materials, mtl.get("type", DEMMtlType.MAPCANVAS))
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
             item.setData(self.MTL_ID, mtl.get("id"))
             item.setData(self.MTL_PROPERTIES, mtl.get("properties"))
@@ -579,13 +579,13 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def addMaterial(self, action=None):
         id = QUuid.createUuid().toString()[1:9]
-        mtype = self.mtlAddActions.index(action) if action else q3dconst.MTL_MAPCANVAS
+        mtype = self.mtlAddActions.index(action) if action else DEMMtlType.MAPCANVAS
 
         name = {
-            q3dconst.MTL_LAYER: "Layer Image",
-            q3dconst.MTL_MAPCANVAS: "Map Image",
-            q3dconst.MTL_FILE: "Image File",
-            q3dconst.MTL_COLOR: "Solid Color"
+            DEMMtlType.LAYER: "Layer Image",
+            DEMMtlType.MAPCANVAS: "Map Image",
+            DEMMtlType.FILE: "Image File",
+            DEMMtlType.COLOR: "Solid Color"
         }.get(mtype, "")
 
         p = {
@@ -594,7 +594,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             "checkBox_Shading": True
         }
 
-        if mtype in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+        if mtype in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
             p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
@@ -605,7 +605,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if action:
             self.listWidget_Materials.setCurrentItem(item)
 
-            if mtype == q3dconst.MTL_LAYER:
+            if mtype == DEMMtlType.LAYER:
                 self.showLayerSelectDialog(item)
 
         return item
@@ -640,7 +640,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         PropertyPage.setProperties(self, current.data(self.MTL_PROPERTIES) or {})
 
         mtype = current.type()
-        if mtype == q3dconst.MTL_LAYER:
+        if mtype == DEMMtlType.LAYER:
             self.updateLayerImageLabel(current.data(self.MTL_LAYERIDS) or [])
 
         if previous and previous.type() == mtype:
@@ -648,13 +648,13 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         # set up widgets for current material type
         layers = image_size = image_file = color = tb = False
-        if mtype == q3dconst.MTL_LAYER:
+        if mtype == DEMMtlType.LAYER:
             layers = image_size = tb = True
 
-        elif mtype == q3dconst.MTL_MAPCANVAS:
+        elif mtype == DEMMtlType.MAPCANVAS:
             image_size = tb = True
 
-        elif mtype == q3dconst.MTL_FILE:
+        elif mtype == DEMMtlType.FILE:
             image_file = tb = True
 
         else:       # q3dconst.MTL_COLOR:
@@ -666,8 +666,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
         #TODO: enable shading
-        if mtype != q3dconst.MTL_COLOR:
-            self.checkBox_TransparentBackground.setText("Enable transparency" if mtype == q3dconst.MTL_FILE else "Transparent background")
+        if mtype != DEMMtlType.COLOR:
+            self.checkBox_TransparentBackground.setText("Enable transparency" if mtype == DEMMtlType.FILE else "Transparent background")
 
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):

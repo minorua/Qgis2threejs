@@ -5,11 +5,13 @@ class LayerType:
     POLYGON = 3
     POINTCLOUD = 4
 
-# DEM material type
-MTL_LAYER = 0
-MTL_MAPCANVAS = 1
-MTL_FILE = 2
-MTL_COLOR = 3
+
+class DEMMtlType:
+    LAYER = 0
+    MAPCANVAS = 1
+    FILE = 2
+    COLOR = 3
+
 
 # Script ID
 SCRIPT_PROJ4 = 1

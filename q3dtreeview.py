@@ -23,8 +23,8 @@ from PyQt5.QtGui import QColor, QIcon, QPixmap, QStandardItemModel, QStandardIte
 from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
-from . import q3dconst
-from .q3dconst import LayerType
+from .q3dconst import LayerType, DEMMtlType
+
 
 class Q3DTreeView(QTreeView):
     """layer tree view"""
@@ -131,16 +131,16 @@ class Q3DTreeView(QTreeView):
 
     def iconForMtl(self, mtl):
         mtype = mtl.get("type")
-        if mtype == q3dconst.MTL_LAYER:
+        if mtype == DEMMtlType.LAYER:
             return QgsApplication.getThemeIcon("algorithms/mAlgorithmMergeLayers.svg")
 
-        elif mtype == q3dconst.MTL_MAPCANVAS:
+        elif mtype == DEMMtlType.MAPCANVAS:
             return QgsApplication.getThemeIcon("mLayoutItemMap.svg")
 
-        elif mtype == q3dconst.MTL_FILE:
+        elif mtype == DEMMtlType.FILE:
             return QgsApplication.getThemeIcon("mIconFile.svg")
 
-        elif mtype == q3dconst.MTL_COLOR:
+        elif mtype == DEMMtlType.COLOR:
             color = mtl.get("properties", {}).get("colorButton_Color").replace("0x", "#")
             if color:
                 pixmap = QPixmap(32, 32)

@@ -24,12 +24,12 @@ import struct
 from PyQt5.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
-from . import q3dconst
 from .conf import DEBUG_MODE, DEF_SETS
 from .datamanager import MaterialManager
 from .buildlayer import LayerBuilder
 from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
+from .q3dconst import DEMMtlType
 from .tools import logMessage
 
 
@@ -95,7 +95,7 @@ class DEMLayerBuilder(LayerBuilder):
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
 
-        if self.mtlBuilder.currentMtlType() in (q3dconst.MTL_LAYER, q3dconst.MTL_MAPCANVAS):
+        if self.mtlBuilder.currentMtlType() in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
             # calculate extent with the same aspect ratio as current material texture image
             tex_size = DEMPropertyReader.textureSize(self.mtlBuilder.currentMtlProperties(), be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
@@ -479,17 +479,17 @@ class DEMMaterialBuilder:
         transp_background = p.get("checkBox_TransparentBackground", False)
 
         # material type
-        mtype = m.get("type", q3dconst.MTL_MAPCANVAS)
-        if mtype == q3dconst.MTL_MAPCANVAS:
+        mtype = m.get("type", DEMMtlType.MAPCANVAS)
+        if mtype == DEMMtlType.MAPCANVAS:
             mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
                                                        opacity, transp_background)
 
-        elif mtype == q3dconst.MTL_LAYER:
+        elif mtype == DEMMtlType.LAYER:
             layerids = m.get("layerIds", [])
             mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
                                                          opacity, transp_background)
 
-        elif mtype == q3dconst.MTL_FILE:
+        elif mtype == DEMMtlType.FILE:
             filepath = p.get("lineEdit_ImageFile", "")
             mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
 
@@ -517,7 +517,7 @@ class DEMMaterialBuilder:
         return self.layer.material(mtlId)
 
     def currentMtlType(self):
-        return self.currentMtl().get("type", q3dconst.MTL_MAPCANVAS)
+        return self.currentMtl().get("type", DEMMtlType.MAPCANVAS)
 
     def currentMtlProperties(self):
         return self.currentMtl().get("properties", {})
