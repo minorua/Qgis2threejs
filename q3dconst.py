@@ -1,9 +1,9 @@
-# Layer geometry type
-TYPE_DEM = 0
-TYPE_POINT = 1
-TYPE_LINESTRING = 2
-TYPE_POLYGON = 3
-TYPE_POINTCLOUD = 4
+class LayerType:
+    DEM = 0
+    POINT = 1
+    LINESTRING = 2
+    POLYGON = 3
+    POINTCLOUD = 4
 
 # DEM material type
 MTL_LAYER = 0

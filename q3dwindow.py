@@ -33,6 +33,7 @@ from .exportsettings import ExportSettings
 from .pluginmanager import pluginManager
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcore import Layer
+from .q3dconst import LayerType
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .tools import logMessage, pluginDir
@@ -195,11 +196,11 @@ class Q3DWindow(QMainWindow):
 
     def loadIcons(self):
         self.icons = {
-            q3dconst.TYPE_DEM: QgsApplication.getThemeIcon("mIconRaster.svg"),
-            q3dconst.TYPE_POINT: QgsApplication.getThemeIcon("mIconPointLayer.svg"),
-            q3dconst.TYPE_LINESTRING: QgsApplication.getThemeIcon("mIconLineLayer.svg"),
-            q3dconst.TYPE_POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg"),
-            q3dconst.TYPE_POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("images", "pointcloud.svg"))
+            LayerType.DEM: QgsApplication.getThemeIcon("mIconRaster.svg"),
+            LayerType.POINT: QgsApplication.getThemeIcon("mIconPointLayer.svg"),
+            LayerType.LINESTRING: QgsApplication.getThemeIcon("mIconLineLayer.svg"),
+            LayerType.POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg"),
+            LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("images", "pointcloud.svg"))
         }
 
     def setupMenu(self):
@@ -442,7 +443,7 @@ class Q3DWindow(QMainWindow):
         layerId = "pc:" + name + datetime.now().strftime("%y%m%d%H%M%S")
         properties = {"url": url}
 
-        layer = Layer(layerId, name, q3dconst.TYPE_POINTCLOUD, properties, visible=True)
+        layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
         self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)
 
@@ -514,10 +515,10 @@ class PropertiesDialog(QDialog):
 
     def setLayer(self, layer):
         self.layer = layer.clone()      # create a copy of Layer object
-        if self.layer.geomType == q3dconst.TYPE_DEM:
+        if self.layer.type == LayerType.DEM:
             self.page = DEMPropertyPage(self, self.layer, self.settings, self.qgisIface.mapCanvas().mapSettings())
 
-        elif self.layer.geomType == q3dconst.TYPE_POINTCLOUD:
+        elif self.layer.type == LayerType.POINTCLOUD:
             self.page = PointCloudPropertyPage(self, self.layer)
 
         else:

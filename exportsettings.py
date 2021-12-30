@@ -29,6 +29,7 @@ from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .pluginmanager import pluginManager
 from .mapextent import MapExtent
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
+from .q3dconst import LayerType
 from .tools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
 
 
@@ -305,9 +306,9 @@ class ExportSettings:
         return [lyr.jsLayerId for lyr in self.getLayerList() if lyr.visible]
 
     def updateLayerList(self):
-        """Updates layer elements in settings using current project layer structure.
-           Adds layer elements newly added to the project and removes layer elements
-           deleted from the project. Also, renumbers layer ID."""
+        """Updates layer objects in settings using current project layer structure.
+           Adds layer objects newly added to the project and removes layer objects
+           deleted from the project. Layer IDs are renumbered."""
 
         # Point cloud layers
         layers = [lyr for lyr in self.getLayerList() if lyr.layerId.startswith("pc:")]
@@ -328,14 +329,14 @@ class ExportSettings:
             layerId = "plugin:" + plugin.providerId()
             item = self.getLayer(layerId)
             if item is None:
-                item = Layer(layerId, plugin.providerName(), q3dconst.TYPE_DEM, visible=False)
+                item = Layer(layerId, plugin.providerName(), LayerType.DEM, visible=False)
             layers.append(item)
 
         # Flat plane
         layerId = "FLAT"
         item = self.getLayer(layerId)
         if item is None:
-            item = Layer(layerId, "Flat Plane", q3dconst.TYPE_DEM, visible=False)
+            item = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
         layers.append(item)
 
         # renumber jsLayerId
@@ -489,10 +490,9 @@ class ExportSettings:
     # for backward compatibility
     def loadEarlierFormatData(self, settings):
         for layer in settings[ExportSettings.LAYERS]:
-            geomType = layer.geomType
             p = layer.properties
 
-            if geomType in (q3dconst.TYPE_POINT, q3dconst.TYPE_LINESTRING, q3dconst.TYPE_POLYGON):
+            if layer.type in (LayerType.POINT, LayerType.LINESTRING, LayerType.POLYGON):
                 objType = p.get("comboBox_ObjectType")
 
                 # two object types were renamed in 2.4
@@ -531,7 +531,7 @@ class ExportSettings:
                         p["comboEdit_Opacity"] = v
 
                     # other widgets
-                    if geomType == q3dconst.TYPE_POINT:
+                    if layer.type == LayerType.POINT:
                         if objType == "Point":
                             v = p.get("styleWidget2")
                             if v:
@@ -540,7 +540,7 @@ class ExportSettings:
                         else:
                             self._style2geom(p, 2, 4)
 
-                    elif geomType == q3dconst.TYPE_LINESTRING:
+                    elif layer.type == LayerType.LINESTRING:
                         if objType == "Line":
                             v = p.get("styleWidget2")
                             if v:
@@ -554,7 +554,7 @@ class ExportSettings:
                         else:
                             self._style2geom(p, 2, 2)
 
-                    elif geomType == q3dconst.TYPE_POLYGON:
+                    elif layer.type == LayerType.POLYGON:
                         if objType == "Extruded":
                             self._style2geom(p, 2, 1)
 
@@ -567,7 +567,7 @@ class ExportSettings:
                             if v:
                                 p["comboEdit_Color2"] = v
 
-            elif geomType == q3dconst.TYPE_DEM:
+            elif layer.type == LayerType.DEM:
                 v = p.get("checkBox_Surroundings")      # renamed in 2.7
                 if v:
                     p["checkBox_Tiles"] = v

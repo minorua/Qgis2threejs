@@ -32,6 +32,7 @@ from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
 from .exportsettings import ExportSettings
 from .q3dcontroller import Q3DController
+from .q3dconst import LayerType
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
 from . import q3dconst
@@ -158,9 +159,9 @@ class ThreeJSExporter(ThreeJSBuilder):
         layer = layer.clone()
         layer.opt.allMaterials = True
 
-        if layer.geomType == q3dconst.TYPE_DEM:
+        if layer.type == LayerType.DEM:
             builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
-        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+        elif layer.type == LayerType.POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer, log=self.log)
         else:
             builder = VectorLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
@@ -204,12 +205,12 @@ class ThreeJSExporter(ThreeJSBuilder):
         # layer-specific dependencies
         wl = pc = True
         for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:  # HACK: lyr.export
-            if layer.geomType == q3dconst.TYPE_LINESTRING:
+            if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
                     files.append({"dirs": ["js/meshline"]})
                     wl = False
 
-            elif layer.geomType == q3dconst.TYPE_POINTCLOUD and pc:
+            elif layer.type == LayerType.POINTCLOUD and pc:
                 files.append({"dirs": ["js/potree-core"], "subdirs": True})
                 files.append({"files": ["js/pointcloudlayer.js"]})
                 pc = False
@@ -262,11 +263,11 @@ class ThreeJSExporter(ThreeJSBuilder):
         # layer-specific dependencies
         wl = pc = True
         for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:
-            if layer.geomType == q3dconst.TYPE_LINESTRING:
+            if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
                     files.append("./meshline/THREE.MeshLine.js")
                     wl = False
-            elif layer.geomType == q3dconst.TYPE_POINTCLOUD and pc:
+            elif layer.type == LayerType.POINTCLOUD and pc:
                 files.append("./potree-core/potree.min.js")
                 files.append("./pointcloudlayer.js")
                 pc = False

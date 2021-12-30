@@ -24,21 +24,23 @@ import random
 from PyQt5.QtCore import QVariant
 from PyQt5.QtGui import QColor
 from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils,
-                       QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext, QgsWkbTypes)
+                       QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
 
 from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
-from .q3dconst import PropertyID as PID
+from .q3dconst import LayerType, PropertyID as PID
 from .tools import logMessage
 from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
 
-GeomType2Class = {QgsWkbTypes.PointGeometry: PointGeometry,
-                  QgsWkbTypes.LineGeometry: LineGeometry,
-                  QgsWkbTypes.PolygonGeometry: PolygonGeometry}
+LayerType2GeomClass = {
+    LayerType.POINT: PointGeometry,
+    LayerType.LINESTRING: LineGeometry,
+    LayerType.POLYGON: PolygonGeometry
+}
 
 
 def json_default(o):
@@ -51,7 +53,7 @@ class Feature:
 
     def __init__(self, vlayer, geom, props, attrs=None):
 
-        self.geomType = vlayer.geomType
+        self.layerType = vlayer.type
         self.objectType = vlayer.objectType
 
         self.geom = geom            # an instance of QgsGeometry
@@ -77,8 +79,8 @@ class Feature:
 
         transform_func = mapTo3d.transform
 
-        if self.geomType != QgsWkbTypes.PolygonGeometry:
-            return GeomType2Class[self.geomType].fromQgsGeometry(self.geom, zf, transform_func, useZM=useZM)
+        if self.layerType != LayerType.POLYGON:
+            return LayerType2GeomClass[self.layerType].fromQgsGeometry(self.geom, zf, transform_func, useZM=useZM)
 
         if self.objectType == ObjectType.Polygon:
             return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func,
@@ -126,6 +128,7 @@ class VectorLayer:
         self.settings = settings
         self.renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
 
+        self.type = layer.type
         self.mapLayer = layer.mapLayer
         self.name = self.mapLayer.name() if self.mapLayer else "no title"
         self.properties = layer.properties
@@ -133,8 +136,7 @@ class VectorLayer:
         self.expressionContext = QgsExpressionContext()
         self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
 
-        OTC = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"),
-                                    self.mapLayer.geometryType())
+        OTC = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
 
         self.objectType = OTC(settings, materialManager) if OTC else None
 
@@ -143,7 +145,6 @@ class VectorLayer:
         self.colorNames = []        # for random color
 
         self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
-        self.geomType = self.mapLayer.geometryType()
 
         # attributes
         self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
@@ -450,9 +451,11 @@ class FeatureBlockBuilder:
 
 class VectorLayerBuilder(LayerBuilder):
 
-    gt2str = {QgsWkbTypes.PointGeometry: "point",
-              QgsWkbTypes.LineGeometry: "line",
-              QgsWkbTypes.PolygonGeometry: "polygon"}
+    type2str = {
+        LayerType.POINT: "point",
+        LayerType.LINESTRING: "line",
+        LayerType.POLYGON: "polygon"
+    }
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
@@ -460,7 +463,6 @@ class VectorLayerBuilder(LayerBuilder):
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
 
-        self.geomType = self.layer.mapLayer.geometryType()
         self.clipExtent = None
 
         vl = VectorLayer(settings, layer, self.materialManager, self.modelManager)
@@ -549,7 +551,7 @@ class VectorLayerBuilder(LayerBuilder):
 
     def layerProperties(self):
         p = LayerBuilder.layerProperties(self)
-        p["type"] = self.gt2str.get(self.layer.mapLayer.geometryType())
+        p["type"] = self.type2str.get(self.layer.type)
         p["objType"] = self.vlayer.objectType.name
 
         if self.vlayer.writeAttrs:
@@ -601,7 +603,7 @@ class VectorLayerBuilder(LayerBuilder):
         index = 0
         feats = []
         for f in self.features or []:
-            if self.clipExtent and self.geomType != QgsWkbTypes.PointGeometry:
+            if self.clipExtent and self.layer.type != LayerType.POINT:
                 if f.clipGeometry(self.clipExtent) is None:
                     continue
 

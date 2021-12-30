@@ -19,10 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.core import QgsWkbTypes
-
-from .q3dconst import PropertyID as PID
-from .propwidget import PropertyWidget, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .q3dconst import LayerType, PropertyID as PID
+from .propwidget import PropertyWidget, OptionalColorWidgetFunc
 
 
 class ObjectTypeBase:
@@ -58,17 +56,17 @@ class ObjectTypeBase:
 
 class PointTypeBase(ObjectTypeBase):
 
-    geometryType = QgsWkbTypes.PointGeometry
+    layerType = LayerType.POINT
 
 
 class LineTypeBase(ObjectTypeBase):
 
-    geometryType = QgsWkbTypes.LineGeometry
+    layerType = LayerType.LINESTRING
 
 
 class PolygonTypeBase(ObjectTypeBase):
 
-    geometryType = QgsWkbTypes.PolygonGeometry
+    layerType = LayerType.POLYGON
 
 
 # PointBasicType
@@ -462,10 +460,10 @@ class ObjectType:
     Extruded = ExtrudedType
     Overlay = OverlayType
 
-    Grouped = {QgsWkbTypes.PointGeometry: [SphereType, CylinderType, ConeType, BoxType, DiskType,
-                                           PlaneType, PointType, IconType, ModelFileType],
-               QgsWkbTypes.LineGeometry: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
-               QgsWkbTypes.PolygonGeometry: [PolygonType, ExtrudedType, OverlayType]
+    Grouped = {LayerType.POINT: [SphereType, CylinderType, ConeType, BoxType, DiskType,
+                                 PlaneType, PointType, IconType, ModelFileType],
+               LayerType.LINESTRING: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
+               LayerType.POLYGON: [PolygonType, ExtrudedType, OverlayType]
                }
 
     @classmethod
@@ -477,14 +475,6 @@ class ObjectType:
         for obj_type in cls.typesByGeomType(geom_type):
             if obj_type.name == name:
                 return obj_type
-
-        # for backward compatibility
-        if name == "Triangular Mesh":
-            return PolygonType
-
-        if name == "Profile":
-            return WallType
-
         return None
 
 
@@ -492,8 +482,5 @@ def tr(source):
     return source
 
 
-def _():
-    tr("Point"), tr("Sphere"), tr("Cylinder"), tr("Cone"), tr("Box"), tr("Disk"), tr("Plane")
-    tr("Line"), tr("Thick Line"), tr("Pipe"), tr("Wall")
-    tr("Polygon"), tr("Extruded"), tr("Overlay")
-    tr("Icon"), tr("Model File")
+# def _():
+#     tr("Point")

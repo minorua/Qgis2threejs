@@ -25,8 +25,7 @@ from .datamanager import ImageManager
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
-from . import q3dconst
-
+from .q3dconst import LayerType
 
 class ThreeJSBuilder:
 
@@ -95,18 +94,18 @@ class ThreeJSBuilder:
         return layers
 
     def buildLayer(self, layer, cancelSignal=None):
-        if layer.geomType == q3dconst.TYPE_DEM:
+        if layer.type == LayerType.DEM:
             builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
-        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+        elif layer.type == LayerType.POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer)
         else:
             builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
         return builder.build(cancelSignal=cancelSignal)
 
     def layerBuilders(self, layer):
-        if layer.geomType == q3dconst.TYPE_DEM:
+        if layer.type == LayerType.DEM:
             builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
-        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+        elif layer.type == LayerType.POINTCLOUD:
             builder = PointCloudLayerBuilder(self.settings, layer)
         else:
             builder = VectorLayerBuilder(self.settings, layer, self.imageManager)

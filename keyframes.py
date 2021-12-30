@@ -25,8 +25,8 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, 
                              QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication
 
-from . import q3dconst
 from .conf import DEBUG_MODE, DEF_SETS
+from .q3dconst import LayerType
 from .tools import logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 
@@ -304,7 +304,7 @@ class AnimationTreeWidget(QTreeWidget):
         item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-        item.setIcon(0, self.icons[layer.geomType])
+        item.setIcon(0, self.icons[layer.type])
         item.setExpanded(True)
 
         return item
@@ -346,7 +346,7 @@ class AnimationTreeWidget(QTreeWidget):
                 self.setCurrentItem(self.addKeyframeItem(parent))
             else:
                 layer = self.getLayerFromLayerItem(item)
-                self.actionGrowLine.setVisible(layer.geomType == q3dconst.TYPE_LINESTRING)
+                self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
                 self.contextMenuLayer.popup(QCursor.pos())
             return
 

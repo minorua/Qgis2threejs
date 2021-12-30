@@ -47,6 +47,7 @@ from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
+from .q3dconst import LayerType
 from .tools import getLayersInProject, logMessage
 from .propwidget import PropertyWidget
 from . import tools
@@ -457,9 +458,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         # list of polygon layers
         self.comboBox_ClipLayer.blockSignals(True)
         self.comboBox_ClipLayer.clear()
-        for layer in getLayersInProject():
-            if layer.type() == QgsMapLayer.VectorLayer and layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                self.comboBox_ClipLayer.addItem(layer.name(), layer.id())
+        for mapLayer in getLayersInProject():
+            if mapLayer.type() == QgsMapLayer.VectorLayer and mapLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
+                self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
 
         self.comboBox_ClipLayer.blockSignals(False)
 
@@ -682,11 +683,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.hasZ = self.hasM = False
 
         mapLayer = layer.mapLayer
-        geomType = mapLayer.geometryType()
         properties = layer.properties
 
         # object type
-        for objType in ObjectType.typesByGeomType(geomType):
+        for objType in ObjectType.typesByGeomType(layer.type):
             self.comboBox_ObjectType.addItem(objType.displayName(), objType.name)
 
         if properties:
@@ -753,10 +753,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # [features]
         # point layer has no geometry clip option
-        self.checkBox_Clip.setVisible(geomType != QgsWkbTypes.PointGeometry)
+        self.checkBox_Clip.setVisible(layer.type != LayerType.POINT)
 
         # [label]
-        hasRPt = (geomType in (QgsWkbTypes.PointGeometry, QgsWkbTypes.PolygonGeometry))
+        hasRPt = (layer.type in (LayerType.POINT, LayerType.POLYGON))
         if hasRPt:
             self.comboBox_Label.addItem("(No label)")
             fields = mapLayer.fields()
@@ -792,10 +792,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.setProperties(properties or {})
 
     def objectTypeChanged(self, index=None):
-        geomType = self.layer.mapLayer.geometryType()
-        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), geomType)(self.settings)
+        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)(self.settings)
 
-        if geomType == QgsWkbTypes.PolygonGeometry:
+        if self.layer.type == LayerType.POLYGON:
             supportZM = (obj_type == ObjectType.Polygon)
             self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
             self.radioButton_mValue.setEnabled(self.hasM and supportZM)
@@ -860,7 +859,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
 
     def exportAttrsToggled(self, checked):
-        if checked and self.layer.geomType == q3dconst.TYPE_LINESTRING:
+        if checked and self.layer.type == LayerType.LINESTRING:
             return
 
         self.setWidgetsVisible([self.label, self.comboBox_Label, self.labelHeightWidget], checked)

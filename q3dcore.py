@@ -28,8 +28,8 @@ from PyQt5.QtCore import QSize
 
 from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 
-from . import q3dconst
 from .geometry import GridGeometry
+from .q3dconst import LayerType
 from .tools import logMessage
 
 
@@ -95,10 +95,10 @@ class BuildOptions:
 
 class Layer:
 
-    def __init__(self, layerId, name, geomType, properties=None, visible=True):
+    def __init__(self, layerId, name, layerType, properties=None, visible=True):
         self.layerId = layerId
         self.name = name
-        self.geomType = geomType        # q3dconst.TYPE_XXX
+        self.type = layerType           # q3dconst.LayerType
         self.properties = properties or {}
         self.visible = visible
 
@@ -120,7 +120,7 @@ class Layer:
         return None
 
     def clone(self):
-        c = Layer(self.layerId, self.name, self.geomType, deepcopy(self.properties), self.visible)
+        c = Layer(self.layerId, self.name, self.type, deepcopy(self.properties), self.visible)
         c.jsLayerId = self.jsLayerId
         c.mapLayer = self.mapLayer
         return c
@@ -128,7 +128,7 @@ class Layer:
     def copyTo(self, t):
         t.layerId = self.layerId
         t.name = self.name
-        t.geomType = self.geomType
+        t.type = self.type
         t.properties = deepcopy(self.properties)
         t.visible = self.visible
 
@@ -138,18 +138,18 @@ class Layer:
     def toDict(self):
         return {"layerId": self.layerId,
                 "name": self.name,
-                "geomType": self.geomType,
+                "geomType": self.type,      # TODO: rename geomType to type (low priority)
                 "properties": self.properties,
                 "visible": self.visible}
 
     @classmethod
     def fromDict(self, obj):
         id = obj["layerId"]
-        gt = obj["geomType"]
+        t = obj["geomType"]
 
-        lyr = Layer(id, obj["name"], gt, obj["properties"], obj["visible"])
+        lyr = Layer(id, obj["name"], t, obj["properties"], obj["visible"])
 
-        if gt != q3dconst.TYPE_POINTCLOUD:
+        if t != LayerType.POINTCLOUD:
             lyr.mapLayer = QgsProject.instance().mapLayer(id)
         return lyr
 
@@ -164,12 +164,12 @@ class Layer:
         """mapLayer: QgsMapLayer sub-class object"""
         layerType = mapLayer.type()
         if layerType == QgsMapLayer.VectorLayer:
-            return {QgsWkbTypes.PointGeometry: q3dconst.TYPE_POINT,
-                    QgsWkbTypes.LineGeometry: q3dconst.TYPE_LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: q3dconst.TYPE_POLYGON}.get(mapLayer.geometryType())
+            return {QgsWkbTypes.PointGeometry: LayerType.POINT,
+                    QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
+                    QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
 
         elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
-            return q3dconst.TYPE_DEM
+            return LayerType.DEM
 
         return None
 

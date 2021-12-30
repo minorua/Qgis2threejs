@@ -27,6 +27,7 @@ from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .q3dcore import Layer
+from .q3dconst import LayerType
 from .tools import js_bool, logMessage
 
 
@@ -235,7 +236,7 @@ class Q3DController(QObject):
         self.iface.runScript('loadStart("LYRS", true);')
 
         layers = self.settings.getLayerList()
-        for layer in sorted(layers, key=lambda lyr: lyr.geomType):
+        for layer in sorted(layers, key=lambda lyr: lyr.type):
             if layer.visible:
                 if not self._buildLayer(layer) or self.aborted:
                     break
@@ -270,14 +271,14 @@ class Q3DController(QObject):
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
 
-        if layer.geomType == q3dconst.TYPE_POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
+        if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
             self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
                                         q3dconst.SCRIPT_GLTFLOADER])
 
-        elif layer.geomType == q3dconst.TYPE_LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
+        elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
             self.iface.loadScriptFiles([q3dconst.SCRIPT_MESHLINE])
 
-        elif layer.geomType == q3dconst.TYPE_POINTCLOUD:
+        elif layer.type == LayerType.POINTCLOUD:
             self.iface.loadScriptFiles([q3dconst.SCRIPT_FETCH,
                                         q3dconst.SCRIPT_POTREE,
                                         q3dconst.SCRIPT_PCLAYER])
