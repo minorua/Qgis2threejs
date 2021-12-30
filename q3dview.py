@@ -189,7 +189,7 @@ class Q3DWebPage(QWebPage):
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:
-            self.runScript('setHFLabel(fetchData());', data={"Header": header, "Footer": footer})
+            self.runScript('setHFLabel(pyData());', data={"Header": header, "Footer": footer})
 
         # call init()
         self.runScript("init({}, {});".format(js_bool(self.offScreen), DEBUG_MODE))
@@ -241,7 +241,7 @@ class Q3DWebPage(QWebPage):
     def setCameraState(self, state):
         """set camera position and camera target"""
         self.bridge.setData(state)
-        self.mainFrame().evaluateJavaScript("setCameraState(fetchData())")
+        self.mainFrame().evaluateJavaScript("setCameraState(pyData())")
 
     def resetCameraState(self):
         self.runScript("app.controls.reset();")
@@ -285,7 +285,7 @@ class Q3DWebPage(QWebPage):
 
     def sendData(self, data):
         self.bridge.setData(data)
-        self.mainFrame().evaluateJavaScript("loadJSONObject(fetchData())")
+        self.mainFrame().evaluateJavaScript("loadJSONObject(pyData())")
 
     def saveModelData(self, data, filename):
         try:

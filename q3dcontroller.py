@@ -423,7 +423,7 @@ class Q3DController(QObject):
             self.iface.runScript("setNorthArrowVisible({0});".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
-            self.iface.runScript('setHFLabel(fetchData());', data=properties)
+            self.iface.runScript('setHFLabel(pyData());', data=properties)
 
         else:
             return

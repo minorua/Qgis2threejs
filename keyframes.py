@@ -89,7 +89,7 @@ class AnimationPanel(QWidget):
         if flag:
             if DEBUG_MODE:
                 logMessage("Play: " + str(dataList))
-            self.wnd.iface.runScriptRequest.emit("startAnimation(fetchData());", dataList)
+            self.wnd.iface.runScriptRequest.emit("startAnimation(pyData());", data=dataList)
             self.ui.toolButtonPlay.setText("Stop")
             self.isAnimating = True
 
@@ -670,7 +670,7 @@ class AnimationTreeWidget(QTreeWidget):
 
                 n = k.get("narration")
                 if n:
-                    self.webPage.runScript("showNarrativeBox(fetchData());", data=n)
+                    self.webPage.runScript("showNarrativeBox(pyData());", data=n)
                 else:
                     self.webPage.runScript("closeNarrativeBox();")
 

@@ -1,5 +1,5 @@
 //// WebKit bridge: access to pyObj object
-function fetchData() {
+function pyData() {
   return pyObj.data();
 }
 

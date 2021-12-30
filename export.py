@@ -333,7 +333,7 @@ class ImageExporter(BridgeExporterBase):
         err = self.page.waitForSceneLoaded(cancelSignal)
 
         # header and footer labels
-        self.page.runScript('setHFLabel(fetchData());', data=self.settings.widgetProperties("Label"))
+        self.page.runScript('setHFLabel(pyData());', data=self.settings.widgetProperties("Label"))
 
         # render scene
         size = self.page.viewportSize()
