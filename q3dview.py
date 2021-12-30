@@ -228,7 +228,7 @@ class Q3DWebPage(QWebPage):
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()
 
-        self.runScript(script, "// {} loaded".format(os.path.basename(filename)))
+        self.runScript(script, message="{} loaded.".format(os.path.basename(filename)))
         self.loadedScripts[id] = True
 
     def loadScriptFiles(self, ids, force=False):
