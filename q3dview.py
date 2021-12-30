@@ -189,7 +189,7 @@ class Q3DWebPage(QWebPage):
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:
-            self.runScript('setHFLabel("{}", "{}");'.format(header.replace('"', '\\"'), footer.replace('"', '\\"')))
+            self.runScript('setHFLabel(fetchData());', data={"Header": header, "Footer": footer})
 
         # call init()
         self.runScript("init({}, {});".format(js_bool(self.offScreen), DEBUG_MODE))

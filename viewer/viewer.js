@@ -364,9 +364,9 @@ function updateNorthArrowRotation(rotation) {
   mesh.updateMatrixWorld();
 }
 
-function setHFLabel(header, footer) {
-  document.getElementById("header").innerHTML = header;
-  document.getElementById("footer").innerHTML = footer;
+function setHFLabel(properties) {
+  document.getElementById("header").innerHTML = properties.Header || "";
+  document.getElementById("footer").innerHTML = properties.Footer || "";
 }
 
 //// animation
