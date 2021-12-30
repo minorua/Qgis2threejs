@@ -200,23 +200,22 @@ class Q3DController(QObject):
 
         if update_scene_opts:
             sp = self.settings.sceneProperties()
-            t, f = ("true", "false")
 
             # automatic z shift adjustment
-            self.iface.runScript("Q3D.Config.autoZShift = {};".format(t if sp.get("checkBox_autoZShift") else f))
+            self.iface.runScript("Q3D.Config.autoZShift = {};".format(js_bool(sp.get("checkBox_autoZShift"))))
 
             # outline effect
-            self.iface.runScript("setOutlineEffectEnabled({});".format(t if sp.get("checkBox_Outline") else f))
+            self.iface.runScript("setOutlineEffectEnabled({});".format(js_bool(sp.get("checkBox_Outline"))))
 
             # update background color
             params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
             self.iface.runScript("setBackgroundColor({0});".format(params))
 
             # coordinate display
-            self.iface.runScript("Q3D.Config.coord.visible = {};".format(t if self.settings.coordDisplay() else f))
+            self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
             latlon = self.settings.coordLatLon()
-            self.iface.runScript("Q3D.Config.coord.latlon = {};".format(t if latlon else f))
+            self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
             if latlon:
                 self.iface.loadScriptFile(Script.PROJ4)
 
