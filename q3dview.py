@@ -37,7 +37,7 @@ except ModuleNotFoundError:
         QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
     raise
 
-from . import q3dconst
+from .q3dconst import Script
 from .tools import js_bool, logMessage, pluginDir
 
 
@@ -223,7 +223,7 @@ class Q3DWebPage(QWebPage):
         if id in self.loadedScripts and not force:
             return
 
-        filename = pluginDir("js", q3dconst.SCRIPT_PATH[id])
+        filename = pluginDir("js", Script.PATH[id])
 
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()

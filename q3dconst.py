@@ -13,31 +13,34 @@ class DEMMtlType:
     COLOR = 3
 
 
-# Script ID
-SCRIPT_PROJ4 = 1
-SCRIPT_GLTFLOADER = 2
-SCRIPT_COLLADALOADER = 3
-SCRIPT_GLTFEXPORTER = 4
-SCRIPT_POTREE = 5
-SCRIPT_PCLAYER = 6
-SCRIPT_OUTLINE = 7
-SCRIPT_VIEWHELPER = 8
-SCRIPT_MESHLINE = 9
-SCRIPT_FETCH = 101
+class Script:
 
-# Script path (relative from js directory)
-SCRIPT_PATH = {
-    SCRIPT_PROJ4: "proj4js/proj4.js",
-    SCRIPT_GLTFLOADER: "threejs/loaders/GLTFLoader.js",
-    SCRIPT_COLLADALOADER: "threejs/loaders/ColladaLoader.js",
-    SCRIPT_GLTFEXPORTER: "threejs/exporters/GLTFExporter.js",
-    SCRIPT_POTREE: "potree-core/potree.min.js",
-    SCRIPT_PCLAYER: "pointcloudlayer.js",
-    SCRIPT_OUTLINE: "threejs/effects/OutlineEffect.js",
-    SCRIPT_VIEWHELPER: "threejs/editor/ViewHelper.js",
-    SCRIPT_MESHLINE: "meshline/THREE.MeshLine.js",
-    SCRIPT_FETCH: "unfetch/unfetch.js"
-}
+    # Script ID
+    PROJ4 = 1
+    GLTFLOADER = 2
+    COLLADALOADER = 3
+    GLTFEXPORTER = 4
+    POTREE = 5
+    PCLAYER = 6
+    OUTLINE = 7
+    VIEWHELPER = 8
+    MESHLINE = 9
+    FETCH = 101
+
+    # Script path (relative from js directory)
+    PATH = {
+        PROJ4: "proj4js/proj4.js",
+        GLTFLOADER: "threejs/loaders/GLTFLoader.js",
+        COLLADALOADER: "threejs/loaders/ColladaLoader.js",
+        GLTFEXPORTER: "threejs/exporters/GLTFExporter.js",
+        POTREE: "potree-core/potree.min.js",
+        PCLAYER: "pointcloudlayer.js",
+        OUTLINE: "threejs/effects/OutlineEffect.js",
+        VIEWHELPER: "threejs/editor/ViewHelper.js",
+        MESHLINE: "meshline/THREE.MeshLine.js",
+        FETCH: "unfetch/unfetch.js"
+    }
+
 
 # Layer properties
 GEOM_WIDGET_MAX_COUNT = 4

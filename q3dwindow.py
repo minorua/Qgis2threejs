@@ -27,13 +27,12 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QCo
                              QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from . import q3dconst
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
 from .exportsettings import ExportSettings
 from .pluginmanager import pluginManager
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dcore import Layer
-from .q3dconst import LayerType
+from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from .tools import logMessage, pluginDir
@@ -354,7 +353,7 @@ class Q3DWindow(QMainWindow):
         if filename:
             self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
 
-            self.ui.webView._page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
+            self.ui.webView._page.loadScriptFile(Script.GLTFEXPORTER)
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
             self.ui.statusbar.clearMessage()

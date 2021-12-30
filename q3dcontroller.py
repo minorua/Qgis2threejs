@@ -22,12 +22,11 @@ import time
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
-from . import q3dconst
 from .conf import DEBUG_MODE
 from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .q3dcore import Layer
-from .q3dconst import LayerType
+from .q3dconst import LayerType, Script
 from .tools import js_bool, logMessage
 
 
@@ -219,7 +218,7 @@ class Q3DController(QObject):
             latlon = self.settings.coordLatLon()
             self.iface.runScript("Q3D.Config.coord.latlon = {};".format(t if latlon else f))
             if latlon:
-                self.iface.loadScriptFile(q3dconst.SCRIPT_PROJ4)
+                self.iface.loadScriptFile(Script.PROJ4)
 
         if build_layers:
             self.buildLayers()
@@ -272,16 +271,16 @@ class Q3DController(QObject):
         self.iface.progress(0, pmsg)
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
-            self.iface.loadScriptFiles([q3dconst.SCRIPT_COLLADALOADER,
-                                        q3dconst.SCRIPT_GLTFLOADER])
+            self.iface.loadScriptFiles([Script.COLLADALOADER,
+                                        Script.GLTFLOADER])
 
         elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
-            self.iface.loadScriptFiles([q3dconst.SCRIPT_MESHLINE])
+            self.iface.loadScriptFiles([Script.MESHLINE])
 
         elif layer.type == LayerType.POINTCLOUD:
-            self.iface.loadScriptFiles([q3dconst.SCRIPT_FETCH,
-                                        q3dconst.SCRIPT_POTREE,
-                                        q3dconst.SCRIPT_PCLAYER])
+            self.iface.loadScriptFiles([Script.FETCH,
+                                        Script.POTREE,
+                                        Script.PCLAYER])
 
         t0 = t4 = time.time()
         dlist = []

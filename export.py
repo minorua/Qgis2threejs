@@ -32,10 +32,9 @@ from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
 from .exportsettings import ExportSettings
 from .q3dcontroller import Q3DController
-from .q3dconst import LayerType
+from .q3dconst import LayerType, Script
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
-from . import q3dconst
 from . import tools
 
 
@@ -361,7 +360,7 @@ class ModelExporter(BridgeExporterBase):
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
-        self.page.loadScriptFile(q3dconst.SCRIPT_GLTFEXPORTER)
+        self.page.loadScriptFile(Script.GLTFEXPORTER)
 
     def export(self, filename, cancelSignal=None):
         if self.page is None:
