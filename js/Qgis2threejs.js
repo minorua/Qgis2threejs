@@ -2280,6 +2280,7 @@ Q3D.DEMBlock.prototype = {
     mesh.scale.z = obj.zScale;
     layer.addObject(mesh);
 
+    // TODO: this.transform
     var buildGeometry = function (grid_values) {
       var vertices = geom.attributes.position.array;
       for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
@@ -2441,8 +2442,7 @@ Q3D.DEMBlock.prototype = {
 
     vl.forEach(function (v) {
 
-      var geom = new THREE.BufferGeometry();
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+      var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
       var obj = new THREE.Line(geom, material);
       obj.name = "frame";
       parent.add(obj);
@@ -2476,8 +2476,7 @@ Q3D.DEMBlock.prototype = {
         v.push(vx, hph - psh * y, grid_values[x + w * y]);
       }
 
-      geom = new THREE.BufferGeometry();
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+      geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
       group.add(new THREE.Line(geom, material));
     }
@@ -2490,8 +2489,7 @@ Q3D.DEMBlock.prototype = {
         v.push(-hpw + psw * x, vy, grid_values[x + w * y]);
       }
 
-      geom = new THREE.BufferGeometry();
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+      geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
       group.add(new THREE.Line(geom, material));
     }
@@ -2785,6 +2783,7 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   if (jsonObject.type == "layer") {
     if (old_shading != jsonObject.properties.shading) {
       this.geometryCache = null;
+      this.transformCache = null;
     }
 
     if (old_blockIsClipped !== jsonObject.properties.clipped) {
@@ -3274,79 +3273,108 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
 Q3D.PointLayer.prototype.build = function (features) {
   var objType = this.properties.objType;
-  if (objType == "Point") { this.buildPoints(features); return; }
-  if (objType == "Icon") { this.buildIcons(features); return; }
-  if (objType == "Model File") { this.buildModels(features); return; }
+  if (objType == "Point") {
+    return this.buildPoints(features);
+  }
+  else if (objType == "Icon") {
+    return this.buildIcons(features);
+  }
+  else if (objType == "Model File") {
+    return this.buildModels(features);
+  }
 
-  var deg2rad = Math.PI / 180, rx = 90 * deg2rad;
-  var setSR, unitGeom;
-
-  if (this.cachedGeometryType == objType) {
+  var unitGeom, transform;
+  if (this.cachedGeometryType === objType) {
     unitGeom = this.geometryCache;
+    transform = this.transformCache;
+  }
+  else {
+    var gt = this.geomAndTransformFunc(objType);
+    unitGeom = gt[0];
+    transform = gt[1];
   }
 
-  if (objType == "Sphere") {
-    setSR = function (mesh, geom) {
-      mesh.scale.setScalar(geom.r);
-    };
-    unitGeom = unitGeom || new THREE.SphereBufferGeometry(1, 32, 32);
-  }
-  else if (objType == "Box") {
-    setSR = function (mesh, geom) {
-      mesh.scale.set(geom.w, geom.h, geom.d);
-      mesh.rotation.x = rx;
-    };
-    unitGeom = unitGeom || new THREE.BoxBufferGeometry(1, 1, 1);
-  }
-  else if (objType == "Disk") {
-    var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated
-    setSR = function (mesh, geom) {
-      mesh.scale.set(geom.r, geom.r * sz, 1);
-      mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
-      mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
-    };
-    unitGeom = unitGeom || new THREE.CircleBufferGeometry(1, 32);
-  }
-  else if (objType == "Plane") {
-    var sz = this.sceneData.zExaggeration;    // set 1 if not to be elongated
-    setSR = function (mesh, geom) {
-      mesh.scale.set(geom.w, geom.l * sz, 1);
-      mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
-      mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
-    };
-    unitGeom = unitGeom || new THREE.PlaneBufferGeometry(1, 1, 1, 1);
-  }
-  else {  // Cylinder or Cone
-    setSR = function (mesh, geom) {
-      mesh.scale.set(geom.r, geom.h, geom.r);
-      mesh.rotation.x = rx;
-    };
-    unitGeom = unitGeom || ((objType == "Cylinder") ? new THREE.CylinderBufferGeometry(1, 1, 1, 32) : new THREE.CylinderBufferGeometry(0, 1, 1, 32));
-  }
-
-  // iteration for features
-  var materials = this.materials;
-  var f, geom, z_addend, i, l, mesh, pt;
+  var f, i, l, pts, mesh;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
     f.objIndices = [];
 
-    geom = f.geom;
-    z_addend = (geom.h) ? geom.h / 2 : 0;
-    for (i = 0, l = geom.pts.length; i < l; i++) {
-      mesh = new THREE.Mesh(unitGeom, materials.mtl(f.mtl));
-      setSR(mesh, geom);
+    pts = f.geom.pts;
+    for (i = 0, l = pts.length; i < l; i++) {
 
-      pt = geom.pts[i];
-      mesh.position.set(pt[0], pt[1], pt[2] + z_addend);
+      mesh = new THREE.Mesh(unitGeom, this.materials.mtl(f.mtl));
+      transform(mesh, f.geom, pts[i]);
+
       mesh.userData.properties = f.prop;
 
       f.objIndices.push(this.addObject(mesh));
     }
   }
 
-  this.geometryCache = unitGeom;
   this.cachedGeometryType = objType;
+  this.geometryCache = unitGeom;
+  this.transformCache = transform;
+};
+
+Q3D.PointLayer.prototype.geomAndTransformFunc = function (objType) {
+
+  var deg2rad = Math.PI / 180,
+      rx = 90 * deg2rad;
+
+  if (objType == "Sphere") {
+    return [
+      new THREE.SphereBufferGeometry(1, 32, 32),
+      function (mesh, geom, pt) {
+        mesh.scale.setScalar(geom.r);
+        mesh.position.fromArray(pt);
+      }
+    ];
+  }
+  else if (objType == "Box") {
+    return [
+      new THREE.BoxBufferGeometry(1, 1, 1),
+      function (mesh, geom, pt) {
+        mesh.scale.set(geom.w, geom.h, geom.d);
+        mesh.rotation.x = rx;
+        mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
+      }
+    ];
+  }
+  else if (objType == "Disk") {
+    var sz = this.sceneData.zExaggeration;
+    return [
+      new THREE.CircleBufferGeometry(1, 32),
+      function (mesh, geom, pt) {
+        mesh.scale.set(geom.r, geom.r * sz, 1);
+        mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
+        mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
+        mesh.position.fromArray(pt);
+      }
+    ];
+  }
+  else if (objType == "Plane") {
+    var sz = this.sceneData.zExaggeration;
+    return [
+      new THREE.PlaneBufferGeometry(1, 1, 1, 1),
+      function (mesh, geom, pt) {
+        mesh.scale.set(geom.w, geom.l * sz, 1);
+        mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
+        mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
+        mesh.position.fromArray(pt);
+      }
+    ];
+  }
+
+  // Cylinder or Cone
+  var radiusTop = (objType == "Cylinder") ? 1 : 0;
+  return [
+    new THREE.CylinderBufferGeometry(radiusTop, 1, 1, 32),
+    function (mesh, geom, pt) {
+      mesh.scale.set(geom.r, geom.h, geom.r);
+      mesh.rotation.x = rx;
+      mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
+    }
+  ];
 };
 
 Q3D.PointLayer.prototype.buildPoints = function (features) {
@@ -3354,9 +3382,7 @@ Q3D.PointLayer.prototype.buildPoints = function (features) {
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
 
-    geom = new THREE.BufferGeometry();
-    geom.setAttribute("position",
-                      new THREE.BufferAttribute(new Float32Array(f.geom.pts), 3));
+    geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
 
     obj = new THREE.Points(geom, this.materials.mtl(f.mtl));
     obj.userData.properties = f.prop;
@@ -3470,23 +3496,42 @@ Q3D.LineLayer.prototype.clearObjects = function () {
 };
 
 Q3D.LineLayer.prototype.build = function (features) {
-  var createObject,
-      objType = this.properties.objType,
-      materials = this.materials,
+
+  if (this._lastObjType !== this.properties.objType) this._createObject = null;
+
+  var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+
+  var f, i, l, lines, obj;
+  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+    f = features[fidx];
+    f.objIndices = [];
+
+    lines = f.geom.lines;
+    for (i = 0, l = lines.length; i < l; i++) {
+      obj = createObject(f, lines[i]);
+      obj.userData.properties = f.prop;
+      obj.userData.mtl = f.mtl;
+
+      f.objIndices.push(this.addObject(obj));
+    }
+  }
+
+  this._lastObjType = this.properties.objType;
+  this._createObject = createObject;
+};
+
+Q3D.LineLayer.prototype.createObjFunc = function (objType) {
+  var materials = this.materials,
       sceneData = this.sceneData;
 
-  if (objType == this._lastObjType && this._createObject !== undefined) {
-    createObject = this._createObject;
-  }
-  else if (objType == "Line") {
-    createObject = function (f, line) {
+  if (objType == "Line") {
+    return function (f, line) {
       var pt, vertices = [];
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
         vertices.push(pt[0], pt[1], pt[2]);
       }
-      var geom = new THREE.BufferGeometry();
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
       var obj = new THREE.Line(geom, materials.mtl(f.mtl));
       if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
@@ -3494,7 +3539,7 @@ Q3D.LineLayer.prototype.build = function (features) {
     };
   }
   else if (objType == "Thick Line") {
-    createObject = function (f, line) {
+    return function (f, line) {
       var pt, vertices = [];
       for (var i = 0, l = line.length; i < l; i++) {
         pt = line[i];
@@ -3504,11 +3549,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       var line = new MeshLine();
       line.setPoints(vertices);
 
-      obj = new THREE.Mesh(line, materials.mtl(f.mtl));
-
-      // var obj = new THREE.Line(geom, materials.mtl(f.mtl));
-      // if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
-      return obj;
+      return new THREE.Mesh(line, materials.mtl(f.mtl));
     };
   }
   else if (objType == "Pipe" || objType == "Cone") {
@@ -3521,10 +3562,11 @@ Q3D.LineLayer.prototype.build = function (features) {
       cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
     }
 
-    var mesh, pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(), axis = Q3D.uv.j;
+    var group, mesh, axis = Q3D.uv.j;
+    var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
 
-    createObject = function (f, line) {
-      var group = new Q3D.Group();
+    return function (f, line) {
+      group = new Q3D.Group();
 
       pt0.fromArray(line[0]);
       for (var i = 1, l = line.length; i < l; i++) {
@@ -3563,7 +3605,7 @@ Q3D.LineLayer.prototype.build = function (features) {
       faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
     }
 
-    createObject = function (f, line) {
+    return function (f, line) {
       var geometry = new THREE.Geometry();
 
       var geom, dist, rx, rz, wh4, vb4, vf4;
@@ -3627,7 +3669,7 @@ Q3D.LineLayer.prototype.build = function (features) {
   else if (objType == "Wall") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
-    createObject = function (f, line) {
+    return function (f, line) {
       var pt;
       var vertices = [];
       for (var i = 0, l = line.length; i < l; i++) {
@@ -3639,24 +3681,6 @@ Q3D.LineLayer.prototype.build = function (features) {
                             materials.mtl(f.mtl));
     };
   }
-
-  // each feature in this layer
-  var f, i, l, obj;
-  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
-    f = features[fidx];
-    f.objIndices = [];
-
-    for (i = 0, l = f.geom.lines.length; i < l; i++) {
-      obj = createObject(f, f.geom.lines[i]);
-      obj.userData.properties = f.prop;
-      obj.userData.mtl = f.mtl;
-
-      f.objIndices.push(this.addObject(obj));
-    }
-  }
-
-  this._lastObjType = objType;
-  this._createObject = createObject;
 };
 
 Q3D.LineLayer.prototype.buildLabels = function (features) {
@@ -3753,14 +3777,30 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.PolygonLayer.prototype.build = function (features) {
-  var createObject,
-      materials = this.materials;
 
-  if (this.properties.objType == this._lastObjType && this._createObject !== undefined) {
-    createObject = this._createObject;
+  if (this.properties.objType !== this._lastObjType) this._createObject = null;
+
+  var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+
+  var f, obj;
+  for (var i = 0, l = features.length; i < l; i++) {
+    f = features[i];
+    obj = createObject(f);
+    obj.userData.properties = f.prop;
+
+    f.objIndices = [this.addObject(obj)];
   }
-  else if (this.properties.objType == "Polygon") {
-    createObject = function (f) {
+
+  this._lastObjType = this.properties.objType;
+  this._createObject = createObject;
+};
+
+Q3D.PolygonLayer.prototype.createObjFunc = function (objType) {
+
+  var materials = this.materials;
+
+  if (objType == "Polygon") {
+    return function (f) {
       var geom = new THREE.BufferGeometry();
       geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
       geom.setIndex(f.geom.triangles.f);
@@ -3769,7 +3809,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return new THREE.Mesh(geom, materials.mtl(f.mtl));
     };
   }
-  else if (this.properties.objType == "Extruded") {
+  else if (objType == "Extruded") {
     var createSubObject = function (f, polygon, z) {
       var i, l, j, m;
 
@@ -3797,8 +3837,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
             v.push(bnd[j][0], bnd[j][1], 0);
           }
 
-          geom = new THREE.BufferGeometry();
-          geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+          geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
           edge = new THREE.Line(geom, mtl);
           mesh.add(edge);
@@ -3812,8 +3851,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
             v = [bnd[j][0], bnd[j][1], 0,
                  bnd[j][0], bnd[j][1], h];
 
-            geom = new THREE.BufferGeometry();
-            geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+            geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
             edge = new THREE.Line(geom, mtl);
             mesh.add(edge);
@@ -3823,19 +3861,24 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return mesh;
     };
 
-    createObject = function (f) {
-      if (f.geom.polygons.length == 1) return createSubObject(f, f.geom.polygons[0], f.geom.centroids[0][2]);
+    var polygons, centroids;
+
+    return function (f) {
+      polygons = f.geom.polygons;
+      centroids = f.geom.centroids;
+
+      if (polygons.length == 1) return createSubObject(f, polygons[0], centroids[0][2]);
 
       var group = new THREE.Group();
-      for (var i = 0, l = f.geom.polygons.length; i < l; i++) {
-        group.add(createSubObject(f, f.geom.polygons[i], f.geom.centroids[i][2]));
+      for (var i = 0, l = polygons.length; i < l; i++) {
+        group.add(createSubObject(f, polygons[i], centroids[i][2]));
       }
       return group;
     };
   }
-  else if (this.properties.objType == "Overlay") {
+  else if (objType == "Overlay") {
 
-    createObject = function (f) {
+    return function (f) {
 
       var geom = new THREE.BufferGeometry();
       geom.setIndex(f.geom.triangles.f);
@@ -3850,8 +3893,7 @@ Q3D.PolygonLayer.prototype.build = function (features) {
         for (i = 0, l = f.geom.brdr.length; i < l; i++) {
           bnds = f.geom.brdr[i];
           for (j = 0, m = bnds.length; j < m; j++) {
-            geom = new THREE.BufferGeometry();
-            geom.setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
+            geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
 
             mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
           }
@@ -3860,19 +3902,6 @@ Q3D.PolygonLayer.prototype.build = function (features) {
       return mesh;
     };
   }
-
-  // each feature in this layer
-  var f, obj;
-  for (var i = 0, l = features.length; i < l; i++) {
-    f = features[i];
-    obj = createObject(f);
-    obj.userData.properties = f.prop;
-
-    f.objIndices = [this.addObject(obj)];
-  }
-
-  this._lastObjType = this.properties.objType;
-  this._createObject = createObject;
 };
 
 Q3D.PolygonLayer.prototype.buildLabels = function (features) {
