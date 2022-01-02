@@ -510,7 +510,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             self.lineEdit_ImageFile.setText(filename)
 
     def tilesToggled(self, checked):
-        self.setLayoutVisible(self.gridLayout_Surroundings, checked)
+        self.setLayoutVisible(self.gridLayout_Tiles, checked)
         self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
 
         if checked:
