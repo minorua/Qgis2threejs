@@ -89,7 +89,7 @@ class AnimationPanel(QWidget):
         if flag:
             if DEBUG_MODE:
                 logMessage("Play: " + str(dataList))
-            self.wnd.iface.runScriptRequest.emit("startAnimation(pyData());", data=dataList)
+            self.wnd.iface.requestRunScript("startAnimation(pyData());", data=dataList)
             self.ui.toolButtonPlay.setText("Stop")
             self.isAnimating = True
 
