@@ -13,15 +13,38 @@ app.timer = {tickCount: 0};
 
 //// load functions
 function loadJSONObject(jsonObject) {
+  var p = jsonObject.properties;
+
+  if (jsonObject.type == "scene" && p !== undefined) {
+    // update camera position - keep relative position to base extent
+    var lastP = app.scene.userData,
+        lastBE = lastP.baseExtent;
+
+    if (lastBE !== undefined) {
+      var be = p.baseExtent,
+          v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin),
+          v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin),
+          s = be.width / lastBE.width;
+
+      var pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1),
+          focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
+
+      var near, far;
+      if (s != 1) {
+        near = 0.001 * be.width;
+        far = 100 * be.width;
+      }
+      app.scene.requestCameraUpdate(pos, focal, near, far);
+    }
+    updateNorthArrowRotation(p.baseExtent.rotation);
+  }
+
   app.loadJSONObject(jsonObject);
 
   if (jsonObject.type == "layer") {
-    if (Q3D.Config.autoZShift && jsonObject.properties !== undefined && jsonObject.properties.visible === false) {
+    if (Q3D.Config.autoZShift && p !== undefined && p.visible === false) {
       app.scene.adjustZShift();
     }
-  }
-  else if (jsonObject.type == "scene" && jsonObject.properties !== undefined) {
-    updateNorthArrowRotation(jsonObject.properties.baseExtent.rotation);
   }
 }
 

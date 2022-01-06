@@ -89,7 +89,6 @@ class DEMLayerBuilder(LayerBuilder):
         return p
 
     def subBuilders(self):
-        mapTo3d = self.settings.mapTo3d()
         be = self.settings.baseExtent()
 
         materials = self.properties.get("materials", [])
@@ -100,7 +99,7 @@ class DEMLayerBuilder(LayerBuilder):
             tex_size = DEMPropertyReader.textureSize(self.mtlBuilder.currentMtlProperties(), be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
 
-        planeWidth, planeHeight = (mapTo3d.baseWidth, mapTo3d.baseWidth * be.height() / be.width())
+        planeWidth, planeHeight = (be.width(), be.height())
 
         center = be.center()
         rotation = be.rotation()
@@ -211,9 +210,9 @@ class DEMGridBuilder:
              "block": self.blockIndex,
              "width": self.planeWidth,
              "height": self.planeHeight,
-             "translate": [self.offsetX, self.offsetY, mapTo3d.verticalShift * mapTo3d.multiplierZ],
-             "zShift": mapTo3d.verticalShift,
-             "zScale": mapTo3d.multiplierZ
+             "translate": [self.offsetX, self.offsetY, 0],
+             "zShift": mapTo3d.zShift,
+             "zScale": mapTo3d.zScale
              }
 
         # geometry
@@ -274,7 +273,7 @@ class DEMGridBuilder:
         return b
 
     def clipped(self, clip_geometry):
-        transform_func = self.settings.mapTo3d().transformRotatedXY
+        transform_func = self.settings.mapTo3d().transformXY
 
         # create a grid geometry and split polygons with the grid
         grid = self.provider.readAsGridGeometry(self.grid_seg.width() + 1, self.grid_seg.height() + 1, self.extent)

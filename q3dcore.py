@@ -35,7 +35,7 @@ from .tools import logMessage
 
 class MapTo3D:
 
-    def __init__(self, mapExtent, baseWidth=100, verticalExaggeration=1, verticalShift=0):
+    def __init__(self, mapExtent, origin, zScale=1):
         # map
         self.mapExtent = mapExtent
 
@@ -44,46 +44,25 @@ class MapTo3D:
         self._width, self._height = (rect.width(), rect.height())
 
         # 3d
-        self.baseWidth = baseWidth
-        self.baseHeight = baseWidth * mapExtent.height() / mapExtent.width()
+        self.origin = origin            # coordinates of 3D world origin in project CRS
+        self.zScale = zScale
 
-        self.verticalExaggeration = verticalExaggeration
-        self.verticalShift = verticalShift
-
-        self.multiplier = baseWidth / mapExtent.width()
-        self.multiplierZ = self.multiplier * verticalExaggeration
+        self._originX, self._originY, self._originZ = (origin.x(), origin.y(), origin.z())
+        self.zShift = -origin.z()
 
     def transform(self, x, y, z=0):
-        x, y = self.mapExtent.normalizePoint(x, y)
-        return [(x - 0.5) * self.baseWidth,
-                (y - 0.5) * self.baseHeight,
-                (z + self.verticalShift) * self.multiplierZ]
+        return [x - self._originX,
+                y - self._originY,
+                (z - self._originZ) * self.zScale]
 
     def transformXY(self, x, y, z=0):
-        x, y = self.mapExtent.normalizePoint(x, y)
-        return [(x - 0.5) * self.baseWidth,
-                (y - 0.5) * self.baseHeight,
-                z]
-
-    def transformRotated(self, x, y, z=0):
-        """transform coordinates of a point of rotated geometry"""
-        x, y = ((x - self._xmin) / self._width,
-                (y - self._ymin) / self._height)
-
-        return [(x - 0.5) * self.baseWidth,
-                (y - 0.5) * self.baseHeight,
-                (z + self.verticalShift) * self.multiplierZ]
-
-    def transformRotatedXY(self, x, y, z=0):
-        x, y = ((x - self._xmin) / self._width,
-                (y - self._ymin) / self._height)
-
-        return [(x - 0.5) * self.baseWidth,
-                (y - 0.5) * self.baseHeight,
+        return [x - self._originX,
+                y - self._originY,
                 z]
 
     def __repr__(self):
-        return "MapTo3D(extent:{0}, base:{1}x{2}, zExag:{3}, zShift:{4})".format(str(self.mapExtent), self.baseWidth, self.baseHeight, self.verticalExaggeration, self.verticalShift)
+        origin = "({}, {}, {})".format(self.origin.x(), self.origin.y(), self.origin.z())
+        return "MapTo3D(extent:{}, origin:{}, zScale:{}, zShift:{})".format(str(self.mapExtent), origin, self.zScale, self.zShift)
 
 
 class BuildOptions:

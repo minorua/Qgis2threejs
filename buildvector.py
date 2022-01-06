@@ -101,7 +101,7 @@ class Feature:
             return g
 
         # relative to DEM
-        transform_func = mapTo3d.transformRotated
+        transform_func = mapTo3d.transform
 
         if baseExtent.rotation():
             self.geom.rotate(baseExtent.rotation(), baseExtent.center())
@@ -200,7 +200,7 @@ class VectorLayer:
                 attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
 
                 if self.hasLabel():
-                    props[PID.LBLH] *= mapTo3d.multiplierZ
+                    props[PID.LBLH] *= mapTo3d.zScale
             else:
                 attrs = None
 

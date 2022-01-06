@@ -22,12 +22,12 @@ import json
 from copy import deepcopy
 
 from PyQt5.QtCore import QSettings, QSize
-from qgis.core import QgsMapSettings, QgsPointXY, QgsProject
+from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst
-from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
-from .pluginmanager import pluginManager
+from .conf import DEF_SETS, SHIFT_THRESHOLD, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
+from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
 from .q3dconst import LayerType
 from .tools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
@@ -185,16 +185,25 @@ class ExportSettings:
 
         sp = self.sceneProperties()
         try:
-            baseSize = float(sp.get("lineEdit_BaseSize", DEF_SETS.BASE_SIZE))
-            zExaggeration = float(sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION))
+            zScale = float(sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION))
             zShift = float(sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT))
 
-            self._mapTo3d = MapTo3D(be, baseSize, zExaggeration, zShift)
-
         except ValueError:
-            self._mapTo3d = MapTo3D(be, DEF_SETS.BASE_SIZE, DEF_SETS.Z_EXAGGERATION, DEF_SETS.Z_SHIFT)
-
+            zScale = DEF_SETS.Z_EXAGGERATION
+            zShift = DEF_SETS.Z_SHIFT
             logMessage("Invalid setting values. Check out scene properties.")
+
+        shift = sp.get("comboBox_xyShift")
+        if shift is None:
+            shift = bool(SHIFT_THRESHOLD < max(abs(be.center().x()) + be.width() / 2,
+                                               abs(be.center().y()) + be.height() / 2))
+
+        if shift:
+            origin = QgsPoint(be.center().x(), be.center().y(), -zShift)
+        else:
+            origin = QgsPoint(0, 0, -zShift)
+
+        self._mapTo3d = MapTo3D(be, origin, zScale)
 
         return self._mapTo3d
 

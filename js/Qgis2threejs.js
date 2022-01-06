@@ -17,9 +17,11 @@ Q3D.Config = {
 
   // camera
   orthoCamera: false,
-  viewpoint: {                    // z-up
-    pos: new THREE.Vector3(0, -100, 100), // initial camera position
-    lookAt: new THREE.Vector3()
+  viewpoint: {      // z-up
+    default: {      // assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1
+      pos: new THREE.Vector3(0, -1, 1),
+      lookAt: new THREE.Vector3()
+    }
   },
 
   // controls
@@ -96,7 +98,9 @@ Q3D.Config = {
   coord: {
     visible: true,
     latlon: false
-  }
+  },
+
+  debugMode: false
 };
 
 // consts
@@ -133,6 +137,8 @@ Q3D.uv = {
   k: new THREE.Vector3(0, 0, 1)
 };
 
+Q3D.deg2rad = Math.PI / 180;
+
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
 Q3D.isTouchDevice = ("ontouchstart" in window);
@@ -166,13 +172,13 @@ Q3D.Group.prototype.clear = function () {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.userData: holds scene properties (baseExtent(x, y, width, height, rotation), width, zExaggeration, zShift, (proj))
+.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, zShift, (proj))
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
   this.autoUpdate = false;
 
-  this.mapLayers = {};    // holds map layers contained in this scene. the key is layerId.
+  this.mapLayers = {};    // map layers contained in this scene. key is layerId.
 
   this.lightGroup = new Q3D.Group();
   this.add(this.lightGroup);
@@ -193,29 +199,44 @@ Q3D.Scene.prototype.add = function (object) {
 
 Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   if (jsonObject.type == "scene") {
-    // set properties
-    if (jsonObject.properties !== undefined) {
-      this.userData = jsonObject.properties;
+    var p = jsonObject.properties;
+    if (p !== undefined) {
+      // set initial camera position and parameters
+      if (this.userData.origin === undefined) {
 
-      this.userData.scale = this.userData.width / this.userData.baseExtent.width;
-      this.userData.zScale = this.userData.scale * this.userData.zExaggeration;
+        var be = p.baseExtent,
+            s = 1,
+            v = Q3D.Config.viewpoint;
 
-      this.userData.origin = {x: this.userData.baseExtent.x,
-                              y: this.userData.baseExtent.y,
-                              z: -this.userData.zShift};
+        if (v.pos === undefined) {
+          v = v.default;
+          if (be.rotation) {
+            v = {
+              pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
+              lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
+            };
+          }
+          s = be.width;
+        }
+
+        var vec3 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin),
+            pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(vec3),
+            focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(vec3),
+            near = 0.001 * be.width,
+            far = 100 * be.width;
+
+        this.requestCameraUpdate(pos, focal, near, far);
+      }
+
+      p.zShift = -p.origin.z;
+      this.userData = p;
     }
 
-    // load lights
-    if (jsonObject.lights !== undefined) {
-      // remove all existing lights
-      this.lightGroup.clear();
+    // remove all existing lights
+    if (jsonObject.lights !== undefined) this.lightGroup.clear();
 
-      // build lights if scene data has lights settings
-      // [not implemented yet]
-    }
-
-    // build default lights if this scene has no lights yet
-    if (this.lightGroup.children.length == 0) this.buildDefaultLights();
+    // build lights
+    if (this.lightGroup.children.length == 0) this.buildDefaultLights(p.baseExtent.rotation);
 
     // load layers
     if (jsonObject.layers !== undefined) {
@@ -263,9 +284,8 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   }
 };
 
-Q3D.Scene.prototype.buildLights = function (lights) {
-  var p, light, lambda, phi;
-  var deg2rad = Math.PI / 180;
+Q3D.Scene.prototype.buildLights = function (lights, rotation) {
+  var p, light;
   for (var i = 0; i < lights.length; i++) {
     p = lights[i];
     if (p.type == "ambient") {
@@ -273,24 +293,25 @@ Q3D.Scene.prototype.buildLights = function (lights) {
     }
     else if (p.type == "directional") {
       light = new THREE.DirectionalLight(p.color, p.intensity);
+      light.position.copy(Q3D.uv.j)
+                    .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
+                    .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
 
-      lambda = (90 - p.azimuth) * deg2rad;
-      phi = p.altitude * deg2rad;
-
-      light.position.set(Math.cos(phi) * Math.cos(lambda),
-                         Math.cos(phi) * Math.sin(lambda),
-                         Math.sin(phi));
       this.lightGroup.add(light);
     }
   }
 };
 
-Q3D.Scene.prototype.buildDefaultLights = function () {
-  this.buildLights(Q3D.Config.lights);
+Q3D.Scene.prototype.buildDefaultLights = function (rotation) {
+  this.buildLights(Q3D.Config.lights, rotation);
 };
 
 Q3D.Scene.prototype.requestRender = function () {
   this.dispatchEvent({type: "renderRequest"});
+};
+
+Q3D.Scene.prototype.requestCameraUpdate = function (pos, focal, near, far) {
+  this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
 };
 
 Q3D.Scene.prototype.visibleObjects = function () {
@@ -305,62 +326,29 @@ Q3D.Scene.prototype.visibleObjects = function () {
 
 // 3D world coordinates to map coordinates
 Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
-
-  var r = this.userData.baseExtent.rotation;
-  if (r) {
-    var pt = this._rotatePoint({x: x, y: y}, r);
-    x = pt.x;
-    y = pt.y;
-  }
-  return {x: x / this.userData.scale + this.userData.origin.x,
-          y: y / this.userData.scale + this.userData.origin.y,
-          z: z / this.userData.zScale + this.userData.origin.z};
+  var p = this.userData;
+  return {
+    x: p.origin.x + x,
+    y: p.origin.y + y,
+    z: p.origin.z + z / p.zScale
+  };
 };
 
 // map coordinates to 3D world coordinates
 Q3D.Scene.prototype.toWorldCoordinates = function (x, y, z, isLonLat) {
-  var pt;
+  var pt, p = this.userData;
   if (isLonLat && typeof proj4 !== "undefined") {
     // WGS84 long,lat to map coordinates
-    pt = proj4(this.userData.proj).forward([x, y]);
+    pt = proj4(p.proj).forward([x, y]);
     x = pt[0];
     y = pt[1];
   }
 
-  x = (x - this.userData.origin.x) * this.userData.scale;
-  y = (y - this.userData.origin.y) * this.userData.scale;
-  z = (z - this.userData.origin.z) * this.userData.zScale;
-
-  var r = this.userData.baseExtent.rotation;
-  if (r) {
-    pt = this._rotatePoint({x: x, y: y}, -r);
-    x = pt.x;
-    y = pt.y;
-  }
-  return {x: x, y: y, z: z};
-};
-
-// Rotate a point counter-clockwise around an origin
-Q3D.Scene.prototype._rotatePoint = function (point, degrees, origin) {
-  var theta = degrees * Math.PI / 180,
-      c = Math.cos(theta),
-      s = Math.sin(theta),
-      x = point.x,
-      y = point.y;
-
-  if (origin) {
-    x -= origin.x;
-    y -= origin.y;
-  }
-
-  var xd = x * c - y * s,
-      yd = x * s + y * c;
-
-  if (origin) {
-    xd += origin.x;
-    yd += origin.y;
-  }
-  return {x: xd, y: yd};
+  return {
+    x: x - p.origin.x,
+    y: y - p.origin.y,
+    z: (z - p.origin.z) * p.zScale
+  };
 };
 
 Q3D.Scene.prototype.adjustZShift = function () {
@@ -454,8 +442,8 @@ limitations:
 
     if (params.anisotropy) Q3D.Config.texture.anisotropy = parseFloat(params.anisotropy) || Q3D.Config.texture.anisotropy;
 
-    if (params.cx !== undefined) Q3D.Config.viewpoint.pos.set(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
-    if (params.tx !== undefined) Q3D.Config.viewpoint.lookAt.set(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
+    if (params.cx !== undefined) Q3D.Config.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
+    if (params.tx !== undefined) Q3D.Config.viewpoint.lookAt  = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
 
     if (params.width && params.height) {
       container.style.width = params.width + "px";
@@ -484,8 +472,21 @@ limitations:
 
     // scene
     app.scene = new Q3D.Scene();
+
     app.scene.addEventListener("renderRequest", function (event) {
       app.render();
+    });
+
+    app.scene.addEventListener("cameraUpdateRequest", function (event) {
+      app.camera.position.copy(event.pos);
+      app.camera.lookAt(event.focal);
+      if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
+
+      if (event.near !== undefined) {
+        app.camera.near = event.near;
+        app.camera.far = event.far;
+        app.camera.updateProjectionMatrix();
+      }
     });
 
     // controls
@@ -560,7 +561,9 @@ limitations:
     controls.keyPanSpeed = Q3D.Config.controls.keyPanSpeed;
     controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Math.PI / 180;
 
-    controls.target.copy(Q3D.Config.viewpoint.lookAt);
+    if (Q3D.Config.viewpoint.lookAt !== undefined) {
+      controls.target.copy(Q3D.Config.viewpoint.lookAt);
+    }
 
     // custom actions
     var offset = new THREE.Vector3(),
@@ -859,18 +862,14 @@ limitations:
 
   app.buildCamera = function (is_ortho) {
     if (is_ortho) {
-      app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10, 0.1, 10000);
+      app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10);
     }
     else {
-      app.camera = new THREE.PerspectiveCamera(45, app.width / app.height, 0.1, 10000);
+      app.camera = new THREE.PerspectiveCamera(45, app.width / app.height);
     }
 
     // magic to change y-up world to z-up
     app.camera.up.set(0, 0, 1);
-
-    var v = Q3D.Config.viewpoint;
-    app.camera.position.copy(v.pos);
-    app.camera.lookAt(v.lookAt);
   };
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
@@ -888,7 +887,7 @@ limitations:
     app.camera2.up = app.camera.up;
 
     app.scene2 = new Q3D.Scene();
-    app.scene2.buildDefaultLights();
+    app.scene2.buildDefaultLights(rotation);
 
     // an arrow object
     var geometry = new THREE.Geometry();
@@ -1559,6 +1558,16 @@ limitations:
         }
         else {
           e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
+        }
+
+        if (Q3D.Config.debugMode) {
+          var p = app.scene.userData,
+              be = p.baseExtent;
+          e.innerHTML += "<br>WLD: " + [point.x.toFixed(8), point.y.toFixed(8), point.z.toFixed(8)].join(", ");
+          e.innerHTML += "<br><br>ORG: " + [p.origin.x.toFixed(8), p.origin.y.toFixed(8), p.origin.z.toFixed(8)].join(", ");
+          e.innerHTML += "<br>BE CNTR: " + [be.cx.toFixed(8), be.cy.toFixed(8)].join(", ");
+          e.innerHTML += "<br>BE SIZE: " + [be.width.toFixed(8), be.height.toFixed(8)].join(", ");
+          e.innerHTML += "<br>ROT: " + be.rotation + "<br>Z SC: " + p.zScale;
         }
       }
       else {
@@ -2791,6 +2800,13 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       this.blocks = [];
     }
 
+    var p = scene.userData,
+        be = p.baseExtent;
+    this.objectGroup.position.set(be.cx, be.cy, 0).sub(p.origin);
+    this.objectGroup.position.z *= p.zScale;
+    this.objectGroup.rotation.z = be.rotation * Q3D.deg2rad;
+    this.objectGroup.updateMatrixWorld();
+
     if (jsonObject.data !== undefined) {
       jsonObject.data.forEach(function (obj) {
         this.buildBlock(obj, scene, this);
@@ -2901,8 +2917,6 @@ Q3D.DEMLayer.prototype.getZ = function (x, y) {
     var sdx = (x - px0) / ix,
         sdy = (py0 - y) / iy;
 
-    // console.log(x, y, mx0, my0, sdx, sdy);
-
     if (sdx <= 1 - sdy) return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * sdy;
     else return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * (1 - sdy);
   }
@@ -2972,7 +2986,6 @@ Q3D.DEMLayer.prototype.segmentizeLineString = function (lineString, zFunc) {
     Q3D.Utils.putStick(lineString[i][0], lineString[i][1], zFunc, 0.8);
   }
   */
-
   return pts;
 };
 
@@ -3341,7 +3354,7 @@ Q3D.PointLayer.prototype.geomAndTransformFunc = function (objType) {
     ];
   }
   else if (objType == "Disk") {
-    var sz = this.sceneData.zExaggeration;
+    var sz = this.sceneData.zScale;
     return [
       new THREE.CircleBufferGeometry(1, 32),
       function (mesh, geom, pt) {
@@ -3353,7 +3366,7 @@ Q3D.PointLayer.prototype.geomAndTransformFunc = function (objType) {
     ];
   }
   else if (objType == "Plane") {
-    var sz = this.sceneData.zExaggeration;
+    var sz = this.sceneData.zScale;
     return [
       new THREE.PlaneBufferGeometry(1, 1, 1, 1),
       function (mesh, geom, pt) {
@@ -3459,7 +3472,7 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
         }
 
         var parent = new THREE.Group();
-        parent.scale.set(1, 1, _this.sceneData.zExaggeration);
+        parent.scale.set(1, 1, _this.sceneData.zScale);
         parent.position.fromArray(pt);
         parent.userData.properties = f.prop;
         parent.add(obj);

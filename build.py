@@ -45,17 +45,19 @@ class ThreeJSBuilder:
         obj = {
             "type": "scene",
             "properties": {
-                "width": mapTo3d.baseWidth,
-                "height": mapTo3d.baseHeight,
                 "baseExtent": {
-                    "x": be.center().x(),
-                    "y": be.center().y(),
+                    "cx": be.center().x(),
+                    "cy": be.center().y(),
                     "width": be.width(),
                     "height": be.height(),
                     "rotation": be.rotation()
                 },
-                "zExaggeration": mapTo3d.verticalExaggeration,
-                "zShift": mapTo3d.verticalShift
+                "origin": {
+                    "x": mapTo3d.origin.x(),
+                    "y": mapTo3d.origin.y(),
+                    "z": mapTo3d.origin.z()
+                },
+                "zScale": mapTo3d.zScale
             }
         }
 
@@ -63,8 +65,8 @@ class ThreeJSBuilder:
             crs = self.settings.crs
             obj["properties"]["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
-        self.log("Z exaggeration: {}".format(mapTo3d.verticalExaggeration))
-        self.log("Z shift: {}".format(mapTo3d.verticalShift))
+        self.log("Z scale: {}".format(mapTo3d.zScale))
+        self.log("Z shift: {}".format(mapTo3d.zShift))
 
         if build_layers:
             obj["layers"] = self.buildLayers(cancelSignal)

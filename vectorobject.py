@@ -41,10 +41,10 @@ class ObjectTypeBase:
         pass
 
     def defaultValue(self):
-        return float("{0:.4g}".format(1.0 / self.settings.mapTo3d().multiplier))
+        return 1.
 
     def defaultValueZ(self):
-        return float("{0:.4g}".format(1.0 / self.settings.mapTo3d().multiplierZ))
+        return 1.
 
     @classmethod
     def displayName(cls):
@@ -102,7 +102,7 @@ class SphereType(PointBasicTypeBase):
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
-                "r": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier}
+                "r": feat.prop(PID.G0)}
 
 
 class CylinderType(PointBasicTypeBase):
@@ -114,11 +114,10 @@ class CylinderType(PointBasicTypeBase):
                                       {"name": "Height", "defaultValue": self.defaultValueZ()}])
 
     def geometry(self, feat, geom):
-        mapTo3d = self.settings.mapTo3d()
-        r = feat.prop(PID.G0) * mapTo3d.multiplier
+        r = feat.prop(PID.G0)
         return {"pts": geom.toList(),
                 "r": r,
-                "h": feat.prop(PID.G1) * mapTo3d.multiplierZ}
+                "h": feat.prop(PID.G1) * self.settings.mapTo3d().zScale}
 
 
 class ConeType(CylinderType):
@@ -138,11 +137,10 @@ class BoxType(PointBasicTypeBase):
                                       {"name": "Height", "defaultValue": self.defaultValueZ()}])
 
     def geometry(self, feat, geom):
-        mapTo3d = self.settings.mapTo3d()
         return {"pts": geom.toList(),
-                "w": feat.prop(PID.G0) * mapTo3d.multiplier,
-                "d": feat.prop(PID.G1) * mapTo3d.multiplier,
-                "h": feat.prop(PID.G2) * mapTo3d.multiplierZ}
+                "w": feat.prop(PID.G0),
+                "d": feat.prop(PID.G1),
+                "h": feat.prop(PID.G2) * self.settings.mapTo3d().zScale}
 
 
 class DiskType(PointBasicTypeBase):
@@ -165,7 +163,7 @@ class DiskType(PointBasicTypeBase):
             dd = (dd + rotation) % 360
 
         return {"pts": geom.toList(),
-                "r": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier,
+                "r": feat.prop(PID.G0),
                 "d": feat.prop(PID.G1),
                 "dd": dd}
 
@@ -191,8 +189,8 @@ class PlaneType(PointBasicTypeBase):
             dd = (dd + rotation) % 360
 
         return {"pts": geom.toList(),
-                "w": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier,
-                "l": feat.prop(PID.G1) * self.settings.mapTo3d().multiplier,
+                "w": feat.prop(PID.G0),
+                "l": feat.prop(PID.G1),
                 "d": feat.prop(PID.G2),
                 "dd": dd}
 
@@ -243,7 +241,7 @@ class PipeType(LineBasicTypeBase):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
     def geometry(self, feat, geom):
-        r = feat.prop(PID.G0) * self.settings.mapTo3d().multiplier
+        r = feat.prop(PID.G0)
         return {"lines": geom.toList(),
                 "r": r}
 
@@ -266,10 +264,9 @@ class BoxLineType(LineBasicTypeBase):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
     def geometry(self, feat, geom):
-        multiplier = self.settings.mapTo3d().multiplier
         return {"lines": geom.toList(),
-                "w": feat.prop(PID.G0) * multiplier,
-                "h": feat.prop(PID.G1) * multiplier}
+                "w": feat.prop(PID.G0),
+                "h": feat.prop(PID.G1)}
 
 
 class WallType(LineBasicTypeBase):
@@ -284,7 +281,7 @@ class WallType(LineBasicTypeBase):
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(),
-                "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().multiplierZ}
+                "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().zScale}
 
 
 # PolygonBasicType
@@ -334,7 +331,7 @@ class ExtrudedType(PolygonBasicTypeBase):
 
     def geometry(self, feat, geom):
         g = PolygonBasicTypeBase.geometry(feat, geom)
-        g["h"] = feat.prop(PID.G0) * self.settings.mapTo3d().multiplierZ
+        g["h"] = feat.prop(PID.G0) * self.settings.mapTo3d().zScale
         return g
 
 
@@ -427,7 +424,7 @@ class ModelFileType(PointTypeBase):
              "rotateX": feat.prop(PID.G1),
              "rotateY": feat.prop(PID.G2),
              "rotateZ": rz,
-             "scale": feat.prop(PID.G0) * self.settings.mapTo3d().multiplier}
+             "scale": feat.prop(PID.G0)}
 
         if feat.prop(PID.G4) != "XYZ":    # added in 2.4
             d["rotateO"] = feat.prop(PID.G4)

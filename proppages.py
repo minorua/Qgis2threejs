@@ -196,15 +196,20 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
         self.mapSettings = canvas.mapSettings()
 
-        widgets = [self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
+        widgets = [self.comboBox_xyShift, self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
                    self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
-                   self.lineEdit_BaseSize, self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
+                   self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
                    self.radioButton_WGS84, self.radioButton_NoCoords]
         self.registerPropertyWidgets(widgets)
 
-        # map extent (2D)
+        # 3D world coordinates
+        self.comboBox_xyShift.addItem("Automatic", None)
+        self.comboBox_xyShift.addItem("Shift to origin", True)
+        self.comboBox_xyShift.addItem("No shift", False)
+
+        # 2D map extent
         self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)
         self.lineEdit_Width.editingFinished.connect(self.widthEditingFinished)
         self.pushButton_SelectExtent.clicked.connect(self.showSelectExtentMenu)
@@ -226,7 +231,6 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.setProperties(properties)
         else:
             self.radioButton_UseCanvasExtent.setChecked(True)
-            self.lineEdit_BaseSize.setText(str(DEF_SETS.BASE_SIZE))
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
             self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
@@ -261,8 +265,6 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
     def properties(self, only_visible=False):
         p = PropertyPage.properties(self, only_visible=only_visible)
         # check validity
-        if not is_number(self.lineEdit_BaseSize.text()):
-            p["lineEdit_BaseSize"] = str(DEF_SETS.BASE_SIZE)
         if not is_number(self.lineEdit_zFactor.text()):
             p["lineEdit_zFactor"] = str(DEF_SETS.Z_EXAGGERATION)
         if not is_number(self.lineEdit_zShift.text()):
@@ -764,7 +766,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
                 self.comboBox_Label.addItem(fields[i].name(), i)
 
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.multiplierZ)})
+            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.zScale)})
 
         self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
 
