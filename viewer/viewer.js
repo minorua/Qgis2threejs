@@ -319,7 +319,8 @@ function switchCamera(is_ortho) {
 
 // current camera position and its target
 function cameraState(flat) {
-  var p = app.camera.position, t = app.controls.target;
+  var p = app.scene.toMapCoordinates(app.camera.position),
+      t = app.scene.toMapCoordinates(app.controls.target);
   if (flat) {
     return {
       x: p.x, y: p.y, z: p.z, fx: t.x, fy: t.y, fz: t.z
@@ -334,13 +335,12 @@ function cameraState(flat) {
 
 function setCameraState(s) {
   if (s.pos !== undefined) {
-    var p = s.pos, t = s.lookAt;
-    app.camera.position.set(p.x, p.y, p.z);
-    app.controls.target.set(t.x, t.y, t.z);
+    app.camera.position.copy(app.scene.toWorldCoordinates(s.pos));
+    app.controls.target.copy(app.scene.toWorldCoordinates(s.lookAt));
   }
   else {
-    app.camera.position.set(s.x, s.y, s.z);
-    app.controls.target.set(s.fx, s.fy, s.fz);
+    app.camera.position.copy(app.scene.toWorldCoordinates(s));
+    app.controls.target.copy(app.scene.toWorldCoordinates({x: s.fx, y: s.fy, z: s.fz}));
   }
   app.camera.lookAt(app.controls.target);
 }

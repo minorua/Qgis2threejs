@@ -77,8 +77,8 @@ Q3D.gui = {
 
     if (zMin === undefined || zMax === undefined) {
       var box = new THREE.Box3().setFromObject(scene);
-      if (zMin === undefined) zMin = scene.toMapCoordinates(0, 0, box.min.z).z;
-      if (zMax === undefined) zMax = scene.toMapCoordinates(0, 0, box.max.z).z;
+      if (zMin === undefined) zMin = scene.toMapCoordinates({x: 0, y: 0, z: box.min.z}).z;
+      if (zMax === undefined) zMax = scene.toMapCoordinates({x: 0, y: 0, z: box.max.z}).z;
     }
 
     var addPlane = function (color) {
@@ -144,7 +144,6 @@ Q3D.gui = {
     k.onStop = function () {
       btn.name('Play');
     };
-    
   },
 
   // add commands folder for touch screen devices

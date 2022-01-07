@@ -205,8 +205,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       if (this.userData.origin === undefined) {
 
         var be = p.baseExtent,
-            s = 1,
-            v = Q3D.Config.viewpoint;
+            s = be.width,
+            v = Q3D.Config.viewpoint,
+            pos, focal;
 
         if (v.pos === undefined) {
           v = v.default;
@@ -216,14 +217,17 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
               lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
             };
           }
-          s = be.width;
+          var vec3 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
+          pos = v.pos.clone().multiplyScalar(s).add(vec3);
+          focal = v.lookAt.clone().multiplyScalar(s).add(vec3);
+        }
+        else {
+          pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
+          focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
         }
 
-        var vec3 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin),
-            pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(vec3),
-            focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(vec3),
-            near = 0.001 * be.width,
-            far = 100 * be.width;
+        var near = 0.001 * s,
+            far = 100 * s;
 
         this.requestCameraUpdate(pos, focal, near, far);
       }
@@ -325,29 +329,28 @@ Q3D.Scene.prototype.visibleObjects = function () {
 };
 
 // 3D world coordinates to map coordinates
-Q3D.Scene.prototype.toMapCoordinates = function (x, y, z) {
+Q3D.Scene.prototype.toMapCoordinates = function (pt) {
   var p = this.userData;
   return {
-    x: p.origin.x + x,
-    y: p.origin.y + y,
-    z: p.origin.z + z / p.zScale
+    x: p.origin.x + pt.x,
+    y: p.origin.y + pt.y,
+    z: p.origin.z + pt.z / p.zScale
   };
 };
 
 // map coordinates to 3D world coordinates
-Q3D.Scene.prototype.toWorldCoordinates = function (x, y, z, isLonLat) {
-  var pt, p = this.userData;
+Q3D.Scene.prototype.toWorldCoordinates = function (pt, isLonLat) {
+  var p = this.userData;
   if (isLonLat && typeof proj4 !== "undefined") {
     // WGS84 long,lat to map coordinates
-    pt = proj4(p.proj).forward([x, y]);
-    x = pt[0];
-    y = pt[1];
+    var t = proj4(p.proj).forward([pt.x, pt.y]);
+    pt = {x: t[0], y: t[1], z: pt.z};
   }
 
   return {
-    x: x - p.origin.x,
-    y: y - p.origin.y,
-    z: (z - p.origin.z) * p.zScale
+    x: pt.x - p.origin.x,
+    y: pt.y - p.origin.y,
+    z: (pt.z - p.origin.z) * p.zScale
   };
 };
 
@@ -560,10 +563,6 @@ limitations:
     controls.zoomSpeed = Q3D.Config.controls.zoomSpeed;
     controls.keyPanSpeed = Q3D.Config.controls.keyPanSpeed;
     controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Math.PI / 180;
-
-    if (Q3D.Config.viewpoint.lookAt !== undefined) {
-      controls.target.copy(Q3D.Config.viewpoint.lookAt);
-    }
 
     // custom actions
     var offset = new THREE.Vector3(),
@@ -1548,7 +1547,7 @@ limitations:
       if (show_coords) {
         e.classList.remove("hidden");
 
-        var pt = app.scene.toMapCoordinates(point.x, point.y, point.z);
+        var pt = app.scene.toMapCoordinates(point);
 
         e = document.getElementById("qr_coords");
 
