@@ -26,9 +26,10 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, 
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE, DEF_SETS
-from .q3dconst import LayerType
+from .q3dconst import LayerType, ATConst
 from .tools import logMessage
 from .ui.animationpanel import Ui_AnimationPanel
+from .ui.keyframedialog import Ui_KeyframeDialog
 
 
 class AnimationPanel(QWidget):
@@ -108,71 +109,6 @@ class AnimationPanel(QWidget):
         if QMessageBox.question(self, "Qgis2threejs", msg) == QMessageBox.Yes:
             item = self.tree.currentItem()
             item.setData(0, ATConst.DATA_CAMERA, view)
-
-
-class ATConst:
-
-    # ITEM TYPES
-
-    # TOP LEVEL
-    ITEM_TOPLEVEL = 32
-    ITEM_TL_CAMERA = 32
-    ITEM_TL_LAYER = 33
-
-    # GROUP
-    ITEM_GRP = 64
-
-    ITEM_GRP_CAMERA = 64
-    ITEM_GRP_OPACITY = 65
-    ITEM_GRP_MATERIAL = 66
-    ITEM_GRP_GROWING_LINE = 67
-
-    # MEMBER OF GROUP (KEYFRAME OR EFFECT)
-    ITEM_MBR = 128
-
-    ITEM_CAMERA = 128
-    ITEM_OPACITY = 129
-    ITEM_MATERIAL = 130
-    ITEM_GROWING_LINE = 131         # EFFECT
-
-    # ITEM_TL_LAYER
-    DATA_LAYER_ID = Qt.UserRole
-
-    # COMMON FOR KEYFRAME GROUP AND KEYFRAME
-    DATA_EASING = Qt.UserRole + 1
-
-    # KEYFRAME GROUP
-    DATA_NEXT_INDEX = Qt.UserRole
-
-    # COMMON FOR KEYFRAME
-    DATA_DURATION = Qt.UserRole + 2
-    DATA_DELAY = Qt.UserRole + 3
-    DATA_NARRATION = Qt.UserRole + 4
-
-    # CAMERA KEYFRAME
-    DATA_CAMERA = Qt.UserRole
-
-    # OPACITY KEYFRAME
-    DATA_OPACITY = Qt.UserRole
-
-    # MATERIAL KEYFRAME
-    DATA_MTL_ID = Qt.UserRole
-    DATA_EFFECT = Qt.UserRole + 5
-
-    # LINE GROWING EFFECT
-    DATA_FID = Qt.UserRole
-
-    @classmethod
-    def defaultName(cls, typ):
-        name = ["Camera", "Opacity", "Material", "Line Growing"]
-
-        if typ & cls.ITEM_GRP:
-            return "{} Group".format(name[typ - cls.ITEM_GRP])
-
-        if typ & cls.ITEM_MBR:
-            return "{} Keyframe".format(name[typ - cls.ITEM_MBR])
-
-        return "UNDEF"
 
 
 class AnimationTreeWidget(QTreeWidget):
@@ -787,7 +723,6 @@ class KeyframeDialog(QDialog):
         QDialog.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        from .ui.keyframedialog import Ui_KeyframeDialog
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)
 
