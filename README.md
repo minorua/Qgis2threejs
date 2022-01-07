@@ -20,8 +20,10 @@ Browser Support
   See [plugin wiki page](https://github.com/minorua/Qgis2threejs/wiki/Browser-Support).
 
 
-Dependent JavaScript libraries and resources
---------------------------------------------
+Dependencies
+------------
+
+This plugin is powered by the following JavaScript libraries and resources:
 
 * [three.js](https://threejs.org)
 
