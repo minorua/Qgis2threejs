@@ -41,7 +41,7 @@ class Q3DTreeView(QTreeView):
         self.layers = []
         self._index = -1
 
-        self.actionProperties = QAction("Properties", self)
+        self.actionProperties = QAction("Properties...", self)
         self.actionProperties.triggered.connect(self.onDoubleClicked)
 
         self.actionAddPCLayer = QAction("Add Point Cloud layer...", self)

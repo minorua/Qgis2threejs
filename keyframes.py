@@ -27,6 +27,7 @@ from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE, DEF_SETS
 from .q3dconst import LayerType, ATConst
+from .q3dcore import Layer
 from .tools import logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
@@ -127,9 +128,9 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.setExpandsOnDoubleClick(False)
 
-    def setup(self, wnd, settings=None):
+    def setup(self, wnd, settings):
         self.wnd = wnd
-        self.webPage = wnd.ui.webView._page if wnd else None
+        self.webPage = wnd.ui.webView._page
 
         self.settings = settings
 
@@ -137,10 +138,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
         self.keyframeIcon = QgsApplication.getThemeIcon("mItemBookmark.svg")
 
-        self.initTree()
-
-        if settings:
-            self.setData(settings.animationData())
+        self.setData(settings.animationData())
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenu)
@@ -151,21 +149,20 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionNewGroup = QAction("New Group", self)
         self.actionNewGroup.triggered.connect(self.addNewItem)
 
-        self.actionNew = QAction("New Item", self)
-        self.actionNew.triggered.connect(self.addNewItem)
+        self.actionAdd = QAction("Add...", self)        # NOTE: might be hidden
+        self.actionAdd.triggered.connect(self.addNewItem)
 
-        self.actionRemove = QAction("Remove", self)
+        self.actionRemove = QAction("Remove...", self)
         self.actionRemove.triggered.connect(self.removeCurrentItem)
 
         self.actionEdit = QAction("Edit...", self)
         self.actionEdit.triggered.connect(self.showDialog)
 
-        if wnd:
-            self.actionPlay = QAction("Play", self)
-            self.actionPlay.triggered.connect(self.panel.playAnimation)
+        self.actionPlay = QAction("Play", self)
+        self.actionPlay.triggered.connect(self.panel.playAnimation)
 
-            self.actionUpdateView = QAction("Set current view to this keyframe", self)
-            self.actionUpdateView.triggered.connect(self.panel.updateKeyframeView)
+        self.actionUpdateView = QAction("Set current view to this keyframe...", self)
+        self.actionUpdateView.triggered.connect(self.panel.updateKeyframeView)
 
         easing = ["[no selection]", "Linear", "Quadratic In"]
         self.menuEasing = QMenu(self)
@@ -193,29 +190,33 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionGrowLine = QAction("Line Growing Effect...", self)
         self.actionGrowLine.triggered.connect(self.addGrowLineItem)
 
-        self.contextMenuKeyframeGroup = QMenu(self)
-        self.contextMenuKeyframeGroup.addActions([self.actionEdit,
-                                                  self.menuEasing.menuAction()])
-        if wnd:
-            self.contextMenuKeyframeGroup.addAction(self.actionPlay)
-        self.contextMenuKeyframeGroup.addSeparator()
-        self.contextMenuKeyframeGroup.addAction(self.actionRemove)
+        self.actionProperties = QAction("Properties...", self)
+        self.actionProperties.triggered.connect(self.showLayerProperties)
 
-        self.contextMenuKeyframe = QMenu(self)
-        self.contextMenuKeyframe.addAction(self.actionEdit)
-        if wnd:
-            self.contextMenuKeyframe.addAction(self.actionUpdateView)
-        self.contextMenuKeyframe.addAction(self.menuEasing.menuAction())
-        if wnd:
-            self.contextMenuKeyframe.addAction(self.actionPlay)
-        self.contextMenuKeyframe.addSeparator()
-        self.contextMenuKeyframe.addAction(self.actionRemove)
+        self.ctxMenuKeyframeGroup = QMenu(self)
+        self.ctxMenuKeyframeGroup.addAction(self.actionPlay)
+        self.ctxMenuKeyframeGroup.addAction(self.actionAdd)
+        self.ctxMenuKeyframeGroup.addSeparator()
+        self.ctxMenuKeyframeGroup.addActions([self.actionEdit,
+                                              self.menuEasing.menuAction()])
+        self.ctxMenuKeyframeGroup.addSeparator()
+        self.ctxMenuKeyframeGroup.addAction(self.actionRemove)
 
-        self.contextMenuLayer = QMenu(self)
-        self.contextMenuLayer.addActions([self.actionOpacity, self.actionMaterial, self.actionGrowLine])
+        self.ctxMenuKeyframe = QMenu(self)
+        self.ctxMenuKeyframe.addAction(self.actionPlay)
+        self.ctxMenuKeyframe.addAction(self.actionEdit)
+        self.ctxMenuKeyframe.addAction(self.actionUpdateView)
+        self.ctxMenuKeyframe.addAction(self.menuEasing.menuAction())
+        self.ctxMenuKeyframe.addSeparator()
+        self.ctxMenuKeyframe.addAction(self.actionRemove)
 
-        self.contextMenuKeyframeBlank = QMenu(self)
-        self.contextMenuKeyframeBlank.addAction(self.actionNewGroup)
+        self.ctxMenuLayerAdd = QMenu("Add", self)
+        self.ctxMenuLayerAdd.addActions([self.actionOpacity, self.actionMaterial, self.actionGrowLine])
+
+        self.ctxMenuLayer = QMenu(self)
+        self.ctxMenuLayer.addMenu(self.ctxMenuLayerAdd)
+        self.ctxMenuLayer.addSeparator()
+        self.ctxMenuLayer.addAction(self.actionProperties)
 
     def focusOutEvent(self, event):
         #TODO: restore layer opacity
@@ -232,10 +233,15 @@ class AnimationTreeWidget(QTreeWidget):
         item.setExpanded(True)
         return item
 
-    def addLayer(self, layerId):
-        layer = self.settings.getLayer(layerId)
-        if not layer:
-            return
+    def addLayer(self, id_layer):
+        if isinstance(id_layer, Layer):
+            layer = id_layer
+            layerId = id_layer.layerId
+        else:
+            layerId = id_layer
+            layer = self.settings.getLayer(layerId)
+            if not layer:
+                return
 
         item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
@@ -282,8 +288,9 @@ class AnimationTreeWidget(QTreeWidget):
                 self.setCurrentItem(self.addKeyframeItem(parent))
             else:
                 layer = self.getLayerFromLayerItem(item)
+                self.actionMaterial.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
-                self.contextMenuLayer.popup(QCursor.pos())
+                self.ctxMenuLayer.popup(QCursor.pos())
             return
 
         gt = typ if typ & ATConst.ITEM_GRP else typ - ATConst.ITEM_MBR + ATConst.ITEM_GRP
@@ -296,6 +303,9 @@ class AnimationTreeWidget(QTreeWidget):
 
         elif gt == ATConst.ITEM_GRP_MATERIAL:
             self.addMaterialItem()
+
+        # elif gt == ATConst.ITEM_GRP_GROWING_LINE:
+        #     self.addGrowLineItem()
 
     def removeCurrentItem(self):
         item = self.currentItem()
@@ -527,11 +537,11 @@ class AnimationTreeWidget(QTreeWidget):
 
     def setData(self, data):
         self.initTree()
+
+        # camera motion
         self.cameraTLItem = self.addCameraMotionTLItem()
 
-        camera = data.get("camera", {})
-
-        for s in camera.get("groups", []):
+        for s in data.get("camera", {}).get("groups", []):
             parent = self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("easing"))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
@@ -539,12 +549,16 @@ class AnimationTreeWidget(QTreeWidget):
         if self.cameraTLItem.childCount() == 0:
             self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA)
 
-        for layerId, d in data.get("layers", {}).items():
-            self.setLayerData(layerId, d)
+        # layers
+        dp = data.get("layers", {})
+        for layer in self.settings.getLayerList():
+            id = layer.layerId
+            self.addLayer(layer)
 
-            layer = self.settings.getLayer(layerId)
-            if layer:
-                self.setLayerHidden(layerId, not layer.visible)
+            d = dp.get(id)
+            if d:
+                self.setLayerData(id, d)
+            self.setLayerHidden(id, not layer.visible)
 
     def currentItemView(self):
         item = self.currentItem()
@@ -557,33 +571,39 @@ class AnimationTreeWidget(QTreeWidget):
             # blank space
             return
 
+        m = None
         typ = item.type()
-        if typ & ATConst.ITEM_GRP:
-            m = self.contextMenuKeyframeGroup
-            self.actionEasing[0].setVisible(False)
-            da = self.actionEasing[1]
+        if typ & ATConst.ITEM_TOPLEVEL:
+            if typ == ATConst.ITEM_TL_LAYER:
+                m = self.ctxMenuLayer
 
-        elif typ & ATConst.ITEM_MBR:
-            m = self.contextMenuKeyframe
-            self.actionEasing[0].setVisible(True)
-            da = self.actionEasing[0]
-
-            self.actionUpdateView.setVisible(bool(typ == ATConst.ITEM_CAMERA))
         else:
-            return
+            if typ & ATConst.ITEM_GRP:
+                m = self.ctxMenuKeyframeGroup
+                self.actionAdd.setVisible(bool(typ != ATConst.ITEM_GRP_GROWING_LINE))
+                self.actionEasing[0].setVisible(False)
+                da = self.actionEasing[1]
 
-        flag = True
-        easing = item.data(0, ATConst.DATA_EASING)
-        if easing:
-            for a in self.actionEasing:
-                if a.text() == easing:
-                    a.setChecked(True)
-                    flag = False
-                    break
-        if flag:
-            da.setChecked(True)
+            elif typ & ATConst.ITEM_MBR:
+                m = self.ctxMenuKeyframe
+                self.actionEasing[0].setVisible(True)
+                da = self.actionEasing[0]
 
-        m.exec_(self.mapToGlobal(pos))
+                self.actionUpdateView.setVisible(bool(typ == ATConst.ITEM_CAMERA))
+
+            flag = True
+            easing = item.data(0, ATConst.DATA_EASING)
+            if easing:
+                for a in self.actionEasing:
+                    if a.text() == easing:
+                        a.setChecked(True)
+                        flag = False
+                        break
+            if flag:
+                da.setChecked(True)
+
+        if m:
+            m.exec_(self.mapToGlobal(pos))
 
     def currentTreeItemChanged(self, current, previous):
 
@@ -715,6 +735,11 @@ class AnimationTreeWidget(QTreeWidget):
         dialog = KeyframeDialog(self)
         dialog.setup(item, layer)
         dialog.exec_()
+
+    def showLayerProperties(self):
+        layer = self.currentLayer()
+        if layer:
+            self.wnd.showLayerPropertiesDialog(layer)
 
 
 class KeyframeDialog(QDialog):
