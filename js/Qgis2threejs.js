@@ -2117,7 +2117,7 @@ Q3D.Material.prototype = {
 Q3D.Materials
 */
 Q3D.Materials = function () {
-  this.materials = [];
+  this.array = [];
 };
 
 Q3D.Materials.prototype = Object.create(THREE.EventDispatcher.prototype);
@@ -2126,19 +2126,19 @@ Q3D.Materials.prototype.constructor = Q3D.Materials;
 // material: instance of Q3D.Material object or THREE.Material-based object
 Q3D.Materials.prototype.add = function (material) {
   if (material instanceof Q3D.Material) {
-    this.materials.push(material);
+    this.array.push(material);
   }
   else {
-    this.materials.push(new Q3D.Material().set(material));
+    this.array.push(new Q3D.Material().set(material));
   }
 };
 
 Q3D.Materials.prototype.get = function (index) {
-  return this.materials[index];
+  return this.array[index];
 };
 
 Q3D.Materials.prototype.mtl = function (index) {
-  return this.materials[index].mtl;
+  return this.array[index].mtl;
 };
 
 Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
@@ -2156,10 +2156,10 @@ Q3D.Materials.prototype.loadJSONObject = function (jsonObject) {
 };
 
 Q3D.Materials.prototype.dispose = function () {
-  for (var i = 0, l = this.materials.length; i < l; i++) {
-    this.materials[i].dispose();
+  for (var i = 0, l = this.array.length; i < l; i++) {
+    this.array[i].dispose();
   }
-  this.materials = [];
+  this.array = [];
 };
 
 Q3D.Materials.prototype.addFromObject3D = function (object) {
@@ -2175,44 +2175,44 @@ Q3D.Materials.prototype.addFromObject3D = function (object) {
   });
 
   for (var i = 0, l = mtls.length; i < l; i++) {
-    this.materials.push(new Q3D.Material().set(mtls[i]));
+    this.array.push(new Q3D.Material().set(mtls[i]));
   }
 };
 
 // opacity
 Q3D.Materials.prototype.opacity = function () {
-  if (this.materials.length == 0) return 1;
+  if (this.array.length == 0) return 1;
 
   var sum = 0;
-  for (var i = 0, l = this.materials.length; i < l; i++) {
-    sum += this.materials[i].mtl.opacity;
+  for (var i = 0, l = this.array.length; i < l; i++) {
+    sum += this.array[i].mtl.opacity;
   }
-  return sum / this.materials.length;
+  return sum / this.array.length;
 };
 
 Q3D.Materials.prototype.setOpacity = function (opacity) {
-  var material;
-  for (var i = 0, l = this.materials.length; i < l; i++) {
-    material = this.materials[i];
-    material.mtl.transparent = Boolean(material.origProp.t) || (opacity < 1);
-    material.mtl.opacity = opacity;
+  var m;
+  for (var i = 0, l = this.array.length; i < l; i++) {
+    m = this.array[i];
+    m.mtl.transparent = Boolean(m.origProp.t) || (opacity < 1);
+    m.mtl.opacity = opacity;
   }
 };
 
 // wireframe: boolean
 Q3D.Materials.prototype.setWireframeMode = function (wireframe) {
-  var material;
-  for (var i = 0, l = this.materials.length; i < l; i++) {
-    material = this.materials[i];
-    if (material.origProp.w || material.mtl instanceof THREE.LineBasicMaterial) continue;
-    material.mtl.wireframe = wireframe;
+  var m;
+  for (var i = 0, l = this.array.length; i < l; i++) {
+    m = this.array[i];
+    if (m.origProp.w || m.mtl instanceof THREE.LineBasicMaterial) continue;
+    m.mtl.wireframe = wireframe;
   }
 };
 
 Q3D.Materials.prototype.removeItem = function (material, dispose) {
-  for (var i = this.materials.length - 1; i >= 0; i--) {
-    if (this.materials[i].mtl === material) {
-      this.materials.splice(i, 1);
+  for (var i = this.array.length - 1; i >= 0; i--) {
+    if (this.array[i].mtl === material) {
+      this.array.splice(i, 1);
       break;
     }
   }
@@ -2220,9 +2220,9 @@ Q3D.Materials.prototype.removeItem = function (material, dispose) {
 };
 
 Q3D.Materials.prototype.removeGroupItems = function (groupId) {
-  for (var i = this.materials.length - 1; i >= 0; i--) {
-    if (this.materials[i].groupId === groupId) {
-      this.materials.splice(i, 1);
+  for (var i = this.array.length - 1; i >= 0; i--) {
+    if (this.array[i].groupId === groupId) {
+      this.array.splice(i, 1);
     }
   }
 };
@@ -3709,8 +3709,8 @@ Q3D.LineLayer.prototype.prepareGrowingAnimation = function () {
   var _this = this;
 
   this.origMtls = new Q3D.Materials();
-  this.origMtls.materials = this.materials.materials;
-  this.materials.materials = [];
+  this.origMtls.materials = this.materials.array;
+  this.materials.array = [];
 
   var opt, m, mtls = this.origMtls.materials;
 
@@ -3757,7 +3757,7 @@ Q3D.LineLayer.prototype.setLengthPercentage = function (percentage) {
 
   if (this.origMtls === undefined) return;
 
-  var mtl, mtls = this.materials.materials;
+  var mtl, mtls = this.materials.array;
   for (var i = 0; i < mtls.length; i++) {
     mtl = mtls[i].mtl;
     if (mtl.isLineDashedMaterial) {
