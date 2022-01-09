@@ -24,7 +24,7 @@ from datetime import datetime
 from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
-                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMessageBox, QProgressBar)
+                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
@@ -138,22 +138,9 @@ class Q3DWindow(QMainWindow):
         self.ui.dockWidgetConsole.hide()
         self.ui.animationPanel.setup(self, settings)
 
-        if DEBUG_MODE:
-            self.ui.actionInspector = QAction(self)
-            self.ui.actionInspector.setObjectName("actionInspector")
-            self.ui.actionInspector.setText("Web Inspector...")
-            self.ui.menuWindow.addSeparator()
-            self.ui.menuWindow.addAction(self.ui.actionInspector)
-            self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
-
         # signal-slot connections
         # map canvas
         self.controller.connectToMapCanvas(qgisIface.mapCanvas())
-
-        # console
-        self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
-
-        self.alwaysOnTopToggled(False)
 
         # restore window geometry and dockwidget layout
         settings = QSettings()
@@ -235,12 +222,40 @@ class Q3DWindow(QMainWindow):
         self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         self.ui.actionAbout.triggered.connect(self.about)
 
+        self.alwaysOnTopToggled(False)
+
+        if DEBUG_MODE:
+            self.ui.menuDebug = QMenu(self.ui.menubar)
+            self.ui.menuDebug.setObjectName("menuDebug")
+            self.ui.menuDebug.setTitle("&Debug")
+            self.ui.menubar.addAction(self.ui.menuDebug.menuAction())
+
+            self.ui.actionClearCache = QAction(self)
+            self.ui.actionClearCache.setObjectName("actionClearCache")
+            self.ui.actionClearCache.setText("Clear web cache")
+            self.ui.menuDebug.addAction(self.ui.actionClearCache)
+            self.ui.actionClearCache.triggered.connect(self.ui.webView.clearCaches)
+
+            self.ui.actionInspector = QAction(self)
+            self.ui.actionInspector.setObjectName("actionInspector")
+            self.ui.actionInspector.setText("Web Inspector...")
+            self.ui.menuDebug.addAction(self.ui.actionInspector)
+            self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
+
+            self.ui.actionJSInfo = QAction(self)
+            self.ui.actionJSInfo.setObjectName("actionJSInfo")
+            self.ui.actionJSInfo.setText("three.js Info...")
+            self.ui.menuDebug.addAction(self.ui.actionJSInfo)
+            self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
+
     def setupConsole(self):
         # console
         self.ui.actionConsoleCopy.triggered.connect(self.copyConsole)
         self.ui.actionConsoleClear.triggered.connect(self.clearConsole)
         self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleCopy)
         self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleClear)
+
+        self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
 
     def setupStatusBar(self, iface, previewEnabled=True):
         w = QProgressBar(self.ui.statusbar)
