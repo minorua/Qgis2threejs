@@ -124,6 +124,8 @@ class ThreeJSExporter(ThreeJSBuilder):
         with open(config["path"], "r", encoding="utf-8") as f:
             html = f.read()
 
+        narration = "\n".join(['    <div id="{}">\n{}\n    </div>'.format(id, text) for id, text in self.settings.narrations()])
+
         mapping = {
             "title": self.settings.title(),
             "options": "\n".join(options),
@@ -131,6 +133,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             "scenefile": "./data/{0}/scene.{1}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
+            "narration": narration,
             "version": PLUGIN_VERSION
         }
         for key, value in mapping.items():

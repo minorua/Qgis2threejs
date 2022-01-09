@@ -50,7 +50,7 @@ Q3D.gui = {
       folder.add(parameters.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
 
       mtlNames = layer.properties.mtlNames;
-      if (mtlNames.length > 1) {
+      if (mtlNames && mtlNames.length > 1) {
         items = {};
         for (i = 0; i < mtlNames.length; i++) {
           items[mtlNames[i]] = i;

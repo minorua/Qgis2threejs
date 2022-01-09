@@ -1019,7 +1019,8 @@ limitations:
         if (this.isActive || this.isPaused) this.stop();
 
         var _this = this,
-            e = document.getElementById("narrativebox");
+            e = document.getElementById("narrativebox"),
+            currentNarElem;
 
         this.keyframeGroups.forEach(function (group) {
 
@@ -1034,7 +1035,16 @@ limitations:
             // narrative box
             var n = keyframes[idx].narration;
             if (n && e) {
-              document.getElementById("narbody").innerHTML = n;
+              if (currentNarElem) {
+                currentNarElem.style.display = "none";
+              }
+              currentNarElem = document.getElementById(n.id);
+              if (currentNarElem) {
+                currentNarElem.style.display = "block";
+              }
+              else {    // preview
+                document.getElementById("narbody").innerHTML = n.text;
+              }
 
               setTimeout(function () {
                 e.classList.add("visible");

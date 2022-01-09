@@ -337,6 +337,10 @@ body {
   height: 100%;
 }
 
+#narbody div{
+  display: none;
+}
+
 #nextbtn {
   position: absolute;
   bottom: 5px;

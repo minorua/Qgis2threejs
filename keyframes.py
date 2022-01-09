@@ -19,7 +19,7 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUuid
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QWidget)
@@ -52,9 +52,9 @@ class AnimationPanel(QWidget):
         self.wnd = wnd
         self.webPage = wnd.ui.webView._page
 
-        self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("/symbologyAdd.svg"))
-        self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("/symbologyEdit.svg"))
-        self.ui.toolButtonRemove.setIcon(QgsApplication.getThemeIcon("/symbologyRemove.svg"))
+        self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
+        self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("symbologyEdit.svg"))
+        self.ui.toolButtonRemove.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
         self.ui.toolButtonAdd.clicked.connect(self.tree.addNewItem)
         self.ui.toolButtonEdit.clicked.connect(self.tree.showDialog)
@@ -365,7 +365,9 @@ class AnimationTreeWidget(QTreeWidget):
         item.setData(0, ATConst.DATA_EASING, keyframe.get("easing"))
         item.setData(0, ATConst.DATA_DURATION, str(keyframe.get("duration", DEF_SETS.ANM_DURATION)))
         item.setData(0, ATConst.DATA_DELAY, str(keyframe.get("delay", 0)))
-        item.setData(0, ATConst.DATA_NARRATION, keyframe.get("narration"))
+        nar = keyframe.get("narration")
+        if nar:
+            item.setData(0, ATConst.DATA_NARRATION, {"id": nar["id"], "text": nar["text"]})
 
         if typ == ATConst.ITEM_CAMERA:
             item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.webPage.cameraState(flat=True))
@@ -751,6 +753,8 @@ class KeyframeDialog(QDialog):
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)
 
+        self.narId = None
+
     def setup(self, item, layer=None):
         self.item = item
         typ = item.type()
@@ -761,7 +765,10 @@ class KeyframeDialog(QDialog):
         if typ & ATConst.ITEM_MBR:
             self.ui.lineEditDuration.setText(str(item.data(0, ATConst.DATA_DURATION)))
             self.ui.lineEditDelay.setText(str(item.data(0, ATConst.DATA_DELAY)))
-            self.ui.textEdit.setPlainText(item.data(0, ATConst.DATA_NARRATION) or "")
+
+            nar = item.data(0, ATConst.DATA_NARRATION) or {}
+            self.narId = nar.get("id")
+            self.ui.textEdit.setPlainText(nar.get("text") or "")
 
         if typ == ATConst.ITEM_OPACITY:
             self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY) or 1)
@@ -815,7 +822,15 @@ class KeyframeDialog(QDialog):
         if typ & ATConst.ITEM_MBR:
             self.item.setData(0, ATConst.DATA_DURATION, self.ui.lineEditDuration.text())
             self.item.setData(0, ATConst.DATA_DELAY, self.ui.lineEditDelay.text())
-            self.item.setData(0, ATConst.DATA_NARRATION, self.ui.textEdit.toPlainText())
+
+            nar = None
+            text = self.ui.textEdit.toPlainText()
+            if text:
+                nar = {
+                    "id": self.narId or ("nar_" + QUuid.createUuid().toString()[1:9]),
+                    "text": text
+                }
+            self.item.setData(0, ATConst.DATA_NARRATION, nar)
 
         if typ == ATConst.ITEM_OPACITY:
             opacity = self.ui.doubleSpinBoxOpacity.value()

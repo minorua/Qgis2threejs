@@ -413,7 +413,7 @@ function stopAnimation() {
 function showNarrativeBox(nar) {
   var e = document.getElementById("narrativebox");
   e.classList.remove("visible");
-  document.getElementById("narbody").innerHTML = nar;
+  document.getElementById("narbody").innerHTML = nar.text;
 
   setTimeout(function () {
     e.classList.add("visible");

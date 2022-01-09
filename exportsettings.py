@@ -477,17 +477,18 @@ class ExportSettings:
             return {}
 
         groups = []
+        exc = ["name", "text"]
 
         # camera motion
         idx = d.get("cmgIndex", -1)
         if idx >= 0:
-            groups.append(deepcopyExcept(d["camera"]["groups"][idx], "name"))
+            groups.append(deepcopyExcept(d["camera"]["groups"][idx], exc))
 
         # layer animation
         idsToExport = self.mapLayerIdsToExport()
         for layerId, layer in d.get("layers", {}).items():
             if layerId in idsToExport:
-                groups += deepcopyExcept(layer["groups"], "name")
+                groups += deepcopyExcept(layer["groups"], exc)
 
         return {"groups": groups}
 
@@ -495,6 +496,30 @@ class ExportSettings:
         d = self.data.get(ExportSettings.KEYFRAMES, {})
         d.update(data)
         self.data[ExportSettings.KEYFRAMES] = d
+
+    def narrations(self):
+        d = self.data.get(ExportSettings.KEYFRAMES, {})
+        kfg = []
+
+        # camera motion
+        idx = d.get("cmgIndex", -1)
+        if idx >= 0:
+            kfg.append(d["camera"]["groups"][idx])
+
+        # layer animation
+        idsToExport = self.mapLayerIdsToExport()
+        for layerId, layer in d.get("layers", {}).items():
+            if layerId in idsToExport:
+                for g in layer.get("groups", []):
+                    kfg.append(g)
+
+        contents = []
+        for g in kfg:
+            for k in g.get("keyframes", []):      # TODO: sort by time (begin, k)
+                nar = k.get("narration")
+                if nar:
+                    contents.append((nar["id"], nar["text"]))
+        return contents
 
     # for backward compatibility
     def loadEarlierFormatData(self, settings):
@@ -590,9 +615,9 @@ class ExportSettings:
                 properties["geomWidget" + str(i)] = v
 
 
-def deepcopyExcept(obj, key_to_remove):
+def deepcopyExcept(obj, keys_to_remove):
     if isinstance(obj, dict):
-        return {k: deepcopyExcept(v, key_to_remove) if isinstance(v, (dict, list)) else v for k, v in obj.items() if k != key_to_remove}
+        return {k: deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for k, v in obj.items() if k not in keys_to_remove}
     elif isinstance(obj, list):
-        return [deepcopyExcept(v, key_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
+        return [deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
     return obj
