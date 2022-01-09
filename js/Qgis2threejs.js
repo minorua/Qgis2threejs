@@ -562,7 +562,7 @@ limitations:
     controls.rotateSpeed = Q3D.Config.controls.rotateSpeed;
     controls.zoomSpeed = Q3D.Config.controls.zoomSpeed;
     controls.keyPanSpeed = Q3D.Config.controls.keyPanSpeed;
-    controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Math.PI / 180;
+    controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Q3D.deg2rad;
 
     // custom actions
     var offset = new THREE.Vector3(),
@@ -904,7 +904,7 @@ limitations:
 
     var material = new THREE.MeshLambertMaterial({color: Q3D.Config.northArrow.color, side: THREE.DoubleSide});
     var mesh = new THREE.Mesh(geometry, material);
-    if (rotation) mesh.rotation.z = -rotation * Math.PI / 180;
+    if (rotation) mesh.rotation.z = -rotation * Q3D.deg2rad;
     app.scene2.add(mesh);
   };
 
@@ -3331,7 +3331,7 @@ Q3D.PointLayer.prototype.build = function (features) {
 
 Q3D.PointLayer.prototype.geomAndTransformFunc = function (objType) {
 
-  var deg2rad = Math.PI / 180,
+  var deg2rad = Q3D.deg2rad,
       rx = 90 * deg2rad;
 
   if (objType == "Sphere") {
@@ -3438,7 +3438,7 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
   var _this = this,
       q = new THREE.Quaternion(),
       e = new THREE.Euler(),
-      deg2rad = Math.PI / 180;
+      deg2rad = Q3D.deg2rad;
 
   // each feature in this layer
   features.forEach(function (f) {
