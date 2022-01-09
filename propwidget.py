@@ -22,8 +22,9 @@
 import os
 
 from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QVariant
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout, QWidget
-from qgis.core import QgsFieldProxyModel, QgsProject
+from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
@@ -60,6 +61,8 @@ class WidgetFuncBase:
             self.setPlaceholderText(placeholderText)
 
         self.widget.toolButton.setVisible(toolButton)
+        if toolButton and self.widget.toolButton.icon():
+            self.widget.toolButton.setIcon(QIcon())
 
     def resetDefault(self):
         pass
@@ -135,6 +138,8 @@ class ColorWidgetFunc(WidgetFuncBase):
 
         self.widget.expression.setFilters(QgsFieldProxyModel.String | QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong)
         self.widget.expression.setLayer(self.mapLayer)
+
+        self.widget.toolButton.setIcon(QgsApplication.getThemeIcon("mIconColorSwatches.svg"))
 
     def comboBoxSelectionChanged(self, index):
         itemData = self.widget.comboBox.itemData(index)
