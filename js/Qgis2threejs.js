@@ -933,8 +933,9 @@ limitations:
   };
 
   app.currentViewUrl = function () {
-    var c = app.camera.position, t = app.controls.target;
-    var hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
+    var c = app.scene.toMapCoordinates(app.camera.position),
+        t = app.scene.toMapCoordinates(app.controls.target),
+        hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
     if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
     return window.location.href.split("#")[0] + hash;
   };
