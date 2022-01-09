@@ -278,9 +278,8 @@ class Q3DTreeView(QTreeView):
         self.iface.wnd.showAddPointCloudLayerDialog()
 
     def removePointCloudLayer(self, _=None):
-        data = self.model().data(self.currentIndex(), Qt.UserRole + 1)
-
-        layer = self.iface.settings.getLayer(data)
+        layerId = self.model().data(self.currentIndex(), Qt.UserRole + 1)
+        layer = self.iface.settings.getLayer(layerId)
         if layer is None:
             return
 
