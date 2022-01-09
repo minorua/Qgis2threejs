@@ -86,7 +86,7 @@ class ExportSettings:
         self.data = settings
         self._baseExtent = None
         self._mapTo3d = None
-        self.updateLayerList()
+        self.updateLayers()
 
     def loadSettingsFromFile(self, filepath=None):
         """load settings from a JSON file"""
@@ -94,7 +94,7 @@ class ExportSettings:
         if filepath is None:
             filepath = settingsFilePath()   # get settings file path for current project
             if filepath is None:
-                self.updateLayerList()
+                self.updateLayers()
                 return False
 
         try:
@@ -102,7 +102,7 @@ class ExportSettings:
                 settings = json.load(f)
         except Exception as e:
             logMessage("Failed to load export settings from file. Error: " + str(e))
-            self.updateLayerList()
+            self.updateLayers()
             return False
 
         logMessage("Export settings loaded from file:" + filepath, False)
@@ -302,25 +302,25 @@ class ExportSettings:
         self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
 
     # layer
-    def getLayerList(self):
+    def layers(self):
         return self.data.get(ExportSettings.LAYERS, [])
 
     def layersToExport(self):
-        return [lyr for lyr in self.getLayerList() if lyr.visible]
+        return [lyr for lyr in self.layers() if lyr.visible]
 
     def mapLayerIdsToExport(self):
-        return [lyr.layerId for lyr in self.getLayerList() if lyr.visible]
+        return [lyr.layerId for lyr in self.layers() if lyr.visible]
 
     def jsLayerIdsToExport(self):
-        return [lyr.jsLayerId for lyr in self.getLayerList() if lyr.visible]
+        return [lyr.jsLayerId for lyr in self.layers() if lyr.visible]
 
-    def updateLayerList(self):
+    def updateLayers(self):
         """Updates layer objects in settings using current project layer structure.
            Adds layer objects newly added to the project and removes layer objects
            deleted from the project. Layer IDs are renumbered."""
 
         # Point cloud layers
-        layers = [lyr for lyr in self.getLayerList() if lyr.layerId.startswith("pc:")]
+        layers = [lyr for lyr in self.layers() if lyr.layerId.startswith("pc:")]
 
         # DEM and vector layers
         for mapLayer in [ml for ml in getLayersInProject() if Layer.getGeometryType(ml) is not None]:
@@ -358,7 +358,7 @@ class ExportSettings:
 
     def getLayer(self, layerId):
         if layerId is not None:
-            for layer in self.getLayerList():
+            for layer in self.layers():
                 if layer.layerId == layerId:
                     return layer
         return None
@@ -369,7 +369,7 @@ class ExportSettings:
         layer.jsLayerId = self.nextJsLayerId
         self.nextJsLayerId += 1
 
-        layers = self.getLayerList()
+        layers = self.layers()
         layers.append(layer)
         self.data[ExportSettings.LAYERS] = layers
         return layer
@@ -380,14 +380,14 @@ class ExportSettings:
         layer.jsLayerId = self.nextJsLayerId
         self.nextJsLayerId += 1
 
-        layers = self.getLayerList()
+        layers = self.layers()
         layers.insert(index, layer)
         self.data[ExportSettings.LAYERS] = layers
         return layer
 
     def removeLayer(self, layerId):
         """remove layer with given layer ID from layer list"""
-        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.getLayerList() if lyr.layerId != layerId]
+        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.layers() if lyr.layerId != layerId]
 
     # layer - DEM
     def demProviderByLayerId(self, id):

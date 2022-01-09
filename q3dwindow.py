@@ -133,7 +133,7 @@ class Q3DWindow(QMainWindow):
         self.setupConsole()
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface, self.icons)
-        self.ui.treeView.addLayers(settings.getLayerList())
+        self.ui.treeView.addLayers(settings.layers())
         self.ui.webView.setup(self.iface, settings, self, preview)
         self.ui.dockWidgetConsole.hide()
         self.ui.animationPanel.setup(self, settings)
@@ -404,7 +404,7 @@ class Q3DWindow(QMainWindow):
 
         settings = self.settings.clone()
         settings.clear()
-        settings.updateLayerList()
+        settings.updateLayers()
 
         self.ui.animationPanel.tree.setData({})
 

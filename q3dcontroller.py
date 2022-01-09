@@ -233,7 +233,7 @@ class Q3DController(QObject):
     def buildLayers(self):
         self.iface.runScript('loadStart("LYRS", true);')
 
-        layers = self.settings.getLayerList()
+        layers = self.settings.layers()
         for layer in sorted(layers, key=lambda lyr: lyr.type):
             if layer.visible:
                 if not self._buildLayer(layer) or self.aborted:

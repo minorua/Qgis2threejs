@@ -78,7 +78,7 @@ class ThreeJSBuilder:
             cancelSignal.connect(self.cancel)
 
         layers = []
-        layer_list = [layer for layer in self.settings.getLayerList() if layer.visible]
+        layer_list = [layer for layer in self.settings.layers() if layer.visible]
         total = len(layer_list)
         for i, layer in enumerate(layer_list):
             self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))

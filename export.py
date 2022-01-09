@@ -203,7 +203,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # layer-specific dependencies
         wl = pc = True
-        for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:  # HACK: lyr.export
+        for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:  # HACK: lyr.export
             if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
                     files.append({"dirs": ["js/meshline"]})
@@ -261,7 +261,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # layer-specific dependencies
         wl = pc = True
-        for layer in [lyr for lyr in self.settings.getLayerList() if lyr.visible]:
+        for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
             if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
                     files.append("./meshline/THREE.MeshLine.js")

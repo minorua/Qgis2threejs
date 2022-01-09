@@ -551,7 +551,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         # layers
         dp = data.get("layers", {})
-        for layer in self.settings.getLayerList():
+        for layer in self.settings.layers():
             id = layer.layerId
             self.addLayer(layer)
 

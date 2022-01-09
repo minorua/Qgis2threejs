@@ -101,7 +101,7 @@ class Qgis2threejs:
 
         else:
             self.exportSettings = self.exportSettings or ExportSettings()
-            self.exportSettings.updateLayerList()
+            self.exportSettings.updateLayers()
 
         self.exportSettings.isPreview = True
 
