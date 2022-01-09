@@ -46,7 +46,7 @@ class Script:
 
 
 # Layer properties
-GEOM_WIDGET_MAX_COUNT = 4
+GEOM_WIDGET_MAX_COUNT = 5
 MTL_WIDGET_MAX_COUNT = 2        # except for color, color2 and opacity
 
 

@@ -404,7 +404,8 @@ class ModelFileType(PointTypeBase):
                                       {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0},
                                       {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0},
                                       {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0},
-                                      {"name": "Rotation order", "defaultValue": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
+                                      {"name": "Rotation order", "type": PropertyWidget.COMBOBOX,
+                                       "defaultValue": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
                            color=False,
                            opacity=False)
 
