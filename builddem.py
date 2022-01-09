@@ -533,7 +533,7 @@ class DEMPropertyReader:
         try:
             w = int(properties.get("comboBox_TextureSize", DEF_SETS.TEXTURE_SIZE))
         except ValueError:
-            w = settings.mapSettings.outputSize().width()  # map canvas width
+            w = DEF_SETS.TEXTURE_SIZE
 
         return QSize(w, round(w * extent.height() / extent.width()))
 
