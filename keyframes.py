@@ -588,7 +588,6 @@ class AnimationTreeWidget(QTreeWidget):
             k = self.keyframe()
             if k:
                 self.webPage.setCameraState(k.get("camera") or {})
-                self.webPage.runScript("app.render()")
 
         elif typ == ATConst.ITEM_OPACITY:
             layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)

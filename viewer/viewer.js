@@ -343,6 +343,7 @@ function setCameraState(s) {
     app.controls.target.copy(app.scene.toWorldCoordinates({x: s.fx, y: s.fy, z: s.fz}));
   }
   app.camera.lookAt(app.controls.target);
+  app.render();
 }
 
 //// widgets
