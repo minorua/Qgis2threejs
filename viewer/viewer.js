@@ -166,6 +166,14 @@ function init(off_screen, debug_mode) {
     pyObj.onSceneLoadError();
   });
 
+  app.addEventListener("tweenStarted", function (e) {
+    pyObj.onTweenStarted(e.index);
+  });
+
+  app.addEventListener("animationStopped", function () {
+    pyObj.onAnimationStopped();
+  });
+
   if (debug_mode) {
     displayFPS();
     if (debug_mode == 2) Q3D.Config.debugMode = true;
@@ -428,11 +436,6 @@ function closeNarrativeBox() {
 function setLayerOpacity(layerId, opacity) {
   app.scene.mapLayers[layerId].opacity = opacity;
 }
-
-//// event handlers
-app.animation.keyframes.onStop = function () {
-  pyObj.animationStopped();
-};
 
 
 //// overrides

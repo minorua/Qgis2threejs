@@ -63,6 +63,8 @@ class AnimationPanel(QWidget):
 
         self.tree.setup(wnd, settings)
 
+        self.webPage.bridge.animationStopped.connect(self.animationStopped)
+
     def playButtonClicked(self, _):
         if self.isAnimating:
             self.stopAnimation()
@@ -709,6 +711,10 @@ class KeyframeDialog(QDialog):
 
         self.panel = parent.panel
         self.narId = None
+        self.isPlaying = self.isPlayingAll = False
+
+        parent.webPage.bridge.tweenStarted.connect(self.tweenStarted)
+        parent.webPage.bridge.animationStopped.connect(self.animationStopped)
 
     def setup(self, item, layer=None):
         self.item = item
@@ -789,7 +795,7 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonPrev.setEnabled(value > 1)
         self.ui.toolButtonNext.setEnabled(value < self.kfCount - 1)
 
-        if self.itemTo is not None:     # TODO: and not self.isPlaying:
+        if self.itemTo and not self.isPlaying:
             self.apply()
 
         idxTo = value
@@ -808,7 +814,6 @@ class KeyframeDialog(QDialog):
 
         self.setupFromAndTo(iFrom, iTo)
         self.updateTime(p, idxTo)
-        self.panel.tree.setCurrentItem(iFrom)
 
     def setupFromAndTo(self, iFrom, iTo):
         self.itemFrom, self.itemTo = (iFrom, iTo)
@@ -911,15 +916,47 @@ class KeyframeDialog(QDialog):
 
         QDialog.accept(self)
 
-    def play(self):
-        self.apply()
+    def playAnimation(self, items):
+        self.panel.playAnimation(items)
 
-        if self.type & ATConst.ITEM_MBR:
-            if self.itemTo:
-                self.panel.playAnimation([self.itemTo])
+        self.ui.pushButtonPlay.setText("Stop")
+        self.ui.pushButtonPlayAll.setText("Stop")
+        self.isPlaying = True
+
+    def stopAnimation(self):
+        self.panel.stopAnimation()
+        self.isPlaying = self.isPlayingAll = False
+
+    def play(self):
+        if not self.isPlaying:
+            self.apply()
+
+            if self.type & ATConst.ITEM_MBR:
+                if self.itemTo:
+                    self.playAnimation([self.itemTo])
+        else:
+            self.stopAnimation()
 
     def playAll(self):
-        self.apply()
+        if not self.isPlaying:
+            self.apply()
 
-        if self.type & ATConst.ITEM_MBR:
-            self.panel.playAnimation([self.item.parent()])
+            if self.type & ATConst.ITEM_MBR:
+                self.playAnimation([self.item.parent()])
+                self.isPlayingAll = True
+        else:
+            self.stopAnimation()
+
+    # @pyqtSlot()
+    def animationStopped(self):
+        self.ui.pushButtonPlay.setText("Play")
+        self.ui.pushButtonPlayAll.setText("Play All")
+
+        self.isPlaying = self.isPlayingAll = False
+
+    # @pyqtSlot(int)
+    def tweenStarted(self, index):
+        if self.isPlayingAll:
+            if DEBUG_MODE:
+                logMessage("TWEENING {} ...".format(index))
+            self.ui.horizontalSlider.setValue(index + 1)

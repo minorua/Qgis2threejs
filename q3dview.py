@@ -57,6 +57,7 @@ class Bridge(QObject):
     statusMessage = pyqtSignal(str, int)
     modelDataReady = pyqtSignal("QByteArray", str)
     imageReady = pyqtSignal(int, int, "QImage")
+    tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -100,6 +101,10 @@ class Bridge(QObject):
             image.loadFromData(ba)
         self.imageReady.emit(width, height, image)
 
+    @pyqtSlot(int)
+    def onTweenStarted(self, index):
+        self.tweenStarted.emit(index)
+
     @pyqtSlot()
     def onAnimationStopped(self):
         self.animationStopped.emit()
@@ -141,7 +146,6 @@ class Q3DWebPage(QWebPage):
         self.bridge.imageReady.connect(self.saveImage)
         if wnd:
             self.bridge.statusMessage.connect(wnd.ui.statusbar.showMessage)
-            self.bridge.animationStopped.connect(wnd.ui.animationPanel.animationStopped)
 
         self.loadFinished.connect(self.pageLoaded)
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)

@@ -1160,6 +1160,8 @@ limitations:
           var onStart = function () {
             if (_onStart) _onStart();
 
+            app.dispatchEvent({type: "tweenStarted", index: group.currentIndex});
+
             // pause if narrative box is shown
             if (keyframes[group.currentIndex].narration) _this.pause();
             else if (e) e.classList.remove("visible");
@@ -1224,7 +1226,7 @@ limitations:
         app.animation.isActive = this.isActive = this.isPaused = false;
         this._pausedTweens = null;
 
-        if (this.onStop) this.onStop();   // to notify the exporter that animation has been stopped
+        app.dispatchEvent({type: "animationStopped"});  // to notify the exporter that animation has been stopped
       },
 
       pause: function () {
