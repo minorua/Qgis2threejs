@@ -539,6 +539,9 @@ limitations:
 
     e = Q3D.$("nextbtn");
     if (e) e.addEventListener("click", function () {
+      var e = document.getElementById("narrativebox");
+      if (e) e.classList.remove("visible");
+
       app.animation.keyframes.resume();
     });
   };
@@ -1250,9 +1253,6 @@ limitations:
         this.isPaused = false;
 
         app.animate();
-
-        var e = document.getElementById("narrativebox");
-        if (e) e.classList.remove("visible");
       },
     },
 
