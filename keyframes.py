@@ -590,12 +590,6 @@ class AnimationTreeWidget(QTreeWidget):
                 self.webPage.setCameraState(k.get("camera") or {})
                 self.webPage.runScript("app.render()")
 
-                n = k.get("narration")
-                if n:
-                    self.webPage.runScript("showNarrativeBox(pyData());", data=n)
-                else:
-                    self.webPage.runScript("closeNarrativeBox();")
-
         elif typ == ATConst.ITEM_OPACITY:
             layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
             layer = self.settings.getLayer(layerId)
