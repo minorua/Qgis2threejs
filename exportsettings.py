@@ -30,7 +30,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
 from .q3dconst import LayerType
-from .tools import getLayersInProject, getTemplateConfig, logMessage, settingsFilePath
+from .tools import createUuid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
 
 class ExportSettings:
@@ -342,11 +342,16 @@ class ExportSettings:
             layers.append(item)
 
         # Flat plane
-        layerId = "FLAT"
-        item = self.getLayer(layerId)
-        if item is None:
+        item = self.getLayer("FLAT")        # for backward compatibility. id "FLAT" is obsolete since 2.7
+        if item:
+            item.layerId = "fp:" + createUuid()
+            layers.append(item)
+        elif len(self.layers()):
+            layers += [lyr for lyr in self.layers() if lyr.layerId.startswith("fp:")]
+        else:
+            layerId = "fp:" + createUuid()
             item = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
-        layers.append(item)
+            layers.append(item)
 
         # renumber jsLayerId
         self.nextJsLayerId = 0
@@ -357,11 +362,10 @@ class ExportSettings:
         self.data[ExportSettings.LAYERS] = layers
 
     def getLayer(self, layerId):
-        if layerId is not None:
+        if layerId:
             for layer in self.layers():
                 if layer.layerId == layerId:
                     return layer
-        return None
 
     def addLayer(self, layer):
         """append an additional layer to layer list"""
@@ -391,8 +395,10 @@ class ExportSettings:
 
     # layer - DEM
     def demProviderByLayerId(self, id):
-        if id == "FLAT":
-            return FlatDEMProvider()
+        if id.startswith("fp:"):
+            layer = self.getLayer(id)
+            alt = parseFloat(layer.properties.get("lineEdit_Altitude", 0)) if layer else 0
+            return FlatDEMProvider(alt or 0)
 
         if id.startswith("plugin:"):
             provider = pluginManager().findDEMProvider(id[7:])
@@ -409,7 +415,7 @@ class ExportSettings:
         return FlatDEMProvider()
 
     def demGridSegments(self, layerId):
-        if layerId == "FLAT":
+        if layerId.startswith("fp:"):
             return QSize(1, 1)
 
         layer = self.getLayer(layerId)

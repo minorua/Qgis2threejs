@@ -23,7 +23,7 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint, QUrl, QUuid
+from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QLineEdit,
                              QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from PyQt5.QtGui import QColor, QCursor
@@ -48,7 +48,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import getLayersInProject, logMessage
+from .tools import createUuid, getLayersInProject, logMessage
 from .propwidget import PropertyWidget
 from . import tools
 from .vectorobject import ObjectType
@@ -381,17 +381,30 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.extent = settings.baseExtent()
         self.mapSettings = mapSettings
 
-        widgets = [self.spinBox_Opacity, self.horizontalSlider_DEMSize]
-        widgets += [self.checkBox_Tiles, self.spinBox_Size, self.spinBox_Roughening]
-        widgets += [self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
-        widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
+        self.isPlane = bool(layer.layerId.startswith("fp:"))
+
+        widgets = []
+        if self.isPlane:
+            widgets += [self.lineEdit_Altitude]
+        else:
+            widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
+            widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
+
+        widgets += [self.checkBox_Tiles, self.spinBox_Size]
+        widgets += [self.spinBox_Opacity, self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
         widgets += [self.checkBox_Sides, self.toolButton_SideColor,
                     self.checkBox_Frame, self.toolButton_EdgeColor,
                     self.checkBox_Wireframe, self.toolButton_WireframeColor, self.checkBox_Visible, self.checkBox_Clickable]
+
         self.registerPropertyWidgets(widgets)
 
         # geometry group
-        self.setLayoutVisible(self.horizontalLayout_Resampling, layer.layerId != "FLAT")
+        if self.isPlane:
+            self.setLayoutVisible(self.horizontalLayout_Resampling, False)
+            self.setLayoutVisible(self.verticalLayout_Clip, False)
+            self.setWidgetsEnabled([self.label_Roughness, self.spinBox_Roughening], False)
+        else:
+            self.setLayoutVisible(self.formLayout_Altitude, False)
 
         self.initLayerComboBox()
 
@@ -445,6 +458,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         # restore properties
         properties = layer.properties
 
+        properties["checkBox_Sides"] = properties.get("checkBox_Sides", not self.isPlane)
         properties["toolButton_SideColor"] = properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR)
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
@@ -579,7 +593,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 item.setData(self.MTL_LAYERIDS, ids)
 
     def addMaterial(self, action=None):
-        id = QUuid.createUuid().toString()[1:9]
         mtype = self.mtlAddActions.index(action) if action else DEMMtlType.MAPCANVAS
 
         name = {
@@ -600,7 +613,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-        item.setData(self.MTL_ID, id)
+        item.setData(self.MTL_ID, createUuid())
         item.setData(self.MTL_PROPERTIES, p)
 
         if action:

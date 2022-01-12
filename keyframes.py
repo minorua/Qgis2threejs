@@ -19,16 +19,16 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import Qt, QUuid
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMessageBox,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QInputDialog, QMenu, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE, DEF_SETS
 from .q3dconst import LayerType, ATConst
 from .q3dcore import Layer
-from .tools import logMessage
+from .tools import createUuid, logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -879,7 +879,7 @@ class KeyframeDialog(QDialog):
             text = self.ui.textEdit.toPlainText()
             if text:
                 nar = {
-                    "id": self.narId or ("nar_" + QUuid.createUuid().toString()[1:9]),
+                    "id": self.narId or ("nar_" + createUuid()),
                     "text": text
                 }
             iTo.setData(0, ATConst.DATA_NARRATION, nar)

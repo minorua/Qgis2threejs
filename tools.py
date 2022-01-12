@@ -25,7 +25,7 @@ import configparser
 import re
 import shutil
 
-from PyQt5.QtCore import qDebug, QProcess, QSettings, QUrl, QBuffer, QByteArray, QIODevice, QFile, QDir, QFileInfo
+from PyQt5.QtCore import qDebug, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
 from PyQt5.QtGui import QDesktopServices
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
@@ -95,6 +95,17 @@ def abchex(number):
         else:         # 0 - 9 => a - j
             h += chr(i + 49)
     return h
+
+
+# parse a string to a floating point number. if failed, return None.
+def parseFloat(string):
+    try:
+        return float(string)
+    except ValueError:
+        return None
+
+def createUuid():
+    return QUuid.createUuid().toString()[1:9]
 
 
 def logMessage(message, warning=True, error=False):

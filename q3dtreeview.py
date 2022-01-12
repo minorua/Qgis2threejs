@@ -47,22 +47,22 @@ class Q3DTreeView(QTreeView):
         self.actionAddPCLayer = QAction("Add Point Cloud layer...", self)
         self.actionAddPCLayer.triggered.connect(self.showAddPointCloudLayerDialog)
 
-        self.actionRemovePCLayer = QAction("Remove from layer tree", self)
-        self.actionRemovePCLayer.triggered.connect(self.removePointCloudLayer)
+        self.actionRemoveLayer = QAction("Remove from layer tree", self)
+        self.actionRemoveLayer.triggered.connect(self.removeAdditionalLayer)
 
         # context menu for map layer
         self.contextMenu = QMenu(self)
         self.contextMenu.addAction(self.actionProperties)
 
+        # context menu for flat plane and point cloud layer
+        self.contextMenu2 = QMenu(self)
+        self.contextMenu2.addAction(self.actionRemoveLayer)
+        self.contextMenu2.addSeparator()
+        self.contextMenu2.addAction(self.actionProperties)
+
         # context menu for point cloud group
         self.contextMenuPCG = QMenu(self)
         self.contextMenuPCG.addAction(self.actionAddPCLayer)
-
-        # context menu for point cloud layer
-        self.contextMenuPC = QMenu(self)
-        self.contextMenuPC.addAction(self.actionRemovePCLayer)
-        self.contextMenuPC.addSeparator()
-        self.contextMenuPC.addAction(self.actionProperties)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
@@ -257,9 +257,9 @@ class Q3DTreeView(QTreeView):
 
         if depth > 0:
             layerId = self.model().data(idx if depth == 1 else idx.parent(), Qt.UserRole + 1)
-            if layerId is not None:
-                if layerId.startswith("pc:"):
-                    self.contextMenuPC.exec_(self.mapToGlobal(pos))
+            if layerId:
+                if layerId.startswith(("fp:", "pc:")):
+                    self.contextMenu2.exec_(self.mapToGlobal(pos))
                 else:
                     self.contextMenu.exec_(self.mapToGlobal(pos))
         else:
@@ -277,7 +277,7 @@ class Q3DTreeView(QTreeView):
     def showAddPointCloudLayerDialog(self, _=None):
         self.iface.wnd.showAddPointCloudLayerDialog()
 
-    def removePointCloudLayer(self, _=None):
+    def removeAdditionalLayer(self, _=None):
         layerId = self.model().data(self.currentIndex(), Qt.UserRole + 1)
         layer = self.iface.settings.getLayer(layerId)
         if layer is None:

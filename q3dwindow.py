@@ -35,7 +35,7 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import logMessage, pluginDir
+from .tools import createUuid, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -211,6 +211,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         self.ui.actionGroupCamera.triggered.connect(self.cameraChanged)
         self.ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
+        self.ui.actionAddPlane.triggered.connect(self.addPlane)
         self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
@@ -442,6 +443,12 @@ class Q3DWindow(QMainWindow):
         if self.settings.sceneProperties() != properties:
             self.iface.requestSceneUpdate(properties)
 
+    def addPlane(self):
+        layerId = "fp:" + createUuid()
+        layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=True)
+        self.iface.layerAdded.emit(layer)
+        self.ui.treeView.addLayer(layer)
+
     def showAddPointCloudLayerDialog(self):
         dialog = AddPointCloudLayerDialog(self)
         if dialog.exec_():
@@ -550,7 +557,11 @@ class PropertiesDialog(QDialog):
             if isinstance(self.page, ScenePropertyPage):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
-                if isinstance(self.page, PointCloudPropertyPage):
+                if isinstance(self.page, DEMPropertyPage):
+                    if self.page.isPlane:
+                        alt = self.page.lineEdit_Altitude.text()
+                        self.layer.name = "Flat Plane" + ("" if alt == "0" else " ({})".format(alt))
+                elif isinstance(self.page, PointCloudPropertyPage):
                     self.layer.name = self.page.lineEdit_Name.text()
 
                 self.layer.properties = self.page.properties(only_visible=True)

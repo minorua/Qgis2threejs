@@ -176,6 +176,9 @@ class Ui_Q3DWindow(object):
         self.actionNavigationWidget = QtWidgets.QAction(Q3DWindow)
         self.actionNavigationWidget.setCheckable(True)
         self.actionNavigationWidget.setObjectName("actionNavigationWidget")
+        self.actionAddPlane = QtWidgets.QAction(Q3DWindow)
+        self.actionAddPlane.setObjectName("actionAddPlane")
+        self.menuLayer.addAction(self.actionAddPlane)
         self.menuLayer.addAction(self.actionAddPointCloudLayer)
         self.menuScene.addAction(self.actionSceneSettings)
         self.menuScene.addAction(self.menuLayer.menuAction())
@@ -278,6 +281,7 @@ class Ui_Q3DWindow(object):
         self.actionLoadSettings.setText(_translate("Q3DWindow", "Load..."))
         self.actionAddPointCloudLayer.setText(_translate("Q3DWindow", "Add Point Cloud Layer..."))
         self.actionNavigationWidget.setText(_translate("Q3DWindow", "Navigation Widget"))
+        self.actionAddPlane.setText(_translate("Q3DWindow", "Add Flat Plane"))
 from Qgis2threejs.keyframes import AnimationPanel
 from Qgis2threejs.q3dtreeview import Q3DTreeView
 from Qgis2threejs.q3dview import Q3DView
