@@ -35,7 +35,7 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import createUuid, logMessage, pluginDir
+from .tools import createUid, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -445,7 +445,7 @@ class Q3DWindow(QMainWindow):
             self.iface.requestSceneUpdate(properties)
 
     def addPlane(self):
-        layerId = "fp:" + createUuid()
+        layerId = "fp:" + createUid()
         layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=True)
         self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)

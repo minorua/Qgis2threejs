@@ -28,7 +28,7 @@ from qgis.core import QgsApplication
 from .conf import DEBUG_MODE, DEF_SETS
 from .q3dconst import LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUuid, logMessage
+from .tools import createUid, logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -892,7 +892,7 @@ class KeyframeDialog(QDialog):
             text = self.ui.textEdit.toPlainText()
             if text:
                 nar = {
-                    "id": self.narId or ("nar_" + createUuid()),
+                    "id": self.narId or ("nar_" + createUid()),
                     "text": text
                 }
             iTo.setData(0, ATConst.DATA_NARRATION, nar)

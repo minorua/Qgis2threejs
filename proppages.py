@@ -48,7 +48,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import createUuid, getLayersInProject, logMessage
+from .tools import createUid, getLayersInProject, logMessage
 from .propwidget import PropertyWidget
 from . import tools
 from .vectorobject import ObjectType
@@ -618,7 +618,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-        item.setData(self.MTL_ID, createUuid())
+        item.setData(self.MTL_ID, createUid())
         item.setData(self.MTL_PROPERTIES, p)
 
         if action:

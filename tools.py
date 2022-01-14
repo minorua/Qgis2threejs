@@ -104,7 +104,8 @@ def parseFloat(string):
     except ValueError:
         return None
 
-def createUuid():
+
+def createUid():
     return QUuid.createUuid().toString()[1:9]
 
 

@@ -30,7 +30,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
 from .q3dconst import LayerType
-from .tools import createUuid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
+from .tools import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
 
 class ExportSettings:
@@ -344,12 +344,12 @@ class ExportSettings:
         # Flat plane
         item = self.getLayer("FLAT")        # for backward compatibility. id "FLAT" is obsolete since 2.7
         if item:
-            item.layerId = "fp:" + createUuid()
+            item.layerId = "fp:" + createUid()
             layers.append(item)
         elif len(self.layers()):
             layers += [lyr for lyr in self.layers() if lyr.layerId.startswith("fp:")]
         else:
-            layerId = "fp:" + createUuid()
+            layerId = "fp:" + createUid()
             item = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
             layers.append(item)
 
