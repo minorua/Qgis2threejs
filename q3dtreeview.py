@@ -156,9 +156,9 @@ class Q3DTreeView(QTreeView):
         if layer is None or not layer.visible:
             return
 
-        # add material items if layer has multiple materials
+        # add material items
         mtls = layer.properties.get("materials", [])
-        if len(mtls) < 2:
+        if not len(mtls):
             return
 
         currentId = layer.properties.get("mtlId")
