@@ -544,6 +544,9 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def properties(self, only_visible=False):
         p = PropertyPage.properties(self, only_visible=only_visible)
         p["materials"] = self.materials()
+        mtlItem = self.listWidget_Materials.currentItem()
+        if mtlItem:
+            p["mtlId"] = mtlItem.data(Qt.UserRole)
         return p
 
     def setProperties(self, properties):
@@ -554,6 +557,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         id = properties.get("mtlId")
         if id:
             self.setCurrentMtlItem(id)
+        else:
+            self.listWidget_Materials.setCurrentRow(0)
 
     def materials(self):
         self.materialItemChanged(None, self.listWidget_Materials.currentItem())  # update current item data
