@@ -126,7 +126,8 @@ class Q3DWindow(QMainWindow):
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        self.iface = Q3DViewerInterface(settings, self.ui.webView._page, self, self.ui.treeView, parent=self)
+        self.webPage = self.ui.webView._page
+        self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
         self.controller.connectToIface(self.iface)
 
         self.setupMenu()
@@ -333,7 +334,7 @@ class Q3DWindow(QMainWindow):
     def runInputBoxString(self):
         text = self.ui.lineEditInputBox.text()
         self.ui.listWidgetDebugView.addItem("> " + text)
-        result = self.ui.webView._page.mainFrame().evaluateJavaScript(text)
+        result = self.webPage.mainFrame().evaluateJavaScript(text)
         if result is not None:
             self.ui.listWidgetDebugView.addItem("<- {}".format(result))
         self.ui.listWidgetDebugView.scrollToBottom()
@@ -369,7 +370,7 @@ class Q3DWindow(QMainWindow):
         if filename:
             self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
 
-            self.ui.webView._page.loadScriptFile(Script.GLTFEXPORTER)
+            self.webPage.loadScriptFile(Script.GLTFEXPORTER)
             self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
 
             self.ui.statusbar.clearMessage()

@@ -43,7 +43,7 @@ class ImageSaveDialog(QDialog):
     def renderImage(self):
         width = self.ui.spinBox_Width.value()
         height = self.ui.spinBox_Height.value()
-        return self.wnd.ui.webView.page().renderImage(width, height)
+        return self.wnd.webPage.renderImage(width, height)
 
         # in other way
         # create an exporter
@@ -52,7 +52,7 @@ class ImageSaveDialog(QDialog):
         exporter.initWebPage(width, height)
 
         # get current camera state
-        cameraState = self.wnd.ui.webView.page().cameraState()
+        cameraState = self.wnd.webPage.cameraState()
 
         # render image
         image, err = exporter.render(cameraState=cameraState)

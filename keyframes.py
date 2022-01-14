@@ -50,7 +50,7 @@ class AnimationPanel(QWidget):
 
     def setup(self, wnd, settings):
         self.wnd = wnd
-        self.webPage = wnd.ui.webView._page
+        self.webPage = wnd.webPage
 
         self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("symbologyEdit.svg"))
@@ -130,7 +130,7 @@ class AnimationTreeWidget(QTreeWidget):
 
     def setup(self, wnd, settings):
         self.wnd = wnd
-        self.webPage = wnd.ui.webView._page
+        self.webPage = wnd.webPage
 
         self.settings = settings
 
