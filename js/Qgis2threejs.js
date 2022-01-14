@@ -1027,8 +1027,13 @@ limitations:
 
         this.keyframeGroups.forEach(function (group) {
 
-          var keyframes = group.keyframes,
-              geFunc = _this.easingFunction(group.easing),
+          var keyframes = group.keyframes;
+          if (keyframes.length == 0) {
+            console.warn("A keyframe group has no keyframes.");
+            return;
+          }
+
+          var geFunc = _this.easingFunction(group.easing),
               prop_list = [];
 
           group.completed = false;

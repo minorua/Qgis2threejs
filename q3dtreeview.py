@@ -169,8 +169,6 @@ class Q3DTreeView(QTreeView):
             item.setData(id)
             item.setIcon(self.iconForMtl(mtl))
             item.setEditable(False)
-            # item.setCheckable(True)
-            # item.setCheckState(Qt.Unchecked)        # Qt.Checked if layer.visible else Qt.Unchecked)
 
             if id == currentId:
                 font = item.font()

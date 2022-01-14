@@ -73,7 +73,7 @@ class AnimationPanel(QWidget):
 
     def playAnimation(self, items=None):
         dataList = []
-        for item in (items or self.tree.selectedItems()):
+        for item in (items or self.tree.checkedGroups()):
 
             if item.type() == ATConst.ITEM_GRP_MATERIAL:
                 layerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
@@ -232,6 +232,17 @@ class AnimationTreeWidget(QTreeWidget):
 
         return item
 
+    def checkedGroups(self):
+        groups = []
+        root = self.invisibleRootItem()
+        for i in range(root.childCount()):
+            top_level = root.child(i)
+            for j in range(top_level.childCount()):
+                g = top_level.child(j)
+                if g.checkState(0):
+                    groups.append(g)
+        return groups
+
     def currentLayer(self):
         item = self.currentItem()
         if item:
@@ -299,12 +310,13 @@ class AnimationTreeWidget(QTreeWidget):
 
         item.parent().removeChild(item)
 
-    def addKeyframeGroupItem(self, parent, typ, name=None, easing=None):
+    def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True, easing=None):
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name or "{} {}".format(ATConst.defaultName(typ), self.nextKeyframeGroupId))
         item.setData(0, ATConst.DATA_EASING, easing)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+        item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
         # item.setIcon(0, self.cameraIcon)
 
         parent.addChild(item)
@@ -434,6 +446,7 @@ class AnimationTreeWidget(QTreeWidget):
         d = {
             "type": group.type(),
             "name": group.text(0),
+            "enabled": bool(group.checkState(0)),
             "keyframes": [self.keyframe(item) for item in items]
         }
 
@@ -477,7 +490,7 @@ class AnimationTreeWidget(QTreeWidget):
             layerItem.removeChild(layerItem.child(0))
 
         for group in data.get("groups", []):
-            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("easing"))
+            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("enabled", True), group.get("easing"))
 
             for keyframe in group.get("keyframes", []):
                 self.addKeyframeItem(parent, keyframe)
@@ -526,7 +539,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.cameraTLItem = self.addCameraMotionTLItem()
 
         for s in data.get("camera", {}).get("groups", []):
-            parent = self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("easing"))
+            parent = self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True), s.get("easing"))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
 
