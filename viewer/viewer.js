@@ -316,6 +316,8 @@ function setBackgroundColor(color, alpha) {
 function switchCamera(is_ortho) {
   app.buildCamera(is_ortho);
   app.controls.object = app.camera;
+  app.controls.reset();
+
   console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
 
   if (app.viewHelper !== undefined) {

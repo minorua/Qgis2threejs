@@ -484,6 +484,7 @@ limitations:
       app.camera.position.copy(event.pos);
       app.camera.lookAt(event.focal);
       if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
+      if (app.controls.saveState !== undefined) app.controls.saveState();
 
       if (event.near !== undefined) {
         app.camera.near = event.near;
