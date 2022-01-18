@@ -394,7 +394,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
         widgets += [self.spinBox_Opacity, self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
-        widgets += [self.checkBox_Sides, self.toolButton_SideColor,
+        widgets += [self.checkBox_Sides, self.toolButton_SideColor, self.lineEdit_Bottom,
                     self.checkBox_Frame, self.toolButton_EdgeColor,
                     self.checkBox_Wireframe, self.toolButton_WireframeColor, self.checkBox_Visible, self.checkBox_Clickable]
 
@@ -464,6 +464,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         properties["toolButton_SideColor"] = properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR)
         properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
+        properties["lineEdit_Bottom"] = properties.get("lineEdit_Bottom", str(DEF_SETS.Z_BOTTOM))                               # added in 2.7
 
         self.setProperties(properties)
 

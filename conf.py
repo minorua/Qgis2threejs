@@ -60,6 +60,7 @@ class DEF_SETS:
     EDGE_COLOR = "0x000000"
     WIREFRAME_COLOR = "0x000000"
     TEXTURE_SIZE = 1024
+    Z_BOTTOM = 0
 
     # animation
     ANM_DURATION = 1000     # msec

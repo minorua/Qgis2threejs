@@ -30,7 +30,7 @@ from .buildlayer import LayerBuilder
 from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
 from .q3dconst import DEMMtlType
-from .tools import logMessage
+from .tools import logMessage, parseFloat
 
 
 class DEMLayerBuilder(LayerBuilder):
@@ -258,7 +258,8 @@ class DEMGridBuilder:
         # sides and bottom
         if self.properties.get("checkBox_Sides"):
             mi = self.mtlManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
-            b["sides"] = {"mtl": self.mtlManager.build(mi)}
+            b["sides"] = {"mtl": self.mtlManager.build(mi),
+                          "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)}
 
         # edges
         if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):

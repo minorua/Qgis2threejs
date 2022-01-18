@@ -97,12 +97,12 @@ def abchex(number):
     return h
 
 
-# parse a string to a floating point number. if failed, return None.
-def parseFloat(string):
+# parse a string to a floating point number. if failed, return def_val.
+def parseFloat(string, def_val=None):
     try:
         return float(string)
-    except ValueError:
-        return None
+    except (TypeError, ValueError):
+        return def_val
 
 
 def createUid():

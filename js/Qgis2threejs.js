@@ -63,11 +63,6 @@ Q3D.Config = {
 
   // layer
   allVisible: false,   // set every layer visible property to true on load if set to true
-  dem: {
-    side: {
-      bottomZ: -1.5     // in the unit of world coordinates
-    }
-  },
   line: {
     dash: {
       dashSize: 1,
@@ -2351,8 +2346,7 @@ Q3D.DEMBlock.prototype = {
         h = grid.height,
         k = w * (h - 1);
 
-    var e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
-        band_width = -2 * e0;
+    var band_width = -2 * z0;
 
     // front and back
     var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
@@ -2406,7 +2400,7 @@ Q3D.DEMBlock.prototype = {
     var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
     mesh = new THREE.Mesh(geom, material);
     mesh.rotation.x = Math.PI;
-    mesh.position.z = e0;
+    mesh.position.z = z0;
     mesh.name = "bottom";
     parent.add(mesh);
 
@@ -2451,15 +2445,12 @@ Q3D.DEMBlock.prototype = {
     vl.push(vl_fr, vl_bk, vl_le, vl_ri);
 
     if (z0 !== undefined) {
-
-      var e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0);
-
       // horizontal rectangle at bottom
-      vl.push([-hpw, -hph, e0,
-                hpw, -hph, e0,
-                hpw,  hph, e0,
-               -hpw,  hph, e0,
-               -hpw, -hph, e0]);
+      vl.push([-hpw, -hph, z0,
+                hpw, -hph, z0,
+                hpw,  hph, z0,
+               -hpw,  hph, z0,
+               -hpw, -hph, z0]);
 
       // vertical lines at corners
       [[-hpw, -hph, grid_values[grid_values.length - w]],
@@ -2467,7 +2458,7 @@ Q3D.DEMBlock.prototype = {
        [ hpw,  hph, grid_values[w - 1]],
        [-hpw,  hph, grid_values[0]]].forEach(function (v) {
 
-        vl.push([v[0], v[1], v[2], v[0], v[1], e0]);
+        vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
 
       });
     }
@@ -2640,8 +2631,7 @@ Q3D.ClippedDEMBlock.prototype = {
 
   buildSides: function (layer, parent, material, z0) {
     var polygons = this.data.polygons,
-        e0 =  z0 / this.data.zScale - this.data.zShift - (this.data.zShiftA || 0),
-        bzFunc = function (x, y) { return e0; };
+        bzFunc = function (x, y) { return z0; };
 
     // make back-side material for bottom
     var mat_back = material.clone();
@@ -2668,7 +2658,7 @@ Q3D.ClippedDEMBlock.prototype = {
       }
       geom = new THREE.ShapeBufferGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
-      mesh.position.z = e0;
+      mesh.position.z = z0;
       mesh.name = "bottom";
       parent.add(mesh);
     }
@@ -2857,7 +2847,7 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
       material.loadJSONObject(jsonObject.edges.mtl);
       _this.materials.add(material);
 
-      block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? Q3D.Config.dem.side.bottomZ : undefined);
+      block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? jsonObject.sides.bottom : undefined);
     };
 
     var buildSides = function () {
@@ -2866,7 +2856,7 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
       material.loadJSONObject(jsonObject.sides.mtl);
       _this.materials.add(material);
 
-      block.buildSides(_this, mesh, material.mtl, Q3D.Config.dem.side.bottomZ);
+      block.buildSides(_this, mesh, material.mtl, jsonObject.sides.bottom);
       _this.sideVisible = true;
 
       if (jsonObject.edges) addEdges();
