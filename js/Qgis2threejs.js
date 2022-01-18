@@ -201,6 +201,11 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   if (jsonObject.type == "scene") {
     var p = jsonObject.properties;
     if (p !== undefined) {
+      // fog
+      if (p.fog) {
+        this.fog = new THREE.FogExp2(p.fog.color, p.fog.density / p.baseExtent.width);
+      }
+
       // set initial camera position and parameters
       if (this.userData.origin === undefined) {
 

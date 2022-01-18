@@ -24,7 +24,7 @@ import json
 import re
 
 from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QLineEdit,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QGroupBox, QLineEdit,
                              QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from PyQt5.QtGui import QColor, QCursor
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
@@ -135,7 +135,7 @@ class PropertyPage(QWidget):
                 if not w.isChecked():
                     continue
                 v = w.isChecked()
-            elif isinstance(w, QCheckBox):
+            elif isinstance(w, (QCheckBox, QGroupBox)):
                 v = w.isChecked()
             elif isinstance(w, (QSlider, QSpinBox)):
                 v = w.value()
@@ -167,7 +167,7 @@ class PropertyPage(QWidget):
                 elif w.isEditable():
                     w.setEditText(str(v))
 
-            elif isinstance(w, (QRadioButton, QCheckBox)):  # subclass of QAbstractButton
+            elif isinstance(w, (QRadioButton, QCheckBox, QGroupBox)):
                 w.setChecked(v)
 
             elif isinstance(w, (QSlider, QSpinBox)):
@@ -201,6 +201,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                    self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
+                   self.groupBox_Fog, self.colorButton_Fog, self.horizontalSlider_Fog,
                    self.radioButton_WGS84, self.radioButton_NoCoords]
         self.registerPropertyWidgets(widgets)
 
@@ -234,6 +235,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
             self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
+            self.colorButton_Fog.setColor(QColor(Qt.white))
 
         # supported projections
         # https://github.com/proj4js/proj4js

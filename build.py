@@ -27,6 +27,7 @@ from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
 from .q3dconst import LayerType
 
+
 class ThreeJSBuilder:
 
     def __init__(self, settings, progress=None, log=None):
@@ -42,31 +43,41 @@ class ThreeJSBuilder:
         be = self.settings.baseExtent()
         mapTo3d = self.settings.mapTo3d()
 
-        obj = {
-            "type": "scene",
-            "properties": {
-                "baseExtent": {
-                    "cx": be.center().x(),
-                    "cy": be.center().y(),
-                    "width": be.width(),
-                    "height": be.height(),
-                    "rotation": be.rotation()
-                },
-                "origin": {
-                    "x": mapTo3d.origin.x(),
-                    "y": mapTo3d.origin.y(),
-                    "z": mapTo3d.origin.z()
-                },
-                "zScale": mapTo3d.zScale
-            }
+        p = {
+            "baseExtent": {
+                "cx": be.center().x(),
+                "cy": be.center().y(),
+                "width": be.width(),
+                "height": be.height(),
+                "rotation": be.rotation()
+            },
+            "origin": {
+                "x": mapTo3d.origin.x(),
+                "y": mapTo3d.origin.y(),
+                "z": mapTo3d.origin.z()
+            },
+            "zScale": mapTo3d.zScale
         }
+
+        sp = self.settings.sceneProperties()
+        if sp.get("groupBox_Fog"):
+            d = sp["horizontalSlider_Fog"]
+            p["fog"] = {
+                "color": int(sp["colorButton_Fog"], 16),
+                "density": (d * d + 0.2) * 0.0002
+            }
 
         if self.settings.needsProjString():
             crs = self.settings.crs
-            obj["properties"]["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
+            p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
         self.log("Z scale: {}".format(mapTo3d.zScale))
         self.log("Z shift: {}".format(mapTo3d.zShift))
+
+        obj = {
+            "type": "scene",
+            "properties": p
+        }
 
         if build_layers:
             obj["layers"] = self.buildLayers(cancelSignal)

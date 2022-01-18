@@ -43,7 +43,7 @@ from .ui.q3dwindow import Ui_Q3DWindow
 class Q3DViewerInterface(Q3DInterface):
 
     abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
-    updateSceneRequest = pyqtSignal(object, bool)    # params: scene properties dict or 0 (if properties do not changes), update all
+    updateSceneRequest = pyqtSignal(object, bool, bool)    # params: scene properties dict (None if properties do not changes), update all, reload
     updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
     updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
     runScriptRequest = pyqtSignal(str, object)       # params: script, data to send to web page
@@ -82,8 +82,8 @@ class Q3DViewerInterface(Q3DInterface):
     def abort(self):
         self.abortRequest.emit(True)
 
-    def requestSceneUpdate(self, properties=0, update_all=True):
-        self.updateSceneRequest.emit(properties, update_all)
+    def requestSceneUpdate(self, properties=None, update_all=True, reload=False):
+        self.updateSceneRequest.emit(properties, update_all, reload)
 
     def requestLayerUpdate(self, layer):
         self.updateLayerRequest.emit(layer)
@@ -441,8 +441,12 @@ class Q3DWindow(QMainWindow):
 
     # @pyqtSlot(dict)
     def updateSceneProperties(self, properties):
-        if self.settings.sceneProperties() != properties:
-            self.iface.requestSceneUpdate(properties)
+        sp = self.settings.sceneProperties()
+        if sp == properties:
+            return
+
+        reload = bool(sp.get("groupBox_Fog") != properties.get("groupBox_Fog"))
+        self.iface.requestSceneUpdate(properties, reload=reload)
 
     def addPlane(self):
         layerId = "fp:" + createUid()

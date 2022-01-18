@@ -126,7 +126,7 @@ class Q3DController(QObject):
     # requests
     BUILD_SCENE_ALL = 1   # build scene
     BUILD_SCENE = 2       # build scene, but do not update background color, coordinates display mode and so on
-    RUN_SCRIPT = 3
+    RELOAD_PAGE = 3
 
     def __init__(self, settings=None, thread=None, parent=None):
         super().__init__(parent)
@@ -340,6 +340,10 @@ class Q3DController(QObject):
                 self.requestQueue.clear()
                 self.buildScene(update_scene_opts=False)
 
+            elif self.RELOAD_PAGE in self.requestQueue:
+                self.requestQueue.clear()
+                self.iface.runScript("location.reload();")
+
             else:
                 item = self.requestQueue.pop(0)
                 if isinstance(item, Layer):
@@ -367,15 +371,22 @@ class Q3DController(QObject):
             self.aborted = True
             self.iface.showMessage("Aborting processing...")
 
-    @pyqtSlot(object, bool)
-    def requestSceneUpdate(self, properties=0, update_all=True):
+    @pyqtSlot(object, bool, bool)
+    def requestSceneUpdate(self, properties=None, update_all=True, reload=False):
         if DEBUG_MODE:
             logMessage("Scene update was requested: {}".format(properties), False)
 
-        if isinstance(properties, dict):
+        if properties:
             self.settings.setSceneProperties(properties)
 
-        self.requestQueue.append(self.BUILD_SCENE_ALL if update_all else self.BUILD_SCENE)
+        if reload:
+            r = self.RELOAD_PAGE
+        elif update_all:
+            r = self.BUILD_SCENE_ALL
+        else:
+            r = self.BUILD_SCENE
+
+        self.requestQueue.append(r)
 
         if self.updating:
             self.abort(clear_queue=False)
