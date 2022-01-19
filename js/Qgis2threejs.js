@@ -545,6 +545,12 @@ limitations:
 
       app.animation.keyframes.resume();
     });
+
+    // attribution
+    if (typeof proj4 === "undefined") {
+      e = Q3D.$("lib_proj4js");
+      if (e) e.style.display = "none";
+    }
   };
 
   app.parseUrlParameters = function () {

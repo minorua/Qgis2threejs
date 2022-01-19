@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>3D Viewer</title>
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<base target="_blank">
 <link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
 <style type="text/css">
 #debug {
@@ -135,9 +136,9 @@
 
       <h1>About</h1>
       <div id="about">
-        This page was made with <a href="https://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin.
-        <div>Powered by <a href="https://threejs.org/" target="_blank">three.js</a>
-        <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/" target="_blank">Proj4js</a></span>.</div>
+        This page was made with <a href="https://www.qgis.org/">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs">Qgis2threejs</a> plugin.
+        <div>Powered by <a href="https://threejs.org/">three.js</a>
+        <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/">Proj4js</a></span>.</div>
       </div>
     </div>
   </div>
@@ -161,8 +162,5 @@
 <div id="messagebar" onclick="closeMessageBar();"></div>
 <div id="debug"></div>
 
-<script>
-if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
-</script>
 </body>
 </html>

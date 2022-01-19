@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>${title}</title>
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<base target="_blank">
 <link rel="stylesheet" type="text/css" href="./Qgis2threejs.css">
 ${scripts}
 </head>
@@ -70,9 +71,9 @@ ${scripts}
 
       <h1>About</h1>
       <div id="about">
-        This page was made with <a href="https://www.qgis.org/" target="_blank">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs" target="_blank">Qgis2threejs</a> plugin (version ${version}).
-        <div>Powered by <a href="https://threejs.org/" target="_blank">three.js</a>
-        <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/" target="_blank">Proj4js</a></span>.</div>
+        This page was made with <a href="https://www.qgis.org/">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs">Qgis2threejs</a> plugin (version ${version}).
+        <div>Powered by <a href="https://threejs.org/">three.js</a>
+        <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/">Proj4js</a></span>.</div>
       </div>
     </div>
   </div>
@@ -96,7 +97,6 @@ ${narration}
 <script>
 Q3D.Config.allVisible = true;
 ${options}
-if (typeof proj4 === "undefined") document.getElementById("lib_proj4js").style.display = "none";
 
 var container = document.getElementById("view"),
     app = Q3D.application;
