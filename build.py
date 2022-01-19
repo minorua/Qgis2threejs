@@ -64,7 +64,7 @@ class ThreeJSBuilder:
             d = sp["horizontalSlider_Fog"]
             p["fog"] = {
                 "color": int(sp["colorButton_Fog"], 16),
-                "density": (d * d + 0.2) * 0.0002
+                "density": (d * d + 0.2) * 0.0002 / be.width()
             }
 
         if self.settings.needsProjString():
