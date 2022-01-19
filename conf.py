@@ -63,4 +63,4 @@ class DEF_SETS:
     Z_BOTTOM = 0
 
     # animation
-    ANM_DURATION = 1000     # msec
+    ANM_DURATION = 2000     # msec
