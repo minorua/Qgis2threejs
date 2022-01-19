@@ -348,7 +348,7 @@ function zoomToCurrentLocation() {
     app.queryMarker.updateMatrixWorld();
 
     // zoom in on current position
-    app.cameraAction.zoomIn(pt.x, pt.y, pt.z);
+    app.cameraAction.zoom(pt.x, pt.y, pt.z);
   });
 }
 

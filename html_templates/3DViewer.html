@@ -25,19 +25,17 @@ ${scripts}
     <!-- query result -->
     <div id="queryresult">
       <table id="qr_layername_table">
-        <caption>Layer name</caption>
+        <caption>Layer <div class="action-zoom" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)">Zoom</div></caption>
         <tr><td id="qr_layername"></td></tr>
       </table>
 
       <table id="qr_coords_table">
-        <caption>Clicked coordinates</caption>
+        <caption>Clicked coordinates <div class="action-zoom" onclick="app.cameraAction.zoom()">Zoom</div></caption>
         <tr><td id="qr_coords"></td></tr>
       </table>
 
       <!-- camera actions -->
-      <div class="action-btn action-zoom" onclick="app.cameraAction.zoomIn(); app.closePopup();">Zoom in here</div>
-      <div class="action-btn action-move" onclick="app.cameraAction.move(); app.closePopup();">Move here</div>
-      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit(); app.closePopup();">Orbit around here</div>
+      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit()">Orbit around here</div>
 
       <!-- attributes -->
       <table id="qr_attrs_table">

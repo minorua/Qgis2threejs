@@ -47,18 +47,33 @@ class Q3DTreeView(QTreeView):
         self.actionAddPCLayer = QAction("Add Point Cloud layer...", self)
         self.actionAddPCLayer.triggered.connect(self.showAddPointCloudLayerDialog)
 
-        self.actionRemoveLayer = QAction("Remove from layer tree", self)
+        self.actionRemoveLayer = QAction("Remove from layer tree...", self)
         self.actionRemoveLayer.triggered.connect(self.removeAdditionalLayer)
 
-        # context menu for map layer
-        self.contextMenu = QMenu(self)
-        self.contextMenu.addAction(self.actionProperties)
+        self.actionZoomToLayer = QAction("Zoom to layer objects", self)
+        self.actionZoomToLayer.triggered.connect(self.zoomToLayer)
 
-        # context menu for flat plane and point cloud layer
-        self.contextMenu2 = QMenu(self)
-        self.contextMenu2.addAction(self.actionRemoveLayer)
-        self.contextMenu2.addSeparator()
-        self.contextMenu2.addAction(self.actionProperties)
+        # context menu for map layer
+        self.contextMenuLyr = QMenu(self)
+        self.contextMenuLyr.addAction(self.actionZoomToLayer)
+        self.contextMenuLyr.addAction(self.actionProperties)
+
+        # context menu for flat plane
+        self.contextMenuFP = QMenu(self)
+        self.contextMenuFP.addAction(self.actionZoomToLayer)
+        self.contextMenuFP.addAction(self.actionProperties)
+        self.contextMenuFP.addSeparator()
+        self.contextMenuFP.addAction(self.actionRemoveLayer)
+
+        # context menu for point cloud layer
+        self.contextMenuPC = QMenu(self)
+        self.contextMenuPC.addAction(self.actionProperties)
+        self.contextMenuPC.addSeparator()
+        self.contextMenuPC.addAction(self.actionRemoveLayer)
+
+        # context menu for DEM material
+        self.contextMenuMtl = QMenu(self)
+        self.contextMenuMtl.addAction(self.actionProperties)
 
         # context menu for point cloud group
         self.contextMenuPCG = QMenu(self)
@@ -247,22 +262,32 @@ class Q3DTreeView(QTreeView):
         while idx.parent().isValid():
             depth += 1
             idx = idx.parent()
-        return depth    #TODO: self.model().data(idx, Qt.UserRole)
+        return depth
 
     def showContextMenu(self, pos):
         idx = self.indexAt(pos)
         depth = self.indexDepth(idx)
 
-        if depth > 0:
-            layerId = self.model().data(idx if depth == 1 else idx.parent(), Qt.UserRole + 1)
+        m = None
+        if depth == 1:
+            layerId = self.model().data(idx, Qt.UserRole + 1)
             if layerId:
-                if layerId.startswith(("fp:", "pc:")):
-                    self.contextMenu2.exec_(self.mapToGlobal(pos))
+                if layerId.startswith("pc:"):
+                    m = self.contextMenuPC
+                elif layerId.startswith("fp:"):
+                    m = self.contextMenuFP
                 else:
-                    self.contextMenu.exec_(self.mapToGlobal(pos))
-        else:
+                    m = self.contextMenuLyr
+
+        elif depth == 2:
+            m = self.contextMenuMtl
+
+        elif depth == 0:
             if self.model().itemFromIndex(idx) == self.layerGroupItems[LayerType.POINTCLOUD]:
-                self.contextMenuPCG.exec_(self.mapToGlobal(pos))
+                m = self.contextMenuPCG
+
+        if m:
+            m.exec_(self.mapToGlobal(pos))
 
     def onDoubleClicked(self, _=None):
         idx = self.currentIndex()
@@ -276,8 +301,7 @@ class Q3DTreeView(QTreeView):
         self.iface.wnd.showAddPointCloudLayerDialog()
 
     def removeAdditionalLayer(self, _=None):
-        layerId = self.model().data(self.currentIndex(), Qt.UserRole + 1)
-        layer = self.iface.settings.getLayer(layerId)
+        layer = self.layerFromIndex(self.currentIndex())
         if layer is None:
             return
 
@@ -291,3 +315,9 @@ class Q3DTreeView(QTreeView):
         parent = self.layerGroupItems[LayerType.POINTCLOUD]
         if parent.hasChildren():
             parent.removeRows(0, parent.rowCount())
+
+    def zoomToLayer(self):
+        layer = self.layerFromIndex(self.currentIndex())
+        if layer:
+            s = "app.cameraAction.zoomToLayer(app.scene.mapLayers[{}]);".format(layer.jsLayerId)
+            self.iface.wnd.runScript(s, message="zoom to layer '{}'".format(layer.name))

@@ -167,6 +167,16 @@ body {
   width: 40%;
 }
 
+#popupbody div.action-zoom {
+  background-color: #FBFBFB;
+  border: 1px solid gray;
+  border-radius: 2px;
+  color: black;
+  cursor: pointer;
+  float: right;
+  padding: 0 2px 0;
+}
+
 .action-btn {
   display: inline-block;
   border: 1px solid gray;
@@ -176,13 +186,6 @@ body {
   font-size: small;
   padding: 1px;
   margin-left: 2px;
-}
-
-.action-zoom {
-}
-
-.action-move {
-  display: none;
 }
 
 /* pageinfo */

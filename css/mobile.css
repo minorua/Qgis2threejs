@@ -21,10 +21,6 @@ body {
   height: 100%;
 }
 
-.action-move {
-  display: inline-block;
-}
-
 .switch {
   position: absolute;
   display: inline-block;

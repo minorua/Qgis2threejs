@@ -1533,18 +1533,34 @@ limitations:
       if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
       else app.camera.position.set(x, y, z);
       app.render(true);
+      app.closePopup();
     },
 
-    vecZoom: new THREE.Vector3(0, -10, 10),
+    vecZoom: new THREE.Vector3(0, -1, 1).normalize(),
 
-    zoomIn: function (x, y, z) {
+    zoom: function (x, y, z, dist) {
       if (x === undefined) vec3.copy(app.queryTargetPosition);
       else vec3.set(x, y, z);
 
-      app.camera.position.addVectors(vec3, app.cameraAction.vecZoom);
+      if (dist === undefined) dist = app.scene.userData.baseExtent.width * 0.1;
+
+      app.camera.position.copy(app.cameraAction.vecZoom).multiplyScalar(dist).add(vec3);
       app.camera.lookAt(vec3);
       if (app.controls.target !== undefined) app.controls.target.copy(vec3);
       app.render(true);
+      app.closePopup();
+    },
+
+    zoomToLayer: function (layer) {
+      if (!layer) return;
+
+      var bbox = layer.boundingBox();
+
+      bbox.getSize(vec3);
+      var dist = Math.max(vec3.x, vec3.y * 3 / 4) * 1.2;
+
+      bbox.getCenter(vec3);
+      app.cameraAction.zoom(vec3.x, vec3.y, vec3.z, dist);
     },
 
     orbit: function (x, y, z) {
@@ -1553,6 +1569,7 @@ limitations:
       if (x === undefined) app.controls.target.copy(app.queryTargetPosition);
       else app.controls.target.set(x, y, z);
       app.setRotateAnimationMode(true);
+      app.closePopup();
     }
 
   };
@@ -1562,6 +1579,8 @@ limitations:
 
     var layer = app.scene.mapLayers[obj.userData.layerId],
         e = document.getElementById("qr_layername");
+
+    app.selectedLayer = layer;
 
     // layer name
     if (layer && e) e.innerHTML = layer.properties.name;
@@ -1709,6 +1728,7 @@ limitations:
   app.closePopup = function () {
     app.popup.hide();
     app.scene.remove(app.queryMarker);
+    app.selectedLayer = null;
     app.highlightFeature(null);
     app.render();
     if (app._canvasImageUrl) {
@@ -2745,7 +2765,6 @@ Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     }
 
     this.sceneData = scene.userData;
-    this._bbox = undefined;
   }
 };
 
@@ -2775,11 +2794,8 @@ Object.defineProperty(Q3D.MapLayer.prototype, "visible", {
   }
 });
 
-Q3D.MapLayer.prototype.boundingBox = function (forceUpdate) {
-  if (!this._bbox || forceUpdate) {
-    this._bbox = new THREE.Box3().setFromObject(this.objectGroup);
-  }
-  return this._bbox;
+Q3D.MapLayer.prototype.boundingBox = function () {
+  return new THREE.Box3().setFromObject(this.objectGroup);
 };
 
 Q3D.MapLayer.prototype.setWireframeMode = function (wireframe) {
