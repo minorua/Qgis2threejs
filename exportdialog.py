@@ -118,12 +118,17 @@ class ExportToWebDialog(QDialog):
 
         # general settings
         out_dir = self.ui.lineEdit_OutputDir.text()
-        filename = self.ui.lineEdit_Filename.text()
         is_temporary = (out_dir == "")
         if is_temporary:
             out_dir = temporaryOutputDir()
             # title, ext = os.path.splitext(filename)
             # filename = title + datetime.today().strftime("%Y%m%d%H%M%S") + ext
+
+        filename = self.ui.lineEdit_Filename.text()
+        if not filename.strip():
+            filename = "index.html"
+        elif not filename.lower().endswith((".html", ".htm")):
+            filename += ".html"
 
         filepath = os.path.join(out_dir, filename)
         if not is_temporary and os.path.exists(filepath):
