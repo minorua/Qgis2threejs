@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>771</height>
+    <height>743</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,21 +20,7 @@
       <string>&amp;World Coordinates</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>X-Y shift mode</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Z exaggeration</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1" colspan="2">
+      <item row="6" column="1" colspan="2">
        <widget class="QLineEdit" name="lineEdit_zFactor">
         <property name="maximumSize">
          <size>
@@ -50,22 +36,22 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Z shift</string>
+         <string>X-Y shift mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Z exaggeration</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1" colspan="2">
        <widget class="QComboBox" name="comboBox_xyShift"/>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QLineEdit" name="lineEdit_zShift">
-        <property name="inputMethodHints">
-         <set>Qt::ImhFormattedNumbersOnly</set>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>

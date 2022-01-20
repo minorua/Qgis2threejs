@@ -186,12 +186,12 @@ class ExportSettings:
         sp = self.sceneProperties()
         try:
             zScale = float(sp.get("lineEdit_zFactor", DEF_SETS.Z_EXAGGERATION))
-            zShift = float(sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT))
+            zShift = DEF_SETS.Z_SHIFT       # obsolete since 2.7: float(sp.get("lineEdit_zShift", DEF_SETS.Z_SHIFT))
 
         except ValueError:
             zScale = DEF_SETS.Z_EXAGGERATION
             zShift = DEF_SETS.Z_SHIFT
-            logMessage("Invalid setting values. Check out scene properties.")
+            logMessage("Invalid z exaggeration. Check out scene properties.")
 
         shift = sp.get("comboBox_xyShift")
         if shift is None:
