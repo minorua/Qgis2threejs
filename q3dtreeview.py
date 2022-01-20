@@ -319,5 +319,5 @@ class Q3DTreeView(QTreeView):
     def zoomToLayer(self):
         layer = self.layerFromIndex(self.currentIndex())
         if layer:
-            s = "app.cameraAction.zoomToLayer(app.scene.mapLayers[{}]);".format(layer.jsLayerId)
+            s = "app.cameraAction.zoomToLayer(app.scene.mapLayers[{}])".format(layer.jsLayerId)
             self.iface.wnd.runScript(s, message="zoom to layer '{}'".format(layer.name))

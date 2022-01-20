@@ -279,9 +279,9 @@ class Q3DWindow(QMainWindow):
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
             if self.windowState() & Qt.WindowMinimized:
-                self.runScript("app.pause();")
+                self.runScript("app.pause()")
             else:
-                self.runScript("app.resume();")
+                self.runScript("app.resume()")
 
     def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py"):
         return self.ui.webView.runScript(string, data, message, sourceID=sourceID)
@@ -371,7 +371,7 @@ class Q3DWindow(QMainWindow):
             self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
 
             self.webPage.loadScriptFile(Script.GLTFEXPORTER)
-            self.runScript("saveModelAsGLTF('{0}');".format(filename.replace("\\", "\\\\")))
+            self.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
 
             self.ui.statusbar.clearMessage()
             self.lastDir = os.path.dirname(filename)

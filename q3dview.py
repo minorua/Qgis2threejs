@@ -193,10 +193,10 @@ class Q3DWebPage(QWebPage):
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:
-            self.runScript('setHFLabel(pyData());', data={"Header": header, "Footer": footer})
+            self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
 
         # call init()
-        self.runScript("init({}, {});".format(js_bool(self.offScreen), DEBUG_MODE))
+        self.runScript("init({}, {})".format(js_bool(self.offScreen), DEBUG_MODE))
 
         self.bridge.showStatusMessage("")
 
@@ -248,7 +248,7 @@ class Q3DWebPage(QWebPage):
         self.mainFrame().evaluateJavaScript("setCameraState(pyData())")
 
     def resetCameraState(self):
-        self.runScript("app.controls.reset();")
+        self.runScript("app.controls.reset()")
 
     def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
         loading = self.mainFrame().evaluateJavaScript("app.loadingManager.isLoading")
@@ -352,7 +352,7 @@ class Q3DView(QWebView):
 
     def pageReady(self):
         # start app
-        self.runScript("app.start();")
+        self.runScript("app.start()")
 
         if self._enabled:
             self.iface.requestSceneUpdate()
@@ -373,7 +373,7 @@ class Q3DView(QWebView):
             if filename in ("cloud.js", "ept.json"):
                 self.wnd.addPointCloudLayer(url.toString())
             else:
-                self.runScript("loadModel('{}');".format(url.toString()))
+                self.runScript("loadModel('{}')".format(url.toString()))
 
         event.acceptProposedAction()
 

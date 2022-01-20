@@ -202,11 +202,11 @@ class Q3DController(QObject):
             sp = self.settings.sceneProperties()
 
             # outline effect
-            self.iface.runScript("setOutlineEffectEnabled({});".format(js_bool(sp.get("checkBox_Outline"))))
+            self.iface.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
 
             # update background color
             params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
-            self.iface.runScript("setBackgroundColor({0});".format(params))
+            self.iface.runScript("setBackgroundColor({0})".format(params))
 
             # coordinate display
             self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
@@ -228,7 +228,7 @@ class Q3DController(QObject):
         return True
 
     def buildLayers(self):
-        self.iface.runScript('loadStart("LYRS", true);')
+        self.iface.runScript('loadStart("LYRS", true)')
 
         layers = self.settings.layers()
         for layer in sorted(layers, key=lambda lyr: lyr.type):
@@ -236,7 +236,7 @@ class Q3DController(QObject):
                 if not self._buildLayer(layer) or self.aborted:
                     break
 
-        self.iface.runScript('loadEnd("LYRS");')
+        self.iface.runScript('loadEnd("LYRS")')
 
     def buildLayer(self, layer):
         if isinstance(layer, dict):
@@ -339,7 +339,7 @@ class Q3DController(QObject):
 
             elif self.RELOAD_PAGE in self.requestQueue:
                 self.requestQueue.clear()
-                self.iface.runScript("location.reload();")
+                self.iface.runScript("location.reload()")
 
             else:
                 item = self.requestQueue.pop(0)
@@ -427,8 +427,8 @@ class Q3DController(QObject):
     @pyqtSlot(str, dict)
     def requestWidgetUpdate(self, name, properties):
         if name == "NorthArrow":
-            self.iface.runScript("setNorthArrowColor({0});".format(properties.get("color", 0)))
-            self.iface.runScript("setNorthArrowVisible({0});".format(js_bool(properties.get("visible"))))
+            self.iface.runScript("setNorthArrowColor({0})".format(properties.get("color", 0)))
+            self.iface.runScript("setNorthArrowVisible({0})".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
             self.iface.runScript('setHFLabel(pyData());', data=properties)
@@ -466,17 +466,17 @@ class Q3DController(QObject):
     @pyqtSlot(bool)
     def switchCamera(self, is_ortho=False):
         self.settings.setCamera(is_ortho)
-        self.iface.runScript("switchCamera({0});".format(js_bool(is_ortho)))
+        self.iface.runScript("switchCamera({0})".format(js_bool(is_ortho)))
 
     @pyqtSlot(bool)
     def setNavigationEnabled(self, enabled):
         self.settings.setNavigationEnabled(enabled)
-        self.iface.runScript("setNavigationEnabled({0});".format(js_bool(enabled)))
+        self.iface.runScript("setNavigationEnabled({0})".format(js_bool(enabled)))
 
     @pyqtSlot(bool)
     def setPreviewEnabled(self, enabled):
         self.enabled = enabled
-        self.iface.runScript("setPreviewEnabled({});".format(js_bool(enabled)))
+        self.iface.runScript("setPreviewEnabled({})".format(js_bool(enabled)))
 
         if enabled:
             self.buildScene()
