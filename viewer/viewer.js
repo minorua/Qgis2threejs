@@ -131,7 +131,11 @@ function loadEnd(name) {
   app.loadingManager.itemEnd(name);
 }
 
-function loadAborted() {
+function adjustCameraPos() {
+  if (Q3D.Config.autoAdjustCameraPos) {
+    app.adjustCameraPosition();
+  }
+  app.render();
 }
 
 function init(off_screen, debug_mode) {

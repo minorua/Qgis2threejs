@@ -248,21 +248,21 @@ class Q3DController(QObject):
 
         self.updating = True
         self.updatingLayerId = layer.layerId
-        self.iface.runScript('loadStart("LYR", true);')
 
-        aborted = self._buildLayer(layer)
+        ret = self._buildLayer(layer)
 
-        self.iface.runScript('loadEnd("LYR");')
         self.updating = False
         self.updatingLayerId = None
         self.aborted = False
         self.iface.progress()
         self.iface.clearMessage()
 
-        return aborted
+        if ret and len(self.settings.layersToExport()) == 1:
+            self.iface.runScript("adjustCameraPos()")
+
+        return ret
 
     def _buildLayer(self, layer):
-        self.iface.runScript('loadStart("L{}");  // {}'.format(layer.jsLayerId, layer.name))
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
 
@@ -284,7 +284,6 @@ class Q3DController(QObject):
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
-                self.iface.runScript("loadAborted();")
                 logMessage("***** layer building aborted *****", False)
                 return False
 
@@ -301,8 +300,6 @@ class Q3DController(QObject):
             t3 = time.time()
             dlist.append([t1 - t4, t2 - t1, t3 - t2])
             t4 = t3
-
-        self.iface.runScript('loadEnd("L{}");'.format(layer.jsLayerId))
 
         if DEBUG_MODE:
             dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
