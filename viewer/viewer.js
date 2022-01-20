@@ -40,12 +40,6 @@ function loadJSONObject(jsonObject) {
   }
 
   app.loadJSONObject(jsonObject);
-
-  if (jsonObject.type == "layer") {
-    if (Q3D.Config.autoZShift && p !== undefined && p.visible === false) {
-      app.scene.adjustZShift();
-    }
-  }
 }
 
 function loadScriptFile(path, callback) {

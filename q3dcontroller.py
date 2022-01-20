@@ -201,9 +201,6 @@ class Q3DController(QObject):
         if update_scene_opts:
             sp = self.settings.sceneProperties()
 
-            # automatic z shift adjustment
-            self.iface.runScript("Q3D.Config.autoZShift = {};".format(js_bool(sp.get("checkBox_autoZShift"))))
-
             # outline effect
             self.iface.runScript("setOutlineEffectEnabled({});".format(js_bool(sp.get("checkBox_Outline"))))
 

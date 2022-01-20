@@ -198,7 +198,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
         widgets = [self.comboBox_xyShift, self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
                    self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
-                   self.lineEdit_zFactor, self.lineEdit_zShift, self.checkBox_autoZShift,
+                   self.lineEdit_zFactor, self.lineEdit_zShift,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
                    self.groupBox_Fog, self.colorButton_Fog, self.horizontalSlider_Fog,
@@ -234,7 +234,6 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.radioButton_UseCanvasExtent.setChecked(True)
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.lineEdit_zShift.setText(str(DEF_SETS.Z_SHIFT))
-            self.checkBox_autoZShift.setChecked(DEF_SETS.AUTO_Z_SHIFT)
             self.colorButton_Fog.setColor(QColor(Qt.white))
 
         # supported projections

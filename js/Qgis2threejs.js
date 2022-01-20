@@ -12,8 +12,8 @@ Q3D.Config = {
   },
 
   // scene
-  autoZShift: false,  // automatic z shift adjustment
-  bgColor: null,      // null is sky
+  autoAdjustCameraPos: true,  // automatic camera height adjustment
+  bgColor: null,              // null is sky
 
   // camera
   orthoCamera: false,
@@ -354,38 +354,15 @@ Q3D.Scene.prototype.toWorldCoordinates = function (pt, isLonLat) {
   };
 };
 
-Q3D.Scene.prototype.adjustZShift = function () {
-  // initialize
-  this.userData.zShiftA = 0;
-  this.position.z = 0;
-  this.updateMatrixWorld();
-
+// return bounding box in 3d world coordinates
+Q3D.Scene.prototype.boundingBox = function () {
   var box = new THREE.Box3();
   for (var id in this.mapLayers) {
     if (this.mapLayers[id].visible) {
       box.union(this.mapLayers[id].boundingBox());
     }
   }
-
-  // bbox zmin in map coordinates
-  var zmin = (box.min.z === Infinity) ? 0 : (box.min.z / this.userData.zScale - this.userData.zShift);
-
-  // shift scene so that bbox zmin becomes zero
-  this.userData.zShiftA = -zmin;
-  this.position.z = this.userData.zShiftA * this.userData.zScale;
-
-  // keep light positions in world coordinates
-  this.lightGroup.position.z = -this.position.z;
-
-  this.updateMatrixWorld();
-
-  this.userData.origin.z = -(this.userData.zShift + this.userData.zShiftA);
-
-  console.log("z shift adjusted: " + this.userData.zShiftA);
-
-  this.dispatchEvent({type: "zShiftAdjusted", sceneData: this.userData});
-
-  this.requestRender();
+  return box;
 };
 
 
@@ -523,8 +500,8 @@ limitations:
 
     // event listeners
     app.addEventListener("sceneLoaded", function () {
-      if (Q3D.Config.autoZShift) {
-        app.scene.adjustZShift();
+      if (Q3D.Config.viewpoint.pos === undefined && Q3D.Config.autoAdjustCameraPos) {
+        app.adjustCameraPosition();
       }
       app.render();
     }, true);
@@ -879,6 +856,18 @@ limitations:
 
     // magic to change y-up world to z-up
     app.camera.up.set(0, 0, 1);
+  };
+
+  // zoom to objects in scene
+  app.adjustCameraPosition = function (force) {
+    if (!force) {
+      // do nothing if there is any object in the center of canvas
+      var objs = app.intersectObjects(app.width / 2, app.height / 2);
+      if (objs.length) return;
+    }
+    var bbox = app.scene.boundingBox();
+    bbox.getCenter(vec3);
+    app.cameraAction.zoom(vec3.x, vec3.y, (bbox.max.z + vec3.z) / 2, app.scene.userData.baseExtent.width);
   };
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
@@ -2864,28 +2853,9 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
 
   block.loadJSONObject(jsonObject, this, function (mesh) {
 
-    var addEdges = function () {
-      var material = new Q3D.Material();
-      material.loadJSONObject(jsonObject.edges.mtl);
-      _this.materials.add(material);
-
-      block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? jsonObject.sides.bottom : undefined);
-    };
-
-    var buildSides = function () {
-      // sides and bottom
-      var material = new Q3D.Material();
-      material.loadJSONObject(jsonObject.sides.mtl);
-      _this.materials.add(material);
-
-      block.buildSides(_this, mesh, material.mtl, jsonObject.sides.bottom);
-      _this.sideVisible = true;
-
-      if (jsonObject.edges) addEdges();
-    };
-
+    var material;
     if (jsonObject.wireframe) {
-      var material = new Q3D.Material();
+      material = new Q3D.Material();
       material.loadJSONObject(jsonObject.wireframe.mtl);
       _this.materials.add(material);
 
@@ -2898,27 +2868,21 @@ Q3D.DEMLayer.prototype.buildBlock = function (jsonObject, scene, layer) {
     }
 
     if (jsonObject.sides) {
+      // sides and bottom
+      material = new Q3D.Material();
+      material.loadJSONObject(jsonObject.sides.mtl);
+      _this.materials.add(material);
 
-      if (Q3D.Config.autoZShift) {
-        scene.addEventListener("zShiftAdjusted", function listener(event) {
-
-          // set adjusted z shift to every block
-          _this.blocks.forEach(function (blk) {
-            blk.data.zShiftA = event.sceneData.zShiftA;
-          });
-          buildSides();
-
-          scene.removeEventListener("zShiftAdjusted", listener);
-
-          _this.requestRender();
-        });
-      }
-      else {
-        buildSides();
-      }
+      block.buildSides(_this, mesh, material.mtl, jsonObject.sides.bottom);
+      _this.sideVisible = true;
     }
-    else if (jsonObject.edges) {
-      addEdges();
+
+    if (jsonObject.edges) {
+      material = new Q3D.Material();
+      material.loadJSONObject(jsonObject.edges.mtl);
+      _this.materials.add(material);
+
+      block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? jsonObject.sides.bottom : undefined);
     }
 
     _this.requestRender();
