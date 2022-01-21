@@ -687,7 +687,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             image_size = tb = True
 
         elif mtype == DEMMtlType.FILE:
-            image_file = tb = True
+            image_file = True
 
         else:       # q3dconst.MTL_COLOR:
             color = True
@@ -698,9 +698,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
         #TODO: enable shading
-        if mtype != DEMMtlType.COLOR:
-            self.checkBox_TransparentBackground.setText("Enable transparency" if mtype == DEMMtlType.FILE else "Transparent background")
-
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
