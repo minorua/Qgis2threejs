@@ -415,8 +415,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
 
         # material group
-        self.mtlPropertiesWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
-                                     self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading]
+        self.mtlWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
+                           self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading]
 
         self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
@@ -650,7 +650,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def materialItemChanged(self, current, previous):
 
         if previous:
-            previous.setData(self.MTL_PROPERTIES, PropertyPage.properties(self, self.mtlPropertiesWidgets))
+            previous.setData(self.MTL_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets))
 
         if not current:
             return
