@@ -60,6 +60,9 @@ class LayerSelectDialog(QDialog):
                 layers.append(layer.layer())
         return layers
 
+    def visibleLayerIds(self):
+        return [layer.id() for layer in self.visibleLayers()]
+
     def tabPageChanged(self, index):
         if index == 1:
             self.updatePreview()

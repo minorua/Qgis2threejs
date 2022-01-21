@@ -526,13 +526,13 @@ class DEMMaterialBuilder:
 class DEMPropertyReader:
 
     @staticmethod
-    def opacity(properties):
-        return properties.get("spinBox_Opacity", 100) / 100
+    def opacity(mtlProperties):
+        return mtlProperties.get("spinBox_Opacity", 100) / 100
 
     @staticmethod
-    def textureSize(properties, extent, settings):
+    def textureSize(mtlProperties, extent, settings):
         try:
-            w = int(properties.get("comboBox_TextureSize", DEF_SETS.TEXTURE_SIZE))
+            w = int(mtlProperties.get("comboBox_TextureSize", DEF_SETS.TEXTURE_SIZE))
         except ValueError:
             w = DEF_SETS.TEXTURE_SIZE
 

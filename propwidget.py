@@ -377,12 +377,9 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
         dialog = LayerSelectDialog(self.widget)
         dialog.initTree(self.layerIds)
         dialog.setMapSettings(self.mapSettings)
-        if not dialog.exec_():
-            return
-
-        layers = dialog.visibleLayers()
-        self.layerIds = [layer.id() for layer in layers]
-        self.updateLineEdit()
+        if dialog.exec_():
+            self.layerIds = dialog.visibleLayerIds()
+            self.updateLineEdit()
 
     def updateLineEdit(self):
         self.widget.expression.setExpression(shortTextFromSelectedLayerIds(self.layerIds))

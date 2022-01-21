@@ -367,9 +367,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # item data role for material list widget
-    MTL_ID = Qt.UserRole
-    MTL_PROPERTIES = Qt.UserRole + 1
-    MTL_LAYERIDS = Qt.UserRole + 2
+    DATA_ID = Qt.UserRole
+    DATA_PROPERTIES = Qt.UserRole + 1       # except for layer ids
+    DATA_LAYERIDS = Qt.UserRole + 2
 
     def __init__(self, parent, layer, settings, mapSettings):
         PropertyPage.__init__(self, parent, PAGE_DEM)
@@ -389,7 +389,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
-        widgets += [self.spinBox_Opacity, self.checkBox_TransparentBackground, self.lineEdit_ImageFile, self.colorButton_Color, self.comboBox_TextureSize, self.checkBox_Shading]
         widgets += [self.checkBox_Sides, self.toolButton_SideColor, self.lineEdit_Bottom,
                     self.checkBox_Frame, self.toolButton_EdgeColor,
                     self.checkBox_Wireframe, self.toolButton_WireframeColor, self.checkBox_Visible, self.checkBox_Clickable]
@@ -450,8 +449,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.listWidget_Materials.customContextMenuRequested.connect(lambda: self.contextMenuMtl.popup(QCursor.pos()))
         self.listWidget_Materials.currentItemChanged.connect(self.materialItemChanged)
 
-        self.toolButton_SelectLayer.clicked.connect(self.showLayerSelectDialog)
-        self.toolButton_ImageFile.clicked.connect(self.browseClicked)
+        self.toolButton_SelectLayer.clicked.connect(self.selectLayer)
+        self.toolButton_ImageFile.clicked.connect(self.selectImageFile)
 
         # restore properties
         properties = layer.properties
@@ -494,27 +493,27 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                          "" if self.extent.width() == self.extent.height() else " (Approx.)")
         QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
 
-    def showLayerSelectDialog(self, item=None):
-        item = item or self.listWidget_Materials.currentItem()
-        if not item:
-            return
-
+    def selectLayer(self, _checked=False, update=True):
         from .layerselectdialog import LayerSelectDialog
 
+        item = self.listWidget_Materials.currentItem() if update else None
+
         dialog = LayerSelectDialog(self)
-        dialog.initTree(item.data(self.MTL_LAYERIDS) or [])
+        dialog.initTree(item.data(self.DATA_LAYERIDS) if item else None)
         dialog.setMapSettings(self.mapSettings)
         if not dialog.exec_():
-            return
+            return None
 
-        ids = [layer.id() for layer in dialog.visibleLayers()]
-        item.setData(self.MTL_LAYERIDS, ids)
+        ids = dialog.visibleLayerIds()
         self.updateLayerImageLabel(ids)
+        if item:
+            item.setData(self.DATA_LAYERIDS, ids)
+        return ids
 
     def updateLayerImageLabel(self, layerIds):
         self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(layerIds))
 
-    def browseClicked(self):
+    def selectImageFile(self):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
         if directory == "":
             directory = QDir.homePath()
@@ -522,6 +521,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
         if filename:
             self.lineEdit_ImageFile.setText(filename)
+        return filename
 
     def tilesToggled(self, checked):
         self.setLayoutVisible(self.gridLayout_Tiles, checked)
@@ -567,14 +567,14 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             item = self.listWidget_Materials.item(row)
 
             d = {
-                "id": item.data(self.MTL_ID),
+                "id": item.data(self.DATA_ID),
                 "name": item.text(),
                 "type": item.type(),
-                "properties": item.data(self.MTL_PROPERTIES) or {}
+                "properties": item.data(self.DATA_PROPERTIES) or {}
             }
 
             if item.type() == DEMMtlType.LAYER:
-                d["layerIds"] = item.data(self.MTL_LAYERIDS) or []
+                d["layerIds"] = item.data(self.DATA_LAYERIDS) or []
 
             mtls.append(d)
 
@@ -590,14 +590,37 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         for mtl in materials:
             item = QListWidgetItem(mtl.get("name", ""), self.listWidget_Materials, mtl.get("type", DEMMtlType.MAPCANVAS))
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-            item.setData(self.MTL_ID, mtl.get("id"))
-            item.setData(self.MTL_PROPERTIES, mtl.get("properties"))
+            item.setData(self.DATA_ID, mtl.get("id"))
+            item.setData(self.DATA_PROPERTIES, mtl.get("properties"))
             ids = mtl.get("layerIds")
             if ids:
-                item.setData(self.MTL_LAYERIDS, ids)
+                item.setData(self.DATA_LAYERIDS, ids)
 
     def addMaterial(self, action=None):
         mtype = self.mtlAddActions.index(action) if action else DEMMtlType.MAPCANVAS
+        transp = False
+
+        p = {
+            "spinBox_Opacity": 100,
+            "checkBox_Shading": True
+        }
+
+        if mtype in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
+            if mtype == DEMMtlType.LAYER:
+                ids = self.selectLayer(update=False)
+                if ids is None:
+                    return
+
+            p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
+
+        elif mtype == DEMMtlType.FILE:
+            transp = True
+            filename = self.selectImageFile()
+            if not filename:
+                return
+            p["lineEdit_ImageFile"] = filename
+
+        p["checkBox_TransparentBackground"] = transp
 
         name = {
             DEMMtlType.LAYER: "Layer Image",
@@ -606,25 +629,16 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             DEMMtlType.COLOR: "Solid Color"
         }.get(mtype, "")
 
-        p = {
-            "spinBox_Opacity": 100,
-            "checkBox_TransparentBackground": False,
-            "checkBox_Shading": True
-        }
-
-        if mtype in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
-            p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
-
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-        item.setData(self.MTL_ID, createUid())
-        item.setData(self.MTL_PROPERTIES, p)
+        item.setData(self.DATA_ID, createUid())
+        item.setData(self.DATA_PROPERTIES, p)
+
+        if mtype == DEMMtlType.LAYER:
+            item.setData(self.DATA_LAYERIDS, ids)
 
         if action:
             self.listWidget_Materials.setCurrentItem(item)
-
-            if mtype == DEMMtlType.LAYER:
-                self.showLayerSelectDialog(item)
 
         return item
 
@@ -632,7 +646,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         row = self.listWidget_Materials.currentRow()
         if row >= 0:
             item = self.listWidget_Materials.item(row)
-            msg = "Are you sure you want to remove this material '{}'?".format(item.text())
+            msg = "Are you sure you want to remove material '{}'?".format(item.text())
             if QMessageBox.question(self, "Qgis2threejs", msg) == QMessageBox.Yes:
                 self.listWidget_Materials.takeItem(row)
 
@@ -650,16 +664,16 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def materialItemChanged(self, current, previous):
 
         if previous:
-            previous.setData(self.MTL_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets))
+            previous.setData(self.DATA_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets))
 
         if not current:
             return
 
-        PropertyPage.setProperties(self, current.data(self.MTL_PROPERTIES) or {})
+        PropertyPage.setProperties(self, current.data(self.DATA_PROPERTIES) or {})
 
         mtype = current.type()
         if mtype == DEMMtlType.LAYER:
-            self.updateLayerImageLabel(current.data(self.MTL_LAYERIDS) or [])
+            self.updateLayerImageLabel(current.data(self.DATA_LAYERIDS) or [])
 
         if previous and previous.type() == mtype:
             return
