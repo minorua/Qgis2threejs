@@ -491,7 +491,7 @@ class DEMMaterialBuilder:
 
         elif mtype == DEMMtlType.FILE:
             filepath = p.get("lineEdit_ImageFile", "")
-            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background, True)
+            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True)
 
         else:  # q3dconst.MTL_COLOR
             mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)

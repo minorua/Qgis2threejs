@@ -625,7 +625,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def addMaterial(self, action=None):
         mtype = action.data() if action else DEMMtlType.MAPCANVAS
-        transp = False
 
         p = {
             "spinBox_Opacity": 100,
@@ -641,15 +640,13 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 p["layerIds"] = ids
 
             p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
+            p["checkBox_TransparentBackground"] = False
 
         elif mtype == DEMMtlType.FILE:
-            transp = True
             filename = self.selectImageFile()
             if not filename:
                 return
             p["lineEdit_ImageFile"] = filename
-
-        p["checkBox_TransparentBackground"] = transp
 
         name = {
             DEMMtlType.LAYER: "Layer Image",
