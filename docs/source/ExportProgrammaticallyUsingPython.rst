@@ -67,8 +67,8 @@ You are ready to play with Python. Let's open the QGIS Python console.
     filename = "D:/export/image_filename.png"
 
     # camera position and camera target in world coordinate system (z-up)
-    CAMERA = {"position": {"x": -50, "y": 50, "z": 30},   # above left front of DEM block
-              "target": {"x": 0, "y": 0, "z": 0}}         # origin
+    CAMERA = {"pos": {"x": -50, "y": 50, "z": 30},   # above left front of DEM block
+              "lookAt": {"x": 0, "y": 0, "z": 0}}
 
     exporter = ImageExporter()
     exporter.loadSettings(path_to_settings)
