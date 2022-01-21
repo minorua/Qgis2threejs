@@ -485,7 +485,7 @@ class DEMMaterialBuilder:
                                                        opacity, transp_background)
 
         elif mtype == DEMMtlType.LAYER:
-            layerids = m.get("layerIds", [])
+            layerids = p.get("layerIds", [])
             mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
                                                          opacity, transp_background)
 

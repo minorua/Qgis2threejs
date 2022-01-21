@@ -69,6 +69,23 @@ def is_number(val):
         return False
 
 
+class HiddenProperty:
+
+    def __init__(self, name, val=None):
+        self.name = name
+        self.value = val
+        self.visible = False
+
+    def objectName(self):
+        return self.name
+
+    def isVisible(self):
+        return self.visible
+
+    def setVisible(self, visible):
+        self.visible = visible
+
+
 class PropertyPage(QWidget):
 
     def __init__(self, parent, pageType):
@@ -147,6 +164,8 @@ class PropertyPage(QWidget):
                 v = w.expression()
             elif isinstance(w, QgsColorButton):
                 v = w.color().name().replace("#", "0x")
+            elif isinstance(w, HiddenProperty):
+                v = w.value
             else:
                 logMessage("[proppages.py] Not recognized widget type: " + str(type(w)))
 
@@ -154,8 +173,10 @@ class PropertyPage(QWidget):
 
         return p
 
-    def setProperties(self, properties):
-        for w in self.propertyWidgets:
+    def setProperties(self, properties, widgets=None):
+        widgets = widgets or self.propertyWidgets
+
+        for w in widgets:
             v = properties.get(w.objectName())
             if v is None:
                 continue
@@ -186,6 +207,9 @@ class PropertyPage(QWidget):
 
             elif isinstance(w, QgsColorButton):
                 w.setColor(QColor(v.replace("0x", "#")))
+
+            elif isinstance(w, HiddenProperty):
+                w.value = v
 
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
@@ -369,7 +393,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     # item data role for material list widget
     DATA_ID = Qt.UserRole
     DATA_PROPERTIES = Qt.UserRole + 1       # except for layer ids
-    DATA_LAYERIDS = Qt.UserRole + 2
 
     def __init__(self, parent, layer, settings, mapSettings):
         PropertyPage.__init__(self, parent, PAGE_DEM)
@@ -414,16 +437,23 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
 
         # material group
+        self.mtlLayerIds = HiddenProperty("layerIds", [])
         self.mtlWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
-                           self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading]
+                           self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading,
+                           self.mtlLayerIds]
 
         self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
         self.mtlAddActions = []
         self.mtlAddActionGroup = QActionGroup(self)
-        for text in ["Layer Image", "Map Canvas Image", "Image File", "Solid Color"]:
+        for i, text in [(DEMMtlType.LAYER, "Layer Image..."),
+                        (DEMMtlType.FILE, "Image File..."),
+                        (DEMMtlType.COLOR, "Solid Color"),
+                        (DEMMtlType.MAPCANVAS, "Map Canvas")]:
+
             a = QAction(text, self)
+            a.setData(i)
             self.mtlAddActions.append(a)
             self.mtlAddActionGroup.addAction(a)
 
@@ -498,20 +528,23 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         item = self.listWidget_Materials.currentItem() if update else None
 
+        p = (item.data(self.DATA_PROPERTIES) if item else None) or {}
+        ids = p.get("layerIds")
+
         dialog = LayerSelectDialog(self)
-        dialog.initTree(item.data(self.DATA_LAYERIDS) if item else None)
+        dialog.initTree(ids)
         dialog.setMapSettings(self.mapSettings)
         if not dialog.exec_():
             return None
 
         ids = dialog.visibleLayerIds()
-        self.updateLayerImageLabel(ids)
-        if item:
-            item.setData(self.DATA_LAYERIDS, ids)
+        if update:
+            self.mtlLayerIds.value = ids
+            self.updateLayerImageLabel()
         return ids
 
-    def updateLayerImageLabel(self, layerIds):
-        self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(layerIds))
+    def updateLayerImageLabel(self):
+        self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(self.mtlLayerIds.value))
 
     def selectImageFile(self):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
@@ -573,9 +606,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 "properties": item.data(self.DATA_PROPERTIES) or {}
             }
 
-            if item.type() == DEMMtlType.LAYER:
-                d["layerIds"] = item.data(self.DATA_LAYERIDS) or []
-
             mtls.append(d)
 
         if mtls:
@@ -592,12 +622,9 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
             item.setData(self.DATA_ID, mtl.get("id"))
             item.setData(self.DATA_PROPERTIES, mtl.get("properties"))
-            ids = mtl.get("layerIds")
-            if ids:
-                item.setData(self.DATA_LAYERIDS, ids)
 
     def addMaterial(self, action=None):
-        mtype = self.mtlAddActions.index(action) if action else DEMMtlType.MAPCANVAS
+        mtype = action.data() if action else DEMMtlType.MAPCANVAS
         transp = False
 
         p = {
@@ -610,6 +637,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 ids = self.selectLayer(update=False)
                 if ids is None:
                     return
+
+                p["layerIds"] = ids
 
             p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
 
@@ -633,9 +662,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
         item.setData(self.DATA_ID, createUid())
         item.setData(self.DATA_PROPERTIES, p)
-
-        if mtype == DEMMtlType.LAYER:
-            item.setData(self.DATA_LAYERIDS, ids)
 
         if action:
             self.listWidget_Materials.setCurrentItem(item)
@@ -664,16 +690,17 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def materialItemChanged(self, current, previous):
 
         if previous:
-            previous.setData(self.DATA_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets))
+            previous.setData(self.DATA_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets, only_visible=True))
 
         if not current:
             return
 
-        PropertyPage.setProperties(self, current.data(self.DATA_PROPERTIES) or {})
+        p = current.data(self.DATA_PROPERTIES) or {}
+        PropertyPage.setProperties(self, p, self.mtlWidgets)
 
         mtype = current.type()
         if mtype == DEMMtlType.LAYER:
-            self.updateLayerImageLabel(current.data(self.DATA_LAYERIDS) or [])
+            self.updateLayerImageLabel()
 
         if previous and previous.type() == mtype:
             return
@@ -692,12 +719,13 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         else:       # q3dconst.MTL_COLOR:
             color = True
 
-        self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer], layers)
+        self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer, self.mtlLayerIds], layers)
         self.setWidgetsVisible([self.label_TextureSize, self.comboBox_TextureSize], image_size)
         self.setWidgetsVisible([self.label_ImageFile, self.lineEdit_ImageFile, self.toolButton_ImageFile], image_file)
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
         #TODO: enable shading
+
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 

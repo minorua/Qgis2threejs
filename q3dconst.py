@@ -10,8 +10,8 @@ class LayerType:
 
 
 class DEMMtlType:
-    LAYER = 0
-    MAPCANVAS = 1
+    MAPCANVAS = 0
+    LAYER = 1
     FILE = 2
     COLOR = 3
 
