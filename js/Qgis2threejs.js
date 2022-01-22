@@ -2825,8 +2825,13 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
     var p = scene.userData,
         be = p.baseExtent;
-    this.objectGroup.position.set(be.cx, be.cy, 0).sub(p.origin);
-    this.objectGroup.position.z *= p.zScale;
+    if (jsonObject.properties.clipped) {
+      this.objectGroup.position.set(0, 0, 0);
+    }
+    else {
+      this.objectGroup.position.set(be.cx, be.cy, 0).sub(p.origin);
+      this.objectGroup.position.z *= p.zScale;
+    }
     this.objectGroup.rotation.z = be.rotation * Q3D.deg2rad;
     this.objectGroup.updateMatrixWorld();
 
