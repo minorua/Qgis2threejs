@@ -232,12 +232,6 @@ class Q3DWindow(QMainWindow):
             self.ui.menuDebug.setTitle("&Debug")
             self.ui.menubar.addAction(self.ui.menuDebug.menuAction())
 
-            self.ui.actionClearCache = QAction(self)
-            self.ui.actionClearCache.setObjectName("actionClearCache")
-            self.ui.actionClearCache.setText("Clear web cache")
-            self.ui.menuDebug.addAction(self.ui.actionClearCache)
-            self.ui.actionClearCache.triggered.connect(self.ui.webView.clearCaches)
-
             self.ui.actionInspector = QAction(self)
             self.ui.actionInspector.setObjectName("actionInspector")
             self.ui.actionInspector.setText("Web Inspector...")

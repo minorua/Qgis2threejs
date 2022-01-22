@@ -410,9 +410,6 @@ class Q3DView(QWebView):
         info = self.runScript("app.renderer.info")
         QMessageBox.information(self, "three.js Renderer Info", str(info))
 
-    def clearCaches(self):
-        QWebSettings.clearMemoryCaches()
-
 
 class DummyWindow:
 
