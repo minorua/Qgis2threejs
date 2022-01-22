@@ -41,11 +41,29 @@ class Q3DTreeView(QTreeView):
         self.layers = []
         self._index = -1
 
+    def setup(self, iface, icons):
+        self.iface = iface      # Q3DViewerInterface
+        self.icons = icons
+
+        model = QStandardItemModel(0, 1)
+        self.layerGroupItems = {}
+        for typ, name in self.LAYER_GROUP_ITEMS:
+            item = QStandardItem(name)
+            item.setData(typ)
+            item.setIcon(self.icons[typ])
+            item.setEditable(False)
+
+            self.layerGroupItems[typ] = item
+            model.invisibleRootItem().appendRow([item])
+
+        self.setModel(model)
+        self.expandAll()
+
+        self.model().itemChanged.connect(self.treeItemChanged)
+
+        # context menu
         self.actionProperties = QAction("Properties...", self)
         self.actionProperties.triggered.connect(self.onDoubleClicked)
-
-        self.actionAddPCLayer = QAction("Add Point Cloud layer...", self)
-        self.actionAddPCLayer.triggered.connect(self.showAddPointCloudLayerDialog)
 
         self.actionRemoveLayer = QAction("Remove from layer tree...", self)
         self.actionRemoveLayer.triggered.connect(self.removeAdditionalLayer)
@@ -75,34 +93,19 @@ class Q3DTreeView(QTreeView):
         self.contextMenuMtl = QMenu(self)
         self.contextMenuMtl.addAction(self.actionProperties)
 
+        # context menu for DEM group
+        self.contextMenuDEM = QMenu(self)
+        self.contextMenuDEM.addAction(self.iface.wnd.ui.actionAddPlane)
+
         # context menu for point cloud group
         self.contextMenuPCG = QMenu(self)
-        self.contextMenuPCG.addAction(self.actionAddPCLayer)
+        self.contextMenuPCG.addAction(self.iface.wnd.ui.actionAddPointCloudLayer)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.onDoubleClicked)
-
-    def setup(self, iface, icons):
-        self.iface = iface      # Q3DViewerInterface
-        self.icons = icons
-
-        model = QStandardItemModel(0, 1)
-        self.layerGroupItems = {}
-        for typ, name in self.LAYER_GROUP_ITEMS:
-            item = QStandardItem(name)
-            item.setIcon(self.icons[typ])
-            item.setEditable(False)
-
-            self.layerGroupItems[typ] = item
-            model.invisibleRootItem().appendRow([item])
-
-        self.setModel(model)
-        self.expandAll()
-
-        self.model().itemChanged.connect(self.treeItemChanged)
 
     def addLayer(self, layer):
         # add a layer item to tree view
@@ -283,8 +286,8 @@ class Q3DTreeView(QTreeView):
             m = self.contextMenuMtl
 
         elif depth == 0:
-            if self.model().itemFromIndex(idx) == self.layerGroupItems[LayerType.POINTCLOUD]:
-                m = self.contextMenuPCG
+            m = {LayerType.DEM: self.contextMenuDEM,
+                 LayerType.POINTCLOUD: self.contextMenuPCG}.get(self.model().data(idx, Qt.UserRole + 1))
 
         if m:
             m.exec_(self.mapToGlobal(pos))
@@ -296,9 +299,6 @@ class Q3DTreeView(QTreeView):
         if depth > 0:
             layer = self.layerFromIndex(idx if depth == 1 else idx.parent())
             self.iface.wnd.showLayerPropertiesDialog(layer)
-
-    def showAddPointCloudLayerDialog(self, _=None):
-        self.iface.wnd.showAddPointCloudLayerDialog()
 
     def removeAdditionalLayer(self, _=None):
         layer = self.layerFromIndex(self.currentIndex())

@@ -482,7 +482,7 @@ class Q3DController(QObject):
 
     @pyqtSlot(Layer)
     def addLayer(self, layer):
-        layer = self.settings.insertLayer(0, layer)
+        layer = self.settings.addLayer(layer)
         self.buildLayer(layer)
 
     @pyqtSlot(str)
