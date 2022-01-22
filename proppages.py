@@ -404,7 +404,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.isPlane = bool(layer.layerId.startswith("fp:"))
 
-        widgets = []
+        widgets = [self.lineEdit_Name]
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
@@ -423,17 +423,23 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.setLayoutVisible(self.horizontalLayout_Resampling, False)
             self.setLayoutVisible(self.verticalLayout_Clip, False)
             self.setWidgetsEnabled([self.label_Roughness, self.spinBox_Roughening], False)
+
+            self.lineEdit_Altitude.textChanged.connect(self.altitudeChanged)
+
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-        self.initLayerComboBox()
+            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name())
 
-        self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
-        self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
+            self.initLayerComboBox()
 
-        self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
+            self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
+            self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
+
+            self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
+            self.checkBox_Clip.toggled.connect(self.clipToggled)
+
         self.checkBox_Tiles.toggled.connect(self.tilesToggled)
-        self.checkBox_Clip.toggled.connect(self.clipToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
 
         # material group
@@ -493,6 +499,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.setProperties(properties)
 
+        if self.isPlane:
+            self.altitudeChanged(self.lineEdit_Altitude.text())
+
         # set enablement and visibility of widgets
         self.tilesToggled(self.checkBox_Tiles.isChecked())
         self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
@@ -506,6 +515,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
                 self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
 
         self.comboBox_ClipLayer.blockSignals(False)
+
+    def altitudeChanged(self, alt):
+        self.lineEdit_Name.setPlaceholderText("Flat Plane" + ("" if alt == "0" or alt == "" else " ({})".format(alt)))
 
     def resolutionSliderChanged(self, v):
         resolutionLevel = self.horizontalSlider_DEMSize.value()
@@ -739,6 +751,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         mapLayer = layer.mapLayer
         properties = layer.properties
 
+        self.lineEdit_Name.setPlaceholderText(mapLayer.name())
+
         # object type
         for objType in ObjectType.typesByGeomType(layer.type):
             self.comboBox_ObjectType.addItem(objType.displayName(), objType.name)
@@ -823,7 +837,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
 
         # register widgets
-        widgets = [self.comboBox_ObjectType]
+        widgets = [self.lineEdit_Name, self.comboBox_ObjectType]
         widgets += self.buttonGroup_altitude.buttons() + [self.comboBox_altitudeMode, self.fieldExpressionWidget_altitude, self.comboEdit_altitude2]
         widgets += [self.comboEdit_FilePath]
         widgets += self.geomWidgets

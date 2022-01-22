@@ -130,7 +130,7 @@ class VectorLayer:
 
         self.type = layer.type
         self.mapLayer = layer.mapLayer
-        self.name = self.mapLayer.name() if self.mapLayer else "no title"
+        self.name = layer.name
         self.properties = layer.properties
 
         self.expressionContext = QgsExpressionContext()

@@ -562,21 +562,33 @@ class PropertiesDialog(QDialog):
             if isinstance(self.page, ScenePropertyPage):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
-                if isinstance(self.page, DEMPropertyPage):
-                    if self.page.isPlane:
-                        alt = self.page.lineEdit_Altitude.text()
-                        self.layer.name = "Flat Plane" + ("" if alt == "0" else " ({})".format(alt))
-                elif isinstance(self.page, PointCloudPropertyPage):
-                    self.layer.name = self.page.lineEdit_Name.text()
+                nw = self.page.lineEdit_Name
+                if isinstance(self.page, PointCloudPropertyPage):
+                    self.layer.name = nw.text()
+                else:
+                    self.layer.name = nw.text().strip() or nw.placeholderText()
 
                 self.layer.properties = self.page.properties(only_visible=True)
                 self.propertiesAccepted.emit(self.layer)
 
+                if role == QDialogButtonBox.ApplyRole:
+                    self.setLayerDialogTitle(self.layer)
+
     def showLayerProperties(self, layer):
-        self.setWindowTitle("{0} - Layer Properties".format(layer.name))
+        self.setLayerDialogTitle(layer)
         self.setLayer(layer)
         self.show()
         self.exec_()
+
+    def setLayerDialogTitle(self, layer):
+        if layer.mapLayer:
+            name = layer.mapLayer.name()
+            if name != layer.name:
+                name = "{} ({})".format(layer.name, name)
+        else:
+            name = layer.name
+
+        self.setWindowTitle("{} - Layer Properties".format(name))
 
     def showSceneProperties(self):
         self.setWindowTitle("Scene Settings")

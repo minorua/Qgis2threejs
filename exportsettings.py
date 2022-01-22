@@ -328,7 +328,7 @@ class ExportSettings:
             if item:
                 # update layer and layer name
                 item.mapLayer = mapLayer
-                item.name = mapLayer.name()
+                item.name = item.properties.get("lineEdit_Name") or mapLayer.name()
             else:
                 item = Layer.fromQgsMapLayer(mapLayer)
             layers.append(item)
