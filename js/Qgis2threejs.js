@@ -3537,12 +3537,7 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
       sceneData = this.sceneData;
 
   if (objType == "Line") {
-    return function (f, line) {
-      var pt, vertices = [];
-      for (var i = 0, l = line.length; i < l; i++) {
-        pt = line[i];
-        vertices.push(pt[0], pt[1], pt[2]);
-      }
+    return function (f, vertices) {
       var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
       var obj = new THREE.Line(geom, materials.mtl(f.mtl));
@@ -3551,13 +3546,7 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
     };
   }
   else if (objType == "Thick Line") {
-    return function (f, line) {
-      var pt, vertices = [];
-      for (var i = 0, l = line.length; i < l; i++) {
-        pt = line[i];
-        vertices.push(pt[0], pt[1], pt[2]);
-      }
-
+    return function (f, vertices) {
       var line = new MeshLine();
       line.setPoints(vertices);
 
@@ -3577,12 +3566,12 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
     var group, mesh, axis = Q3D.uv.j;
     var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
 
-    return function (f, line) {
+    return function (f, points) {
       group = new Q3D.Group();
 
-      pt0.fromArray(line[0]);
-      for (var i = 1, l = line.length; i < l; i++) {
-        pt1.fromArray(line[i]);
+      pt0.fromArray(points[0]);
+      for (var i = 1, l = points.length; i < l; i++) {
+        pt1.fromArray(points[i]);
 
         mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
         mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
@@ -3617,7 +3606,7 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
       faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
     }
 
-    return function (f, line) {
+    return function (f, points) {
       var geometry = new THREE.Geometry();
 
       var geom, dist, rx, rz, wh4, vb4, vf4;
@@ -3625,9 +3614,9 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
           pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
           matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
 
-      pt0.fromArray(line[0]);
-      for (var i = 1, l = line.length; i < l; i++) {
-        pt1.fromArray(line[i]);
+      pt0.fromArray(points[0]);
+      for (var i = 1, l = points.length; i < l; i++) {
+        pt1.fromArray(points[i]);
         dist = pt0.distanceTo(pt1);
         sub.subVectors(pt1, pt0);
         rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
@@ -3681,11 +3670,11 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
   else if (objType == "Wall") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
-    return function (f, line) {
+    return function (f, points) {
       var pt;
       var vertices = [];
-      for (var i = 0, l = line.length; i < l; i++) {
-        pt = line[i];
+      for (var i = 0, l = points.length; i < l; i++) {
+        pt = points[i];
         vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
       }
       var bzFunc = function (x, y) { return z0 + f.geom.bh; };

@@ -212,7 +212,7 @@ class LineType(LineBasicTypeBase):
         return self.mtlManager.getLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList()}
+        return {"lines": geom.toList(flat=True))}
 
 
 class ThickLineType(LineBasicTypeBase):
@@ -227,7 +227,7 @@ class ThickLineType(LineBasicTypeBase):
         return self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0), feat.prop(PID.M1))
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList()}
+        return {"lines": geom.toList(flat=True)}
 
 
 class PipeType(LineBasicTypeBase):
