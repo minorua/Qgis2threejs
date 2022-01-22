@@ -212,7 +212,7 @@ class LineType(LineBasicTypeBase):
         return self.mtlManager.getLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(flat=True))}
+        return {"lines": geom.toList(flat=True)}
 
 
 class ThickLineType(LineBasicTypeBase):
@@ -280,7 +280,7 @@ class WallType(LineBasicTypeBase):
         return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(),
+        return {"lines": geom.toList(flat=True),
                 "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().zScale}
 
 

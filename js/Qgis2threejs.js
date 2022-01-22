@@ -2636,7 +2636,7 @@ Q3D.ClippedDEMBlock.prototype = {
         buildGeometry(obj);
       });
     }
-    else {    // WebKit Bridge
+    else {    // local mode or WebKit Bridge
       buildGeometry(obj.geom);
     }
 
@@ -2659,8 +2659,7 @@ Q3D.ClippedDEMBlock.prototype = {
 
       // sides
       for (var j = 0, m = bnds.length; j < m; j++) {
-        vertices = Q3D.Utils.arrayToVec3Array(bnds[j]);
-        geom = Q3D.Utils.createWallGeometry(vertices, bzFunc, true);
+        geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc, true);
         mesh = new THREE.Mesh(geom, material);
         mesh.name = "side";
         parent.add(mesh);
@@ -3670,13 +3669,7 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
   else if (objType == "Wall") {
     var z0 = sceneData.zShift * sceneData.zScale;
 
-    return function (f, points) {
-      var pt;
-      var vertices = [];
-      for (var i = 0, l = points.length; i < l; i++) {
-        pt = points[i];
-        vertices.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
-      }
+    return function (f, vertices) {
       var bzFunc = function (x, y) { return z0 + f.geom.bh; };
       return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
                             materials.mtl(f.mtl));
@@ -4069,23 +4062,22 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
          ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
-Q3D.Utils.createWallGeometry = function (vertices, bzFunc, buffer_geom) {
-  var geom = new THREE.Geometry(),
-      pt = vertices[0];
-  geom.vertices.push(
-    new THREE.Vector3(pt.x, pt.y, pt.z),
-    new THREE.Vector3(pt.x, pt.y, bzFunc(pt.x, pt.y)));
-
-  for (var i = 1, i2 = 1, l = vertices.length; i < l; i++, i2+=2) {
-    pt = vertices[i];
+Q3D.Utils.createWallGeometry = function (vert, bzFunc, buffer_geom) {
+  var geom = new THREE.Geometry();
+  for (var i = 0, l = vert.length; i < l; i += 3) {
     geom.vertices.push(
-      new THREE.Vector3(pt.x, pt.y, pt.z),
-      new THREE.Vector3(pt.x, pt.y, bzFunc(pt.x, pt.y)));
+      new THREE.Vector3(vert[i], vert[i + 1], vert[i + 2]),
+      new THREE.Vector3(vert[i], vert[i + 1], bzFunc(vert[i], vert[i + 1]))
+    );
+  }
 
+  for (var i = 1, i2 = 1, l = vert.length / 3; i < l; i++, i2 += 2) {
     geom.faces.push(
       new THREE.Face3(i2 - 1, i2, i2 + 1),
-      new THREE.Face3(i2 + 1, i2, i2 + 2));
+      new THREE.Face3(i2 + 1, i2, i2 + 2)
+    );
   }
+
   geom.computeFaceNormals();
 
   if (buffer_geom) {
@@ -4101,32 +4093,6 @@ Q3D.Utils.arrayToVec2Array = function (points) {
     pts.push(new THREE.Vector2(pt[0], pt[1]));
   }
   return pts;
-};
-
-Q3D.Utils.arrayToVec3Array = function (points, zFunc) {
-  var pt, pts = [];
-  if (zFunc === undefined) {
-    for (var i = 0, l = points.length; i < l; i++) {
-      pt = points[i];
-      pts.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
-    }
-  }
-  else {
-    for (var i = 0, l = points.length; i < l; i++) {
-      pt = points[i];
-      pts.push(new THREE.Vector3(pt[0], pt[1], zFunc(pt[0], pt[1])));
-    }
-  }
-  return pts;
-};
-
-Q3D.Utils.arrayToFace3Array = function (faces) {
-  var f, fs = [];
-  for (var i = 0, l = faces.length; i < l; i++) {
-    f = faces[i];
-    fs.push(new THREE.Face3(f[0], f[1], f[2]));
-  }
-  return fs;
 };
 
 Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {

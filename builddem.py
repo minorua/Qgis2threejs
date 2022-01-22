@@ -292,7 +292,7 @@ class DEMGridBuilder:
         polygons = []
         for bnd in bnds:
             geom = LineGeometry.fromQgsGeometry(bnd, None, transform_func, useZM=VectorGeometry.UseZ)
-            polygons.append(geom.toList())
+            polygons.append(geom.toList(flat=True))
         d["polygons"] = polygons
         return d
 
