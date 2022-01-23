@@ -860,10 +860,13 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.setProperties(properties or {})
 
     def objectTypeChanged(self, index=None):
-        obj_type = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)(self.settings)
+        objType = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)
 
-        if self.layer.type == LayerType.POLYGON:
-            supportZM = (obj_type == ObjectType.Polygon)
+        if self.layer.type == LayerType.LINESTRING:
+            self.checkBox_Clickable.setEnabled(objType != ObjectType.ThickLine)
+
+        elif self.layer.type == LayerType.POLYGON:
+            supportZM = (objType == ObjectType.Polygon)
             self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
             self.radioButton_mValue.setEnabled(self.hasM and supportZM)
             if self.hasZ and supportZM:
@@ -873,7 +876,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
             self.checkBox_Clip.setVisible(not supportZM)
 
-        obj_type.setupWidgets(self)
+        objType(self.settings).setupWidgets(self)
 
         self.altitudeModeChanged(self.comboBox_altitudeMode.currentIndex())
 

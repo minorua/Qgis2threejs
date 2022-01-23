@@ -54,7 +54,7 @@ class Feature:
     def __init__(self, vlayer, geom, props, attrs=None):
 
         self.layerType = vlayer.type
-        self.objectType = vlayer.objectType
+        self.ot = vlayer.ot
 
         self.geom = geom            # an instance of QgsGeometry
         self.props = props          # a dict
@@ -82,11 +82,12 @@ class Feature:
         if self.layerType != LayerType.POLYGON:
             return LayerType2GeomClass[self.layerType].fromQgsGeometry(self.geom, zf, transform_func, useZM=useZM)
 
-        if self.objectType == ObjectType.Polygon:
+        objType = type(self.ot)
+        if objType == ObjectType.Polygon:
             return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func,
                                                drop_z=(useZM == VectorGeometry.NotUseZM))
 
-        if self.objectType == ObjectType.Extruded:
+        if objType == ObjectType.Extruded:
             return PolygonGeometry.fromQgsGeometry(self.geom, zf, transform_func,
                                                    useCentroidHeight=True,
                                                    centroidPerPolygon=True)
@@ -136,9 +137,9 @@ class VectorLayer:
         self.expressionContext = QgsExpressionContext()
         self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
 
-        OTC = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
+        otc = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
 
-        self.objectType = OTC(settings, materialManager) if OTC else None
+        self.ot = otc(settings, materialManager) if otc else None
 
         self.materialManager = materialManager
         self.modelManager = modelManager
@@ -409,7 +410,7 @@ class FeatureBlockBuilder:
 
     def build(self):
         be = self.settings.baseExtent()
-        obj_geom_func = self.vlayer.objectType.geometry
+        obj_geom_func = self.vlayer.ot.geometry
         mapTo3d = self.settings.mapTo3d()
 
         feats = []
@@ -466,18 +467,19 @@ class VectorLayerBuilder(LayerBuilder):
         self.clipExtent = None
 
         vl = VectorLayer(settings, layer, self.materialManager, self.modelManager)
-        if vl.objectType:
-            self.log("Object type is {}.".format(vl.objectType.name))
+        if vl.ot:
+            self.log("Object type is {}.".format(vl.ot.name))
         else:
             logMessage("Object type not found", error=True)
 
         self.vlayer = vl
 
     def build(self, build_blocks=False, cancelSignal=None):
-        if self.layer.mapLayer is None or self.vlayer.objectType is None:
+        if self.layer.mapLayer is None or self.vlayer.ot is None:
             return
 
         vlayer = self.vlayer
+        objType = type(vlayer.ot)
         be = self.settings.baseExtent()
         p = self.layer.properties
 
@@ -488,22 +490,22 @@ class VectorLayerBuilder(LayerBuilder):
                                                                         QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
-            if p.get("checkBox_Clip") and vlayer.objectType != ObjectType.Polygon:
+            if p.get("checkBox_Clip") and objType != ObjectType.Polygon:
                 self.clipExtent = be.clone().scale(0.9999)    # clip to slightly smaller extent than map canvas extent
         self.features = []
         data = {}
 
         # materials/models
-        if vlayer.objectType != ObjectType.ModelFile:
+        if objType != ObjectType.ModelFile:
             for feat in vlayer.features(request):
-                feat.material = vlayer.objectType.material(feat)
+                feat.material = vlayer.ot.material(feat)
                 self.features.append(feat)
 
             data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
                                                               base64=self.settings.base64)
         else:
             for feat in vlayer.features(request):
-                feat.model = vlayer.objectType.model(feat)
+                feat.model = vlayer.ot.model(feat)
                 self.features.append(feat)
 
             data["models"] = self.modelManager.build(self.pathRoot is not None,
@@ -552,7 +554,7 @@ class VectorLayerBuilder(LayerBuilder):
     def layerProperties(self):
         p = LayerBuilder.layerProperties(self)
         p["type"] = self.type2str.get(self.layer.type)
-        p["objType"] = self.vlayer.objectType.name
+        p["objType"] = self.vlayer.ot.name
 
         if self.vlayer.writeAttrs:
             p["propertyNames"] = self.vlayer.fieldNames
@@ -562,13 +564,14 @@ class VectorLayerBuilder(LayerBuilder):
                               "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
 
         # object-type-specific properties
-        # p.update(self.vlayer.objectType.layerProperties(self.settings, self))
+        # p.update(self.vlayer.ot.layerProperties(self.settings, self))
         return p
 
     def subBuilders(self):
-        if self.vlayer.objectType is None:
+        if self.vlayer.ot is None:
             return
 
+        objType = type(self.vlayer.ot)
         z_func = lambda x, y: 0
         grid = None
 
@@ -584,7 +587,7 @@ class VectorLayerBuilder(LayerBuilder):
             demLayerId = p.get("comboBox_altitudeMode")
             demProvider = self.settings.demProviderByLayerId(demLayerId)
 
-            if self.vlayer.objectType == ObjectType.Overlay:
+            if objType == ObjectType.Overlay:
                 # get the grid segments of the DEM layer which polygons overlay
                 dem_seg = self.settings.demGridSegments(demLayerId)
 
@@ -597,7 +600,7 @@ class VectorLayerBuilder(LayerBuilder):
         builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot,
                                       useZM, z_func, grid)
 
-        one_per_block = (self.vlayer.objectType == ObjectType.Overlay
+        one_per_block = (objType == ObjectType.Overlay
                          and self.vlayer.isHeightRelativeToDEM()
                          and self.settings.isPreview)
         index = 0
