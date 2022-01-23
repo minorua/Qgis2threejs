@@ -173,6 +173,28 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.expression.setExpression(vals["editText"])
 
 
+class OptionalColorWidgetFunc(ColorWidgetFunc):
+
+    def setup(self, options=None):
+        """ options: name, itemText, defaultValue """
+        options = options or {}
+        ColorWidgetFunc.setup(self, options)
+        self.widget.label_1.setText(options.get("name", "Color"))
+
+        itemText = options.get("itemText", {})
+        if itemText.get(None, "") is not None:
+            self.widget.comboBox.insertItem(0, "None", None)
+
+        for id, text in itemText.items():
+            index = self.widget.comboBox.findData(id)
+            if index != -1:
+                self.widget.comboBox.setItemText(index, text)
+
+        index = self.widget.comboBox.findData(options.get("defaultValue"))
+        if index != -1:
+            self.widget.comboBox.setCurrentIndex(index)
+
+
 class FilePathWidgetFunc(WidgetFuncBase):
 
     FILEPATH = 1
@@ -298,30 +320,6 @@ class OpacityWidgetFunc(WidgetFuncBase):
             self.widget.comboBox.setCurrentIndex(index)
             self.widget.comboBoxSelectionChanged(index)  # make sure to update visibility
         self.widget.expression.setExpression(vals["editText"])
-
-
-class OptionalColorWidgetFunc(ColorWidgetFunc):
-
-    NONE = 0
-
-    def setup(self, options=None):
-        """ options: name, itemText, defaultValue """
-        options = options or {}
-        ColorWidgetFunc.setup(self, options)
-        self.widget.label_1.setText(options.get("name", "Color"))
-
-        itemText = options.get("itemText", {})
-        if itemText.get(OptionalColorWidgetFunc.NONE, "") is not None:
-            self.widget.comboBox.insertItem(0, "None", OptionalColorWidgetFunc.NONE)
-
-        for id, text in itemText.items():
-            index = self.widget.comboBox.findData(id)
-            if index != -1:
-                self.widget.comboBox.setItemText(index, text)
-
-        index = self.widget.comboBox.findData(options.get("defaultValue", OptionalColorWidgetFunc.NONE))
-        if index != -1:
-            self.widget.comboBox.setCurrentIndex(index)
 
 
 class ColorTextureWidgetFunc(ColorWidgetFunc):

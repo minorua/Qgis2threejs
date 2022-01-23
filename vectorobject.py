@@ -306,14 +306,14 @@ class ExtrudedType(PolygonTypeBase):
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Height", "defaultValue": self.defaultValueZ()}],
                            color2={"name": "Edge color",
-                                   "itemText": {OptionalColorWidgetFunc.NONE: "(No Edge)"},
-                                   "defaultValue": OptionalColorWidgetFunc.NONE})
+                                   "itemText": {None: "No edge"},
+                                   "defaultValue": None})
 
     def material(self, feat):
         mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
 
         # edges
-        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
+        if feat.prop(PID.C2) is not None:
             mtl["edge"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
         return mtl
 
@@ -333,14 +333,14 @@ class OverlayType(PolygonTypeBase):
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(color2={"name": "Border color",
-                                   "itemText": {OptionalColorWidgetFunc.NONE: "(No border)"},
-                                   "defaultValue": OptionalColorWidgetFunc.NONE})
+                                   "itemText": {None: "No border"},
+                                   "defaultValue": None})
 
     def material(self, feat):
         mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)}
 
         # border
-        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
+        if feat.prop(PID.C2) is not None:
             mtl["brdr"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
         return mtl
 
@@ -348,7 +348,7 @@ class OverlayType(PolygonTypeBase):
         g = geom.toDict(flat=True)  # TINGeometry
 
         # border
-        if feat.prop(PID.C2) != OptionalColorWidgetFunc.NONE:
+        if feat.prop(PID.C2) is not None:
             g["brdr"] = [bnds.toList(flat=True) for bnds in geom.bnds_list]
 
         return g

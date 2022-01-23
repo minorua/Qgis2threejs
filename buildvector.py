@@ -93,7 +93,7 @@ class Feature:
                                                    centroidPerPolygon=True)
 
         # Overlay
-        border = bool(self.prop(PID.C2) != OptionalColorWidgetFunc.NONE)
+        border = bool(self.prop(PID.C2) is not None)
         if grid is None:
             # absolute z coordinate
             g = TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True)
@@ -303,7 +303,7 @@ class VectorLayer:
     # read color from COLOR or OPTIONAL_COLOR widget
     def _readColor(self, wv, f, isBorder=False):
         mode = wv["comboData"]
-        if mode == OptionalColorWidgetFunc.NONE:
+        if mode is None:
             return None
 
         if mode == ColorWidgetFunc.EXPRESSION:
