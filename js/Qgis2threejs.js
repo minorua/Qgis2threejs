@@ -398,6 +398,14 @@ limitations:
     }
   };
 
+  app.removeEventListener = function (type, listener) {
+    var array = listeners[type];
+    if (array !== undefined) {
+      var idx = array.indexOf(listener);
+      if (idx !== -1) array.splice(idx, 1);
+    }
+  };
+
   app.init = function (container) {
 
     app.container = container;
@@ -839,11 +847,15 @@ limitations:
   };
 
   app.setCanvasSize = function (width, height) {
+    var changed = (app.width != width || app.height != height);
+
     app.width = width;
     app.height = height;
     app.camera.aspect = width / height;
     app.camera.updateProjectionMatrix();
     app.renderer.setSize(width, height);
+
+    if (changed) app.dispatchEvent({type: "canvasSizeChanged"});
   };
 
   app.buildCamera = function (is_ortho) {
@@ -2084,11 +2096,15 @@ Q3D.Material.prototype = {
         opt.dashOffset = 0.015;
         opt.transparent = true;
       }
-
-      // opt.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
       // opt.sizeAttenuation = 1;
 
-      this.mtl = new MeshLineMaterial(opt);
+      var mtl = this.mtl = new MeshLineMaterial(opt);
+      var updateAspect = this._listener = function () {
+        mtl.resolution = new THREE.Vector2(Q3D.application.width, Q3D.application.height);
+      };
+
+      updateAspect();
+      Q3D.application.addEventListener("canvasSizeChanged", updateAspect);
     }
     else if (m.type == Q3D.MaterialType.Sprite) {
       opt.color = 0xffffff;
@@ -2143,6 +2159,11 @@ Q3D.Material.prototype = {
     if (this.mtl.map) this.mtl.map.dispose();   // dispose of texture
     this.mtl.dispose();
     this.mtl = null;
+
+    if (this._listener) {
+      Q3D.application.removeEventListener("canvasSizeChanged", this._listener);
+      this._listener = undefined;
+    }
   }
 };
 
