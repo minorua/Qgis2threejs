@@ -138,7 +138,6 @@ class VectorLayer:
         self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
 
         otc = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
-
         self.ot = otc(settings, materialManager) if otc else None
 
         self.materialManager = materialManager

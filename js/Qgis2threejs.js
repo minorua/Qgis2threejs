@@ -2343,7 +2343,7 @@ Q3D.DEMBlock.prototype = {
     mesh.scale.z = obj.zScale;
     layer.addObject(mesh);
 
-    // TODO: this.transform
+    // set z values
     var buildGeometry = function (grid_values) {
       var vertices = geom.attributes.position.array;
       for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
@@ -2364,7 +2364,7 @@ Q3D.DEMBlock.prototype = {
         buildGeometry(grid.array);
       });
     }
-    else {    // WebKit Bridge
+    else {    // local mode or WebKit Bridge
       if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
       buildGeometry(grid.array);
     }
@@ -2687,9 +2687,9 @@ Q3D.ClippedDEMBlock.prototype = {
       }
 
       // bottom
-      shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(bnds[0]));
+      shape = new THREE.Shape(Q3D.Utils.flatArrayToVec2Array(bnds[0], 3));
       for (j = 1, m = bnds.length; j < m; j++) {
-        shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(bnds[j])));
+        shape.holes.push(new THREE.Path(Q3D.Utils.flatArrayToVec2Array(bnds[j], 3)));
       }
       geom = new THREE.ShapeBufferGeometry(shape);
       mesh = new THREE.Mesh(geom, mat_back);
@@ -4117,6 +4117,15 @@ Q3D.Utils.arrayToVec2Array = function (points) {
   for (var i = 0, l = points.length; i < l; i++) {
     pt = points[i];
     pts.push(new THREE.Vector2(pt[0], pt[1]));
+  }
+  return pts;
+};
+
+Q3D.Utils.flatArrayToVec2Array = function (vertices, itemSize) {
+  var itemSize = itemSize || 2,
+      pts = [];
+  for (var i = 0, l = vertices.length; i < l; i += itemSize) {
+    pts.push(new THREE.Vector2(vertices[i], vertices[i + 1]));
   }
   return pts;
 };

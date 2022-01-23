@@ -69,14 +69,14 @@ class PolygonTypeBase(ObjectTypeBase):
     layerType = LayerType.POLYGON
 
 
-# PointBasicType
+# Point
 class PointBasicTypeBase(PointTypeBase):
 
     def material(self, feat):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
 
 
-class PointType(ObjectTypeBase):
+class PointType(PointTypeBase):
 
     name = "Point"
 
@@ -143,7 +143,7 @@ class BoxType(PointBasicTypeBase):
                 "h": feat.prop(PID.G2) * self.settings.mapTo3d().zScale}
 
 
-class DiskType(PointBasicTypeBase):
+class DiskType(PointTypeBase):
 
     name = "Disk"
 
@@ -168,7 +168,7 @@ class DiskType(PointBasicTypeBase):
                 "dd": dd}
 
 
-class PlaneType(PointBasicTypeBase):
+class PlaneType(PointTypeBase):
 
     name = "Plane"
 
@@ -195,13 +195,8 @@ class PlaneType(PointBasicTypeBase):
                 "dd": dd}
 
 
-# LineBasicType
-class LineBasicTypeBase(LineTypeBase):
-
-    pass
-
-
-class LineType(LineBasicTypeBase):
+# Line
+class LineType(LineTypeBase):
 
     name = "Line"
 
@@ -215,7 +210,7 @@ class LineType(LineBasicTypeBase):
         return {"lines": geom.toList(flat=True)}
 
 
-class ThickLineType(LineBasicTypeBase):
+class ThickLineType(LineTypeBase):
 
     name = "Thick Line"
 
@@ -230,7 +225,7 @@ class ThickLineType(LineBasicTypeBase):
         return {"lines": geom.toList(flat=True)}
 
 
-class PipeType(LineBasicTypeBase):
+class PipeType(LineTypeBase):
 
     name = "Pipe"
 
@@ -251,7 +246,7 @@ class ConeLineType(PipeType):
     name = "Cone"
 
 
-class BoxLineType(LineBasicTypeBase):
+class BoxLineType(LineTypeBase):
 
     name = "Box"
 
@@ -269,7 +264,7 @@ class BoxLineType(LineBasicTypeBase):
                 "h": feat.prop(PID.G1)}
 
 
-class WallType(LineBasicTypeBase):
+class WallType(LineTypeBase):
 
     name = "Wall"
 
@@ -284,15 +279,8 @@ class WallType(LineBasicTypeBase):
                 "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().zScale}
 
 
-# PolygonBasicType
-class PolygonBasicTypeBase(PolygonTypeBase):
-
-    def geometry(self, feat, geom):
-        return {"polygons": geom.toList2(),
-                "centroids": geom.centroids}
-
-
-class PolygonType(PolygonBasicTypeBase):
+# Polygon
+class PolygonType(PolygonTypeBase):
 
     """3d polygon support: yes"""
 
@@ -309,7 +297,7 @@ class PolygonType(PolygonBasicTypeBase):
         return g
 
 
-class ExtrudedType(PolygonBasicTypeBase):
+class ExtrudedType(PolygonTypeBase):
 
     """3d polygon support: no"""
 
@@ -330,12 +318,14 @@ class ExtrudedType(PolygonBasicTypeBase):
         return mtl
 
     def geometry(self, feat, geom):
-        g = PolygonBasicTypeBase.geometry(feat, geom)
-        g["h"] = feat.prop(PID.G0) * self.settings.mapTo3d().zScale
-        return g
+        return {
+            "polygons": geom.toList2(),
+            "centroids": geom.centroids,
+            "h": feat.prop(PID.G0) * self.settings.mapTo3d().zScale
+        }
 
 
-class OverlayType(PolygonBasicTypeBase):
+class OverlayType(PolygonTypeBase):
 
     """3d polygon support: no"""
 
