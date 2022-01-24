@@ -407,8 +407,9 @@ function loadKeyframeGroups(groups) {
   app.animation.keyframes.load(groups);
 }
 
-function startAnimation(groups) {
+function startAnimation(groups, loop) {
   if (groups) loadKeyframeGroups(groups);
+  app.animation.keyframes.isLoop = Boolean(loop);
 
   loadScriptFile("../js/tweenjs/tween.js", function () {
     app.animation.keyframes.start();

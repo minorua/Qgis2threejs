@@ -28,7 +28,7 @@ from qgis.core import QgsApplication
 from .conf import DEBUG_MODE, DEF_SETS
 from .q3dconst import LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, logMessage
+from .tools import createUid, js_bool, logMessage
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -69,9 +69,9 @@ class AnimationPanel(QWidget):
         if self.isAnimating:
             self.stopAnimation()
         else:
-            self.playAnimation()
+            self.playAnimation(loop=self.ui.checkBoxLoop.isChecked())
 
-    def playAnimation(self, items=None):
+    def playAnimation(self, items=None, loop=False):
         dataList = []
         for item in (items or self.tree.checkedGroups()):
 
@@ -91,8 +91,9 @@ class AnimationPanel(QWidget):
         if len(dataList):
             if DEBUG_MODE:
                 logMessage("Play: " + str(dataList))
-            self.wnd.iface.requestRunScript("startAnimation(pyData())", data=dataList)
+            self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(loop)), data=dataList)
             self.ui.toolButtonPlay.setText("Stop")
+            self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
 
     def stopAnimation(self):
@@ -101,6 +102,7 @@ class AnimationPanel(QWidget):
     # @pyqtSlot()
     def animationStopped(self):
         self.ui.toolButtonPlay.setText("Play")
+        self.ui.checkBoxLoop.setEnabled(True)
         self.isAnimating = False
 
     def updateKeyframeView(self):

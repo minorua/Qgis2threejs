@@ -1002,6 +1002,8 @@ limitations:
 
       isPaused: false,
 
+      isLoop: false,
+
       curveFactor: 0,
 
       easingFunction: function (easing) {
@@ -1026,8 +1028,6 @@ limitations:
       },
 
       start: function () {
-
-        if (this.isActive || this.isPaused) this.stop();
 
         var _this = this,
             e = document.getElementById("narrativebox"),
@@ -1110,8 +1110,10 @@ limitations:
               app.controls.target.set(obj.fx, obj.fy, obj.fz);
             };
 
-            // move to camera position of the first keyframe
-            onUpdate(prop_list[0], 1, true);
+            group.onStart = function () {
+              // move to camera position of the first keyframe
+              onUpdate(prop_list[0], 1, true);
+            };
           }
           else {
             // layer animation
@@ -1192,7 +1194,16 @@ limitations:
                 if (!_this.keyframeGroups[i].completed) completed = false;
               }
 
-              if (completed) _this.stop();
+              if (completed) {
+                if (_this.isLoop) {
+                  setTimeout(function () {
+                    _this.start();
+                  }, 0);
+                }
+                else {
+                  _this.stop();
+                }
+              }
             }
 
             // show narrative box if the current keyframe has a narrative content
@@ -1219,11 +1230,10 @@ limitations:
             t1 = t2;
           }
 
-          showNBox(0);
-
-          // start animation
+          if (group.onStart) group.onStart();
           tween.start();
         });
+
 
         app.animation.isActive = this.isActive = true;
         app.animate();
@@ -1231,10 +1241,7 @@ limitations:
 
       stop: function () {
 
-        var tweens = TWEEN.getAll();
-        for (var i = 0; i < tweens.length; i++) {
-          tweens[i].stop();
-        }
+        TWEEN.removeAll();
 
         app.animation.isActive = this.isActive = this.isPaused = false;
         this._pausedTweens = null;
