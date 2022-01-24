@@ -161,7 +161,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionEdit.triggered.connect(self.showDialog)
 
         self.actionPlay = QAction("Play", self)
-        self.actionPlay.triggered.connect(self.panel.playAnimation)
+        self.actionPlay.triggered.connect(self.playAnimation)
 
         self.actionUpdateView = QAction("Set current view to this keyframe...", self)
         self.actionUpdateView.triggered.connect(self.panel.updateKeyframeView)
@@ -713,6 +713,11 @@ class AnimationTreeWidget(QTreeWidget):
         layer = self.currentLayer()
         if layer:
             self.wnd.showLayerPropertiesDialog(layer)
+
+    def playAnimation(self):
+        item = self.currentItem()
+        if item:
+            self.panel.playAnimation([item])
 
 
 class KeyframeDialog(QDialog):
