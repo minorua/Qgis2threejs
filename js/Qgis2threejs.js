@@ -1110,10 +1110,8 @@ limitations:
               app.controls.target.set(obj.fx, obj.fy, obj.fz);
             };
 
-            group.onStart = function () {
-              // move to camera position of the first keyframe
-              onUpdate(prop_list[0], 1, true);
-            };
+            // move to camera position of the first keyframe
+            onUpdate(prop_list[0], 1, true);
           }
           else {
             // layer animation
@@ -1128,6 +1126,8 @@ limitations:
               for (var i = 0; i < keyframes.length; i++) {
                 prop_list.push({opacity: keyframes[i].opacity});
               }
+
+              onUpdate(prop_list[0]);
             }
             else if (group.type == Q3D.KeyframeType.Material) {
 
@@ -1168,6 +1168,8 @@ limitations:
               keyframes = kfs;
 
               layer.prepareGrowingAnimation();
+
+              onUpdate(undefined, 0);
             }
             else return;
           }
@@ -1230,7 +1232,6 @@ limitations:
             t1 = t2;
           }
 
-          if (group.onStart) group.onStart();
           tween.start();
         });
 
