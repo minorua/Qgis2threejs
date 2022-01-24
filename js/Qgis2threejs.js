@@ -1072,7 +1072,8 @@ limitations:
 
           if (group.type == Q3D.KeyframeType.CameraMotion) {
             var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
-            var vec3 = new THREE.Vector3();
+            var vec3 = new THREE.Vector3(),
+                o = app.scene.userData.origin;
             for (var i = 0; i < keyframes.length; i++) {
               p = keyframes[i].camera;
               vec3.set(p.x - p.fx, p.y - p.fy, p.z - p.fz);
@@ -1080,7 +1081,7 @@ limitations:
               theta = Math.acos(vec3.z / dist);
               phi = Math.atan2(vec3.y, vec3.x);
               p.phi = phi;
-              prop_list.push({fx: p.fx, fy: p.fy, fz: p.fz, d: dist, theta: theta});
+              prop_list.push({fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
 
               if (i > 0) {
                 dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
