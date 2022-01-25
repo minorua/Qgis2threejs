@@ -57,11 +57,12 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
         self.ui.toolButtonAdd.clicked.connect(self.tree.addNewItem)
-        self.ui.toolButtonEdit.clicked.connect(self.tree.showDialog)
-        self.ui.toolButtonRemove.clicked.connect(self.tree.removeCurrentItem)
+        self.ui.toolButtonEdit.clicked.connect(self.tree.onItemDoubleClicked)
+        self.ui.toolButtonRemove.clicked.connect(self.tree.removeSelectedItems)
         self.ui.toolButtonPlay.clicked.connect(self.playButtonClicked)
 
         self.tree.setup(wnd, settings)
+        self.tree.currentItemChanged.connect(self.currentItemChanged)
 
         self.webPage.bridge.animationStopped.connect(self.animationStopped)
 
@@ -113,6 +114,14 @@ class AnimationPanel(QWidget):
             item = self.tree.currentItem()
             item.setData(0, ATConst.DATA_CAMERA, view)
 
+    def currentItemChanged(self, current, previous):
+        if not current:
+            return
+
+        enabled = not (current.type() & ATConst.ITEM_TOPLEVEL)
+        for w in [self.ui.toolButtonEdit, self.ui.toolButtonPlay, self.ui.toolButtonRemove]:
+            w.setEnabled(enabled)
+
 
 class AnimationTreeWidget(QTreeWidget):
 
@@ -128,7 +137,6 @@ class AnimationTreeWidget(QTreeWidget):
         self.header().setVisible(False)
         self.setDragDropMode(QAbstractItemView.InternalMove)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
         self.setExpandsOnDoubleClick(False)
 
     def setup(self, wnd, settings):
@@ -146,7 +154,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenu)
         self.currentItemChanged.connect(self.currentTreeItemChanged)
-        self.doubleClicked.connect(self.showDialog)
+        self.itemDoubleClicked.connect(self.onItemDoubleClicked)
 
         # context menu
         self.actionNewGroup = QAction("New Group", self)
@@ -156,10 +164,13 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionAdd.triggered.connect(self.addNewItem)
 
         self.actionRemove = QAction("Remove...", self)
-        self.actionRemove.triggered.connect(self.removeCurrentItem)
+        self.actionRemove.triggered.connect(self.removeSelectedItems)
 
         self.actionEdit = QAction("Edit...", self)
         self.actionEdit.triggered.connect(self.showDialog)
+
+        self.actionRename = QAction("Rename", self)
+        self.actionRename.triggered.connect(self.renameGroup)
 
         self.actionPlay = QAction("Play", self)
         self.actionPlay.triggered.connect(self.playAnimation)
@@ -183,7 +194,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuKeyframeGroup.addAction(self.actionPlay)
         self.ctxMenuKeyframeGroup.addAction(self.actionAdd)
         self.ctxMenuKeyframeGroup.addSeparator()
-        self.ctxMenuKeyframeGroup.addAction(self.actionEdit)
+        self.ctxMenuKeyframeGroup.addAction(self.actionRename)
         self.ctxMenuKeyframeGroup.addSeparator()
         self.ctxMenuKeyframeGroup.addAction(self.actionRemove)
 
@@ -202,17 +213,37 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuLayer.addSeparator()
         self.ctxMenuLayer.addAction(self.actionProperties)
 
-    def focusOutEvent(self, event):
-        #TODO: restore layer opacity
-        return QTreeWidget.focusOutEvent(self, event)
+    def dropEvent(self, event):
+        items = self.selectedItems()
+        p = items[0].parent()
+        dp = False
+        for item in items[1:]:
+            if item.parent() != p:
+                dp = True
+
+        item = items[0]
+        dest = self.itemAt(event.pos())
+        accept = False
+        if dest and item.type() & ATConst.ITEM_MBR and not dp:
+            if item.type() == dest.type():
+                if item.parent().parent() == item.parent().parent():
+                    accept = True
+            elif item.parent().type() == dest.type():
+                if item.parent().parent() == dest.parent():
+                    accept = True
+
+        if not accept:
+            event.setDropAction(Qt.IgnoreAction)
+            self.wnd.ui.statusbar.showMessage("Cannot move item(s) there.", 3000)
+
+        return QTreeWidget.dropEvent(self, event)
 
     def initTree(self):
         self.clear()
-        self.nextKeyframeGroupId = 1
 
     def addCameraMotionTLItem(self):
         item = QTreeWidgetItem(self, ["Camera Motion"], ATConst.ITEM_TL_CAMERA)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemIsEnabled)
         item.setIcon(0, self.cameraIcon)
         item.setExpanded(True)
         return item
@@ -229,7 +260,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemIsEnabled)
         item.setIcon(0, self.icons[layer.type])
         item.setExpanded(True)
 
@@ -302,30 +333,32 @@ class AnimationTreeWidget(QTreeWidget):
         # elif gt == ATConst.ITEM_GRP_GROWING_LINE:
         #     self.addGrowLineItem()
 
-    def removeCurrentItem(self):
-        item = self.currentItem()
-        if item is None or item.parent() is None:
+    def removeSelectedItems(self):
+        items = self.selectedItems() or [self.currentItem()]
+        if len(items) == 0:
             return
+        elif len(items) == 1:
+            msg = "Are you sure you want to remove '{}'?".format(items[0].text(0))
+        else:
+            msg = "Are you sure you want to remove {} items?".format(len(items))
 
-        msg = "Are you sure you want to remove '{}'?".format(item.text(0))
         if QMessageBox.question(self, "Qgis2threejs", msg) != QMessageBox.Yes:
             return
 
-        item.parent().removeChild(item)
+        for item in items:
+            item.parent().removeChild(item)
 
     def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True, easing=None):
 
         item = QTreeWidgetItem(typ)
-        item.setText(0, name or "{} {}".format(ATConst.defaultName(typ), self.nextKeyframeGroupId))
+        item.setText(0, name or ATConst.defaultName(typ))
         item.setData(0, ATConst.DATA_EASING, easing)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+        item.setFlags(Qt.ItemIsEditable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
         item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
         # item.setIcon(0, self.cameraIcon)
 
         parent.addChild(item)
         item.setExpanded(True)
-
-        self.nextKeyframeGroupId += 1
 
         return item
 
@@ -582,6 +615,9 @@ class AnimationTreeWidget(QTreeWidget):
             if typ == ATConst.ITEM_TL_LAYER:
                 m = self.ctxMenuLayer
 
+                layer = self.getLayerFromLayerItem(item)
+                self.actionMaterial.setVisible(layer.type == LayerType.DEM)
+                self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
         else:
             if typ & ATConst.ITEM_GRP:
                 m = self.ctxMenuKeyframeGroup
@@ -595,7 +631,6 @@ class AnimationTreeWidget(QTreeWidget):
             m.exec_(self.mapToGlobal(pos))
 
     def currentTreeItemChanged(self, current, previous=None):
-
         if not current:
             return
 
@@ -627,6 +662,19 @@ class AnimationTreeWidget(QTreeWidget):
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
                 self.wnd.iface.updateLayerRequest.emit(layer)
+
+    def onItemDoubleClicked(self, item=None, column=0):
+        item = item or self.currentItem()
+        t = item.type()
+        if t & ATConst.ITEM_MBR:
+            self.showDialog(item)
+        elif t & ATConst.ITEM_GRP:
+            self.renameGroup(item)
+
+    def renameGroup(self, item=None):
+        item = item or self.currentItem()
+        if item:
+            self.editItem(item, 0)
 
     def addOpacityItem(self):
         item = self.currentItem()
@@ -686,18 +734,24 @@ class AnimationTreeWidget(QTreeWidget):
             "name": "Line Growing Effect"
         })
 
-    def showDialog(self):
+    def showDialog(self, item=None):
         if self.dialog:
             QMessageBox.warning(self, "Qgis2threejs", "Cannot open more than one keyframe dialog at same time.")
             return
 
-        item = self.currentItem()
+        item = item or self.currentItem()
         if item is None:
             return
 
         t = item.type()
         if t & ATConst.ITEM_MBR:
             top_level = item.parent().parent()
+            isPair = (t != ATConst.ITEM_GROWING_LINE)
+
+            if isPair and item.parent().childCount() < 2:
+                QMessageBox.warning(self, "Qgis2threejs", "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
+                return
+
         elif t & ATConst.ITEM_GRP:
             top_level = item.parent()
         elif t == ATConst.ITEM_TL_LAYER:
