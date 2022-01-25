@@ -97,6 +97,14 @@ def abchex(number):
     return h
 
 
+# parse a string to a integer number. if failed, return def_val.
+def parseInt(string, def_val=None):
+    try:
+        return int(string)
+    except (TypeError, ValueError):
+        return def_val
+
+
 # parse a string to a floating point number. if failed, return def_val.
 def parseFloat(string, def_val=None):
     try:

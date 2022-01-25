@@ -1214,17 +1214,16 @@ limitations:
           };
 
           var tween, t1, t2;
-          for (i = 1; i < keyframes.length; i++) {
-            t2 = new TWEEN.Tween(prop_list[i - 1])
-                             .to(prop_list[i], keyframes[i].duration)
-                             .delay(keyframes[i - 1].delay)
+          for (i = 0; i < keyframes.length - 1; i++) {
+            t2 = new TWEEN.Tween(prop_list[i])
+                             .to(prop_list[i + 1], keyframes[i].duration)
+                             .delay(keyframes[i].delay)
                              .easing((keyframes[i].easing) ? _this.easingFunction(keyframes[i].easing) : geFunc)
                              .onStart(onStart)
                              .onUpdate(onUpdate)
                              .onComplete(onComplete);
-            // delay -> [onStart] -> transition [onUpdate] -> [onComplete]
 
-            if (i == 1) {
+            if (i == 0) {
               tween = t2;
             }
             else {

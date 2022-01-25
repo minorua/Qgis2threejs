@@ -28,7 +28,7 @@ from qgis.core import QgsApplication
 from .conf import DEBUG_MODE, DEF_SETS
 from .q3dconst import LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, js_bool, logMessage
+from .tools import createUid, js_bool, logMessage, parseInt
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -120,6 +120,7 @@ class AnimationTreeWidget(QTreeWidget):
         QTreeWidget.__init__(self, parent)
 
         self.panel = parent
+        self.dialog = None
 
         root = self.invisibleRootItem()
         root.setFlags(root.flags() & ~Qt.ItemIsDropEnabled)
@@ -358,8 +359,9 @@ class AnimationTreeWidget(QTreeWidget):
         item.setText(0, name)
 
         item.setData(0, ATConst.DATA_EASING, keyframe.get("easing"))
-        item.setData(0, ATConst.DATA_DURATION, str(keyframe.get("duration", DEF_SETS.ANM_DURATION)))
-        item.setData(0, ATConst.DATA_DELAY, str(keyframe.get("delay", 0)))
+        item.setData(0, ATConst.DATA_DURATION, keyframe.get("duration", DEF_SETS.ANM_DURATION))
+        item.setData(0, ATConst.DATA_DELAY, keyframe.get("delay", 0))
+
         nar = keyframe.get("narration")
         if nar:
             item.setData(0, ATConst.DATA_NARRATION, {"id": nar["id"], "text": nar["text"]})
@@ -394,14 +396,11 @@ class AnimationTreeWidget(QTreeWidget):
         if not item or not (item.type() & ATConst.ITEM_MBR):
             return
 
-        duration = str(item.data(0, ATConst.DATA_DURATION))
-        delay = str(item.data(0, ATConst.DATA_DELAY))
-
         k = {
             "type": item.type(),
             "name": item.text(0),
-            "duration": int(duration) if duration.isdigit() else 0,
-            "delay": int(delay) if delay.isdigit() else 0
+            "duration": item.data(0, ATConst.DATA_DURATION),
+            "delay": item.data(0, ATConst.DATA_DELAY)
         }
         e = item.data(0, ATConst.DATA_EASING)
         if e:
@@ -523,13 +522,20 @@ class AnimationTreeWidget(QTreeWidget):
 
         typ = item.type()
         if typ & ATConst.ITEM_MBR:
-            parent = item.parent()
-            iidx = parent.indexOfChild(item)
-            if iidx:
-                d = self.keyframeGroupData(parent)
-                d["keyframes"] = d["keyframes"][iidx - 1:iidx + 1]
-                d["keyframes"][0].pop("narration", None)
-                return d
+            isPair = (typ != ATConst.ITEM_GROWING_LINE)
+            c = 2 if isPair else 1
+
+            p = item.parent()
+            iidx = p.indexOfChild(item)
+
+            if isPair and iidx == p.childCount() - 1:
+                return
+
+            d = self.keyframeGroupData(p)
+            kfs = d["keyframes"][iidx:iidx + c]
+            kfs[0].pop("narration", None)
+            d["keyframes"] = kfs
+            return d
 
         elif typ & ATConst.ITEM_GRP:
             return self.keyframeGroupData(item)
@@ -588,7 +594,7 @@ class AnimationTreeWidget(QTreeWidget):
         if m:
             m.exec_(self.mapToGlobal(pos))
 
-    def currentTreeItemChanged(self, current, previous):
+    def currentTreeItemChanged(self, current, previous=None):
 
         if not current:
             return
@@ -681,6 +687,10 @@ class AnimationTreeWidget(QTreeWidget):
         })
 
     def showDialog(self):
+        if self.dialog:
+            QMessageBox.warning(self, "Qgis2threejs", "Cannot open more than one keyframe dialog at same time.")
+            return
+
         item = self.currentItem()
         if item is None:
             return
@@ -703,11 +713,23 @@ class AnimationTreeWidget(QTreeWidget):
             if t == ATConst.ITEM_TL_LAYER:
                 self.wnd.showLayerPropertiesDialog(layer)
                 return
+        elif top_level.type() == ATConst.ITEM_TL_CAMERA:
+            if t == ATConst.ITEM_TL_CAMERA:
+                return
 
-        dialog = KeyframeDialog(self)
-        dialog.setup(item, layer)
-        dialog.show()
-        dialog.exec_()
+            if t == ATConst.ITEM_GRP_CAMERA:
+                item = item.child(0)
+                if item is None:
+                    return
+
+        self.dialog = KeyframeDialog(self)
+        self.dialog.setup(item, layer)
+        self.dialog.finished.connect(self.dialogClosed)
+        self.dialog.show()
+        self.dialog.exec_()
+
+    def dialogClosed(self, result):
+        self.dialog = None
 
     def showLayerProperties(self):
         layer = self.currentLayer()
@@ -738,9 +760,10 @@ class KeyframeDialog(QDialog):
 
     def setup(self, item, layer=None):
         self.item = item
-        self.itemTo = self.itemFrom = None
+        self.itemFrom = self.itemTo = None
         self.type = t = item.type()
         self.layer = layer
+        self.isPair = True
 
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
 
@@ -748,36 +771,39 @@ class KeyframeDialog(QDialog):
         self.ui.comboBoxEasing.addItems(["[no selection]", "Linear", "Quadratic In"])
         self.ui.comboBoxEasing.setCurrentIndex(idx)
 
-        if t & ATConst.ITEM_MBR and t != ATConst.ITEM_GROWING_LINE:
-            p = item.parent()
-            self.kfCount = cnt = p.childCount()
+        if t == ATConst.ITEM_MATERIAL:
+            for mtl in self.layer.properties.get("materials", []):
+                name, id = (mtl.get("name", ""), mtl.get("id"))
+                self.ui.comboBoxMaterial.addItem(name, id)
+                self.ui.comboBoxMaterial2.addItem(name, id)
 
-            self.ui.labelKFCount.setText("/ {}".format(cnt - 1))
-            self.ui.horizontalSlider.setMaximum(cnt - 1)
-
-            idxTo = min(p.indexOfChild(item), cnt - 1)
-            if cnt > 1:
-                idxTo = max(1, idxTo)
-                self.ui.horizontalSlider.setMinimum(1)
-
-            self.ui.horizontalSlider.setValue(idxTo)
-            self.currentKeyframeChanged(idxTo)
-
-        if t in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_MATERIAL):
-
-            if t == ATConst.ITEM_MATERIAL:
-                self.ui.comboBoxEffect.addItem("Selected one in group", 0)
-
+            # if t == ATConst.ITEM_MATERIAL:
+            #     self.ui.comboBoxEffect.addItem("Selected one in group", 0)
             self.ui.comboBoxEffect.addItem("Fade in", 1)
             self.ui.comboBoxEffect.addItem("Slide", 2)
 
-            idx = self.ui.comboBoxEffect.findData(item.data(0, ATConst.DATA_EFFECT))
-            if idx > 0:
-                self.ui.comboBoxEffect.setCurrentIndex(idx)
+        p = item.parent()
+        self.transCount = p.childCount()
+
+        if t & ATConst.ITEM_MBR:
+            self.isPair = (t != ATConst.ITEM_GROWING_LINE)
+
+            if self.isPair:
+                self.transCount -= 1
+
+            self.ui.labelTransCount.setText("/ {}".format(self.transCount))
+            self.ui.horizontalSlider.setMaximum(self.transCount - 1)
+
+            idxFrom = min(p.indexOfChild(item), self.transCount - 1)
+            self.ui.horizontalSlider.setValue(idxFrom)
+            self.currentTransitionChanged(idxFrom)
 
         wth = []
-        if not t & ATConst.ITEM_GRP and t != ATConst.ITEM_CAMERA:
-            wth += [self.ui.labelName, self.ui.lineEditName]
+        if t != ATConst.ITEM_CAMERA:
+            if t != ATConst.ITEM_GROWING_LINE:
+                wth += [self.ui.labelName, self.ui.lineEditName]
+
+            wth += [self.ui.labelName2, self.ui.lineEditName2]
 
         if t != ATConst.ITEM_OPACITY:
             wth += [self.ui.labelOpacity, self.ui.doubleSpinBoxOpacity,
@@ -790,19 +816,22 @@ class KeyframeDialog(QDialog):
             if t != ATConst.ITEM_GRP_MATERIAL:
                 wth += [self.ui.labelEffect, self.ui.comboBoxEffect]
 
-        if not t & ATConst.ITEM_MBR:
-            wth += [self.ui.labelDuration, self.ui.lineEditDuration,
-                    self.ui.labelDelay, self.ui.lineEditDelay,
-                    self.ui.labelNarration, self.ui.textEdit]
+        if t == ATConst.ITEM_GROWING_LINE:
+            wth += [self.ui.labelArrow, self.ui.labelNarration, self.ui.textEdit]
 
         for w in wth:
             w.setVisible(False)
 
-        self.ui.horizontalSlider.valueChanged.connect(self.currentKeyframeChanged)
+        self.resize(self.minimumSize())
+
+        self.ui.horizontalSlider.valueChanged.connect(self.currentTransitionChanged)
         self.ui.toolButtonPrev.clicked.connect(self.prevKeyframe)
         self.ui.toolButtonNext.clicked.connect(self.nextKeyframe)
         self.ui.pushButtonPlay.clicked.connect(self.play)
         self.ui.pushButtonPlayAll.clicked.connect(self.playAll)
+
+        self.ui.lineEditDelay.editingFinished.connect(self.apply)
+        self.ui.lineEditDuration.editingFinished.connect(self.apply)
 
     def prevKeyframe(self):
         self.ui.horizontalSlider.setValue(self.ui.horizontalSlider.value() - 1)
@@ -810,36 +839,42 @@ class KeyframeDialog(QDialog):
     def nextKeyframe(self):
         self.ui.horizontalSlider.setValue(self.ui.horizontalSlider.value() + 1)
 
-    def currentKeyframeChanged(self, value):
-        self.ui.lineEditCurrentKF.setText(str(value))
-        self.ui.toolButtonPrev.setEnabled(value > 1)
-        self.ui.toolButtonNext.setEnabled(value < self.kfCount - 1)
+    def currentTransitionChanged(self, value):
+        self.ui.lineEditCurrentTrans.setText(str(value + 1))
+        self.ui.toolButtonPrev.setEnabled(value > 0)
+        self.ui.toolButtonNext.setEnabled(value < self.transCount - 1)
 
         if self.itemTo and not self.isPlaying:
             self.apply()
 
-        idxTo = value
-        if idxTo == 0:
-            for w in [self.ui.labelName2, self.ui.lineEditName2, self.ui.labelDuration, self.ui.lineEditDuration,
+        p = self.item.parent()
+        if self.isPair:
+            idxFrom = value
+            idxTo = value + 1
+            iFrom = p.child(idxFrom)
+            iTo = p.child(idxTo)
+
+            self.setupPair(iFrom, iTo)
+        else:
+            for w in [self.ui.labelName2, self.ui.lineEditName2,
                       self.ui.labelNarration, self.ui.textEdit]:
                 w.setEnabled(False)
 
-        idxFrom = max(0, idxTo - 1)
+            item = p.child(value)
 
-        p = self.item.parent()
-        iFrom = p.child(idxFrom)
-        iTo = p.child(idxTo)
+            self.setupPair(item, item)
 
-        self.ui.comboBoxEasing.setCurrentIndex(iTo.data(0, ATConst.DATA_EASING) or 0)
+        self.updateTime(p, value)
 
-        self.setupFromAndTo(iFrom, iTo)
-        self.updateTime(p, idxTo)
+        if not self.isPlaying:
+            self.panel.tree.setCurrentItem(p.child(value))
 
-    def setupFromAndTo(self, iFrom, iTo):
+    def setupPair(self, iFrom, iTo):
         self.itemFrom, self.itemTo = (iFrom, iTo)
 
         self.ui.lineEditDelay.setText(str(iFrom.data(0, ATConst.DATA_DELAY)))
-        self.ui.lineEditDuration.setText(str(iTo.data(0, ATConst.DATA_DURATION)))
+        self.ui.lineEditDuration.setText(str(iFrom.data(0, ATConst.DATA_DURATION)))
+        self.ui.comboBoxEasing.setCurrentIndex(iFrom.data(0, ATConst.DATA_EASING) or 0)
 
         nar = iTo.data(0, ATConst.DATA_NARRATION) or {}
         self.narId = nar.get("id")
@@ -850,36 +885,38 @@ class KeyframeDialog(QDialog):
             self.ui.lineEditName2.setText(iTo.text(0))
 
         elif self.type == ATConst.ITEM_OPACITY:
-            self.ui.doubleSpinBoxOpacity.setValue(iFrom.data(0, ATConst.DATA_OPACITY) or 1)
-            self.ui.doubleSpinBoxOpacity2.setValue(iTo.data(0, ATConst.DATA_OPACITY) or 1)
+            self.ui.doubleSpinBoxOpacity.setValue(iFrom.data(0, ATConst.DATA_OPACITY))
+            self.ui.doubleSpinBoxOpacity2.setValue(iTo.data(0, ATConst.DATA_OPACITY))
 
         elif self.type == ATConst.ITEM_MATERIAL:
-            for mtl in self.layer.properties.get("materials", []):
-                name, id = (mtl.get("name", ""), mtl.get("id"))
-                self.ui.comboBoxMaterial.addItem(name, id)
-                self.ui.comboBoxMaterial2.addItem(name, id)
-
             idx = self.ui.comboBoxMaterial.findData(iFrom.data(0, ATConst.DATA_MTL_ID))
-            if idx > 0:
+            if idx != -1:
                 self.ui.comboBoxMaterial.setCurrentIndex(idx)
 
             idx = self.ui.comboBoxMaterial2.findData(iTo.data(0, ATConst.DATA_MTL_ID))
-            if idx > 0:
+            if idx != -1:
                 self.ui.comboBoxMaterial2.setCurrentIndex(idx)
+
+            idx = self.ui.comboBoxEffect.findData(iFrom.data(0, ATConst.DATA_EFFECT))
+            if idx != -1:
+                self.ui.comboBoxEffect.setCurrentIndex(idx)
+
+        elif self.type == ATConst.ITEM_GROWING_LINE:
+            self.ui.lineEditName.setText(iFrom.text(0))
 
     def updateTime(self, parentItem, index):
         begin = 0
-        for i in range(1, index):
+        for i in range(0, index):
             item = parentItem.child(i)
-            begin += int(item.data(0, ATConst.DATA_DELAY)) + int(item.data(0, ATConst.DATA_DURATION))
+            begin += item.data(0, ATConst.DATA_DELAY) + item.data(0, ATConst.DATA_DURATION)
 
-        begin += int(parentItem.child(index).data(0, ATConst.DATA_DELAY))
-        end = begin + int(parentItem.child(index).data(0, ATConst.DATA_DURATION))
+        begin += parentItem.child(index).data(0, ATConst.DATA_DELAY)
+        end = begin + parentItem.child(index).data(0, ATConst.DATA_DURATION)
 
         total = end
-        for i in range(index + 1, parentItem.childCount()):
+        for i in range(index + 1, self.transCount):
             item = parentItem.child(i)
-            total += int(item.data(0, ATConst.DATA_DURATION)) + int(item.data(0, ATConst.DATA_DELAY))
+            total += item.data(0, ATConst.DATA_DELAY) + item.data(0, ATConst.DATA_DURATION)
 
         fmt = "{:.0f}:{:06.3f}"
         self.ui.labelTimeBegin.setText(fmt.format(*divmod(begin / 1000, 60)))
@@ -891,9 +928,9 @@ class KeyframeDialog(QDialog):
         if self.type & ATConst.ITEM_MBR:
             iFrom, iTo = (self.itemFrom, self.itemTo)
 
-            iFrom.setData(0, ATConst.DATA_DELAY, self.ui.lineEditDelay.text())
-            iTo.setData(0, ATConst.DATA_DURATION, self.ui.lineEditDuration.text())
-            iTo.setData(0, ATConst.DATA_EASING, self.ui.comboBoxEasing.currentIndex())
+            iFrom.setData(0, ATConst.DATA_DELAY, parseInt(self.ui.lineEditDelay.text(), 0))
+            iFrom.setData(0, ATConst.DATA_DURATION, parseInt(self.ui.lineEditDuration.text(), DEF_SETS.ANM_DURATION))
+            iFrom.setData(0, ATConst.DATA_EASING, self.ui.comboBoxEasing.currentIndex())
 
             nar = None
             text = self.ui.textEdit.toPlainText()
@@ -909,16 +946,29 @@ class KeyframeDialog(QDialog):
                 iTo.setText(0, self.ui.lineEditName2.text())
 
             elif self.type == ATConst.ITEM_OPACITY:
+                fmt = "Opacity '{}'"
                 opacity = self.ui.doubleSpinBoxOpacity.value()
-                iFrom.setText(0, "Opacity '{}'".format(opacity))
+                iFrom.setText(0, fmt.format(opacity))
                 iFrom.setData(0, ATConst.DATA_OPACITY, opacity)
 
                 opacity = self.ui.doubleSpinBoxOpacity2.value()
-                iTo.setText(0, "Opacity '{}'".format(opacity))
+                iTo.setText(0, fmt.format(opacity))
                 iTo.setData(0, ATConst.DATA_OPACITY, opacity)
 
-            p = iTo.parent()
-            self.updateTime(p, p.indexOfChild(iTo))
+            elif self.type == ATConst.ITEM_MATERIAL:
+                iFrom.setText(0, self.ui.comboBoxMaterial.currentText())
+                iFrom.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBoxMaterial.currentData())
+
+                iTo.setText(0, self.ui.comboBoxMaterial2.currentText())
+                iTo.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBoxMaterial2.currentData())
+
+                iFrom.setData(0, ATConst.DATA_EFFECT, self.ui.comboBoxEffect.currentData())
+
+            elif self.type == ATConst.ITEM_GROWING_LINE:
+                iFrom.setText(0, self.ui.lineEditName.text())
+
+            p = iFrom.parent()
+            self.updateTime(p, p.indexOfChild(iFrom))
 
     def accept(self):
         #if self.type & ATConst.ITEM_GRP or self.type == ATConst.ITEM_CAMERA:
@@ -926,13 +976,6 @@ class KeyframeDialog(QDialog):
 
         if self.type & ATConst.ITEM_MBR:
             self.apply()
-
-        if self.type in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_MATERIAL):
-            if self.type == ATConst.ITEM_MATERIAL:
-                self.item.setText(0, "Material '{}'".format(self.ui.comboBoxMaterial.currentText()))
-                self.item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBoxMaterial.currentData())
-
-            self.item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBoxEffect.currentData())
 
         QDialog.accept(self)
 
@@ -952,8 +995,8 @@ class KeyframeDialog(QDialog):
             self.apply()
 
             if self.type & ATConst.ITEM_MBR:
-                if self.itemTo:
-                    self.playAnimation([self.itemTo])
+                if self.itemFrom:
+                    self.playAnimation([self.itemFrom])
         else:
             self.stopAnimation()
 
@@ -979,4 +1022,4 @@ class KeyframeDialog(QDialog):
         if self.isPlayingAll:
             if DEBUG_MODE:
                 logMessage("TWEENING {} ...".format(index))
-            self.ui.horizontalSlider.setValue(index + 1)
+            self.ui.horizontalSlider.setValue(index)
