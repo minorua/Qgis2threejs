@@ -854,10 +854,14 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
 
         # set up widgets for selected object type
+        # currentIndexChanged signal is not emitted in setProperties() if current item is first item
         self.objectTypeChanged()
 
         # restore other properties for the layer
         self.setProperties(properties or {})
+
+        # update z value expression label
+        self.zValueRadioButtonToggled(True)
 
     def objectTypeChanged(self, index=None):
         objType = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)
