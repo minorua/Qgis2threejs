@@ -31,6 +31,13 @@ from .ui.widgetComboEdit import Ui_ComboEditWidget
 from .tools import getDEMLayersInProject, shortTextFromSelectedLayerIds
 
 
+class WVT:
+    # widget value type
+    SIZE = 1
+    ANGLE = 2
+    OTHERS = 3
+
+
 class WidgetFuncBase:
 
     def __init__(self, widget, mapLayer):
@@ -52,9 +59,10 @@ class WidgetFuncBase:
 
         self.widget.label_2.setVisible(bool(editLabel))
 
-        b = bool(lineEdit is not None)
         self.widget.expression.setExpression(lineEdit or "")
         self.widget.expression.setLayer(None)
+
+        b = bool(lineEdit is not None)
         self.widget.expression.setVisible(b)
 
         if b:
@@ -64,7 +72,7 @@ class WidgetFuncBase:
         if toolButton and self.widget.toolButton.icon():
             self.widget.toolButton.setIcon(QIcon())
 
-    def resetDefault(self):
+    def dispose(self):
         pass
 
     def comboBoxSelectionChanged(self, index):
@@ -104,10 +112,22 @@ class WidgetFuncBase:
 
 class ExpressionWidgetFunc(WidgetFuncBase):
 
+    def __init__(self, widget, mapLayer):
+        WidgetFuncBase.__init__(self, widget, mapLayer)
+        self.valType = None
+
     def setup(self, options=None):
-        """ options: name, label, defaultValue """
+        """ options: name, valType, label, defaultValue """
         options = options or {}
-        WidgetFuncBase.setup(self, editLabel=options.get("name", ""), lineEdit=str(options.get("defaultValue", 0)))
+        valType = options.get("valType", WVT.SIZE)
+
+        if valType == self.valType:
+            val = self.widget.expression.expression()
+        else:
+            val = str(options.get("defVal", 0))
+            self.valType = valType
+
+        WidgetFuncBase.setup(self, editLabel=options.get("name", ""), lineEdit=val)
 
         self.widget.comboBox.clear()
         self.widget.comboBox.addItem("Expression")
@@ -132,7 +152,7 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Random", ColorWidgetFunc.RANDOM)
         self.widget.comboBox.addItem("Expression", ColorWidgetFunc.EXPRESSION)
 
-        self.widget.expression.setExpression(str(options.get("defaultValue", "")))
+        self.widget.expression.setExpression(str(options.get("defVal", "")))
         self.widget.expression.setFilters(QgsFieldProxyModel.String)
         self.setPlaceholderText("e.g. color_rgb(255, 127, 0), '#FF7F00'")
 
@@ -190,7 +210,7 @@ class OptionalColorWidgetFunc(ColorWidgetFunc):
             if index != -1:
                 self.widget.comboBox.setItemText(index, text)
 
-        index = self.widget.comboBox.findData(options.get("defaultValue"))
+        index = self.widget.comboBox.findData(options.get("defVal"))
         if index != -1:
             self.widget.comboBox.setCurrentIndex(index)
 
@@ -204,7 +224,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
         options = options or {}
         self.lineEditLabel = options.get("label", "")
         WidgetFuncBase.setup(self, options.get("name", ""), editLabel=self.lineEditLabel, toolButton=True)
-        self.widget.expression.setExpression(str(options.get("defaultValue", "")))
+        self.widget.expression.setExpression(str(options.get("defVal", "")))
 
         self.widget.comboBox.clear()
         if options.get("allowURL"):
@@ -235,7 +255,7 @@ class HeightWidgetFunc(WidgetFuncBase):
         """ options: name, defaultValue, defaultValue """
         options = options or {}
         WidgetFuncBase.setup(self, options.get("name", "Mode"))
-        self.defaultValue = options.get("defaultValue", 0)
+        self.defaultValue = options.get("defVal", 0)
 
         # set up combo box
         comboBox = self.widget.comboBox
@@ -249,7 +269,7 @@ class HeightWidgetFunc(WidgetFuncBase):
         #  comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
         #  comboBox.insertSeparator(1)
 
-        defaultValue = options.get("defaultValue")
+        defaultValue = options.get("defVal")
         if defaultValue:
             index = comboBox.findData(defaultValue)
             if index != -1:
@@ -286,7 +306,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
         self.widget.expression.setLayer(self.mapLayer)
 
-        self.defaultValue = options.get("defaultValue")
+        self.defaultValue = options.get("defVal")
         if self.defaultValue is not None:
             self.widget.expression.setExpression(str(self.defaultValue))
 
@@ -400,7 +420,7 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
         options = options or {}
         WidgetFuncBase.setup(self, options.get("name", ""), checkBox=True)
         self.setLayoutVisible(False)
-        checked = options.get("defaultValue", False)
+        checked = options.get("defVal", False)
 
         # connect with widgets
         self.connectedWidgets = []
@@ -409,7 +429,7 @@ class CheckBoxWidgetFunc(WidgetFuncBase):
             self.widget.checkBox.toggled.connect(w.setEnabled)
             self.connectedWidgets.append(w)
 
-    def resetDefault(self):
+    def dispose(self):
         self.setLayoutVisible(True)
         for w in self.connectedWidgets:
             self.widget.checkBox.toggled.disconnect(w.setEnabled)
@@ -443,7 +463,7 @@ class ComboBoxWidgetFunc(WidgetFuncBase):
         for item in options.get("items", []):
             self.widget.comboBox.addItem(item, item)
 
-        def_val = options.get("defaultValue")
+        def_val = options.get("defVal")
         if def_val:
             index = self.widget.comboBox.findData(def_val)
             if index != -1:
@@ -501,23 +521,12 @@ class PropertyWidget(QWidget, Ui_ComboEditWidget):
         for w in self.expression.findChildren(QComboBox):
             w.installEventFilter(self.enterKeyFilter)
 
-    def setup(self, funcType=None, mapLayer=None, options=None):
-        if funcType is None:
-            # use the function type passed to __init__
-            funcType = self.funcType
-
+    def setup(self, funcType, mapLayer=None, options=None):
         if self.func:
-            self.func.resetDefault()
+            self.func.dispose()
 
         if self.func is None or self.funcType != funcType:
-            funcClass = self.type2funcClass.get(funcType)
-            if funcClass is None:
-                self.funcType = None
-                self.func = None
-                self.setVisible(False)
-                self.hasValues = False
-                return
-            self.func = funcClass(self, mapLayer)
+            self.func = self.type2funcClass[funcType](self, mapLayer)
 
         self.funcType = funcType
         self.func.setup(options)

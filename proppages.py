@@ -832,7 +832,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
                 self.comboBox_Label.addItem(fields[i].name(), i)
 
             defaultLabelHeight = 5
-            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defaultValue": int(defaultLabelHeight / self.mapTo3d.zScale)})
+            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defVal": int(defaultLabelHeight / self.mapTo3d.zScale)})
 
         self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
 
@@ -892,8 +892,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # geometry
         geomItems = geomItems or []
-        for i, item in enumerate(geomItems):
-            self.geomWidgets[i].setup(item.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, item)
+        for i, opt in enumerate(geomItems):
+            self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
         for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
             self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
@@ -908,8 +908,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboEdit_Opacity.setVisible(opacity)
 
         mtlItems = mtlItems or []
-        for i, item in enumerate(mtlItems):
-            self.mtlWidgets[i].setup(item.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, item)
+        for i, opt in enumerate(mtlItems):
+            self.mtlWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
         for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
             self.mtlWidgets[i].setVisible(bool(i < len(mtlItems)))

@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from .q3dconst import LayerType, PropertyID as PID
-from .propwidget import PropertyWidget, OptionalColorWidgetFunc
+from .propwidget import PropertyWidget, OptionalColorWidgetFunc, WVT
 
 
 class ObjectTypeBase:
@@ -41,10 +41,10 @@ class ObjectTypeBase:
         pass
 
     def defaultValue(self):
-        return 1.
+        return float("{0:.3g}".format(self.settings.baseExtent().width() * 0.01))
 
     def defaultValueZ(self):
-        return 1.
+        return float("{0:.3g}".format(self.settings.baseExtent().width() * self.settings.mapTo3d().zScale * 0.01))
 
     @classmethod
     def displayName(cls):
@@ -81,7 +81,7 @@ class PointType(PointTypeBase):
     name = "Point"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Size", "defaultValue": 1}])
+        ppage.setupWidgets(mtlItems=[{"name": "Size", "defVal": 1}])
 
     def material(self, feat):
         return self.mtlManager.getPointMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))
@@ -98,7 +98,7 @@ class SphereType(PointBasicTypeBase):
     name = "Sphere"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()}])
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
@@ -110,8 +110,8 @@ class CylinderType(PointBasicTypeBase):
     name = "Cylinder"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()},
-                                      {"name": "Height", "defaultValue": self.defaultValueZ()}])
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
+                                      {"name": "Height", "defVal": self.defaultValueZ()}])
 
     def geometry(self, feat, geom):
         r = feat.prop(PID.G0)
@@ -132,9 +132,9 @@ class BoxType(PointBasicTypeBase):
     def setupWidgets(self, ppage):
         val = self.defaultValue()
 
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": val},
-                                      {"name": "Depth", "defaultValue": val},
-                                      {"name": "Height", "defaultValue": self.defaultValueZ()}])
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
+                                      {"name": "Depth", "defVal": val},
+                                      {"name": "Height", "defVal": self.defaultValueZ()}])
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
@@ -148,9 +148,9 @@ class DiskType(PointTypeBase):
     name = "Disk"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()},
-                                      {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None},
-                                      {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None}])
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
+                                      {"name": "Dip", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None},
+                                      {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
 
     def material(self, feat):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
@@ -173,10 +173,11 @@ class PlaneType(PointTypeBase):
     name = "Plane"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": self.defaultValue()},
-                                      {"name": "Length", "defaultValue": self.defaultValue()},
-                                      {"name": "Dip", "label": "Degrees", "defaultValue": 0, "label_field": None},
-                                      {"name": "Dip direction", "label": "Degrees", "defaultValue": 0, "label_field": None}])
+        val = self.defaultValue()
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
+                                      {"name": "Length", "defVal": val},
+                                      {"name": "Dip", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None},
+                                      {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
 
     def material(self, feat):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
@@ -215,7 +216,7 @@ class ThickLineType(LineTypeBase):
     name = "Thick Line"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defaultValue": 1},
+        ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defVal": 1},
                                      {"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
 
     def material(self, feat):
@@ -230,7 +231,7 @@ class PipeType(LineTypeBase):
     name = "Pipe"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defaultValue": self.defaultValue()}])
+        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
 
     def material(self, feat):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
@@ -252,8 +253,8 @@ class BoxLineType(LineTypeBase):
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defaultValue": val},
-                                      {"name": "Height", "defaultValue": val}])
+        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
+                                      {"name": "Height", "defVal": val}])
 
     def material(self, feat):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))
@@ -304,10 +305,10 @@ class ExtrudedType(PolygonTypeBase):
     name = "Extruded"
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Height", "defaultValue": self.defaultValueZ()}],
+        ppage.setupWidgets(geomItems=[{"name": "Height", "defVal": self.defaultValueZ()}],
                            color2={"name": "Edge color",
                                    "itemText": {None: "No edge"},
-                                   "defaultValue": None})
+                                   "defVal": None})
 
     def material(self, feat):
         mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
@@ -334,7 +335,7 @@ class OverlayType(PolygonTypeBase):
     def setupWidgets(self, ppage):
         ppage.setupWidgets(color2={"name": "Border color",
                                    "itemText": {None: "No border"},
-                                   "defaultValue": None})
+                                   "defVal": None})
 
     def material(self, feat):
         mtl = {"face": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)}
@@ -363,7 +364,7 @@ class IconType(PointTypeBase):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
         ppage.setupWidgets(filepath={"name": "Image file", "filterString": filterString, "allowURL": True},
-                           geomItems=[{"name": "Scale", "defaultValue": 1}],
+                           geomItems=[{"name": "Scale", "valType": WVT.OTHERS, "defVal": 1}],
                            color=False)
 
     def material(self, feat):
@@ -390,12 +391,12 @@ class ModelFileType(PointTypeBase):
         filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
 
         ppage.setupWidgets(filepath={"name": "Model file", "filterString": filterString, "allowURL": True},
-                           geomItems=[{"name": "Scale", "defaultValue": 1},
-                                      {"name": "Rotation (x)", "label": "Degrees", "defaultValue": 0},
-                                      {"name": "Rotation (y)", "label": "Degrees", "defaultValue": 0},
-                                      {"name": "Rotation (z)", "label": "Degrees", "defaultValue": 0},
+                           geomItems=[{"name": "Scale", "defVal": 1},
+                                      {"name": "Rotation (x)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
+                                      {"name": "Rotation (y)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
+                                      {"name": "Rotation (z)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
                                       {"name": "Rotation order", "type": PropertyWidget.COMBOBOX,
-                                       "defaultValue": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
+                                       "defVal": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
                            color=False,
                            opacity=False)
 
