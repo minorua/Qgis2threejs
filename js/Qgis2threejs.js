@@ -455,9 +455,6 @@ limitations:
     // outline effect
     if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
 
-    // camera
-    app.buildCamera(Q3D.Config.orthoCamera);
-
     // scene
     app.scene = new Q3D.Scene();
 
@@ -471,12 +468,15 @@ limitations:
       if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
       if (app.controls.saveState !== undefined) app.controls.saveState();
 
-      if (event.near !== undefined) {
-        app.camera.near = event.near;
+      if (event.far !== undefined) {
+        app.camera.near = (app.camera.isOrthographicCamera) ? 0 : event.near;
         app.camera.far = event.far;
         app.camera.updateProjectionMatrix();
       }
     });
+
+    // camera
+    app.buildCamera(Q3D.Config.orthoCamera);
 
     // controls
     if (THREE.OrbitControls) {
@@ -868,6 +868,13 @@ limitations:
 
     // magic to change y-up world to z-up
     app.camera.up.set(0, 0, 1);
+
+    var be = app.scene.userData.baseExtent;
+    if (be) {
+      app.camera.near = (is_ortho) ? 0 : 0.001 * be.width;
+      app.camera.far = 100 * be.width;
+      app.camera.updateProjectionMatrix();
+    }
   };
 
   // zoom to objects in scene
