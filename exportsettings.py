@@ -93,7 +93,7 @@ class ExportSettings:
         self.data = {}
         if filepath is None:
             filepath = settingsFilePath()   # get settings file path for current project
-            if filepath is None:
+            if filepath is None or not os.path.exists(filepath):
                 self.updateLayers()
                 return False
 
