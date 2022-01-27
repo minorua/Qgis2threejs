@@ -691,9 +691,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			case scope.mouseButtons.LEFT:
 
-				if ( event.ctrlKey || event.metaKey ) {
+				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {		//
 
 					if ( scope.enablePan === false ) return;
+
+					scope.screenSpacePanning = event.shiftKey;		// added @minorua
 
 					handleMouseDownPan( event );
 
@@ -724,6 +726,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 			case scope.mouseButtons.RIGHT:
 
 				if ( scope.enablePan === false ) return;
+
+				scope.screenSpacePanning = event.shiftKey;		//
 
 				handleMouseDownPan( event );
 
