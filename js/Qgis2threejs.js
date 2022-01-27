@@ -24,15 +24,6 @@ Q3D.Config = {
     }
   },
 
-  // controls
-  controls: {
-    panSpeed: 1,
-    rotateSpeed: 0.5,
-    zoomSpeed: 1,
-    keyPanSpeed: 4,
-    keyRotateSpeed: 0.5   // per one key event, in degrees
-  },
-
   // navigation widget
   navigation: {
     enabled: true
@@ -480,7 +471,12 @@ limitations:
 
     // controls
     if (THREE.OrbitControls) {
-      app.initOrbitControls(app.camera, app.renderer.domElement);
+      app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+
+      app.controls.addEventListener("change", function (event) {
+        app.render();
+      });
+
       app.controls.update();
     }
 
@@ -546,51 +542,6 @@ limitations:
       vars[p[0]] = p[1];
     });
     return vars;
-  };
-
-  app.initOrbitControls = function (camera, domElement) {
-
-    var controls = new THREE.OrbitControls(camera, domElement);
-    controls.enableKeys = false;    // key events are handled in app.eventListener.keydown
-
-    controls.panSpeed = Q3D.Config.controls.panSpeed;
-    controls.rotateSpeed = Q3D.Config.controls.rotateSpeed;
-    controls.zoomSpeed = Q3D.Config.controls.zoomSpeed;
-    controls.keyPanSpeed = Q3D.Config.controls.keyPanSpeed;
-    controls.keyRotateAngle = Q3D.Config.controls.keyRotateSpeed * Q3D.deg2rad;
-
-    // custom actions
-    var offset = new THREE.Vector3(),
-        spherical = new THREE.Spherical(),
-        quat = new THREE.Quaternion().setFromUnitVectors(camera.up, new THREE.Vector3(0, 1, 0)),
-        quatInverse = quat.clone().inverse();
-
-    controls.cameraRotate = function (thetaDelta, phiDelta) {
-      offset.copy(controls.target).sub(controls.object.position);
-      offset.applyQuaternion(quat);
-
-      spherical.setFromVector3(offset);
-
-      spherical.theta += thetaDelta;
-      spherical.phi -= phiDelta;
-
-      // restrict theta/phi to be between desired limits
-      spherical.theta = Math.max(controls.minAzimuthAngle, Math.min(controls.maxAzimuthAngle, spherical.theta));
-      spherical.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, spherical.phi));
-      spherical.makeSafe();
-
-      offset.setFromSpherical(spherical);
-      offset.applyQuaternion(quatInverse);
-
-      controls.target.copy(controls.object.position).add(offset);
-      controls.object.lookAt(controls.target);
-    };
-
-    controls.addEventListener("change", function (event) {
-      app.render();
-    });
-
-    app.controls = controls;
   };
 
   app.initLoadingManager = function () {
@@ -733,101 +684,42 @@ limitations:
   app.eventListener = {
 
     keydown: function (e) {
-      var controls = app.controls;
+      if (e.ctrlKey) return;
 
-      if (e.shiftKey && e.ctrlKey) {
+      if (e.shiftKey) {
         switch (e.keyCode) {
-          case 38:  // Shift + Ctrl + UP
-            controls.dollyOut(controls.getZoomScale());
-            break;
-          case 40:  // Shift + Ctrl + DOWN
-            controls.dollyIn(controls.getZoomScale());
-            break;
-          default:
-            return;
-        }
-      }
-      else if (e.shiftKey) {
-        switch (e.keyCode) {
-          case 37:  // LEFT
-            controls.rotateLeft(controls.keyRotateAngle);
-            break;
-          case 38:  // UP
-            controls.rotateUp(controls.keyRotateAngle);
-            break;
-          case 39:  // RIGHT
-            controls.rotateLeft(-controls.keyRotateAngle);
-            break;
-          case 40:  // DOWN
-            controls.rotateUp(-controls.keyRotateAngle);
-            break;
           case 82:  // Shift + R
-            controls.reset();
-            break;
+            app.controls.reset();
+            return;
           case 83:  // Shift + S
             app.showPrintDialog();
             return;
-          default:
-            return;
         }
+        return;
       }
-      else if (e.ctrlKey) {
-        switch (e.keyCode) {
-          case 37:  // Ctrl + LEFT
-            controls.cameraRotate(controls.keyRotateAngle, 0);
-            break;
-          case 38:  // Ctrl + UP
-            controls.cameraRotate(0, controls.keyRotateAngle);
-            break;
-          case 39:  // Ctrl + RIGHT
-            controls.cameraRotate(-controls.keyRotateAngle, 0);
-            break;
-          case 40:  // Ctrl + DOWN
-            controls.cameraRotate(0, -controls.keyRotateAngle);
-            break;
-          default:
-            return;
-        }
+
+      switch (e.keyCode) {
+        case 27:  // ESC
+          if (Q3D.$("popup").style.display != "none") {
+            app.closePopup();
+          }
+          else if (app.controls.autoRotate) {
+            app.setRotateAnimationMode(false);
+          }
+          return;
+        case 73:  // I
+          app.showInfo();
+          return;
+        case 76:  // L
+          app.setLabelVisible(!app.labelVisible);
+          return;
+        case 82:  // R
+          app.setRotateAnimationMode(!app.controls.autoRotate);
+          return;
+        case 87:  // W
+          app.setWireframeMode(!app._wireframeMode);
+          return;
       }
-      else {
-        switch (e.keyCode) {
-          case 37:  // LEFT
-            controls.pan(controls.keyPanSpeed, 0);    // horizontally left
-            break;
-          case 38:  // UP
-            controls.pan(0, controls.keyPanSpeed);    // horizontally forward
-            break;
-          case 39:  // RIGHT
-            controls.pan(-controls.keyPanSpeed, 0);
-            break;
-          case 40:  // DOWN
-            controls.pan(0, -controls.keyPanSpeed);
-            break;
-          case 27:  // ESC
-            if (Q3D.$("popup").style.display != "none") {
-              app.closePopup();
-            }
-            else if (app.controls.autoRotate) {
-              app.setRotateAnimationMode(false);
-            }
-            return;
-          case 73:  // I
-            app.showInfo();
-            return;
-          case 76:  // L
-            app.setLabelVisible(!app.labelVisible);
-            return;
-          case 82:  // R
-            app.setRotateAnimationMode(!controls.autoRotate);
-            return;
-          case 87:  // W
-            app.setWireframeMode(!app._wireframeMode);
-            return;
-          default:
-            return;
-        }
-      }
-      app.controls.update();
     },
 
     mousedown: function (e) {
