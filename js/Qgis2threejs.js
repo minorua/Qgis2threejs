@@ -930,6 +930,7 @@ limitations:
 
         var _this = this,
             e = document.getElementById("narrativebox"),
+            btn = document.getElementById("nextbtn"),
             currentNarElem;
 
         this.keyframeGroups.forEach(function (group) {
@@ -940,7 +941,7 @@ limitations:
             return;
           }
 
-          var geFunc = _this.easingFunction(group.easing),
+          var eFunc = _this.easingFunction(group.easing),
               prop_list = [];
 
           group.completed = false;
@@ -953,12 +954,17 @@ limitations:
               if (currentNarElem) {
                 currentNarElem.style.display = "none";
               }
+
               currentNarElem = document.getElementById(n.id);
               if (currentNarElem) {
                 currentNarElem.style.display = "block";
               }
               else {    // preview
                 document.getElementById("narbody").innerHTML = n.text;
+              }
+
+              if (btn) {
+                btn.innerHTML = (idx == keyframes.length - 1) ? "Close" : "Next";
               }
 
               setTimeout(function () {
@@ -1117,7 +1123,7 @@ limitations:
             t2 = new TWEEN.Tween(prop_list[i])
                              .to(prop_list[i + 1], keyframes[i].duration)
                              .delay(keyframes[i].delay)
-                             .easing((keyframes[i].easing) ? _this.easingFunction(keyframes[i].easing) : geFunc)
+                             .easing(eFunc)
                              .onStart(onStart)
                              .onUpdate(onUpdate)
                              .onComplete(onComplete);
@@ -1131,9 +1137,10 @@ limitations:
             t1 = t2;
           }
 
+          showNBox(0);
+
           tween.start();
         });
-
 
         app.animation.isActive = this.isActive = true;
         app.animate();
