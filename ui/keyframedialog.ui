@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>412</height>
+    <height>440</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -142,31 +142,8 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="labelMaterial">
-         <property name="minimumSize">
-          <size>
-           <width>60</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Material</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="labelOpacity">
-         <property name="minimumSize">
-          <size>
-           <width>60</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Opacity</string>
-         </property>
-        </widget>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="comboBoxMaterial"/>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="labelEffect">
@@ -181,18 +158,11 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="comboBoxEasing">
-         <property name="minimumSize">
-          <size>
-           <width>140</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lineEditName"/>
        </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="labelEasing">
+       <item row="2" column="0">
+        <widget class="QLabel" name="labelMaterial">
          <property name="minimumSize">
           <size>
            <width>60</width>
@@ -200,20 +170,14 @@
           </size>
          </property>
          <property name="text">
-          <string>Easing</string>
+          <string>Material</string>
          </property>
         </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="comboBoxMaterial"/>
        </item>
        <item row="3" column="1">
         <widget class="QComboBox" name="comboBoxEffect"/>
        </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEditName"/>
-       </item>
-       <item row="5" column="0" colspan="2">
+       <item row="6" column="0" colspan="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -225,6 +189,29 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelOpacity">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Opacity</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QLabel" name="labelNarration">
+         <property name="text">
+          <string>Narrative content</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="2">
+        <widget class="QTextEdit" name="textEdit"/>
        </item>
       </layout>
      </item>
@@ -329,16 +316,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item row="4" column="0" colspan="2">
-        <widget class="QTextEdit" name="textEdit"/>
-       </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QLabel" name="labelNarration">
-         <property name="text">
-          <string>Narrative content</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </item>
@@ -542,7 +519,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Play All</string>
+        <string>Play all</string>
        </property>
       </widget>
      </item>

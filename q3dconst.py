@@ -120,11 +120,9 @@ class ATConst:
     # ITEM_TL_LAYER
     DATA_LAYER_ID = Qt.UserRole
 
-    # COMMON FOR KEYFRAME GROUP AND KEYFRAME
-    DATA_EASING = Qt.UserRole + 1
-
     # KEYFRAME GROUP
     DATA_NEXT_INDEX = Qt.UserRole
+    DATA_EASING = Qt.UserRole + 1
 
     # COMMON FOR KEYFRAME
     DATA_DURATION = Qt.UserRole + 2

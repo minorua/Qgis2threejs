@@ -21,8 +21,8 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QInputDialog, QMenu, QMessageBox,
-                             QTreeWidget, QTreeWidgetItem, QWidget)
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMenuBar,
+                             QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE, DEF_SETS
@@ -391,7 +391,6 @@ class AnimationTreeWidget(QTreeWidget):
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
 
-        item.setData(0, ATConst.DATA_EASING, keyframe.get("easing"))
         item.setData(0, ATConst.DATA_DURATION, keyframe.get("duration", DEF_SETS.ANM_DURATION))
         item.setData(0, ATConst.DATA_DELAY, keyframe.get("delay", 0))
 
@@ -435,9 +434,6 @@ class AnimationTreeWidget(QTreeWidget):
             "duration": item.data(0, ATConst.DATA_DURATION),
             "delay": item.data(0, ATConst.DATA_DELAY)
         }
-        e = item.data(0, ATConst.DATA_EASING)
-        if e:
-            k["easing"] = e
 
         n = item.data(0, ATConst.DATA_NARRATION)
         if n:
@@ -804,6 +800,7 @@ class KeyframeDialog(QDialog):
 
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)
+        self.setupMenu(self.ui)
 
         self.panel = parent.panel
         self.narId = None
@@ -811,6 +808,23 @@ class KeyframeDialog(QDialog):
 
         parent.webPage.bridge.tweenStarted.connect(self.tweenStarted)
         parent.webPage.bridge.animationStopped.connect(self.animationStopped)
+
+    def setupMenu(self, ui):
+        ui.menuBar = QMenuBar(self)
+        ui.verticalLayout.setMenuBar(ui.menuBar)
+
+        ui.menuEasing = QMenu(ui.menuBar)
+        ui.menuEasing.setTitle("Easing")
+
+        ui.actionGroupEasing = QActionGroup(self)
+        for text in ["Linear", "Quadratic In", "None"]:
+            a = QAction(text, self)
+            a.setData(text)
+            a.setCheckable(True)
+            a.setActionGroup(ui.actionGroupEasing)
+            ui.menuEasing.addAction(a)
+
+        ui.menuBar.addAction(ui.menuEasing.menuAction())
 
     def setup(self, item, layer=None):
         self.item = item
@@ -820,10 +834,6 @@ class KeyframeDialog(QDialog):
         self.isPair = True
 
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
-
-        idx = item.data(0, ATConst.DATA_EASING) or 0
-        self.ui.comboBoxEasing.addItems(["[no selection]", "Linear", "Quadratic In"])
-        self.ui.comboBoxEasing.setCurrentIndex(idx)
 
         if t == ATConst.ITEM_MATERIAL:
             for mtl in self.layer.properties.get("materials", []):
@@ -840,6 +850,13 @@ class KeyframeDialog(QDialog):
         self.transCount = p.childCount()
 
         if t & ATConst.ITEM_MBR:
+            easing = p.data(0, ATConst.DATA_EASING)
+            if easing:
+                for a in self.ui.menuEasing.actions():
+                    if a.data() == easing:
+                        a.setChecked(True)
+                        break
+
             self.isPair = (t != ATConst.ITEM_GROWING_LINE)
 
             if self.isPair:
@@ -928,7 +945,6 @@ class KeyframeDialog(QDialog):
 
         self.ui.lineEditDelay.setText(str(iFrom.data(0, ATConst.DATA_DELAY)))
         self.ui.lineEditDuration.setText(str(iFrom.data(0, ATConst.DATA_DURATION)))
-        self.ui.comboBoxEasing.setCurrentIndex(iFrom.data(0, ATConst.DATA_EASING) or 0)
 
         nar = iTo.data(0, ATConst.DATA_NARRATION) or {}
         self.narId = nar.get("id")
@@ -984,7 +1000,6 @@ class KeyframeDialog(QDialog):
 
             iFrom.setData(0, ATConst.DATA_DELAY, parseInt(self.ui.lineEditDelay.text(), 0))
             iFrom.setData(0, ATConst.DATA_DURATION, parseInt(self.ui.lineEditDuration.text(), DEF_SETS.ANM_DURATION))
-            iFrom.setData(0, ATConst.DATA_EASING, self.ui.comboBoxEasing.currentIndex())
 
             nar = None
             text = self.ui.textEdit.toPlainText()
@@ -1022,6 +1037,8 @@ class KeyframeDialog(QDialog):
                 iFrom.setText(0, self.ui.lineEditName.text())
 
             p = iFrom.parent()
+            p.setData(0, ATConst.DATA_EASING, self.actionGroupEasing.checkedAction().data())
+
             self.updateTime(p, p.indexOfChild(iFrom))
 
     def accept(self):
