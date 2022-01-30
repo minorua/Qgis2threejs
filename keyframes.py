@@ -57,7 +57,7 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
         self.ui.toolButtonAdd.clicked.connect(self.tree.addNewItem)
-        self.ui.toolButtonEdit.clicked.connect(self.tree.onItemDoubleClicked)
+        self.ui.toolButtonEdit.clicked.connect(self.tree.onItemEdit)
         self.ui.toolButtonRemove.clicked.connect(self.tree.removeSelectedItems)
         self.ui.toolButtonPlay.clicked.connect(self.playButtonClicked)
 
@@ -160,14 +160,14 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionNewGroup = QAction("New Group", self)
         self.actionNewGroup.triggered.connect(self.addNewItem)
 
-        self.actionAdd = QAction("Add...", self)        # NOTE: might be hidden
+        self.actionAdd = QAction("Add", self)           # NOTE: may be hidden
         self.actionAdd.triggered.connect(self.addNewItem)
 
         self.actionRemove = QAction("Remove...", self)
         self.actionRemove.triggered.connect(self.removeSelectedItems)
 
         self.actionEdit = QAction("Edit...", self)
-        self.actionEdit.triggered.connect(self.showDialog)
+        self.actionEdit.triggered.connect(self.onItemEdit)
 
         self.actionRename = QAction("Rename", self)
         self.actionRename.triggered.connect(self.renameGroup)
@@ -188,13 +188,14 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionGrowLine.triggered.connect(self.addGrowLineItem)
 
         self.actionProperties = QAction("Properties...", self)
-        self.actionProperties.triggered.connect(self.showLayerProperties)
+        self.actionProperties.triggered.connect(self.showDialog)
 
         self.ctxMenuKeyframeGroup = QMenu(self)
         self.ctxMenuKeyframeGroup.addAction(self.actionPlay)
-        self.ctxMenuKeyframeGroup.addAction(self.actionAdd)
-        self.ctxMenuKeyframeGroup.addSeparator()
         self.ctxMenuKeyframeGroup.addAction(self.actionRename)
+        self.ctxMenuKeyframeGroup.addSeparator()
+        self.ctxMenuKeyframeGroup.addAction(self.actionAdd)
+        self.ctxMenuKeyframeGroup.addAction(self.actionEdit)
         self.ctxMenuKeyframeGroup.addSeparator()
         self.ctxMenuKeyframeGroup.addAction(self.actionRemove)
 
@@ -618,6 +619,7 @@ class AnimationTreeWidget(QTreeWidget):
         else:
             if typ & ATConst.ITEM_GRP:
                 m = self.ctxMenuKeyframeGroup
+                self.actionAdd.setText("Add" if typ == ATConst.ITEM_GRP_CAMERA else "Add...")
                 self.actionAdd.setVisible(bool(typ != ATConst.ITEM_GRP_GROWING_LINE))
 
             elif typ & ATConst.ITEM_MBR:
@@ -663,10 +665,17 @@ class AnimationTreeWidget(QTreeWidget):
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()
         t = item.type()
+        if t & ATConst.ITEM_MBR or t == ATConst.ITEM_TL_LAYER:
+            self.showDialog(item)
+
+    def onItemEdit(self):
+        item = self.currentItem()
+        t = item.type()
         if t & ATConst.ITEM_MBR:
             self.showDialog(item)
         elif t & ATConst.ITEM_GRP:
-            self.renameGroup(item)
+            if item.childCount() > 0:
+                self.showDialog(item.child(0))
 
     def renameGroup(self, item=None):
         item = item or self.currentItem()
@@ -732,10 +741,6 @@ class AnimationTreeWidget(QTreeWidget):
         })
 
     def showDialog(self, item=None):
-        if self.dialog:
-            QMessageBox.warning(self, "Qgis2threejs", "Cannot open more than one keyframe dialog at same time.")
-            return
-
         item = item or self.currentItem()
         if item is None:
             return
@@ -773,6 +778,10 @@ class AnimationTreeWidget(QTreeWidget):
                 if item is None:
                     return
 
+        if self.dialog:
+            QMessageBox.warning(self, "Qgis2threejs", "Cannot open more than one keyframe dialog at same time.")
+            return
+
         self.panel.setEnabled(False)
 
         self.dialog = KeyframeDialog(self)
@@ -784,11 +793,6 @@ class AnimationTreeWidget(QTreeWidget):
     def dialogClosed(self, result):
         self.panel.setEnabled(True)
         self.dialog = None
-
-    def showLayerProperties(self):
-        layer = self.currentLayer()
-        if layer:
-            self.wnd.showLayerPropertiesDialog(layer)
 
     def playAnimation(self):
         item = self.currentItem()
