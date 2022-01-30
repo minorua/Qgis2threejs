@@ -83,7 +83,6 @@ class DEMLayerBuilder(LayerBuilder):
     def layerProperties(self):
         p = LayerBuilder.layerProperties(self)
         p["type"] = "dem"
-        p["shading"] = self.properties.get("checkBox_Shading", True)
         p["clipped"] = self.properties.get("checkBox_Clip", False)
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         return p
@@ -477,24 +476,28 @@ class DEMMaterialBuilder:
         tex_size = DEMPropertyReader.textureSize(p, self.extent, self.settings)
         opacity = DEMPropertyReader.opacity(p)
         transp_background = p.get("checkBox_TransparentBackground", False)
+        shading = p.get("checkBox_Shading", True)
 
         # material type
         mtype = m.get("type", DEMMtlType.MAPCANVAS)
         if mtype == DEMMtlType.MAPCANVAS:
             mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
-                                                       opacity, transp_background)
+                                                       opacity, transp_background, shading)
 
         elif mtype == DEMMtlType.LAYER:
             layerids = p.get("layerIds", [])
             mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
-                                                         opacity, transp_background)
+                                                         opacity, transp_background, shading)
 
         elif mtype == DEMMtlType.FILE:
             filepath = p.get("lineEdit_ImageFile", "")
-            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True)
+            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True, shading=shading)
 
         else:  # q3dconst.MTL_COLOR
-            mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
+            if shading:
+                mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
+            else:
+                mi = self.materialManager.getMeshBasicMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
 
         # build material
         filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")

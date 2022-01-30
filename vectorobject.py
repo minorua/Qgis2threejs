@@ -273,7 +273,7 @@ class WallType(LineTypeBase):
         ppage.setupWidgets(alt2=True)
 
     def material(self, feat):
-        return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
+        return self.mtlManager.getMeshFlatMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(flat=True),
@@ -291,7 +291,7 @@ class PolygonType(PolygonTypeBase):
         ppage.setupWidgets()
 
     def material(self, feat):
-        return self.mtlManager.getFlatMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)
+        return self.mtlManager.getMeshFlatMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)
 
     def geometry(self, feat, geom):
         g = geom.toDict(flat=True)

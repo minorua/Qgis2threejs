@@ -733,7 +733,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.setWidgetsVisible([self.label_ImageFile, self.lineEdit_ImageFile, self.toolButton_ImageFile], image_file)
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
-        #TODO: enable shading
 
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):

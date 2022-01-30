@@ -190,6 +190,7 @@ class MaterialManager(DataManager):
     # other material types for internal use
     MESH_MATERIAL = 10
     MESH_FLAT = 11
+    MESH_BASIC = 13
     WIREFRAME = 12
 
     CANVAS_IMAGE = 20
@@ -214,8 +215,11 @@ class MaterialManager(DataManager):
     def getMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
         return self._indexCol(self.MESH_MATERIAL, color, opacity, doubleSide)
 
-    def getFlatMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
+    def getMeshFlatMaterialIndex(self, color, opacity=1, doubleSide=False):
         return self._indexCol(self.MESH_FLAT, color, opacity, doubleSide)
+
+    def getMeshBasicMaterialIndex(self, color, opacity=1, doubleSide=False):
+        return self._indexCol(self.MESH_BASIC, color, opacity, doubleSide)
 
     def getPointMaterialIndex(self, color, opacity=1, size=1):
         return self._indexCol(self.POINT, color, opacity, False, size)
@@ -233,16 +237,16 @@ class MaterialManager(DataManager):
         mtl = (self.CANVAS_IMAGE, None, opacity, True, transp_background)
         return self._index(mtl)
 
-    def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False):
-        mtl = (self.MAP_IMAGE, None, opacity, True, (width, height, extent, transp_background))
+    def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True):
+        mtl = (self.MAP_IMAGE, None, opacity, True, (width, height, extent, transp_background, shading))
         return self._index(mtl)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False):
-        mtl = (self.LAYER_IMAGE, None, opacity, True, (layerids, width, height, extent, transp_background))
+    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False, shading=True):
+        mtl = (self.LAYER_IMAGE, None, opacity, True, (layerids, width, height, extent, transp_background, shading))
         return self._index(mtl)
 
-    def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False):
-        mtl = (self.IMAGE_FILE, None, opacity, doubleSide, (path, transp_background))
+    def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False, shading=True):
+        mtl = (self.IMAGE_FILE, None, opacity, doubleSide, (path, transp_background, shading))
         return self._index(mtl)
 
     def getSpriteImageIndex(self, path_url, opacity=1):
@@ -254,6 +258,7 @@ class MaterialManager(DataManager):
 
         mt, color, opacity, doubleSide, opts = self._list[index]
         transp_background = False
+        shading = True
 
         m = {
             "type": mt if mt in [self.POINT, self.LINE, self.LINE_MESH, self.SPRITE_IMAGE] else self.basicMaterialType
@@ -265,15 +270,15 @@ class MaterialManager(DataManager):
                 imgIndex = self.imageManager.canvasImageIndex(transp_background)
 
             elif mt == self.MAP_IMAGE:
-                width, height, extent, transp_background = opts
+                width, height, extent, transp_background, shading = opts
                 imgIndex = self.imageManager.mapImageIndex(width, height, extent, transp_background)
 
             elif mt == self.LAYER_IMAGE:
-                layerids, width, height, extent, transp_background = opts
+                layerids, width, height, extent, transp_background, shading = opts
                 imgIndex = self.imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
 
             elif mt == self.IMAGE_FILE:
-                imagepath, transp_background = opts
+                imagepath, transp_background, shading = opts
                 imgIndex = self.imageManager.imageIndex(imagepath)
 
             elif mt == self.SPRITE_IMAGE:
@@ -309,6 +314,9 @@ class MaterialManager(DataManager):
                 m["thickness"] = thickness
                 m["dashed"] = dashed
 
+            elif mt == self.MESH_BASIC:
+                shading = False
+
         if transp_background:
             m["t"] = 1
 
@@ -323,6 +331,9 @@ class MaterialManager(DataManager):
 
         if doubleSide:
             m["ds"] = 1
+
+        if not shading:
+            m["bm"] = True
 
         return m
 

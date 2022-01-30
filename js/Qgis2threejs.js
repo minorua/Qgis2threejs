@@ -1977,7 +1977,10 @@ Q3D.Material.prototype = {
 
     if (m.w) opt.wireframe = true;
 
-    if (m.type == Q3D.MaterialType.MeshLambert) {
+    if (m.bm) {
+      this.mtl = new THREE.MeshBasicMaterial(opt);
+    }
+    else if (m.type == Q3D.MaterialType.MeshLambert) {
       this.mtl = new THREE.MeshLambertMaterial(opt);
     }
     else if (m.type == Q3D.MaterialType.MeshPhong) {
@@ -2052,19 +2055,6 @@ Q3D.Material.prototype = {
 
     if (this._callbacks === undefined) this._callbacks = [];
     this._callbacks.push(callback);
-  },
-
-  type: function () {
-    if (this.mtl instanceof THREE.MeshLambertMaterial) return Q3D.MaterialType.MeshLambert;
-    if (this.mtl instanceof THREE.MeshPhongMaterial) return Q3D.MaterialType.MeshPhong;
-    if (this.mtl instanceof THREE.LineBasicMaterial) return Q3D.MaterialType.Line;
-    if (this.mtl instanceof THREE.LineDashedMaterial) return Q3D.MaterialType.Line;
-    if (this.mtl instanceof THREE.SpriteMaterial) return Q3D.MaterialType.Sprite;
-    if (this.mtl instanceof THREE.MeshStandardMaterial) return Q3D.MaterialType.MeshStandard;
-    if (this.mtl === undefined) return undefined;
-    if (this.mtl === null) return null;
-    if (this.mtl.isMeshLineMaterial) return Q3D.MaterialType.MeshLine;
-    return Q3D.MaterialType.Unknown;
   },
 
   dispose: function () {
@@ -2264,10 +2254,7 @@ Q3D.DEMBlock.prototype = {
         vertices[j + 2] = grid_values[i];
       }
       geom.attributes.position.needsUpdate = true;
-
-      if (layer.properties.shading) {
-        geom.computeVertexNormals();
-      }
+      geom.computeVertexNormals();
 
       if (callback) callback(mesh);
     };
@@ -2553,10 +2540,7 @@ Q3D.ClippedDEMBlock.prototype = {
       geom.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
       geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
       geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-
-      if (layer.properties.shading) {
-        geom.computeVertexNormals();
-      }
+      geom.computeVertexNormals();
 
       geom.attributes.position.needsUpdate = true;
       geom.attributes.normal.needsUpdate = true;
@@ -2743,16 +2727,10 @@ Q3D.DEMLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.DEMLayer.prototype.constructor = Q3D.DEMLayer;
 
 Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  var old_shading = this.properties.shading;
   var old_blockIsClipped = this.properties.clipped;
 
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
-    if (old_shading != jsonObject.properties.shading) {
-      this.geometryCache = null;
-      this.transformCache = null;
-    }
-
     if (old_blockIsClipped !== jsonObject.properties.clipped) {
       // DEM type changed
       this.blocks = [];
