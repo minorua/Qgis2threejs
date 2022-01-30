@@ -26,6 +26,7 @@ class Ui_AnimationPanel(object):
         self.toolButtonRemove.setObjectName("toolButtonRemove")
         self.gridLayout_2.addWidget(self.toolButtonRemove, 0, 2, 1, 1)
         self.toolButtonPlay = QtWidgets.QToolButton(AnimationPanel)
+        self.toolButtonPlay.setCheckable(True)
         self.toolButtonPlay.setObjectName("toolButtonPlay")
         self.gridLayout_2.addWidget(self.toolButtonPlay, 0, 5, 1, 1)
         self.toolButtonAdd = QtWidgets.QToolButton(AnimationPanel)

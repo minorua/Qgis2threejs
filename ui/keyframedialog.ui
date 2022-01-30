@@ -79,15 +79,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonPlay">
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Play</string>
+      <widget class="QToolButton" name="toolButtonPlay">
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -360,6 +354,9 @@
        <property name="text">
         <string>Play all</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -399,8 +396,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>229</x>
-     <y>441</y>
+     <x>387</x>
+     <y>427</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -415,8 +412,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>297</x>
-     <y>447</y>
+     <x>387</x>
+     <y>427</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

@@ -43,6 +43,9 @@
        <property name="text">
         <string>Play</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">

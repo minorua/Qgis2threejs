@@ -48,6 +48,9 @@ class AnimationPanel(QWidget):
 
         self.tree = self.ui.treeWidgetAnimation
 
+        self.iconPlay = QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
+        self.iconStop = QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
+
     def setup(self, wnd, settings):
         self.wnd = wnd
         self.webPage = wnd.webPage
@@ -55,6 +58,7 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("symbologyEdit.svg"))
         self.ui.toolButtonRemove.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
+        self.ui.toolButtonPlay.setIcon(self.iconPlay)
 
         self.ui.toolButtonAdd.clicked.connect(self.tree.addNewItem)
         self.ui.toolButtonEdit.clicked.connect(self.tree.onItemEdit)
@@ -93,7 +97,7 @@ class AnimationPanel(QWidget):
             if DEBUG_MODE:
                 logMessage("Play: " + str(dataList))
             self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(loop)), data=dataList)
-            self.ui.toolButtonPlay.setText("Stop")
+            self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
 
@@ -102,7 +106,8 @@ class AnimationPanel(QWidget):
 
     # @pyqtSlot()
     def animationStopped(self):
-        self.ui.toolButtonPlay.setText("Play")
+        self.ui.toolButtonPlay.setIcon(self.iconPlay)
+        self.ui.toolButtonPlay.setChecked(False)
         self.ui.checkBoxLoop.setEnabled(True)
         self.isAnimating = False
 
@@ -845,6 +850,9 @@ class KeyframeDialog(QDialog):
         self.isKF = True
 
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
+        self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
+        self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
+
 
         if t == ATConst.ITEM_MATERIAL:
             for mtl in self.layer.properties.get("materials", []):
@@ -899,7 +907,7 @@ class KeyframeDialog(QDialog):
         self.ui.horizontalSlider.valueChanged.connect(self.currentTransitionChanged)
         self.ui.toolButtonPrev.clicked.connect(self.prevKeyframe)
         self.ui.toolButtonNext.clicked.connect(self.nextKeyframe)
-        self.ui.pushButtonPlay.clicked.connect(self.play)
+        self.ui.toolButtonPlay.clicked.connect(self.play)
         self.ui.pushButtonPlayAll.clicked.connect(self.playAll)
 
         self.ui.lineEditDelay.editingFinished.connect(self.apply)
@@ -917,7 +925,7 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonNext.setEnabled(value < self.transCount - 1)
 
         hasTrans = not self.isKF or value < self.transCount - 1
-        self.ui.pushButtonPlay.setEnabled(hasTrans)
+        self.ui.toolButtonPlay.setEnabled(hasTrans)
 
         if self.currentItem and not self.isPlaying:
             self.apply()
@@ -1040,8 +1048,9 @@ class KeyframeDialog(QDialog):
 
         self.panel.tree.clearSelection()
 
-        self.ui.pushButtonPlay.setText("Stop")
-        self.ui.pushButtonPlayAll.setText("Stop")
+        self.ui.toolButtonPlay.setIcon(self.panel.iconStop)
+        self.ui.pushButtonPlayAll.setIcon(self.panel.iconStop)
+        self.ui.pushButtonPlayAll.setText("")
         self.isPlaying = True
 
     def stopAnimation(self):
@@ -1070,8 +1079,11 @@ class KeyframeDialog(QDialog):
 
     # @pyqtSlot()
     def animationStopped(self):
-        self.ui.pushButtonPlay.setText("Play")
+        self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
+        self.ui.toolButtonPlay.setChecked(False)
+        self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
         self.ui.pushButtonPlayAll.setText("Play All")
+        self.ui.pushButtonPlayAll.setChecked(False)
 
         self.isPlaying = self.isPlayingAll = False
 
