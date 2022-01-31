@@ -211,7 +211,7 @@ class Q3DController(QObject):
             # coordinate display
             self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
-            latlon = self.settings.coordLatLon()
+            latlon = self.settings.isCoordLatLon()
             self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
             if latlon:
                 self.iface.loadScriptFile(Script.PROJ4)

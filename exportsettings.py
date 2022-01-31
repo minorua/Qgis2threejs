@@ -278,11 +278,11 @@ class ExportSettings:
     def coordDisplay(self):
         return not self.sceneProperties().get("radioButton_NoCoords", False)
 
-    def coordLatLon(self):
+    def isCoordLatLon(self):
         return self.sceneProperties().get("radioButton_WGS84", False)
 
     def needsProjString(self):
-        return self.coordLatLon() or (not self.isPreview and "proj4.js" in self.templateConfig().get("scripts", ""))
+        return self.isCoordLatLon() or (not self.isPreview and "proj4.js" in self.templateConfig().get("scripts", ""))
 
     # camera
     def isOrthoCamera(self):

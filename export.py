@@ -98,7 +98,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         if not self.settings.coordDisplay():
             options.append("Q3D.Config.coord.visible = false;")
 
-        if self.settings.coordLatLon():
+        if self.settings.isCoordLatLon():
             options.append("Q3D.Config.coord.latlon = true;")
 
         # camera
@@ -198,7 +198,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             files.append(ds)
 
         # proj4js
-        if self.settings.coordLatLon():
+        if self.settings.isCoordLatLon():
             files.append({"dirs": ["js/proj4js"]})
 
         # layer-specific dependencies
@@ -247,7 +247,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             files += s.split(",")
 
         # proj4.js
-        if self.settings.coordLatLon():    # display coordinates in latitude and longitude format
+        if self.settings.isCoordLatLon():    # display coordinates in latitude and longitude format
             proj4 = "./proj4js/proj4.js"
             if proj4 not in files:
                 files.append(proj4)
