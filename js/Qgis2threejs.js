@@ -1086,8 +1086,10 @@ limitations:
             app.dispatchEvent({type: "tweenStarted", index: group.currentIndex});
 
             // pause if narrative box is shown
-            if (keyframes[group.currentIndex].narration) _this.pause();
-            else if (e) e.classList.remove("visible");
+            if (e && e.classList.contains("visible")) {
+              if (keyframes[group.currentIndex].narration) _this.pause();
+              else e.classList.remove("visible");
+            }
           };
 
           var onComplete = function (obj) {
