@@ -726,7 +726,7 @@ class AnimationTreeWidget(QTreeWidget):
 
             self.addKeyframeItem(parent, {
                 "type": ATConst.ITEM_MATERIAL,
-                "name": "Material '{}'".format(mtl.get("name", "")),
+                "name": mtl.get("name", "no name"),
                 "mtlId": mtl.get("id")
             })
 
