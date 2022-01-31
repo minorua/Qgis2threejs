@@ -777,6 +777,8 @@ limitations:
       if (objs.length) return;
     }
     var bbox = app.scene.boundingBox();
+    if (bbox.isEmpty()) return;
+
     bbox.getCenter(vec3);
     app.cameraAction.zoom(vec3.x, vec3.y, (bbox.max.z + vec3.z) / 2, app.scene.userData.baseExtent.width);
   };
