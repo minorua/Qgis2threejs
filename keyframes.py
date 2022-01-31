@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, 
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE, DEF_SETS
-from .q3dconst import LayerType, ATConst
+from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
 from .tools import createUid, js_bool, logMessage, parseInt
 from .ui.animationpanel import Ui_AnimationPanel
@@ -709,7 +709,7 @@ class AnimationTreeWidget(QTreeWidget):
         if not item or not layer:
             return
 
-        mtlNames = ["[{}] {}".format(i, mtl.get("name", "")) for i, mtl in enumerate(layer.properties.get("materials", []))]
+        mtlNames = ["[{}] {}".format(i, mtl.get("name", "")) for i, mtl in enumerate(layer.properties.get("materials", [])) if mtl.get("type") != DEMMtlType.COLOR]
 
         if not mtlNames:
             QMessageBox.warning(self, "Material", "The layer has no materials.")
@@ -856,8 +856,9 @@ class KeyframeDialog(QDialog):
 
         if t == ATConst.ITEM_MATERIAL:
             for mtl in self.layer.properties.get("materials", []):
-                name, id = (mtl.get("name", ""), mtl.get("id"))
-                self.ui.comboBoxMaterial.addItem(name, id)
+                if mtl.get("type") != DEMMtlType.COLOR:
+                    name, id = (mtl.get("name", ""), mtl.get("id"))
+                    self.ui.comboBoxMaterial.addItem(name, id)
 
             self.ui.comboBoxEffect.addItem("Fade in", 1)
             self.ui.comboBoxEffect.addItem("Slide", 2)

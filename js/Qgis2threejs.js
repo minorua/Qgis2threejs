@@ -1046,6 +1046,7 @@ limitations:
                 effect = keyframes[idx_from + 1].effect;
 
                 layer.prepareMtlAnimation(from, to);
+                layer.setTextureAt(null, effect);
               };
 
               onUpdate = function (obj, elapsed) {
@@ -3007,7 +3008,7 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
 
   effect = effect || 1;
 
-  var a, w0, h0, w1, h1, ew0, ew1;
+  var a, w0, h0, w1, h1, ew1;
   for (var i = 0; i < this.anim.length; i++) {
     a = this.anim[i];
     w0 = a.img_from.width;
@@ -3020,16 +3021,15 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
       a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
 
       a.ctx.globalAlpha = elapsed;
-      a.ctx.drawImage(a.img_to, 0, 0, w0, h0, 0, 0, w1, h1);
+      a.ctx.drawImage(a.img_to, 0, 0, w1, h1, 0, 0, w1, h1);
     }
     else if (effect == 2) {  // slide
       if (elapsed === null) {
         a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
       }
       else {
-        ew0 = w0 * elapsed;
         ew1 = w1 * elapsed;
-        a.ctx.drawImage(a.img_to, w0 - ew0, 0, ew0, h0, w1 - ew1, 0, ew1, h1);
+        a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1, w1 - ew1, 0, ew1, h1);
       }
     }
     a.tex.needsUpdate = true;
