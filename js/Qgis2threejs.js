@@ -192,11 +192,14 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
       }
 
+      var be = p.baseExtent;
+      p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
+      p.zShift = -p.origin.z;
+
       // set initial camera position and parameters
       if (this.userData.origin === undefined) {
 
-        var be = p.baseExtent,
-            s = be.width,
+        var s = be.width,
             v = Q3D.Config.viewpoint,
             pos, focal;
 
@@ -208,9 +211,8 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
               lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
             };
           }
-          var vec3 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
-          pos = v.pos.clone().multiplyScalar(s).add(vec3);
-          focal = v.lookAt.clone().multiplyScalar(s).add(vec3);
+          pos = v.pos.clone().multiplyScalar(s).add(p.vBEC);
+          focal = v.lookAt.clone().multiplyScalar(s).add(p.vBEC);
         }
         else {
           pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
@@ -223,7 +225,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         this.requestCameraUpdate(pos, focal, near, far);
       }
 
-      p.zShift = -p.origin.z;
       this.userData = p;
     }
 
@@ -2532,17 +2533,22 @@ Q3D.ClippedDEMBlock.prototype = {
 
     var buildGeometry = function (obj) {
 
-      var vertices = obj.triangles.v,
-          base_width = layer.sceneData.width,
-          base_height = layer.sceneData.height;
+      var v = obj.triangles.v,
+          origin = layer.sceneData.origin,
+          be = layer.sceneData.baseExtent,
+          base_width = be.width,
+          base_height = be.height,
+          x0 = be.cx - origin.x - base_width * 0.5,
+          y0 = be.cy - origin.y - base_height * 0.5;
+
       var normals = [], uvs = [];
-      for (var i = 0, l = vertices.length; i < l; i += 3) {
+      for (var i = 0, l = v.length; i < l; i += 3) {
         normals.push(0, 0, 1);
-        uvs.push(vertices[i] / base_width + 0.5, vertices[i + 1] / base_height + 0.5);
+        uvs.push((v[i] - x0) / base_width, (v[i + 1] - y0) / base_height);
       }
 
       geom.setIndex(obj.triangles.f);
-      geom.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+      geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
       geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
       geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
       geom.computeVertexNormals();
@@ -2743,14 +2749,24 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
     var p = scene.userData,
         be = p.baseExtent;
+
     if (jsonObject.properties.clipped) {
       this.objectGroup.position.set(0, 0, 0);
+      this.objectGroup.rotation.z = 0;
+
+      if (be.rotation) {
+        // if map is rotated, vertices are rotated around center of base extent
+        this.objectGroup.position.copy(p.vBEC).negate();
+        this.objectGroup.position.applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad);
+        this.objectGroup.position.add(p.vBEC);
+        this.objectGroup.rotateOnAxis(Q3D.uv.k, be.rotation * Q3D.deg2rad);
+      }
     }
     else {
-      this.objectGroup.position.set(be.cx, be.cy, 0).sub(p.origin);
+      this.objectGroup.position.copy(p.vBEC);
       this.objectGroup.position.z *= p.zScale;
+      this.objectGroup.rotation.z = be.rotation * Q3D.deg2rad;
     }
-    this.objectGroup.rotation.z = be.rotation * Q3D.deg2rad;
     this.objectGroup.updateMatrixWorld();
 
     if (jsonObject.data !== undefined) {
