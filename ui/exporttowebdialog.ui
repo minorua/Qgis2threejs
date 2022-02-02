@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>532</height>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,7 +110,56 @@
          <property name="title">
           <string>Template</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_3">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_MND2">
+            <property name="text">
+             <string>degrees</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="2">
+           <widget class="QComboBox" name="comboBox_Template">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_MND">
+            <property name="text">
+             <string>Magnetic North direction</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEdit_MND">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>clockwise from the upper direction of the map, in degrees</string>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhPreferNumbers</set>
+            </property>
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="minimumSize">
@@ -124,58 +173,19 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox_Template">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_MND">
+           <widget class="QLabel" name="label_Plane">
             <property name="text">
-             <string>Magnetic North direction</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
+             <string>Custom plane</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="0">
-             <widget class="QLineEdit" name="lineEdit_MND">
-              <property name="maximumSize">
-               <size>
-                <width>200</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>clockwise from the upper direction of the map, in degrees</string>
-              </property>
-              <property name="inputMethodHints">
-               <set>Qt::ImhPreferNumbers</set>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label_MND2">
-              <property name="text">
-               <string>degrees</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="1" column="1" colspan="2">
+           <widget class="QCheckBox" name="checkBox_Plane">
+            <property name="text">
+             <string>Add a horizontal plane that is movable vertically</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -312,23 +322,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>lineEdit_OutputDir</tabstop>
-  <tabstop>pushButton_Browse</tabstop>
-  <tabstop>lineEdit_Filename</tabstop>
-  <tabstop>lineEdit_Title</tabstop>
-  <tabstop>checkBox_PreserveViewpoint</tabstop>
-  <tabstop>checkBox_LocalMode</tabstop>
-  <tabstop>comboBox_Template</tabstop>
-  <tabstop>lineEdit_MND</tabstop>
-  <tabstop>checkBox_Animation</tabstop>
-  <tabstop>comboBox_CameraMotion</tabstop>
-  <tabstop>pushButton_Cancel</tabstop>
-  <tabstop>pushButton_Export</tabstop>
-  <tabstop>pushButton_Close</tabstop>
-  <tabstop>textBrowser</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

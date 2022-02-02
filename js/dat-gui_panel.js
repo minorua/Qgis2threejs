@@ -1,3 +1,6 @@
+Q3D.Config.gui = Q3D.Config.gui || {};
+Q3D.Config.gui.customPlane = false;
+
 Q3D.gui = {
 
   type: "dat-gui",
@@ -27,7 +30,7 @@ Q3D.gui = {
 
     if (setupDefaultItems === undefined || setupDefaultItems == true) {
       this.layersFolder = this.gui.addFolder('Layers');
-      this.customPlaneFolder = this.gui.addFolder('Custom Plane');
+      if (Q3D.Config.gui.customPlane) this.customPlaneFolder = this.gui.addFolder('Custom Plane');
       if (window.TWEEN !== undefined) this.addAnimationFolder();
       if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
@@ -83,9 +86,10 @@ Q3D.gui = {
 
     var addPlane = function (color) {
       // Add a new plane in the current scene
-      var geometry = new THREE.PlaneBufferGeometry(p.width,p.height, 1, 1),
+      var geometry = new THREE.PlaneBufferGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1),
           material = gui.customPlaneMaterial(color);
       gui.customPlane = new THREE.Mesh(geometry, material);
+      gui.customPlane.rotation.z = p.baseExtent.rotation * Q3D.deg2rad;
       scene.add(gui.customPlane);
       app.render();
     };
@@ -149,7 +153,7 @@ Q3D.gui = {
   // add commands folder for touch screen devices
   addCommandsFolder: function () {
     var folder = this.gui.addFolder('Commands');
-    folder.add(this.parameters.cmd, 'rot').name('Rotate Animation').onChange(Q3D.application.setRotateAnimationMode);
+    folder.add(this.parameters.cmd, 'rot').name('Orbit Animation').onChange(Q3D.application.setRotateAnimationMode);
     folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(Q3D.application.setWireframeMode);
   },
 

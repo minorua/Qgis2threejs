@@ -115,11 +115,11 @@ app.loadSceneFile("${scenefile}", function (scene) {
 }, function (scene) {
   // all relevant files have been loaded
 
-  // custom plane z range
-  var zMin = undefined,
-      zMax = undefined;
-  gui.initCustomPlaneFolder(zMin, zMax);
-
+  if (Q3D.Config.gui.customPlane) {
+    var zMin = undefined,
+        zMax = undefined;
+    gui.initCustomPlaneFolder(zMin, zMax);
+  }
 });
 </script>
 </body>

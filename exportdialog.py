@@ -75,6 +75,9 @@ class ExportToWebDialog(QDialog):
         self.templateChanged()
 
         for key, value in settings.options().items():
+            if key == "gui.customPlane":
+                self.ui.checkBox_Plane.setChecked(True)
+
             if key == "AR.MND":
                 self.ui.lineEdit_MND.setText(str(value))
 
@@ -101,8 +104,13 @@ class ExportToWebDialog(QDialog):
         optset = set(config.get("options", "").split(","))
         optset.discard("")
 
-        for widget in [self.ui.label_MND, self.ui.lineEdit_MND, self.ui.label_MND2]:
-            widget.setVisible("AR.MND" in optset)
+        b = "gui.customPlane" in optset
+        for w in [self.ui.label_Plane, self.ui.checkBox_Plane]:
+            w.setVisible(b)
+
+        b = "AR.MND" in optset
+        for w in [self.ui.label_MND, self.ui.lineEdit_MND, self.ui.label_MND2]:
+            w.setVisible(b)
 
     def browseClicked(self):
         # directory select dialog
@@ -151,6 +159,9 @@ class ExportToWebDialog(QDialog):
         options = self.settings.templateConfig().get("options", "")
         if options:
             optlist = options.split(",")
+
+            if "gui.customPlane" in optlist and self.ui.checkBox_Plane.isChecked():
+                self.settings.setOption("gui.customPlane", True)
 
             if "AR.MND" in optlist:
                 try:
