@@ -31,7 +31,7 @@ from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 
 from .downloader import Downloader
 from Qgis2threejs.geometry import GridGeometry
-from Qgis2threejs.qgis2threejstools import logMessage
+from Qgis2threejs.tools import logMessage
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244

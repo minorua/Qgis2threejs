@@ -429,7 +429,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name())
+            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name() if layer.mapLayer else layer.name)
 
             self.initLayerComboBox()
 
