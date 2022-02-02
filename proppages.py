@@ -42,7 +42,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from . import q3dconst
-from .conf import DEBUG_MODE, DEF_SETS
+from .conf import DEF_SETS
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
@@ -232,7 +232,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         # 3D world coordinates
         self.comboBox_xyShift.addItem("Automatic", None)
         self.comboBox_xyShift.addItem("Shift to origin", True)
-        self.comboBox_xyShift.addItem("No shift", False)
+        self.comboBox_xyShift.addItem("Do not shift", False)
 
         # 2D map extent
         self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)

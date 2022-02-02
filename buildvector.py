@@ -32,7 +32,7 @@ from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import LayerType, PropertyID as PID
 from .tools import logMessage
-from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, OptionalColorWidgetFunc, ColorTextureWidgetFunc
+from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
 

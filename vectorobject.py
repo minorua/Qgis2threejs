@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 from .q3dconst import LayerType, PropertyID as PID
-from .propwidget import PropertyWidget, OptionalColorWidgetFunc, WVT
+from .propwidget import PropertyWidget, WVT
 
 
 class ObjectTypeBase:

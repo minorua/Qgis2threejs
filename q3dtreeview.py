@@ -240,7 +240,7 @@ class Q3DTreeView(QTreeView):
                 parent.child(row).setFont(font)
 
     def treeDataChanged(self, topLeft, bottomRight, roles):
-        if not Qt.CheckStateRole in roles:
+        if Qt.CheckStateRole not in roles:
             return
 
         # checkbox toggled

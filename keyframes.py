@@ -853,7 +853,6 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
         self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
 
-
         if t == ATConst.ITEM_MATERIAL:
             for mtl in self.layer.properties.get("materials", []):
                 if mtl.get("type") != DEMMtlType.COLOR:

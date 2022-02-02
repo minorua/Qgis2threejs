@@ -23,7 +23,7 @@ from datetime import datetime
 
 from PyQt5.QtCore import Qt, QDir, QEventLoop, QUrl
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
-from qgis.core import Qgis, QgsApplication, QgsProject
+from qgis.core import QgsApplication, QgsProject
 
 from .export import ThreeJSExporter
 from .tools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir

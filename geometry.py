@@ -232,22 +232,6 @@ class PolygonGeometry(VectorGeometry):
         self.polygons = []
         self.centroids = []
 
-    # OBSOLETE
-    def splitPolygon(self, grid, z_func):
-        """split polygon by triangular grid"""
-        split_polygons = []
-        for polygon in grid.splitPolygonA(self.toQgsGeometry()):
-            bnds = []
-            for i, bnd in enumerate(polygon):
-                pts = [[pt.x(), pt.y(), z_func(pt.x(), pt.y())] for pt in bnd]
-                if GeometryUtils.isClockwise(pts) ^ i == 0:
-                    pts.reverse()    # outer boundary to clockwise and inner boundaries to counter-clockwise
-                bnds.append(pts)
-
-            split_polygons.append(bnds)
-
-        return self.toQgsGeometry(split_polygons)
-
     def toList(self):
         return self.polygons
 
@@ -600,13 +584,6 @@ class GridGeometry:
             geometry = geom.clipped(self.hrects[idx])
             if geometry:
                 yield idx, geometry
-
-    # OBSOLETE
-    def hIntersects(self, geom):
-        """indices of horizontal bands that intersect with geom"""
-        for idx in self.hidx.intersects(geom.boundingBox()):
-            if geom.intersects(self.hrects[idx]):
-                yield idx
 
     def splitPolygonXY(self, geom):
         return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
