@@ -40,6 +40,7 @@ class ExportToWebDialog(QDialog):
         self.page = page
         self.logHtml = ""
         self.logNextIndex = 1
+        self.warnings = 0
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
@@ -191,7 +192,6 @@ class ExportToWebDialog(QDialog):
 
         self.ui.tabWidget.setCurrentIndex(1)
 
-        self.logNextIndex = 1
         self.logHtml = """
 <style>
 div.progress {margin-top:10px;}
@@ -199,6 +199,9 @@ div.indented {margin-left:3em;}
 th {text-align:left;}
 </style>
 """
+        self.logNextIndex = 1
+        self.warnings = 0
+
         self.progress(0, "Export has been started.")
         t0 = datetime.now()
 
@@ -216,7 +219,7 @@ th {text-align:left;}
             self.ui.progressBar.setValue(0)
             return
 
-        self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds()))
+        self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds (warnings: {}).</a>".format(elapsed.total_seconds(), self.warnings))
 
         data_dir = settings.outputDataDirectory()
 
@@ -261,11 +264,14 @@ th {text-align:left;}
     def progressNumbered(self, percentage=None, msg=None):
         self.progress(percentage, msg, numbered=True)
 
-    def log(self, msg, level=Qgis.Info, indented=False):
+    def log(self, msg, warning=False, indented=False):
+        if warning:
+            self.warnings += 1
+
         self.logHtml += "<div{}>{}</div>".format(" class='indented'" if indented else "", msg)
         self.ui.textBrowser.setHtml(self.logHtml)
 
         QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
 
-    def logMessageIndented(self, msg, level=Qgis.Info):
-        self.log(msg, level, indented=True)
+    def logMessageIndented(self, msg, warning=False):
+        self.log(msg, warning, indented=True)

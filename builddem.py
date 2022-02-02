@@ -56,10 +56,10 @@ class DEMLayerBuilder(LayerBuilder):
         }
 
         # DEM block
+        data = []
         if build_blocks:
             self._startBuildBlocks(cancelSignal)
 
-            data = []
             for builder in self.subBuilders():
                 if self.canceled:
                     break
@@ -67,10 +67,7 @@ class DEMLayerBuilder(LayerBuilder):
 
             self._endBuildBlocks(cancelSignal)
 
-            d["data"] = data
-            self.log("DEM block count: {}".format(len(data)))
-        else:
-            d["data"] = []
+        d["data"] = data
 
         if self.canceled:
             return None

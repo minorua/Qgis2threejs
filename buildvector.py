@@ -510,7 +510,7 @@ class VectorLayerBuilder(LayerBuilder):
             data["models"] = self.modelManager.build(self.pathRoot is not None,
                                                      base64=self.settings.base64)
 
-            self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.")
+            self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.", warning=True)
 
         if build_blocks:
             self._startBuildBlocks(cancelSignal)

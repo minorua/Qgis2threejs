@@ -41,7 +41,7 @@ class PointCloudLayerBuilder(LayerBuilder):
                 self.log("""
 Point cloud data files in Potree format will not be copied to the output data directory.
 You need to upload them to a web server and replace the {0} file URL in the scene.js{1}
-with valid one that points to the {0} file on the web server.""".format(filename, "" if self.settings.localMode else "on"))
+with valid one that points to the {0} file on the web server.""".format(filename, "" if self.settings.localMode else "on"), warning=True)
 
         if DEBUG_MODE:
             d["PROPERTIES"] = self.properties

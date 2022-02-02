@@ -71,5 +71,5 @@ def dummyProgress(percentage=None, msg=None):
     pass
 
 
-def dummyLogMessage(msg, level=None):
+def dummyLogMessage(msg, warning=False):
     pass

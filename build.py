@@ -22,6 +22,7 @@
 from qgis.core import Qgis, QgsApplication
 
 from .datamanager import ImageManager
+from .buildlayer import dummyProgress, dummyLogMessage
 from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
@@ -72,7 +73,6 @@ class ThreeJSBuilder:
             p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
         self.log("Z scale: {}".format(mapTo3d.zScale))
-        self.log("Z shift: {}".format(mapTo3d.zShift))
 
         obj = {
             "type": "scene",
@@ -139,11 +139,3 @@ class ThreeJSBuilder:
 
     def cancel(self):
         self._canceled = True
-
-
-def dummyProgress(percentage=None, msg=None):
-    pass
-
-
-def dummyLogMessage(msg, level=None):
-    pass
