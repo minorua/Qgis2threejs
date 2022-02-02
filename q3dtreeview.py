@@ -59,7 +59,7 @@ class Q3DTreeView(QTreeView):
         self.setModel(model)
         self.expandAll()
 
-        self.model().itemChanged.connect(self.treeItemChanged)
+        self.model().dataChanged.connect(self.treeDataChanged)
 
         # context menu
         self.actionProperties = QAction("Properties...", self)
@@ -239,8 +239,12 @@ class Q3DTreeView(QTreeView):
                 font.setBold(row == item.row())
                 parent.child(row).setFont(font)
 
-    # checkbox toggled
-    def treeItemChanged(self, item):
+    def treeDataChanged(self, topLeft, bottomRight, roles):
+        if not Qt.CheckStateRole in roles:
+            return
+
+        # checkbox toggled
+        item = self.model().itemFromIndex(topLeft)
         layer = self.iface.settings.getLayer(item.data())
         if layer is None:
             return
