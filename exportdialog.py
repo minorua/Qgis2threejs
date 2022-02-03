@@ -219,7 +219,10 @@ th {text-align:left;}
             self.ui.progressBar.setValue(0)
             return
 
-        self.progress(100, "<br><a name='complete'>Export has been completed in {:,.2f} seconds (warnings: {}).</a>".format(elapsed.total_seconds(), self.warnings))
+        msg = "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds())
+        if self.warnings:
+            msg += "<br><b>There {} during the export. See above.</b>".format("was a warning" if self.warnings == 1 else "were {} warnings".format(self.warnings))
+        self.progress(100, msg)
 
         data_dir = settings.outputDataDirectory()
 
