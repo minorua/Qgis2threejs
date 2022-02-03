@@ -85,6 +85,7 @@ class Q3DTreeView(QTreeView):
 
         # context menu for point cloud layer
         self.contextMenuPC = QMenu(self)
+        self.contextMenuPC.addAction(self.actionZoomToLayer)
         self.contextMenuPC.addAction(self.actionProperties)
         self.contextMenuPC.addSeparator()
         self.contextMenuPC.addAction(self.actionRemoveLayer)

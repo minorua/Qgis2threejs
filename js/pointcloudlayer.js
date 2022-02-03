@@ -82,7 +82,6 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
-  // if (jsonObject.type == "layer")
   if (this.pcg !== undefined) {
     if (!need_reload) {
       this.updatePosition(scene);
@@ -129,14 +128,17 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
 
     if (p.colorType == "HEIGHT") {
-      var box = new THREE.Box3();
-      box.copy(_this.pc.pcoGeometry.tightBoundingBox || _this.pc.pcoGeometry.boundingBox).applyMatrix4(_this.pc.matrixWorld);
+      var box = _this.boundingBox()
       mtl.elevationRange = [box.min.z, box.max.z];
     }
     _this.materials.add(mtl);
 
     _this.requestRepeatRender(300, 60, true);
   });
+};
+
+Q3D.PointCloudLayer.prototype.boundingBox = function () {
+  return this.pcg.getBoundingBox();
 };
 
 Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
