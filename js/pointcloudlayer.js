@@ -140,13 +140,11 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 };
 
 Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
-  var p = scene.toWorldCoordinates({x: 0, y: 0, z: 0}),
-      d = scene.userData,
-      g = this.objectGroup;
+  var g = this.objectGroup,
+      p = scene.userData;
 
-  g.position.set(p.x, p.y, p.z);
-  g.rotation.z = -d.rotation * Math.PI / 180;
-  g.scale.set(d.scale, d.scale, d.zScale);
+  g.position.copy(scene.toWorldCoordinates({x: 0, y: 0, z: 0}));
+  g.scale.z = p.zScale;
   g.updateMatrixWorld();
 };
 
