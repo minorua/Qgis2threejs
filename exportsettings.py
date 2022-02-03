@@ -28,7 +28,7 @@ from . import q3dconst
 from .conf import DEF_SETS, SHIFT_THRESHOLD, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
-from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments
+from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, geomTypeFromMapLayer
 from .q3dconst import LayerType
 from .tools import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
@@ -319,11 +319,11 @@ class ExportSettings:
            Adds layer objects newly added to the project and removes layer objects
            deleted from the project. Layer IDs are renumbered."""
 
-        # Point cloud layers
+        # Additional point cloud layers
         layers = [lyr for lyr in self.layers() if lyr.layerId.startswith("pc:")]
 
-        # DEM and vector layers
-        for mapLayer in [ml for ml in getLayersInProject() if Layer.getGeometryType(ml) is not None]:
+        # DEM, vector and point cloud layers in QGIS project
+        for mapLayer in [ml for ml in getLayersInProject() if geomTypeFromMapLayer(ml) is not None]:
             item = self.getLayer(mapLayer.id())
             if item:
                 # update layer and layer name

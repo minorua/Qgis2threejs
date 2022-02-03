@@ -557,11 +557,7 @@ class PropertiesDialog(QDialog):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
                 nw = self.page.lineEdit_Name
-                if isinstance(self.page, PointCloudPropertyPage):
-                    self.layer.name = nw.text()
-                else:
-                    self.layer.name = nw.text().strip() or nw.placeholderText()
-
+                self.layer.name = nw.text().strip() or nw.placeholderText()
                 self.layer.properties = self.page.properties(only_visible=True)
                 self.propertiesAccepted.emit(self.layer)
 

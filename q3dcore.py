@@ -19,14 +19,15 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 import struct
 
 from copy import deepcopy
 from math import floor
 from osgeo import gdal
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QUrl
 
-from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import Qgis, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from .geometry import GridGeometry
 from .q3dconst import LayerType
@@ -127,30 +128,20 @@ class Layer:
         t = obj["geomType"]
 
         lyr = Layer(id, obj["name"], t, obj["properties"], obj["visible"])
+        lyr.mapLayer = QgsProject.instance().mapLayer(id)
 
-        if t != LayerType.POINTCLOUD:
-            lyr.mapLayer = QgsProject.instance().mapLayer(id)
         return lyr
 
     @classmethod
     def fromQgsMapLayer(cls, mapLayer):
-        lyr = Layer(mapLayer.id(), mapLayer.name(), cls.getGeometryType(mapLayer), visible=False)
+        geomType = geomTypeFromMapLayer(mapLayer)
+        lyr = Layer(mapLayer.id(), mapLayer.name(), geomType, visible=False)
         lyr.mapLayer = mapLayer
+
+        if geomType == LayerType.POINTCLOUD:
+            lyr.properties["url"] = urlFromPCLayer(mapLayer)
+
         return lyr
-
-    @classmethod
-    def getGeometryType(cls, mapLayer):
-        """mapLayer: QgsMapLayer sub-class object"""
-        layerType = mapLayer.type()
-        if layerType == QgsMapLayer.VectorLayer:
-            return {QgsWkbTypes.PointGeometry: LayerType.POINT,
-                    QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
-                    QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
-
-        elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
-            return LayerType.DEM
-
-        return None
 
     def __deepcopy__(self, memo):
         return self.clone()
@@ -259,3 +250,35 @@ def calculateGridSegments(extent, sizeLevel, roughness=0):
             height = int(height / roughness + 0.9999) * roughness
 
     return QSize(width, height)
+
+
+def geomTypeFromMapLayer(mapLayer):
+    """mapLayer: QgsMapLayer sub-class object"""
+    layerType = mapLayer.type()
+    if layerType == QgsMapLayer.VectorLayer:
+        return {QgsWkbTypes.PointGeometry: LayerType.POINT,
+                QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
+                QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
+
+    elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
+        return LayerType.DEM
+
+    elif Qgis.QGIS_VERSION_INT >= 31800 and layerType == QgsMapLayer.PointCloudLayer:
+        return LayerType.POINTCLOUD
+
+    return None
+
+
+def urlFromPCLayer(mapLayer):
+    src = mapLayer.source()
+    if src.startswith("http"):
+        return ""       # not supported yet
+
+    if mapLayer.providerType() == "ept":
+        f = src
+    else:       # assume provider type is pdal
+        f = os.path.join(os.path.split(src)[0],
+                         "ept_" + os.path.splitext(os.path.basename(src))[0],
+                         "ept.json")
+
+    return QUrl.fromLocalFile(f).toString()

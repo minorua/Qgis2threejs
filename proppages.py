@@ -946,10 +946,14 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         PropertyPage.__init__(self, parent, PAGE_POINTCLOUD)
         Ui_PCPropertiesWidget.setupUi(self, self)
 
-        widgets = [self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_BoxVisible, self.checkBox_Visible]
+        widgets = [self.lineEdit_Name, self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity, self.checkBox_BoxVisible, self.checkBox_Visible]
         self.registerPropertyWidgets(widgets)
 
-        self.lineEdit_Name.setText(layer.name)
+        if layer.mapLayer:
+            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name())
+        else:
+            self.lineEdit_Name.setText(layer.name)
+            self.lineEdit_Name.setPlaceholderText(layer.name)
 
         color_types = ["RGB", "COLOR", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "POINT_INDEX", "CLASSIFICATION", "RETURN_NUMBER"]
         # ["RGB", "COLOR", "DEPTH", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "LOD", "POINT_INDEX",
