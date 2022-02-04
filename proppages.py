@@ -598,6 +598,9 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         self.setMaterials(properties.get("materials", []))
 
+        if not self.listWidget_Materials.count():
+            self.addMaterial()
+
         id = properties.get("mtlId")
         if id:
             self.setCurrentMtlItem(id)
