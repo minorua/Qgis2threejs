@@ -448,8 +448,11 @@ class Q3DWindow(QMainWindow):
     def addPlane(self):
         layerId = "fp:" + createUid()
         layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=True)
+        layer.properties = self.getDefaultProperties(layer)
+
         self.iface.layerAdded.emit(layer)
-        self.ui.treeView.addLayer(layer)
+        item = self.ui.treeView.addLayer(layer)
+        self.ui.treeView.updateLayerMaterials(item, layer)
 
     def showAddPointCloudLayerDialog(self):
         dialog = AddPointCloudLayerDialog(self)

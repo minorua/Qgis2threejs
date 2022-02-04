@@ -127,6 +127,8 @@ class Q3DTreeView(QTreeView):
 
         self.updateLayerMaterials(item)
 
+        return item
+
     def addLayers(self, layers):
         for layer in layers:
             self.addLayer(layer)
