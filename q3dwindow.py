@@ -379,10 +379,12 @@ class Q3DWindow(QMainWindow):
             return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
+        self.ui.treeView.clearLayers()
 
         settings = self.settings.clone()
         settings.loadSettingsFromFile(filename)
-        self.ui.treeView.updateLayersCheckState(settings)
+
+        self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.tree.setData(settings.animationData())
 
         self.iface.exportSettingsUpdated.emit(settings)
@@ -410,13 +412,14 @@ class Q3DWindow(QMainWindow):
             return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
-        self.ui.treeView.clearPointCloudLayers()
+        self.ui.treeView.clearLayers()
         self.ui.actionPerspective.setChecked(True)
 
         settings = self.settings.clone()
         settings.clear()
         settings.updateLayers()
 
+        self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.tree.setData({})
 
         self.iface.exportSettingsUpdated.emit(settings)

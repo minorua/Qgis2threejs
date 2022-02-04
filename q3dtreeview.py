@@ -136,6 +136,11 @@ class Q3DTreeView(QTreeView):
         if item:
             item.parent().removeRow(item.row())
 
+    def clearLayers(self):
+        for parent in self.layerGroupItems.values():
+            if parent.hasChildren():
+                parent.removeRows(0, parent.rowCount())
+
     def layerFromIndex(self, index):
         layerId = self.model().data(index, Qt.UserRole + 1)
         return self.iface.settings.getLayer(layerId)
@@ -197,16 +202,6 @@ class Q3DTreeView(QTreeView):
             layerItem.appendRow([item])
 
         self.expand(layerItem.index())
-
-    def updateLayersCheckState(self, settings):
-        self.blockSignals(True)
-        for parent in self.layerGroupItems.values():
-            for row in range(parent.rowCount()):
-                item = parent.child(row)
-                layer = settings.getLayer(item.data())
-                item.setCheckState(Qt.Checked if layer and layer.visible else Qt.Unchecked)
-
-        self.blockSignals(False)
 
     def uncheckAll(self):
         for parent in self.layerGroupItems.values():
@@ -315,11 +310,6 @@ class Q3DTreeView(QTreeView):
 
         self.iface.layerRemoved.emit(layer.layerId)
         self.removeLayer(layer.layerId)
-
-    def clearPointCloudLayers(self):
-        parent = self.layerGroupItems[LayerType.POINTCLOUD]
-        if parent.hasChildren():
-            parent.removeRows(0, parent.rowCount())
 
     def zoomToLayer(self):
         layer = self.layerFromIndex(self.currentIndex())
