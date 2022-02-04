@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_AnimationPanel(object):
     def setupUi(self, AnimationPanel):
         AnimationPanel.setObjectName("AnimationPanel")
-        AnimationPanel.resize(235, 153)
+        AnimationPanel.resize(235, 30)
         self.verticalLayout = QtWidgets.QVBoxLayout(AnimationPanel)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -47,8 +47,13 @@ class Ui_AnimationPanel(object):
 
     def retranslateUi(self, AnimationPanel):
         _translate = QtCore.QCoreApplication.translate
+        self.toolButtonRemove.setToolTip(_translate("AnimationPanel", "Remove selected keyframe item(s) or group."))
         self.toolButtonRemove.setText(_translate("AnimationPanel", "-"))
+        self.toolButtonPlay.setToolTip(_translate("AnimationPanel", "Perform the checked animations in parallel."))
         self.toolButtonPlay.setText(_translate("AnimationPanel", "Play"))
+        self.toolButtonAdd.setToolTip(_translate("AnimationPanel", "Add a keyframe group and/or a keyframe item."))
         self.toolButtonAdd.setText(_translate("AnimationPanel", "+"))
+        self.toolButtonEdit.setToolTip(_translate("AnimationPanel", "Open keyframe dialog for current item."))
         self.toolButtonEdit.setText(_translate("AnimationPanel", "Edit"))
+        self.checkBoxLoop.setToolTip(_translate("AnimationPanel", "Repeat the entire animation."))
         self.checkBoxLoop.setText(_translate("AnimationPanel", "Loop"))

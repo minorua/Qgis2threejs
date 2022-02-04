@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DEMPropertiesWidget(object):
     def setupUi(self, DEMPropertiesWidget):
         DEMPropertiesWidget.setObjectName("DEMPropertiesWidget")
-        DEMPropertiesWidget.resize(450, 853)
+        DEMPropertiesWidget.resize(462, 853)
         self.verticalLayout = QtWidgets.QVBoxLayout(DEMPropertiesWidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox_Geometry = QtWidgets.QGroupBox(DEMPropertiesWidget)
@@ -301,7 +301,9 @@ class Ui_DEMPropertiesWidget(object):
         self.label_2.setText(_translate("DEMPropertiesWidget", "Size"))
         self.checkBox_Clip.setText(_translate("DEMPropertiesWidget", "Clip DEM with polygon layer"))
         self.groupBox_Material.setTitle(_translate("DEMPropertiesWidget", "&Material"))
+        self.toolButton_RemoveMtl.setToolTip(_translate("DEMPropertiesWidget", "Remove selected material."))
         self.toolButton_RemoveMtl.setText(_translate("DEMPropertiesWidget", "-"))
+        self.toolButton_AddMtl.setToolTip(_translate("DEMPropertiesWidget", "Add a material to this layer."))
         self.toolButton_AddMtl.setText(_translate("DEMPropertiesWidget", "+"))
         self.label_17.setText(_translate("DEMPropertiesWidget", "Opacity (%)"))
         self.label_ImageFile.setText(_translate("DEMPropertiesWidget", "Image file"))

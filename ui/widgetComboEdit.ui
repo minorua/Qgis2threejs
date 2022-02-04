@@ -98,11 +98,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>comboBox</tabstop>
-  <tabstop>checkBox</tabstop>
-  <tabstop>toolButton</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

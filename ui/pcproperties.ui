@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>335</width>
+    <width>461</width>
     <height>577</height>
    </rect>
   </property>
@@ -244,17 +244,6 @@
    <header>qgis.gui</header>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>lineEdit_Name</tabstop>
-  <tabstop>url</tabstop>
-  <tabstop>textBrowser</tabstop>
-  <tabstop>comboBox_ColorType</tabstop>
-  <tabstop>colorButton_Color</tabstop>
-  <tabstop>horizontalSlider_Opacity</tabstop>
-  <tabstop>spinBox_Opacity</tabstop>
-  <tabstop>checkBox_BoxVisible</tabstop>
-  <tabstop>checkBox_Visible</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

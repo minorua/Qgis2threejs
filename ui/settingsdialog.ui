@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>356</height>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,7 +83,7 @@
       <item>
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>The changes will be reflected after restarting the exporter.
+         <string>The changes will take effect after the exporter is restarted.
 </string>
         </property>
        </widget>
@@ -103,13 +103,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>lineEdit_BrowserPath</tabstop>
-  <tabstop>pushButton_Browse</tabstop>
-  <tabstop>tableWidget_Plugins</tabstop>
-  <tabstop>textBrowser_Plugin</tabstop>
-  <tabstop>buttonBox</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

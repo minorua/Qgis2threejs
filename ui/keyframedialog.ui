@@ -24,6 +24,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QToolButton" name="toolButtonPrev">
+       <property name="toolTip">
+        <string>Previous keyframe</string>
+       </property>
        <property name="text">
         <string>&lt;</string>
        </property>
@@ -50,6 +53,9 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButtonNext">
+       <property name="toolTip">
+        <string>Next keyframe</string>
+       </property>
        <property name="text">
         <string>&gt;</string>
        </property>
@@ -80,6 +86,9 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButtonPlay">
+       <property name="toolTip">
+        <string>Perform a transition between current keyframe and next keyframe.</string>
+       </property>
        <property name="checkable">
         <bool>true</bool>
        </property>
@@ -225,8 +234,8 @@
          <height>16777215</height>
         </size>
        </property>
-       <property name="text">
-        <string>1000</string>
+       <property name="toolTip">
+        <string>length of time to complete a transition</string>
        </property>
       </widget>
      </item>
@@ -245,8 +254,8 @@
          <height>16777215</height>
         </size>
        </property>
-       <property name="text">
-        <string>0</string>
+       <property name="toolTip">
+        <string>duration to wait before starting a transition</string>
        </property>
       </widget>
      </item>
@@ -288,8 +297,8 @@
          <height>0</height>
         </size>
        </property>
-       <property name="text">
-        <string>00:00.000</string>
+       <property name="toolTip">
+        <string>time to begin this transition</string>
        </property>
       </widget>
      </item>
@@ -314,8 +323,8 @@
          <height>0</height>
         </size>
        </property>
-       <property name="text">
-        <string>00:01.000</string>
+       <property name="toolTip">
+        <string>time to complete this transition</string>
        </property>
       </widget>
      </item>
@@ -351,6 +360,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Perform transitions of this keyframe group from the beginning.</string>
+       </property>
        <property name="text">
         <string>Play all</string>
        </property>
@@ -367,14 +379,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="labelTotal">
-       <property name="text">
-        <string>00:15.000</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="labelTotal"/>
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="toolTip">
+        <string>time to complete transitions of this keyframe group</string>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

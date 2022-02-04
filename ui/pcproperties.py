@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PCPropertiesWidget(object):
     def setupUi(self, PCPropertiesWidget):
         PCPropertiesWidget.setObjectName("PCPropertiesWidget")
-        PCPropertiesWidget.resize(335, 577)
+        PCPropertiesWidget.resize(461, 577)
         self.verticalLayout = QtWidgets.QVBoxLayout(PCPropertiesWidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(PCPropertiesWidget)
@@ -126,14 +126,6 @@ class Ui_PCPropertiesWidget(object):
         self.spinBox_Opacity.valueChanged['int'].connect(self.horizontalSlider_Opacity.setValue)
         self.horizontalSlider_Opacity.valueChanged['int'].connect(self.spinBox_Opacity.setValue)
         QtCore.QMetaObject.connectSlotsByName(PCPropertiesWidget)
-        PCPropertiesWidget.setTabOrder(self.lineEdit_Name, self.url)
-        PCPropertiesWidget.setTabOrder(self.url, self.textBrowser)
-        PCPropertiesWidget.setTabOrder(self.textBrowser, self.comboBox_ColorType)
-        PCPropertiesWidget.setTabOrder(self.comboBox_ColorType, self.colorButton_Color)
-        PCPropertiesWidget.setTabOrder(self.colorButton_Color, self.horizontalSlider_Opacity)
-        PCPropertiesWidget.setTabOrder(self.horizontalSlider_Opacity, self.spinBox_Opacity)
-        PCPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.checkBox_BoxVisible)
-        PCPropertiesWidget.setTabOrder(self.checkBox_BoxVisible, self.checkBox_Visible)
 
     def retranslateUi(self, PCPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate

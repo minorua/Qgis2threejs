@@ -227,8 +227,6 @@ class Ui_Q3DWindow(object):
         self.retranslateUi(Q3DWindow)
         self.actionClose.triggered.connect(Q3DWindow.close)
         QtCore.QMetaObject.connectSlotsByName(Q3DWindow)
-        Q3DWindow.setTabOrder(self.treeView, self.listWidgetDebugView)
-        Q3DWindow.setTabOrder(self.listWidgetDebugView, self.lineEditInputBox)
 
     def retranslateUi(self, Q3DWindow):
         _translate = QtCore.QCoreApplication.translate

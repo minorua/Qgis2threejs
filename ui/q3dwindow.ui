@@ -487,11 +487,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>treeView</tabstop>
-  <tabstop>listWidgetDebugView</tabstop>
-  <tabstop>lineEditInputBox</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

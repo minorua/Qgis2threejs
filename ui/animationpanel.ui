@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>235</width>
-    <height>153</height>
+    <height>30</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -33,6 +33,9 @@
      </property>
      <item row="0" column="2">
       <widget class="QToolButton" name="toolButtonRemove">
+       <property name="toolTip">
+        <string>Remove selected keyframe item(s) or group.</string>
+       </property>
        <property name="text">
         <string>-</string>
        </property>
@@ -40,6 +43,9 @@
      </item>
      <item row="0" column="5">
       <widget class="QToolButton" name="toolButtonPlay">
+       <property name="toolTip">
+        <string>Perform the checked animations in parallel.</string>
+       </property>
        <property name="text">
         <string>Play</string>
        </property>
@@ -50,6 +56,9 @@
      </item>
      <item row="0" column="0">
       <widget class="QToolButton" name="toolButtonAdd">
+       <property name="toolTip">
+        <string>Add a keyframe group and/or a keyframe item.</string>
+       </property>
        <property name="text">
         <string>+</string>
        </property>
@@ -70,6 +79,9 @@
      </item>
      <item row="0" column="1">
       <widget class="QToolButton" name="toolButtonEdit">
+       <property name="toolTip">
+        <string>Open keyframe dialog for current item.</string>
+       </property>
        <property name="text">
         <string>Edit</string>
        </property>
@@ -77,6 +89,9 @@
      </item>
      <item row="0" column="4">
       <widget class="QCheckBox" name="checkBoxLoop">
+       <property name="toolTip">
+        <string>Repeat the entire animation.</string>
+       </property>
        <property name="text">
         <string>Loop</string>
        </property>

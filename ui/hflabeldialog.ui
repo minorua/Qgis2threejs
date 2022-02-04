@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>532</width>
-    <height>231</height>
+    <height>282</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Header Label Text</string>
+      <string>Header Label</string>
      </property>
     </widget>
    </item>
@@ -31,7 +31,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Footer Label Text</string>
+      <string>Footer Label</string>
      </property>
     </widget>
    </item>
@@ -54,10 +54,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>textEdit_Header</tabstop>
-  <tabstop>textEdit_Footer</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>
