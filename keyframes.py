@@ -123,9 +123,9 @@ class AnimationPanel(QWidget):
         if not current:
             return
 
-        enabled = not (current.type() & ATConst.ITEM_TOPLEVEL)
-        for w in [self.ui.toolButtonEdit, self.ui.toolButtonPlay, self.ui.toolButtonRemove]:
-            w.setEnabled(enabled)
+        b = not (current.type() & ATConst.ITEM_TOPLEVEL)
+        self.ui.toolButtonEdit.setEnabled(b)
+        self.ui.toolButtonRemove.setEnabled(b)
 
 
 class AnimationTreeWidget(QTreeWidget):
@@ -322,6 +322,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = self.getLayerFromLayerItem(item)
                 self.actionMaterial.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
+                self.actionProperties.setVisible(False)
                 self.ctxMenuLayer.popup(QCursor.pos())
             return
 
@@ -621,6 +622,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = self.getLayerFromLayerItem(item)
                 self.actionMaterial.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
+                self.actionProperties.setVisible(True)
         else:
             if typ & ATConst.ITEM_GRP:
                 m = self.ctxMenuKeyframeGroup
