@@ -169,10 +169,11 @@ Q3D.Scene = function () {
   this.lightGroup = new Q3D.Group();
   this.add(this.lightGroup);
 
+  this.labelGroup = new Q3D.Group();
+  this.add(this.labelGroup);
+
   this.labelConnectorGroup = new Q3D.Group();
   this.add(this.labelConnectorGroup);
-
-  this.labelRootElement = null;
 };
 
 Q3D.Scene.prototype = Object.create(THREE.Scene.prototype);
@@ -310,11 +311,13 @@ Q3D.Scene.prototype.requestCameraUpdate = function (pos, focal, near, far) {
   this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
 };
 
-Q3D.Scene.prototype.visibleObjects = function () {
-  var objs = [];
+Q3D.Scene.prototype.visibleObjects = function (labelVisible) {
+  var layer, objs = [];
   for (var id in this.mapLayers) {
-    if (this.mapLayers[id].visible) {
-      objs = objs.concat(this.mapLayers[id].objects);
+    layer = this.mapLayers[id];
+    if (layer.visible) {
+      objs = objs.concat(layer.objects);
+      if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
     }
   }
   return objs;
@@ -488,8 +491,6 @@ limitations:
 
     // labels
     app.labelVisible = Q3D.Config.label.visible;
-    app.scene.labelRootElement = document.getElementById("labels");
-    app.scene.labelRootElement.style.display = (app.labelVisible) ? "block" : "none";
 
     // create a marker for queried point
     var opt = Q3D.Config.qmarker;
@@ -1234,9 +1235,6 @@ limitations:
     if (app.viewHelper) {
       app.viewHelper.render(app.renderer3);
     }
-
-    // labels
-    app.updateLabelPosition();
   };
 
   (function () {
@@ -1261,85 +1259,9 @@ limitations:
     };
   })();
 
-  // app.updateLabelPosition()
-  (function () {
-    var camera,
-        c2t = new THREE.Vector3(),
-        c2l = new THREE.Vector3();
-
-    app.updateLabelPosition = function () {
-      var rootGroup = app.scene.labelConnectorGroup;
-      if (!app.labelVisible || rootGroup.children.length == 0) return;
-
-      camera = app.camera;
-      camera.getWorldDirection(c2t);
-
-      // make list of [connector object, pt, distance to camera]
-      var obj_dist = [],
-          i, l, k, m,
-          connGroup, conn, pt0;
-
-      for (i = 0, l = rootGroup.children.length; i < l; i++) {
-        connGroup = rootGroup.children[i];
-        if (!connGroup.visible) continue;
-        for (k = 0, m = connGroup.children.length; k < m; k++) {
-          conn = connGroup.children[k];
-          pt0 = conn.geometry.vertices[0];
-          vec3.copy(pt0);
-
-          if (c2l.subVectors(vec3, camera.position).dot(c2t) > 0)      // label is in front
-            obj_dist.push([conn, pt0, camera.position.distanceTo(vec3)]);
-          else    // label is in back
-            conn.userData.elem.style.display = "none";
-        }
-      }
-
-      if (obj_dist.length == 0) return;
-
-      // sort label objects in descending order of distances
-      obj_dist.sort(function (a, b) {
-        if (a[2] < b[2]) return 1;
-        if (a[2] > b[2]) return -1;
-        return 0;
-      });
-
-      var widthHalf = app.width / 2,
-          heightHalf = app.height / 2,
-          fixedSize = Q3D.Config.label.fixedSize,
-          minFontSize = Q3D.Config.label.minFontSize;
-
-      var label, dist, x, y, e, t, fontSize;
-      for (i = 0, l = obj_dist.length; i < l; i++) {
-        label = obj_dist[i][0];
-        pt0 = obj_dist[i][1];
-        dist = obj_dist[i][2];
-
-        // calculate label position
-        vec3.copy(pt0).project(camera);
-        x = (vec3.x * widthHalf) + widthHalf;
-        y = -(vec3.y * heightHalf) + heightHalf;
-
-        // set label position
-        e = label.userData.elem;
-        t = "translate(" + (x - (e.offsetWidth / 2)) + "px," + (y - (e.offsetHeight / 2)) + "px)";
-        e.style.display = "block";
-        e.style.zIndex = i + 1;
-        e.style.webkitTransform = t;
-        e.style.transform = t;
-
-        // set font size
-        if (!fixedSize) {
-          if (dist < 10) dist = 10;
-          fontSize = Math.max(Math.round(1000 / dist), minFontSize);
-          e.style.fontSize = fontSize + "px";
-        }
-      }
-    };
-  })();
-
   app.setLabelVisible = function (visible) {
     app.labelVisible = visible;
-    app.scene.labelRootElement.style.display = (visible) ? "block" : "none";
+    app.scene.labelGroup.visible = visible;
     app.scene.labelConnectorGroup.visible = visible;
     app.render();
   };
@@ -1370,7 +1292,7 @@ limitations:
     var ray = new THREE.Raycaster();
     ray.linePrecision = 0.2;
     ray.setFromCamera(vec2, app.camera);
-    return ray.intersectObjects(app.scene.visibleObjects());
+    return ray.intersectObjects(app.scene.visibleObjects(app.labelVisible));
   };
 
   app._offset = function (elm) {
@@ -1778,79 +1700,6 @@ limitations:
       }
     };
 
-    var labels = [];    // list of [label point, text]
-    if (app.labelVisible) {
-      var rootGroup = app.scene.labelConnectorGroup, connGroup, conn, pt;
-      for (var i = 0; i < rootGroup.children.length; i++) {
-        connGroup = rootGroup.children[i];
-        if (!connGroup.visible) continue;
-        for (var k = 0; k < connGroup.children.length; k++) {
-          conn = connGroup.children[k];
-          pt = conn.geometry.vertices[0];
-          labels.push({pt: new THREE.Vector3(pt.x, pt.y, pt.z),      // in world coordinates
-                       text: conn.userData.elem.textContent});
-        }
-      }
-    }
-
-    var renderLabels = function (ctx) {
-      // context settings
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      // get label style from css
-      var elem = document.createElement("div");
-      elem.className = "print-label";
-      document.body.appendChild(elem);
-      var style = document.defaultView.getComputedStyle(elem, ""),
-          color = style.color;
-      ctx.font = style.font;
-      document.body.removeChild(elem);
-
-      var widthHalf = width / 2,
-          heightHalf = height / 2,
-          camera = app.camera,
-          c2t = new THREE.Vector3(),
-          c2l = new THREE.Vector3(),
-          v = new THREE.Vector3();
-
-      camera.getWorldDirection(c2t);
-
-      // make a list of [label index, distance to camera]
-      var idx_dist = [];
-      for (var i = 0, l = labels.length; i < l; i++) {
-        idx_dist.push([i, camera.position.distanceTo(labels[i].pt)]);
-      }
-
-      // sort label indexes in descending order of distances
-      idx_dist.sort(function (a, b) {
-        if (a[1] < b[1]) return 1;
-        if (a[1] > b[1]) return -1;
-        return 0;
-      });
-
-      var label, x, y;
-      for (i = 0, l = idx_dist.length; i < l; i++) {
-        label = labels[idx_dist[i][0]];
-        if (c2l.subVectors(label.pt, camera.position).dot(c2t) > 0) {    // label is in front
-          // calculate label position
-          v.copy(label.pt).project(camera);
-          x = (v.x * widthHalf) + widthHalf;
-          y = -(v.y * heightHalf) + heightHalf;
-          if (x < 0 || width <= x || y < 0 || height <= y) continue;
-
-          // outline effect
-          ctx.fillStyle = "#FFF";
-          for (var j = 0; j < 9; j++) {
-            if (j != 4) ctx.fillText(label.text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
-          }
-
-          ctx.fillStyle = color;
-          ctx.fillText(label.text, x, y);
-        }
-      }
-    };
-
     var restoreCanvasSize = function () {
       // restore canvas size
       if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
@@ -1894,9 +1743,6 @@ limitations:
       image.onload = function () {
         // draw webgl canvas image
         ctx.drawImage(image, 0, 0, width, height);
-
-        // render labels
-        if (labels.length > 0) renderLabels(ctx);
 
         // save canvas image
         saveCanvasImage(canvas);
@@ -3060,8 +2906,9 @@ Q3D.VectorLayer --> Q3D.MapLayer
 Q3D.VectorLayer = function () {
   Q3D.MapLayer.call(this);
 
+  this.labels = [];
+  // this.labelGroup = undefined;
   // this.labelConnectorGroup = undefined;
-  // this.labelParentElement = undefined;
 };
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
@@ -3070,20 +2917,15 @@ Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 Q3D.VectorLayer.prototype.build = function (block) {};
 
 Q3D.VectorLayer.prototype.clearLabels = function () {
+  this.labels = [];
+  if (this.labelGroup) this.labelGroup.clear();
   if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
-
-  // create parent element for labels
-  var elem = this.labelParentElement;
-  if (elem) {
-    while (elem.lastChild) {
-      elem.removeChild(elem.lastChild);
-    }
-  }
 };
 
 Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
   if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
+  var _this = this;
   var zShift = this.sceneData.zShift,
       zScale = this.sceneData.zScale,
       z0 = zShift * zScale;
@@ -3092,7 +2934,15 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       isRelative = prop.relative;
 
   var line_mat = new THREE.LineBasicMaterial({color: Q3D.Config.label.connectorColor});
-  var f, text, e, pt0, pt1, geom, conn;
+
+  var canvas = document.createElement("canvas"),
+      ctx = canvas.getContext("2d");
+
+  var ff = "sans-serif";
+
+  var f, text, pt0, pt1, sprite, mtl, geom, conn, obj;
+  var font, tw, th, w, h, x, y, j;
+  var th, sc;
 
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
@@ -3100,40 +2950,65 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
     if (text === null || text === "") continue;
 
     getPointsFunc(f).forEach(function (pt) {
-      // create div element for label
-      e = document.createElement("div");
-      e.className = "label";
-      e.innerHTML = text;
-      this.labelParentElement.appendChild(e);
 
       pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);                                      // bottom
       pt1 = new THREE.Vector3(pt[0], pt[1], (isRelative) ? pt[2] + f.lh : z0 + f.lh);    // top
 
-      if (Q3D.Config.label.clickable) {
-        var obj = this.objectGroup.children[f.objIndices[0]];
-        e.onclick = function () {
-          app.scene.remove(app.queryMarker);
-          app.highlightFeature(obj);
-          app.render();
-          app.showQueryResult({x: pt[0], y: pt[1], z: pt[2]}, obj, false);
-        };
-        e.classList.add("clickable");
-      }
-      else {
-        e.classList.add("no-events");
+      // create a label sprite
+      th = h = 64;
+      sc = 0.25;
+      font = th + "px " + ff;
+
+      ctx.font = font;
+      tw = ctx.measureText(text).width + 2;
+      w = THREE.Math.ceilPowerOfTwo(tw);
+      x = w / 2;
+      y = h / 2;
+      canvas.width = w;
+      canvas.height = h;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.roundRect((w - tw) / 2, (h - h) / 2, tw, th, 4).fill();
+
+      ctx.font = font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // outline effect
+      ctx.fillStyle = "#FFF";
+      for (j = 0; j < 9; j++) {
+        if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
       }
 
-      // create connector
+      ctx.fillStyle = "black";
+      ctx.fillText(text, x, y);
+
+      mtl = new THREE.SpriteMaterial({
+        map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),
+        transparent: true
+      });
+
+      sprite = new THREE.Sprite(mtl);
+      sprite.center.set(0.5, 0.05);
+      sprite.position.copy(pt1);
+      sprite.scale.set(w * sc, h * sc, 1);
+      sprite.userData.layerId = this.id;
+      sprite.userData.featureId = i;
+      sprite.userData.properties = f.prop;
+
+      this.labelGroup.add(sprite);
+
+      if (Q3D.Config.label.clickable) this.labels.push(sprite);
+
+      // a connector
       geom = new THREE.Geometry();
       geom.vertices.push(pt1, pt0);
 
       conn = new THREE.Line(geom, line_mat);
-      conn.userData.layerId = this.id;
-      //conn.userData.featureId = i;
-      conn.userData.elem = e;
+      conn.userData = sprite.userData;
 
       this.labelConnectorGroup.add(conn);
-
     }, this);
   }
 };
@@ -3146,19 +3021,19 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
       // build labels
       if (this.properties.label !== undefined) {
-        // create a label connector group
+        // create a label group and a label connector group
+        if (this.labelGroup === undefined) {
+          this.labelGroup = new Q3D.Group();
+          this.labelGroup.userData.layerId = this.id;
+          this.labelGroup.visible = this.visible;
+          scene.labelGroup.add(this.labelGroup);
+        }
+
         if (this.labelConnectorGroup === undefined) {
           this.labelConnectorGroup = new Q3D.Group();
           this.labelConnectorGroup.userData.layerId = this.id;
           this.labelConnectorGroup.visible = this.visible;
           scene.labelConnectorGroup.add(this.labelConnectorGroup);
-        }
-
-        // create a label parent element
-        if (this.labelParentElement === undefined) {
-          this.labelParentElement = document.createElement("div");
-          this.labelParentElement.style.display = (this.visible) ? "block" : "none";
-          scene.labelRootElement.appendChild(this.labelParentElement);
         }
       }
 
@@ -3182,7 +3057,7 @@ Object.defineProperty(Q3D.VectorLayer.prototype, "visible", {
     return Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").get.call(this);
   },
   set: function (value) {
-    if (this.labelParentElement) this.labelParentElement.style.display = (value) ? "block" : "none";
+    if (this.labelGroup) this.labelGroup.visible = value;
     if (this.labelConnectorGroup) this.labelConnectorGroup.visible = value;
     Object.getOwnPropertyDescriptor(Q3D.MapLayer.prototype, "visible").set.call(this, value);
   }
@@ -4054,4 +3929,18 @@ Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
     face = geom.faces[i];
     geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
   }
+};
+
+// https://stackoverflow.com/a/7838871
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
+  this.beginPath();
+  this.moveTo(x + r, y);
+  this.arcTo(x + w, y, x + w, y + h, r);
+  this.arcTo(x + w, y + h, x, y + h, r);
+  this.arcTo(x, y + h, x, y, r);
+  this.arcTo(x, y, x + w, y, r);
+  this.closePath();
+  return this;
 };

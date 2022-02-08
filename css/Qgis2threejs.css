@@ -27,23 +27,6 @@ body {
   pointer-events: none;
 }
 
-/* label */
-/*
-#labels {
-}
-*/
-.label {
-  position: absolute;
-  padding: 2px;
-  text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
-}
-
-.print-label {
-  /* these 2 properties are copied to canvas 2D context in renderLabels() in Qgis2threejs.js */
-  color: black;
-  font: normal medium sans-serif;
-}
-
 #progress {
   position: absolute;
   top: 0;
