@@ -14,8 +14,23 @@
    <string>Properties Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>5</number>
+   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -24,8 +39,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>431</width>
-        <height>471</height>
+        <width>455</width>
+        <height>490</height>
        </rect>
       </property>
      </widget>

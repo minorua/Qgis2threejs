@@ -19,6 +19,7 @@
 """
 from .conf import DEBUG_MODE
 from .buildlayer import LayerBuilder
+from .tools import int_color
 
 
 class PointCloudLayerBuilder(LayerBuilder):
@@ -55,7 +56,7 @@ with valid one that points to the {0} file on the web server.""".format(filename
         p["opacity"] = self.properties.get("spinBox_Opacity", 100) / 100
         p["colorType"] = self.properties.get("comboBox_ColorType", "RGB")
         if p["colorType"] == "COLOR":
-            p["color"] = int(self.properties.get("colorButton_Color", 0), 16)
+            p["color"] = int_color(self.properties.get("colorButton_Color"))
         p["boxVisible"] = self.properties.get("checkBox_BoxVisible", False)
 
         p["clickable"] = False      # not supported yet

@@ -62,6 +62,36 @@ def js_bool(o):
     return "true" if o else "false"
 
 
+def css_color(c):
+    if isinstance(c, list):
+        if len(c) == 4 and c[3] != 255:
+            return "rgba({},{},{},{:.2f})".format(*c[:3], c[3] / 255)
+
+        return "rgb({},{},{})".format(*c[:3])
+
+    return str(c).replace("0x", "#") if c else "#000000"
+
+
+def hex_color(c, prefix="#"):
+    if isinstance(c, list):
+        return "{}{:x}{:x}{:x}".format(prefix, *c[:3])
+
+    if not c and prefix == "#":
+        return "#000000"
+
+    return prefix + str(c or 0).replace("0x", "").replace("#", "")
+
+
+def int_color(c):
+    if isinstance(c, list):
+        return c[0] * 256 * 256 + c[1] * 256 + c[2]
+
+    if isinstance(c, str):
+        return int(c.replace("#", "0x") or "0", 16)
+
+    return 0
+
+
 def pyobj2js(obj, escape=False, quoteHex=True):
     if isinstance(obj, dict):
         items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]

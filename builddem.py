@@ -30,7 +30,7 @@ from .buildlayer import LayerBuilder
 from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
 from .q3dconst import DEMMtlType
-from .tools import logMessage, parseFloat
+from .tools import hex_color, logMessage, parseFloat
 
 
 class DEMLayerBuilder(LayerBuilder):
@@ -253,18 +253,18 @@ class DEMGridBuilder:
 
         # sides and bottom
         if self.properties.get("checkBox_Sides"):
-            mi = self.mtlManager.getMeshMaterialIndex(self.properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR), opacity)
+            mi = self.mtlManager.getMeshMaterialIndex(hex_color(self.properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR), prefix="0x"), opacity)
             b["sides"] = {"mtl": self.mtlManager.build(mi),
                           "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)}
 
         # edges
         if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
-            mi = self.mtlManager.getLineIndex(self.properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR), opacity)
+            mi = self.mtlManager.getLineIndex(hex_color(self.properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR), prefix="0x"), opacity)
             b["edges"] = {"mtl": self.mtlManager.build(mi)}
 
         # wireframe
         if self.properties.get("checkBox_Wireframe"):
-            mi = self.mtlManager.getLineIndex(self.properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR), opacity)
+            mi = self.mtlManager.getLineIndex(hex_color(self.properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR), prefix="0x"), opacity)
             b["wireframe"] = {"mtl": self.mtlManager.build(mi)}
 
         return b
@@ -491,10 +491,11 @@ class DEMMaterialBuilder:
             mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True, shading=shading)
 
         else:  # q3dconst.MTL_COLOR
+            color = hex_color(p.get("colorButton_Color", 0), prefix="0x")
             if shading:
-                mi = self.materialManager.getMeshMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
+                mi = self.materialManager.getMeshMaterialIndex(color, opacity, True)
             else:
-                mi = self.materialManager.getMeshBasicMaterialIndex(p.get("colorButton_Color", ""), opacity, True)
+                mi = self.materialManager.getMeshBasicMaterialIndex(color, opacity, True)
 
         # build material
         filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")

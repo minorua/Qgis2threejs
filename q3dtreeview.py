@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
 from .q3dconst import LayerType, DEMMtlType
+from .tools import hex_color
 
 
 class Q3DTreeView(QTreeView):
@@ -167,10 +168,10 @@ class Q3DTreeView(QTreeView):
             return QgsApplication.getThemeIcon("mIconFile.svg")
 
         elif mtype == DEMMtlType.COLOR:
-            color = mtl.get("properties", {}).get("colorButton_Color").replace("0x", "#")
+            color = mtl.get("properties", {}).get("colorButton_Color")
             if color:
                 pixmap = QPixmap(32, 32)
-                pixmap.fill(QColor(color))
+                pixmap.fill(QColor(hex_color(color)))
                 return QIcon(pixmap)
 
         return QIcon()

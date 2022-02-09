@@ -163,7 +163,8 @@ class PropertyPage(QWidget):
             elif isinstance(w, QgsFieldExpressionWidget):
                 v = w.expression()
             elif isinstance(w, QgsColorButton):
-                v = w.color().name().replace("#", "0x")
+                c = w.color()
+                v = [c.red(), c.green(), c.blue(), c.alpha()]
             elif isinstance(w, HiddenProperty):
                 v = w.value
             else:
@@ -206,7 +207,10 @@ class PropertyPage(QWidget):
                 w.setExpression(v)
 
             elif isinstance(w, QgsColorButton):
-                w.setColor(QColor(v.replace("0x", "#")))
+                if isinstance(v, list):
+                    w.setColor(QColor(*v))
+                else:
+                    w.setColor(QColor(v.replace("0x", "#")))
 
             elif isinstance(w, HiddenProperty):
                 w.value = v
@@ -412,9 +416,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
-        widgets += [self.checkBox_Sides, self.toolButton_SideColor, self.lineEdit_Bottom,
-                    self.checkBox_Frame, self.toolButton_EdgeColor,
-                    self.checkBox_Wireframe, self.toolButton_WireframeColor, self.checkBox_Visible, self.checkBox_Clickable]
+        widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom,
+                    self.checkBox_Frame, self.colorButton_Edge,
+                    self.checkBox_Wireframe, self.colorButton_Wireframe, self.checkBox_Visible, self.checkBox_Clickable]
 
         self.registerPropertyWidgets(widgets)
 
@@ -492,10 +496,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         properties = layer.properties
 
         properties["checkBox_Sides"] = properties.get("checkBox_Sides", not self.isPlane)
-        properties["toolButton_SideColor"] = properties.get("toolButton_SideColor", DEF_SETS.SIDE_COLOR)
-        properties["toolButton_EdgeColor"] = properties.get("toolButton_EdgeColor", DEF_SETS.EDGE_COLOR)                   # added in 2.6
-        properties["toolButton_WireframeColor"] = properties.get("toolButton_WireframeColor", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
-        properties["lineEdit_Bottom"] = properties.get("lineEdit_Bottom", str(DEF_SETS.Z_BOTTOM))                               # added in 2.7
+        properties["colorButton_Side"] = properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR)
+        properties["colorButton_Edge"] = properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR)                   # added in 2.6
+        properties["colorButton_Wireframe"] = properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
+        properties["lineEdit_Bottom"] = properties.get("lineEdit_Bottom", str(DEF_SETS.Z_BOTTOM))                  # added in 2.7
 
         self.setProperties(properties)
 
@@ -825,18 +829,31 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         # point layer has no geometry clip option
         self.checkBox_Clip.setVisible(layer.type != LayerType.POINT)
 
-        # [label]
+        # [labels]
         hasRPt = (layer.type in (LayerType.POINT, LayerType.POLYGON))
         if hasRPt:
-            self.comboBox_Label.addItem("(No label)")
-            fields = mapLayer.fields()
-            for i in range(fields.count()):
-                self.comboBox_Label.addItem(fields[i].name(), i)
+            self.labelToggled(False)
 
-            defaultLabelHeight = 5
-            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defVal": int(defaultLabelHeight / self.mapTo3d.zScale)})
+            self.labelHeightWidget.setup(PropertyWidget.LABEL_HEIGHT, mapLayer, {"defVal": DEF_SETS.LABEL_HEIGHT})
+            self.labelHeightWidget.label_1.setMinimumWidth(self.label_Text.minimumWidth())
 
-        self.exportAttrsToggled(bool(hasRPt and properties.get("checkBox_ExportAttrs")))
+            self.expression_Label.setLayer(mapLayer)
+            self.expression_Label.setRow(0)
+
+            for text in ["sans-serif", "serif", "monospace", "cursive", "fantasy"]:
+                self.comboBox_FontFamily.addItem(text, text)
+
+            self.slider_FontSize.setValue(3)
+
+            self.colorButton_BgColor.setAllowOpacity(True)
+
+            properties["colorButton_Label"] = properties.get("colorButton_Label", DEF_SETS.LABEL_COLOR)
+            properties["colorButton_OtlColor"] = properties.get("colorButton_OtlColor", DEF_SETS.OTL_COLOR)
+            properties["colorButton_BgColor"] = properties.get("colorButton_BgColor", DEF_SETS.BG_COLOR)
+            properties["colorButton_ConnColor"] = properties.get("colorButton_ConnColor", DEF_SETS.CONN_COLOR)
+
+        else:
+            self.tabWidget.setTabVisible(1, False)
 
         # register widgets
         widgets = [self.lineEdit_Name, self.comboBox_ObjectType]
@@ -844,16 +861,21 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         widgets += [self.comboEdit_FilePath]
         widgets += self.geomWidgets
         widgets += [self.comboEdit_Color, self.comboEdit_Color2, self.comboEdit_Opacity] + self.mtlWidgets
-        widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip]
-        widgets += [self.checkBox_ExportAttrs, self.comboBox_Label, self.labelHeightWidget]
+        widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip, self.checkBox_ExportAttrs]
         widgets += [self.checkBox_Visible, self.checkBox_Clickable]
+        if hasRPt:
+            widgets += [self.checkBox_Label, self.labelHeightWidget, self.expression_Label, self.comboBox_FontFamily, self.slider_FontSize,
+                        self.colorButton_Label, self.checkBox_Outline, self.colorButton_OtlColor,
+                        self.groupBox_Background, self.colorButton_BgColor, self.groupBox_Conn, self.colorButton_ConnColor]
+
         self.registerPropertyWidgets(widgets)
 
         self.comboBox_ObjectType.currentIndexChanged.connect(self.objectTypeChanged)
         self.comboBox_altitudeMode.currentIndexChanged.connect(self.altitudeModeChanged)
         for btn in self.buttonGroup_altitude.buttons():
             btn.toggled.connect(self.zValueRadioButtonToggled)
-        self.checkBox_ExportAttrs.toggled.connect(self.exportAttrsToggled)
+
+        self.checkBox_Label.toggled.connect(self.labelToggled)
 
         # set up widgets for selected object type
         # currentIndexChanged signal is not emitted in setProperties() if current item is first item
@@ -935,12 +957,9 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         if toggled:
             self.label_zExpression.setText("" if self.radioButton_Expression.isChecked() else "Addend")
 
-    def exportAttrsToggled(self, checked):
-        if checked and self.layer.type == LayerType.LINESTRING:
-            return
-
-        self.setWidgetsVisible([self.label, self.comboBox_Label, self.labelHeightWidget], checked)
-        # self.setLayoutVisible(self.gridLayout_Label, checked)   # FIXME: doesn't work correctly...
+    def labelToggled(self, checked):
+        for grp in [self.groupBox_Position, self.groupBox_LabelText, self.groupBox_Background, self.groupBox_Conn]:
+            grp.setEnabled(checked)
 
 
 class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):

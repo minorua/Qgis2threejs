@@ -27,7 +27,7 @@ from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .q3dcore import Layer
 from .q3dconst import LayerType, Script
-from .tools import js_bool, logMessage
+from .tools import hex_color, js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
@@ -205,7 +205,7 @@ class Q3DController(QObject):
             self.iface.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
 
             # update background color
-            params = "{0}, 1".format(sp.get("colorButton_Color", 0)) if sp.get("radioButton_Color") else "0, 0"
+            params = "{0}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
             self.iface.runScript("setBackgroundColor({0})".format(params))
 
             # coordinate display

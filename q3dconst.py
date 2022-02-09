@@ -69,6 +69,7 @@ class PropertyID:
     M1 = 24
 
     LBLH = 30
+    LBLTXT = 31
 
     PID_NAME_DICT = {
         ALT: "fieldExpressionWidget_altitude",
@@ -77,7 +78,8 @@ class PropertyID:
         C: "comboEdit_Color",
         C2: "comboEdit_Color2",
         OP: "comboEdit_Opacity",
-        LBLH: "labelHeightWidget"
+        LBLH: "labelHeightWidget",
+        LBLTXT: "expression_Label"
     }
 
     @classmethod

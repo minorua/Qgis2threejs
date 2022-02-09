@@ -23,8 +23,8 @@ PLUGIN_VERSION = "2.6"
 PLUGIN_VERSION_INT = int(float(PLUGIN_VERSION) * 100)
 
 # 3d world coordinates
-SHIFT_THRESHOLD = 10 ** 5   # When coordinate absolute values exceed this value, shifting
-                            # the coordinate is preferred to preserve precision
+SHIFT_THRESHOLD = 10 ** 5   # When coordinate absolute values exceed this value, it is
+                            # preferred to shift the coordinate to preserve precision
 
 # vector layer
 FEATURES_PER_BLOCK = 50   # max number of features in a data block
@@ -55,11 +55,18 @@ class DEF_SETS:
     CONTROLS = "OrbitControls.js"    # last selected one has priority
 
     # dem
-    SIDE_COLOR = "0xccbbaa"
-    EDGE_COLOR = "0x000000"
-    WIREFRAME_COLOR = "0x000000"
+    SIDE_COLOR = "#ccbbaa"
+    EDGE_COLOR = "#000000"
+    WIREFRAME_COLOR = "#000000"
     TEXTURE_SIZE = 1024
     Z_BOTTOM = 0
+
+    # vector
+    LABEL_HEIGHT = 50
+    LABEL_COLOR = "#000000"
+    OTL_COLOR = "#ffffff"
+    BG_COLOR = "#b0ffffff"
+    CONN_COLOR = "#c0c0d0"
 
     # animation
     ANM_DURATION = 2000     # msec

@@ -440,7 +440,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QgsColorButton" name="toolButton_EdgeColor">
+       <widget class="QgsColorButton" name="colorButton_Edge">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -463,7 +463,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QgsColorButton" name="toolButton_SideColor">
+       <widget class="QgsColorButton" name="colorButton_Side">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -473,7 +473,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QgsColorButton" name="toolButton_WireframeColor">
+       <widget class="QgsColorButton" name="colorButton_Wireframe">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -655,7 +655,7 @@
   <connection>
    <sender>checkBox_Sides</sender>
    <signal>toggled(bool)</signal>
-   <receiver>toolButton_SideColor</receiver>
+   <receiver>colorButton_Side</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -687,7 +687,7 @@
   <connection>
    <sender>checkBox_Frame</sender>
    <signal>toggled(bool)</signal>
-   <receiver>toolButton_EdgeColor</receiver>
+   <receiver>colorButton_Edge</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -703,7 +703,7 @@
   <connection>
    <sender>checkBox_Wireframe</sender>
    <signal>toggled(bool)</signal>
-   <receiver>toolButton_WireframeColor</receiver>
+   <receiver>colorButton_Wireframe</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

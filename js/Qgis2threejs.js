@@ -62,9 +62,7 @@ Q3D.Config = {
   },
   label: {
     visible: true,
-    connectorColor: 0xc0c0d0,
-    fixedSize: false,
-    minFontSize: 8,
+    canvasHeight: 64,
     clickable: true
   },
 
@@ -2925,63 +2923,69 @@ Q3D.VectorLayer.prototype.clearLabels = function () {
 Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
   if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
-  var _this = this;
-  var zShift = this.sceneData.zShift,
-      zScale = this.sceneData.zScale,
-      z0 = zShift * zScale;
-  var prop = this.properties.label,
-      pIndex = prop.index,
-      isRelative = prop.relative;
+  var _this = this,
+      p = this.properties,
+      label = p.label,
+      bs = this.sceneData.baseExtent.width * 0.016,
+      sc = bs * Math.pow(1.2, label.size),
+      z0 = 0;
 
-  var line_mat = new THREE.LineBasicMaterial({color: Q3D.Config.label.connectorColor});
+  var hasOtl = (label.olcolor !== undefined),
+      hasConn = (label.cncolor !== undefined);
+
+  if (hasConn) {
+    var line_mtl = new THREE.LineBasicMaterial({color: label.cncolor});
+  }
 
   var canvas = document.createElement("canvas"),
       ctx = canvas.getContext("2d");
 
-  var ff = "sans-serif";
+  var font, tw, th, cw, ch;
+  th = ch = Q3D.Config.label.canvasHeight;
+  font = th + "px " + (label.font || "sans-serif");
 
-  var f, text, pt0, pt1, sprite, mtl, geom, conn, obj;
-  var font, tw, th, w, h, x, y, j;
-  var th, sc;
+  canvas.height = ch;
+
+  var f, text, vec, sprite, mtl, geom, conn, x, y, j, sc;
 
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
-    text = f.prop[pIndex];
-    if (text === null || text === "") continue;
+    text = f.lbl;
+    if (!text) continue;
 
     getPointsFunc(f).forEach(function (pt) {
 
-      pt0 = new THREE.Vector3(pt[0], pt[1], pt[2]);                                      // bottom
-      pt1 = new THREE.Vector3(pt[0], pt[1], (isRelative) ? pt[2] + f.lh : z0 + f.lh);    // top
+      // label position
+      vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : z0 + f.lh);
 
-      // create a label sprite
-      th = h = 64;
-      sc = 0.25;
-      font = th + "px " + ff;
-
+      // render label text
       ctx.font = font;
       tw = ctx.measureText(text).width + 2;
-      w = THREE.Math.ceilPowerOfTwo(tw);
-      x = w / 2;
-      y = h / 2;
-      canvas.width = w;
-      canvas.height = h;
+      cw = THREE.Math.ceilPowerOfTwo(tw);
+      x = cw / 2;
+      y = ch / 2;
 
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-      ctx.roundRect((w - tw) / 2, (h - h) / 2, tw, th, 4).fill();
+      canvas.width = cw;
+      ctx.clearRect(0, 0, cw, ch);
+
+      if (label.bgcolor !== undefined) {
+        ctx.fillStyle = label.bgcolor;
+        ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();    // definition is in this file
+      }
 
       ctx.font = font;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      // outline effect
-      ctx.fillStyle = "#FFF";
-      for (j = 0; j < 9; j++) {
-        if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
+      if (hasOtl) {
+        // outline effect
+        ctx.fillStyle = label.olcolor;
+        for (j = 0; j < 9; j++) {
+          if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
+        }
       }
 
-      ctx.fillStyle = "black";
+      ctx.fillStyle = label.color;
       ctx.fillText(text, x, y);
 
       mtl = new THREE.SpriteMaterial({
@@ -2991,8 +2995,9 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 
       sprite = new THREE.Sprite(mtl);
       sprite.center.set(0.5, 0.05);
-      sprite.position.copy(pt1);
-      sprite.scale.set(w * sc, h * sc, 1);
+      sprite.position.copy(vec);
+      sprite.scale.set(sc * cw / ch, sc, 1);
+
       sprite.userData.layerId = this.id;
       sprite.userData.featureId = i;
       sprite.userData.properties = f.prop;
@@ -3001,14 +3006,16 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 
       if (Q3D.Config.label.clickable) this.labels.push(sprite);
 
-      // a connector
-      geom = new THREE.Geometry();
-      geom.vertices.push(pt1, pt0);
+      if (hasConn) {
+        // a connector
+        geom = new THREE.BufferGeometry();
+        geom.setAttribute("position", new THREE.Float32BufferAttribute(vec.toArray().concat(pt), 3));
 
-      conn = new THREE.Line(geom, line_mat);
-      conn.userData = sprite.userData;
+        conn = new THREE.Line(geom, line_mtl);
+        conn.userData = sprite.userData;
 
-      this.labelConnectorGroup.add(conn);
+        this.labelConnectorGroup.add(conn);
+      }
     }, this);
   }
 };

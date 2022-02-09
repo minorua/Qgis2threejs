@@ -35,7 +35,7 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import createUid, logMessage, pluginDir
+from .tools import createUid, hex_color, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -564,7 +564,7 @@ class PropertiesDialog(QDialog):
             else:
                 nw = self.page.lineEdit_Name
                 self.layer.name = nw.text().strip() or nw.placeholderText()
-                self.layer.properties = self.page.properties(only_visible=True)
+                self.layer.properties = self.page.properties()
                 self.propertiesAccepted.emit(self.layer)
 
                 if role == QDialogButtonBox.ApplyRole:
@@ -616,15 +616,15 @@ class NorthArrowDialog(QDialog):
         self.ui.buttonBox.clicked.connect(self.buttonClicked)
 
         self.ui.groupBox.setChecked(properties.get("visible", False))
-        self.ui.colorButton.setColor(QColor(properties.get("color", "0x666666").replace("0x", "#")))
+        self.ui.colorButton.setColor(QColor(hex_color(properties.get("color", "#666666"), prefix="#")))
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
         if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
-            visible = self.ui.groupBox.isChecked()
-            color = self.ui.colorButton.color().name().replace("#", "0x")
-            self.propertiesAccepted.emit({"visible": visible,
-                                          "color": color})
+            self.propertiesAccepted.emit({
+                "visible": self.ui.groupBox.isChecked(),
+                "color": hex_color(self.ui.colorButton.color().name(), prefix="0x")
+            })
 
 
 class HFLabelDialog(QDialog):

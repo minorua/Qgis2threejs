@@ -38,7 +38,7 @@ except ModuleNotFoundError:
     raise
 
 from .q3dconst import Script
-from .tools import js_bool, logMessage, pluginDir
+from .tools import hex_color, js_bool, logMessage, pluginDir
 
 
 def base64image(image):
@@ -183,7 +183,7 @@ class Q3DWebPage(QWebPage):
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
             self.runScript("Q3D.Config.northArrow.visible = true;")
-            self.runScript("Q3D.Config.northArrow.color = {};".format(p.get("color", 0)))
+            self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # navigation widget
         if not self.settings.isNavigationEnabled():

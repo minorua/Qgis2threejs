@@ -26,12 +26,12 @@ from PyQt5.QtGui import QColor
 from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils,
                        QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
 
-from .conf import FEATURES_PER_BLOCK, DEBUG_MODE
+from .conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import LayerType, PropertyID as PID
-from .tools import logMessage
+from .tools import css_color, hex_color, int_color, logMessage
 from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
@@ -148,7 +148,8 @@ class VectorLayer:
 
         # attributes
         self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
-        self.labelAttrIndex = self.properties.get("comboBox_Label", None)
+        self.hasLabel = self.properties.get("checkBox_Label", False)
+
         self.fieldIndices = []
         self.fieldNames = []
 
@@ -167,6 +168,10 @@ class VectorLayer:
         beGeom = be.geometry()
         rotation = be.rotation()
         fields = self.mapLayer.fields()
+
+        pid_name_dict = PID.PID_NAME_DICT.copy()
+        if not self.hasLabel:
+            del pid_name_dict[PID.LBLH], pid_name_dict[PID.LBLTXT]
 
         # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
         self.renderer = self.mapLayer.renderer().clone()
@@ -193,29 +198,25 @@ class VectorLayer:
             self.expressionContext.setFeature(f)
 
             # properties
-            props = self.evaluateProperties(f)
+            props = self.evaluateProperties(f, pid_name_dict)
 
-            # attributes and label
-            if self.writeAttrs:
-                attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
+            # attributes
+            attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices] if self.writeAttrs else None
 
-                if self.hasLabel():
-                    props[PID.LBLH] *= mapTo3d.zScale
-            else:
-                attrs = None
+            # label
+            if self.hasLabel:
+                props[PID.LBLH] *= mapTo3d.zScale
 
-            # TODO: props[PID.ATTRS] = attrs
-
-            # TODO: other properties
-
-            # feature object
             yield Feature(self, geom, props, attrs)
 
         self.renderer.stopRender(self.renderContext)
 
-    def evaluateProperties(self, feat):
+    def evaluateProperties(self, feat, pid_name_dict=None):
         d = {}
-        for pid, name in PID.PID_NAME_DICT.items():
+        if pid_name_dict is None:
+            pid_name_dict = PID.PID_NAME_DICT
+
+        for pid, name in pid_name_dict.items():
             p = self.properties.get(name)
             if p is None:
                 continue
@@ -325,7 +326,7 @@ class VectorLayer:
             self.colorNames = self.colorNames or QColor.colorNames()
             color = random.choice(self.colorNames)
             self.colorNames.remove(color)
-            return QColor(color).name().replace("#", "0x")
+            return hex_color(QColor(color).name(), prefix="0x")
 
         # feature color
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
@@ -377,9 +378,6 @@ class VectorLayer:
     def isHeightRelativeToDEM(self):
         return self.properties.get("comboBox_altitudeMode") is not None
 
-    def hasLabel(self):
-        return bool(self.labelAttrIndex is not None)
-
 
 class FeatureBlockBuilder:
 
@@ -425,8 +423,9 @@ class FeatureBlockBuilder:
             if f.attributes is not None:
                 d["prop"] = f.attributes
 
-                if f.hasProp(PID.LBLH):
-                    d["lh"] = f.prop(PID.LBLH)
+            if f.hasProp(PID.LBLH):
+                d["lh"] = f.prop(PID.LBLH)
+                d["lbl"] = str(f.prop(PID.LBLTXT))
 
             feats.append(d)
 
@@ -558,9 +557,24 @@ class VectorLayerBuilder(LayerBuilder):
         if self.vlayer.writeAttrs:
             p["propertyNames"] = self.vlayer.fieldNames
 
-            if self.vlayer.labelAttrIndex is not None:
-                p["label"] = {"index": self.vlayer.labelAttrIndex,
-                              "relative": self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1}
+        if self.vlayer.hasLabel:
+            label = {
+                "relative": bool(self.properties.get("labelHeightWidget", {}).get("comboData", 0) == 1),
+                "font": self.properties.get("comboBox_FontFamily", ""),
+                "size": self.properties.get("slider_FontSize", 3) - 3,
+                "color": css_color(self.properties.get("colorButton_Label", DEF_SETS.LABEL_COLOR))
+            }
+
+            if self.properties.get("checkBox_Outline"):
+                label["olcolor"] = css_color(self.properties.get("colorButton_OtlColor", DEF_SETS.OTL_COLOR))
+
+            if self.properties.get("groupBox_Background"):
+                label["bgcolor"] = css_color(self.properties.get("colorButton_BgColor", DEF_SETS.BG_COLOR))
+
+            if self.properties.get("groupBox_Conn"):
+                label["cncolor"] = int_color(self.properties.get("colorButton_ConnColor", DEF_SETS.CONN_COLOR))
+
+            p["label"] = label
 
         # object-type-specific properties
         # p.update(self.vlayer.ot.layerProperties(self.settings, self))

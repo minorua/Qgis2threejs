@@ -35,6 +35,7 @@ from .q3dcontroller import Q3DController
 from .q3dconst import LayerType, Script
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
+from .tools import hex_color
 from . import tools
 
 
@@ -93,7 +94,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         # scene
         sp = self.settings.sceneProperties()
         if sp.get("radioButton_Color"):
-            options.append("Q3D.Config.bgColor = {0};".format(sp.get("colorButton_Color", 0)))
+            options.append("Q3D.Config.bgColor = {0};".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
 
         if not self.settings.coordDisplay():
             options.append("Q3D.Config.coord.visible = false;")
@@ -115,7 +116,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
             options.append("Q3D.Config.northArrow.visible = true;")
-            options.append("Q3D.Config.northArrow.color = {0};".format(p.get("color", 0)))
+            options.append("Q3D.Config.northArrow.color = {0};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template
         with open(config["path"], "r", encoding="utf-8") as f:

@@ -300,8 +300,8 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         options = options or {}
 
         self.widget.comboBox.clear()
-        self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
         self.widget.comboBox.addItem("Relative", self.RELATIVE)
+        self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
 
         self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
         self.widget.expression.setLayer(self.mapLayer)
