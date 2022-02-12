@@ -228,7 +228,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                    self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
                    self.lineEdit_zFactor,
                    self.radioButton_Color, self.colorButton_Color,
-                   self.groupBox_Fog, self.colorButton_Fog, self.horizontalSlider_Fog,
+                   self.groupBox_Fog, self.colorButton_Fog, self.slider_Fog,
                    self.radioButton_PtLight,
                    self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_WGS84, self.radioButton_NoCoords]

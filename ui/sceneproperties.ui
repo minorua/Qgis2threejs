@@ -237,7 +237,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSlider" name="horizontalSlider_Fog">
+         <widget class="QSlider" name="slider_Fog">
           <property name="minimum">
            <number>1</number>
           </property>

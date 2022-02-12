@@ -65,7 +65,7 @@ class ThreeJSBuilder:
         p["light"] = "point" if sp.get("radioButton_PtLight") else "directional"
 
         if sp.get("groupBox_Fog"):
-            d = sp["horizontalSlider_Fog"]
+            d = sp["slider_Fog"]
             p["fog"] = {
                 "color": int_color(sp["colorButton_Fog"]),
                 "density": (d * d + 0.2) * 0.0002 / be.width()
