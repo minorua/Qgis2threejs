@@ -8,7 +8,7 @@ var Q3D = {VERSION: "2.6"};
 Q3D.Config = {
   // renderer
   texture: {
-    anisotropy: null    // use max available value if this is set to null
+    anisotropy: -4    // zero means max available value. negative value means max / -v.
   },
 
   // scene
@@ -421,7 +421,7 @@ limitations:
       return;
     }
 
-    if (params.anisotropy) Q3D.Config.texture.anisotropy = parseFloat(params.anisotropy) || Q3D.Config.texture.anisotropy;
+    if (params.anisotropy) Q3D.Config.texture.anisotropy = parseFloat(params.anisotropy);
 
     if (params.cx !== undefined) Q3D.Config.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
     if (params.tx !== undefined) Q3D.Config.viewpoint.lookAt  = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
@@ -443,7 +443,16 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
 
-    if (Q3D.Config.texture.anisotropy === null) Q3D.Config.texture.anisotropy = app.renderer.capabilities.getMaxAnisotropy() || 1;
+    if (Q3D.Config.texture.anisotropy <= 0) {
+      var maxAnis = app.renderer.capabilities.getMaxAnisotropy() || 1;
+
+      if (Q3D.Config.texture.anisotropy == 0) {
+        Q3D.Config.texture.anisotropy = maxAnis;
+      }
+      else {
+        Q3D.Config.texture.anisotropy = (maxAnis > -Q3D.Config.texture.anisotropy) ? -maxAnis / Q3D.Config.texture.anisotropy : 1;
+      }
+    }
 
     // outline effect
     if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
