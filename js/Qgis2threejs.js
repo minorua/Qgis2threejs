@@ -6,7 +6,12 @@
 var Q3D = {VERSION: "2.6"};
 
 Q3D.Config = {
+
   // renderer
+  renderer: {
+    hiDpi: true       // HD-DPI support
+  },
+
   texture: {
     anisotropy: -4    // zero means max available value. negative value means max / -v.
   },
@@ -422,6 +427,7 @@ limitations:
       return;
     }
 
+    if (params.hiDpi == "no") conf.renderer.hiDpi = false;
     if (params.anisotropy) conf.texture.anisotropy = parseFloat(params.anisotropy);
 
     if (params.cx !== undefined) conf.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
@@ -440,6 +446,11 @@ limitations:
 
     // WebGLRenderer
     app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+
+    if (conf.renderer.hiDpi) {
+      app.renderer.setPixelRatio(window.devicePixelRatio);
+    }
+
     app.renderer.setSize(app.width, app.height);
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
