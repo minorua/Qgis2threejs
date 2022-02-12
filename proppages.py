@@ -494,8 +494,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         # restore properties
         properties = layer.properties
-
-        properties["checkBox_Sides"] = properties.get("checkBox_Sides", not self.isPlane)
         properties["colorButton_Side"] = properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR)
         properties["colorButton_Edge"] = properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR)                   # added in 2.6
         properties["colorButton_Wireframe"] = properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
@@ -506,9 +504,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             self.altitudeChanged(self.lineEdit_Altitude.text())
 
-        # set enablement and visibility of widgets
+        # set enable and visible properties of widgets
         self.tilesToggled(self.checkBox_Tiles.isChecked())
         self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
+        if not self.checkBox_Sides.isChecked():
+            self.label_Bottom.setVisible(False)
+            self.lineEdit_Bottom.setVisible(False)
 
     def initLayerComboBox(self):
         # list of polygon layers
