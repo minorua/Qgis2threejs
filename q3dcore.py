@@ -1,24 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- Qgis2threejs
-                                 A QGIS plugin
- export terrain data, map canvas image and vector data to web browser
-                              -------------------
-        begin                : 2014-01-16
-        copyright            : (C) 2014 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
+# (C) 2014 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2014-01-16
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 import os
 import struct
 

@@ -1,3 +1,8 @@
+// (C) 2014 Minoru Akagi
+// SPDX-License-Identifier: MIT
+
+"use strict";
+
 Q3D.Config.gui = Q3D.Config.gui || {};
 Q3D.Config.gui.customPlane = false;
 

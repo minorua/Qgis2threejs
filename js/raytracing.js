@@ -1,3 +1,8 @@
+// (C) 2020 Minoru Akagi
+// SPDX-License-Identifier: MIT
+
+"use strict";
+
 Object.assign(Q3D.Config, {
   bgColor: 0,
   lights: [

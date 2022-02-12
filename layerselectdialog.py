@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- LayerSelectDialog
-                             -------------------
-        begin                : 2015-04-22
-        copyright            : (C) 2015 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
+# (C) 2015 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2015-04-22
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 from qgis.core import QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
 from qgis.gui import QgsMapLayerComboBox

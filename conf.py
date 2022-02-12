@@ -1,22 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- DefaultSettings
-                             -------------------
-        begin                : 2015-03-02
-        copyright            : (C) 2015 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
+# (C) 2015 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2015-03-02
 
 # general
 PLUGIN_VERSION = "2.6"

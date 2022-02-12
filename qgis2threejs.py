@@ -1,25 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- Qgis2threejs
-                                 A QGIS plugin
- export terrain data, map canvas image and vector data to web browser
-                              -------------------
-        begin                : 2013-12-21
-        copyright            : (C) 2013 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
+# (C) 2013 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2013-12-21
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-# from PyQt5.QtCore import QSettings, QTranslator, qVersion
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 
@@ -36,17 +19,6 @@ class Qgis2threejs:
     def __init__(self, iface):
         self.iface = iface
         self.pprovider = Qgis2threejsProvider()
-
-        # initialize locale
-        # locale = QSettings().value("locale/userLocale")[0:2]
-        # localePath = os.path.join(self.plugin_dir, 'i18n', 'qgis2threejs_{0}.qm'.format(locale))
-
-        # if os.path.exists(localePath):
-        #  self.translator = QTranslator()
-        #  self.translator.load(localePath)
-
-        #  if qVersion() > '4.3.3':
-        #    QCoreApplication.installTranslator(self.translator)
 
         self.currentProjectPath = None
         self.exportSettings = None

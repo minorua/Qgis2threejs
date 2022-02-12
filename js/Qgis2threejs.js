@@ -1,7 +1,8 @@
-"use strict";
-// Qgis2threejs.js
-// (C) 2014 Minoru Akagi | MIT License
+// (C) 2014 Minoru Akagi
+// SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
+
+"use strict";
 
 var Q3D = {VERSION: "2.6"};
 

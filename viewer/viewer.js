@@ -1,3 +1,6 @@
+// (C) 2014 Minoru Akagi
+// SPDX-License-Identifier: MIT
+
 //// WebKit bridge: access to pyObj object
 function pyData() {
   return pyObj.data();

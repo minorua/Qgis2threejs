@@ -1,23 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- keyframes.py
-
-                              -------------------
-        begin                : 2021-11-10
-        copyright            : (C) 2021 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
+# (C) 2021 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2021-11-10
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor

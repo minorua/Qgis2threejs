@@ -1,26 +1,14 @@
 # -*- coding: utf-8 -*-
+# (C) 2015 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 2015-05-22
 """
-/***************************************************************************
  GSIElevTileProvider
-
-   DEM provider that downloads GSI Tiles (elevation) from the web server of
+     DEM provider that downloads GSI Tiles (elevation) from the web server of
  Geospatial Information Authority of Japan, and provides elevation data to
  Qgis2threejs. Based on GSIElevTileProvider.py of Simple WCS Server project.
-                              -------------------
-        begin                : 2015-05-22
-        copyright            : (C) 2015 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 """
+
 import math
 import numpy
 import struct

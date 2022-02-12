@@ -1,7 +1,7 @@
+// (C) 2018 Minoru Akagi
+// SPDX-License-Identifier: MIT
+
 "use strict";
-// mobile.js
-// (C) 2018 Minoru Akagi | MIT License
-// https://github.com/minorua/Qgis2threejs
 
 Q3D.Config.AR = {
   DH: 1.5,      // device height from ground (in CRS vertical unit)

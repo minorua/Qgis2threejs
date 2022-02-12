@@ -1,7 +1,7 @@
+// (C) 2020 Minoru Akagi
+// SPDX-License-Identifier: MIT
+
 "use strict";
-// pointcloudlayer.js
-// (C) 2020 Minoru Akagi | MIT License
-// https://github.com/minorua/Qgis2threejs
 
 (function () {
   Potree.Global.workerPath = Q3D.Config.potreeBasePath || Potree.Global.workerPath;

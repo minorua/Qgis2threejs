@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- SettingsDialog
-                             -------------------
-        begin                : 2014-01-10
-        copyright            : (C) 2014 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
+# (C) 2014 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2014-01-10
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 import configparser
 import os
 from PyQt5.QtCore import Qt, QDir, QSettings
