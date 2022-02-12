@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>786</width>
-    <height>534</height>
+    <width>862</width>
+    <height>631</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -40,7 +40,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>786</width>
+     <width>862</width>
      <height>26</height>
     </rect>
    </property>
@@ -110,6 +110,7 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
+    <addaction name="actionUsage"/>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
     <addaction name="actionHomePage"/>
@@ -334,7 +335,7 @@
   </action>
   <action name="actionSaveAsImage">
    <property name="text">
-    <string>Image (.png)</string>
+    <string>Image (.png)...</string>
    </property>
   </action>
   <action name="actionResetCameraPosition">
@@ -371,7 +372,7 @@
   </action>
   <action name="actionHelp">
    <property name="text">
-    <string>&amp;Help</string>
+    <string>&amp;Help Contents</string>
    </property>
    <property name="toolTip">
     <string>Open plugin document in default browser.</string>
@@ -395,7 +396,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About Qgis2threejs Plugin</string>
+    <string>About Qgis2threejs Plugin...</string>
    </property>
    <property name="toolTip">
     <string>Display this plugin version.</string>
@@ -411,12 +412,12 @@
   </action>
   <action name="actionSaveAsGLTF">
    <property name="text">
-    <string>glTF (.gltf, .glb)</string>
+    <string>glTF (.gltf, .glb)...</string>
    </property>
   </action>
   <action name="actionClearSettings">
    <property name="text">
-    <string>Clear</string>
+    <string>Clear...</string>
    </property>
   </action>
   <action name="actionConsoleCopy">
@@ -465,6 +466,14 @@
   <action name="actionAddPlane">
    <property name="text">
     <string>Add Flat Plane</string>
+   </property>
+  </action>
+  <action name="actionUsage">
+   <property name="text">
+    <string>Usage of 3D Viewer</string>
+   </property>
+   <property name="toolTip">
+    <string>Show usage of 3D viewer</string>
    </property>
   </action>
  </widget>

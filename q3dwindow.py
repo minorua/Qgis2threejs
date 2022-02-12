@@ -219,6 +219,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraState)
         self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
         self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
+        self.ui.actionUsage.triggered.connect(self.usage)
         self.ui.actionHelp.triggered.connect(self.help)
         self.ui.actionHomePage.triggered.connect(self.homePage)
         self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
@@ -498,6 +499,9 @@ class Q3DWindow(QMainWindow):
         self.show()
 
     # Help menu
+    def usage(self):
+        self.runScript("app.showInfo()")
+
     def help(self):
         QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
 
