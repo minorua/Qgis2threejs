@@ -62,6 +62,8 @@ class ThreeJSBuilder:
         }
 
         sp = self.settings.sceneProperties()
+        p["light"] = "point" if sp.get("radioButton_PtLight") else "directional"
+
         if sp.get("groupBox_Fog"):
             d = sp["horizontalSlider_Fog"]
             p["fog"] = {

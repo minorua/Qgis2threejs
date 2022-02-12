@@ -227,9 +227,10 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         widgets = [self.comboBox_xyShift, self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
                    self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
                    self.lineEdit_zFactor,
-                   self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_Color, self.colorButton_Color,
                    self.groupBox_Fog, self.colorButton_Fog, self.horizontalSlider_Fog,
+                   self.radioButton_PtLight,
+                   self.comboBox_MaterialType, self.checkBox_Outline,
                    self.radioButton_WGS84, self.radioButton_NoCoords]
         self.registerPropertyWidgets(widgets)
 

@@ -35,36 +35,46 @@ Q3D.Config = {
   },
 
   // light
-  lights: [
-    {
-      type: "ambient",
-      color: 0x999999,
-      intensity: 0.8
-    },
-    {
-      type: "directional",
-      color: 0xffffff,
-      intensity: 0.7,
-      azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
-      altitude: 45    // altitude angle in degrees.
-    },
-    {
-      type: "directional",
-      color: 0xffffff,
-      intensity: 0.1,
-      azimuth: 40,
-      altitude: -45
-    }
-  ],
+  lights: {
+    directional: [
+      {
+        type: "ambient",
+        color: 0x999999,
+        intensity: 0.8
+      },
+      {
+        type: "directional",
+        color: 0xffffff,
+        intensity: 0.7,
+        azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
+        altitude: 45    // altitude angle in degrees.
+      }
+    ],
+    point: [
+      {
+        type: "ambient",
+        color: 0x999999,
+        intensity: 0.8
+      },
+      {
+        type: "point",
+        color: 0xffffff,
+        intensity: 0.7,
+        height: 10
+      }
+    ]
+  },
 
   // layer
   allVisible: false,   // set every layer visible property to true on load if set to true
+
   line: {
     dash: {
       dashSize: 1,
       gapSize: 0.5
     }
   },
+
   label: {
     visible: true,
     canvasHeight: 64,
@@ -196,6 +206,22 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
       }
 
+      // light
+      var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
+      if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
+        this.lightGroup.clear();
+        this.buildLights(Q3D.Config.lights[p.light], p.baseExtent.rotation);
+
+        if (p.light == "point") {
+          app.scene.add(app.camera);
+          app.camera.add(this.lightGroup);
+        }
+        else {    // directional
+          app.scene.remove(app.camera);
+          this.add(this.lightGroup);
+        }
+      }
+
       var be = p.baseExtent;
       p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
       p.zShift = -p.origin.z;
@@ -231,12 +257,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 
       this.userData = p;
     }
-
-    // remove all existing lights
-    if (jsonObject.lights !== undefined) this.lightGroup.clear();
-
-    // build lights
-    if (this.lightGroup.children.length == 0) this.buildDefaultLights(p.baseExtent.rotation);
 
     // load layers
     if (jsonObject.layers !== undefined) {
@@ -289,21 +309,27 @@ Q3D.Scene.prototype.buildLights = function (lights, rotation) {
   for (var i = 0; i < lights.length; i++) {
     p = lights[i];
     if (p.type == "ambient") {
-      this.lightGroup.add(new THREE.AmbientLight(p.color, p.intensity));
+      light = new THREE.AmbientLight(p.color, p.intensity);
     }
     else if (p.type == "directional") {
       light = new THREE.DirectionalLight(p.color, p.intensity);
       light.position.copy(Q3D.uv.j)
                     .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
                     .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
-
-      this.lightGroup.add(light);
     }
+    else if (p.type == "point") {
+      light = new THREE.PointLight(p.color, p.intensity);
+      light.position.set(0, 0, p.height);
+    }
+    else {
+      continue;
+    }
+    this.lightGroup.add(light);
   }
 };
 
 Q3D.Scene.prototype.buildDefaultLights = function (rotation) {
-  this.buildLights(Q3D.Config.lights, rotation);
+  this.buildLights(Q3D.Config.lights.directional, rotation);
 };
 
 Q3D.Scene.prototype.requestRender = function () {
@@ -1231,7 +1257,13 @@ limitations:
     }};
 
   app.render = function (updateControls) {
-    if (updateControls) app.controls.update();
+    if (updateControls) {
+      app.controls.update();
+    }
+
+    if (app.camera.parent) {
+      app.camera.updateMatrixWorld();
+    }
 
     // render
     if (app.effect) {
