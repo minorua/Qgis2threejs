@@ -371,6 +371,7 @@ limitations:
   var app = {};
   Q3D.application = app;
 
+  var conf = Q3D.Config;
   var vec3 = new THREE.Vector3();
 
   var listeners = {};
@@ -421,10 +422,10 @@ limitations:
       return;
     }
 
-    if (params.anisotropy) Q3D.Config.texture.anisotropy = parseFloat(params.anisotropy);
+    if (params.anisotropy) conf.texture.anisotropy = parseFloat(params.anisotropy);
 
-    if (params.cx !== undefined) Q3D.Config.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
-    if (params.tx !== undefined) Q3D.Config.viewpoint.lookAt  = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
+    if (params.cx !== undefined) conf.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
+    if (params.tx !== undefined) conf.viewpoint.lookAt  = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
 
     if (params.width && params.height) {
       container.style.width = params.width + "px";
@@ -434,7 +435,7 @@ limitations:
     app.width = container.clientWidth;
     app.height = container.clientHeight;
 
-    var bgcolor = Q3D.Config.bgColor;
+    var bgcolor = conf.bgColor;
     if (bgcolor === null) container.classList.add("sky");
 
     // WebGLRenderer
@@ -443,14 +444,14 @@ limitations:
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
     app.container.appendChild(app.renderer.domElement);
 
-    if (Q3D.Config.texture.anisotropy <= 0) {
+    if (conf.texture.anisotropy <= 0) {
       var maxAnis = app.renderer.capabilities.getMaxAnisotropy() || 1;
 
-      if (Q3D.Config.texture.anisotropy == 0) {
-        Q3D.Config.texture.anisotropy = maxAnis;
+      if (conf.texture.anisotropy == 0) {
+        conf.texture.anisotropy = maxAnis;
       }
       else {
-        Q3D.Config.texture.anisotropy = (maxAnis > -Q3D.Config.texture.anisotropy) ? -maxAnis / Q3D.Config.texture.anisotropy : 1;
+        conf.texture.anisotropy = (maxAnis > -conf.texture.anisotropy) ? -maxAnis / conf.texture.anisotropy : 1;
       }
     }
 
@@ -478,7 +479,7 @@ limitations:
     });
 
     // camera
-    app.buildCamera(Q3D.Config.orthoCamera);
+    app.buildCamera(conf.orthoCamera);
 
     // controls
     if (THREE.OrbitControls) {
@@ -492,15 +493,15 @@ limitations:
     }
 
     // navigation
-    if (Q3D.Config.navigation.enabled && typeof ViewHelper !== "undefined") {
+    if (conf.navigation.enabled && typeof ViewHelper !== "undefined") {
       app.buildViewHelper(document.getElementById("navigation"));
     }
 
     // labels
-    app.labelVisible = Q3D.Config.label.visible;
+    app.labelVisible = conf.label.visible;
 
     // create a marker for queried point
-    var opt = Q3D.Config.qmarker;
+    var opt = conf.qmarker;
     app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r, 32, 32),
                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
 
@@ -513,7 +514,7 @@ limitations:
 
     // event listeners
     app.addEventListener("sceneLoaded", function () {
-      if (Q3D.Config.viewpoint.pos === undefined && Q3D.Config.autoAdjustCameraPos) {
+      if (conf.viewpoint.pos === undefined && conf.autoAdjustCameraPos) {
         app.adjustCameraPosition();
       }
       app.render();
@@ -616,7 +617,7 @@ limitations:
 
     var onload = function () {
       // build North arrow widget
-      if (Q3D.Config.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
+      if (conf.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
 
       if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
     };
@@ -823,7 +824,7 @@ limitations:
     );
     geometry.computeFaceNormals();
 
-    var material = new THREE.MeshLambertMaterial({color: Q3D.Config.northArrow.color, side: THREE.DoubleSide});
+    var material = new THREE.MeshLambertMaterial({color: conf.northArrow.color, side: THREE.DoubleSide});
     var mesh = new THREE.Mesh(geometry, material);
     if (rotation) mesh.rotation.z = -rotation * Q3D.deg2rad;
     app.scene2.add(mesh);
@@ -1232,7 +1233,7 @@ limitations:
     // North arrow
     if (app.renderer2) {
       app.camera.getWorldDirection(vec3);
-      app.camera2.position.copy(vec3.negate().setLength(Q3D.Config.northArrow.cameraDistance));
+      app.camera2.position.copy(vec3.negate().setLength(conf.northArrow.cameraDistance));
       app.camera2.quaternion.copy(app.camera.quaternion);
 
       app.renderer2.render(app.scene2, app.camera2);
@@ -1445,7 +1446,7 @@ limitations:
 
         e = document.getElementById("qr_coords");
 
-        if (Q3D.Config.coord.latlon) {
+        if (conf.coord.latlon) {
           var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
           e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
         }
@@ -1453,7 +1454,7 @@ limitations:
           e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
         }
 
-        if (Q3D.Config.debugMode) {
+        if (conf.debugMode) {
           var p = app.scene.userData,
               be = p.baseExtent;
           e.innerHTML += "<br>WLD: " + [point.x.toFixed(8), point.y.toFixed(8), point.z.toFixed(8)].join(", ");
@@ -1648,7 +1649,7 @@ limitations:
 
       app.highlightFeature(o);
       app.render();
-      app.showQueryResult(obj.point, o, Q3D.Config.coord.visible);
+      app.showQueryResult(obj.point, o, conf.coord.visible);
 
       return;
     }
@@ -1727,7 +1728,7 @@ limitations:
     }
 
     // restore clear color
-    var bgcolor = Q3D.Config.bgColor;
+    var bgcolor = conf.bgColor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
     if ((fill_background && bgcolor === null) || labels.length > 0) {
