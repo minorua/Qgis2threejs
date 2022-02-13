@@ -781,7 +781,14 @@ Q3D.application
               }
 
               if (btn) {
-                btn.innerHTML = (idx == keyframes.length - 1) ? "Close" : "Next";
+                if (idx < keyframes.length - 1) {
+                  btn.className = "nextbtn";
+                  btn.innerHTML =  "";
+                }
+                else {
+                  btn.className = "";
+                  btn.innerHTML = "Close";
+                }
               }
 
               setTimeout(function () {
