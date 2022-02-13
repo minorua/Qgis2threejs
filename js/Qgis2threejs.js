@@ -514,6 +514,9 @@ Q3D.application
       }
 
       switch (e.keyCode) {
+        case 13:  // Enter
+          app.animation.keyframes.resume();
+          return;
         case 27:  // ESC
           if (gui.popup.isVisible()) {
             app.cleanUp();
@@ -999,6 +1002,11 @@ Q3D.application
 
       resume: function () {
 
+        var box = E("narrativebox");
+        if (box && box.classList.contains("visible")) {
+          box.classList.remove("visible");
+        }
+
         if (!this.isPaused) return;
 
         for (var i = 0; i < this._pausedTweens.length; i++) {
@@ -1010,7 +1018,7 @@ Q3D.application
         this.isPaused = false;
 
         app.animate();
-      },
+      }
     },
 
     orbit: {      // orbit animation
@@ -1424,9 +1432,6 @@ Q3D.gui
 
     e = E("nextbtn");
     if (e) e.addEventListener("click", function () {
-      var e = E("narrativebox");
-      if (e) e.classList.remove("visible");
-
       app.animation.keyframes.resume();
     });
 
