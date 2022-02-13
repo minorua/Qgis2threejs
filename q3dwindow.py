@@ -485,7 +485,7 @@ class Q3DWindow(QMainWindow):
 
     # Help menu
     def usage(self):
-        self.runScript("app.showInfo()")
+        self.runScript("gui.showInfo()")
 
     def help(self):
         QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))

@@ -4,7 +4,11 @@
 
 "use strict";
 
-var Q3D = {VERSION: "2.6"};
+var Q3D = {
+  VERSION: "2.6",
+  application: {},
+  gui: {}
+};
 
 Q3D.Config = {
 
@@ -143,8 +147,8 @@ Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
 Q3D.isTouchDevice = ("ontouchstart" in window);
 
-Q3D.$ = function (elementId) {
-  return document.getElementById(elementId);
+Q3D.E = function (id) {
+  return document.getElementById(id);
 };
 
 /*
@@ -168,242 +172,15 @@ Q3D.Group.prototype.clear = function () {
   }
 };
 
-
-/*
-Q3D.Scene -> THREE.Scene -> THREE.Object3D
-
-.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, zShift, (proj))
-*/
-Q3D.Scene = function () {
-  THREE.Scene.call(this);
-  this.autoUpdate = false;
-
-  this.mapLayers = {};    // map layers contained in this scene. key is layerId.
-
-  this.lightGroup = new Q3D.Group();
-  this.add(this.lightGroup);
-
-  this.labelGroup = new Q3D.Group();
-  this.add(this.labelGroup);
-
-  this.labelConnectorGroup = new Q3D.Group();
-  this.add(this.labelConnectorGroup);
-};
-
-Q3D.Scene.prototype = Object.create(THREE.Scene.prototype);
-Q3D.Scene.prototype.constructor = Q3D.Scene;
-
-Q3D.Scene.prototype.add = function (object) {
-  THREE.Scene.prototype.add.call(this, object);
-  object.updateMatrixWorld();
-};
-
-Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
-  if (jsonObject.type == "scene") {
-    var p = jsonObject.properties;
-    if (p !== undefined) {
-      // fog
-      if (p.fog) {
-        this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
-      }
-
-      // light
-      var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
-      if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
-        this.lightGroup.clear();
-        this.buildLights(Q3D.Config.lights[p.light], p.baseExtent.rotation);
-
-        if (p.light == "point") {
-          app.scene.add(app.camera);
-          app.camera.add(this.lightGroup);
-        }
-        else {    // directional
-          app.scene.remove(app.camera);
-          this.add(this.lightGroup);
-        }
-      }
-
-      var be = p.baseExtent;
-      p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
-      p.zShift = -p.origin.z;
-
-      // set initial camera position and parameters
-      if (this.userData.origin === undefined) {
-
-        var s = be.width,
-            v = Q3D.Config.viewpoint,
-            pos, focal;
-
-        if (v.pos === undefined) {
-          v = v.default;
-          if (be.rotation) {
-            v = {
-              pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
-              lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
-            };
-          }
-          pos = v.pos.clone().multiplyScalar(s).add(p.vBEC);
-          focal = v.lookAt.clone().multiplyScalar(s).add(p.vBEC);
-        }
-        else {
-          pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
-          focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
-        }
-
-        var near = 0.001 * s,
-            far = 100 * s;
-
-        this.requestCameraUpdate(pos, focal, near, far);
-      }
-
-      this.userData = p;
-    }
-
-    // load layers
-    if (jsonObject.layers !== undefined) {
-      jsonObject.layers.forEach(function (layer) {
-        this.loadJSONObject(layer);
-      }, this);
-    }
-  }
-  else if (jsonObject.type == "layer") {
-    var layer = this.mapLayers[jsonObject.id];
-    if (layer === undefined) {
-      // console.assert(jsonObject.properties !== undefined);
-
-      // create a layer
-      var type = jsonObject.properties.type;
-      if (type == "dem") layer = new Q3D.DEMLayer();
-      else if (type == "point") layer = new Q3D.PointLayer();
-      else if (type == "line") layer = new Q3D.LineLayer();
-      else if (type == "polygon") layer = new Q3D.PolygonLayer();
-      else if (type == "pc") layer = new Q3D.PointCloudLayer();
-      else {
-        console.error("unknown layer type:" + type);
-        return;
-      }
-      layer.id = jsonObject.id;
-      layer.addEventListener("renderRequest", this.requestRender.bind(this));
-
-      this.mapLayers[jsonObject.id] = layer;
-      this.add(layer.objectGroup);
-    }
-
-    layer.loadJSONObject(jsonObject, this);
-
-    this.requestRender();
-  }
-  else if (jsonObject.type == "block") {
-    var layer = this.mapLayers[jsonObject.layer];
-    if (layer === undefined) {
-      // console.error("layer not exists:" + jsonObject.layer);
-      return;
-    }
-    layer.loadJSONObject(jsonObject, this);
-
-    this.requestRender();
-  }
-};
-
-Q3D.Scene.prototype.buildLights = function (lights, rotation) {
-  var p, light;
-  for (var i = 0; i < lights.length; i++) {
-    p = lights[i];
-    if (p.type == "ambient") {
-      light = new THREE.AmbientLight(p.color, p.intensity);
-    }
-    else if (p.type == "directional") {
-      light = new THREE.DirectionalLight(p.color, p.intensity);
-      light.position.copy(Q3D.uv.j)
-                    .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
-                    .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
-    }
-    else if (p.type == "point") {
-      light = new THREE.PointLight(p.color, p.intensity);
-      light.position.set(0, 0, p.height);
-    }
-    else {
-      continue;
-    }
-    this.lightGroup.add(light);
-  }
-};
-
-Q3D.Scene.prototype.buildDefaultLights = function (rotation) {
-  this.buildLights(Q3D.Config.lights.directional, rotation);
-};
-
-Q3D.Scene.prototype.requestRender = function () {
-  this.dispatchEvent({type: "renderRequest"});
-};
-
-Q3D.Scene.prototype.requestCameraUpdate = function (pos, focal, near, far) {
-  this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
-};
-
-Q3D.Scene.prototype.visibleObjects = function (labelVisible) {
-  var layer, objs = [];
-  for (var id in this.mapLayers) {
-    layer = this.mapLayers[id];
-    if (layer.visible) {
-      objs = objs.concat(layer.objects);
-      if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
-    }
-  }
-  return objs;
-};
-
-// 3D world coordinates to map coordinates
-Q3D.Scene.prototype.toMapCoordinates = function (pt) {
-  var p = this.userData;
-  return {
-    x: p.origin.x + pt.x,
-    y: p.origin.y + pt.y,
-    z: p.origin.z + pt.z / p.zScale
-  };
-};
-
-// map coordinates to 3D world coordinates
-Q3D.Scene.prototype.toWorldCoordinates = function (pt, isLonLat) {
-  var p = this.userData;
-  if (isLonLat && typeof proj4 !== "undefined") {
-    // WGS84 long,lat to map coordinates
-    var t = proj4(p.proj).forward([pt.x, pt.y]);
-    pt = {x: t[0], y: t[1], z: pt.z};
-  }
-
-  return {
-    x: pt.x - p.origin.x,
-    y: pt.y - p.origin.y,
-    z: (pt.z - p.origin.z) * p.zScale
-  };
-};
-
-// return bounding box in 3d world coordinates
-Q3D.Scene.prototype.boundingBox = function () {
-  var box = new THREE.Box3();
-  for (var id in this.mapLayers) {
-    if (this.mapLayers[id].visible) {
-      box.union(this.mapLayers[id].boundingBox());
-    }
-  }
-  return box;
-};
-
-
 /*
 Q3D.application
-
-limitations:
-- one renderer
-- one scene
 */
 (function () {
-  // the application
-  var app = {};
-  Q3D.application = app;
+  var app = Q3D.application,
+      gui = Q3D.gui,
+      conf = Q3D.Config,
+      E = Q3D.E;
 
-  var conf = Q3D.Config;
   var vec3 = new THREE.Vector3();
 
   var listeners = {};
@@ -450,7 +227,7 @@ limitations:
       // open popup window
       var c = window.location.href.split("?");
       window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + params.width + ",height=" + params.height);
-      app.popup.show("Another window has been opened.");
+      gui.popup.show("Another window has been opened.");
       return;
     }
 
@@ -532,7 +309,7 @@ limitations:
 
     // navigation
     if (conf.navigation.enabled && typeof ViewHelper !== "undefined") {
-      app.buildViewHelper(document.getElementById("navigation"));
+      app.buildViewHelper(E("navigation"));
     }
 
     // labels
@@ -564,22 +341,7 @@ limitations:
     app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
     app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
 
-    var e = Q3D.$("closebtn");
-    if (e) e.addEventListener("click", app.closePopup);
-
-    e = Q3D.$("nextbtn");
-    if (e) e.addEventListener("click", function () {
-      var e = document.getElementById("narrativebox");
-      if (e) e.classList.remove("visible");
-
-      app.animation.keyframes.resume();
-    });
-
-    // attribution
-    if (typeof proj4 === "undefined") {
-      e = Q3D.$("lib_proj4js");
-      if (e) e.style.display = "none";
-    }
+    Q3D.gui.init();
   };
 
   app.parseUrlParameters = function () {
@@ -600,12 +362,12 @@ limitations:
     app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
       app.loadingManager.isLoading = false;
 
-      document.getElementById("bar").classList.add("fadeout");
+      E("bar").classList.add("fadeout");
 
       app.dispatchEvent({type: "sceneLoaded"});
     },
     function (url, loaded, total) {   // onProgress
-      document.getElementById("bar").style.width = (loaded / total * 100) + "%";
+      E("bar").style.width = (loaded / total * 100) + "%";
     },
     function () {   // onError
       app.loadingManager.isLoading = false;
@@ -627,7 +389,7 @@ limitations:
 
     var onError = function (e) {
       if (location.protocol == "file:") {
-        app.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/Browser-Support'>plugin wiki page</a> for details.", "Error", true);
+        gui.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/Browser-Support'>plugin wiki page</a> for details.", "Error", true);
       }
     };
 
@@ -655,7 +417,7 @@ limitations:
 
     var onload = function () {
       // build North arrow widget
-      if (conf.northArrow.visible) app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
+      if (conf.northArrow.visible) app.buildNorthArrow(E("northarrow"), app.scene.userData.baseExtent.rotation);
 
       if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
     };
@@ -740,7 +502,7 @@ limitations:
             app.controls.reset();
             return;
           case 83:  // Shift + S
-            app.showPrintDialog();
+            gui.showPrintDialog();
             return;
         }
         return;
@@ -748,15 +510,15 @@ limitations:
 
       switch (e.keyCode) {
         case 27:  // ESC
-          if (Q3D.$("popup").style.display != "none") {
-            app.closePopup();
+          if (gui.popup.isVisible()) {
+            app.cleanUp();
           }
           else if (app.controls.autoRotate) {
             app.setRotateAnimationMode(false);
           }
           return;
         case 73:  // I
-          app.showInfo();
+          gui.showInfo();
           return;
         case 76:  // L
           app.setLabelVisible(!app.labelVisible);
@@ -979,8 +741,8 @@ limitations:
       start: function () {
 
         var _this = this,
-            e = document.getElementById("narrativebox"),
-            btn = document.getElementById("nextbtn"),
+            e = E("narrativebox"),
+            btn = E("nextbtn"),
             currentNarElem;
 
         this.keyframeGroups.forEach(function (group) {
@@ -1005,12 +767,12 @@ limitations:
                 currentNarElem.style.display = "none";
               }
 
-              currentNarElem = document.getElementById(n.id);
+              currentNarElem = E(n.id);
               if (currentNarElem) {
                 currentNarElem.style.display = "block";
               }
               else {    // preview
-                document.getElementById("narbody").innerHTML = n.text;
+                E("narbody").innerHTML = n.text;
               }
 
               if (btn) {
@@ -1355,71 +1117,6 @@ limitations:
     return {top: top, left: left};
   };
 
-  app.popup = {
-
-    timerId: null,
-
-    modal: false,
-
-    // show box
-    // obj: html, element or content id ("queryresult" or "pageinfo")
-    // modal: boolean
-    // duration: int [milliseconds]
-    show: function (obj, title, modal, duration) {
-
-      if (modal) app.pause();
-      else if (this.modal) app.resume();
-
-      this.modal = Boolean(modal);
-
-      var content = Q3D.$("popupcontent");
-      [content, Q3D.$("queryresult"), Q3D.$("pageinfo")].forEach(function (e) {
-        if (e) e.style.display = "none";
-      });
-
-      if (obj == "queryresult" || obj == "pageinfo") {
-        Q3D.$(obj).style.display = "block";
-      }
-      else {
-        if (obj instanceof HTMLElement) {
-          content.innerHTML = "";
-          content.appendChild(obj);
-        }
-        else {
-          content.innerHTML = obj;
-        }
-        content.style.display = "block";
-      }
-      Q3D.$("popupbar").innerHTML = title || "";
-      Q3D.$("popup").style.display = "block";
-
-      if (app.popup.timerId !== null) {
-        clearTimeout(app.popup.timerId);
-        app.popup.timerId = null;
-      }
-
-      if (duration) {
-        app.popup.timerId = setTimeout(function () {
-          app.popup.hide();
-        }, duration);
-      }
-    },
-
-    hide: function () {
-      Q3D.$("popup").style.display = "none";
-      if (app.popup.timerId !== null) clearTimeout(app.popup.timerId);
-      app.popup.timerId = null;
-      if (this.modal) app.resume();
-    }
-
-  };
-
-  app.showInfo = function () {
-    var url = Q3D.$("urlbox");
-    if (url) url.value = app.currentViewUrl();
-    app.popup.show("pageinfo");
-  };
-
   app.queryTargetPosition = new THREE.Vector3();
 
   app.cameraAction = {
@@ -1428,7 +1125,7 @@ limitations:
       if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
       else app.camera.position.set(x, y, z);
       app.render(true);
-      app.closePopup();
+      app.cleanUp();
     },
 
     vecZoom: new THREE.Vector3(0, -1, 1).normalize(),
@@ -1443,7 +1140,7 @@ limitations:
       app.camera.lookAt(vec3);
       if (app.controls.target !== undefined) app.controls.target.copy(vec3);
       app.render(true);
-      app.closePopup();
+      app.cleanUp();
     },
 
     zoomToLayer: function (layer) {
@@ -1464,168 +1161,20 @@ limitations:
       if (x === undefined) app.controls.target.copy(app.queryTargetPosition);
       else app.controls.target.set(x, y, z);
       app.setRotateAnimationMode(true);
-      app.closePopup();
+      app.cleanUp();
     }
 
   };
 
-  app.showQueryResult = function (point, obj, show_coords) {
-    app.queryTargetPosition.copy(point);
+  app.cleanUp = function () {
+    gui.closePopups();
 
-    var layer = app.scene.mapLayers[obj.userData.layerId],
-        e = document.getElementById("qr_layername");
-
-    app.selectedLayer = layer;
-
-    // layer name
-    if (layer && e) e.innerHTML = layer.properties.name;
-
-    // clicked coordinates
-    e = document.getElementById("qr_coords_table");
-    if (e) {
-      if (show_coords) {
-        e.classList.remove("hidden");
-
-        var pt = app.scene.toMapCoordinates(point);
-
-        e = document.getElementById("qr_coords");
-
-        if (conf.coord.latlon) {
-          var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
-          e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
-        }
-        else {
-          e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
-        }
-
-        if (conf.debugMode) {
-          var p = app.scene.userData,
-              be = p.baseExtent;
-          e.innerHTML += "<br>WLD: " + [point.x.toFixed(8), point.y.toFixed(8), point.z.toFixed(8)].join(", ");
-          e.innerHTML += "<br><br>ORG: " + [p.origin.x.toFixed(8), p.origin.y.toFixed(8), p.origin.z.toFixed(8)].join(", ");
-          e.innerHTML += "<br>BE CNTR: " + [be.cx.toFixed(8), be.cy.toFixed(8)].join(", ");
-          e.innerHTML += "<br>BE SIZE: " + [be.width.toFixed(8), be.height.toFixed(8)].join(", ");
-          e.innerHTML += "<br>ROT: " + be.rotation + "<br>Z SC: " + p.zScale;
-        }
-      }
-      else {
-        e.classList.add("hidden");
-      }
-    }
-
-    e = document.getElementById("qr_attrs_table");
-    if (e) {
-      for (var i = e.children.length - 1; i >= 0; i--) {
-        if (e.children[i].tagName.toUpperCase() == "TR") e.removeChild(e.children[i]);
-      }
-
-      if (layer && layer.properties.propertyNames !== undefined) {
-        var row;
-        for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
-          row = document.createElement("tr");
-          row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
-                          "<td>" + obj.userData.properties[i] + "</td>";
-          e.appendChild(row);
-        }
-        e.classList.remove("hidden");
-      }
-      else {
-        e.classList.add("hidden");
-      }
-    }
-    app.popup.show("queryresult");
-  };
-
-  app.showPrintDialog = function () {
-
-    function e(tagName, parent, innerHTML) {
-      var elem = document.createElement(tagName);
-      if (parent) parent.appendChild(elem);
-      if (innerHTML) elem.innerHTML = innerHTML;
-      return elem;
-    }
-
-    var f = e("form");
-    f.className = "print";
-
-    var d1 = e("div", f, "Image Size");
-    d1.style.textDecoration = "underline";
-
-    var d2 = e("div", f),
-        l1 = e("label", d2, "Width:"),
-        width = e("input", d2);
-    d2.style.cssFloat = "left";
-    l1.htmlFor = width.id = width.name = "printwidth";
-    width.type = "text";
-    width.value = app.width;
-    e("span", d2, "px,");
-
-    var d3 = e("div", f),
-        l2 = e("label", d3, "Height:"),
-        height = e("input", d3);
-    l2.htmlFor = height.id = height.name = "printheight";
-    height.type = "text";
-    height.value = app.height;
-    e("span", d3, "px");
-
-    var d4 = e("div", f),
-        ka = e("input", d4);
-    ka.type = "checkbox";
-    ka.checked = true;
-    e("span", d4, "Keep Aspect Ratio");
-
-    var d5 = e("div", f, "Option");
-    d5.style.textDecoration = "underline";
-
-    var d6 = e("div", f),
-        bg = e("input", d6);
-    bg.type = "checkbox";
-    bg.checked = true;
-    e("span", d6, "Fill Background");
-
-    var d7 = e("div", f),
-        ok = e("span", d7, "OK"),
-        cancel = e("span", d7, "Cancel");
-    d7.className = "buttonbox";
-
-    e("input", f).type = "submit";
-
-    // event handlers
-    // width and height boxes
-    var aspect = app.width / app.height;
-
-    width.oninput = function () {
-      if (ka.checked) height.value = Math.round(width.value / aspect);
-    };
-
-    height.oninput = function () {
-      if (ka.checked) width.value = Math.round(height.value * aspect);
-    };
-
-    ok.onclick = function () {
-      app.popup.show("Rendering...");
-      window.setTimeout(function () {
-        app.saveCanvasImage(width.value, height.value, bg.checked);
-      }, 10);
-    };
-
-    cancel.onclick = app.closePopup;
-
-    // enter key pressed
-    f.onsubmit = function () {
-      ok.onclick();
-      return false;
-    };
-
-    app.popup.show(f, "Save Image", true);   // modal
-  };
-
-  app.closePopup = function () {
-    app.popup.hide();
     app.scene.remove(app.queryMarker);
-    app.selectedLayer = null;
     app.highlightFeature(null);
     app.render();
+
+    app.selectedLayer = null;
+
     if (app._canvasImageUrl) {
       URL.revokeObjectURL(app._canvasImageUrl);
       app._canvasImageUrl = null;
@@ -1686,18 +1235,22 @@ limitations:
       layer = app.scene.mapLayers[layerId];
       if (!layer.clickable) break;
 
+      app.selectedLayer = layer;
+
       // query marker
       app.queryMarker.position.copy(obj.point);
       app.queryMarker.scale.setScalar(obj.distance);
       app.scene.add(app.queryMarker);
 
+      app.queryTargetPosition.copy(obj.point);
+
       app.highlightFeature(o);
       app.render();
-      app.showQueryResult(obj.point, o, conf.coord.visible);
+      gui.showQueryResult(obj.point, layer, o, conf.coord.visible);
 
       return;
     }
-    app.closePopup();
+    app.cleanUp();
   };
 
   app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
@@ -1717,7 +1270,7 @@ limitations:
       // ie
       if (window.navigator.msSaveBlob !== undefined) {
         window.navigator.msSaveBlob(blob, filename);
-        app.popup.hide();
+        gui.popup.hide();
       }
       else {
         // create object url
@@ -1730,7 +1283,7 @@ limitations:
         e.href = app._canvasImageUrl;
         e.download = filename;
         e.innerHTML = "Save";
-        app.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
+        gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
       }
     };
 
@@ -1810,6 +1363,263 @@ limitations:
   };
 })();
 
+/*
+Q3D.gui
+*/
+(function () {
+  var app = Q3D.application,
+      gui = Q3D.gui,
+      conf = Q3D.Config,
+      E = Q3D.E;
+
+  var timerId = null;
+
+  gui.modules = [];
+
+  gui.init = function () {
+    var e = E("menu");
+    if (e) e.onclick = function () {
+      E("dropdown").classList.toggle("visible");
+    };
+
+    e = E("closebtn");
+    if (e) e.addEventListener("click", app.cleanUp);
+
+    e = E("nextbtn");
+    if (e) e.addEventListener("click", function () {
+      var e = E("narrativebox");
+      if (e) e.classList.remove("visible");
+
+      app.animation.keyframes.resume();
+    });
+
+    // attribution
+    if (typeof proj4 === "undefined") {
+      e = E("lib_proj4js");
+      if (e) e.style.display = "none";
+    }
+  };
+
+  gui.closePopups = function () {
+    gui.popup.hide();
+
+    var e = E("dropdown");
+    if (e) e.classList.remove("visible");
+  };
+
+  gui.popup = {
+
+    modal: false,
+
+    isVisible: function () {
+      return E("popup").style.display != "none";
+    },
+
+    // show box
+    // obj: html, element or content id ("queryresult" or "pageinfo")
+    // modal: boolean
+    // duration: int [milliseconds]
+    show: function (obj, title, modal, duration) {
+
+      if (modal) app.pause();
+      else if (this.modal) app.resume();
+
+      this.modal = Boolean(modal);
+
+      var content = E("popupcontent");
+      [content, E("queryresult"), E("pageinfo")].forEach(function (e) {
+        if (e) e.style.display = "none";
+      });
+
+      if (obj == "queryresult" || obj == "pageinfo") {
+        E(obj).style.display = "block";
+      }
+      else {
+        if (obj instanceof HTMLElement) {
+          content.innerHTML = "";
+          content.appendChild(obj);
+        }
+        else {
+          content.innerHTML = obj;
+        }
+        content.style.display = "block";
+      }
+      E("popupbar").innerHTML = title || "";
+      E("popup").style.display = "block";
+
+      if (timerId !== null) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
+
+      if (duration) {
+        timerId = setTimeout(function () {
+          gui.popup.hide();
+        }, duration);
+      }
+    },
+
+    hide: function () {
+      E("popup").style.display = "none";
+      if (timerId !== null) clearTimeout(timerId);
+      timerId = null;
+      if (this.modal) app.resume();
+    }
+
+  };
+
+  gui.showInfo = function () {
+    var e = E("urlbox");
+    if (e) e.value = app.currentViewUrl();
+    gui.popup.show("pageinfo");
+    return false;
+  };
+
+  gui.showQueryResult = function (point, layer, obj, show_coords) {
+    // layer name
+    var e = E("qr_layername");
+    if (layer && e) e.innerHTML = layer.properties.name;
+
+    // clicked coordinates
+    e = E("qr_coords_table");
+    if (e) {
+      if (show_coords) {
+        e.classList.remove("hidden");
+
+        var pt = app.scene.toMapCoordinates(point);
+
+        e = E("qr_coords");
+
+        if (conf.coord.latlon) {
+          var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
+          e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
+        }
+        else {
+          e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
+        }
+
+        if (conf.debugMode) {
+          var p = app.scene.userData,
+              be = p.baseExtent;
+          e.innerHTML += "<br>WLD: " + [point.x.toFixed(8), point.y.toFixed(8), point.z.toFixed(8)].join(", ");
+          e.innerHTML += "<br><br>ORG: " + [p.origin.x.toFixed(8), p.origin.y.toFixed(8), p.origin.z.toFixed(8)].join(", ");
+          e.innerHTML += "<br>BE CNTR: " + [be.cx.toFixed(8), be.cy.toFixed(8)].join(", ");
+          e.innerHTML += "<br>BE SIZE: " + [be.width.toFixed(8), be.height.toFixed(8)].join(", ");
+          e.innerHTML += "<br>ROT: " + be.rotation + "<br>Z SC: " + p.zScale;
+        }
+      }
+      else {
+        e.classList.add("hidden");
+      }
+    }
+
+    e = E("qr_attrs_table");
+    if (e) {
+      for (var i = e.children.length - 1; i >= 0; i--) {
+        if (e.children[i].tagName.toUpperCase() == "TR") e.removeChild(e.children[i]);
+      }
+
+      if (layer && layer.properties.propertyNames !== undefined) {
+        var row;
+        for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
+          row = document.createElement("tr");
+          row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
+                          "<td>" + obj.userData.properties[i] + "</td>";
+          e.appendChild(row);
+        }
+        e.classList.remove("hidden");
+      }
+      else {
+        e.classList.add("hidden");
+      }
+    }
+    gui.popup.show("queryresult");
+  };
+
+  gui.showPrintDialog = function () {
+
+    function e(tagName, parent, innerHTML) {
+      var elem = document.createElement(tagName);
+      if (parent) parent.appendChild(elem);
+      if (innerHTML) elem.innerHTML = innerHTML;
+      return elem;
+    }
+
+    var f = e("form");
+    f.className = "print";
+
+    var d1 = e("div", f, "Image Size");
+    d1.style.textDecoration = "underline";
+
+    var d2 = e("div", f),
+        l1 = e("label", d2, "Width:"),
+        width = e("input", d2);
+    d2.style.cssFloat = "left";
+    l1.htmlFor = width.id = width.name = "printwidth";
+    width.type = "text";
+    width.value = app.width;
+    e("span", d2, "px,");
+
+    var d3 = e("div", f),
+        l2 = e("label", d3, "Height:"),
+        height = e("input", d3);
+    l2.htmlFor = height.id = height.name = "printheight";
+    height.type = "text";
+    height.value = app.height;
+    e("span", d3, "px");
+
+    var d4 = e("div", f),
+        ka = e("input", d4);
+    ka.type = "checkbox";
+    ka.checked = true;
+    e("span", d4, "Keep Aspect Ratio");
+
+    var d5 = e("div", f, "Option");
+    d5.style.textDecoration = "underline";
+
+    var d6 = e("div", f),
+        bg = e("input", d6);
+    bg.type = "checkbox";
+    bg.checked = true;
+    e("span", d6, "Fill Background");
+
+    var d7 = e("div", f),
+        ok = e("span", d7, "OK"),
+        cancel = e("span", d7, "Cancel");
+    d7.className = "buttonbox";
+
+    e("input", f).type = "submit";
+
+    // event handlers
+    // width and height boxes
+    var aspect = app.width / app.height;
+
+    width.oninput = function () {
+      if (ka.checked) height.value = Math.round(width.value / aspect);
+    };
+
+    height.oninput = function () {
+      if (ka.checked) width.value = Math.round(height.value * aspect);
+    };
+
+    ok.onclick = function () {
+      gui.popup.show("Rendering...");
+      window.setTimeout(function () {
+        app.saveCanvasImage(width.value, height.value, bg.checked);
+      }, 10);
+    };
+
+    cancel.onclick = app.cleanUp;
+
+    // enter key pressed
+    f.onsubmit = function () {
+      ok.onclick();
+      return false;
+    };
+
+    gui.popup.show(f, "Save Image", true);   // modal
+  };
+})();
 
 /*
 Q3D.Material
@@ -1973,6 +1783,227 @@ Q3D.Material.prototype = {
       this._listener = undefined;
     }
   }
+};
+
+/*
+Q3D.Scene -> THREE.Scene -> THREE.Object3D
+
+.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, zShift, (proj))
+*/
+Q3D.Scene = function () {
+  THREE.Scene.call(this);
+  this.autoUpdate = false;
+
+  this.mapLayers = {};    // map layers contained in this scene. key is layerId.
+
+  this.lightGroup = new Q3D.Group();
+  this.add(this.lightGroup);
+
+  this.labelGroup = new Q3D.Group();
+  this.add(this.labelGroup);
+
+  this.labelConnectorGroup = new Q3D.Group();
+  this.add(this.labelConnectorGroup);
+};
+
+Q3D.Scene.prototype = Object.create(THREE.Scene.prototype);
+Q3D.Scene.prototype.constructor = Q3D.Scene;
+
+Q3D.Scene.prototype.add = function (object) {
+  THREE.Scene.prototype.add.call(this, object);
+  object.updateMatrixWorld();
+};
+
+Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
+  if (jsonObject.type == "scene") {
+    var p = jsonObject.properties;
+    if (p !== undefined) {
+      // fog
+      if (p.fog) {
+        this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
+      }
+
+      // light
+      var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
+      if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
+        this.lightGroup.clear();
+        this.buildLights(Q3D.Config.lights[p.light], p.baseExtent.rotation);
+
+        if (p.light == "point") {
+          app.scene.add(app.camera);
+          app.camera.add(this.lightGroup);
+        }
+        else {    // directional
+          app.scene.remove(app.camera);
+          this.add(this.lightGroup);
+        }
+      }
+
+      var be = p.baseExtent;
+      p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
+      p.zShift = -p.origin.z;
+
+      // set initial camera position and parameters
+      if (this.userData.origin === undefined) {
+
+        var s = be.width,
+            v = Q3D.Config.viewpoint,
+            pos, focal;
+
+        if (v.pos === undefined) {
+          v = v.default;
+          if (be.rotation) {
+            v = {
+              pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
+              lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
+            };
+          }
+          pos = v.pos.clone().multiplyScalar(s).add(p.vBEC);
+          focal = v.lookAt.clone().multiplyScalar(s).add(p.vBEC);
+        }
+        else {
+          pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
+          focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
+        }
+
+        var near = 0.001 * s,
+            far = 100 * s;
+
+        this.requestCameraUpdate(pos, focal, near, far);
+      }
+
+      this.userData = p;
+    }
+
+    // load layers
+    if (jsonObject.layers !== undefined) {
+      jsonObject.layers.forEach(function (layer) {
+        this.loadJSONObject(layer);
+      }, this);
+    }
+  }
+  else if (jsonObject.type == "layer") {
+    var layer = this.mapLayers[jsonObject.id];
+    if (layer === undefined) {
+      // console.assert(jsonObject.properties !== undefined);
+
+      // create a layer
+      var type = jsonObject.properties.type;
+      if (type == "dem") layer = new Q3D.DEMLayer();
+      else if (type == "point") layer = new Q3D.PointLayer();
+      else if (type == "line") layer = new Q3D.LineLayer();
+      else if (type == "polygon") layer = new Q3D.PolygonLayer();
+      else if (type == "pc") layer = new Q3D.PointCloudLayer();
+      else {
+        console.error("unknown layer type:" + type);
+        return;
+      }
+      layer.id = jsonObject.id;
+      layer.addEventListener("renderRequest", this.requestRender.bind(this));
+
+      this.mapLayers[jsonObject.id] = layer;
+      this.add(layer.objectGroup);
+    }
+
+    layer.loadJSONObject(jsonObject, this);
+
+    this.requestRender();
+  }
+  else if (jsonObject.type == "block") {
+    var layer = this.mapLayers[jsonObject.layer];
+    if (layer === undefined) {
+      // console.error("layer not exists:" + jsonObject.layer);
+      return;
+    }
+    layer.loadJSONObject(jsonObject, this);
+
+    this.requestRender();
+  }
+};
+
+Q3D.Scene.prototype.buildLights = function (lights, rotation) {
+  var p, light;
+  for (var i = 0; i < lights.length; i++) {
+    p = lights[i];
+    if (p.type == "ambient") {
+      light = new THREE.AmbientLight(p.color, p.intensity);
+    }
+    else if (p.type == "directional") {
+      light = new THREE.DirectionalLight(p.color, p.intensity);
+      light.position.copy(Q3D.uv.j)
+                    .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
+                    .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
+    }
+    else if (p.type == "point") {
+      light = new THREE.PointLight(p.color, p.intensity);
+      light.position.set(0, 0, p.height);
+    }
+    else {
+      continue;
+    }
+    this.lightGroup.add(light);
+  }
+};
+
+Q3D.Scene.prototype.buildDefaultLights = function (rotation) {
+  this.buildLights(Q3D.Config.lights.directional, rotation);
+};
+
+Q3D.Scene.prototype.requestRender = function () {
+  this.dispatchEvent({type: "renderRequest"});
+};
+
+Q3D.Scene.prototype.requestCameraUpdate = function (pos, focal, near, far) {
+  this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
+};
+
+Q3D.Scene.prototype.visibleObjects = function (labelVisible) {
+  var layer, objs = [];
+  for (var id in this.mapLayers) {
+    layer = this.mapLayers[id];
+    if (layer.visible) {
+      objs = objs.concat(layer.objects);
+      if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
+    }
+  }
+  return objs;
+};
+
+// 3D world coordinates to map coordinates
+Q3D.Scene.prototype.toMapCoordinates = function (pt) {
+  var p = this.userData;
+  return {
+    x: p.origin.x + pt.x,
+    y: p.origin.y + pt.y,
+    z: p.origin.z + pt.z / p.zScale
+  };
+};
+
+// map coordinates to 3D world coordinates
+Q3D.Scene.prototype.toWorldCoordinates = function (pt, isLonLat) {
+  var p = this.userData;
+  if (isLonLat && typeof proj4 !== "undefined") {
+    // WGS84 long,lat to map coordinates
+    var t = proj4(p.proj).forward([pt.x, pt.y]);
+    pt = {x: t[0], y: t[1], z: pt.z};
+  }
+
+  return {
+    x: pt.x - p.origin.x,
+    y: pt.y - p.origin.y,
+    z: (pt.z - p.origin.z) * p.zScale
+  };
+};
+
+// return bounding box in 3d world coordinates
+Q3D.Scene.prototype.boundingBox = function () {
+  var box = new THREE.Box3();
+  for (var id in this.mapLayers) {
+    if (this.mapLayers[id].visible) {
+      box.union(this.mapLayers[id].boundingBox());
+    }
+  }
+  return box;
 };
 
 /*

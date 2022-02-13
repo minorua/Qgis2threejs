@@ -102,14 +102,14 @@ var container = document.getElementById("view"),
     gui = Q3D.gui;
 
 app.init(container);    // initialize viewer
-gui.init();             // initialize dat-gui panel
+gui.dat.init();             // initialize dat-gui panel
 
 // load the scene
 app.loadSceneFile("${scenefile}", function (scene) {
   // scene file has been loaded
   app.start();
 
-  gui.initLayersFolder(scene);
+  gui.dat.initLayersFolder(scene);
 
 }, function (scene) {
   // all relevant files have been loaded
@@ -117,7 +117,7 @@ app.loadSceneFile("${scenefile}", function (scene) {
   if (Q3D.Config.gui.customPlane) {
     var zMin = undefined,
         zMax = undefined;
-    gui.initCustomPlaneFolder(zMin, zMax);
+    gui.dat.initCustomPlaneFolder(zMin, zMax);
   }
 });
 </script>

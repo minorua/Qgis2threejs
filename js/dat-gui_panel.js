@@ -6,7 +6,7 @@
 Q3D.Config.gui = Q3D.Config.gui || {};
 Q3D.Config.gui.customPlane = false;
 
-Q3D.gui = {
+Q3D.gui.dat = {
 
   type: "dat-gui",
 
@@ -29,11 +29,12 @@ Q3D.gui = {
   // - setupDefaultItems: default is true
   // - params: parameter values to pass to dat.GUI constructor
   init: function (setupDefaultItems, params) {
+    setupDefaultItems = (setupDefaultItems === undefined) ? true : setupDefaultItems;
 
     this.gui = new dat.GUI(params);
     this.gui.domElement.parentElement.style.zIndex = 2000;   // display the panel on the front of labels
 
-    if (setupDefaultItems === undefined || setupDefaultItems == true) {
+    if (setupDefaultItems) {
       this.layersFolder = this.gui.addFolder('Layers');
       if (Q3D.Config.gui.customPlane) this.customPlaneFolder = this.gui.addFolder('Custom Plane');
       if (window.TWEEN !== undefined) this.addAnimationFolder();
@@ -77,7 +78,7 @@ Q3D.gui = {
 
   initCustomPlaneFolder: function (zMin, zMax) {
     var app = Q3D.application,
-        gui = Q3D.gui;
+        gui = Q3D.gui.dat;
 
     var scene = app.scene,
         p = scene.userData,
@@ -165,5 +166,6 @@ Q3D.gui = {
   addHelpButton: function () {
     this.gui.add(this.parameters, 'i').name('Help');
   }
-
 };
+
+Q3D.gui.modules.push(Q3D.gui.dat);

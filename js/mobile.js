@@ -152,7 +152,7 @@ function init() {
     var active = document.getElementById("info-button").classList.contains("pressed");
     hideAll();
     if (!active) {
-      app.showInfo();
+      gui.showInfo();
       document.getElementById("info-button").classList.add("pressed");
     }
   });
@@ -292,13 +292,13 @@ function stopARMode() {
 }
 
 function getCurrentPosition (callback) {
-  app.popup.show("Fetching current location...");
+  gui.popup.show("Fetching current location...");
 
   navigator.geolocation.getCurrentPosition(function (position) {
     // error message if failed to get current position
     var pos = position.coords;
     if (pos.longitude === undefined || pos.latitude === undefined || pos.altitude === undefined) {
-      app.popup.show("Could not fetch current location.", "", false, 3000);
+      gui.popup.show("Could not fetch current location.", "", false, 3000);
       return;
     }
 
@@ -320,10 +320,10 @@ function getCurrentPosition (callback) {
     var acc = Number.parseFloat(pos.accuracy);
     acc = (acc > 2) ? acc.toFixed(0) : acc.toFixed(1);
     var msg = "Accuracy: <span class='accuracy'>" + acc + "</span>m";
-    app.popup.show(msg, "Current location", false, 5000);
+    gui.popup.show(msg, "Current location", false, 5000);
   },
   function (error) {
-    app.popup.hide();
+    gui.popup.hide();
     alert("Cannot get current location: " + error.message);
   },
   {enableHighAccuracy: true});
@@ -360,12 +360,12 @@ function hideAll() {
   document.getElementById("settings").classList.add("hidden");
   document.getElementById("settings-button").classList.remove("pressed");
 
-  app.popup.hide();
+  gui.popup.hide();
   document.getElementById("info-button").classList.remove("pressed");
 }
 
-app.popup._hide = app.popup.hide;
-app.popup.hide = function () {
+gui.popup._hide = gui.popup.hide;
+gui.popup.hide = function () {
   document.getElementById("info-button").classList.remove("pressed");
-  app.popup._hide();
+  gui.popup._hide();
 };

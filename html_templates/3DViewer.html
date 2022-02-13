@@ -87,7 +87,7 @@ ${scripts}
   <div class="zoombtn"></div>
 </div>
 <div id="dropdown">
-  <a href="#" onclick="app.showInfo()">About</a>
+  <a href="#" onclick="return gui.showInfo()">About</a>
 </div>
 
 <!-- header and footer -->
@@ -107,7 +107,8 @@ Q3D.Config.allVisible = true;
 ${options}
 
 var container = document.getElementById("view"),
-    app = Q3D.application;
+    app = Q3D.application,
+    gui = Q3D.gui;
 
 app.init(container);       // initialize viewer
 
@@ -119,8 +120,6 @@ app.loadSceneFile("${scenefile}", function (scene) {
   // all relevant files have been loaded
 
 });
-
-document.getElementById("infobtn").onclick = app.showInfo;
 </script>
 </body>
 </html>

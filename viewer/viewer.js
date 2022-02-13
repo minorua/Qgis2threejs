@@ -10,7 +10,8 @@ function pyData() {
 Q3D.Config.potreeBasePath = document.currentScript.src + "/../../js/potree-core";
 
 
-var app = Q3D.application;
+var app = Q3D.application,
+    gui = Q3D.gui;
 app.timer = {tickCount: 0};
 
 
@@ -453,7 +454,7 @@ app._saveCanvasImage = app.saveCanvasImage;
 app.saveCanvasImage = function (width, height, fill_background) {
   var saveCanvasImage = function (canvas) {
     pyObj.saveImage(width, height, canvas.toDataURL("image/png"));
-    app.popup.hide();
+    gui.popup.hide();
   };
   app._saveCanvasImage(width, height, fill_background, saveCanvasImage);
 };
