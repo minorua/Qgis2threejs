@@ -24,12 +24,12 @@ ${scripts}
     <!-- query result -->
     <div id="queryresult">
       <table id="qr_layername_table">
-        <caption>Layer <div class="action-zoom" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)">Zoom</div></caption>
+        <caption>Layer <div class="action-zoom zoombtn" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)"></div></caption>
         <tr><td id="qr_layername"></td></tr>
       </table>
 
       <table id="qr_coords_table">
-        <caption>Clicked coordinates <div class="action-zoom" onclick="app.cameraAction.zoom()">Zoom</div></caption>
+        <caption>Clicked coordinates <div class="action-zoom zoombtn" onclick="app.cameraAction.zoom()"></div></caption>
         <tr><td id="qr_coords"></td></tr>
       </table>
 
@@ -67,7 +67,7 @@ ${scripts}
       </table>
 
       <h1>About</h1>
-      <div id="about">
+      <div id="about"><img src="./Qgis2threejs.png">
         This page was made with <a href="https://www.qgis.org/">QGIS</a> and <a href="https://github.com/minorua/Qgis2threejs">Qgis2threejs</a> plugin (version ${version}).
         <div>Powered by <a href="https://threejs.org/">three.js</a>
         <span id="lib_proj4js"> and <a href="https://trac.osgeo.org/proj4js/">Proj4js</a></span>.</div>
@@ -79,9 +79,20 @@ ${scripts}
 <!-- progress bar -->
 <div id="progress"><div id="bar"></div></div>
 
+<!-- menu -->
+<div id="menubar">
+  <div id="menu"></div>
+  <div id="playbtn"></div>
+  <div id="pausebtn"></div>
+  <div class="zoombtn"></div>
+</div>
+<div id="dropdown">
+  <a href="#" onclick="app.showInfo()">About</a>
+</div>
+
 <!-- header and footer -->
 <div id="header">${header}</div>
-<div id="footer"><span id="infobtn"><img src="./Qgis2threejs.png"></span> ${footer}</div>
+<div id="footer">${footer}</div>
 
 <!-- animation -->
 <div id="narrativebox" class="ef1">
