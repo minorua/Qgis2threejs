@@ -37,7 +37,7 @@ Q3D.gui.dat = {
     if (setupDefaultItems) {
       this.layersFolder = this.gui.addFolder('Layers');
       if (Q3D.Config.gui.customPlane) this.customPlaneFolder = this.gui.addFolder('Custom Plane');
-      if (window.TWEEN !== undefined) this.addAnimationFolder();
+      if (Q3D.Config.animation.enabled) this.addAnimationFolder();
       if (Q3D.isTouchDevice) this.addCommandsFolder();
       this.addHelpButton();
     }
@@ -134,26 +134,27 @@ Q3D.gui.dat = {
   },
 
   addAnimationFolder: function () {
-    var k = Q3D.application.animation.keyframes;
+    var app = Q3D.application,
+        anim = app.animation.keyframes;
     var btn, folder = this.gui.addFolder('Animation');
 
     this.parameters.anm = {
       p: function () {
-        if (k.isActive) {
-          k.pause();
+        if (anim.isActive) {
+          anim.pause();
           btn.name('Resume');
         }
         else {
-          if (k.isPaused) k.resume();
-          else k.start();
+          if (anim.isPaused) anim.resume();
+          else anim.start();
           btn.name('Pause');
         }
     }};
     btn = folder.add(this.parameters.anm, 'p').name('Play');
 
-    k.onStop = function () {
+    app.addEventListener('animationStopped', function () {
       btn.name('Play');
-    };
+    });
   },
 
   // add commands folder for touch screen devices

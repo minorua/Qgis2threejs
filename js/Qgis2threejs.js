@@ -34,11 +34,6 @@ Q3D.Config = {
     }
   },
 
-  // navigation widget
-  navigation: {
-    enabled: true
-  },
-
   // light
   lights: {
     directional: [
@@ -86,13 +81,23 @@ Q3D.Config = {
     clickable: true
   },
 
-  // decoration
+  // widgets
+  navigation: {
+    enabled: true
+  },
+
   northArrow: {
     color: 0x8b4513,
     cameraDistance: 30,
     visible: false
   },
 
+  // animation
+  animation: {
+    enabled: false
+  },
+
+  // others
   qmarker: {
     r: 0.004,
     c: 0xffff00,
@@ -341,7 +346,7 @@ Q3D.application
     app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
     app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
 
-    Q3D.gui.init();
+    gui.init();
   };
 
   app.parseUrlParameters = function () {
@@ -958,6 +963,7 @@ Q3D.application
         });
 
         app.animation.isActive = this.isActive = true;
+        app.dispatchEvent({type: "animationStarted"});
         app.animate();
       },
 
@@ -968,7 +974,7 @@ Q3D.application
         app.animation.isActive = this.isActive = this.isPaused = false;
         this._pausedTweens = null;
 
-        app.dispatchEvent({type: "animationStopped"});  // to notify the exporter that animation has been stopped
+        app.dispatchEvent({type: "animationStopped"});
       },
 
       pause: function () {
@@ -1381,6 +1387,30 @@ Q3D.gui
     if (e) e.onclick = function () {
       E("dropdown").classList.toggle("visible");
     };
+
+    e = E("menubar");
+    if (conf.animation.enabled && e) {
+      var anim = app.animation.keyframes;
+      var btn = document.createElement("div");
+      btn.id = "animbtn";
+      btn.className = "playbtn";
+      btn.onclick = function () {
+        if (anim.isActive) {
+          anim.pause();
+          btn.className = "playbtn";
+        }
+        else {
+          if (anim.isPaused) anim.resume();
+          else anim.start();
+          btn.className = "pausebtn";
+        }
+      };
+      e.appendChild(btn);
+
+      app.addEventListener('animationStopped', function () {
+        btn.className = "playbtn";
+      });
+    }
 
     e = E("closebtn");
     if (e) e.addEventListener("click", app.cleanUp);

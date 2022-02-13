@@ -157,8 +157,12 @@ class ExportToWebDialog(QDialog):
                     return
 
         # animation settings
+        anim_enabled = self.ui.checkBox_Animation.isChecked()
+        if anim_enabled:
+            self.settings.setOption("animation.enabled", True)
+
         keyframeData = self.settings.animationData()
-        keyframeData["enabled"] = self.ui.checkBox_Animation.isChecked()
+        keyframeData["enabled"] = anim_enabled
         keyframeData["cmgIndex"] = self.ui.comboBox_CameraMotion.currentIndex() - 1
 
         # make a copy of export settings
