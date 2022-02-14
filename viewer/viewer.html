@@ -87,12 +87,12 @@
     <!-- query result -->
     <div id="queryresult">
       <table id="qr_layername_table">
-        <caption>Layer <div class="action-zoom" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)">Zoom</div></caption>
+        <caption>Layer <div class="action-zoom zoombtn" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)"></div></caption>
         <tr><td id="qr_layername"></td></tr>
       </table>
 
       <table id="qr_coords_table">
-        <caption>Clicked coordinates <div class="action-zoom" onclick="app.cameraAction.zoom()">Zoom</div></caption>
+        <caption>Clicked coordinates <div class="action-zoom zoombtn" onclick="app.cameraAction.zoom()"></div></caption>
         <tr><td id="qr_coords"></td></tr>
       </table>
 
@@ -146,7 +146,7 @@
 <!-- animation -->
 <div id="narrativebox" class="ef1">
   <div id="narbody"></div>
-  <div id="nextbtn">Next</div>
+  <div id="nextbtn"></div>
 </div>
 
 <div id="cover"></div>
