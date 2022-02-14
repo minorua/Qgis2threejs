@@ -322,6 +322,8 @@ function switchCamera(is_ortho) {
 
   console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
 
+  app.setLightGroupParent(app.scene.userData.light);
+
   if (app.viewHelper !== undefined) {
     app.buildViewHelper(document.getElementById("navigation"));
   }
