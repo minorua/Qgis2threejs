@@ -57,7 +57,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # animation
         if self.settings.isAnimationEnabled():
-            json_object["animation"] = self.settings.animationData(export=True)
+            json_object["animation"] = self.settings.animationData(export=True, warning_log=self.warning_log)
 
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
@@ -263,6 +263,9 @@ class ThreeJSExporter(ThreeJSBuilder):
                     files.append(f)
 
         return ['<script src="%s"></script>' % fn for fn in files]
+
+    def warning_log(self, msg):
+        self.log(msg, warning=True)
 
 
 class BridgeExporterBase:

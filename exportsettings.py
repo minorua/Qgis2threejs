@@ -15,7 +15,7 @@ from .conf import DEF_SETS, SHIFT_THRESHOLD, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, geomTypeFromMapLayer
-from .q3dconst import LayerType
+from .q3dconst import ATConst, LayerType
 from .tools import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
 
@@ -457,7 +457,53 @@ class ExportSettings:
     def isAnimationEnabled(self):
         return self.data.get(ExportSettings.KEYFRAMES, {}).get("enabled", False)
 
-    def animationData(self, layerId=None, export=False):
+    def enabledValidKeyframeGroups(self, warning_log=None):
+        # for warnings
+        def warn_one_keyframe(group):
+            if warning_log:
+                warning_log("'{}' group has only one keyframe. At least two keyframes are necessary for this group to work.".format(group["name"]))
+
+        d = self.data.get(ExportSettings.KEYFRAMES, {})
+
+        # camera motion
+        count = 0
+        for group in d.get("camera", {}).get("groups", []):
+            if group["enabled"]:
+                if len(group["keyframes"]) > 1:
+                    count += 1
+                    yield group
+                else:
+                    warn_one_keyframe(group)
+
+        if count > 1 and warning_log:
+            warning_log("There are {} enabled camera motion groups. They may not work properly due to conflicts.".format(count))
+
+        # layer animation
+        idsToExport = self.mapLayerIdsToExport()
+        for layerId, layer in d.get("layers", {}).items():
+            if layerId not in idsToExport:
+                continue
+
+            for group in layer["groups"]:
+                if not group["enabled"]:
+                    continue
+
+                if group["type"] == ATConst.ITEM_GROWING_LINE:
+                    yield group
+
+                elif len(group["keyframes"]) > 1:
+                    yield group
+
+                else:
+                    warn_one_keyframe(group)
+
+    def hasEnabledValidKeyframeGroup(self):
+        for _ in self.enabledValidKeyframeGroups():
+            return True
+
+        return False
+
+    def animationData(self, layerId=None, export=False, warning_log=None):
         d = self.data.get(ExportSettings.KEYFRAMES, {})
         if not export:
             if layerId:
@@ -468,21 +514,9 @@ class ExportSettings:
         if not d.get("enabled"):
             return {}
 
-        groups = []
-        exc = ["name", "text"]
-
-        # camera motion
-        idx = d.get("cmgIndex", -1)
-        if idx >= 0:
-            groups.append(deepcopyExcept(d["camera"]["groups"][idx], exc))
-
-        # layer animation
-        idsToExport = self.mapLayerIdsToExport()
-        for layerId, layer in d.get("layers", {}).items():
-            if layerId in idsToExport:
-                groups += deepcopyExcept(layer["groups"], exc)
-
-        return {"groups": groups}
+        return {
+            "groups": deepcopyExcept(list(self.enabledValidKeyframeGroups(warning_log)), ["name", "text"])
+        }
 
     def setAnimationData(self, data):
         d = self.data.get(ExportSettings.KEYFRAMES, {})
@@ -490,23 +524,8 @@ class ExportSettings:
         self.data[ExportSettings.KEYFRAMES] = d
 
     def narrations(self):
-        d = self.data.get(ExportSettings.KEYFRAMES, {})
-        kfg = []
-
-        # camera motion
-        idx = d.get("cmgIndex", -1)
-        if idx >= 0:
-            kfg.append(d["camera"]["groups"][idx])
-
-        # layer animation
-        idsToExport = self.mapLayerIdsToExport()
-        for layerId, layer in d.get("layers", {}).items():
-            if layerId in idsToExport:
-                for g in layer.get("groups", []):
-                    kfg.append(g)
-
         contents = []
-        for g in kfg:
+        for g in self.enabledValidKeyframeGroups():
             for k in g.get("keyframes", []):      # TODO: sort by time (begin, k)
                 nar = k.get("narration")
                 if nar:

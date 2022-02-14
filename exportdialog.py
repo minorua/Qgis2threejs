@@ -72,13 +72,6 @@ class ExportToWebDialog(QDialog):
         self.ui.groupBox_Animation.setChecked(anm.get("enabled", False))
         self.ui.checkBox_StartOnLoad.setChecked(anm.get("startOnLoad", False))
 
-        items = ["None"] + [group["name"] for group in anm.get("camera", {}).get("groups", [])]
-        self.ui.comboBox_CameraMotion.addItems(items)
-
-        idx = anm.get("cmgIndex", -1) + 1
-        if idx > 0:
-            self.ui.comboBox_CameraMotion.setCurrentIndex(idx)
-
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
 
@@ -167,7 +160,6 @@ class ExportToWebDialog(QDialog):
         keyframeData = self.settings.animationData()
         keyframeData["enabled"] = anim_enabled
         keyframeData["startOnLoad"] = startOnLoad
-        keyframeData["cmgIndex"] = self.ui.comboBox_CameraMotion.currentIndex() - 1
 
         # make a copy of export settings
         settings = self.settings.clone()
@@ -188,6 +180,7 @@ class ExportToWebDialog(QDialog):
         self.logHtml = """
 <style>
 div.progress {margin-top:10px;}
+div.warning {font-weight:bold;}
 div.indented {margin-left:3em;}
 th {text-align:left;}
 </style>
@@ -264,7 +257,9 @@ th {text-align:left;}
         if warning:
             self.warnings += 1
 
-        self.logHtml += "<div{}>{}</div>".format(" class='indented'" if indented else "", msg)
+        classes = (["warning"] if warning else []) + (["indented"] if indented else [])
+
+        self.logHtml += "<div{}>{}</div>".format(" class='{}'".format(" ".join(classes)) if classes else "", msg)
         self.ui.textBrowser.setHtml(self.logHtml)
 
         QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
