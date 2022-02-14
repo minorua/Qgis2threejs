@@ -94,7 +94,8 @@ Q3D.Config = {
 
   // animation
   animation: {
-    enabled: false
+    enabled: false,
+    startOnLoad: false
   },
 
   // others
@@ -338,6 +339,10 @@ Q3D.application
         app.adjustCameraPosition();
       }
       app.render();
+
+      if (conf.animation.startOnLoad) {
+        app.animation.keyframes.start();
+      }
     }, true);
 
     window.addEventListener("keydown", app.eventListener.keydown);
@@ -1408,23 +1413,32 @@ Q3D.gui
       var anim = app.animation.keyframes;
       var btn = document.createElement("div");
       btn.id = "animbtn";
-      btn.className = "playbtn";
+
+      var playButton = function () {
+        btn.className = "playbtn";
+      };
+
+      var pauseButton = function () {
+        btn.className = "pausebtn";
+      };
+
+      playButton();
+
       btn.onclick = function () {
         if (anim.isActive) {
           anim.pause();
-          btn.className = "playbtn";
+          playButton();
         }
-        else {
-          if (anim.isPaused) anim.resume();
-          else anim.start();
-          btn.className = "pausebtn";
+        else if (anim.isPaused) {
+          anim.resume();
+          pauseButton();
         }
+        else anim.start();
       };
       e.appendChild(btn);
 
-      app.addEventListener('animationStopped', function () {
-        btn.className = "playbtn";
-      });
+      app.addEventListener('animationStarted', pauseButton);
+      app.addEventListener('animationStopped', playButton);
     }
 
     e = E("closebtn");

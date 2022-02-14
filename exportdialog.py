@@ -69,7 +69,8 @@ class ExportToWebDialog(QDialog):
 
         # animation
         anm = settings.animationData()
-        self.ui.checkBox_Animation.setChecked(anm.get("enabled", False))
+        self.ui.groupBox_Animation.setChecked(anm.get("enabled", False))
+        self.ui.checkBox_StartOnLoad.setChecked(anm.get("startOnLoad", False))
 
         items = ["None"] + [group["name"] for group in anm.get("camera", {}).get("groups", [])]
         self.ui.comboBox_CameraMotion.addItems(items)
@@ -157,12 +158,15 @@ class ExportToWebDialog(QDialog):
                     return
 
         # animation settings
-        anim_enabled = self.ui.checkBox_Animation.isChecked()
+        anim_enabled = self.ui.groupBox_Animation.isChecked()
+        startOnLoad = self.ui.checkBox_StartOnLoad.isChecked()
         if anim_enabled:
             self.settings.setOption("animation.enabled", True)
+            self.settings.setOption("animation.startOnLoad", startOnLoad)
 
         keyframeData = self.settings.animationData()
         keyframeData["enabled"] = anim_enabled
+        keyframeData["startOnLoad"] = startOnLoad
         keyframeData["cmgIndex"] = self.ui.comboBox_CameraMotion.currentIndex() - 1
 
         # make a copy of export settings

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>549</height>
+    <height>555</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,77 +29,69 @@
          <property name="title">
           <string>General</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <layout class="QFormLayout" name="formLayout">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Output directory</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QLineEdit" name="lineEdit_OutputDir">
-                <property name="toolTip">
-                 <string>Leave this empty to export files to temporary directory.</string>
-                </property>
-                <property name="placeholderText">
-                 <string>[Temporary directory]</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButton_Browse">
-                <property name="text">
-                 <string>Browse...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>HTML filename</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="lineEdit_Filename">
-              <property name="placeholderText">
-               <string>index.html</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Page title</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEdit_Title"/>
-            </item>
-           </layout>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_Browse">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
           </item>
-          <item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_OutputDir">
+            <property name="toolTip">
+             <string>Leave this empty to export files to temporary directory.</string>
+            </property>
+            <property name="placeholderText">
+             <string>[Temporary directory]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>HTML filename</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Output directory</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_Filename">
+            <property name="placeholderText">
+             <string>index.html</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Page title</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_Title"/>
+          </item>
+          <item row="3" column="0" colspan="3">
            <widget class="QCheckBox" name="checkBox_PreserveViewpoint">
             <property name="text">
              <string>Preserve the current viewpoint</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="4" column="0" colspan="3">
            <widget class="QCheckBox" name="checkBox_LocalMode">
             <property name="text">
              <string>Enable the viewer to run locally</string>
@@ -114,7 +106,7 @@
          <property name="title">
           <string>Template</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
+         <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1,1">
           <item row="2" column="2">
            <widget class="QLabel" name="label_MND2">
             <property name="text">
@@ -168,7 +160,7 @@
            <widget class="QLabel" name="label">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>110</width>
               <height>0</height>
              </size>
             </property>
@@ -202,36 +194,48 @@
          <property name="title">
           <string>Animation and Storytelling</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QCheckBox" name="checkBox_Animation">
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_StartOnLoad">
             <property name="text">
-             <string>Enable animation</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Start animation when the scene has loaded</string>
             </property>
            </widget>
           </item>
-          <item>
-           <layout class="QFormLayout" name="formLayout_2">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Camera motion</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="comboBox_CameraMotion"/>
-            </item>
-           </layout>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox_CameraMotion">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Camera motion</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -360,22 +364,6 @@
     <hint type="destinationlabel">
      <x>293</x>
      <y>147</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_Animation</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>comboBox_CameraMotion</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>295</x>
-     <y>372</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>348</x>
-     <y>400</y>
     </hint>
    </hints>
   </connection>
