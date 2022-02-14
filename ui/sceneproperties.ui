@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>834</height>
+    <width>409</width>
+    <height>836</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -182,7 +182,7 @@
          <bool>false</bool>
         </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -203,7 +203,7 @@
        <widget class="QRadioButton" name="radioButton_Color">
         <property name="minimumSize">
          <size>
-          <width>110</width>
+          <width>100</width>
           <height>0</height>
          </size>
         </property>
@@ -227,55 +227,11 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_Fog">
-        <item>
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Low</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSlider" name="slider_Fog">
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="pageStep">
-           <number>20</number>
-          </property>
-          <property name="value">
-           <number>41</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="tickPosition">
-           <enum>QSlider::TicksBelow</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>High</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_12">
-        <property name="text">
-         <string>Density</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_13">
         <property name="minimumSize">
          <size>
-          <width>80</width>
+          <width>100</width>
           <height>0</height>
          </size>
         </property>
@@ -284,7 +240,47 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Density</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Low</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QSlider" name="slider_Fog">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="pageStep">
+         <number>20</number>
+        </property>
+        <property name="value">
+         <number>41</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksBelow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>High</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
        <widget class="QgsColorButton" name="colorButton_Fog">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -331,6 +327,12 @@
      <layout class="QGridLayout" name="gridLayout_5">
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
          <string>Material type</string>
         </property>

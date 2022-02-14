@@ -180,7 +180,7 @@ class Ui_KeyframeDialog(object):
         self.labelEffect.setText(_translate("KeyframeDialog", "Effect"))
         self.labelMaterial.setText(_translate("KeyframeDialog", "Material"))
         self.labelOpacity.setText(_translate("KeyframeDialog", "Opacity"))
-        self.plainTextEdit.setPlaceholderText(_translate("KeyframeDialog", "empty - no stop at this keyframe"))
+        self.plainTextEdit.setPlaceholderText(_translate("KeyframeDialog", "empty - not stop at this keyframe"))
         self.labelNarration.setText(_translate("KeyframeDialog", "Narrative content"))
         self.labelDuration.setText(_translate("KeyframeDialog", "Duration (msec)"))
         self.lineEditDuration.setToolTip(_translate("KeyframeDialog", "length of time to complete a transition"))

@@ -197,7 +197,7 @@
      <item row="5" column="0" colspan="2">
       <widget class="QPlainTextEdit" name="plainTextEdit">
        <property name="placeholderText">
-        <string>empty - no stop at this keyframe</string>
+        <string>empty - not stop at this keyframe</string>
        </property>
       </widget>
      </item>
