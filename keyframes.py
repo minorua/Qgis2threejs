@@ -661,12 +661,13 @@ class AnimationTreeWidget(QTreeWidget):
 
     def onItemEdit(self):
         item = self.currentItem()
-        t = item.type()
-        if t & ATConst.ITEM_MBR:
-            self.showDialog(item)
-        elif t & ATConst.ITEM_GRP:
-            if item.childCount() > 0:
-                self.showDialog(item.child(0))
+        if item:
+            t = item.type()
+            if t & ATConst.ITEM_MBR:
+                self.showDialog(item)
+            elif t & ATConst.ITEM_GRP:
+                if item.childCount() > 0:
+                    self.showDialog(item.child(0))
 
     def renameGroup(self, item=None):
         item = item or self.currentItem()
