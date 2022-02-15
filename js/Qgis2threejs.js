@@ -299,8 +299,20 @@ Q3D.application
       }
     });
 
-    app.scene.addEventListener("lightChanged", function (event) {
-      app.setLightGroupParent(event.light);
+    app.scene.addEventListener("buildLightRequest", function (event) {
+      app.scene.lightGroup.clear();
+
+      app.scene.buildLights(conf.lights[event.light] || conf.lights.directional,
+                            (event.rotation !== undefined) ? event.rotation : app.scene.userData.baseExtent.rotation);
+
+      if (event.light == "point") {
+        app.scene.add(app.camera);
+        app.camera.add(app.scene.lightGroup);
+      }
+      else {    // directional
+        app.scene.remove(app.camera);
+        app.scene.add(app.scene.lightGroup);
+      }
     });
 
     // camera
@@ -608,17 +620,6 @@ Q3D.application
 
     bbox.getCenter(vec3);
     app.cameraAction.zoom(vec3.x, vec3.y, (bbox.max.z + vec3.z) / 2, app.scene.userData.baseExtent.width);
-  };
-
-  app.setLightGroupParent = function (lightName) {
-    if (lightName == "point") {
-      app.scene.add(app.camera);
-      app.camera.add(app.scene.lightGroup);
-    }
-    else {    // directional
-      app.scene.remove(app.camera);
-      app.scene.add(app.scene.lightGroup);
-    }
   };
 
   // rotation: direction to North (clockwise from up (+y), in degrees)
@@ -1897,9 +1898,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // light
       var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
       if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
-        this.lightGroup.clear();
-        this.buildLights(Q3D.Config.lights[p.light], p.baseExtent.rotation);
-        this.dispatchEvent({type: "lightChanged", light: p.light});
+        this.dispatchEvent({type: "buildLightRequest", light: p.light, rotation: p.baseExtent.rotation});
       }
 
       var be = p.baseExtent;

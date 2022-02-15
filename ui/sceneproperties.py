@@ -229,7 +229,7 @@ class Ui_ScenePropertiesWidget(object):
         self.label_12.setText(_translate("ScenePropertiesWidget", "Density"))
         self.label_11.setText(_translate("ScenePropertiesWidget", "Low"))
         self.label_9.setText(_translate("ScenePropertiesWidget", "High"))
-        self.groupBox_5.setTitle(_translate("ScenePropertiesWidget", "Lighting"))
+        self.groupBox_5.setTitle(_translate("ScenePropertiesWidget", "Light"))
         self.radioButton_DirLight.setText(_translate("ScenePropertiesWidget", "Directional light from the lower left of the 2D map"))
         self.radioButton_PtLight.setText(_translate("ScenePropertiesWidget", "Point light above the camera"))
         self.groupBox.setTitle(_translate("ScenePropertiesWidget", "&Material and Effect"))

@@ -428,7 +428,20 @@ class Q3DWindow(QMainWindow):
         if sp == properties:
             return
 
-        reload = bool(sp.get("groupBox_Fog") != properties.get("groupBox_Fog"))
+        w = "radioButton_PtLight"
+        isPoint = properties.get(w, False)
+        if sp.get(w, False) != isPoint:
+            if isPoint:
+                sp[w] = isPoint
+            else:
+                sp.pop(w, 0)
+
+            if sp == properties:
+                self.iface.requestRunScript("changeLight('{}')".format("point" if isPoint else "directional"))
+                return
+
+        w = "groupBox_Fog"
+        reload = bool(sp.get(w) != properties.get(w))
         self.iface.requestSceneUpdate(properties, reload=reload)
 
     def addPlane(self):

@@ -360,6 +360,12 @@ function setCameraState(s) {
   app.render();
 }
 
+//// lights
+function changeLight(type) {
+  app.scene.dispatchEvent({type: "buildLightRequest", light: type});
+  app.render();
+}
+
 //// widgets
 function setNavigationEnabled(enabled) {
   var elm = document.getElementById("navigation");
