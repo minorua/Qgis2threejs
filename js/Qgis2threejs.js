@@ -105,6 +105,17 @@ Q3D.Config = {
     o: 0.8
   },
 
+  measure: {
+    marker: {
+      r: 0.004,
+      c: 0xffff00,
+      o: 0.5
+    },
+    line: {
+      c: 0xffff00
+    }
+  },
+
   coord: {
     visible: true,
     latlon: false
@@ -341,6 +352,7 @@ Q3D.application
     var opt = conf.qmarker;
     app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r, 32, 32),
                                      new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
+    app.queryMarker.name = "marker";
 
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
 
@@ -535,6 +547,9 @@ Q3D.application
       }
 
       switch (e.keyCode) {
+        case 8:   // BackSpace
+          if (app.measure.isActive) app.measure.removeLastPoint();
+          return;
         case 13:  // Enter
           app.animation.keyframes.resume();
           return;
@@ -1213,6 +1228,7 @@ Q3D.application
 
     app.scene.remove(app.queryMarker);
     app.highlightFeature(null);
+    app.measure.clear();
     app.render();
 
     app.selectedLayer = null;
@@ -1263,6 +1279,11 @@ Q3D.application
     var obj, o, layer, layerId;
     for (var i = 0, l = objs.length; i < l; i++) {
       obj = objs[i];
+
+      if (app.measure.isActive) {
+        app.measure.addPoint(obj.point, obj.distance);
+        return;
+      }
 
       // get layerId of clicked object
       o = obj.object;
@@ -1403,6 +1424,114 @@ Q3D.application
       restoreCanvasSize();
     }
   };
+
+  (function () {
+
+    var path = [];
+
+    app.measure = {
+
+      isActive: false,
+
+      precision: 3,
+
+      start: function () {
+        app.scene.remove(app.queryMarker);
+
+        if (!this.geom) {
+          var opt = conf.measure.marker;
+          this.geom = new THREE.SphereBufferGeometry(opt.r, 32, 32);
+          this.mtl = new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)});
+          opt = conf.measure.line;
+          this.lineMtl = new THREE.LineBasicMaterial({color: opt.c});
+          this.markerGroup = new Q3D.Group();
+          this.markerGroup.name = "measure marker";
+          this.lineGroup = new Q3D.Group();
+          this.lineGroup.name = "measure line";
+        }
+
+        this.isActive = true;
+
+        app.scene.add(this.markerGroup);
+        app.scene.add(this.lineGroup);
+
+        this.addPoint(app.queryTargetPosition, app.camera.position.distanceTo(app.queryTargetPosition));
+      },
+
+      addPoint: function (pt, markerSize) {
+        // add a marker
+        var marker = new THREE.Mesh(this.geom, this.mtl);
+        marker.position.copy(pt);
+        marker.scale.setScalar(markerSize);
+
+        this.markerGroup.updateMatrixWorld();
+        this.markerGroup.add(marker);
+
+        path.push(marker.position);
+
+        if (path.length > 1) {
+          // add a line
+          var v = path[path.length - 2].toArray().concat(path[path.length - 1].toArray()),
+              geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3)),
+              line = new THREE.Line(geom, this.lineMtl);
+          this.lineGroup.add(line);
+        }
+
+        app.render();
+        this.showResult();
+      },
+
+      removeLastPoint: function () {
+        path.pop();
+        this.markerGroup.children.pop();
+        this.lineGroup.children.pop();
+
+        app.render();
+        this.showResult();
+      },
+
+      clear: function () {
+        if (!this.isActive) return;
+
+        this.markerGroup.clear();
+        this.lineGroup.clear();
+
+        app.scene.remove(this.markerGroup);
+        app.scene.remove(this.lineGroup);
+
+        path = [];
+        this.isActive = false;
+      },
+
+      showResult: function () {
+        var vec2 = new THREE.Vector2(),
+            zScale = app.scene.userData.zScale;
+        var html;
+        if (path.length > 1) {
+          var total = 0, totalxy = 0, dxy, dz;
+          for (var i = path.length - 1; i > 0; i--) {
+            dxy = vec2.copy(path[i]).distanceTo(path[i - 1]);
+            dz = (path[i].z - path[i - 1].z) / zScale;
+
+            total += Math.sqrt(dxy * dxy + dz * dz);
+            totalxy += dxy;
+          }
+          dz = path[path.length - 1].z - path[0].z;
+
+          html = '<table class="measure">';
+          html += "<tr><td>Total distance:</td><td>" + total.toFixed(this.precision) + " m</td><td></td></tr>";
+          html += "<tr><td>Horizontal distance:</td><td>" + totalxy.toFixed(this.precision) + " m</td><td></td></tr>";
+          html += '<tr><td>Elevation difference:</td><td>' + dz.toFixed(this.precision) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="elevation difference between start point and end point">?</span></td></tr>';
+          html += "</table>";
+        }
+        else {
+          html = '<div style="font-size:small;">Click on the 3D map to add points to your path.</div>';
+        }
+
+        gui.popup.show(html, "Measure distance");
+      }
+    };
+  })();
 })();
 
 /*
@@ -1869,12 +1998,15 @@ Q3D.Scene = function () {
   this.mapLayers = {};    // map layers contained in this scene. key is layerId.
 
   this.lightGroup = new Q3D.Group();
+  this.lightGroup.name = "light";
   this.add(this.lightGroup);
 
   this.labelGroup = new Q3D.Group();
+  this.labelGroup.name = "label";
   this.add(this.labelGroup);
 
   this.labelConnectorGroup = new Q3D.Group();
+  this.labelConnectorGroup.name = "label connector"
   this.add(this.labelConnectorGroup);
 };
 
@@ -2622,6 +2754,7 @@ Q3D.MapLayer = function () {
   this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
 
   this.objectGroup = new Q3D.Group();
+  this.objectGroup.name = "layer";
   this.objects = [];
 };
 

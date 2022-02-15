@@ -90,10 +90,11 @@ ${scripts}
         <tr><td id="qr_coords"></td></tr>
       </table>
 
-      <!-- camera actions -->
+      <!-- camera actions and measure tool -->
       <div class="action-btn action-move" onclick="startARModeHere()">Start AR mode here</div>
       <div class="action-btn action-move hidden" onclick="moveHere()">Move here</div>
-      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit()">Orbit around here</div>
+      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit()">Orbit</div>
+      <div class="action-btn" onclick="app.measure.start()">Measure distance</div>
 
       <!-- attributes -->
       <table id="qr_attrs_table">
