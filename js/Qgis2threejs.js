@@ -1499,7 +1499,9 @@ Q3D.application
         this.lineGroup.children.pop();
 
         app.render();
-        this.showResult();
+
+        if (path.length) this.showResult();
+        else app.cleanUp();
       },
 
       clear: function () {
@@ -1515,12 +1517,16 @@ Q3D.application
         this.isActive = false;
       },
 
+      formatLength: function (length) {
+        return (length) ? length.toFixed(this.precision) : 0;
+      },
+
       showResult: function () {
         var vec2 = new THREE.Vector2(),
             zScale = app.scene.userData.zScale;
-        var html;
+        var total = 0, totalxy = 0, dz = 0;
         if (path.length > 1) {
-          var total = 0, totalxy = 0, dxy, dz;
+          var dxy;
           for (var i = path.length - 1; i > 0; i--) {
             dxy = vec2.copy(path[i]).distanceTo(path[i - 1]);
             dz = (path[i].z - path[i - 1].z) / zScale;
@@ -1529,16 +1535,13 @@ Q3D.application
             totalxy += dxy;
           }
           dz = path[path.length - 1].z - path[0].z;
+        }
 
-          html = '<table class="measure">';
-          html += "<tr><td>Total distance:</td><td>" + total.toFixed(this.precision) + " m</td><td></td></tr>";
-          html += "<tr><td>Horizontal distance:</td><td>" + totalxy.toFixed(this.precision) + " m</td><td></td></tr>";
-          html += '<tr><td>Elevation difference:</td><td>' + dz.toFixed(this.precision) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="elevation difference between start point and end point">?</span></td></tr>';
-          html += "</table>";
-        }
-        else {
-          html = '<div style="font-size:small;">Click on the 3D map to add points to your path.</div>';
-        }
+        var html = '<table class="measure">';
+        html += "<tr><td>Total distance:</td><td>" + this.formatLength(total) + " m</td><td></td></tr>";
+        html += "<tr><td>Horizontal distance:</td><td>" + this.formatLength(totalxy) + " m</td><td></td></tr>";
+        html += "<tr><td>Elevation difference:</td><td>" + this.formatLength(dz) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="elevation difference between start point and end point">?</span></td></tr>';
+        html += "</table>";
 
         gui.popup.show(html, "Measure distance");
       }
