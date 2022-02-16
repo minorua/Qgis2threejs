@@ -1280,6 +1280,12 @@ Q3D.application
 
   app.canvasClicked = function (e) {
 
+    // button 2: right click
+    if (e.button == 2 && app.measure.isActive) {
+      app.measure.removeLastPoint();
+      return;
+    }
+
     var canvasOffset = app._offset(app.renderer.domElement);
     var objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
 
