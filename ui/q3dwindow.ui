@@ -50,7 +50,7 @@
     </property>
     <widget class="QMenu" name="menuLayer">
      <property name="title">
-      <string>Layer</string>
+      <string>Add Layer</string>
      </property>
      <addaction name="actionAddPlane"/>
      <addaction name="actionAddPointCloudLayer"/>

@@ -235,7 +235,7 @@ class Ui_Q3DWindow(object):
         _translate = QtCore.QCoreApplication.translate
         Q3DWindow.setWindowTitle(_translate("Q3DWindow", "Qgis2threejs Exporter"))
         self.menuScene.setTitle(_translate("Q3DWindow", "&Scene"))
-        self.menuLayer.setTitle(_translate("Q3DWindow", "Layer"))
+        self.menuLayer.setTitle(_translate("Q3DWindow", "Add Layer"))
         self.menuWindow.setTitle(_translate("Q3DWindow", "&Window"))
         self.menuPanels.setTitle(_translate("Q3DWindow", "Panels"))
         self.menuFile.setTitle(_translate("Q3DWindow", "&File"))
