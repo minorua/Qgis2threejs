@@ -1324,6 +1324,7 @@ Q3D.application
 
       return;
     }
+    if (app.measure.isActive) return;
     app.cleanUp();
   };
 
