@@ -100,19 +100,21 @@ Q3D.Config = {
 
   // others
   qmarker: {
-    r: 0.004,
-    c: 0xffff00,
-    o: 0.8
+    radius: 0.004,
+    color: 0xffff00,
+    opacity: 0.8,
+    k: 0.2    // size factor for ortho camera
   },
 
   measure: {
     marker: {
-      r: 0.004,
-      c: 0xffff00,
-      o: 0.5
+      radius: 0.004,
+      color: 0xffff00,
+      opacity: 0.5
+      /* k: 0.2 */
     },
     line: {
-      c: 0xffff00
+      color: 0xffff00
     }
   },
 
@@ -350,9 +352,14 @@ Q3D.application
 
     // create a marker for queried point
     var opt = conf.qmarker;
-    app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.r, 32, 32),
-                                     new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)}));
+    app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.radius, 32, 32),
+                                     new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)}));
     app.queryMarker.name = "marker";
+
+    app.queryMarker.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+      this.scale.setScalar(this.position.distanceTo(camera.position) * ((camera.isPerspectiveCamera) ? 1 : conf.qmarker.k));
+      this.updateMatrixWorld();
+    };
 
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
 
@@ -1281,7 +1288,7 @@ Q3D.application
       obj = objs[i];
 
       if (app.measure.isActive) {
-        app.measure.addPoint(obj.point, obj.distance);
+        app.measure.addPoint(obj.point);
         return;
       }
 
@@ -1299,13 +1306,11 @@ Q3D.application
       if (!layer.clickable) break;
 
       app.selectedLayer = layer;
+      app.queryTargetPosition.copy(obj.point);
 
       // query marker
       app.queryMarker.position.copy(obj.point);
-      app.queryMarker.scale.setScalar(obj.distance);
       app.scene.add(app.queryMarker);
-
-      app.queryTargetPosition.copy(obj.point);
 
       app.highlightFeature(o);
       app.render();
@@ -1440,10 +1445,10 @@ Q3D.application
 
         if (!this.geom) {
           var opt = conf.measure.marker;
-          this.geom = new THREE.SphereBufferGeometry(opt.r, 32, 32);
-          this.mtl = new THREE.MeshLambertMaterial({color: opt.c, opacity: opt.o, transparent: (opt.o < 1)});
+          this.geom = new THREE.SphereBufferGeometry(opt.radius, 32, 32);
+          this.mtl = new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)});
           opt = conf.measure.line;
-          this.lineMtl = new THREE.LineBasicMaterial({color: opt.c});
+          this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
           this.markerGroup = new Q3D.Group();
           this.markerGroup.name = "measure marker";
           this.lineGroup = new Q3D.Group();
@@ -1455,14 +1460,14 @@ Q3D.application
         app.scene.add(this.markerGroup);
         app.scene.add(this.lineGroup);
 
-        this.addPoint(app.queryTargetPosition, app.camera.position.distanceTo(app.queryTargetPosition));
+        this.addPoint(app.queryTargetPosition);
       },
 
-      addPoint: function (pt, markerSize) {
+      addPoint: function (pt) {
         // add a marker
         var marker = new THREE.Mesh(this.geom, this.mtl);
         marker.position.copy(pt);
-        marker.scale.setScalar(markerSize);
+        marker.onBeforeRender = app.queryMarker.onBeforeRender;
 
         this.markerGroup.updateMatrixWorld();
         this.markerGroup.add(marker);
