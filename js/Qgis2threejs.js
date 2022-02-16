@@ -1318,6 +1318,10 @@ Q3D.application
       app.queryMarker.position.copy(obj.point);
       app.scene.add(app.queryMarker);
 
+      if (o.userData.isLabel) {
+        o = o.userData.objs[o.userData.partIdx];    // label -> object
+      }
+
       app.highlightFeature(o);
       app.render();
       gui.showQueryResult(obj.point, layer, o, conf.coord.visible);
@@ -3252,7 +3256,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 
   canvas.height = ch;
 
-  var f, text, vec, sprite, mtl, geom, conn, x, y, j, sc;
+  var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc;
   var underline;
 
   for (var i = 0, l = features.length; i < l; i++) {
@@ -3260,6 +3264,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
     text = f.lbl;
     if (!text) continue;
 
+    partIdx = 0;
     getPointsFunc(f).forEach(function (pt) {
 
       // label position
@@ -3311,8 +3316,10 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       sprite.scale.set(sc * cw / ch, sc, 1);
 
       sprite.userData.layerId = this.id;
-      sprite.userData.featureId = i;
       sprite.userData.properties = f.prop;
+      sprite.userData.objs = f.objs;
+      sprite.userData.partIdx = partIdx;
+      sprite.userData.isLabel = true;
 
       this.labelGroup.add(sprite);
 
@@ -3336,6 +3343,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
           conn.add(underline);
         }
       }
+      partIdx++;
     }, this);
   }
 };
@@ -3448,17 +3456,17 @@ Q3D.PointLayer.prototype.build = function (features) {
   var f, i, l, pts, mesh;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
-    f.objIndices = [];
+    f.objs = [];
 
     pts = f.geom.pts;
     for (i = 0, l = pts.length; i < l; i++) {
-
       mesh = new THREE.Mesh(unitGeom, this.materials.mtl(f.mtl));
       transform(mesh, f.geom, pts[i]);
 
       mesh.userData.properties = f.prop;
 
-      f.objIndices.push(this.addObject(mesh));
+      f.objs.push(mesh);
+      this.addObject(mesh);
     }
   }
 
@@ -3538,7 +3546,8 @@ Q3D.PointLayer.prototype.buildPoints = function (features) {
     obj = new THREE.Points(geom, this.materials.mtl(f.mtl));
     obj.userData.properties = f.prop;
 
-    f.objIndices = [this.addObject(obj)];
+    f.objs = [obj];
+    this.addObject(obj);
   }
 };
 
@@ -3546,27 +3555,26 @@ Q3D.PointLayer.prototype.buildIcons = function (features) {
   // each feature in this layer
   features.forEach(function (f) {
     var sprite,
-        objs = [],
         material = this.materials.get(f.mtl);
 
-    f.objIndices = [];
+    f.objs = [];
     for (var i = 0, l = f.geom.pts.length; i < l; i++) {
       sprite = new THREE.Sprite(material.mtl);
       sprite.position.fromArray(f.geom.pts[i]);
       sprite.userData.properties = f.prop;
 
-      objs.push(sprite);
-      f.objIndices.push(this.addObject(sprite));
+      f.objs.push(sprite);
+      this.addObject(sprite);
     }
 
     material.callbackOnLoad(function () {
       var img = material.mtl.map.image;
-      for (var i = 0; i < objs.length; i++) {
+      for (var i = 0; i < f.objs.length; i++) {
         // base size is 64 x 64
-        objs[i].scale.set(img.width / 64 * f.geom.scale,
-                          img.height / 64 * f.geom.scale,
-                          1);
-        objs[i].updateMatrixWorld();
+        f.objs[i].scale.set(img.width / 64 * f.geom.scale,
+                            img.height / 64 * f.geom.scale,
+                            1);
+        f.objs[i].updateMatrixWorld();
       }
     });
   }, this);
@@ -3586,7 +3594,7 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
       return;
     }
 
-    f.objIndices = [];
+    f.objs = [];
     f.geom.pts.forEach(function (pt) {
       model.callbackOnLoad(function (m) {
         var obj = m.scene.clone();
@@ -3615,7 +3623,8 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
         parent.userData.properties = f.prop;
         parent.add(obj);
 
-        f.objIndices.push(_this.addObject(parent));
+        f.objs.push(parent);
+        _this.addObject(parent);
       });
     });
   });
@@ -3655,7 +3664,7 @@ Q3D.LineLayer.prototype.build = function (features) {
   var f, i, l, lines, obj;
   for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
     f = features[fidx];
-    f.objIndices = [];
+    f.objs = [];
 
     lines = f.geom.lines;
     for (i = 0, l = lines.length; i < l; i++) {
@@ -3663,7 +3672,8 @@ Q3D.LineLayer.prototype.build = function (features) {
       obj.userData.properties = f.prop;
       obj.userData.mtl = f.mtl;
 
-      f.objIndices.push(this.addObject(obj));
+      f.objs.push(obj);
+      this.addObject(obj);
     }
   }
 
@@ -3922,7 +3932,8 @@ Q3D.PolygonLayer.prototype.build = function (features) {
     obj = createObject(f);
     obj.userData.properties = f.prop;
 
-    f.objIndices = [this.addObject(obj)];
+    f.objs = [obj];
+    this.addObject(obj);
   }
 
   this._lastObjType = this.properties.objType;
