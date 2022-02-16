@@ -847,12 +847,17 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         widgets += [self.comboEdit_FilePath]
         widgets += self.geomWidgets
         widgets += [self.comboEdit_Color, self.comboEdit_Color2, self.comboEdit_Opacity] + self.mtlWidgets
-        widgets += [self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip, self.checkBox_ExportAttrs]
-        widgets += [self.checkBox_Visible, self.checkBox_Clickable]
+        widgets += [
+            self.radioButton_AllFeatures, self.radioButton_IntersectingFeatures, self.checkBox_Clip, self.checkBox_ExportAttrs,
+            self.checkBox_Visible, self.checkBox_Clickable
+        ]
         if hasRPt:
-            widgets += [self.checkBox_Label, self.labelHeightWidget, self.expression_Label, self.comboBox_FontFamily, self.slider_FontSize,
-                        self.colorButton_Label, self.checkBox_Outline, self.colorButton_OtlColor,
-                        self.groupBox_Background, self.colorButton_BgColor, self.groupBox_Conn, self.colorButton_ConnColor]
+            widgets += [
+                self.checkBox_Label, self.labelHeightWidget, self.expression_Label, self.comboBox_FontFamily, self.slider_FontSize,
+                self.colorButton_Label, self.checkBox_Outline, self.colorButton_OtlColor,
+                self.groupBox_Background, self.colorButton_BgColor,
+                self.groupBox_Conn, self.colorButton_ConnColor, self.checkBox_Underline
+            ]
 
         self.registerPropertyWidgets(widgets)
 

@@ -558,6 +558,9 @@ class VectorLayerBuilder(LayerBuilder):
             if self.properties.get("groupBox_Conn"):
                 label["cncolor"] = int_color(self.properties.get("colorButton_ConnColor", DEF_SETS.CONN_COLOR))
 
+                if self.properties.get("checkBox_Underline"):
+                    label["underline"] = True
+
             p["label"] = label
 
         # object-type-specific properties

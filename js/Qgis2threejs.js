@@ -3217,6 +3217,17 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
     var line_mtl = new THREE.LineBasicMaterial({color: label.cncolor});
   }
 
+  var hasUnderline = Boolean(hasConn && label.underline);
+  if (hasUnderline) {
+    var ul_geom = new THREE.BufferGeometry();
+    ul_geom.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+
+    var onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+      this.quaternion.copy(camera.quaternion);
+      this.updateMatrixWorld();
+    };
+  }
+
   var canvas = document.createElement("canvas"),
       ctx = canvas.getContext("2d");
 
@@ -3227,6 +3238,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
   canvas.height = ch;
 
   var f, text, vec, sprite, mtl, geom, conn, x, y, j, sc;
+  var underline;
 
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
@@ -3274,7 +3286,12 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       });
 
       sprite = new THREE.Sprite(mtl);
-      sprite.center.set(0.5, 0.05);
+      if (hasUnderline) {
+        sprite.center.set((1 - tw / cw) * 0.5, 0);
+      }
+      else {
+        sprite.center.set(0.5, 0);
+      }
       sprite.position.copy(vec);
       sprite.scale.set(sc * cw / ch, sc, 1);
 
@@ -3295,6 +3312,14 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
         conn.userData = sprite.userData;
 
         this.labelConnectorGroup.add(conn);
+
+        if (hasUnderline) {
+          underline = new THREE.Line(ul_geom, line_mtl);
+          underline.position.copy(vec);
+          underline.scale.x = sc * tw / th;
+          underline.onBeforeRender = onBeforeRender;
+          conn.add(underline);
+        }
       }
     }, this);
   }

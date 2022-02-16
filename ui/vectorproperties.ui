@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -541,6 +541,16 @@
           <bool>true</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="1">
+           <widget class="QgsColorButton" name="colorButton_ConnColor">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_ConnColor">
             <property name="minimumSize">
@@ -554,13 +564,17 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QgsColorButton" name="colorButton_ConnColor">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="checkBox_Underline">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_Underline">
+            <property name="text">
+             <string>Underline</string>
             </property>
            </widget>
           </item>
@@ -588,6 +602,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgis.gui</header>
+  </customwidget>
+  <customwidget>
    <class>QgsFieldExpressionWidget</class>
    <extends>QWidget</extends>
    <header>qgis.gui</header>
@@ -598,11 +617,6 @@
    <extends>QWidget</extends>
    <header>Qgis2threejs.propwidget</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QgsColorButton</class>
-   <extends>QToolButton</extends>
-   <header>qgis.gui</header>
   </customwidget>
  </customwidgets>
  <resources/>
