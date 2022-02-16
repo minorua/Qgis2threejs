@@ -659,7 +659,7 @@ Q3D.application
     app.camera2.up = app.camera.up;
 
     app.scene2 = new Q3D.Scene();
-    app.scene2.buildDefaultLights(rotation);
+    app.scene2.buildLights(conf.lights.directional, rotation);
 
     // an arrow object
     var geometry = new THREE.Geometry();
@@ -2156,10 +2156,6 @@ Q3D.Scene.prototype.buildLights = function (lights, rotation) {
     }
     this.lightGroup.add(light);
   }
-};
-
-Q3D.Scene.prototype.buildDefaultLights = function (rotation) {
-  this.buildLights(Q3D.Config.lights.directional, rotation);
 };
 
 Q3D.Scene.prototype.requestRender = function () {
