@@ -562,7 +562,7 @@ Q3D.application
           return;
         case 27:  // ESC
           if (gui.popup.isVisible()) {
-            app.cleanUp();
+            app.cleanView();
           }
           else if (app.controls.autoRotate) {
             app.setRotateAnimationMode(false);
@@ -1189,7 +1189,7 @@ Q3D.application
       if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
       else app.camera.position.set(x, y, z);
       app.render(true);
-      app.cleanUp();
+      app.cleanView();
     },
 
     vecZoom: new THREE.Vector3(0, -1, 1).normalize(),
@@ -1204,7 +1204,7 @@ Q3D.application
       app.camera.lookAt(vec3);
       if (app.controls.target !== undefined) app.controls.target.copy(vec3);
       app.render(true);
-      app.cleanUp();
+      app.cleanView();
     },
 
     zoomToLayer: function (layer) {
@@ -1225,12 +1225,12 @@ Q3D.application
       if (x === undefined) app.controls.target.copy(app.queryTargetPosition);
       else app.controls.target.set(x, y, z);
       app.setRotateAnimationMode(true);
-      app.cleanUp();
+      app.cleanView();
     }
 
   };
 
-  app.cleanUp = function () {
+  app.cleanView = function () {
     gui.closePopups();
 
     app.scene.remove(app.queryMarker);
@@ -1329,7 +1329,7 @@ Q3D.application
       return;
     }
     if (app.measure.isActive) return;
-    app.cleanUp();
+    app.cleanView();
   };
 
   app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
@@ -1505,7 +1505,7 @@ Q3D.application
         app.render();
 
         if (path.length) this.showResult();
-        else app.cleanUp();
+        else app.cleanView();
       },
 
       clear: function () {
@@ -1606,7 +1606,7 @@ Q3D.gui
     }
 
     e = E("closebtn");
-    if (e) e.addEventListener("click", app.cleanUp);
+    if (e) e.addEventListener("click", app.cleanView);
 
     e = E("nextbtn");
     if (e) e.addEventListener("click", function () {
@@ -1829,7 +1829,7 @@ Q3D.gui
       }, 10);
     };
 
-    cancel.onclick = app.cleanUp;
+    cancel.onclick = app.cleanView;
 
     // enter key pressed
     f.onsubmit = function () {
