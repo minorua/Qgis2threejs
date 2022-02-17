@@ -3115,6 +3115,7 @@ Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
 
     opt = {};
     opt.map = new THREE.CanvasTexture(canvas);
+    opt.map.anisotropy = Q3D.Config.texture.anisotropy;
     opt.transparent = true;
 
     mtl = undefined;
