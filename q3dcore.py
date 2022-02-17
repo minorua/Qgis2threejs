@@ -118,7 +118,7 @@ class Layer:
 
     @classmethod
     def fromQgsMapLayer(cls, mapLayer):
-        geomType = geomTypeFromMapLayer(mapLayer)
+        geomType = layerTypeFromMapLayer(mapLayer)
         lyr = Layer(mapLayer.id(), mapLayer.name(), geomType, visible=False)
         lyr.mapLayer = mapLayer
 
@@ -236,7 +236,7 @@ def calculateGridSegments(extent, sizeLevel, roughness=0):
     return QSize(width, height)
 
 
-def geomTypeFromMapLayer(mapLayer):
+def layerTypeFromMapLayer(mapLayer):
     """mapLayer: QgsMapLayer sub-class object"""
     layerType = mapLayer.type()
     if layerType == QgsMapLayer.VectorLayer:

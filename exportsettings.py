@@ -14,7 +14,7 @@ from . import q3dconst
 from .conf import DEF_SETS, SHIFT_THRESHOLD, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
-from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, geomTypeFromMapLayer
+from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, layerTypeFromMapLayer, urlFromPCLayer
 from .q3dconst import ATConst, LayerType
 from .tools import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
@@ -309,35 +309,42 @@ class ExportSettings:
         layers = [lyr for lyr in self.layers() if lyr.layerId.startswith("pc:")]
 
         # DEM, vector and point cloud layers in QGIS project
-        for mapLayer in [ml for ml in getLayersInProject() if geomTypeFromMapLayer(ml) is not None]:
-            item = self.getLayer(mapLayer.id())
-            if item:
+        for mapLayer in getLayersInProject():
+            layerType = layerTypeFromMapLayer(mapLayer)
+            if layerType is None:
+                continue
+
+            layer = self.getLayer(mapLayer.id())
+            if layer:
                 # update layer and layer name
-                item.mapLayer = mapLayer
-                item.name = item.properties.get("lineEdit_Name") or mapLayer.name()
+                layer.mapLayer = mapLayer
+                layer.name = layer.properties.get("lineEdit_Name") or mapLayer.name()
+
+                if layerType == LayerType.POINTCLOUD:
+                    layer.properties["url"] = urlFromPCLayer(mapLayer)     # update url
             else:
-                item = Layer.fromQgsMapLayer(mapLayer)
-            layers.append(item)
+                layer = Layer.fromQgsMapLayer(mapLayer)
+            layers.append(layer)
 
         # DEM provider plugin layers
         for plugin in pluginManager().demProviderPlugins():
             layerId = "plugin:" + plugin.providerId()
-            item = self.getLayer(layerId)
-            if item is None:
-                item = Layer(layerId, plugin.providerName(), LayerType.DEM, visible=False)
-            layers.append(item)
+            layer = self.getLayer(layerId)
+            if layer is None:
+                layer = Layer(layerId, plugin.providerName(), LayerType.DEM, visible=False)
+            layers.append(layer)
 
         # Flat plane
-        item = self.getLayer("FLAT")        # for backward compatibility. id "FLAT" is obsolete since 2.7
-        if item:
-            item.layerId = "fp:" + createUid()
-            layers.append(item)
+        layer = self.getLayer("FLAT")        # for backward compatibility. id "FLAT" is obsolete since 2.7
+        if layer:
+            layer.layerId = "fp:" + createUid()
+            layers.append(layer)
         elif len(self.layers()):
             layers += [lyr for lyr in self.layers() if lyr.layerId.startswith("fp:")]
         else:
             layerId = "fp:" + createUid()
-            item = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
-            layers.append(item)
+            layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
+            layers.append(layer)
 
         # renumber jsLayerId
         self.nextJsLayerId = 0
