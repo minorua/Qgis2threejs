@@ -911,9 +911,9 @@ Q3D.application
 
               _onStart = function () {
                 idx_from = group.currentIndex;
+                effect = keyframes[idx_from].effect;
                 from = keyframes[idx_from].mtlIndex;
                 to = keyframes[idx_from + 1].mtlIndex;
-                effect = keyframes[idx_from + 1].effect;
 
                 layer.prepareMtlAnimation(from, to);
                 layer.setTextureAt(null, effect);
@@ -3167,8 +3167,6 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
 
   if (this.anim === undefined) return;
 
-  effect = effect || 1;
-
   var a, w0, h0, w1, h1, ew1;
   for (var i = 0; i < this.anim.length; i++) {
     a = this.anim[i];
@@ -3177,20 +3175,31 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
     w1 = a.img_to.width;
     h1 = a.img_to.height;
 
-    if (effect == 1) {  // fade in
-      a.ctx.globalAlpha = 1;    // (1 - elapsed);
-      a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
-
+    if (effect == 0) {  // fade in
+      a.ctx.globalAlpha = 1;
+      a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
+                                  0, 0, w1, h1);
       a.ctx.globalAlpha = elapsed;
-      a.ctx.drawImage(a.img_to, 0, 0, w1, h1, 0, 0, w1, h1);
+      a.ctx.drawImage(a.img_to, 0, 0);
     }
-    else if (effect == 2) {  // slide
+    else if (effect == 2) {  // slide to left (not used)
       if (elapsed === null) {
-        a.ctx.drawImage(a.img_from, 0, 0, w0, h0, 0, 0, w1, h1);
+        a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
+                                    0, 0, w1, h1);
       }
       else {
         ew1 = w1 * elapsed;
-        a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1, w1 - ew1, 0, ew1, h1);
+        a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
+                                  w1 - ew1, 0, ew1, h1);
+      }
+    }
+    else {    // no effect
+      if (!elapsed) {
+        a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
+                                    0, 0, w1, h1);
+      }
+      else {
+        a.ctx.drawImage(a.img_to, 0, 0);
       }
     }
     a.tex.needsUpdate = true;

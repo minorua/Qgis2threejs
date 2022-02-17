@@ -397,7 +397,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         elif typ == ATConst.ITEM_MATERIAL:
             item.setData(0, ATConst.DATA_MTL_ID, keyframe.get("mtlId", ""))
-            item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 1))
+            item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 0))
 
         elif typ == ATConst.ITEM_GROWING_LINE:
             item.setData(0, ATConst.DATA_FID, keyframe.get("fid"))
@@ -443,7 +443,7 @@ class AnimationTreeWidget(QTreeWidget):
                 id = item.data(0, ATConst.DATA_MTL_ID)
                 k["mtlId"] = id
                 k["mtlIndex"] = layer.mtlIndex(id)
-                k["effect"] = item.data(0, ATConst.DATA_EFFECT) or item.parent().data(0, ATConst.DATA_EFFECT) or 1
+                k["effect"] = item.data(0, ATConst.DATA_EFFECT) or 0
 
         elif typ == ATConst.ITEM_GROWING_LINE:
             k["fid"] = item.data(0, ATConst.DATA_FID)
@@ -846,8 +846,8 @@ class KeyframeDialog(QDialog):
                     name, id = (mtl.get("name", ""), mtl.get("id"))
                     self.ui.comboBoxMaterial.addItem(name, id)
 
-            self.ui.comboBoxEffect.addItem("Fade in", 1)
-            self.ui.comboBoxEffect.addItem("Slide", 2)
+            self.ui.comboBoxEffect.addItem("Fade in", 0)
+            self.ui.comboBoxEffect.addItem("No Effect", -1)
 
         p = item.parent()
         self.transCount = p.childCount()
@@ -922,7 +922,8 @@ class KeyframeDialog(QDialog):
         self.setupForItem(item)
 
         if self.isKF and value >= self.transCount - 2:
-            for w in [self.ui.labelDelay, self.ui.lineEditDelay, self.ui.labelDuration, self.ui.lineEditDuration]:
+            for w in [self.ui.labelDelay, self.ui.lineEditDelay, self.ui.labelDuration, self.ui.lineEditDuration,
+                      self.ui.labelEffect, self.ui.comboBoxEffect]:
                 w.setEnabled(hasTrans)
 
         self.updateTime(p, value)
