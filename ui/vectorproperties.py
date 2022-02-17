@@ -303,7 +303,7 @@ class Ui_VectorPropertiesWidget(object):
         self.verticalLayout_5.addWidget(self.tabWidget)
 
         self.retranslateUi(VectorPropertiesWidget)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.radioButton_IntersectingFeatures.toggled['bool'].connect(self.checkBox_Clip.setEnabled)
         self.checkBox_Outline.toggled['bool'].connect(self.label_Outline.setEnabled)
         self.checkBox_Outline.toggled['bool'].connect(self.colorButton_OtlColor.setEnabled)

@@ -75,6 +75,16 @@ Q3D.PointCloudLayer = function () {
 Q3D.PointCloudLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.PointCloudLayer.prototype.constructor = Q3D.PointCloudLayer;
 
+Q3D.PointCloudLayer.prototype.visibleObjects = function () {
+  if (!this.visible) return [];
+
+  var o = [];
+  this.objectGroup.traverseVisible(function (obj) {
+    o.push(obj);
+  });
+  return o;
+};
+
 Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
 
   var p = jsonObject.properties;

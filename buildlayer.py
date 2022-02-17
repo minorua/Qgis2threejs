@@ -46,9 +46,11 @@ class LayerBuilder:
             cancelSignal.disconnect(self.cancel)
 
     def layerProperties(self):
-        return {"name": self.layer.name,
-                "clickable": self.properties.get("checkBox_Clickable", True),
-                "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview}  # always visible in preview
+        return {
+            "name": self.layer.name,
+            "clickable": self.properties.get("checkBox_Clickable", True),
+            "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview    # always visible in preview
+        }
 
 
 def dummyProgress(percentage=None, msg=None):

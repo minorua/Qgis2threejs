@@ -44,9 +44,6 @@ with valid one that points to the {0} file on the web server.""".format(filename
         if p["colorType"] == "COLOR":
             p["color"] = int_color(self.properties.get("colorButton_Color"))
         p["boxVisible"] = self.properties.get("checkBox_BoxVisible", False)
-
-        p["clickable"] = False      # not supported yet
-
         return p
 
     def subBuilders(self):

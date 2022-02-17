@@ -1257,11 +1257,10 @@ Q3D.application
     if (object === null) return;
 
     var layer = app.scene.mapLayers[object.userData.layerId];
-    if (layer === undefined || layer.type == Q3D.LayerType.DEM) return;
+    if (!layer || layer.type == Q3D.LayerType.DEM || layer.type == Q3D.LayerType.PointCloud) return;
     if (["Icon", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
 
     // create a highlight object (if layer type is Point, slightly bigger than the object)
-    // var highlightObject = new Q3D.Group();
     var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
 
     var clone = object.clone();
@@ -1269,7 +1268,6 @@ Q3D.application
       obj.material = app.highlightMaterial;
     });
     if (s != 1) clone.scale.multiplyScalar(s);
-    // highlightObject.add(clone);
 
     // add the highlight object to the scene
     app.scene.add(clone);
@@ -2112,6 +2110,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
         return;
       }
       layer.id = jsonObject.id;
+      layer.objectGroup.userData.layerId = jsonObject.id;
       layer.addEventListener("renderRequest", this.requestRender.bind(this));
 
       this.mapLayers[jsonObject.id] = layer;
@@ -2171,7 +2170,7 @@ Q3D.Scene.prototype.visibleObjects = function (labelVisible) {
   for (var id in this.mapLayers) {
     layer = this.mapLayers[id];
     if (layer.visible) {
-      objs = objs.concat(layer.objects);
+      objs = objs.concat(layer.visibleObjects());
       if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
     }
   }
@@ -2802,6 +2801,10 @@ Q3D.MapLayer.prototype.clearObjects = function () {
     this.objectGroup.remove(this.objectGroup.children[i]);
   }
   this.objects = [];
+};
+
+Q3D.MapLayer.prototype.visibleObjects = function () {
+  return (this.visible) ? this.objects : [];
 };
 
 Q3D.MapLayer.prototype.loadJSONObject = function (jsonObject, scene) {

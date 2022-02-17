@@ -212,14 +212,11 @@
       </item>
       <item>
        <widget class="QCheckBox" name="checkBox_Clickable">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="text">
          <string>Clickable</string>
         </property>
         <property name="checked">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
