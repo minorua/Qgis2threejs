@@ -65,6 +65,7 @@ class DEMLayerBuilder(LayerBuilder):
         p["type"] = "dem"
         p["clipped"] = self.properties.get("checkBox_Clip", False)
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
+        p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
         return p
 
     def subBuilders(self):
@@ -72,6 +73,7 @@ class DEMLayerBuilder(LayerBuilder):
 
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
+        currentMtlId = self.properties.get("mtlId")
 
         if self.mtlBuilder.currentMtlType() in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
             # calculate extent with the same aspect ratio as current material texture image
@@ -121,7 +123,8 @@ class DEMLayerBuilder(LayerBuilder):
 
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and len(materials):
-                self.mtlBuilder.setup(blockIndex, extent, materials[0].get("id"), useNow=False)
+                id = materials[0].get("id")
+                self.mtlBuilder.setup(blockIndex, extent, id, useNow=bool(id == currentMtlId))
             else:
                 self.mtlBuilder.setup(blockIndex, extent, useNow=True)
             yield self.mtlBuilder
@@ -146,7 +149,8 @@ class DEMLayerBuilder(LayerBuilder):
             # set up material builder for remaininig materials
             if self.layer.opt.allMaterials:
                 for i in range(1, mtlCount):
-                    self.mtlBuilder.setup(blockIndex, extent, materials[i].get("id"), useNow=False)
+                    id = materials[i].get("id")
+                    self.mtlBuilder.setup(blockIndex, extent, id, useNow=bool(id == currentMtlId))
                     yield self.mtlBuilder
 
 

@@ -86,7 +86,7 @@ Q3D.gui.dat = {
         for (i = 0; i < mtlNames.length; i++) {
           items[mtlNames[i]] = i;
         }
-        folder.add(params.lyr[layerId], 'm', items).name('Material').onChange(mtlChanged);
+        folder.add(params.lyr[layerId], 'm', items).name('Material').onChange(mtlChanged).setValue(layer.properties.mtlIdx);
       }
     }
     return this.layersFolder;
