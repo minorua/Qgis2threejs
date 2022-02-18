@@ -774,7 +774,7 @@ Q3D.application
 
         if (f && f[e[1]]) return f[e[1]];
 
-        return TWEEN.Easing.Linear.None;    // default easing
+        return TWEEN.Easing.Linear.None;
       },
 
       keyframeGroups: [],
@@ -804,7 +804,7 @@ Q3D.application
             return;
           }
 
-          var eFunc = _this.easingFunction(group.easing),
+          var eFunc = (group.easing != "None") ? _this.easingFunction(group.easing) : null,
               prop_list = [];
 
           group.completed = false;
@@ -838,6 +838,7 @@ Q3D.application
               }
 
               setTimeout(function () {
+                _this.pause();
                 e.classList.add("visible");
               }, 0);
             }
@@ -846,6 +847,7 @@ Q3D.application
           var onUpdate, _onStart, _onComplete;
 
           if (group.type == Q3D.KeyframeType.CameraMotion) {
+
             var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
             var vec3 = new THREE.Vector3(),
                 o = app.scene.userData.origin;
@@ -856,7 +858,7 @@ Q3D.application
               theta = Math.acos(vec3.z / dist);
               phi = Math.atan2(vec3.y, vec3.x);
               p.phi = phi;
-              prop_list.push({fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
+              prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
 
               if (i > 0) {
                 dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
@@ -866,6 +868,8 @@ Q3D.application
 
             var phi0, phi1, dz;
             onUpdate = function (obj, elapsed, is_first) {
+
+              p = obj.p - group.currentIndex;
               phi0 = keyframes[group.currentIndex].camera.phi;
               phi1 = (is_first) ? phi0 : keyframes[group.currentIndex + 1].camera.phi;
 
@@ -873,13 +877,13 @@ Q3D.application
                 phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
               }
 
-              phi = phi0 * (1 - elapsed) + phi1 * elapsed;
+              phi = phi0 * (1 - p) + phi1 * p;
 
               vec3.set(Math.cos(phi) * Math.sin(obj.theta),
                        Math.sin(phi) * Math.sin(obj.theta),
                        Math.cos(obj.theta)).setLength(obj.d);
 
-              dz = (c) ? (1 - Math.pow(2 * elapsed - 1, 2)) * dist_list[group.currentIndex] * c : 0;
+              dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[group.currentIndex] * c : 0;
 
               app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
               app.camera.lookAt(obj.fx, obj.fy, obj.fz);
@@ -920,17 +924,17 @@ Q3D.application
               };
 
               onUpdate = function (obj, elapsed) {
-                layer.setTextureAt(elapsed, effect);
+                layer.setTextureAt(obj.p - group.currentIndex, effect);
               };
 
               for (var i = 0; i < keyframes.length; i++) {
-                prop_list.push({idx: i});
+                prop_list.push({p: i});
               }
             }
             else if (group.type == Q3D.KeyframeType.GrowingLine) {
 
               onUpdate = function (obj, elapsed) {
-                layer.setLengthPercentage(elapsed);
+                layer.setLengthPercentage(obj.p);
               };
 
               // one effect item to two keyframes
@@ -958,12 +962,13 @@ Q3D.application
 
             // pause if narrative box is shown
             if (e && e.classList.contains("visible")) {
-              if (keyframes[group.currentIndex].narration) _this.pause();
-              else e.classList.remove("visible");
+              e.classList.remove("visible");
             }
           };
 
           var onComplete = function (obj) {
+            if (!eFunc) onUpdate(obj, 1);
+
             if (_onComplete) _onComplete(obj);
 
             var index = ++group.currentIndex;
@@ -993,13 +998,14 @@ Q3D.application
 
           var tween, t1, t2;
           for (i = 0; i < keyframes.length - 1; i++) {
+
             t2 = new TWEEN.Tween(prop_list[i])
                              .to(prop_list[i + 1], keyframes[i].duration)
                              .delay(keyframes[i].delay)
-                             .easing(eFunc)
                              .onStart(onStart)
-                             .onUpdate(onUpdate)
                              .onComplete(onComplete);
+
+            if (eFunc) t2.easing(eFunc).onUpdate(onUpdate);
 
             if (i == 0) {
               tween = t2;

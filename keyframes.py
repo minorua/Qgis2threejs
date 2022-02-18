@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, 
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication
 
-from .conf import DEBUG_MODE, DEF_SETS
+from .conf import DEBUG_MODE, DEF_SETS, EASING
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
 from .tools import createUid, js_bool, logMessage, parseInt
@@ -815,18 +815,24 @@ class KeyframeDialog(QDialog):
 
         ui.menuEasing = QMenu(ui.menuBar)
         ui.menuEasing.setTitle("Easing")
+        ui.menuEasing.setToolTipsVisible(True)
 
         ui.actionGroupEasing = QActionGroup(self)
-        first = True
-        for text in ["Linear", "Quadratic In", "None"]:
+
+        def addAction(text, data=None):
             a = QAction(text, self)
-            a.setData(text)
+            a.setData(text if data is None else data)
             a.setCheckable(True)
-            if first:
-                a.setChecked(True)
-                first = False
             a.setActionGroup(ui.actionGroupEasing)
             ui.menuEasing.addAction(a)
+            return a
+
+        addAction("Linear").setChecked(True)
+        addAction("Ease InOut", EASING + " InOut").setToolTip("The transition starts slowly, speeds up in the middle, and slows down at the end.")
+        addAction("Ease In", EASING + " In").setToolTip("The transition starts slowly, and continues to speed up until the end.")
+        addAction("Ease Out", EASING + " Out").setToolTip("The transition starts quickly, and continues to slow down until the end.")
+        addAction("None").setToolTip("The initial state changes to the final state at the end of duration.")
+
         ui.menuBar.addAction(ui.menuEasing.menuAction())
 
     def setup(self, item, layer=None):
@@ -855,7 +861,7 @@ class KeyframeDialog(QDialog):
         if t & ATConst.ITEM_MBR:
             easing = p.data(0, ATConst.DATA_EASING)
             if easing:
-                for a in self.ui.menuEasing.actions():
+                for a in self.ui.actionGroupEasing.actions():
                     if a.data() == easing:
                         a.setChecked(True)
                         break

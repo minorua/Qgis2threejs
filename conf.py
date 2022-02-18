@@ -14,6 +14,10 @@ SHIFT_THRESHOLD = 10 ** 5   # When coordinate absolute values exceed this value,
 # vector layer
 FEATURES_PER_BLOCK = 50   # max number of features in a data block
 
+# animation
+EASING = "Cubic"          # easing function name. one of Quadratic, Cubic, Quartic,
+                          # Quintic, Sinusoidal, Exponential, Circular, Bounce
+
 # multi-threading
 RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
 
