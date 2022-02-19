@@ -376,6 +376,7 @@ class FeatureBlockBuilder:
         self.grid = grid
 
         self.blockIndex = None
+        self.startFIdx = None
         self.features = []
 
     def clone(self):
@@ -418,7 +419,8 @@ class FeatureBlockBuilder:
             "layer": self.jsLayerId,
             "block": self.blockIndex,
             "features": feats,
-            "featureCount": len(feats)
+            "featureCount": len(feats),
+            "startIndex": self.startFIdx
         }
 
         if self.pathRoot is not None:
@@ -603,7 +605,7 @@ class VectorLayerBuilder(LayerBuilder):
         one_per_block = (objType == ObjectType.Overlay
                          and self.vlayer.isHeightRelativeToDEM()
                          and self.settings.isPreview)
-        index = 0
+        bIndex = startFIdx = 0
         feats = []
         for f in self.features or []:
             if self.clipExtent and self.layer.type != LayerType.POINT:
@@ -620,13 +622,17 @@ class VectorLayerBuilder(LayerBuilder):
 
             if len(feats) == FEATURES_PER_BLOCK or one_per_block:
                 b = builder.clone()
-                b.setBlockIndex(index)
+                b.setBlockIndex(bIndex)
                 b.setFeatures(feats)
+                b.startFIdx = startFIdx
                 yield b
-                index += 1
+
+                bIndex += 1
+                startFIdx += len(feats)
                 feats = []
 
-        if len(feats) or index == 0:
-            builder.setBlockIndex(index)
+        if len(feats) or bIndex == 0:
+            builder.setBlockIndex(bIndex)
             builder.setFeatures(feats)
+            builder.startFIdx = startFIdx
             yield builder

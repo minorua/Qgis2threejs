@@ -2793,6 +2793,12 @@ Q3D.MapLayer.prototype.addObject = function (object) {
   return this.objectGroup.children.length - 1;
 };
 
+Q3D.MapLayer.prototype.addObjects = function (objects) {
+  for (var i = 0; i < objects.length; i++) {
+    this.addObject(objects[i]);
+  }
+};
+
 Q3D.MapLayer.prototype.clearObjects = function () {
   // dispose of geometries
   this.objectGroup.traverse(function (obj) {
@@ -3218,6 +3224,7 @@ Q3D.VectorLayer --> Q3D.MapLayer
 Q3D.VectorLayer = function () {
   Q3D.MapLayer.call(this);
 
+  this.features = [];
   this.labels = [];
   // this.labelGroup = undefined;
   // this.labelConnectorGroup = undefined;
@@ -3226,7 +3233,20 @@ Q3D.VectorLayer = function () {
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
 Q3D.VectorLayer.prototype.constructor = Q3D.VectorLayer;
 
-Q3D.VectorLayer.prototype.build = function (block) {};
+// Q3D.VectorLayer.prototype.build = function (features, startIndex) {};
+
+Q3D.VectorLayer.prototype.addFeature = function (featureIdx, f, objs) {
+  Q3D.MapLayer.prototype.addObjects.call(this, objs);
+
+  for (var i = 0; i < objs.length; i++) {
+    objs[i].userData.featureIdx = featureIdx;
+  }
+  f.objs = objs;
+
+  delete f.geom;
+  this.features[featureIdx] = f;
+  return f;
+};
 
 Q3D.VectorLayer.prototype.clearLabels = function () {
   this.labels = [];
@@ -3367,6 +3387,7 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
   if (jsonObject.type == "layer") {
     if (jsonObject.data !== undefined) {
+      this.features = [];
       this.clearLabels();
 
       // build labels
@@ -3390,14 +3411,14 @@ Q3D.VectorLayer.prototype.loadJSONObject = function (jsonObject, scene) {
       (jsonObject.data.blocks || []).forEach(function (block) {
         if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
         else {
-          this.build(block.features);
+          this.build(block.features, block.startIndex);
           if (this.properties.label !== undefined) this.buildLabels(block.features);
         }
       }, this);
     }
   }
   else if (jsonObject.type == "block") {
-    this.build(jsonObject.features);
+    this.build(jsonObject.features, jsonObject.startIndex);
     if (this.properties.label !== undefined) this.buildLabels(jsonObject.features);
   }
 };
@@ -3445,16 +3466,16 @@ Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 };
 
-Q3D.PointLayer.prototype.build = function (features) {
+Q3D.PointLayer.prototype.build = function (features, startIndex) {
   var objType = this.properties.objType;
   if (objType == "Point") {
-    return this.buildPoints(features);
+    return this.buildPoints(features, startIndex);
   }
   else if (objType == "Icon") {
-    return this.buildIcons(features);
+    return this.buildIcons(features, startIndex);
   }
   else if (objType == "Model File") {
-    return this.buildModels(features);
+    return this.buildModels(features, startIndex);
   }
 
   var unitGeom, transform;
@@ -3468,21 +3489,22 @@ Q3D.PointLayer.prototype.build = function (features) {
     transform = gt[1];
   }
 
-  var f, i, l, pts, mesh;
-  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+  var f, mtl, pts, i, l, mesh, meshes;
+  for (var fidx = 0; fidx < features.length; fidx++) {
     f = features[fidx];
-    f.objs = [];
-
     pts = f.geom.pts;
+    mtl = this.materials.mtl(f.mtl);
+
+    meshes = [];
     for (i = 0, l = pts.length; i < l; i++) {
-      mesh = new THREE.Mesh(unitGeom, this.materials.mtl(f.mtl));
+      mesh = new THREE.Mesh(unitGeom, mtl);
       transform(mesh, f.geom, pts[i]);
 
       mesh.userData.properties = f.prop;
 
-      f.objs.push(mesh);
-      this.addObject(mesh);
+      meshes.push(mesh);
     }
+    this.addFeature(fidx + startIndex, f, meshes);
   }
 
   this.cachedGeometryType = objType;
@@ -3551,71 +3573,83 @@ Q3D.PointLayer.prototype.geomAndTransformFunc = function (objType) {
   ];
 };
 
-Q3D.PointLayer.prototype.buildPoints = function (features) {
-  var f, geom, obj;
-  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+Q3D.PointLayer.prototype.buildPoints = function (features, startIndex) {
+  var f, geom, mtl, obj;
+  for (var fidx = 0; fidx < features.length; fidx++) {
     f = features[fidx];
 
     geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
+    mtl = this.materials.mtl(f.mtl);
 
-    obj = new THREE.Points(geom, this.materials.mtl(f.mtl));
+    obj = new THREE.Points(geom, mtl);
     obj.userData.properties = f.prop;
 
-    f.objs = [obj];
-    this.addObject(obj);
+    this.addFeature(fidx + startIndex, f, [obj]);
   }
 };
 
-Q3D.PointLayer.prototype.buildIcons = function (features) {
-  // each feature in this layer
-  features.forEach(function (f) {
-    var sprite,
+Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
+  var pts, sprite, i;
+  for (var fidx = 0; fidx < features.length; fidx++) {
+    var f = features[fidx],
         material = this.materials.get(f.mtl);
+    pts = f.geom.pts;
 
-    f.objs = [];
-    for (var i = 0, l = f.geom.pts.length; i < l; i++) {
+    var sprites = [];
+    for (i = 0; i < pts.length; i++) {
       sprite = new THREE.Sprite(material.mtl);
       sprite.position.fromArray(f.geom.pts[i]);
       sprite.userData.properties = f.prop;
 
-      f.objs.push(sprite);
-      this.addObject(sprite);
+      sprites.push(sprite);
     }
 
     material.callbackOnLoad(function () {
-      var img = material.mtl.map.image;
-      for (var i = 0; i < f.objs.length; i++) {
-        // base size is 64 x 64
-        f.objs[i].scale.set(img.width / 64 * f.geom.scale,
-                            img.height / 64 * f.geom.scale,
-                            1);
-        f.objs[i].updateMatrixWorld();
+      var img = material.mtl.map.image,
+          base_size = f.geom.scale / 64;     // [TODO] FIX ME: width = base_size
+      for (var i = 0; i < sprites.length; i++) {
+        sprites[i].scale.set(img.width * base_size,
+                             img.height * base_size,
+                             1);
+        sprites[i].updateMatrixWorld();
       }
     });
-  }, this);
+
+    this.addFeature(fidx + startIndex, f, sprites);
+  }
 };
 
-Q3D.PointLayer.prototype.buildModels = function (features) {
-  var _this = this,
-      q = new THREE.Quaternion(),
+Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
+  var q = new THREE.Quaternion(),
       e = new THREE.Euler(),
       deg2rad = Q3D.deg2rad;
 
-  // each feature in this layer
-  features.forEach(function (f) {
-    var model = _this.models.get(f.model);
-    if (model === undefined) {
+  var f, pts, objs, i;
+  for (var fidx = 0; fidx < features.length; fidx++) {
+    f = features[fidx];
+    pts = f.geom.pts;
+
+    var model = this.models.get(f.model);
+    if (!model) {
       console.log("Model File: There is a missing model.");
-      return;
+      continue;
     }
 
-    f.objs = [];
-    f.geom.pts.forEach(function (pt) {
+    objs = [];
+    for (i = 0; i < pts.length; i++) {
+      var parent = new THREE.Group();
+      parent.position.fromArray(pts[i]);
+      parent.scale.set(1, 1, this.sceneData.zScale);
+
+      parent.userData.properties = f.prop;
+
+      objs.push(parent);
+
       model.callbackOnLoad(function (m) {
         var obj = m.scene.clone();
         obj.scale.setScalar(f.geom.scale);
 
-        if (obj.rotation.x) {   // == -Math.PI / 2 (z-up model)
+        if (obj.rotation.x) {
           // reset coordinate system to z-up and specified rotation
           obj.rotation.set(0, 0, 0);
           obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
@@ -3631,18 +3665,11 @@ Q3D.PointLayer.prototype.buildModels = function (features) {
                                                        f.geom.rotateO || "XYZ")));
           obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
         }
-
-        var parent = new THREE.Group();
-        parent.scale.set(1, 1, _this.sceneData.zScale);
-        parent.position.fromArray(pt);
-        parent.userData.properties = f.prop;
         parent.add(obj);
-
-        f.objs.push(parent);
-        _this.addObject(parent);
       });
-    });
-  });
+    }
+    this.addFeature(fidx + startIndex, f, objs);
+  }
 };
 
 Q3D.PointLayer.prototype.buildLabels = function (features) {
@@ -3670,26 +3697,26 @@ Q3D.LineLayer.prototype.clearObjects = function () {
   }
 };
 
-Q3D.LineLayer.prototype.build = function (features) {
+Q3D.LineLayer.prototype.build = function (features, startIndex) {
 
   if (this._lastObjType !== this.properties.objType) this._createObject = null;
 
   var createObject = this._createObject || this.createObjFunc(this.properties.objType);
 
-  var f, i, l, lines, obj;
-  for (var fidx = 0, flen = features.length; fidx < flen; fidx++) {
+  var f, i, lines, obj, objs;
+  for (var fidx = 0; fidx < features.length; fidx++) {
     f = features[fidx];
-    f.objs = [];
-
     lines = f.geom.lines;
-    for (i = 0, l = lines.length; i < l; i++) {
+
+    objs = [];
+    for (i = 0; i < lines.length; i++) {
       obj = createObject(f, lines[i]);
       obj.userData.properties = f.prop;
       obj.userData.mtl = f.mtl;
 
-      f.objs.push(obj);
-      this.addObject(obj);
+      objs.push(obj);
     }
+    this.addFeature(fidx + startIndex, f, objs);
   }
 
   this._lastObjType = this.properties.objType;
@@ -3936,20 +3963,19 @@ Q3D.PolygonLayer.prototype.loadJSONObject = function (jsonObject, scene) {
   Q3D.VectorLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 };
 
-Q3D.PolygonLayer.prototype.build = function (features) {
+Q3D.PolygonLayer.prototype.build = function (features, startIndex) {
 
   if (this.properties.objType !== this._lastObjType) this._createObject = null;
 
   var createObject = this._createObject || this.createObjFunc(this.properties.objType);
 
   var f, obj;
-  for (var i = 0, l = features.length; i < l; i++) {
-    f = features[i];
+  for (var fidx = 0; fidx < features.length; fidx++) {
+    f = features[fidx];
     obj = createObject(f);
     obj.userData.properties = f.prop;
 
-    f.objs = [obj];
-    this.addObject(obj);
+    this.addFeature(fidx + startIndex, f, [obj]);
   }
 
   this._lastObjType = this.properties.objType;
