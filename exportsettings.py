@@ -495,7 +495,7 @@ class ExportSettings:
                 if not group["enabled"]:
                     continue
 
-                if group["type"] == ATConst.ITEM_GROWING_LINE:
+                if group["type"] == ATConst.ITEM_GRP_GROWING_LINE:
                     yield group
 
                 elif len(group["keyframes"]) > 1:

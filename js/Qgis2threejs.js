@@ -934,7 +934,7 @@ Q3D.application
             else if (group.type == Q3D.KeyframeType.GrowingLine) {
 
               onUpdate = function (obj, elapsed) {
-                layer.setLengthPercentage(obj.p);
+                layer.setLineLength(obj.p);
               };
 
               // one effect item to two keyframes
@@ -950,7 +950,7 @@ Q3D.application
 
               layer.prepareGrowingAnimation();
 
-              onUpdate(undefined, 0);
+              onUpdate(prop_list[0], 0);
             }
             else return;
           }
@@ -3855,10 +3855,10 @@ Q3D.LineLayer.prototype.prepareGrowingAnimation = function () {
   var _this = this;
 
   this.origMtls = new Q3D.Materials();
-  this.origMtls.materials = this.materials.array;
+  this.origMtls.array = this.materials.array;
   this.materials.array = [];
 
-  var opt, m, mtls = this.origMtls.materials;
+  var m, mtls = this.origMtls.array;
 
   for (var i = 0; i < mtls.length; i++) {
 
@@ -3899,7 +3899,8 @@ Q3D.LineLayer.prototype.prepareGrowingAnimation = function () {
   });
 };
 
-Q3D.LineLayer.prototype.setLengthPercentage = function (percentage) {
+// length: number [0 - 1]
+Q3D.LineLayer.prototype.setLineLength = function (length) {
 
   if (this.origMtls === undefined) return;
 
@@ -3907,10 +3908,10 @@ Q3D.LineLayer.prototype.setLengthPercentage = function (percentage) {
   for (var i = 0; i < mtls.length; i++) {
     mtl = mtls[i].mtl;
     if (mtl.isLineDashedMaterial) {
-      mtl.dashSize = percentage;
+      mtl.dashSize = length;
     }
     else if (mtl.isMeshLineMaterial) {
-      mtl.uniforms.dashOffset.value = -percentage;
+      mtl.uniforms.dashOffset.value = -length;
     }
   }
 };
