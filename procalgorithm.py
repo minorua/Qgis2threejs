@@ -9,8 +9,6 @@ from PyQt5.QtCore import QDir, QSize
 from PyQt5.QtXml import QDomDocument
 from qgis.core import (QgsCoordinateTransform,
                        QgsExpression,
-                       QgsExpressionContext,
-                       QgsExpressionContextUtils,
                        QgsGeometry,
                        QgsMemoryProviderUtils,
                        QgsProcessing,
@@ -206,8 +204,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         header_exp = QgsExpression(self.parameterAsExpression(parameters, self.HEADER, context))
         footer_exp = QgsExpression(self.parameterAsExpression(parameters, self.FOOTER, context))
 
-        exp_context = QgsExpressionContext()
-        exp_context.appendScope(QgsExpressionContextUtils.layerScope(clayer))
+        exp_context = clayer.createExpressionContext()
 
         out_dir = self.parameterAsString(parameters, self.OUTPUT, context)
         if not QDir(out_dir).exists():

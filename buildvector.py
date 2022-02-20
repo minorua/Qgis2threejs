@@ -7,8 +7,7 @@ import json
 import random
 from PyQt5.QtCore import QVariant
 from PyQt5.QtGui import QColor
-from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils,
-                       QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
+from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
 
 from .conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
 from .buildlayer import LayerBuilder
@@ -118,8 +117,7 @@ class VectorLayer:
         self.name = layer.name
         self.properties = layer.properties
 
-        self.expressionContext = QgsExpressionContext()
-        self.expressionContext.appendScope(QgsExpressionContextUtils.layerScope(self.mapLayer))
+        self.expressionContext = self.mapLayer.createExpressionContext()
 
         otc = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
         self.ot = otc(settings, materialManager) if otc else None
