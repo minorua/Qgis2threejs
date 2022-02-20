@@ -14,7 +14,7 @@ from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import LayerType, PropertyID as PID
-from .tools import css_color, hex_color, int_color, logMessage
+from .tools import css_color, hex_color, int_color, logMessage, parseInt
 from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
@@ -196,9 +196,6 @@ class VectorLayer:
             if self.anim_exprs:
                 for pid, expr in self.anim_exprs.items():
                     props[pid] = expr.evaluate(self.expressionContext)
-
-                if DEBUG_MODE:
-                    logMessage("dly: {}, dur: {}".format(props[PID.DLY], props[PID.DUR]))
 
             # attributes
             attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices] if self.writeAttrs else None
@@ -430,9 +427,11 @@ class FeatureBlockBuilder:
 
             if f.hasProp(PID.DLY):
                 d["anim"] = {
-                    "delay": f.prop(PID.DLY),
-                    "duration": f.prop(PID.DUR)
+                    "delay": parseInt(f.prop(PID.DLY)),
+                    "duration": parseInt(f.prop(PID.DUR))
                 }
+                if DEBUG_MODE:
+                    logMessage("dly: {}, dur: {}".format(d["anim"]["delay"], d["anim"]["duration"]))
 
             feats.append(d)
 
