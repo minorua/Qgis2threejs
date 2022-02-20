@@ -931,28 +931,43 @@ Q3D.application
                 prop_list.push({p: i});
               }
             }
-            else if (group.type == Q3D.KeyframeType.GrowingLine) {
+            else {
+              var effectItems = keyframes;
+              keyframes = [];
 
-              onUpdate = function (obj, elapsed) {
-                layer.setLineLength(obj.p);
-              };
+              if (group.type == Q3D.KeyframeType.GrowingLine) {
 
-              // one effect item to two keyframes
-              var to, kfs = [];
-              for (var i = 0; i < keyframes.length; i++) {
-                to = Object.assign({}, keyframes[i]);
-                to.delay = 0;
-                kfs.push(keyframes[i], to);
+                if (effectItems[0].sequential) {
+                  var f;
+                  for (var i = 0; i < layer.features.length; i++) {
+                    f = layer.features[i];
 
-                prop_list.push({p: 0}, {p: 1});
+                    keyframes.push(f.anim);
+                    prop_list.push({p: i});
+                  }
+                  keyframes.push({});
+                  prop_list.push({p: i});
+
+                  onUpdate = function (obj, elapsed) {
+                    layer.setLineLength(obj.p - group.currentIndex, group.currentIndex);
+                  };
+                }
+                else {
+                  keyframes = [effectItems[0], {}];
+                  prop_list = [{p: 0}, {p: 1}];
+
+                  onUpdate = function (obj, elapsed) {
+                    layer.setLineLength(obj.p);
+                  };
+                }
+
+                layer.prepareAnimation(effectItems[0].sequential);
+                layer.setLineLength(0);
               }
-              keyframes = kfs;
-
-              layer.prepareGrowingAnimation();
-
-              onUpdate(prop_list[0], 0);
+              else {
+                return;
+              }
             }
-            else return;
           }
 
           var onStart = function () {
@@ -3875,65 +3890,111 @@ Q3D.LineLayer.prototype.buildLabels = function (features) {
 };
 
 // prepare for growing line animation
-Q3D.LineLayer.prototype.prepareGrowingAnimation = function () {
+Q3D.LineLayer.prototype.prepareAnimation = function (sequential) {
 
   if (this.origMtls !== undefined) return;
 
-  var _this = this;
+  function computeLineDistances(obj) {
+    if (!obj.material.isLineDashedMaterial) return;
+
+    obj.computeLineDistances();
+
+    var dists = obj.geometry.attributes.lineDistance.array;
+    obj.lineLength = dists[dists.length - 1];
+
+    for (var i = 0; i < dists.length; i++) {
+      dists[i] /= obj.lineLength;
+    }
+  }
 
   this.origMtls = new Q3D.Materials();
   this.origMtls.array = this.materials.array;
+
   this.materials.array = [];
 
-  var m, mtls = this.origMtls.array;
+  if (sequential) {
+    var f, m, mtl, j;
+    for (var i = 0; i < this.features.length; i++) {
+      f = this.features[i];
+      m = f.objs[0].material;
 
-  for (var i = 0; i < mtls.length; i++) {
-
-    m = mtls[i].mtl;
-
-    if (m.isLineDashedMaterial) {
-      m.gapSize = 1;
-    }
-    else if (m.isMeshLineMaterial) {
-      m.dashArray = 2;
-      m.transparent = true;
-    }
-    else if (m.isLineBasicMaterial) {
-      m = new THREE.LineDashedMaterial({color: m.color});
-    }
-
-    this.materials.add(m);
-  }
-
-  // replace materials
-  this.objectGroup.traverse(function (obj) {
-
-    if (obj.userData.mtl !== undefined) {
-
-      obj.material = _this.materials.mtl(obj.userData.mtl);
-
-      if (obj.material.isLineDashedMaterial) {
-        obj.computeLineDistances();
-
-        var dists = obj.geometry.attributes.lineDistance.array;
-        obj.lineLength = dists[dists.length - 1];
-
-        for (i = 0; i < dists.length; i++) {
-          dists[i] /= obj.lineLength;
-        }
+      if (m.isMeshLineMaterial) {
+        mtl = new MeshLineMaterial();
+        mtl.color = m.color;
+        mtl.opacity = m.opacity;
+        mtl.lineWidth = m.lineWidth;
+        mtl.dashArray = 2;
+        mtl.transparent = true;
       }
+      else {
+        if (m.isLineDashedMaterial) {
+          mtl = m.clone();
+        }
+        else {
+          mtl = new THREE.LineDashedMaterial({color: m.color, opacity: m.opacity});
+        }
+        mtl.gapSize = 1;
+      }
+
+      for (j = 0; j < f.objs.length; j++) {
+        f.objs[j].material = mtl;
+        computeLineDistances(f.objs[j]);
+      }
+      this.materials.add(mtl);
     }
-  });
+  }
+  else {
+    var mtl, mtls = this.origMtls.array;
+
+    for (var i = 0; i < mtls.length; i++) {
+      mtl = mtls[i].mtl;
+
+      if (mtl.isLineDashedMaterial) {
+        mtl.gapSize = 1;
+      }
+      else if (mtl.isMeshLineMaterial) {
+        mtl.dashArray = 2;
+        mtl.transparent = true;
+      }
+      else if (mtl.isLineBasicMaterial) {
+        mtl = new THREE.LineDashedMaterial({color: mtl.color, opacity: mtl.opacity});
+      }
+
+      this.materials.add(mtl);
+    }
+
+    var _this = this;
+    this.objectGroup.traverse(function (obj) {
+
+      if (obj.userData.mtl !== undefined) {
+        obj.material = _this.materials.mtl(obj.userData.mtl);
+        computeLineDistances(obj);
+      }
+
+    });
+  }
 };
 
 // length: number [0 - 1]
-Q3D.LineLayer.prototype.setLineLength = function (length) {
+Q3D.LineLayer.prototype.setLineLength = function (length, featureIdx) {
 
   if (this.origMtls === undefined) return;
 
-  var mtl, mtls = this.materials.array;
-  for (var i = 0; i < mtls.length; i++) {
-    mtl = mtls[i].mtl;
+  var mtl;
+  if (featureIdx === undefined) {
+    var mtls = this.materials.array;
+    for (var i = 0; i < mtls.length; i++) {
+      mtl = mtls[i].mtl;
+      if (mtl.isLineDashedMaterial) {
+        mtl.dashSize = length;
+      }
+      else if (mtl.isMeshLineMaterial) {
+        mtl.uniforms.dashOffset.value = -length;
+      }
+    }
+  }
+  else {
+    mtl = this.features[featureIdx].objs[0].material;
     if (mtl.isLineDashedMaterial) {
       mtl.dashSize = length;
     }

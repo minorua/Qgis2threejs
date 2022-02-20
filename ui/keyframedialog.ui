@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>440</height>
+    <height>463</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -33,7 +33,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="horizontalSlider">
+      <widget class="QSlider" name="slider">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -62,7 +62,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditCurrentTrans">
+      <widget class="QLineEdit" name="lineEditCurrentKF">
        <property name="maximumSize">
         <size>
          <width>30</width>
@@ -78,7 +78,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="labelTransCount">
+      <widget class="QLabel" name="labelKFCount">
        <property name="text">
         <string>/ N</string>
        </property>
@@ -114,6 +114,32 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="0" colspan="2">
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelComboBox1">
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEditName"/>
+     </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="doubleSpinBoxOpacity">
        <property name="inputMethodHints">
@@ -133,54 +159,6 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QComboBox" name="comboBoxMaterial"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="labelEffect">
-       <property name="minimumSize">
-        <size>
-         <width>60</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Effect</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEditName"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="labelMaterial">
-       <property name="minimumSize">
-        <size>
-         <width>60</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Material</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QComboBox" name="comboBoxEffect"/>
-     </item>
-     <item row="6" column="0" colspan="2">
-      <spacer name="verticalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="labelOpacity">
        <property name="minimumSize">
@@ -194,6 +172,9 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="comboBox1"/>
+     </item>
      <item row="5" column="0" colspan="2">
       <widget class="QPlainTextEdit" name="plainTextEdit">
        <property name="placeholderText">
@@ -205,6 +186,19 @@
       <widget class="QLabel" name="labelNarration">
        <property name="text">
         <string>Narrative content</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="comboBox2"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelComboBox2">
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>0</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -223,6 +217,19 @@
       <widget class="QLabel" name="labelDuration">
        <property name="text">
         <string>Duration (msec)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="lineEditDelay">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>duration to wait before starting a transition</string>
        </property>
       </widget>
      </item>
@@ -246,16 +253,23 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLineEdit" name="lineEditDelay">
-       <property name="maximumSize">
+     <item row="2" column="0">
+      <widget class="QgsFieldExpressionWidget" name="expressionDelay" native="true">
+       <property name="minimumSize">
         <size>
-         <width>100</width>
-         <height>16777215</height>
+         <width>0</width>
+         <height>20</height>
         </size>
        </property>
-       <property name="toolTip">
-        <string>duration to wait before starting a transition</string>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QgsFieldExpressionWidget" name="expressionDuration" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -398,6 +412,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsFieldExpressionWidget</class>
+   <extends>QWidget</extends>
+   <header>qgis.gui</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

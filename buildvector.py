@@ -130,6 +130,17 @@ class VectorLayer:
 
         self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
 
+        # animation
+        self.anim_exprs = None
+        if self.type == LayerType.LINESTRING and otc in [ObjectType.Line, ObjectType.ThickLine]:
+            groups = list(self.settings.groupsWithExpressions())
+            if groups:
+                kf = groups[0].get("keyframes", [{}])[0]
+                self.anim_exprs = {
+                    PID.DLY: QgsExpression(str(kf.get("delay", 0))),
+                    PID.DUR: QgsExpression(str(kf.get("duration", DEF_SETS.ANM_DURATION)))
+                }
+
         # attributes
         self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
         self.hasLabel = self.properties.get("checkBox_Label", False)
@@ -183,6 +194,13 @@ class VectorLayer:
 
             # properties
             props = self.evaluateProperties(f, pid_name_dict)
+
+            if self.anim_exprs:
+                for pid, expr in self.anim_exprs.items():
+                    props[pid] = expr.evaluate(self.expressionContext)
+
+                if DEBUG_MODE:
+                    logMessage("dly: {}, dur: {}".format(props[PID.DLY], props[PID.DUR]))
 
             # attributes
             attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices] if self.writeAttrs else None
@@ -411,6 +429,12 @@ class FeatureBlockBuilder:
             if f.hasProp(PID.LBLH):
                 d["lh"] = f.prop(PID.LBLH)
                 d["lbl"] = str(f.prop(PID.LBLTXT))
+
+            if f.hasProp(PID.DLY):
+                d["anim"] = {
+                    "delay": f.prop(PID.DLY),
+                    "duration": f.prop(PID.DUR)
+                }
 
             feats.append(d)
 

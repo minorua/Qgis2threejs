@@ -86,6 +86,15 @@ class PropertyID:
         LBLTXT: "expression_Label"
     }
 
+    # animation
+    DLY = 80
+    DUR = 81
+
+    ANIM_PID_NAME_DICT = {
+        DLY: "delay",
+        DUR: "duration"
+    }
+
     @classmethod
     def init(cls):
         for i in range(GEOM_WIDGET_MAX_COUNT):
@@ -146,7 +155,7 @@ class ATConst:
     DATA_EFFECT = Qt.UserRole + 5
 
     # LINE GROWING EFFECT
-    DATA_FID = Qt.UserRole
+    DATA_SEQ = Qt.UserRole
 
     @classmethod
     def defaultName(cls, typ):

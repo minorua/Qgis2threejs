@@ -496,7 +496,9 @@ class ExportSettings:
                     continue
 
                 if group["type"] == ATConst.ITEM_GRP_GROWING_LINE:
-                    yield group
+                    layer = self.getLayer(layerId)
+                    if layer and layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
+                        yield group
 
                 elif len(group["keyframes"]) > 1:
                     yield group
@@ -529,6 +531,14 @@ class ExportSettings:
         d = self.data.get(ExportSettings.KEYFRAMES, {})
         d.update(data)
         self.data[ExportSettings.KEYFRAMES] = d
+
+    def groupsWithExpressions(self):
+        for group in self.enabledValidKeyframeGroups():
+            if group.get("type") == ATConst.ITEM_GRP_GROWING_LINE:
+                for k in group.get("keyframes", []):
+                    if k.get("sequential"):
+                        yield group
+                        break
 
     def narrations(self):
         contents = []
