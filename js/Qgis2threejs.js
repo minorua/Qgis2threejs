@@ -1557,13 +1557,13 @@ Q3D.application
             total += Math.sqrt(dxy * dxy + dz * dz);
             totalxy += dxy;
           }
-          dz = path[path.length - 1].z - path[0].z;
+          dz = (path[path.length - 1].z - path[0].z) / zScale;
         }
 
         var html = '<table class="measure">';
         html += "<tr><td>Total distance:</td><td>" + this.formatLength(total) + " m</td><td></td></tr>";
         html += "<tr><td>Horizontal distance:</td><td>" + this.formatLength(totalxy) + " m</td><td></td></tr>";
-        html += "<tr><td>Elevation difference:</td><td>" + this.formatLength(dz) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="elevation difference between start point and end point">?</span></td></tr>';
+        html += "<tr><td>Vertical difference:</td><td>" + this.formatLength(dz) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="vertical difference between start point and end point">?</span></td></tr>';
         html += "</table>";
 
         gui.popup.show(html, "Measure distance");
