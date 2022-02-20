@@ -97,7 +97,7 @@ class Q3DControllerInterface(QObject):
         self.messageReady.emit(msg, timeout, True)
 
     def progress(self, percentage=100, msg=""):
-        self.progressUpdated.emit(percentage, msg)
+        self.progressUpdated.emit(int(percentage), msg)
 
     def loadScriptFile(self, id, force=False):
         self.loadScriptsRequest.emit([id], force)
