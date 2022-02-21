@@ -65,10 +65,12 @@ class PropertyID:
     G1 = 11
     G2 = 12
     G3 = 13
+    G4 = 14
 
     C = 20
     C2 = 21
     OP = 22
+
     M0 = 23
     M1 = 24
 

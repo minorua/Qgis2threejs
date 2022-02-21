@@ -128,17 +128,6 @@ class VectorLayer:
 
         self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
 
-        # animation
-        self.anim_exprs = None
-        if self.type == LayerType.LINESTRING and otc in [ObjectType.Line, ObjectType.ThickLine]:
-            groups = list(self.settings.groupsWithExpressions(layer.layerId))
-            if groups:
-                kf = groups[0].get("keyframes", [{}])[0]
-                self.anim_exprs = {
-                    PID.DLY: QgsExpression(str(kf.get("delay", 0))),
-                    PID.DUR: QgsExpression(str(kf.get("duration", DEF_SETS.ANM_DURATION)))
-                }
-
         # attributes
         self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
         self.hasLabel = self.properties.get("checkBox_Label", False)
@@ -155,16 +144,28 @@ class VectorLayer:
         # expressions
         self._exprs = {}
 
+        self.pids = [PID.ALT] + self.ot.pids
+        if self.hasLabel:
+            self.pids += [PID.LBLH, PID.LBLTXT]
+
+        # animation
+        self.anim_exprs = None
+        if self.type == LayerType.LINESTRING and otc in [ObjectType.Line, ObjectType.ThickLine]:
+            groups = list(self.settings.groupsWithExpressions(layer.layerId))
+            if groups:
+                kf = groups[0].get("keyframes", [{}])[0]
+                self.anim_exprs = {
+                    PID.DLY: QgsExpression(str(kf.get("delay", 0))),
+                    PID.DUR: QgsExpression(str(kf.get("duration", DEF_SETS.ANM_DURATION)))
+                }
+
     def features(self, request=None):
         mapTo3d = self.settings.mapTo3d()
         be = self.settings.baseExtent()
         beGeom = be.geometry()
         rotation = be.rotation()
         fields = self.mapLayer.fields()
-
-        pid_name_dict = PID.PID_NAME_DICT.copy()
-        if not self.hasLabel:
-            del pid_name_dict[PID.LBLH], pid_name_dict[PID.LBLTXT]
+        attrs = None
 
         # initialize symbol rendering, and then get features (geometry, attributes, color, etc.)
         self.renderer = self.mapLayer.renderer().clone()
@@ -191,14 +192,15 @@ class VectorLayer:
             self.expressionContext.setFeature(f)
 
             # properties
-            props = self.evaluateProperties(f, pid_name_dict)
+            props = self.evaluateProperties(f, self.pids)
 
             if self.anim_exprs:
                 for pid, expr in self.anim_exprs.items():
                     props[pid] = expr.evaluate(self.expressionContext)
 
             # attributes
-            attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices] if self.writeAttrs else None
+            if self.writeAttrs:
+                attrs = [fields[i].displayString(f.attribute(i)) for i in self.fieldIndices]
 
             # label
             if self.hasLabel:
@@ -208,12 +210,11 @@ class VectorLayer:
 
         self.renderer.stopRender(self.renderContext)
 
-    def evaluateProperties(self, feat, pid_name_dict=None):
+    def evaluateProperties(self, feat, pids):
         d = {}
-        if pid_name_dict is None:
-            pid_name_dict = PID.PID_NAME_DICT
 
-        for pid, name in pid_name_dict.items():
+        for pid in pids:
+            name = PID.PID_NAME_DICT[pid]
             p = self.properties.get(name)
             if p is None:
                 continue

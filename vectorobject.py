@@ -63,6 +63,7 @@ class PointBasicTypeBase(PointTypeBase):
 class PointType(PointTypeBase):
 
     name = "Point"
+    pids = [PID.C, PID.OP, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(mtlItems=[{"name": "Size", "defVal": 1}])
@@ -80,6 +81,7 @@ class PointType(PointTypeBase):
 class SphereType(PointBasicTypeBase):
 
     name = "Sphere"
+    pids = [PID.C, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
@@ -92,6 +94,7 @@ class SphereType(PointBasicTypeBase):
 class CylinderType(PointBasicTypeBase):
 
     name = "Cylinder"
+    pids = [PID.C, PID.OP, PID.G0, PID.G1]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
@@ -112,6 +115,7 @@ class ConeType(CylinderType):
 class BoxType(PointBasicTypeBase):
 
     name = "Box"
+    pids = [PID.C, PID.OP, PID.G0, PID.G1, PID.G2]
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
@@ -130,6 +134,7 @@ class BoxType(PointBasicTypeBase):
 class DiskType(PointTypeBase):
 
     name = "Disk"
+    pids = [PID.C, PID.OP, PID.G0, PID.G1, PID.G2]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
@@ -155,6 +160,7 @@ class DiskType(PointTypeBase):
 class PlaneType(PointTypeBase):
 
     name = "Plane"
+    pids = [PID.C, PID.OP, PID.G0, PID.G1, PID.G2, PID.G3]
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
@@ -184,6 +190,7 @@ class PlaneType(PointTypeBase):
 class LineType(LineTypeBase):
 
     name = "Line"
+    pids = [PID.C, PID.OP, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
@@ -198,6 +205,7 @@ class LineType(LineTypeBase):
 class ThickLineType(LineTypeBase):
 
     name = "Thick Line"
+    pids = [PID.C, PID.OP, PID.M0, PID.M1]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defVal": 1},
@@ -213,6 +221,7 @@ class ThickLineType(LineTypeBase):
 class PipeType(LineTypeBase):
 
     name = "Pipe"
+    pids = [PID.C, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
@@ -234,6 +243,7 @@ class ConeLineType(PipeType):
 class BoxLineType(LineTypeBase):
 
     name = "Box"
+    pids = [PID.C, PID.OP, PID.G0, PID.G1]
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
@@ -252,6 +262,7 @@ class BoxLineType(LineTypeBase):
 class WallType(LineTypeBase):
 
     name = "Wall"
+    pids = [PID.C, PID.OP, PID.ALT2]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(alt2=True)
@@ -270,6 +281,7 @@ class PolygonType(PolygonTypeBase):
     """3d polygon support: yes"""
 
     name = "Polygon"
+    pids = [PID.C, PID.OP]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets()
@@ -287,6 +299,7 @@ class ExtrudedType(PolygonTypeBase):
     """3d polygon support: no"""
 
     name = "Extruded"
+    pids = [PID.C, PID.C2, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(geomItems=[{"name": "Height", "defVal": self.defaultValueZ()}],
@@ -315,6 +328,7 @@ class OverlayType(PolygonTypeBase):
     """3d polygon support: no"""
 
     name = "Overlay"
+    pids = [PID.C, PID.C2, PID.OP]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(color2={"name": "Border color",
@@ -343,6 +357,7 @@ class OverlayType(PolygonTypeBase):
 class IconType(PointTypeBase):
 
     name = "Icon"
+    pids = [PID.PATH, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
@@ -365,6 +380,7 @@ class IconType(PointTypeBase):
 class ModelFileType(PointTypeBase):
 
     name = "Model File"
+    pids = [PID.PATH, PID.G0, PID.G1, PID.G2, PID.G3, PID.G4]
     experimental = True
 
     def __init__(self, settings, modelManager=None):
