@@ -880,13 +880,12 @@ class KeyframeDialog(QDialog):
 
             self.ui.labelComboBox2.setText("Effect")
             self.ui.comboBox2.addItem("Fade in", 0)
-            self.ui.comboBox2.addItem("No Effect", -1)
 
         elif t == ATConst.ITEM_GROWING_LINE:
             self.ui.labelComboBox1.setText("Animate")
 
-            self.ui.comboBox1.addItem("All lines at once", False)
-            self.ui.comboBox1.addItem("Each line one by one", True)
+            self.ui.comboBox1.addItem("all lines at once", False)
+            self.ui.comboBox1.addItem("each line sequentially", True)
             self.ui.comboBox1.currentIndexChanged.connect(self.modeChanged)
 
             for w in [self.ui.expressionDelay, self.ui.expressionDuration]:

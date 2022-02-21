@@ -3220,15 +3220,6 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
                                   w1 - ew1, 0, ew1, h1);
       }
     }
-    else {    // no effect
-      if (!elapsed) {
-        a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-                                    0, 0, w1, h1);
-      }
-      else {
-        a.ctx.drawImage(a.img_to, 0, 0);
-      }
-    }
     a.tex.needsUpdate = true;
   }
 };
