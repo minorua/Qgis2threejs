@@ -905,7 +905,7 @@ class KeyframeDialog(QDialog):
             wth += [self.ui.labelComboBox2, self.ui.comboBox2]
 
         if t == ATConst.ITEM_GROWING_LINE:
-            wth += [self.ui.labelNarration, self.ui.plainTextEdit]
+            wth += [self.ui.widgetTopBar, self.ui.labelNarration, self.ui.plainTextEdit]
 
         for w in wth:
             w.setVisible(False)
