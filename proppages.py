@@ -26,7 +26,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from . import q3dconst
-from .conf import DEF_SETS
+from .conf import DEF_SETS, PLUGIN_NAME
 from .datamanager import MaterialManager
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
@@ -675,7 +675,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if row >= 0:
             item = self.listWidget_Materials.item(row)
             msg = "Are you sure you want to remove material '{}'?".format(item.text())
-            if QMessageBox.question(self, "Qgis2threejs", msg) == QMessageBox.Yes:
+            if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.Yes:
                 self.listWidget_Materials.takeItem(row)
 
     def renameMtlItem(self):

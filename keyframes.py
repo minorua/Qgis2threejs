@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, 
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication, QgsFieldProxyModel
 
-from .conf import DEBUG_MODE, DEF_SETS, EASING
+from .conf import DEBUG_MODE, DEF_SETS, EASING, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
 from .tools import createUid, js_bool, logMessage, parseInt
@@ -106,7 +106,7 @@ class AnimationPanel(QWidget):
         view = self.webPage.cameraState(flat=True)
 
         msg = "Are you sure you want to update the camera position and focal point of this keyframe?"
-        if QMessageBox.question(self, "Qgis2threejs", msg) == QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.Yes:
             item = self.tree.currentItem()
             item.setData(0, ATConst.DATA_CAMERA, view)
 
@@ -331,7 +331,7 @@ class AnimationTreeWidget(QTreeWidget):
             self.addMaterialItem()
 
         elif gt == ATConst.ITEM_GRP_GROWING_LINE:
-            QMessageBox.warning(self, "Qgis2threejs", "This group can't have more than one item.")
+            QMessageBox.warning(self, PLUGIN_NAME, "This group can't have more than one item.")
 
     def removeSelectedItems(self):
         items = self.selectedItems() or [self.currentItem()]
@@ -342,7 +342,7 @@ class AnimationTreeWidget(QTreeWidget):
         else:
             msg = "Are you sure you want to remove {} items?".format(len(items))
 
-        if QMessageBox.question(self, "Qgis2threejs", msg) != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, msg) != QMessageBox.Yes:
             return
 
         for item in items:
@@ -767,7 +767,7 @@ class AnimationTreeWidget(QTreeWidget):
             isKF = (t != ATConst.ITEM_GROWING_LINE)
 
             if isKF and item.parent().childCount() < 2:
-                QMessageBox.warning(self, "Qgis2threejs", "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
+                QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
                 return
 
         elif t & ATConst.ITEM_GRP:
@@ -795,7 +795,7 @@ class AnimationTreeWidget(QTreeWidget):
                     return
 
         if self.dialog:
-            QMessageBox.warning(self, "Qgis2threejs", "Cannot open more than one keyframe dialog at same time.")
+            QMessageBox.warning(self, PLUGIN_NAME, "Cannot open more than one keyframe dialog at same time.")
             return
 
         self.panel.setEnabled(False)

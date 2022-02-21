@@ -8,6 +8,7 @@ from PyQt5.QtGui import QColor, QIcon, QPixmap, QStandardItemModel, QStandardIte
 from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
+from .conf import PLUGIN_NAME
 from .q3dconst import LayerType, DEMMtlType
 from .tools import hex_color
 
@@ -293,7 +294,7 @@ class Q3DTreeView(QTreeView):
         if layer is None:
             return
 
-        if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.Yes:
             return
 
         self.iface.layerRemoved.emit(layer.layerId)

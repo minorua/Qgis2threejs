@@ -4,6 +4,7 @@
 # begin: 2015-03-02
 
 # general
+PLUGIN_NAME = "Qgis2threejs"
 PLUGIN_VERSION = "2.6"
 PLUGIN_VERSION_INT = int(float(PLUGIN_VERSION) * 100)
 

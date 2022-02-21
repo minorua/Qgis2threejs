@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QCo
                              QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_VERSION
+from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
 from .exportsettings import ExportSettings
 from .pluginmanager import pluginManager
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
@@ -394,7 +394,7 @@ class Q3DWindow(QMainWindow):
         self.lastDir = os.path.dirname(filename)
 
     def clearSettings(self):
-        if QMessageBox.question(self, "Qgis2threejs", "Are you sure you want to clear export settings?") != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to clear export settings?") != QMessageBox.Yes:
             return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene

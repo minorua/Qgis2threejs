@@ -10,6 +10,7 @@ from PyQt5.QtCore import Qt, QDir, QEventLoop, QUrl
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsApplication, QgsProject
 
+from .conf import PLUGIN_NAME
 from .export import ThreeJSExporter
 from .tools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
@@ -120,7 +121,7 @@ class ExportToWebDialog(QDialog):
 
         filepath = os.path.join(out_dir, filename)
         if not is_temporary and os.path.exists(filepath):
-            if QMessageBox.question(self, "Qgis2threejs", "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+            if QMessageBox.question(self, PLUGIN_NAME, "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
                 return
 
         self.settings.setOutputFilename("" if is_temporary else filepath)
@@ -147,7 +148,7 @@ class ExportToWebDialog(QDialog):
                 try:
                     self.settings.setOption("AR.MND", float(self.ui.lineEdit_MND.text()))
                 except Exception as e:
-                    QMessageBox.warning(self, "Qgis2threejs", "Invalid setting value for M.N. direction. Must be a numeric value.")
+                    QMessageBox.warning(self, PLUGIN_NAME, "Invalid setting value for M.N. direction. Must be a numeric value.")
                     return
 
         # animation settings
@@ -169,7 +170,7 @@ class ExportToWebDialog(QDialog):
 
         err_msg = settings.checkValidity()
         if err_msg:
-            QMessageBox.warning(self, "Qgis2threejs", err_msg or "Invalid settings")
+            QMessageBox.warning(self, PLUGIN_NAME, err_msg or "Invalid settings")
             return
 
         for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:

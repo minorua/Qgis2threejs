@@ -8,6 +8,7 @@ from PyQt5.QtGui import QIcon
 
 from qgis.core import QgsApplication, QgsProject
 
+from .conf import PLUGIN_NAME
 from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
 from .tools import logMessage, pluginDir, removeTemporaryOutputDir
@@ -38,20 +39,18 @@ class Qgis2threejs:
         self.actionNP.triggered.connect(self.openExporterWithPreviewDisabled)
 
         # add toolbar button and web menu items
-        name = "Qgis2threejs"
         self.iface.addWebToolBarIcon(self.action)
-        self.iface.addPluginToWebMenu(name, self.action)
-        self.iface.addPluginToWebMenu(name, self.actionNP)
+        self.iface.addPluginToWebMenu(PLUGIN_NAME, self.action)
+        self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionNP)
 
         # register processing provider
         QgsApplication.processingRegistry().addProvider(self.pprovider)
 
     def unload(self):
         # remove the web menu items and icon
-        name = "Qgis2threejs"
         self.iface.removeWebToolBarIcon(self.action)
-        self.iface.removePluginWebMenu(name, self.action)
-        self.iface.removePluginWebMenu(name, self.actionNP)
+        self.iface.removePluginWebMenu(PLUGIN_NAME, self.action)
+        self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionNP)
 
         # remove provider from processing registry
         QgsApplication.processingRegistry().removeProvider(self.pprovider)

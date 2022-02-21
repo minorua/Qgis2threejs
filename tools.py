@@ -13,7 +13,7 @@ from PyQt5.QtCore import qDebug, QBuffer, QByteArray, QDir, QFile, QFileInfo, QI
 from PyQt5.QtGui import QDesktopServices
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, PLUGIN_NAME
 
 
 def getLayersInProject():
@@ -133,7 +133,7 @@ def createUid():
 
 def logMessage(message, warning=True, error=False):
     level = Qgis.Critical if error else (Qgis.Warning if warning else Qgis.Info)
-    QgsMessageLog.logMessage(str(message), "Qgis2threejs", level, warning or error)
+    QgsMessageLog.logMessage(str(message), PLUGIN_NAME, level, warning or error)
 
 
 def shortTextFromSelectedLayerIds(layerIds):

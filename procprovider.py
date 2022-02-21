@@ -8,6 +8,7 @@ from qgis.core import QgsProcessingProvider
 
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
+from .conf import PLUGIN_NAME
 from .tools import pluginDir
 
 QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
@@ -20,10 +21,10 @@ class Qgis2threejsProvider(QgsProcessingProvider):
         self.algs = []
 
     def id(self):
-        return "Qgis2threejs"
+        return PLUGIN_NAME
 
     def name(self):
-        return "Qgis2threejs"
+        return PLUGIN_NAME
 
     def icon(self):
         return QIcon(pluginDir("Qgis2threejs.png"))

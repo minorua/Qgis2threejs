@@ -11,7 +11,7 @@ from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, 
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
 
-from .conf import DEBUG_MODE
+from .conf import DEBUG_MODE, PLUGIN_NAME
 try:
     from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
     from PyQt5.QtWebKitWidgets import QWebPage, QWebView
@@ -19,7 +19,7 @@ try:
         from PyQt5.QtWebKitWidgets import QWebInspector
 except ModuleNotFoundError:
     if os.name == "posix":
-        QMessageBox.warning(None, "Qgis2threejs", 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
+        QMessageBox.warning(None, PLUGIN_NAME, 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
     raise
 
 from .q3dconst import Script
