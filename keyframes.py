@@ -344,8 +344,19 @@ class AnimationTreeWidget(QTreeWidget):
 
     def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True, easing=None):
 
+        if not name:
+            bn = ATConst.defaultName(typ)
+            names = [parent.child(i).text(0) for i in range(parent.childCount())]
+
+            for i in range(parent.childCount() + 1):
+                name = bn
+                if i:
+                    name += " {}".format(i + 1)
+                if name not in names:
+                    break
+
         item = QTreeWidgetItem(typ)
-        item.setText(0, name or ATConst.defaultName(typ))
+        item.setText(0, name)
         item.setData(0, ATConst.DATA_EASING, easing)
         item.setFlags(Qt.ItemIsEditable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
         item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
