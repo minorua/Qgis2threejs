@@ -464,7 +464,7 @@ class ExportSettings:
     def isAnimationEnabled(self):
         return self.data.get(ExportSettings.KEYFRAMES, {}).get("enabled", False)
 
-    def enabledValidKeyframeGroups(self, warning_log=None):
+    def enabledValidKeyframeGroups(self, layerId=None, warning_log=None):
         # for warnings
         def warn_one_keyframe(group):
             if warning_log:
@@ -472,22 +472,32 @@ class ExportSettings:
 
         d = self.data.get(ExportSettings.KEYFRAMES, {})
 
-        # camera motion
-        count = 0
-        for group in d.get("camera", {}).get("groups", []):
-            if group["enabled"]:
-                if len(group["keyframes"]) > 1:
-                    count += 1
-                    yield group
-                else:
-                    warn_one_keyframe(group)
+        if layerId is None:
+            # camera motion
+            count = 0
+            for group in d.get("camera", {}).get("groups", []):
+                if group["enabled"]:
+                    if len(group["keyframes"]) > 1:
+                        count += 1
+                        yield group
+                    else:
+                        warn_one_keyframe(group)
 
-        if count > 1 and warning_log:
-            warning_log("There are {} enabled camera motion groups. They may not work properly due to conflicts.".format(count))
+            if count > 1 and warning_log:
+                warning_log("There are {} enabled camera motion groups. They may not work properly due to conflicts.".format(count))
 
         # layer animation
+        layers = d.get("layers", {})
         idsToExport = self.mapLayerIdsToExport()
-        for layerId, layer in d.get("layers", {}).items():
+
+        if layerId is not None:
+            layer = layers.get(layerId)
+            if layer:
+                layers = {layerId: layer}
+            else:
+                return
+
+        for layerId, layer in layers.items():
             if layerId not in idsToExport:
                 continue
 
@@ -524,7 +534,7 @@ class ExportSettings:
             return {}
 
         return {
-            "groups": deepcopyExcept(list(self.enabledValidKeyframeGroups(warning_log)), ["name", "text"])
+            "groups": deepcopyExcept(list(self.enabledValidKeyframeGroups(warning_log=warning_log)), ["name", "text"])
         }
 
     def setAnimationData(self, data):
@@ -532,8 +542,8 @@ class ExportSettings:
         d.update(data)
         self.data[ExportSettings.KEYFRAMES] = d
 
-    def groupsWithExpressions(self):
-        for group in self.enabledValidKeyframeGroups():
+    def groupsWithExpressions(self, layerId=None):
+        for group in self.enabledValidKeyframeGroups(layerId=layerId):
             if group.get("type") == ATConst.ITEM_GRP_GROWING_LINE:
                 for k in group.get("keyframes", []):
                     if k.get("sequential"):

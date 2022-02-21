@@ -131,7 +131,7 @@ class VectorLayer:
         # animation
         self.anim_exprs = None
         if self.type == LayerType.LINESTRING and otc in [ObjectType.Line, ObjectType.ThickLine]:
-            groups = list(self.settings.groupsWithExpressions())
+            groups = list(self.settings.groupsWithExpressions(layer.layerId))
             if groups:
                 kf = groups[0].get("keyframes", [{}])[0]
                 self.anim_exprs = {
