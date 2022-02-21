@@ -225,6 +225,9 @@ class AnimationTreeWidget(QTreeWidget):
                 if item.parent().parent() == dest.parent():
                     accept = True
 
+        if item.type() == ATConst.ITEM_GROWING_LINE:
+            accept = False
+
         if not accept:
             event.setDropAction(Qt.IgnoreAction)
             self.wnd.ui.statusbar.showMessage("Cannot move item(s) there.", 3000)
@@ -324,8 +327,8 @@ class AnimationTreeWidget(QTreeWidget):
         elif gt == ATConst.ITEM_GRP_MATERIAL:
             self.addMaterialItem()
 
-        # elif gt == ATConst.ITEM_GRP_GROWING_LINE:
-        #     self.addGrowLineItem()
+        elif gt == ATConst.ITEM_GRP_GROWING_LINE:
+            QMessageBox.warning(self, "Qgis2threejs", "This group can't have more than one item.")
 
     def removeSelectedItems(self):
         items = self.selectedItems() or [self.currentItem()]
@@ -641,7 +644,9 @@ class AnimationTreeWidget(QTreeWidget):
             return
 
         if DEBUG_MODE:
-            logMessage("Current: " + str(self.keyframe(current)))
+            d = self.keyframe(current)
+            if d:
+                logMessage("Current: " + str(d))
 
         typ = current.type()
         if not (typ & ATConst.ITEM_MBR):
