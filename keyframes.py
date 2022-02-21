@@ -51,6 +51,7 @@ class AnimationPanel(QWidget):
 
         self.tree.setup(wnd, settings)
         self.tree.currentItemChanged.connect(self.currentItemChanged)
+        self.currentItemChanged(None, None)
 
         self.webPage.bridge.animationStopped.connect(self.animationStopped)
 
@@ -107,10 +108,9 @@ class AnimationPanel(QWidget):
             item.setData(0, ATConst.DATA_CAMERA, view)
 
     def currentItemChanged(self, current, previous):
-        if not current:
-            return
+        self.ui.toolButtonAdd.setEnabled(bool(current))
 
-        b = not (current.type() & ATConst.ITEM_TOPLEVEL)
+        b = bool(current and not (current.type() & ATConst.ITEM_TOPLEVEL))
         self.ui.toolButtonEdit.setEnabled(b)
         self.ui.toolButtonRemove.setEnabled(b)
 
