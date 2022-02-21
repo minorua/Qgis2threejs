@@ -75,7 +75,10 @@ class AnimationPanel(QWidget):
                         layer = layer.clone()
                         layer.opt.onlyMaterial = True
                         layer.opt.allMaterials = True
+
+                    self.wnd.iface.requestRunScript("preview.renderEnabled = false;")
                     self.wnd.iface.updateLayerRequest.emit(layer)
+                    self.wnd.iface.requestRunScript("preview.renderEnabled = true;")
 
             data = self.tree.transitionData(item)
             if data:

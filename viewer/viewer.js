@@ -12,8 +12,15 @@ Q3D.Config.potreeBasePath = document.currentScript.src + "/../../js/potree-core"
 
 var app = Q3D.application,
     gui = Q3D.gui;
-app.timer = {tickCount: 0};
 
+var preview = {
+
+  renderEnabled: true,
+
+  timer: {
+    tickCount: 0
+  }
+};
 
 //// load functions
 function loadJSONObject(jsonObject) {
@@ -135,13 +142,6 @@ function loadEnd(name) {
   app.loadingManager.itemEnd(name);
 }
 
-function adjustCameraPos() {
-  if (Q3D.Config.autoAdjustCameraPos) {
-    app.adjustCameraPosition();
-  }
-  app.render();
-}
-
 function init(off_screen, debug_mode) {
 
   var container = document.getElementById("view");
@@ -192,17 +192,17 @@ function init(off_screen, debug_mode) {
 }
 
 function displayFPS() {
-  app.timer.last = Date.now();
+  preview.timer.last = Date.now();
 
   window.setInterval(function () {
     var now = Date.now(),
-        elapsed = now - app.timer.last,
-        fps = app.timer.tickCount / elapsed * 1000;
+        elapsed = now - preview.timer.last,
+        fps = preview.timer.tickCount / elapsed * 1000;
 
     document.getElementById("fps").innerHTML = "FPS: " + Math.round(fps);
 
-    app.timer.last = now;
-    app.timer.tickCount = 0;
+    preview.timer.last = now;
+    preview.timer.tickCount = 0;
   }, 1000);
 }
 
@@ -360,6 +360,13 @@ function setCameraState(s) {
   app.render();
 }
 
+function adjustCameraPos() {
+  if (Q3D.Config.autoAdjustCameraPos) {
+    app.adjustCameraPosition();
+  }
+  app.render();
+}
+
 //// lights
 function changeLight(type) {
   app.scene.dispatchEvent({type: "buildLightRequest", light: type});
@@ -452,13 +459,16 @@ function setLayerOpacity(layerId, opacity) {
 
 
 //// overrides
-var origRender = app.render;
+app._render = app.render;
+app._saveCanvasImage = app.saveCanvasImage;
+
 app.render = function (updateControls) {
-  origRender(updateControls);
-  app.timer.tickCount++;
+  if (!preview.renderEnabled) return;
+
+  app._render(updateControls);
+  preview.timer.tickCount++;
 };
 
-app._saveCanvasImage = app.saveCanvasImage;
 app.saveCanvasImage = function (width, height, fill_background) {
   var saveCanvasImage = function (canvas) {
     pyObj.saveImage(width, height, canvas.toDataURL("image/png"));
