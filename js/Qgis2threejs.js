@@ -798,17 +798,28 @@ Q3D.application
 
         this.keyframeGroups.forEach(function (group) {
 
-          var keyframes = group.keyframes;
-          if (keyframes.length == 0) {
-            console.warn("A keyframe group has no keyframes.");
+          var t;
+          for (var p in Q3D.Tweens) {
+            if (Q3D.Tweens[p].type == group.type) {
+              t = Q3D.Tweens[p];
+              break
+            }
+          }
+          if (t === undefined) {
+            console.warn("unknown animation type: " + group.type);
             return;
           }
 
-          var eFunc = (group.easing != "None") ? _this.easingFunction(group.easing) : null,
-              prop_list = [];
+          var layer = (group.layerId !== undefined) ? app.scene.mapLayers[group.layerId] : undefined;
 
           group.completed = false;
           group.currentIndex = 0;
+          group.prop_list = [];
+
+          t.init(group, layer);
+
+          var keyframes = group.keyframes,
+              eFunc = (group.easing != "None") ? _this.easingFunction(group.easing) : null;
 
           var showNBox = function (idx) {
             // narrative box
@@ -844,134 +855,8 @@ Q3D.application
             }
           };
 
-          var onUpdate, _onStart, _onComplete;
-
-          if (group.type == Q3D.KeyframeType.CameraMotion) {
-
-            var c = _this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
-            var vec3 = new THREE.Vector3(),
-                o = app.scene.userData.origin;
-            for (var i = 0; i < keyframes.length; i++) {
-              p = keyframes[i].camera;
-              vec3.set(p.x - p.fx, p.y - p.fy, p.z - p.fz);
-              dist = vec3.length();
-              theta = Math.acos(vec3.z / dist);
-              phi = Math.atan2(vec3.y, vec3.x);
-              p.phi = phi;
-              prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
-
-              if (i > 0) {
-                dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
-              }
-              p0 = p;
-            }
-
-            var phi0, phi1, dz;
-            onUpdate = function (obj, elapsed, is_first) {
-
-              p = obj.p - group.currentIndex;
-              phi0 = keyframes[group.currentIndex].camera.phi;
-              phi1 = (is_first) ? phi0 : keyframes[group.currentIndex + 1].camera.phi;
-
-              if (Math.abs(phi1 - phi0) > Math.PI) {  // take the shortest orbiting path
-                phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
-              }
-
-              phi = phi0 * (1 - p) + phi1 * p;
-
-              vec3.set(Math.cos(phi) * Math.sin(obj.theta),
-                       Math.sin(phi) * Math.sin(obj.theta),
-                       Math.cos(obj.theta)).setLength(obj.d);
-
-              dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[group.currentIndex] * c : 0;
-
-              app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
-              app.camera.lookAt(obj.fx, obj.fy, obj.fz);
-              app.controls.target.set(obj.fx, obj.fy, obj.fz);
-            };
-
-            // move to camera position of the first keyframe
-            onUpdate(prop_list[0], 1, true);
-          }
-          else {
-            // layer animation
-            var layer = app.scene.mapLayers[group.layerId];
-
-            if (group.type == Q3D.KeyframeType.Opacity) {
-
-              onUpdate = function (obj, elapsed) {
-                layer.opacity = obj.opacity;
-              };
-
-              for (var i = 0; i < keyframes.length; i++) {
-                prop_list.push({opacity: keyframes[i].opacity});
-              }
-
-              onUpdate(prop_list[0]);
-            }
-            else if (group.type == Q3D.KeyframeType.Material) {
-
-              var idx_from, from, to, effect;
-
-              _onStart = function () {
-                idx_from = group.currentIndex;
-                effect = keyframes[idx_from].effect;
-                from = keyframes[idx_from].mtlIndex;
-                to = keyframes[idx_from + 1].mtlIndex;
-
-                layer.prepareMtlAnimation(from, to);
-                layer.setTextureAt(null, effect);
-              };
-
-              onUpdate = function (obj, elapsed) {
-                layer.setTextureAt(obj.p - group.currentIndex, effect);
-              };
-
-              for (var i = 0; i < keyframes.length; i++) {
-                prop_list.push({p: i});
-              }
-            }
-            else {
-              var effectItems = keyframes;
-              keyframes = [];
-
-              if (group.type == Q3D.KeyframeType.GrowingLine) {
-
-                if (effectItems[0].sequential) {
-                  var f;
-                  for (var i = 0; i < layer.features.length; i++) {
-                    f = layer.features[i];
-
-                    keyframes.push(f.anim);
-                    prop_list.push({p: i});
-                  }
-                  keyframes.push({});
-                  prop_list.push({p: i});
-
-                  onUpdate = function (obj, elapsed) {
-                    layer.setLineLength(obj.p - group.currentIndex, group.currentIndex);
-                  };
-                }
-                else {
-                  keyframes = [effectItems[0], {}];
-                  prop_list = [{p: 0}, {p: 1}];
-
-                  onUpdate = function (obj, elapsed) {
-                    layer.setLineLength(obj.p);
-                  };
-                }
-
-                layer.prepareAnimation(effectItems[0].sequential);
-                layer.setLineLength(0);
-              }
-              else {
-                return;
-              }
-            }
-          }
-
           var onStart = function () {
-            if (_onStart) _onStart();
+            if (group.onStart) group.onStart();
 
             app.dispatchEvent({type: "tweenStarted", index: group.currentIndex});
 
@@ -982,9 +867,9 @@ Q3D.application
           };
 
           var onComplete = function (obj) {
-            if (!eFunc) onUpdate(obj, 1);
+            if (!eFunc) group.onUpdate(obj, 1);
 
-            if (_onComplete) _onComplete(obj);
+            if (group.onComplete) group.onComplete(obj);
 
             var index = ++group.currentIndex;
             if (index == keyframes.length - 1) {
@@ -1011,19 +896,16 @@ Q3D.application
             showNBox(index);
           };
 
-          var tween, t1, t2;
-          for (i = 0; i < keyframes.length - 1; i++) {
+          var t0, t1, t2;
+          for (var i = 0; i < keyframes.length - 1; i++) {
 
-            t2 = new TWEEN.Tween(prop_list[i])
-                             .to(prop_list[i + 1], keyframes[i].duration)
-                             .delay(keyframes[i].delay)
-                             .onStart(onStart)
-                             .onComplete(onComplete);
+            t2 = new TWEEN.Tween(group.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
+                             .to(group.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
 
-            if (eFunc) t2.easing(eFunc).onUpdate(onUpdate);
+            if (eFunc) t2.easing(eFunc).onUpdate(group.onUpdate);
 
             if (i == 0) {
-              tween = t2;
+              t0 = t2;
             }
             else {
               t1.chain(t2);
@@ -1033,7 +915,7 @@ Q3D.application
 
           showNBox(0);
 
-          tween.start();
+          t0.start();
         });
 
         app.animation.isActive = this.isActive = true;
@@ -1102,7 +984,8 @@ Q3D.application
         app.controls.autoRotate = false;
         app.animation.isActive = this.isActive = false;
       }
-    }};
+    }
+  };
 
   app.render = function (updateControls) {
     if (updateControls) {
@@ -4362,6 +4245,161 @@ Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
     geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
   }
 };
+
+
+// Q3D.Tweens
+Q3D.Tweens = {};
+
+Q3D.Tweens.cameraMotion = {
+
+  type: Q3D.KeyframeType.CameraMotion,
+
+  curveFactor: 0,
+
+  init: function (group) {
+
+    var app = Q3D.application,
+        keyframes = group.keyframes,
+        prop_list = [];
+
+    var c = this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
+    var vec3 = new THREE.Vector3(),
+        o = app.scene.userData.origin;
+    for (var i = 0; i < keyframes.length; i++) {
+      p = keyframes[i].camera;
+      vec3.set(p.x - p.fx, p.y - p.fy, p.z - p.fz);
+      dist = vec3.length();
+      theta = Math.acos(vec3.z / dist);
+      phi = Math.atan2(vec3.y, vec3.x);
+      p.phi = phi;
+      prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
+
+      if (i > 0) {
+        dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
+      }
+      p0 = p;
+    }
+    group.prop_list = prop_list;
+
+    var phi0, phi1, dz;
+    group.onUpdate = function (obj, elapsed, is_first) {
+
+      p = obj.p - group.currentIndex;
+      phi0 = keyframes[group.currentIndex].camera.phi;
+      phi1 = (is_first) ? phi0 : keyframes[group.currentIndex + 1].camera.phi;
+
+      if (Math.abs(phi1 - phi0) > Math.PI) {  // take the shortest orbiting path
+        phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
+      }
+
+      phi = phi0 * (1 - p) + phi1 * p;
+
+      vec3.set(Math.cos(phi) * Math.sin(obj.theta),
+                Math.sin(phi) * Math.sin(obj.theta),
+                Math.cos(obj.theta)).setLength(obj.d);
+
+      dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[group.currentIndex] * c : 0;
+
+      app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
+      app.camera.lookAt(obj.fx, obj.fy, obj.fz);
+      app.controls.target.set(obj.fx, obj.fy, obj.fz);
+    };
+
+    // initial position
+    group.onUpdate(group.prop_list[0], 1, true);
+  }
+
+};
+
+Q3D.Tweens.opacity = {
+
+  type: Q3D.KeyframeType.Opacity,
+
+  init: function (group, layer) {
+
+    var keyframes = group.keyframes;
+
+    for (var i = 0; i < keyframes.length; i++) {
+      group.prop_list.push({opacity: keyframes[i].opacity});
+    }
+
+    group.onUpdate = function (obj, elapsed) {
+      layer.opacity = obj.opacity;
+    };
+
+    // initial opacity
+    group.onUpdate(group.prop_list[0]);
+  }
+
+};
+
+Q3D.Tweens.material = {
+
+  type: Q3D.KeyframeType.Material,
+
+  init: function (group, layer) {
+
+    var keyframes = group.keyframes;
+
+    var idx_from, from, to, effect;
+
+    group.onStart = function () {
+      idx_from = group.currentIndex;
+      effect = keyframes[idx_from].effect;
+      from = keyframes[idx_from].mtlIndex;
+      to = keyframes[idx_from + 1].mtlIndex;
+
+      layer.prepareMtlAnimation(from, to);
+      layer.setTextureAt(null, effect);
+    };
+
+    group.onUpdate = function (obj, elapsed) {
+      layer.setTextureAt(obj.p - group.currentIndex, effect);
+    };
+
+    for (var i = 0; i < keyframes.length; i++) {
+      group.prop_list.push({p: i});
+    }
+  }
+};
+
+Q3D.Tweens.lineGrowing = {
+
+  type: Q3D.KeyframeType.GrowingLine,
+
+  init: function (group, layer) {
+    if (group._keyframes === undefined) group._keyframes = group.keyframes;
+
+    var effectItem = group._keyframes[0];
+    if (effectItem.sequential) {
+      group.keyframes = [];
+
+      for (var i = 0; i < layer.features.length; i++) {
+        group.keyframes.push(layer.features[i].anim);
+        group.prop_list.push({p: i});
+      }
+      group.keyframes.push({});
+      group.prop_list.push({p: i});
+
+      group.onUpdate = function (obj, elapsed) {
+        layer.setLineLength(obj.p - group.currentIndex, group.currentIndex);
+      };
+    }
+    else {
+      group.keyframes = [effectItem, {}];
+      group.prop_list = [{p: 0}, {p: 1}];
+
+      group.onUpdate = function (obj, elapsed) {
+        layer.setLineLength(obj.p);
+      };
+    }
+
+    layer.prepareAnimation(effectItem.sequential);
+    layer.setLineLength(0);
+  }
+
+};
+
 
 // https://stackoverflow.com/a/7838871
 CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
