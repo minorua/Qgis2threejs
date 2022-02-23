@@ -72,26 +72,30 @@ body {
   height: 5px;
 }
 
-#bar {
+#progressbar {
   width: 0;
   height: 5px;
   background-color: #2196F3;
   opacity: 1;
 }
 
-#bar.fadeout {
+#progressbar.fadeout {
   opacity: 0;
   height: 0;
   transition: all .4s;
 }
 
-#menubar {
+#topbar {
   position: absolute;
-  margin: 1px;
-  box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
 }
 
-#menubar > div {
+#menubtns {
+  margin: 1px;
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
+  float: left;
+}
+
+#menubtns > div {
   background-color: white;
   float: left;
   width: 24px;
@@ -100,11 +104,11 @@ body {
   cursor: pointer;
 }
 
-#menubar > div:hover {
+#menubtns > div:hover {
   background-color: #eee;
 }
 
-#menubar > div::before {
+#menubtns > div::before {
   opacity: 0.6;
 }
 
@@ -131,10 +135,15 @@ body {
   background-color: #eee;
 }
 
-#header {
+#header.normal {
   position: absolute;
   left: 5px;
   top: 5px;
+}
+
+#header.float {
+  margin: 8px 10px;
+  float: left;
 }
 
 #footer {

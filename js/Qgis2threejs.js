@@ -407,12 +407,12 @@ Q3D.application
     app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
       app.loadingManager.isLoading = false;
 
-      E("bar").classList.add("fadeout");
+      E("progressbar").classList.add("fadeout");
 
       app.dispatchEvent({type: "sceneLoaded"});
     },
     function (url, loaded, total) {   // onProgress
-      E("bar").style.width = (loaded / total * 100) + "%";
+      E("progressbar").style.width = (loaded / total * 100) + "%";
     },
     function () {   // onError
       app.loadingManager.isLoading = false;
@@ -1474,7 +1474,7 @@ Q3D.gui
       E("dropdown").classList.toggle("visible");
     };
 
-    e = E("menubar");
+    e = E("menubtns");
     if (conf.animation.enabled && e) {
       var anim = app.animation.keyframes;
       var btn = document.createElement("div");
