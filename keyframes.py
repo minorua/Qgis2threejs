@@ -263,6 +263,9 @@ class AnimationTreeWidget(QTreeWidget):
         root = self.invisibleRootItem()
         for i in range(root.childCount()):
             top_level = root.child(i)
+            if top_level.isHidden():
+                continue
+
             for j in range(top_level.childCount()):
                 g = top_level.child(j)
                 if g.checkState(0):
