@@ -7,12 +7,11 @@ import os
 
 from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QVariant
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
-from qgis.gui import QgsCompoundColorWidget
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from .tools import getDEMLayersInProject, shortTextFromSelectedLayerIds
+from .tools import getDEMLayersInProject, openColorDialog, shortTextFromSelectedLayerIds
 
 
 class WVT:
@@ -153,21 +152,9 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.toolButton.setVisible(isRGB)
 
     def toolButtonClicked(self):
-        dlg = QDialog()
-        dlg.setWindowTitle("Select a color")
-        dlg.setLayout(QVBoxLayout())
-
-        widget = QgsCompoundColorWidget()
-        widget.setAllowOpacity(False)
-        dlg.layout().addWidget(widget)
-
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttonBox.accepted.connect(dlg.accept)
-        buttonBox.rejected.connect(dlg.reject)
-        dlg.layout().addWidget(buttonBox)
-
-        if dlg.exec_():
-            self.widget.expression.setExpression("'" + widget.color().name().replace("#", "0x") + "'")
+        color = openColorDialog()
+        if color:
+            self.widget.expression.setExpression("'" + color.name().replace("#", "0x") + "'")
 
     def setValues(self, vals):
         index = self.widget.comboBox.findData(vals["comboData"])

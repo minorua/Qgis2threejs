@@ -11,7 +11,10 @@ import shutil
 
 from PyQt5.QtCore import qDebug, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
 from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
+
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
+from qgis.gui import QgsCompoundColorWidget
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
 
@@ -58,7 +61,7 @@ def css_color(c):
 
 def hex_color(c, prefix="#"):
     if isinstance(c, list):
-        return "{}{:x}{:x}{:x}".format(prefix, *c[:3])
+        return "{}{:02x}{:02x}{:02x}".format(prefix, *c[:3])
 
     if not c and prefix == "#":
         return "#000000"
@@ -322,3 +325,21 @@ def temporaryOutputDir():
 def settingsFilePath():
     proj_path = QgsProject.instance().fileName()
     return proj_path + ".qto3settings" if proj_path else None
+
+
+def openColorDialog(parent=None):
+    dlg = QDialog(parent)
+    dlg.setWindowTitle("Select a color")
+    dlg.setLayout(QVBoxLayout())
+
+    widget = QgsCompoundColorWidget()
+    widget.setAllowOpacity(False)
+    dlg.layout().addWidget(widget)
+
+    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    buttonBox.accepted.connect(dlg.accept)
+    buttonBox.rejected.connect(dlg.reject)
+    dlg.layout().addWidget(buttonBox)
+
+    if dlg.exec_():
+        return widget.color()

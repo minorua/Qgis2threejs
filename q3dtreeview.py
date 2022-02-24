@@ -151,12 +151,12 @@ class Q3DTreeView(QTreeView):
             return QgsApplication.getThemeIcon("mLayoutItemMap.svg")
 
         elif mtype == DEMMtlType.FILE:
-            return QgsApplication.getThemeIcon("mIconFile.svg")
+            return QgsApplication.getThemeIcon("mLayoutItemPicture.svg")
 
         elif mtype == DEMMtlType.COLOR:
             color = mtl.get("properties", {}).get("colorButton_Color")
             if color:
-                pixmap = QPixmap(32, 32)
+                pixmap = QPixmap(24, 14)
                 pixmap.fill(QColor(hex_color(color)))
                 return QIcon(pixmap)
 

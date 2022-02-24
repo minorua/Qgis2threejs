@@ -32,7 +32,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import createUid, getLayersInProject, logMessage
+from .tools import createUid, getLayersInProject, logMessage, openColorDialog
 from .propwidget import PropertyWidget
 from . import tools
 from .vectorobject import ObjectType
@@ -442,10 +442,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.mtlAddActions = []
         self.mtlAddActionGroup = QActionGroup(self)
-        for i, text in [(DEMMtlType.LAYER, "Layer Image..."),
+        for i, text in [(DEMMtlType.LAYER, "Map (Select Layers)..."),
+                        (DEMMtlType.MAPCANVAS, "Map (Canvas Layers)"),
                         (DEMMtlType.FILE, "Image File..."),
-                        (DEMMtlType.COLOR, "Solid Color"),
-                        (DEMMtlType.MAPCANVAS, "Map Canvas")]:
+                        (DEMMtlType.COLOR, "Solid Color...")]:
 
             a = QAction(text, self)
             a.setData(i)
@@ -642,7 +642,10 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 if ids is None:
                     return
 
+                base_name = "map"
                 p["layerIds"] = ids
+            else:
+                base_name = "map (canvas)"
 
             p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
             p["checkBox_TransparentBackground"] = False
@@ -651,14 +654,26 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             filename = self.selectImageFile()
             if not filename:
                 return
+            base_name = os.path.splitext(os.path.basename(filename))[0]
             p["lineEdit_ImageFile"] = filename
 
-        name = {
-            DEMMtlType.LAYER: "Layer Image",
-            DEMMtlType.MAPCANVAS: "Map Image",
-            DEMMtlType.FILE: "Image File",
-            DEMMtlType.COLOR: "Solid Color"
-        }.get(mtype, "")
+        else:
+            color = openColorDialog()
+            if not color:
+                return
+            base_name = "color"
+            p["colorButton_Color"] = [color.red(), color.green(), color.blue()]
+
+        # unique material name
+        n = self.listWidget_Materials.count()
+        names = [self.listWidget_Materials.item(r).text() for r in range(n)]
+
+        for i in range(n + 1):
+            name = base_name
+            if i:
+                name += " {}".format(i + 1)
+            if name not in names:
+                break
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)

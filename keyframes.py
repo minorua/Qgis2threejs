@@ -179,7 +179,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionMaterial = QAction("Change Material...", self)
         self.actionMaterial.triggered.connect(self.addMaterialItem)
 
-        self.actionGrowLine = QAction("Line Growing Effect...", self)
+        self.actionGrowLine = QAction("Growing Line...", self)
         self.actionGrowLine.triggered.connect(self.addGrowLineItem)
 
         self.actionProperties = QAction("Properties...", self)
@@ -250,7 +250,7 @@ class AnimationTreeWidget(QTreeWidget):
             if not layer:
                 return
 
-        item = QTreeWidgetItem(self, ["Layer '{}'".format(layer.name)], ATConst.ITEM_TL_LAYER)
+        item = QTreeWidgetItem(self, [layer.name], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
         item.setFlags(Qt.ItemIsEnabled)
         item.setIcon(0, self.icons[layer.type])
@@ -344,18 +344,20 @@ class AnimationTreeWidget(QTreeWidget):
         for item in items:
             item.parent().removeChild(item)
 
+    def uniqueChildName(self, parent, base_name, omit_one=True):
+        n = parent.childCount()
+        names = [parent.child(i).text(0) for i in range(n)]
+
+        for i in range(n + 1):
+            name = base_name
+            if i or not omit_one:
+                name += " {}".format(i + 1)
+            if name not in names:
+                return name
+
     def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True, easing=None):
 
-        if not name:
-            bn = ATConst.defaultName(typ)
-            names = [parent.child(i).text(0) for i in range(parent.childCount())]
-
-            for i in range(parent.childCount() + 1):
-                name = bn
-                if i:
-                    name += " {}".format(i + 1)
-                if name not in names:
-                    break
+        name = name or self.uniqueChildName(parent, ATConst.defaultName(typ))
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
@@ -389,11 +391,9 @@ class AnimationTreeWidget(QTreeWidget):
         else:
             iidx = 0
 
-        nextIndex = parent.data(0, ATConst.DATA_NEXT_INDEX) or 1
-
         keyframe = keyframe or {}
         typ = keyframe.get("type", parent.type() - ATConst.ITEM_GRP + ATConst.ITEM_MBR)
-        name = keyframe.get("name") or "Keyframe {}".format(nextIndex)
+        name = keyframe.get("name") or self.uniqueChildName(parent, "keyframe", omit_one=False)
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
@@ -425,8 +425,6 @@ class AnimationTreeWidget(QTreeWidget):
             parent.insertChild(iidx, item)
         else:
             parent.addChild(item)
-
-        parent.setData(0, ATConst.DATA_NEXT_INDEX, nextIndex + 1)
 
         return item
 
@@ -643,11 +641,6 @@ class AnimationTreeWidget(QTreeWidget):
         if not current:
             return
 
-        if DEBUG_MODE:
-            d = self.keyframe(current)
-            if d:
-                logMessage("Current: " + str(d))
-
         typ = current.type()
         if not (typ & ATConst.ITEM_MBR):
             return
@@ -707,7 +700,7 @@ class AnimationTreeWidget(QTreeWidget):
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_OPACITY)
 
             self.addKeyframeItem(parent, {"type": ATConst.ITEM_OPACITY,
-                                          "name": "Opacity '{}'".format(val),
+                                          "name": "opacity '{}'".format(val),
                                           "opacity": val
                                           })
 
@@ -750,7 +743,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.addKeyframeItem(parent, {
             "type": ATConst.ITEM_GROWING_LINE,
-            "name": "Line Growing Effect"
+            "name": "Growing line"
         })
 
     def showDialog(self, item=None):
@@ -1092,7 +1085,7 @@ class KeyframeDialog(QDialog):
 
             elif self.type == ATConst.ITEM_OPACITY:
                 opacity = self.ui.doubleSpinBoxOpacity.value()
-                item.setText(0, "Opacity '{}'".format(opacity))
+                item.setText(0, "opacity '{}'".format(opacity))
                 item.setData(0, ATConst.DATA_OPACITY, opacity)
 
             elif self.type == ATConst.ITEM_MATERIAL:

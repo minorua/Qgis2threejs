@@ -161,12 +161,11 @@ class ATConst:
 
     @classmethod
     def defaultName(cls, typ):
-        name = ["Camera", "Opacity", "Material", "Line Growing"]
-
+        name = ["Camera", "Opacity", "Material", "Line growing"]
         if typ & cls.ITEM_GRP:
-            return "{} Group".format(name[typ - cls.ITEM_GRP])
+            return "Group" if typ == cls.ITEM_GRP_CAMERA else "{} group".format(name[typ - cls.ITEM_GRP])
 
         if typ & cls.ITEM_MBR:
-            return "{} Keyframe".format(name[typ - cls.ITEM_MBR])
+            return "{} keyframe".format(name[typ - cls.ITEM_MBR])
 
         return "UNDEF"
