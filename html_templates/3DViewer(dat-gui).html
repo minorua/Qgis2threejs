@@ -26,18 +26,18 @@ ${scripts}
     <!-- query result -->
     <div id="queryresult">
       <table id="qr_layername_table">
-        <caption>Layer <div class="action-zoom" onclick="app.cameraAction.zoomToLayer(app.selectedLayer)">Zoom</div></caption>
+        <caption>Layer <div id="zoomtolayer" class="action-zoom zoombtn"></div></caption>
         <tr><td id="qr_layername"></td></tr>
       </table>
 
       <table id="qr_coords_table">
-        <caption>Clicked coordinates <div class="action-zoom" onclick="app.cameraAction.zoom()">Zoom</div></caption>
+        <caption>Clicked coordinates <div id="zoomtopoint" class="action-zoom zoombtn"></div></caption>
         <tr><td id="qr_coords"></td></tr>
       </table>
 
       <!-- camera actions and measure tool -->
-      <div class="action-btn action-orbit" onclick="app.cameraAction.orbit()">Orbit</div>
-      <div class="action-btn" onclick="app.measure.start()">Measure distance</div>
+      <div id="orbitbtn" class="action-btn action-orbit">Orbit</div>
+      <div id="measurebtn" class="action-btn">Measure distance</div>
 
       <!-- attributes -->
       <table id="qr_attrs_table">
@@ -84,7 +84,7 @@ ${scripts}
 <div id="progress"><div id="progressbar"></div></div>
 
 <!-- header and footer -->
-<div id="header" class="normal">${header}</div>
+<div id="header">${header}</div>
 <div id="footer">${footer}</div>
 
 <!-- animation -->

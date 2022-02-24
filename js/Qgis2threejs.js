@@ -826,12 +826,12 @@ Q3D.application
             var n = keyframes[idx].narration;
             if (n && e) {
               if (currentNarElem) {
-                currentNarElem.style.display = "none";
+                currentNarElem.classList.remove("visible");
               }
 
               currentNarElem = E(n.id);
               if (currentNarElem) {
-                currentNarElem.style.display = "block";
+                currentNarElem.classList.add("visible");
               }
               else {    // preview
                 E("narbody").innerHTML = n.text;
@@ -1135,7 +1135,7 @@ Q3D.application
   };
 
   app.cleanView = function () {
-    gui.closePopups();
+    gui.clean();
 
     app.scene.remove(app.queryMarker);
     app.highlightFeature(null);
@@ -1462,22 +1462,50 @@ Q3D.gui
   var app = Q3D.application,
       gui = Q3D.gui,
       conf = Q3D.Config,
-      E = Q3D.E;
+      E = Q3D.E,
+      VIS = "visible";
 
-  var timerId = null;
+  function CE(tagName, parent, innerHTML) {
+    var elem = document.createElement(tagName);
+    if (parent) parent.appendChild(elem);
+    if (innerHTML) elem.innerHTML = innerHTML;
+    return elem;
+  }
+
+  function ON_CLICK(id, listener) {
+    var e = document.getElementById(id);
+    if (e) e.addEventListener("click", listener);
+  }
 
   gui.modules = [];
 
   gui.init = function () {
-    var e = E("menu");
-    if (e) e.onclick = function () {
-      E("dropdown").classList.toggle("visible");
-    };
+    // tool buttons
+    ON_CLICK("layerbtn", function () {
+      if (!gui.layerPanel.initialized) gui.layerPanel.init();
 
-    e = E("menubtns");
+      if (gui.layerPanel.isVisible()) {
+        gui.layerPanel.hide();
+      }
+      else {
+        if (gui.popup.isVisible()) {
+          gui.popup.hide();
+        }
+        gui.layerPanel.show();
+      }
+    });
+
+    ON_CLICK("infobtn", function () {
+      gui.layerPanel.hide();
+
+      if (gui.popup.isVisible() && gui.popup.content == "pageinfo") gui.popup.hide();
+      else gui.showInfo();
+    });
+
+    var e = E("toolbtns");
     if (conf.animation.enabled && e) {
       var anim = app.animation.keyframes;
-      var btn = document.createElement("div");
+      var btn = CE("div", e);
       btn.id = "animbtn";
 
       var playButton = function () {
@@ -1501,40 +1529,53 @@ Q3D.gui
         }
         else anim.start();
       };
-      e.appendChild(btn);
 
       app.addEventListener('animationStarted', pauseButton);
       app.addEventListener('animationStopped', playButton);
     }
 
-    e = E("closebtn");
-    if (e) e.addEventListener("click", app.cleanView);
+    // popup
+    ON_CLICK("closebtn", app.cleanView);
+    ON_CLICK("zoomtolayer", function () {
+      app.cameraAction.zoomToLayer(app.selectedLayer);
+    });
+    ON_CLICK("zoomtopoint", function () {
+      app.cameraAction.zoom();
+    });
+    ON_CLICK("orbitbtn", function () {
+      app.cameraAction.orbit()
+    });
+    ON_CLICK("measurebtn", function () {
+      app.measure.start()
+    });
 
-    e = E("nextbtn");
-    if (e) e.addEventListener("click", function () {
+    // narrative box
+    ON_CLICK("nextbtn", function () {
       app.animation.keyframes.resume();
     });
 
     // attribution
     if (typeof proj4 === "undefined") {
       e = E("lib_proj4js");
-      if (e) e.style.display = "none";
+      if (e) e.classList.add("hidden");
     }
   };
 
-  gui.closePopups = function () {
+  gui.clean = function () {
     gui.popup.hide();
-
-    var e = E("dropdown");
-    if (e) e.classList.remove("visible");
+    if (gui.layerPanel.initialized) gui.layerPanel.hide();
   };
 
   gui.popup = {
 
     modal: false,
 
+    content: null,
+
+    timerId: null,
+
     isVisible: function () {
-      return E("popup").style.display != "none";
+      return E("popup").classList.contains(VIS);
     },
 
     // show box
@@ -1546,15 +1587,19 @@ Q3D.gui
       if (modal) app.pause();
       else if (this.modal) app.resume();
 
+      this.content = obj;
       this.modal = Boolean(modal);
+
+      var e = E("layerpanel");
+      if (e) e.classList.remove(VIS);
 
       var content = E("popupcontent");
       [content, E("queryresult"), E("pageinfo")].forEach(function (e) {
-        if (e) e.style.display = "none";
+        if (e) e.classList.remove(VIS);
       });
 
       if (obj == "queryresult" || obj == "pageinfo") {
-        E(obj).style.display = "block";
+        E(obj).classList.add(VIS);
       }
       else {
         if (obj instanceof HTMLElement) {
@@ -1564,27 +1609,28 @@ Q3D.gui
         else {
           content.innerHTML = obj;
         }
-        content.style.display = "block";
+        content.classList.add(VIS);
       }
       E("popupbar").innerHTML = title || "";
-      E("popup").style.display = "block";
+      E("popup").classList.add(VIS);
 
-      if (timerId !== null) {
-        clearTimeout(timerId);
-        timerId = null;
+      if (this.timerId !== null) {
+        clearTimeout(this.timerId);
+        this.timerId = null;
       }
 
       if (duration) {
-        timerId = setTimeout(function () {
+        this.timerId = setTimeout(function () {
           gui.popup.hide();
         }, duration);
       }
     },
 
     hide: function () {
-      E("popup").style.display = "none";
-      if (timerId !== null) clearTimeout(timerId);
-      timerId = null;
+      E("popup").classList.remove(VIS);
+      if (this.timerId !== null) clearTimeout(this.timerId);
+      this.timerId = null;
+      this.content = null;
       if (this.modal) app.resume();
     }
 
@@ -1594,7 +1640,6 @@ Q3D.gui
     var e = E("urlbox");
     if (e) e.value = app.currentViewUrl();
     gui.popup.show("pageinfo");
-    return false;
   };
 
   gui.showQueryResult = function (point, layer, obj, show_coords) {
@@ -1606,7 +1651,7 @@ Q3D.gui
     e = E("qr_coords_table");
     if (e) {
       if (show_coords) {
-        e.classList.remove("hidden");
+        e.classList.add(VIS);
 
         var pt = app.scene.toMapCoordinates(point);
 
@@ -1631,7 +1676,7 @@ Q3D.gui
         }
       }
       else {
-        e.classList.add("hidden");
+        e.classList.remove(VIS);
       }
     }
 
@@ -1649,10 +1694,10 @@ Q3D.gui
                           "<td>" + obj.userData.properties[i] + "</td>";
           e.appendChild(row);
         }
-        e.classList.remove("hidden");
+        e.classList.add(VIS);
       }
       else {
-        e.classList.add("hidden");
+        e.classList.remove(VIS);
       }
     }
     gui.popup.show("queryresult");
@@ -1660,57 +1705,50 @@ Q3D.gui
 
   gui.showPrintDialog = function () {
 
-    function e(tagName, parent, innerHTML) {
-      var elem = document.createElement(tagName);
-      if (parent) parent.appendChild(elem);
-      if (innerHTML) elem.innerHTML = innerHTML;
-      return elem;
-    }
-
-    var f = e("form");
+    var f = CE("form");
     f.className = "print";
 
-    var d1 = e("div", f, "Image Size");
+    var d1 = CE("div", f, "Image Size");
     d1.style.textDecoration = "underline";
 
-    var d2 = e("div", f),
-        l1 = e("label", d2, "Width:"),
-        width = e("input", d2);
+    var d2 = CE("div", f),
+        l1 = CE("label", d2, "Width:"),
+        width = CE("input", d2);
     d2.style.cssFloat = "left";
     l1.htmlFor = width.id = width.name = "printwidth";
     width.type = "text";
     width.value = app.width;
-    e("span", d2, "px,");
+    CE("span", d2, "px,");
 
-    var d3 = e("div", f),
-        l2 = e("label", d3, "Height:"),
-        height = e("input", d3);
+    var d3 = CE("div", f),
+        l2 = CE("label", d3, "Height:"),
+        height = CE("input", d3);
     l2.htmlFor = height.id = height.name = "printheight";
     height.type = "text";
     height.value = app.height;
-    e("span", d3, "px");
+    CE("span", d3, "px");
 
-    var d4 = e("div", f),
-        ka = e("input", d4);
+    var d4 = CE("div", f),
+        ka = CE("input", d4);
     ka.type = "checkbox";
     ka.checked = true;
-    e("span", d4, "Keep Aspect Ratio");
+    CE("span", d4, "Keep Aspect Ratio");
 
-    var d5 = e("div", f, "Option");
+    var d5 = CE("div", f, "Option");
     d5.style.textDecoration = "underline";
 
-    var d6 = e("div", f),
-        bg = e("input", d6);
+    var d6 = CE("div", f),
+        bg = CE("input", d6);
     bg.type = "checkbox";
     bg.checked = true;
-    e("span", d6, "Fill Background");
+    CE("span", d6, "Fill Background");
 
-    var d7 = e("div", f),
-        ok = e("span", d7, "OK"),
-        cancel = e("span", d7, "Cancel");
+    var d7 = CE("div", f),
+        ok = CE("span", d7, "OK"),
+        cancel = CE("span", d7, "Cancel");
     d7.className = "buttonbox";
 
-    e("input", f).type = "submit";
+    CE("input", f).type = "submit";
 
     // event handlers
     // width and height boxes
@@ -1741,6 +1779,72 @@ Q3D.gui
 
     gui.popup.show(f, "Save Image", true);   // modal
   };
+
+  gui.layerPanel = {
+
+    init: function () {
+      var panel = E("layerpanel");
+
+      var p, item, e, slider, o, select, i;
+      Object.keys(app.scene.mapLayers).forEach(function (layerId) {
+
+        var layer = app.scene.mapLayers[layerId];
+        p = layer.properties;
+        item = CE("div", panel);
+        item.className = "layer";
+
+        // visible
+        e = CE("div", item, "<input type='checkbox'" +  ((p.visible) ? " checked" : "") + ">" + p.name);
+        e.querySelector("input[type=checkbox]").addEventListener("change", function () {
+          layer.visible = this.checked;
+        });
+
+        // opacity slider
+        e = CE("div", item, "Opacity: <input type='range'><output></output>");
+        slider = e.querySelector("input[type=range]");
+
+        var label = e.querySelector("output");
+
+        o = parseInt(layer.opacity * 100);
+        slider.value = o;
+        slider.addEventListener("input", function () {
+          label.innerHTML = this.value + " %";
+        });
+        slider.addEventListener("change", function () {
+          label.innerHTML = this.value + " %";
+          layer.opacity = this.value / 100;
+        });
+        label.innerHTML = o + " %";
+
+        // material dropdown
+        if (p.mtlNames && p.mtlNames.length > 1) {
+          select = CE("select", CE("div", item, "Material: "));
+          for (i = 0; i < p.mtlNames.length; i++) {
+            CE("option", select, p.mtlNames[i]).setAttribute("value", i);
+          }
+          select.value = p.mtlIdx;
+          select.addEventListener("change", function () {
+            layer.setCurrentMaterial(this.value);
+          });
+        }
+      });
+      gui.layerPanel.initialized = true;
+    },
+
+    isVisible: function () {
+      return E("layerpanel").classList.contains(VIS);
+    },
+
+    show: function () {
+      E("layerpanel").classList.add(VIS);
+    },
+
+    hide: function () {
+      E("layerpanel").classList.remove(VIS);
+    }
+
+  };
+
 })();
 
 /*

@@ -100,10 +100,15 @@ function init() {
 
   // layers button
   document.getElementById("layers-button").addEventListener("click", function () {
-    var hidden = document.getElementById("layerlist").classList.contains("hidden");
+    var panel = Q3D.gui.layerPanel;
+    if (!panel.initialized) panel.init();
+
+    var visible = panel.isVisible();
     hideAll();
-    if (hidden) {
-      document.getElementById("layerlist").classList.remove("hidden");
+
+    if (visible) panel.hide();
+    else {
+      panel.show();
       document.getElementById("layers-button").classList.add("pressed");
     }
   });
@@ -111,11 +116,11 @@ function init() {
   // settings button
   document.getElementById("settings-button").addEventListener("click", function () {
     var fov = document.getElementById("fov");
-    var hidden = document.getElementById("settings").classList.contains("hidden");
+    var visible = document.getElementById("settings").classList.contains("visible");
     hideAll();
-    if (hidden) {
+    if (!visible) {
       fov.value = Q3D.Config.AR.FOV;
-      document.getElementById("settings").classList.remove("hidden");
+      document.getElementById("settings").classList.add("visible");
       document.getElementById("settings-button").classList.add("pressed");
     }
   });
@@ -152,7 +157,7 @@ function init() {
     var active = document.getElementById("info-button").classList.contains("pressed");
     hideAll();
     if (!active) {
-      gui.showInfo();
+      Q3D.gui.showInfo();
       document.getElementById("info-button").classList.add("pressed");
     }
   });
@@ -160,39 +165,6 @@ function init() {
   // stop button
   document.getElementById("stop-button").addEventListener("click", function () {
     app.setRotateAnimationMode(false);
-  });
-}
-
-function initLayerList(scene) {
-  var list = document.getElementById("layerlist");
-
-  Object.keys(scene.mapLayers).forEach(function (layerId) {
-    var layer = scene.mapLayers[layerId];
-    var item = document.createElement("div");
-    item.innerHTML = "<div><input type='checkbox'" +
-                     ((layer.properties.visible) ? " checked" : "") +
-                     ">" + layer.properties.name + "</div><div><input type='range'><span></span></div>";
-
-    // visibility checkbox
-    item.querySelector("input[type=checkbox]").addEventListener("change", function () {
-      layer.visible = this.checked;
-    });
-
-    // opacity slider
-    var slider = item.querySelector("input[type=range]"),
-        label = item.querySelector("span"),
-        o = parseInt(layer.opacity * 100);
-    slider.value = o;
-    slider.addEventListener("input", function () {
-      label.innerHTML = this.value + " %";
-    });
-    slider.addEventListener("change", function () {
-      label.innerHTML = this.value + " %";
-      layer.opacity = this.value / 100;
-    });
-    label.innerHTML = o + " %";
-
-    list.appendChild(item);
   });
 }
 
@@ -292,13 +264,13 @@ function stopARMode() {
 }
 
 function getCurrentPosition (callback) {
-  gui.popup.show("Fetching current location...");
+  Q3D.gui.popup.show("Fetching current location...");
 
   navigator.geolocation.getCurrentPosition(function (position) {
     // error message if failed to get current position
     var pos = position.coords;
     if (pos.longitude === undefined || pos.latitude === undefined || pos.altitude === undefined) {
-      gui.popup.show("Could not fetch current location.", "", false, 3000);
+      Q3D.gui.popup.show("Could not fetch current location.", "", false, 3000);
       return;
     }
 
@@ -320,10 +292,10 @@ function getCurrentPosition (callback) {
     var acc = Number.parseFloat(pos.accuracy);
     acc = (acc > 2) ? acc.toFixed(0) : acc.toFixed(1);
     var msg = "Accuracy: <span class='accuracy'>" + acc + "</span>m";
-    gui.popup.show(msg, "Current location", false, 5000);
+    Q3D.gui.popup.show(msg, "Current location", false, 5000);
   },
   function (error) {
-    gui.popup.hide();
+    Q3D.gui.popup.hide();
     alert("Cannot get current location: " + error.message);
   },
   {enableHighAccuracy: true});
@@ -354,18 +326,23 @@ function zoomToCurrentLocation() {
 
 // layers, settings and info buttons
 function hideAll() {
-  document.getElementById("layerlist").classList.add("hidden");
   document.getElementById("layers-button").classList.remove("pressed");
-
-  document.getElementById("settings").classList.add("hidden");
   document.getElementById("settings-button").classList.remove("pressed");
-
-  gui.popup.hide();
   document.getElementById("info-button").classList.remove("pressed");
+
+  document.getElementById("settings").classList.remove("visible");
+
+  Q3D.gui.clean();
 }
 
-gui.popup._hide = gui.popup.hide;
-gui.popup.hide = function () {
+Q3D.gui.popup._hide = Q3D.gui.popup.hide;
+Q3D.gui.popup.hide = function () {
   document.getElementById("info-button").classList.remove("pressed");
-  gui.popup._hide();
+  Q3D.gui.popup._hide();
+};
+
+Q3D.gui.layerPanel._hide = Q3D.gui.layerPanel.hide;
+Q3D.gui.layerPanel.hide = function () {
+  document.getElementById("layers-button").classList.remove("pressed");
+  Q3D.gui.layerPanel._hide();
 };
