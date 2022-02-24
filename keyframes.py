@@ -240,13 +240,6 @@ class AnimationTreeWidget(QTreeWidget):
     def initTree(self):
         self.clear()
 
-    def addCameraMotionTLItem(self):
-        item = QTreeWidgetItem(self, ["Camera Motion"], ATConst.ITEM_TL_CAMERA)
-        item.setFlags(Qt.ItemIsEnabled)
-        item.setIcon(0, self.cameraIcon)
-        item.setExpanded(True)
-        return item
-
     def addLayer(self, id_layer):
         if isinstance(id_layer, Layer):
             layer = id_layer
@@ -587,15 +580,16 @@ class AnimationTreeWidget(QTreeWidget):
         self.initTree()
 
         # camera motion
-        self.cameraTLItem = self.addCameraMotionTLItem()
+        item = QTreeWidgetItem(self, ["Camera Motion"], ATConst.ITEM_TL_CAMERA)
+        item.setFlags(Qt.ItemIsEnabled)
+        item.setIcon(0, self.cameraIcon)
+        item.setExpanded(True)
+        self.cameraTLItem = item
 
         for s in data.get("camera", {}).get("groups", []):
-            parent = self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True), s.get("easing"))
+            parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True), s.get("easing"))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
-
-        if self.cameraTLItem.childCount() == 0:
-            self.addKeyframeGroupItem(self.cameraTLItem, ATConst.ITEM_GRP_CAMERA)
 
         # layers
         dp = data.get("layers", {})
