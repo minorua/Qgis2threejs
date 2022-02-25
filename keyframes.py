@@ -82,9 +82,14 @@ class AnimationPanel(QWidget):
                 t = item.type()
                 if t in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_GRP_GROWING_LINE):
                     mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
+                elif t in (ATConst.ITEM_MATERIAL, ATConst.ITEM_GROWING_LINE):
+                    mapLayerId = item.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+                else:
+                    mapLayerId = None
+
+                if mapLayerId:
                     layer = self.wnd.settings.getLayer(mapLayerId)
-                    if layer:
-                        self._updateLayer(layer, t)
+                    self._updateLayer(layer, t)
 
                 data = self.tree.transitionData(item)
                 if data:
@@ -117,7 +122,7 @@ class AnimationPanel(QWidget):
             self.wnd.showMessageBar(msg, duration, warning=True)
 
     def _updateLayer(self, layer, groupType):
-        if groupType == ATConst.ITEM_GRP_MATERIAL:
+        if groupType in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_MATERIAL):
             layer = layer.clone()
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
