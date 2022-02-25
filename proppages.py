@@ -442,10 +442,10 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.mtlAddActions = []
         self.mtlAddActionGroup = QActionGroup(self)
-        for i, text in [(DEMMtlType.LAYER, "Map (Select Layers)..."),
-                        (DEMMtlType.MAPCANVAS, "Map (Canvas Layers)"),
+        for i, text in [(DEMMtlType.LAYER, "Select Layer(s)..."),
                         (DEMMtlType.FILE, "Image File..."),
-                        (DEMMtlType.COLOR, "Solid Color...")]:
+                        (DEMMtlType.COLOR, "Solid Color..."),
+                        (DEMMtlType.MAPCANVAS, "Map Canvas Layers")]:
 
             a = QAction(text, self)
             a.setData(i)
@@ -543,6 +543,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if update:
             self.mtlLayerIds.value = ids
             self.updateLayerImageLabel()
+            item.setText(self.uniqueMtlName(self.mtlNameFromLayerIds(ids)))
         return ids
 
     def updateLayerImageLabel(self):
@@ -556,6 +557,10 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
         if filename:
             self.lineEdit_ImageFile.setText(filename)
+
+            item = self.listWidget_Materials.currentItem()
+            if item:
+                item.setText(os.path.splitext(os.path.basename(filename))[0])
         return filename
 
     def tilesToggled(self, checked):
@@ -628,6 +633,32 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             item.setData(self.DATA_ID, mtl.get("id"))
             item.setData(self.DATA_PROPERTIES, mtl.get("properties"))
 
+    def mtlNameFromLayerIds(self, mapLayerIds):
+        if not mapLayerIds:
+            return "empty map"
+
+        layer = QgsProject.instance().mapLayer(mapLayerIds[0])
+        if layer:
+            name = layer.name()
+            n = len(mapLayerIds)
+            if n == 1:
+                return name
+            else:
+                return "{} and {} layer{}".format(name, n - 1, "s" if n > 2 else "")
+
+        return "map"
+
+    def uniqueMtlName(self, base_name):
+        n = self.listWidget_Materials.count()
+        names = [self.listWidget_Materials.item(r).text() for r in range(n)]
+
+        for i in range(n + 1):
+            name = base_name
+            if i:
+                name += " {}".format(i + 1)
+            if name not in names:
+                return name
+
     def addMaterial(self, action=None):
         mtype = action.data() if action else DEMMtlType.MAPCANVAS
 
@@ -641,8 +672,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 ids = self.selectLayer(update=False)
                 if ids is None:
                     return
-
-                base_name = "map"
+                base_name = self.mtlNameFromLayerIds(ids)
                 p["layerIds"] = ids
             else:
                 base_name = "map (canvas)"
@@ -664,16 +694,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             base_name = "color"
             p["colorButton_Color"] = [color.red(), color.green(), color.blue()]
 
-        # unique material name
-        n = self.listWidget_Materials.count()
-        names = [self.listWidget_Materials.item(r).text() for r in range(n)]
-
-        for i in range(n + 1):
-            name = base_name
-            if i:
-                name += " {}".format(i + 1)
-            if name not in names:
-                break
+        name = self.uniqueMtlName(base_name)
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
