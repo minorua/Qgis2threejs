@@ -2365,15 +2365,14 @@ Q3D.DEMBlock.prototype = {
       this.materials[m.mtlIndex] = mtl;
 
       if (m.useNow) {
+        this.currentMtlIndex = m.mtlIndex;
         if (this.obj) {
           layer.materials.removeItem(this.obj.material, true);
 
           this.obj.material = mtl.mtl;
-
-          layer.materials.add(mtl);
           layer.requestRender();
         }
-        this.currentMtlIndex = m.mtlIndex;
+        layer.materials.add(mtl);
       }
     }
 
