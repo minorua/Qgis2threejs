@@ -155,6 +155,9 @@ function init(off_screen, debug_mode) {
       app.osRender(); app.osRender();   // render scene twice for output stability
     });
   }
+  else {
+    document.getElementById("closemsgbar").onclick = closeMessageBar;
+  }
 
   if (Q3D.Config.northArrow.visible) {
     app.buildNorthArrow(document.getElementById("northarrow"), 0);
@@ -255,8 +258,10 @@ function showMessageBar(message, duration, warning) {
   if (duration) {
     barTimerId = setTimeout(closeMessageBar, duration);
   }
-  var e = document.getElementById("messagebar");
-  e.innerHTML = message;
+
+  document.getElementById("msgcontent").innerHTML = message;
+
+  var e = document.getElementById("msgbar");
   e.style.display = "block";
   if (warning) {
     e.classList.add("warning");
@@ -267,7 +272,7 @@ function showMessageBar(message, duration, warning) {
 }
 
 function closeMessageBar() {
-  document.getElementById("messagebar").style.display = "none";
+  document.getElementById("msgbar").style.display = "none";
   barTimerId = null;
 }
 

@@ -46,22 +46,40 @@
   -webkit-transform: translate3d(-50%, -50%, 0);
 }
 
-#messagebar {
+#msgbar {
   display: none;
   position: absolute;
-  left: 0;
-  top: 0;
   width: 100%;
-  height: 25px;
-  padding: 8px;
-  vertical-align: middle;
   background-color: #f0f8ff;
   border: 1px solid #8e998a;
 }
 
-#messagebar.warning {
+#msgbar.warning {
   background-color: #ffc800;
-  font-size: small;
+}
+
+#closemsgbar {
+  float: right;
+  color: #8e998a;
+  margin: 4px 10px;
+  line-height: 32px;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  cursor: pointer;
+}
+
+#closemsgbar:hover {
+  background-color: #ffdd33;
+}
+
+#msgcontent {
+  padding: 8px;
+}
+
+#msgcontent ul {
+  margin: 0 5px;
 }
 </style>
 
@@ -78,7 +96,7 @@
 </div>
 
 <!-- popup -->
-<div id="popup" style="display:none;">
+<div id="popup">
   <div id="closebtn">&times;</div>
   <div id="popupbar"></div>
   <div id="popupbody">
@@ -151,7 +169,10 @@
 </div>
 
 <div id="cover"></div>
-<div id="messagebar" onclick="closeMessageBar();"></div>
+<div id="msgbar">
+  <div id="closemsgbar">&times;</div>
+  <div id="msgcontent"></div>
+</div>
 <div id="debug"></div>
 
 </body>

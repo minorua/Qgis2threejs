@@ -360,6 +360,14 @@ class ExportSettings:
                 if layer.layerId == layerId:
                     return layer
 
+    def getLayerByJSLayerId(self, jsLayerId):
+        if jsLayerId is None:
+            return None
+
+        for layer in self.layers():
+            if layer.jsLayerId == jsLayerId:
+                return layer
+
     def addLayer(self, layer):
         """append an additional layer to layer list"""
         layer = layer.clone()

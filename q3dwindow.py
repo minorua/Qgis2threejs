@@ -20,7 +20,7 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import createUid, hex_color, logMessage, pluginDir
+from .tools import createUid, hex_color, js_bool, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 
@@ -265,6 +265,9 @@ class Q3DWindow(QMainWindow):
 
     def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py"):
         return self.ui.webView.runScript(string, data, message, sourceID=sourceID)
+
+    def showMessageBar(self, msg, duration=0, warning=False):
+        return self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):

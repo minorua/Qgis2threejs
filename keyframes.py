@@ -64,25 +64,40 @@ class AnimationPanel(QWidget):
     def playAnimation(self, items=None, loop=False):
         self.wnd.settings.setAnimationData(self.tree.data())
 
+        self._warnings = []
+
         dataList = []
-        for item in (items or self.tree.checkedGroups()):
-            t = item.type()
-            if t in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_GRP_GROWING_LINE):
-                layerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
-                layer = self.wnd.settings.getLayer(layerId)
-                if layer:
-                    if t == ATConst.ITEM_GRP_MATERIAL:
-                        layer = layer.clone()
-                        layer.opt.onlyMaterial = True
-                        layer.opt.allMaterials = True
+        if items is None:
+            for group in self.wnd.settings.enabledValidKeyframeGroups(warning_log=self._log):
+                layerId = group.get("layerId")
+                if layerId is None:
+                    dataList.append(group)
+                else:
+                    layer = self.wnd.settings.getLayerByJSLayerId(layerId)
+                    if layer:
+                        self._updateLayer(layer, group.get("type"))
+                        dataList.append(group)
+        else:
+            for item in items:
+                t = item.type()
+                if t in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_GRP_GROWING_LINE):
+                    mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
+                    layer = self.wnd.settings.getLayer(mapLayerId)
+                    if layer:
+                        self._updateLayer(layer, t)
 
-                    self.wnd.iface.requestRunScript("preview.renderEnabled = false;")
-                    self.wnd.iface.updateLayerRequest.emit(layer)
-                    self.wnd.iface.requestRunScript("preview.renderEnabled = true;")
+                data = self.tree.transitionData(item)
+                if data:
+                    dataList.append(data)
 
-            data = self.tree.transitionData(item)
-            if data:
-                dataList.append(data)
+        msg = ""
+        duration = 5000
+        if self._warnings:
+            msg = "Animation warning{}:<br><ul>".format("s" if len(self._warnings) > 1 else "")
+            for w in self._warnings:
+                msg += "<li>" + w + "</li>"
+            msg += "</ul>"
+            duration = 0
 
         if len(dataList):
             if DEBUG_MODE:
@@ -91,6 +106,29 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
+        else:
+            if not msg:
+                msg = "Animation: "
+            msg += "There are no keyframe groups to play."
+
+            self.ui.toolButtonPlay.setChecked(False)
+
+        if msg:
+            self.wnd.showMessageBar(msg, duration, warning=True)
+
+    def _updateLayer(self, layer, groupType):
+        if groupType == ATConst.ITEM_GRP_MATERIAL:
+            layer = layer.clone()
+            layer.opt.onlyMaterial = True
+            layer.opt.allMaterials = True
+
+        self.wnd.iface.requestRunScript("preview.renderEnabled = false;")
+        self.wnd.iface.updateLayerRequest.emit(layer)
+        self.wnd.iface.requestRunScript("preview.renderEnabled = true;")
+
+    def _log(self, msg):
+        self._warnings.append(msg)
+        logMessage("Animation: " + msg)
 
     def stopAnimation(self):
         self.webPage.runScript("stopAnimation()")
