@@ -708,8 +708,8 @@ Q3D.application
   app.currentViewUrl = function () {
     var c = app.scene.toMapCoordinates(app.camera.position),
         t = app.scene.toMapCoordinates(app.controls.target),
-        hash = "#cx=" + c.x + "&cy=" + c.y + "&cz=" + c.z;
-    if (t.x || t.y || t.z) hash += "&tx=" + t.x + "&ty=" + t.y + "&tz=" + t.z;
+        hash = "#cx=" + c.x.toFixed(3) + "&cy=" + c.y.toFixed(3) + "&cz=" + c.z.toFixed(3);
+    if (t.x || t.y || t.z) hash += "&tx=" + t.x.toFixed(3) + "&ty=" + t.y.toFixed(3) + "&tz=" + t.z.toFixed(3);
     return window.location.href.split("#")[0] + hash;
   };
 
