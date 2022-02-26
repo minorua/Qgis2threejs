@@ -33,7 +33,6 @@ class MapTo3D:
         self.zScale = zScale
 
         self._originX, self._originY, self._originZ = (origin.x(), origin.y(), origin.z())
-        self.zShift = -origin.z()
 
     def transform(self, x, y, z=0):
         return [x - self._originX,
@@ -47,7 +46,7 @@ class MapTo3D:
 
     def __repr__(self):
         origin = "({}, {}, {})".format(self.origin.x(), self.origin.y(), self.origin.z())
-        return "MapTo3D(extent:{}, origin:{}, zScale:{}, zShift:{})".format(str(self.mapExtent), origin, self.zScale, self.zShift)
+        return "MapTo3D(extent:{}, origin:{}, zScale:{})".format(str(self.mapExtent), origin, self.zScale)
 
 
 class BuildOptions:

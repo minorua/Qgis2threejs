@@ -2014,7 +2014,7 @@ Q3D.Material.prototype = {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, zShift, (proj))
+.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, (proj))
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
@@ -2060,7 +2060,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
 
       var be = p.baseExtent;
       p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
-      p.zShift = -p.origin.z;
 
       // set initial camera position and parameters
       if (this.userData.origin === undefined) {
@@ -3253,8 +3252,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       p = this.properties,
       label = p.label,
       bs = this.sceneData.baseExtent.width * 0.016,
-      sc = bs * Math.pow(1.2, label.size),
-      z0 = 0;
+      sc = bs * Math.pow(1.2, label.size);
 
   var hasOtl = (label.olcolor !== undefined),
       hasConn = (label.cncolor !== undefined);
@@ -3295,7 +3293,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
     getPointsFunc(f).forEach(function (pt) {
 
       // label position
-      vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : z0 + f.lh);
+      vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
 
       // render label text
       ctx.font = font;
@@ -3851,10 +3849,8 @@ Q3D.LineLayer.prototype.createObjFunc = function (objType) {
     };
   }
   else if (objType == "Wall") {
-    var z0 = sceneData.zShift * sceneData.zScale;
-
     return function (f, vertices) {
-      var bzFunc = function (x, y) { return z0 + f.geom.bh; };
+      var bzFunc = function (x, y) { return f.geom.bh; };
       return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
                             materials.mtl(f.mtl));
     };

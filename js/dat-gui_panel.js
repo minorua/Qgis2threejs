@@ -130,7 +130,7 @@ Q3D.gui.dat = {
     // Plane altitude
     this.customPlaneFolder.add(params.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
       if (_this.customPlane === undefined) addPlane(params.cp.c);
-      _this.customPlane.position.z = (value + p.zShift) * p.zScale;
+      _this.customPlane.position.z = value * p.zScale;
       _this.customPlane.updateMatrixWorld();
       app.render();
     });

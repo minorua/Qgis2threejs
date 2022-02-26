@@ -194,7 +194,6 @@ class DEMGridBuilder:
              "width": self.planeWidth,
              "height": self.planeHeight,
              "translate": [self.offsetX, self.offsetY, 0],
-             "zShift": mapTo3d.zShift,
              "zScale": mapTo3d.zScale
              }
 
