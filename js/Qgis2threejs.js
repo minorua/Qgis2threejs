@@ -1651,7 +1651,7 @@ Q3D.gui
     e = E("qr_coords_table");
     if (e) {
       if (show_coords) {
-        e.classList.add(VIS);
+        e.classList.remove("hidden");
 
         var pt = app.scene.toMapCoordinates(point);
 
@@ -1676,7 +1676,7 @@ Q3D.gui
         }
       }
       else {
-        e.classList.remove(VIS);
+        e.classList.add("hidden");
       }
     }
 
@@ -1694,10 +1694,10 @@ Q3D.gui
                           "<td>" + obj.userData.properties[i] + "</td>";
           e.appendChild(row);
         }
-        e.classList.add(VIS);
+        e.classList.remove("hidden");
       }
       else {
-        e.classList.remove(VIS);
+        e.classList.add("hidden");
       }
     }
     gui.popup.show("queryresult");

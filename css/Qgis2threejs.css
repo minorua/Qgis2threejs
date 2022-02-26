@@ -195,7 +195,7 @@ body {
   overflow: auto;
 }
 
-#popupcontent, #queryresult, #qr_coords_table, #qr_attrs_table {
+#popupcontent, #queryresult {
   display: none;
 }
 
