@@ -515,8 +515,13 @@ class ExportSettings:
 
                 if group["type"] == ATConst.ITEM_GRP_GROWING_LINE:
                     layer = self.getLayer(layerId)
-                    if layer and layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
-                        yield group
+                    if layer:
+                        if layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
+                            yield group
+                        else:
+                            warning_log("Layer '{}': Growing line animation is available with 'Line' and 'Thick Line'.".format(layer.name))
+                    else:
+                        warning_log("Layer not found: {}".format(layerId))
 
                 elif len(group["keyframes"]) > 1:
                     yield group
