@@ -207,7 +207,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionEdit = QAction("Edit...", self)
         self.actionEdit.triggered.connect(self.onItemEdit)
 
-        self.actionRename = QAction("Rename", self)
+        self.actionRename = QAction("Rename...", self)
         self.actionRename.triggered.connect(self.renameGroup)
 
         self.actionPlay = QAction("Play", self)
@@ -370,7 +370,10 @@ class AnimationTreeWidget(QTreeWidget):
             self.addMaterialItem()
 
         elif gt == ATConst.ITEM_GRP_GROWING_LINE:
-            QMessageBox.warning(self, PLUGIN_NAME, "This group can't have more than one item.")
+            if typ == ATConst.ITEM_GRP_GROWING_LINE and item.childCount() == 0:
+                self.addGrowLineItem()
+            else:
+                QMessageBox.warning(self, PLUGIN_NAME, "This group can't have more than one item.")
 
     def removeSelectedItems(self):
         items = self.selectedItems() or [self.currentItem()]
@@ -405,7 +408,7 @@ class AnimationTreeWidget(QTreeWidget):
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
         item.setData(0, ATConst.DATA_EASING, easing)
-        item.setFlags(Qt.ItemIsEditable | Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+        item.setFlags(Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
         item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
         # item.setIcon(0, self.cameraIcon)
 
@@ -713,7 +716,7 @@ class AnimationTreeWidget(QTreeWidget):
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()
         t = item.type()
-        if t & ATConst.ITEM_MBR or t == ATConst.ITEM_TL_LAYER:
+        if t != ATConst.ITEM_TL_CAMERA:
             self.showDialog(item)
 
     def onItemEdit(self):
@@ -729,7 +732,9 @@ class AnimationTreeWidget(QTreeWidget):
     def renameGroup(self, item=None):
         item = item or self.currentItem()
         if item:
-            self.editItem(item, 0)
+            name, ok = QInputDialog.getText(self, "Rename group", "Group name", text=item.text(0))
+            if ok:
+                item.setText(0, name)
 
     def addOpacityItem(self):
         item = self.currentItem()
@@ -795,41 +800,35 @@ class AnimationTreeWidget(QTreeWidget):
             return
 
         t = item.type()
-        if t & ATConst.ITEM_MBR:
-            top_level = item.parent().parent()
-            isKF = (t != ATConst.ITEM_GROWING_LINE)
-
-            if isKF and item.parent().childCount() < 2:
-                QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
-                return
-
-        elif t & ATConst.ITEM_GRP:
-            top_level = item.parent()
-        elif t == ATConst.ITEM_TL_LAYER:
-            top_level = item
-        else:
+        if t == ATConst.ITEM_TL_LAYER:
+            layerId = item.data(0, ATConst.DATA_LAYER_ID)
+            layer = self.settings.getLayer(layerId)
+            self.wnd.showLayerPropertiesDialog(layer)
             return
 
+        elif t == ATConst.ITEM_TL_CAMERA:
+            return
+
+        if t & ATConst.ITEM_GRP:
+            item = item.child(0)
+            if item is None:
+                isKF = (t != ATConst.ITEM_GRP_GROWING_LINE)
+                msg = "This group has no items. Please add {}.".format("at least two keyframe items" if isKF else "an item")
+                QMessageBox.warning(self, PLUGIN_NAME, msg)
+                return
+
+            t = item.type()
+
+        isKF = (t != ATConst.ITEM_GROWING_LINE)
+        if isKF and item.parent().childCount() < 2:
+            QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
+            return
+
+        top_level = item.parent().parent()
         layer = None
         if top_level.type() == ATConst.ITEM_TL_LAYER:
             layerId = top_level.data(0, ATConst.DATA_LAYER_ID)
             layer = self.settings.getLayer(layerId)
-
-            if t == ATConst.ITEM_TL_LAYER:
-                self.wnd.showLayerPropertiesDialog(layer)
-                return
-        elif top_level.type() == ATConst.ITEM_TL_CAMERA:
-            if t == ATConst.ITEM_TL_CAMERA:
-                return
-
-            if t == ATConst.ITEM_GRP_CAMERA:
-                item = item.child(0)
-                if item is None:
-                    return
-
-        if self.dialog:
-            QMessageBox.warning(self, PLUGIN_NAME, "Cannot open more than one keyframe dialog at same time.")
-            return
 
         self.panel.setEnabled(False)
 
