@@ -244,11 +244,11 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuKeyframe.addSeparator()
         self.ctxMenuKeyframe.addAction(self.actionRemove)
 
-        self.ctxMenuLayerAdd = QMenu("Add", self)
+        self.ctxMenuLayerAdd = QMenu(self)
         self.ctxMenuLayerAdd.addActions([self.actionOpacity, self.actionMaterial, self.actionGrowLine])
 
         self.ctxMenuLayer = QMenu(self)
-        self.ctxMenuLayer.addMenu(self.ctxMenuLayerAdd)
+        self.ctxMenuLayer.addMenu("Add").addActions(self.ctxMenuLayerAdd.actions())
         self.ctxMenuLayer.addSeparator()
         self.ctxMenuLayer.addAction(self.actionProperties)
 
@@ -354,8 +354,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = self.getLayerFromLayerItem(item)
                 self.actionMaterial.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
-                self.actionProperties.setVisible(False)
-                self.ctxMenuLayer.popup(QCursor.pos())
+                self.ctxMenuLayerAdd.popup(QCursor.pos())
             return
 
         gt = typ if typ & ATConst.ITEM_GRP else typ - ATConst.ITEM_MBR + ATConst.ITEM_GRP
@@ -669,7 +668,6 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = self.getLayerFromLayerItem(item)
                 self.actionMaterial.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
-                self.actionProperties.setVisible(True)
         else:
             if typ & ATConst.ITEM_GRP:
                 m = self.ctxMenuKeyframeGroup

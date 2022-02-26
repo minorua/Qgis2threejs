@@ -161,7 +161,7 @@ class ATConst:
 
     @classmethod
     def defaultName(cls, typ):
-        name = ["Camera", "Opacity", "Material", "Line growing"]
+        name = ["Camera", "Opacity", "Material", "Growing line"]
         if typ & cls.ITEM_GRP:
             return "Group" if typ == cls.ITEM_GRP_CAMERA else "{} group".format(name[typ - cls.ITEM_GRP])
 
