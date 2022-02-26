@@ -88,7 +88,7 @@ function loadModel(url) {
     var sceneScale = app.scene.userData.scale,
         objScale = scale / sceneScale;
 
-    console.log("Model " + url + " loaded.")
+    console.log("Model " + url + " loaded.");
     console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
     console.log("To clear the added object, use scene reload (F5).");
 
@@ -325,7 +325,7 @@ function switchCamera(is_ortho) {
   app.controls.object = app.camera;
   app.controls.reset();
 
-  console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.")
+  console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.");
 
   app.setLightGroupParent(app.scene.userData.light);
 

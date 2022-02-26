@@ -802,7 +802,7 @@ Q3D.application
           for (var p in Q3D.Tweens) {
             if (Q3D.Tweens[p].type == group.type) {
               t = Q3D.Tweens[p];
-              break
+              break;
             }
           }
           if (t === undefined) {
@@ -1309,7 +1309,7 @@ Q3D.application
     var bgcolor = conf.bgColor;
     app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
-    if ((fill_background && bgcolor === null) || labels.length > 0) {
+    if (fill_background && bgcolor === null) {
       var canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
@@ -1543,10 +1543,10 @@ Q3D.gui
       app.cameraAction.zoom();
     });
     ON_CLICK("orbitbtn", function () {
-      app.cameraAction.orbit()
+      app.cameraAction.orbit();
     });
     ON_CLICK("measurebtn", function () {
-      app.measure.start()
+      app.measure.start();
     });
 
     // narrative box
@@ -1889,7 +1889,7 @@ Q3D.Material.prototype = {
         opt.map = new THREE.Texture(m.image.object.toImageData());
         opt.map.needsUpdate = true;
 
-        delete m.image.object
+        delete m.image.object;
       }
       else {    // base64
         var img = new Image();
@@ -1901,7 +1901,7 @@ Q3D.Material.prototype = {
         opt.map = new THREE.Texture(img);
         defer = true;
 
-        delete m.image.base64
+        delete m.image.base64;
       }
       opt.map.anisotropy = Q3D.Config.texture.anisotropy;
     }
@@ -2031,7 +2031,7 @@ Q3D.Scene = function () {
   this.add(this.labelGroup);
 
   this.labelConnectorGroup = new Q3D.Group();
-  this.labelConnectorGroup.name = "label connector"
+  this.labelConnectorGroup.name = "label connector";
   this.add(this.labelConnectorGroup);
 };
 
@@ -2324,7 +2324,7 @@ Q3D.Materials.prototype.removeItem = function (material, dispose) {
       break;
     }
   }
-  if (dispose) material.dispose()
+  if (dispose) material.dispose();
 };
 
 Q3D.Materials.prototype.removeGroupItems = function (groupId) {
@@ -2575,7 +2575,7 @@ Q3D.DEMBlock.prototype = {
         psw = planeWidth / (w - 1),
         psh = planeHeight / (h - 1);
 
-    var v, geom, line, x, y, vx, vy, group = new THREE.Group();
+    var v, geom, x, y, vx, vy, group = new THREE.Group();
 
     for (x = w - 1; x >= 0; x--) {
       v = [];
@@ -2726,7 +2726,7 @@ Q3D.ClippedDEMBlock.prototype = {
     mat_back.side = THREE.BackSide;
     layer.materials.add(mat_back);
 
-    var geom, mesh, shape, vertices;
+    var geom, mesh, shape;
     for (var i = 0, l = polygons.length; i < l; i++) {
       var bnds = polygons[i];
 
@@ -3714,8 +3714,7 @@ Q3D.LineLayer.prototype.build = function (features, startIndex) {
 };
 
 Q3D.LineLayer.prototype.createObjFunc = function (objType) {
-  var materials = this.materials,
-      sceneData = this.sceneData;
+  var materials = this.materials;
 
   if (objType == "Line") {
     return function (f, vertices) {
@@ -4323,8 +4322,8 @@ Q3D.Utils.arrayToVec2Array = function (points) {
 };
 
 Q3D.Utils.flatArrayToVec2Array = function (vertices, itemSize) {
-  var itemSize = itemSize || 2,
-      pts = [];
+  itemSize = itemSize || 2;
+  var pts = [];
   for (var i = 0, l = vertices.length; i < l; i += itemSize) {
     pts.push(new THREE.Vector2(vertices[i], vertices[i + 1]));
   }

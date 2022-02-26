@@ -138,7 +138,7 @@ Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
 
     if (p.colorType == "HEIGHT") {
-      var box = _this.boundingBox()
+      var box = _this.boundingBox();
       mtl.elevationRange = [box.min.z, box.max.z];
     }
     _this.materials.add(mtl);
@@ -178,7 +178,7 @@ Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat, 
   };
 
   if (tick_func()) timer_id = window.setInterval(tick_func, interval);
-}
+};
 
 Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
   get: function () {
