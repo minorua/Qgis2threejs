@@ -169,10 +169,6 @@ body {
   border: 4px solid #2196F3;
 }
 
-#popup, #layerpanel {
-  left: 0;
-}
-
 #settings {
   position: absolute;
   left: 0;

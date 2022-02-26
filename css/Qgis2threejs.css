@@ -110,7 +110,6 @@ body {
 
 #layerpanel {
   position: absolute;
-  left: 36px;
   margin: 1px 2px;
   background-color: white;
   box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
@@ -157,7 +156,6 @@ body {
 /* popup */
 #popup {
   position: absolute;
-  left: 36px;
   margin: 1px 2px;
   max-width: 480px;
   min-width: 300px;
