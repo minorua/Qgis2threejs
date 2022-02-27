@@ -2014,7 +2014,11 @@ Q3D.Material.prototype = {
 /*
 Q3D.Scene -> THREE.Scene -> THREE.Object3D
 
-.userData: scene properties - baseExtent(cx, cy, width, height, rotation), origin, zScale, (proj))
+scene properties (userData):
+ - baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
+ - origin: origin of 3D world in map coordinates
+ - zScale: vertical scale factor
+ - proj: (optional) proj string. used to display clicked position in long/lat.
 */
 Q3D.Scene = function () {
   THREE.Scene.call(this);
@@ -2059,7 +2063,7 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       }
 
       var be = p.baseExtent;
-      p.vBEC = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin);
+      p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
 
       // set initial camera position and parameters
       if (this.userData.origin === undefined) {
@@ -2076,8 +2080,8 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
               lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
             };
           }
-          pos = v.pos.clone().multiplyScalar(s).add(p.vBEC);
-          focal = v.lookAt.clone().multiplyScalar(s).add(p.vBEC);
+          pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
+          focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
         }
         else {
           pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
@@ -2103,8 +2107,6 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
   else if (jsonObject.type == "layer") {
     var layer = this.mapLayers[jsonObject.id];
     if (layer === undefined) {
-      // console.assert(jsonObject.properties !== undefined);
-
       // create a layer
       var type = jsonObject.properties.type;
       if (type == "dem") layer = new Q3D.DEMLayer();
@@ -2902,24 +2904,24 @@ Q3D.DEMLayer.prototype.loadJSONObject = function (jsonObject, scene) {
     }
 
     var p = scene.userData,
-        be = p.baseExtent;
+        rotation = p.baseExtent.rotation;
 
     if (jsonObject.properties.clipped) {
       this.objectGroup.position.set(0, 0, 0);
       this.objectGroup.rotation.z = 0;
 
-      if (be.rotation) {
-        // if map is rotated, vertices are rotated around center of base extent
-        this.objectGroup.position.copy(p.vBEC).negate();
-        this.objectGroup.position.applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad);
-        this.objectGroup.position.add(p.vBEC);
-        this.objectGroup.rotateOnAxis(Q3D.uv.k, be.rotation * Q3D.deg2rad);
+      if (rotation) {
+        // rotate around center of base extent
+        this.objectGroup.position.copy(p.pivot).negate();
+        this.objectGroup.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+        this.objectGroup.position.add(p.pivot);
+        this.objectGroup.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
       }
     }
     else {
-      this.objectGroup.position.copy(p.vBEC);
+      this.objectGroup.position.copy(p.pivot);
       this.objectGroup.position.z *= p.zScale;
-      this.objectGroup.rotation.z = be.rotation * Q3D.deg2rad;
+      this.objectGroup.rotation.z = rotation * Q3D.deg2rad;
     }
     this.objectGroup.updateMatrixWorld();
 
@@ -4098,6 +4100,8 @@ Q3D.PolygonLayer.prototype.createObjFunc = function (objType) {
   }
   else if (objType == "Overlay") {
 
+    var _this = this;
+
     return function (f) {
 
       var geom = new THREE.BufferGeometry();
@@ -4106,6 +4110,15 @@ Q3D.PolygonLayer.prototype.createObjFunc = function (objType) {
       geom.computeVertexNormals();
 
       var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
+
+      var rotation = _this.sceneData.baseExtent.rotation;
+      if (rotation) {
+        // rotate around center of base extent
+        mesh.position.copy(_this.sceneData.pivot).negate();
+        mesh.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+        mesh.position.add(_this.sceneData.pivot);
+        mesh.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
+      }
 
       // borders
       if (f.geom.brdr !== undefined) {
