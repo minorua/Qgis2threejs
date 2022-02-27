@@ -442,16 +442,15 @@ function startAnimation(groups, loop) {
 
 function stopAnimation() {
   app.animation.keyframes.stop();
+  closeNarrativeBox();
 }
 
 function showNarrativeBox(nar) {
-  var e = document.getElementById("narrativebox");
-  e.classList.remove("visible");
   document.getElementById("narbody").innerHTML = nar.text;
-
-  setTimeout(function () {
-    e.classList.add("visible");
-  }, 0);
+  document.getElementById("narrativebox").classList.add("visible");
+  var e = document.getElementById("nextbtn");
+  e.className = "";
+  e.innerHTML = "Close";
 }
 
 function closeNarrativeBox() {

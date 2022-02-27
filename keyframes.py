@@ -4,7 +4,7 @@
 # begin: 2021-11-10
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor
+from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMenuBar,
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication, QgsFieldProxyModel
@@ -12,7 +12,7 @@ from qgis.core import QgsApplication, QgsFieldProxyModel
 from .conf import DEBUG_MODE, DEF_SETS, EASING, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, js_bool, logMessage, parseInt
+from .tools import createUid, js_bool, logMessage, parseInt, pluginDir
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -34,6 +34,7 @@ class AnimationPanel(QWidget):
 
         self.iconPlay = QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
         self.iconStop = QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
+        self.iconNarration = QgsApplication.getThemeIcon("mIconInfo.svg")
 
     def setup(self, wnd, settings):
         self.wnd = wnd
@@ -91,7 +92,7 @@ class AnimationPanel(QWidget):
                     layer = self.wnd.settings.getLayer(mapLayerId)
                     self._updateLayer(layer, t)
 
-                data = self.tree.transitionData(item)
+                data = self.tree.transitionData(item, exclude_narration=bool(t & ATConst.ITEM_MBR))
                 if data:
                     dataList.append(data)
 
@@ -185,7 +186,8 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.icons = wnd.icons
         self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
-        self.keyframeIcon = QgsApplication.getThemeIcon("mItemBookmark.svg")
+        self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
+        self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
         self.setData(settings.animationData())
 
@@ -409,7 +411,6 @@ class AnimationTreeWidget(QTreeWidget):
         item.setData(0, ATConst.DATA_EASING, easing)
         item.setFlags(Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
         item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
-        # item.setIcon(0, self.cameraIcon)
 
         parent.addChild(item)
         item.setExpanded(True)
@@ -446,10 +447,7 @@ class AnimationTreeWidget(QTreeWidget):
         item.setData(0, ATConst.DATA_DURATION, keyframe.get("duration", DEF_SETS.ANM_DURATION))
         item.setData(0, ATConst.DATA_DELAY, keyframe.get("delay", 0))
 
-        nar = keyframe.get("narration")
-        if nar:
-            item.setData(0, ATConst.DATA_NARRATION, {"id": nar["id"], "text": nar["text"]})
-
+        icon = None
         if typ == ATConst.ITEM_CAMERA:
             item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.webPage.cameraState(flat=True))
 
@@ -462,9 +460,15 @@ class AnimationTreeWidget(QTreeWidget):
 
         elif typ == ATConst.ITEM_GROWING_LINE:
             item.setData(0, ATConst.DATA_SEQ, keyframe.get("sequential", False))
+            icon = self.effectIcon
+
+        nar = keyframe.get("narration")
+        if nar:
+            item.setData(0, ATConst.DATA_NARRATION, {"id": nar["id"], "text": nar["text"]})
+            icon = self.panel.iconNarration
 
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-        item.setIcon(0, self.keyframeIcon)
+        item.setIcon(0, icon if icon else self.keyframeIcon)
 
         if iidx:
             parent.insertChild(iidx, item)
@@ -596,7 +600,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         return d
 
-    def transitionData(self, item=None):
+    def transitionData(self, item=None, exclude_narration=False):
         item = item or self.currentItem()
         if not item:
             return
@@ -614,12 +618,15 @@ class AnimationTreeWidget(QTreeWidget):
 
             d = self.keyframeGroupData(p)
             kfs = d["keyframes"][iidx:iidx + c]
+            if exclude_narration:
+                kfs[0].pop("narration", None)
+
             if c == 2:
                 kfs[1].pop("narration", None)
             d["keyframes"] = kfs
             return d
 
-        elif typ & ATConst.ITEM_GRP:
+        elif typ & ATConst.ITEM_GRP:        # NOTE: exclude_narration is ignored
             return self.keyframeGroupData(item)
 
     def setData(self, data):
@@ -899,6 +906,7 @@ class KeyframeDialog(QDialog):
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
         self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
         self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
+        self.ui.toolButtonPreview.setIcon(self.panel.iconNarration)
 
         if t == ATConst.ITEM_MATERIAL:
             self.ui.labelComboBox1.setText("Material")
@@ -969,9 +977,14 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonNext.clicked.connect(self.nextKeyframe)
         self.ui.toolButtonPlay.clicked.connect(self.play)
         self.ui.pushButtonPlayAll.clicked.connect(self.playAll)
+        self.ui.toolButtonPreview.clicked.connect(self.showNarrativeBox)
 
         self.ui.lineEditDelay.editingFinished.connect(self.apply)
         self.ui.lineEditDuration.editingFinished.connect(self.apply)
+
+    def showNarrativeBox(self):
+        data = {"text": self.ui.plainTextEdit.toPlainText()}
+        self.panel.webPage.runScript("showNarrativeBox(pyData())", data=data)
 
     def prevKeyframe(self):
         self.ui.slider.setValue(self.ui.slider.value() - 1)
@@ -1112,14 +1125,7 @@ class KeyframeDialog(QDialog):
             item.setData(0, ATConst.DATA_DELAY, delay)
             item.setData(0, ATConst.DATA_DURATION, duration)
 
-            if self.isKF:
-                text = self.ui.plainTextEdit.toPlainText()
-                nar = {
-                    "id": self.narId or ("nar_" + createUid()),
-                    "text": text
-                } if text else None
-                item.setData(0, ATConst.DATA_NARRATION, nar)
-
+            icon = None
             if self.type == ATConst.ITEM_CAMERA:
                 item.setText(0, self.ui.lineEditName.text())
 
@@ -1136,6 +1142,22 @@ class KeyframeDialog(QDialog):
             elif self.type == ATConst.ITEM_GROWING_LINE:
                 item.setText(0, self.ui.lineEditName.text())
                 item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
+                icon = self.panel.iconEffect
+
+            if self.isKF:
+                text = self.ui.plainTextEdit.toPlainText()
+                if text:
+                    nar = {
+                        "id": self.narId or ("nar_" + createUid()),
+                        "text": text
+                    }
+                    icon = self.panel.iconNarration
+                else:
+                    nar = None
+
+                item.setData(0, ATConst.DATA_NARRATION, nar)
+
+            item.setIcon(0, icon if icon else self.panel.tree.keyframeIcon)
 
             p = item.parent()
             p.setData(0, ATConst.DATA_EASING, self.ui.actionGroupEasing.checkedAction().data())
