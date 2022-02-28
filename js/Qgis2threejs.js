@@ -95,7 +95,8 @@ Q3D.Config = {
   // animation
   animation: {
     enabled: false,
-    startOnLoad: false
+    startOnLoad: false,
+    easingCurve: "Cubic"
   },
 
   // others
@@ -769,12 +770,13 @@ Q3D.application
       curveFactor: 0,
 
       easingFunction: function (easing) {
-        var e = (easing || "").split(" "),
-            f = TWEEN.Easing[e[0]];
-
-        if (f && f[e[1]]) return f[e[1]];
-
-        return TWEEN.Easing.Linear.None;
+        if (easing == 1) return TWEEN.Easing.Linear.None;
+        if (easing > 1) {
+          var f = TWEEN.Easing[Q3D.Config.animation.easingCurve];
+          if (easing == 2) return f["InOut"];
+          else if (easing == 3) return f["In"];
+          else return f["Out"];   // easing == 4
+        }
       },
 
       keyframeGroups: [],
@@ -818,8 +820,7 @@ Q3D.application
 
           t.init(group, layer);
 
-          var keyframes = group.keyframes,
-              eFunc = (group.easing != "None") ? _this.easingFunction(group.easing) : null;
+          var keyframes = group.keyframes;
 
           var showNBox = function (idx) {
             // narrative box
@@ -867,7 +868,9 @@ Q3D.application
           };
 
           var onComplete = function (obj) {
-            if (!eFunc) group.onUpdate(obj, 1);
+            if (!keyframes[group.currentIndex].easing) {
+              group.onUpdate(obj, 1);
+            }
 
             if (group.onComplete) group.onComplete(obj);
 
@@ -902,7 +905,9 @@ Q3D.application
             t2 = new TWEEN.Tween(group.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
                              .to(group.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
 
-            if (eFunc) t2.easing(eFunc).onUpdate(group.onUpdate);
+            if (keyframes[i].easing) {
+              t2.easing(_this.easingFunction(keyframes[i].easing)).onUpdate(group.onUpdate);
+            }
 
             if (i == 0) {
               t0 = t2;

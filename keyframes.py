@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2021-11-10
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QDialog, QInputDialog, QMenu, QMenuBar,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QButtonGroup, QDialog, QInputDialog, QMenu, QMenuBar,
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import QgsApplication, QgsFieldProxyModel
 
-from .conf import DEBUG_MODE, DEF_SETS, EASING, PLUGIN_NAME
+from .conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
 from .tools import createUid, js_bool, logMessage, parseInt, pluginDir
@@ -35,6 +35,7 @@ class AnimationPanel(QWidget):
         self.iconPlay = QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
         self.iconStop = QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
         self.iconNarration = QgsApplication.getThemeIcon("mIconInfo.svg")
+        self.iconEasing = {}
 
     def setup(self, wnd, settings):
         self.wnd = wnd
@@ -402,13 +403,12 @@ class AnimationTreeWidget(QTreeWidget):
             if name not in names:
                 return name
 
-    def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True, easing=None):
+    def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True):
 
         name = name or self.uniqueChildName(parent, ATConst.defaultName(typ))
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
-        item.setData(0, ATConst.DATA_EASING, easing)
         item.setFlags(Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
         item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
 
@@ -444,6 +444,7 @@ class AnimationTreeWidget(QTreeWidget):
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
 
+        item.setData(0, ATConst.DATA_EASING, keyframe.get("easing", ATConst.EASING_LINEAR))
         item.setData(0, ATConst.DATA_DURATION, keyframe.get("duration", DEF_SETS.ANM_DURATION))
         item.setData(0, ATConst.DATA_DELAY, keyframe.get("delay", 0))
 
@@ -488,6 +489,10 @@ class AnimationTreeWidget(QTreeWidget):
             "type": typ,
             "name": item.text(0)
         }
+
+        easing = item.data(0, ATConst.DATA_EASING)
+        if easing:
+            k["easing"] = easing
 
         k["delay"] = item.data(0, ATConst.DATA_DELAY)
         k["duration"] = item.data(0, ATConst.DATA_DURATION)
@@ -536,10 +541,6 @@ class AnimationTreeWidget(QTreeWidget):
             "keyframes": [self.keyframe(item) for item in items]
         }
 
-        easing = group.data(0, ATConst.DATA_EASING)
-        if easing:
-            d["easing"] = easing
-
         if group.parent().type() == ATConst.ITEM_TL_LAYER:
             layer = self.settings.getLayer(group.parent().data(0, ATConst.DATA_LAYER_ID))
             if layer:
@@ -576,8 +577,7 @@ class AnimationTreeWidget(QTreeWidget):
             layerItem.removeChild(layerItem.child(0))
 
         for group in data.get("groups", []):
-            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("enabled", True), group.get("easing"))
-
+            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("enabled", True))
             for keyframe in group.get("keyframes", []):
                 self.addKeyframeItem(parent, keyframe)
 
@@ -640,7 +640,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.cameraTLItem = item
 
         for s in data.get("camera", {}).get("groups", []):
-            parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True), s.get("easing"))
+            parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
 
@@ -861,7 +861,19 @@ class KeyframeDialog(QDialog):
 
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)
-        self.setupMenu(self.ui)
+
+        self.easingButtons = {
+            ATConst.EASING_NONE: self.ui.toolButtonNone,
+            ATConst.EASING_LINEAR: self.ui.toolButtonLinear,
+            ATConst.EASING_EASE_INOUT: self.ui.toolButtonEaseInOut,
+            ATConst.EASING_EASE_IN: self.ui.toolButtonEaseIn,
+            ATConst.EASING_EASE_OUT: self.ui.toolButtonEaseOut
+        }
+
+        self.ui.buttonGroup = QButtonGroup(self)
+        self.ui.buttonGroup.setObjectName("buttonGroup")
+        for id, btn in self.easingButtons.items():
+            self.ui.buttonGroup.addButton(btn, id)
 
         self.panel = parent.panel
         self.narId = None
@@ -870,43 +882,41 @@ class KeyframeDialog(QDialog):
         parent.webPage.bridge.tweenStarted.connect(self.tweenStarted)
         parent.webPage.bridge.animationStopped.connect(self.animationStopped)
 
-    def setupMenu(self, ui):
-        ui.menuBar = QMenuBar(self)
-        ui.verticalLayout.setMenuBar(ui.menuBar)
-
-        ui.menuEasing = QMenu(ui.menuBar)
-        ui.menuEasing.setTitle("Easing")
-        ui.menuEasing.setToolTipsVisible(True)
-
-        ui.actionGroupEasing = QActionGroup(self)
-
-        def addAction(text, data=None):
-            a = QAction(text, self)
-            a.setData(text if data is None else data)
-            a.setCheckable(True)
-            a.setActionGroup(ui.actionGroupEasing)
-            ui.menuEasing.addAction(a)
-            return a
-
-        addAction("Linear").setChecked(True)
-        addAction("Ease InOut", EASING + " InOut").setToolTip("The transition starts slowly, speeds up in the middle, and slows down at the end.")
-        addAction("Ease In", EASING + " In").setToolTip("The transition starts slowly, and continues to speed up until the end.")
-        addAction("Ease Out", EASING + " Out").setToolTip("The transition starts quickly, and continues to slow down until the end.")
-        addAction("None").setToolTip("The initial state changes to the final state at the end of duration.")
-
-        ui.menuBar.addAction(ui.menuEasing.menuAction())
-
     def setup(self, item, layer=None):
+        self.type = t = item.type()
+        if not self.type & ATConst.ITEM_MBR:
+            return
+
         self.item = item
         self.currentItem = None
-        self.type = t = item.type()
+        self.isKF = (t != ATConst.ITEM_GROWING_LINE)
         self.layer = layer
-        self.isKF = True
+
+        group = item.parent()
+        self.kfCount = group.childCount()
 
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
+
+        # set up widgets
         self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
         self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
         self.ui.toolButtonPreview.setIcon(self.panel.iconNarration)
+
+        if not self.panel.iconEasing:
+            names = {
+                ATConst.EASING_LINEAR: "linear",
+                ATConst.EASING_EASE_INOUT: "inout",
+                ATConst.EASING_EASE_IN: "in",
+                ATConst.EASING_EASE_OUT: "out",
+                ATConst.EASING_NONE: "none"
+            }
+            for id, name in names.items():
+                self.panel.iconEasing[id] = QIcon(pluginDir("svg", "ease_{}.svg".format(name)))
+
+        size = QSize(25, 18)
+        for id, btn in self.easingButtons.items():
+            btn.setIconSize(size)
+            btn.setIcon(self.panel.iconEasing[id])
 
         if t == ATConst.ITEM_MATERIAL:
             self.ui.labelComboBox1.setText("Material")
@@ -931,9 +941,8 @@ class KeyframeDialog(QDialog):
                 w.setLayer(layer.mapLayer)
 
         wth = [self.ui.expressionDelay, self.ui.expressionDuration]
-        if t != ATConst.ITEM_CAMERA:
-            if t != ATConst.ITEM_GROWING_LINE:
-                wth += [self.ui.labelName, self.ui.lineEditName]
+        if t not in [ATConst.ITEM_CAMERA, ATConst.ITEM_GROWING_LINE]:
+            wth += [self.ui.labelName, self.ui.lineEditName]
 
         if t != ATConst.ITEM_OPACITY:
             wth += [self.ui.labelOpacity, self.ui.doubleSpinBoxOpacity]
@@ -952,26 +961,17 @@ class KeyframeDialog(QDialog):
 
         self.resize(self.minimumSize())
 
-        p = item.parent()
-        self.kfCount = p.childCount()
+        # set values
+        self.ui.labelKFCount.setText("/ {}".format(self.kfCount))
+        self.ui.slider.setMaximum(self.kfCount - 1)
 
-        if t & ATConst.ITEM_MBR:
-            easing = p.data(0, ATConst.DATA_EASING)
-            if easing:
-                for a in self.ui.actionGroupEasing.actions():
-                    if a.data() == easing:
-                        a.setChecked(True)
-                        break
+        self.easingButtons[item.data(0, ATConst.DATA_EASING)].setChecked(True)
 
-            self.isKF = (t != ATConst.ITEM_GROWING_LINE)
+        idxFrom = min(group.indexOfChild(item), self.kfCount - 1)
+        self.ui.slider.setValue(idxFrom)
+        self.currentKeyframeChanged(idxFrom)
 
-            self.ui.labelKFCount.setText("/ {}".format(self.kfCount))
-            self.ui.slider.setMaximum(self.kfCount - 1)
-
-            idxFrom = min(p.indexOfChild(item), self.kfCount - 1)
-            self.ui.slider.setValue(idxFrom)
-            self.currentKeyframeChanged(idxFrom)
-
+        # signal-slot
         self.ui.slider.valueChanged.connect(self.currentKeyframeChanged)
         self.ui.toolButtonPrev.clicked.connect(self.prevKeyframe)
         self.ui.toolButtonNext.clicked.connect(self.nextKeyframe)
@@ -981,10 +981,6 @@ class KeyframeDialog(QDialog):
 
         self.ui.lineEditDelay.editingFinished.connect(self.apply)
         self.ui.lineEditDuration.editingFinished.connect(self.apply)
-
-    def showNarrativeBox(self):
-        data = {"text": self.ui.plainTextEdit.toPlainText()}
-        self.panel.webPage.runScript("showNarrativeBox(pyData())", data=data)
 
     def prevKeyframe(self):
         self.ui.slider.setValue(self.ui.slider.value() - 1)
@@ -1006,6 +1002,8 @@ class KeyframeDialog(QDialog):
         p = self.item.parent()
         item = p.child(value)
         self.currentItem = item
+
+        self.easingButtons[item.data(0, ATConst.DATA_EASING)].setChecked(True)
 
         delay = str(item.data(0, ATConst.DATA_DELAY))
         duration = str(item.data(0, ATConst.DATA_DURATION))
@@ -1053,7 +1051,8 @@ class KeyframeDialog(QDialog):
 
         if self.isKF and value >= self.kfCount - 2:
             for w in [self.ui.labelDelay, self.ui.lineEditDelay, self.ui.labelDuration, self.ui.lineEditDuration,
-                      self.ui.labelComboBox2, self.ui.comboBox2]:
+                      self.ui.labelComboBox2, self.ui.comboBox2, self.ui.labelBegin, self.ui.labelEnd,
+                      self.ui.labelEasing] + list(self.easingButtons.values()):
                 w.setEnabled(hasTrans)
 
         if not self.isPlaying:
@@ -1112,63 +1111,70 @@ class KeyframeDialog(QDialog):
         self.updateTime(self.item.parent(), self.ui.slider.value())
 
     def apply(self):
-        if self.type & ATConst.ITEM_MBR:
-            item = self.currentItem
+        if not self.type & ATConst.ITEM_MBR:
+            return
 
-            if self.useExpression():
-                delay = self.ui.expressionDelay.expression() or "0"
-                duration = self.ui.expressionDuration.expression() or str(DEF_SETS.ANM_DURATION)
+        item = self.currentItem
+
+        easing = self.ui.buttonGroup.checkedId()
+        item.setData(0, ATConst.DATA_EASING, easing if easing >= 0 else ATConst.EASING_LINEAR)
+
+        if self.useExpression():
+            delay = self.ui.expressionDelay.expression() or "0"
+            duration = self.ui.expressionDuration.expression() or str(DEF_SETS.ANM_DURATION)
+        else:
+            delay = parseInt(self.ui.lineEditDelay.text(), 0)
+            duration = parseInt(self.ui.lineEditDuration.text(), DEF_SETS.ANM_DURATION)
+
+        item.setData(0, ATConst.DATA_DELAY, delay)
+        item.setData(0, ATConst.DATA_DURATION, duration)
+
+        icon = None
+        if self.type == ATConst.ITEM_CAMERA:
+            item.setText(0, self.ui.lineEditName.text())
+
+        elif self.type == ATConst.ITEM_OPACITY:
+            opacity = self.ui.doubleSpinBoxOpacity.value()
+            item.setText(0, "opacity '{}'".format(opacity))
+            item.setData(0, ATConst.DATA_OPACITY, opacity)
+
+        elif self.type == ATConst.ITEM_MATERIAL:
+            item.setText(0, self.ui.comboBox1.currentText())
+            item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBox1.currentData())
+            item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBox2.currentData())
+
+        elif self.type == ATConst.ITEM_GROWING_LINE:
+            item.setText(0, self.ui.lineEditName.text())
+            item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
+            icon = self.panel.iconEffect
+
+        if self.isKF:
+            text = self.ui.plainTextEdit.toPlainText()
+            if text:
+                nar = {
+                    "id": self.narId or ("nar_" + createUid()),
+                    "text": text
+                }
+                icon = self.panel.iconNarration
             else:
-                delay = parseInt(self.ui.lineEditDelay.text(), 0)
-                duration = parseInt(self.ui.lineEditDuration.text(), DEF_SETS.ANM_DURATION)
+                nar = None
 
-            item.setData(0, ATConst.DATA_DELAY, delay)
-            item.setData(0, ATConst.DATA_DURATION, duration)
+            item.setData(0, ATConst.DATA_NARRATION, nar)
 
-            icon = None
-            if self.type == ATConst.ITEM_CAMERA:
-                item.setText(0, self.ui.lineEditName.text())
+        item.setIcon(0, icon if icon else self.panel.tree.keyframeIcon)
 
-            elif self.type == ATConst.ITEM_OPACITY:
-                opacity = self.ui.doubleSpinBoxOpacity.value()
-                item.setText(0, "opacity '{}'".format(opacity))
-                item.setData(0, ATConst.DATA_OPACITY, opacity)
-
-            elif self.type == ATConst.ITEM_MATERIAL:
-                item.setText(0, self.ui.comboBox1.currentText())
-                item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBox1.currentData())
-                item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBox2.currentData())
-
-            elif self.type == ATConst.ITEM_GROWING_LINE:
-                item.setText(0, self.ui.lineEditName.text())
-                item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
-                icon = self.panel.iconEffect
-
-            if self.isKF:
-                text = self.ui.plainTextEdit.toPlainText()
-                if text:
-                    nar = {
-                        "id": self.narId or ("nar_" + createUid()),
-                        "text": text
-                    }
-                    icon = self.panel.iconNarration
-                else:
-                    nar = None
-
-                item.setData(0, ATConst.DATA_NARRATION, nar)
-
-            item.setIcon(0, icon if icon else self.panel.tree.keyframeIcon)
-
-            p = item.parent()
-            p.setData(0, ATConst.DATA_EASING, self.ui.actionGroupEasing.checkedAction().data())
-
-            self.updateTime(p, p.indexOfChild(item))
+        p = item.parent()
+        self.updateTime(p, p.indexOfChild(item))
 
     def accept(self):
         if self.type & ATConst.ITEM_MBR:
             self.apply()
 
         QDialog.accept(self)
+
+    def showNarrativeBox(self):
+        data = {"text": self.ui.plainTextEdit.toPlainText()}
+        self.panel.webPage.runScript("showNarrativeBox(pyData())", data=data)
 
     def playAnimation(self, items):
         self.panel.playAnimation(items)

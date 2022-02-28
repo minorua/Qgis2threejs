@@ -139,9 +139,9 @@ class ATConst:
 
     # KEYFRAME GROUP
     DATA_NEXT_INDEX = Qt.UserRole
-    DATA_EASING = Qt.UserRole + 1
 
     # COMMON FOR KEYFRAME
+    DATA_EASING = Qt.UserRole + 1
     DATA_DURATION = Qt.UserRole + 2
     DATA_DELAY = Qt.UserRole + 3
     DATA_NARRATION = Qt.UserRole + 4
@@ -158,6 +158,13 @@ class ATConst:
 
     # LINE GROWING EFFECT
     DATA_SEQ = Qt.UserRole
+
+    # EASING
+    EASING_NONE = 0
+    EASING_LINEAR = 1
+    EASING_EASE_INOUT = 2
+    EASING_EASE_IN = 3
+    EASING_EASE_OUT = 4
 
     @classmethod
     def defaultName(cls, typ):
