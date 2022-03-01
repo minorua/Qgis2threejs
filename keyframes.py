@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QButtonGroup, QDialog, QInputDialog, QMenu, QMenuBar,
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
-from qgis.core import QgsApplication, QgsFieldProxyModel
+from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 
 from .conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
@@ -186,7 +186,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.settings = settings
 
         self.icons = wnd.icons
-        self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
+        self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg") if Qgis.QGIS_VERSION_INT >= 31600 else QIcon(pluginDir("svg", "camera.svg"))
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
