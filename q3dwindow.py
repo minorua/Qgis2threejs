@@ -281,14 +281,18 @@ class Q3DWindow(QMainWindow):
         orig_layer = self.settings.getLayer(layer.layerId)
 
         item = self.ui.treeView.itemFromLayerId(layer.layerId)
-        if item and layer.name != orig_layer.name:
+        if not item:
+            return
+
+        if layer.name != orig_layer.name:
             item.setText(layer.name)
 
         if layer.properties != orig_layer.properties:
             self.iface.requestLayerUpdate(layer)
 
-            if item:
+            if layer.properties.get("materials") != orig_layer.properties.get("materials"):
                 self.ui.treeView.updateLayerMaterials(item, layer)
+                self.ui.animationPanel.tree.materialChanged(layer)
 
     def getDefaultProperties(self, layer):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)

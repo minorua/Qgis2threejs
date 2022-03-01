@@ -852,6 +852,27 @@ class AnimationTreeWidget(QTreeWidget):
         if item:
             self.panel.playAnimation([item])
 
+    def materialChanged(self, layer):
+        layerItem = self.findLayerItem(layer.layerId)
+        if not layerItem:
+            return
+
+        mtls = {mtl["id"]: mtl for mtl in layer.properties.get("materials", [])}
+
+        for i in range(layerItem.childCount()):
+            group = layerItem.child(i)
+            if group.type() != ATConst.ITEM_GRP_MATERIAL:
+                continue
+
+            for idx in reversed(range(group.childCount())):
+                item = group.child(idx)
+                mtl = mtls.get(item.data(0, ATConst.DATA_MTL_ID))
+                if mtl:
+                    item.setText(0, mtl["name"])
+                else:
+                    logMessage("The material of '{}' was removed.".format(item.text(0)), warning=False)
+                    group.removeChild(item)
+
 
 class KeyframeDialog(QDialog):
 
