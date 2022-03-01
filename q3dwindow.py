@@ -33,7 +33,7 @@ class Q3DViewerInterface(Q3DInterface):
     updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
     runScriptRequest = pyqtSignal(str, object)       # params: script, data to send to web page
 
-    exportSettingsUpdated = pyqtSignal(ExportSettings)    # param: export settings
+    updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
     cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
     navStateChanged = pyqtSignal(bool)               # param: enabled
     previewStateChanged = pyqtSignal(bool)           # param: enabled
@@ -380,7 +380,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.tree.setData(settings.animationData())
 
-        self.iface.exportSettingsUpdated.emit(settings)
+        self.iface.updateExportSettingsRequest.emit(settings)
 
         self.lastDir = os.path.dirname(filename)
 
@@ -415,7 +415,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.tree.setData({})
 
-        self.iface.exportSettingsUpdated.emit(settings)
+        self.iface.updateExportSettingsRequest.emit(settings)
 
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog

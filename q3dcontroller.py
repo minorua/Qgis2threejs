@@ -47,7 +47,7 @@ class Q3DControllerInterface(QObject):
             iface.updateWidgetRequest.connect(self.controller.requestWidgetUpdate)
             iface.runScriptRequest.connect(self.controller.requestRunScript)
 
-            iface.exportSettingsUpdated.connect(self.controller.exportSettingsUpdated)
+            iface.updateExportSettingsRequest.connect(self.controller.updateExportSettings)
             iface.cameraChanged.connect(self.controller.switchCamera)
             iface.navStateChanged.connect(self.controller.setNavigationEnabled)
             iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
@@ -68,7 +68,7 @@ class Q3DControllerInterface(QObject):
             self.iface.updateWidgetRequest.disconnect(self.controller.requestWidgetUpdate)
             self.iface.runScriptRequest.disconnect(self.controller.requestRunScript)
 
-            self.iface.exportSettingsUpdated.disconnect(self.controller.exportSettingsUpdated)
+            self.iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
             self.iface.cameraChanged.disconnect(self.controller.switchCamera)
             self.iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
             self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
@@ -428,22 +428,15 @@ class Q3DController(QObject):
             self.processRequests()
 
     @pyqtSlot(ExportSettings)
-    def exportSettingsUpdated(self, settings):
+    def updateExportSettings(self, settings):
         if self.updating:
             self.abort()
 
         self.hideAllLayers()
         settings.copyTo(self.settings)
 
-        # camera
-        self.switchCamera(self.settings.isOrthoCamera())
-
-        # widgets
-        for name in ExportSettings.WIDGET_LIST:
-            self.requestWidgetUpdate(name, self.settings.widgetProperties(name))
-
-        # scene
-        self.requestSceneUpdate()
+        # reload page
+        self.iface.runScript("location.reload()")
 
     @pyqtSlot(bool)
     def switchCamera(self, is_ortho=False):
