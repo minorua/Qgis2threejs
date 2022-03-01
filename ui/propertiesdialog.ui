@@ -23,9 +23,6 @@
    <property name="rightMargin">
     <number>0</number>
    </property>
-   <property name="bottomMargin">
-    <number>5</number>
-   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="frameShape">
@@ -40,7 +37,7 @@
         <x>0</x>
         <y>0</y>
         <width>455</width>
-        <height>490</height>
+        <height>484</height>
        </rect>
       </property>
      </widget>
