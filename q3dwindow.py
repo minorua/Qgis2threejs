@@ -172,7 +172,7 @@ class Q3DWindow(QMainWindow):
             LayerType.POINT: QgsApplication.getThemeIcon("mIconPointLayer.svg"),
             LayerType.LINESTRING: QgsApplication.getThemeIcon("mIconLineLayer.svg"),
             LayerType.POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg"),
-            LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("images", "pointcloud.svg"))
+            LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("svg", "pointcloud.svg"))
         }
 
     def setupMenu(self):
