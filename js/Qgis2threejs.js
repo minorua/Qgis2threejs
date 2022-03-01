@@ -3120,6 +3120,16 @@ Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
 // texture animation
 Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
 
+  function imageData2Canvas(img) {
+    var cnvs = document.createElement("canvas");
+    cnvs.width = img.width;
+    cnvs.height = img.height;
+
+    var ctx = cnvs.getContext("2d");
+    ctx.putImageData(img, 0, 0);
+    return cnvs;
+  }
+
   this.anim = [];
 
   var m, canvas, ctx, opt, mtl;
@@ -3132,8 +3142,8 @@ Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
     img_to = this.blocks[i].materials[to].mtl.map.image;
 
     canvas = document.createElement("canvas");
-    canvas.width = img_to.width;
-    canvas.height = img_to.height;
+    canvas.width = (img_from.width > img_to.width) ? img_from.width : img_to.width;
+    canvas.height = (img_from.width > img_to.width) ? img_from.height : img_to.height;
 
     ctx = canvas.getContext("2d");
 
@@ -3156,22 +3166,8 @@ Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
     }
 
     if (img_from instanceof ImageData) {    // WebKit Bridge
-      var canvas_from = document.createElement("canvas");
-      canvas_from.width = img_from.width;
-      canvas_from.height = img_from.height;
-
-      var canvas_to = document.createElement("canvas");
-      canvas_to.width = img_to.width;
-      canvas_to.height = img_to.height;
-
-      var ctx_from = canvas_from.getContext("2d"),
-          ctx_to = canvas_to.getContext("2d");
-
-      ctx_from.putImageData(img_from, 0, 0);
-      ctx_to.putImageData(img_to, 0, 0);
-
-      img_from = canvas_from;
-      img_to = canvas_to;
+      img_from = imageData2Canvas(img_from);
+      img_to = imageData2Canvas(img_to);
     }
 
     this.blocks[i].obj.material = mtl;
@@ -3187,13 +3183,15 @@ Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
   }
 };
 
-Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
+Q3D.DEMLayer.prototype.setTextureAt = function (progress, effect) {
 
   if (this.anim === undefined) return;
 
-  var a, w0, h0, w1, h1, ew1;
+  var a, w, h, w0, h0, w1, h1, ew, ew1;
   for (var i = 0; i < this.anim.length; i++) {
     a = this.anim[i];
+    w = a.ctx.canvas.width;
+    h = a.ctx.canvas.height;
     w0 = a.img_from.width;
     h0 = a.img_from.height;
     w1 = a.img_to.width;
@@ -3202,19 +3200,21 @@ Q3D.DEMLayer.prototype.setTextureAt = function (elapsed, effect) {
     if (effect == 0) {  // fade in
       a.ctx.globalAlpha = 1;
       a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-                                  0, 0, w1, h1);
-      a.ctx.globalAlpha = elapsed;
-      a.ctx.drawImage(a.img_to, 0, 0);
+                                  0, 0, w, h);
+      a.ctx.globalAlpha = progress;
+      a.ctx.drawImage(a.img_to, 0, 0, w1, h1,
+                                0, 0, w, h);
     }
     else if (effect == 2) {  // slide to left (not used)
-      if (elapsed === null) {
+      if (progress === null) {
         a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-                                    0, 0, w1, h1);
+                                    0, 0, w, h);
       }
       else {
-        ew1 = w1 * elapsed;
+        ew1 = w1 * progress;
+        ew = w * progress;
         a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
-                                  w1 - ew1, 0, ew1, h1);
+                                  w - ew, 0, ew, h);
       }
     }
     a.tex.needsUpdate = true;
