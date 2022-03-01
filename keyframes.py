@@ -32,8 +32,8 @@ class AnimationPanel(QWidget):
 
         self.tree = self.ui.treeWidgetAnimation
 
-        self.iconPlay = QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
-        self.iconStop = QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
+        self.iconPlay = QIcon(pluginDir("svg", "play.svg"))    # QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
+        self.iconStop = QIcon(pluginDir("svg", "stop.svg"))    # QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
         self.iconNarration = QgsApplication.getThemeIcon("mIconInfo.svg")
         self.iconEasing = {}
 
