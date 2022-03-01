@@ -1236,7 +1236,12 @@ Q3D.application
       return;
     }
     if (app.measure.isActive) return;
+
     app.cleanView();
+
+    if (app.controls.autoRotate) {
+      app.setRotateAnimationMode(false);
+    }
   };
 
   app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
