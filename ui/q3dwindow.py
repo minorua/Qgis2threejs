@@ -79,7 +79,7 @@ class Ui_Q3DWindow(object):
         self.animationPanel = AnimationPanel()
         self.animationPanel.setObjectName("animationPanel")
         self.dockWidgetAnimation.setWidget(self.animationPanel)
-        Q3DWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidgetAnimation)
+        Q3DWindow.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockWidgetAnimation)
         self.dockWidgetConsole = QtWidgets.QDockWidget(Q3DWindow)
         self.dockWidgetConsole.setFloating(False)
         self.dockWidgetConsole.setObjectName("dockWidgetConsole")

@@ -195,7 +195,7 @@
     <string>Animation</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>1</number>
+    <number>2</number>
    </attribute>
    <widget class="AnimationPanel" name="animationPanel"/>
   </widget>
