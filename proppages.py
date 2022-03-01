@@ -7,10 +7,10 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint, QUrl
+from PyQt5.QtCore import Qt, QDir, QPoint, QSize, QUrl
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QGroupBox, QLineEdit,
                              QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
-from PyQt5.QtGui import QColor, QCursor
+from PyQt5.QtGui import QColor, QCursor, QIcon, QPixmap
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
@@ -32,9 +32,9 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import createUid, getLayersInProject, logMessage, openColorDialog
+from .tools import (createUid, getDEMLayersInProject, getLayersInProject, hex_color, logMessage,
+                    openColorDialog, shortTextFromSelectedLayerIds)
 from .propwidget import PropertyWidget
-from . import tools
 from .vectorobject import ObjectType
 
 PAGE_NONE = 0
@@ -471,11 +471,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.listWidget_Materials.setDragDropMode(QAbstractItemView.InternalMove)
         self.listWidget_Materials.setDefaultDropAction(Qt.MoveAction)
         self.listWidget_Materials.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_Materials.setIconSize(QSize(16, 16))
         self.listWidget_Materials.customContextMenuRequested.connect(lambda: self.contextMenuMtl.popup(QCursor.pos()))
         self.listWidget_Materials.currentItemChanged.connect(self.materialItemChanged)
 
         self.toolButton_SelectLayer.clicked.connect(self.selectLayer)
         self.toolButton_ImageFile.clicked.connect(self.selectImageFile)
+        self.colorButton_Color.colorChanged.connect(self.colorChanged)
 
         # restore properties
         properties = layer.properties
@@ -547,7 +549,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         return ids
 
     def updateLayerImageLabel(self):
-        self.label_LayerImage.setText(tools.shortTextFromSelectedLayerIds(self.mtlLayerIds.value))
+        self.label_LayerImage.setText(shortTextFromSelectedLayerIds(self.mtlLayerIds.value))
 
     def selectImageFile(self):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
@@ -562,6 +564,11 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             if item:
                 item.setText(os.path.splitext(os.path.basename(filename))[0])
         return filename
+
+    def colorChanged(self, color):
+        item = self.listWidget_Materials.currentItem()
+        if item and item.type() == DEMMtlType.COLOR:
+            item.setIcon(DEMPropertyPage.iconForColor(color))
 
     def tilesToggled(self, checked):
         self.setLayoutVisible(self.gridLayout_Tiles, checked)
@@ -632,6 +639,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
             item.setData(self.DATA_ID, mtl.get("id"))
             item.setData(self.DATA_PROPERTIES, mtl.get("properties"))
+            item.setIcon(DEMPropertyPage.iconForMtl(mtl))
 
     def mtlNameFromLayerIds(self, mapLayerIds):
         if not mapLayerIds:
@@ -700,6 +708,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
         item.setData(self.DATA_ID, createUid())
         item.setData(self.DATA_PROPERTIES, p)
+        item.setIcon(DEMPropertyPage.iconForMtl({"type": mtype, "properties": p}))
 
         if action:
             self.listWidget_Materials.setCurrentItem(item)
@@ -763,6 +772,28 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)
 
+    @staticmethod
+    def iconForMtl(mtl):
+        t = mtl.get("type")
+        if t == DEMMtlType.COLOR:
+            color = mtl.get("properties", {}).get("colorButton_Color")
+            if color:
+                return DEMPropertyPage.iconForColor(color)
+        else:
+            p = DEMMtlType.ICON_PATH.get(t)
+            if p:
+                return QgsApplication.getThemeIcon(p)
+
+        return QIcon()
+
+    @staticmethod
+    def iconForColor(color):
+        if not isinstance(color, QColor):
+            color = QColor(hex_color(color))
+        pixmap = QPixmap(24, 14)
+        pixmap.fill(color)
+        return QIcon(pixmap)
+
 
 class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
@@ -796,7 +827,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         # mode combobox
         self.comboBox_altitudeMode.addItem("Absolute")
 
-        for lyr in tools.getDEMLayersInProject():
+        for lyr in getDEMLayersInProject():
             self.comboBox_altitudeMode.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
 
         for plugin in pluginManager().demProviderPlugins():

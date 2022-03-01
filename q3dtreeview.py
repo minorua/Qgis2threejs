@@ -4,13 +4,13 @@
 # begin: 2017-05-30
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QIcon, QPixmap, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
 from .conf import PLUGIN_NAME
-from .q3dconst import LayerType, DEMMtlType
-from .tools import hex_color
+from .proppages import DEMPropertyPage
+from .q3dconst import LayerType
 
 
 class Q3DTreeView(QTreeView):
@@ -142,26 +142,6 @@ class Q3DTreeView(QTreeView):
                     return item
         return None
 
-    def iconForMtl(self, mtl):
-        mtype = mtl.get("type")
-        if mtype == DEMMtlType.LAYER:
-            return QgsApplication.getThemeIcon("algorithms/mAlgorithmMergeLayers.svg")
-
-        elif mtype == DEMMtlType.MAPCANVAS:
-            return QgsApplication.getThemeIcon("mLayoutItemMap.svg")
-
-        elif mtype == DEMMtlType.FILE:
-            return QgsApplication.getThemeIcon("mLayoutItemPicture.svg")
-
-        elif mtype == DEMMtlType.COLOR:
-            color = mtl.get("properties", {}).get("colorButton_Color")
-            if color:
-                pixmap = QPixmap(24, 14)
-                pixmap.fill(QColor(hex_color(color)))
-                return QIcon(pixmap)
-
-        return QIcon()
-
     def updateLayerMaterials(self, layerItem, layer=None):
         layerItem.removeRows(0, layerItem.rowCount())
 
@@ -180,7 +160,7 @@ class Q3DTreeView(QTreeView):
             id = mtl.get("id")
             item = QStandardItem(mtl.get("name", ""))
             item.setData(id)
-            item.setIcon(self.iconForMtl(mtl))
+            item.setIcon(DEMPropertyPage.iconForMtl(mtl))
             item.setEditable(False)
 
             if id == currentId:
