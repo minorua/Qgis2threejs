@@ -54,12 +54,12 @@ Q3D.Config = {
       {
         type: "ambient",
         color: 0x999999,
-        intensity: 0.8
+        intensity: 0.9
       },
       {
         type: "point",
         color: 0xffffff,
-        intensity: 0.7,
+        intensity: 0.6,
         height: 10
       }
     ]
