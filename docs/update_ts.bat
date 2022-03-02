@@ -2,8 +2,9 @@
 rem update.bat
 rem begin: 2015-09-22
 
-call C:\OSGeo4W\bin\o4w_env.bat
+set PATH=%PATH%;C:\Python38\Scripts
 
 echo updating translation files...
 call make gettext
 sphinx-intl update -p build/locale -c source/conf.py
+pause

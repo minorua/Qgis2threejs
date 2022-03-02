@@ -9,7 +9,7 @@ rem   build ja
 
 set BUILD_LANG=%1
 
-if "%OSGEO4W_ROOT%"=="" call C:\OSGeo4W\bin\o4w_env.bat
+set PATH=%PATH%;C:\Python38\Scripts
 
 if "%BUILD_LANG%"=="" set BUILD_LANG=en
 if "%BUILD_LANG%"=="en" (
