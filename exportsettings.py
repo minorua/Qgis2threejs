@@ -96,7 +96,7 @@ class ExportSettings:
         # transform layer dict to Layer object
         settings[ExportSettings.LAYERS] = [Layer.fromDict(lyr) for lyr in settings.get(ExportSettings.LAYERS, [])]
 
-        if settings.get("Version", 0) < 270:
+        if settings.get("Version", 0) < 20700:
             try:
                 self.loadEarlierFormatData(settings)
             except Exception as e:

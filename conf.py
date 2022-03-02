@@ -6,7 +6,7 @@
 # general
 PLUGIN_NAME = "Qgis2threejs"
 PLUGIN_VERSION = "2.6"
-PLUGIN_VERSION_INT = int(float(PLUGIN_VERSION) * 100)
+PLUGIN_VERSION_INT = 20600
 
 # 3d world coordinates
 SHIFT_THRESHOLD = 10 ** 5   # When coordinate absolute values exceed this value, it is
