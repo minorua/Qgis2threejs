@@ -978,11 +978,14 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # geometry
         geomItems = geomItems or []
-        for i, opt in enumerate(geomItems):
-            self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
+        if geomItems:
+            for i, opt in enumerate(geomItems):
+                self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
-        for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
-            self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
+            for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
+                self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
+
+        self.groupBox_Geometry.setVisible(bool(geomItems))
 
         # material
         self.comboEdit_Color.setVisible(color)
