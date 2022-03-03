@@ -682,8 +682,6 @@ Q3D.application
     app.scene2.add(mesh);
   };
 
-  var clock = new THREE.Clock();
-
   app.buildViewHelper = function (container) {
 
     if (app.renderer3 === undefined) {
@@ -697,13 +695,20 @@ Q3D.application
       app.container3.appendChild(app.renderer3.domElement);
     }
 
+    if (app.viewHelper !== undefined) {
+      app.viewHelper.removeEventListener("requestAnimation", app.startViewHelperAnimation);
+    }
+
     app.viewHelper = new ViewHelper(app.camera, {dom: container});
     app.viewHelper.controls = app.controls;
 
-    app.viewHelper.addEventListener("requestAnimation", function (event) {
-      clock.start();
-      requestAnimationFrame(app.animate);
-    });
+    app.viewHelper.addEventListener("requestAnimation", app.startViewHelperAnimation);
+  };
+
+  var clock = new THREE.Clock();
+  app.startViewHelperAnimation = function () {
+    clock.start();
+    requestAnimationFrame(app.animate);
   };
 
   app.currentViewUrl = function () {
