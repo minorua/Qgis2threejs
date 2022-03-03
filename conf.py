@@ -8,10 +8,6 @@ PLUGIN_NAME = "Qgis2threejs"
 PLUGIN_VERSION = "2.6"
 PLUGIN_VERSION_INT = 20600
 
-# 3d world coordinates
-SHIFT_THRESHOLD = 10 ** 5   # When coordinate absolute values exceed this value, it is
-                            # preferred to shift the coordinate to preserve precision
-
 # vector layer
 FEATURES_PER_BLOCK = 50   # max number of features in a data block
 

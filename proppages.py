@@ -219,13 +219,11 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.registerPropertyWidgets(widgets)
 
         # 3D world coordinates
-        self.comboBox_xyShift.addItem("Automatic", None)
         self.comboBox_xyShift.addItem("Center of base extent", True)
         self.comboBox_xyShift.addItem("Origin of map coordinate system", False)
 
-        self.comboBox_xyShift.setItemData(0, "Uses appropriate one according to distance between origin of map coordinate system and base extent.", Qt.ToolTipRole)
-        self.comboBox_xyShift.setItemData(1, "Shifts the 3D world origin to center of base extent to preserve precision.", Qt.ToolTipRole)
-        self.comboBox_xyShift.setItemData(2, "Outputs map coordinates without transformation.", Qt.ToolTipRole)
+        self.comboBox_xyShift.setItemData(0, "Shifts the 3D world origin to center of base extent to preserve precision.", Qt.ToolTipRole)
+        self.comboBox_xyShift.setItemData(1, "Outputs map coordinates without transformation.", Qt.ToolTipRole)
 
         # 2D map extent
         self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)

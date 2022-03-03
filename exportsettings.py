@@ -11,7 +11,7 @@ from PyQt5.QtCore import QSettings, QSize
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst
-from .conf import DEF_SETS, SHIFT_THRESHOLD, DEBUG_MODE, PLUGIN_VERSION_INT
+from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, layerTypeFromMapLayer, urlFromPCLayer
@@ -179,12 +179,7 @@ class ExportSettings:
             zShift = DEF_SETS.Z_SHIFT
             logMessage("Invalid z exaggeration. Check out scene properties.")
 
-        shift = sp.get("comboBox_xyShift")
-        if shift is None:
-            shift = bool(SHIFT_THRESHOLD < max(abs(be.center().x()) + be.width() / 2,
-                                               abs(be.center().y()) + be.height() / 2))
-
-        if shift:
+        if sp.get("comboBox_xyShift", True):
             origin = QgsPoint(be.center().x(), be.center().y(), -zShift)
         else:
             origin = QgsPoint(0, 0, -zShift)
