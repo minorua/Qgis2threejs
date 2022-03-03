@@ -63,8 +63,14 @@
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_3">
+            <property name="minimumSize">
+             <size>
+              <width>125</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
-             <string>X-Y shift mode</string>
+             <string>Origin of xy-plane</string>
             </property>
            </widget>
           </item>
@@ -228,7 +234,7 @@
            <widget class="QRadioButton" name="radioButton_Color">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>125</width>
               <height>0</height>
              </size>
             </property>
