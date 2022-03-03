@@ -1167,7 +1167,7 @@ class KeyframeDialog(QDialog):
         elif self.type == ATConst.ITEM_GROWING_LINE:
             item.setText(0, self.ui.lineEditName.text())
             item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
-            icon = self.panel.iconEffect
+            icon = self.panel.tree.effectIcon
 
         if self.isKF:
             text = self.ui.plainTextEdit.toPlainText()
