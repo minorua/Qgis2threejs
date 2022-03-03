@@ -127,6 +127,7 @@ class VectorLayer:
         self.colorNames = []        # for random color
 
         self.transform = QgsCoordinateTransform(self.mapLayer.crs(), settings.crs, QgsProject.instance())
+        self.onlyIntersecting = self.properties.get("radioButton_IntersectingFeatures", False)
 
         # attributes
         self.writeAttrs = self.properties.get("checkBox_ExportAttrs", False)
@@ -184,9 +185,10 @@ class VectorLayer:
                 logMessage("Failed to transform geometry")
                 continue
 
-            # check if geometry intersects with the base extent (rotated rect)
-            if rotation and not beGeom.intersects(geom):
-                continue
+            if rotation and self.onlyIntersecting:
+                # if map is rotated, check whether geometry intersects with the base extent
+                if not beGeom.intersects(geom):
+                    continue
 
             # set feature to expression context
             self.expressionContext.setFeature(f)
