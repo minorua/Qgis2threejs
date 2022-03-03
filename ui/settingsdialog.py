@@ -70,6 +70,9 @@ class Ui_SettingsDialog(object):
         self.buttonBox.accepted.connect(SettingsDialog.accept)
         self.buttonBox.rejected.connect(SettingsDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(SettingsDialog)
+        SettingsDialog.setTabOrder(self.lineEdit_BrowserPath, self.pushButton_Browse)
+        SettingsDialog.setTabOrder(self.pushButton_Browse, self.tableWidget_Plugins)
+        SettingsDialog.setTabOrder(self.tableWidget_Plugins, self.textBrowser_Plugin)
 
     def retranslateUi(self, SettingsDialog):
         _translate = QtCore.QCoreApplication.translate

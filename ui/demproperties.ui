@@ -605,6 +605,38 @@
    <header>qgis.gui</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>horizontalSlider_DEMSize</tabstop>
+  <tabstop>lineEdit_Altitude</tabstop>
+  <tabstop>checkBox_Clip</tabstop>
+  <tabstop>comboBox_ClipLayer</tabstop>
+  <tabstop>toolButton_AddMtl</tabstop>
+  <tabstop>toolButton_RemoveMtl</tabstop>
+  <tabstop>listWidget_Materials</tabstop>
+  <tabstop>toolButton_SelectLayer</tabstop>
+  <tabstop>comboBox_TextureSize</tabstop>
+  <tabstop>lineEdit_ImageFile</tabstop>
+  <tabstop>toolButton_ImageFile</tabstop>
+  <tabstop>colorButton_Color</tabstop>
+  <tabstop>horizontalSlider_Opacity</tabstop>
+  <tabstop>spinBox_Opacity</tabstop>
+  <tabstop>checkBox_TransparentBackground</tabstop>
+  <tabstop>checkBox_Shading</tabstop>
+  <tabstop>checkBox_Tiles</tabstop>
+  <tabstop>spinBox_Size</tabstop>
+  <tabstop>spinBox_Roughening</tabstop>
+  <tabstop>checkBox_Sides</tabstop>
+  <tabstop>colorButton_Side</tabstop>
+  <tabstop>lineEdit_Bottom</tabstop>
+  <tabstop>checkBox_Frame</tabstop>
+  <tabstop>colorButton_Edge</tabstop>
+  <tabstop>checkBox_Wireframe</tabstop>
+  <tabstop>colorButton_Wireframe</tabstop>
+  <tabstop>lineEdit_Name</tabstop>
+  <tabstop>checkBox_Visible</tabstop>
+  <tabstop>checkBox_Clickable</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

@@ -238,6 +238,18 @@
    <header>qgis.gui</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>url</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>comboBox_ColorType</tabstop>
+  <tabstop>colorButton_Color</tabstop>
+  <tabstop>horizontalSlider_Opacity</tabstop>
+  <tabstop>spinBox_Opacity</tabstop>
+  <tabstop>lineEdit_Name</tabstop>
+  <tabstop>checkBox_BoxVisible</tabstop>
+  <tabstop>checkBox_Visible</tabstop>
+  <tabstop>checkBox_Clickable</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

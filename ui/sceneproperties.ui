@@ -465,6 +465,33 @@
    <header>qgis.gui</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>comboBox_xyShift</tabstop>
+  <tabstop>lineEdit_zFactor</tabstop>
+  <tabstop>radioButton_UseCanvasExtent</tabstop>
+  <tabstop>radioButton_FixedExtent</tabstop>
+  <tabstop>lineEdit_CenterX</tabstop>
+  <tabstop>lineEdit_CenterY</tabstop>
+  <tabstop>lineEdit_Width</tabstop>
+  <tabstop>lineEdit_Height</tabstop>
+  <tabstop>lineEdit_Rotation</tabstop>
+  <tabstop>pushButton_SelectExtent</tabstop>
+  <tabstop>checkBox_FixAspectRatio</tabstop>
+  <tabstop>radioButton_Sky</tabstop>
+  <tabstop>radioButton_Color</tabstop>
+  <tabstop>colorButton_Color</tabstop>
+  <tabstop>radioButton_ProjectCRS</tabstop>
+  <tabstop>radioButton_WGS84</tabstop>
+  <tabstop>radioButton_NoCoords</tabstop>
+  <tabstop>radioButton_DirLight</tabstop>
+  <tabstop>radioButton_PtLight</tabstop>
+  <tabstop>groupBox_Fog</tabstop>
+  <tabstop>colorButton_Fog</tabstop>
+  <tabstop>slider_Fog</tabstop>
+  <tabstop>comboBox_MaterialType</tabstop>
+  <tabstop>checkBox_Outline</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -474,12 +501,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>137</x>
-     <y>511</y>
+     <x>146</x>
+     <y>392</y>
     </hint>
     <hint type="destinationlabel">
-     <x>361</x>
-     <y>515</y>
+     <x>424</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>

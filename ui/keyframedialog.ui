@@ -550,6 +550,27 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>toolButtonPrev</tabstop>
+  <tabstop>slider</tabstop>
+  <tabstop>toolButtonNext</tabstop>
+  <tabstop>lineEditCurrentKF</tabstop>
+  <tabstop>toolButtonPlay</tabstop>
+  <tabstop>lineEditName</tabstop>
+  <tabstop>doubleSpinBoxOpacity</tabstop>
+  <tabstop>comboBox1</tabstop>
+  <tabstop>comboBox2</tabstop>
+  <tabstop>toolButtonPreview</tabstop>
+  <tabstop>plainTextEdit</tabstop>
+  <tabstop>toolButtonLinear</tabstop>
+  <tabstop>toolButtonEaseInOut</tabstop>
+  <tabstop>toolButtonEaseIn</tabstop>
+  <tabstop>toolButtonEaseOut</tabstop>
+  <tabstop>toolButtonNone</tabstop>
+  <tabstop>lineEditDelay</tabstop>
+  <tabstop>lineEditDuration</tabstop>
+  <tabstop>pushButtonPlayAll</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

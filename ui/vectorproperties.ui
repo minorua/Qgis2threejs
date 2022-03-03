@@ -648,6 +648,32 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>comboBox_ObjectType</tabstop>
+  <tabstop>comboBox_altitudeMode</tabstop>
+  <tabstop>radioButton_Expression</tabstop>
+  <tabstop>radioButton_zValue</tabstop>
+  <tabstop>radioButton_mValue</tabstop>
+  <tabstop>radioButton_AllFeatures</tabstop>
+  <tabstop>radioButton_IntersectingFeatures</tabstop>
+  <tabstop>checkBox_Clip</tabstop>
+  <tabstop>checkBox_ExportAttrs</tabstop>
+  <tabstop>checkBox_Label</tabstop>
+  <tabstop>comboBox_FontFamily</tabstop>
+  <tabstop>slider_FontSize</tabstop>
+  <tabstop>colorButton_Label</tabstop>
+  <tabstop>checkBox_Outline</tabstop>
+  <tabstop>colorButton_OtlColor</tabstop>
+  <tabstop>groupBox_Background</tabstop>
+  <tabstop>colorButton_BgColor</tabstop>
+  <tabstop>groupBox_Conn</tabstop>
+  <tabstop>colorButton_ConnColor</tabstop>
+  <tabstop>checkBox_Underline</tabstop>
+  <tabstop>lineEdit_Name</tabstop>
+  <tabstop>checkBox_Visible</tabstop>
+  <tabstop>checkBox_Clickable</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -657,12 +683,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>169</x>
-     <y>168</y>
+     <x>205</x>
+     <y>449</y>
     </hint>
     <hint type="destinationlabel">
-     <x>179</x>
-     <y>191</y>
+     <x>235</x>
+     <y>476</y>
     </hint>
    </hints>
   </connection>

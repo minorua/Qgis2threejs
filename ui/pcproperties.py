@@ -118,6 +118,15 @@ class Ui_PCPropertiesWidget(object):
         self.spinBox_Opacity.valueChanged['int'].connect(self.horizontalSlider_Opacity.setValue)
         self.horizontalSlider_Opacity.valueChanged['int'].connect(self.spinBox_Opacity.setValue)
         QtCore.QMetaObject.connectSlotsByName(PCPropertiesWidget)
+        PCPropertiesWidget.setTabOrder(self.url, self.textBrowser)
+        PCPropertiesWidget.setTabOrder(self.textBrowser, self.comboBox_ColorType)
+        PCPropertiesWidget.setTabOrder(self.comboBox_ColorType, self.colorButton_Color)
+        PCPropertiesWidget.setTabOrder(self.colorButton_Color, self.horizontalSlider_Opacity)
+        PCPropertiesWidget.setTabOrder(self.horizontalSlider_Opacity, self.spinBox_Opacity)
+        PCPropertiesWidget.setTabOrder(self.spinBox_Opacity, self.lineEdit_Name)
+        PCPropertiesWidget.setTabOrder(self.lineEdit_Name, self.checkBox_BoxVisible)
+        PCPropertiesWidget.setTabOrder(self.checkBox_BoxVisible, self.checkBox_Visible)
+        PCPropertiesWidget.setTabOrder(self.checkBox_Visible, self.checkBox_Clickable)
 
     def retranslateUi(self, PCPropertiesWidget):
         _translate = QtCore.QCoreApplication.translate

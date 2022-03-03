@@ -103,6 +103,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_BrowserPath</tabstop>
+  <tabstop>pushButton_Browse</tabstop>
+  <tabstop>tableWidget_Plugins</tabstop>
+  <tabstop>textBrowser_Plugin</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
