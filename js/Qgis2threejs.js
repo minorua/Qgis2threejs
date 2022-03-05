@@ -635,12 +635,14 @@ Q3D.application
     }
   };
 
-  // zoom to objects in scene
+  // move camera target to center of scene
   app.adjustCameraPosition = function (force) {
     if (!force) {
-      // do nothing if there is any object in the center of canvas
-      var objs = app.intersectObjects(app.width / 2, app.height / 2);
-      if (objs.length) return;
+      app.render();
+
+      // stay at current position if rendered objects exist
+      var r = app.renderer.info.render;
+      if (r.triangles + r.points + r.lines) return;
     }
     var bbox = app.scene.boundingBox();
     if (bbox.isEmpty()) return;
