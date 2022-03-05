@@ -89,7 +89,7 @@ Q3D.Config = {
   northArrow: {
     color: 0x8b4513,
     cameraDistance: 30,
-    visible: false
+    enabled: false
   },
 
   // animation
@@ -313,12 +313,7 @@ Q3D.application
       }
     });
 
-    app.scene.addEventListener("buildLightRequest", function (event) {
-      app.scene.lightGroup.clear();
-
-      app.scene.buildLights(conf.lights[event.light] || conf.lights.directional,
-                            (event.rotation !== undefined) ? event.rotation : app.scene.userData.baseExtent.rotation);
-
+    app.scene.addEventListener("lightChanged", function (event) {
       if (event.light == "point") {
         app.scene.add(app.camera);
         app.camera.add(app.scene.lightGroup);
@@ -326,6 +321,13 @@ Q3D.application
       else {    // directional
         app.scene.remove(app.camera);
         app.scene.add(app.scene.lightGroup);
+      }
+    });
+
+    app.scene.addEventListener("mapRotationChanged", function (event) {
+      if (app.scene2) {
+        app.scene2.lightGroup.clear();
+        app.scene2.buildLights(Q3D.Config.lights.directional, event.rotation);
       }
     });
 
@@ -346,6 +348,11 @@ Q3D.application
     // navigation
     if (conf.navigation.enabled && typeof ViewHelper !== "undefined") {
       app.buildViewHelper(E("navigation"));
+    }
+
+    // north arrow
+    if (conf.northArrow.enabled) {
+      app.buildNorthArrow(E("northarrow"));
     }
 
     // labels
@@ -462,9 +469,6 @@ Q3D.application
   app.loadSceneFile = function (url, sceneFileLoadedCallback, sceneLoadedCallback) {
 
     var onload = function () {
-      // build North arrow widget
-      if (conf.northArrow.visible) app.buildNorthArrow(E("northarrow"), app.scene.userData.baseExtent.rotation);
-
       if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
     };
 
@@ -645,8 +649,8 @@ Q3D.application
     app.cameraAction.zoom(vec3.x, vec3.y, (bbox.max.z + vec3.z) / 2, app.scene.userData.baseExtent.width);
   };
 
-  // rotation: direction to North (clockwise from up (+y), in degrees)
-  app.buildNorthArrow = function (container, rotation) {
+  // declination: clockwise from +y, in degrees
+  app.buildNorthArrow = function (container, declination) {
     container.style.display = "block";
 
     app.renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true});
@@ -657,10 +661,11 @@ Q3D.application
     app.container2.appendChild(app.renderer2.domElement);
 
     app.camera2 = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
+    app.camera2.position.set(0, 0, conf.northArrow.cameraDistance);
     app.camera2.up = app.camera.up;
 
     app.scene2 = new Q3D.Scene();
-    app.scene2.buildLights(conf.lights.directional, rotation);
+    app.scene2.buildLights(conf.lights.directional, 0);
 
     // an arrow object
     var geometry = new THREE.Geometry();
@@ -678,7 +683,7 @@ Q3D.application
 
     var material = new THREE.MeshLambertMaterial({color: conf.northArrow.color, side: THREE.DoubleSide});
     var mesh = new THREE.Mesh(geometry, material);
-    if (rotation) mesh.rotation.z = -rotation * Q3D.deg2rad;
+    if (declination) mesh.rotation.z = -declination * Q3D.deg2rad;
     app.scene2.add(mesh);
   };
 
@@ -1016,9 +1021,8 @@ Q3D.application
 
     // North arrow
     if (app.renderer2) {
-      app.camera.getWorldDirection(vec3);
-      app.camera2.position.copy(vec3.negate().setLength(conf.northArrow.cameraDistance));
-      app.camera2.quaternion.copy(app.camera.quaternion);
+      app.scene2.quaternion.copy(app.camera.quaternion).inverse();
+      app.scene2.updateMatrixWorld();
 
       app.renderer2.render(app.scene2, app.camera2);
     }
@@ -2074,7 +2078,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
       // light
       var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
       if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
-        this.dispatchEvent({type: "buildLightRequest", light: p.light, rotation: p.baseExtent.rotation});
+        this.lightGroup.clear();
+        this.buildLights(Q3D.Config.lights[p.light] || Q3D.Config.lights.directional, p.baseExtent.rotation);
+        this.dispatchEvent({type: "lightChanged", light: p.light});
       }
 
       var be = p.baseExtent;
@@ -2107,6 +2113,10 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
             far = 100 * s;
 
         this.requestCameraUpdate(pos, focal, near, far);
+      }
+
+      if (p.baseExtent.rotation != rotation0) {
+        this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
       }
 
       this.userData = p;

@@ -47,7 +47,6 @@ function loadJSONObject(jsonObject) {
       }
       app.scene.requestCameraUpdate(pos, focal, near, far);
     }
-    updateNorthArrowRotation(p.baseExtent.rotation);
   }
 
   app.loadJSONObject(jsonObject);
@@ -157,10 +156,6 @@ function init(off_screen, debug_mode) {
   }
   else {
     document.getElementById("closemsgbar").onclick = closeMessageBar;
-  }
-
-  if (Q3D.Config.northArrow.visible) {
-    app.buildNorthArrow(document.getElementById("northarrow"), 0);
   }
 
   app.addEventListener("sceneLoaded", function () {
@@ -401,7 +396,7 @@ function setNavigationEnabled(enabled) {
 function setNorthArrowVisible(visible) {
   document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
   if (visible && app.scene2 === undefined) {
-    app.buildNorthArrow(document.getElementById("northarrow"), app.scene.userData.baseExtent.rotation);
+    app.buildNorthArrow(document.getElementById("northarrow"), 0, app.scene.userData.baseExtent.rotation);
     app.render();
   }
 }
@@ -414,14 +409,6 @@ function setNorthArrowColor(color) {
     app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
     app.render();
   }
-}
-
-function updateNorthArrowRotation(rotation) {
-  if (app.scene2 === undefined) return;
-
-  var mesh = app.scene2.children[app.scene2.children.length - 1];
-  mesh.rotation.z = -rotation * Math.PI / 180;
-  mesh.updateMatrixWorld();
 }
 
 function setHFLabel(properties) {

@@ -99,7 +99,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            options.append("Q3D.Config.northArrow.visible = true;")
+            options.append("Q3D.Config.northArrow.enabled = true;")
             options.append("Q3D.Config.northArrow.color = {0};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template

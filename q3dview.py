@@ -167,7 +167,7 @@ class Q3DWebPage(QWebPage):
 
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            self.runScript("Q3D.Config.northArrow.visible = true;")
+            self.runScript("Q3D.Config.northArrow.enabled = true;")
             self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # navigation widget
