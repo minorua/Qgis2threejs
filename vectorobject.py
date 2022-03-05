@@ -363,7 +363,7 @@ class BillboardType(PointTypeBase):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
         ppage.setupWidgets(filepath={"name": "Image file", "filterString": filterString, "allowURL": True},
-                           geomItems=[{"name": "Scale", "valType": WVT.OTHERS, "defVal": 1}],
+                           geomItems=[{"name": "Size", "valType": WVT.OTHERS, "defVal": 1}],
                            color=False)
 
     def material(self, feat):
@@ -373,7 +373,7 @@ class BillboardType(PointTypeBase):
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
-                "scale": feat.prop(PID.G0)}
+                "size": feat.prop(PID.G0)}
 
 
 # ModelFileType

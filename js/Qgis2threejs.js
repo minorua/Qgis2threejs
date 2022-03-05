@@ -3608,14 +3608,13 @@ Q3D.PointLayer.prototype.buildPoints = function (features, startIndex) {
 };
 
 Q3D.PointLayer.prototype.buildBillboards = function (features, startIndex) {
-  var pts, sprite, i;
+  var sprite, i;
   for (var fidx = 0; fidx < features.length; fidx++) {
     var f = features[fidx],
         material = this.materials.get(f.mtl);
-    pts = f.geom.pts;
 
     var sprites = [];
-    for (i = 0; i < pts.length; i++) {
+    for (i = 0; i < f.geom.pts.length; i++) {
       sprite = new THREE.Sprite(material.mtl);
       sprite.position.fromArray(f.geom.pts[i]);
       sprite.userData.properties = f.prop;
@@ -3624,11 +3623,10 @@ Q3D.PointLayer.prototype.buildBillboards = function (features, startIndex) {
     }
 
     material.callbackOnLoad(function () {
-      var img = material.mtl.map.image,
-          base_size = f.geom.scale / 64;     // [TODO] FIX ME: width = base_size
+      var img = material.mtl.map.image;
       for (var i = 0; i < sprites.length; i++) {
-        sprites[i].scale.set(img.width * base_size,
-                             img.height * base_size,
+        sprites[i].scale.set(f.geom.size,
+                             f.geom.size * img.height / img.width,
                              1);
         sprites[i].updateMatrixWorld();
       }
