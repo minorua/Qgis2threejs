@@ -32,7 +32,7 @@ app.resume = function () {
 app.eventListener.resize = function () {
   var width, height;
   if (ARMode) {
-    var v = document.getElementById("video"),
+    var v = Q3D.E("video"),
         asp = window.innerWidth / window.innerHeight,
         vasp = v.videoWidth / v.videoHeight;
     if (vasp > asp) {
@@ -62,7 +62,7 @@ app.cameraAction.move = function () {
 app._setRotateAnimationMode = app.setRotateAnimationMode;
 app.setRotateAnimationMode = function (enabled) {
   app._setRotateAnimationMode(enabled);
-  document.getElementById("stop-button").style.display = (enabled) ? "block" : "none";
+  Q3D.E("stop-button").style.display = (enabled) ? "block" : "none";
 };
 
 
@@ -87,19 +87,19 @@ function init() {
 
   // add event listeners
   // AR mode switch
-  document.getElementById("ar-checkbox").addEventListener("change", function () {
+  Q3D.E("ar-checkbox").addEventListener("change", function () {
     if (this.checked) startARMode();
     else stopARMode();
   });
 
   // current location button
-  document.getElementById("current-location").addEventListener("click", function () {
+  Q3D.E("current-location").addEventListener("click", function () {
     if (ARMode) moveToCurrentLocation();
     else zoomToCurrentLocation();
   });
 
   // layers button
-  document.getElementById("layers-button").addEventListener("click", function () {
+  Q3D.E("layers-button").addEventListener("click", function () {
     var panel = Q3D.gui.layerPanel;
     if (!panel.initialized) panel.init();
 
@@ -109,24 +109,24 @@ function init() {
     if (visible) panel.hide();
     else {
       panel.show();
-      document.getElementById("layers-button").classList.add("pressed");
+      Q3D.E("layers-button").classList.add("pressed");
     }
   });
 
   // settings button
-  document.getElementById("settings-button").addEventListener("click", function () {
-    var fov = document.getElementById("fov");
-    var visible = document.getElementById("settings").classList.contains("visible");
+  Q3D.E("settings-button").addEventListener("click", function () {
+    var fov = Q3D.E("fov");
+    var visible = Q3D.E("settings").classList.contains("visible");
     hideAll();
     if (!visible) {
       fov.value = Q3D.Config.AR.FOV;
-      document.getElementById("settings").classList.add("visible");
-      document.getElementById("settings-button").classList.add("pressed");
+      Q3D.E("settings").classList.add("visible");
+      Q3D.E("settings-button").classList.add("pressed");
     }
   });
 
-  document.getElementById("settings-ok").addEventListener("click", function () {
-    Q3D.Config.AR.FOV = document.getElementById("fov").value;
+  Q3D.E("settings-ok").addEventListener("click", function () {
+    Q3D.Config.AR.FOV = Q3D.E("fov").value;
     if (ARMode) {
       app.camera.fov = Q3D.Config.AR.FOV;
       app.camera.updateProjectionMatrix();
@@ -136,7 +136,7 @@ function init() {
 
     // save settings in local storage
     try {
-      if (document.getElementById("save-in-storage").checked) {
+      if (Q3D.E("save-in-storage").checked) {
         var data = {
           fov: Q3D.Config.AR.FOV
         };
@@ -148,22 +148,22 @@ function init() {
     }
   });
 
-  document.getElementById("settings-cancel").addEventListener("click", function () {
+  Q3D.E("settings-cancel").addEventListener("click", function () {
     hideAll();
   });
 
   // information (about) button
-  document.getElementById("info-button").addEventListener("click", function () {
-    var active = document.getElementById("info-button").classList.contains("pressed");
+  Q3D.E("info-button").addEventListener("click", function () {
+    var active = Q3D.E("info-button").classList.contains("pressed");
     hideAll();
     if (!active) {
       Q3D.gui.showInfo();
-      document.getElementById("info-button").classList.add("pressed");
+      Q3D.E("info-button").classList.add("pressed");
     }
   });
 
   // stop button
-  document.getElementById("stop-button").addEventListener("click", function () {
+  Q3D.E("stop-button").addEventListener("click", function () {
     app.setRotateAnimationMode(false);
   });
 }
@@ -175,7 +175,7 @@ function startARMode(position) {
 
   if (typeof position === "undefined") {
     app.camera.position.set(0, 0, 30);
-    document.getElementById("current-location").classList.add("touchme");
+    Q3D.E("current-location").classList.add("touchme");
   }
   else {
     app.camera.position.copy(position);
@@ -196,13 +196,13 @@ function startARMode(position) {
   app.animation.start();
 
   navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(function (stream) {
-    var v = document.getElementById("video");
+    var v = Q3D.E("video");
     v.addEventListener("loadedmetadata", function () {
       app.eventListener.resize();
     });
     v.srcObject = stream;
 
-    document.getElementById("view").classList.add("transparent");
+    Q3D.E("view").classList.add("transparent");
   }).catch(function (error) {
     alert(error);
   });
@@ -219,7 +219,7 @@ function startARModeHere() {
   vec3.copy(app.queryTargetPosition);
   vec3.z += Q3D.Config.AR.DH * app.scene.userData.zScale;
   startARMode(vec3);
-  document.getElementById("ar-checkbox").checked = true;
+  Q3D.E("ar-checkbox").checked = true;
 }
 
 function moveHere() {
@@ -236,7 +236,7 @@ function stopARMode() {
   app.controls.enabled = true;
 
   app.animation.stop();
-  document.getElementById("current-location").classList.remove("touchme");
+  Q3D.E("current-location").classList.remove("touchme");
 
   var v = Q3D.Config.viewpoint,
       p = v.pos,
@@ -245,10 +245,10 @@ function stopARMode() {
   app.camera.lookAt(t.x, t.y, t.z);
   app.controls.target.set(t.x, t.y, t.z);
 
-  var v = document.getElementById("video");
+  var v = Q3D.E("video");
   v.srcObject = null;
 
-  document.getElementById("view").classList.remove("transparent");
+  Q3D.E("view").classList.remove("transparent");
 
   app.camera.fov = oldFOV;
   app.camera.updateProjectionMatrix();
@@ -303,7 +303,7 @@ function getCurrentPosition (callback) {
 
 function moveToCurrentLocation() {
   // AR mode is on
-  document.getElementById("current-location").classList.remove("touchme");
+  Q3D.E("current-location").classList.remove("touchme");
 
   getCurrentPosition(function (pt) {
     // move camera
@@ -326,23 +326,23 @@ function zoomToCurrentLocation() {
 
 // layers, settings and info buttons
 function hideAll() {
-  document.getElementById("layers-button").classList.remove("pressed");
-  document.getElementById("settings-button").classList.remove("pressed");
-  document.getElementById("info-button").classList.remove("pressed");
+  Q3D.E("layers-button").classList.remove("pressed");
+  Q3D.E("settings-button").classList.remove("pressed");
+  Q3D.E("info-button").classList.remove("pressed");
 
-  document.getElementById("settings").classList.remove("visible");
+  Q3D.E("settings").classList.remove("visible");
 
   Q3D.gui.clean();
 }
 
 Q3D.gui.popup._hide = Q3D.gui.popup.hide;
 Q3D.gui.popup.hide = function () {
-  document.getElementById("info-button").classList.remove("pressed");
+  Q3D.E("info-button").classList.remove("pressed");
   Q3D.gui.popup._hide();
 };
 
 Q3D.gui.layerPanel._hide = Q3D.gui.layerPanel.hide;
 Q3D.gui.layerPanel.hide = function () {
-  document.getElementById("layers-button").classList.remove("pressed");
+  Q3D.E("layers-button").classList.remove("pressed");
   Q3D.gui.layerPanel._hide();
 };

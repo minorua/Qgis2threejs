@@ -143,11 +143,11 @@ function loadEnd(name) {
 
 function init(off_screen, debug_mode) {
 
-  var container = document.getElementById("view");
+  var container = Q3D.E("view");
   app.init(container);
 
   if (off_screen) {
-    document.getElementById("progress").style.display = "none";
+    Q3D.E("progress").style.display = "none";
     app.osRender = app.render;
     app.render = function () {};    // not necessary to render scene before scene has been completely loaded
     app.addEventListener("sceneLoaded", function () {
@@ -155,7 +155,7 @@ function init(off_screen, debug_mode) {
     });
   }
   else {
-    document.getElementById("closemsgbar").onclick = closeMessageBar;
+    Q3D.E("closemsgbar").onclick = closeMessageBar;
   }
 
   app.addEventListener("sceneLoaded", function () {
@@ -197,7 +197,7 @@ function displayFPS() {
         elapsed = now - preview.timer.last,
         fps = preview.timer.tickCount / elapsed * 1000;
 
-    document.getElementById("fps").innerHTML = "FPS: " + Math.round(fps);
+    Q3D.E("fps").innerHTML = "FPS: " + Math.round(fps);
 
     preview.timer.last = now;
     preview.timer.tickCount = 0;
@@ -254,9 +254,9 @@ function showMessageBar(message, duration, warning) {
     barTimerId = setTimeout(closeMessageBar, duration);
   }
 
-  document.getElementById("msgcontent").innerHTML = message;
+  Q3D.E("msgcontent").innerHTML = message;
 
-  var e = document.getElementById("msgbar");
+  var e = Q3D.E("msgbar");
   e.style.display = "block";
   if (warning) {
     e.classList.add("warning");
@@ -267,7 +267,7 @@ function showMessageBar(message, duration, warning) {
 }
 
 function closeMessageBar() {
-  document.getElementById("msgbar").style.display = "none";
+  Q3D.E("msgbar").style.display = "none";
   barTimerId = null;
 }
 
@@ -281,7 +281,7 @@ function clearStatusMessage() {
 }
 
 function setPreviewEnabled(enabled) {
-  var e = document.getElementById("cover");
+  var e = Q3D.E("cover");
 
   if (enabled) {
     app.resume();
@@ -329,7 +329,7 @@ function switchCamera(is_ortho) {
   }
 
   if (app.viewHelper !== undefined) {
-    app.buildViewHelper(document.getElementById("navigation"));
+    app.buildViewHelper(Q3D.E("navigation"));
   }
 
   app.render(true);
@@ -379,7 +379,7 @@ function changeLight(type) {
 
 //// widgets
 function setNavigationEnabled(enabled) {
-  var elm = document.getElementById("navigation");
+  var elm = Q3D.E("navigation");
   elm.style.display = (enabled) ? "block" : "none";
 
   if (enabled) {
@@ -394,9 +394,9 @@ function setNavigationEnabled(enabled) {
 }
 
 function setNorthArrowVisible(visible) {
-  document.getElementById("northarrow").style.display = (visible) ? "block" : "none";
+  Q3D.E("northarrow").style.display = (visible) ? "block" : "none";
   if (visible && app.scene2 === undefined) {
-    app.buildNorthArrow(document.getElementById("northarrow"), 0, app.scene.userData.baseExtent.rotation);
+    app.buildNorthArrow(Q3D.E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
     app.render();
   }
 }
@@ -412,8 +412,8 @@ function setNorthArrowColor(color) {
 }
 
 function setHFLabel(properties) {
-  document.getElementById("header").innerHTML = properties.Header || "";
-  document.getElementById("footer").innerHTML = properties.Footer || "";
+  Q3D.E("header").innerHTML = properties.Header || "";
+  Q3D.E("footer").innerHTML = properties.Footer || "";
 }
 
 //// animation
@@ -437,15 +437,15 @@ function stopAnimation() {
 }
 
 function showNarrativeBox(nar) {
-  document.getElementById("narbody").innerHTML = nar.text;
-  document.getElementById("narrativebox").classList.add("visible");
-  var e = document.getElementById("nextbtn");
+  Q3D.E("narbody").innerHTML = nar.text;
+  Q3D.E("narrativebox").classList.add("visible");
+  var e = Q3D.E("nextbtn");
   e.className = "";
   e.innerHTML = "Close";
 }
 
 function closeNarrativeBox() {
-  document.getElementById("narrativebox").classList.remove("visible");
+  Q3D.E("narrativebox").classList.remove("visible");
 }
 
 function setLayerOpacity(layerId, opacity) {
