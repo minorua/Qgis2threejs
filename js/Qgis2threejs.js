@@ -3263,7 +3263,6 @@ Q3D.VectorLayer.prototype.addFeature = function (featureIdx, f, objs) {
   }
   f.objs = objs;
 
-  delete f.geom;
   this.features[featureIdx] = f;
   return f;
 };
