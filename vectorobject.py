@@ -353,10 +353,10 @@ class OverlayType(PolygonTypeBase):
         return g
 
 
-# IconType
-class IconType(PointTypeBase):
+# BillboardType
+class BillboardType(PointTypeBase):
 
-    name = "Icon"
+    name = "Billboard"
     pids = [PID.PATH, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
@@ -433,7 +433,7 @@ class ObjectType:
     Disk = DiskType
     Plane = PlaneType
     Point = PointType
-    Icon = IconType
+    Billboard = BillboardType
     ModelFile = ModelFileType
 
     # line
@@ -450,7 +450,7 @@ class ObjectType:
     Overlay = OverlayType
 
     Grouped = {LayerType.POINT: [SphereType, CylinderType, ConeType, BoxType, DiskType,
-                                 PlaneType, PointType, IconType, ModelFileType],
+                                 PlaneType, PointType, BillboardType, ModelFileType],
                LayerType.LINESTRING: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
                LayerType.POLYGON: [PolygonType, ExtrudedType, OverlayType]
                }

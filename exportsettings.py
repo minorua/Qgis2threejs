@@ -567,7 +567,7 @@ class ExportSettings:
                     contents.append((nar["id"], nar["text"]))
         return contents
 
-    # for backward compatibility
+    # for backward compatibility with < 2.7
     def loadEarlierFormatData(self, settings):
         for layer in settings[ExportSettings.LAYERS]:
             p = layer.properties
@@ -575,7 +575,7 @@ class ExportSettings:
             if layer.type in (LayerType.POINT, LayerType.LINESTRING, LayerType.POLYGON):
                 objType = p.get("comboBox_ObjectType")
 
-                # two object types were renamed in 2.4
+                # renamed in 2.4
                 if objType == "Profile":
                     p["comboBox_ObjectType"] = "Wall"
                 elif objType == "Triangular Mesh":
@@ -583,6 +583,7 @@ class ExportSettings:
 
                 # styleWidgetX were obsoleted since 2.7
                 if objType == "Icon":
+                    p["comboBox_ObjectType"] = "Billboard"      # renamed in 2.7
                     v = p.get("styleWidget0")
                     if v:
                         p["comboEdit_Opacity"] = v

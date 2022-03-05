@@ -1178,7 +1178,7 @@ Q3D.application
 
     var layer = app.scene.mapLayers[object.userData.layerId];
     if (!layer || layer.type == Q3D.LayerType.DEM || layer.type == Q3D.LayerType.PointCloud) return;
-    if (["Icon", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
+    if (["Billboard", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
 
     // create a highlight object (if layer type is Point, slightly bigger than the object)
     var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
@@ -3490,8 +3490,8 @@ Q3D.PointLayer.prototype.build = function (features, startIndex) {
   if (objType == "Point") {
     return this.buildPoints(features, startIndex);
   }
-  else if (objType == "Icon") {
-    return this.buildIcons(features, startIndex);
+  else if (objType == "Billboard") {
+    return this.buildBillboards(features, startIndex);
   }
   else if (objType == "Model File") {
     return this.buildModels(features, startIndex);
@@ -3607,7 +3607,7 @@ Q3D.PointLayer.prototype.buildPoints = function (features, startIndex) {
   }
 };
 
-Q3D.PointLayer.prototype.buildIcons = function (features, startIndex) {
+Q3D.PointLayer.prototype.buildBillboards = function (features, startIndex) {
   var pts, sprite, i;
   for (var fidx = 0; fidx < features.length; fidx++) {
     var f = features[fidx],

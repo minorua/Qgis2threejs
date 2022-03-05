@@ -320,7 +320,7 @@ class Q3DView(QWebView):
         self._page = Q3DWebPage(self)
         self.setPage(self._page)
 
-        # security setting for Icon, Model File and point cloud layer
+        # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
 
         # web inspector setting
