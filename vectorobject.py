@@ -145,16 +145,10 @@ class DiskType(PointTypeBase):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
     def geometry(self, feat, geom):
-        dd = feat.prop(PID.G2)
-        # take map rotation into account
-        rotation = self.settings.baseExtent().rotation()
-        if rotation:
-            dd = (dd + rotation) % 360
-
         return {"pts": geom.toList(),
                 "r": feat.prop(PID.G0),
                 "d": feat.prop(PID.G1),
-                "dd": dd}
+                "dd": feat.prop(PID.G2)}
 
 
 class PlaneType(PointTypeBase):
@@ -173,17 +167,11 @@ class PlaneType(PointTypeBase):
         return self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)
 
     def geometry(self, feat, geom):
-        dd = feat.prop(PID.G3)
-        # take map rotation into account
-        rotation = self.settings.baseExtent().rotation()
-        if rotation:
-            dd = (dd + rotation) % 360
-
         return {"pts": geom.toList(),
                 "w": feat.prop(PID.G0),
                 "l": feat.prop(PID.G1),
                 "d": feat.prop(PID.G2),
-                "dd": dd}
+                "dd": feat.prop(PID.G3)}
 
 
 # Line
@@ -406,16 +394,10 @@ class ModelFileType(PointTypeBase):
         return None
 
     def geometry(self, feat, geom):
-        rz = feat.prop(PID.G3)
-        # take map rotation into account
-        rotation = self.settings.baseExtent().rotation()
-        if rotation:
-            rz = (rz - rotation) % 360    # map rotation is clockwise
-
         d = {"pts": geom.toList(),
              "rotateX": feat.prop(PID.G1),
              "rotateY": feat.prop(PID.G2),
-             "rotateZ": rz,
+             "rotateZ": feat.prop(PID.G3),
              "scale": feat.prop(PID.G0)}
 
         if feat.prop(PID.G4) != "XYZ":    # added in 2.4
