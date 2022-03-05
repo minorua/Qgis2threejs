@@ -223,13 +223,13 @@ class VectorLayer:
 
             val = None
             if isinstance(p, str):
-                val = self.evaluateExpression(p, feat) or 0
+                val = self.evaluateExpression(p, feat)
 
             elif isinstance(p, dict):
                 val = self.evaluatePropertyWidget(name, feat)
 
             if val is not None:
-                d[pid] = val or 0
+                d[pid] = val
 
         return d
 
@@ -424,9 +424,10 @@ class FeatureBlockBuilder:
             if f.attributes is not None:
                 d["prop"] = f.attributes
 
-            if f.hasProp(PID.LBLH):
+            text = f.prop(PID.LBLTXT)
+            if text is not None and text != "":
+                d["lbl"] = str(text)
                 d["lh"] = f.prop(PID.LBLH)
-                d["lbl"] = str(f.prop(PID.LBLTXT))
 
             if f.hasProp(PID.DLY):
                 d["anim"] = {
