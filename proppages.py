@@ -7,8 +7,8 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QDir, QPoint, QSize, QUrl
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QFileDialog, QGroupBox, QLineEdit,
+from PyQt5.QtCore import Qt, QPoint, QSize, QUrl
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
                              QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from PyQt5.QtGui import QColor, QCursor, QIcon, QPixmap
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
@@ -32,8 +32,8 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import (createUid, getDEMLayersInProject, getLayersInProject, hex_color, logMessage,
-                    openColorDialog, shortTextFromSelectedLayerIds)
+from .tools import (createUid, getColor, getDEMLayersInProject, getImageFileName, getLayersInProject, hex_color,
+                    logMessage, shortTextFromSelectedLayerIds)
 from .propwidget import PropertyWidget
 from .vectorobject import ObjectType
 
@@ -555,10 +555,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def selectImageFile(self):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
-        if directory == "":
-            directory = QDir.homePath()
-        filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
-        filename, _ = QFileDialog.getOpenFileName(self, "Select image file", directory, filterString)
+        filename = getImageFileName(self, directory)
         if filename:
             self.lineEdit_ImageFile.setText(filename)
 
@@ -698,7 +695,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             p["lineEdit_ImageFile"] = filename
 
         else:
-            color = openColorDialog()
+            color = getColor()
             if not color:
                 return
             base_name = "color"

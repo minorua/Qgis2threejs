@@ -3,16 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2021-11-10
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QButtonGroup, QDialog, QInputDialog, QMenu, QMenuBar,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QButtonGroup, QDialog, QInputDialog, QMenu,
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 
 from .conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, js_bool, logMessage, parseInt, pluginDir
+from .tools import createUid, getImageFileName, js_bool, logMessage, parseInt, pluginDir
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -921,6 +921,7 @@ class KeyframeDialog(QDialog):
         # set up widgets
         self.ui.toolButtonPlay.setIcon(self.panel.iconPlay)
         self.ui.pushButtonPlayAll.setIcon(self.panel.iconPlay)
+        self.ui.toolButtonAddImage.setIcon(QgsApplication.getThemeIcon("mActionAddImage.svg"))
         self.ui.toolButtonPreview.setIcon(self.panel.iconNarration)
 
         if not self.panel.iconEasing:
@@ -998,6 +999,7 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonNext.clicked.connect(self.nextKeyframe)
         self.ui.toolButtonPlay.clicked.connect(self.play)
         self.ui.pushButtonPlayAll.clicked.connect(self.playAll)
+        self.ui.toolButtonAddImage.clicked.connect(self.addImage)
         self.ui.toolButtonPreview.clicked.connect(self.showNarrativeBox)
 
         self.ui.lineEditDelay.editingFinished.connect(self.apply)
@@ -1192,6 +1194,12 @@ class KeyframeDialog(QDialog):
             self.apply()
 
         QDialog.accept(self)
+
+    def addImage(self):
+        filename = getImageFileName(self)
+        if filename:
+            url = QUrl.fromLocalFile(filename).toString()
+            self.ui.plainTextEdit.insertPlainText('<img src="{}" width="100%">'.format(url))
 
     def showNarrativeBox(self):
         data = {"text": self.ui.plainTextEdit.toPlainText()}

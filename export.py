@@ -68,8 +68,23 @@ class ThreeJSExporter(ThreeJSBuilder):
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
+        narration = self.settings.narrations()
+
         # copy files
-        self.progress(90, "Copying library files...")
+        files = narration["files"]
+        if files:
+            self.progress(90, "Copying image files used in narrative content...")
+
+            img_dir = os.path.join(self.settings.outputDataDirectory(), "img")
+            QDir().mkpath(img_dir)
+
+            for f in files:
+                if tools.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
+                    self.log("Copied {}.".format(f))
+                else:
+                    self.log("Failed to copy {}.".format(f), warning=True)
+
+        self.progress(95, "Copying library files...")
         tools.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
         # options in html file
@@ -106,8 +121,6 @@ class ThreeJSExporter(ThreeJSBuilder):
         with open(config["path"], "r", encoding="utf-8") as f:
             html = f.read()
 
-        narration = "\n".join(['    <div id="{}">\n{}\n    </div>'.format(id, text) for id, text in self.settings.narrations()])
-
         mapping = {
             "title": self.settings.title(),
             "options": "\n".join(options),
@@ -115,7 +128,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             "scenefile": "./data/{0}/scene.{1}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
-            "narration": narration,
+            "narration": narration["html"],
             "version": PLUGIN_VERSION
         }
         for key, value in mapping.items():

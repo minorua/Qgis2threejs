@@ -3,11 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-16
 
-import os
-import json
 from copy import deepcopy
+import json
+import os
+import re
 
-from PyQt5.QtCore import QSettings, QSize
+from PyQt5.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst
@@ -558,14 +559,34 @@ class ExportSettings:
                         yield group
                         break
 
-    def narrations(self):
-        contents = []
+    def narrations(self, indent=2, indent_width=2):
+        s = " " * indent_width
+        pattern = re.compile("<img.+?src=[\"|\'](.+?)[\"|\'].*?>", re.IGNORECASE)
+        img_dir = "./data/{}/img/".format(self.outputFileTitle())
+
+        d = []
+        files = set()
         for g in self.enabledValidKeyframeGroups():
-            for k in g.get("keyframes", []):      # TODO: sort by time (begin, k)
+            for k in g.get("keyframes", []):
                 nar = k.get("narration")
-                if nar:
-                    contents.append((nar["id"], nar["text"]))
-        return contents
+                if not nar:
+                    continue
+
+                content = nar["text"]
+                for url in pattern.findall(content):
+                    if url.startswith("file://"):
+                        u = QUrl(url)
+                        content = content.replace(url, img_dir + u.fileName())
+                        files.add(u.toLocalFile())
+
+                content = "\n".join(map(lambda r: s * (indent + 1) + r, content.split("\n")))
+                html = '{}<div id="{}">\n{}\n{}</div>'.format(s * indent, nar["id"], content, s * indent)
+                d.append(html)
+
+        return {
+            "html": "\n".join(d),
+            "files": list(files)
+        }
 
     # for backward compatibility with < 2.7
     def loadEarlierFormatData(self, settings):

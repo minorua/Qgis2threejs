@@ -11,7 +11,7 @@ import shutil
 
 from PyQt5.QtCore import qDebug, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
 
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 from qgis.gui import QgsCompoundColorWidget
@@ -327,7 +327,7 @@ def settingsFilePath():
     return proj_path + ".qto3settings" if proj_path else None
 
 
-def openColorDialog(parent=None):
+def getColor(parent=None):
     dlg = QDialog(parent)
     dlg.setWindowTitle("Select a color")
     dlg.setLayout(QVBoxLayout())
@@ -343,3 +343,11 @@ def openColorDialog(parent=None):
 
     if dlg.exec_():
         return widget.color()
+
+
+def getImageFileName(parent=None, directory=None):
+    if directory is None:
+        directory = QDir.homePath()
+    filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
+    filename, _ = QFileDialog.getOpenFileName(parent, "Select image file", directory, filterString)
+    return filename
