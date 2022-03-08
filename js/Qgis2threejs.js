@@ -3392,6 +3392,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
           underline = new THREE.Line(ul_geom, line_mtl);
           underline.position.copy(vec);
           underline.scale.x = sc * tw / th;
+          underline.updateMatrixWorld();
           underline.onBeforeRender = onBeforeRender;
           conn.add(underline);
         }
