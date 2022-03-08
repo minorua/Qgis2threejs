@@ -1523,11 +1523,11 @@ Q3D.gui
       else gui.showInfo();
     });
 
-    var e = E("toolbtns");
-    if (conf.animation.enabled && e) {
+    var btn = E("animbtn");
+    if (conf.animation.enabled && btn) {
       var anim = app.animation.keyframes;
-      var btn = CE("div", e);
-      btn.id = "animbtn";
+
+      btn.classList.remove("hidden");
 
       var playButton = function () {
         btn.className = "playbtn";
@@ -1577,7 +1577,7 @@ Q3D.gui
 
     // attribution
     if (typeof proj4 === "undefined") {
-      e = E("lib_proj4js");
+      var e = E("lib_proj4js");
       if (e) e.classList.add("hidden");
     }
   };
