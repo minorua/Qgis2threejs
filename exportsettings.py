@@ -580,7 +580,7 @@ class ExportSettings:
                         files.add(u.toLocalFile())
 
                 content = "\n".join(map(lambda r: s * (indent + 1) + r, content.split("\n")))
-                html = '{}<div id="{}">\n{}\n{}</div>'.format(s * indent, nar["id"], content, s * indent)
+                html = '{}<div id="{}" class="narcontent">\n{}\n{}</div>'.format(s * indent, nar["id"], content, s * indent)
                 d.append(html)
 
         return {

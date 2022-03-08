@@ -425,7 +425,7 @@ table.measure tr > td:nth-child(2) {
   height: 100%;
 }
 
-#narbody div{
+#narbody > .narcontent {
   display: none;
 }
 
