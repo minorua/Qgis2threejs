@@ -436,8 +436,8 @@ function stopAnimation() {
   closeNarrativeBox();
 }
 
-function showNarrativeBox(nar) {
-  Q3D.E("narbody").innerHTML = nar.text;
+function showNarrativeBox(content) {
+  Q3D.E("narbody").innerHTML = content;
   Q3D.E("narrativebox").classList.add("visible");
   var e = Q3D.E("nextbtn");
   e.className = "";

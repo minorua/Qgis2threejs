@@ -162,6 +162,9 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonEdit.setEnabled(b)
         self.ui.toolButtonRemove.setEnabled(b)
 
+    def showNarrativeBox(self, content):
+        self.webPage.runScript("showNarrativeBox(pyData())", data=content)
+
 
 class AnimationTreeWidget(QTreeWidget):
 
@@ -216,16 +219,19 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionPlay = QAction("Play", self)
         self.actionPlay.triggered.connect(self.playAnimation)
 
+        self.actionShowNarBox = QAction("Preview narrative content", self)
+        self.actionShowNarBox.triggered.connect(self.showNarrativeBox)
+
         self.actionUpdateView = QAction("Set current view to this keyframe...", self)
         self.actionUpdateView.triggered.connect(self.panel.updateKeyframeView)
 
-        self.actionOpacity = QAction("Change Opacity...", self)
+        self.actionOpacity = QAction("Change opacity...", self)
         self.actionOpacity.triggered.connect(self.addOpacityItem)
 
-        self.actionMaterial = QAction("Change Material...", self)
+        self.actionMaterial = QAction("Change material...", self)
         self.actionMaterial.triggered.connect(self.addMaterialItem)
 
-        self.actionGrowLine = QAction("Growing Line...", self)
+        self.actionGrowLine = QAction("Growing line...", self)
         self.actionGrowLine.triggered.connect(self.addGrowLineItem)
 
         self.actionProperties = QAction("Properties...", self)
@@ -241,7 +247,9 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuKeyframeGroup.addAction(self.actionRemove)
 
         self.ctxMenuKeyframe = QMenu(self)
+        self.ctxMenuKeyframe.addAction(self.actionShowNarBox)
         self.ctxMenuKeyframe.addAction(self.actionPlay)
+        self.ctxMenuKeyframe.addSeparator()
         self.ctxMenuKeyframe.addAction(self.actionEdit)
         self.ctxMenuKeyframe.addAction(self.actionUpdateView)
         self.ctxMenuKeyframe.addSeparator()
@@ -683,6 +691,7 @@ class AnimationTreeWidget(QTreeWidget):
 
             elif typ & ATConst.ITEM_MBR:
                 m = self.ctxMenuKeyframe
+                self.actionShowNarBox.setVisible(bool(item.data(0, ATConst.DATA_NARRATION)))
                 self.actionUpdateView.setVisible(bool(typ == ATConst.ITEM_CAMERA))
 
         if m:
@@ -851,6 +860,13 @@ class AnimationTreeWidget(QTreeWidget):
         item = self.currentItem()
         if item:
             self.panel.playAnimation([item])
+
+    def showNarrativeBox(self):
+        item = self.currentItem()
+        if item:
+            nar = item.data(0, ATConst.DATA_NARRATION)
+            if nar:
+                self.panel.showNarrativeBox(nar["text"])
 
     def materialChanged(self, layer):
         layerItem = self.findLayerItem(layer.layerId)
@@ -1202,8 +1218,7 @@ class KeyframeDialog(QDialog):
             self.ui.plainTextEdit.insertPlainText('<img src="{}" width="100%">'.format(url))
 
     def showNarrativeBox(self):
-        data = {"text": self.ui.plainTextEdit.toPlainText()}
-        self.panel.webPage.runScript("showNarrativeBox(pyData())", data=data)
+        self.panel.showNarrativeBox(self.ui.plainTextEdit.toPlainText())
 
     def playAnimation(self, items):
         self.panel.playAnimation(items)
