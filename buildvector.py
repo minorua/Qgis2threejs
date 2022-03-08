@@ -14,7 +14,7 @@ from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import LayerType, PropertyID as PID
-from .tools import css_color, hex_color, int_color, logMessage, parseInt
+from .tools import css_color, hex_color, int_color, logMessage, parseFloat, parseInt
 from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 
@@ -255,15 +255,16 @@ class VectorLayer:
         if t in (PropertyWidget.EXPRESSION, PropertyWidget.LABEL_HEIGHT):
             expr = wv["editText"] or "0"
             val = self.evaluateExpression(expr, feat)
-            if val is not None:
-                return val
 
             if val is None:
                 logMessage("Failed to evaluate expression: {} ({})".format(expr, self.name))
-            else:       # if val.isNull():
-                logMessage("NULL was treated as zero. ({})".format(self.name))
 
-            return 0
+            elif isinstance(val, str):
+                val = parseFloat(val)
+                if val is None:
+                    logMessage("Cannot parse '{}' as a float value. ({})".format(expr, self.name))
+
+            return val or 0
 
         if t == PropertyWidget.OPTIONAL_COLOR:
             return self.readBorderColor(wv, feat)
