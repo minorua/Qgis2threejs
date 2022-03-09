@@ -168,7 +168,7 @@ class Ui_ExportToWebDialog(object):
         self.label_Plane.setText(_translate("ExportToWebDialog", "Custom plane"))
         self.checkBox_Plane.setToolTip(_translate("ExportToWebDialog", "Add a horizontal plane that is movable vertically"))
         self.checkBox_Plane.setText(_translate("ExportToWebDialog", "Add a custom plane"))
-        self.groupBox_Animation.setTitle(_translate("ExportToWebDialog", "Animation and Storytelling"))
+        self.groupBox_Animation.setTitle(_translate("ExportToWebDialog", "Animation and Narrative"))
         self.checkBox_StartOnLoad.setText(_translate("ExportToWebDialog", "Start animation when the scene has loaded"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabSettings), _translate("ExportToWebDialog", "Settings"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLog), _translate("ExportToWebDialog", "Log"))
