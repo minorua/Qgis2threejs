@@ -270,16 +270,23 @@ function getCurrentPosition (callback) {
     }
 
     // get z coordinate of current location from DEM layer if scene has a DEM layer
-    var layer, pt = app.scene.toWorldCoordinates({x: pos.longitude, y: pos.latitude, z: pos.altitude}, true);
+    var layer, objects = [];
     for (var lyrId in app.scene.mapLayers) {
       layer = app.scene.mapLayers[lyrId];
       if (layer instanceof Q3D.DEMLayer) {
-        var z = layer.getZ(pt.x, pt.y);
-        if (z !== null) {
-          pt.z = (z + Q3D.Config.AR.DH) * app.scene.userData.zScale;
-          break;
-        }
+        objects = objects.concat(layer.visibleObjects());
       }
+    }
+
+    var pt = app.scene.toWorldCoordinates({x: pos.longitude, y: pos.latitude, z: pos.altitude}, true),
+        vec3 = new THREE.Vector3().copy(pt),
+        ray = new THREE.Raycaster();
+    vec3.z = 99999;
+    ray.set(vec3, new THREE.Vector3(0, 0, -1));
+
+    var objs = ray.intersectObjects(objects)
+    if (objs.length) {
+      pt.z = (objs[0].point.z + Q3D.Config.AR.DH) * app.scene.userData.zScale;
     }
 
     callback(pt);
