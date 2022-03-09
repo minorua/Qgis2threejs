@@ -238,12 +238,7 @@ function stopARMode() {
   app.animation.stop();
   Q3D.E("current-location").classList.remove("touchme");
 
-  var v = Q3D.Config.viewpoint,
-      p = v.pos,
-      t = v.lookAt;
-  app.camera.position.set(p.x, p.y, p.z);
-  app.camera.lookAt(t.x, t.y, t.z);
-  app.controls.target.set(t.x, t.y, t.z);
+  app.controls.reset();
 
   var v = Q3D.E("video");
   v.srcObject = null;
