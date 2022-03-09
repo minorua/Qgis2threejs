@@ -201,9 +201,6 @@ class AnimationTreeWidget(QTreeWidget):
         self.itemDoubleClicked.connect(self.onItemDoubleClicked)
 
         # context menu
-        self.actionNewGroup = QAction("New Group", self)
-        self.actionNewGroup.triggered.connect(self.addNewItem)
-
         self.actionAdd = QAction("Add", self)           # NOTE: may be hidden
         self.actionAdd.triggered.connect(self.addNewItem)
 
@@ -361,6 +358,7 @@ class AnimationTreeWidget(QTreeWidget):
             if typ == ATConst.ITEM_TL_CAMERA:
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA)
                 self.setCurrentItem(self.addKeyframeItem(parent))
+                self.wnd.ui.statusbar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
             else:
                 layer = self.getLayerFromLayerItem(item)
                 self.actionMaterial.setVisible(layer.type == LayerType.DEM)

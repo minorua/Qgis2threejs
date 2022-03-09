@@ -101,7 +101,7 @@ class ExportSettings:
             try:
                 self.loadEarlierFormatData(settings)
             except Exception as e:
-                logMessage("ExportSettings: Failed to load some properties which were saved in an earlier plugin version.")
+                logMessage("ExportSettings: Failed to load some properties which were saved with an earlier plugin version.")
 
                 if DEBUG_MODE:
                     raise e
