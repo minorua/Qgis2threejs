@@ -3,3 +3,4 @@ name=Ray Tracing Renderer
 description=[Experimental] With this template, you can render high quality images on your web browser by simulating the physical behavior of light.
 files=js/Qgis2threejs.js,js/dat-gui_panel.js,js/raytracing.js,css/Qgis2threejs.css
 dirs=js/dat-gui,js/ray-tracing-renderer
+animation=no

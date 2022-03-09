@@ -93,6 +93,9 @@ class ExportToWebDialog(QDialog):
         for w in [self.ui.label_MND, self.ui.lineEdit_MND, self.ui.label_MND2]:
             w.setVisible(b)
 
+        anim = bool(config.get("animation", "yes") == "yes")
+        self.ui.groupBox_Animation.setEnabled(anim)
+
     def browseClicked(self):
         # directory select dialog
         d = self.ui.lineEdit_OutputDir.text() or QDir.homePath()
@@ -152,7 +155,7 @@ class ExportToWebDialog(QDialog):
                     return
 
         # animation settings
-        anim_enabled = self.ui.groupBox_Animation.isChecked()
+        anim_enabled = self.ui.groupBox_Animation.isEnabled() and self.ui.groupBox_Animation.isChecked()
         startOnLoad = self.ui.checkBox_StartOnLoad.isChecked()
         if anim_enabled:
             self.settings.setOption("animation.enabled", True)
@@ -189,7 +192,7 @@ th {text-align:left;}
         self.logNextIndex = 1
         self.warnings = 0
 
-        self.progress(0, "Export has been started.")
+        self.progress(0, "Export started.")
         t0 = datetime.now()
 
         # export
