@@ -466,6 +466,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.contextMenuMtl.addAction(self.mtlRenameAction)
 
         self.comboBox_TextureSize.addItems(["512", "1024", "2048", "4096"])
+        self.comboBox_TextureSize.setCurrentText(str(DEF_SETS.TEXTURE_SIZE))
 
         self.toolButton_AddMtl.clicked.connect(lambda: self.contextMenuAddMtl.popup(QCursor.pos()))
         self.toolButton_RemoveMtl.clicked.connect(self.removeMaterial)
