@@ -1580,6 +1580,11 @@ Q3D.gui
       var e = E("lib_proj4js");
       if (e) e.classList.add("hidden");
     }
+
+    // initialize modules
+    for (var i = 0; i < gui.modules.length; i++) {
+      gui.modules[i].init();
+    }
   };
 
   gui.clean = function () {
