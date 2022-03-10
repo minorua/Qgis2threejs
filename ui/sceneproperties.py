@@ -51,6 +51,7 @@ class Ui_ScenePropertiesWidget(object):
         self.gridLayout_3 = QtWidgets.QGridLayout(self.groupBox_4)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.checkBox_FixAspectRatio = QtWidgets.QCheckBox(self.groupBox_4)
+        self.checkBox_FixAspectRatio.setChecked(True)
         self.checkBox_FixAspectRatio.setObjectName("checkBox_FixAspectRatio")
         self.gridLayout_3.addWidget(self.checkBox_FixAspectRatio, 4, 0, 1, 1)
         self.radioButton_FixedExtent = QtWidgets.QRadioButton(self.groupBox_4)

@@ -158,7 +158,7 @@ class ExportSettings:
                 logMessage("Invalid extent. Check out scene properties.")
 
         elif self.mapSettings:
-            self._baseExtent = MapExtent.fromMapSettings(self.mapSettings, sp.get("checkBox_FixAspectRatio", False))
+            self._baseExtent = MapExtent.fromMapSettings(self.mapSettings, sp.get("checkBox_FixAspectRatio", True))
 
         return self._baseExtent
 
