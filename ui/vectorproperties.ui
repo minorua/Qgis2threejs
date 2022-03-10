@@ -305,14 +305,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="PropertyWidget" name="labelHeightWidget" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>10</height>
-             </size>
-            </property>
-           </widget>
+           <widget class="PropertyWidget" name="labelHeightWidget" native="true"/>
           </item>
          </layout>
         </widget>
@@ -364,7 +357,7 @@
           <item row="4" column="1" colspan="4">
            <widget class="QgsColorButton" name="colorButton_Label">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -374,7 +367,7 @@
           <item row="6" column="1" colspan="4">
            <widget class="QgsColorButton" name="colorButton_OtlColor">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -415,14 +408,7 @@
            </widget>
           </item>
           <item row="0" column="1" colspan="4">
-           <widget class="QgsFieldExpressionWidget" name="expression_Label" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>10</height>
-             </size>
-            </property>
-           </widget>
+           <widget class="QgsFieldExpressionWidget" name="expression_Label" native="true"/>
           </item>
           <item row="2" column="1" colspan="4">
            <widget class="QSlider" name="slider_FontSize">
