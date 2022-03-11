@@ -199,7 +199,7 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_Size = QtWidgets.QSpinBox(self.groupBox_Tiles)
         self.spinBox_Size.setMinimumSize(QtCore.QSize(70, 0))
         self.spinBox_Size.setMinimum(3)
-        self.spinBox_Size.setMaximum(9)
+        self.spinBox_Size.setMaximum(99)
         self.spinBox_Size.setSingleStep(2)
         self.spinBox_Size.setProperty("value", 3)
         self.spinBox_Size.setObjectName("spinBox_Size")
