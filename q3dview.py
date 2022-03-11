@@ -197,7 +197,7 @@ class Q3DWebPage(QWebPage):
                 self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
                 self.logfile.flush()
 
-        if data:
+        if data is not None:
             self.bridge.setData(data)
 
         return self.mainFrame().evaluateJavaScript(string)

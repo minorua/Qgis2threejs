@@ -137,7 +137,7 @@
         </sizepolicy>
        </property>
        <property name="placeholderText">
-        <string>empty - not stop at this keyframe</string>
+        <string>empty - will not stop at this keyframe</string>
        </property>
       </widget>
      </item>

@@ -277,7 +277,7 @@ class Ui_KeyframeDialog(object):
         self.lineEditCurrentKF.setText(_translate("KeyframeDialog", "1"))
         self.labelKFCount.setText(_translate("KeyframeDialog", "/ N"))
         self.toolButtonPlay.setToolTip(_translate("KeyframeDialog", "Perform a transition between current keyframe and next keyframe."))
-        self.plainTextEdit.setPlaceholderText(_translate("KeyframeDialog", "empty - not stop at this keyframe"))
+        self.plainTextEdit.setPlaceholderText(_translate("KeyframeDialog", "empty - will not stop at this keyframe"))
         self.labelName.setText(_translate("KeyframeDialog", "Name"))
         self.labelOpacity.setText(_translate("KeyframeDialog", "Opacity"))
         self.labelNarration.setText(_translate("KeyframeDialog", "Narrative content"))
