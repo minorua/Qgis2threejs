@@ -129,7 +129,7 @@ class ATConst:
 
     ITEM_GRP_CAMERA = 64
     ITEM_GRP_OPACITY = 65
-    ITEM_GRP_MATERIAL = 66
+    ITEM_GRP_TEXTURE = 66
     ITEM_GRP_GROWING_LINE = 67
 
     # MEMBER OF GROUP (KEYFRAME OR EFFECT)
@@ -137,7 +137,7 @@ class ATConst:
 
     ITEM_CAMERA = 128
     ITEM_OPACITY = 129
-    ITEM_MATERIAL = 130
+    ITEM_TEXTURE = 130
     ITEM_GROWING_LINE = 131         # EFFECT
 
     # ITEM_TL_LAYER
@@ -158,7 +158,7 @@ class ATConst:
     # OPACITY KEYFRAME
     DATA_OPACITY = Qt.UserRole
 
-    # MATERIAL KEYFRAME
+    # TEXTURE KEYFRAME
     DATA_MTL_ID = Qt.UserRole
     DATA_EFFECT = Qt.UserRole + 5
 
@@ -174,7 +174,7 @@ class ATConst:
 
     @classmethod
     def defaultName(cls, typ):
-        name = ["Camera", "Opacity", "Material", "Growing line"]
+        name = ["Camera", "Opacity", "Texture", "Growing line"]
         if typ & cls.ITEM_GRP:
             return "Group" if typ == cls.ITEM_GRP_CAMERA else "{} group".format(name[typ - cls.ITEM_GRP])
 

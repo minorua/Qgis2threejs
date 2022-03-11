@@ -82,9 +82,9 @@ class AnimationPanel(QWidget):
         else:
             for item in items:
                 t = item.type()
-                if t in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_GRP_GROWING_LINE):
+                if t in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_GRP_GROWING_LINE):
                     mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
-                elif t in (ATConst.ITEM_MATERIAL, ATConst.ITEM_GROWING_LINE):
+                elif t in (ATConst.ITEM_TEXTURE, ATConst.ITEM_GROWING_LINE):
                     mapLayerId = item.parent().parent().data(0, ATConst.DATA_LAYER_ID)
                 else:
                     mapLayerId = None
@@ -124,7 +124,7 @@ class AnimationPanel(QWidget):
             self.wnd.showMessageBar(msg, duration, warning=True)
 
     def _updateLayer(self, layer, groupType):
-        if groupType in (ATConst.ITEM_GRP_MATERIAL, ATConst.ITEM_MATERIAL):
+        if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):
             layer = layer.clone()
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
@@ -225,8 +225,8 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionOpacity = QAction("Change opacity...", self)
         self.actionOpacity.triggered.connect(self.addOpacityItem)
 
-        self.actionMaterial = QAction("Change material...", self)
-        self.actionMaterial.triggered.connect(self.addMaterialItem)
+        self.actionTexture = QAction("Change texture...", self)
+        self.actionTexture.triggered.connect(self.addTextureItem)
 
         self.actionGrowLine = QAction("Growing line...", self)
         self.actionGrowLine.triggered.connect(self.addGrowLineItem)
@@ -253,7 +253,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuKeyframe.addAction(self.actionRemove)
 
         self.ctxMenuLayerAdd = QMenu(self)
-        self.ctxMenuLayerAdd.addActions([self.actionOpacity, self.actionMaterial, self.actionGrowLine])
+        self.ctxMenuLayerAdd.addActions([self.actionOpacity, self.actionTexture, self.actionGrowLine])
 
         self.ctxMenuLayer = QMenu(self)
         self.ctxMenuLayer.addMenu("Add").addActions(self.ctxMenuLayerAdd.actions())
@@ -361,7 +361,7 @@ class AnimationTreeWidget(QTreeWidget):
                 self.wnd.ui.statusbar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
             else:
                 layer = self.getLayerFromLayerItem(item)
-                self.actionMaterial.setVisible(layer.type == LayerType.DEM)
+                self.actionTexture.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
                 self.ctxMenuLayerAdd.popup(QCursor.pos())
             return
@@ -374,8 +374,8 @@ class AnimationTreeWidget(QTreeWidget):
         elif gt == ATConst.ITEM_GRP_OPACITY:
             self.addOpacityItem()
 
-        elif gt == ATConst.ITEM_GRP_MATERIAL:
-            self.addMaterialItem()
+        elif gt == ATConst.ITEM_GRP_TEXTURE:
+            self.addTextureItem()
 
         elif gt == ATConst.ITEM_GRP_GROWING_LINE:
             if typ == ATConst.ITEM_GRP_GROWING_LINE and item.childCount() == 0:
@@ -461,7 +461,7 @@ class AnimationTreeWidget(QTreeWidget):
         elif typ == ATConst.ITEM_OPACITY:
             item.setData(0, ATConst.DATA_OPACITY, keyframe.get("opacity", 1))
 
-        elif typ == ATConst.ITEM_MATERIAL:
+        elif typ == ATConst.ITEM_TEXTURE:
             item.setData(0, ATConst.DATA_MTL_ID, keyframe.get("mtlId", ""))
             item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 0))
 
@@ -513,7 +513,7 @@ class AnimationTreeWidget(QTreeWidget):
         elif typ == ATConst.ITEM_OPACITY:
             k["opacity"] = item.data(0, ATConst.DATA_OPACITY)
 
-        elif typ == ATConst.ITEM_MATERIAL:
+        elif typ == ATConst.ITEM_TEXTURE:
             layer = self.getLayerFromLayerItem(item.parent().parent())
             if layer:
                 id = item.data(0, ATConst.DATA_MTL_ID)
@@ -679,7 +679,7 @@ class AnimationTreeWidget(QTreeWidget):
                 m = self.ctxMenuLayer
 
                 layer = self.getLayerFromLayerItem(item)
-                self.actionMaterial.setVisible(layer.type == LayerType.DEM)
+                self.actionTexture.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
         else:
             if typ & ATConst.ITEM_GRP:
@@ -716,7 +716,7 @@ class AnimationTreeWidget(QTreeWidget):
                 opacity = current.data(0, ATConst.DATA_OPACITY)
                 self.webPage.runScript("setLayerOpacity({}, {})".format(layer.jsLayerId, opacity))
 
-        elif typ == ATConst.ITEM_MATERIAL:
+        elif typ == ATConst.ITEM_TEXTURE:
             layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
             layer = self.settings.getLayer(layerId)
             if layer:
@@ -764,7 +764,7 @@ class AnimationTreeWidget(QTreeWidget):
                                           "opacity": val
                                           })
 
-    def addMaterialItem(self):
+    def addTextureItem(self):
         item = self.currentItem()
         layer = self.currentLayer()
         if not item or not layer:
@@ -773,20 +773,20 @@ class AnimationTreeWidget(QTreeWidget):
         mtlNames = ["[{}] {}".format(i, mtl.get("name", "")) for i, mtl in enumerate(layer.properties.get("materials", [])) if mtl.get("type") != DEMMtlType.COLOR]
 
         if not mtlNames:
-            QMessageBox.warning(self, "Material", "The layer has no materials.")
+            QMessageBox.warning(self, "Texture", "The layer has no textures.")
             return
 
-        val, ok = QInputDialog.getItem(self, "Material", "Select a material", mtlNames, 0, False)
+        val, ok = QInputDialog.getItem(self, "Texture", "Select a material with texture", mtlNames, 0, False)
         if ok:
             mtlIdx = int(val.split("]")[0][1:])
             mtl = layer.properties["materials"][mtlIdx]
 
             parent = None
             if item.type() == ATConst.ITEM_TL_LAYER:
-                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_MATERIAL)
+                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_TEXTURE)
 
             self.addKeyframeItem(parent, {
-                "type": ATConst.ITEM_MATERIAL,
+                "type": ATConst.ITEM_TEXTURE,
                 "name": mtl.get("name", "no name"),
                 "mtlId": mtl.get("id")
             })
@@ -875,7 +875,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         for i in range(layerItem.childCount()):
             group = layerItem.child(i)
-            if group.type() != ATConst.ITEM_GRP_MATERIAL:
+            if group.type() != ATConst.ITEM_GRP_TEXTURE:
                 continue
 
             for idx in reversed(range(group.childCount())):
@@ -884,7 +884,7 @@ class AnimationTreeWidget(QTreeWidget):
                 if mtl:
                     item.setText(0, mtl["name"])
                 else:
-                    logMessage("The material of '{}' was removed.".format(item.text(0)), warning=False)
+                    logMessage("The material '{}' was removed.".format(item.text(0)), warning=False)
                     group.removeChild(item)
 
 
@@ -954,8 +954,8 @@ class KeyframeDialog(QDialog):
             btn.setIconSize(size)
             btn.setIcon(self.panel.iconEasing[id])
 
-        if t == ATConst.ITEM_MATERIAL:
-            self.ui.labelComboBox1.setText("Material")
+        if t == ATConst.ITEM_TEXTURE:
+            self.ui.labelComboBox1.setText("Texture")
 
             for mtl in self.layer.properties.get("materials", []):
                 if mtl.get("type") != DEMMtlType.COLOR:
@@ -983,7 +983,7 @@ class KeyframeDialog(QDialog):
         if t != ATConst.ITEM_OPACITY:
             wth += [self.ui.labelOpacity, self.ui.doubleSpinBoxOpacity]
 
-        if t != ATConst.ITEM_MATERIAL:
+        if t != ATConst.ITEM_TEXTURE:
             if t != ATConst.ITEM_GROWING_LINE:
                 wth += [self.ui.labelComboBox1, self.ui.comboBox1]
 
@@ -1074,7 +1074,7 @@ class KeyframeDialog(QDialog):
         elif self.type == ATConst.ITEM_OPACITY:
             self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY))
 
-        elif self.type == ATConst.ITEM_MATERIAL:
+        elif self.type == ATConst.ITEM_TEXTURE:
             idx = self.ui.comboBox1.findData(item.data(0, ATConst.DATA_MTL_ID))
             if idx != -1:
                 self.ui.comboBox1.setCurrentIndex(idx)
@@ -1175,7 +1175,7 @@ class KeyframeDialog(QDialog):
             item.setText(0, "opacity '{}'".format(opacity))
             item.setData(0, ATConst.DATA_OPACITY, opacity)
 
-        elif self.type == ATConst.ITEM_MATERIAL:
+        elif self.type == ATConst.ITEM_TEXTURE:
             item.setText(0, self.ui.comboBox1.currentText())
             item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBox1.currentData())
             item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBox2.currentData())

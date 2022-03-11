@@ -151,7 +151,7 @@ Q3D.MaterialType = {
 Q3D.KeyframeType = {
   CameraMotion: 64,
   Opacity: 65,
-  Material: 66,
+  Texture: 66,
   GrowingLine: 67
 };
 
@@ -3140,7 +3140,7 @@ Q3D.DEMLayer.prototype.setSideVisible = function (visible) {
 };
 
 // texture animation
-Q3D.DEMLayer.prototype.prepareMtlAnimation = function (from, to) {
+Q3D.DEMLayer.prototype.prepareTexAnimation = function (from, to) {
 
   function imageData2Canvas(img) {
     var cnvs = document.createElement("canvas");
@@ -4474,9 +4474,9 @@ Q3D.Tweens.opacity = {
 
 };
 
-Q3D.Tweens.material = {
+Q3D.Tweens.texture = {
 
-  type: Q3D.KeyframeType.Material,
+  type: Q3D.KeyframeType.Texture,
 
   init: function (group, layer) {
 
@@ -4490,7 +4490,7 @@ Q3D.Tweens.material = {
       from = keyframes[idx_from].mtlIndex;
       to = keyframes[idx_from + 1].mtlIndex;
 
-      layer.prepareMtlAnimation(from, to);
+      layer.prepareTexAnimation(from, to);
       layer.setTextureAt(null, effect);
     };
 
