@@ -355,6 +355,8 @@ class Ui_DEMPropertiesWidget(object):
         self.groupBox_Tiles.setTitle(_translate("DEMPropertiesWidget", "Tiles"))
         self.checkBox_Tiles.setText(_translate("DEMPropertiesWidget", "Tiles"))
         self.label_Roughness.setText(_translate("DEMPropertiesWidget", "Roughness"))
+        self.spinBox_Roughening.setToolTip(_translate("DEMPropertiesWidget", "Grid roughness of tiles other than center tile"))
+        self.spinBox_Size.setToolTip(_translate("DEMPropertiesWidget", "Number of tiles is square of this value. Should be an odd number."))
         self.label_2.setText(_translate("DEMPropertiesWidget", "Size"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("DEMPropertiesWidget", "Main"))
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides"))

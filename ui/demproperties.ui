@@ -398,6 +398,9 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Grid roughness of tiles other than center tile</string>
+              </property>
               <property name="maximum">
                <number>64</number>
               </property>
@@ -413,6 +416,9 @@
                 <width>70</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Number of tiles is square of this value. Should be an odd number.</string>
               </property>
               <property name="minimum">
                <number>3</number>
