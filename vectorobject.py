@@ -367,7 +367,7 @@ class BillboardType(PointTypeBase):
 # ModelFileType
 class ModelFileType(PointTypeBase):
 
-    name = "Model File"
+    name = "3D Model"
     pids = [PID.PATH, PID.G0, PID.G1, PID.G2, PID.G3, PID.G4]
     experimental = True
 

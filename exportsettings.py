@@ -616,6 +616,7 @@ class ExportSettings:
                     self._style2geom(p, 2, 1)
 
                 elif objType == "Model File":
+                    p["comboBox_ObjectType"] = "3D Model"      # renamed in 2.7
                     v = p.get("styleWidget0")
                     if v:
                         p["expression_FilePath"] = v

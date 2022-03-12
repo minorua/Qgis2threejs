@@ -251,7 +251,7 @@ class Q3DController(QObject):
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
 
-        if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "Model File":
+        if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
             self.iface.loadScriptFiles([Script.COLLADALOADER,
                                         Script.GLTFLOADER])
 

@@ -3471,7 +3471,7 @@ Q3D.PointLayer.prototype = Object.create(Q3D.VectorLayer.prototype);
 Q3D.PointLayer.prototype.constructor = Q3D.PointLayer;
 
 Q3D.PointLayer.prototype.loadJSONObject = function (jsonObject, scene) {
-  if (jsonObject.type == "layer" && jsonObject.properties.objType == "Model File" && jsonObject.data !== undefined) {
+  if (jsonObject.type == "layer" && jsonObject.properties.objType == "3D Model" && jsonObject.data !== undefined) {
     if (this.models === undefined) {
       var _this = this;
 
@@ -3498,7 +3498,7 @@ Q3D.PointLayer.prototype.build = function (features, startIndex) {
   else if (objType == "Billboard") {
     return this.buildBillboards(features, startIndex);
   }
-  else if (objType == "Model File") {
+  else if (objType == "3D Model") {
     return this.buildModels(features, startIndex);
   }
 
@@ -3653,7 +3653,7 @@ Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
 
     var model = this.models.get(f.model);
     if (!model) {
-      console.log("Model File: There is a missing model.");
+      console.log("3D Model: There is a missing model.");
       continue;
     }
 
