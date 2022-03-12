@@ -288,6 +288,8 @@ class Q3DWindow(QMainWindow):
             item.setText(layer.name)
 
         if layer.properties != orig_layer.properties:
+            layer.visible = orig_layer.visible      # respect current visible state
+
             self.iface.requestLayerUpdate(layer)
 
             if layer.properties.get("materials") != orig_layer.properties.get("materials"):
