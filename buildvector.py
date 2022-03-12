@@ -120,7 +120,12 @@ class VectorLayer:
         self.expressionContext = self.mapLayer.createExpressionContext()
 
         otc = ObjectType.typeByName(self.properties.get("comboBox_ObjectType"), layer.type)
-        self.ot = otc(settings, materialManager) if otc else None
+        if otc == ObjectType.ModelFile:
+            self.ot = otc(settings, modelManager)
+        elif otc:
+            self.ot = otc(settings, materialManager)
+        else:
+            self.ot = None
 
         self.materialManager = materialManager
         self.modelManager = modelManager
@@ -506,14 +511,7 @@ class VectorLayerBuilder(LayerBuilder):
         data = {}
 
         # materials/models
-        if objType != ObjectType.ModelFile:
-            for feat in vlayer.features(request):
-                feat.material = vlayer.ot.material(feat)
-                self.features.append(feat)
-
-            data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
-                                                              base64=self.settings.base64)
-        else:
+        if objType == ObjectType.ModelFile:
             for feat in vlayer.features(request):
                 feat.model = vlayer.ot.model(feat)
                 self.features.append(feat)
@@ -522,6 +520,13 @@ class VectorLayerBuilder(LayerBuilder):
                                                      base64=self.settings.base64)
 
             self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.", warning=True)
+        else:
+            for feat in vlayer.features(request):
+                feat.material = vlayer.ot.material(feat)
+                self.features.append(feat)
+
+            data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
+                                                              base64=self.settings.base64)
 
         if build_blocks:
             self._startBuildBlocks(cancelSignal)
