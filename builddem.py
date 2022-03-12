@@ -131,19 +131,21 @@ class DEMLayerBuilder(LayerBuilder):
 
             # set up grid builder
             if not self.layer.opt.onlyMaterial:
+                neighbors = None
                 if is_center:
                     grdBuilder = centerBlk
                 else:
                     grdBuilder = self.grdBuilder
                     if sx * sx <= 1 and sy * sy <= 1:
-                        grdBuilder.neighbors = [(sx, sy, centerBlk, 1)]
+                        neighbors = [(sx, sy, centerBlk, 1)]
 
                 grdBuilder.setup(blockIndex, grid_seg, extent, planeWidth, planeHeight,
                                  offsetX=planeWidth * sx,
                                  offsetY=planeHeight * sy,
                                  roughness=1 if is_center else roughness,
                                  edgeRoughness=roughness if is_center else 1,
-                                 clip_geometry=clip_geometry if is_center else None)
+                                 clip_geometry=clip_geometry if is_center else None,
+                                 neighbors=neighbors)
                 yield grdBuilder
 
             # set up material builder for remaininig materials
@@ -169,9 +171,7 @@ class DEMGridBuilder:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
 
-        self.neighbors = []
-
-    def setup(self, blockIndex, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, roughness=1, edgeRoughness=1, clip_geometry=None):
+    def setup(self, blockIndex, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
         self.blockIndex = blockIndex
         self.grid_seg = grid_seg
         self.extent = extent
@@ -182,6 +182,7 @@ class DEMGridBuilder:
         self.roughness = roughness
         self.edgeRoughness = edgeRoughness
         self.clip_geometry = clip_geometry
+        self.neighbors = neighbors or []
 
         self.edges = None
 
