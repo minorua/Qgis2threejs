@@ -77,7 +77,10 @@ class AnimationPanel(QWidget):
                 else:
                     layer = self.wnd.settings.getLayerByJSLayerId(layerId)
                     if layer:
-                        self._updateLayer(layer, group.get("type"))
+                        t = group.get("type")
+                        if t in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_GRP_GROWING_LINE):
+                            self._updateLayer(layer, t)
+
                         dataList.append(group)
         else:
             for item in items:
