@@ -357,7 +357,8 @@ class AnimationTreeWidget(QTreeWidget):
         if typ & ATConst.ITEM_TOPLEVEL:
             if typ == ATConst.ITEM_TL_CAMERA:
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA)
-                self.setCurrentItem(self.addKeyframeItem(parent))
+                child = self.addKeyframeItem(parent)
+                self.setCurrentItem(child)
                 self.wnd.ui.statusbar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
             else:
                 layer = self.getLayerFromLayerItem(item)
@@ -368,8 +369,8 @@ class AnimationTreeWidget(QTreeWidget):
 
         gt = typ if typ & ATConst.ITEM_GRP else typ - ATConst.ITEM_MBR + ATConst.ITEM_GRP
         if gt == ATConst.ITEM_GRP_CAMERA:
-            parent = item if typ == ATConst.ITEM_GRP_CAMERA else item.parent()
-            self.setCurrentItem(self.addKeyframeItem(parent))
+            added = self.addKeyframeItem()
+            self.setCurrentItem(added)
 
         elif gt == ATConst.ITEM_GRP_OPACITY:
             self.addOpacityItem()
@@ -759,10 +760,12 @@ class AnimationTreeWidget(QTreeWidget):
             if item.type() == ATConst.ITEM_TL_LAYER:
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_OPACITY)
 
-            self.addKeyframeItem(parent, {"type": ATConst.ITEM_OPACITY,
-                                          "name": "opacity '{}'".format(val),
-                                          "opacity": val
-                                          })
+            added = self.addKeyframeItem(parent, {
+                "type": ATConst.ITEM_OPACITY,
+                "name": "opacity '{}'".format(val),
+                "opacity": val
+            })
+            self.setCurrentItem(added)
 
     def addTextureItem(self):
         item = self.currentItem()
@@ -785,11 +788,12 @@ class AnimationTreeWidget(QTreeWidget):
             if item.type() == ATConst.ITEM_TL_LAYER:
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_TEXTURE)
 
-            self.addKeyframeItem(parent, {
+            added = self.addKeyframeItem(parent, {
                 "type": ATConst.ITEM_TEXTURE,
                 "name": mtl.get("name", "no name"),
                 "mtlId": mtl.get("id")
             })
+            self.setCurrentItem(added)
 
     def addGrowLineItem(self):
         item = self.currentItem()
@@ -801,10 +805,11 @@ class AnimationTreeWidget(QTreeWidget):
         if item.type() == ATConst.ITEM_TL_LAYER:
             parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_GROWING_LINE)
 
-        self.addKeyframeItem(parent, {
+        added = self.addKeyframeItem(parent, {
             "type": ATConst.ITEM_GROWING_LINE,
             "name": "Growing line"
         })
+        self.setCurrentItem(added)
 
     def showDialog(self, item=None):
         item = item or self.currentItem()
