@@ -952,6 +952,8 @@ Q3D.application
 
       pause: function () {
 
+        if (this.isPaused) return;
+
         this._pausedTweens = TWEEN.getAll();
 
         if (this._pausedTweens.length) {
