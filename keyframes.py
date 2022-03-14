@@ -989,8 +989,11 @@ class KeyframeDialog(QDialog):
 
             wth += [self.ui.labelComboBox2, self.ui.comboBox2]
 
+        if t != ATConst.ITEM_CAMERA:
+            wth += [self.ui.labelNarration, self.ui.toolButtonAddImage, self.ui.toolButtonPreview, self.ui.plainTextEdit]
+
         if t == ATConst.ITEM_GROWING_LINE:
-            wth += [self.ui.widgetTopBar, self.ui.labelNarration, self.ui.plainTextEdit]
+            wth += [self.ui.widgetTopBar]
 
         for w in wth:
             w.setVisible(False)
