@@ -4237,7 +4237,15 @@ Q3D.Model.prototype = {
       this.load(jsonObject.url, callback);
     }
     else {
-      this.loadData(atob(jsonObject.base64), jsonObject.ext, jsonObject.resourcePath, callback);
+      var b = atob(jsonObject.base64),
+          len = b.length,
+          bytes = new Uint8Array(len);
+
+      for (var i = 0; i < len; i++) {
+        bytes[i] = b.charCodeAt(i);
+      }
+
+      this.loadData(bytes.buffer, jsonObject.ext, jsonObject.resourcePath, callback);
     }
   },
 
