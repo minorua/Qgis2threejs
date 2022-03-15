@@ -3615,13 +3615,13 @@ Q3D.PointLayer.prototype.buildPoints = function (features, startIndex) {
 };
 
 Q3D.PointLayer.prototype.buildBillboards = function (features, startIndex) {
-  var sprite, i;
-  for (var fidx = 0; fidx < features.length; fidx++) {
-    var f = features[fidx],
-        material = this.materials.get(f.mtl);
 
-    var sprites = [];
-    for (i = 0; i < f.geom.pts.length; i++) {
+  features.forEach(function (f, fidx) {
+
+    var material = this.materials.get(f.mtl);
+
+    var sprite, sprites = [];
+    for (var i = 0; i < f.geom.pts.length; i++) {
       sprite = new THREE.Sprite(material.mtl);
       sprite.position.fromArray(f.geom.pts[i]);
       sprite.userData.properties = f.prop;
@@ -3640,7 +3640,7 @@ Q3D.PointLayer.prototype.buildBillboards = function (features, startIndex) {
     });
 
     this.addFeature(fidx + startIndex, f, sprites);
-  }
+  }, this);
 };
 
 Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
