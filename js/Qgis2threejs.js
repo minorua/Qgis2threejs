@@ -3648,29 +3648,34 @@ Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
       e = new THREE.Euler(),
       deg2rad = Q3D.deg2rad;
 
-  var f, pts, objs, i;
-  for (var fidx = 0; fidx < features.length; fidx++) {
-    f = features[fidx];
-    pts = f.geom.pts;
+  features.forEach(function (f, fidx) {
 
     var model = this.models.get(f.model);
     if (!model) {
       console.log("3D Model: There is a missing model.");
-      continue;
+      return;
     }
 
-    objs = [];
-    for (i = 0; i < pts.length; i++) {
-      var parent = new THREE.Group();
-      parent.position.fromArray(pts[i]);
+    var parents = [];
+    var pt, pts = f.geom.pts;
+    for (var i = 0; i < pts.length; i++) {
+      pt = pts[i];
+
+      var parent = new Q3D.Group();
+      parent.position.fromArray(pt);
       parent.scale.set(1, 1, this.sceneData.zScale);
 
       parent.userData.properties = f.prop;
 
-      objs.push(parent);
+      parents.push(parent);
+    }
 
-      model.callbackOnLoad(function (m) {
-        var obj = m.scene.clone();
+    model.callbackOnLoad(function (m) {
+      var parent, obj;
+      for (var i = 0; i < parents.length; i++) {
+        parent = parents[i];
+
+        obj = m.scene.clone();
         obj.scale.setScalar(f.geom.scale);
 
         if (obj.rotation.x) {
@@ -3690,10 +3695,11 @@ Q3D.PointLayer.prototype.buildModels = function (features, startIndex) {
           obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
         }
         parent.add(obj);
-      });
-    }
-    this.addFeature(fidx + startIndex, f, objs);
-  }
+      }
+    });
+
+    this.addFeature(fidx + startIndex, f, parents);
+  }, this);
 };
 
 Q3D.PointLayer.prototype.buildLabels = function (features) {
