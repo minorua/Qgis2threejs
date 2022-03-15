@@ -1180,7 +1180,7 @@ Q3D.application
 
     var layer = app.scene.mapLayers[object.userData.layerId];
     if (!layer || layer.type == Q3D.LayerType.DEM || layer.type == Q3D.LayerType.PointCloud) return;
-    if (["Billboard", "JSON model", "COLLADA model"].indexOf(layer.objType) != -1) return;
+    if (layer.properties.objType == "Billboard") return;
 
     // create a highlight object (if layer type is Point, slightly bigger than the object)
     var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
