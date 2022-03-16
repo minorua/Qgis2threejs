@@ -1531,11 +1531,11 @@ function copyTempDouble(ptr) {
       return _malloc(size);
     }
 
-  
+
   function __ZSt18uncaught_exceptionv() { // std::uncaught_exception()
       return !!__ZSt18uncaught_exceptionv.uncaught_exception;
     }
-  
+
   var EXCEPTIONS={last:0,caught:[],infos:{},deAdjust:function (adjusted) {
         if (!adjusted || EXCEPTIONS.infos[adjusted]) return adjusted;
         for (var key in EXCEPTIONS.infos) {
@@ -1586,8 +1586,8 @@ function copyTempDouble(ptr) {
       throw 'Pure virtual function called!';
     }
 
-  
-  
+
+
   function ___resumeException(ptr) {
       if (!EXCEPTIONS.last) { EXCEPTIONS.last = ptr; }
       throw ptr;
@@ -1604,7 +1604,7 @@ function copyTempDouble(ptr) {
         return ((setTempRet0(0),thrown)|0);
       }
       var typeArray = Array.prototype.slice.call(arguments);
-  
+
       var pointer = Module['___cxa_is_pointer_type'](throwntype);
       // can_catch receives a **, add indirection
       if (!___cxa_find_matching_catch.buffer) ___cxa_find_matching_catch.buffer = _malloc(4);
@@ -1650,10 +1650,10 @@ function copyTempDouble(ptr) {
 
   function ___lock() {}
 
-  
-    
 
-  
+
+
+
   var SYSCALLS={varargs:0,get:function (varargs) {
         SYSCALLS.varargs += 4;
         var ret = HEAP32[(((SYSCALLS.varargs)-(4))>>2)];
@@ -1684,7 +1684,7 @@ function copyTempDouble(ptr) {
   }
   }
 
-  
+
   function flush_NO_FILESYSTEM() {
       // flush anything remaining in the buffers during shutdown
       var fflush = Module["_fflush"];
@@ -1750,17 +1750,17 @@ function copyTempDouble(ptr) {
   }
   }
 
-  
-  
-   
-  
-   
-  
-     
+
+
+
+
+
+
+
 
   function ___unlock() {}
 
-  
+
   function getShiftFromSize(size) {
       switch (size) {
           case 1: return 0;
@@ -1771,9 +1771,9 @@ function copyTempDouble(ptr) {
               throw new TypeError('Unknown type size: ' + size);
       }
     }
-  
-  
-  
+
+
+
   function embind_init_charCodes() {
       var codes = new Array(256);
       for (var i = 0; i < 256; ++i) {
@@ -1788,21 +1788,21 @@ function copyTempDouble(ptr) {
       }
       return ret;
     }
-  
-  
+
+
   var awaitingDependencies={};
-  
+
   var registeredTypes={};
-  
+
   var typeDependencies={};
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   var char_0=48;
-  
+
   var char_9=57;function makeLegalFunctionName(name) {
       if (undefined === name) {
           return '_unknown';
@@ -1828,7 +1828,7 @@ function copyTempDouble(ptr) {
       var errorClass = createNamedFunction(errorName, function(message) {
           this.name = errorName;
           this.message = message;
-  
+
           var stack = (new Error(message)).stack;
           if (stack !== undefined) {
               this.stack = this.toString() + '\n' +
@@ -1844,21 +1844,21 @@ function copyTempDouble(ptr) {
               return this.name + ': ' + this.message;
           }
       };
-  
+
       return errorClass;
     }var BindingError=undefined;function throwBindingError(message) {
       throw new BindingError(message);
     }
-  
-  
-  
+
+
+
   var InternalError=undefined;function throwInternalError(message) {
       throw new InternalError(message);
     }function whenDependentTypesAreResolved(myTypes, dependentTypes, getTypeConverters) {
       myTypes.forEach(function(type) {
           typeDependencies[type] = dependentTypes;
       });
-  
+
       function onComplete(typeConverters) {
           var myTypeConverters = getTypeConverters(typeConverters);
           if (myTypeConverters.length !== myTypes.length) {
@@ -1868,7 +1868,7 @@ function copyTempDouble(ptr) {
               registerType(myTypes[i], myTypeConverters[i]);
           }
       }
-  
+
       var typeConverters = new Array(dependentTypes.length);
       var unregisteredTypes = [];
       var registered = 0;
@@ -1894,11 +1894,11 @@ function copyTempDouble(ptr) {
       }
     }function registerType(rawType, registeredInstance, options) {
       options = options || {};
-  
+
       if (!('argPackAdvance' in registeredInstance)) {
           throw new TypeError('registerType registeredInstance requires argPackAdvance');
       }
-  
+
       var name = registeredInstance.name;
       if (!rawType) {
           throwBindingError('type "' + name + '" must have a positive integer typeid pointer');
@@ -1910,10 +1910,10 @@ function copyTempDouble(ptr) {
               throwBindingError("Cannot register type '" + name + "' twice");
           }
       }
-  
+
       registeredTypes[rawType] = registeredInstance;
       delete typeDependencies[rawType];
-  
+
       if (awaitingDependencies.hasOwnProperty(rawType)) {
           var callbacks = awaitingDependencies[rawType];
           delete awaitingDependencies[rawType];
@@ -1923,7 +1923,7 @@ function copyTempDouble(ptr) {
       }
     }function __embind_register_bool(rawType, name, size, trueValue, falseValue) {
       var shift = getShiftFromSize(size);
-  
+
       name = readLatin1String(name);
       registerType(rawType, {
           name: name,
@@ -1954,9 +1954,9 @@ function copyTempDouble(ptr) {
       });
     }
 
-  
-  
-  
+
+
+
   function ClassHandle_isAliasOf(other) {
       if (!(this instanceof ClassHandle)) {
           return false;
@@ -1964,26 +1964,26 @@ function copyTempDouble(ptr) {
       if (!(other instanceof ClassHandle)) {
           return false;
       }
-  
+
       var leftClass = this.$$.ptrType.registeredClass;
       var left = this.$$.ptr;
       var rightClass = other.$$.ptrType.registeredClass;
       var right = other.$$.ptr;
-  
+
       while (leftClass.baseClass) {
           left = leftClass.upcast(left);
           leftClass = leftClass.baseClass;
       }
-  
+
       while (rightClass.baseClass) {
           right = rightClass.upcast(right);
           rightClass = rightClass.baseClass;
       }
-  
+
       return leftClass === rightClass && left === right;
     }
-  
-  
+
+
   function shallowCopyInternalPointer(o) {
       return {
           count: o.count,
@@ -1995,7 +1995,7 @@ function copyTempDouble(ptr) {
           smartPtrType: o.smartPtrType,
       };
     }
-  
+
   function throwInstanceAlreadyDeleted(obj) {
       function getInstanceTypeName(handle) {
         return handle.$$.ptrType.registeredClass.name;
@@ -2005,7 +2005,7 @@ function copyTempDouble(ptr) {
       if (!this.$$.ptr) {
           throwInstanceAlreadyDeleted(this);
       }
-  
+
       if (this.$$.preservePointerOnDelete) {
           this.$$.count.value += 1;
           return this;
@@ -2015,14 +2015,14 @@ function copyTempDouble(ptr) {
                   value: shallowCopyInternalPointer(this.$$),
               }
           });
-  
+
           clone.$$.count.value += 1;
           clone.$$.deleteScheduled = false;
           return clone;
       }
     }
-  
-  
+
+
   function runDestructor(handle) {
       var $$ = handle.$$;
       if ($$.smartPtr) {
@@ -2034,11 +2034,11 @@ function copyTempDouble(ptr) {
       if (!this.$$.ptr) {
           throwInstanceAlreadyDeleted(this);
       }
-  
+
       if (this.$$.deleteScheduled && !this.$$.preservePointerOnDelete) {
           throwBindingError('Object already scheduled for deletion');
       }
-  
+
       this.$$.count.value -= 1;
       var toDelete = 0 === this.$$.count.value;
       if (toDelete) {
@@ -2049,16 +2049,16 @@ function copyTempDouble(ptr) {
           this.$$.ptr = undefined;
       }
     }
-  
+
   function ClassHandle_isDeleted() {
       return !this.$$.ptr;
     }
-  
-  
+
+
   var delayFunction=undefined;
-  
+
   var deletionQueue=[];
-  
+
   function flushPendingDeletes() {
       while (deletionQueue.length) {
           var obj = deletionQueue.pop();
@@ -2086,10 +2086,10 @@ function copyTempDouble(ptr) {
       ClassHandle.prototype['deleteLater'] = ClassHandle_deleteLater;
     }function ClassHandle() {
     }
-  
+
   var registeredPointers={};
-  
-  
+
+
   function ensureOverloadTable(proto, methodName, humanName) {
       if (undefined === proto[methodName].overloadTable) {
           var prevFunc = proto[methodName];
@@ -2110,7 +2110,7 @@ function copyTempDouble(ptr) {
           if (undefined === numArguments || (undefined !== Module[name].overloadTable && undefined !== Module[name].overloadTable[numArguments])) {
               throwBindingError("Cannot register public name '" + name + "' twice");
           }
-  
+
           // We are exposing a function with the same name as an existing function. Create an overload table and a function selector
           // that routes between the two.
           ensureOverloadTable(Module, name, name);
@@ -2127,7 +2127,7 @@ function copyTempDouble(ptr) {
           }
       }
     }
-  
+
   function RegisteredClass(
       name,
       constructor,
@@ -2148,9 +2148,9 @@ function copyTempDouble(ptr) {
       this.downcast = downcast;
       this.pureVirtualFunctions = [];
     }
-  
-  
-  
+
+
+
   function upcastPointer(ptr, ptrClass, desiredClass) {
       while (ptrClass !== desiredClass) {
           if (!ptrClass.upcast) {
@@ -2167,7 +2167,7 @@ function copyTempDouble(ptr) {
           }
           return 0;
       }
-  
+
       if (!handle.$$) {
           throwBindingError('Cannot pass "' + _embind_repr(handle) + '" as a ' + this.name);
       }
@@ -2178,14 +2178,14 @@ function copyTempDouble(ptr) {
       var ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
       return ptr;
     }
-  
+
   function genericPointerToWireType(destructors, handle) {
       var ptr;
       if (handle === null) {
           if (this.isReference) {
               throwBindingError('null is not a valid ' + this.name);
           }
-  
+
           if (this.isSmartPointer) {
               ptr = this.rawConstructor();
               if (destructors !== null) {
@@ -2196,7 +2196,7 @@ function copyTempDouble(ptr) {
               return 0;
           }
       }
-  
+
       if (!handle.$$) {
           throwBindingError('Cannot pass "' + _embind_repr(handle) + '" as a ' + this.name);
       }
@@ -2208,7 +2208,7 @@ function copyTempDouble(ptr) {
       }
       var handleClass = handle.$$.ptrType.registeredClass;
       ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
-  
+
       if (this.isSmartPointer) {
           // TODO: this is not strictly true
           // We could support BY_EMVAL conversions from raw pointers to smart pointers
@@ -2216,7 +2216,7 @@ function copyTempDouble(ptr) {
           if (undefined === handle.$$.smartPtr) {
               throwBindingError('Passing raw pointer to smart pointer is illegal');
           }
-  
+
           switch (this.sharingPolicy) {
               case 0: // NONE
                   // no upcasting
@@ -2226,11 +2226,11 @@ function copyTempDouble(ptr) {
                       throwBindingError('Cannot convert argument of type ' + (handle.$$.smartPtrType ? handle.$$.smartPtrType.name : handle.$$.ptrType.name) + ' to parameter type ' + this.name);
                   }
                   break;
-  
+
               case 1: // INTRUSIVE
                   ptr = handle.$$.smartPtr;
                   break;
-  
+
               case 2: // BY_EMVAL
                   if (handle.$$.smartPtrType === this) {
                       ptr = handle.$$.smartPtr;
@@ -2247,14 +2247,14 @@ function copyTempDouble(ptr) {
                       }
                   }
                   break;
-  
+
               default:
                   throwBindingError('Unsupporting sharing policy');
           }
       }
       return ptr;
     }
-  
+
   function nonConstNoSmartPtrRawPointerToWireType(destructors, handle) {
       if (handle === null) {
           if (this.isReference) {
@@ -2262,7 +2262,7 @@ function copyTempDouble(ptr) {
           }
           return 0;
       }
-  
+
       if (!handle.$$) {
           throwBindingError('Cannot pass "' + _embind_repr(handle) + '" as a ' + this.name);
       }
@@ -2276,32 +2276,32 @@ function copyTempDouble(ptr) {
       var ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
       return ptr;
     }
-  
-  
+
+
   function simpleReadValueFromPointer(pointer) {
       return this['fromWireType'](HEAPU32[pointer >> 2]);
     }
-  
+
   function RegisteredPointer_getPointee(ptr) {
       if (this.rawGetPointee) {
           ptr = this.rawGetPointee(ptr);
       }
       return ptr;
     }
-  
+
   function RegisteredPointer_destructor(ptr) {
       if (this.rawDestructor) {
           this.rawDestructor(ptr);
       }
     }
-  
+
   function RegisteredPointer_deleteObject(handle) {
       if (handle !== null) {
           handle['delete']();
       }
     }
-  
-  
+
+
   function downcastPointer(ptr, ptrClass, desiredClass) {
       if (ptrClass === desiredClass) {
           return ptr;
@@ -2309,21 +2309,21 @@ function copyTempDouble(ptr) {
       if (undefined === desiredClass.baseClass) {
           return null; // no conversion
       }
-  
+
       var rv = downcastPointer(ptr, ptrClass, desiredClass.baseClass);
       if (rv === null) {
           return null;
       }
       return desiredClass.downcast(rv);
     }
-  
-  
-  
-  
+
+
+
+
   function getInheritedInstanceCount() {
       return Object.keys(registeredInstances).length;
     }
-  
+
   function getLiveInheritedInstances() {
       var rv = [];
       for (var k in registeredInstances) {
@@ -2333,7 +2333,7 @@ function copyTempDouble(ptr) {
       }
       return rv;
     }
-  
+
   function setDelayFunction(fn) {
       delayFunction = fn;
       if (deletionQueue.length && delayFunction) {
@@ -2345,7 +2345,7 @@ function copyTempDouble(ptr) {
       Module['flushPendingDeletes'] = flushPendingDeletes;
       Module['setDelayFunction'] = setDelayFunction;
     }var registeredInstances={};
-  
+
   function getBasestPointer(class_, ptr) {
       if (ptr === undefined) {
           throwBindingError('ptr should not be undefined');
@@ -2359,7 +2359,7 @@ function copyTempDouble(ptr) {
       ptr = getBasestPointer(class_, ptr);
       return registeredInstances[ptr];
     }
-  
+
   function makeClassHandle(prototype, record) {
       if (!record.ptrType || !record.ptr) {
           throwInternalError('makeClassHandle requires ptr and ptrType');
@@ -2377,14 +2377,14 @@ function copyTempDouble(ptr) {
       });
     }function RegisteredPointer_fromWireType(ptr) {
       // ptr is a raw pointer (or a raw smartpointer)
-  
+
       // rawPointer is a maybe-null raw pointer
       var rawPointer = this.getPointee(ptr);
       if (!rawPointer) {
           this.destructor(ptr);
           return null;
       }
-  
+
       var registeredInstance = getInheritedInstance(this.registeredClass, rawPointer);
       if (undefined !== registeredInstance) {
           // JS object has been neutered, time to repopulate it
@@ -2400,7 +2400,7 @@ function copyTempDouble(ptr) {
               return rv;
           }
       }
-  
+
       function makeDefaultHandle() {
           if (this.isSmartPointer) {
               return makeClassHandle(this.registeredClass.instancePrototype, {
@@ -2416,13 +2416,13 @@ function copyTempDouble(ptr) {
               });
           }
       }
-  
+
       var actualType = this.registeredClass.getActualType(rawPointer);
       var registeredPointerRecord = registeredPointers[actualType];
       if (!registeredPointerRecord) {
           return makeDefaultHandle.call(this);
       }
-  
+
       var toType;
       if (this.isConst) {
           toType = registeredPointerRecord.constPointerType;
@@ -2461,7 +2461,7 @@ function copyTempDouble(ptr) {
       registeredClass,
       isReference,
       isConst,
-  
+
       // smart pointer properties
       isSmartPointer,
       pointeeType,
@@ -2475,7 +2475,7 @@ function copyTempDouble(ptr) {
       this.registeredClass = registeredClass;
       this.isReference = isReference;
       this.isConst = isConst;
-  
+
       // smart pointer properties
       this.isSmartPointer = isSmartPointer;
       this.pointeeType = pointeeType;
@@ -2484,7 +2484,7 @@ function copyTempDouble(ptr) {
       this.rawConstructor = rawConstructor;
       this.rawShare = rawShare;
       this.rawDestructor = rawDestructor;
-  
+
       if (!isSmartPointer && registeredClass.baseClass === undefined) {
           if (isConst) {
               this['toWireType'] = constNoSmartPtrRawPointerToWireType;
@@ -2501,7 +2501,7 @@ function copyTempDouble(ptr) {
           //       craftInvokerFunction altogether.
       }
     }
-  
+
   function replacePublicSymbol(name, value, numArguments) {
       if (!Module.hasOwnProperty(name)) {
           throwInternalError('Replacing nonexistant public symbol');
@@ -2515,24 +2515,24 @@ function copyTempDouble(ptr) {
           Module[name].argCount = numArguments;
       }
     }
-  
+
   function embind__requireFunction(signature, rawFunction) {
       signature = readLatin1String(signature);
-  
+
       function makeDynCaller(dynCall) {
           var args = [];
           for (var i = 1; i < signature.length; ++i) {
               args.push('a' + i);
           }
-  
+
           var name = 'dynCall_' + signature + '_' + rawFunction;
           var body = 'return function ' + name + '(' + args.join(', ') + ') {\n';
           body    += '    return dynCall(rawFunction' + (args.length ? ', ' : '') + args.join(', ') + ');\n';
           body    += '};\n';
-  
+
           return (new Function('dynCall', 'rawFunction', body))(dynCall, rawFunction);
       }
-  
+
       var fp;
       if (Module['FUNCTION_TABLE_' + signature] !== undefined) {
           fp = Module['FUNCTION_TABLE_' + signature][rawFunction];
@@ -2561,16 +2561,16 @@ function copyTempDouble(ptr) {
           }
           fp = makeDynCaller(dc);
       }
-  
+
       if (typeof fp !== "function") {
           throwBindingError("unknown function pointer with signature " + signature + ": " + rawFunction);
       }
       return fp;
     }
-  
-  
+
+
   var UnboundTypeError=undefined;
-  
+
   function getTypeName(type) {
       var ptr = ___getTypeName(type);
       var rv = readLatin1String(ptr);
@@ -2594,7 +2594,7 @@ function copyTempDouble(ptr) {
           seen[type] = true;
       }
       types.forEach(visit);
-  
+
       throw new UnboundTypeError(message + ': ' + unboundTypes.map(getTypeName).join([', ']));
     }function __embind_register_class(
       rawType,
@@ -2621,18 +2621,18 @@ function copyTempDouble(ptr) {
       }
       rawDestructor = embind__requireFunction(destructorSignature, rawDestructor);
       var legalFunctionName = makeLegalFunctionName(name);
-  
+
       exposePublicSymbol(legalFunctionName, function() {
           // this code cannot run if baseClassRawType is zero
           throwUnboundTypeError('Cannot construct ' + name + ' due to unbound types', [baseClassRawType]);
       });
-  
+
       whenDependentTypesAreResolved(
           [rawType, rawPointerType, rawConstPointerType],
           baseClassRawType ? [baseClassRawType] : [],
           function(base) {
               base = base[0];
-  
+
               var baseClass;
               var basePrototype;
               if (baseClassRawType) {
@@ -2641,7 +2641,7 @@ function copyTempDouble(ptr) {
               } else {
                   basePrototype = ClassHandle.prototype;
               }
-  
+
               var constructor = createNamedFunction(legalFunctionName, function() {
                   if (Object.getPrototypeOf(this) !== instancePrototype) {
                       throw new BindingError("Use 'new' to construct " + name);
@@ -2655,13 +2655,13 @@ function copyTempDouble(ptr) {
                   }
                   return body.apply(this, arguments);
               });
-  
+
               var instancePrototype = Object.create(basePrototype, {
                   constructor: { value: constructor },
               });
-  
+
               constructor.prototype = instancePrototype;
-  
+
               var registeredClass = new RegisteredClass(
                   name,
                   constructor,
@@ -2671,41 +2671,41 @@ function copyTempDouble(ptr) {
                   getActualType,
                   upcast,
                   downcast);
-  
+
               var referenceConverter = new RegisteredPointer(
                   name,
                   registeredClass,
                   true,
                   false,
                   false);
-  
+
               var pointerConverter = new RegisteredPointer(
                   name + '*',
                   registeredClass,
                   false,
                   false,
                   false);
-  
+
               var constPointerConverter = new RegisteredPointer(
                   name + ' const*',
                   registeredClass,
                   false,
                   true,
                   false);
-  
+
               registeredPointers[rawType] = {
                   pointerType: pointerConverter,
                   constPointerType: constPointerConverter
               };
-  
+
               replacePublicSymbol(legalFunctionName, constructor);
-  
+
               return [referenceConverter, pointerConverter, constPointerConverter];
           }
       );
     }
 
-  
+
   function heap32VectorToArray(count, firstElement) {
       var array = [];
       for (var i = 0; i < count; i++) {
@@ -2713,7 +2713,7 @@ function copyTempDouble(ptr) {
       }
       return array;
     }
-  
+
   function runDestructors(destructors) {
       while (destructors.length) {
           var ptr = destructors.pop();
@@ -2730,11 +2730,11 @@ function copyTempDouble(ptr) {
     ) {
       var rawArgTypes = heap32VectorToArray(argCount, rawArgTypesAddr);
       invoker = embind__requireFunction(invokerSignature, invoker);
-  
+
       whenDependentTypesAreResolved([], [rawClassType], function(classType) {
           classType = classType[0];
           var humanName = 'constructor ' + classType.name;
-  
+
           if (undefined === classType.registeredClass.constructor_body) {
               classType.registeredClass.constructor_body = [];
           }
@@ -2744,7 +2744,7 @@ function copyTempDouble(ptr) {
           classType.registeredClass.constructor_body[argCount - 1] = function unboundTypeHandler() {
               throwUnboundTypeError('Cannot construct ' + classType.name + ' due to unbound types', rawArgTypes);
           };
-  
+
           whenDependentTypesAreResolved([], rawArgTypes, function(argTypes) {
               classType.registeredClass.constructor_body[argCount - 1] = function constructor_body() {
                   if (arguments.length !== argCount - 1) {
@@ -2756,10 +2756,10 @@ function copyTempDouble(ptr) {
                   for (var i = 1; i < argCount; ++i) {
                       args[i] = argTypes[i]['toWireType'](destructors, arguments[i - 1]);
                   }
-  
+
                   var ptr = invoker.apply(null, args);
                   runDestructors(destructors);
-  
+
                   return argTypes[0]['fromWireType'](ptr);
               };
               return [];
@@ -2768,18 +2768,18 @@ function copyTempDouble(ptr) {
       });
     }
 
-  
-  
+
+
   function new_(constructor, argumentList) {
       if (!(constructor instanceof Function)) {
           throw new TypeError('new_ called with constructor type ' + typeof(constructor) + " which is not a function");
       }
-  
+
       /*
        * Previously, the following line was just:
-  
+
        function dummy() {};
-  
+
        * Unfortunately, Chrome was preserving 'dummy' as the object's name, even though at creation, the 'dummy' has the
        * correct constructor name.  Thus, objects created with IMVU.new would show up in the debugger as 'dummy', which
        * isn't very helpful.  Using IMVU.createNamedFunction addresses the issue.  Doublely-unfortunately, there's no way
@@ -2788,7 +2788,7 @@ function copyTempDouble(ptr) {
       var dummy = createNamedFunction(constructor.name || 'unknownFunctionName', function(){});
       dummy.prototype = constructor.prototype;
       var obj = new dummy;
-  
+
       var r = constructor.apply(obj, argumentList);
       return (r instanceof Object) ? r : obj;
     }function craftInvokerFunction(humanName, argTypes, classType, cppInvokerFunc, cppTargetFunc) {
@@ -2801,74 +2801,74 @@ function copyTempDouble(ptr) {
       // cppInvokerFunc: JS Function object to the C++-side function that interops into C++ code.
       // cppTargetFunc: Function pointer (an integer to FUNCTION_TABLE) to the target C++ function the cppInvokerFunc will end up calling.
       var argCount = argTypes.length;
-  
+
       if (argCount < 2) {
           throwBindingError("argTypes array size mismatch! Must at least get return value and 'this' types!");
       }
-  
+
       var isClassMethodFunc = (argTypes[1] !== null && classType !== null);
-  
+
       // Free functions with signature "void function()" do not need an invoker that marshalls between wire types.
   // TODO: This omits argument count check - enable only at -O3 or similar.
   //    if (ENABLE_UNSAFE_OPTS && argCount == 2 && argTypes[0].name == "void" && !isClassMethodFunc) {
   //       return FUNCTION_TABLE[fn];
   //    }
-  
-  
+
+
       // Determine if we need to use a dynamic stack to store the destructors for the function parameters.
       // TODO: Remove this completely once all function invokers are being dynamically generated.
       var needsDestructorStack = false;
-  
+
       for(var i = 1; i < argTypes.length; ++i) { // Skip return value at index 0 - it's not deleted here.
           if (argTypes[i] !== null && argTypes[i].destructorFunction === undefined) { // The type does not define a destructor function - must use dynamic stack
               needsDestructorStack = true;
               break;
           }
       }
-  
+
       var returns = (argTypes[0].name !== "void");
-  
+
       var argsList = "";
       var argsListWired = "";
       for(var i = 0; i < argCount - 2; ++i) {
           argsList += (i!==0?", ":"")+"arg"+i;
           argsListWired += (i!==0?", ":"")+"arg"+i+"Wired";
       }
-  
+
       var invokerFnBody =
           "return function "+makeLegalFunctionName(humanName)+"("+argsList+") {\n" +
           "if (arguments.length !== "+(argCount - 2)+") {\n" +
               "throwBindingError('function "+humanName+" called with ' + arguments.length + ' arguments, expected "+(argCount - 2)+" args!');\n" +
           "}\n";
-  
-  
+
+
       if (needsDestructorStack) {
           invokerFnBody +=
               "var destructors = [];\n";
       }
-  
+
       var dtorStack = needsDestructorStack ? "destructors" : "null";
       var args1 = ["throwBindingError", "invoker", "fn", "runDestructors", "retType", "classParam"];
       var args2 = [throwBindingError, cppInvokerFunc, cppTargetFunc, runDestructors, argTypes[0], argTypes[1]];
-  
-  
+
+
       if (isClassMethodFunc) {
           invokerFnBody += "var thisWired = classParam.toWireType("+dtorStack+", this);\n";
       }
-  
+
       for(var i = 0; i < argCount - 2; ++i) {
           invokerFnBody += "var arg"+i+"Wired = argType"+i+".toWireType("+dtorStack+", arg"+i+"); // "+argTypes[i+2].name+"\n";
           args1.push("argType"+i);
           args2.push(argTypes[i+2]);
       }
-  
+
       if (isClassMethodFunc) {
           argsListWired = "thisWired" + (argsListWired.length > 0 ? ", " : "") + argsListWired;
       }
-  
+
       invokerFnBody +=
           (returns?"var rv = ":"") + "invoker(fn"+(argsListWired.length>0?", ":"")+argsListWired+");\n";
-  
+
       if (needsDestructorStack) {
           invokerFnBody += "runDestructors(destructors);\n";
       } else {
@@ -2881,16 +2881,16 @@ function copyTempDouble(ptr) {
               }
           }
       }
-  
+
       if (returns) {
           invokerFnBody += "var ret = retType.fromWireType(rv);\n" +
                            "return ret;\n";
       } else {
       }
       invokerFnBody += "}\n";
-  
+
       args1.push(invokerFnBody);
-  
+
       var invokerFunction = new_(Function, args1).apply(null, args2);
       return invokerFunction;
     }function __embind_register_class_function(
@@ -2906,19 +2906,19 @@ function copyTempDouble(ptr) {
       var rawArgTypes = heap32VectorToArray(argCount, rawArgTypesAddr);
       methodName = readLatin1String(methodName);
       rawInvoker = embind__requireFunction(invokerSignature, rawInvoker);
-  
+
       whenDependentTypesAreResolved([], [rawClassType], function(classType) {
           classType = classType[0];
           var humanName = classType.name + '.' + methodName;
-  
+
           if (isPureVirtual) {
               classType.registeredClass.pureVirtualFunctions.push(methodName);
           }
-  
+
           function unboundTypesHandler() {
               throwUnboundTypeError('Cannot call ' + humanName + ' due to unbound types', rawArgTypes);
           }
-  
+
           var proto = classType.registeredClass.instancePrototype;
           var method = proto[methodName];
           if (undefined === method || (undefined === method.overloadTable && method.className !== classType.name && method.argCount === argCount - 2)) {
@@ -2931,11 +2931,11 @@ function copyTempDouble(ptr) {
               ensureOverloadTable(proto, methodName, humanName);
               proto[methodName].overloadTable[argCount - 2] = unboundTypesHandler;
           }
-  
+
           whenDependentTypesAreResolved([], rawArgTypes, function(argTypes) {
-  
+
               var memberFunction = craftInvokerFunction(humanName, argTypes, classType, rawInvoker, context);
-  
+
               // Replace the initial unbound-handler-stub function with the appropriate member function, now that all types
               // are resolved. If multiple overloads are registered for this function, the function goes into an overload table.
               if (undefined === proto[methodName].overloadTable) {
@@ -2945,26 +2945,26 @@ function copyTempDouble(ptr) {
               } else {
                   proto[methodName].overloadTable[argCount - 2] = memberFunction;
               }
-  
+
               return [];
           });
           return [];
       });
     }
 
-  
-  
+
+
   var emval_free_list=[];
-  
+
   var emval_handle_array=[{},{value:undefined},{value:null},{value:true},{value:false}];function __emval_decref(handle) {
       if (handle > 4 && 0 === --emval_handle_array[handle].refcount) {
           emval_handle_array[handle] = undefined;
           emval_free_list.push(handle);
       }
     }
-  
-  
-  
+
+
+
   function count_emval_handles() {
       var count = 0;
       for (var i = 5; i < emval_handle_array.length; ++i) {
@@ -2974,7 +2974,7 @@ function copyTempDouble(ptr) {
       }
       return count;
     }
-  
+
   function get_first_emval() {
       for (var i = 5; i < emval_handle_array.length; ++i) {
           if (emval_handle_array[i] !== undefined) {
@@ -2986,7 +2986,7 @@ function copyTempDouble(ptr) {
       Module['count_emval_handles'] = count_emval_handles;
       Module['get_first_emval'] = get_first_emval;
     }function __emval_register(value) {
-  
+
       switch(value){
         case undefined :{ return 1; }
         case null :{ return 2; }
@@ -2996,7 +2996,7 @@ function copyTempDouble(ptr) {
           var handle = emval_free_list.length ?
               emval_free_list.pop() :
               emval_handle_array.length;
-  
+
           emval_handle_array[handle] = {refcount: 1, value: value};
           return handle;
           }
@@ -3016,13 +3016,13 @@ function copyTempDouble(ptr) {
           'argPackAdvance': 8,
           'readValueFromPointer': simpleReadValueFromPointer,
           destructorFunction: null, // This type does not need a destructor
-  
+
           // TODO: do we need a deleteObject here?  write a test where
           // emval is passed into JS via an interface
       });
     }
 
-  
+
   function _embind_repr(v) {
       if (v === null) {
           return 'null';
@@ -3034,7 +3034,7 @@ function copyTempDouble(ptr) {
           return '' + v;
       }
     }
-  
+
   function floatReadValueFromPointer(name, shift) {
       switch (shift) {
           case 2: return function(pointer) {
@@ -3068,7 +3068,7 @@ function copyTempDouble(ptr) {
       });
     }
 
-  
+
   function integerReadValueFromPointer(name, shift, signed) {
       // integers are quite common, so generate very specialized functions
       switch (shift) {
@@ -3089,22 +3089,22 @@ function copyTempDouble(ptr) {
       if (maxRange === -1) { // LLVM doesn't have signed and unsigned 32-bit types, so u32 literals come out as 'i32 -1'. Always treat those as max u32.
           maxRange = 4294967295;
       }
-  
+
       var shift = getShiftFromSize(size);
-  
+
       var fromWireType = function(value) {
           return value;
       };
-  
+
       if (minRange === 0) {
           var bitshift = 32 - 8*size;
           fromWireType = function(value) {
               return (value << bitshift) >>> bitshift;
           };
       }
-  
+
       var isUnsignedType = (name.indexOf('unsigned') != -1);
-  
+
       registerType(primitiveType, {
           name: name,
           'fromWireType': fromWireType,
@@ -3136,9 +3136,9 @@ function copyTempDouble(ptr) {
           Float32Array,
           Float64Array,
       ];
-  
+
       var TA = typeMapping[dataTypeIndex];
-  
+
       function decodeMemoryView(handle) {
           handle = handle >> 2;
           var heap = HEAPU32;
@@ -3146,7 +3146,7 @@ function copyTempDouble(ptr) {
           var data = heap[handle + 1]; // byte offset into emscripten heap
           return new TA(heap['buffer'], data, size);
       }
-  
+
       name = readLatin1String(name);
       registerType(rawType, {
           name: name,
@@ -3175,7 +3175,7 @@ function copyTempDouble(ptr) {
               if (value instanceof ArrayBuffer) {
                   value = new Uint8Array(value);
               }
-  
+
               function getTAElement(ta, index) {
                   return ta[index];
               }
@@ -3194,7 +3194,7 @@ function copyTempDouble(ptr) {
               } else {
                   throwBindingError('Cannot pass non-string to std::string');
               }
-  
+
               // assumes 4-byte alignment
               var length = value.length;
               var ptr = _malloc(4 + length);
@@ -3283,38 +3283,38 @@ function copyTempDouble(ptr) {
       Module['abort']();
     }
 
-   
-
-   
-
-   
 
 
 
-   
+
+
+
+
+
+
 
   function _llvm_trap() {
       abort('trap!');
     }
 
-  
+
   function _emscripten_memcpy_big(dest, src, num) {
       HEAPU8.set(HEAPU8.subarray(src, src+num), dest);
       return dest;
-    } 
+    }
 
-   
 
-   
 
-  
+
+
+
   var PTHREAD_SPECIFIC={};function _pthread_getspecific(key) {
       return PTHREAD_SPECIFIC[key] || 0;
     }
 
-  
+
   var PTHREAD_SPECIFIC_NEXT_KEY=1;
-  
+
   var ERRNO_CODES={EPERM:1,ENOENT:2,ESRCH:3,EINTR:4,EIO:5,ENXIO:6,E2BIG:7,ENOEXEC:8,EBADF:9,ECHILD:10,EAGAIN:11,EWOULDBLOCK:11,ENOMEM:12,EACCES:13,EFAULT:14,ENOTBLK:15,EBUSY:16,EEXIST:17,EXDEV:18,ENODEV:19,ENOTDIR:20,EISDIR:21,EINVAL:22,ENFILE:23,EMFILE:24,ENOTTY:25,ETXTBSY:26,EFBIG:27,ENOSPC:28,ESPIPE:29,EROFS:30,EMLINK:31,EPIPE:32,EDOM:33,ERANGE:34,ENOMSG:42,EIDRM:43,ECHRNG:44,EL2NSYNC:45,EL3HLT:46,EL3RST:47,ELNRNG:48,EUNATCH:49,ENOCSI:50,EL2HLT:51,EDEADLK:35,ENOLCK:37,EBADE:52,EBADR:53,EXFULL:54,ENOANO:55,EBADRQC:56,EBADSLT:57,EDEADLOCK:35,EBFONT:59,ENOSTR:60,ENODATA:61,ETIME:62,ENOSR:63,ENONET:64,ENOPKG:65,EREMOTE:66,ENOLINK:67,EADV:68,ESRMNT:69,ECOMM:70,EPROTO:71,EMULTIHOP:72,EDOTDOT:73,EBADMSG:74,ENOTUNIQ:76,EBADFD:77,EREMCHG:78,ELIBACC:79,ELIBBAD:80,ELIBSCN:81,ELIBMAX:82,ELIBEXEC:83,ENOSYS:38,ENOTEMPTY:39,ENAMETOOLONG:36,ELOOP:40,EOPNOTSUPP:95,EPFNOSUPPORT:96,ECONNRESET:104,ENOBUFS:105,EAFNOSUPPORT:97,EPROTOTYPE:91,ENOTSOCK:88,ENOPROTOOPT:92,ESHUTDOWN:108,ECONNREFUSED:111,EADDRINUSE:98,ECONNABORTED:103,ENETUNREACH:101,ENETDOWN:100,ETIMEDOUT:110,EHOSTDOWN:112,EHOSTUNREACH:113,EINPROGRESS:115,EALREADY:114,EDESTADDRREQ:89,EMSGSIZE:90,EPROTONOSUPPORT:93,ESOCKTNOSUPPORT:94,EADDRNOTAVAIL:99,ENETRESET:102,EISCONN:106,ENOTCONN:107,ETOOMANYREFS:109,EUSERS:87,EDQUOT:122,ESTALE:116,ENOTSUP:95,ENOMEDIUM:123,EILSEQ:84,EOVERFLOW:75,ECANCELED:125,ENOTRECOVERABLE:131,EOWNERDEAD:130,ESTRPIPE:86};function _pthread_key_create(key, destructor) {
       if (key == 0) {
         return ERRNO_CODES.EINVAL;
@@ -3326,9 +3326,9 @@ function copyTempDouble(ptr) {
       return 0;
     }
 
-   
 
-   
+
+
 
   function _pthread_once(ptr, func) {
       if (!_pthread_once.seen) _pthread_once.seen = {};
@@ -3345,12 +3345,12 @@ function copyTempDouble(ptr) {
       return 0;
     }
 
-  
+
   function ___setErrNo(value) {
       if (Module['___errno_location']) HEAP32[((Module['___errno_location']())>>2)]=value;
       else Module.printErr('failed to set errno from JS');
       return value;
-    } 
+    }
 embind_init_charCodes();
 BindingError = Module['BindingError'] = extendError(Error, 'BindingError');;
 InternalError = Module['InternalError'] = extendError(Error, 'InternalError');;
@@ -48806,10 +48806,10 @@ function _sbrk(increment) {
     return oldDynamicTop|0;
 }
 
-  
+
 function dynCall_i(index) {
   index = index|0;
-  
+
   return FUNCTION_TABLE_i[index&255]()|0;
 }
 
@@ -48837,7 +48837,7 @@ function dynCall_iiii(index,a1,a2,a3) {
 
 function dynCall_v(index) {
   index = index|0;
-  
+
   FUNCTION_TABLE_v[index&511]();
 }
 
@@ -49752,5 +49752,3 @@ onmessage = function(event) {
 		postMessage({type: event.data.type, status: 0, details: e});
 	}
 };
-
-

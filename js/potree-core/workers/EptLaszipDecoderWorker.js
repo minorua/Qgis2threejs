@@ -173,4 +173,3 @@ function readUsingDataView(event) {
 
 
 onmessage = readUsingDataView;
-

@@ -206,4 +206,3 @@ onmessage = function(event) {
 
 	postMessage(message, transferables);
 }
-

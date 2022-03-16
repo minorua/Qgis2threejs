@@ -11,7 +11,7 @@ onmessage = function(event)
 
 	var sourceUint8 = new Uint8Array(buffer);
 	var sourceView = new DataView(buffer);
-	
+
 	var targetPointSize = 40;
 	var targetBuffer = new ArrayBuffer(numPoints * targetPointSize);
 	var targetView = new DataView(targetBuffer);
@@ -39,7 +39,7 @@ onmessage = function(event)
 	var returnNumbers = new Uint8Array(rnBuff);
 	var numberOfReturns = new Uint8Array(nrBuff);
 	var pointSourceIDs = new Uint16Array(psBuff);
-	
+
 	for (var i = 0; i < numPoints; i++)
 	{
 		//POSITION
@@ -88,7 +88,7 @@ onmessage = function(event)
 		pointSourceIDs[i] = pointSourceID;
 
 		//COLOR, if available
-		if (pointFormatID === 2) {			
+		if (pointFormatID === 2) {
 			var r = sourceView.getUint16(i * sourcePointSize + 20, true) / 256;
 			var g = sourceView.getUint16(i * sourcePointSize + 22, true) / 256;
 			var b = sourceView.getUint16(i * sourcePointSize + 24, true) / 256;

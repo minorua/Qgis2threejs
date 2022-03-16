@@ -49,7 +49,7 @@ onmessage = function(event)
 		var spacing = event.data.spacing;
 		var hasChildren = event.data.hasChildren;
 		var name = event.data.name;
-		
+
 		var tightBoxMin = [ Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY ];
 		var tightBoxMax = [ Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY ];
 		var mean = [0, 0, 0];
@@ -63,7 +63,7 @@ onmessage = function(event)
 			{
 				var buff = new ArrayBuffer(numPoints * 4 * 3);
 				var positions = new Float32Array(buff);
-			
+
 				for(var j = 0; j < numPoints; j++)
 				{
 					var x, y, z;
@@ -201,7 +201,7 @@ onmessage = function(event)
 					x = x / length;
 					y = y / length;
 					z = z / length;
-					
+
 					normals[3 * j + 0] = x;
 					normals[3 * j + 1] = y;
 					normals[3 * j + 2] = z;
@@ -216,7 +216,7 @@ onmessage = function(event)
 					var x = cv.getFloat32(inOffset + j * pointAttributes.byteSize + 0, true);
 					var y = cv.getFloat32(inOffset + j * pointAttributes.byteSize + 4, true);
 					var z = cv.getFloat32(inOffset + j * pointAttributes.byteSize + 8, true);
-					
+
 					normals[3 * j + 0] = x;
 					normals[3 * j + 1] = y;
 					normals[3 * j + 2] = z;
@@ -236,7 +236,7 @@ onmessage = function(event)
 		{
 			indices[i] = i;
 		}
-		
+
 		attributeBuffers[PointAttribute.INDICES.name] = {buffer: buff, attribute: PointAttribute.INDICES};
 
 		var message =
@@ -284,7 +284,7 @@ Version.prototype.newerThan = function(version)
 	{
 		return true;
 	}
-	
+
 	return false;
 };
 
