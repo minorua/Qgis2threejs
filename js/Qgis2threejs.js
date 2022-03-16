@@ -124,6 +124,8 @@ Q3D.Config = {
     latlon: false
   },
 
+  potree: {},
+
   debugMode: false
 };
 

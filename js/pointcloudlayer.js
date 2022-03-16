@@ -4,7 +4,8 @@
 "use strict";
 
 (function () {
-  Potree.Global.workerPath = Q3D.Config.potreeBasePath || Potree.Global.workerPath;
+  if (Q3D.Config.potree.basePath !== undefined) Potree.Global.workerPath = Q3D.Config.potree.basePath;
+  if (Q3D.Config.potree.maxNodesLoading !== undefined) Potree.Global.maxNodesLoading = Q3D.Config.potree.maxNodesLoading;
 
   class Q3DGRP extends Potree.Group
   {
@@ -32,7 +33,7 @@
         _this.timerId = window.setTimeout(function () {
           _this.timerId = null;
           _this.layer.requestRender();
-        }, 100);
+        }, 10);
       }
     }
   }
