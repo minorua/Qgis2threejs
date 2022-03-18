@@ -214,7 +214,7 @@
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="checkBox_StartOnLoad">
             <property name="text">
-             <string>Start animation when the scene has loaded</string>
+             <string>Start animation once the scene has been loaded</string>
             </property>
            </widget>
           </item>
