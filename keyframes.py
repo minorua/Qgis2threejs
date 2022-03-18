@@ -133,7 +133,7 @@ class AnimationPanel(QWidget):
             layer.opt.allMaterials = True
 
         self.wnd.iface.requestRunScript("preview.renderEnabled = false;")
-        self.wnd.iface.updateLayerRequest.emit(layer)
+        self.wnd.iface.buildLayerRequest.emit(layer)
         self.wnd.iface.requestRunScript("preview.renderEnabled = true;")
 
     def _log(self, msg):
@@ -727,7 +727,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = layer.clone()
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
-                self.wnd.iface.updateLayerRequest.emit(layer)
+                self.wnd.iface.buildLayerRequest.emit(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()

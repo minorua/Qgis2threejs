@@ -28,8 +28,8 @@ from .ui.q3dwindow import Ui_Q3DWindow
 class Q3DViewerInterface(Q3DInterface):
 
     abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
-    updateSceneRequest = pyqtSignal(object, bool, bool)    # params: scene properties dict (None if properties do not changes), update all, reload
-    updateLayerRequest = pyqtSignal(Layer)           # param: Layer object
+    buildSceneRequest = pyqtSignal(object, bool, bool)    # params: scene properties dict (None if properties do not changes), update all, reload
+    buildLayerRequest = pyqtSignal(Layer)           # param: Layer object
     updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
     runScriptRequest = pyqtSignal(str, object)       # params: script, data to send to web page
 
@@ -75,13 +75,13 @@ class Q3DViewerInterface(Q3DInterface):
     def abort(self):
         self.abortRequest.emit(True)
 
-    def requestSceneUpdate(self, properties=None, update_all=True, reload=False):
-        self.updateSceneRequest.emit(properties, update_all, reload)
+    def requestBuildScene(self, properties=None, update_all=True, reload=False):
+        self.buildSceneRequest.emit(properties, update_all, reload)
 
-    def requestLayerUpdate(self, layer):
-        self.updateLayerRequest.emit(layer)
+    def requestBuildLayer(self, layer):
+        self.buildLayerRequest.emit(layer)
 
-    def requestWidgetUpdate(self, name, properties):
+    def requestUpdateWidget(self, name, properties):
         self.updateWidgetRequest.emit(name, properties)
 
     def requestRunScript(self, string, data=None):
@@ -309,7 +309,7 @@ class Q3DWindow(QMainWindow):
         if layer.properties != orig_layer.properties:
             layer.visible = orig_layer.visible      # respect current visible state
 
-            self.iface.requestLayerUpdate(layer)
+            self.iface.requestBuildLayer(layer)
 
             if layer.properties.get("materials") != orig_layer.properties.get("materials"):
                 self.ui.treeView.updateLayerMaterials(item, layer)
@@ -470,7 +470,7 @@ class Q3DWindow(QMainWindow):
 
         w = "groupBox_Fog"
         reload = bool(sp.get(w) != properties.get(w))
-        self.iface.requestSceneUpdate(properties, reload=reload)
+        self.iface.requestBuildScene(properties, reload=reload)
 
     def addPlane(self):
         layerId = "fp:" + createUid()
@@ -506,13 +506,13 @@ class Q3DWindow(QMainWindow):
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self.settings.widgetProperties("NorthArrow"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestWidgetUpdate("NorthArrow", p))
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("NorthArrow", p))
         dialog.show()
         dialog.exec_()
 
     def showHFLabelDialog(self):
         dialog = HFLabelDialog(self.settings.widgetProperties("Label"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestWidgetUpdate("Label", p))
+        dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("Label", p))
         dialog.show()
         dialog.exec_()
 

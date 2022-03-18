@@ -43,9 +43,9 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
-            iface.updateSceneRequest.connect(self.controller.requestSceneUpdate)
-            iface.updateLayerRequest.connect(self.controller.requestLayerUpdate)
-            iface.updateWidgetRequest.connect(self.controller.requestWidgetUpdate)
+            iface.buildSceneRequest.connect(self.controller.requestBuildScene)
+            iface.buildLayerRequest.connect(self.controller.requestBuildLayer)
+            iface.updateWidgetRequest.connect(self.controller.requestUpdateWidget)
             iface.runScriptRequest.connect(self.controller.requestRunScript)
 
             iface.updateExportSettingsRequest.connect(self.controller.updateExportSettings)
@@ -64,9 +64,9 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(self.iface, "abortRequest"):
             self.iface.abortRequest.disconnect(self.controller.abort)
-            self.iface.updateSceneRequest.disconnect(self.controller.requestSceneUpdate)
-            self.iface.updateLayerRequest.disconnect(self.controller.requestLayerUpdate)
-            self.iface.updateWidgetRequest.disconnect(self.controller.requestWidgetUpdate)
+            self.iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
+            self.iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
+            self.iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
             self.iface.runScriptRequest.disconnect(self.controller.requestRunScript)
 
             self.iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
@@ -132,7 +132,7 @@ class Q3DController(QObject):
         self.iface = Q3DControllerInterface(self)
         self.enabled = True
         self.aborted = False  # layer export aborted
-        self.updatingLayerId = None
+        self.buildingLayerId = None
         self.mapCanvas = None
 
         self.requestQueue = []
@@ -159,24 +159,24 @@ class Q3DController(QObject):
 
     def connectToMapCanvas(self, canvas):
         self.mapCanvas = canvas
-        self.mapCanvas.renderComplete.connect(self._requestSceneUpdate)
+        self.mapCanvas.renderComplete.connect(self._requestBuildScene)
         # self.mapCanvas.extentsChanged.connect(self.updateExtent)
 
     def disconnectFromMapCanvas(self):
         if self.mapCanvas:
-            self.mapCanvas.renderComplete.disconnect(self._requestSceneUpdate)
+            self.mapCanvas.renderComplete.disconnect(self._requestBuildScene)
             # self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
 
     def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True, base64=False):
-        if self.updatingLayerId:
+        if self.buildingLayerId:
             logMessage("Previous building is still in progress. Cannot start to build scene.")
             return False
 
         self.aborted = False
         self.settings.base64 = base64
 
-        self.iface.progress(0, "Updating scene")
+        self.iface.progress(0, "Building scene")
 
         if update_extent and self.mapCanvas:
             self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
@@ -229,7 +229,7 @@ class Q3DController(QObject):
         if isinstance(layer, dict):
             layer = Layer.fromDict(layer)
 
-        if self.updatingLayerId:
+        if self.buildingLayerId:
             logMessage('Previous building is still in progress. Cannot start building layer "{}".'.format(layer.name))
             return False
 
@@ -244,7 +244,7 @@ class Q3DController(QObject):
         return ret
 
     def _buildLayer(self, layer):
-        self.updatingLayerId = layer.layerId
+        self.buildingLayerId = layer.layerId
 
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
@@ -268,7 +268,7 @@ class Q3DController(QObject):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
                 logMessage("***** layer building aborted *****", False)
-                self.updatingLayerId = None
+                self.buildingLayerId = None
                 return False
 
             t1 = time.time()
@@ -290,7 +290,7 @@ class Q3DController(QObject):
             qDebug("{0} layer updated: {1:.3f}s\n{2}\n".format(layer.name,
                                                                time.time() - t0,
                                                                dlist).encode("utf-8"))
-        self.updatingLayerId = None
+        self.buildingLayerId = None
         return True
 
     def hideLayer(self, layer):
@@ -307,7 +307,7 @@ class Q3DController(QObject):
             self.timer.start()
 
     def _processRequests(self):
-        if not self.enabled or self.updatingLayerId or not self.requestQueue:
+        if not self.enabled or self.buildingLayerId or not self.requestQueue:
             return
 
         try:
@@ -356,7 +356,7 @@ class Q3DController(QObject):
         self.iface.readyToQuit.emit()
 
     @pyqtSlot(object, bool, bool)
-    def requestSceneUpdate(self, properties=None, update_all=True, reload=False):
+    def requestBuildScene(self, properties=None, update_all=True, reload=False):
         if DEBUG_MODE:
             logMessage("Scene update requested: {}".format(properties), False)
 
@@ -372,13 +372,13 @@ class Q3DController(QObject):
 
         self.requestQueue.append(r)
 
-        if self.updatingLayerId:
+        if self.buildingLayerId:
             self.abort(clear_queue=False)
         else:
             self.processRequests()
 
     @pyqtSlot(Layer)
-    def requestLayerUpdate(self, layer):
+    def requestBuildLayer(self, layer):
         if DEBUG_MODE:
             logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"), False)
 
@@ -398,13 +398,13 @@ class Q3DController(QObject):
 
         self.requestQueue = q
 
-        if self.updatingLayerId == layer.layerId:
+        if self.buildingLayerId == layer.layerId:
             self.abort(clear_queue=False)
 
         if layer.visible:
             self.requestQueue.append(layer)
 
-            if not self.updatingLayerId:
+            if not self.buildingLayerId:
                 self.processRequests()
 
         else:
@@ -412,7 +412,7 @@ class Q3DController(QObject):
             self.hideLayer(layer)
 
     @pyqtSlot(str, dict)
-    def requestWidgetUpdate(self, name, properties):
+    def requestUpdateWidget(self, name, properties):
         if name == "NorthArrow":
             self.iface.runScript("setNorthArrowColor({0})".format(properties.get("color", 0)))
             self.iface.runScript("setNorthArrowVisible({0})".format(js_bool(properties.get("visible"))))
@@ -429,12 +429,12 @@ class Q3DController(QObject):
     def requestRunScript(self, string, data=None):
         self.requestQueue.append({"string": string, "data": data})
 
-        if not self.updatingLayerId:
+        if not self.buildingLayerId:
             self.processRequests()
 
     @pyqtSlot(ExportSettings)
     def updateExportSettings(self, settings):
-        if self.updatingLayerId:
+        if self.buildingLayerId:
             self.abort()
 
         self.hideAllLayers()
@@ -476,15 +476,15 @@ class Q3DController(QObject):
             self.settings.removeLayer(layerId)
 
     # @pyqtSlot(QPainter)
-    def _requestSceneUpdate(self, _=None):
-        self.requestSceneUpdate(update_all=False)
+    def _requestBuildScene(self, _=None):
+        self.requestBuildScene(update_all=False)
 
     # @pyqtSlot()
     # def updateExtent(self):
     #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):
     #         return
     #     self.requestQueue.clear()
-    #     if self.updatingLayerId:
+    #     if self.buildingLayerId:
     #         self.abort(clear_queue=False)
 
 

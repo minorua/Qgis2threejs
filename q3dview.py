@@ -340,7 +340,7 @@ class Q3DView(QWebView):
         self.runScript("app.start()")
 
         if self._enabled:
-            self.iface.requestSceneUpdate()
+            self.iface.requestBuildScene()
         else:
             self.iface.previewStateChanged.emit(False)
 
