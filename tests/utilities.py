@@ -11,7 +11,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from Qgis2threejs.qgis2threejstools import getLayersByLayerIds
+from Qgis2threejs.tools import getLayersByLayerIds
 
 
 def pluginPath(subdir=None):
