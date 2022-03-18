@@ -16,10 +16,14 @@ class Q3DInterface(QObject):
 
         self.settings = settings
         self.webPage = webPage
+        self.enabled = True
 
     @pyqtSlot(dict)
     def loadJSONObject(self, obj):
         # display the content of the object in the debug element
+        if not self.enabled:
+            return
+
         if DEBUG_MODE == 2:
             self.runScript("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
@@ -27,15 +31,18 @@ class Q3DInterface(QObject):
 
     @pyqtSlot(str, object, str)
     def runScript(self, string, data=None, message=""):
-        self.webPage.runScript(string, data, message, sourceID="q3dwindow.py")
+        if self.enabled:
+            self.webPage.runScript(string, data, message, sourceID="q3dwindow.py")
 
     @pyqtSlot(list, bool)
     def loadScriptFiles(self, ids, force):
-        self.webPage.loadScriptFiles(ids, force)
+        if self.enabled:
+            self.webPage.loadScriptFiles(ids, force)
 
     # @pyqtSlot(str, int, bool)     # pyqtSlot override bug in PyQt5?
     def showMessage(self, msg, _1=0, _2=False):
-        logMessage(msg)
+        if self.enabled:
+            logMessage(msg)
 
     # @pyqtSlot(int, str)
     def progress(self, percentage=100, msg=None):

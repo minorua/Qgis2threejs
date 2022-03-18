@@ -6,7 +6,7 @@
 import os
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QSettings, QThread, QUrl, pyqtSignal
+from PyQt5.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
                              QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
@@ -40,6 +40,8 @@ class Q3DViewerInterface(Q3DInterface):
     layerAdded = pyqtSignal(Layer)                   # param: Layer object
     layerRemoved = pyqtSignal(str)                   # param: layerId
 
+    quitRequest = pyqtSignal()
+
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
@@ -47,6 +49,9 @@ class Q3DViewerInterface(Q3DInterface):
 
     # @pyqtSlot(str, int, bool)
     def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
+        if not self.enabled:
+            return
+
         if show_in_msg_bar:
             self.wnd.qgisIface.messageBar().pushMessage("Qgis2threejs Error", msg, level=Qgis.Warning, duration=timeout)
         else:
@@ -54,6 +59,9 @@ class Q3DViewerInterface(Q3DInterface):
 
     # @pyqtSlot(int, str)
     def progress(self, percentage=100, msg=None):
+        if not self.enabled:
+            return
+
         bar = self.wnd.ui.progressBar
         if percentage == 100:
             bar.setVisible(False)
@@ -78,6 +86,10 @@ class Q3DViewerInterface(Q3DInterface):
 
     def requestRunScript(self, string, data=None):
         self.runScriptRequest.emit(string, data)
+
+    def quit(self, controller):
+        self.quitRequest.connect(controller.quit)
+        self.quitRequest.emit()
 
 
 class Q3DWindow(QMainWindow):
@@ -134,7 +146,8 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
     def closeEvent(self, event):
-        self.iface.abort()
+        self.iface.enabled = False
+        self.controller.iface.disconnectFromIface()
 
         # save export settings to a settings file
         try:
@@ -149,6 +162,12 @@ class Q3DWindow(QMainWindow):
         settings = QSettings()
         settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
         settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+
+        # send quit request to the controller and wait until the controller gets ready to quit
+        loop = QEventLoop()
+        self.controller.iface.readyToQuit.connect(loop.quit)
+        self.iface.quit(self.controller)
+        loop.exec_()
 
         # stop worker thread event loop
         if self.thread:
