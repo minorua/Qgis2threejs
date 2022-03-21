@@ -324,7 +324,7 @@ def temporaryOutputDir():
 
 def settingsFilePath():
     proj_path = QgsProject.instance().fileName()
-    return proj_path + ".qto3settings" if proj_path else None
+    return proj_path + ".qto3settings" if proj_path else ""
 
 
 def getColor(parent=None):

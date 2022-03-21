@@ -78,9 +78,9 @@ class ExportSettings:
     def loadSettingsFromFile(self, filepath=None):
         """load settings from a JSON file"""
         self.data = {}
-        if filepath is None:
+        if not filepath:
             filepath = settingsFilePath()   # get settings file path for current project
-            if filepath is None or not os.path.exists(filepath):
+            if not os.path.exists(filepath):
                 self.updateLayers()
                 return False
 
@@ -111,9 +111,9 @@ class ExportSettings:
 
     def saveSettings(self, filepath=None):
         """save settings to a JSON file"""
-        if filepath is None:
+        if not filepath:
             filepath = settingsFilePath()
-            if filepath is None:
+            if not filepath:
                 return False
 
         self.data["Version"] = PLUGIN_VERSION_INT
