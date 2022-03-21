@@ -2890,6 +2890,17 @@ Object.defineProperty(Q3D.MapLayer.prototype, "opacity", {
   },
   set: function (value) {
     this.materials.setOpacity(value);
+
+    if (this.labelGroup) {
+      this.labelGroup.traverse(function (obj) {
+        if (obj.material) obj.material.opacity = value;
+      });
+    }
+
+    if (this.labelConnectorGroup && this.labelConnectorGroup.children.length) {
+      this.labelConnectorGroup.children[0].material.opacity = value;
+    }
+
     this.requestRender();
   }
 });
@@ -3255,8 +3266,6 @@ Q3D.VectorLayer = function () {
 
   this.features = [];
   this.labels = [];
-  // this.labelGroup = undefined;
-  // this.labelConnectorGroup = undefined;
 };
 
 Q3D.VectorLayer.prototype = Object.create(Q3D.MapLayer.prototype);
@@ -3295,7 +3304,11 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
       hasConn = (label.cncolor !== undefined);
 
   if (hasConn) {
-    var line_mtl = new THREE.LineBasicMaterial({color: label.cncolor});
+    var line_mtl = new THREE.LineBasicMaterial({
+      color: label.cncolor,
+      opacity: this.materials.opacity(),
+      transparent: true
+    });
   }
 
   var hasUnderline = Boolean(hasConn && label.underline);
@@ -3318,13 +3331,15 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 
   canvas.height = ch;
 
-  var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc;
+  var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc, opacity;
   var underline;
 
   for (var i = 0, l = features.length; i < l; i++) {
     f = features[i];
     text = f.lbl;
     if (!text) continue;
+
+    opacity = this.materials.mtl(f.mtl).opacity;
 
     partIdx = 0;
     getPointsFunc(f).forEach(function (pt) {
@@ -3364,6 +3379,7 @@ Q3D.VectorLayer.prototype.buildLabels = function (features, getPointsFunc) {
 
       mtl = new THREE.SpriteMaterial({
         map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),
+        opacity: opacity,
         transparent: true
       });
 
