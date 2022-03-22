@@ -1,7 +1,7 @@
 Web Viewer Templates
 ====================
 
-.. 
+..
   .. note:: Now being updated for Qgis2threejs version 2.3.
 
 In Export to Web dialog, you can choose one from following available
@@ -77,8 +77,8 @@ Other parameters:
 This template is a simple 3D viewer.
 Ragardless of "Visible on load" layer setting, all exported layers are displayed on page load.
 
-.. 
-   [TODO] image
+..
+   ✏ image
 
 .. _3dviewer-dat-gui-template:
 
@@ -87,8 +87,8 @@ Ragardless of "Visible on load" layer setting, all exported layers are displayed
 
 This template has a dat-gui panel, which allows changing layer visibility and opacity, and adding a horizontal plane.
 
-.. 
-   [TODO] image
+..
+   ✏ image
 
 Controls Box
 ^^^^^^^^^^^^
@@ -113,5 +113,5 @@ Mobile Template
 This is a template for mobile devices, which has mobile friendly GUI and experimental AR feature.
 In order to use the AR feature (Camera and GPS), you need to upload exported files to a web server supporting SSL.
 
-.. 
-   [TODO] image
+..
+   ✏ image

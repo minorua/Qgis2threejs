@@ -9,10 +9,10 @@ Install the plugin
 Open the Plugin Manager (``Plugins > Manage and Install Plugins...``) and
 install Qgis2threejs plugin.
 
-.. hint:: Need help? See the `10.1. Installing and Managing Plugins`__ section of
+.. hint:: Need help? See the `9.1. Installing and Managing Plugins`__ section of
    the QGIS training manual.
 
-__ https://docs.qgis.org/3.10/en/docs/training_manual/qgis_plugins/fetching_plugins.html#ls-installing-and-managing-plugins
+__ https://docs.qgis.org/3.22/en/docs/training_manual/qgis_plugins/fetching_plugins.html#ls-installing-and-managing-plugins
 
 
 Obtain elevation data
@@ -22,15 +22,20 @@ If you already have raster DEM data, you can skip this step.
 
 NASA published elevation data generated from NASA's
 `Shuttle Radar Topography Mission`__ digital topographic data.
-We can use the data freely. Elevation data version 2.1 can be
-downloaded from the `distribution site`__.
+We can use the data freely. SRTM elevation data can be
+downloaded from the `EarthExplorer`__ (User registration required).
 
 __ https://www2.jpl.nasa.gov/srtm/index.html
-__ https://dds.cr.usgs.gov/srtm/
+__ https://earthexplorer.usgs.gov/
 
-Download a zip file that contains elevation data of the area you are
-interested in from under the ``version2_1/SRTM3`` directory. The zip
-file contains a ``.hgt`` file, which is readable by the GDAL.
+
+✏
+
+..
+  Download a zip file that contains elevation data of the area you are
+  interested in from under the ``version2_1/SRTM3`` directory. The zip
+  file contains a ``.hgt`` file, which is readable by the GDAL.
+..
 
 ..
   .. tip:: If the area extends over two or more files, you might want to
@@ -39,18 +44,16 @@ file contains a ``.hgt`` file, which is readable by the GDAL.
   __ https://docs.qgis.org/3.10/en/docs/user_manual/processing_algs/gdal/rastermiscellaneous.html#build-virtual-raster
 ..
 
-.. tip:: Do you have time to explore new high-resolution SRTM
-   elevation data? You can download 1 arc-second SRTM data from
-   the `EarthExplorer`__ (User registration required).
-
-__ https://earthexplorer.usgs.gov/
-
 
 Load DEM data
 -------------
 
-Unzip the downloaded zip file, and then drag & drop ``.hgt`` file
-to QGIS window.
+✏
+
+..
+  Unzip the downloaded zip file, and then drag & drop ``.hgt`` file
+  to QGIS window.
+..
 
 
 CRS setting
@@ -87,11 +90,15 @@ Open the Exporter
 Zoom to a part of the DEM layer extent as the map canvas is filled by the colorized DEM layer,
 and then click the plugin icon |plugin_icon| in the web toolbar to open the Qgis2threejs exporter.
 
-There is Layers panel on the left side of the window, which lists map layers in current QGIS project.
-Layer items are grouped into DEM, Point, Line and Polygon. DEM layer group has 1-band raster layers
-(GDAL provider) in current QGIS project and `Flat Plane` (a flat plane at zero altitude).
+There is ``Layers`` panel and ``Animation`` panel on the left side of the window.
 
-There is a preview on the right side. Now scene doesn't contain any 3D objects.
+The ``Layers`` panel shows the map layers in the current QGIS project that can be added to the 3D scene.
+Layer items are grouped by type. DEM layer group has 1-band raster layers in current QGIS project and
+a `Flat Plane` (a flat plane at an altitude). Multi-band raster layers and raster layers loaded using
+a provider other than GDAL provider are not available. Additional flat planes can be added from
+``Scene - Add Layer`` menu.
+
+There is a preview on the right side. The scene doesn't contain any 3D objects now.
 
 Let's add the DEM layer into the scene. Just click the checkbox on the left of the DEM layer
 under the DEM layer group.
@@ -101,15 +108,21 @@ under the DEM layer group.
 A 3D terrain object with map canvas image draped on it shows up in the preview.
 
 
-Exporting the Scene to Web
+Add another texture to DEM
 --------------------------
+
+✏
+
+
+Export the scene to Web
+-----------------------
 Click on the ``File - Export to Web...`` menu entry to open this dialog.
 
 .. image:: ./images/dialogs/export_to_web.png
 
 Select a directory to export the scene, check ``Enable the Viewer to Run Locally`` option and press ``Export`` button.
 
-.. note:: Many web browsers do not allow loading data files on local file system via Ajax.
+.. note:: Most web browsers do not allow loading data files on local file system via Ajax.
    With ``Enable the Viewer to Run Locally`` option the plugin outputs geometry and image data into a js file.
 
 .. image:: ./images/tutorial/exported_directory.png
@@ -118,45 +131,20 @@ Open the .html file with a web browser. You can see exported scene in web browse
 
 .. image:: ./images/tutorial/browser_edge1.png
 
-You can publish the exported viewer and data just by uploading the generated folder to
+You can publish the exported 3D viewer application and data just by uploading the output folder to
 a web hosting service such as Netlify and GitHub Pages.
 
 .. note:: Please do not forget to ensure that you comply with
    the Terms and use for the data before publishing the data to the web.
 
 
-Save the Scene as glTF
-----------------------
+Animation and narratives
+------------------------
 
-Are you satisfied with the scene rendering of Qgis2threejs web application? No? If so,
-let's export the scene to a glTF file. The glTF (GL Transmission Format) is a file format
-for 3D scenes and models (`Wikipedia`__). You can load it to 3D graphics softwares that can
-render high quality graphics such as Blender.
-
-__ https://en.wikipedia.org/wiki/GlTF
-
-Here we export the scene to a glTF file and load it into the `three.js editor`__.
-
-__ https://threejs.org/editor/
-
-Click on the ``File - Save Scene As - glTF (.gltf, .glb)`` menu entry,
-and select a filename to save the 3D model.
-
-When the model has been saved, a message will be displayed at the top of the exporter window.
-Then, Click `here`__ to open the three.js editor.
-
-__ https://threejs.org/editor/
-
-Click on the ``File - Import`` menu entry and select the exported ``.gltf`` file
-to load it to the scene.
-
-As there is no light, the object looks black. Click the ``Add - DirectionalLight`` menu entry to
-add a directional light to the scene.
-
-.. image:: ./images/tutorial/threejs_editor.png
+✏
 
 
-In Conclusion
+In conclusion
 -------------
 
 Tutorial is over. Now you know 3D visualization with QGIS is very easy.
@@ -164,7 +152,7 @@ If you can use high-quality data, you can create beautiful 3D scenes!
 
 .. tip:: Next, how about adding a background map layer to the map canvas.
    You can do it easily with `QuickMapServices plugin`__. Also, how about adding
-   vector data to the scene. :doc:`ObjectTypes` page has example images of various
-   object types. See :doc:`Exporter` for the detail.
+   vector data to the scene. :doc:`ObjectTypes` page has images of various object
+   types. See :doc:`Exporter` for the detail.
 
 __ https://plugins.qgis.org/plugins/quick_map_services/

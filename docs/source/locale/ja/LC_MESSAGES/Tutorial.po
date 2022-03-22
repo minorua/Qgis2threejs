@@ -3,16 +3,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-27 15:43+0900\n"
+"POT-Creation-Date: 2022-03-22 10:53+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Language: ja_JP\n"
-"X-Source-Language: C\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../source/Tutorial.rst:2
 msgid "Tutorial"
@@ -22,307 +20,284 @@ msgstr "チュートリアル"
 msgid "Let's start using Qgis2threejs plugin!"
 msgstr "さあ、Qgis2threejsプラグインを使い始めましょう!"
 
-#: ../../source/Tutorial.rst:21
-msgid "If you already have raster DEM data, you can skip this step."
-msgstr "既にラスタDEMデータをお持ちの場合はこのステップはスキップしても構いません。"
-
-#: ../../source/Tutorial.rst:23
-msgid ""
-"NASA released elevation data generated from NASA's `Shuttle Radar Topography"
-" Mission`__ digital topographic data. We can use the data freely. Elevation "
-"data version 2.1 can be downloaded from the `distribution site`__."
-msgstr ""
-"NASAは `Shuttle Radar Topography Mission`__ "
-"のデジタル地形データから生成された標高データを公開しました。我々は自由にデータを利用できます。標高データのバージョン2.1は `配布サイト`__ "
-"からダウンロードすることができます。"
-
-#: ../../source/Tutorial.rst:59
-msgid ""
-"Horizontal unit of SRTM data is degree, whereas vertical unit is meter. For "
-"appropriate visualization, you need to transform the DEM data to a projected"
-" CRS. QGIS can perform the CRS transformation on the fly."
-msgstr ""
-"SRTMデータの水平方向の単位は度ですが鉛直方向の単位はメートルです。正しく可視化するためにDEMデータを投影座標参照系に変換する必要があります。QGISはオンザフライでCRSの変換を行うことができます。"
-
-#: ../../source/Tutorial.rst:130
-msgid ""
-"Please do not forget to ensure that you comply with the Terms and use for "
-"the data before publishing the scene to the web."
-msgstr "シーンをウェブに公開する前にデータの利用規約を遵守していることを忘れずに確認して下さい。"
-
-#: ../../source/Tutorial.rst:57
-msgid "CRS setting"
-msgstr "座標参照系の設定"
-
-#: ../../source/Tutorial.rst:78
-msgid "Layer styling"
-msgstr "レイヤのスタイル設定"
-
-#: ../../source/Tutorial.rst:12
-msgid ""
-"Need help? See the `10.1.2. Installing New Plugins`__ section of the QGIS "
-"training manual."
-msgstr "助けが必要ですか? QGISトレーニングマニュアルの `10.1.2. 新しいプラグインのインストール`__ セクションを参照して下さい。"
-
-#: ../../source/Tutorial.rst:31
-msgid ""
-"Download a zip file that contains elevation data of the area you are "
-"interested in from under the ``version2_1/SRTM3`` directory. The zip file "
-"contains a ``.hgt`` file, which is readable by the GDAL."
-msgstr ""
-"``version2_1/SRTM3`` "
-"ディレクトリ以下からあなたの興味がある地域の標高データが含まれるZIPファイルをダウンロードして下さい。ZIPファイルにはGDALが読み取り可能な "
-"``.hgt`` ファイルが含まれます。"
-
-#: ../../source/Tutorial.rst:82
-msgid ""
-"An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` "
-"color map):"
-msgstr "例 (``単バンド疑似カラー`` レンダータイプと反転された ``BrBG`` カラーマップ):"
-
 #: ../../source/Tutorial.rst:7
 msgid "Install the plugin"
 msgstr "プラグインのインストール"
 
 #: ../../source/Tutorial.rst:9
 msgid ""
-"Open the Plugin Manager (``Plugins > Manage and Install Plugins...``) and "
-"install Qgis2threejs plugin."
+"Open the Plugin Manager (``Plugins > Manage and Install Plugins...``) and"
+" install Qgis2threejs plugin."
 msgstr ""
-"プラグインマネージャ (``プラグイン > プラグインの管理とインストール...``)を開いてQgis2threejsプラグインをインストールします。"
+"プラグインマネージャ (``プラグイン > "
+"プラグインの管理とインストール...``)を開いてQgis2threejsプラグインをインストールします。"
+
+#: ../../source/Tutorial.rst:12
+msgid ""
+"Need help? See the `9.1. Installing and Managing Plugins`__ section of "
+"the QGIS training manual."
+msgstr "助けが必要ですか? QGISトレーニングマニュアルの `9.1 プラグインのインストールと管理`__ セクションを参照して下さい。"
 
 #: ../../source/Tutorial.rst:19
 msgid "Obtain elevation data"
 msgstr "標高データの取得"
 
-#: ../../source/Tutorial.rst:42
-msgid ""
-"Do you have time to explore new high-resolution SRTM elevation data? You can"
-" download 1 arc-second SRTM data from the `EarthExplorer`__ (User "
-"registration required)."
-msgstr ""
-"新しい高解像度のSRTM標高データを試してみますか? 1秒角のSRTMデータは `EarthExplorer`__ "
-"からダウンロードすることができます。ただし、ユーザ登録が必要です。"
+#: ../../source/Tutorial.rst:21
+msgid "If you already have raster DEM data, you can skip this step."
+msgstr "既にラスタDEMデータをお持ちの場合はこのステップはスキップしても構いません。"
 
-#: ../../source/Tutorial.rst:50
+#: ../../source/Tutorial.rst:23
+msgid ""
+"NASA published elevation data generated from NASA's `Shuttle Radar "
+"Topography Mission`__ digital topographic data. We can use the data "
+"freely. SRTM elevation data can be downloaded from the `EarthExplorer`__ "
+"(User registration required)."
+msgstr ""
+"NASAは　`シャトルレーダー地形ミッション`__ "
+"のデジタル地形データから生成された標高データを公開しています。そのデータは自由に使うことができます。SRTM標高データは "
+"`EarthExplorer`__ でダウンロードできます (ユーザ登録が必要です)。"
+
+#: ../../source/Tutorial.rst:32 ../../source/Tutorial.rst:52
+#: ../../source/Tutorial.rst:136
+msgid "✏"
+msgstr "✏✏✏"
+
+#: ../../source/Tutorial.rst:49
 msgid "Load DEM data"
 msgstr "DEMデータの読み込み"
 
-#: ../../source/Tutorial.rst:52
+#: ../../source/Tutorial.rst:53
 msgid ""
-"Unzip the downloaded zip file, and then drag & drop ``.hgt`` file to QGIS "
-"window."
+"Unzip the downloaded zip file, and then drag & drop ``.hgt`` file to QGIS"
+" window."
 msgstr "ダウンロードしたZIPファイルを展開して ``.hgt`` ファイルをQGISウィンドウにドラッグ＆ドロップします。"
 
-#: ../../source/Tutorial.rst:63
+#: ../../source/Tutorial.rst:58
+msgid "CRS setting"
+msgstr "座標参照系の設定"
+
+#: ../../source/Tutorial.rst:60
+msgid ""
+"Horizontal unit of SRTM data is degree, whereas vertical unit is meter. "
+"For appropriate visualization, you need to transform the DEM data to a "
+"projected CRS. QGIS can perform the CRS transformation on the fly."
+msgstr "SRTMデータの水平方向の単位は度ですが鉛直方向の単位はメートルです。正しく可視化するためにDEMデータを投影座標参照系に変換する必要があります。QGISはオンザフライでCRSの変換を行うことができます。"
+
+#: ../../source/Tutorial.rst:64
 msgid "So, let's change the *current project CRS* to a *projected CRS*."
 msgstr "では現在のプロジェクトのCRSを投影座標参照系に変更しましょう。"
 
-#: ../../source/Tutorial.rst:65
+#: ../../source/Tutorial.rst:66
 msgid ""
-"Click the |CRS icon| CRS status icon in the bottom-right corner of the "
-"window to open the project properties dialog, and then select a suitable CRS"
-" for the DEM extent. If you don't know which CRS is best suited, select the "
-"Spherical Mercator projection (``EPSG:3857``), which is adopted by many web "
-"maps."
+"Click the CRS status icon |crs_icon| in the bottom-right corner of the "
+"window to open the project properties dialog, and then select a suitable "
+"CRS for the DEM extent. If you don't know which CRS is best suited, "
+"select the Spherical Mercator projection (``EPSG:3857``), which is "
+"adopted by many web maps."
 msgstr ""
 "ウィンドウ右下隅の |CRS icon| "
 "CRSステータスアイコンをクリックしてプロジェクトのプロパティダイアログを開き、DEM領域に適切なCRSを選択します。どのCRSが最適かわからない場合はここでは多くのWeb地図で採用されている球面メルカトル投影"
 " (``EPSG:3857``)を選択して下さい。"
 
-#: ../../source/Tutorial.rst:70
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr "crs_icon"
+
+#: ../../source/Tutorial.rst:71
 msgid ""
 "In the Spherical Mercator projection, every feature size is horizontally "
-"larger than actual size except those of features on the equator. At latitude"
-" 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice."
-msgstr ""
-"球面メルカトル投影では赤道上にある地物の場合を除き、地物の大きさが水平方向に実際より大きくなります。緯度40度では1.3倍に、緯度60度では2倍になります。"
+"larger than actual size except those of features on the equator. At "
+"latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged "
+"twice."
+msgstr "球面メルカトル投影では赤道上にある地物の場合を除き、地物の大きさが水平方向に実際より大きくなります。緯度40度では1.3倍に、緯度60度では2倍になります。"
 
-#: ../../source/Tutorial.rst:80
+#: ../../source/Tutorial.rst:77
+msgid "Layer styling"
+msgstr "レイヤのスタイル設定"
+
+#: ../../source/Tutorial.rst:79
 msgid ""
 "Open the Layer Properties dialog for the DEM layer and colorize the DEM "
 "layer richly."
 msgstr "DEMレイヤのレイヤプロパティダイアログを開き、DEMレイヤを彩り豊かにします。"
 
-#: ../../source/Tutorial.rst:88
+#: ../../source/Tutorial.rst:81
+msgid ""
+"An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` "
+"color map):"
+msgstr "例 (``単バンド疑似カラー`` レンダータイプと反転された ``BrBG`` カラーマップ):"
+
+#: ../../source/Tutorial.rst:87
 msgid "Open the Exporter"
 msgstr "エクスポータを開く"
 
-#: ../../source/Tutorial.rst:89
+#: ../../source/Tutorial.rst:88
 msgid ""
-"Zoom to a part of the DEM layer extent as the map canvas is filled by the "
-"colorized DEM layer, and then click the |plugin icon| plugin icon in the web"
-" toolbar to open the Qgis2threejs exporter."
+"Zoom to a part of the DEM layer extent as the map canvas is filled by the"
+" colorized DEM layer, and then click the plugin icon |plugin_icon| in the"
+" web toolbar to open the Qgis2threejs exporter."
 msgstr ""
-"マップキャンバスが色付けされたDEMレイヤで一杯になるようにDEMレイヤの領域の一部にズームします。そして、Webツールバーのプラグインアイコン "
+"マップキャンバスが色付けされたDEMレイヤで満たされるようにDEMレイヤの領域の一部にズームします。そして、Webツールバーのプラグインアイコン "
 "|plugin icon| をクリックしてQgis2threejsエクスポータを開きます。"
 
-#: ../../source/Tutorial.rst:92
-msgid ""
-"There is Layers panel on the left side of the window, which lists map layers"
-" in current QGIS project. Layer items are grouped into DEM, Point, Line and "
-"Polygon. DEM layer group has 1-band raster layers (GDAL provider) in current"
-" QGIS project and `Flat Plane` (a flat plane at zero altitude)."
-msgstr ""
-"ウィンドウの左側にはレイヤパネルがあります。現在のQGISプロジェクトに含まれるマップレイヤの一覧です。レイヤはDEM、ポイント、ライン、ポリゴンの各タイプにまとめられています。DEMレイヤグループには現在のQGISプロジェクトにある1-バンドラスタレイヤ(GDALプロバイダ)と"
-" `Flat Plane` (標高0にある平面)が含まれます。"
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr "plugin_icon"
 
-#: ../../source/Tutorial.rst:96
+#: ../../source/Tutorial.rst:91
 msgid ""
-"There is a preview on the right side. Now scene doesn't contain any 3D "
-"objects."
+"There is ``Layers`` panel and ``Animation`` panel on the left side of the"
+" window."
+msgstr ""
+
+#: ../../source/Tutorial.rst:93
+msgid ""
+"The ``Layers`` panel shows the map layers in the current QGIS project "
+"that can be added to the 3D scene. Layer items are grouped by type. DEM "
+"layer group has 1-band raster layers in current QGIS project and a `Flat "
+"Plane` (a flat plane at an altitude). Multi-band raster layers and raster"
+" layers loaded using a provider other than GDAL provider are not "
+"available. Additional flat planes can be added from ``Scene - Add Layer``"
+" menu."
+msgstr ""
+
+#: ../../source/Tutorial.rst:99
+#, fuzzy
+msgid ""
+"There is a preview on the right side. The scene doesn't contain any 3D "
+"objects now."
 msgstr "右側にはプレビューがあります。現在シーンには3Dオブジェクトがありません。"
 
-#: ../../source/Tutorial.rst:98
+#: ../../source/Tutorial.rst:101
 msgid ""
-"Let's add the DEM layer into the scene. Just click the checkbox on the left "
-"of the DEM layer under the DEM layer group."
+"Let's add the DEM layer into the scene. Just click the checkbox on the "
+"left of the DEM layer under the DEM layer group."
 msgstr "シーンにDEMレイヤを追加しましょう。DEMレイヤグループにあるDEMレイヤの左側のチェックボックスをクリックするだけです。"
 
-#: ../../source/Tutorial.rst:103
+#: ../../source/Tutorial.rst:106
 msgid ""
 "A 3D terrain object with map canvas image draped on it shows up in the "
 "preview."
 msgstr "マップキャンバス画像で飾られた3D地形オブジェクトがプレビューに表示されます。"
 
-#: ../../source/Tutorial.rst:109
-msgid "Exporting the Scene to Web"
+#: ../../source/Tutorial.rst:110
+#, fuzzy
+msgid "Exporting the scene to Web"
 msgstr "シーンをWebにエクスポートする"
 
-#: ../../source/Tutorial.rst:110
-msgid ""
-"Click on the ``File - Export to Web...`` menu entry to open this dialog."
+#: ../../source/Tutorial.rst:111
+msgid "Click on the ``File - Export to Web...`` menu entry to open this dialog."
 msgstr "``File - Export to Web...`` メニュー項目をクリックして、このダイアログを開きます。"
 
-#: ../../source/Tutorial.rst:114
-msgid "Select a directory to export the scene and press ``Export`` button."
+#: ../../source/Tutorial.rst:115
+#, fuzzy
+msgid ""
+"Select a directory to export the scene, check ``Enable the Viewer to Run "
+"Locally`` option and press ``Export`` button."
 msgstr "シーンをエクスポートするディレクトリを選択して ``Export`` ボタンを押します。"
 
-#: ../../source/Tutorial.rst:118
+#: ../../source/Tutorial.rst:117
 msgid ""
-"Open the .html file with a web browser. You can see exported scene in web "
-"browser."
+"Most web browsers do not allow loading data files on local file system "
+"via Ajax. With ``Enable the Viewer to Run Locally`` option the plugin "
+"outputs geometry and image data into a js file."
+msgstr ""
+
+#: ../../source/Tutorial.rst:122
+msgid ""
+"Open the .html file with a web browser. You can see exported scene in web"
+" browser."
 msgstr ".htmlファイルをWebブラウザで開きます。エクスポートされたシーンをWebブラウザで見ることができます。"
 
-#: ../../source/Tutorial.rst:127
+#: ../../source/Tutorial.rst:126
 msgid ""
-"No description in detail here, but you can publish the exported scene just "
-"by uploading the exported files to a web server."
-msgstr "ここでは詳しく説明しませんがエクスポートしたシーンは、ファイルをWebサーバにアップロードするだけで公開することができます。"
-
-#: ../../source/Tutorial.rst:135
-msgid "Save the Scene as glTF"
-msgstr "シーンをglTFに保存する"
-
-#: ../../source/Tutorial.rst:137
-msgid ""
-"Are you satisfied with the scene rendering of Qgis2threejs web application? "
-"No? If so, let's export the scene to a glTF file. The glTF (GL Transmission "
-"Format) is a file format for 3D scenes and models (`Wikipedia`__). You can "
-"load it to 3D graphics softwares that can render high quality graphics such "
-"as Blender."
+"You can publish the exported 3D viewer application and data just by "
+"uploading the output folder to a web hosting service such as Netlify and "
+"GitHub Pages."
 msgstr ""
-"Qgis2threejsのWebアプリケーションのシーンレンダリングに満足していますか? そうではない? "
-"それならばシーンをglTFファイルにエクスポートしましょう。glTF (GL Transmission "
-"Format)は3Dシーンとモデルのためのファイル形式です(`Wikipedia`__)。Blenderといった高品質のグラフィックをレンダリングできる3Dグラフィックスソフトウェアで読み込むことができます。"
 
-#: ../../source/Tutorial.rst:144
+#: ../../source/Tutorial.rst:129
+#, fuzzy
 msgid ""
-"Here we export the scene to a glTF file and load it into the `three.js "
-"editor`__."
-msgstr "ここではシーンをglTFファイルにエクスポートして、 `three.js editor`__ で読み込みます。"
+"Please do not forget to ensure that you comply with the Terms and use for"
+" the data before publishing the data to the web."
+msgstr "シーンをウェブに公開する前にデータの利用規約を遵守していることを忘れずに確認して下さい。"
 
-#: ../../source/Tutorial.rst:148
-msgid ""
-"Click on the ``File - Save Scene As - glTF (.gltf, .glb)`` menu entry, and "
-"select a filename to save the 3D model."
+#: ../../source/Tutorial.rst:134
+msgid "Animation and narratives"
 msgstr ""
-"``File - Save Scene As - glTF (.gltf, .glb)`` "
-"メニュー項目をクリックして、3Dモデルを保存するファイル名を選択して下さい。"
 
-#: ../../source/Tutorial.rst:151
-msgid ""
-"When the model has been saved, a message will be displayed at the top of the"
-" exporter window. Then, Click `here`__ to open the three.js editor."
-msgstr ""
-"モデルが保存されるとエクスポータウィンドウの上部にメッセージが表示されます。それでは `ここ`__ "
-"をクリックしてthree.jsエディタを開いて下さい。"
-
-#: ../../source/Tutorial.rst:156
-msgid ""
-"Click on the ``File - Import`` menu entry and select the exported ``.gltf`` "
-"file to load it to the scene."
-msgstr ""
-"``File - Import`` メニュー項目をクリックします。エクスポートした ``.gltf`` ファイルを選択してシーンにロードします。"
-
-#: ../../source/Tutorial.rst:159
-msgid ""
-"As there is no light, the object looks black. Click the ``Add - "
-"DirectionalLight`` menu entry to add a directional light to the scene."
-msgstr ""
-"ライトがないのでオブジェクトは黒く見えます。 ``Add - DirectionalLight`` "
-"メニュー項目をクリックして平行光源をシーンに追加します。"
-
-#: ../../source/Tutorial.rst:166
-msgid "In Conclusion"
+#: ../../source/Tutorial.rst:140
+#, fuzzy
+msgid "In conclusion"
 msgstr "おわりに"
 
-#: ../../source/Tutorial.rst:168
+#: ../../source/Tutorial.rst:142
 msgid ""
-"Tutorial is over. Now you know 3D visualization with QGIS is very easy. If "
-"you can use high-quality data, you can create beautiful 3D scenes!"
-msgstr ""
-"チュートリアルはこれで終わりです。QGISを用いた3D表現はとても簡単です。高品質のデータを使うことができれば美しい3Dシーンを作成することができるでしょう!"
+"Tutorial is over. Now you know 3D visualization with QGIS is very easy. "
+"If you can use high-quality data, you can create beautiful 3D scenes!"
+msgstr "チュートリアルはこれで終わりです。QGISを用いた3D表現はとても簡単です。高品質のデータを使うことができれば美しい3Dシーンを作成することができるでしょう!"
 
-#: ../../source/Tutorial.rst:171
+#: ../../source/Tutorial.rst:145
+#, fuzzy
 msgid ""
-"Next, how about adding a background map layer to the map canvas. You can do "
-"it easily with `QuickMapServices plugin`__. Also, how about adding vector "
-"data to the scene. :doc:`ObjectTypes` page has example images of various "
+"Next, how about adding a background map layer to the map canvas. You can "
+"do it easily with `QuickMapServices plugin`__. Also, how about adding "
+"vector data to the scene. :doc:`ObjectTypes` page has images of various "
 "object types. See :doc:`Exporter` for the detail."
 msgstr ""
 "次は背景地図レイヤをマップキャンバスに追加してみたらどうでしょう。 `QuickMapServices プラグイン`__ "
 "を使えば簡単にできます。またベクトルデータをシーンに追加してみたらどうでしょう。 :doc:`ObjectTypes` "
 "ページには様々なオブジェクトタイプのサンプル画像があります。詳細は :doc:`Exporter` を参照して下さい。"
 
-#: ../../source/Tutorial.rst:120
-msgid ""
-"Some web browsers do not allow loading data files on local file system via "
-"Ajax. Please see `Browser Support`__ page of wiki for details."
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
 msgstr ""
 
 #~ msgid ""
-#~ "Some web browsers do not allow loading data files on local file system via "
-#~ "Ajax. Please see `Browser Support page of wiki`__ for details."
+#~ "Some web browsers do not allow "
+#~ "loading data files on local file "
+#~ "system via Ajax. Please see `Browser "
+#~ "Support page of wiki`__ for details."
 #~ msgstr ""
-#~ "Ajaxを用いてローカルファイルシステムにあるデータファイルを読み込むことを許さないWebブラウザがあります。詳細についてはWikiの `Browser"
-#~ " Support`__ ページを参照して下さい。"
+#~ "Ajaxを用いてローカルファイルシステムにあるデータファイルを読み込むことを許さないWebブラウザがあります。詳細についてはWikiの"
+#~ " `Browser Support`__ ページを参照して下さい。"
 
 #~ msgid ""
-#~ "Open the QGIS plugin dialog (``Plugins > Manage and install plugins...``), "
+#~ "Open the QGIS plugin dialog (``Plugins"
+#~ " > Manage and install plugins...``), "
 #~ "and then install Qgis2threejs plugin."
 #~ msgstr ""
 #~ "QGISプラグインダイアログ (``プラグイン > "
 #~ "プラグインの管理とインストール...``)を開いてQgis2threejsプラグインをインストールします。"
 
 #~ msgid ""
-#~ "If the area extends over two or more files, you might want to create a "
-#~ "virtual mosaic using `Build Virtual Raster (Catalog)`__ tool of GdalTools."
+#~ "If the area extends over two or"
+#~ " more files, you might want to "
+#~ "create a virtual mosaic using `Build "
+#~ "Virtual Raster (Catalog)`__ tool of "
+#~ "GdalTools."
 #~ msgstr ""
 #~ "地域が2つ以上のファイルにまたがる場合は、GdalToolsの `バーチャルラスタの構築 (カタログ)`__ "
 #~ "ツールを使用してバーチャルなモザイクを作成するとよいでしょう。"
 
 #~ msgid ""
-#~ "Open the raster properties dialog for the DEM layer and colorize the DEM "
-#~ "layer richly."
+#~ "Open the raster properties dialog for"
+#~ " the DEM layer and colorize the "
+#~ "DEM layer richly."
 #~ msgstr "DEMレイヤのラスタプロパティダイアログを開き、DEMレイヤを彩り豊かにします。"
 
 #~ msgid "|map canvas1|"
 #~ msgstr "|map canvas1|"
 
 #~ msgid ""
-#~ "Zoom to a part of the DEM layer extent as the map canvas is filled by the "
-#~ "colorized DEM."
+#~ "Zoom to a part of the DEM "
+#~ "layer extent as the map canvas is"
+#~ " filled by the colorized DEM."
 #~ msgstr "色付けされたDEMがマップキャンバスを満たすようにDEMレイヤ領域の一部にズームして下さい。"
 
 #~ msgid "Then, click ``Run`` button in the dialog."
@@ -338,8 +313,9 @@ msgstr ""
 #~ msgstr "|browser image2|"
 
 #~ msgid ""
-#~ "You can publish the exported scene just by uploading the exported files to a"
-#~ " web server."
+#~ "You can publish the exported scene "
+#~ "just by uploading the exported files "
+#~ "to a web server."
 #~ msgstr "エクスポートされたファイルをWebサーバにアップロードするだけでシーンを公開することができます。"
 
 #~ msgid "Installing the plugin"
@@ -358,8 +334,9 @@ msgstr ""
 #~ msgstr "おわりに"
 
 #~ msgid ""
-#~ "So, let's enable the On The Fly CRS transformation and change the map CRS to"
-#~ " a projected CRS."
+#~ "So, let's enable the On The Fly"
+#~ " CRS transformation and change the "
+#~ "map CRS to a projected CRS."
 #~ msgstr "ではオンザフライCRS変換を有効にしてプロジェクトのCRSを投影座標参照系に変更しましょう。"
 
 #~ msgid "Click the |plugin icon| plugin icon in the web toolbar."
@@ -369,56 +346,219 @@ msgstr ""
 #~ msgstr "3Dの地形がWebブラウザに現れます!"
 
 #~ msgid ""
-#~ "Next, how about adding a background map layer to the map canvas. You can do "
-#~ "it easily with `QuickMapServices plugin`__. Also, how about adding vector "
-#~ "data to the scene. :doc:`ObjectTypes` page has example images of various "
-#~ "object types. See :doc:`ExportSettings` for the detail."
+#~ "Next, how about adding a background "
+#~ "map layer to the map canvas. You"
+#~ " can do it easily with "
+#~ "`QuickMapServices plugin`__. Also, how about"
+#~ " adding vector data to the scene. "
+#~ ":doc:`ObjectTypes` page has example images "
+#~ "of various object types. See "
+#~ ":doc:`ExportSettings` for the detail."
 #~ msgstr ""
-#~ "次は背景地図レイヤをマップキャンバスに追加してみたらどうでしょう。 `QuickMapServices プラグイン`__ "
-#~ "を使えば簡単にできます。またベクトルデータをシーンに追加してみたらどうでしょう。 :doc:`ObjectTypes` "
-#~ "ページには様々なオブジェクトタイプのサンプル画像があります。詳細は :doc:`ExportSettings` を参照して下さい。"
+#~ "次は背景地図レイヤをマップキャンバスに追加してみたらどうでしょう。 `QuickMapServices "
+#~ "プラグイン`__ を使えば簡単にできます。またベクトルデータをシーンに追加してみたらどうでしょう。 "
+#~ ":doc:`ObjectTypes` ページには様々なオブジェクトタイプのサンプル画像があります。詳細は "
+#~ ":doc:`ExportSettings` を参照して下さい。"
 
 #~ msgid ""
-#~ "Do you have time to explore new high-resolution SRTM elevation data? You can"
-#~ " download 1 arc-second SRTM data from the `EarthExplorer`__ (User "
+#~ "Do you have time to explore new"
+#~ " high-resolution SRTM elevation data? "
+#~ "You can download 1 arc-second SRTM"
+#~ " data from the `EarthExplorer`__ (User "
 #~ "registration and login are required)."
 #~ msgstr ""
-#~ "新しい高解像度のSRTM標高データを試してみますか? 1秒角のSRTMデータは `EarthExplorer`__ "
-#~ "からダウンロードすることができます。ただし、ユーザ登録とログインが必要です。"
+#~ "新しい高解像度のSRTM標高データを試してみますか? 1秒角のSRTMデータは `EarthExplorer`__"
+#~ " からダウンロードすることができます。ただし、ユーザ登録とログインが必要です。"
 
 #~ msgid ""
-#~ "Drag & drop the downloaded zip file to QGIS window (or load the file using "
-#~ "``Add Raster Layer`` dialog). You don't have to unzip it."
+#~ "Drag & drop the downloaded zip "
+#~ "file to QGIS window (or load the"
+#~ " file using ``Add Raster Layer`` "
+#~ "dialog). You don't have to unzip "
+#~ "it."
 #~ msgstr ""
-#~ "ダウンロードしたZIPファイルをQGISのウィンドウにドラッグ & ドロップするか ``ラスタレイヤの追加`` "
-#~ "ダイアログを使用して読み込みます。ZIPファイルを展開する必要はありません。"
+#~ "ダウンロードしたZIPファイルをQGISのウィンドウにドラッグ & ドロップするか "
+#~ "``ラスタレイヤの追加`` ダイアログを使用して読み込みます。ZIPファイルを展開する必要はありません。"
 
 #~ msgid ""
-#~ "If you want to hide the dat-gui controls box at the top-right corner, press "
-#~ "``H`` key."
+#~ "If you want to hide the dat-"
+#~ "gui controls box at the top-right"
+#~ " corner, press ``H`` key."
 #~ msgstr "右上のdat-guiコントロールボックスを非表示にするには ``H`` キーを押します。"
 
 #~ msgid ""
-#~ "Tutorial is over. Now, you know 3D visualization with QGIS is very easy. If "
-#~ "you can use high-quality data, you can create beautiful 3D scenes!"
-#~ msgstr ""
-#~ "チュートリアルはこれで終わりです。QGISを用いた3D表現はとても簡単です。高品質のデータを使うことができれば美しい3Dシーンを作成することができるでしょう!"
+#~ "Tutorial is over. Now, you know 3D"
+#~ " visualization with QGIS is very "
+#~ "easy. If you can use high-quality"
+#~ " data, you can create beautiful 3D"
+#~ " scenes!"
+#~ msgstr "チュートリアルはこれで終わりです。QGISを用いた3D表現はとても簡単です。高品質のデータを使うことができれば美しい3Dシーンを作成することができるでしょう!"
 
 #~ msgid ""
-#~ "Click the |CRS icon| CRS status icon in the bottom-right corner of the "
-#~ "window to open the project properties dialog. Activate the ``Enable 'on the "
-#~ "fly' CRS transformation`` checkbox and then select a suitable CRS for the "
-#~ "DEM extent. If you don't know which CRS is best suited, select the Spherical"
-#~ " Mercator projection (``EPSG:3857``), which is adopted by many web maps."
+#~ "Click the |CRS icon| CRS status "
+#~ "icon in the bottom-right corner of"
+#~ " the window to open the project "
+#~ "properties dialog. Activate the ``Enable "
+#~ "'on the fly' CRS transformation`` "
+#~ "checkbox and then select a suitable "
+#~ "CRS for the DEM extent. If you "
+#~ "don't know which CRS is best "
+#~ "suited, select the Spherical Mercator "
+#~ "projection (``EPSG:3857``), which is adopted"
+#~ " by many web maps."
 #~ msgstr ""
-#~ "ウィンドウ右下隅の |CRS icon| CRSステータスアイコンをクリックしてプロジェクトのプロパティダイアログを開きます。 ``'オンザフライ' "
+#~ "ウィンドウ右下隅の |CRS icon| "
+#~ "CRSステータスアイコンをクリックしてプロジェクトのプロパティダイアログを開きます。 ``'オンザフライ' "
 #~ "CRS変換を有効にする`` "
 #~ "チェックボックスにチェックを入れてDEM領域に適切なCRSを選択します。どのCRSが最適かわからない場合はここでは多くのWeb地図で採用されている球面メルカトル投影"
 #~ " (``EPSG:3857``)を選択して下さい。"
 
 #~ msgid ""
-#~ "In the Spherical Mercator projection, size of every feature is horizontally "
-#~ "larger than actual size except features on the equator. At latitude 40 "
-#~ "degrees it is enlarged 1.3 times, at 60 degrees enlarged twice."
+#~ "In the Spherical Mercator projection, "
+#~ "size of every feature is horizontally"
+#~ " larger than actual size except "
+#~ "features on the equator. At latitude "
+#~ "40 degrees it is enlarged 1.3 "
+#~ "times, at 60 degrees enlarged twice."
+#~ msgstr "球面メルカトル投影では赤道上にある地物の場合を除き、地物の大きさが水平方向に実際より大きくなります。緯度40度では1.3倍に、緯度60度では2倍になります。"
+
+#~ msgid ""
+#~ "NASA released elevation data generated "
+#~ "from NASA's `Shuttle Radar Topography "
+#~ "Mission`__ digital topographic data. We "
+#~ "can use the data freely. Elevation "
+#~ "data version 2.1 can be downloaded "
+#~ "from the `distribution site`__."
 #~ msgstr ""
-#~ "球面メルカトル投影では赤道上にある地物の場合を除き、地物の大きさが水平方向に実際より大きくなります。緯度40度では1.3倍に、緯度60度では2倍になります。"
+#~ "NASAは `Shuttle Radar Topography Mission`__ "
+#~ "のデジタル地形データから生成された標高データを公開しました。我々は自由にデータを利用できます。標高データのバージョン2.1は "
+#~ "`配布サイト`__ からダウンロードすることができます。"
+
+#~ msgid ""
+#~ "Download a zip file that contains "
+#~ "elevation data of the area you are"
+#~ " interested in from under the "
+#~ "``version2_1/SRTM3`` directory. The zip file"
+#~ " contains a ``.hgt`` file, which is"
+#~ " readable by the GDAL."
+#~ msgstr ""
+#~ "``version2_1/SRTM3`` "
+#~ "ディレクトリ以下からあなたの興味がある地域の標高データが含まれるZIPファイルをダウンロードして下さい。ZIPファイルにはGDALが読み取り可能な"
+#~ " ``.hgt`` ファイルが含まれます。"
+
+#~ msgid ""
+#~ "Do you have time to explore new"
+#~ " high-resolution SRTM elevation data? "
+#~ "You can download 1 arc-second SRTM"
+#~ " data from the `EarthExplorer`__ (User "
+#~ "registration required)."
+#~ msgstr ""
+#~ "新しい高解像度のSRTM標高データを試してみますか? 1秒角のSRTMデータは `EarthExplorer`__"
+#~ " からダウンロードすることができます。ただし、ユーザ登録が必要です。"
+
+#~ msgid ""
+#~ "There is Layers panel on the left"
+#~ " side of the window, which lists "
+#~ "map layers in current QGIS project. "
+#~ "Layer items are grouped into DEM, "
+#~ "Point, Line and Polygon. DEM layer "
+#~ "group has 1-band raster layers (GDAL "
+#~ "provider) in current QGIS project and"
+#~ " `Flat Plane` (a flat plane at "
+#~ "zero altitude)."
+#~ msgstr ""
+#~ "ウィンドウの左側にはレイヤパネルがあります。現在のQGISプロジェクトに含まれるマップレイヤの一覧です。レイヤはDEM、ポイント、ライン、ポリゴンの各タイプにまとめられています。DEMレイヤグループには現在のQGISプロジェクトにある1-バンドラスタレイヤ(GDALプロバイダ)と"
+#~ " `Flat Plane` (標高0にある平面)が含まれます。"
+
+#~ msgid ""
+#~ "No description in detail here, but "
+#~ "you can publish the exported scene "
+#~ "just by uploading the exported files "
+#~ "to a web server."
+#~ msgstr "ここでは詳しく説明しませんがエクスポートしたシーンは、ファイルをWebサーバにアップロードするだけで公開することができます。"
+
+#~ msgid "Save the Scene as glTF"
+#~ msgstr "シーンをglTFに保存する"
+
+#~ msgid ""
+#~ "Are you satisfied with the scene "
+#~ "rendering of Qgis2threejs web application? "
+#~ "No? If so, let's export the scene"
+#~ " to a glTF file. The glTF (GL"
+#~ " Transmission Format) is a file "
+#~ "format for 3D scenes and models "
+#~ "(`Wikipedia`__). You can load it to "
+#~ "3D graphics softwares that can render"
+#~ " high quality graphics such as "
+#~ "Blender."
+#~ msgstr ""
+#~ "Qgis2threejsのWebアプリケーションのシーンレンダリングに満足していますか? そうではない? "
+#~ "それならばシーンをglTFファイルにエクスポートしましょう。glTF (GL Transmission "
+#~ "Format)は3Dシーンとモデルのためのファイル形式です(`Wikipedia`__)。Blenderといった高品質のグラフィックをレンダリングできる3Dグラフィックスソフトウェアで読み込むことができます。"
+
+#~ msgid ""
+#~ "Here we export the scene to a "
+#~ "glTF file and load it into the "
+#~ "`three.js editor`__."
+#~ msgstr "ここではシーンをglTFファイルにエクスポートして、 `three.js editor`__ で読み込みます。"
+
+#~ msgid ""
+#~ "Click on the ``File - Save Scene"
+#~ " As - glTF (.gltf, .glb)`` menu "
+#~ "entry, and select a filename to "
+#~ "save the 3D model."
+#~ msgstr ""
+#~ "``File - Save Scene As - glTF "
+#~ "(.gltf, .glb)`` メニュー項目をクリックして、3Dモデルを保存するファイル名を選択して下さい。"
+
+#~ msgid ""
+#~ "When the model has been saved, a"
+#~ " message will be displayed at the "
+#~ "top of the exporter window. Then, "
+#~ "Click `here`__ to open the three.js "
+#~ "editor."
+#~ msgstr ""
+#~ "モデルが保存されるとエクスポータウィンドウの上部にメッセージが表示されます。それでは `ここ`__ "
+#~ "をクリックしてthree.jsエディタを開いて下さい。"
+
+#~ msgid ""
+#~ "Click on the ``File - Import`` "
+#~ "menu entry and select the exported "
+#~ "``.gltf`` file to load it to the"
+#~ " scene."
+#~ msgstr ""
+#~ "``File - Import`` メニュー項目をクリックします。エクスポートした "
+#~ "``.gltf`` ファイルを選択してシーンにロードします。"
+
+#~ msgid ""
+#~ "As there is no light, the object"
+#~ " looks black. Click the ``Add - "
+#~ "DirectionalLight`` menu entry to add a"
+#~ " directional light to the scene."
+#~ msgstr ""
+#~ "ライトがないのでオブジェクトは黒く見えます。 ``Add - DirectionalLight``"
+#~ " メニュー項目をクリックして平行光源をシーンに追加します。"
+
+#~ msgid ""
+#~ "Some web browsers do not allow "
+#~ "loading data files on local file "
+#~ "system via Ajax. Please see `Browser "
+#~ "Support`__ page of wiki for details."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "There is ``Layers`` panel and "
+#~ "``Animation`` panel on the left side "
+#~ "of the window. ``Layers`` panel lists"
+#~ " map layers in current QGIS project."
+#~ " Layer items are grouped into DEM,"
+#~ " Point, Line and Polygon. DEM layer"
+#~ " group has 1-band raster layers (GDAL"
+#~ " provider) in current QGIS project "
+#~ "and `Flat Plane` (a flat plane at"
+#~ " zero altitude)."
+#~ msgstr ""
+
+#~ msgid "✏ only 1-band raster layers loaded via GDAL provider are listed"
+#~ msgstr ""
+

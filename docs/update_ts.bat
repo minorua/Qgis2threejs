@@ -6,5 +6,5 @@ set PATH=%PATH%;C:\Python38\Scripts
 
 echo updating translation files...
 call make gettext
-sphinx-intl update -p build/locale -c source/conf.py
+sphinx-intl update -p build/locale
 pause

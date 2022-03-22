@@ -8,24 +8,24 @@ Exporter
 Window
 ------
 
-Qgis2threejs exporter window has `Layers` panel on the left side and preview on the right side.
+Qgis2threejs exporter window has `Layers` panel and `Animation` panel on the left side, and preview on the right side.
 
 .. image:: ./images/exporter1.png
 
-In this plugin, the word "export settings" means all configuration settings for a 3D scene,
-which consist of scene settings, camera settings, each layer settings and so on.
-You can configure them via `Scene <#scene>`__ menu, `Layers` panel and `Export to Web` dialog.
+In this plugin, the word "export settings" means all configuration settings for a 3D scene and its viewer application,
+which consist of settings for scene, camera, every layer to export, animation, widgets on web page and so on.
+You can configure them via `Scene <#scene>`__ menu, `Layers` panel, `Animation` panel, `View` menu and `Export to Web` dialog.
 
 In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
 To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
-`Properties` from context menu (right click menu).
+`Properties...` from context menu (right click menu).
 
 Export settings are automatically saved to a ``.qto3settings`` file under the same directory
-as the currently open project file if you are working with a project file. When you open the exporter later,
+as the current QGIS project file if you are working with a QGIS project file. When you open the exporter later,
 the export settings of the project will be restored.
 
 If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
-For example, you might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update,
+You might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update.
 
 
 Menu
@@ -34,19 +34,32 @@ Menu
 * File
 
    * Export to Web...
-      Exports files necessary for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
+      Exports files for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
       section.
 
-   * Save Scene As - Image (.png)
-      Saves rendered scene image to a PNG file.
+   * Save Scene As
 
-   * Save Scene As - glTF (.gltf,.glb)
-      Saves 3D model of current scene in glTF format.
+      * Image (.png)...
+         Saves rendered scene image to a PNG file.
+
+      * glTF (.gltf,.glb)...
+         Saves 3D model of current scene in glTF format.
+
+   * Export Settings
+
+      * Load...
+         ✏
+
+      * Save...
+         ✏
+
+      * Clear...
+         Clears current export settings.
 
    * Exporter Settings...
       Opens Exporter Settings dialog. See `Exporter Settings Dialog <#exporter-settings>`__
 
-   * Close Exporter
+   * Close
       Closes Qgis2threejs Exporter.
 
 * Scene
@@ -54,53 +67,65 @@ Menu
    * Scene Settings...
       Opens Scene settings dialog. See `Scene Settings <#scene-settings>`__ section.
 
-   * Camera
-      Changes the camera. See `Camera Settings <#camera-settings>`__ section.
+   * Add Layer
 
-   * Controls
-      Changes the controls. See `Controls Settings <#controls-settings>`__ section.
+      * Add Flat Plane
+         ✏
 
-   * Decorations
-      Add decorations to the view, such as North arrow and footer label.
-      See `Decorations <#decorations>`__ section.
-
-   * Clear All Settings
-      Clears current export settings.
+      * Add Point Cloud Layer...
+         ✏
 
    * Reload (F5)
       Reloads current scene.
 
+* View
+
+   * Camera
+      Changes the camera. See `Camera Settings <#camera-settings>`__ section.
+
+   * Widgets
+      Configures widgets to be place on web page, such as Navigation widget, North arrow and footer label.
+      See `Widgets <#widgets>`__ section.
+
    * Reset Camera Position (Shift+R)
-      Returns camera position to initial position and resets its view target to initial point (3D world origin).
+      Returns to the initial camera position and resets its focal point to the initial point.
 
 * Window
 
    * Panels
+
       * Layers
-          Toggles Layers panel visibility.
+         Toggles `Layers` panel visibility.
+
+      * Animation
+         Toggles `Animation` panel visibility.
 
       * Console
-          Toggles console panel visibility.
-          Console panel displays information for debugging, mainly JavaScript side information.
-          Python side debug information is logged to log messages panel in QGIS window.
-          You can enter and execute JavaScript statements.
+         Toggles `Console` panel visibility.
+         Console panel displays information for debugging, mainly JavaScript side information.
+         Python side debug information is logged to log messages panel in QGIS window.
+         You can enter JavaScript statements and execute them.
 
    * Always on Top
-      Brings the exporter window to front of all other application windows.
+     Brings the exporter window to front of all other application windows.
 
 * Help
 
-   * Help
-      Opens the plugin document in default browser. Internet connection is required.
+   * Usage of 3D Viewer
+
+     ✏
+
+   * Help Contents
+     Opens the plugin document in default browser. Internet connection is required.
 
    * Plugin Homepage
-      Opens the plugin homepage in default browser. Internet connection is required.
+     Opens the plugin homepage in default browser. Internet connection is required.
 
-   * Send feedback
-      Opens the plugin issue tracking system in default browser. Internet connection is required.
+   * Send Feedback
+     Opens the plugin issue tracking system in default browser. Internet connection is required.
 
-   * About Qgis2threejs Plugin
-      Displays the plugin version you are using.
+   * About Qgis2threejs Plugin...
+     Displays the plugin version you are using.
 
 
 Scene Settings
@@ -110,49 +135,41 @@ Scene settings dialog controls some basic configuration settings for current sce
 Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
 .. image:: ./images/dialogs/scene_settings.png
+    :scale: 50%
+    :align: right
 
 * World Coordinates
 
-    * Base size (width)
+   * Origin of xy-plane
 
-        Size (width) in 3D world that corresponds to the map canvas width. The
-        default value is 100.
+      ``Center of base extent``
+      ``Origin of map coordinate system``
 
-    * Vertical exaggeration
+   * Z exaggeration
 
-        Vertical exaggeration factor. This value affects terrain shape and z
-        positions of all vector 3D objects. This also affects 3D object height
-        of some object types with volume. Object types to be affected:
+      Vertical exaggeration factor. This value affects terrain shape and z
+      positions of all vector 3D objects. This also affects 3D object height
+      of some object types with volume. Shape types to be affected:
 
-         | Point : Cylinder, Cube, Cone
-         | Polygon : Extruded
+       | Point : Cylinder, Cube, Cone
+       | Polygon : Extruded
 
-        3D objects of the following types have volume, but their heights aren't
-        affected by this factor:
+      The following shape types have volume, but their heights aren't
+      affected by this factor:
 
-         | Point : Sphere
-         | Line : Pipe, Cone, Box
+       | Point : Sphere
+       | Line : Pipe, Cone, Box
 
-        The default value is 1.0.
+      The default value is 1.0.
 
-    * Vertical shift
+* Base Extent
 
-        Vertical shift for all objects. If you want to export high altitude
-        and narrow area, you should adjust the object positions to be
-        displayed at the center of browser by changing this value. If you set
-        the value to -1000, all objects are shifted down by 1000 in the unit of
-        map CRS.
+   * Use map canvas extent
 
-* Material
+   * Fixed extent
 
-    * Basic type
-
-        MateMaterial type applied to most 3D objects, except for Point, Icon, Model File and Line type objects.
-        Select a material type from
-        `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
-        `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
-        `Toon material <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__.
-        Default is Lambert material.
+   * Fix aspect ratio to 1:1
+     Checked by default since version 2.7.
 
 * Background
 
@@ -167,16 +184,55 @@ Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
    `Proj4js <https://github.com/proj4js/proj4js>`__ doesn't support current
    map CRS, this option is disabled.
 
+
+.. image:: ./images/dialogs/scene_settings2.png
+    :scale: 50%
+
+
+* Light
+  ``Directional light from the lower left of the 2D map``
+  ``Point light above the camera``
+
+* Fog
+  Color and density.
+
+* Material & Effect
+
+   * Basic material type
+
+      Material type applied to most 3D objects, except for Point, Icon, Model File and Line type objects.
+      Select a material type from
+      `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
+      `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
+      `Toon material <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__.
+      Default is Lambert material.
+
+   * Enable outline effect
+
+
 Camera Settings
 ---------------
 
 * Perspective Camera
 
-    Renders closer objects as bigger and farther objects as smaller.
+   Renders closer objects as bigger and farther objects as smaller.
 
 * Orthographic Camera
 
-    Rendered object size doesn't depend on the distance from the camera.
+   Rendered object size doesn't depend on the distance from the camera.
+
+
+.. |persp| image:: ./images/camera/perspective.png
+    :alt: perspective camera
+
+.. |ortho| image:: ./images/camera/orthographic.png
+    :alt: orthographic camera
+
+=================== ===================
+Perspective camera  Orthographic camera
+------------------- -------------------
+|persp|             |ortho|
+=================== ===================
 
 Controls Settings
 -----------------
@@ -184,16 +240,20 @@ Controls Settings
 OrbitControls is available.
 
 ===== ======================================================== ===========================
-Ctrl  Mouse / Keys                                             Touch                      
+Ctrl  Mouse / Keys                                             Touch
 ===== ======================================================== ===========================
-Orbit Left mouse                                               One-finger move            
+Orbit Left mouse                                               One-finger move
 Zoom  Middle mouse, or mousewheel                              Two-finger spread or squish
-Pan   Right mouse, or left mouse + ctrl/metaKey, or arrow keys Two-finger move            
+Pan   Right mouse, or left mouse + ctrl/metaKey, or arrow keys Two-finger move
 ===== ======================================================== ===========================
 
 
-Decorations
------------
+Widgets
+-------
+
+* Navigation widget
+
+  ✏
 
 * North arrow
 
@@ -209,6 +269,7 @@ DEM Layer Settings
 ------------------
 
 .. image:: ./images/dialogs/dem_layer.png
+    :scale: 50%
 
 Geometry
 ^^^^^^^^
@@ -217,14 +278,6 @@ Geometry
 
    Select a DEM resolution from several levels. This resolution is used to
    resample the DEM, but is not for texture.
-
-* Surrounding blocks
-
-   This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
-   Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
-   (a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
-   the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
-   means that the number of grid points in the same area becomes 1/4.
 
 * Clip DEM with polygon layer
 
@@ -236,55 +289,70 @@ Geometry
 Material
 ^^^^^^^^
 
-* Display type
+✏
 
-   You can choose from map canvas image, layer image, a image file or a
-   solid color.
+The material list has one item ``map (canvas)`` by default.
+You can add a material to the list by clicking + button, selecting one of ``Select layer(s)``, ``Image file``,
+``Solid color`` and ``Map canvas layers``.
 
-   * Map canvas image
+* Map canvas layers
 
-      Render a texture image with the current map settings for each DEM block.
+   Render a texture image with the current map settings for each DEM block.
 
-   * Layer image
+* Layer image(s)
 
-      Render a texture image with the selected layer(s) for each DEM block.
+   Render a texture image with the selected layer(s) for each DEM block.
 
-   * Image file
+* Image file
 
-      Textures the main DEM block with existing image file such as PNG file and JPEG file.
-      TIFF is not supported by some browser. See `Image format
-      support <https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
-      for details.
+   Textures the main DEM block with existing image file such as PNG file and JPEG file.
+   TIFF is not supported by some browser. See `Image format
+   support <https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__
+   for details.
 
-   * Solid color
+* Solid color
 
-      To select a color, press the button on the right side.
+   To select a color, press the button on the right side.
 
-* Resolution
 
-   Increases the size of image applied to each DEM block. This option is enabled when
-   either ``Map canvas image`` or ``Layer image`` is selected. You can select a ratio
-   to map canvas size from 100, 200 and 400 (%). Image size in pixels follows the percent.
+* Image width (px)
+
+   Select width of image draped on each DEM block. Default value is 1024.
 
 * Opaciy
 
    Sets opacity of DEM object. 100 is opaque, and 0 is transparent.
 
-* Transparent background (When map canvas image or layer image is chosen)
+* Transparent background
+
+   When map canvas image or layer image is chosen
 
    Makes image background transparent.
 
-* Enable transparency (When image file is chosen)
-
-   Enables image transparency.
-
 * Enable shading
 
-   Adds a shading effect to DEM surface.
+   Adds a shading effect to DEM surface. Checked by default.
 
+Tiles
+^^^^^
+
+✏
+
+* Tiles
+
+   This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
+   Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
+   (a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
+   the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
+   means that the number of grid points in the same area becomes 1/4.
+
+
+.. image:: ./images/dialogs/dem_layer2.png
+    :scale: 50%
 
 Other Options
 ^^^^^^^^^^^^^
+
 
 * Build sides
 
@@ -293,23 +361,34 @@ Other Options
    the value of vertical shift option in the World panel. If you want to
    change color, edit the output JS file directly.
 
-* Build frame
+* Add edge lines
 
    This option adds frame to the DEM. If you want to change color, edit the output
    JS file directly.
 
+* Add quad wireframe
+
+* Name
+
 * Visible on Load
 
    Whether the layer is visible on page load or not.
+
+* Clickable
 
 
 Vector Layer Settings
 ---------------------
 
 .. image:: ./images/dialogs/vector_layer.png
+    :scale: 50%
 
 Vector layers are grouped into three types: Point, Line and Polygon.
 Common settings for all types:
+
+* Type
+
+  Select a shape type.
 
 * Z coordinate
 
@@ -340,7 +419,7 @@ Common settings for all types:
          These options can be chosen when the layer geometries have z coordinates or m values.
          Cannot be chosen when the object type is Extruded or Overlay.
 
-* Style
+* Geometry and Material
 
    Usually, there are options to set object color and transparency. Refer
    to the links below for each object type specific settings. The unit of
@@ -362,23 +441,47 @@ Common settings for all types:
 
          This option is available with Line/Polygon layer. If checked, geometries are clipped by the extent of map canvas.
 
-* Attribute and label
+* Attributes
 
    If the export attributes option is checked, attributes are exported with
    feature geometries. Attributes are displayed when you click an object on
    web browser.
 
-   If a field is selected in the label combobox, a label is displayed above
-   each object and is connected to the object with a line. This combo box
-   is not available when layer type is line.
+.. image:: ./images/dialogs/vector_layer2.png
+    :scale: 50%
+
+* Labels
+
+   This combo box is not available when layer type is line.
+
+   * Show labels
+     a label is displayed above each object.
+   * Position
+   * Text
+   * Fill background
+   * Connector
+
+.. image:: ./images/dialogs/vector_layer3.png
+    :scale: 50%
+
+* Others
+
+  * Name
+
+  * Visible on Load
+
+    Whether the layer is visible on page load or not.
+
+  * Clickable
+
 
 Point
 ^^^^^
 
 Point layers in the project are listed as the child items. The following
-object types are available:
+shape types are available:
 
-    Sphere, Cylinder, Cone, Box, Disk, Plane, Model File
+   Sphere, Cylinder, Cone, Box, Disk, Plane, Model File
 
 See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -386,9 +489,9 @@ Line
 ^^^^
 
 Line layers in the project are listed as the child items. The following
-object types are available:
+shape types are available:
 
-    Line, Pipe, Cone, Box, Wall
+   Line, Pipe, Cone, Box, Wall
 
 See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
 
@@ -396,11 +499,69 @@ Polygon
 ^^^^^^^
 
 Polygon layers in the project are listed as the child items. The
-following object types are available:
+following shape types are available:
 
-    Polygon, Extruded, Overlay
+   Polygon, Extruded, Overlay
 
 See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
+
+
+.. image:: ./images/dialogs/vector_layer3.png
+    :scale: 50%
+
+
+Point Cloud Layer Settings
+--------------------------
+
+✏
+
+* Information
+
+* Material
+
+  * Color type
+
+  * Opacity
+
+* Other options
+  * Name
+  * Show bounding boxes
+  * Visible on load
+  * Clickable
+
+.. _animation:
+
+Animation
+---------
+
+Animation panel
+^^^^^^^^^^^^^^^
+
+✏
+
+* Camera Motion
+
+  Group and keyframe item.
+
+* Layer
+
+  * Texture change
+  * Growing line
+  * Change opacity
+
+* Tween
+
+.. image:: ./images/animation/tween.png
+   :width: 50%
+
+
+Keyframe dialog
+^^^^^^^^^^^^^^^
+
+.. image:: ./images/dialogs/keyframe_camera.png
+   :width: 50%
+
+✏
 
 
 .. _export_web_dialog:
@@ -409,6 +570,7 @@ Export to Web Dialog
 --------------------
 
 .. image:: ./images/dialogs/export_to_web.png
+   :width: 50%
 
 * Output directory and HTML Filename
 
@@ -419,6 +581,56 @@ Export to Web Dialog
    directory. Temporary files are removed when you close the QGIS
    application.
 
+* Page title
+
+  ✏
+
+* Preserve the Current Viewpoint
+
+  If checked, the current viewpoint of the preview is used as initial viewpoint.
+
+* Enable the Viewer to Run Locally
+
+  If checked, export all scene data to a .js file to avoid web browser's same origin policy
+  security restrictions. You can view the exported scene without uploading it to a web
+  server, although the total file size will increase and it will take longer to load.
+
+
+* Template
+
+   Select a template from available templates:
+
+   * 3DViewer
+
+      This template is a 3D viewer without any additional UI library.
+
+   * 3DViewer(dat-gui)
+
+      This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
+      panel, which makes it possible to toggle layer visibility, adjust layer
+      opacity and add a horizontal plane movable in the vertical direction.
+
+   * Mobile
+
+      This is a template for mobile devices, which has mobile friendly GUI,
+      device orientation controls and AR feature. In order to use the AR feature
+      (Camera and GPS), you need to upload exported files to a web server that
+      supports SSL.
+
+      * Magnetic North Direction
+         Magnetic North direction clockwise from the upper direction of the map, in degrees.
+         This value will be set to 0 if map canvas is rotated so that magnetic North direction is
+         same as the map upper direction. Otherwise, the value should be determined taking account of
+         grid magnetic angle (angle between grid North and magnetic North) and map rotation.
+         Used to determine device camera direction.
+
+* Animation and Narrative
+
+   ✏
+
+   * Start animation once the scene has been loaded
+
+
 * Export button
 
    Exporting starts when you press the Export button. When the exporting has
@@ -426,52 +638,13 @@ Export to Web Dialog
    exported page is opened in default web browser (or a web browser specified
    in `Exporter Settings <#exporter-settings>`__).
 
-* Template
 
-   Select a template from available templates:
-
-    * 3DViewer
-
-       This template is a 3D viewer without any additional UI library.
-
-    * 3DViewer(dat-gui)
-
-       This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__
-       panel, which makes it possible to toggle layer visibility, adjust layer
-       opacity and add a horizontal plane movable in the vertical direction.
-
-    * Mobile
-
-       This is a template for mobile devices, which has mobile friendly GUI,
-       device orientation controls and AR feature. In order to use the AR feature
-       (Camera and GPS), you need to upload exported files to a web server that
-       supports SSL.
-
-       Option
-
-       * Magnetic North Direction
-           Magnetic North direction clockwise from the upper direction of the map, in degrees.
-           This value will be set to 0 if map canvas is rotated so that magnetic North direction is
-           same as the map upper direction. Otherwise, the value should be determined taking account of
-           grid magnetic angle (angle between grid North and magnetic North) and map rotation.
-           Used to determine device camera direction.
-
-* General Settings
-
-    * Preserve the Current Viewpoint
-
-        If checked, the current viewpoint of the preview is used as initial viewpoint.
-
-    * Enable the Viewer to Run Locally
-
-        If checked, export all scene data to a .js file to avoid web browser's same origin policy
-        security restrictions. You can view the exported scene without uploading it to a web
-        server, although the total file size will increase and it will take longer to load.
 
 Exporter Settings
 -----------------
 
 .. image:: ./images/dialogs/plugin_settings.png
+   :width: 50%
 
 * Web browser path
 
@@ -482,4 +655,4 @@ Exporter Settings
 
 * Optional Features
 
-    See `Plugins <https://github.com/minorua/Qgis2threejs/wiki/Plugins>`__ wiki page.
+   See `Plugins <https://github.com/minorua/Qgis2threejs/wiki/Plugins>`__ wiki page.

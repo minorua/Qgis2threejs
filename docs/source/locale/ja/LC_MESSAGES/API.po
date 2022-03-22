@@ -3,27 +3,41 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-23 11:24+0900\n"
+"POT-Creation-Date: 2022-03-22 09:50+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Language: ja_JP\n"
-"X-Source-Language: C\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../source/API.rst:2
 msgid "API"
 msgstr "API"
 
+#: ../../source/API.rst:4
+msgid "This page needs to be updated."
+msgstr ""
+
 #: ../../source/API.rst:9
 msgid "Exporter class"
 msgstr "Exporter クラス"
 
-#: ../../source/API.rst:4
-msgid "This page needs to be updated."
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
 msgstr ""
 
 #~ msgid "A convenient class to export the scenes to web programmatically"
@@ -33,8 +47,10 @@ msgstr ""
 #~ msgstr "コンストラクタ."
 
 #~ msgid ""
-#~ "If specified, mapSettings attribute is initialized with the map settings of "
-#~ "the map canvas. The iface.legendInterface() is used to export vector layers "
+#~ "If specified, mapSettings attribute is "
+#~ "initialized with the map settings of "
+#~ "the map canvas. The iface.legendInterface()"
+#~ " is used to export vector layers "
 #~ "in the same order as the legend."
 #~ msgstr ""
 #~ "指定されていればmapSettings属性がマップキャンバスのマップ設定で初期化されます. "
@@ -74,8 +90,10 @@ msgstr ""
 #~ msgstr "エクスポート設定にマップ領域を設定する."
 
 #~ msgid ""
-#~ "This is a convenience method to set map extent to export settings. Map "
-#~ "settings should be set before this method is called."
+#~ "This is a convenience method to "
+#~ "set map extent to export settings. "
+#~ "Map settings should be set before "
+#~ "this method is called."
 #~ msgstr "エクスポート設定にマップ領域を設定するための便利なメソッドです. このメソッドが呼ばれる前にマップ設定が設定されるべきです."
 
 #~ msgid "Center of the map extent in the map CRS."
@@ -85,6 +103,8 @@ msgstr ""
 #~ msgstr "エクスポート設定にマップ設定を設定する."
 
 #~ msgid ""
-#~ "Map settings is used to define base extent of the export and render a map "
-#~ "canvas image."
+#~ "Map settings is used to define "
+#~ "base extent of the export and "
+#~ "render a map canvas image."
 #~ msgstr "マップ設定はエクスポートのベース領域を定め、マップキャンバス画像を描画するのに使用されます."
+
