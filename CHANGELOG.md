@@ -1,5 +1,30 @@
 ## CHANGELOG
 
+### Version 2.7
+#### Animation for Narratives
+- Camera motion, growing line, opacity transition and texture change animations are now available
+#### 3D Viewer
+- Added measure distance tool
+- Added action to zoom to layer objects
+#### Exporter
+- Added tabs to property dialogs and regrouped widgets in the dialogs
+- Fixed cancellation of building layer objects
+#### Scene
+- Units of 3D world space are same as map units
+- Added option to add fog
+- Added option to use point light above camera
+#### DEM
+- DEM can have multiple textures
+- Added menu action to add a flat plane
+- Renamed surrounding blocks to tiles
+#### Vector
+- Put labels into 3D world
+- Added some labeling settings (color, font size, background color, etc.)
+- Added Thick Line type for line layer
+#### Others
+- Fixed loading point cloud data
+- Removed experimental ray tracing renderer template
+
 ### Version 2.6
 - Added navigation widget
 - Added fixed base extent option and 1:1 aspect ratio option
@@ -63,7 +88,7 @@
 
 ### Version 2.1
 - Added a new template for mobile device with experimental AR feature
-- Added North arrow inset
+- Added North arrow inset (Thanks to @DigDigDig)
 - Accelerate building objects by caching last created geometry
 - Added basic material type option to scene settings - Lambert/Phong/Toon shading
 - Added visible on load option
@@ -78,7 +103,6 @@
 - Improved DEM load performance
 
 ### Version 2.0
-
 - Built for QGIS 3.x
 - Improved GUI - new exporter with preview
 - Save scene as glTF
@@ -87,18 +111,16 @@
 - Disabled/removed these features: DEM advanced resampling mode, 3 object types (Icon, JSON/COLLADA Model), some object specific settings for Profile and Overlay, FileExporter (Save as STL, OBJ, COLLADA), GSIElevProvider.
     These features were available in version 1.4, but are not available in version 2.0.
 
-
 ### Version 1.4.2
 - Fixed unicode decode error
 
 ### Version 1.4.1
-- Rendering with antialias enabled
+- Rendering with antialias enabled (Thanks to @stefanocudini)
 - Improved height range of custom plane (dat-gui, refs #53)
 - Skip invalid polygons (fix #71)
 - Fixed feature attribute writing (fix #73)
 
 ### Version 1.4
-
 - Documentation improved and moved to readthedocs.org
 - Activate DEM's shading by default to make it easy to create shaded 3D map
 - Added menu commands for touch screen devices (dat-gui)
@@ -108,118 +130,91 @@
 - Fixed error while exporting with DEM's build frame option (fix #48)
 - Fixed cone type object for point layer (fix #50)
 
-
 ### Version 1.3.1
-
-- fixed error on applying plugin settings
+- Fixed error on applying plugin settings
 
 ### Version 1.3
-
 #### General
-
-- added object type for line: Box
-- added clear settings command to settings menu
-- automatically save settings near project file when exporting is done, and restore the settings next time
-- added GSIElevTilePlugin (DEM provider. Optional feature)
-
+- Added object type for line: Box
+- Added clear settings command to settings menu
+- Automatically save settings near project file when exporting is done, and restore the settings next time
+- Added GSIElevTilePlugin (DEM provider. Optional feature)
 #### DEM
-
-- texture rendering with multiple selected layers
-- added option to clip DEM with polygon layer
-- added option to increase resolution of texture
-
+- Texture rendering with multiple selected layers
+- Added option to clip DEM with polygon layer
+- Added option to increase resolution of texture
 #### Web page
-
-- added "save image" dialog in which image size can be entered
-- fixed bug of restoring view from URL parameters
-
+- Added "save image" dialog in which image size can be entered
+- Fixed bug of restoring view from URL parameters
 #### Others
-
-- added lower Z option (Profile)
-- added texture option, side option and side lower Z option (Overlay)
-- takes map rotation into account (Disk, JSON, COLLADA)
+- Added lower Z option (Profile)
+- Added texture option, side option and side lower Z option (Overlay)
+- Takes map rotation into account (Disk, JSON, COLLADA)
 
 
 ### Version 1.2
-
-- map rotation support
-- added object type for point: COLLADA model (experimental)
-- added commands to save/load export settings
-- fixed 2.5D geometry export bug
-- fixed DEM layer export with FileExport template
-- updated three.js library (r70)
+- Map rotation support
+- Added object type for point: COLLADA model (experimental)
+- Added commands to save/load export settings
+- Fixed 2.5D geometry export bug
+- Fixed DEM layer export with FileExport template
+- Updated three.js library (r70)
 
 
 ### Version 1.1.1
-
-- fixed bugs related to icon and attribute export
+- Fixed bugs related to icon and attribute export
 
 ### Version 1.1
-
-- updated the STLExporter to support other file formats (collada, obj) and is easier to extend (by Olivier Dalang)
-
+- Updated the STLExporter to support other file formats (collada, obj) and is easier to extend (by Olivier Dalang @olivierdalang)
 
 ### Version 1.0
-
-### General
-
-- added object types for point: Disk, Icon
-- added object type for polygon: Overlay
-- added base size option (World)
-- added option to display coordinates in WGS84 lat/lon (World)
-- added layer image option (DEM)
-- added clip geometries option (Vector)
-- code refactoring (more oo code)
-
+#### General
+- Added object types for point: Disk, Icon
+- Added object type for polygon: Overlay
+- Added base size option (World)
+- Added option to display coordinates in WGS84 lat/lon (World)
+- Added layer image option (DEM)
+- Added clip geometries option (Vector)
+- Code refactoring (more oo code)
 #### Web page
-
-- added layer opacity sliders in dat-gui panel
-- added wireframe mode
-- updated popup style
-
+- Added layer opacity sliders in dat-gui panel
+- Added wireframe mode
+- Updated popup style
 
 ### Version 0.7.2
-
-- added object type for line: Profile
-- added shading option (DEM)
+- Added object type for line: Profile
+- Added shading option (DEM)
 - 3D print compatible STL export
-- bug fix for QGIS 2.5
+- Bug fix for QGIS 2.5
 
 ### Version 0.7.1
-
-- added template: STLExport
-- added object types for line: Pipe, Cone
-- added URL parameters
+- Added template: STLExport
+- Added object types for line: Pipe, Cone
+- Added URL parameters
 
 ### Version 0.7
+- Export with no DEM and multiple DEMs
+- Added DEM options: display type, transparency, frame, surroundings and vertical shift
+- Added DEM sides option (Thanks to @kostar111)
+- Added template: custom plane (Thanks to @lucacasagrande)
+- Added controls: OrbitControls
+- Added object type for point: JSON model (experimental)
+- Integrated DEM and Vector tabs
+- Moved plugin items into web menu/toolbar
 
-- export with no DEM and multiple DEMs
-- added options for DEM: display type, transparency, sides, frame, surroundings and vertical shift
-- added template: custom plane
-- added controls: OrbitControls
-- added object type for point: JSON model (experimental)
-- integrated DEM and Vector tabs
-- moved plugin items into web menu/toolbar
-
-- attribute export and labeling
-- queryable objects
-- fixed texture loading
-
+- Attribute export and labeling
+- Queryable objects
+- Fixed texture loading
 
 ### Version 0.6
-
-- fixed confusing GUI
-
+- Fixed confusing GUI
 
 ### Version 0.5
-
-- vector layer feature export
-- added object types: Sphere, Cylinder, Cube, Cone, Line, (Extruded) Polygon
-
+- Vector layer feature export
+- Added object types: Sphere, Cylinder, Cube, Cone, Line, (Extruded) Polygon
 
 ### Version 0.4
-
-- added advanced resampling mode (quad tree)
-- added vertical exaggeration option
-- added settings dialog and browser path option in it
+- Added advanced resampling mode (quad tree)
+- Added vertical exaggeration option
+- Added settings dialog and browser path option in it
 - DEM reprojection in memory

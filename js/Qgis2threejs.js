@@ -5,7 +5,7 @@
 "use strict";
 
 var Q3D = {
-  VERSION: "2.6",
+  VERSION: "2.7",
   application: {},
   gui: {}
 };
