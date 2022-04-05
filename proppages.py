@@ -442,7 +442,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))
 
-        self.mtlAddActions = []
         self.mtlAddActionGroup = QActionGroup(self)
         for i, text in [(DEMMtlType.LAYER, "Select Layer(s)..."),
                         (DEMMtlType.FILE, "Image File..."),
@@ -451,13 +450,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
             a = QAction(text, self)
             a.setData(i)
-            self.mtlAddActions.append(a)
             self.mtlAddActionGroup.addAction(a)
 
         self.mtlAddActionGroup.triggered.connect(self.addMaterial)
 
         self.contextMenuAddMtl = QMenu(self)
-        self.contextMenuAddMtl.addActions(self.mtlAddActions)
+        self.contextMenuAddMtl.addActions(self.mtlAddActionGroup.actions())
 
         self.mtlRenameAction = QAction("Rename", self)
         self.mtlRenameAction.triggered.connect(self.renameMtlItem)
@@ -554,10 +552,10 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def updateLayerImageLabel(self):
         self.label_LayerImage.setText(shortTextFromSelectedLayerIds(self.mtlLayerIds.value))
 
-    def selectImageFile(self):
+    def selectImageFile(self, _checked=False, update=True):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
         filename = getImageFileName(self, directory)
-        if filename:
+        if filename and update:
             self.lineEdit_ImageFile.setText(filename)
 
             item = self.listWidget_Materials.currentItem()
@@ -689,7 +687,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             p["checkBox_TransparentBackground"] = False
 
         elif mtype == DEMMtlType.FILE:
-            filename = self.selectImageFile()
+            filename = self.selectImageFile(update=False)
             if not filename:
                 return
             base_name = os.path.splitext(os.path.basename(filename))[0]
