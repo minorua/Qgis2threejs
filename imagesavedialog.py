@@ -60,6 +60,9 @@ class ImageSaveDialog(QDialog):
 
         self.setEnabled(False)
 
+        if not filename.lower().endswith(".png"):       # fix for #278
+            filename += ".png"
+
         image = self.renderImage()
         image.save(filename)
 
