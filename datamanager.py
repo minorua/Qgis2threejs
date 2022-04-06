@@ -33,28 +33,28 @@ class DataManager:
 
 class ImageManager(DataManager):
 
-    IMAGE_FILE = 1
-    MAP_IMAGE = 3
-    LAYER_IMAGE = 4
+    IMG_MAP = 1
+    IMG_LAYER = 2
+    IMG_FILE = 3
 
     def __init__(self, exportSettings):
         DataManager.__init__(self)
         self.exportSettings = exportSettings
         self._renderer = None
 
-    def imageIndex(self, path):
-        img = (self.IMAGE_FILE, path)
+    def mapImageIndex(self, width, height, extent, transp_background, format):
+        img = (self.IMG_MAP, (None, width, height, extent, transp_background), format)
         return self._index(img)
 
-    def mapImageIndex(self, width, height, extent, transp_background):
-        img = (self.MAP_IMAGE, (width, height, extent, transp_background))
+    def layerImageIndex(self, layerids, width, height, extent, transp_background, format):
+        img = (self.IMG_LAYER, (layerids, width, height, extent, transp_background), format)
         return self._index(img)
 
-    def layerImageIndex(self, layerids, width, height, extent, transp_background):
-        img = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background))
+    def imageFileIndex(self, path):
+        img = (self.IMG_FILE, path, "")
         return self._index(img)
 
-    def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
+    def renderedImage(self, layerids, width, height, extent, transp_background=False):
         # render layers with QgsMapRendererCustomPainterJob
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
@@ -110,39 +110,49 @@ class ImageManager(DataManager):
         return image
 
     def image(self, index):
-        image = self._list[index]
-        imageType = image[0]
-        if imageType == self.IMAGE_FILE:
-            image_path = image[1]
+        imageType, args, fmt = self._list[index]
+
+        if imageType == self.IMG_FILE:
+            image_path = args
             if os.path.isfile(image_path):
                 return QImage(image_path)
             else:
                 logMessage("Image file not found: {0}".format(image_path))
 
-        if imageType == self.MAP_IMAGE:
-            width, height, extent, transp_background = image[1]
-            return self.renderedImage(width, height, extent, transp_background)
+        else:   # IMG_MAP or IMG_LAYER
+            image = self.renderedImage(*args)
 
-        if imageType == self.LAYER_IMAGE:
-            layerids, width, height, extent, transp_background = image[1]
-            return self.renderedImage(width, height, extent, transp_background, layerids)
+            if fmt == "JPEG":
+                return tools.jpegCompressedImage(image)
+
+            return image
 
         image = QImage(1, 1, QImage.Format_RGB32)
         image.fill(Qt.lightGray)
         return image
 
-    def base64image(self, index):
+    def dataUri(self, index):
+        imageType, args, fmt = self._list[index]
+
+        if imageType == self.IMG_FILE:
+            return tools.imageFile2dataUri(args)
+
         image = self.image(index)
         if image:
-            return tools.base64image(image)
-        return None
+            return tools.image2dataUri(image, fmt=fmt)
+
+        return ""
 
     def write(self, index, path):
-        self.image(index).save(path)
+        imageType, args, fmt = self._list[index]
 
-    def writeAll(self, pathRoot):
-        for i in range(self.count()):
-            self.image(i).save("{0}{1}.png".format(pathRoot, i))
+        if imageType == self.IMG_FILE:
+            image_path = args
+            if os.path.isfile(image_path):
+                tools.copyFile(image_path, path, overwrite=True)
+                return
+
+        self.image(index).save(path)
 
 
 class MaterialManager(DataManager):
@@ -203,12 +213,12 @@ class MaterialManager(DataManager):
     def getWireframeIndex(self, color, opacity=1):
         return self._indexCol(self.WIREFRAME, color, opacity)
 
-    def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True):
-        mtl = (self.MAP_IMAGE, None, opacity, True, (width, height, extent, transp_background, shading))
+    def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
+        mtl = (self.MAP_IMAGE, None, opacity, True, ((width, height, extent, transp_background, format), shading))
         return self._index(mtl)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False, shading=True):
-        mtl = (self.LAYER_IMAGE, None, opacity, True, (layerids, width, height, extent, transp_background, shading))
+    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
+        mtl = (self.LAYER_IMAGE, None, opacity, True, ((layerids, width, height, extent, transp_background, format), shading))
         return self._index(mtl)
 
     def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False, shading=True):
@@ -232,16 +242,16 @@ class MaterialManager(DataManager):
 
         if color is None:
             if mt == self.MAP_IMAGE:
-                width, height, extent, transp_background, shading = opts
-                imgIndex = self.imageManager.mapImageIndex(width, height, extent, transp_background)
+                args, shading = opts
+                imgIndex = self.imageManager.mapImageIndex(*args)
 
             elif mt == self.LAYER_IMAGE:
-                layerids, width, height, extent, transp_background, shading = opts
-                imgIndex = self.imageManager.layerImageIndex(layerids, width, height, extent, transp_background)
+                args, shading = opts
+                imgIndex = self.imageManager.layerImageIndex(*args)
 
             elif mt == self.IMAGE_FILE:
                 imagepath, transp_background, shading = opts
-                imgIndex = self.imageManager.imageIndex(imagepath)
+                imgIndex = self.imageManager.imageFileIndex(imagepath)
 
             elif mt == self.SPRITE_IMAGE:
                 path_url, transp_background = opts
@@ -249,11 +259,11 @@ class MaterialManager(DataManager):
                     url = path_url
                     filepath = None
                 else:
-                    imgIndex = self.imageManager.imageIndex(path_url)
+                    imgIndex = self.imageManager.imageFileIndex(path_url)
 
             if url is None:
                 if base64:
-                    m["image"] = {"base64": self.imageManager.base64image(imgIndex)}
+                    m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}
                 else:
                     m["image"] = {"object": self.imageManager.image(imgIndex)}
             else:
@@ -301,13 +311,21 @@ class MaterialManager(DataManager):
 
     def buildAll(self, pathRoot=None, urlRoot=None, base64=False):
         mList = []
-        for i in range(len(self._list)):
-            if pathRoot is None:
-                filepath = url = None
-            else:
-                filepath = "{0}{1}.png".format(pathRoot, i)
-                url = "{0}{1}.png".format(urlRoot, i)
-            mList.append(self.build(i, filepath, url, base64))
+        for i, item in enumerate(self._list):
+            mt, color, opacity, doubleSide, opts = item
+            filepath = url = None
+
+            if pathRoot and color is None:
+                if mt == self.SPRITE_IMAGE:
+                    path_url = opts[0]
+                    if not path_url.startswith("http:") and not path_url.startswith("https:"):
+                        ext = os.path.splitext(path_url)[1].lower()
+                        suffix = "{}{}".format(i, ext)
+                        filepath = pathRoot + suffix
+                        url = urlRoot + suffix
+
+            m = self.build(i, filepath, url, base64)
+            mList.append(m)
         return mList
 
 

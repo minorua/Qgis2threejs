@@ -2,6 +2,7 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-16
+
 import json
 import struct
 from PyQt5.QtCore import QByteArray, QSize
@@ -459,19 +460,22 @@ class DEMMaterialBuilder:
         p = m.get("properties", {})
         tex_size = DEMPropertyReader.textureSize(p, self.extent, self.settings)
         opacity = DEMPropertyReader.opacity(p)
-        transp_background = p.get("checkBox_TransparentBackground", False)
+
+        isJPEG = p.get("radioButton_JPEG")
+        fmt = "JPEG" if isJPEG else "PNG"
+        transp_background = p.get("checkBox_TransparentBackground", False) and not isJPEG
         shading = p.get("checkBox_Shading", True)
 
         # material type
         mtype = m.get("type", DEMMtlType.MAPCANVAS)
         if mtype == DEMMtlType.MAPCANVAS:
             mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
-                                                       opacity, transp_background, shading)
+                                                       opacity, transp_background, shading, fmt)
 
         elif mtype == DEMMtlType.LAYER:
             layerids = p.get("layerIds", [])
             mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
-                                                         opacity, transp_background, shading)
+                                                         opacity, transp_background, shading, fmt)
 
         elif mtype == DEMMtlType.FILE:
             filepath = p.get("lineEdit_ImageFile", "")
@@ -485,8 +489,10 @@ class DEMMaterialBuilder:
                 mi = self.materialManager.getMeshBasicMaterialIndex(color, opacity, True)
 
         # build material
-        filepath = None if self.pathRoot is None else "{}{}{}.png".format(self.pathRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")
-        url = None if self.urlRoot is None else "{}{}{}.png".format(self.urlRoot, self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "")
+        ext = fmt.lower().replace("jpeg", "jpg")
+        suffix = "{}{}.{}".format(self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "", ext)
+        filepath = None if self.pathRoot is None else (self.pathRoot + suffix)
+        url = None if self.urlRoot is None else (self.urlRoot + suffix)
 
         d = self.materialManager.build(mi, filepath, url, self.settings.base64)
         d["mtlIndex"] = mtlIndex

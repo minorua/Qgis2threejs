@@ -435,7 +435,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         # material group
         self.mtlLayerIds = HiddenProperty("layerIds", [])
-        self.mtlWidgets = [self.comboBox_TextureSize, self.lineEdit_ImageFile, self.colorButton_Color,
+        self.mtlWidgets = [self.comboBox_TextureSize, self.radioButton_PNG, self.radioButton_JPEG, self.lineEdit_ImageFile, self.colorButton_Color,
                            self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading,
                            self.mtlLayerIds]
 
@@ -765,7 +765,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             color = True
 
         self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer, self.mtlLayerIds], layers)
-        self.setWidgetsVisible([self.label_TextureSize, self.comboBox_TextureSize], image_size)
+        self.setWidgetsVisible([self.label_TextureSize, self.comboBox_TextureSize, self.label_Format, self.radioButton_PNG, self.radioButton_JPEG], image_size)
         self.setWidgetsVisible([self.label_ImageFile, self.lineEdit_ImageFile, self.toolButton_ImageFile], image_file)
         self.setWidgetsVisible([self.label_Color, self.colorButton_Color], color)
         self.setWidgetsVisible([self.checkBox_TransparentBackground], tb)

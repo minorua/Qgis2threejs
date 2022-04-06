@@ -9,8 +9,8 @@ import configparser
 import re
 import shutil
 
-from PyQt5.QtCore import qDebug, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
+from PyQt5.QtGui import QDesktopServices, QImage
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
 
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
@@ -139,6 +139,10 @@ def logMessage(message, warning=True, error=False):
     QgsMessageLog.logMessage(str(message), PLUGIN_NAME, level, warning or error)
 
 
+def qDebug(message):
+    qDebugA(message.encode("utf-8"))
+
+
 def shortTextFromSelectedLayerIds(layerIds):
     count = len(layerIds)
     return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
@@ -177,12 +181,12 @@ def openDirectory(dir_path):
     QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
 
 
-def base64image(image):
+def image2dataUri(image, fmt="PNG"):
     ba = QByteArray()
     buffer = QBuffer(ba)
     buffer.open(QIODevice.WriteOnly)
-    image.save(buffer, "PNG")
-    return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
+    image.save(buffer, fmt.upper())
+    return "data:image/{};base64,".format(fmt.lower()) + ba.toBase64().data().decode("ascii")
 
 
 def base64file(file_path):
@@ -191,7 +195,21 @@ def base64file(file_path):
             return base64.b64encode(f.read()).decode("ascii")
     except:
         logMessage("Cannot read file: {}".format(file_path))
-        return None
+        return ""
+
+
+def imageFile2dataUri(file_path):
+    imgType = os.path.splitext(file_path)[1].lower()[1:].replace("jpg", "jpeg")
+    return "data:image/{};base64,".format(imgType) + base64file(file_path)
+
+
+def jpegCompressedImage(image):
+    ba = QByteArray()
+    buffer = QBuffer(ba)
+    buffer.open(QIODevice.WriteOnly)
+    image.save(buffer, "JPEG")
+
+    return QImage.fromData(ba, "JPEG")
 
 
 def getTemplateConfig(template_path):
