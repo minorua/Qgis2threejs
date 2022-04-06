@@ -2120,6 +2120,9 @@ Q3D.Scene.prototype.loadJSONObject = function (jsonObject) {
           focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
         }
 
+        pos.z *= p.zScale;
+        focal.z *= p.zScale;
+
         var near = 0.001 * s,
             far = 100 * s;
 
@@ -4434,6 +4437,7 @@ Q3D.Tweens.cameraMotion = {
   init: function (group) {
 
     var app = Q3D.application,
+        zScale = app.scene.userData.zScale,
         keyframes = group.keyframes,
         prop_list = [];
 
@@ -4442,12 +4446,12 @@ Q3D.Tweens.cameraMotion = {
         o = app.scene.userData.origin;
     for (var i = 0; i < keyframes.length; i++) {
       p = keyframes[i].camera;
-      vec3.set(p.x - p.fx, p.y - p.fy, p.z - p.fz);
+      vec3.set(p.x - p.fx, p.y - p.fy, (p.z - p.fz) * zScale);
       dist = vec3.length();
       theta = Math.acos(vec3.z / dist);
       phi = Math.atan2(vec3.y, vec3.x);
       p.phi = phi;
-      prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: p.fz - o.z, d: dist, theta: theta});  // map to 3D world
+      prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: (p.fz - o.z) * zScale, d: dist, theta: theta});  // map to 3D world
 
       if (i > 0) {
         dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
