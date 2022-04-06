@@ -904,7 +904,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             properties["colorButton_ConnColor"] = properties.get("colorButton_ConnColor", DEF_SETS.CONN_COLOR)
 
         else:
-            self.tabWidget.setTabVisible(1, False)
+            self.tabWidget.removeTab(1)
 
         # register widgets
         widgets = [self.lineEdit_Name, self.comboBox_ObjectType]
