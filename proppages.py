@@ -32,7 +32,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import (createUid, getColor, getDEMLayersInProject, getImageFileName, getLayersInProject, hex_color,
+from .tools import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
                     logMessage, shortTextFromSelectedLayerIds)
 from .propwidget import PropertyWidget
 from .vectorobject import ObjectType
@@ -554,7 +554,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def selectImageFile(self, _checked=False, update=True):
         directory = os.path.split(self.lineEdit_ImageFile.text())[0]
-        filename = getImageFileName(self, directory)
+        filename = selectImageFile(self, directory)
         if filename and update:
             self.lineEdit_ImageFile.setText(filename)
 
@@ -694,7 +694,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             p["lineEdit_ImageFile"] = filename
 
         else:
-            color = getColor()
+            color = selectColor()
             if not color:
                 return
             base_name = "color"

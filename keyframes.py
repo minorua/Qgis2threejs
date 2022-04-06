@@ -12,7 +12,7 @@ from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 from .conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, getImageFileName, js_bool, logMessage, parseInt, pluginDir
+from .tools import createUid, selectImageFile, js_bool, logMessage, parseInt, pluginDir
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -1221,7 +1221,7 @@ class KeyframeDialog(QDialog):
         QDialog.accept(self)
 
     def addImage(self):
-        filename = getImageFileName(self)
+        filename = selectImageFile(self)
         if filename:
             url = QUrl.fromLocalFile(filename).toString()
             self.ui.plainTextEdit.insertPlainText('<img src="{}" width="100%">'.format(url))

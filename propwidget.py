@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from .tools import getColor, getDEMLayersInProject, shortTextFromSelectedLayerIds
+from .tools import selectColor, getDEMLayersInProject, shortTextFromSelectedLayerIds
 
 
 class WVT:
@@ -152,7 +152,7 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.toolButton.setVisible(isRGB)
 
     def toolButtonClicked(self):
-        color = getColor()
+        color = selectColor()
         if color:
             self.widget.expression.setExpression("'" + color.name().replace("#", "0x") + "'")
 

@@ -345,7 +345,7 @@ def settingsFilePath():
     return proj_path + ".qto3settings" if proj_path else ""
 
 
-def getColor(parent=None):
+def selectColor(parent=None):
     dlg = QDialog(parent)
     dlg.setWindowTitle("Select a color")
     dlg.setLayout(QVBoxLayout())
@@ -363,9 +363,9 @@ def getColor(parent=None):
         return widget.color()
 
 
-def getImageFileName(parent=None, directory=None):
+def selectImageFile(parent=None, directory=None):
     if directory is None:
         directory = QDir.homePath()
-    filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
-    filename, _ = QFileDialog.getOpenFileName(parent, "Select image file", directory, filterString)
+    filterString = "Supported image files (*.png *.jpg *.jpeg *.gif *.bmp)"
+    filename, _ = QFileDialog.getOpenFileName(parent, "Select an image file", directory, filterString)
     return filename
