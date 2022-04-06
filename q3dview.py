@@ -6,7 +6,7 @@
 from datetime import datetime
 import os
 
-from PyQt5.QtCore import (Qt, QByteArray, QBuffer, QDir, QEventLoop, QIODevice, QObject, QSize, QTimer, QUrl, QVariant,
+from PyQt5.QtCore import (Qt, QByteArray, QDir, QEventLoop, QObject, QSize, QTimer, QUrl, QVariant,
                           pyqtSignal, pyqtSlot, qDebug)
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
@@ -24,14 +24,6 @@ except ModuleNotFoundError:
 
 from .q3dconst import Script
 from .tools import hex_color, js_bool, logMessage, pluginDir
-
-
-def base64image(image):
-    ba = QByteArray()
-    buffer = QBuffer(ba)
-    buffer.open(QIODevice.WriteOnly)
-    image.save(buffer, "PNG")
-    return "data:image/png;base64," + ba.toBase64().data().decode("ascii")
 
 
 class Bridge(QObject):

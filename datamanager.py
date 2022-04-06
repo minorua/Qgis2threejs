@@ -34,7 +34,6 @@ class DataManager:
 class ImageManager(DataManager):
 
     IMAGE_FILE = 1
-    CANVAS_IMAGE = 2
     MAP_IMAGE = 3
     LAYER_IMAGE = 4
 
@@ -47,10 +46,6 @@ class ImageManager(DataManager):
         img = (self.IMAGE_FILE, path)
         return self._index(img)
 
-    def canvasImageIndex(self, transp_background):
-        img = (self.CANVAS_IMAGE, transp_background)
-        return self._index(img)
-
     def mapImageIndex(self, width, height, extent, transp_background):
         img = (self.MAP_IMAGE, (width, height, extent, transp_background))
         return self._index(img)
@@ -58,11 +53,6 @@ class ImageManager(DataManager):
     def layerImageIndex(self, layerids, width, height, extent, transp_background):
         img = (self.LAYER_IMAGE, (layerids, width, height, extent, transp_background))
         return self._index(img)
-
-    def mapCanvasImage(self, transp_background=False):
-        """ returns map canvas image """
-        size = self.exportSettings.mapSettings.outputSize()
-        return self.renderedImage(size.width(), size.height(), self.exportSettings.baseExtent(), transp_background)
 
     def renderedImage(self, width, height, extent, transp_background=False, layerids=None):
         # render layers with QgsMapRendererCustomPainterJob
@@ -128,9 +118,6 @@ class ImageManager(DataManager):
                 return QImage(image_path)
             else:
                 logMessage("Image file not found: {0}".format(image_path))
-                image = QImage(1, 1, QImage.Format_RGB32)
-                image.fill(Qt.lightGray)
-                return image
 
         if imageType == self.MAP_IMAGE:
             width, height, extent, transp_background = image[1]
@@ -140,9 +127,9 @@ class ImageManager(DataManager):
             layerids, width, height, extent, transp_background = image[1]
             return self.renderedImage(width, height, extent, transp_background, layerids)
 
-        # imageType == self.CANVAS_IMAGE:
-        transp_background = image[1]
-        return self.mapCanvasImage(transp_background)
+        image = QImage(1, 1, QImage.Format_RGB32)
+        image.fill(Qt.lightGray)
+        return image
 
     def base64image(self, index):
         image = self.image(index)
@@ -177,7 +164,6 @@ class MaterialManager(DataManager):
     MESH_BASIC = 13
     WIREFRAME = 12
 
-    CANVAS_IMAGE = 20
     MAP_IMAGE = 21
     LAYER_IMAGE = 22
     IMAGE_FILE = 23
@@ -217,10 +203,6 @@ class MaterialManager(DataManager):
     def getWireframeIndex(self, color, opacity=1):
         return self._indexCol(self.WIREFRAME, color, opacity)
 
-    def getCanvasImageIndex(self, opacity=1, transp_background=False):
-        mtl = (self.CANVAS_IMAGE, None, opacity, True, transp_background)
-        return self._index(mtl)
-
     def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True):
         mtl = (self.MAP_IMAGE, None, opacity, True, (width, height, extent, transp_background, shading))
         return self._index(mtl)
@@ -249,11 +231,7 @@ class MaterialManager(DataManager):
         }
 
         if color is None:
-            if mt == self.CANVAS_IMAGE:
-                transp_background = opts
-                imgIndex = self.imageManager.canvasImageIndex(transp_background)
-
-            elif mt == self.MAP_IMAGE:
+            if mt == self.MAP_IMAGE:
                 width, height, extent, transp_background, shading = opts
                 imgIndex = self.imageManager.mapImageIndex(width, height, extent, transp_background)
 
