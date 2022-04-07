@@ -1,7 +1,7 @@
 ## CHANGELOG
 
 ### Version 2.7.1
-- Added option to export DEM texture in JPEG
+- Added option to export DEM texture in JPEG format
 - Bug fixes
 
 ### Version 2.7
