@@ -96,7 +96,8 @@ Q3D.Config = {
   animation: {
     enabled: false,
     startOnLoad: false,
-    easingCurve: "Cubic"
+    easingCurve: "Cubic",
+    repeat: false
   },
 
   // others
@@ -779,8 +780,6 @@ Q3D.application
 
       isPaused: false,
 
-      isLoop: false,
-
       curveFactor: 0,
 
       easingFunction: function (easing) {
@@ -898,7 +897,7 @@ Q3D.application
               }
 
               if (completed) {
-                if (_this.isLoop) {
+                if (conf.animation.repeat) {
                   setTimeout(function () {
                     _this.start();
                   }, 0);

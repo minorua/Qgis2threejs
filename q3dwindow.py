@@ -151,7 +151,7 @@ class Q3DWindow(QMainWindow):
 
         # save export settings to a settings file
         try:
-            self.settings.setAnimationData(self.ui.animationPanel.tree.data())
+            self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
         except Exception as e:
             import traceback
@@ -352,7 +352,7 @@ class Q3DWindow(QMainWindow):
     def exportToWeb(self):
         from .exportdialog import ExportToWebDialog
 
-        self.settings.setAnimationData(self.ui.animationPanel.tree.data())
+        self.settings.setAnimationData(self.ui.animationPanel.data())
 
         dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
         dialog.show()
@@ -399,7 +399,7 @@ class Q3DWindow(QMainWindow):
         settings.loadSettingsFromFile(filename)
 
         self.ui.treeView.addLayers(settings.layers())
-        self.ui.animationPanel.tree.setData(settings.animationData())
+        self.ui.animationPanel.setData(settings.animationData())
 
         self.iface.updateExportSettingsRequest.emit(settings)
 
@@ -416,7 +416,7 @@ class Q3DWindow(QMainWindow):
         if os.path.splitext(filename)[1].lower() != ".qto3settings":
             filename += ".qto3settings"
 
-        self.settings.setAnimationData(self.ui.animationPanel.tree.data())
+        self.settings.setAnimationData(self.ui.animationPanel.data())
         self.settings.saveSettings(filename)
 
         self.lastDir = os.path.dirname(filename)
@@ -434,7 +434,7 @@ class Q3DWindow(QMainWindow):
         settings.updateLayers()
 
         self.ui.treeView.addLayers(settings.layers())
-        self.ui.animationPanel.tree.setData({})
+        self.ui.animationPanel.setData({})
 
         self.iface.updateExportSettingsRequest.emit(settings)
 

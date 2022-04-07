@@ -425,9 +425,9 @@ function loadKeyframeGroups(groups) {
   app.animation.keyframes.load(groups);
 }
 
-function startAnimation(groups, loop) {
+function startAnimation(groups, repeat) {
   if (groups) loadKeyframeGroups(groups);
-  app.animation.keyframes.isLoop = Boolean(loop);
+  Q3D.Config.animation.repeat = Boolean(repeat);
 
   loadScriptFile("../js/tweenjs/tween.js", function () {
     app.animation.keyframes.start();

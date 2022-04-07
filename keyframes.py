@@ -52,19 +52,31 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonPlay.clicked.connect(self.playButtonClicked)
 
         self.tree.setup(wnd, settings)
+
+        self.setData(settings.animationData())
+
         self.tree.currentItemChanged.connect(self.currentItemChanged)
         self.currentItemChanged(None, None)
 
         self.webPage.bridge.animationStopped.connect(self.animationStopped)
 
+    def data(self):
+        d = self.tree.data()
+        d["repeat"] = self.ui.checkBoxLoop.isChecked()
+        return d
+
+    def setData(self, data):
+        self.ui.checkBoxLoop.setChecked(data.get("repeat", False))
+        self.tree.setData(data)
+
     def playButtonClicked(self, _):
         if self.isAnimating:
             self.stopAnimation()
         else:
-            self.playAnimation(loop=self.ui.checkBoxLoop.isChecked())
+            self.playAnimation(repeat=self.ui.checkBoxLoop.isChecked())
 
-    def playAnimation(self, items=None, loop=False):
-        self.wnd.settings.setAnimationData(self.tree.data())
+    def playAnimation(self, items=None, repeat=False):
+        self.wnd.settings.setAnimationData(self.data())
 
         self._warnings = []
 
@@ -112,7 +124,7 @@ class AnimationPanel(QWidget):
         if len(dataList):
             if DEBUG_MODE:
                 logMessage("Play: " + str(dataList))
-            self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(loop)), data=dataList)
+            self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
@@ -196,7 +208,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
-        self.setData(settings.animationData())
+        # self.setData(settings.animationData())
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenu)

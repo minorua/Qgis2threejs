@@ -157,13 +157,20 @@ class ExportToWebDialog(QDialog):
         # animation settings
         anim_enabled = self.ui.groupBox_Animation.isEnabled() and self.ui.groupBox_Animation.isChecked()
         startOnLoad = self.ui.checkBox_StartOnLoad.isChecked()
-        if anim_enabled:
-            self.settings.setOption("animation.enabled", True)
-            self.settings.setOption("animation.startOnLoad", startOnLoad)
 
+        # save checked states to settings
         keyframeData = self.settings.animationData()
         keyframeData["enabled"] = anim_enabled
         keyframeData["startOnLoad"] = startOnLoad
+
+        if anim_enabled:
+            self.settings.setOption("animation.enabled", True)
+
+            if startOnLoad:
+                self.settings.setOption("animation.startOnLoad", True)
+
+            if keyframeData.get("repeat"):
+                self.settings.setOption("animation.repeat", True)
 
         # make a copy of export settings
         settings = self.settings.clone()
