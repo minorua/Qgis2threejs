@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.7.1
+- Added option to export DEM texture in JPEG
+- Bug fixes
+
 ### Version 2.7
 #### Animation for Narratives
 - Camera motion, growing line, opacity transition and texture change animations are now available
