@@ -322,12 +322,13 @@ function switchCamera(is_ortho) {
 
   console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.");
 
-  // rebuild lights and view helper
+  // change parent of light
   var p = app.scene.userData;
   if (p.light) {
-    app.scene.dispatchEvent({type: "buildLightRequest", light: p.light, rotation: p.baseExtent.rotation});
+    app.scene.dispatchEvent({type: "lightChanged", light: p.light});
   }
 
+  // rebuild view helper
   if (app.viewHelper !== undefined) {
     app.buildViewHelper(Q3D.E("navigation"));
   }
@@ -373,7 +374,9 @@ function adjustCameraPos() {
 
 //// lights
 function changeLight(type) {
-  app.scene.dispatchEvent({type: "buildLightRequest", light: type});
+  app.scene.lightGroup.clear();
+  app.scene.buildLights(Q3D.Config.lights[type], app.scene.userData.baseExtent.rotation);
+  app.scene.dispatchEvent({type: "lightChanged", light: type});
   app.render();
 }
 
