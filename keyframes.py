@@ -208,8 +208,6 @@ class AnimationTreeWidget(QTreeWidget):
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
-        # self.setData(settings.animationData())
-
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenu)
         self.currentItemChanged.connect(self.currentTreeItemChanged)

@@ -30,20 +30,6 @@ class ImageSaveDialog(QDialog):
         height = self.ui.spinBox_Height.value()
         return self.wnd.webPage.renderImage(width, height)
 
-        # in other way
-        # create an exporter
-        self.wnd.settings.setMapSettings(self.wnd.qgisIface.mapCanvas().mapSettings())
-        exporter = ImageExporter(self.wnd.settings)
-        exporter.initWebPage(width, height)
-
-        # get current camera state
-        cameraState = self.wnd.webPage.cameraState()
-
-        # render image
-        image, err = exporter.render(cameraState=cameraState)
-
-        return image
-
     def copyToClipboard(self):
         self.setEnabled(False)
 
