@@ -126,6 +126,7 @@ class VectorLayer:
             self.ot = otc(settings, materialManager)
         else:
             self.ot = None
+            logMessage("Shape type not found: {} ({})".format(self.properties.get("comboBox_ObjectType"), self.name), error=True)
 
         self.materialManager = materialManager
         self.modelManager = modelManager
