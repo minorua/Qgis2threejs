@@ -6,6 +6,9 @@
 
 .. Examples
 
+.. |Kibiji| image:: ./images/examples/kibiji.png
+   :target: https://qgis2threejs-examples-27.netlify.com/kibiji/
+
 .. |Mt_Fuji| image:: ./images/examples/mt_fuji.png
    :target: https://qgis2threejs-examples-24.netlify.com/mt_fuji.html
 

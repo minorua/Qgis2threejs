@@ -20,9 +20,8 @@ In the `Layers` panel, each layer item has a checkbox on its left. Check the che
 To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
 `Properties...` from context menu (right click menu).
 
-Export settings are automatically saved to a ``.qto3settings`` file under the same directory
-as the current QGIS project file if you are working with a QGIS project file. When you open the exporter later,
-the export settings of the project will be restored.
+Export settings are automatically saved to a ``.qto3settings`` file alongside the current QGIS project file if you are working
+with a QGIS project file. When you open the exporter later, the export settings of the project will be restored.
 
 If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
 You might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update.
