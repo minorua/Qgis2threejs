@@ -1,13 +1,12 @@
 Examples
 ========
 
-* **Kibi-ji Cycling**: Animation
+* **Kibi-ji Cycling**: Animation and narrative box
 
   |Kibiji|
 
-  Sources: Geospatial Information Authority of Japan. `10m DEM of Fundamental
-  Geospatial Data <https://www.gsi.go.jp/kiban/index.html>`__ and `GSI
-  Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort)
+  Sources: Geospatial Information Authority of Japan. `GSI
+  Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (dem, ort, relief)
 
 * **Mt. Fuji**: Shaded relief map made with SRTM3 data
 
