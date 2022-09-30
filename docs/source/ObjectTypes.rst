@@ -14,7 +14,7 @@ Point Layer
 
 `Sphere <#sphere>`__ \| `Cylinder <#cylinder>`__ \| `Cone <#cone>`__ \|
 `Box <#box>`__ \| `Disk <#disk>`__ \| `Plane <#plane>`__ \| `Point <#point>`__ \|
-`Icon <#icon>`__ \| `Model File <#model-file>`__
+`Billboard <#billboard>`__ \| `Model File <#model-file>`__
 
 
 .. index:: Sphere
@@ -279,9 +279,9 @@ Point
    </td></tr></table>
 
 
-.. index:: Icon
+.. index:: Billboard
 
-Icon
+Billboard
 ~~~~
 
 Image which always faces towards the camera. When an image file on local file system is specified,

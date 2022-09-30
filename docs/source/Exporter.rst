@@ -199,7 +199,7 @@ Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
    * Basic material type
 
-      Material type applied to most 3D objects, except for Point, Icon, Model File and Line type objects.
+      Material type applied to most 3D objects, except for Point, Billboard, Model File and Line type objects.
       Select a material type from
       `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
       `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
