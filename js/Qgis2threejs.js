@@ -177,7 +177,6 @@ Q3D.uv = {
 Q3D.deg2rad = Math.PI / 180;
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
-Q3D.isIE = (Q3D.ua.indexOf("msie") != -1 || Q3D.ua.indexOf("trident") != -1);
 Q3D.isTouchDevice = ("ontouchstart" in window);
 
 Q3D.E = function (id) {
@@ -363,9 +362,7 @@ Q3D.E = function (id) {
 			this.updateMatrixWorld();
 		};
 
-		app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5});
-
-		if (!Q3D.isIE) app.highlightMaterial.side = THREE.DoubleSide;    // Shader compilation error occurs with double sided material on IE11
+		app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
 
 		// loading manager
 		app.initLoadingManager();
@@ -2127,7 +2124,7 @@ Q3D.E = function (id) {
 
 			var m = jsonObject, opt = {}, defer = false;
 
-			if (m.ds && !Q3D.isIE) opt.side = THREE.DoubleSide;
+			if (m.ds) opt.side = THREE.DoubleSide;
 
 			if (m.flat) opt.flatShading = true;
 

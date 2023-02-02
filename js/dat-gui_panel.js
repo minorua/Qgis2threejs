@@ -93,9 +93,7 @@ Q3D.gui.dat = {
 	};
 
 	_this.customPlaneMaterial = function (color) {
-		var m = new THREE.MeshLambertMaterial({color: color, transparent: true});
-		if (!Q3D.isIE) m.side = THREE.DoubleSide;
-		return m;
+		return new THREE.MeshLambertMaterial({color: color, transparent: true, side: THREE.DoubleSide});
 	};
 
 	_this.initCustomPlaneFolder = function (zMin, zMax) {
