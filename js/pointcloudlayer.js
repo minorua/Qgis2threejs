@@ -65,127 +65,124 @@
 })();
 
 
-/*
-Q3D.PointCloudLayer --> Q3D.MapLayer
-*/
-Q3D.PointCloudLayer = function () {
-	Q3D.MapLayer.call(this);
-	this.type = Q3D.LayerType.PointCloud;
-};
+class PointCloudLayer extends MapLayer {
 
-Q3D.PointCloudLayer.prototype = Object.create(Q3D.MapLayer.prototype);
-Q3D.PointCloudLayer.prototype.constructor = Q3D.PointCloudLayer;
+	constructor() {
+		super();
+		this.type = Q3D.LayerType.PointCloud;
+	}
 
-Q3D.PointCloudLayer.prototype.visibleObjects = function () {
-	if (!this.visible) return [];
 
-	var o = [];
-	this.objectGroup.traverseVisible(function (obj) {
-		o.push(obj);
-	});
-	return o;
-};
+	visibleObjects() {
+		if (!this.visible) return [];
 
-Q3D.PointCloudLayer.prototype.loadJSONObject = function (jsonObject, scene) {
+		var o = [];
+		this.objectGroup.traverseVisible(function (obj) {
+			o.push(obj);
+		});
+		return o;
+	}
 
-	var p = jsonObject.properties;
-	var need_reload = (this.properties.colorType !== p.colorType);
+	loadJSONObject(jsonObject, scene) {
 
-	Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+		var p = jsonObject.properties;
+		var need_reload = (this.properties.colorType !== p.colorType);
 
-	if (this.pcg !== undefined) {
-		if (!need_reload) {
-			this.updatePosition(scene);
+		Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
 
-			if (this.pc !== undefined) {
-				this.pc.showBoundingBox = p.boxVisible;
+		if (this.pcg !== undefined) {
+			if (!need_reload) {
+				this.updatePosition(scene);
+
+				if (this.pc !== undefined) {
+					this.pc.showBoundingBox = p.boxVisible;
+				}
+
+				if (p.color !== undefined) this.materials.mtl(0).color = new THREE.Color(p.color);
+				return;
 			}
 
-			if (p.color !== undefined) this.materials.mtl(0).color = new THREE.Color(p.color);
-			return;
+			this.clearObjects();
+
+			var g = this.objectGroup;
+			g.position.set(0, 0, 0);
+			g.rotation.set(0, 0, 0);
+			g.scale.set(1, 1, 1);
+			g.updateMatrixWorld();
 		}
 
-		this.clearObjects();
+		this.pcg = new Q3D.PCGroup(this);
+		this.pcg.setPointBudget(10000000);
+		this.addObject(this.pcg);
 
-		var g = this.objectGroup;
-		g.position.set(0, 0, 0);
-		g.rotation.set(0, 0, 0);
-		g.scale.set(1, 1, 1);
+		var _this = this;
+
+		Potree.loadPointCloud(p.url, p.name, function(e) {
+
+			_this.pc = e.pointcloud;
+			_this.pcg.add(e.pointcloud);
+			_this.updatePosition(scene);
+
+			_this.bbGroup = new Q3D.PCBBGroup();
+			_this.bbGroup.position.copy(_this.pc.position);
+			_this.bbGroup.children = _this.pc.boundingBoxNodes;
+			_this.addObject(_this.bbGroup);
+
+			_this.pc.showBoundingBox = p.boxVisible;
+
+			var mtl = _this.pc.material;
+			mtl.pointColorType = Potree.PointColorType[p.colorType];
+
+			if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
+
+			if (p.colorType == "HEIGHT") {
+				var box = _this.boundingBox();
+				mtl.elevationRange = [box.min.z, box.max.z];
+			}
+			_this.materials.add(mtl);
+
+			_this.requestRepeatRender(300, 60, true);
+		});
+	}
+
+	boundingBox() {
+		return this.pcg.getBoundingBox();
+	}
+
+	updatePosition(scene) {
+		var g = this.objectGroup,
+			p = scene.userData;
+
+		g.position.copy(scene.toWorldCoordinates({x: 0, y: 0, z: 0}));
+		g.scale.z = p.zScale;
 		g.updateMatrixWorld();
 	}
 
-	this.pcg = new Q3D.PCGroup(this);
-	this.pcg.setPointBudget(10000000);
-	this.addObject(this.pcg);
+	requestRepeatRender(interval, repeat, watch_loading) {
 
-	var _this = this;
+		if (repeat == 0) return;
 
-	Potree.loadPointCloud(p.url, p.name, function(e) {
+		var _this = this, count = 0, timer_id = null;
 
-		_this.pc = e.pointcloud;
-		_this.pcg.add(e.pointcloud);
-		_this.updatePosition(scene);
+		var tick_func = function () {
 
-		_this.bbGroup = new Q3D.PCBBGroup();
-		_this.bbGroup.position.copy(_this.pc.position);
-		_this.bbGroup.children = _this.pc.boundingBoxNodes;
-		_this.addObject(_this.bbGroup);
+			_this.requestRender();
 
-		_this.pc.showBoundingBox = p.boxVisible;
+			if (++count > repeat || (watch_loading && !Potree.Global.numNodesLoading)) {
+				if (timer_id !== null) window.clearInterval(timer_id);
+				return false;
+			}
+			return true;
+		};
 
-		var mtl = _this.pc.material;
-		mtl.pointColorType = Potree.PointColorType[p.colorType];
+		if (tick_func()) timer_id = window.setInterval(tick_func, interval);
+	}
 
-		if (p.color !== undefined) mtl.color = new THREE.Color(p.color);
-
-		if (p.colorType == "HEIGHT") {
-			var box = _this.boundingBox();
-			mtl.elevationRange = [box.min.z, box.max.z];
-		}
-		_this.materials.add(mtl);
-
-		_this.requestRepeatRender(300, 60, true);
-	});
-};
-
-Q3D.PointCloudLayer.prototype.boundingBox = function () {
-	return this.pcg.getBoundingBox();
-};
-
-Q3D.PointCloudLayer.prototype.updatePosition = function (scene) {
-	var g = this.objectGroup,
-		p = scene.userData;
-
-	g.position.copy(scene.toWorldCoordinates({x: 0, y: 0, z: 0}));
-	g.scale.z = p.zScale;
-	g.updateMatrixWorld();
-};
-
-Q3D.PointCloudLayer.prototype.requestRepeatRender = function (interval, repeat, watch_loading) {
-
-	if (repeat == 0) return;
-
-	var _this = this, count = 0, timer_id = null;
-
-	var tick_func = function () {
-
-		_this.requestRender();
-
-		if (++count > repeat || (watch_loading && !Potree.Global.numNodesLoading)) {
-			if (timer_id !== null) window.clearInterval(timer_id);
-			return false;
-		}
-		return true;
-	};
-
-	if (tick_func()) timer_id = window.setInterval(tick_func, interval);
-};
-
-Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
-	get: function () {
+	get visible() {
 		return this.objectGroup.visible;
-	},
-	set: function (value) {
+	}
+
+	set visible(value) {
 		this.objectGroup.visible = value;
 
 		if (this.pcg === undefined) return;
@@ -199,14 +196,18 @@ Object.defineProperty(Q3D.PointCloudLayer.prototype, "visible", {
 
 		this.requestRender();
 	}
-});
 
-Q3D.PointCloudLayer.prototype.loadedPointCount = function () {
-	var c = 0;
-	this.objectGroup.traverse(function (obj) {
-		if (obj instanceof THREE.Points) {
-			c += obj.geometry.getAttribute("position").count;
-		}
-	});
-	return c;
-};
+	loadedPointCount() {
+		var c = 0;
+		this.objectGroup.traverse(function (obj) {
+			if (obj instanceof THREE.Points) {
+				c += obj.geometry.getAttribute("position").count;
+			}
+		});
+		return c;
+	}
+
+}
+
+
+Q3D.PointCloudLayer = PointCloudLayer;
