@@ -1863,2148 +1863,2138 @@ Q3D.E = function (id) {
 })();
 
 
-(function () {
+// Q3D classes
 
-	class Q3DGroup extends THREE.Group {
+class Q3DGroup extends THREE.Group {
 
-		add(object) {
-			super.add(object);
-			object.updateMatrixWorld();
-		}
-
-		clear() {
-			for (var i = this.children.length - 1; i >= 0; i--) {
-				this.remove(this.children[i]);
-			}
-		}
-
+	add(object) {
+		super.add(object);
+		object.updateMatrixWorld();
 	}
 
-
-	/*
-	Scene
-	.userData
-  	  - baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
-	  - origin: origin of 3D world in map coordinates
-	  - zScale: vertical scale factor
-	  - proj: (optional) proj string. used to display clicked position in long/lat.
-	*/
-	class Q3DScene extends THREE.Scene {
-
-		constructor() {
-			super();
-
-			this.autoUpdate = false;
-
-			this.mapLayers = {};    // map layers contained in this scene. key is layerId.
-
-			this.lightGroup = new Q3D.Group();
-			this.lightGroup.name = "light";
-			this.add(this.lightGroup);
-
-			this.labelGroup = new Q3D.Group();
-			this.labelGroup.name = "label";
-			this.add(this.labelGroup);
-
-			this.labelConnectorGroup = new Q3D.Group();
-			this.labelConnectorGroup.name = "label connector";
-			this.add(this.labelConnectorGroup);
+	clear() {
+		for (var i = this.children.length - 1; i >= 0; i--) {
+			this.remove(this.children[i]);
 		}
+	}
 
-		add(object) {
-			super.add(object);
-			object.updateMatrixWorld();
-		}
+}
 
-		loadJSONObject(jsonObject) {
-			if (jsonObject.type == "scene") {
-				var p = jsonObject.properties;
-				if (p !== undefined) {
-					// fog
-					if (p.fog) {
-						this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
-					}
 
-					// light
-					var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
-					if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
-						this.lightGroup.clear();
-						this.buildLights(Q3D.Config.lights[p.light] || Q3D.Config.lights.directional, p.baseExtent.rotation);
-						this.dispatchEvent({type: "lightChanged", light: p.light});
-					}
+/*
+Scene
+.userData
+	- baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
+	- origin: origin of 3D world in map coordinates
+	- zScale: vertical scale factor
+	- proj: (optional) proj string. used to display clicked position in long/lat.
+*/
+class Q3DScene extends THREE.Scene {
 
-					var be = p.baseExtent;
-					p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
+	constructor() {
+		super();
 
-					// set initial camera position and parameters
-					if (this.userData.origin === undefined) {
+		this.autoUpdate = false;
 
-						var s = be.width,
-							v = Q3D.Config.viewpoint,
-							pos, focal;
+		this.mapLayers = {};    // map layers contained in this scene. key is layerId.
 
-						if (v.pos === undefined) {
-							v = v.default;
-							if (be.rotation) {
-								v = {
-									pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
-									lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
-								};
-							}
-							pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
-							focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
+		this.lightGroup = new Q3D.Group();
+		this.lightGroup.name = "light";
+		this.add(this.lightGroup);
+
+		this.labelGroup = new Q3D.Group();
+		this.labelGroup.name = "label";
+		this.add(this.labelGroup);
+
+		this.labelConnectorGroup = new Q3D.Group();
+		this.labelConnectorGroup.name = "label connector";
+		this.add(this.labelConnectorGroup);
+	}
+
+	add(object) {
+		super.add(object);
+		object.updateMatrixWorld();
+	}
+
+	loadJSONObject(jsonObject) {
+		if (jsonObject.type == "scene") {
+			var p = jsonObject.properties;
+			if (p !== undefined) {
+				// fog
+				if (p.fog) {
+					this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
+				}
+
+				// light
+				var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
+				if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
+					this.lightGroup.clear();
+					this.buildLights(Q3D.Config.lights[p.light] || Q3D.Config.lights.directional, p.baseExtent.rotation);
+					this.dispatchEvent({type: "lightChanged", light: p.light});
+				}
+
+				var be = p.baseExtent;
+				p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
+
+				// set initial camera position and parameters
+				if (this.userData.origin === undefined) {
+
+					var s = be.width,
+						v = Q3D.Config.viewpoint,
+						pos, focal;
+
+					if (v.pos === undefined) {
+						v = v.default;
+						if (be.rotation) {
+							v = {
+								pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
+								lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
+							};
 						}
-						else {
-							pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
-							focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
-						}
-
-						pos.z *= p.zScale;
-						focal.z *= p.zScale;
-
-						var near = 0.001 * s,
-							far = 100 * s;
-
-						this.requestCameraUpdate(pos, focal, near, far);
-					}
-
-					if (p.baseExtent.rotation != rotation0) {
-						this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
-					}
-
-					this.userData = p;
-				}
-
-				// load layers
-				if (jsonObject.layers !== undefined) {
-					jsonObject.layers.forEach(function (layer) {
-						this.loadJSONObject(layer);
-					}, this);
-				}
-			}
-			else if (jsonObject.type == "layer") {
-				var layer = this.mapLayers[jsonObject.id];
-				if (layer === undefined) {
-					// create a layer
-					var type = jsonObject.properties.type;
-					if (type == "dem") layer = new Q3D.DEMLayer();
-					else if (type == "point") layer = new Q3D.PointLayer();
-					else if (type == "line") layer = new Q3D.LineLayer();
-					else if (type == "polygon") layer = new Q3D.PolygonLayer();
-					else if (type == "pc") layer = new Q3D.PointCloudLayer();
-					else {
-						console.error("unknown layer type:" + type);
-						return;
-					}
-					layer.id = jsonObject.id;
-					layer.objectGroup.userData.layerId = jsonObject.id;
-					layer.addEventListener("renderRequest", this.requestRender.bind(this));
-
-					this.mapLayers[jsonObject.id] = layer;
-					this.add(layer.objectGroup);
-				}
-
-				layer.loadJSONObject(jsonObject, this);
-
-				this.requestRender();
-			}
-			else if (jsonObject.type == "block") {
-				var layer = this.mapLayers[jsonObject.layer];
-				if (layer === undefined) {
-					// console.error("layer not exists:" + jsonObject.layer);
-					return;
-				}
-				layer.loadJSONObject(jsonObject, this);
-
-				this.requestRender();
-			}
-		}
-
-		buildLights(lights, rotation) {
-			var p, light;
-			for (var i = 0; i < lights.length; i++) {
-				p = lights[i];
-				if (p.type == "ambient") {
-					light = new THREE.AmbientLight(p.color, p.intensity);
-				}
-				else if (p.type == "directional") {
-					light = new THREE.DirectionalLight(p.color, p.intensity);
-					light.position.copy(Q3D.uv.j)
-								  .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
-								  .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
-				}
-				else if (p.type == "point") {
-					light = new THREE.PointLight(p.color, p.intensity);
-					light.position.set(0, 0, p.height);
-				}
-				else {
-					continue;
-				}
-				this.lightGroup.add(light);
-			}
-		}
-
-		requestRender() {
-			this.dispatchEvent({type: "renderRequest"});
-		}
-
-		requestCameraUpdate(pos, focal, near, far) {
-			this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
-		}
-
-		visibleObjects(labelVisible) {
-			var layer, objs = [];
-			for (var id in this.mapLayers) {
-				layer = this.mapLayers[id];
-				if (layer.visible) {
-					objs = objs.concat(layer.visibleObjects());
-					if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
-				}
-			}
-			return objs;
-		}
-
-		// 3D world coordinates to map coordinates
-		toMapCoordinates(pt) {
-			var p = this.userData;
-			return {
-				x: p.origin.x + pt.x,
-				y: p.origin.y + pt.y,
-				z: p.origin.z + pt.z / p.zScale
-			};
-		}
-
-		// map coordinates to 3D world coordinates
-		toWorldCoordinates(pt, isLonLat) {
-			var p = this.userData;
-			if (isLonLat && typeof proj4 !== "undefined") {
-				// WGS84 long,lat to map coordinates
-				var t = proj4(p.proj).forward([pt.x, pt.y]);
-				pt = {x: t[0], y: t[1], z: pt.z};
-			}
-
-			return {
-				x: pt.x - p.origin.x,
-				y: pt.y - p.origin.y,
-				z: (pt.z - p.origin.z) * p.zScale
-			};
-		}
-
-		// return bounding box in 3d world coordinates
-		boundingBox() {
-			var box = new THREE.Box3();
-			for (var id in this.mapLayers) {
-				if (this.mapLayers[id].visible) {
-					box.union(this.mapLayers[id].boundingBox());
-				}
-			}
-			return box;
-		}
-
-	}
-
-
-	class Q3DMaterial {
-
-		constructor() {
-			this.loaded = false;
-		}
-
-		// material: a THREE.Material-based object
-		set(material) {
-			this.mtl = material;
-			this.origProp = {};
-			return this;
-		}
-
-		// callback is called when material has been completely loaded
-		loadJSONObject(jsonObject, callback) {
-			this.origProp = jsonObject;
-			this.groupId = jsonObject.mtlIndex;
-
-			var m = jsonObject, opt = {}, defer = false;
-
-			if (m.ds) opt.side = THREE.DoubleSide;
-
-			if (m.flat) opt.flatShading = true;
-
-			// texture
-			if (m.image !== undefined) {
-				var _this = this;
-				if (m.image.url !== undefined) {
-					opt.map = Q3D.application.loadTextureFile(m.image.url, function () {
-						_this._loadCompleted(callback);
-					});
-					defer = true;
-				}
-				else if (m.image.object !== undefined) {    // WebKit Bridge
-					opt.map = new THREE.Texture(m.image.object.toImageData());
-					opt.map.needsUpdate = true;
-
-					delete m.image.object;
-				}
-				else {    // base64
-					var img = new Image();
-					img.onload = function () {
-						opt.map.needsUpdate = true;
-						_this._loadCompleted(callback);
-					};
-					img.src = m.image.base64;
-					opt.map = new THREE.Texture(img);
-					defer = true;
-
-					delete m.image.base64;
-				}
-				opt.map.anisotropy = Q3D.Config.texture.anisotropy;
-			}
-
-			if (m.c !== undefined) opt.color = m.c;
-
-			if (m.o !== undefined && m.o < 1) {
-				opt.opacity = m.o;
-				opt.transparent = true;
-			}
-
-			if (m.t) opt.transparent = true;
-
-			if (m.w) opt.wireframe = true;
-
-			if (m.bm) {
-				this.mtl = new THREE.MeshBasicMaterial(opt);
-			}
-			else if (m.type == Q3D.MaterialType.MeshLambert) {
-				this.mtl = new THREE.MeshLambertMaterial(opt);
-			}
-			else if (m.type == Q3D.MaterialType.MeshPhong) {
-				this.mtl = new THREE.MeshPhongMaterial(opt);
-			}
-			else if (m.type == Q3D.MaterialType.MeshToon) {
-				this.mtl = new THREE.MeshToonMaterial(opt);
-			}
-			else if (m.type == Q3D.MaterialType.Point) {
-				opt.size = m.s;
-				this.mtl = new THREE.PointsMaterial(opt);
-			}
-			else if (m.type == Q3D.MaterialType.Line) {
-
-				if (m.dashed) {
-					opt.dashSize = Q3D.Config.line.dash.dashSize;
-					opt.gapSize = Q3D.Config.line.dash.gapSize;
-					this.mtl = new THREE.LineDashedMaterial(opt);
-				}
-				else {
-					this.mtl = new THREE.LineBasicMaterial(opt);
-				}
-			}
-			else if (m.type == Q3D.MaterialType.MeshLine) {
-
-				opt.lineWidth = m.thickness;
-				if (m.dashed) {
-					opt.dashArray = 0.03;
-					opt.dashRatio = 0.45;
-					opt.dashOffset = 0.015;
-					opt.transparent = true;
-				}
-				// opt.sizeAttenuation = 1;
-
-				var mtl = this.mtl = new MeshLineMaterial(opt);
-				var updateAspect = this._listener = function () {
-					mtl.resolution = new THREE.Vector2(Q3D.application.width, Q3D.application.height);
-				};
-
-				updateAspect();
-				Q3D.application.addEventListener("canvasSizeChanged", updateAspect);
-			}
-			else if (m.type == Q3D.MaterialType.Sprite) {
-				opt.color = 0xffffff;
-				this.mtl = new THREE.SpriteMaterial(opt);
-			}
-			else {
-				if (m.roughness !== undefined) opt.roughness = m.roughness;
-				if (m.metalness !== undefined) opt.metalness = m.metalness;
-
-				this.mtl = new THREE.MeshStandardMaterial(opt);
-			}
-
-			if (!defer) this._loadCompleted(callback);
-		}
-
-		_loadCompleted(anotherCallback) {
-			this.loaded = true;
-
-			if (this._callbacks !== undefined) {
-				for (var i = 0; i < this._callbacks.length; i++) {
-					this._callbacks[i]();
-				}
-				this._callbacks = [];
-			}
-
-			if (anotherCallback) anotherCallback();
-		}
-
-		callbackOnLoad(callback) {
-			if (this.loaded) return callback();
-
-			if (this._callbacks === undefined) this._callbacks = [];
-			this._callbacks.push(callback);
-		}
-
-		dispose() {
-			if (!this.mtl) return;
-
-			if (this.mtl.map) this.mtl.map.dispose();   // dispose of texture
-			this.mtl.dispose();
-			this.mtl = null;
-
-			if (this._listener) {
-				Q3D.application.removeEventListener("canvasSizeChanged", this._listener);
-				this._listener = undefined;
-			}
-		}
-	}
-
-
-	class Q3DMaterials extends THREE.EventDispatcher {
-
-		constructor() {
-			super();
-			this.array = [];
-		}
-
-		// material: instance of Q3D.Material object or THREE.Material-based object
-		add(material) {
-			if (material instanceof Q3D.Material) {
-				this.array.push(material);
-			}
-			else {
-				this.array.push(new Q3D.Material().set(material));
-			}
-		}
-
-		get(index) {
-			return this.array[index];
-		}
-
-		mtl(index) {
-			return this.array[index].mtl;
-		}
-
-		loadJSONObject(jsonObject) {
-			var _this = this, iterated = false;
-			var callback = function () {
-				if (iterated) _this.dispatchEvent({type: "renderRequest"});
-			};
-
-			for (var i = 0, l = jsonObject.length; i < l; i++) {
-				var mtl = new Q3D.Material();
-				mtl.loadJSONObject(jsonObject[i], callback);
-				this.add(mtl);
-			}
-			iterated = true;
-		}
-
-		dispose() {
-			for (var i = 0, l = this.array.length; i < l; i++) {
-				this.array[i].dispose();
-			}
-			this.array = [];
-		}
-
-		addFromObject3D(object) {
-			var mtls = [];
-
-			object.traverse(function (obj) {
-				if (obj.material === undefined) return;
-				((obj.material instanceof Array) ? obj.material : [obj.material]).forEach(function (mtl) {
-					if (mtls.indexOf(mtl) == -1) {
-						mtls.push(mtl);
-					}
-				});
-			});
-
-			for (var i = 0, l = mtls.length; i < l; i++) {
-				this.array.push(new Q3D.Material().set(mtls[i]));
-			}
-		}
-
-		// opacity
-		opacity() {
-			if (this.array.length == 0) return 1;
-
-			var sum = 0;
-			for (var i = 0, l = this.array.length; i < l; i++) {
-				sum += this.array[i].mtl.opacity;
-			}
-			return sum / this.array.length;
-		}
-
-		setOpacity(opacity) {
-			var m;
-			for (var i = 0, l = this.array.length; i < l; i++) {
-				m = this.array[i];
-				m.mtl.transparent = Boolean(m.origProp.t) || (opacity < 1);
-				m.mtl.opacity = opacity;
-			}
-		}
-
-		// wireframe: boolean
-		setWireframeMode(wireframe) {
-			var m;
-			for (var i = 0, l = this.array.length; i < l; i++) {
-				m = this.array[i];
-				if (m.origProp.w || m.mtl instanceof THREE.LineBasicMaterial) continue;
-				m.mtl.wireframe = wireframe;
-			}
-		}
-
-		removeItem(material, dispose) {
-			for (var i = this.array.length - 1; i >= 0; i--) {
-				if (this.array[i].mtl === material) {
-					this.array.splice(i, 1);
-					break;
-				}
-			}
-			if (dispose) material.dispose();
-		}
-
-		removeGroupItems(groupId) {
-			for (var i = this.array.length - 1; i >= 0; i--) {
-				if (this.array[i].groupId === groupId) {
-					this.array.splice(i, 1);
-				}
-			}
-		}
-
-	}
-
-
-	class Q3DDEMBlock {
-
-		constructor() {
-			this.materials = [];
-			this.currentMtlIndex = 0;
-		}
-
-		loadJSONObject(obj, layer, callback) {
-
-			this.data = obj;
-
-			// load material
-			var m, mtl;
-			for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
-				m = obj.materials[i];
-
-				mtl = new Q3D.Material();
-				mtl.loadJSONObject(m, function () {
-					layer.requestRender();
-				});
-				this.materials[m.mtlIndex] = mtl;
-
-				if (m.useNow) {
-					this.currentMtlIndex = m.mtlIndex;
-					if (this.obj) {
-						layer.materials.removeItem(this.obj.material, true);
-
-						this.obj.material = mtl.mtl;
-						layer.requestRender();
-					}
-					layer.materials.add(mtl);
-				}
-			}
-
-			if (obj.grid === undefined) return;
-
-			// create a plane geometry
-			var geom, grid = obj.grid;
-			if (layer.geometryCache) {
-				var params = layer.geometryCache.parameters || {};
-				if (params.width === obj.width && params.height === obj.height &&
-					params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
-
-					geom = layer.geometryCache.clone();
-					geom.parameters = layer.geometryCache.parameters;
-				}
-			}
-			geom = geom || new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1);
-			layer.geometryCache = geom;
-
-			// create a mesh
-			var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
-			mesh.position.fromArray(obj.translate);
-			mesh.scale.z = obj.zScale;
-			layer.addObject(mesh);
-
-			// set z values
-			var buildGeometry = function (grid_values) {
-				var vertices = geom.attributes.position.array;
-				for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-					vertices[j + 2] = grid_values[i];
-				}
-				geom.attributes.position.needsUpdate = true;
-				geom.computeVertexNormals();
-
-				if (callback) callback(mesh);
-			};
-
-			if (grid.url !== undefined) {
-				Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
-					grid.array = new Float32Array(buf);
-					buildGeometry(grid.array);
-				});
-			}
-			else {    // local mode or WebKit Bridge
-				if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
-				buildGeometry(grid.array);
-			}
-
-			this.obj = mesh;
-			return mesh;
-		}
-
-		buildSides(layer, parent, material, z0) {
-			var planeWidth = this.data.width,
-				planeHeight = this.data.height,
-				grid = this.data.grid,
-				grid_values = grid.array,
-				w = grid.width,
-				h = grid.height,
-				k = w * (h - 1);
-
-			var band_width = -2 * z0;
-
-			// front and back
-			var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
-				geom_ba = geom_fr.clone();
-
-			var vertices_fr = geom_fr.attributes.position.array,
-				vertices_ba = geom_ba.attributes.position.array;
-
-			var i, mesh;
-			for (i = 0; i < w; i++) {
-				vertices_fr[i * 3 + 1] = grid_values[k + i];
-				vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
-			}
-			mesh = new THREE.Mesh(geom_fr, material);
-			mesh.rotation.x = Math.PI / 2;
-			mesh.position.y = -planeHeight / 2;
-			mesh.name = "side";
-			parent.add(mesh);
-
-			mesh = new THREE.Mesh(geom_ba, material);
-			mesh.rotation.x = Math.PI / 2;
-			mesh.rotation.y = Math.PI;
-			mesh.position.y = planeHeight / 2;
-			mesh.name = "side";
-			parent.add(mesh);
-
-			// left and right
-			var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
-				geom_ri = geom_le.clone();
-
-			var vertices_le = geom_le.attributes.position.array,
-				vertices_ri = geom_ri.attributes.position.array;
-
-			for (i = 0; i < h; i++) {
-				vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
-				vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
-			}
-			mesh = new THREE.Mesh(geom_le, material);
-			mesh.rotation.y = -Math.PI / 2;
-			mesh.position.x = -planeWidth / 2;
-			mesh.name = "side";
-			parent.add(mesh);
-
-			mesh = new THREE.Mesh(geom_ri, material);
-			mesh.rotation.y = Math.PI / 2;
-			mesh.position.x = planeWidth / 2;
-			mesh.name = "side";
-			parent.add(mesh);
-
-			// bottom
-			var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
-			mesh = new THREE.Mesh(geom, material);
-			mesh.rotation.x = Math.PI;
-			mesh.position.z = z0;
-			mesh.name = "bottom";
-			parent.add(mesh);
-
-			parent.updateMatrixWorld();
-		}
-
-		addEdges(layer, parent, material, z0) {
-
-			var i, x, y,
-				grid = this.data.grid,
-				grid_values = grid.array,
-				w = grid.width,
-				h = grid.height,
-				k = w * (h - 1),
-				planeWidth = this.data.width,
-				planeHeight = this.data.height,
-				hpw = planeWidth / 2,
-				hph = planeHeight / 2,
-				psw = planeWidth / (w - 1),
-				psh = planeHeight / (h - 1);
-
-			var vl = [];
-
-			// terrain edges
-			var vl_fr = [],
-				vl_bk = [],
-				vl_le = [],
-				vl_ri = [];
-
-			for (i = 0; i < w; i++) {
-				x = -hpw + psw * i;
-				vl_fr.push(x, -hph, grid_values[k + i]);
-				vl_bk.push(x, hph, grid_values[i]);
-			}
-
-			for (i = 0; i < h; i++) {
-				y = hph - psh * i;
-				vl_le.push(-hpw, y, grid_values[w * i]);
-				vl_ri.push(hpw, y, grid_values[w * (i + 1) - 1]);
-			}
-
-			vl.push(vl_fr, vl_bk, vl_le, vl_ri);
-
-			if (z0 !== undefined) {
-				// horizontal rectangle at bottom
-				vl.push([-hpw, -hph, z0,
-						 hpw, -hph, z0,
-						 hpw,  hph, z0,
-						-hpw,  hph, z0,
-						-hpw, -hph, z0]);
-
-				// vertical lines at corners
-				[[-hpw, -hph, grid_values[grid_values.length - w]],
-				 [ hpw, -hph, grid_values[grid_values.length - 1]],
-				 [ hpw,  hph, grid_values[w - 1]],
-				 [-hpw,  hph, grid_values[0]]].forEach(function (v) {
-
-					vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
-
-				});
-			}
-
-			vl.forEach(function (v) {
-
-				var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-				var obj = new THREE.Line(geom, material);
-				obj.name = "frame";
-				parent.add(obj);
-
-			});
-
-			parent.updateMatrixWorld();
-		}
-
-		// add quad wireframe
-		addWireframe(layer, parent, material) {
-
-			var grid = this.data.grid,
-				grid_values = grid.array,
-				w = grid.width,
-				h = grid.height,
-				planeWidth = this.data.width,
-				planeHeight = this.data.height,
-				hpw = planeWidth / 2,
-				hph = planeHeight / 2,
-				psw = planeWidth / (w - 1),
-				psh = planeHeight / (h - 1);
-
-			var v, geom, x, y, vx, vy, group = new THREE.Group();
-
-			for (x = w - 1; x >= 0; x--) {
-				v = [];
-				vx = -hpw + psw * x;
-
-				for (y = h - 1; y >= 0; y--) {
-					v.push(vx, hph - psh * y, grid_values[x + w * y]);
-				}
-
-				geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-				group.add(new THREE.Line(geom, material));
-			}
-
-			for (y = h - 1; y >= 0; y--) {
-				v = [];
-				vy = hph - psh * y;
-
-				for (x = w - 1; x >= 0; x--) {
-					v.push(-hpw + psw * x, vy, grid_values[x + w * y]);
-				}
-
-				geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-				group.add(new THREE.Line(geom, material));
-			}
-
-			parent.add(group);
-			parent.updateMatrixWorld();
-		}
-
-		getValue(x, y) {
-			var grid = this.data.grid;
-			if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
-			return null;
-		}
-
-		contains(x, y) {
-			var translate = this.data.translate,
-				xmin = translate[0] - this.data.width / 2,
-				xmax = translate[0] + this.data.width / 2,
-				ymin = translate[1] - this.data.height / 2,
-				ymax = translate[1] + this.data.height / 2;
-			if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
-			return false;
-		}
-	}
-
-
-	class Q3DClippedDEMBlock {
-
-		constructor() {
-			this.materials = [];
-			this.currentMtlIndex = 0;
-		}
-
-		loadJSONObject(obj, layer, callback) {
-			this.data = obj;
-			var _this = this;
-
-			// load material
-			var m, mtl;
-			for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
-				m = obj.materials[i];
-
-				mtl = new Q3D.Material();
-				mtl.loadJSONObject(m, function () {
-					layer.requestRender();
-				});
-				this.materials[m.mtlIndex] = mtl;
-
-				if (m.useNow) {
-					if (this.obj) {
-						layer.materials.removeItem(this.obj.material, true);
-
-						this.obj.material = mtl.mtl;
-
-						layer.materials.add(mtl);
-						layer.requestRender();
-					}
-					this.currentMtlIndex = m.mtlIndex;
-				}
-			}
-
-			if (obj.geom === undefined) return;
-
-			var geom = new THREE.BufferGeometry(),
-				mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
-			mesh.position.fromArray(obj.translate);
-			mesh.scale.z = obj.zScale;
-			layer.addObject(mesh);
-
-			var buildGeometry = function (obj) {
-
-				var v = obj.triangles.v,
-					origin = layer.sceneData.origin,
-					be = layer.sceneData.baseExtent,
-					base_width = be.width,
-					base_height = be.height,
-					x0 = be.cx - origin.x - base_width * 0.5,
-					y0 = be.cy - origin.y - base_height * 0.5;
-
-				var normals = [], uvs = [];
-				for (var i = 0, l = v.length; i < l; i += 3) {
-					normals.push(0, 0, 1);
-					uvs.push((v[i] - x0) / base_width, (v[i + 1] - y0) / base_height);
-				}
-
-				geom.setIndex(obj.triangles.f);
-				geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-				geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-				geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-				geom.computeVertexNormals();
-
-				geom.attributes.position.needsUpdate = true;
-				geom.attributes.normal.needsUpdate = true;
-				geom.attributes.uv.needsUpdate = true;
-
-				_this.data.polygons = obj.polygons;
-				if (callback) callback(mesh);
-			};
-
-			if (obj.geom.url !== undefined) {
-				Q3D.application.loadFile(obj.geom.url, "json", function (obj) {
-					buildGeometry(obj);
-				});
-			}
-			else {    // local mode or WebKit Bridge
-				buildGeometry(obj.geom);
-			}
-
-			this.obj = mesh;
-			return mesh;
-		}
-
-		buildSides(layer, parent, material, z0) {
-			var polygons = this.data.polygons,
-				bzFunc = function (x, y) { return z0; };
-
-			// make back-side material for bottom
-			var mat_back = material.clone();
-			mat_back.side = THREE.BackSide;
-			layer.materials.add(mat_back);
-
-			var geom, mesh, shape;
-			for (var i = 0, l = polygons.length; i < l; i++) {
-				var bnds = polygons[i];
-
-				// sides
-				for (var j = 0, m = bnds.length; j < m; j++) {
-					geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc, true);
-					mesh = new THREE.Mesh(geom, material);
-					mesh.name = "side";
-					parent.add(mesh);
-				}
-
-				// bottom
-				shape = new THREE.Shape(Q3D.Utils.flatArrayToVec2Array(bnds[0], 3));
-				for (j = 1, m = bnds.length; j < m; j++) {
-					shape.holes.push(new THREE.Path(Q3D.Utils.flatArrayToVec2Array(bnds[j], 3)));
-				}
-				geom = new THREE.ShapeBufferGeometry(shape);
-				mesh = new THREE.Mesh(geom, mat_back);
-				mesh.position.z = z0;
-				mesh.name = "bottom";
-				parent.add(mesh);
-			}
-			parent.updateMatrixWorld();
-		}
-
-		// not implemented
-		getValue(x, y) {
-			return null;
-		}
-
-		// not implemented
-		contains(x, y) {
-			return false;
-		}
-
-	}
-
-
-	class Q3DMapLayer extends THREE.EventDispatcher {
-
-		constructor() {
-			super();
-
-			this.properties = {};
-
-			this.materials = new Q3D.Materials();
-			this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
-
-			this.objectGroup = new Q3D.Group();
-			this.objectGroup.name = "layer";
-			this.objects = [];
-		}
-
-		addObject(object) {
-			object.userData.layerId = this.id;
-			this.objectGroup.add(object);
-
-			var o = this.objects;
-			object.traverse(function (obj) {
-				o.push(obj);
-			});
-			return this.objectGroup.children.length - 1;
-		}
-
-		addObjects(objects) {
-			for (var i = 0; i < objects.length; i++) {
-				this.addObject(objects[i]);
-			}
-		}
-
-		clearObjects() {
-			// dispose of geometries
-			this.objectGroup.traverse(function (obj) {
-				if (obj.geometry) obj.geometry.dispose();
-			});
-
-			// dispose of materials
-			this.materials.dispose();
-
-			// remove all child objects from object group
-			for (var i = this.objectGroup.children.length - 1; i >= 0; i--) {
-				this.objectGroup.remove(this.objectGroup.children[i]);
-			}
-			this.objects = [];
-		}
-
-		visibleObjects() {
-			return (this.visible) ? this.objects : [];
-		}
-
-		loadJSONObject(jsonObject, scene) {
-			if (jsonObject.type == "layer") {
-				// properties
-				if (jsonObject.properties !== undefined) {
-					this.properties = jsonObject.properties;
-					this.visible = (jsonObject.properties.visible || Q3D.Config.allVisible) ? true : false;
-				}
-
-				if (jsonObject.data !== undefined) {
-					this.clearObjects();
-
-					// materials
-					if (jsonObject.data.materials !== undefined) {
-						this.materials.loadJSONObject(jsonObject.data.materials);
-					}
-				}
-
-				this.sceneData = scene.userData;
-			}
-		}
-
-		get clickable() {
-			return this.properties.clickable;
-		}
-
-		get opacity() {
-			return this.materials.opacity();
-		}
-
-		set opacity(value) {
-			this.materials.setOpacity(value);
-
-			if (this.labelGroup) {
-				this.labelGroup.traverse(function (obj) {
-					if (obj.material) obj.material.opacity = value;
-				});
-			}
-
-			if (this.labelConnectorGroup && this.labelConnectorGroup.children.length) {
-				this.labelConnectorGroup.children[0].material.opacity = value;
-			}
-
-			this.requestRender();
-		}
-
-		get visible() {
-			return this.objectGroup.visible;
-		}
-
-		set visible(value) {
-			this.objectGroup.visible = value;
-			this.requestRender();
-		}
-
-		boundingBox() {
-			return new THREE.Box3().setFromObject(this.objectGroup);
-		}
-
-		setWireframeMode(wireframe) {
-			this.materials.setWireframeMode(wireframe);
-		}
-
-		requestRender() {
-			this.dispatchEvent({type: "renderRequest"});
-		}
-
-	}
-
-
-	class Q3DDEMLayer extends MapLayer {
-
-		constructor() {
-			super();
-			this.type = Q3D.LayerType.DEM;
-			this.blocks = [];
-		}
-
-		loadJSONObject(jsonObject, scene) {
-			var old_blockIsClipped = this.properties.clipped;
-
-			super.loadJSONObject(jsonObject, scene);
-			if (jsonObject.type == "layer") {
-				if (old_blockIsClipped !== jsonObject.properties.clipped) {
-					// DEM type changed
-					this.blocks = [];
-				}
-
-				var p = scene.userData,
-					rotation = p.baseExtent.rotation;
-
-				if (jsonObject.properties.clipped) {
-					this.objectGroup.position.set(0, 0, 0);
-					this.objectGroup.rotation.z = 0;
-
-					if (rotation) {
-						// rotate around center of base extent
-						this.objectGroup.position.copy(p.pivot).negate();
-						this.objectGroup.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
-						this.objectGroup.position.add(p.pivot);
-						this.objectGroup.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
-					}
-				}
-				else {
-					this.objectGroup.position.copy(p.pivot);
-					this.objectGroup.position.z *= p.zScale;
-					this.objectGroup.rotation.z = rotation * Q3D.deg2rad;
-				}
-				this.objectGroup.updateMatrixWorld();
-
-				if (jsonObject.data !== undefined) {
-					jsonObject.data.forEach(function (obj) {
-						this.buildBlock(obj, scene, this);
-					}, this);
-				}
-			}
-			else if (jsonObject.type == "block") {
-				this.buildBlock(jsonObject, scene, this);
-			}
-		}
-
-		buildBlock(jsonObject, scene, layer) {
-			var _this = this,
-				block = this.blocks[jsonObject.block];
-
-			if (block === undefined) {
-				block = (layer.properties.clipped) ? (new Q3D.ClippedDEMBlock()) : (new Q3D.DEMBlock());
-				this.blocks[jsonObject.block] = block;
-			}
-
-			block.loadJSONObject(jsonObject, this, function (mesh) {
-
-				var material;
-				if (jsonObject.wireframe) {
-					material = new Q3D.Material();
-					material.loadJSONObject(jsonObject.wireframe.mtl);
-					_this.materials.add(material);
-
-					block.addWireframe(_this, mesh, material.mtl);
-
-					var mtl = block.material.mtl;
-					mtl.polygonOffset = true;
-					mtl.polygonOffsetFactor = 1;
-					mtl.polygonOffsetUnits = 1;
-				}
-
-				if (jsonObject.sides) {
-					// sides and bottom
-					material = new Q3D.Material();
-					material.loadJSONObject(jsonObject.sides.mtl);
-					_this.materials.add(material);
-
-					block.buildSides(_this, mesh, material.mtl, jsonObject.sides.bottom);
-					_this.sideVisible = true;
-				}
-
-				if (jsonObject.edges) {
-					material = new Q3D.Material();
-					material.loadJSONObject(jsonObject.edges.mtl);
-					_this.materials.add(material);
-
-					block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? jsonObject.sides.bottom : undefined);
-				}
-
-				_this.requestRender();
-			});
-		}
-
-		// calculate elevation at the coordinates (x, y) on triangle face
-		getZ(x, y) {
-			for (var i = 0, l = this.blocks.length; i < l; i++) {
-				var block = this.blocks[i],
-					data = block.data;
-
-				if (!block.contains(x, y)) continue;
-
-				var ix = data.width / (data.grid.width - 1),
-					iy = data.height / (data.grid.height - 1);
-
-				var xmin = data.translate[0] - data.width / 2,
-					ymax = data.translate[1] + data.height / 2;
-
-				var mx0 = Math.floor((x - xmin) / ix),
-					my0 = Math.floor((ymax - y) / iy);
-
-				var z = [block.getValue(mx0, my0),
-						 block.getValue(mx0 + 1, my0),
-						 block.getValue(mx0, my0 + 1),
-						 block.getValue(mx0 + 1, my0 + 1)];
-
-				var px0 = xmin + ix * mx0,
-					py0 = ymax - iy * my0;
-
-				var sdx = (x - px0) / ix,
-					sdy = (py0 - y) / iy;
-
-				if (sdx <= 1 - sdy) return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * sdy;
-				else return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * (1 - sdy);
-			}
-			return null;
-		}
-
-		segmentizeLineString(lineString, zFunc) {
-			// does not support multiple blocks
-			if (zFunc === undefined) zFunc = function () { return 0; };
-			var width = this.sceneData.width,
-				height = this.sceneData.height;
-			var xmin = -width / 2,
-				ymax = height / 2;
-			var grid = this.blocks[0].data.grid,
-				ix = width / (grid.width - 1),
-				iy = height / (grid.height - 1);
-			var sort_func = function (a, b) { return a - b; };
-
-			var pts = [];
-			for (var i = 1, l = lineString.length; i < l; i++) {
-				var pt1 = lineString[i - 1], pt2 = lineString[i];
-				var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1], z1 = pt1[2], z2 = pt2[2];
-				var nx1 = (x1 - xmin) / ix,
-					nx2 = (x2 - xmin) / ix;
-				var ny1 = (ymax - y1) / iy,
-					ny2 = (ymax - y2) / iy;
-				var ns1 = Math.abs(ny1 + nx1),
-					ns2 = Math.abs(ny2 + nx2);
-
-				var p = [0], nvp = [[nx1, nx2], [ny1, ny2], [ns1, ns2]];
-				for (var j = 0; j < 3; j++) {
-					var v1 = nvp[j][0], v2 = nvp[j][1];
-					if (v1 == v2) continue;
-					var k = Math.ceil(Math.min(v1, v2));
-					var n = Math.floor(Math.max(v1, v2));
-					for (; k <= n; k++) {
-						p.push((k - v1) / (v2 - v1));
-					}
-				}
-
-				p.sort(sort_func);
-
-				var x, y, z, lp = null;
-				for (var j = 0, m = p.length; j < m; j++) {
-					if (lp === p[j]) continue;
-					if (p[j] == 1) break;
-
-					x = x1 + (x2 - x1) * p[j];
-					y = y1 + (y2 - y1) * p[j];
-
-					if (z1 === undefined || z2 === undefined) z = zFunc(x, y);
-					else z = z1 + (z2 - z1) * p[j];
-
-					pts.push(new THREE.Vector3(x, y, z));
-
-					// Q3D.Utils.putStick(x, y, zFunc);
-
-					lp = p[j];
-				}
-			}
-			// last point (= the first point)
-			var pt = lineString[lineString.length - 1];
-			pts.push(new THREE.Vector3(pt[0], pt[1], (pt[2] === undefined) ? zFunc(pt[0], pt[1]) : pt[2]));
-
-			/*
-			for (var i = 0, l = lineString.length - 1; i < l; i++) {
-				Q3D.Utils.putStick(lineString[i][0], lineString[i][1], zFunc, 0.8);
-			}
-			*/
-			return pts;
-		}
-
-		setCurrentMaterial(mtlIndex) {
-
-			this.materials.removeGroupItems(this.currentMtlIndex);
-
-			this.currentMtlIndex = mtlIndex;
-
-			var b, m;
-			for (var i = 0, l = this.blocks.length; i < l; i++) {
-				b = this.blocks[i];
-				m = b.materials[mtlIndex];
-				if (m !== undefined) {
-					b.obj.material = m.mtl;
-					this.materials.add(m);
-				}
-			}
-			this.requestRender();
-		}
-
-		setSideVisible(visible) {
-			this.sideVisible = visible;
-			this.objectGroup.traverse(function (obj) {
-				if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
-			});
-		}
-
-		// texture animation
-		prepareTexAnimation(from, to) {
-
-			function imageData2Canvas(img) {
-				var cnvs = document.createElement("canvas");
-				cnvs.width = img.width;
-				cnvs.height = img.height;
-
-				var ctx = cnvs.getContext("2d");
-				ctx.putImageData(img, 0, 0);
-				return cnvs;
-			}
-
-			this.anim = [];
-
-			var m, canvas, ctx, opt, mtl;
-			var img_from, img_to;
-			for (var i = 0; i < this.blocks.length; i++) {
-
-				m = this.blocks[i].obj.material;
-
-				img_from = this.blocks[i].materials[from].mtl.map.image;
-				img_to = this.blocks[i].materials[to].mtl.map.image;
-
-				canvas = document.createElement("canvas");
-				canvas.width = (img_from.width > img_to.width) ? img_from.width : img_to.width;
-				canvas.height = (img_from.width > img_to.width) ? img_from.height : img_to.height;
-
-				ctx = canvas.getContext("2d");
-
-				opt = {};
-				opt.map = new THREE.CanvasTexture(canvas);
-				opt.map.anisotropy = Q3D.Config.texture.anisotropy;
-				opt.transparent = true;
-
-				mtl = undefined;
-				if (m) {
-					if (m.isMeshToonMaterial) {
-						mtl = new THREE.MeshToonMaterial(opt);
-					}
-					else if (m.isMeshPhongMaterial) {
-						mtl = new THREE.MeshPhongMaterial(opt);
-					}
-				}
-				if (mtl === undefined) {
-					mtl = new THREE.MeshLambertMaterial(opt);
-				}
-
-				if (img_from instanceof ImageData) {    // WebKit Bridge
-					img_from = imageData2Canvas(img_from);
-					img_to = imageData2Canvas(img_to);
-				}
-
-				this.blocks[i].obj.material = mtl;
-
-				this.materials.add(mtl);
-
-				this.anim.push({
-					img_from: img_from,
-					img_to: img_to,
-					ctx: ctx,
-					tex: mtl.map
-				});
-			}
-		}
-
-		setTextureAt(progress, effect) {
-
-			if (this.anim === undefined) return;
-
-			var a, w, h, w0, h0, w1, h1, ew, ew1;
-			for (var i = 0; i < this.anim.length; i++) {
-				a = this.anim[i];
-				w = a.ctx.canvas.width;
-				h = a.ctx.canvas.height;
-				w0 = a.img_from.width;
-				h0 = a.img_from.height;
-				w1 = a.img_to.width;
-				h1 = a.img_to.height;
-
-				if (effect == 0) {  // fade in
-					a.ctx.globalAlpha = 1;
-					a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-												0, 0, w, h);
-					a.ctx.globalAlpha = progress;
-					a.ctx.drawImage(a.img_to, 0, 0, w1, h1,
-											  0, 0, w, h);
-				}
-				else if (effect == 2) {  // slide to left (not used)
-					if (progress === null) {
-						a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-													0, 0, w, h);
+						pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
+						focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
 					}
 					else {
-						ew1 = w1 * progress;
-						ew = w * progress;
-						a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
-												w - ew, 0, ew, h);
+						pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
+						focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
 					}
+
+					pos.z *= p.zScale;
+					focal.z *= p.zScale;
+
+					var near = 0.001 * s,
+						far = 100 * s;
+
+					this.requestCameraUpdate(pos, focal, near, far);
 				}
-				a.tex.needsUpdate = true;
-			}
-		}
-	}
 
+				if (p.baseExtent.rotation != rotation0) {
+					this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
+				}
 
-	class Q3DVectorLayer extends MapLayer {
-
-		constructor() {
-			super();
-			this.features = [];
-			this.labels = [];
-		}
-
-		// build(features, startIndex) {}
-
-		addFeature(featureIdx, f, objs) {
-			super.addObjects(objs);
-
-			for (var i = 0; i < objs.length; i++) {
-				objs[i].userData.featureIdx = featureIdx;
-			}
-			f.objs = objs;
-
-			this.features[featureIdx] = f;
-			return f;
-		}
-
-		clearLabels() {
-			this.labels = [];
-			if (this.labelGroup) this.labelGroup.clear();
-			if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
-		}
-
-		buildLabels(features, getPointsFunc) {
-			if (this.properties.label === undefined || getPointsFunc === undefined) return;
-
-			var _this = this,
-				p = this.properties,
-				label = p.label,
-				bs = this.sceneData.baseExtent.width * 0.016,
-				sc = bs * Math.pow(1.2, label.size);
-
-			var hasOtl = (label.olcolor !== undefined),
-				hasConn = (label.cncolor !== undefined);
-
-			if (hasConn) {
-				var line_mtl = new THREE.LineBasicMaterial({
-					color: label.cncolor,
-					opacity: this.materials.opacity(),
-					transparent: true
-				});
+				this.userData = p;
 			}
 
-			var hasUnderline = Boolean(hasConn && label.underline);
-			if (hasUnderline) {
-				var ul_geom = new THREE.BufferGeometry();
-				ul_geom.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
-
-				var onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
-					this.quaternion.copy(camera.quaternion);
-					this.updateMatrixWorld();
-				};
-			}
-
-			var canvas = document.createElement("canvas"),
-				ctx = canvas.getContext("2d");
-
-			var font, tw, th, cw, ch;
-			th = ch = Q3D.Config.label.canvasHeight;
-			font = th + "px " + (label.font || "sans-serif");
-
-			canvas.height = ch;
-
-			var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc, opacity;
-			var underline;
-
-			for (var i = 0, l = features.length; i < l; i++) {
-				f = features[i];
-				text = f.lbl;
-				if (!text) continue;
-
-				opacity = this.materials.mtl(f.mtl).opacity;
-
-				partIdx = 0;
-				getPointsFunc(f).forEach(function (pt) {
-
-					// label position
-					vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
-
-					// render label text
-					ctx.font = font;
-					tw = ctx.measureText(text).width + 2;
-					cw = THREE.Math.ceilPowerOfTwo(tw);
-					x = cw / 2;
-					y = ch / 2;
-
-					canvas.width = cw;
-					ctx.clearRect(0, 0, cw, ch);
-
-					if (label.bgcolor !== undefined) {
-						ctx.fillStyle = label.bgcolor;
-						ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();    // definition is in this file
-					}
-
-					ctx.font = font;
-					ctx.textAlign = "center";
-					ctx.textBaseline = "middle";
-
-					if (hasOtl) {
-						// outline effect
-						ctx.fillStyle = label.olcolor;
-						for (j = 0; j < 9; j++) {
-							if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
-						}
-					}
-
-					ctx.fillStyle = label.color;
-					ctx.fillText(text, x, y);
-
-					mtl = new THREE.SpriteMaterial({
-						map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),
-						opacity: opacity,
-						transparent: true
-					});
-
-					sprite = new THREE.Sprite(mtl);
-					if (hasUnderline) {
-						sprite.center.set((1 - tw / cw) * 0.5, 0);
-					}
-					else {
-						sprite.center.set(0.5, 0);
-					}
-					sprite.position.copy(vec);
-					sprite.scale.set(sc * cw / ch, sc, 1);
-
-					sprite.userData.layerId = this.id;
-					sprite.userData.properties = f.prop;
-					sprite.userData.objs = f.objs;
-					sprite.userData.partIdx = partIdx;
-					sprite.userData.isLabel = true;
-
-					this.labelGroup.add(sprite);
-
-					if (Q3D.Config.label.clickable) this.labels.push(sprite);
-
-					if (hasConn) {
-						// a connector
-						geom = new THREE.BufferGeometry();
-						geom.setAttribute("position", new THREE.Float32BufferAttribute(vec.toArray().concat(pt), 3));
-
-						conn = new THREE.Line(geom, line_mtl);
-						conn.userData = sprite.userData;
-
-						this.labelConnectorGroup.add(conn);
-
-						if (hasUnderline) {
-							underline = new THREE.Line(ul_geom, line_mtl);
-							underline.position.copy(vec);
-							underline.scale.x = sc * tw / th;
-							underline.updateMatrixWorld();
-							underline.onBeforeRender = onBeforeRender;
-							conn.add(underline);
-						}
-					}
-					partIdx++;
+			// load layers
+			if (jsonObject.layers !== undefined) {
+				jsonObject.layers.forEach(function (layer) {
+					this.loadJSONObject(layer);
 				}, this);
 			}
 		}
-
-		loadJSONObject(jsonObject, scene) {
-			super.loadJSONObject(jsonObject, scene);
-			if (jsonObject.type == "layer") {
-				if (jsonObject.data !== undefined) {
-					this.features = [];
-					this.clearLabels();
-
-					// build labels
-					if (this.properties.label !== undefined) {
-						// create a label group and a label connector group
-						if (this.labelGroup === undefined) {
-							this.labelGroup = new Q3D.Group();
-							this.labelGroup.userData.layerId = this.id;
-							this.labelGroup.visible = this.visible;
-							scene.labelGroup.add(this.labelGroup);
-						}
-
-						if (this.labelConnectorGroup === undefined) {
-							this.labelConnectorGroup = new Q3D.Group();
-							this.labelConnectorGroup.userData.layerId = this.id;
-							this.labelConnectorGroup.visible = this.visible;
-							scene.labelConnectorGroup.add(this.labelConnectorGroup);
-						}
-					}
-
-					(jsonObject.data.blocks || []).forEach(function (block) {
-						if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
-						else {
-							this.build(block.features, block.startIndex);
-							if (this.properties.label !== undefined) this.buildLabels(block.features);
-						}
-					}, this);
+		else if (jsonObject.type == "layer") {
+			var layer = this.mapLayers[jsonObject.id];
+			if (layer === undefined) {
+				// create a layer
+				var type = jsonObject.properties.type;
+				if (type == "dem") layer = new Q3D.DEMLayer();
+				else if (type == "point") layer = new Q3D.PointLayer();
+				else if (type == "line") layer = new Q3D.LineLayer();
+				else if (type == "polygon") layer = new Q3D.PolygonLayer();
+				else if (type == "pc") layer = new Q3D.PointCloudLayer();
+				else {
+					console.error("unknown layer type:" + type);
+					return;
 				}
+				layer.id = jsonObject.id;
+				layer.objectGroup.userData.layerId = jsonObject.id;
+				layer.addEventListener("renderRequest", this.requestRender.bind(this));
+
+				this.mapLayers[jsonObject.id] = layer;
+				this.add(layer.objectGroup);
 			}
-			else if (jsonObject.type == "block") {
-				this.build(jsonObject.features, jsonObject.startIndex);
-				if (this.properties.label !== undefined) this.buildLabels(jsonObject.features);
+
+			layer.loadJSONObject(jsonObject, this);
+
+			this.requestRender();
+		}
+		else if (jsonObject.type == "block") {
+			var layer = this.mapLayers[jsonObject.layer];
+			if (layer === undefined) {
+				// console.error("layer not exists:" + jsonObject.layer);
+				return;
 			}
+			layer.loadJSONObject(jsonObject, this);
+
+			this.requestRender();
 		}
-
-		get visible() {
-			return super.visible;
-		}
-
-		set visible(value) {
-			if (this.labelGroup) this.labelGroup.visible = value;
-			if (this.labelConnectorGroup) this.labelConnectorGroup.visible = value;
-
-			super.visible = value;
-		}
-
 	}
 
-
-	class Q3DPointLayer extends VectorLayer {
-
-		constructor() {
-			super();
-			this.type = Q3D.LayerType.Point;
-		}
-
-		loadJSONObject(jsonObject, scene) {
-			if (jsonObject.type == "layer" && jsonObject.properties.objType == "3D Model" && jsonObject.data !== undefined) {
-				if (this.models === undefined) {
-					var _this = this;
-
-					this.models = new Q3D.Models();
-					this.models.addEventListener("modelLoaded", function (event) {
-						_this.materials.addFromObject3D(event.model.scene);
-						_this.requestRender();
-					});
-				}
-				else {
-					this.models.clear();
-				}
-				this.models.loadJSONObject(jsonObject.data.models);
+	buildLights(lights, rotation) {
+		var p, light;
+		for (var i = 0; i < lights.length; i++) {
+			p = lights[i];
+			if (p.type == "ambient") {
+				light = new THREE.AmbientLight(p.color, p.intensity);
 			}
-
-			super.loadJSONObject(jsonObject, scene);
-		}
-
-		build(features, startIndex) {
-			var objType = this.properties.objType;
-			if (objType == "Point") {
-				return this.buildPoints(features, startIndex);
+			else if (p.type == "directional") {
+				light = new THREE.DirectionalLight(p.color, p.intensity);
+				light.position.copy(Q3D.uv.j)
+								.applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
+								.applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
 			}
-			else if (objType == "Billboard") {
-				return this.buildBillboards(features, startIndex);
-			}
-			else if (objType == "3D Model") {
-				return this.buildModels(features, startIndex);
-			}
-
-			var unitGeom, transform;
-			if (this.cachedGeometryType === objType) {
-				unitGeom = this.geometryCache;
-				transform = this.transformCache;
+			else if (p.type == "point") {
+				light = new THREE.PointLight(p.color, p.intensity);
+				light.position.set(0, 0, p.height);
 			}
 			else {
-				var gt = this.geomAndTransformFunc(objType);
-				unitGeom = gt[0];
-				transform = gt[1];
+				continue;
 			}
+			this.lightGroup.add(light);
+		}
+	}
 
-			var f, mtl, pts, i, l, mesh, meshes;
-			for (var fidx = 0; fidx < features.length; fidx++) {
-				f = features[fidx];
-				pts = f.geom.pts;
-				mtl = this.materials.mtl(f.mtl);
+	requestRender() {
+		this.dispatchEvent({type: "renderRequest"});
+	}
 
-				meshes = [];
-				for (i = 0, l = pts.length; i < l; i++) {
-					mesh = new THREE.Mesh(unitGeom, mtl);
-					transform(mesh, f.geom, pts[i]);
+	requestCameraUpdate(pos, focal, near, far) {
+		this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
+	}
 
-					mesh.userData.properties = f.prop;
-
-					meshes.push(mesh);
-				}
-				this.addFeature(fidx + startIndex, f, meshes);
+	visibleObjects(labelVisible) {
+		var layer, objs = [];
+		for (var id in this.mapLayers) {
+			layer = this.mapLayers[id];
+			if (layer.visible) {
+				objs = objs.concat(layer.visibleObjects());
+				if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
 			}
+		}
+		return objs;
+	}
 
-			this.cachedGeometryType = objType;
-			this.geometryCache = unitGeom;
-			this.transformCache = transform;
+	// 3D world coordinates to map coordinates
+	toMapCoordinates(pt) {
+		var p = this.userData;
+		return {
+			x: p.origin.x + pt.x,
+			y: p.origin.y + pt.y,
+			z: p.origin.z + pt.z / p.zScale
+		};
+	}
+
+	// map coordinates to 3D world coordinates
+	toWorldCoordinates(pt, isLonLat) {
+		var p = this.userData;
+		if (isLonLat && typeof proj4 !== "undefined") {
+			// WGS84 long,lat to map coordinates
+			var t = proj4(p.proj).forward([pt.x, pt.y]);
+			pt = {x: t[0], y: t[1], z: pt.z};
 		}
 
-		geomAndTransformFunc(objType) {
+		return {
+			x: pt.x - p.origin.x,
+			y: pt.y - p.origin.y,
+			z: (pt.z - p.origin.z) * p.zScale
+		};
+	}
 
-			var deg2rad = Q3D.deg2rad,
-				rx = 90 * deg2rad;
+	// return bounding box in 3d world coordinates
+	boundingBox() {
+		var box = new THREE.Box3();
+		for (var id in this.mapLayers) {
+			if (this.mapLayers[id].visible) {
+				box.union(this.mapLayers[id].boundingBox());
+			}
+		}
+		return box;
+	}
 
-			if (objType == "Sphere") {
-				return [
-					new THREE.SphereBufferGeometry(1, 32, 32),
-					function (mesh, geom, pt) {
-						mesh.scale.setScalar(geom.r);
-						mesh.position.fromArray(pt);
-					}
-				];
+}
+
+
+class Q3DMaterial {
+
+	constructor() {
+		this.loaded = false;
+	}
+
+	// material: a THREE.Material-based object
+	set(material) {
+		this.mtl = material;
+		this.origProp = {};
+		return this;
+	}
+
+	// callback is called when material has been completely loaded
+	loadJSONObject(jsonObject, callback) {
+		this.origProp = jsonObject;
+		this.groupId = jsonObject.mtlIndex;
+
+		var m = jsonObject, opt = {}, defer = false;
+
+		if (m.ds) opt.side = THREE.DoubleSide;
+
+		if (m.flat) opt.flatShading = true;
+
+		// texture
+		if (m.image !== undefined) {
+			var _this = this;
+			if (m.image.url !== undefined) {
+				opt.map = Q3D.application.loadTextureFile(m.image.url, function () {
+					_this._loadCompleted(callback);
+				});
+				defer = true;
 			}
-			else if (objType == "Box") {
-				return [
-					new THREE.BoxBufferGeometry(1, 1, 1),
-					function (mesh, geom, pt) {
-						mesh.scale.set(geom.w, geom.h, geom.d);
-						mesh.rotation.x = rx;
-						mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
-					}
-				];
+			else if (m.image.object !== undefined) {    // WebKit Bridge
+				opt.map = new THREE.Texture(m.image.object.toImageData());
+				opt.map.needsUpdate = true;
+
+				delete m.image.object;
 			}
-			else if (objType == "Disk") {
-				var sz = this.sceneData.zScale;
-				return [
-					new THREE.CircleBufferGeometry(1, 32),
-					function (mesh, geom, pt) {
-						mesh.scale.set(geom.r, geom.r * sz, 1);
-						mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
-						mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
-						mesh.position.fromArray(pt);
-					}
-				];
+			else {    // base64
+				var img = new Image();
+				img.onload = function () {
+					opt.map.needsUpdate = true;
+					_this._loadCompleted(callback);
+				};
+				img.src = m.image.base64;
+				opt.map = new THREE.Texture(img);
+				defer = true;
+
+				delete m.image.base64;
 			}
-			else if (objType == "Plane") {
-				var sz = this.sceneData.zScale;
-				return [
-					new THREE.PlaneBufferGeometry(1, 1, 1, 1),
-					function (mesh, geom, pt) {
-						mesh.scale.set(geom.w, geom.l * sz, 1);
-						mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
-						mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
-						mesh.position.fromArray(pt);
-					}
-				];
+			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
+		}
+
+		if (m.c !== undefined) opt.color = m.c;
+
+		if (m.o !== undefined && m.o < 1) {
+			opt.opacity = m.o;
+			opt.transparent = true;
+		}
+
+		if (m.t) opt.transparent = true;
+
+		if (m.w) opt.wireframe = true;
+
+		if (m.bm) {
+			this.mtl = new THREE.MeshBasicMaterial(opt);
+		}
+		else if (m.type == Q3D.MaterialType.MeshLambert) {
+			this.mtl = new THREE.MeshLambertMaterial(opt);
+		}
+		else if (m.type == Q3D.MaterialType.MeshPhong) {
+			this.mtl = new THREE.MeshPhongMaterial(opt);
+		}
+		else if (m.type == Q3D.MaterialType.MeshToon) {
+			this.mtl = new THREE.MeshToonMaterial(opt);
+		}
+		else if (m.type == Q3D.MaterialType.Point) {
+			opt.size = m.s;
+			this.mtl = new THREE.PointsMaterial(opt);
+		}
+		else if (m.type == Q3D.MaterialType.Line) {
+
+			if (m.dashed) {
+				opt.dashSize = Q3D.Config.line.dash.dashSize;
+				opt.gapSize = Q3D.Config.line.dash.gapSize;
+				this.mtl = new THREE.LineDashedMaterial(opt);
+			}
+			else {
+				this.mtl = new THREE.LineBasicMaterial(opt);
+			}
+		}
+		else if (m.type == Q3D.MaterialType.MeshLine) {
+
+			opt.lineWidth = m.thickness;
+			if (m.dashed) {
+				opt.dashArray = 0.03;
+				opt.dashRatio = 0.45;
+				opt.dashOffset = 0.015;
+				opt.transparent = true;
+			}
+			// opt.sizeAttenuation = 1;
+
+			var mtl = this.mtl = new MeshLineMaterial(opt);
+			var updateAspect = this._listener = function () {
+				mtl.resolution = new THREE.Vector2(Q3D.application.width, Q3D.application.height);
+			};
+
+			updateAspect();
+			Q3D.application.addEventListener("canvasSizeChanged", updateAspect);
+		}
+		else if (m.type == Q3D.MaterialType.Sprite) {
+			opt.color = 0xffffff;
+			this.mtl = new THREE.SpriteMaterial(opt);
+		}
+		else {
+			if (m.roughness !== undefined) opt.roughness = m.roughness;
+			if (m.metalness !== undefined) opt.metalness = m.metalness;
+
+			this.mtl = new THREE.MeshStandardMaterial(opt);
+		}
+
+		if (!defer) this._loadCompleted(callback);
+	}
+
+	_loadCompleted(anotherCallback) {
+		this.loaded = true;
+
+		if (this._callbacks !== undefined) {
+			for (var i = 0; i < this._callbacks.length; i++) {
+				this._callbacks[i]();
+			}
+			this._callbacks = [];
+		}
+
+		if (anotherCallback) anotherCallback();
+	}
+
+	callbackOnLoad(callback) {
+		if (this.loaded) return callback();
+
+		if (this._callbacks === undefined) this._callbacks = [];
+		this._callbacks.push(callback);
+	}
+
+	dispose() {
+		if (!this.mtl) return;
+
+		if (this.mtl.map) this.mtl.map.dispose();   // dispose of texture
+		this.mtl.dispose();
+		this.mtl = null;
+
+		if (this._listener) {
+			Q3D.application.removeEventListener("canvasSizeChanged", this._listener);
+			this._listener = undefined;
+		}
+	}
+}
+
+
+class Q3DMaterials extends THREE.EventDispatcher {
+
+	constructor() {
+		super();
+		this.array = [];
+	}
+
+	// material: instance of Q3D.Material object or THREE.Material-based object
+	add(material) {
+		if (material instanceof Q3D.Material) {
+			this.array.push(material);
+		}
+		else {
+			this.array.push(new Q3D.Material().set(material));
+		}
+	}
+
+	get(index) {
+		return this.array[index];
+	}
+
+	mtl(index) {
+		return this.array[index].mtl;
+	}
+
+	loadJSONObject(jsonObject) {
+		var _this = this, iterated = false;
+		var callback = function () {
+			if (iterated) _this.dispatchEvent({type: "renderRequest"});
+		};
+
+		for (var i = 0, l = jsonObject.length; i < l; i++) {
+			var mtl = new Q3D.Material();
+			mtl.loadJSONObject(jsonObject[i], callback);
+			this.add(mtl);
+		}
+		iterated = true;
+	}
+
+	dispose() {
+		for (var i = 0, l = this.array.length; i < l; i++) {
+			this.array[i].dispose();
+		}
+		this.array = [];
+	}
+
+	addFromObject3D(object) {
+		var mtls = [];
+
+		object.traverse(function (obj) {
+			if (obj.material === undefined) return;
+			((obj.material instanceof Array) ? obj.material : [obj.material]).forEach(function (mtl) {
+				if (mtls.indexOf(mtl) == -1) {
+					mtls.push(mtl);
+				}
+			});
+		});
+
+		for (var i = 0, l = mtls.length; i < l; i++) {
+			this.array.push(new Q3D.Material().set(mtls[i]));
+		}
+	}
+
+	// opacity
+	opacity() {
+		if (this.array.length == 0) return 1;
+
+		var sum = 0;
+		for (var i = 0, l = this.array.length; i < l; i++) {
+			sum += this.array[i].mtl.opacity;
+		}
+		return sum / this.array.length;
+	}
+
+	setOpacity(opacity) {
+		var m;
+		for (var i = 0, l = this.array.length; i < l; i++) {
+			m = this.array[i];
+			m.mtl.transparent = Boolean(m.origProp.t) || (opacity < 1);
+			m.mtl.opacity = opacity;
+		}
+	}
+
+	// wireframe: boolean
+	setWireframeMode(wireframe) {
+		var m;
+		for (var i = 0, l = this.array.length; i < l; i++) {
+			m = this.array[i];
+			if (m.origProp.w || m.mtl instanceof THREE.LineBasicMaterial) continue;
+			m.mtl.wireframe = wireframe;
+		}
+	}
+
+	removeItem(material, dispose) {
+		for (var i = this.array.length - 1; i >= 0; i--) {
+			if (this.array[i].mtl === material) {
+				this.array.splice(i, 1);
+				break;
+			}
+		}
+		if (dispose) material.dispose();
+	}
+
+	removeGroupItems(groupId) {
+		for (var i = this.array.length - 1; i >= 0; i--) {
+			if (this.array[i].groupId === groupId) {
+				this.array.splice(i, 1);
+			}
+		}
+	}
+
+}
+
+
+class Q3DDEMBlock {
+
+	constructor() {
+		this.materials = [];
+		this.currentMtlIndex = 0;
+	}
+
+	loadJSONObject(obj, layer, callback) {
+
+		this.data = obj;
+
+		// load material
+		var m, mtl;
+		for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
+			m = obj.materials[i];
+
+			mtl = new Q3D.Material();
+			mtl.loadJSONObject(m, function () {
+				layer.requestRender();
+			});
+			this.materials[m.mtlIndex] = mtl;
+
+			if (m.useNow) {
+				this.currentMtlIndex = m.mtlIndex;
+				if (this.obj) {
+					layer.materials.removeItem(this.obj.material, true);
+
+					this.obj.material = mtl.mtl;
+					layer.requestRender();
+				}
+				layer.materials.add(mtl);
+			}
+		}
+
+		if (obj.grid === undefined) return;
+
+		// create a plane geometry
+		var geom, grid = obj.grid;
+		if (layer.geometryCache) {
+			var params = layer.geometryCache.parameters || {};
+			if (params.width === obj.width && params.height === obj.height &&
+				params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
+
+				geom = layer.geometryCache.clone();
+				geom.parameters = layer.geometryCache.parameters;
+			}
+		}
+		geom = geom || new THREE.PlaneBufferGeometry(obj.width, obj.height, grid.width - 1, grid.height - 1);
+		layer.geometryCache = geom;
+
+		// create a mesh
+		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		mesh.position.fromArray(obj.translate);
+		mesh.scale.z = obj.zScale;
+		layer.addObject(mesh);
+
+		// set z values
+		var buildGeometry = function (grid_values) {
+			var vertices = geom.attributes.position.array;
+			for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+				vertices[j + 2] = grid_values[i];
+			}
+			geom.attributes.position.needsUpdate = true;
+			geom.computeVertexNormals();
+
+			if (callback) callback(mesh);
+		};
+
+		if (grid.url !== undefined) {
+			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+				grid.array = new Float32Array(buf);
+				buildGeometry(grid.array);
+			});
+		}
+		else {    // local mode or WebKit Bridge
+			if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+			buildGeometry(grid.array);
+		}
+
+		this.obj = mesh;
+		return mesh;
+	}
+
+	buildSides(layer, parent, material, z0) {
+		var planeWidth = this.data.width,
+			planeHeight = this.data.height,
+			grid = this.data.grid,
+			grid_values = grid.array,
+			w = grid.width,
+			h = grid.height,
+			k = w * (h - 1);
+
+		var band_width = -2 * z0;
+
+		// front and back
+		var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
+			geom_ba = geom_fr.clone();
+
+		var vertices_fr = geom_fr.attributes.position.array,
+			vertices_ba = geom_ba.attributes.position.array;
+
+		var i, mesh;
+		for (i = 0; i < w; i++) {
+			vertices_fr[i * 3 + 1] = grid_values[k + i];
+			vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
+		}
+		mesh = new THREE.Mesh(geom_fr, material);
+		mesh.rotation.x = Math.PI / 2;
+		mesh.position.y = -planeHeight / 2;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		mesh = new THREE.Mesh(geom_ba, material);
+		mesh.rotation.x = Math.PI / 2;
+		mesh.rotation.y = Math.PI;
+		mesh.position.y = planeHeight / 2;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		// left and right
+		var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
+			geom_ri = geom_le.clone();
+
+		var vertices_le = geom_le.attributes.position.array,
+			vertices_ri = geom_ri.attributes.position.array;
+
+		for (i = 0; i < h; i++) {
+			vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
+			vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
+		}
+		mesh = new THREE.Mesh(geom_le, material);
+		mesh.rotation.y = -Math.PI / 2;
+		mesh.position.x = -planeWidth / 2;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		mesh = new THREE.Mesh(geom_ri, material);
+		mesh.rotation.y = Math.PI / 2;
+		mesh.position.x = planeWidth / 2;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		// bottom
+		var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
+		mesh = new THREE.Mesh(geom, material);
+		mesh.rotation.x = Math.PI;
+		mesh.position.z = z0;
+		mesh.name = "bottom";
+		parent.add(mesh);
+
+		parent.updateMatrixWorld();
+	}
+
+	addEdges(layer, parent, material, z0) {
+
+		var i, x, y,
+			grid = this.data.grid,
+			grid_values = grid.array,
+			w = grid.width,
+			h = grid.height,
+			k = w * (h - 1),
+			planeWidth = this.data.width,
+			planeHeight = this.data.height,
+			hpw = planeWidth / 2,
+			hph = planeHeight / 2,
+			psw = planeWidth / (w - 1),
+			psh = planeHeight / (h - 1);
+
+		var vl = [];
+
+		// terrain edges
+		var vl_fr = [],
+			vl_bk = [],
+			vl_le = [],
+			vl_ri = [];
+
+		for (i = 0; i < w; i++) {
+			x = -hpw + psw * i;
+			vl_fr.push(x, -hph, grid_values[k + i]);
+			vl_bk.push(x, hph, grid_values[i]);
+		}
+
+		for (i = 0; i < h; i++) {
+			y = hph - psh * i;
+			vl_le.push(-hpw, y, grid_values[w * i]);
+			vl_ri.push(hpw, y, grid_values[w * (i + 1) - 1]);
+		}
+
+		vl.push(vl_fr, vl_bk, vl_le, vl_ri);
+
+		if (z0 !== undefined) {
+			// horizontal rectangle at bottom
+			vl.push([-hpw, -hph, z0,
+						hpw, -hph, z0,
+						hpw,  hph, z0,
+					-hpw,  hph, z0,
+					-hpw, -hph, z0]);
+
+			// vertical lines at corners
+			[[-hpw, -hph, grid_values[grid_values.length - w]],
+				[ hpw, -hph, grid_values[grid_values.length - 1]],
+				[ hpw,  hph, grid_values[w - 1]],
+				[-hpw,  hph, grid_values[0]]].forEach(function (v) {
+
+				vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
+
+			});
+		}
+
+		vl.forEach(function (v) {
+
+			var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			var obj = new THREE.Line(geom, material);
+			obj.name = "frame";
+			parent.add(obj);
+
+		});
+
+		parent.updateMatrixWorld();
+	}
+
+	// add quad wireframe
+	addWireframe(layer, parent, material) {
+
+		var grid = this.data.grid,
+			grid_values = grid.array,
+			w = grid.width,
+			h = grid.height,
+			planeWidth = this.data.width,
+			planeHeight = this.data.height,
+			hpw = planeWidth / 2,
+			hph = planeHeight / 2,
+			psw = planeWidth / (w - 1),
+			psh = planeHeight / (h - 1);
+
+		var v, geom, x, y, vx, vy, group = new THREE.Group();
+
+		for (x = w - 1; x >= 0; x--) {
+			v = [];
+			vx = -hpw + psw * x;
+
+			for (y = h - 1; y >= 0; y--) {
+				v.push(vx, hph - psh * y, grid_values[x + w * y]);
 			}
 
-			// Cylinder or Cone
-			var radiusTop = (objType == "Cylinder") ? 1 : 0;
+			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+			group.add(new THREE.Line(geom, material));
+		}
+
+		for (y = h - 1; y >= 0; y--) {
+			v = [];
+			vy = hph - psh * y;
+
+			for (x = w - 1; x >= 0; x--) {
+				v.push(-hpw + psw * x, vy, grid_values[x + w * y]);
+			}
+
+			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+			group.add(new THREE.Line(geom, material));
+		}
+
+		parent.add(group);
+		parent.updateMatrixWorld();
+	}
+
+	getValue(x, y) {
+		var grid = this.data.grid;
+		if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
+		return null;
+	}
+
+	contains(x, y) {
+		var translate = this.data.translate,
+			xmin = translate[0] - this.data.width / 2,
+			xmax = translate[0] + this.data.width / 2,
+			ymin = translate[1] - this.data.height / 2,
+			ymax = translate[1] + this.data.height / 2;
+		if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
+		return false;
+	}
+}
+
+
+class Q3DClippedDEMBlock {
+
+	constructor() {
+		this.materials = [];
+		this.currentMtlIndex = 0;
+	}
+
+	loadJSONObject(obj, layer, callback) {
+		this.data = obj;
+		var _this = this;
+
+		// load material
+		var m, mtl;
+		for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
+			m = obj.materials[i];
+
+			mtl = new Q3D.Material();
+			mtl.loadJSONObject(m, function () {
+				layer.requestRender();
+			});
+			this.materials[m.mtlIndex] = mtl;
+
+			if (m.useNow) {
+				if (this.obj) {
+					layer.materials.removeItem(this.obj.material, true);
+
+					this.obj.material = mtl.mtl;
+
+					layer.materials.add(mtl);
+					layer.requestRender();
+				}
+				this.currentMtlIndex = m.mtlIndex;
+			}
+		}
+
+		if (obj.geom === undefined) return;
+
+		var geom = new THREE.BufferGeometry(),
+			mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		mesh.position.fromArray(obj.translate);
+		mesh.scale.z = obj.zScale;
+		layer.addObject(mesh);
+
+		var buildGeometry = function (obj) {
+
+			var v = obj.triangles.v,
+				origin = layer.sceneData.origin,
+				be = layer.sceneData.baseExtent,
+				base_width = be.width,
+				base_height = be.height,
+				x0 = be.cx - origin.x - base_width * 0.5,
+				y0 = be.cy - origin.y - base_height * 0.5;
+
+			var normals = [], uvs = [];
+			for (var i = 0, l = v.length; i < l; i += 3) {
+				normals.push(0, 0, 1);
+				uvs.push((v[i] - x0) / base_width, (v[i + 1] - y0) / base_height);
+			}
+
+			geom.setIndex(obj.triangles.f);
+			geom.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+			geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+			geom.computeVertexNormals();
+
+			geom.attributes.position.needsUpdate = true;
+			geom.attributes.normal.needsUpdate = true;
+			geom.attributes.uv.needsUpdate = true;
+
+			_this.data.polygons = obj.polygons;
+			if (callback) callback(mesh);
+		};
+
+		if (obj.geom.url !== undefined) {
+			Q3D.application.loadFile(obj.geom.url, "json", function (obj) {
+				buildGeometry(obj);
+			});
+		}
+		else {    // local mode or WebKit Bridge
+			buildGeometry(obj.geom);
+		}
+
+		this.obj = mesh;
+		return mesh;
+	}
+
+	buildSides(layer, parent, material, z0) {
+		var polygons = this.data.polygons,
+			bzFunc = function (x, y) { return z0; };
+
+		// make back-side material for bottom
+		var mat_back = material.clone();
+		mat_back.side = THREE.BackSide;
+		layer.materials.add(mat_back);
+
+		var geom, mesh, shape;
+		for (var i = 0, l = polygons.length; i < l; i++) {
+			var bnds = polygons[i];
+
+			// sides
+			for (var j = 0, m = bnds.length; j < m; j++) {
+				geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc, true);
+				mesh = new THREE.Mesh(geom, material);
+				mesh.name = "side";
+				parent.add(mesh);
+			}
+
+			// bottom
+			shape = new THREE.Shape(Q3D.Utils.flatArrayToVec2Array(bnds[0], 3));
+			for (j = 1, m = bnds.length; j < m; j++) {
+				shape.holes.push(new THREE.Path(Q3D.Utils.flatArrayToVec2Array(bnds[j], 3)));
+			}
+			geom = new THREE.ShapeBufferGeometry(shape);
+			mesh = new THREE.Mesh(geom, mat_back);
+			mesh.position.z = z0;
+			mesh.name = "bottom";
+			parent.add(mesh);
+		}
+		parent.updateMatrixWorld();
+	}
+
+	// not implemented
+	getValue(x, y) {
+		return null;
+	}
+
+	// not implemented
+	contains(x, y) {
+		return false;
+	}
+
+}
+
+
+class Q3DMapLayer extends THREE.EventDispatcher {
+
+	constructor() {
+		super();
+
+		this.properties = {};
+
+		this.materials = new Q3D.Materials();
+		this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
+
+		this.objectGroup = new Q3D.Group();
+		this.objectGroup.name = "layer";
+		this.objects = [];
+	}
+
+	addObject(object) {
+		object.userData.layerId = this.id;
+		this.objectGroup.add(object);
+
+		var o = this.objects;
+		object.traverse(function (obj) {
+			o.push(obj);
+		});
+		return this.objectGroup.children.length - 1;
+	}
+
+	addObjects(objects) {
+		for (var i = 0; i < objects.length; i++) {
+			this.addObject(objects[i]);
+		}
+	}
+
+	clearObjects() {
+		// dispose of geometries
+		this.objectGroup.traverse(function (obj) {
+			if (obj.geometry) obj.geometry.dispose();
+		});
+
+		// dispose of materials
+		this.materials.dispose();
+
+		// remove all child objects from object group
+		for (var i = this.objectGroup.children.length - 1; i >= 0; i--) {
+			this.objectGroup.remove(this.objectGroup.children[i]);
+		}
+		this.objects = [];
+	}
+
+	visibleObjects() {
+		return (this.visible) ? this.objects : [];
+	}
+
+	loadJSONObject(jsonObject, scene) {
+		if (jsonObject.type == "layer") {
+			// properties
+			if (jsonObject.properties !== undefined) {
+				this.properties = jsonObject.properties;
+				this.visible = (jsonObject.properties.visible || Q3D.Config.allVisible) ? true : false;
+			}
+
+			if (jsonObject.data !== undefined) {
+				this.clearObjects();
+
+				// materials
+				if (jsonObject.data.materials !== undefined) {
+					this.materials.loadJSONObject(jsonObject.data.materials);
+				}
+			}
+
+			this.sceneData = scene.userData;
+		}
+	}
+
+	get clickable() {
+		return this.properties.clickable;
+	}
+
+	get opacity() {
+		return this.materials.opacity();
+	}
+
+	set opacity(value) {
+		this.materials.setOpacity(value);
+
+		if (this.labelGroup) {
+			this.labelGroup.traverse(function (obj) {
+				if (obj.material) obj.material.opacity = value;
+			});
+		}
+
+		if (this.labelConnectorGroup && this.labelConnectorGroup.children.length) {
+			this.labelConnectorGroup.children[0].material.opacity = value;
+		}
+
+		this.requestRender();
+	}
+
+	get visible() {
+		return this.objectGroup.visible;
+	}
+
+	set visible(value) {
+		this.objectGroup.visible = value;
+		this.requestRender();
+	}
+
+	boundingBox() {
+		return new THREE.Box3().setFromObject(this.objectGroup);
+	}
+
+	setWireframeMode(wireframe) {
+		this.materials.setWireframeMode(wireframe);
+	}
+
+	requestRender() {
+		this.dispatchEvent({type: "renderRequest"});
+	}
+
+}
+
+
+class Q3DDEMLayer extends MapLayer {
+
+	constructor() {
+		super();
+		this.type = Q3D.LayerType.DEM;
+		this.blocks = [];
+	}
+
+	loadJSONObject(jsonObject, scene) {
+		var old_blockIsClipped = this.properties.clipped;
+
+		super.loadJSONObject(jsonObject, scene);
+		if (jsonObject.type == "layer") {
+			if (old_blockIsClipped !== jsonObject.properties.clipped) {
+				// DEM type changed
+				this.blocks = [];
+			}
+
+			var p = scene.userData,
+				rotation = p.baseExtent.rotation;
+
+			if (jsonObject.properties.clipped) {
+				this.objectGroup.position.set(0, 0, 0);
+				this.objectGroup.rotation.z = 0;
+
+				if (rotation) {
+					// rotate around center of base extent
+					this.objectGroup.position.copy(p.pivot).negate();
+					this.objectGroup.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+					this.objectGroup.position.add(p.pivot);
+					this.objectGroup.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
+				}
+			}
+			else {
+				this.objectGroup.position.copy(p.pivot);
+				this.objectGroup.position.z *= p.zScale;
+				this.objectGroup.rotation.z = rotation * Q3D.deg2rad;
+			}
+			this.objectGroup.updateMatrixWorld();
+
+			if (jsonObject.data !== undefined) {
+				jsonObject.data.forEach(function (obj) {
+					this.buildBlock(obj, scene, this);
+				}, this);
+			}
+		}
+		else if (jsonObject.type == "block") {
+			this.buildBlock(jsonObject, scene, this);
+		}
+	}
+
+	buildBlock(jsonObject, scene, layer) {
+		var _this = this,
+			block = this.blocks[jsonObject.block];
+
+		if (block === undefined) {
+			block = (layer.properties.clipped) ? (new Q3D.ClippedDEMBlock()) : (new Q3D.DEMBlock());
+			this.blocks[jsonObject.block] = block;
+		}
+
+		block.loadJSONObject(jsonObject, this, function (mesh) {
+
+			var material;
+			if (jsonObject.wireframe) {
+				material = new Q3D.Material();
+				material.loadJSONObject(jsonObject.wireframe.mtl);
+				_this.materials.add(material);
+
+				block.addWireframe(_this, mesh, material.mtl);
+
+				var mtl = block.material.mtl;
+				mtl.polygonOffset = true;
+				mtl.polygonOffsetFactor = 1;
+				mtl.polygonOffsetUnits = 1;
+			}
+
+			if (jsonObject.sides) {
+				// sides and bottom
+				material = new Q3D.Material();
+				material.loadJSONObject(jsonObject.sides.mtl);
+				_this.materials.add(material);
+
+				block.buildSides(_this, mesh, material.mtl, jsonObject.sides.bottom);
+				_this.sideVisible = true;
+			}
+
+			if (jsonObject.edges) {
+				material = new Q3D.Material();
+				material.loadJSONObject(jsonObject.edges.mtl);
+				_this.materials.add(material);
+
+				block.addEdges(_this, mesh, material.mtl, (jsonObject.sides) ? jsonObject.sides.bottom : undefined);
+			}
+
+			_this.requestRender();
+		});
+	}
+
+	// calculate elevation at the coordinates (x, y) on triangle face
+	getZ(x, y) {
+		for (var i = 0, l = this.blocks.length; i < l; i++) {
+			var block = this.blocks[i],
+				data = block.data;
+
+			if (!block.contains(x, y)) continue;
+
+			var ix = data.width / (data.grid.width - 1),
+				iy = data.height / (data.grid.height - 1);
+
+			var xmin = data.translate[0] - data.width / 2,
+				ymax = data.translate[1] + data.height / 2;
+
+			var mx0 = Math.floor((x - xmin) / ix),
+				my0 = Math.floor((ymax - y) / iy);
+
+			var z = [block.getValue(mx0, my0),
+						block.getValue(mx0 + 1, my0),
+						block.getValue(mx0, my0 + 1),
+						block.getValue(mx0 + 1, my0 + 1)];
+
+			var px0 = xmin + ix * mx0,
+				py0 = ymax - iy * my0;
+
+			var sdx = (x - px0) / ix,
+				sdy = (py0 - y) / iy;
+
+			if (sdx <= 1 - sdy) return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * sdy;
+			else return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * (1 - sdy);
+		}
+		return null;
+	}
+
+	segmentizeLineString(lineString, zFunc) {
+		// does not support multiple blocks
+		if (zFunc === undefined) zFunc = function () { return 0; };
+		var width = this.sceneData.width,
+			height = this.sceneData.height;
+		var xmin = -width / 2,
+			ymax = height / 2;
+		var grid = this.blocks[0].data.grid,
+			ix = width / (grid.width - 1),
+			iy = height / (grid.height - 1);
+		var sort_func = function (a, b) { return a - b; };
+
+		var pts = [];
+		for (var i = 1, l = lineString.length; i < l; i++) {
+			var pt1 = lineString[i - 1], pt2 = lineString[i];
+			var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1], z1 = pt1[2], z2 = pt2[2];
+			var nx1 = (x1 - xmin) / ix,
+				nx2 = (x2 - xmin) / ix;
+			var ny1 = (ymax - y1) / iy,
+				ny2 = (ymax - y2) / iy;
+			var ns1 = Math.abs(ny1 + nx1),
+				ns2 = Math.abs(ny2 + nx2);
+
+			var p = [0], nvp = [[nx1, nx2], [ny1, ny2], [ns1, ns2]];
+			for (var j = 0; j < 3; j++) {
+				var v1 = nvp[j][0], v2 = nvp[j][1];
+				if (v1 == v2) continue;
+				var k = Math.ceil(Math.min(v1, v2));
+				var n = Math.floor(Math.max(v1, v2));
+				for (; k <= n; k++) {
+					p.push((k - v1) / (v2 - v1));
+				}
+			}
+
+			p.sort(sort_func);
+
+			var x, y, z, lp = null;
+			for (var j = 0, m = p.length; j < m; j++) {
+				if (lp === p[j]) continue;
+				if (p[j] == 1) break;
+
+				x = x1 + (x2 - x1) * p[j];
+				y = y1 + (y2 - y1) * p[j];
+
+				if (z1 === undefined || z2 === undefined) z = zFunc(x, y);
+				else z = z1 + (z2 - z1) * p[j];
+
+				pts.push(new THREE.Vector3(x, y, z));
+
+				// Q3D.Utils.putStick(x, y, zFunc);
+
+				lp = p[j];
+			}
+		}
+		// last point (= the first point)
+		var pt = lineString[lineString.length - 1];
+		pts.push(new THREE.Vector3(pt[0], pt[1], (pt[2] === undefined) ? zFunc(pt[0], pt[1]) : pt[2]));
+
+		/*
+		for (var i = 0, l = lineString.length - 1; i < l; i++) {
+			Q3D.Utils.putStick(lineString[i][0], lineString[i][1], zFunc, 0.8);
+		}
+		*/
+		return pts;
+	}
+
+	setCurrentMaterial(mtlIndex) {
+
+		this.materials.removeGroupItems(this.currentMtlIndex);
+
+		this.currentMtlIndex = mtlIndex;
+
+		var b, m;
+		for (var i = 0, l = this.blocks.length; i < l; i++) {
+			b = this.blocks[i];
+			m = b.materials[mtlIndex];
+			if (m !== undefined) {
+				b.obj.material = m.mtl;
+				this.materials.add(m);
+			}
+		}
+		this.requestRender();
+	}
+
+	setSideVisible(visible) {
+		this.sideVisible = visible;
+		this.objectGroup.traverse(function (obj) {
+			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
+		});
+	}
+
+	// texture animation
+	prepareTexAnimation(from, to) {
+
+		function imageData2Canvas(img) {
+			var cnvs = document.createElement("canvas");
+			cnvs.width = img.width;
+			cnvs.height = img.height;
+
+			var ctx = cnvs.getContext("2d");
+			ctx.putImageData(img, 0, 0);
+			return cnvs;
+		}
+
+		this.anim = [];
+
+		var m, canvas, ctx, opt, mtl;
+		var img_from, img_to;
+		for (var i = 0; i < this.blocks.length; i++) {
+
+			m = this.blocks[i].obj.material;
+
+			img_from = this.blocks[i].materials[from].mtl.map.image;
+			img_to = this.blocks[i].materials[to].mtl.map.image;
+
+			canvas = document.createElement("canvas");
+			canvas.width = (img_from.width > img_to.width) ? img_from.width : img_to.width;
+			canvas.height = (img_from.width > img_to.width) ? img_from.height : img_to.height;
+
+			ctx = canvas.getContext("2d");
+
+			opt = {};
+			opt.map = new THREE.CanvasTexture(canvas);
+			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
+			opt.transparent = true;
+
+			mtl = undefined;
+			if (m) {
+				if (m.isMeshToonMaterial) {
+					mtl = new THREE.MeshToonMaterial(opt);
+				}
+				else if (m.isMeshPhongMaterial) {
+					mtl = new THREE.MeshPhongMaterial(opt);
+				}
+			}
+			if (mtl === undefined) {
+				mtl = new THREE.MeshLambertMaterial(opt);
+			}
+
+			if (img_from instanceof ImageData) {    // WebKit Bridge
+				img_from = imageData2Canvas(img_from);
+				img_to = imageData2Canvas(img_to);
+			}
+
+			this.blocks[i].obj.material = mtl;
+
+			this.materials.add(mtl);
+
+			this.anim.push({
+				img_from: img_from,
+				img_to: img_to,
+				ctx: ctx,
+				tex: mtl.map
+			});
+		}
+	}
+
+	setTextureAt(progress, effect) {
+
+		if (this.anim === undefined) return;
+
+		var a, w, h, w0, h0, w1, h1, ew, ew1;
+		for (var i = 0; i < this.anim.length; i++) {
+			a = this.anim[i];
+			w = a.ctx.canvas.width;
+			h = a.ctx.canvas.height;
+			w0 = a.img_from.width;
+			h0 = a.img_from.height;
+			w1 = a.img_to.width;
+			h1 = a.img_to.height;
+
+			if (effect == 0) {  // fade in
+				a.ctx.globalAlpha = 1;
+				a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
+											0, 0, w, h);
+				a.ctx.globalAlpha = progress;
+				a.ctx.drawImage(a.img_to, 0, 0, w1, h1,
+											0, 0, w, h);
+			}
+			else if (effect == 2) {  // slide to left (not used)
+				if (progress === null) {
+					a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
+												0, 0, w, h);
+				}
+				else {
+					ew1 = w1 * progress;
+					ew = w * progress;
+					a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
+											w - ew, 0, ew, h);
+				}
+			}
+			a.tex.needsUpdate = true;
+		}
+	}
+}
+
+
+class Q3DVectorLayer extends MapLayer {
+
+	constructor() {
+		super();
+		this.features = [];
+		this.labels = [];
+	}
+
+	// build(features, startIndex) {}
+
+	addFeature(featureIdx, f, objs) {
+		super.addObjects(objs);
+
+		for (var i = 0; i < objs.length; i++) {
+			objs[i].userData.featureIdx = featureIdx;
+		}
+		f.objs = objs;
+
+		this.features[featureIdx] = f;
+		return f;
+	}
+
+	clearLabels() {
+		this.labels = [];
+		if (this.labelGroup) this.labelGroup.clear();
+		if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
+	}
+
+	buildLabels(features, getPointsFunc) {
+		if (this.properties.label === undefined || getPointsFunc === undefined) return;
+
+		var _this = this,
+			p = this.properties,
+			label = p.label,
+			bs = this.sceneData.baseExtent.width * 0.016,
+			sc = bs * Math.pow(1.2, label.size);
+
+		var hasOtl = (label.olcolor !== undefined),
+			hasConn = (label.cncolor !== undefined);
+
+		if (hasConn) {
+			var line_mtl = new THREE.LineBasicMaterial({
+				color: label.cncolor,
+				opacity: this.materials.opacity(),
+				transparent: true
+			});
+		}
+
+		var hasUnderline = Boolean(hasConn && label.underline);
+		if (hasUnderline) {
+			var ul_geom = new THREE.BufferGeometry();
+			ul_geom.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+
+			var onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+				this.quaternion.copy(camera.quaternion);
+				this.updateMatrixWorld();
+			};
+		}
+
+		var canvas = document.createElement("canvas"),
+			ctx = canvas.getContext("2d");
+
+		var font, tw, th, cw, ch;
+		th = ch = Q3D.Config.label.canvasHeight;
+		font = th + "px " + (label.font || "sans-serif");
+
+		canvas.height = ch;
+
+		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc, opacity;
+		var underline;
+
+		for (var i = 0, l = features.length; i < l; i++) {
+			f = features[i];
+			text = f.lbl;
+			if (!text) continue;
+
+			opacity = this.materials.mtl(f.mtl).opacity;
+
+			partIdx = 0;
+			getPointsFunc(f).forEach(function (pt) {
+
+				// label position
+				vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
+
+				// render label text
+				ctx.font = font;
+				tw = ctx.measureText(text).width + 2;
+				cw = THREE.Math.ceilPowerOfTwo(tw);
+				x = cw / 2;
+				y = ch / 2;
+
+				canvas.width = cw;
+				ctx.clearRect(0, 0, cw, ch);
+
+				if (label.bgcolor !== undefined) {
+					ctx.fillStyle = label.bgcolor;
+					ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();    // definition is in this file
+				}
+
+				ctx.font = font;
+				ctx.textAlign = "center";
+				ctx.textBaseline = "middle";
+
+				if (hasOtl) {
+					// outline effect
+					ctx.fillStyle = label.olcolor;
+					for (j = 0; j < 9; j++) {
+						if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
+					}
+				}
+
+				ctx.fillStyle = label.color;
+				ctx.fillText(text, x, y);
+
+				mtl = new THREE.SpriteMaterial({
+					map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),
+					opacity: opacity,
+					transparent: true
+				});
+
+				sprite = new THREE.Sprite(mtl);
+				if (hasUnderline) {
+					sprite.center.set((1 - tw / cw) * 0.5, 0);
+				}
+				else {
+					sprite.center.set(0.5, 0);
+				}
+				sprite.position.copy(vec);
+				sprite.scale.set(sc * cw / ch, sc, 1);
+
+				sprite.userData.layerId = this.id;
+				sprite.userData.properties = f.prop;
+				sprite.userData.objs = f.objs;
+				sprite.userData.partIdx = partIdx;
+				sprite.userData.isLabel = true;
+
+				this.labelGroup.add(sprite);
+
+				if (Q3D.Config.label.clickable) this.labels.push(sprite);
+
+				if (hasConn) {
+					// a connector
+					geom = new THREE.BufferGeometry();
+					geom.setAttribute("position", new THREE.Float32BufferAttribute(vec.toArray().concat(pt), 3));
+
+					conn = new THREE.Line(geom, line_mtl);
+					conn.userData = sprite.userData;
+
+					this.labelConnectorGroup.add(conn);
+
+					if (hasUnderline) {
+						underline = new THREE.Line(ul_geom, line_mtl);
+						underline.position.copy(vec);
+						underline.scale.x = sc * tw / th;
+						underline.updateMatrixWorld();
+						underline.onBeforeRender = onBeforeRender;
+						conn.add(underline);
+					}
+				}
+				partIdx++;
+			}, this);
+		}
+	}
+
+	loadJSONObject(jsonObject, scene) {
+		super.loadJSONObject(jsonObject, scene);
+		if (jsonObject.type == "layer") {
+			if (jsonObject.data !== undefined) {
+				this.features = [];
+				this.clearLabels();
+
+				// build labels
+				if (this.properties.label !== undefined) {
+					// create a label group and a label connector group
+					if (this.labelGroup === undefined) {
+						this.labelGroup = new Q3D.Group();
+						this.labelGroup.userData.layerId = this.id;
+						this.labelGroup.visible = this.visible;
+						scene.labelGroup.add(this.labelGroup);
+					}
+
+					if (this.labelConnectorGroup === undefined) {
+						this.labelConnectorGroup = new Q3D.Group();
+						this.labelConnectorGroup.userData.layerId = this.id;
+						this.labelConnectorGroup.visible = this.visible;
+						scene.labelConnectorGroup.add(this.labelConnectorGroup);
+					}
+				}
+
+				(jsonObject.data.blocks || []).forEach(function (block) {
+					if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
+					else {
+						this.build(block.features, block.startIndex);
+						if (this.properties.label !== undefined) this.buildLabels(block.features);
+					}
+				}, this);
+			}
+		}
+		else if (jsonObject.type == "block") {
+			this.build(jsonObject.features, jsonObject.startIndex);
+			if (this.properties.label !== undefined) this.buildLabels(jsonObject.features);
+		}
+	}
+
+	get visible() {
+		return super.visible;
+	}
+
+	set visible(value) {
+		if (this.labelGroup) this.labelGroup.visible = value;
+		if (this.labelConnectorGroup) this.labelConnectorGroup.visible = value;
+
+		super.visible = value;
+	}
+
+}
+
+
+class Q3DPointLayer extends VectorLayer {
+
+	constructor() {
+		super();
+		this.type = Q3D.LayerType.Point;
+	}
+
+	loadJSONObject(jsonObject, scene) {
+		if (jsonObject.type == "layer" && jsonObject.properties.objType == "3D Model" && jsonObject.data !== undefined) {
+			if (this.models === undefined) {
+				var _this = this;
+
+				this.models = new Q3D.Models();
+				this.models.addEventListener("modelLoaded", function (event) {
+					_this.materials.addFromObject3D(event.model.scene);
+					_this.requestRender();
+				});
+			}
+			else {
+				this.models.clear();
+			}
+			this.models.loadJSONObject(jsonObject.data.models);
+		}
+
+		super.loadJSONObject(jsonObject, scene);
+	}
+
+	build(features, startIndex) {
+		var objType = this.properties.objType;
+		if (objType == "Point") {
+			return this.buildPoints(features, startIndex);
+		}
+		else if (objType == "Billboard") {
+			return this.buildBillboards(features, startIndex);
+		}
+		else if (objType == "3D Model") {
+			return this.buildModels(features, startIndex);
+		}
+
+		var unitGeom, transform;
+		if (this.cachedGeometryType === objType) {
+			unitGeom = this.geometryCache;
+			transform = this.transformCache;
+		}
+		else {
+			var gt = this.geomAndTransformFunc(objType);
+			unitGeom = gt[0];
+			transform = gt[1];
+		}
+
+		var f, mtl, pts, i, l, mesh, meshes;
+		for (var fidx = 0; fidx < features.length; fidx++) {
+			f = features[fidx];
+			pts = f.geom.pts;
+			mtl = this.materials.mtl(f.mtl);
+
+			meshes = [];
+			for (i = 0, l = pts.length; i < l; i++) {
+				mesh = new THREE.Mesh(unitGeom, mtl);
+				transform(mesh, f.geom, pts[i]);
+
+				mesh.userData.properties = f.prop;
+
+				meshes.push(mesh);
+			}
+			this.addFeature(fidx + startIndex, f, meshes);
+		}
+
+		this.cachedGeometryType = objType;
+		this.geometryCache = unitGeom;
+		this.transformCache = transform;
+	}
+
+	geomAndTransformFunc(objType) {
+
+		var deg2rad = Q3D.deg2rad,
+			rx = 90 * deg2rad;
+
+		if (objType == "Sphere") {
 			return [
-				new THREE.CylinderBufferGeometry(radiusTop, 1, 1, 32),
+				new THREE.SphereBufferGeometry(1, 32, 32),
 				function (mesh, geom, pt) {
-					mesh.scale.set(geom.r, geom.h, geom.r);
+					mesh.scale.setScalar(geom.r);
+					mesh.position.fromArray(pt);
+				}
+			];
+		}
+		else if (objType == "Box") {
+			return [
+				new THREE.BoxBufferGeometry(1, 1, 1),
+				function (mesh, geom, pt) {
+					mesh.scale.set(geom.w, geom.h, geom.d);
 					mesh.rotation.x = rx;
 					mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
 				}
 			];
 		}
+		else if (objType == "Disk") {
+			var sz = this.sceneData.zScale;
+			return [
+				new THREE.CircleBufferGeometry(1, 32),
+				function (mesh, geom, pt) {
+					mesh.scale.set(geom.r, geom.r * sz, 1);
+					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
+					mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
+					mesh.position.fromArray(pt);
+				}
+			];
+		}
+		else if (objType == "Plane") {
+			var sz = this.sceneData.zScale;
+			return [
+				new THREE.PlaneBufferGeometry(1, 1, 1, 1),
+				function (mesh, geom, pt) {
+					mesh.scale.set(geom.w, geom.l * sz, 1);
+					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
+					mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
+					mesh.position.fromArray(pt);
+				}
+			];
+		}
 
-		buildPoints(features, startIndex) {
-			var f, geom, mtl, obj;
-			for (var fidx = 0; fidx < features.length; fidx++) {
-				f = features[fidx];
-
-				geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
-				mtl = this.materials.mtl(f.mtl);
-
-				obj = new THREE.Points(geom, mtl);
-				obj.userData.properties = f.prop;
-
-				this.addFeature(fidx + startIndex, f, [obj]);
+		// Cylinder or Cone
+		var radiusTop = (objType == "Cylinder") ? 1 : 0;
+		return [
+			new THREE.CylinderBufferGeometry(radiusTop, 1, 1, 32),
+			function (mesh, geom, pt) {
+				mesh.scale.set(geom.r, geom.h, geom.r);
+				mesh.rotation.x = rx;
+				mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
 			}
-		}
-
-		buildBillboards(features, startIndex) {
-
-			features.forEach(function (f, fidx) {
-
-				var material = this.materials.get(f.mtl);
-
-				var sprite, sprites = [];
-				for (var i = 0; i < f.geom.pts.length; i++) {
-					sprite = new THREE.Sprite(material.mtl);
-					sprite.position.fromArray(f.geom.pts[i]);
-					sprite.userData.properties = f.prop;
-
-					sprites.push(sprite);
-				}
-
-				material.callbackOnLoad(function () {
-					var img = material.mtl.map.image;
-					for (var i = 0; i < sprites.length; i++) {
-						sprites[i].scale.set(f.geom.size,
-											f.geom.size * img.height / img.width,
-											1);
-						sprites[i].updateMatrixWorld();
-					}
-				});
-
-				this.addFeature(fidx + startIndex, f, sprites);
-			}, this);
-		}
-
-		buildModels(features, startIndex) {
-			var q = new THREE.Quaternion(),
-				e = new THREE.Euler(),
-				deg2rad = Q3D.deg2rad;
-
-			features.forEach(function (f, fidx) {
-
-				var model = this.models.get(f.model);
-				if (!model) {
-					console.log("3D Model: There is a missing model.");
-					return;
-				}
-
-				var parents = [];
-				var pt, pts = f.geom.pts;
-				for (var i = 0; i < pts.length; i++) {
-					pt = pts[i];
-
-					var parent = new Q3D.Group();
-					parent.position.fromArray(pt);
-					parent.scale.set(1, 1, this.sceneData.zScale);
-
-					parent.userData.properties = f.prop;
-
-					parents.push(parent);
-				}
-
-				model.callbackOnLoad(function (m) {
-					var parent, obj;
-					for (var i = 0; i < parents.length; i++) {
-						parent = parents[i];
-
-						obj = m.scene.clone();
-						obj.scale.setScalar(f.geom.scale);
-
-						if (obj.rotation.x) {
-							// reset coordinate system to z-up and specified rotation
-							obj.rotation.set(0, 0, 0);
-							obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
-																		 f.geom.rotateY * deg2rad,
-																		 f.geom.rotateZ * deg2rad,
-																		 f.geom.rotateO || "XYZ")));
-						}
-						else {
-							// y-up to z-up and specified rotation
-							obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
-																		 f.geom.rotateY * deg2rad,
-																		 f.geom.rotateZ * deg2rad,
-																		 f.geom.rotateO || "XYZ")));
-							obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
-						}
-						parent.add(obj);
-					}
-				});
-
-				this.addFeature(fidx + startIndex, f, parents);
-			}, this);
-		}
-
-		buildLabels(features) {
-			super.buildLabels(features, function (f) { return f.geom.pts; });
-		}
-
+		];
 	}
 
+	buildPoints(features, startIndex) {
+		var f, geom, mtl, obj;
+		for (var fidx = 0; fidx < features.length; fidx++) {
+			f = features[fidx];
 
-	class Q3DLineLayer extends VectorLayer {
+			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
+			mtl = this.materials.mtl(f.mtl);
 
-		constructor() {
-			super();
-			this.type = Q3D.LayerType.Line;
+			obj = new THREE.Points(geom, mtl);
+			obj.userData.properties = f.prop;
+
+			this.addFeature(fidx + startIndex, f, [obj]);
 		}
+	}
 
-		clearObjects() {
-			super.clearObjects();
+	buildBillboards(features, startIndex) {
 
-			if (this.origMtls) {
-				this.origMtls.dispose();
-				this.origMtls = undefined;
+		features.forEach(function (f, fidx) {
+
+			var material = this.materials.get(f.mtl);
+
+			var sprite, sprites = [];
+			for (var i = 0; i < f.geom.pts.length; i++) {
+				sprite = new THREE.Sprite(material.mtl);
+				sprite.position.fromArray(f.geom.pts[i]);
+				sprite.userData.properties = f.prop;
+
+				sprites.push(sprite);
 			}
-		}
 
-		build(features, startIndex) {
-
-			if (this._lastObjType !== this.properties.objType) this._createObject = null;
-
-			var createObject = this._createObject || this.createObjFunc(this.properties.objType);
-
-			var f, i, lines, obj, objs;
-			for (var fidx = 0; fidx < features.length; fidx++) {
-				f = features[fidx];
-				lines = f.geom.lines;
-
-				objs = [];
-				for (i = 0; i < lines.length; i++) {
-					obj = createObject(f, lines[i]);
-					obj.userData.properties = f.prop;
-					obj.userData.mtl = f.mtl;
-
-					objs.push(obj);
+			material.callbackOnLoad(function () {
+				var img = material.mtl.map.image;
+				for (var i = 0; i < sprites.length; i++) {
+					sprites[i].scale.set(f.geom.size,
+										f.geom.size * img.height / img.width,
+										1);
+					sprites[i].updateMatrixWorld();
 				}
-				this.addFeature(fidx + startIndex, f, objs);
+			});
+
+			this.addFeature(fidx + startIndex, f, sprites);
+		}, this);
+	}
+
+	buildModels(features, startIndex) {
+		var q = new THREE.Quaternion(),
+			e = new THREE.Euler(),
+			deg2rad = Q3D.deg2rad;
+
+		features.forEach(function (f, fidx) {
+
+			var model = this.models.get(f.model);
+			if (!model) {
+				console.log("3D Model: There is a missing model.");
+				return;
 			}
 
-			this._lastObjType = this.properties.objType;
-			this._createObject = createObject;
-		}
+			var parents = [];
+			var pt, pts = f.geom.pts;
+			for (var i = 0; i < pts.length; i++) {
+				pt = pts[i];
 
-		createObjFunc(objType) {
-			var materials = this.materials;
+				var parent = new Q3D.Group();
+				parent.position.fromArray(pt);
+				parent.scale.set(1, 1, this.sceneData.zScale);
 
-			if (objType == "Line") {
-				return function (f, vertices) {
-					var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+				parent.userData.properties = f.prop;
 
-					var obj = new THREE.Line(geom, materials.mtl(f.mtl));
-					if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
-					return obj;
-				};
-			}
-			else if (objType == "Thick Line") {
-				return function (f, vertices) {
-					var line = new MeshLine();
-					line.setPoints(vertices);
-
-					return new THREE.Mesh(line, materials.mtl(f.mtl));
-				};
-			}
-			else if (objType == "Pipe" || objType == "Cone") {
-				var jointGeom, cylinGeom;
-				if (objType == "Pipe") {
-					jointGeom = new THREE.SphereBufferGeometry(1, 32, 32);
-					cylinGeom = new THREE.CylinderBufferGeometry(1, 1, 1, 32);
-				}
-				else {
-					cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
-				}
-
-				var group, mesh, axis = Q3D.uv.j;
-				var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
-
-				return function (f, points) {
-					group = new Q3D.Group();
-
-					pt0.fromArray(points[0]);
-					for (var i = 1, l = points.length; i < l; i++) {
-						pt1.fromArray(points[i]);
-
-						mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
-						mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
-						mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
-						mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
-						group.add(mesh);
-
-						if (jointGeom && i < l - 1) {
-							mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
-							mesh.scale.setScalar(f.geom.r);
-							mesh.position.copy(pt1);
-							group.add(mesh);
-						}
-
-						pt0.copy(pt1);
-					}
-					return group;
-				};
-			}
-			else if (objType == "Box") {
-				// In this method, box corners are exposed near joint when both azimuth and slope of
-				// the segments of both sides are different. Also, some unnecessary faces are created.
-				var faces = [], vi;
-				vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
-					[3, 0, 7], [7, 0, 4],
-					[6, 3, 2], [2, 3, 7],
-					[4, 1, 0], [0, 1, 5],   // right turn - top, side, bottom
-					[1, 2, 5], [5, 2, 6],
-					[2, 7, 6], [6, 7, 3]];
-
-				for (var j = 0; j < 12; j++) {
-					faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
-				}
-
-				return function (f, points) {
-					var geometry = new THREE.Geometry();
-
-					var geom, dist, rx, rz, wh4, vb4, vf4;
-					var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
-						pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
-						matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
-
-					pt0.fromArray(points[0]);
-					for (var i = 1, l = points.length; i < l; i++) {
-						pt1.fromArray(points[i]);
-						dist = pt0.distanceTo(pt1);
-						sub.subVectors(pt1, pt0);
-						rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
-						rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
-						ptM.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);   // midpoint
-						quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
-						matrix.compose(ptM, quat, scale1);
-
-						// place a box to the segment
-						geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
-						geom.applyMatrix(matrix);
-						geometry.merge(geom);
-
-						// joint
-						// 4 vertices of backward side of current segment
-						wh4 = [[-f.geom.w / 2, f.geom.h / 2],
-							   [f.geom.w / 2, f.geom.h / 2],
-							   [f.geom.w / 2, -f.geom.h / 2],
-							   [-f.geom.w / 2, -f.geom.h / 2]];
-						vb4 = [];
-						for (j = 0; j < 4; j++) {
-							pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
-							pt.applyMatrix4(matrix);
-							vb4.push(pt.clone());
-						}
-
-						if (vf4) {
-							geom = new THREE.Geometry();
-							geom.vertices = vf4.concat(vb4);
-							geom.faces = faces;
-							geometry.merge(geom);
-						}
-
-						// 4 vertices of forward side
-						vf4 = [];
-						for (j = 0; j < 4; j++) {
-							pt.set(wh4[j][0], dist / 2, wh4[j][1]);
-							pt.applyMatrix4(matrix);
-							vf4.push(new THREE.Vector3(pt.x, pt.y, pt.z));
-						}
-
-						pt0.copy(pt1);
-					}
-
-					geometry.faceVertexUvs = [[]];
-					geometry.mergeVertices();
-					geometry.computeFaceNormals();
-					return new THREE.Mesh(geometry, materials.mtl(f.mtl));
-				};
-			}
-			else if (objType == "Wall") {
-				return function (f, vertices) {
-					var bzFunc = function (x, y) { return f.geom.bh; };
-					return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
-										materials.mtl(f.mtl));
-				};
-			}
-		}
-
-		buildLabels(features) {
-			// Line layer doesn't support label
-			// super.buildLabels(features);
-		}
-
-		// prepare for growing line animation
-		prepareAnimation(sequential) {
-
-			if (this.origMtls !== undefined) return;
-
-			function computeLineDistances(obj) {
-				if (!obj.material.isLineDashedMaterial) return;
-
-				obj.computeLineDistances();
-
-				var dists = obj.geometry.attributes.lineDistance.array;
-				obj.lineLength = dists[dists.length - 1];
-
-				for (var i = 0; i < dists.length; i++) {
-					dists[i] /= obj.lineLength;
-				}
+				parents.push(parent);
 			}
 
-			this.origMtls = new Q3D.Materials();
-			this.origMtls.array = this.materials.array;
+			model.callbackOnLoad(function (m) {
+				var parent, obj;
+				for (var i = 0; i < parents.length; i++) {
+					parent = parents[i];
 
-			this.materials.array = [];
+					obj = m.scene.clone();
+					obj.scale.setScalar(f.geom.scale);
 
-			if (sequential) {
-				var f, m, mtl, j;
-				for (var i = 0; i < this.features.length; i++) {
-					f = this.features[i];
-					m = f.objs[0].material;
-
-					if (m.isMeshLineMaterial) {
-						mtl = new MeshLineMaterial();
-						mtl.color = m.color;
-						mtl.opacity = m.opacity;
-						mtl.lineWidth = m.lineWidth;
-						mtl.dashArray = 2;
-						mtl.transparent = true;
+					if (obj.rotation.x) {
+						// reset coordinate system to z-up and specified rotation
+						obj.rotation.set(0, 0, 0);
+						obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
+																		f.geom.rotateY * deg2rad,
+																		f.geom.rotateZ * deg2rad,
+																		f.geom.rotateO || "XYZ")));
 					}
 					else {
-						if (m.isLineDashedMaterial) {
-							mtl = m.clone();
-						}
-						else {
-							mtl = new THREE.LineDashedMaterial({color: m.color, opacity: m.opacity});
-						}
-						mtl.gapSize = 1;
+						// y-up to z-up and specified rotation
+						obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
+																		f.geom.rotateY * deg2rad,
+																		f.geom.rotateZ * deg2rad,
+																		f.geom.rotateO || "XYZ")));
+						obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
 					}
-
-					for (j = 0; j < f.objs.length; j++) {
-						f.objs[j].material = mtl;
-						computeLineDistances(f.objs[j]);
-					}
-					this.materials.add(mtl);
+					parent.add(obj);
 				}
+			});
+
+			this.addFeature(fidx + startIndex, f, parents);
+		}, this);
+	}
+
+	buildLabels(features) {
+		super.buildLabels(features, function (f) { return f.geom.pts; });
+	}
+
+}
+
+
+class Q3DLineLayer extends VectorLayer {
+
+	constructor() {
+		super();
+		this.type = Q3D.LayerType.Line;
+	}
+
+	clearObjects() {
+		super.clearObjects();
+
+		if (this.origMtls) {
+			this.origMtls.dispose();
+			this.origMtls = undefined;
+		}
+	}
+
+	build(features, startIndex) {
+
+		if (this._lastObjType !== this.properties.objType) this._createObject = null;
+
+		var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+
+		var f, i, lines, obj, objs;
+		for (var fidx = 0; fidx < features.length; fidx++) {
+			f = features[fidx];
+			lines = f.geom.lines;
+
+			objs = [];
+			for (i = 0; i < lines.length; i++) {
+				obj = createObject(f, lines[i]);
+				obj.userData.properties = f.prop;
+				obj.userData.mtl = f.mtl;
+
+				objs.push(obj);
+			}
+			this.addFeature(fidx + startIndex, f, objs);
+		}
+
+		this._lastObjType = this.properties.objType;
+		this._createObject = createObject;
+	}
+
+	createObjFunc(objType) {
+		var materials = this.materials;
+
+		if (objType == "Line") {
+			return function (f, vertices) {
+				var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+
+				var obj = new THREE.Line(geom, materials.mtl(f.mtl));
+				if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
+				return obj;
+			};
+		}
+		else if (objType == "Thick Line") {
+			return function (f, vertices) {
+				var line = new MeshLine();
+				line.setPoints(vertices);
+
+				return new THREE.Mesh(line, materials.mtl(f.mtl));
+			};
+		}
+		else if (objType == "Pipe" || objType == "Cone") {
+			var jointGeom, cylinGeom;
+			if (objType == "Pipe") {
+				jointGeom = new THREE.SphereBufferGeometry(1, 32, 32);
+				cylinGeom = new THREE.CylinderBufferGeometry(1, 1, 1, 32);
 			}
 			else {
-				var mtl, mtls = this.origMtls.array;
+				cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
+			}
 
-				for (var i = 0; i < mtls.length; i++) {
-					mtl = mtls[i].mtl;
+			var group, mesh, axis = Q3D.uv.j;
+			var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
 
-					if (mtl.isLineDashedMaterial) {
-						mtl.gapSize = 1;
-					}
-					else if (mtl.isMeshLineMaterial) {
-						mtl.dashArray = 2;
-						mtl.transparent = true;
-					}
-					else if (mtl.isLineBasicMaterial) {
-						mtl = new THREE.LineDashedMaterial({color: mtl.color, opacity: mtl.opacity});
+			return function (f, points) {
+				group = new Q3D.Group();
+
+				pt0.fromArray(points[0]);
+				for (var i = 1, l = points.length; i < l; i++) {
+					pt1.fromArray(points[i]);
+
+					mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
+					mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+					mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
+					mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
+					group.add(mesh);
+
+					if (jointGeom && i < l - 1) {
+						mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
+						mesh.scale.setScalar(f.geom.r);
+						mesh.position.copy(pt1);
+						group.add(mesh);
 					}
 
-					this.materials.add(mtl);
+					pt0.copy(pt1);
+				}
+				return group;
+			};
+		}
+		else if (objType == "Box") {
+			// In this method, box corners are exposed near joint when both azimuth and slope of
+			// the segments of both sides are different. Also, some unnecessary faces are created.
+			var faces = [], vi;
+			vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
+				[3, 0, 7], [7, 0, 4],
+				[6, 3, 2], [2, 3, 7],
+				[4, 1, 0], [0, 1, 5],   // right turn - top, side, bottom
+				[1, 2, 5], [5, 2, 6],
+				[2, 7, 6], [6, 7, 3]];
+
+			for (var j = 0; j < 12; j++) {
+				faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
+			}
+
+			return function (f, points) {
+				var geometry = new THREE.Geometry();
+
+				var geom, dist, rx, rz, wh4, vb4, vf4;
+				var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
+					pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
+					matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
+
+				pt0.fromArray(points[0]);
+				for (var i = 1, l = points.length; i < l; i++) {
+					pt1.fromArray(points[i]);
+					dist = pt0.distanceTo(pt1);
+					sub.subVectors(pt1, pt0);
+					rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
+					rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
+					ptM.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);   // midpoint
+					quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
+					matrix.compose(ptM, quat, scale1);
+
+					// place a box to the segment
+					geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
+					geom.applyMatrix(matrix);
+					geometry.merge(geom);
+
+					// joint
+					// 4 vertices of backward side of current segment
+					wh4 = [[-f.geom.w / 2, f.geom.h / 2],
+							[f.geom.w / 2, f.geom.h / 2],
+							[f.geom.w / 2, -f.geom.h / 2],
+							[-f.geom.w / 2, -f.geom.h / 2]];
+					vb4 = [];
+					for (j = 0; j < 4; j++) {
+						pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
+						pt.applyMatrix4(matrix);
+						vb4.push(pt.clone());
+					}
+
+					if (vf4) {
+						geom = new THREE.Geometry();
+						geom.vertices = vf4.concat(vb4);
+						geom.faces = faces;
+						geometry.merge(geom);
+					}
+
+					// 4 vertices of forward side
+					vf4 = [];
+					for (j = 0; j < 4; j++) {
+						pt.set(wh4[j][0], dist / 2, wh4[j][1]);
+						pt.applyMatrix4(matrix);
+						vf4.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+					}
+
+					pt0.copy(pt1);
 				}
 
-				var _this = this;
-				this.objectGroup.traverse(function (obj) {
+				geometry.faceVertexUvs = [[]];
+				geometry.mergeVertices();
+				geometry.computeFaceNormals();
+				return new THREE.Mesh(geometry, materials.mtl(f.mtl));
+			};
+		}
+		else if (objType == "Wall") {
+			return function (f, vertices) {
+				var bzFunc = function (x, y) { return f.geom.bh; };
+				return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
+									materials.mtl(f.mtl));
+			};
+		}
+	}
 
-					if (obj.userData.mtl !== undefined) {
-						obj.material = _this.materials.mtl(obj.userData.mtl);
-						computeLineDistances(obj);
-					}
+	buildLabels(features) {
+		// Line layer doesn't support label
+		// super.buildLabels(features);
+	}
 
-				});
+	// prepare for growing line animation
+	prepareAnimation(sequential) {
+
+		if (this.origMtls !== undefined) return;
+
+		function computeLineDistances(obj) {
+			if (!obj.material.isLineDashedMaterial) return;
+
+			obj.computeLineDistances();
+
+			var dists = obj.geometry.attributes.lineDistance.array;
+			obj.lineLength = dists[dists.length - 1];
+
+			for (var i = 0; i < dists.length; i++) {
+				dists[i] /= obj.lineLength;
 			}
 		}
 
-		// length: number [0 - 1]
-		setLineLength(length, featureIdx) {
+		this.origMtls = new Q3D.Materials();
+		this.origMtls.array = this.materials.array;
 
-			if (this.origMtls === undefined) return;
+		this.materials.array = [];
 
-			var mtl;
-			if (featureIdx === undefined) {
-				var mtls = this.materials.array;
-				for (var i = 0; i < mtls.length; i++) {
-					mtl = mtls[i].mtl;
-					if (mtl.isLineDashedMaterial) {
-						mtl.dashSize = length;
-					}
-					else if (mtl.isMeshLineMaterial) {
-						mtl.uniforms.dashOffset.value = -length;
-					}
+		if (sequential) {
+			var f, m, mtl, j;
+			for (var i = 0; i < this.features.length; i++) {
+				f = this.features[i];
+				m = f.objs[0].material;
+
+				if (m.isMeshLineMaterial) {
+					mtl = new MeshLineMaterial();
+					mtl.color = m.color;
+					mtl.opacity = m.opacity;
+					mtl.lineWidth = m.lineWidth;
+					mtl.dashArray = 2;
+					mtl.transparent = true;
 				}
+				else {
+					if (m.isLineDashedMaterial) {
+						mtl = m.clone();
+					}
+					else {
+						mtl = new THREE.LineDashedMaterial({color: m.color, opacity: m.opacity});
+					}
+					mtl.gapSize = 1;
+				}
+
+				for (j = 0; j < f.objs.length; j++) {
+					f.objs[j].material = mtl;
+					computeLineDistances(f.objs[j]);
+				}
+				this.materials.add(mtl);
 			}
-			else {
-				mtl = this.features[featureIdx].objs[0].material;
+		}
+		else {
+			var mtl, mtls = this.origMtls.array;
+
+			for (var i = 0; i < mtls.length; i++) {
+				mtl = mtls[i].mtl;
+
+				if (mtl.isLineDashedMaterial) {
+					mtl.gapSize = 1;
+				}
+				else if (mtl.isMeshLineMaterial) {
+					mtl.dashArray = 2;
+					mtl.transparent = true;
+				}
+				else if (mtl.isLineBasicMaterial) {
+					mtl = new THREE.LineDashedMaterial({color: mtl.color, opacity: mtl.opacity});
+				}
+
+				this.materials.add(mtl);
+			}
+
+			var _this = this;
+			this.objectGroup.traverse(function (obj) {
+
+				if (obj.userData.mtl !== undefined) {
+					obj.material = _this.materials.mtl(obj.userData.mtl);
+					computeLineDistances(obj);
+				}
+
+			});
+		}
+	}
+
+	// length: number [0 - 1]
+	setLineLength(length, featureIdx) {
+
+		if (this.origMtls === undefined) return;
+
+		var mtl;
+		if (featureIdx === undefined) {
+			var mtls = this.materials.array;
+			for (var i = 0; i < mtls.length; i++) {
+				mtl = mtls[i].mtl;
 				if (mtl.isLineDashedMaterial) {
 					mtl.dashSize = length;
 				}
@@ -4013,313 +4003,321 @@ Q3D.E = function (id) {
 				}
 			}
 		}
-
+		else {
+			mtl = this.features[featureIdx].objs[0].material;
+			if (mtl.isLineDashedMaterial) {
+				mtl.dashSize = length;
+			}
+			else if (mtl.isMeshLineMaterial) {
+				mtl.uniforms.dashOffset.value = -length;
+			}
+		}
 	}
 
+}
 
-	class Q3DPolygonLayer extends VectorLayer {
 
-		constructor() {
-			super();
+class Q3DPolygonLayer extends VectorLayer {
 
-			this.type = Q3D.LayerType.Polygon;
+	constructor() {
+		super();
 
-			// for overlay
-			this.borderVisible = true;
-			this.sideVisible = true;
+		this.type = Q3D.LayerType.Polygon;
+
+		// for overlay
+		this.borderVisible = true;
+		this.sideVisible = true;
+	}
+
+	build(features, startIndex) {
+
+		if (this.properties.objType !== this._lastObjType) this._createObject = null;
+
+		var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+
+		var f, obj;
+		for (var fidx = 0; fidx < features.length; fidx++) {
+			f = features[fidx];
+			obj = createObject(f);
+			obj.userData.properties = f.prop;
+
+			this.addFeature(fidx + startIndex, f, [obj]);
 		}
 
-		build(features, startIndex) {
+		this._lastObjType = this.properties.objType;
+		this._createObject = createObject;
+	}
 
-			if (this.properties.objType !== this._lastObjType) this._createObject = null;
+	createObjFunc(objType) {
 
-			var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+		var materials = this.materials;
 
-			var f, obj;
-			for (var fidx = 0; fidx < features.length; fidx++) {
-				f = features[fidx];
-				obj = createObject(f);
-				obj.userData.properties = f.prop;
-
-				this.addFeature(fidx + startIndex, f, [obj]);
-			}
-
-			this._lastObjType = this.properties.objType;
-			this._createObject = createObject;
+		if (objType == "Polygon") {
+			return function (f) {
+				var geom = new THREE.BufferGeometry();
+				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+				geom.setIndex(f.geom.triangles.f);
+				geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
+																	// BufferGeometry and Lambert/Toon material.
+				return new THREE.Mesh(geom, materials.mtl(f.mtl));
+			};
 		}
+		else if (objType == "Extruded") {
+			var createSubObject = function (f, polygon, z) {
+				var i, l, j, m;
 
-		createObjFunc(objType) {
+				var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
+				for (i = 1, l = polygon.length; i < l; i++) {
+					shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
+				}
 
-			var materials = this.materials;
+				// extruded geometry
+				var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
+				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
+				mesh.position.z = z;
 
-			if (objType == "Polygon") {
-				return function (f) {
-					var geom = new THREE.BufferGeometry();
-					geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
-					geom.setIndex(f.geom.triangles.f);
-					geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
-																		// BufferGeometry and Lambert/Toon material.
-					return new THREE.Mesh(geom, materials.mtl(f.mtl));
-				};
-			}
-			else if (objType == "Extruded") {
-				var createSubObject = function (f, polygon, z) {
-					var i, l, j, m;
+				if (f.mtl.edge !== undefined) {
+					// edge
+					var edge, bnd, v,
+						h = f.geom.h,
+						mtl = materials.mtl(f.mtl.edge);
 
-					var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
-					for (i = 1, l = polygon.length; i < l; i++) {
-						shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
-					}
+					for (i = 0, l = polygon.length; i < l; i++) {
+						bnd = polygon[i];
 
-					// extruded geometry
-					var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
-					var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
-					mesh.position.z = z;
+						v = [];
+						for (j = 0, m = bnd.length; j < m; j++) {
+							v.push(bnd[j][0], bnd[j][1], 0);
+						}
 
-					if (f.mtl.edge !== undefined) {
-						// edge
-						var edge, bnd, v,
-							h = f.geom.h,
-							mtl = materials.mtl(f.mtl.edge);
+						geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
-						for (i = 0, l = polygon.length; i < l; i++) {
-							bnd = polygon[i];
+						edge = new THREE.Line(geom, mtl);
+						mesh.add(edge);
 
-							v = [];
-							for (j = 0, m = bnd.length; j < m; j++) {
-								v.push(bnd[j][0], bnd[j][1], 0);
-							}
+						edge = new THREE.Line(geom, mtl);
+						edge.position.z = h;
+						mesh.add(edge);
+
+						// vertical lines
+						for (j = 0, m = bnd.length - 1; j < m; j++) {
+							v = [bnd[j][0], bnd[j][1], 0,
+									bnd[j][0], bnd[j][1], h];
 
 							geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
 							edge = new THREE.Line(geom, mtl);
 							mesh.add(edge);
-
-							edge = new THREE.Line(geom, mtl);
-							edge.position.z = h;
-							mesh.add(edge);
-
-							// vertical lines
-							for (j = 0, m = bnd.length - 1; j < m; j++) {
-								v = [bnd[j][0], bnd[j][1], 0,
-									 bnd[j][0], bnd[j][1], h];
-
-								geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-								edge = new THREE.Line(geom, mtl);
-								mesh.add(edge);
-							}
 						}
 					}
-					return mesh;
-				};
-
-				var polygons, centroids;
-
-				return function (f) {
-					polygons = f.geom.polygons;
-					centroids = f.geom.centroids;
-
-					if (polygons.length == 1) return createSubObject(f, polygons[0], centroids[0][2]);
-
-					var group = new THREE.Group();
-					for (var i = 0, l = polygons.length; i < l; i++) {
-						group.add(createSubObject(f, polygons[i], centroids[i][2]));
-					}
-					return group;
-				};
-			}
-			else if (objType == "Overlay") {
-
-				var _this = this;
-
-				return function (f) {
-
-					var geom = new THREE.BufferGeometry();
-					geom.setIndex(f.geom.triangles.f);
-					geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
-					geom.computeVertexNormals();
-
-					var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
-
-					var rotation = _this.sceneData.baseExtent.rotation;
-					if (rotation) {
-						// rotate around center of base extent
-						mesh.position.copy(_this.sceneData.pivot).negate();
-						mesh.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
-						mesh.position.add(_this.sceneData.pivot);
-						mesh.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
-					}
-
-					// borders
-					if (f.geom.brdr !== undefined) {
-						var bnds, i, l, j, m;
-						for (i = 0, l = f.geom.brdr.length; i < l; i++) {
-							bnds = f.geom.brdr[i];
-							for (j = 0, m = bnds.length; j < m; j++) {
-								geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
-
-								mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
-							}
-						}
-					}
-					return mesh;
-				};
-			}
-		}
-
-		buildLabels(features) {
-			super.buildLabels(features, function (f) { return f.geom.centroids; });
-		}
-
-		setBorderVisible(visible) {
-			if (this.properties.objType != "Overlay") return;
-
-			this.objectGroup.children.forEach(function (parent) {
-				for (var i = 0, l = parent.children.length; i < l; i++) {
-					var obj = parent.children[i];
-					if (obj instanceof THREE.Line) obj.visible = visible;
 				}
-			});
-			this.borderVisible = visible;
-		}
-
-		setSideVisible(visible) {
-			if (this.properties.objType != "Overlay") return;
-
-			this.objectGroup.children.forEach(function (parent) {
-				for (var i = 0, l = parent.children.length; i < l; i++) {
-					var obj = parent.children[i];
-					if (obj instanceof THREE.Mesh) obj.visible = visible;
-				}
-			});
-			this.sideVisible = visible;
-		}
-
-	}
-
-
-	class Q3DModel {
-
-		constructor() {
-			this.loaded = false;
-		}
-
-		// callback is called when model has been completely loaded
-		load(url, callback) {
-			var _this = this;
-			Q3D.application.loadModelFile(url, function (model) {
-				_this.model = model;
-				_this._loadCompleted(callback);
-			});
-		}
-
-		loadData(data, ext, resourcePath, callback) {
-			var _this = this;
-			Q3D.application.loadModelData(data, ext, resourcePath, function (model) {
-				_this.model = model;
-				_this._loadCompleted(callback);
-			});
-		}
-
-		loadJSONObject(jsonObject, callback) {
-			if (jsonObject.url !== undefined) {
-				this.load(jsonObject.url, callback);
-			}
-			else {
-				var b = atob(jsonObject.base64),
-					len = b.length,
-					bytes = new Uint8Array(len);
-
-				for (var i = 0; i < len; i++) {
-					bytes[i] = b.charCodeAt(i);
-				}
-
-				this.loadData(bytes.buffer, jsonObject.ext, jsonObject.resourcePath, callback);
-			}
-		}
-
-		_loadCompleted(anotherCallback) {
-			this.loaded = true;
-
-			if (this._callbacks !== undefined) {
-				for (var i = 0; i < this._callbacks.length; i++) {
-					this._callbacks[i](this.model);
-				}
-				this._callbacks = [];
-			}
-
-			if (anotherCallback) anotherCallback(this.model);
-		}
-
-		callbackOnLoad(callback) {
-			if (this.loaded) return callback(this.model);
-
-			if (this._callbacks === undefined) this._callbacks = [];
-			this._callbacks.push(callback);
-		}
-
-	}
-
-
-	class Q3DModels extends THREE.EventDispatcher {
-
-		constructor() {
-			super();
-
-			this.models = [];
-			this.cache = {};
-		}
-
-		loadJSONObject(jsonObject) {
-			var _this = this;
-			var callback = function (model) {
-				_this.dispatchEvent({type: "modelLoaded", model: model});
+				return mesh;
 			};
 
-			var model, url;
-			for (var i = 0, l = jsonObject.length; i < l; i++) {
+			var polygons, centroids;
 
-				url = jsonObject[i].url;
-				if (url !== undefined && this.cache[url] !== undefined) {
-					model = this.cache[url];
+			return function (f) {
+				polygons = f.geom.polygons;
+				centroids = f.geom.centroids;
+
+				if (polygons.length == 1) return createSubObject(f, polygons[0], centroids[0][2]);
+
+				var group = new THREE.Group();
+				for (var i = 0, l = polygons.length; i < l; i++) {
+					group.add(createSubObject(f, polygons[i], centroids[i][2]));
 				}
-				else {
-					model = new Q3D.Model();
-					model.loadJSONObject(jsonObject[i], callback);
+				return group;
+			};
+		}
+		else if (objType == "Overlay") {
 
-					if (url !== undefined) this.cache[url] = model;
+			var _this = this;
+
+			return function (f) {
+
+				var geom = new THREE.BufferGeometry();
+				geom.setIndex(f.geom.triangles.f);
+				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
+				geom.computeVertexNormals();
+
+				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
+
+				var rotation = _this.sceneData.baseExtent.rotation;
+				if (rotation) {
+					// rotate around center of base extent
+					mesh.position.copy(_this.sceneData.pivot).negate();
+					mesh.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+					mesh.position.add(_this.sceneData.pivot);
+					mesh.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
 				}
-				this.models.push(model);
-			}
-		}
 
-		get(index) {
-			return this.models[index];
-		}
+				// borders
+				if (f.geom.brdr !== undefined) {
+					var bnds, i, l, j, m;
+					for (i = 0, l = f.geom.brdr.length; i < l; i++) {
+						bnds = f.geom.brdr[i];
+						for (j = 0, m = bnds.length; j < m; j++) {
+							geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
 
-		clear() {
-			this.models = [];
+							mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
+						}
+					}
+				}
+				return mesh;
+			};
 		}
-
 	}
 
-	Q3D.Group = Q3DGroup;
-	Q3D.Scene = Q3DScene;
-	Q3D.Material = Q3DMaterial;
-	Q3D.Materials = Q3DMaterials;
-	Q3D.DEMBlock = Q3DDEMBlock;
-	Q3D.ClippedDEMBlock = Q3DClippedDEMBlock;
-	Q3D.MapLayer = Q3DMapLayer;
-	Q3D.DEMLayer = Q3DDEMLayer;
-	Q3D.VectorLayer = Q3DVectorLayer;
-	Q3D.PointLayer = Q3DPointLayer;
-	Q3D.LineLayer = Q3DLineLayer;
-	Q3D.PolygonLayer = Q3DPolygonLayer;
-	Q3D.Model = Q3DModel;
-	Q3D.Models = Q3DModels;
+	buildLabels(features) {
+		super.buildLabels(features, function (f) { return f.geom.centroids; });
+	}
 
-})();		// IIFE
+	setBorderVisible(visible) {
+		if (this.properties.objType != "Overlay") return;
+
+		this.objectGroup.children.forEach(function (parent) {
+			for (var i = 0, l = parent.children.length; i < l; i++) {
+				var obj = parent.children[i];
+				if (obj instanceof THREE.Line) obj.visible = visible;
+			}
+		});
+		this.borderVisible = visible;
+	}
+
+	setSideVisible(visible) {
+		if (this.properties.objType != "Overlay") return;
+
+		this.objectGroup.children.forEach(function (parent) {
+			for (var i = 0, l = parent.children.length; i < l; i++) {
+				var obj = parent.children[i];
+				if (obj instanceof THREE.Mesh) obj.visible = visible;
+			}
+		});
+		this.sideVisible = visible;
+	}
+
+}
+
+
+class Q3DModel {
+
+	constructor() {
+		this.loaded = false;
+	}
+
+	// callback is called when model has been completely loaded
+	load(url, callback) {
+		var _this = this;
+		Q3D.application.loadModelFile(url, function (model) {
+			_this.model = model;
+			_this._loadCompleted(callback);
+		});
+	}
+
+	loadData(data, ext, resourcePath, callback) {
+		var _this = this;
+		Q3D.application.loadModelData(data, ext, resourcePath, function (model) {
+			_this.model = model;
+			_this._loadCompleted(callback);
+		});
+	}
+
+	loadJSONObject(jsonObject, callback) {
+		if (jsonObject.url !== undefined) {
+			this.load(jsonObject.url, callback);
+		}
+		else {
+			var b = atob(jsonObject.base64),
+				len = b.length,
+				bytes = new Uint8Array(len);
+
+			for (var i = 0; i < len; i++) {
+				bytes[i] = b.charCodeAt(i);
+			}
+
+			this.loadData(bytes.buffer, jsonObject.ext, jsonObject.resourcePath, callback);
+		}
+	}
+
+	_loadCompleted(anotherCallback) {
+		this.loaded = true;
+
+		if (this._callbacks !== undefined) {
+			for (var i = 0; i < this._callbacks.length; i++) {
+				this._callbacks[i](this.model);
+			}
+			this._callbacks = [];
+		}
+
+		if (anotherCallback) anotherCallback(this.model);
+	}
+
+	callbackOnLoad(callback) {
+		if (this.loaded) return callback(this.model);
+
+		if (this._callbacks === undefined) this._callbacks = [];
+		this._callbacks.push(callback);
+	}
+
+}
+
+
+class Q3DModels extends THREE.EventDispatcher {
+
+	constructor() {
+		super();
+
+		this.models = [];
+		this.cache = {};
+	}
+
+	loadJSONObject(jsonObject) {
+		var _this = this;
+		var callback = function (model) {
+			_this.dispatchEvent({type: "modelLoaded", model: model});
+		};
+
+		var model, url;
+		for (var i = 0, l = jsonObject.length; i < l; i++) {
+
+			url = jsonObject[i].url;
+			if (url !== undefined && this.cache[url] !== undefined) {
+				model = this.cache[url];
+			}
+			else {
+				model = new Q3D.Model();
+				model.loadJSONObject(jsonObject[i], callback);
+
+				if (url !== undefined) this.cache[url] = model;
+			}
+			this.models.push(model);
+		}
+	}
+
+	get(index) {
+		return this.models[index];
+	}
+
+	clear() {
+		this.models = [];
+	}
+
+}
+
+Q3D.Group = Q3DGroup;
+Q3D.Scene = Q3DScene;
+Q3D.Material = Q3DMaterial;
+Q3D.Materials = Q3DMaterials;
+Q3D.DEMBlock = Q3DDEMBlock;
+Q3D.ClippedDEMBlock = Q3DClippedDEMBlock;
+Q3D.MapLayer = Q3DMapLayer;
+Q3D.DEMLayer = Q3DDEMLayer;
+Q3D.VectorLayer = Q3DVectorLayer;
+Q3D.PointLayer = Q3DPointLayer;
+Q3D.LineLayer = Q3DLineLayer;
+Q3D.PolygonLayer = Q3DPolygonLayer;
+Q3D.Model = Q3DModel;
+Q3D.Models = Q3DModels;
 
 
 // Q3D.Utils - Utilities
