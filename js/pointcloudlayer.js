@@ -3,66 +3,61 @@
 
 "use strict";
 
-(function () {
-	if (Q3D.Config.potree.basePath !== undefined) Potree.Global.workerPath = Q3D.Config.potree.basePath;
-	if (Q3D.Config.potree.maxNodesLoading !== undefined) Potree.Global.maxNodesLoading = Q3D.Config.potree.maxNodesLoading;
+if (Q3D.Config.potree.basePath !== undefined) Potree.Global.workerPath = Q3D.Config.potree.basePath;
+if (Q3D.Config.potree.maxNodesLoading !== undefined) Potree.Global.maxNodesLoading = Q3D.Config.potree.maxNodesLoading;
 
-	class Q3DGRP extends Potree.Group
+class Q3DPCGroup extends Potree.Group
+{
+	constructor(layer)
 	{
-		constructor(layer)
-		{
-			super();
-			this.layer = layer;
-			this.timerId = null;
-		}
-
-		onBeforeRender(renderer, scene, camera, geometry, material, group)
-		{
-			super.onBeforeRender(renderer, scene, camera, geometry, material, group);
-
-			if (this.layer.bbGroup !== undefined) this.layer.bbGroup.setParent();
-		}
-
-		onAfterRender(renderer, scene, camera, geometry, material, group)
-		{
-			super.onAfterRender(renderer, scene, camera, geometry, material, group);
-
-			// repeat rendering as long as there are loading nodes
-			if (Potree.Global.numNodesLoading && this.timerId === null) {
-				var _this = this;
-				_this.timerId = window.setTimeout(function () {
-					_this.timerId = null;
-					_this.layer.requestRender();
-				}, 10);
-			}
-		}
+		super();
+		this.layer = layer;
+		this.timerId = null;
 	}
 
-	class Q3DBBGRP extends Q3DGroup
+	onBeforeRender(renderer, scene, camera, geometry, material, group)
 	{
-		constructor()
-		{
-			super();
-			this.orphanIndex = 0;
-		}
+		super.onBeforeRender(renderer, scene, camera, geometry, material, group);
 
-		setParent()
-		{
-			var c;
-			for (var i = this.orphanIndex; i < this.children.length; i++) {
-				c = this.children[i];
-				c.parent = this;
-				c.matrixAutoUpdate = true;
-				c.updateMatrixWorld();
-			}
-			this.orphanIndex = i;
-		}
-
+		if (this.layer.bbGroup !== undefined) this.layer.bbGroup.setParent();
 	}
 
-	Q3D.PCGroup = Q3DGRP;
-	Q3D.PCBBGroup = Q3DBBGRP;
-})();
+	onAfterRender(renderer, scene, camera, geometry, material, group)
+	{
+		super.onAfterRender(renderer, scene, camera, geometry, material, group);
+
+		// repeat rendering as long as there are loading nodes
+		if (Potree.Global.numNodesLoading && this.timerId === null) {
+			var _this = this;
+			_this.timerId = window.setTimeout(function () {
+				_this.timerId = null;
+				_this.layer.requestRender();
+			}, 10);
+		}
+	}
+}
+
+class Q3DPCBBGroup extends Q3DGroup
+{
+	constructor()
+	{
+		super();
+		this.orphanIndex = 0;
+	}
+
+	setParent()
+	{
+		var c;
+		for (var i = this.orphanIndex; i < this.children.length; i++) {
+			c = this.children[i];
+			c.parent = this;
+			c.matrixAutoUpdate = true;
+			c.updateMatrixWorld();
+		}
+		this.orphanIndex = i;
+	}
+
+}
 
 
 class Q3DPointCloudLayer extends Q3DMapLayer {
@@ -71,7 +66,6 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 		super();
 		this.type = Q3D.LayerType.PointCloud;
 	}
-
 
 	visibleObjects() {
 		if (!this.visible) return [];
@@ -88,7 +82,7 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 		var p = jsonObject.properties;
 		var need_reload = (this.properties.colorType !== p.colorType);
 
-		Q3D.MapLayer.prototype.loadJSONObject.call(this, jsonObject, scene);
+		super.loadJSONObject(jsonObject, scene);
 
 		if (this.pcg !== undefined) {
 			if (!need_reload) {
@@ -111,7 +105,7 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 			g.updateMatrixWorld();
 		}
 
-		this.pcg = new Q3D.PCGroup(this);
+		this.pcg = new Q3DPCGroup(this);
 		this.pcg.setPointBudget(10000000);
 		this.addObject(this.pcg);
 
@@ -123,7 +117,7 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 			_this.pcg.add(e.pointcloud);
 			_this.updatePosition(scene);
 
-			_this.bbGroup = new Q3D.PCBBGroup();
+			_this.bbGroup = new Q3DPCBBGroup();
 			_this.bbGroup.position.copy(_this.pc.position);
 			_this.bbGroup.children = _this.pc.boundingBoxNodes;
 			_this.addObject(_this.bbGroup);
@@ -209,4 +203,6 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 
 }
 
+Q3D.PCGroup = Q3DPCGroup;
+Q3D.PCBBGroup = Q3DPCBBGroup;
 Q3D.PointCloudLayer = Q3DPointCloudLayer;
