@@ -1865,7 +1865,7 @@ Q3D.E = function (id) {
 
 (function () {
 
-	class Group extends THREE.Group {
+	class Q3DGroup extends THREE.Group {
 
 		add(object) {
 			super.add(object);
@@ -1889,7 +1889,7 @@ Q3D.E = function (id) {
 	  - zScale: vertical scale factor
 	  - proj: (optional) proj string. used to display clicked position in long/lat.
 	*/
-	class Scene extends THREE.Scene {
+	class Q3DScene extends THREE.Scene {
 
 		constructor() {
 			super();
@@ -2104,7 +2104,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class Material {
+	class Q3DMaterial {
 
 		constructor() {
 			this.loaded = false;
@@ -2264,7 +2264,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class Materials extends THREE.EventDispatcher {
+	class Q3DMaterials extends THREE.EventDispatcher {
 
 		constructor() {
 			super();
@@ -2378,7 +2378,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class DEMBlock {
+	class Q3DDEMBlock {
 
 		constructor() {
 			this.materials = [];
@@ -2663,7 +2663,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class ClippedDEMBlock {
+	class Q3DClippedDEMBlock {
 
 		constructor() {
 			this.materials = [];
@@ -2797,7 +2797,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class MapLayer extends THREE.EventDispatcher {
+	class Q3DMapLayer extends THREE.EventDispatcher {
 
 		constructor() {
 			super();
@@ -2918,7 +2918,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class DEMLayer extends MapLayer {
+	class Q3DDEMLayer extends MapLayer {
 
 		constructor() {
 			super();
@@ -3247,7 +3247,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class VectorLayer extends MapLayer {
+	class Q3DVectorLayer extends MapLayer {
 
 		constructor() {
 			super();
@@ -3465,7 +3465,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class PointLayer extends VectorLayer {
+	class Q3DPointLayer extends VectorLayer {
 
 		constructor() {
 			super();
@@ -3709,7 +3709,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class LineLayer extends VectorLayer {
+	class Q3DLineLayer extends VectorLayer {
 
 		constructor() {
 			super();
@@ -4017,7 +4017,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class PolygonLayer extends VectorLayer {
+	class Q3DPolygonLayer extends VectorLayer {
 
 		constructor() {
 			super();
@@ -4199,7 +4199,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class Model {
+	class Q3DModel {
 
 		constructor() {
 			this.loaded = false;
@@ -4262,7 +4262,7 @@ Q3D.E = function (id) {
 	}
 
 
-	class Models extends THREE.EventDispatcher {
+	class Q3DModels extends THREE.EventDispatcher {
 
 		constructor() {
 			super();
@@ -4304,20 +4304,20 @@ Q3D.E = function (id) {
 
 	}
 
-	Q3D.Group = Group;
-	Q3D.Scene = Scene;
-	Q3D.Material = Material;
-	Q3D.Materials = Materials;
-	Q3D.DEMBlock = DEMBlock;
-	Q3D.ClippedDEMBlock = ClippedDEMBlock;
-	Q3D.MapLayer = MapLayer;
-	Q3D.DEMLayer = DEMLayer;
-	Q3D.VectorLayer = VectorLayer;
-	Q3D.PointLayer = PointLayer;
-	Q3D.LineLayer = LineLayer;
-	Q3D.PolygonLayer = PolygonLayer;
-	Q3D.Model = Model;
-	Q3D.Models = Models;
+	Q3D.Group = Q3DGroup;
+	Q3D.Scene = Q3DScene;
+	Q3D.Material = Q3DMaterial;
+	Q3D.Materials = Q3DMaterials;
+	Q3D.DEMBlock = Q3DDEMBlock;
+	Q3D.ClippedDEMBlock = Q3DClippedDEMBlock;
+	Q3D.MapLayer = Q3DMapLayer;
+	Q3D.DEMLayer = Q3DDEMLayer;
+	Q3D.VectorLayer = Q3DVectorLayer;
+	Q3D.PointLayer = Q3DPointLayer;
+	Q3D.LineLayer = Q3DLineLayer;
+	Q3D.PolygonLayer = Q3DPolygonLayer;
+	Q3D.Model = Q3DModel;
+	Q3D.Models = Q3DModels;
 
 })();		// IIFE
 
