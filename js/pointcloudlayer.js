@@ -38,7 +38,7 @@
 		}
 	}
 
-	class Q3DBBGRP extends Q3D.Group
+	class Q3DBBGRP extends Q3DGroup
 	{
 		constructor()
 		{
@@ -65,7 +65,7 @@
 })();
 
 
-class PointCloudLayer extends MapLayer {
+class Q3DPointCloudLayer extends Q3DMapLayer {
 
 	constructor() {
 		super();
@@ -209,5 +209,4 @@ class PointCloudLayer extends MapLayer {
 
 }
 
-
-Q3D.PointCloudLayer = PointCloudLayer;
+Q3D.PointCloudLayer = Q3DPointCloudLayer;

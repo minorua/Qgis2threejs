@@ -287,7 +287,7 @@ Q3D.E = function (id) {
 		if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
 
 		// scene
-		app.scene = new Q3D.Scene();
+		app.scene = new Q3DScene();
 
 		app.scene.addEventListener("renderRequest", function (event) {
 			app.render();
@@ -658,7 +658,7 @@ Q3D.E = function (id) {
 		app.camera2.position.set(0, 0, conf.northArrow.cameraDistance);
 		app.camera2.up = app.camera.up;
 
-		app.scene2 = new Q3D.Scene();
+		app.scene2 = new Q3DScene();
 		app.scene2.buildLights(conf.lights.directional, 0);
 
 		// an arrow object
@@ -1377,9 +1377,9 @@ Q3D.E = function (id) {
 					this.mtl = new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)});
 					opt = conf.measure.line;
 					this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
-					this.markerGroup = new Q3D.Group();
+					this.markerGroup = new Q3DGroup();
 					this.markerGroup.name = "measure marker";
-					this.lineGroup = new Q3D.Group();
+					this.lineGroup = new Q3DGroup();
 					this.lineGroup.name = "measure line";
 				}
 
@@ -1882,7 +1882,7 @@ class Q3DGroup extends THREE.Group {
 
 
 /*
-Scene
+Q3DScene
 .userData
 	- baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
 	- origin: origin of 3D world in map coordinates
@@ -1898,15 +1898,15 @@ class Q3DScene extends THREE.Scene {
 
 		this.mapLayers = {};    // map layers contained in this scene. key is layerId.
 
-		this.lightGroup = new Q3D.Group();
+		this.lightGroup = new Q3DGroup();
 		this.lightGroup.name = "light";
 		this.add(this.lightGroup);
 
-		this.labelGroup = new Q3D.Group();
+		this.labelGroup = new Q3DGroup();
 		this.labelGroup.name = "label";
 		this.add(this.labelGroup);
 
-		this.labelConnectorGroup = new Q3D.Group();
+		this.labelConnectorGroup = new Q3DGroup();
 		this.labelConnectorGroup.name = "label connector";
 		this.add(this.labelConnectorGroup);
 	}
@@ -1987,11 +1987,11 @@ class Q3DScene extends THREE.Scene {
 			if (layer === undefined) {
 				// create a layer
 				var type = jsonObject.properties.type;
-				if (type == "dem") layer = new Q3D.DEMLayer();
-				else if (type == "point") layer = new Q3D.PointLayer();
-				else if (type == "line") layer = new Q3D.LineLayer();
-				else if (type == "polygon") layer = new Q3D.PolygonLayer();
-				else if (type == "pc") layer = new Q3D.PointCloudLayer();
+				if (type == "dem") layer = new Q3DDEMLayer();
+				else if (type == "point") layer = new Q3DPointLayer();
+				else if (type == "line") layer = new Q3DLineLayer();
+				else if (type == "polygon") layer = new Q3DPolygonLayer();
+				else if (type == "pc") layer = new Q3DPointCloudLayer();
 				else {
 					console.error("unknown layer type:" + type);
 					return;
@@ -2271,13 +2271,13 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		this.array = [];
 	}
 
-	// material: instance of Q3D.Material object or THREE.Material-based object
+	// material: instance of Q3DMaterial object or THREE.Material-based object
 	add(material) {
-		if (material instanceof Q3D.Material) {
+		if (material instanceof Q3DMaterial) {
 			this.array.push(material);
 		}
 		else {
-			this.array.push(new Q3D.Material().set(material));
+			this.array.push(new Q3DMaterial().set(material));
 		}
 	}
 
@@ -2296,7 +2296,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		};
 
 		for (var i = 0, l = jsonObject.length; i < l; i++) {
-			var mtl = new Q3D.Material();
+			var mtl = new Q3DMaterial();
 			mtl.loadJSONObject(jsonObject[i], callback);
 			this.add(mtl);
 		}
@@ -2323,7 +2323,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		});
 
 		for (var i = 0, l = mtls.length; i < l; i++) {
-			this.array.push(new Q3D.Material().set(mtls[i]));
+			this.array.push(new Q3DMaterial().set(mtls[i]));
 		}
 	}
 
@@ -2394,7 +2394,7 @@ class Q3DDEMBlock {
 		for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
 			m = obj.materials[i];
 
-			mtl = new Q3D.Material();
+			mtl = new Q3DMaterial();
 			mtl.loadJSONObject(m, function () {
 				layer.requestRender();
 			});
@@ -2679,7 +2679,7 @@ class Q3DClippedDEMBlock {
 		for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
 			m = obj.materials[i];
 
-			mtl = new Q3D.Material();
+			mtl = new Q3DMaterial();
 			mtl.loadJSONObject(m, function () {
 				layer.requestRender();
 			});
@@ -2804,10 +2804,10 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 
 		this.properties = {};
 
-		this.materials = new Q3D.Materials();
+		this.materials = new Q3DMaterials();
 		this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
 
-		this.objectGroup = new Q3D.Group();
+		this.objectGroup = new Q3DGroup();
 		this.objectGroup.name = "layer";
 		this.objects = [];
 	}
@@ -2974,7 +2974,7 @@ class Q3DDEMLayer extends MapLayer {
 			block = this.blocks[jsonObject.block];
 
 		if (block === undefined) {
-			block = (layer.properties.clipped) ? (new Q3D.ClippedDEMBlock()) : (new Q3D.DEMBlock());
+			block = (layer.properties.clipped) ? (new Q3DClippedDEMBlock()) : (new Q3DDEMBlock());
 			this.blocks[jsonObject.block] = block;
 		}
 
@@ -2982,7 +2982,7 @@ class Q3DDEMLayer extends MapLayer {
 
 			var material;
 			if (jsonObject.wireframe) {
-				material = new Q3D.Material();
+				material = new Q3DMaterial();
 				material.loadJSONObject(jsonObject.wireframe.mtl);
 				_this.materials.add(material);
 
@@ -2996,7 +2996,7 @@ class Q3DDEMLayer extends MapLayer {
 
 			if (jsonObject.sides) {
 				// sides and bottom
-				material = new Q3D.Material();
+				material = new Q3DMaterial();
 				material.loadJSONObject(jsonObject.sides.mtl);
 				_this.materials.add(material);
 
@@ -3005,7 +3005,7 @@ class Q3DDEMLayer extends MapLayer {
 			}
 
 			if (jsonObject.edges) {
-				material = new Q3D.Material();
+				material = new Q3DMaterial();
 				material.loadJSONObject(jsonObject.edges.mtl);
 				_this.materials.add(material);
 
@@ -3422,14 +3422,14 @@ class Q3DVectorLayer extends MapLayer {
 				if (this.properties.label !== undefined) {
 					// create a label group and a label connector group
 					if (this.labelGroup === undefined) {
-						this.labelGroup = new Q3D.Group();
+						this.labelGroup = new Q3DGroup();
 						this.labelGroup.userData.layerId = this.id;
 						this.labelGroup.visible = this.visible;
 						scene.labelGroup.add(this.labelGroup);
 					}
 
 					if (this.labelConnectorGroup === undefined) {
-						this.labelConnectorGroup = new Q3D.Group();
+						this.labelConnectorGroup = new Q3DGroup();
 						this.labelConnectorGroup.userData.layerId = this.id;
 						this.labelConnectorGroup.visible = this.visible;
 						scene.labelConnectorGroup.add(this.labelConnectorGroup);
@@ -3477,7 +3477,7 @@ class Q3DPointLayer extends VectorLayer {
 			if (this.models === undefined) {
 				var _this = this;
 
-				this.models = new Q3D.Models();
+				this.models = new Q3DModels();
 				this.models.addEventListener("modelLoaded", function (event) {
 					_this.materials.addFromObject3D(event.model.scene);
 					_this.requestRender();
@@ -3661,7 +3661,7 @@ class Q3DPointLayer extends VectorLayer {
 			for (var i = 0; i < pts.length; i++) {
 				pt = pts[i];
 
-				var parent = new Q3D.Group();
+				var parent = new Q3DGroup();
 				parent.position.fromArray(pt);
 				parent.scale.set(1, 1, this.sceneData.zScale);
 
@@ -3785,7 +3785,7 @@ class Q3DLineLayer extends VectorLayer {
 			var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
 
 			return function (f, points) {
-				group = new Q3D.Group();
+				group = new Q3DGroup();
 
 				pt0.fromArray(points[0]);
 				for (var i = 1, l = points.length; i < l; i++) {
@@ -3917,7 +3917,7 @@ class Q3DLineLayer extends VectorLayer {
 			}
 		}
 
-		this.origMtls = new Q3D.Materials();
+		this.origMtls = new Q3DMaterials();
 		this.origMtls.array = this.materials.array;
 
 		this.materials.array = [];
@@ -4285,7 +4285,7 @@ class Q3DModels extends THREE.EventDispatcher {
 				model = this.cache[url];
 			}
 			else {
-				model = new Q3D.Model();
+				model = new Q3DModel();
 				model.loadJSONObject(jsonObject[i], callback);
 
 				if (url !== undefined) this.cache[url] = model;

@@ -273,7 +273,7 @@ function getCurrentPosition (callback) {
 		var layer, objects = [];
 		for (var lyrId in app.scene.mapLayers) {
 			layer = app.scene.mapLayers[lyrId];
-			if (layer instanceof Q3D.DEMLayer) {
+			if (layer instanceof Q3DDEMLayer) {
 				objects = objects.concat(layer.visibleObjects());
 			}
 		}
