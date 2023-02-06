@@ -2918,7 +2918,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 }
 
 
-class Q3DDEMLayer extends MapLayer {
+class Q3DDEMLayer extends Q3DMapLayer {
 
 	constructor() {
 		super();
@@ -3247,7 +3247,7 @@ class Q3DDEMLayer extends MapLayer {
 }
 
 
-class Q3DVectorLayer extends MapLayer {
+class Q3DVectorLayer extends Q3DMapLayer {
 
 	constructor() {
 		super();
@@ -3465,7 +3465,7 @@ class Q3DVectorLayer extends MapLayer {
 }
 
 
-class Q3DPointLayer extends VectorLayer {
+class Q3DPointLayer extends Q3DVectorLayer {
 
 	constructor() {
 		super();
@@ -3709,7 +3709,7 @@ class Q3DPointLayer extends VectorLayer {
 }
 
 
-class Q3DLineLayer extends VectorLayer {
+class Q3DLineLayer extends Q3DVectorLayer {
 
 	constructor() {
 		super();
@@ -4017,7 +4017,7 @@ class Q3DLineLayer extends VectorLayer {
 }
 
 
-class Q3DPolygonLayer extends VectorLayer {
+class Q3DPolygonLayer extends Q3DVectorLayer {
 
 	constructor() {
 		super();
