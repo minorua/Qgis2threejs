@@ -7,7 +7,7 @@ rem   build
 rem 2. build Japanese html pages
 rem   build ja
 
-set PATH=%PATH%;C:\Python38\Scripts
+set PATH=%PATH%;C:\Python311\Scripts
 set READTHEDOCS=Local
 
 set BUILD_LANG=%1
