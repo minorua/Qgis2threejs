@@ -1,10 +1,5 @@
-// (C) 2014 Minoru Akagi
+// (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
-
-//// WebKit bridge: access to pyObj object
-function pyData() {
-  return pyObj.data();
-}
 
 //// configuration
 Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/potree-core";
@@ -21,6 +16,92 @@ var preview = {
     tickCount: 0
   }
 };
+
+//// initialization
+
+var pyData;
+
+function init(off_screen, debug_mode, webengine) {
+
+  if (webengine) {
+    // Web Channel
+    console.log("initBridge()");
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+      window.pyObj = channel.objects.bridge;
+      pyObj.sendScriptData.connect(function (script, data) {
+        var pyData = function () {
+          return data;
+        };
+
+        eval(script);
+      });
+
+      console.log("QWebChannel() callback");
+      _init(off_screen, debug_mode);
+
+      pyObj.onInitialized();
+    });
+    console.log("end of initBridge()");
+  }
+  else {
+    // WebKit Bridge
+    pyData = function () {
+      return pyObj.data();
+    }
+
+    _init(off_screen, debug_mode);
+
+    pyObj.onInitialized();
+  }
+}
+
+function _init(off_screen, debug_mode) {
+
+  var container = Q3D.E("view");
+  app.init(container);
+
+  if (off_screen) {
+    Q3D.E("progress").style.display = "none";
+    app.osRender = app.render;
+    app.render = function () {};    // not necessary to render scene before scene has been completely loaded
+    app.addEventListener("sceneLoaded", function () {
+      app.osRender(); app.osRender();   // render scene twice for output stability
+    });
+  }
+  else {
+    Q3D.E("closemsgbar").onclick = closeMessageBar;
+  }
+
+  app.addEventListener("sceneLoaded", function () {
+    pyObj.onSceneLoaded();
+  });
+
+  app.addEventListener("sceneLoadError", function () {
+    pyObj.onSceneLoadError();
+  });
+
+  app.addEventListener("tweenStarted", function (e) {
+    pyObj.onTweenStarted(e.index);
+  });
+
+  app.addEventListener("animationStopped", function () {
+    pyObj.onAnimationStopped();
+  });
+
+  if (debug_mode) {
+    displayFPS();
+    if (debug_mode == 2) Q3D.Config.debugMode = true;
+  }
+
+  // check extension support of web view
+  // see https://github.com/minorua/Qgis2threejs/issues/147
+  var gl = app.renderer.getContext();    // WebGLRenderingContext
+  if (gl.getExtension("WEBGL_depth_texture") === null) {
+    var msg = "No 3D objects were rendered? There is a compatibility issue with QGIS 3D view. " +
+              "You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
+    showMessageBar(msg, undefined, true);
+  }
+}
 
 //// load functions
 function loadJSONObject(jsonObject) {
@@ -139,54 +220,6 @@ function loadStart(name, initialize) {
 
 function loadEnd(name) {
   app.loadingManager.itemEnd(name);
-}
-
-function init(off_screen, debug_mode) {
-
-  var container = Q3D.E("view");
-  app.init(container);
-
-  if (off_screen) {
-    Q3D.E("progress").style.display = "none";
-    app.osRender = app.render;
-    app.render = function () {};    // not necessary to render scene before scene has been completely loaded
-    app.addEventListener("sceneLoaded", function () {
-      app.osRender(); app.osRender();   // render scene twice for output stability
-    });
-  }
-  else {
-    Q3D.E("closemsgbar").onclick = closeMessageBar;
-  }
-
-  app.addEventListener("sceneLoaded", function () {
-    pyObj.onSceneLoaded();
-  });
-
-  app.addEventListener("sceneLoadError", function () {
-    pyObj.onSceneLoadError();
-  });
-
-  app.addEventListener("tweenStarted", function (e) {
-    pyObj.onTweenStarted(e.index);
-  });
-
-  app.addEventListener("animationStopped", function () {
-    pyObj.onAnimationStopped();
-  });
-
-  if (debug_mode) {
-    displayFPS();
-    if (debug_mode == 2) Q3D.Config.debugMode = true;
-  }
-
-  // check extension support of web view
-  // see https://github.com/minorua/Qgis2threejs/issues/147
-  var gl = app.renderer.getContext();    // WebGLRenderingContext
-  if (gl.getExtension("WEBGL_depth_texture") === null) {
-    var msg = "No 3D objects were rendered? There is a compatibility issue with QGIS 3D view. " +
-              "You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
-    showMessageBar(msg, undefined, true);
-  }
 }
 
 function displayFPS() {

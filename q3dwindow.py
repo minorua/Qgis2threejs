@@ -256,7 +256,7 @@ class Q3DWindow(QMainWindow):
         self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleCopy)
         self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleClear)
 
-        self.ui.lineEditInputBox.returnPressed.connect(self.runInputBoxString)
+        self.ui.lineEditInputBox.returnPressed.connect(self.runConsoleCommand)
 
     def setupStatusBar(self, iface, previewEnabled=True):
         w = QProgressBar(self.ui.statusbar)
@@ -287,6 +287,9 @@ class Q3DWindow(QMainWindow):
 
     def showMessageBar(self, msg, duration=0, warning=False):
         return self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
+
+    def showStatusMessage(self, message, duration=0):
+        self.ui.statusbar.showMessage(message, duration)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
@@ -339,10 +342,12 @@ class Q3DWindow(QMainWindow):
             text = message
         self.ui.listWidgetDebugView.addItem(text)
 
-    def runInputBoxString(self):
+    def runConsoleCommand(self):
         text = self.ui.lineEditInputBox.text()
         self.ui.listWidgetDebugView.addItem("> " + text)
-        result = self.webPage.mainFrame().evaluateJavaScript(text)
+        self.webPage.runScript(text, message=None, callback=self.runConsoleCommandCallback)
+
+    def runConsoleCommandCallback(self, result):
         if result is not None:
             self.ui.listWidgetDebugView.addItem("<- {}".format(result))
         self.ui.listWidgetDebugView.scrollToBottom()

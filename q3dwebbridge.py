@@ -9,6 +9,9 @@ from PyQt5.QtGui import QImage
 
 class Bridge(QObject):
 
+    # Python to JS signals
+    sendScriptData = pyqtSignal(str, QVariant)
+
     # Python to Python signals
     initialized = pyqtSignal()
     sceneLoaded = pyqtSignal()
@@ -30,6 +33,10 @@ class Bridge(QObject):
 
     def setData(self, data):
         self.data = QVariant(data)
+
+    @pyqtSlot()
+    def onInitialized(self):
+        self.initialized.emit()
 
     @pyqtSlot()
     def onSceneLoaded(self):
