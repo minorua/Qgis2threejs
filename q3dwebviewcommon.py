@@ -221,9 +221,6 @@ class Q3DWebViewCommon:
     def sendData(self, data):
         self._page.sendData(data)
 
-    def resetCameraState(self):
-        self._page.resetCameraState()
-
     def runScript(self, string, data=None, message="", sourceID="q3dview.py"):
         return self._page.runScript(string, data, message, sourceID)
 

@@ -223,7 +223,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraState)
+        self.ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
         self.ui.actionReload.triggered.connect(self.reloadPage)
         self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         self.ui.actionUsage.triggered.connect(self.usage)
@@ -527,6 +527,9 @@ class Q3DWindow(QMainWindow):
         dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("Label", p))
         dialog.show()
         dialog.exec_()
+
+    def resetCameraState(self):
+        self.webPage.resetCameraState()
 
     # Window menu
     def alwaysOnTopToggled(self, checked):
