@@ -141,7 +141,7 @@ class GSIElevTileProvider:
         if self.last_dataset and self.last_dataset[0] == [zoom, ulx, uly, lrx, lry]:    # if same as last tile set, return cached dataset
             return self.last_dataset[1]
 
-        urltmpl = "http://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt"
+        urltmpl = "https://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt"
         #urltmpl = "http://localhost/xyz/dem/{z}/{x}/{y}.txt"
         tiles = self.fetchFiles(urltmpl, zoom, ulx, uly, lrx, lry)
 
