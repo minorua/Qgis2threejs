@@ -38,8 +38,8 @@ class ExportSettings:
         self.mapSettings = None
         self.crs = None
 
-        self.base64 = False
         self.isPreview = False
+        self.jsonSerializable = False
         self.localMode = False
 
         self.nextJsLayerId = 0
@@ -61,8 +61,8 @@ class ExportSettings:
         t.data = deepcopy(self.data)
         t.mapSettings = QgsMapSettings(self.mapSettings) if self.mapSettings else None
         t.crs = self.crs
-        t.base64 = self.base64
         t.isPreview = self.isPreview
+        t.jsonSerializable = self.jsonSerializable
         t.localMode = self.localMode
         t.nextJsLayerId = self.nextJsLayerId
 

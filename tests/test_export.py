@@ -58,7 +58,7 @@ class TestExport(unittest.TestCase):
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(dataPath("scene1.qto3settings"))
-        exporter.settings.localMode = exporter.settings.base64 = True
+        exporter.settings.localMode = exporter.settings.jsonSerializable = True
 
         exporter.setMapSettings(mapSettings)
         err = exporter.export(out_path)

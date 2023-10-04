@@ -112,7 +112,7 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.webPage = self.ui.webView._page
-        settings.base64 = self.webPage.isWebEnginePage
+        settings.jsonSerializable = self.webPage.isWebEnginePage
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
 

@@ -357,7 +357,7 @@ class ModelExporter(BridgeExporterBase):
 
     def __init__(self, settings=None):
         super().__init__(settings)
-        self.settings.base64 = True
+        self.settings.jsonSerializable = True
         self.exportMode = True
 
     def initWebPage(self, width, height):

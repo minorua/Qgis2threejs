@@ -224,7 +224,7 @@ class DEMGridBuilder:
             g = {"width": grid_width,
                  "height": grid_height}
 
-            if self.settings.localMode:
+            if self.settings.jsonSerializable:
                 g["array"] = struct.unpack("f" * grid_width * grid_height, ba)
             elif self.settings.isPreview:
                 g["binary"] = QByteArray(ba)
@@ -494,7 +494,7 @@ class DEMMaterialBuilder:
         filepath = None if self.pathRoot is None else (self.pathRoot + suffix)
         url = None if self.urlRoot is None else (self.urlRoot + suffix)
 
-        d = self.materialManager.build(mi, filepath, url, self.settings.base64)
+        d = self.materialManager.build(mi, filepath, url, self.settings.jsonSerializable)
         d["mtlIndex"] = mtlIndex
         d["useNow"] = self.useNow
         if self.asBlock:

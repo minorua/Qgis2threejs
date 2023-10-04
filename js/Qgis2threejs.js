@@ -2452,8 +2452,11 @@ class Q3DDEMBlock {
 				buildGeometry(grid.array);
 			});
 		}
-		else {    // local mode or WebKit Bridge
-			if (grid.binary !== undefined) grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+		else {
+			if (grid.binary !== undefined) {
+				// WebKit Bridge
+				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+			}
 			buildGeometry(grid.array);
 		}
 
