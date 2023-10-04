@@ -168,13 +168,12 @@ class Q3DController(QObject):
             # self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
             self.mapCanvas = None
 
-    def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True, base64=False):
+    def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True):
         if self.buildingLayer:
             logMessage("Previous building is still in progress. Cannot start to build scene.")
             return False
 
         self.aborted = False
-        self.settings.base64 = base64
 
         self.iface.progress(0, "Building scene")
 
@@ -206,7 +205,6 @@ class Q3DController(QObject):
 
         self.iface.progress()
         self.iface.clearMessage()
-        self.settings.base64 = False
         return not self.aborted
 
     def buildLayers(self):

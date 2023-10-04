@@ -106,6 +106,16 @@ class Q3DWindow(QMainWindow):
         self.lastDir = None
         self.loadIcons()
 
+        self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
+
+        self.ui = Ui_Q3DWindow()
+        self.ui.setupUi(self)
+
+        self.webPage = self.ui.webView._page
+        settings.base64 = self.webPage.isWebEnginePage
+
+        self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
+
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
         self.controller = Q3DController(settings, self.thread)
@@ -118,13 +128,6 @@ class Q3DWindow(QMainWindow):
             # start worker thread event loop
             self.thread.start()
 
-        self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
-
-        self.ui = Ui_Q3DWindow()
-        self.ui.setupUi(self)
-
-        self.webPage = self.ui.webView._page
-        self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
         self.controller.connectToIface(self.iface)
 
         self.setupMenu()

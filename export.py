@@ -357,6 +357,7 @@ class ModelExporter(BridgeExporterBase):
 
     def __init__(self, settings=None):
         super().__init__(settings)
+        self.settings.base64 = True
         self.exportMode = True
 
     def initWebPage(self, width, height):
@@ -371,7 +372,7 @@ class ModelExporter(BridgeExporterBase):
         self.mkdir(filename)
 
         # build scene
-        self.controller.buildScene(update_extent=False, base64=True)
+        self.controller.buildScene(update_extent=False)
 
         err = self.page.waitForSceneLoaded(cancelSignal)
 
