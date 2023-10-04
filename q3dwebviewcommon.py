@@ -204,10 +204,6 @@ class Q3DWebViewCommon:
         else:
             self.iface.previewStateChanged.emit(False)
 
-    def reloadPage(self):
-        self.wnd.clearConsole()
-        self._page.reload()
-
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
 

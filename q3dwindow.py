@@ -224,7 +224,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         self.ui.actionResetCameraPosition.triggered.connect(self.ui.webView.resetCameraState)
-        self.ui.actionReload.triggered.connect(self.ui.webView.reloadPage)
+        self.ui.actionReload.triggered.connect(self.reloadPage)
         self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         self.ui.actionUsage.triggered.connect(self.usage)
         self.ui.actionHelp.triggered.connect(self.help)
@@ -507,6 +507,10 @@ class Q3DWindow(QMainWindow):
         layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
         self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)
+
+    def reloadPage(self):
+        self.clearConsole()
+        self.webPage.reload()
 
     # View menu
     def cameraChanged(self, action):
