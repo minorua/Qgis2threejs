@@ -225,7 +225,7 @@ class DEMGridBuilder:
                  "height": grid_height}
 
             if self.settings.jsonSerializable:
-                g["array"] = struct.unpack("f" * grid_width * grid_height, ba)
+                g["array"] = list(struct.unpack("f" * grid_width * grid_height, ba))
             elif self.settings.isPreview:
                 g["binary"] = QByteArray(ba)
             else:
