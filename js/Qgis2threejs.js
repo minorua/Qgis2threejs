@@ -3455,14 +3455,17 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	}
 
 	get visible() {
-		return super.visible;
+		return this.objectGroup.visible;
+		// return super.visible;
 	}
 
 	set visible(value) {
 		if (this.labelGroup) this.labelGroup.visible = value;
 		if (this.labelConnectorGroup) this.labelConnectorGroup.visible = value;
 
-		super.visible = value;
+		this.objectGroup.visible = value;
+		this.requestRender();
+		// super.visible = value;
 	}
 
 }
