@@ -39,6 +39,7 @@ class Script:
     VIEWHELPER = 8
     MESHLINE = 9
     FETCH = 101
+    TEST = 201
 
     # Script path (relative from js directory)
     PATH = {
@@ -51,7 +52,8 @@ class Script:
         OUTLINE: "threejs/effects/OutlineEffect.js",
         VIEWHELPER: "threejs/editor/ViewHelper.js",
         MESHLINE: "meshline/THREE.MeshLine.js",
-        FETCH: "unfetch/unfetch.js"
+        FETCH: "unfetch/unfetch.js",
+        TEST: "../tests/gui/test.js"
     }
 
 

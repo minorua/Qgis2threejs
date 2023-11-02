@@ -21,6 +21,7 @@ class Bridge(QObject):
     imageReady = pyqtSignal(int, int, "QImage")
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
+    testResultReceived = pyqtSignal(str, bool, str)
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
@@ -74,6 +75,10 @@ class Bridge(QObject):
     @pyqtSlot()
     def onAnimationStopped(self):
         self.animationStopped.emit()
+
+    @pyqtSlot(str, bool, str)
+    def sendTestResult(self, testName, result, msg):
+        self.testResultReceived.emit(testName, result, msg)
 
     """
     @pyqtSlot(int, int, result=str)

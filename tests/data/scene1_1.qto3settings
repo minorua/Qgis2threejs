@@ -235,7 +235,8 @@
         "enabled": true,
         "groups": []
       }
-    }
+    },
+    "repeat": false
   },
   "LAYERS": [
     {
@@ -244,9 +245,37 @@
       "name": "pt1",
       "properties": {
         "checkBox_Clickable": true,
+        "checkBox_Clip": true,
         "checkBox_ExportAttrs": true,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
         "checkBox_Visible": true,
-        "comboBox_Label": null,
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
         "comboBox_ObjectType": "Sphere",
         "comboBox_altitudeMode": null,
         "comboEdit_Color": {
@@ -255,19 +284,34 @@
           "editText": "",
           "type": 2
         },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
         "comboEdit_Opacity": {
           "comboData": 1,
           "comboText": "Feature style",
           "editText": "",
           "type": 5
         },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"pk\"",
         "fieldExpressionWidget_altitude": "0",
         "geomWidget0": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "r * 3",
           "type": 1
         },
+        "geomWidget1": {},
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
         "labelHeightWidget": {
           "comboData": 0,
           "comboText": "Absolute",
@@ -275,8 +319,11 @@
           "type": 6
         },
         "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
         "radioButton_IntersectingFeatures": true,
-        "radioButton_zValue": true
+        "radioButton_zValue": true,
+        "slider_FontSize": 3
       },
       "visible": true
     },
@@ -286,9 +333,38 @@
       "name": "pt2",
       "properties": {
         "checkBox_Clickable": true,
+        "checkBox_Clip": true,
         "checkBox_ExportAttrs": false,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
         "checkBox_Visible": true,
-        "comboBox_ObjectType": "Cylinder",
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "Box",
         "comboBox_altitudeMode": null,
         "comboEdit_Color": {
           "comboData": 1,
@@ -296,28 +372,56 @@
           "editText": "",
           "type": 2
         },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
         "comboEdit_Opacity": {
           "comboData": 1,
           "comboText": "Feature style",
           "editText": "",
           "type": 5
         },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"pk\"",
         "fieldExpressionWidget_altitude": "0",
         "geomWidget0": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "w * 5",
           "type": 1
         },
         "geomWidget1": {
           "comboData": null,
           "comboText": "Expression",
+          "editText": "d * 5",
+          "type": 1
+        },
+        "geomWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
           "editText": "\"h\"",
           "type": 1
         },
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "50",
+          "type": 6
+        },
         "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
         "radioButton_IntersectingFeatures": true,
-        "radioButton_zValue": true
+        "radioButton_zValue": true,
+        "slider_FontSize": 3
       },
       "visible": true
     },
@@ -358,7 +462,7 @@
           255
         ],
         "comboBox_FontFamily": "sans-serif",
-        "comboBox_ObjectType": "Cone",
+        "comboBox_ObjectType": "Cylinder",
         "comboBox_altitudeMode": null,
         "comboEdit_Color": {
           "comboData": 3,
@@ -385,13 +489,13 @@
         "geomWidget0": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "r * 4",
           "type": 1
         },
         "geomWidget1": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "h * 2",
           "type": 1
         },
         "geomWidget2": {},
@@ -420,9 +524,38 @@
       "name": "pt4",
       "properties": {
         "checkBox_Clickable": true,
-        "checkBox_ExportAttrs": false,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": true,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
         "checkBox_Visible": true,
-        "comboBox_ObjectType": "Box",
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "Cone",
         "comboBox_altitudeMode": null,
         "comboEdit_Color": {
           "comboData": 1,
@@ -430,34 +563,51 @@
           "editText": "",
           "type": 2
         },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
         "comboEdit_Opacity": {
           "comboData": 1,
           "comboText": "Feature style",
           "editText": "",
           "type": 5
         },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"pk\"",
         "fieldExpressionWidget_altitude": "0",
         "geomWidget0": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "r * 8",
           "type": 1
         },
         "geomWidget1": {
           "comboData": null,
           "comboText": "Expression",
-          "editText": "1000",
+          "editText": "h * 5",
           "type": 1
         },
-        "geomWidget2": {
-          "comboData": null,
-          "comboText": "Expression",
-          "editText": "1000",
-          "type": 1
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "50",
+          "type": 6
         },
         "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
         "radioButton_IntersectingFeatures": true,
-        "radioButton_zValue": true
+        "radioButton_zValue": true,
+        "slider_FontSize": 3
       },
       "visible": true
     },
@@ -498,8 +648,8 @@
           255
         ],
         "comboBox_FontFamily": "sans-serif",
-        "comboBox_ObjectType": "Point",
-        "comboBox_altitudeMode": null,
+        "comboBox_ObjectType": "Disk",
+        "comboBox_altitudeMode": "dem_srtm3020150914165149263",
         "comboEdit_Color": {
           "comboData": 2,
           "comboText": "Random",
@@ -521,10 +671,25 @@
         },
         "comboEdit_altitude2": {},
         "expression_Label": "\"pk\"",
-        "fieldExpressionWidget_altitude": "\"r\"",
-        "geomWidget0": {},
-        "geomWidget1": {},
-        "geomWidget2": {},
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "r * 2",
+          "type": 1
+        },
+        "geomWidget1": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"dip\"",
+          "type": 1
+        },
+        "geomWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"direction\"",
+          "type": 1
+        },
         "geomWidget3": {},
         "geomWidget4": {},
         "groupBox_Background": true,
@@ -536,12 +701,7 @@
           "type": 6
         },
         "lineEdit_Name": "",
-        "mtlWidget0": {
-          "comboData": null,
-          "comboText": "Expression",
-          "editText": "1000",
-          "type": 1
-        },
+        "mtlWidget0": {},
         "mtlWidget1": {},
         "radioButton_Expression": true,
         "radioButton_IntersectingFeatures": true,
@@ -1105,7 +1265,7 @@
     {
       "geomType": 0,
       "layerId": "fp:89c5f24c",
-      "name": "Flat Plane (-500)",
+      "name": "Flat Plane (-4000)",
       "properties": {
         "checkBox_Clickable": true,
         "checkBox_Frame": false,
@@ -1131,7 +1291,7 @@
           0,
           255
         ],
-        "lineEdit_Altitude": "-500",
+        "lineEdit_Altitude": "-4000",
         "lineEdit_Bottom": "0",
         "lineEdit_Name": "",
         "materials": [
@@ -1703,11 +1863,11 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20600,
+  "Version": 20701,
   "WIDGETS": {
     "Label": {
       "Footer": "",
-      "Header": "<div style=\"font-size:xx-large;font-weight:bold;\">Test Project</div>"
+      "Header": "<div style=\"font-size:xx-large;font-weight:bold;\">Test Scene 1</div>"
     },
     "NorthArrow": {
       "color": "0x66e866",

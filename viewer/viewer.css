@@ -72,3 +72,13 @@
 #msgcontent ul {
   margin: 0 5px;
 }
+
+#testmarker {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: red;
+  pointer-events: none;
+  z-index: 1001;
+}

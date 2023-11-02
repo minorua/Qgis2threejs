@@ -11,38 +11,43 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from Qgis2threejs.tools import getLayersByLayerIds
+from Qgis2threejs.tools import getLayersByLayerIds, logMessage, pluginDir
+
+MY_TEST_TEMPDIR = "E:/dev/qgis2threejs_test"
 
 
-def pluginPath(subdir=None):
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    plugin_dir = os.path.dirname(tests_dir)
-    if subdir is None:
-        return plugin_dir
-    return os.path.join(plugin_dir, subdir)
+def testDir(*subdirs):
+    return pluginDir("tests", *subdirs)
 
 
-def dataPath(subdir=None):
-    data_path = pluginPath(os.path.join("tests", "data"))
-    if subdir is None:
-        return data_path
-    return os.path.join(data_path, subdir)
+def dataPath(*subdirs):
+    dataDir = testDir("data")
+    if subdirs:
+        return os.path.join(dataDir, *subdirs)
+    return dataDir
 
 
-def expectedDataPath(subdir=None):
-    data_path = "E:/dev/qgis2threejs_test/expected"   # [work in progress]
-    #data_path = pluginPath(os.path.join("tests", "expected"))
-    if subdir is None:
-        return data_path
-    return os.path.join(data_path, subdir)
+def expectedDataPath(*subdirs):
+    if os.path.exists(MY_TEST_TEMPDIR):
+        dataDir = MY_TEST_TEMPDIR + "/expected"
+    else:
+        dataDir = testDir("expected")
+        logMessage("Expected data not exist.")      # TODO
+
+    if subdirs:
+        return os.path.join(dataDir, *subdirs)
+    return dataDir
 
 
-def outputPath(subdir=None):
-    data_path = "E:/dev/qgis2threejs_test/output"   # [work in progress]
-    #data_path = pluginPath(os.path.join("tests", "output"))
-    if subdir is None:
-        return data_path
-    return os.path.join(data_path, subdir)
+def outputPath(*subdirs):
+    if os.path.exists(MY_TEST_TEMPDIR):
+        dataDir = MY_TEST_TEMPDIR + "/output"
+    else:
+        dataDir = testDir("output")
+
+    if subdirs:
+        return os.path.join(dataDir, *subdirs)
+    return dataDir
 
 
 def initOutputDir():

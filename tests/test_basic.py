@@ -8,14 +8,14 @@ import os
 import sys
 from qgis.testing import unittest
 
-from .utilities import pluginPath
+from .utilities import pluginDir
 
 
 class TestBasic(unittest.TestCase):
 
     def test01_import(self):
         """module import test"""
-        plugin_dir = pluginPath()
+        plugin_dir = pluginDir()
         imported = 0
         for package_dir in ["", "/plugins/gsielevtile"]:
             for filename in os.listdir(plugin_dir + package_dir):

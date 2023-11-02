@@ -235,21 +235,23 @@ class Q3DWindow(QMainWindow):
         self.alwaysOnTopToggled(False)
 
         if DEBUG_MODE:
-            self.ui.menuDebug = QMenu(self.ui.menubar)
-            self.ui.menuDebug.setObjectName("menuDebug")
-            self.ui.menuDebug.setTitle("&Debug")
-            self.ui.menubar.addAction(self.ui.menuDebug.menuAction())
+            self.ui.menuDev = QMenu(self.ui.menubar)
+            self.ui.menuDev.setTitle("&Dev")
+            self.ui.menubar.addAction(self.ui.menuDev.menuAction())
+
+            self.ui.actionTest = QAction(self)
+            self.ui.actionTest.setText("Run Test")
+            self.ui.menuDev.addAction(self.ui.actionTest)
+            self.ui.actionTest.triggered.connect(self.runTest)
 
             self.ui.actionInspector = QAction(self)
-            self.ui.actionInspector.setObjectName("actionInspector")
             self.ui.actionInspector.setText("Web Inspector...")
-            self.ui.menuDebug.addAction(self.ui.actionInspector)
+            self.ui.menuDev.addAction(self.ui.actionInspector)
             self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
 
             self.ui.actionJSInfo = QAction(self)
-            self.ui.actionJSInfo.setObjectName("actionJSInfo")
             self.ui.actionJSInfo.setText("three.js Info...")
-            self.ui.menuDebug.addAction(self.ui.actionJSInfo)
+            self.ui.menuDev.addAction(self.ui.actionJSInfo)
             self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
 
     def setupConsole(self):
@@ -300,6 +302,7 @@ class Q3DWindow(QMainWindow):
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
 
         dialog.showLayerProperties(layer)
+        return dialog
 
     # @pyqtSlot(Layer)
     def updateLayerProperties(self, layer):
@@ -392,13 +395,14 @@ class Q3DWindow(QMainWindow):
             self.ui.statusbar.clearMessage()
             self.lastDir = os.path.dirname(filename)
 
-    def loadSettings(self):
-        # file open dialog
-        directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
-        filterString = "Settings files (*.qto3settings);;All files (*.*)"
-        filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+    def loadSettings(self, filename=None):
+        # open file dialog if filename is not specified
         if not filename:
-            return
+            directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
+            filterString = "Settings files (*.qto3settings);;All files (*.*)"
+            filename, _ = QFileDialog.getOpenFileName(self, "Load Export Settings", directory, filterString)
+            if not filename:
+                return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
@@ -413,16 +417,17 @@ class Q3DWindow(QMainWindow):
 
         self.lastDir = os.path.dirname(filename)
 
-    def saveSettings(self):
-        # file save dialog
-        directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
-        filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
+    def saveSettings(self, filename=None):
+        # open file dialog if filename is not specified
         if not filename:
-            return
+            directory = self.lastDir or QgsProject.instance().homePath() or QDir.homePath()
+            filename, _ = QFileDialog.getSaveFileName(self, "Save Export Settings", directory, "Settings files (*.qto3settings)")
+            if not filename:
+                return
 
-        # append .qto3settings extension if filename doesn't have
-        if os.path.splitext(filename)[1].lower() != ".qto3settings":
-            filename += ".qto3settings"
+            # append .qto3settings extension if filename doesn't have
+            if os.path.splitext(filename)[1].lower() != ".qto3settings":
+                filename += ".qto3settings"
 
         self.settings.setAnimationData(self.ui.animationPanel.data())
         self.settings.saveSettings(filename)
@@ -457,6 +462,7 @@ class Q3DWindow(QMainWindow):
         dialog = PropertiesDialog(self.settings, self.qgisIface, self)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
         dialog.showSceneProperties()
+        return dialog
 
     # @pyqtSlot(dict)
     def updateSceneProperties(self, properties):
@@ -555,6 +561,11 @@ class Q3DWindow(QMainWindow):
     def about(self):
         QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(PLUGIN_VERSION), QMessageBox.Ok)
 
+    # Dev menu
+    def runTest(self):
+        from Qgis2threejs.tests.gui.test_gui import runTest
+        runTest(self)
+
 
 class PropertiesDialog(QDialog):
 
@@ -619,7 +630,6 @@ class PropertiesDialog(QDialog):
         self.setLayerDialogTitle(layer)
         self.setLayer(layer)
         self.show()
-        self.exec_()
 
     def setLayerDialogTitle(self, layer):
         if layer.mapLayer:
@@ -636,7 +646,6 @@ class PropertiesDialog(QDialog):
         self.page = ScenePropertyPage(self, self.settings.sceneProperties(), self.qgisIface.mapCanvas())
         self.ui.scrollArea.setWidget(self.page)
         self.show()
-        self.exec_()
 
 
 class WheelEventFilter(QObject):
