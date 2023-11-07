@@ -15,6 +15,7 @@ from Qgis2threejs.tests.utilities import dataPath, initOutputDir
 from Qgis2threejs.tools import js_bool, logMessage
 
 
+WIDTH, HEIGHT = (800, 600)  # view size
 UNDEF = "undefined"
 
 
@@ -304,19 +305,11 @@ def runTest(wnd):
 
     initOutputDir()
 
-    geomFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wnd_geom.bin")
-    if os.path.exists(geomFile):
-        with open(geomFile, "rb") as f:
-            wnd.restoreGeometry(f.read())
+    # set view size
+    wnd.resize(wnd.width() + WIDTH - wnd.ui.webView.width(),
+               wnd.height() + HEIGHT - wnd.ui.webView.height())
 
-        logMessage("Window geometry restored from file.")
-
-    else:
-        with open(geomFile, "wb") as f:
-            f.write(wnd.saveGeometry())
-
-        logMessage("Window geometry saved to a file.")
-
+    # test suite
     testClasses = [SceneTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest]
     suite = unittest.TestSuite()
 
