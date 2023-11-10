@@ -55,10 +55,13 @@ class AnimationPanel(QWidget):
 
         self.setData(settings.animationData())
 
-        self.tree.currentItemChanged.connect(self.currentItemChanged)
-        self.currentItemChanged(None, None)
+        if self.webPage:
+            self.tree.currentItemChanged.connect(self.currentItemChanged)
+            self.currentItemChanged(None, None)
 
-        self.webPage.bridge.animationStopped.connect(self.animationStopped)
+            self.webPage.bridge.animationStopped.connect(self.animationStopped)
+        else:
+            self.setEnabled(False)      # animation panel gets disabled when exporter has no preview.
 
     def data(self):
         d = self.tree.data()

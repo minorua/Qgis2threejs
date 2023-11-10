@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-from PyQt5.QtWidgets import QWidget
+
 from .conf import PREFER_WEBKIT
+from .tools import logMessage
 
 USE_WEBKIT = False
 USE_WEBENGINE = False
-
 
 if PREFER_WEBKIT:
     try:
@@ -49,4 +49,5 @@ elif USE_WEBENGINE:
     from .q3dwebengineview import Q3DWebEngineView as Q3DView, Q3DWebEnginePage as Q3DWebPage
 
 else:
-    Q3DView = QWidget
+    from .q3ddummyview import Q3DDummyView as Q3DView, Q3DDummyPage as Q3DWebPage
+    logMessage("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.")

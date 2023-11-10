@@ -112,7 +112,11 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.webPage = self.ui.webView._page
-        settings.jsonSerializable = self.webPage.isWebEnginePage
+
+        if self.webPage:
+            settings.jsonSerializable = self.webPage.isWebEnginePage
+        else:
+            preview = False
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
 
@@ -135,7 +139,12 @@ class Q3DWindow(QMainWindow):
         self.setupStatusBar(self.iface, preview)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
-        self.ui.webView.setup(self.iface, settings, self, preview)
+
+        if self.webPage:
+            self.ui.webView.setup(self.iface, settings, self, preview)
+        else:
+            self.ui.webView.disableWidgetsAndMenus(self)
+
         self.ui.dockWidgetConsole.hide()
         self.ui.animationPanel.setup(self, settings)
 
@@ -234,7 +243,7 @@ class Q3DWindow(QMainWindow):
 
         self.alwaysOnTopToggled(False)
 
-        if DEBUG_MODE:
+        if DEBUG_MODE and self.webPage:
             self.ui.menuDev = QMenu(self.ui.menubar)
             self.ui.menuDev.setTitle("&Dev")
             self.ui.menubar.addAction(self.ui.menuDev.menuAction())
