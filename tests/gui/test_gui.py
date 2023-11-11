@@ -4,10 +4,11 @@
 # begin: 2023-10-16
 
 import os
-from PyQt5.QtCore import Qt, QEventLoop, QPoint, QTimer
-from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox
+from PyQt5.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
+from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox, QWidget
 from PyQt5.QtTest import QTest
-from qgis.core import QgsProject, QgsRectangle
+from qgis.core import QgsApplication, QgsProject, QgsRectangle
 from qgis.testing import unittest
 
 from Qgis2threejs.q3dconst import Script
@@ -58,7 +59,19 @@ class GUITestBase(unittest.TestCase):
     def mouseClick(self, x, y):
         self.WND.runScript("showMarker({}, {}, 400)".format(x, y))
         self.sleep(500)
-        QTest.mouseClick(self.WND.ui.webView, Qt.LeftButton, pos=QPoint(x, y))
+
+        pos = QPoint(x, y)
+        w = self.WND.ui.webView
+
+        if w._page.isWebEnginePage:
+            w = w.findChild(QWidget)
+            press = QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton, Qt.NoButton, Qt.NoModifier)
+            release = QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton, Qt.NoButton, Qt.NoModifier)
+
+            QgsApplication.postEvent(w, press)
+            QgsApplication.postEvent(w, release)
+        else:
+            QTest.mouseClick(w, Qt.LeftButton, pos=pos)
 
     @classmethod
     def sleep(cls, msec=500):

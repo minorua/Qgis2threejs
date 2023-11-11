@@ -29,6 +29,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         QWebPage.__init__(self, parent)
         Q3DWebPageCommon.__init__(self)
 
+        self.isWebEnginePage = False
+
     def setup(self, settings, wnd=None, exportMode=False):
         """wnd: Q3DWindow or None (off-screen mode)"""
         Q3DWebPageCommon.setup(self, settings, wnd, exportMode)

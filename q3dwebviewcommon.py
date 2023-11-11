@@ -24,7 +24,6 @@ class Q3DWebPageCommon:
 
     def __init__(self, _=None):
 
-        self.isWebEnginePage = False
         self.loadedScripts = {}
 
         if DEBUG_MODE == 2:
