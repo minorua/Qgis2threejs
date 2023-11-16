@@ -82,7 +82,7 @@ class Q3DWebPageCommon:
 
         self.wnd.showStatusMessage("")
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None):
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, forceSync=False):
         if not DEBUG_MODE or message is None:
             return
 
@@ -112,7 +112,7 @@ class Q3DWebPageCommon:
             self.loadScriptFile(id, force)
 
     def cameraState(self, flat=False):
-        return self.runScript("cameraState({})".format(1 if flat else 0))
+        return self.runScript("cameraState({})".format(1 if flat else 0), forceSync=True)
 
     def setCameraState(self, state):
         """set camera position and camera target"""
@@ -220,11 +220,11 @@ class Q3DWebViewCommon:
     def sendData(self, data):
         self._page.sendData(data)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py"):
-        return self._page.runScript(string, data, message, sourceID)
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, forceSync=False):
+        return self._page.runScript(string, data, message, sourceID, callback, forceSync)
 
     def showJSInfo(self):
-        info = self.runScript("app.renderer.info")
+        info = self.runScript("app.renderer.info", forceSync=True)
         QMessageBox.information(self, "three.js Renderer Info", str(info))
 
 

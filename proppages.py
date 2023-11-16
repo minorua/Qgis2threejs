@@ -1052,8 +1052,8 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.setProperties(layer.properties)
 
         wnd = self.parent().parent()
-        loaded = wnd.runScript("app.scene.mapLayers[{}].loadedPointCount()".format(layer.jsLayerId))
-        visible = wnd.runScript("app.scene.mapLayers[{}].pcg.children[0].numVisiblePoints".format(layer.jsLayerId))
+        loaded = wnd.runScript("app.scene.mapLayers[{}].loadedPointCount()".format(layer.jsLayerId), forceSync=True)
+        visible = wnd.runScript("app.scene.mapLayers[{}].pcg.children[0].numVisiblePoints".format(layer.jsLayerId), forceSync=True)
 
         total = bbox = None
 

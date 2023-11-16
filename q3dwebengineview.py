@@ -6,7 +6,7 @@
 import os
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--ignore-gpu-blocklist --enable-gpu-rasterization"
 
-from PyQt5.QtCore import Qt, QSize, QUrl
+from PyQt5.QtCore import Qt, QEventLoop, QSize, QUrl
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
 from PyQt5.QtWebChannel import QWebChannel
@@ -46,19 +46,42 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None):
-        Q3DWebPageCommon.runScript(self, string, data, message, sourceID)
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, forceSync=False):
+        """forceSync: whether to run script synchronously"""
+        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, forceSync)
 
         if data is not None:
-            assert callback is None, "cannot callback"
+            assert callback is None, "cannot callback when data is set"
+            assert not forceSync, "synchronous script execution with data not supported"
 
             self.bridge.sendScriptData.emit(string, data)
+            return
 
-        elif callback:
-            self.runJavaScript(string, callback)
+        if not forceSync:
+            if callback:
+                self.runJavaScript(string, callback)
 
-        else:
-            self.runJavaScript(string)
+            else:
+                self.runJavaScript(string)
+
+            return
+
+        loop = QEventLoop()
+        result = None
+
+        def runJavaScriptCallback(res):
+            nonlocal result
+            result = res
+            loop.quit()
+
+        self.runJavaScript(string, runJavaScriptCallback)
+
+        loop.exec_()
+
+        if callback:
+            callback(result)
+
+        return result
 
     def sendData(self, data):
         self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
