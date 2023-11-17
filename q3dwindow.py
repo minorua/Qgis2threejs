@@ -296,8 +296,8 @@ class Q3DWindow(QMainWindow):
             else:
                 self.runScript("app.resume()")
 
-    def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, forceSync=False):
-        return self.webPage.runScript(string, data, message, sourceID, callback, forceSync)
+    def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
+        return self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
     def showMessageBar(self, msg, duration=0, warning=False):
         self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)

@@ -46,18 +46,18 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, forceSync=False):
-        """forceSync: whether to run script synchronously"""
-        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, forceSync)
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
+        """wait: whether to wait until script execution has completed"""
+        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, wait)
 
         if data is not None:
             assert callback is None, "cannot callback when data is set"
-            assert not forceSync, "synchronous script execution with data not supported"
+            assert not wait, "synchronous script execution with data not supported"
 
             self.bridge.sendScriptData.emit(string, data)
             return
 
-        if not forceSync:
+        if not wait:
             if callback:
                 self.runJavaScript(string, callback)
 

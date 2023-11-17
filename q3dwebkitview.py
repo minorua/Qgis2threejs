@@ -63,8 +63,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         self.mainFrame().setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, forceSync=False):
-        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, forceSync)
+    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
+        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, wait)
 
         if data is not None:
             self.bridge.setData(data)
