@@ -25,7 +25,6 @@ function init(off_screen, debug_mode, webengine) {
 
 	if (webengine) {
 		// Web Channel
-		console.log("initBridge()");
 		new QWebChannel(qt.webChannelTransport, function(channel) {
 			window.pyObj = channel.objects.bridge;
 			pyObj.sendScriptData.connect(function (script, data) {
@@ -36,12 +35,10 @@ function init(off_screen, debug_mode, webengine) {
 				eval(script);
 			});
 
-			console.log("QWebChannel() callback");
 			_init(off_screen, debug_mode);
 
 			pyObj.onInitialized();
 		});
-		console.log("end of initBridge()");
 	}
 	else {
 		// WebKit Bridge

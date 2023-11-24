@@ -122,4 +122,3 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
         dlg.setLayout(v)
         dlg.show()
-        dlg.exec_()

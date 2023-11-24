@@ -120,20 +120,18 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         # if DEBUG_MODE:
         #    self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
-    #TODO:
     def showInspector(self):
         dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Web Inspector")
 
-        wi = QWebInspector(dlg)
-        wi.setPage(self._page)
+        ins = QWebEngineView(dlg)
+        self._page.setDevToolsPage(ins.page())
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
-        v.addWidget(wi)
+        v.addWidget(ins)
 
         dlg.setLayout(v)
         dlg.show()
-        dlg.exec_()
