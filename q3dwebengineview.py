@@ -31,11 +31,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)
 
-        # security settings
-        #TODO
-        #origin = self.mainFrame().securityOrigin()
-        #origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
-        #origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
+        # security setting for billboard, model file and point cloud layer
+        self.settings().setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
 
         url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
@@ -111,14 +108,6 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         self._page = Q3DWebEnginePage(self)
         self.setPage(self._page)
-
-        #TODO:
-        # security setting for billboard, model file and point cloud layer
-        # self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
-
-        # web inspector setting
-        # if DEBUG_MODE:
-        #    self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
     def showInspector(self):
         dlg = QDialog(self)
