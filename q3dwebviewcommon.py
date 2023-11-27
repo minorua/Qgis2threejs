@@ -32,7 +32,7 @@ class Q3DWebPageCommon:
 
     def setup(self, settings, wnd=None, exportMode=False):
         """wnd: Q3DWindow or None (off-screen mode)"""
-        self.settings = settings
+        self.expSettings = settings
         self.wnd = wnd or DummyWindow()
         self.offScreen = bool(wnd is None)
         self.exportMode = exportMode
@@ -58,16 +58,16 @@ class Q3DWebPageCommon:
         if self.exportMode:
             self.runScript("Q3D.Config.exportMode = true;")
 
-        if self.settings.isOrthoCamera():
+        if self.expSettings.isOrthoCamera():
             self.runScript("Q3D.Config.orthoCamera = true;")
 
-        p = self.settings.widgetProperties("NorthArrow")
+        p = self.expSettings.widgetProperties("NorthArrow")
         if p.get("visible"):
             self.runScript("Q3D.Config.northArrow.enabled = true;")
             self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # navigation widget
-        if not self.settings.isNavigationEnabled():
+        if not self.expSettings.isNavigationEnabled():
             self.runScript("Q3D.Config.navigation.enabled = false;")
 
         # call init()
@@ -75,8 +75,8 @@ class Q3DWebPageCommon:
 
     def initialized(self):
         # labels
-        header = self.settings.headerLabel()
-        footer = self.settings.footerLabel()
+        header = self.expSettings.headerLabel()
+        footer = self.expSettings.footerLabel()
         if header or footer:
             self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
 
