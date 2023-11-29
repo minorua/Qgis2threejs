@@ -344,6 +344,12 @@ function setBackgroundColor(color, alpha) {
 	app.render();
 }
 
+function verifySize(width, height) {
+	var vec2 = new THREE.Vector2();
+	app.renderer.getSize(vec2);
+	return (vec2.x == width && vec2.y == height);
+}
+
 //// camera
 function switchCamera(is_ortho) {
 	app.buildCamera(is_ortho);

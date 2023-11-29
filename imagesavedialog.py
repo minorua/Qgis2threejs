@@ -25,19 +25,21 @@ class ImageSaveDialog(QDialog):
         self.ui.spinBox_Width.setValue(size.width())
         self.ui.spinBox_Height.setValue(size.height())
 
-    def renderImage(self):
+    def renderImage(self, callback):
         width = self.ui.spinBox_Width.value()
         height = self.ui.spinBox_Height.value()
-        return self.wnd.webPage.renderImage(width, height)
+        self.wnd.ui.webView.renderImage(width, height, callback, self.wnd)
 
     def copyToClipboard(self):
         self.setEnabled(False)
 
-        image = self.renderImage()
-        QApplication.clipboard().setImage(image)
+        def callback(image):
+            QApplication.clipboard().setImage(image)
 
-        self.setEnabled(True)
-        self.wnd.ui.statusbar.showMessage(self.tr("Image has been rendered and copied to clipboad."), 5000)
+            self.setEnabled(True)
+            self.wnd.ui.statusbar.showMessage(self.tr("Image has been rendered and copied to clipboad."), 5000)
+
+        self.renderImage(callback)
 
     def accept(self):
         filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save current view as"), QDir.homePath(), "PNG files (*.png)")
@@ -49,9 +51,10 @@ class ImageSaveDialog(QDialog):
         if not filename.lower().endswith(".png"):       # fix for #278
             filename += ".png"
 
-        image = self.renderImage()
-        image.save(filename)
+        def callback(image):
+            image.save(filename)
 
-        self.wnd.ui.statusbar.showMessage(self.tr("Image has been saved to file."), 5000)
+            self.wnd.ui.statusbar.showMessage(self.tr("Image has been saved to file."), 5000)
+            QDialog.accept(self)
 
-        super().accept()
+        self.renderImage(callback)

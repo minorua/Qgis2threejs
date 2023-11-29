@@ -78,7 +78,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
     def sendData(self, data):
         self.runScript("loadJSONObject(pyData())", data, message=None)
 
-    def renderImage(self, width, height):
+    def renderImage(self, width, height, callback):
         old_size = self.viewportSize()
         self.setViewportSize(QSize(width, height))
 
@@ -88,7 +88,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         painter.end()
 
         self.setViewportSize(old_size)
-        return image
+
+        callback(image)
 
 
 class Q3DWebKitView(Q3DWebViewCommon, QWebView):
@@ -122,3 +123,6 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
         dlg.setLayout(v)
         dlg.show()
+
+    def renderImage(self, width, height, callback, wnd=None):
+        self._page.renderImage(width, height, callback)

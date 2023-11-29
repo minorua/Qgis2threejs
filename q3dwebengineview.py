@@ -6,7 +6,7 @@
 import os
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--ignore-gpu-blocklist --enable-gpu-rasterization"
 
-from PyQt5.QtCore import Qt, QEventLoop, QSize, QUrl
+from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
 from PyQt5.QtWebChannel import QWebChannel
@@ -83,19 +83,6 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
     def sendData(self, data):
         self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
 
-    #TODO
-    def renderImage(self, width, height):
-        old_size = self.viewportSize()
-        self.setViewportSize(QSize(width, height))
-
-        image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-        painter = QPainter(image)
-        self.mainFrame().render(painter)
-        painter.end()
-
-        self.setViewportSize(old_size)
-        return image
-
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
 
@@ -124,3 +111,43 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         dlg.setLayout(v)
         dlg.show()
+
+    # FIXME: unstable
+    def renderImage(self, width, height, callback, wnd=None):
+        if wnd:
+            geom = wnd.saveGeometry()
+            wnd.setEnabled(False)
+
+        img = QImage(width, height, QImage.Format_ARGB32)
+        painter = QPainter(img)
+
+        minSize = self.minimumSize()
+        maxSize = self.maximumSize()
+
+        self.setMinimumSize(width, height)
+        self.setMaximumSize(width, height)
+
+        def restoreGeom():
+            wnd.restoreGeometry(geom)
+
+        def myCallback(_=None):
+            self.render(painter)
+            painter.end()
+
+            callback(img)
+
+            self.setMinimumSize(minSize)
+            self.setMaximumSize(maxSize)
+
+            if wnd:
+                wnd.setEnabled(True)
+
+                QTimer.singleShot(200, restoreGeom)
+
+        def preCallback(_=None):
+            QTimer.singleShot(200, myCallback)
+
+        def requestRender():
+            self.runScript("app.render()", callback=preCallback)
+
+        QTimer.singleShot(1000, requestRender)
