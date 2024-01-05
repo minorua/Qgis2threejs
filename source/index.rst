@@ -1,5 +1,5 @@
-.. Qgis2threejs plugin documentation master file, created by
-   sphinx-quickstart on Fri Sep 18 15:17:19 2015.
+.. Qgis2threejs Plugin documentation master file, created by
+   sphinx-quickstart on Fri Jan  5 16:05:27 2024.
 
 Qgis2threejs Plugin Document
 ============================
@@ -15,6 +15,7 @@ Table Of Contents:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Contents:
 
    Examples
    Tutorial
@@ -24,3 +25,11 @@ Table Of Contents:
    ExportUsingProcessingAlgorithm
    ExportUsingPython
    Development
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
