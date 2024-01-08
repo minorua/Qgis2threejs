@@ -6,10 +6,10 @@ You can build various kinds of 3D objects and generate files for web publishing 
 In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
 
 
-Documentation
--------------
+Document
+--------
 
-  Online documentation: https://qgis2threejs.readthedocs.org/
+  Online document: https://minorua.github.io/Qgis2threejs/docs/
 
 
 Browser Support
