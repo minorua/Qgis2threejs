@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Exporter &#8212; Qgis2threejs Plugin 2.7 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=ab527d87"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Object Types" href="ObjectTypes.html" />
+    <link rel="prev" title="Tutorial" href="Tutorial.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="exporter">
+<h1>Exporter<a class="headerlink" href="#exporter" title="Link to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#window" id="id2">Window</a></p></li>
+<li><p><a class="reference internal" href="#scene-settings" id="id3">Scene Settings</a></p></li>
+<li><p><a class="reference internal" href="#camera-settings" id="id4">Camera Settings</a></p></li>
+<li><p><a class="reference internal" href="#controls-settings" id="id5">Controls Settings</a></p></li>
+<li><p><a class="reference internal" href="#widgets" id="id6">Widgets</a></p></li>
+<li><p><a class="reference internal" href="#dem-layer-settings" id="id7">DEM Layer Settings</a></p></li>
+<li><p><a class="reference internal" href="#vector-layer-settings" id="id8">Vector Layer Settings</a></p></li>
+<li><p><a class="reference internal" href="#point-cloud-layer-settings" id="id9">Point Cloud Layer Settings</a></p></li>
+<li><p><a class="reference internal" href="#animation" id="id10">Animation</a></p></li>
+<li><p><a class="reference internal" href="#export-to-web-dialog" id="id11">Export to Web Dialog</a></p></li>
+<li><p><a class="reference internal" href="#exporter-settings" id="id12">Exporter Settings</a></p></li>
+</ul>
+</nav>
+<section id="window">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Window</a><a class="headerlink" href="#window" title="Link to this heading">¶</a></h2>
+<p>Qgis2threejs exporter window has <cite>Layers</cite> panel and <cite>Animation</cite> panel on the left side, and preview on the right side.</p>
+<img alt="_images/exporter1.png" src="_images/exporter1.png" />
+<p>In this plugin, the word “export settings” means all configuration settings for a 3D scene and its viewer application,
+which consist of settings for scene, camera, every layer to export, animation, widgets on web page and so on.
+You can configure them via <a class="reference external" href="#scene">Scene</a> menu, <cite>Layers</cite> panel, <cite>Animation</cite> panel, <cite>View</cite> menu and <cite>Export to Web</cite> dialog.</p>
+<p>In the <cite>Layers</cite> panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
+To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
+<cite>Properties…</cite> from context menu (right click menu).</p>
+<p>Export settings are automatically saved to a <code class="docutils literal notranslate"><span class="pre">.qto3settings</span></code> file alongside the current QGIS project file if you are working
+with a QGIS project file. When you open the exporter later, the export settings of the project will be restored.</p>
+<p>If you don’t want to use preview, uncheck <cite>Preview</cite> checkbox in the lower right corner of the window.
+You might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update.</p>
+<section id="menu">
+<h3>Menu<a class="headerlink" href="#menu" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>File</p>
+<blockquote>
+<div><ul>
+<li><dl class="simple">
+<dt>Export to Web…</dt><dd><p>Exports files for publishing current scene to web. See <a class="reference external" href="#export-to-web-dialog">Export to Web Dialog</a>
+section.</p>
+</dd>
+</dl>
+</li>
+<li><p>Save Scene As</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Image (.png)…</dt><dd><p>Saves rendered scene image to a PNG file.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves 3D model of current scene in glTF format.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Export Settings</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Load…</dt><dd><p>✏</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Save…</dt><dd><p>✏</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Clear…</dt><dd><p>Clears current export settings.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><dl class="simple">
+<dt>Exporter Settings…</dt><dd><p>Opens Exporter Settings dialog. See <a class="reference external" href="#exporter-settings">Exporter Settings Dialog</a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Close</dt><dd><p>Closes Qgis2threejs Exporter.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Scene</p>
+<blockquote>
+<div><ul>
+<li><dl class="simple">
+<dt>Scene Settings…</dt><dd><p>Opens Scene settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a> section.</p>
+</dd>
+</dl>
+</li>
+<li><p>Add Layer</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Add Flat Plane</dt><dd><p>✏</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Add Point Cloud Layer…</dt><dd><p>✏</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><dl class="simple">
+<dt>Reload (F5)</dt><dd><p>Reloads current scene.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>View</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Camera</dt><dd><p>Changes the camera. See <a class="reference external" href="#camera-settings">Camera Settings</a> section.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Widgets</dt><dd><p>Configures widgets to be place on web page, such as Navigation widget, North arrow and footer label.
+See <a class="reference external" href="#widgets">Widgets</a> section.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Reset Camera Position (Shift+R)</dt><dd><p>Returns to the initial camera position and resets its focal point to the initial point.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Window</p>
+<blockquote>
+<div><ul>
+<li><p>Panels</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Layers</dt><dd><p>Toggles <cite>Layers</cite> panel visibility.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Animation</dt><dd><p>Toggles <cite>Animation</cite> panel visibility.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Console</dt><dd><p>Toggles <cite>Console</cite> panel visibility.
+Console panel displays information for debugging, mainly JavaScript side information.
+Python side debug information is logged to log messages panel in QGIS window.
+You can enter JavaScript statements and execute them.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Always on Top
+Brings the exporter window to front of all other application windows.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Help</p>
+<blockquote>
+<div><ul>
+<li><p>Usage of 3D Viewer</p>
+<p>✏</p>
+</li>
+<li><p>Help Contents
+Opens the plugin document in default browser. Internet connection is required.</p></li>
+<li><p>Plugin Homepage
+Opens the plugin homepage in default browser. Internet connection is required.</p></li>
+<li><p>Send Feedback
+Opens the plugin issue tracking system in default browser. Internet connection is required.</p></li>
+<li><p>About Qgis2threejs Plugin…
+Displays the plugin version you are using.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+<section id="scene-settings">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Scene Settings</a><a class="headerlink" href="#scene-settings" title="Link to this heading">¶</a></h2>
+<p>Scene settings dialog controls some basic configuration settings for current scene.
+Click on <code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Scene</span> <span class="pre">Settings...</span></code> menu entry to open the dialog.</p>
+<a class="reference internal image-reference" href="_images/scene_settings.png"><img alt="_images/scene_settings.png" class="align-right" src="_images/scene_settings.png" style="width: 232.0px; height: 345.5px;" /></a>
+<ul>
+<li><p>World Coordinates</p>
+<blockquote>
+<div><ul>
+<li><p>Origin of xy-plane</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">Center</span> <span class="pre">of</span> <span class="pre">base</span> <span class="pre">extent</span></code>
+<code class="docutils literal notranslate"><span class="pre">Origin</span> <span class="pre">of</span> <span class="pre">map</span> <span class="pre">coordinate</span> <span class="pre">system</span></code></p>
+</div></blockquote>
+</li>
+<li><p>Z exaggeration</p>
+<blockquote>
+<div><p>Vertical exaggeration factor. This value affects terrain shape and z
+positions of all vector 3D objects. This also affects 3D object height
+of some object types with volume. Shape types to be affected:</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Point : Cylinder, Cube, Cone</div>
+<div class="line">Polygon : Extruded</div>
+</div>
+</div></blockquote>
+<p>The following shape types have volume, but their heights aren’t
+affected by this factor:</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Point : Sphere</div>
+<div class="line">Line : Pipe, Cone, Box</div>
+</div>
+</div></blockquote>
+<p>The default value is 1.0.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Base Extent</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Use map canvas extent</p></li>
+<li><p>Fixed extent</p></li>
+<li><p>Fix aspect ratio to 1:1
+Checked by default since version 2.7.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Background</p>
+<blockquote>
+<div><p>Select either sky-like gradient or a solid color for the scene background.
+Default is Sky.</p>
+</div></blockquote>
+</li>
+<li><p>Display of coordinates</p>
+<blockquote>
+<div><p>If the <code class="docutils literal notranslate"><span class="pre">Latitude</span> <span class="pre">and</span> <span class="pre">longitude</span> <span class="pre">(WGS84)</span></code> option is selected,
+coordinates of clicked position on a 3D object are displayed in
+longitude and latitude (WGS84). If
+<a class="reference external" href="https://github.com/proj4js/proj4js">Proj4js</a> doesn’t support current
+map CRS, this option is disabled.</p>
+</div></blockquote>
+</li>
+</ul>
+<a class="reference internal image-reference" href="_images/scene_settings2.png"><img alt="_images/scene_settings2.png" src="_images/scene_settings2.png" style="width: 232.0px; height: 345.5px;" /></a>
+<ul>
+<li><p>Light
+<code class="docutils literal notranslate"><span class="pre">Directional</span> <span class="pre">light</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">lower</span> <span class="pre">left</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">2D</span> <span class="pre">map</span></code>
+<code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">light</span> <span class="pre">above</span> <span class="pre">the</span> <span class="pre">camera</span></code></p></li>
+<li><p>Fog
+Color and density.</p></li>
+<li><p>Material &amp; Effect</p>
+<blockquote>
+<div><ul>
+<li><p>Basic material type</p>
+<blockquote>
+<div><p>Material type applied to most 3D objects, except for Point, Billboard, Model File and Line type objects.
+Select a material type from
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshLambertMaterial">Lambert material</a>,
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">Phong material</a> and
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshToonMaterial">Toon material</a>.
+Default is Lambert material.</p>
+</div></blockquote>
+</li>
+<li><p>Enable outline effect</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="camera-settings">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Camera Settings</a><a class="headerlink" href="#camera-settings" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>Perspective Camera</p>
+<blockquote>
+<div><p>Renders closer objects as bigger and farther objects as smaller.</p>
+</div></blockquote>
+</li>
+<li><p>Orthographic Camera</p>
+<blockquote>
+<div><p>Rendered object size doesn’t depend on the distance from the camera.</p>
+</div></blockquote>
+</li>
+</ul>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Perspective camera</p></td>
+<td><p>Orthographic camera</p></td>
+</tr>
+<tr class="row-even"><td><p><img alt="perspective camera" src="_images/perspective.png" /></p></td>
+<td><p><img alt="orthographic camera" src="_images/orthographic.png" /></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="controls-settings">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Controls Settings</a><a class="headerlink" href="#controls-settings" title="Link to this heading">¶</a></h2>
+<p>OrbitControls is available.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Ctrl</p></th>
+<th class="head"><p>Mouse / Keys</p></th>
+<th class="head"><p>Touch</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Orbit</p></td>
+<td><p>Left mouse</p></td>
+<td><p>One-finger move</p></td>
+</tr>
+<tr class="row-odd"><td><p>Zoom</p></td>
+<td><p>Middle mouse, or mousewheel</p></td>
+<td><p>Two-finger spread or squish</p></td>
+</tr>
+<tr class="row-even"><td><p>Pan</p></td>
+<td><p>Right mouse, or left mouse + ctrl/metaKey, or arrow keys</p></td>
+<td><p>Two-finger move</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="widgets">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Widgets</a><a class="headerlink" href="#widgets" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>Navigation widget</p>
+<p>✏</p>
+</li>
+<li><p>North arrow</p>
+<blockquote>
+<div><p>Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.</p>
+</div></blockquote>
+</li>
+<li><p>Header/Footer label</p>
+<blockquote>
+<div><p>Adds a header label to top-left corner of the web page and/or a footer label to lower-left corner.
+Label text can contain valid HTML tags for styling.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="dem-layer-settings">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">DEM Layer Settings</a><a class="headerlink" href="#dem-layer-settings" title="Link to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="_images/dem_layer.png"><img alt="_images/dem_layer.png" src="_images/dem_layer.png" style="width: 232.0px; height: 335.5px;" /></a>
+<section id="geometry">
+<h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>Resampling level</p>
+<blockquote>
+<div><p>Select a DEM resolution from several levels. This resolution is used to
+resample the DEM, but is not for texture.</p>
+</div></blockquote>
+</li>
+<li><p>Clip DEM with polygon layer</p>
+<blockquote>
+<div><p>Clips the DEM with a polygon layer. If you have a polygon layer that
+represents the area that elevation data exist or represents drainage basins,
+you might want to use this option.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="material">
+<h3>Material<a class="headerlink" href="#material" title="Link to this heading">¶</a></h3>
+<p>✏</p>
+<p>The material list has one item <code class="docutils literal notranslate"><span class="pre">map</span> <span class="pre">(canvas)</span></code> by default.
+You can add a material to the list by clicking + button, selecting one of <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">layer(s)</span></code>, <code class="docutils literal notranslate"><span class="pre">Image</span> <span class="pre">file</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Solid</span> <span class="pre">color</span></code> and <code class="docutils literal notranslate"><span class="pre">Map</span> <span class="pre">canvas</span> <span class="pre">layers</span></code>.</p>
+<ul>
+<li><p>Map canvas layers</p>
+<blockquote>
+<div><p>Render a texture image with the current map settings for each DEM block.</p>
+</div></blockquote>
+</li>
+<li><p>Layer image(s)</p>
+<blockquote>
+<div><p>Render a texture image with the selected layer(s) for each DEM block.</p>
+</div></blockquote>
+</li>
+<li><p>Image file</p>
+<blockquote>
+<div><p>Textures the main DEM block with existing image file such as PNG file and JPEG file.
+TIFF is not supported by some browser. See <a class="reference external" href="https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support">Image format
+support</a>
+for details.</p>
+</div></blockquote>
+</li>
+<li><p>Solid color</p>
+<blockquote>
+<div><p>To select a color, press the button on the right side.</p>
+</div></blockquote>
+</li>
+<li><p>Image width (px)</p>
+<blockquote>
+<div><p>Select width of image draped on each DEM block. Default value is 1024.</p>
+</div></blockquote>
+</li>
+<li><p>Opaciy</p>
+<blockquote>
+<div><p>Sets opacity of DEM object. 100 is opaque, and 0 is transparent.</p>
+</div></blockquote>
+</li>
+<li><p>Transparent background</p>
+<blockquote>
+<div><p>When map canvas image or layer image is chosen</p>
+<p>Makes image background transparent.</p>
+</div></blockquote>
+</li>
+<li><p>Enable shading</p>
+<blockquote>
+<div><p>Adds a shading effect to DEM surface. Checked by default.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="tiles">
+<h3>Tiles<a class="headerlink" href="#tiles" title="Link to this heading">¶</a></h3>
+<p>✏</p>
+<ul>
+<li><p>Tiles</p>
+<blockquote>
+<div><p>This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
+Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
+(a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
+the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
+means that the number of grid points in the same area becomes 1/4.</p>
+</div></blockquote>
+</li>
+</ul>
+<a class="reference internal image-reference" href="_images/dem_layer2.png"><img alt="_images/dem_layer2.png" src="_images/dem_layer2.png" style="width: 232.0px; height: 335.5px;" /></a>
+</section>
+<section id="other-options">
+<h3>Other Options<a class="headerlink" href="#other-options" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>Build sides</p>
+<blockquote>
+<div><p>This option adds sides and bottom to each DEM block. The z position of bottom
+in the 3D world is fixed. You can adjust the height of sides by changing
+the value of vertical shift option in the World panel. If you want to
+change color, edit the output JS file directly.</p>
+</div></blockquote>
+</li>
+<li><p>Add edge lines</p>
+<blockquote>
+<div><p>This option adds frame to the DEM. If you want to change color, edit the output
+JS file directly.</p>
+</div></blockquote>
+</li>
+<li><p>Add quad wireframe</p></li>
+<li><p>Name</p></li>
+<li><p>Visible on Load</p>
+<blockquote>
+<div><p>Whether the layer is visible on page load or not.</p>
+</div></blockquote>
+</li>
+<li><p>Clickable</p></li>
+</ul>
+</section>
+</section>
+<section id="vector-layer-settings">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Vector Layer Settings</a><a class="headerlink" href="#vector-layer-settings" title="Link to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="_images/vector_layer.png"><img alt="_images/vector_layer.png" src="_images/vector_layer.png" style="width: 232.0px; height: 359.0px;" /></a>
+<p>Vector layers are grouped into three types: Point, Line and Polygon.
+Common settings for all types:</p>
+<ul>
+<li><p>Type</p>
+<p>Select a shape type.</p>
+</li>
+<li><p>Z coordinate</p>
+<blockquote>
+<div><ul>
+<li><p>Altitude Mode</p>
+<blockquote>
+<div><ul>
+<li><p>Absolute</p>
+<blockquote>
+<div><p>Altitude is distance above zero-level.</p>
+</div></blockquote>
+</li>
+<li><p>Relative to (a DEM layer)</p>
+<blockquote>
+<div><p>Altitude is distance above surface of selected DEM.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Altitude</p>
+<blockquote>
+<div><p>You can use an expression to define altitude of objects above zero-level or
+surface of selected DEM layer. This means that object altitude can be defined
+using field values. The unit is that of the map CRS.</p>
+<ul>
+<li><p>Expression</p>
+<blockquote>
+<div><p>A numeric value, field or more complex expression (QGIS expressions).</p>
+</div></blockquote>
+</li>
+<li><p>Z value / M value</p>
+<blockquote>
+<div><p>Uses z coordinate or m value of each vertex. the evaluated value is added to it.</p>
+<p>These options can be chosen when the layer geometries have z coordinates or m values.
+Cannot be chosen when the object type is Extruded or Overlay.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Geometry and Material</p>
+<blockquote>
+<div><p>Usually, there are options to set object color and transparency. Refer
+to the links below for each object type specific settings. The unit of
+value for object size is that of the map CRS.</p>
+</div></blockquote>
+</li>
+<li><p>Feature</p>
+<blockquote>
+<div><p>Select the features to be exported.</p>
+<ul>
+<li><p>All features</p>
+<blockquote>
+<div><p>All features of the layer are exported.</p>
+</div></blockquote>
+</li>
+<li><p>Features that intersect with map canvas extent</p>
+<blockquote>
+<div><p>Features on the map canvas are exported.</p>
+<ul>
+<li><p>Clip geometries</p>
+<blockquote>
+<div><p>This option is available with Line/Polygon layer. If checked, geometries are clipped by the extent of map canvas.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Attributes</p>
+<blockquote>
+<div><p>If the export attributes option is checked, attributes are exported with
+feature geometries. Attributes are displayed when you click an object on
+web browser.</p>
+</div></blockquote>
+</li>
+</ul>
+<a class="reference internal image-reference" href="_images/vector_layer2.png"><img alt="_images/vector_layer2.png" src="_images/vector_layer2.png" style="width: 232.0px; height: 359.0px;" /></a>
+<ul>
+<li><p>Labels</p>
+<blockquote>
+<div><p>This combo box is not available when layer type is line.</p>
+<ul class="simple">
+<li><p>Show labels
+a label is displayed above each object.</p></li>
+<li><p>Position</p></li>
+<li><p>Text</p></li>
+<li><p>Fill background</p></li>
+<li><p>Connector</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<a class="reference internal image-reference" href="_images/vector_layer3.png"><img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" style="width: 232.0px; height: 359.0px;" /></a>
+<ul>
+<li><p>Others</p>
+<ul>
+<li><p>Name</p></li>
+<li><p>Visible on Load</p>
+<p>Whether the layer is visible on page load or not.</p>
+</li>
+<li><p>Clickable</p></li>
+</ul>
+</li>
+</ul>
+<section id="point">
+<h3>Point<a class="headerlink" href="#point" title="Link to this heading">¶</a></h3>
+<p>Point layers in the project are listed as the child items. The following
+shape types are available:</p>
+<blockquote>
+<div><p>Sphere, Cylinder, Cone, Box, Disk, Plane, Model File</p>
+</div></blockquote>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-point-layer"><span class="std std-ref">Point Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+</section>
+<section id="line">
+<h3>Line<a class="headerlink" href="#line" title="Link to this heading">¶</a></h3>
+<p>Line layers in the project are listed as the child items. The following
+shape types are available:</p>
+<blockquote>
+<div><p>Line, Pipe, Cone, Box, Wall</p>
+</div></blockquote>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-line-layer"><span class="std std-ref">Line Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+</section>
+<section id="polygon">
+<h3>Polygon<a class="headerlink" href="#polygon" title="Link to this heading">¶</a></h3>
+<p>Polygon layers in the project are listed as the child items. The
+following shape types are available:</p>
+<blockquote>
+<div><p>Polygon, Extruded, Overlay</p>
+</div></blockquote>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-polygon-layer"><span class="std std-ref">Polygon Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+<a class="reference internal image-reference" href="_images/vector_layer3.png"><img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" style="width: 232.0px; height: 359.0px;" /></a>
+</section>
+</section>
+<section id="point-cloud-layer-settings">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Point Cloud Layer Settings</a><a class="headerlink" href="#point-cloud-layer-settings" title="Link to this heading">¶</a></h2>
+<p>✏</p>
+<ul class="simple">
+<li><p>Information</p></li>
+<li><p>Material</p>
+<ul>
+<li><p>Color type</p></li>
+<li><p>Opacity</p></li>
+</ul>
+</li>
+<li><p>Other options
+* Name
+* Show bounding boxes
+* Visible on load
+* Clickable</p></li>
+</ul>
+</section>
+<section id="animation">
+<span id="id1"></span><h2><a class="toc-backref" href="#id10" role="doc-backlink">Animation</a><a class="headerlink" href="#animation" title="Link to this heading">¶</a></h2>
+<section id="animation-panel">
+<h3>Animation panel<a class="headerlink" href="#animation-panel" title="Link to this heading">¶</a></h3>
+<p>✏</p>
+<ul>
+<li><p>Camera Motion</p>
+<p>Group and keyframe item.</p>
+</li>
+<li><p>Layer</p>
+<ul class="simple">
+<li><p>Texture change</p></li>
+<li><p>Growing line</p></li>
+<li><p>Change opacity</p></li>
+</ul>
+</li>
+<li><p>Tween</p></li>
+</ul>
+<a class="reference internal image-reference" href="_images/tween.png"><img alt="_images/tween.png" src="_images/tween.png" style="width: 50%;" /></a>
+</section>
+<section id="keyframe-dialog">
+<h3>Keyframe dialog<a class="headerlink" href="#keyframe-dialog" title="Link to this heading">¶</a></h3>
+<a class="reference internal image-reference" href="_images/keyframe_camera.png"><img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png" style="width: 50%;" /></a>
+<p>✏</p>
+</section>
+</section>
+<section id="export-to-web-dialog">
+<span id="export-web-dialog"></span><h2><a class="toc-backref" href="#id11" role="doc-backlink">Export to Web Dialog</a><a class="headerlink" href="#export-to-web-dialog" title="Link to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="_images/export_to_web.png"><img alt="_images/export_to_web.png" src="_images/export_to_web.png" style="width: 50%;" /></a>
+<ul>
+<li><p>Output directory and HTML Filename</p>
+<blockquote>
+<div><p>Select output HTML file path. Usually, a js file with the same file
+title that contains whole data of geometries and images is output into
+the same directory, and some JavaScript library files are copied
+into the directory. Leave this empty to output into temporary
+directory. Temporary files are removed when you close the QGIS
+application.</p>
+</div></blockquote>
+</li>
+<li><p>Page title</p>
+<p>✏</p>
+</li>
+<li><p>Preserve the Current Viewpoint</p>
+<p>If checked, the current viewpoint of the preview is used as initial viewpoint.</p>
+</li>
+<li><p>Enable the Viewer to Run Locally</p>
+<p>If checked, export all scene data to a .js file to avoid web browser’s same origin policy
+security restrictions. You can view the exported scene without uploading it to a web
+server, although the total file size will increase and it will take longer to load.</p>
+</li>
+<li><p>Template</p>
+<blockquote>
+<div><p>Select a template from available templates:</p>
+<ul>
+<li><p>3DViewer</p>
+<blockquote>
+<div><p>This template is a 3D viewer without any additional UI library.</p>
+</div></blockquote>
+</li>
+<li><p>3DViewer(dat-gui)</p>
+<blockquote>
+<div><p>This template has a <a class="reference external" href="https://code.google.com/p/dat-gui/">dat-gui</a>
+panel, which makes it possible to toggle layer visibility, adjust layer
+opacity and add a horizontal plane movable in the vertical direction.</p>
+</div></blockquote>
+</li>
+<li><p>Mobile</p>
+<blockquote>
+<div><p>This is a template for mobile devices, which has mobile friendly GUI,
+device orientation controls and AR feature. In order to use the AR feature
+(Camera and GPS), you need to upload exported files to a web server that
+supports SSL.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Magnetic North Direction</dt><dd><p>Magnetic North direction clockwise from the upper direction of the map, in degrees.
+This value will be set to 0 if map canvas is rotated so that magnetic North direction is
+same as the map upper direction. Otherwise, the value should be determined taking account of
+grid magnetic angle (angle between grid North and magnetic North) and map rotation.
+Used to determine device camera direction.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Animation and Narrative</p>
+<blockquote>
+<div><p>✏</p>
+<ul class="simple">
+<li><p>Start animation once the scene has been loaded</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Export button</p>
+<blockquote>
+<div><p>Exporting starts when you press the Export button. When the exporting has
+been done and <cite>Open exported page in web browser</cite> option is checked, the
+exported page is opened in default web browser (or a web browser specified
+in <a class="reference external" href="#exporter-settings">Exporter Settings</a>).</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="exporter-settings">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Exporter Settings</a><a class="headerlink" href="#exporter-settings" title="Link to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="_images/plugin_settings.png"><img alt="_images/plugin_settings.png" src="_images/plugin_settings.png" style="width: 50%;" /></a>
+<ul>
+<li><p>Web browser path</p>
+<blockquote>
+<div><p>If you want to run the exported viewer with a web browser other than the default browser,
+enter path to the web browser in this input box.
+See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/wiki/Browser-Support">Browser Support</a> wiki page.</p>
+</div></blockquote>
+</li>
+<li><p>Optional Features</p>
+<blockquote>
+<div><p>See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/wiki/Plugins">Plugins</a> wiki page.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Qgis2threejs Plugin</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ObjectTypes.html">Object Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WebViewerTemplates.html">Web Viewer Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingProcessingAlgorithm.html">Export Scenes using Processing Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingPython.html">Export Scenes Programmatically using Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Development.html">Development</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Tutorial.html" title="previous chapter">Tutorial</a></li>
+      <li>Next: <a href="ObjectTypes.html" title="next chapter">Object Types</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Minoru Akagi.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/Exporter.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
