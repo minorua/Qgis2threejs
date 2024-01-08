@@ -1,0 +1,358 @@
+{
+  "type": "scene",
+  "properties": {
+    "height": 76.52582159624413,
+    "width": 100.0,
+    "baseExtent": [
+      -34980.76553342637,
+      -144544.99713245398,
+      -32178.32222273045,
+      -142400.40436417496
+    ],
+    "crs": "EPSG:6673",
+    "proj": "+proj=tmerc +lat_0=36 +lon_0=134.3333333333333 +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs",
+    "rotation": 0,
+    "wgs84Center": {
+      "lat": 34.70615585959804,
+      "lon": 133.9667619142783
+    },
+    "zExaggeration": 1.0,
+    "zShift": 0.0
+  },
+  "layers": [
+    {
+      "type": "layer",
+      "id": 0,
+      "properties": {
+        "name": "DEM5 Slope",
+        "queryable": 1,
+        "visible": true,
+        "type": "dem",
+        "shading": true
+      },
+      "PROPERTIES": {
+        "spinBox_Opacity": 100,
+        "horizontalSlider_DEMSize": 4,
+        "checkBox_Surroundings": false,
+        "spinBox_Size": 3,
+        "spinBox_Roughening": 1,
+        "radioButton_LayerImage": true,
+        "checkBox_TransparentBackground": false,
+        "lineEdit_ImageFile": "",
+        "colorButton_Color": "0x000000",
+        "comboBox_TextureSize": 100,
+        "checkBox_Shading": true,
+        "checkBox_Clip": false,
+        "comboBox_ClipLayer": "Basins_ec9469fc_e0f6_4295_9a26_407501b647f5",
+        "checkBox_Sides": false,
+        "toolButton_SideColor": "0xccbbaa",
+        "checkBox_Frame": false,
+        "checkBox_Visible": true,
+        "layerImageIds": [
+          "slopeDeg20120723105126990"
+        ]
+      },
+      "data": [
+        {
+          "type": "block",
+          "layer": 0,
+          "block": 0,
+          "width": 100.0,
+          "height": 76.52582159624413,
+          "translate": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "zShift": 0.0,
+          "zScale": 0.03568314820797122,
+          "material": {
+            "type": 0,
+            "image": {
+              "url": "./data/forest_basins/a0.png"
+            },
+            "ds": 1
+          },
+          "grid": {
+            "width": 458,
+            "height": 350,
+            "url": "./data/forest_basins/a0.bin"
+          }
+        }
+      ]
+    },
+    {
+      "type": "layer",
+      "id": 1,
+      "properties": {
+        "name": "DEM5 Photo",
+        "queryable": 1,
+        "visible": false,
+        "type": "dem",
+        "shading": true
+      },
+      "PROPERTIES": {
+        "spinBox_Opacity": 100,
+        "horizontalSlider_DEMSize": 4,
+        "checkBox_Surroundings": false,
+        "spinBox_Size": 3,
+        "spinBox_Roughening": 1,
+        "radioButton_LayerImage": true,
+        "checkBox_TransparentBackground": false,
+        "lineEdit_ImageFile": "",
+        "colorButton_Color": "0xe11195",
+        "comboBox_TextureSize": 200,
+        "checkBox_Shading": true,
+        "checkBox_Clip": false,
+        "comboBox_ClipLayer": "Basins_ec9469fc_e0f6_4295_9a26_407501b647f5",
+        "checkBox_Sides": true,
+        "toolButton_SideColor": "0xa1cabf",
+        "checkBox_Frame": true,
+        "checkBox_Visible": false,
+        "layerImageIds": [
+          "\u5199\u771f_c7d5e5b6_94df_4c1d_99c7_2e0ea68e8858"
+        ]
+      },
+      "data": [
+        {
+          "type": "block",
+          "layer": 1,
+          "block": 0,
+          "width": 100.0,
+          "height": 76.52582159624413,
+          "translate": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "zShift": 0.0,
+          "zScale": 0.03568314820797122,
+          "material": {
+            "type": 0,
+            "image": {
+              "url": "./data/forest_basins/b0.png"
+            },
+            "ds": 1
+          },
+          "grid": {
+            "width": 458,
+            "height": 350,
+            "url": "./data/forest_basins/b0.bin"
+          },
+          "sides": {
+            "mtl": {
+              "type": 0,
+              "c": 10603199
+            }
+          },
+          "frame": {
+            "mtl": {
+              "type": 3,
+              "c": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "layer",
+      "id": 3,
+      "properties": {
+        "name": "Basins",
+        "queryable": 1,
+        "visible": true,
+        "type": "polygon",
+        "objType": "Overlay",
+        "propertyNames": [
+          "name"
+        ]
+      },
+      "data": {
+        "materials": [
+          {
+            "type": 0,
+            "c": 8570859,
+            "o": 0.6,
+            "ds": 1
+          },
+          {
+            "type": 3,
+            "c": 2302755,
+            "o": 0.6
+          },
+          {
+            "type": 0,
+            "c": 16496808,
+            "o": 0.6,
+            "ds": 1
+          }
+        ],
+        "blocks": [
+          {
+            "url": "./data/forest_basins/c0.json"
+          }
+        ]
+      },
+      "PROPERTIES": {
+        "comboBox_ObjectType": "Overlay",
+        "radioButton_Expression": true,
+        "fieldExpressionWidget_altitude": "2",
+        "comboBox_altitudeMode": "tatsunokuchi_jpr520120723104523685",
+        "styleWidget0": {
+          "type": 2,
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "\"name\""
+        },
+        "styleWidget1": {
+          "type": 5,
+          "comboData": 2,
+          "comboText": "Expression",
+          "editText": "60"
+        },
+        "styleWidget2": {
+          "type": 7,
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "0"
+        },
+        "styleWidget3": {},
+        "styleWidget4": {},
+        "styleWidget5": {},
+        "radioButton_IntersectingFeatures": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": true,
+        "comboBox_Label": null,
+        "labelHeightWidget": {
+          "type": 6,
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "200"
+        },
+        "checkBox_Visible": true
+      }
+    },
+    {
+      "type": "layer",
+      "id": 6,
+      "properties": {
+        "name": "Weirs",
+        "queryable": 1,
+        "visible": true,
+        "type": "point",
+        "objType": "Cone"
+      },
+      "data": {
+        "materials": [
+          {
+            "type": 0,
+            "c": 12249085
+          }
+        ],
+        "blocks": [
+          {
+            "url": "./data/forest_basins/d0.json"
+          }
+        ]
+      },
+      "PROPERTIES": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Cone",
+        "comboBox_altitudeMode": "tatsunokuchi_jpr520120723104523685",
+        "fieldExpressionWidget_altitude": "30",
+        "labelHeightWidget": {
+          "comboData": 0,
+          "comboText": "Absolute",
+          "editText": "162",
+          "type": 6
+        },
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "10",
+          "type": 1
+        },
+        "styleWidget3": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "-30",
+          "type": 1
+        },
+        "styleWidget4": {},
+        "styleWidget5": {}
+      }
+    },
+    {
+      "type": "layer",
+      "id": 11,
+      "properties": {
+        "name": "Grid500",
+        "queryable": 1,
+        "visible": true,
+        "type": "line",
+        "objType": "Line"
+      },
+      "data": {
+        "materials": [
+          {
+            "type": 3,
+            "c": 8227727
+          }
+        ],
+        "blocks": [
+          {
+            "url": "./data/forest_basins/e0.json"
+          }
+        ]
+      },
+      "PROPERTIES": {
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_Label": null,
+        "comboBox_ObjectType": "Line",
+        "comboBox_altitudeMode": null,
+        "fieldExpressionWidget_altitude": "0",
+        "labelHeightWidget": {},
+        "radioButton_AllFeatures": true,
+        "radioButton_Expression": true,
+        "styleWidget0": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "styleWidget1": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "styleWidget2": {
+          "checkBox": false,
+          "type": 9
+        },
+        "styleWidget3": {},
+        "styleWidget4": {},
+        "styleWidget5": {}
+      }
+    }
+  ]
+}

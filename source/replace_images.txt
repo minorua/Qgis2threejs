@@ -7,10 +7,10 @@
 .. Examples
 
 .. |Kibiji| image:: ./images/examples/kibiji.png
-   :target: https://qgis2threejs-examples-27.netlify.com/kibiji/
+   :target: /Qgis2threejs/examples/27/kibiji/
 
 .. |Mt_Fuji| image:: ./images/examples/mt_fuji.png
-   :target: https://qgis2threejs-examples-24.netlify.com/mt_fuji.html
+   :target: /Qgis2threejs/examples/24/mt_fuji.html
 
 .. |ForestBasins| image:: ./images/examples/forest_basins.png
-   :target: https://qgis2threejs-examples-24.netlify.com/forest_basins.html
+   :target: /Qgis2threejs/examples/24/forest_basins.html

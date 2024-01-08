@@ -1,0 +1,88 @@
+{
+  "type": "scene",
+  "properties": {
+    "height": 87.91011235955057,
+    "width": 120.0,
+    "baseExtent": [
+      250355.95350399474,
+      3880172.0461743544,
+      343928.8044755565,
+      3948722.0448636333
+    ],
+    "crs": "EPSG:32654",
+    "proj": "+proj=utm +zone=54 +datum=WGS84 +units=m +no_defs",
+    "rotation": 0,
+    "wgs84Center": {
+      "lat": 35.35272118678782,
+      "lon": 138.76750820082114
+    },
+    "zExaggeration": 1.0,
+    "zShift": 0.0
+  },
+  "layers": [
+    {
+      "type": "layer",
+      "id": 0,
+      "properties": {
+        "name": "SRTM3 Hillshade",
+        "queryable": 1,
+        "visible": true,
+        "type": "dem",
+        "shading": true
+      },
+      "PROPERTIES": {
+        "spinBox_Opacity": 100,
+        "horizontalSlider_DEMSize": 2,
+        "checkBox_Surroundings": false,
+        "spinBox_Size": 3,
+        "spinBox_Roughening": 1,
+        "radioButton_MapCanvas": true,
+        "checkBox_TransparentBackground": false,
+        "lineEdit_ImageFile": "",
+        "colorButton_Color": "0x000000",
+        "comboBox_TextureSize": 100,
+        "checkBox_Shading": true,
+        "checkBox_Clip": false,
+        "comboBox_ClipLayer": null,
+        "checkBox_Sides": true,
+        "toolButton_SideColor": "0x917457",
+        "checkBox_Frame": false,
+        "checkBox_Visible": true
+      },
+      "data": [
+        {
+          "type": "block",
+          "layer": 0,
+          "block": 0,
+          "width": 120.0,
+          "height": 87.91011235955057,
+          "translate": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "zShift": 0.0,
+          "zScale": 0.0012824232536900034,
+          "material": {
+            "type": 1,
+            "image": {
+              "url": "./data/mt_fuji/a0.png"
+            },
+            "ds": 1
+          },
+          "grid": {
+            "width": 234,
+            "height": 172,
+            "url": "./data/mt_fuji/a0.bin"
+          },
+          "sides": {
+            "mtl": {
+              "type": 1,
+              "c": 9532503
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+body {
+  font-family: arial, sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+#view {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+#view.sky {
+  background: -webkit-gradient(linear, left top, left bottom, from(#98c8f6), color-stop(0.4, #cbebff), to(#f0f9ff));
+  background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.queryable {
+  cursor: pointer;
+}
+
+.no-events {
+  pointer-events: none;
+}
+
+#labels {
+}
+
+.label {
+  position: absolute;
+  padding: 2px;
+  text-shadow: -1px -1px #FFF, 0px -1px #FFF, 1px -1px #FFF, -1px 0px #FFF, 1px 0px #FFF, -1px 1px #FFF, 0px 1px #FFF, 1px 1px #FFF;
+}
+
+.print-label {
+  /* these 2 properties are copied to canvas 2D context in renderLabels function of Qgis2threejs.js */
+  color: black;
+  font: normal medium sans-serif;
+}
+
+#progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+}
+
+#bar {
+  width: 0;
+  height: 5px;
+  background-color: #2196F3;
+  opacity: 1;
+}
+
+#bar.fadeout {
+  opacity: 0;
+  height: 0;
+  transition: all .4s;
+}
+
+#header {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+}
+
+#footer {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+}
+
+#infobtn {
+  cursor: pointer;
+}
+
+#infobtn img {
+  width: 24px;
+  height: 24px;
+}
+
+/* popup */
+#popup {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  max-width: 480px;
+  min-width: 300px;
+  z-index: 9999;
+  border: solid gray;
+  border-width: 1px 2px 2px;
+  border-radius: 3px;
+  display: none;
+}
+
+#popupbar {
+  background: dimgray;
+  color: white;
+  padding-left: 4px;
+  height: 18px;
+  border-radius: 3px 3px 0 0;
+}
+
+#closebtn {
+  color: rgb(220, 220, 220);
+  background: gray;
+  border: 1px solid darkgray;
+  border-radius: 4px;
+  line-height: 16px;
+  font-size: 16px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  float: right;
+  cursor: pointer;
+}
+
+#popupbody {
+  background-color: white;
+  padding: 2px 5px 2px;
+  border-radius: 0 0 3px 3px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+/* identify result */
+#popupbody table {
+  margin-top: 5px;
+  margin-bottom: 3px;
+  width: 100%;
+}
+
+#popupbody table caption {
+  background-color: gray;
+  color: white;
+  font-size: small;
+  padding: 1px;
+  padding-left: 6px;
+  text-align: left;
+}
+
+#popupbody table td {
+  padding-left: 5px;
+}
+
+#qr_layername_table tr {
+  background-color: #eeeeee;
+}
+
+#qr_coords_table tr {
+  background-color: #eeeeee;
+}
+
+#qr_attrs_table tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+#qr_attrs_table tr td:first-child {
+  width: 40%;
+}
+
+.action-btn {
+  display: inline-block;
+  border: 1px solid gray;
+  border-radius: 2px;
+  background-color: #FBFBFB;
+  cursor: pointer;
+  font-size: small;
+  padding: 1px;
+  margin-left: 2px;
+}
+
+.action-zoom {
+}
+
+.action-move {
+  display: none;
+}
+
+/* pageinfo */
+#pageinfo {
+  font-size: small;
+}
+
+#pageinfo h1 {
+  background-color: gray;
+  color: white;
+  font-size: small;
+  font-weight: normal;
+  margin-top: 5px;
+  margin-bottom: 3px;
+  padding: 1px;
+  padding-left: 6px;
+}
+
+#urlbox {
+  width: 100%;
+}
+
+#usage, #about {
+  margin-left: 5px;
+}
+
+#usage tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+#usage td.star {
+  font-weight: bold;
+}
+
+#about ul {
+  margin: 5px;
+  margin-left: 20px;
+  padding: 0px;
+}
+
+.license {
+  font-size: xx-small;
+}
+
+.download-link {
+  display: block;
+  border: 1px solid darkgray;
+  background: lightgray;
+  color: black;
+  font-size: large;
+  margin: 10px 50px 10px;
+  padding: 8px;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* print dialog */
+.print div {
+  padding: 5px;
+}
+
+.print label {
+  margin-left: 5px;
+}
+
+.print input[type="text"] {
+  width: 40px;
+  border: 1px solid lightgray;
+  background: #F6F6F6;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.print input[type="checkbox"] {
+  margin-left: 15px;
+}
+
+.print input[type="submit"] {
+  display: none;
+}
+
+.print .buttonbox {
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.print .buttonbox span {
+  border: 1px solid darkgray;
+  background: lightgray;
+  margin: 0px 5px 0px;
+  padding: 5px 10px 5px;
+  cursor: pointer;
+}
+
+#northarrow {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  width: 80px;
+  height: 80px;
+  z-index: 1000;
+}
