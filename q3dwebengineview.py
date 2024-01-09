@@ -4,7 +4,6 @@
 # begin: 2023-10-03
 
 import os
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--ignore-gpu-blocklist --enable-gpu-rasterization"
 
 from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl
 from PyQt5.QtGui import QImage, QPainter
@@ -13,6 +12,18 @@ from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+
+
+def setChromiumFlags():
+    KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
+    OPTIONS = ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"]
+
+    if KEY in os.environ:
+        for opt in OPTIONS:
+            if opt not in os.environ[KEY]:
+                os.environ[KEY] += " " + opt
+    else:
+        os.environ[KEY] = " ".join(OPTIONS)
 
 
 class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
@@ -90,6 +101,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
     def __init__(self, parent=None):
+        setChromiumFlags()
+
         QWebEngineView.__init__(self, parent)
         Q3DWebViewCommon.__init__(self)
 
