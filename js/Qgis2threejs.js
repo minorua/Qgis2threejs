@@ -2378,7 +2378,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 }
 
 
-class Q3DDEMBlock {
+class Q3DDEMBlockBase {
 
 	constructor() {
 		this.materials = [];
@@ -2386,7 +2386,6 @@ class Q3DDEMBlock {
 	}
 
 	loadJSONObject(obj, layer, callback) {
-
 		this.data = obj;
 
 		// load material
@@ -2411,6 +2410,15 @@ class Q3DDEMBlock {
 				layer.materials.add(mtl);
 			}
 		}
+	}
+
+}
+
+
+class Q3DDEMBlock extends Q3DDEMBlockBase {
+
+	loadJSONObject(obj, layer, callback) {
+		super.loadJSONObject(obj, layer, callback);
 
 		if (obj.grid === undefined) return;
 
@@ -2666,40 +2674,10 @@ class Q3DDEMBlock {
 }
 
 
-class Q3DClippedDEMBlock {
-
-	constructor() {
-		this.materials = [];
-		this.currentMtlIndex = 0;
-	}
+class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 
 	loadJSONObject(obj, layer, callback) {
-		this.data = obj;
-		var _this = this;
-
-		// load material
-		var m, mtl;
-		for (var i = 0, l = (obj.materials || []).length; i < l; i++) {
-			m = obj.materials[i];
-
-			mtl = new Q3DMaterial();
-			mtl.loadJSONObject(m, function () {
-				layer.requestRender();
-			});
-			this.materials[m.mtlIndex] = mtl;
-
-			if (m.useNow) {
-				if (this.obj) {
-					layer.materials.removeItem(this.obj.material, true);
-
-					this.obj.material = mtl.mtl;
-
-					layer.materials.add(mtl);
-					layer.requestRender();
-				}
-				this.currentMtlIndex = m.mtlIndex;
-			}
-		}
+		super.loadJSONObject(obj, layer, callback);
 
 		if (obj.geom === undefined) return;
 
@@ -2709,6 +2687,7 @@ class Q3DClippedDEMBlock {
 		mesh.scale.z = obj.zScale;
 		layer.addObject(mesh);
 
+		var _this = this;
 		var buildGeometry = function (obj) {
 
 			var v = obj.triangles.v,
