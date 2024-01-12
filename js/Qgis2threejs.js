@@ -374,8 +374,15 @@ Q3D.E = function (id) {
 			}
 			app.render();
 
-			if (conf.animation.startOnLoad) {
-				app.animation.keyframes.start();
+			if (conf.animation.enabled) {
+				var btn = E("animbtn");
+				if (btn) {
+					btn.className = "playbtn";
+				}
+
+				if (conf.animation.startOnLoad) {
+					app.animation.keyframes.start();
+				}
 			}
 		}, true);
 
@@ -1520,8 +1527,6 @@ Q3D.E = function (id) {
 		if (conf.animation.enabled && btn) {
 			var anim = app.animation.keyframes;
 
-			btn.classList.remove("hidden");
-
 			var playButton = function () {
 				btn.className = "playbtn";
 			};
@@ -1529,8 +1534,6 @@ Q3D.E = function (id) {
 			var pauseButton = function () {
 				btn.className = "pausebtn";
 			};
-
-			playButton();
 
 			btn.onclick = function () {
 				if (anim.isActive) {
