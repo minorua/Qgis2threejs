@@ -886,6 +886,10 @@ Q3D.E = function (id) {
 							}
 
 							if (completed) {
+								if (currentNarElem) {
+									currentNarElem.classList.remove("visible");
+								}
+
 								if (conf.animation.repeat) {
 									setTimeout(function () {
 										_this.start();
