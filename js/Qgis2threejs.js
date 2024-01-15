@@ -4530,8 +4530,11 @@ Q3D.Tweens.lineGrowing = {
 		if (effectItem.sequential) {
 			group.keyframes = [];
 
+			var item;
 			for (var i = 0; i < layer.features.length; i++) {
-				group.keyframes.push(layer.features[i].anim);
+				item = layer.features[i].anim;
+				item.easing = effectItem.easing;
+				group.keyframes.push(item);
 				group.prop_list.push({p: i});
 			}
 			group.keyframes.push({});
