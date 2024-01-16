@@ -853,9 +853,13 @@ class AnimationTreeWidget(QTreeWidget):
             t = item.type()
 
         isKF = (t != ATConst.ITEM_GROWING_LINE)
-        if isKF and item.parent().childCount() < 2:
-            QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
-            return
+        if isKF:
+            if item.parent().childCount() < 2:
+                QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
+                return
+        else:
+            # line growing doesn't work if group item is not checked
+            item.parent().setCheckState(0, Qt.Checked)
 
         top_level = item.parent().parent()
         layer = None
