@@ -14,7 +14,7 @@ qgisMinimumVersion=3.4
 qgisMaximumVersion=3.99
 description=3D visualization powered by WebGL technology and three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.7.1
+version=2.7.2
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,6 +24,15 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
+    Version 2.7.2
+    - Fixed easing of sequential line growing
+    - Fixed URL of GSI elevation tile
+    - Fixed some other bugs
+    - Added some GUI tests
+    - Exporter can now work with Qt WebEngine view (Experimental. Needs some changes on QGIS code)
+    - Use JS class so that we can use a recent three.js version in the future
+    - Plugin document migrated to GitHub pages
+
     Version 2.7.1
     - Added option to export DEM texture in JPEG
     - Bug fixes

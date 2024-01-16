@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### Version 2.7.2
+- Fixed easing of sequential line growing
+- Fixed URL of GSI elevation tile
+- Fixed some other bugs
+- Added some GUI tests
+- Exporter can now work with Qt WebEngine view (Experimental. Needs some changes on QGIS code)
+- Use JS class so that we can use a recent three.js version in the future
+- Plugin document migrated to GitHub pages
+
 ### Version 2.7.1
 - Added option to export DEM texture in JPEG format
 - Bug fixes
