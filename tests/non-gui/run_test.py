@@ -7,7 +7,8 @@ import sys
 import os
 from qgis.testing import unittest
 
-plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print("plugin_dir: " + plugin_dir)
 
 
 def runTest(debug_mode=None):
@@ -26,7 +27,7 @@ def runTest(debug_mode=None):
     initOutputDir()
 
     plugin_name = os.path.basename(plugin_dir)
-    suite = unittest.TestLoader().discover(plugin_name + ".tests")
+    suite = unittest.TestLoader().discover(plugin_name + ".tests.non-gui")
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

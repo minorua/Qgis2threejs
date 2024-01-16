@@ -8,7 +8,7 @@ import os
 import sys
 from qgis.testing import unittest
 
-from .utilities import pluginDir
+from Qgis2threejs.tests.utilities import pluginDir
 
 
 class TestBasic(unittest.TestCase):
