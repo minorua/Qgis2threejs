@@ -559,7 +559,7 @@ class Q3DWindow(QMainWindow):
         self.runScript("gui.showInfo()")
 
     def help(self):
-        QDesktopServices.openUrl(QUrl("https://qgis2threejs.readthedocs.io/"))
+        QDesktopServices.openUrl(QUrl("https://minorua.github.io/Qgis2threejs/docs/"))
 
     def homePage(self):
         QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs"))
