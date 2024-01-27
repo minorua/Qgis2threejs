@@ -5,7 +5,7 @@
 
 
 from .conf import PREFER_WEBKIT
-from .tools import logMessage
+from .utils import logMessage
 
 USE_WEBKIT = False
 USE_WEBENGINE = False

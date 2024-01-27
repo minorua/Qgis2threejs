@@ -14,7 +14,7 @@ from .buildlayer import LayerBuilder
 from .datamanager import MaterialManager, ModelManager
 from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
 from .q3dconst import LayerType, PropertyID as PID
-from .tools import css_color, hex_color, int_color, logMessage, parseFloat, parseInt
+from .utils import css_color, hex_color, int_color, logMessage, parseFloat, parseInt
 from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
 

@@ -13,7 +13,7 @@ from qgis.testing import unittest
 
 from Qgis2threejs.q3dconst import Script
 from Qgis2threejs.tests.utilities import dataPath, initOutputDir
-from Qgis2threejs.tools import js_bool, logMessage
+from Qgis2threejs.utils import js_bool, logMessage
 
 
 WIDTH, HEIGHT = (800, 600)  # view size

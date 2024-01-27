@@ -11,7 +11,7 @@ from .builddem import DEMLayerBuilder
 from .buildvector import VectorLayerBuilder
 from .buildpointcloud import PointCloudLayerBuilder
 from .q3dconst import LayerType
-from .tools import int_color
+from .utils import int_color
 
 
 class ThreeJSBuilder:

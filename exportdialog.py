@@ -12,7 +12,7 @@ from qgis.core import QgsApplication, QgsProject
 
 from .conf import PLUGIN_NAME
 from .export import ThreeJSExporter
-from .tools import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
+from .utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 
 

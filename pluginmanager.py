@@ -7,7 +7,7 @@ import importlib
 import sys
 
 from PyQt5.QtCore import QDir, QSettings
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 
 
 _pluginManager = None

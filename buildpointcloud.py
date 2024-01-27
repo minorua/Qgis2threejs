@@ -5,7 +5,7 @@
 
 from .conf import DEBUG_MODE
 from .buildlayer import LayerBuilder
-from .tools import int_color
+from .utils import int_color
 
 
 class PointCloudLayerBuilder(LayerBuilder):

@@ -6,7 +6,7 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 
 from .conf import DEBUG_MODE
-from .tools import logMessage
+from .utils import logMessage
 
 
 class Q3DInterface(QObject):

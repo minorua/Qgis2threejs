@@ -17,7 +17,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, layerTypeFromMapLayer, urlFromPCLayer
 from .q3dconst import ATConst, LayerType
-from .tools import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
+from .utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
 
 class ExportSettings:

@@ -8,7 +8,7 @@ import os
 from PyQt5.QtCore import Qt, QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 from .ui.settingsdialog import Ui_SettingsDialog
 
 

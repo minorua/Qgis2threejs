@@ -15,7 +15,7 @@ from qgis.core import Qgis, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from .geometry import GridGeometry
 from .q3dconst import LayerType
-from .tools import logMessage
+from .utils import logMessage
 
 
 class MapTo3D:

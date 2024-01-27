@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraph
 from PyQt5.QtGui import QColorConstants, QPixmap
 
 from .conf import DEBUG_MODE
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 
 
 class Q3DDummyView(QGraphicsView):

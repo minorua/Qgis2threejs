@@ -10,7 +10,7 @@ from qgis.core import (
 
 from .earcut import earcut
 
-from .tools import logMessage
+from .utils import logMessage
 
 
 class VectorGeometry:

@@ -20,7 +20,7 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import createUid, hex_color, js_bool, logMessage, pluginDir
+from .utils import createUid, hex_color, js_bool, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui.q3dwindow import Ui_Q3DWindow
 

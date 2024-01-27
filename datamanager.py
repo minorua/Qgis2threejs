@@ -9,8 +9,8 @@ from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
-from . import tools
-from .tools import logMessage
+from . import utils
+from .utils import logMessage
 
 
 class DataManager:
@@ -73,7 +73,7 @@ class ImageManager(DataManager):
         settings.setRotation(extent.rotation())
 
         if layerids:
-            settings.setLayers(tools.getLayersByLayerIds(layerids))
+            settings.setLayers(utils.getLayersByLayerIds(layerids))
 
         if transp_background:
             settings.setBackgroundColor(QColor(Qt.transparent))
@@ -123,7 +123,7 @@ class ImageManager(DataManager):
             image = self.renderedImage(*args)
 
             if fmt == "JPEG":
-                return tools.jpegCompressedImage(image)
+                return utils.jpegCompressedImage(image)
 
             return image
 
@@ -135,11 +135,11 @@ class ImageManager(DataManager):
         imageType, args, fmt = self._list[index]
 
         if imageType == self.IMG_FILE:
-            return tools.imageFile2dataUri(args)
+            return utils.imageFile2dataUri(args)
 
         image = self.image(index)
         if image:
-            return tools.image2dataUri(image, fmt=fmt)
+            return utils.image2dataUri(image, fmt=fmt)
 
         return ""
 
@@ -149,7 +149,7 @@ class ImageManager(DataManager):
         if imageType == self.IMG_FILE:
             image_path = args
             if os.path.isfile(image_path):
-                tools.copyFile(image_path, path, overwrite=True)
+                utils.copyFile(image_path, path, overwrite=True)
                 return
 
         self.image(index).save(path)
@@ -345,7 +345,7 @@ class ModelManager(DataManager):
                 a.append({"url": path_url})
             elif base64:
                 _, ext = os.path.splitext(path_url)
-                a.append({"base64": tools.base64file(path_url),
+                a.append({"base64": utils.base64file(path_url),
                           "ext": ext[1:],
                           "resourcePath": "./data/{}/models/".format(self.exportSettings.outputFileTitle())})
             else:

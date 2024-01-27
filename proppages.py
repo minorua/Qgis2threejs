@@ -32,7 +32,7 @@ from .mapextent import MapExtent
 from .pluginmanager import pluginManager
 from .q3dcore import calculateGridSegments
 from .q3dconst import LayerType, DEMMtlType
-from .tools import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
+from .utils import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
                     logMessage, shortTextFromSelectedLayerIds)
 from .propwidget import PropertyWidget
 from .vectorobject import ObjectType

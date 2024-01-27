@@ -14,7 +14,7 @@ from .buildlayer import LayerBuilder
 from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from .mapextent import MapExtent
 from .q3dconst import DEMMtlType
-from .tools import hex_color, logMessage, parseFloat
+from .utils import hex_color, logMessage, parseFloat
 
 
 class DEMLayerBuilder(LayerBuilder):

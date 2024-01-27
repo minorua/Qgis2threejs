@@ -12,7 +12,7 @@ from qgis.core import QgsApplication, QgsProject
 from .conf import PLUGIN_NAME
 from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
-from .tools import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
+from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
 from .q3dwindow import Q3DWindow
 
 

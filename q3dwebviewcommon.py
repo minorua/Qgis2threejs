@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
 
 from .conf import DEBUG_MODE
 
-from .tools import hex_color, js_bool, logMessage, pluginDir
+from .utils import hex_color, js_bool, logMessage, pluginDir
 from .q3dconst import Script
 from .q3dwebbridge import Bridge
 

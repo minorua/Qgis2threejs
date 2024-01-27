@@ -11,7 +11,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from Qgis2threejs.tools import getLayersByLayerIds, logMessage, pluginDir
+from Qgis2threejs.utils import getLayersByLayerIds, logMessage, pluginDir
 
 MY_TEST_TEMPDIR = "E:/dev/qgis2threejs_test"
 

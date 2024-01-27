@@ -12,7 +12,7 @@ from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .q3dcore import Layer
 from .q3dconst import LayerType, Script
-from .tools import hex_color, js_bool, logMessage
+from .utils import hex_color, js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
