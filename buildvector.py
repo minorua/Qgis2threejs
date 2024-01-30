@@ -187,10 +187,6 @@ class VectorLayer:
 
             geom = QgsGeometry(geom)
 
-            if not geom.isGeosValid():
-                logMessage("Invalid geometry skipped: " + self.name)
-                continue
-
             # coordinate transformation - layer crs to project crs
             if geom.transform(self.transform) != 0:
                 logMessage("Failed to transform geometry: " + self.name)
