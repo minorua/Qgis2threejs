@@ -203,6 +203,10 @@
         "enabled": true,
         "groups": []
       },
+      "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509": {
+        "enabled": true,
+        "groups": []
+      },
       "ne_10m_railroads20150916133408505": {
         "enabled": true,
         "groups": []
@@ -235,7 +239,8 @@
         "enabled": true,
         "groups": []
       }
-    }
+    },
+    "repeat": false
   },
   "LAYERS": [
     {
@@ -813,6 +818,56 @@
         "radioButton_IntersectingFeatures": true
       },
       "visible": true
+    },
+    {
+      "geomType": 2,
+      "layerId": "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509",
+      "name": "lineV",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_ObjectType": "Pipe",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "300",
+          "type": 1
+        },
+        "geomWidget1": {},
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true
+      },
+      "visible": false
     },
     {
       "geomType": 2,
@@ -1703,7 +1758,7 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20600,
+  "Version": 20702,
   "WIDGETS": {
     "Label": {
       "Footer": "",

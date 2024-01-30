@@ -195,6 +195,13 @@ class LineLayerTest(VLayerTestBase):
         'lookAt': {'x': 40827, 'y': -106069, 'z': 0},
         'pos': {'x': 9037, 'y': -142511, 'z': 24005}
     }
+    LINEV_LAYER_ID = "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509"
+
+    def test01_verticalLine(self):
+        self.TREE.itemFromLayerId(self.LINEV_LAYER_ID).setCheckState(Qt.Checked)    # show lineV layer
+        self.waitBC()
+
+        self.assertZRange("scene z range", min=-4000, max=10000)    # min: flat plane, max: lineV
 
 
 class PolygonLayerTest(VLayerTestBase):
