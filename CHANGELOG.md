@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.7.3
+- Fixed a regression related to vertical line
+- Fixed a popup layout issue
+
 ### Version 2.7.2
 - Fixed easing of sequential line growing
 - Fixed URL of GSI elevation tile
