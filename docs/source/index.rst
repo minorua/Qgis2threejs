@@ -1,22 +1,9 @@
-Welcome to Lumache's documentation!
-===================================
+Qgis2threejs Plugin
+===================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+`Qgis2threejs <https://github.com/minorua/Qgis2threejs>`_ is a 3D map visualization and web export plugin for QGIS.
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
 
 .. note::
 
-   This project is under active development.
-
-Contents
---------
-
-.. toctree::
-
-   usage
-   api
+   Plugin documents are now available on GitHub pages: https://minorua.github.io/Qgis2threejs/docs/
