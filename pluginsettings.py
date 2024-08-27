@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-10
 
-import configparser
+from configparser import ConfigParser
 import os
 from PyQt5.QtCore import Qt, QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
@@ -44,10 +44,10 @@ class SettingsDialog(QDialog):
             if name[0] == "_":    # skip __pycache__ dir.
                 continue
 
-            parser = configparser.SafeConfigParser()
+            parser = ConfigParser()
             try:
                 with open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", encoding="utf-8") as f:
-                    parser.readfp(f)
+                    parser.read_file(f)
 
                 metadata = dict(parser.items("general"))
                 self.plugin_metadata.append(metadata)
