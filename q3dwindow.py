@@ -112,9 +112,11 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.webPage = self.ui.webView._page
+        viewName = ""
 
         if self.webPage:
             settings.jsonSerializable = self.webPage.isWebEnginePage
+            viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
         else:
             preview = False
 
@@ -136,7 +138,7 @@ class Q3DWindow(QMainWindow):
 
         self.setupMenu()
         self.setupConsole()
-        self.setupStatusBar(self.iface, preview)
+        self.setupStatusBar(self.iface, preview, viewName)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
@@ -272,7 +274,7 @@ class Q3DWindow(QMainWindow):
 
         self.ui.lineEditInputBox.returnPressed.connect(self.runConsoleCommand)
 
-    def setupStatusBar(self, iface, previewEnabled=True):
+    def setupStatusBar(self, iface, previewEnabled=True, viewName=""):
         w = QProgressBar(self.ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
@@ -283,7 +285,7 @@ class Q3DWindow(QMainWindow):
 
         w = QCheckBox(self.ui.statusbar)
         w.setObjectName("checkBoxPreview")
-        w.setText("Preview")  # _translate("Q3DWindow", "Preview"))
+        w.setText("Preview" + " ({})".format(viewName) if viewName else "")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
         self.ui.statusbar.addPermanentWidget(w)
         self.ui.checkBoxPreview = w
