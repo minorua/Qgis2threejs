@@ -20,9 +20,38 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
+from . import q3dview
+from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
 from .utils import createUid, hex_color, js_bool, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
+from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
+
+
+def switchWebView(webViewType):
+
+    if webViewType is q3dview.currentWebViewType:
+        return
+
+    if webViewType == WEBVIEWTYPE_WEBKIT:
+        from .q3dwebkitview import Q3DWebKitView, Q3DWebKitPage
+        ui_wnd.Q3DView = Q3DWebKitView
+        q3dview.Q3DView = Q3DWebKitView
+        q3dview.Q3DWebPage = Q3DWebKitPage
+
+    elif webViewType == WEBVIEWTYPE_WEBENGINE:
+        from .q3dwebengineview import Q3DWebEngineView, Q3DWebEnginePage
+        ui_wnd.Q3DView = Q3DWebEngineView
+        q3dview.Q3DView = Q3DWebEngineView
+        q3dview.Q3DWebPage = Q3DWebEnginePage
+
+    else:
+        from .q3ddummyview import Q3DDummyView, Q3DDummyPage
+        ui_wnd.Q3DView = Q3DDummyView
+        q3dview.Q3DView = Q3DDummyView
+        q3dview.Q3DWebPage = Q3DDummyPage
+
+    q3dview.currentWebViewType = webViewType
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -94,7 +123,7 @@ class Q3DViewerInterface(Q3DInterface):
 
 class Q3DWindow(QMainWindow):
 
-    def __init__(self, qgisIface, settings, preview=True):
+    def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -108,24 +137,27 @@ class Q3DWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
+        # web view
+        switchWebView(webViewType)
+
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
         self.webPage = self.ui.webView._page
-        viewName = ""
 
         if self.webPage:
             settings.jsonSerializable = self.webPage.isWebEnginePage
             viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
         else:
-            preview = False
+            previewEnabled = False
+            viewName = ""
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
 
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
         self.controller = Q3DController(settings, self.thread)
-        self.controller.enabled = preview
+        self.controller.enabled = previewEnabled
 
         if self.thread:
             self.thread.finished.connect(self.controller.deleteLater)
@@ -138,12 +170,12 @@ class Q3DWindow(QMainWindow):
 
         self.setupMenu()
         self.setupConsole()
-        self.setupStatusBar(self.iface, preview, viewName)
+        self.setupStatusBar(self.iface, previewEnabled, viewName)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
-            self.ui.webView.setup(self.iface, settings, self, preview)
+            self.ui.webView.setup(self.iface, settings, self, previewEnabled)
         else:
             self.ui.webView.disableWidgetsAndMenus(self)
 
@@ -221,8 +253,14 @@ class Q3DWindow(QMainWindow):
 
         # signal-slot connections
         self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
-        self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
-        self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+
+        if WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE:
+            self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+            self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+        else:
+            self.ui.actionSaveAsImage.setEnabled(False)
+            self.ui.actionSaveAsGLTF.setEnabled(False)
+
         self.ui.actionLoadSettings.triggered.connect(self.loadSettings)
         self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
         self.ui.actionClearSettings.triggered.connect(self.clearSettings)

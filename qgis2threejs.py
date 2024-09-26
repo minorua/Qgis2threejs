@@ -5,6 +5,7 @@
 
 import os
 
+from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
@@ -14,6 +15,7 @@ from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
 from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
 from .q3dwindow import Q3DWindow
+from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE, currentWebViewType
 
 
 class Qgis2threejs:
@@ -28,38 +30,53 @@ class Qgis2threejs:
         self.previewEnabled = True      # last preview state
 
     def initGui(self):
-        # create actions
+        # add a toolbar button and web menu items
         icon = QIcon(pluginDir("Qgis2threejs.png"))
-        self.action = QAction(icon, "Qgis2threejs Exporter", self.iface.mainWindow())
-        self.action.setObjectName("Qgis2threejsExporter")
-        self.actionNP = QAction(icon, "Qgis2threejs Exporter with Preview Off", self.iface.mainWindow())
-        self.actionNP.setObjectName("Qgis2threejsExporterNoPreview")
+        title = "Qgis2threejs Exporter"
+        wnd = self.iface.mainWindow()
+        objName = "Qgis2threejsExporter"
 
-        # add toolbar button and web menu items
+        self.action = QAction(icon, title, wnd)
+        self.action.setObjectName(objName)
+        self.action.triggered.connect(self.openExporter)
+
         self.iface.addWebToolBarIcon(self.action)
-        self.iface.addPluginToWebMenu(PLUGIN_NAME, self.action)
-        self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionNP)
+
+        if WEBENGINE_AVAILABLE:
+            self.actionWebEng = QAction(icon, title + " (Web Engine)", wnd)
+            self.actionWebEng.setObjectName(objName + "WebEng")
+            self.actionWebEng.triggered.connect(self.openExporterWebEng)
+
+            self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebEng)
+
+        if WEBKIT_AVAILABLE:
+            self.actionWebKit = QAction(icon, title + " (WebKit)", wnd)
+            self.actionWebKit.setObjectName(objName + "WebKit")
+            self.actionWebKit.triggered.connect(self.openExporterWebKit)
+
+            self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebKit)
+
+        # connect signal-slot
+        QgsProject.instance().removeAll.connect(self.allLayersRemoved)
 
         # register processing provider
         QgsApplication.processingRegistry().addProvider(self.pprovider)
 
-        # connect signal-slot
-        self.action.triggered.connect(self.openExporter)
-        self.actionNP.triggered.connect(self.openExporterWithPreviewDisabled)
-
-        QgsProject.instance().removeAll.connect(self.allLayersRemoved)
-
     def unload(self):
         # disconnect signal-slot
-        self.action.triggered.disconnect(self.openExporter)
-        self.actionNP.triggered.disconnect(self.openExporterWithPreviewDisabled)
-
         QgsProject.instance().removeAll.disconnect(self.allLayersRemoved)
 
         # remove the web menu items and icon
+        self.action.triggered.disconnect(self.openExporter)
         self.iface.removeWebToolBarIcon(self.action)
-        self.iface.removePluginWebMenu(PLUGIN_NAME, self.action)
-        self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionNP)
+
+        if WEBENGINE_AVAILABLE:
+            self.actionWebEng.triggered.disconnect(self.openExporterWebEng)
+            self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionWebEng)
+
+        if WEBKIT_AVAILABLE:
+            self.actionWebKit.triggered.disconnect(self.openExporterWebKit)
+            self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionWebKit)
 
         # remove provider from processing registry
         QgsApplication.processingRegistry().removeProvider(self.pprovider)
@@ -67,11 +84,27 @@ class Qgis2threejs:
         # remove temporary output directory
         removeTemporaryOutputDir()
 
-    def openExporter(self, _, no_preview=False):
+    def openExporter(self, _=False, webViewType=None):
+        """
+        webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
+        """
         if self.liveExporter:
             logMessage("Qgis2threejs Exporter is already open.", False)
             self.liveExporter.activateWindow()
             return
+
+        if webViewType is None:
+            if WEBKIT_AVAILABLE and QSettings().value("/Qgis2threejs/preferWebKit", False, type=bool):
+                webViewType = WEBVIEWTYPE_WEBKIT
+
+            elif WEBENGINE_AVAILABLE:
+                webViewType = WEBVIEWTYPE_WEBENGINE
+
+            elif WEBKIT_AVAILABLE:
+                webViewType = WEBVIEWTYPE_WEBKIT
+
+            else:
+                webViewType = WEBVIEWTYPE_NONE
 
         layersUpdated = False
         proj_path = QgsProject.instance().fileName()
@@ -91,19 +124,30 @@ class Qgis2threejs:
         logMessage("Opening Qgis2threejs Exporter...", False)
         self.liveExporter = Q3DWindow(self.iface,
                                       self.exportSettings,
-                                      preview=self.previewEnabled and not no_preview)
+                                      webViewType=webViewType,
+                                      previewEnabled=self.previewEnabled)
         self.liveExporter.show()
         self.liveExporter.destroyed.connect(self.exporterDestroyed)
 
         self.currentProjectPath = proj_path
 
-    def openExporterWithPreviewDisabled(self):
-        self.openExporter(False, True)
+    def openExporterWebEng(self):
+        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
+
+        QSettings().remove("/Qgis2threejs/preferWebKit")
+
+    def openExporterWebKit(self):
+        self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
+
+        QSettings().setValue("/Qgis2threejs/preferWebKit", True)
 
     def exporterDestroyed(self, obj):
-        logMessage("Qgis2threejs Exporter has closed.", False)
-        self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
+        if currentWebViewType != WEBVIEWTYPE_NONE:
+            self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
+
         self.liveExporter = None
+
+        logMessage("Qgis2threejs Exporter has closed.", False)
 
     def allLayersRemoved(self):
         self.currentProjectPath = ""

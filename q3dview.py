@@ -3,51 +3,36 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-
-from .conf import PREFER_WEBKIT
+from qgis.core import Qgis
 from .utils import logMessage
 
-USE_WEBKIT = False
-USE_WEBENGINE = False
+WEBVIEWTYPE_NONE = 0
+WEBVIEWTYPE_WEBKIT = 1
+WEBVIEWTYPE_WEBENGINE = 2
 
-if PREFER_WEBKIT:
-    try:
-        from PyQt5.QtWebKitWidgets import QWebView
-        USE_WEBKIT = True
+WEBENGINE_AVAILABLE = False
+WEBKIT_AVAILABLE = False
 
-    except ModuleNotFoundError:
-        pass
-
-    if not USE_WEBKIT:
-        try:
-            from PyQt5.QtWebEngineWidgets import QWebEngineView
-            USE_WEBENGINE = True
-
-        except ModuleNotFoundError:
-            pass
-
-else:
+if Qgis.QGIS_VERSION_INT >= 33800:
     try:
         from PyQt5.QtWebEngineWidgets import QWebEngineView
-        USE_WEBENGINE = True
+        WEBENGINE_AVAILABLE = True
 
-    except ModuleNotFoundError:
+    except:
         pass
 
-    if not USE_WEBENGINE:
-        try:
-            from PyQt5.QtWebKitWidgets import QWebView
-            USE_WEBKIT = True
+try:
+    from PyQt5.QtWebKitWidgets import QWebView
+    WEBKIT_AVAILABLE = True
 
-        except ModuleNotFoundError:
-            pass
+except:     # ModuleNotFoundError
+    pass
 
-if USE_WEBKIT:
-    from .q3dwebkitview import Q3DWebKitView as Q3DView, Q3DWebKitPage as Q3DWebPage
 
-elif USE_WEBENGINE:
-    from .q3dwebengineview import Q3DWebEngineView as Q3DView, Q3DWebEnginePage as Q3DWebPage
-
-else:
-    from .q3ddummyview import Q3DDummyView as Q3DView, Q3DDummyPage as Q3DWebPage
+if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
     logMessage("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.")
+
+
+Q3DView = None
+Q3DWebPage = None
+currentWebViewType = None
