@@ -93,19 +93,6 @@ class Qgis2threejs:
             self.liveExporter.activateWindow()
             return
 
-        if webViewType is None:
-            if WEBKIT_AVAILABLE and QSettings().value("/Qgis2threejs/preferWebKit", False, type=bool):
-                webViewType = WEBVIEWTYPE_WEBKIT
-
-            elif WEBENGINE_AVAILABLE:
-                webViewType = WEBVIEWTYPE_WEBENGINE
-
-            elif WEBKIT_AVAILABLE:
-                webViewType = WEBVIEWTYPE_WEBKIT
-
-            else:
-                webViewType = WEBVIEWTYPE_NONE
-
         layersUpdated = False
         proj_path = QgsProject.instance().fileName()
         if proj_path and proj_path != self.currentProjectPath:

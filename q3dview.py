@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
+from PyQt5.QtCore import QSettings
 from qgis.core import Qgis
 from .utils import logMessage
 
@@ -36,3 +37,39 @@ if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
 Q3DView = None
 Q3DWebPage = None
 currentWebViewType = None
+
+def setCurrentWebView(webViewType):
+    global Q3DView, Q3DWebPage, currentWebViewType
+
+    if webViewType is currentWebViewType:
+        return
+
+    if webViewType == WEBVIEWTYPE_WEBKIT:
+        from .q3dwebkitview import Q3DWebKitView, Q3DWebKitPage
+        Q3DView = Q3DWebKitView
+        Q3DWebPage = Q3DWebKitPage
+
+    elif webViewType == WEBVIEWTYPE_WEBENGINE:
+        from .q3dwebengineview import Q3DWebEngineView, Q3DWebEnginePage
+        Q3DView = Q3DWebEngineView
+        Q3DWebPage = Q3DWebEnginePage
+
+    else:
+        from .q3ddummyview import Q3DDummyView, Q3DDummyPage
+        Q3DView = Q3DDummyView
+        Q3DWebPage = Q3DDummyPage
+
+    currentWebViewType = webViewType
+
+
+if WEBKIT_AVAILABLE and QSettings().value("/Qgis2threejs/preferWebKit", False, type=bool):
+    setCurrentWebView(WEBVIEWTYPE_WEBKIT)
+
+elif WEBENGINE_AVAILABLE:
+    setCurrentWebView(WEBVIEWTYPE_WEBENGINE)
+
+elif WEBKIT_AVAILABLE:
+    setCurrentWebView(WEBVIEWTYPE_WEBKIT)
+
+else:
+    setCurrentWebView(WEBVIEWTYPE_NONE)

@@ -21,37 +21,11 @@ from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from . import q3dview
-from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
 from .utils import createUid, hex_color, js_bool, logMessage, pluginDir
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
-
-
-def switchWebView(webViewType):
-
-    if webViewType is q3dview.currentWebViewType:
-        return
-
-    if webViewType == WEBVIEWTYPE_WEBKIT:
-        from .q3dwebkitview import Q3DWebKitView, Q3DWebKitPage
-        ui_wnd.Q3DView = Q3DWebKitView
-        q3dview.Q3DView = Q3DWebKitView
-        q3dview.Q3DWebPage = Q3DWebKitPage
-
-    elif webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .q3dwebengineview import Q3DWebEngineView, Q3DWebEnginePage
-        ui_wnd.Q3DView = Q3DWebEngineView
-        q3dview.Q3DView = Q3DWebEngineView
-        q3dview.Q3DWebPage = Q3DWebEnginePage
-
-    else:
-        from .q3ddummyview import Q3DDummyView, Q3DDummyPage
-        ui_wnd.Q3DView = Q3DDummyView
-        q3dview.Q3DView = Q3DDummyView
-        q3dview.Q3DWebPage = Q3DDummyPage
-
-    q3dview.currentWebViewType = webViewType
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -138,8 +112,10 @@ class Q3DWindow(QMainWindow):
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
         # web view
-        switchWebView(webViewType)
+        if webViewType is not None:
+            setCurrentWebView(webViewType)
 
+        ui_wnd.Q3DView = q3dview.Q3DView
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
