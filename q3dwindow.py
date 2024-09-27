@@ -101,9 +101,6 @@ class Q3DWindow(QMainWindow):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # set map settings
-        settings.setMapSettings(qgisIface.mapCanvas().mapSettings())
-
         self.qgisIface = qgisIface
         self.settings = settings
         self.lastDir = None

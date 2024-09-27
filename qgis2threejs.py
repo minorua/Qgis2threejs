@@ -107,6 +107,7 @@ class Qgis2threejs:
             self.exportSettings.updateLayers()
 
         self.exportSettings.isPreview = True
+        self.exportSettings.setMapSettings(self.iface.mapCanvas().mapSettings())
 
         logMessage("Opening Qgis2threejs Exporter...", False)
         self.liveExporter = Q3DWindow(self.iface,
