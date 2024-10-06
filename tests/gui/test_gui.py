@@ -342,15 +342,15 @@ def runTest(wnd):
     wnd.webPage.bridge.testResultReceived.connect(result.addTestResult)
 
     # a monkey patch to wnd
-    wnd._printConsoleMessage = wnd.printConsoleMessage
+    wnd._logToConsole = wnd.logToConsole
 
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+    def logToConsole(self, message, lineNumber="", sourceID=""):
 
-        wnd._printConsoleMessage(message, lineNumber, sourceID)
+        wnd._logToConsole(message, lineNumber, sourceID)
 
         result.addConsoleMessage(message, lineNumber, sourceID)
 
-    wnd.printConsoleMessage = printConsoleMessage.__get__(wnd)
+    wnd.logToConsole = logToConsole.__get__(wnd)
 
     # start testing
     logMessage("Testing GUI...", warning=False)
@@ -363,4 +363,4 @@ def runTest(wnd):
 
     result.printResult()
 
-    wnd.printConsoleMessage = wnd._printConsoleMessage
+    wnd.logToConsole = wnd._logToConsole

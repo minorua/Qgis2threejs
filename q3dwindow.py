@@ -142,7 +142,6 @@ class Q3DWindow(QMainWindow):
         self.controller.connectToIface(self.iface)
 
         self.setupMenu()
-        self.setupConsole()
         self.setupStatusBar(self.iface, previewEnabled, viewName)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
@@ -152,7 +151,6 @@ class Q3DWindow(QMainWindow):
         else:
             self.ui.webView.disableWidgetsAndMenus(self)
 
-        self.ui.dockWidgetConsole.hide()
         self.ui.animationPanel.setup(self, settings)
 
         # signal-slot connections
@@ -216,7 +214,6 @@ class Q3DWindow(QMainWindow):
     def setupMenu(self):
         self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
         self.ui.menuPanels.addAction(self.ui.dockWidgetAnimation.toggleViewAction())
-        self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
 
         self.ui.actionGroupCamera = QActionGroup(self)
         self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
@@ -271,15 +268,6 @@ class Q3DWindow(QMainWindow):
             self.ui.actionJSInfo.setText("three.js Info...")
             self.ui.menuTestDebug.addAction(self.ui.actionJSInfo)
             self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
-
-    def setupConsole(self):
-        # console
-        self.ui.actionConsoleCopy.triggered.connect(self.copyConsole)
-        self.ui.actionConsoleClear.triggered.connect(self.clearConsole)
-        self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleCopy)
-        self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleClear)
-
-        self.ui.lineEditInputBox.returnPressed.connect(self.runConsoleCommand)
 
     def setupStatusBar(self, iface, previewEnabled=True, viewName=""):
         w = QProgressBar(self.ui.statusbar)
@@ -347,35 +335,14 @@ class Q3DWindow(QMainWindow):
         dialog.setLayer(layer)
         return dialog.page.properties()
 
-    # console
-    def copyConsole(self):
-        # copy selected item(s) text to clipboard
-        indices = self.ui.listWidgetDebugView.selectionModel().selectedIndexes()
-        text = "\n".join([str(index.data(Qt.DisplayRole)) for index in indices])
-        if text:
-            QApplication.clipboard().setText(text)
-
-    def clearConsole(self):
-        self.ui.listWidgetDebugView.clear()
-
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+    def logToConsole(self, message, lineNumber="", sourceID=""):
         if sourceID:
             source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
             text = "{}: {}".format(source, message)
         else:
             text = message
-        self.ui.listWidgetDebugView.addItem(text)
 
-    def runConsoleCommand(self):
-        text = self.ui.lineEditInputBox.text()
-        self.ui.listWidgetDebugView.addItem("> " + text)
-        self.webPage.runScript(text, message=None, callback=self.runConsoleCommandCallback)
-
-    def runConsoleCommandCallback(self, result):
-        if result is not None:
-            self.ui.listWidgetDebugView.addItem("<- {}".format(result))
-        self.ui.listWidgetDebugView.scrollToBottom()
-        self.ui.lineEditInputBox.clear()
+        self.webPage.logToConsole(text)
 
     # File menu
     def exportToWeb(self):
@@ -533,7 +500,6 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayer(layer)
 
     def reloadPage(self):
-        self.clearConsole()
         self.webPage.reload()
 
     # View menu

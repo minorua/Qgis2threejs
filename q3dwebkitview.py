@@ -56,7 +56,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
     def addJSObject(self):
         self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
         if DEBUG_MODE:
-            self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
+            self.logToConsole("pyObj added")
 
     def reload(self):
         Q3DWebPageCommon.reload(self)
@@ -77,6 +77,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
     def sendData(self, data):
         self.runScript("loadJSONObject(pyData())", data, message=None)
+
+    def logToConsole(self, message, level="debug"):
+        self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def renderImage(self, width, height, callback):
         old_size = self.viewportSize()

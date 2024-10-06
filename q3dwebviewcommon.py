@@ -86,7 +86,12 @@ class Q3DWebPageCommon:
         if not DEBUG_MODE or message is None:
             return
 
-        self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
+        if sourceID:
+            text = "{}: {}".format(sourceID, message or string)
+        else:
+            text = message or string
+
+        self.logToConsole(text)
         qDebug("runScript: {}".format(message if message else string).encode("utf-8"))
 
         if DEBUG_MODE == 2:
@@ -173,8 +178,6 @@ class Q3DWebPageCommon:
             image.save(filename)
 
     def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-        self.wnd.printConsoleMessage(message, lineNumber, sourceID)
-
         if DEBUG_MODE == 2:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
@@ -230,7 +233,7 @@ class Q3DWebViewCommon:
 
 class DummyWindow:
 
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+    def logToConsole(self, message, lineNumber="", sourceID=""):
         logMessage(message, False)
 
     def showStatusMessage(self, message, duration=0):
