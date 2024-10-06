@@ -41,7 +41,7 @@
      <x>0</x>
      <y>0</y>
      <width>862</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuScene">
@@ -70,6 +70,7 @@
      </property>
     </widget>
     <addaction name="menuPanels"/>
+    <addaction name="actionDevTools"/>
     <addaction name="separator"/>
     <addaction name="actionAlwaysOnTop"/>
    </widget>
@@ -456,6 +457,14 @@
    </property>
    <property name="toolTip">
     <string>Show usage of 3D viewer</string>
+   </property>
+  </action>
+  <action name="actionDevTools">
+   <property name="text">
+    <string>Developer Tools...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+I</string>
    </property>
   </action>
  </widget>

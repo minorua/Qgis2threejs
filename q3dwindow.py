@@ -247,6 +247,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         self.ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
         self.ui.actionReload.triggered.connect(self.reloadPage)
+        self.ui.actionDevTools.triggered.connect(self.ui.webView.showDevTools)
         self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         self.ui.actionUsage.triggered.connect(self.usage)
         self.ui.actionHelp.triggered.connect(self.help)
@@ -265,11 +266,6 @@ class Q3DWindow(QMainWindow):
             self.ui.actionTest.setText("Run Test")
             self.ui.menuDev.addAction(self.ui.actionTest)
             self.ui.actionTest.triggered.connect(self.runTest)
-
-            self.ui.actionInspector = QAction(self)
-            self.ui.actionInspector.setText("Web Inspector...")
-            self.ui.menuDev.addAction(self.ui.actionInspector)
-            self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
 
             self.ui.actionJSInfo = QAction(self)
             self.ui.actionJSInfo.setText("three.js Info...")

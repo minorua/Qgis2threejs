@@ -109,11 +109,11 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         self._page = Q3DWebEnginePage(self)
         self.setPage(self._page)
 
-    def showInspector(self):
+    def showDevTools(self):
         dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
-        dlg.setWindowTitle("Qgis2threejs Web Inspector")
+        dlg.setWindowTitle("Qgis2threejs Developer Tools")
 
         ins = QWebEngineView(dlg)
         self._page.setDevToolsPage(ins.page())

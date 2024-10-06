@@ -105,10 +105,9 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
         self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
 
         # web inspector setting
-        if DEBUG_MODE:
-            self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
-    def showInspector(self):
+    def showDevTools(self):
         dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
