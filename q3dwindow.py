@@ -258,18 +258,18 @@ class Q3DWindow(QMainWindow):
         self.alwaysOnTopToggled(False)
 
         if DEBUG_MODE and self.webPage:
-            self.ui.menuDev = QMenu(self.ui.menubar)
-            self.ui.menuDev.setTitle("&Dev")
-            self.ui.menubar.addAction(self.ui.menuDev.menuAction())
+            self.ui.menuTestDebug = QMenu(self.ui.menubar)
+            self.ui.menuTestDebug.setTitle("Test&&&Debug")
+            self.ui.menubar.addAction(self.ui.menuTestDebug.menuAction())
 
             self.ui.actionTest = QAction(self)
             self.ui.actionTest.setText("Run Test")
-            self.ui.menuDev.addAction(self.ui.actionTest)
+            self.ui.menuTestDebug.addAction(self.ui.actionTest)
             self.ui.actionTest.triggered.connect(self.runTest)
 
             self.ui.actionJSInfo = QAction(self)
             self.ui.actionJSInfo.setText("three.js Info...")
-            self.ui.menuDev.addAction(self.ui.actionJSInfo)
+            self.ui.menuTestDebug.addAction(self.ui.actionJSInfo)
             self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
 
     def setupConsole(self):
