@@ -1686,16 +1686,6 @@ Q3D.E = function (id) {
 				else {
 					e.innerHTML = [pt.x.toFixed(2), pt.y.toFixed(2), pt.z.toFixed(2)].join(", ");
 				}
-
-				if (conf.debugMode) {
-					var p = app.scene.userData,
-						be = p.baseExtent;
-					e.innerHTML += "<br>WLD: " + [point.x.toFixed(8), point.y.toFixed(8), point.z.toFixed(8)].join(", ");
-					e.innerHTML += "<br><br>ORG: " + [p.origin.x.toFixed(8), p.origin.y.toFixed(8), p.origin.z.toFixed(8)].join(", ");
-					e.innerHTML += "<br>BE CNTR: " + [be.cx.toFixed(8), be.cy.toFixed(8)].join(", ");
-					e.innerHTML += "<br>BE SIZE: " + [be.width.toFixed(8), be.height.toFixed(8)].join(", ");
-					e.innerHTML += "<br>ROT: " + be.rotation + "<br>Z SC: " + p.zScale;
-				}
 			}
 			else {
 				e.classList.add("hidden");

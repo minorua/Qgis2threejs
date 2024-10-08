@@ -5,7 +5,6 @@
 
 from PyQt5.QtCore import QObject, pyqtSlot
 
-from .conf import DEBUG_MODE
 from .utils import logMessage
 
 
@@ -23,9 +22,6 @@ class Q3DInterface(QObject):
         # display the content of the object in the debug element
         if not self.enabled:
             return
-
-        if DEBUG_MODE == 2:
-            self.runScript("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
 
         self.webPage.sendData(obj)
 

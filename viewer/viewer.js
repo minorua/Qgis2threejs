@@ -87,7 +87,7 @@ function _init(off_screen, debug_mode) {
 
 	if (debug_mode) {
 		displayFPS();
-		if (debug_mode == 2) Q3D.Config.debugMode = true;
+		Q3D.Config.debugMode = true;
 	}
 
 	// check extension support of web view
