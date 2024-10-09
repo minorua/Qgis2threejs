@@ -19,8 +19,6 @@ var preview = {
 
 //// initialization
 
-var pyData;
-
 function init(off_screen, debug_mode, webengine) {
 
 	if (webengine) {
@@ -33,22 +31,22 @@ function init(off_screen, debug_mode, webengine) {
 				};
 
 				eval(script);
+
+				if (Q3D.Config.debugMode) logSignal("sendScriptData", script, data);
 			});
 
 			_init(off_screen, debug_mode);
 
-			pyObj.onInitialized();
 		});
 	}
 	else {
 		// WebKit Bridge
-		pyData = function () {
+		window.pyData = function () {
 			return pyObj.data();
 		}
 
 		_init(off_screen, debug_mode);
 
-		pyObj.onInitialized();
 	}
 }
 
@@ -98,10 +96,19 @@ function _init(off_screen, debug_mode) {
 					"You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
 		showMessageBar(msg, undefined, true);
 	}
+
+	pyObj.onInitialized();
+}
+
+function logSignal(name, description, object) {
+
+	console.debug("↓", name, (description || ""), (object === undefined) ? "" : object);
+
 }
 
 //// load functions
 function loadJSONObject(jsonObject) {
+
 	var p = jsonObject.properties;
 
 	if (jsonObject.type == "scene" && p !== undefined) {

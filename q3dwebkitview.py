@@ -75,7 +75,11 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         return result
 
     def sendData(self, data):
-        self.runScript("loadJSONObject(pyData())", data, message=None)
+        string = "loadJSONObject(pyData())"
+        if DEBUG_MODE:
+            self.logToConsole(string)
+
+        self.runScript(string, data, message=None)
 
     def logToConsole(self, message, level="debug"):
         self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
