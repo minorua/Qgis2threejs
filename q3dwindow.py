@@ -8,8 +8,8 @@ from datetime import datetime
 
 from PyQt5.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
-                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
+from PyQt5.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                             QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
@@ -297,7 +297,7 @@ class Q3DWindow(QMainWindow):
         return self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
     def showMessageBar(self, msg, duration=0, warning=False):
-        self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
+        self.webPage.showMessageBar(msg, duration, warning)
 
     def showStatusMessage(self, message, duration=0):
         self.ui.statusbar.showMessage(message, duration)

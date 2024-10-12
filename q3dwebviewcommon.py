@@ -6,8 +6,9 @@
 from datetime import datetime
 import os
 
-from PyQt5.QtCore import Qt, QDir, QEventLoop, QTimer, pyqtSignal, qDebug
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
+from PyQt5.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from qgis.core import QgsProject
 
 from .conf import DEBUG_MODE
 
@@ -82,6 +83,10 @@ class Q3DWebPageCommon:
         footer = self.expSettings.footerLabel()
         if header or footer:
             self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
+
+        # crs check
+        if QgsProject.instance().crs().isGeographic():
+            self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
 
         self.wnd.showStatusMessage("")
 
@@ -185,6 +190,9 @@ class Q3DWebPageCommon:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
             self.logfile.flush()
+
+    def showMessageBar(self, msg, duration=0, warning=False):
+        self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
 
 
 class Q3DWebViewCommon:
