@@ -250,7 +250,7 @@ class Q3DWindow(QMainWindow):
         self.ui.actionHelp.triggered.connect(self.help)
         self.ui.actionHomePage.triggered.connect(self.homePage)
         self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
-        self.ui.actionAbout.triggered.connect(self.about)
+        self.ui.actionVersion.triggered.connect(self.about)
 
         self.alwaysOnTopToggled(False)
 
@@ -543,7 +543,7 @@ class Q3DWindow(QMainWindow):
         QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs/issues"))
 
     def about(self):
-        QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(PLUGIN_VERSION), QMessageBox.Ok)
+        QMessageBox.information(self, PLUGIN_NAME, "Plugin version: {0}".format(PLUGIN_VERSION))
 
     # Dev menu
     def runTest(self):

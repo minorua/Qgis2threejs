@@ -117,7 +117,7 @@
     <addaction name="actionHomePage"/>
     <addaction name="actionSendFeedback"/>
     <addaction name="separator"/>
-    <addaction name="actionAbout"/>
+    <addaction name="actionVersion"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -320,9 +320,9 @@
     <string>Open plugin issue tracking system in default browser.</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="actionVersion">
    <property name="text">
-    <string>About Qgis2threejs Plugin...</string>
+    <string>Qgis2threejs Plugin Version...</string>
    </property>
    <property name="toolTip">
     <string>Display this plugin version.</string>
