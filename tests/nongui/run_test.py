@@ -27,7 +27,7 @@ def runTest(debug_mode=None):
     initOutputDir()
 
     plugin_name = os.path.basename(plugin_dir)
-    suite = unittest.TestLoader().discover(plugin_name + ".tests.non-gui")
+    suite = unittest.TestLoader().discover(plugin_name + ".tests.nongui")
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 
