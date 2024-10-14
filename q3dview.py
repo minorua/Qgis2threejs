@@ -14,7 +14,7 @@ WEBVIEWTYPE_WEBENGINE = 2
 WEBENGINE_AVAILABLE = False
 WEBKIT_AVAILABLE = False
 
-if Qgis.QGIS_VERSION_INT >= 33800:
+if Qgis.QGIS_VERSION_INT >= 33600:
     try:
         from PyQt5.QtWebEngineWidgets import QWebEngineView
         WEBENGINE_AVAILABLE = True
