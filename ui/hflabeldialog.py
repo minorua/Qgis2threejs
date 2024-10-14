@@ -42,7 +42,7 @@ class Ui_HFLabelDialog(object):
 
     def retranslateUi(self, HFLabelDialog):
         _translate = QtCore.QCoreApplication.translate
-        HFLabelDialog.setWindowTitle(_translate("HFLabelDialog", "Header/Footer Label Dialog"))
+        HFLabelDialog.setWindowTitle(_translate("HFLabelDialog", "Header Label and Footer Label"))
         self.label.setText(_translate("HFLabelDialog", "Header Label"))
         self.textEdit_Header.setPlaceholderText(_translate("HFLabelDialog", "Enter text that you want to display at page top. It can contain valid HTML tags."))
         self.label_2.setText(_translate("HFLabelDialog", "Footer Label"))
