@@ -264,6 +264,12 @@ class Q3DWindow(QMainWindow):
             self.ui.menuTestDebug.addAction(self.ui.actionTest)
             self.ui.actionTest.triggered.connect(self.runTest)
 
+            if self.webPage.isWebEnginePage:
+                self.ui.actionGPUInfo = QAction(self)
+                self.ui.actionGPUInfo.setText("GPU Info")
+                self.ui.menuTestDebug.addAction(self.ui.actionGPUInfo)
+                self.ui.actionGPUInfo.triggered.connect(self.ui.webView.showGPUInfo)
+
             self.ui.actionJSInfo = QAction(self)
             self.ui.actionJSInfo.setText("three.js Info...")
             self.ui.menuTestDebug.addAction(self.ui.actionJSInfo)

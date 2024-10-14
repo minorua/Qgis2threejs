@@ -56,6 +56,9 @@ class Q3DWebPageCommon:
         self.wnd.showStatusMessage("Initializing preview...")
 
     def pageLoaded(self, ok):
+        if self.url().scheme() != "file":
+            return
+
         self.loadedScripts = {}
 
         # configuration

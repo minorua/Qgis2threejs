@@ -132,6 +132,9 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         dlg.setLayout(v)
         dlg.show()
 
+    def showGPUInfo(self):
+        self.load(QUrl("chrome://gpu"))
+
     # FIXME: unstable
     def renderImage(self, width, height, callback, wnd=None):
         if wnd:
