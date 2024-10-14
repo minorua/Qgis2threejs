@@ -141,15 +141,15 @@ class Q3DWindow(QMainWindow):
 
         self.controller.connectToIface(self.iface)
 
-        self.setupMenu()
-        self.setupStatusBar(self.iface, previewEnabled, viewName)
+        self.setupMenu(self.ui)
+        self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
             self.ui.webView.setup(self.iface, settings, self, previewEnabled)
         else:
-            self.ui.webView.disableWidgetsAndMenus(self)
+            self.ui.webView.disableWidgetsAndMenus(self.ui)
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -211,86 +211,86 @@ class Q3DWindow(QMainWindow):
             LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("svg", "pointcloud.svg"))
         }
 
-    def setupMenu(self):
-        self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
-        self.ui.menuPanels.addAction(self.ui.dockWidgetAnimation.toggleViewAction())
+    def setupMenu(self, ui):
+        ui.menuPanels.addAction(ui.dockWidgetLayers.toggleViewAction())
+        ui.menuPanels.addAction(ui.dockWidgetAnimation.toggleViewAction())
 
-        self.ui.actionGroupCamera = QActionGroup(self)
-        self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
-        self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
-        self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
-        self.ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
+        ui.actionGroupCamera = QActionGroup(self)
+        ui.actionPerspective.setActionGroup(ui.actionGroupCamera)
+        ui.actionOrthographic.setActionGroup(ui.actionGroupCamera)
+        ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
+        ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
         # signal-slot connections
-        self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
+        ui.actionExportToWeb.triggered.connect(self.exportToWeb)
 
         if WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE:
-            self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
-            self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+            ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+            ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
         else:
-            self.ui.actionSaveAsImage.setEnabled(False)
-            self.ui.actionSaveAsGLTF.setEnabled(False)
+            ui.actionSaveAsImage.setEnabled(False)
+            ui.actionSaveAsGLTF.setEnabled(False)
 
-        self.ui.actionLoadSettings.triggered.connect(self.loadSettings)
-        self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
-        self.ui.actionClearSettings.triggered.connect(self.clearSettings)
-        self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-        self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
-        self.ui.actionGroupCamera.triggered.connect(self.cameraChanged)
-        self.ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
-        self.ui.actionAddPlane.triggered.connect(self.addPlane)
-        self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
-        self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
-        self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        self.ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
-        self.ui.actionReload.triggered.connect(self.reloadPage)
-        self.ui.actionDevTools.triggered.connect(self.ui.webView.showDevTools)
-        self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
-        self.ui.actionUsage.triggered.connect(self.usage)
-        self.ui.actionHelp.triggered.connect(self.help)
-        self.ui.actionHomePage.triggered.connect(self.homePage)
-        self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
-        self.ui.actionVersion.triggered.connect(self.about)
+        ui.actionLoadSettings.triggered.connect(self.loadSettings)
+        ui.actionSaveSettings.triggered.connect(self.saveSettings)
+        ui.actionClearSettings.triggered.connect(self.clearSettings)
+        ui.actionPluginSettings.triggered.connect(self.pluginSettings)
+        ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
+        ui.actionGroupCamera.triggered.connect(self.cameraChanged)
+        ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
+        ui.actionAddPlane.triggered.connect(self.addPlane)
+        ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
+        ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
+        ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
+        ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
+        ui.actionReload.triggered.connect(self.reloadPage)
+        ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
+        ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
+        ui.actionUsage.triggered.connect(self.usage)
+        ui.actionHelp.triggered.connect(self.help)
+        ui.actionHomePage.triggered.connect(self.homePage)
+        ui.actionSendFeedback.triggered.connect(self.sendFeedback)
+        ui.actionVersion.triggered.connect(self.about)
 
         self.alwaysOnTopToggled(False)
 
         if DEBUG_MODE and self.webPage:
-            self.ui.menuTestDebug = QMenu(self.ui.menubar)
-            self.ui.menuTestDebug.setTitle("Test&&&Debug")
-            self.ui.menubar.addAction(self.ui.menuTestDebug.menuAction())
+            ui.menuTestDebug = QMenu(ui.menubar)
+            ui.menuTestDebug.setTitle("Test&&&Debug")
+            ui.menubar.addAction(ui.menuTestDebug.menuAction())
 
-            self.ui.actionTest = QAction(self)
-            self.ui.actionTest.setText("Run Test")
-            self.ui.menuTestDebug.addAction(self.ui.actionTest)
-            self.ui.actionTest.triggered.connect(self.runTest)
+            ui.actionTest = QAction(self)
+            ui.actionTest.setText("Run Test")
+            ui.menuTestDebug.addAction(ui.actionTest)
+            ui.actionTest.triggered.connect(self.runTest)
 
             if self.webPage.isWebEnginePage:
-                self.ui.actionGPUInfo = QAction(self)
-                self.ui.actionGPUInfo.setText("GPU Info")
-                self.ui.menuTestDebug.addAction(self.ui.actionGPUInfo)
-                self.ui.actionGPUInfo.triggered.connect(self.ui.webView.showGPUInfo)
+                ui.actionGPUInfo = QAction(self)
+                ui.actionGPUInfo.setText("GPU Info")
+                ui.menuTestDebug.addAction(ui.actionGPUInfo)
+                ui.actionGPUInfo.triggered.connect(ui.webView.showGPUInfo)
 
-            self.ui.actionJSInfo = QAction(self)
-            self.ui.actionJSInfo.setText("three.js Info...")
-            self.ui.menuTestDebug.addAction(self.ui.actionJSInfo)
-            self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
+            ui.actionJSInfo = QAction(self)
+            ui.actionJSInfo.setText("three.js Info...")
+            ui.menuTestDebug.addAction(ui.actionJSInfo)
+            ui.actionJSInfo.triggered.connect(ui.webView.showJSInfo)
 
-    def setupStatusBar(self, iface, previewEnabled=True, viewName=""):
-        w = QProgressBar(self.ui.statusbar)
+    def setupStatusBar(self, ui, iface, previewEnabled=True, viewName=""):
+        w = QProgressBar(ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
         w.setAlignment(Qt.AlignCenter)
         w.setVisible(False)
-        self.ui.statusbar.addPermanentWidget(w)
-        self.ui.progressBar = w
+        ui.statusbar.addPermanentWidget(w)
+        ui.progressBar = w
 
-        w = QCheckBox(self.ui.statusbar)
+        w = QCheckBox(ui.statusbar)
         w.setObjectName("checkBoxPreview")
         w.setText("Preview" + " ({})".format(viewName) if viewName else "")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
-        self.ui.statusbar.addPermanentWidget(w)
-        self.ui.checkBoxPreview = w
-        self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
+        ui.statusbar.addPermanentWidget(w)
+        ui.checkBoxPreview = w
+        ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
 
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
