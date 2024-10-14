@@ -3302,7 +3302,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 			text = f.lbl;
 			if (!text) continue;
 
-			opacity = this.materials.mtl(f.mtl).opacity;
+			opacity = this.materials.mtl(f.mtl.idx).opacity;
 
 			partIdx = 0;
 			getPointsFunc(f).forEach(function (pt) {
@@ -3501,7 +3501,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		for (var fidx = 0; fidx < features.length; fidx++) {
 			f = features[fidx];
 			pts = f.geom.pts;
-			mtl = this.materials.mtl(f.mtl);
+			mtl = this.materials.mtl(f.mtl.idx);
 
 			meshes = [];
 			for (i = 0, l = pts.length; i < l; i++) {
@@ -3587,7 +3587,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			f = features[fidx];
 
 			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
-			mtl = this.materials.mtl(f.mtl);
+			mtl = this.materials.mtl(f.mtl.idx);
 
 			obj = new THREE.Points(geom, mtl);
 			obj.userData.properties = f.prop;
@@ -3600,7 +3600,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 		features.forEach(function (f, fidx) {
 
-			var material = this.materials.get(f.mtl);
+			var material = this.materials.get(f.mtl.idx);
 
 			var sprite, sprites = [];
 			for (var i = 0; i < f.geom.pts.length; i++) {
@@ -3740,7 +3740,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			return function (f, vertices) {
 				var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
-				var obj = new THREE.Line(geom, materials.mtl(f.mtl));
+				var obj = new THREE.Line(geom, materials.mtl(f.mtl.idx));
 				if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
 				return obj;
 			};
@@ -3750,7 +3750,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				var line = new MeshLine();
 				line.setPoints(vertices);
 
-				return new THREE.Mesh(line, materials.mtl(f.mtl));
+				return new THREE.Mesh(line, materials.mtl(f.mtl.idx));
 			};
 		}
 		else if (objType == "Pipe" || objType == "Cone") {
@@ -3773,14 +3773,14 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				for (var i = 1, l = points.length; i < l; i++) {
 					pt1.fromArray(points[i]);
 
-					mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl));
+					mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl.idx));
 					mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
 					mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
 					mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
 					group.add(mesh);
 
 					if (jointGeom && i < l - 1) {
-						mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl));
+						mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl.idx));
 						mesh.scale.setScalar(f.geom.r);
 						mesh.position.copy(pt1);
 						group.add(mesh);
@@ -3864,14 +3864,14 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				geometry.faceVertexUvs = [[]];
 				geometry.mergeVertices();
 				geometry.computeFaceNormals();
-				return new THREE.Mesh(geometry, materials.mtl(f.mtl));
+				return new THREE.Mesh(geometry, materials.mtl(f.mtl.idx));
 			};
 		}
 		else if (objType == "Wall") {
 			return function (f, vertices) {
 				var bzFunc = function (x, y) { return f.geom.bh; };
 				return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
-									materials.mtl(f.mtl));
+									materials.mtl(f.mtl.idx));
 			};
 		}
 	}
@@ -4041,7 +4041,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				geom.setIndex(f.geom.triangles.f);
 				geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
 																	// BufferGeometry and Lambert/Toon material.
-				return new THREE.Mesh(geom, materials.mtl(f.mtl));
+				return new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 			};
 		}
 		else if (objType == "Extruded") {
@@ -4055,7 +4055,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 
 				// extruded geometry
 				var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
-				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
+				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 				mesh.position.z = z;
 
 				if (f.mtl.edge !== undefined) {
@@ -4122,7 +4122,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
 				geom.computeVertexNormals();
 
-				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.face));
+				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 
 				var rotation = _this.sceneData.baseExtent.rotation;
 				if (rotation) {
