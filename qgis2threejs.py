@@ -6,7 +6,7 @@
 import os
 
 from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QAction, QActionGroup
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
 
@@ -42,19 +42,31 @@ class Qgis2threejs:
 
         self.iface.addWebToolBarIcon(self.action)
 
+        self.actionGroup = QActionGroup(wnd)
+        self.actionGroup.setObjectName(objName + "Group")
+
         if WEBENGINE_AVAILABLE:
-            self.actionWebEng = QAction(icon, title + " (Web Engine)", wnd)
+            self.actionWebEng = QAction(icon, title + " (Web Engine)", self.actionGroup)
             self.actionWebEng.setObjectName(objName + "WebEng")
             self.actionWebEng.triggered.connect(self.openExporterWebEng)
 
             self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebEng)
 
         if WEBKIT_AVAILABLE:
-            self.actionWebKit = QAction(icon, title + " (WebKit)", wnd)
+            self.actionWebKit = QAction(icon, title + " (WebKit)", self.actionGroup)
             self.actionWebKit.setObjectName(objName + "WebKit")
             self.actionWebKit.triggered.connect(self.openExporterWebKit)
 
             self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebKit)
+
+        if WEBENGINE_AVAILABLE and WEBKIT_AVAILABLE:
+            self.actionWebEng.setCheckable(True)
+            self.actionWebKit.setCheckable(True)
+
+            if QSettings().value("/Qgis2threejs/preferWebKit", False):
+                self.actionWebKit.setChecked(True)
+            else:
+                self.actionWebEng.setChecked(True)
 
         # connect signal-slot
         QgsProject.instance().removeAll.connect(self.allLayersRemoved)
@@ -123,11 +135,13 @@ class Qgis2threejs:
         self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
 
         QSettings().remove("/Qgis2threejs/preferWebKit")
+        self.actionWebEng.setChecked(True)
 
     def openExporterWebKit(self):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
 
         QSettings().setValue("/Qgis2threejs/preferWebKit", True)
+        self.actionWebKit.setChecked(True)
 
     def exporterDestroyed(self, obj):
         if currentWebViewType != WEBVIEWTYPE_NONE:
