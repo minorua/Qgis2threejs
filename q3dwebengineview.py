@@ -5,7 +5,7 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl
+from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl, pyqtSignal
 from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
 from PyQt5.QtWebChannel import QWebChannel
@@ -27,6 +27,8 @@ def setChromiumFlags():
 
 
 class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
+
+    jsErrorWarning = pyqtSignal(bool)       # bool: is_error
 
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
@@ -98,6 +100,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        if level in (QWebEnginePage.WarningMessageLevel, QWebEnginePage.ErrorMessageLevel):
+            self.jsErrorWarning.emit(bool(level == QWebEnginePage.ErrorMessageLevel))
+
         Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
 
 
@@ -117,7 +122,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
             self.dlg.activateWindow()
             return
 
-        self.dlg = dlg = QDialog(self)
+        dlg = self.dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Developer Tools")

@@ -9,7 +9,7 @@ from datetime import datetime
 from PyQt5.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
+                             QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
@@ -153,8 +153,6 @@ class Q3DWindow(QMainWindow):
 
         self.ui.animationPanel.setup(self, settings)
 
-        # signal-slot connections
-        # map canvas
         self.controller.connectToMapCanvas(qgisIface.mapCanvas())
 
         # restore window geometry and dockwidget layout
@@ -165,6 +163,9 @@ class Q3DWindow(QMainWindow):
     def closeEvent(self, event):
         self.iface.enabled = False
         self.controller.iface.disconnectFromIface()
+
+        if self.webPage and self.webPage.isWebEnginePage:
+            self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
         # save export settings to a settings file
         try:
@@ -276,21 +277,41 @@ class Q3DWindow(QMainWindow):
             ui.actionJSInfo.triggered.connect(ui.webView.showJSInfo)
 
     def setupStatusBar(self, ui, iface, previewEnabled=True, viewName=""):
-        w = QProgressBar(ui.statusbar)
+        w = ui.progressBar = QProgressBar(ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
         w.setAlignment(Qt.AlignCenter)
-        w.setVisible(False)
+        w.hide()
         ui.statusbar.addPermanentWidget(w)
-        ui.progressBar = w
 
-        w = QCheckBox(ui.statusbar)
+        w = ui.checkBoxPreview = QCheckBox(ui.statusbar)
         w.setObjectName("checkBoxPreview")
         w.setText("Preview" + " ({})".format(viewName) if viewName else "")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
+        w.toggled.connect(iface.previewStateChanged)
         ui.statusbar.addPermanentWidget(w)
-        ui.checkBoxPreview = w
-        ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
+
+        if self.webPage and self.webPage.isWebEnginePage:
+            w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
+            w.setObjectName("toolButtonConsoleStatus")
+            w.setToolTip("Click this button to open the developer tools.")
+            w.hide()
+            w.clicked.connect(self.consoleStatusIconClicked)
+            ui.statusbar.addPermanentWidget(w)
+
+            self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
+            self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
+
+    def consoleStatusIconClicked(self):
+        self.ui.webView.showDevTools()
+        self.ui.toolButtonConsoleStatus.hide()
+
+    def showConsoleStatusIcon(self, is_error):
+        style = QgsApplication.style()
+        icon = style.standardIcon(QStyle.SP_MessageBoxCritical if is_error else QStyle.SP_MessageBoxWarning)
+
+        self.ui.toolButtonConsoleStatus.setIcon(icon)
+        self.ui.toolButtonConsoleStatus.show()
 
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
