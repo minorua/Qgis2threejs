@@ -22,7 +22,8 @@ from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
 from . import q3dview
 from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from .utils import createUid, hex_color, js_bool, logMessage, pluginDir
+from . import utils
+from .utils import createUid, hex_color, logMessage, pluginDir, Correspondent
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
@@ -146,7 +147,14 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
+        utils.correspondent = None
+
         if self.webPage:
+            if DEBUG_MODE:
+                # to listen messages to be logged
+                utils.correspondent = Correspondent(self)
+                utils.correspondent.messageSent.connect(self.webPage.logToConsole)
+
             self.ui.webView.setup(self.iface, settings, self, previewEnabled)
         else:
             self.ui.webView.disableWidgetsAndMenus(self.ui)
@@ -163,6 +171,10 @@ class Q3DWindow(QMainWindow):
     def closeEvent(self, event):
         self.iface.enabled = False
         self.controller.iface.disconnectFromIface()
+
+        if utils.correspondent:
+            utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
+            utils.correspondent = None
 
         if self.webPage and self.webPage.isWebEnginePage:
             self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)

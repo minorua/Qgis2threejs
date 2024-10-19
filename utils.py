@@ -9,7 +9,7 @@ import configparser
 import re
 import shutil
 
-from PyQt5.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
+from PyQt5.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QImage
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
 
@@ -19,6 +19,34 @@ from qgis.gui import QgsCompoundColorWidget
 from .conf import DEBUG_MODE, PLUGIN_NAME
 
 
+# message logging
+correspondent = None
+
+
+class Correspondent(QObject):
+
+    messageSent = pyqtSignal(str, str)      # message, level
+
+
+def logMessage(message, warning=True, error=False):
+    if correspondent:
+        if error:
+            level = "error"
+        elif warning:
+            level = "warn"
+        else:
+            level = "debug"
+        correspondent.messageSent.emit(message, level)
+
+    level = Qgis.Critical if error else (Qgis.Warning if warning else Qgis.Info)
+    QgsMessageLog.logMessage(str(message), PLUGIN_NAME, level, warning or error)
+
+
+def qDebug(message):
+    qDebugA(message.encode("utf-8"))
+
+
+#
 def getLayersInProject():
     layers = []
     for tl in QgsProject.instance().layerTreeRoot().findLayers():
@@ -132,15 +160,6 @@ def parseFloat(string, def_val=None):
 
 def createUid():
     return QUuid.createUuid().toString()[1:9]
-
-
-def logMessage(message, warning=True, error=False):
-    level = Qgis.Critical if error else (Qgis.Warning if warning else Qgis.Info)
-    QgsMessageLog.logMessage(str(message), PLUGIN_NAME, level, warning or error)
-
-
-def qDebug(message):
-    qDebugA(message.encode("utf-8"))
 
 
 def shortTextFromSelectedLayerIds(layerIds):
