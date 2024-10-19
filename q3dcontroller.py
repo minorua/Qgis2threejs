@@ -18,8 +18,8 @@ from .utils import hex_color, js_bool, logMessage
 class Q3DControllerInterface(QObject):
 
     # signals
-    dataReady = pyqtSignal(dict)                 # data
-    scriptReady = pyqtSignal(str, object, str)   # script, data, msg_shown_in_log_panel
+    dataSent = pyqtSignal(dict)                  # data
+    scriptSent = pyqtSignal(str, object, str)    # script, data, msg_shown_in_log_panel
     statusMessageSent = pyqtSignal(str, int)     # message, timeout_ms
     progressUpdated = pyqtSignal(int, str)
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
@@ -35,8 +35,8 @@ class Q3DControllerInterface(QObject):
         """iface: web view side interface (Q3DInterface or its subclass)"""
         self.iface = iface
 
-        self.dataReady.connect(iface.loadJSONObject)
-        self.scriptReady.connect(iface.runScript)
+        self.dataSent.connect(iface.sendJSONObject)
+        self.scriptSent.connect(iface.runScript)
         self.loadScriptsRequest.connect(iface.loadScriptFiles)
         self.statusMessageSent.connect(iface.showStatusMessage)
         self.progressUpdated.connect(iface.progress)
@@ -56,8 +56,8 @@ class Q3DControllerInterface(QObject):
             iface.layerRemoved.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
-        self.dataReady.disconnect(self.iface.loadJSONObject)
-        self.scriptReady.disconnect(self.iface.runScript)
+        self.dataSent.disconnect(self.iface.sendJSONObject)
+        self.scriptSent.disconnect(self.iface.runScript)
         self.loadScriptsRequest.disconnect(self.iface.loadScriptFiles)
         self.statusMessageSent.disconnect(self.iface.showStatusMessage)
         self.progressUpdated.disconnect(self.iface.progress)
@@ -78,11 +78,11 @@ class Q3DControllerInterface(QObject):
 
         self.iface = None
 
-    def loadJSONObject(self, obj):
-        self.dataReady.emit(obj)
+    def sendJSONObject(self, obj):
+        self.dataSent.emit(obj)
 
     def runScript(self, string, data=None, msg=""):
-        self.scriptReady.emit(string, data, msg)
+        self.scriptSent.emit(string, data, msg)
 
     def showStatusMessage(self, msg, timeout_ms=0):
         """show message in status bar"""
@@ -179,7 +179,7 @@ class Q3DController(QObject):
         if update_extent and self.mapCanvas:
             self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
 
-        self.iface.loadJSONObject(self.builder.buildScene(False))
+        self.iface.sendJSONObject(self.builder.buildScene(False))
 
         if update_scene_opts:
             sp = self.settings.sceneProperties()
@@ -273,7 +273,7 @@ class Q3DController(QObject):
             t2 = time.time()
 
             if obj:
-                self.iface.loadJSONObject(obj)
+                self.iface.sendJSONObject(obj)
 
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1

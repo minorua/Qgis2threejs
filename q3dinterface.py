@@ -18,12 +18,9 @@ class Q3DInterface(QObject):
         self.enabled = True
 
     @pyqtSlot(dict)
-    def loadJSONObject(self, obj):
-        # display the content of the object in the debug element
-        if not self.enabled:
-            return
-
-        self.webPage.sendData(obj)
+    def sendJSONObject(self, obj):
+        if self.enabled:
+            self.webPage.sendData(obj)
 
     @pyqtSlot(str, object, str)
     def runScript(self, string, data=None, message=""):
