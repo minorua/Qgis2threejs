@@ -200,6 +200,8 @@ class Q3DWebPageCommon:
 
 class Q3DWebViewCommon:
 
+    devToolsClosed = pyqtSignal()
+
     def __init__(self, _=None):
         self.setAcceptDrops(True)
 

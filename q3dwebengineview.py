@@ -126,6 +126,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Developer Tools")
+        dlg.rejected.connect(self.devToolsClosed)
 
         ins = QWebEngineView(dlg)
         self._page.setDevToolsPage(ins.page())

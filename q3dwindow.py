@@ -151,6 +151,9 @@ class Q3DWindow(QMainWindow):
                 utils.correspondent.messageSent.connect(self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, self, previewEnabled)
+
+            if self.webPage.isWebEnginePage:
+                self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
         else:
             self.ui.webView.disableWidgetsAndMenus(self.ui)
 
@@ -303,15 +306,11 @@ class Q3DWindow(QMainWindow):
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")
             w.hide()
-            w.clicked.connect(self.consoleStatusIconClicked)
+            w.clicked.connect(self.ui.webView.showDevTools)
             ui.statusbar.addPermanentWidget(w)
 
             self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
             self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
-
-    def consoleStatusIconClicked(self):
-        self.ui.webView.showDevTools()
-        self.ui.toolButtonConsoleStatus.hide()
 
     def showConsoleStatusIcon(self, is_error):
         style = QgsApplication.style()

@@ -121,6 +121,7 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Web Inspector")
+        dlg.rejected.connect(self.devToolsClosed)
 
         wi = QWebInspector(dlg)
         wi.setPage(self._page)
