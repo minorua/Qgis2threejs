@@ -35,8 +35,8 @@ class Q3DInterface(QObject):
         if self.enabled:
             self.webPage.loadScriptFiles(ids, force)
 
-    # @pyqtSlot(str, int, bool)     # pyqtSlot override bug in PyQt5?
-    def showMessage(self, msg, _1=0, _2=False):
+    # @pyqtSlot(str, int)
+    def showStatusMessage(self, msg, _1=0):
         if self.enabled:
             logMessage(msg)
 

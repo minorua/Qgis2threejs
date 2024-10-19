@@ -51,15 +51,10 @@ class Q3DViewerInterface(Q3DInterface):
         self.wnd = wnd
         self.treeView = treeView
 
-    # @pyqtSlot(str, int, bool)
-    def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
-        if not self.enabled:
-            return
-
-        if show_in_msg_bar:
-            self.wnd.qgisIface.messageBar().pushMessage("Qgis2threejs Error", msg, level=Qgis.Warning, duration=timeout)
-        else:
-            self.wnd.ui.statusbar.showMessage(msg, timeout)
+    # @pyqtSlot(str, int)
+    def showStatusMessage(self, msg, timeout_ms=0):
+        if self.enabled:
+            self.wnd.ui.statusbar.showMessage(msg, timeout_ms)
 
     # @pyqtSlot(int, str)
     def progress(self, percentage=100, msg=None):
@@ -187,7 +182,7 @@ class Q3DWindow(QMainWindow):
             import traceback
             logMessage(traceback.format_exc(), error=True)
 
-            self.iface.showMessage(str(e), show_in_msg_bar=True)
+            self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
 
         settings = QSettings()
         settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
@@ -335,11 +330,8 @@ class Q3DWindow(QMainWindow):
     def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
-    def showMessageBar(self, msg, duration=0, warning=False):
-        self.webPage.showMessageBar(msg, duration, warning)
-
-    def showStatusMessage(self, message, duration=0):
-        self.ui.statusbar.showMessage(message, duration)
+    def showStatusMessage(self, message, timeout_ms=0):
+        self.ui.statusbar.showMessage(message, timeout_ms)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):

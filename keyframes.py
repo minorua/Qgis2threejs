@@ -116,13 +116,13 @@ class AnimationPanel(QWidget):
                     dataList.append(data)
 
         msg = ""
-        duration = 5000
+        timeout_ms = 5000
         if self._warnings:
             msg = "Animation warning{}:<br><ul>".format("s" if len(self._warnings) > 1 else "")
             for w in self._warnings:
                 msg += "<li>" + w + "</li>"
             msg += "</ul>"
-            duration = 0
+            timeout_ms = 0
 
         if len(dataList):
             if DEBUG_MODE:
@@ -139,7 +139,7 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
-            self.wnd.showMessageBar(msg, duration, warning=True)
+            self.wnd.webPage.showMessageBar(msg, timeout_ms, warning=True)
 
     def _updateLayer(self, layer, groupType):
         if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):

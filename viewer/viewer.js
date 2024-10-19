@@ -282,13 +282,13 @@ function saveModelAsGLTF(filename) {
 }
 
 var barTimerId = null;
-function showMessageBar(message, duration, warning) {
+function showMessageBar(message, timeout_ms, warning) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
 		barTimerId = null;
 	}
-	if (duration) {
-		barTimerId = setTimeout(closeMessageBar, duration);
+	if (timeout_ms) {
+		barTimerId = setTimeout(closeMessageBar, timeout_ms);
 	}
 
 	Q3D.E("msgcontent").innerHTML = message;
@@ -308,8 +308,8 @@ function closeMessageBar() {
 	barTimerId = null;
 }
 
-function showStatusMessage(message, duration) {
-	pyObj.showStatusMessage(message, duration || 0);
+function showStatusMessage(message, timeout_ms) {
+	pyObj.showStatusMessage(message, timeout_ms || 0);
 	console.log(message);
 }
 

@@ -194,8 +194,8 @@ class Q3DWebPageCommon:
             self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
             self.logfile.flush()
 
-    def showMessageBar(self, msg, duration=0, warning=False):
-        self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
+    def showMessageBar(self, msg, timeout_ms=0, warning=False):
+        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)
 
 
 class Q3DWebViewCommon:
@@ -250,5 +250,5 @@ class DummyWindow:
     def logToConsole(self, message, lineNumber="", sourceID=""):
         logMessage(message, False)
 
-    def showStatusMessage(self, message, duration=0):
+    def showStatusMessage(self, message, timeout_ms=0):
         logMessage(message, False)

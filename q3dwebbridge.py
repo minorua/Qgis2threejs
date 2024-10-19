@@ -67,8 +67,8 @@ class Bridge(QObject):
 
     @pyqtSlot(str, int)
     @notify_slot_called
-    def showStatusMessage(self, message, duration=0):
-        self.statusMessage.emit(message, duration)
+    def showStatusMessage(self, message, timeout_ms=0):
+        self.statusMessage.emit(message, timeout_ms)
 
     @pyqtSlot("QByteArray", str)
     @notify_slot_called

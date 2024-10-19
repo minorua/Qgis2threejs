@@ -20,7 +20,7 @@ class Q3DControllerInterface(QObject):
     # signals
     dataReady = pyqtSignal(dict)                 # data
     scriptReady = pyqtSignal(str, object, str)   # script, data, msg_shown_in_log_panel
-    messageReady = pyqtSignal(str, int, bool)    # message, timeout, show_in_msg_bar
+    statusMessageSent = pyqtSignal(str, int)     # message, timeout_ms
     progressUpdated = pyqtSignal(int, str)
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
     readyToQuit = pyqtSignal()
@@ -38,7 +38,7 @@ class Q3DControllerInterface(QObject):
         self.dataReady.connect(iface.loadJSONObject)
         self.scriptReady.connect(iface.runScript)
         self.loadScriptsRequest.connect(iface.loadScriptFiles)
-        self.messageReady.connect(iface.showMessage)
+        self.statusMessageSent.connect(iface.showStatusMessage)
         self.progressUpdated.connect(iface.progress)
 
         if hasattr(iface, "abortRequest"):
@@ -59,7 +59,7 @@ class Q3DControllerInterface(QObject):
         self.dataReady.disconnect(self.iface.loadJSONObject)
         self.scriptReady.disconnect(self.iface.runScript)
         self.loadScriptsRequest.disconnect(self.iface.loadScriptFiles)
-        self.messageReady.disconnect(self.iface.showMessage)
+        self.statusMessageSent.disconnect(self.iface.showStatusMessage)
         self.progressUpdated.disconnect(self.iface.progress)
 
         if hasattr(self.iface, "abortRequest"):
@@ -84,18 +84,17 @@ class Q3DControllerInterface(QObject):
     def runScript(self, string, data=None, msg=""):
         self.scriptReady.emit(string, data, msg)
 
-    def showMessage(self, msg, timeout=0):
-        """show message in status bar. timeout: in milli-seconds"""
-        self.messageReady.emit(msg, timeout, False)
+    def showStatusMessage(self, msg, timeout_ms=0):
+        """show message in status bar"""
+        self.statusMessageSent.emit(msg, timeout_ms)
 
-    def clearMessage(self):
+    def clearStatusMessage(self):
         """clear message in status bar"""
-        self.messageReady.emit("", 0, False)
+        self.statusMessageSent.emit("", 0)
 
-    def showMessageBar(self, msg="", timeout=10):
-        """show message bar (error message only). timeout: in seconds"""
-        msg = msg or "An error has occurred. See log messages panel for details."
-        self.messageReady.emit(msg, timeout, True)
+    def showMessageBar(self, msg, timeout_ms=0, warning=False):
+        """show message bar at top of web view"""
+        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), data=msg)
 
     def progress(self, percentage=100, msg=""):
         self.progressUpdated.emit(int(percentage), msg)
@@ -204,7 +203,7 @@ class Q3DController(QObject):
             self.buildLayers()
 
         self.iface.progress()
-        self.iface.clearMessage()
+        self.iface.clearStatusMessage()
         return not self.aborted
 
     def buildLayers(self):
@@ -234,7 +233,7 @@ class Q3DController(QObject):
         ret = self._buildLayer(layer)
 
         self.iface.progress()
-        self.iface.clearMessage()
+        self.iface.clearStatusMessage()
 
         if ret and len(self.settings.layersToExport()) == 1:
             self.iface.runScript("adjustCameraPos()")
@@ -335,7 +334,7 @@ class Q3DController(QObject):
             import traceback
             logMessage(traceback.format_exc())
 
-            self.iface.showMessageBar()
+            self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
         self.processRequests()
 
@@ -346,7 +345,7 @@ class Q3DController(QObject):
 
         if not self.aborted:
             self.aborted = True
-            self.iface.showMessage("Aborting processing...")
+            self.iface.showStatusMessage("Aborting processing...")
 
     @pyqtSlot()
     def quit(self):
