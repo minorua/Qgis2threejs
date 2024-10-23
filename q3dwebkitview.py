@@ -7,18 +7,12 @@ import os
 
 from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QDesktopServices, QImage, QPainter
-from PyQt5.QtWidgets import QDialog, QMessageBox, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QVBoxLayout
 
-from .conf import DEBUG_MODE, PLUGIN_NAME
-try:
-    from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
-    from PyQt5.QtWebKitWidgets import QWebPage, QWebView
-    from PyQt5.QtWebKitWidgets import QWebInspector
-except ModuleNotFoundError:
-    if os.name == "posix":
-        QMessageBox.warning(None, PLUGIN_NAME, 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
-    raise
+from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
+from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
+from .conf import DEBUG_MODE
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 
 

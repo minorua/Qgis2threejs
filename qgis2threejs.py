@@ -140,7 +140,9 @@ class Qgis2threejs:
     def openExporterWebKit(self):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
 
-        QSettings().setValue("/Qgis2threejs/preferWebKit", True)
+        if WEBENGINE_AVAILABLE:
+            QSettings().setValue("/Qgis2threejs/preferWebKit", True)
+
         self.actionWebKit.setChecked(True)
 
     def exporterDestroyed(self, obj):
