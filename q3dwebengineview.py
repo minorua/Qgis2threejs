@@ -5,8 +5,8 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl, pyqtSignal
-from PyQt5.QtGui import QImage, QPainter
+from PyQt5.QtCore import Qt, QEventLoop, QTimer, QUrl, pyqtSignal
+from PyQt5.QtGui import QDesktopServices, QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
@@ -104,6 +104,12 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             self.jsErrorWarning.emit(bool(level == QWebEnginePage.ErrorMessageLevel))
 
         Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
+
+    def acceptNavigationRequest(self, url, type, isMainFrame):
+        if type == QWebEnginePage.NavigationTypeLinkClicked:
+            QDesktopServices.openUrl(url)
+            return False
+        return True
 
 
 class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):

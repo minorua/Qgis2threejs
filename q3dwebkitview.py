@@ -6,7 +6,7 @@
 import os
 
 from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QImage, QPainter
+from PyQt5.QtGui import QDesktopServices, QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QMessageBox, QVBoxLayout
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
@@ -43,6 +43,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         origin = self.mainFrame().securityOrigin()
         origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
         origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
+
+        self.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.linkClicked.connect(QDesktopServices.openUrl)
 
         # if self.offScreen:
         #     # transparent background
