@@ -8,7 +8,7 @@ import os
 
 from PyQt5.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from qgis.core import QgsProject
+from qgis.core import Qgis, QgsProject
 
 from .conf import DEBUG_MODE
 
@@ -78,7 +78,10 @@ class Q3DWebPageCommon:
             self.runScript("Q3D.Config.navigation.enabled = false;")
 
         # call init()
-        self.runScript("init({}, {}, {})".format(js_bool(self.offScreen), DEBUG_MODE, js_bool(self.isWebEnginePage)))
+        self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
+                                                     DEBUG_MODE,
+                                                     Qgis.QGIS_VERSION_INT,
+                                                     js_bool(self.isWebEnginePage)))
 
     def initialized(self):
         # labels

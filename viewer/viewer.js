@@ -19,9 +19,13 @@ var preview = {
 
 //// initialization
 
-function init(off_screen, debug_mode, webengine) {
+function init(off_screen, debug_mode, qgis_version, is_webengine) {
 
-	if (webengine) {
+	Q3D.Config.debugMode = debug_mode;
+	Q3D.Config.qgisVersion = qgis_version;
+	Q3D.Config.isWebEngine = is_webengine;
+
+	if (is_webengine) {
 		// Web Channel
 		new QWebChannel(qt.webChannelTransport, function(channel) {
 			window.pyObj = channel.objects.bridge;
@@ -35,7 +39,7 @@ function init(off_screen, debug_mode, webengine) {
 				if (Q3D.Config.debugMode) logSignal("sendScriptData", script, data);
 			});
 
-			_init(off_screen, debug_mode);
+			_init(off_screen);
 
 		});
 	}
@@ -45,12 +49,12 @@ function init(off_screen, debug_mode, webengine) {
 			return pyObj.data();
 		}
 
-		_init(off_screen, debug_mode);
+		_init(off_screen);
 
 	}
 }
 
-function _init(off_screen, debug_mode) {
+function _init(off_screen) {
 
 	var container = Q3D.E("view");
 	app.init(container);
@@ -83,17 +87,34 @@ function _init(off_screen, debug_mode) {
 		pyObj.onAnimationStopped();
 	});
 
-	if (debug_mode) {
+	if (Q3D.Config.debugMode) {
 		displayFPS();
-		Q3D.Config.debugMode = true;
 	}
 
 	// check extension support of web view
 	// see https://github.com/minorua/Qgis2threejs/issues/147
 	var gl = app.renderer.getContext();		// WebGLRenderingContext
 	if (gl.getExtension("WEBGL_depth_texture") === null) {
-		var msg = "No 3D objects were rendered? There is a compatibility issue with QGIS 3D view. " +
-					"You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
+
+		var viewName = (Q3D.Config.isWebEngine) ? "WebEngine" : "WebKit";
+
+		var msg = "Currently, this web view (Qt " + viewName + ") can't display 3D objects. ";
+
+		if (!Q3D.Config.isWebEngine) {
+
+			if (Q3D.Config.qgisVersion >= 33600) {
+
+				msg += "Please use the Qt WebEngine view instead. You can find instructions on how to do that in this ";
+				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
+
+			}
+			else {
+
+				msg += "Please consider using QGIS version 3.36 or a later version, which supports using Qt WebEngine view.";
+
+			}
+		}
+
 		showMessageBar(msg, undefined, true);
 	}
 

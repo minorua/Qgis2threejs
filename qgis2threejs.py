@@ -46,7 +46,7 @@ class Qgis2threejs:
         self.actionGroup.setObjectName(objName + "Group")
 
         if WEBENGINE_AVAILABLE:
-            self.actionWebEng = QAction(icon, title + " (Web Engine)", self.actionGroup)
+            self.actionWebEng = QAction(icon, title + " (WebEngine)", self.actionGroup)
             self.actionWebEng.setObjectName(objName + "WebEng")
             self.actionWebEng.triggered.connect(self.openExporterWebEng)
 
