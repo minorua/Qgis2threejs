@@ -37,7 +37,7 @@ class GSIElevTileProvider:
         self.crs3857 = QgsCoordinateReferenceSystem("EPSG:3857")
         self.dest_crs = QgsCoordinateReferenceSystem()
         if not self.dest_crs.createFromWkt(dest_wkt):
-            logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
+            logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt), error=True)
         self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857, QgsProject.instance())
 
         # approximate bbox of this data

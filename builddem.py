@@ -293,7 +293,7 @@ class DEMGridBuilder:
             if self.roughness <= roughness:
                 continue
             if neighbor.edges is None:
-                logMessage("Neighbor block {} holds no edge values.".format(neighbor.blockIndex))
+                logMessage("Neighbor block {} holds no edge values.".format(neighbor.blockIndex), warning=True)
                 continue
 
             if (sx, sy) == (0, -1):
@@ -335,7 +335,7 @@ class DEMGridBuilder:
                 grid_values[grid_width * (grid_height - 1)] = neighbor.edges[3][grid_width - 1]
 
             else:
-                logMessage("Edge processing: invalid sx and sy ({}, {})".format(sx, sy))
+                logMessage("Edge processing: invalid sx and sy ({}, {})".format(sx, sy), warning=True)
 
     def processEdgesCenter(self, grid_values, roughness):
 

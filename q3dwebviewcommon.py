@@ -144,7 +144,7 @@ class Q3DWebPageCommon:
         loading = self.runScript("app.loadingManager.isLoading")
 
         if DEBUG_MODE:
-            logMessage("waitForSceneLoaded: loading={}".format(loading), False)
+            logMessage("waitForSceneLoaded: loading={}".format(loading))
 
         if not loading:
             return False
@@ -182,9 +182,9 @@ class Q3DWebPageCommon:
             with open(filename, "wb") as f:
                 f.write(data)
 
-            logMessage("Successfully saved model data: " + filename, False)
+            QMessageBox.information(self.wnd, "Save Scene As glTF", "Successfully saved model data: " + filename)
         except Exception as e:
-            QMessageBox.warning(self, "Failed to save model data.", str(e))
+            QMessageBox.warning(self.wnd, "Failed to save model data.", str(e))
 
     def saveImage(self, width, height, image):
         filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
@@ -253,7 +253,7 @@ class Q3DWebViewCommon:
 class DummyWindow:
 
     def logToConsole(self, message, lineNumber="", sourceID=""):
-        logMessage(message, False)
+        logMessage(message)
 
     def showStatusMessage(self, message, timeout_ms=0):
-        logMessage(message, False)
+        logMessage(message)

@@ -38,7 +38,7 @@ class VectorGeometry:
                 g.extend(cls.nestedPointList(geom.geometryN(i)))
             return g
 
-        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
+        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__), warning=True)
         return []
 
     @classmethod
@@ -50,7 +50,7 @@ class VectorGeometry:
                 g.extend(cls.singleGeometries(geom.geometryN(i)))
             return g
 
-        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
+        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__), warning=True)
         return []
 
 
@@ -767,13 +767,13 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
     for f in polygon_layer.getFeatures(request):
         geometry = f.geometry()
         if geometry is None:
-            logMessage("null geometry skipped")
+            logMessage("Null geometry skipped")
             continue
 
         # transform geometry from the layer CRS to the project CRS
         geom = QgsGeometry(geometry)
         if geom.transform(transform) != 0:
-            logMessage("Failed to transform geometry to project CRS")
+            logMessage("Failed to transform geometry to project CRS", warning=True)
             continue
 
         # check if geometry intersects with the base extent

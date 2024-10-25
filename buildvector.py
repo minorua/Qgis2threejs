@@ -189,7 +189,7 @@ class VectorLayer:
 
             # coordinate transformation - layer crs to project crs
             if geom.transform(self.transform) != 0:
-                logMessage("[{}] Failed to transform a geometry.".format(self.name))
+                logMessage("[{}] Failed to transform a geometry.".format(self.name), warning=True)
                 continue
 
             if rotation and self.onlyIntersecting:
@@ -264,12 +264,12 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
 
             if val is None:
-                logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr))
+                logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr), warning=True)
 
             elif isinstance(val, str):
                 val = parseFloat(val)
                 if val is None:
-                    logMessage("[{}] Cannot parse '{}' as a float value.".format(self.name, expr))
+                    logMessage("[{}] Cannot parse '{}' as a float value.".format(self.name, expr), warning=True)
 
             return val or 0
 
@@ -287,9 +287,9 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
             if val is None:
                 if expr:
-                    logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr))
+                    logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr), warning=True)
                 else:
-                    logMessage("[{}] There is an empty file path.".format(self.name))
+                    logMessage("[{}] There is an empty file path.".format(self.name), warning=True)
 
             return val or ""
 
@@ -330,7 +330,7 @@ class VectorLayer:
 
                 raise
             except:
-                logMessage("[{}] Wrong color value: {}".format(self.name, val))
+                logMessage("[{}] Wrong color value: {}".format(self.name, val), warning=True)
                 return "0"
 
         if mode == ColorWidgetFunc.RANDOM or f is None:
@@ -342,7 +342,7 @@ class VectorLayer:
         # feature color
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
+            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name), warning=True)
             return "0"
 
         symbol = symbols[0]
@@ -360,12 +360,12 @@ class VectorLayer:
                 val = self.evaluateExpression(wv["editText"], f)
                 return min(max(0, val), 100) / 100
             except:
-                logMessage("[{}] Wrong opacity value: {}".format(self.name, val))
+                logMessage("[{}] Wrong opacity value: {}".format(self.name, val), warning=True)
                 return 1
 
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
+            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name), warning=True)
             return 1
 
         symbol = symbols[0]
@@ -376,7 +376,7 @@ class VectorLayer:
         try:
             return float(val)
         except Exception as e:
-            logMessage('{0} (value: {1})'.format(e.message, str(val)))
+            logMessage('{0} (value: {1})'.format(e.message, str(val)), warning=True)
             return 0
 
     # functions to read values from height widget (z coordinate)

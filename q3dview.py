@@ -31,7 +31,7 @@ except:     # ModuleNotFoundError
 
 
 if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
-    logMessage("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.")
+    logMessage("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.", warning=True)
 
 
 Q3DView = None

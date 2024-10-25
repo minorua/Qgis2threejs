@@ -52,7 +52,7 @@ class SettingsDialog(QDialog):
                 metadata = dict(parser.items("general"))
                 self.plugin_metadata.append(metadata)
             except Exception as e:
-                logMessage("Unable to read metadata of plugin: {} ({})".format(name, e))
+                logMessage("Unable to read metadata of plugin: {} ({})".format(name, e), error=True)
 
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):

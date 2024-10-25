@@ -28,12 +28,12 @@ class Correspondent(QObject):
     messageSent = pyqtSignal(str, str)      # message, level
 
 
-def logMessage(message, warning=True, error=False):
+def logMessage(message, warning=False, error=False):
     if correspondent:
-        if error:
-            level = "error"
-        elif warning:
+        if warning:
             level = "warn"
+        elif error:
+            level = "error"
         else:
             level = "debug"
         correspondent.messageSent.emit(message, level)
@@ -191,7 +191,7 @@ def openUrl(url):
             if QProcess.startDetached(browserPath, [url.toString()]):
                 return
             else:
-                logMessage("Incorrect web browser path. Open URL using default web browser.", True)
+                logMessage("Incorrect web browser path. Open URL using default web browser.", warning=True)
 
     QDesktopServices.openUrl(url)
 
@@ -213,7 +213,7 @@ def base64file(file_path):
         with open(file_path, "rb") as f:
             return base64.b64encode(f.read()).decode("ascii")
     except:
-        logMessage("Cannot read file: {}".format(file_path))
+        logMessage("Cannot read file: {}".format(file_path), warning=True)
         return ""
 
 

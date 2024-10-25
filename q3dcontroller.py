@@ -123,7 +123,7 @@ class Q3DController(QObject):
 
             err_msg = settings.checkValidity()
             if err_msg:
-                logMessage("Invalid settings: " + err_msg)
+                logMessage("Invalid settings: " + err_msg, warning=True)
 
         self.settings = settings
         self.builder = ThreeJSBuilder(settings)
@@ -264,7 +264,7 @@ class Q3DController(QObject):
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
-                logMessage("***** layer building aborted *****", False)
+                logMessage("***** layer building aborted *****")
                 self.buildingLayer = None
                 return False
 
@@ -332,7 +332,7 @@ class Q3DController(QObject):
 
         except Exception as e:
             import traceback
-            logMessage(traceback.format_exc())
+            logMessage(traceback.format_exc(), warning=True)
 
             self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
@@ -355,7 +355,7 @@ class Q3DController(QObject):
     @pyqtSlot(object, bool, bool)
     def requestBuildScene(self, properties=None, update_all=True, reload=False):
         if DEBUG_MODE:
-            logMessage("Scene update requested: {}".format(properties), False)
+            logMessage("Scene update requested: {}".format(properties))
 
         if properties:
             self.settings.setSceneProperties(properties)
@@ -377,7 +377,7 @@ class Q3DController(QObject):
     @pyqtSlot(Layer)
     def requestBuildLayer(self, layer):
         if DEBUG_MODE:
-            logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"), False)
+            logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"))
 
         # update layer properties and layer state in worker side export settings
         lyr = self.settings.getLayer(layer.layerId)
@@ -493,7 +493,7 @@ class Mock:
 
     def __getattr__(self, attr):
         if DEBUG_MODE:
-            logMessage("Mock: {}".format(attr), False)
+            logMessage("Mock: {}".format(attr))
         return Mock
 
     def __bool__(self):

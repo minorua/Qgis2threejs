@@ -45,7 +45,7 @@ class PluginManager:
                 self.modules.append(module)
                 self.plugins.append(getattr(module, "plugin_class"))
             except ImportError:
-                logMessage("Failed to load plugin: " + str(name))
+                logMessage("Failed to load plugin: " + str(name), error=True)
 
     def demProviderPlugins(self):
         plugins = []

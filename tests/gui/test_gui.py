@@ -353,7 +353,7 @@ def runTest(wnd):
     wnd.logToConsole = logToConsole.__get__(wnd)
 
     # start testing
-    logMessage("Testing GUI...", warning=False)
+    logMessage("Testing GUI...")
 
     try:
         suite(result)

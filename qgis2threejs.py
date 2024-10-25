@@ -101,7 +101,7 @@ class Qgis2threejs:
         webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
         """
         if self.liveExporter:
-            logMessage("Qgis2threejs Exporter is already open.", False)
+            logMessage("Qgis2threejs Exporter is already open.")
             self.liveExporter.activateWindow()
             return
 
@@ -121,7 +121,6 @@ class Qgis2threejs:
         self.exportSettings.isPreview = True
         self.exportSettings.setMapSettings(self.iface.mapCanvas().mapSettings())
 
-        logMessage("Opening Qgis2threejs Exporter...", False)
         self.liveExporter = Q3DWindow(self.iface,
                                       self.exportSettings,
                                       webViewType=webViewType,
@@ -150,8 +149,6 @@ class Qgis2threejs:
             self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
 
         self.liveExporter = None
-
-        logMessage("Qgis2threejs Exporter has closed.", False)
 
     def allLayersRemoved(self):
         self.currentProjectPath = ""

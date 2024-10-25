@@ -909,7 +909,7 @@ class AnimationTreeWidget(QTreeWidget):
                 if mtl:
                     item.setText(0, mtl["name"])
                 else:
-                    logMessage("The material '{}' was removed.".format(item.text(0)), warning=False)
+                    logMessage("The material '{}' was removed.".format(item.text(0)))
                     group.removeChild(item)
 
 

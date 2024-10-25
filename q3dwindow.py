@@ -142,19 +142,18 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
-        utils.correspondent = None
-
         if self.webPage:
-            if DEBUG_MODE:
-                # to listen messages to be logged
-                utils.correspondent = Correspondent(self)
-                utils.correspondent.messageSent.connect(self.webPage.logToConsole)
+            # to listen messages to be logged
+            utils.correspondent = Correspondent(self)
+            utils.correspondent.messageSent.connect(self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, self, previewEnabled)
 
             if self.webPage.isWebEnginePage:
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
         else:
+            utils.correspondent = None
+
             self.ui.webView.disableWidgetsAndMenus(self.ui)
 
         self.ui.animationPanel.setup(self, settings)

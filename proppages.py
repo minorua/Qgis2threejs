@@ -152,7 +152,7 @@ class PropertyPage(QWidget):
             elif isinstance(w, HiddenProperty):
                 v = w.value
             else:
-                logMessage("[proppages.py] Not recognized widget type: " + str(type(w)))
+                logMessage("[proppages.py] Not recognized widget type: " + str(type(w)), warning=True)
 
             p[w.objectName()] = v
 
