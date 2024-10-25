@@ -501,7 +501,7 @@ Q3D.E = function (id) {
 			loader = new THREE.GLTFLoader(app.loadingManager);
 		}
 		else {
-			console.log("Model file type not supported: " + url);
+			console.warn("Model file type not supported: " + url);
 			return;
 		}
 
@@ -513,7 +513,7 @@ Q3D.E = function (id) {
 		},
 		undefined,
 		function (e) {
-			console.log("Failed to load model: " + url);
+			console.warn("Failed to load model: " + url);
 			app.loadingManager.itemError("M" + url);
 		});
 	};
@@ -528,11 +528,11 @@ Q3D.E = function (id) {
 			new THREE.GLTFLoader(app.loadingManager).parse(data, resourcePath, function (model) {
 				if (callback) callback(model);
 			}, function (e) {
-				console.log("Failed to load a glTF model: " + e);
+				console.warn("Failed to load a glTF model: " + e);
 			});
 		}
 		else {
-			console.log("Model file type not supported: " + ext);
+			console.warn("Model file type not supported: " + ext);
 			return;
 		}
 	};
@@ -3634,7 +3634,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 			var model = this.models.get(f.model);
 			if (!model) {
-				console.log("3D Model: There is a missing model.");
+				console.warn("[" + this.properties.name + "] 3D Model: There is a missing model.");
 				return;
 			}
 

@@ -82,7 +82,7 @@ function init() {
 		}
 	}
 	catch (e) {
-		console.log(e);
+		console.warn(e);
 	}
 
 	// add event listeners
@@ -144,7 +144,7 @@ function init() {
 			}
 		}
 		catch (e) {
-			console.log(e);
+			console.warn(e);
 		}
 	});
 

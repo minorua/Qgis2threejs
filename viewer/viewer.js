@@ -200,7 +200,7 @@ function loadModel(url) {
 		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
 	};
 	var onError = function (e) {
-		console.log(e.message);
+		console.warn(e.message);
 		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
 	};
 
