@@ -147,7 +147,8 @@ class Q3DWindow(QMainWindow):
             utils.correspondent = Correspondent(self)
             utils.correspondent.messageSent.connect(self.webPage.logToConsole)
 
-            self.ui.webView.setup(self.iface, settings, self, previewEnabled)
+            self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
+            self.ui.webView.fileDropped.connect(self.fileDropped)
 
             if self.webPage.isWebEnginePage:
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
@@ -373,6 +374,14 @@ class Q3DWindow(QMainWindow):
 
         self.webPage.logToConsole(text)
 
+    def fileDropped(self, urls):
+        for url in urls:
+            filename = url.fileName()
+            if filename in ("cloud.js", "ept.json"):
+                self.addPointCloudLayer(url.toString())
+            else:
+                self.runScript("loadModel('{}')".format(url.toString()))
+
     # File menu
     def exportToWeb(self):
         from .exportdialog import ExportToWebDialog
@@ -392,6 +401,12 @@ class Q3DWindow(QMainWindow):
         dialog = ImageSaveDialog(self)
         dialog.exec_()
 
+    # @pyqtSlot(int, int, QImage)   # connected to bridge.imageReady signal
+    def saveImage(self, width, height, image):
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
+        if filename:
+            image.save(filename)
+
     def saveAsGLTF(self):
         if not self.ui.checkBoxPreview.isChecked():
             QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
@@ -408,6 +423,17 @@ class Q3DWindow(QMainWindow):
 
             self.ui.statusbar.clearMessage()
             self.lastDir = os.path.dirname(filename)
+
+    # @pyqtSlot(bytes, str)     # connected to bridge.modelDataReady signal
+    def saveModelData(self, data, filename):
+        try:
+            with open(filename, "wb") as f:
+                f.write(data)
+
+            QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+
+        except Exception as e:
+            QMessageBox.warning(self, "Failed to save model data.", str(e))
 
     def loadSettings(self, filename=None):
         # open file dialog if filename is not specified

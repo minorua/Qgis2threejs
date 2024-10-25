@@ -34,7 +34,6 @@ class Q3DWebPageCommon:
     def setup(self, settings, wnd=None, exportMode=False):
         """wnd: Q3DWindow or None (off-screen mode)"""
         self.expSettings = settings
-        self.wnd = wnd or DummyWindow()
         self.offScreen = bool(wnd is None)
         self.exportMode = exportMode
 
@@ -43,9 +42,9 @@ class Q3DWebPageCommon:
         self.bridge.initialized.connect(self.ready)
         self.bridge.sceneLoaded.connect(self.sceneLoaded)
         self.bridge.sceneLoadError.connect(self.sceneLoadError)
-        self.bridge.modelDataReady.connect(self.saveModelData)
-        self.bridge.imageReady.connect(self.saveImage)
-        self.bridge.statusMessage.connect(self.wnd.showStatusMessage)
+        self.bridge.modelDataReady.connect(wnd.saveModelData)
+        self.bridge.imageReady.connect(wnd.saveImage)
+        self.bridge.statusMessage.connect(wnd.showStatusMessage)
 
         if DEBUG_MODE:
             self.bridge.slotCalled.connect(self.logToConsole)
@@ -53,7 +52,7 @@ class Q3DWebPageCommon:
         self.loadFinished.connect(self.pageLoaded)
 
     def reload(self):
-        self.wnd.showStatusMessage("Initializing preview...")
+        self.showStatusMessage("Initializing preview...")
 
     def pageLoaded(self, ok):
         if self.url().scheme() != "file":
@@ -94,7 +93,7 @@ class Q3DWebPageCommon:
         if QgsProject.instance().crs().isGeographic():
             self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
 
-        self.wnd.showStatusMessage("")
+        self.showStatusMessage("")
 
     def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
         if not DEBUG_MODE or message is None:
@@ -177,20 +176,6 @@ class Q3DWebPageCommon:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
 
-    def saveModelData(self, data, filename):
-        try:
-            with open(filename, "wb") as f:
-                f.write(data)
-
-            QMessageBox.information(self.wnd, "Save Scene As glTF", "Successfully saved model data: " + filename)
-        except Exception as e:
-            QMessageBox.warning(self.wnd, "Failed to save model data.", str(e))
-
-    def saveImage(self, width, height, image):
-        filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
-        if filename:
-            image.save(filename)
-
     def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
         if DEBUG_MODE == 2:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -200,10 +185,14 @@ class Q3DWebPageCommon:
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)
 
+    def showStatusMessage(self, message, timeout_ms=0):
+        self.bridge.statusMessage.emit(message, timeout_ms)
+
 
 class Q3DWebViewCommon:
 
     devToolsClosed = pyqtSignal()
+    fileDropped = pyqtSignal(list)
 
     def __init__(self, _=None):
         self.setAcceptDrops(True)
@@ -230,13 +219,7 @@ class Q3DWebViewCommon:
 
     def dropEvent(self, event):
         # logMessage(event.mimeData().formats())
-        for url in event.mimeData().urls():
-            filename = url.fileName()
-            if filename in ("cloud.js", "ept.json"):
-                self.wnd.addPointCloudLayer(url.toString())
-            else:
-                self.runScript("loadModel('{}')".format(url.toString()))
-
+        self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
 
     def sendData(self, data):
@@ -248,12 +231,3 @@ class Q3DWebViewCommon:
     def showJSInfo(self):
         info = self.runScript("app.renderer.info", wait=True)
         QMessageBox.information(self, "three.js Renderer Info", str(info))
-
-
-class DummyWindow:
-
-    def logToConsole(self, message, lineNumber="", sourceID=""):
-        logMessage(message)
-
-    def showStatusMessage(self, message, timeout_ms=0):
-        logMessage(message)
