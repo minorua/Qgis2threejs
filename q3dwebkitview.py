@@ -27,9 +27,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
     def url(self):
         return self.mainFrame().url()
 
-    def setup(self, settings, wnd=None, exportMode=False):
+    def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd, exportMode)
+        Q3DWebPageCommon.setup(self, settings, wnd)
 
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
 

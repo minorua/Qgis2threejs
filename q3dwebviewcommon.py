@@ -31,11 +31,10 @@ class Q3DWebPageCommon:
             # open log file
             self.logfile = open(pluginDir("q3dview.log"), "w")
 
-    def setup(self, settings, wnd=None, exportMode=False):
+    def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
         self.expSettings = settings
         self.offScreen = bool(wnd is None)
-        self.exportMode = exportMode
 
         self.bridge = Bridge(self)
         self.bridge.initialized.connect(self.initialized)
@@ -61,9 +60,6 @@ class Q3DWebPageCommon:
         self.loadedScripts = {}
 
         # configuration
-        if self.exportMode:
-            self.runScript("Q3D.Config.exportMode = true;")
-
         if self.expSettings.isOrthoCamera():
             self.runScript("Q3D.Config.orthoCamera = true;")
 

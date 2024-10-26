@@ -287,8 +287,6 @@ class BridgeExporterBase:
         self.settings = settings or ExportSettings()
         self.settings.isPreview = True
 
-        self.exportMode = False
-
         self.page = Q3DWebPage()
         self.iface = Q3DInterface(self.settings, self.page)
         self.iface.statusMessage.connect(self.iface.showStatusMessage)
@@ -308,7 +306,7 @@ class BridgeExporterBase:
         self.page.setViewportSize(QSize(width, height))
 
         if self.page.mainFrame().url().isEmpty():
-            self.page.setup(self.settings, exportMode=self.exportMode)
+            self.page.setup(self.settings)
         else:
             self.page.reload()
 
@@ -360,7 +358,6 @@ class ModelExporter(BridgeExporterBase):
     def __init__(self, settings=None):
         super().__init__(settings)
         self.settings.jsonSerializable = True
-        self.exportMode = True
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
