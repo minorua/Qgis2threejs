@@ -23,10 +23,10 @@ def notify_slot_called(func):
 
 class Bridge(QObject):
 
-    # Python to JS signals
+    # signals - Python to JS
     sendScriptData = pyqtSignal(str, QVariant)
 
-    # Python to Python signals
+    # signals - Bridge to Python (window, web page, etc.)
     slotCalled = pyqtSignal(str)
     initialized = pyqtSignal()
     sceneLoaded = pyqtSignal()

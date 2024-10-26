@@ -51,26 +51,6 @@ class Q3DViewerInterface(Q3DInterface):
         self.wnd = wnd
         self.treeView = treeView
 
-    # @pyqtSlot(str, int)
-    def showStatusMessage(self, msg, timeout_ms=0):
-        if self.enabled:
-            self.wnd.ui.statusbar.showMessage(msg, timeout_ms)
-
-    # @pyqtSlot(int, str)
-    def progress(self, percentage=100, msg=None):
-        if not self.enabled:
-            return
-
-        bar = self.wnd.ui.progressBar
-        if percentage == 100:
-            bar.setVisible(False)
-            bar.setFormat("")
-        else:
-            bar.setVisible(True)
-            bar.setValue(percentage)
-            if msg is not None:
-                bar.setFormat(msg)
-
     def abort(self):
         self.abortRequest.emit(True)
 
@@ -122,6 +102,8 @@ class Q3DWindow(QMainWindow):
             viewName = ""
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
+        self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
+        self.iface.progressUpdated.connect(self.progress)
 
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
@@ -329,8 +311,19 @@ class Q3DWindow(QMainWindow):
     def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
-    def showStatusMessage(self, message, timeout_ms=0):
-        self.ui.statusbar.showMessage(message, timeout_ms)
+    def showStatusMessage(self, msg, timeout_ms=0):
+        self.ui.statusbar.showMessage(msg, timeout_ms)
+
+    def progress(self, percentage, msg=None):
+        bar = self.ui.progressBar
+        if percentage == 100:
+            bar.setVisible(False)
+            bar.setFormat("")
+        else:
+            bar.setVisible(True)
+            bar.setValue(percentage)
+            if msg is not None:
+                bar.setFormat(msg)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):

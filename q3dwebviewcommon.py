@@ -199,7 +199,6 @@ class Q3DWebViewCommon:
 
     def setup(self, iface, settings, wnd=None, enabled=True):
         self.iface = iface
-        self.wnd = wnd
         self._enabled = enabled     # whether preview is enabled at start
 
         self._page.ready.connect(self.pageReady)

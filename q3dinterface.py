@@ -3,12 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-09
 
-from PyQt5.QtCore import QObject, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from .utils import logMessage
 
 
 class Q3DInterface(QObject):
+
+    # signals - iface to window
+    statusMessage = pyqtSignal(str, int)             # params: msg, timeout_ms
+    progressUpdated = pyqtSignal(int, str)           # params: percentage, msg
 
     def __init__(self, settings, webPage, parent=None):
         super().__init__(parent)
@@ -36,7 +40,3 @@ class Q3DInterface(QObject):
     def showStatusMessage(self, msg, _1=0):
         if self.enabled:
             logMessage(msg)
-
-    # @pyqtSlot(int, str)
-    def progress(self, percentage=100, msg=None):
-        pass

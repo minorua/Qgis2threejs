@@ -6,7 +6,7 @@
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog
 
-from .export import ImageExporter
+# from .export import ImageExporter
 from .ui.imagesavedialog import Ui_ImageSaveDialog
 
 

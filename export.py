@@ -287,11 +287,13 @@ class BridgeExporterBase:
         self.settings = settings or ExportSettings()
         self.settings.isPreview = True
 
-        self.controller = Q3DController(self.settings)
         self.exportMode = False
 
         self.page = Q3DWebPage()
         self.iface = Q3DInterface(self.settings, self.page)
+        self.iface.statusMessage.connect(self.iface.showStatusMessage)
+
+        self.controller = Q3DController(self.settings)
         self.controller.connectToIface(self.iface)
 
     def loadSettings(self, filename=None):

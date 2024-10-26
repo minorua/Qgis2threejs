@@ -17,11 +17,11 @@ from .utils import hex_color, js_bool, logMessage
 
 class Q3DControllerInterface(QObject):
 
-    # signals
+    # signals - controller iface to viewer iface
     dataSent = pyqtSignal(dict)                  # data
     scriptSent = pyqtSignal(str, object, str)    # script, data, msg_shown_in_log_panel
-    statusMessageSent = pyqtSignal(str, int)     # message, timeout_ms
-    progressUpdated = pyqtSignal(int, str)
+    statusMessage = pyqtSignal(str, int)         # message, timeout_ms
+    progressUpdated = pyqtSignal(int, str)       # percentage, msg
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
     readyToQuit = pyqtSignal()
 
@@ -38,8 +38,8 @@ class Q3DControllerInterface(QObject):
         self.dataSent.connect(iface.sendJSONObject)
         self.scriptSent.connect(iface.runScript)
         self.loadScriptsRequest.connect(iface.loadScriptFiles)
-        self.statusMessageSent.connect(iface.showStatusMessage)
-        self.progressUpdated.connect(iface.progress)
+        self.statusMessage.connect(iface.statusMessage)
+        self.progressUpdated.connect(iface.progressUpdated)
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
@@ -56,25 +56,27 @@ class Q3DControllerInterface(QObject):
             iface.layerRemoved.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
-        self.dataSent.disconnect(self.iface.sendJSONObject)
-        self.scriptSent.disconnect(self.iface.runScript)
-        self.loadScriptsRequest.disconnect(self.iface.loadScriptFiles)
-        self.statusMessageSent.disconnect(self.iface.showStatusMessage)
-        self.progressUpdated.disconnect(self.iface.progress)
+        iface = self.iface
 
-        if hasattr(self.iface, "abortRequest"):
-            self.iface.abortRequest.disconnect(self.controller.abort)
-            self.iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
-            self.iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
-            self.iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
-            self.iface.runScriptRequest.disconnect(self.controller.requestRunScript)
+        self.dataSent.disconnect(iface.sendJSONObject)
+        self.scriptSent.disconnect(iface.runScript)
+        self.loadScriptsRequest.disconnect(iface.loadScriptFiles)
+        self.statusMessage.disconnect(iface.statusMessage)
+        self.progressUpdated.disconnect(iface.progressUpdated)
 
-            self.iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
-            self.iface.cameraChanged.disconnect(self.controller.switchCamera)
-            self.iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
-            self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
-            self.iface.layerAdded.disconnect(self.controller.addLayer)
-            self.iface.layerRemoved.disconnect(self.controller.removeLayer)
+        if hasattr(iface, "abortRequest"):
+            iface.abortRequest.disconnect(self.controller.abort)
+            iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
+            iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
+            iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
+            iface.runScriptRequest.disconnect(self.controller.requestRunScript)
+
+            iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
+            iface.cameraChanged.disconnect(self.controller.switchCamera)
+            iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
+            iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
+            iface.layerAdded.disconnect(self.controller.addLayer)
+            iface.layerRemoved.disconnect(self.controller.removeLayer)
 
         self.iface = None
 
@@ -86,11 +88,11 @@ class Q3DControllerInterface(QObject):
 
     def showStatusMessage(self, msg, timeout_ms=0):
         """show message in status bar"""
-        self.statusMessageSent.emit(msg, timeout_ms)
+        self.statusMessage.emit(msg, timeout_ms)
 
     def clearStatusMessage(self):
         """clear message in status bar"""
-        self.statusMessageSent.emit("", 0)
+        self.statusMessage.emit("", 0)
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """show message bar at top of web view"""
