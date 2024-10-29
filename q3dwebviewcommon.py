@@ -52,23 +52,6 @@ class Q3DWebPageCommon:
 
         self.loadFinished.connect(self.pageLoaded)
 
-    def teardown(self):
-        self.bridge.initialized.disconnect(self.initialized)
-        self.bridge.initialized.disconnect(self.ready)
-        self.bridge.sceneLoaded.disconnect(self.sceneLoaded)
-        self.bridge.sceneLoadError.disconnect(self.sceneLoadError)
-
-        if self.wnd:
-            self.bridge.modelDataReady.disconnect(self.wnd.saveModelData)
-            self.bridge.imageReady.disconnect(self.wnd.saveImage)
-            self.bridge.statusMessage.disconnect(self.wnd.showStatusMessage)
-            self.wnd = None
-
-        if DEBUG_MODE:
-            self.bridge.slotCalled.disconnect(self.logToConsole)
-
-        self.loadFinished.disconnect(self.pageLoaded)
-
     def reload(self):
         self.showStatusMessage("Initializing preview...")
 
@@ -220,9 +203,7 @@ class Q3DWebViewCommon:
         self._page.setup(settings, wnd)
 
     def teardown(self):
-        self.setPage(None)
-        self._page.ready.disconnect(self.pageReady)
-        self._page.teardown()
+        self._page.wnd = None
         self._page.deleteLater()
         self._page = None
 
