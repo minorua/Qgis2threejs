@@ -149,10 +149,10 @@ class Q3DController(QObject):
 
         self.timer.timeout.connect(self._processRequests)
 
-    def __del__(self):
-        self.timer.stop()
-
     def teardown(self):
+        self.timer.stop()
+        self.timer.timeout.disconnect(self._processRequests)
+
         self.iface.deleteLater()
         self.iface = None
 
