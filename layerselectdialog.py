@@ -4,7 +4,7 @@
 # begin: 2015-04-22
 
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
-from qgis.core import QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
+from qgis.core import Qgis, QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
 from qgis.gui import QgsMapLayerComboBox
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog
@@ -82,7 +82,11 @@ class SingleLayerSelectDialog(QDialog):
             vl.addWidget(QLabel(label))
 
         self.comboBox = QgsMapLayerComboBox()
-        self.comboBox.setFilters(QgsMapLayerProxyModel.HasGeometry | QgsMapLayerProxyModel.RasterLayer | QgsMapLayerProxyModel.MeshLayer)
+        if Qgis.QGIS_VERSION_INT < 33400:
+            self.comboBox.setFilters(QgsMapLayerProxyModel.HasGeometry | QgsMapLayerProxyModel.RasterLayer | QgsMapLayerProxyModel.MeshLayer)
+        else:
+            self.comboBox.setFilters(Qgis.LayerFilters(Qgis.LayerFilter.HasGeometry | Qgis.LayerFilter.RasterLayer | Qgis.LayerFilter.MeshLayer))
+
         vl.addWidget(self.comboBox)
 
         self.buttonBox = QDialogButtonBox()
