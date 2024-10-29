@@ -131,6 +131,8 @@ class Q3DController(QObject):
         self.builder = ThreeJSBuilder(settings)
 
         self.iface = Q3DControllerInterface(self)
+        self.iface.setObjectName("controllerInterface")
+
         self.enabled = True
         self.aborted = False  # layer export aborted
         self.buildingLayer = None
@@ -149,6 +151,10 @@ class Q3DController(QObject):
 
     def __del__(self):
         self.timer.stop()
+
+    def teardown(self):
+        self.iface.deleteLater()
+        self.iface = None
 
     def connectToIface(self, iface):
         """iface: Q3DInterface or its subclass"""
@@ -353,6 +359,7 @@ class Q3DController(QObject):
     def quit(self):
         self.abort()
         self.iface.readyToQuit.emit()
+        self.teardown()
 
     @pyqtSlot(object, bool, bool)
     def requestBuildScene(self, properties=None, update_all=True, reload=False):

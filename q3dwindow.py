@@ -92,7 +92,7 @@ class Q3DWindow(QMainWindow):
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        self.webPage = self.ui.webView._page
+        self.webPage = self.ui.webView.page()
 
         if self.webPage:
             settings.jsonSerializable = self.webPage.isWebEnginePage
@@ -102,12 +102,14 @@ class Q3DWindow(QMainWindow):
             viewName = ""
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
+        self.iface.setObjectName("viewerInterface")
         self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
         self.iface.progressUpdated.connect(self.progress)
 
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
         self.controller = Q3DController(settings, self.thread)
+        self.controller.setObjectName("controller")
         self.controller.enabled = previewEnabled
 
         if self.thread:
@@ -148,9 +150,14 @@ class Q3DWindow(QMainWindow):
         self.restoreGeometry(settings.value("/Qgis2threejs/wnd/geometry", b""))
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
+        if DEBUG_MODE:
+            from .debug_utils import watchGarbageCollection
+            watchGarbageCollection(self)
+
     def closeEvent(self, event):
         self.iface.enabled = False
         self.controller.iface.disconnectFromIface()
+        self.controller.disconnectFromMapCanvas()
 
         if utils.correspondent:
             utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
@@ -187,6 +194,14 @@ class Q3DWindow(QMainWindow):
         # close dialogs
         for dlg in self.findChildren(QDialog):
             dlg.close()
+
+        # break circular references
+        self.iface.wnd = None
+        self.ui.treeView.wnd = None
+        self.ui.animationPanel.wnd = None
+        self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
+
+        self.ui.webView.teardown()
 
         QMainWindow.closeEvent(self, event)
 
@@ -381,7 +396,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setAnimationData(self.ui.animationPanel.data())
 
-        dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
+        dialog = ExportToWebDialog(self.settings, self.ui.webView.page(), self)
         dialog.show()
         dialog.exec_()
 

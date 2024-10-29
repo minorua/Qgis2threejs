@@ -121,6 +121,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         Q3DWebViewCommon.__init__(self)
 
         self._page = Q3DWebEnginePage(self)
+        self._page.setObjectName("webEnginePage")
         self.setPage(self._page)
 
     def showDevTools(self):

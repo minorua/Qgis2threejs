@@ -28,6 +28,9 @@ class Q3DDummyView(QGraphicsView):
 
         self.setScene(scene)
 
+    def page(self):
+        return self._page
+
     def disableWidgetsAndMenus(self, ui):
         objs = [ui.checkBoxPreview, ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition]
 

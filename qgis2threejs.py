@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QAction, QActionGroup
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
 
-from .conf import PLUGIN_NAME
+from .conf import DEBUG_MODE, PLUGIN_NAME
 from .exportsettings import ExportSettings
 from .procprovider import Qgis2threejsProvider
 from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
@@ -147,6 +147,10 @@ class Qgis2threejs:
     def exporterDestroyed(self, obj):
         if currentWebViewType != WEBVIEWTYPE_NONE:
             self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
+
+        if DEBUG_MODE:
+            from .debug_utils import logReferenceCount
+            logReferenceCount(self.liveExporter)
 
         self.liveExporter = None
 

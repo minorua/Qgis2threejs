@@ -105,6 +105,7 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
         Q3DWebViewCommon.__init__(self)
 
         self._page = Q3DWebKitPage(self)
+        self._page.setObjectName("webKitPage")
         self.setPage(self._page)
 
         # security setting for billboard, model file and point cloud layer
