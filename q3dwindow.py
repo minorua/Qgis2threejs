@@ -155,53 +155,54 @@ class Q3DWindow(QMainWindow):
             watchGarbageCollection(self)
 
     def closeEvent(self, event):
-        self.iface.enabled = False
-        self.controller.iface.disconnectFromIface()
-        self.controller.disconnectFromMapCanvas()
-
-        if utils.correspondent:
-            utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
-            utils.correspondent = None
-
-        if self.webPage and self.webPage.isWebEnginePage:
-            self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
-
-        # save export settings to a settings file
         try:
+            self.iface.enabled = False
+            self.controller.iface.disconnectFromIface()
+            self.controller.disconnectFromMapCanvas()
+
+            if utils.correspondent:
+                utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
+                utils.correspondent = None
+
+            if self.webPage and self.webPage.isWebEnginePage:
+                self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
+
+            # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
+
+            settings = QSettings()
+            settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
+            settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+
+            # send quit request to the controller and wait until the controller gets ready to quit
+            loop = QEventLoop()
+            self.controller.iface.readyToQuit.connect(loop.quit)
+            self.iface.quit(self.controller)
+            loop.exec_()
+
+            # stop worker thread event loop
+            if self.thread:
+                self.thread.quit()
+                self.thread.wait()
+
+            # close dialogs
+            for dlg in self.findChildren(QDialog):
+                dlg.close()
+
+            # break circular references
+            self.iface.wnd = None
+            self.ui.treeView.wnd = None
+            self.ui.animationPanel.wnd = None
+            self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
+
+            self.ui.webView.teardown()
+
         except Exception as e:
             import traceback
             logMessage(traceback.format_exc(), error=True)
 
             self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
-
-        settings = QSettings()
-        settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
-        settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
-
-        # send quit request to the controller and wait until the controller gets ready to quit
-        loop = QEventLoop()
-        self.controller.iface.readyToQuit.connect(loop.quit)
-        self.iface.quit(self.controller)
-        loop.exec_()
-
-        # stop worker thread event loop
-        if self.thread:
-            self.thread.quit()
-            self.thread.wait()
-
-        # close dialogs
-        for dlg in self.findChildren(QDialog):
-            dlg.close()
-
-        # break circular references
-        self.iface.wnd = None
-        self.ui.treeView.wnd = None
-        self.ui.animationPanel.wnd = None
-        self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
-
-        self.ui.webView.teardown()
 
         QMainWindow.closeEvent(self, event)
 
@@ -637,9 +638,13 @@ class PropertiesDialog(QDialog):
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
     def closeEvent(self, event):
-        # save dialog geometry
-        settings = QSettings()
-        settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+        try:
+            # save dialog geometry
+            settings = QSettings()
+            settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+        except:
+            pass
+
         QDialog.closeEvent(self, event)
 
     def setLayer(self, layer):
