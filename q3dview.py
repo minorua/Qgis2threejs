@@ -38,6 +38,7 @@ Q3DView = None
 Q3DWebPage = None
 currentWebViewType = None
 
+
 def setCurrentWebView(webViewType):
     global Q3DView, Q3DWebPage, currentWebViewType
 
