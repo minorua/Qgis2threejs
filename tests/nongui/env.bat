@@ -1,6 +1,6 @@
 if "%OSGEO4W_ROOT%" == "" set OSGEO4W_ROOT=C:\OSGeo4W
 if "%QGIS_PACKAGE%" == "" set QGIS_PACKAGE=qgis
-if "%PY_VERSION%" == "" set PY_VERSION=39
+if "%PY_VERSION%" == "" set PY_VERSION=312
 
 call "%OSGEO4W_ROOT%\bin\o4w_env.bat"
 
