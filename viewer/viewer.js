@@ -104,7 +104,7 @@ function _init(off_screen) {
 
 			if (Q3D.Config.qgisVersion >= 33600) {
 
-				msg += "Please use the Qt WebEngine view instead. You can find instructions on how to do that in this ";
+				msg += "Please use the Qt WebEngine view instead. You can find a guide on how to do this in the plugin ";
 				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
 
 			}
