@@ -1,5 +1,15 @@
 ## CHANGELOG
 
+### Version 2.8
+- Added option to select either WebEngine or WebKit for preview from the menu
+- WebEngine view is now preferred option when available
+- Removed console panel
+- Developer tools are now accessible even when not in debug mode
+- Log python side warnings and errors also in the JavaScript console
+- An icon will appear in the status bar to indicate warnings or errors
+- Fixed a bug where labels were not displayed on Extruded/Overlay polygons
+- Fixed a bug that prevented the plugin settings dialog from opening due to the deprecation of SafeConfigParser
+
 ### Version 2.7.3
 - Fixed a regression related to vertical line
 - Fixed a popup layout issue

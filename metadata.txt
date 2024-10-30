@@ -12,9 +12,9 @@
 name=Qgis2threejs
 qgisMinimumVersion=3.4
 qgisMaximumVersion=3.99
-description=3D visualization powered by WebGL technology and three.js JavaScript library
+description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.7.3
+version=2.8
 author=Minoru Akagi
 email=akaginch@gmail.com
 
@@ -24,6 +24,16 @@ email=akaginch@gmail.com
 
 # Uncomment the following line and add your changelog entries:
 changelog=
+    Version 2.8
+    - Added option to select either WebEngine or WebKit for preview from the menu
+    - WebEngine view is now preferred option when available
+    - Removed console panel
+    - Developer tools are now accessible even when not in debug mode
+    - Log python side warnings and errors also in the JavaScript console
+    - An icon will appear in the status bar to indicate warnings or errors
+    - Fixed a bug where labels were not displayed on Extruded/Overlay polygons
+    - Fixed a bug that prevented the plugin settings dialog from opening due to the deprecation of SafeConfigParser
+
     Version 2.7.3
     - Fixed a regression related to vertical line
     - Fixed a popup layout issue
