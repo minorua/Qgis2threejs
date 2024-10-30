@@ -182,8 +182,9 @@ class GSIElevTileProvider:
         for url in urls:
             data = files.get(url)
             if data:
-                yield numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",").tostring()   # to byte array
+                array = numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",")
             else:
                 array = numpy.empty(TILE_SIZE * TILE_SIZE, dtype=numpy.float32)
                 array.fill(NODATA_VALUE)
-                yield array.tostring()
+
+            yield array.tobytes()
