@@ -73,6 +73,8 @@ class GUITestBase(unittest.TestCase):
         else:
             QTest.mouseClick(w, Qt.LeftButton, pos=pos)
 
+        self.sleep(100)
+
     @classmethod
     def sleep(cls, msec=500):
         loop = QEventLoop()
