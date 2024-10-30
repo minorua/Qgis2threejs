@@ -294,7 +294,7 @@ class Q3DWindow(QMainWindow):
 
         w = ui.checkBoxPreview = QCheckBox(ui.statusbar)
         w.setObjectName("checkBoxPreview")
-        w.setText("Preview" + " ({})".format(viewName) if viewName else "")  # _translate("Q3DWindow", "Preview"))
+        w.setText("Preview" + " ({})".format(viewName) if viewName else "Preview is not available")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
         w.toggled.connect(iface.previewStateChanged)
         ui.statusbar.addPermanentWidget(w)
