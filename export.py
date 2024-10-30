@@ -68,7 +68,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
-        narration = self.settings.narrations()
+        narration = self.settings.narrations(warning_log=self.warning_log)
 
         # copy files
         files = narration["files"]

@@ -469,10 +469,12 @@ class ExportSettings:
         return self.data.get(ExportSettings.KEYFRAMES, {}).get("enabled", False)
 
     def enabledValidKeyframeGroups(self, layerId=None, warning_log=None):
-        # for warnings
+        if warning_log is None:
+            def warning_log(msg):
+                logMessage(msg, warning=True)
+
         def warn_one_keyframe(group):
-            if warning_log:
-                warning_log("'{}' group has only one keyframe. At least two keyframes are necessary for this group to work.".format(group["name"]))
+            warning_log("'{}' group has only one keyframe. At least two keyframes are necessary for this group to work.".format(group["name"]))
 
         d = self.data.get(ExportSettings.KEYFRAMES, {})
 
@@ -487,7 +489,7 @@ class ExportSettings:
                     else:
                         warn_one_keyframe(group)
 
-            if count > 1 and warning_log:
+            if count > 1:
                 warning_log("There are {} enabled camera motion groups. They may not work properly due to conflicts.".format(count))
 
         # layer animation
@@ -559,14 +561,14 @@ class ExportSettings:
                         yield group
                         break
 
-    def narrations(self, indent=2, indent_width=2):
+    def narrations(self, indent=2, indent_width=2, warning_log=None):
         s = " " * indent_width
         pattern = re.compile("<img.+?src=[\"|\'](.+?)[\"|\'].*?>", re.IGNORECASE)
         img_dir = "./data/{}/img/".format(self.outputFileTitle())
 
         d = []
         files = set()
-        for g in self.enabledValidKeyframeGroups():
+        for g in self.enabledValidKeyframeGroups(warning_log=warning_log):
             for k in g.get("keyframes", []):
                 nar = k.get("narration")
                 if not nar:
