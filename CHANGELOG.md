@@ -35,7 +35,7 @@
 - Added action to zoom to layer objects
 #### Exporter
 - Added tabs to property dialogs and regrouped widgets in the dialogs
-- Fixed cancellation of building layer objects
+- Fixed cancellation of building 3D objects
 #### Scene
 - Units of 3D world space are same as map units
 - Added option to add fog
@@ -100,8 +100,8 @@
 - Added export algorithms for Processing
 - Added automatic z shift adjustment option
 - Added Point type for point layer
-- Fixed clipped DEM side building (fix #159)
-- Fixed Overlay building
+- Fixed clipped DEM side (fix #159)
+- Fixed Overlay
 - Fixed model file load with Mobile template
 - Fixed crash when continuously zooming map canvas with the exporter window open
 - API and offscreen rendering

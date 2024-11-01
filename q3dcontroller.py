@@ -135,7 +135,7 @@ class Q3DController(QObject):
 
         self.enabled = True
         self.aborted = False  # layer export aborted
-        self.buildingLayer = None
+        self.processingLayer = None
         self.mapCanvas = None
 
         self.requestQueue = []
@@ -176,8 +176,8 @@ class Q3DController(QObject):
             self.mapCanvas = None
 
     def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True):
-        if self.buildingLayer:
-            logMessage("Previous building is still in progress. Cannot start to build scene.")
+        if self.processingLayer:
+            logMessage("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
         self.aborted = False
@@ -234,8 +234,8 @@ class Q3DController(QObject):
         if isinstance(layer, dict):
             layer = Layer.fromDict(layer)
 
-        if self.buildingLayer:
-            logMessage('Previous building is still in progress. Cannot start building layer "{}".'.format(layer.name))
+        if self.processingLayer:
+            logMessage('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
             return False
 
         ret = self._buildLayer(layer)
@@ -249,7 +249,7 @@ class Q3DController(QObject):
         return ret
 
     def _buildLayer(self, layer):
-        self.buildingLayer = layer
+        self.processingLayer = layer
 
         pmsg = "Building {0}...".format(layer.name)
         self.iface.progress(0, pmsg)
@@ -272,8 +272,8 @@ class Q3DController(QObject):
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
-                logMessage("***** layer building aborted *****")
-                self.buildingLayer = None
+                logMessage("***** layer processing aborted *****")
+                self.processingLayer = None
                 return False
 
             t1 = time.time()
@@ -295,7 +295,7 @@ class Q3DController(QObject):
             qDebug("{0} layer updated: {1:.3f}s\n{2}\n".format(layer.name,
                                                                time.time() - t0,
                                                                dlist).encode("utf-8"))
-        self.buildingLayer = None
+        self.processingLayer = None
         return True
 
     def hideLayer(self, layer):
@@ -312,7 +312,7 @@ class Q3DController(QObject):
             self.timer.start()
 
     def _processRequests(self):
-        if not self.enabled or self.buildingLayer or not self.requestQueue:
+        if not self.enabled or self.processingLayer or not self.requestQueue:
             return
 
         try:
@@ -378,7 +378,7 @@ class Q3DController(QObject):
 
         self.requestQueue.append(r)
 
-        if self.buildingLayer:
+        if self.processingLayer:
             self.abort(clear_queue=False)
         else:
             self.processRequests()
@@ -404,15 +404,15 @@ class Q3DController(QObject):
 
         self.requestQueue = q
 
-        if self.buildingLayer and self.buildingLayer.layerId == layer.layerId:
+        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
             self.abort(clear_queue=False)
-            if not self.buildingLayer.opt.onlyMaterial:
+            if not self.processingLayer.opt.onlyMaterial:
                 layer.opt.onlyMaterial = False
 
         if layer.visible:
             self.requestQueue.append(layer)
 
-            if not self.buildingLayer:
+            if not self.processingLayer:
                 self.processRequests()
         else:
             # immediately hide layer without adding layer to queue
@@ -436,12 +436,12 @@ class Q3DController(QObject):
     def requestRunScript(self, string, data=None):
         self.requestQueue.append({"string": string, "data": data})
 
-        if not self.buildingLayer:
+        if not self.processingLayer:
             self.processRequests()
 
     @pyqtSlot(ExportSettings)
     def updateExportSettings(self, settings):
-        if self.buildingLayer:
+        if self.processingLayer:
             self.abort()
 
         self.hideAllLayers()
@@ -491,7 +491,7 @@ class Q3DController(QObject):
     #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):
     #         return
     #     self.requestQueue.clear()
-    #     if self.buildingLayer:
+    #     if self.processingLayer:
     #         self.abort(clear_queue=False)
 
 

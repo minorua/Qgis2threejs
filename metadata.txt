@@ -59,7 +59,7 @@ changelog=
      - Added action to zoom to layer objects
     * Exporter
      - Added tabs to property dialogs and regrouped widgets in the dialogs
-     - Fixed cancellation of building layer objects
+     - Fixed cancellation of building 3D objects
     * Scene
      - Units of 3D world space are same as map units
      - Added option to add fog
