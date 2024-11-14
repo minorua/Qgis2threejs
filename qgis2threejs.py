@@ -5,10 +5,10 @@
 
 import os
 
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QAction, QActionGroup
+from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtWidgets import QAction, QActionGroup, QMessageBox
 from PyQt5.QtGui import QIcon
-from qgis.core import QgsApplication, QgsProject
+from qgis.core import Qgis, QgsApplication, QgsProject
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
 from .exportsettings import ExportSettings
@@ -45,7 +45,7 @@ class Qgis2threejs:
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
-        if WEBENGINE_AVAILABLE:
+        if Qgis.QGIS_VERSION_INT >= 33600:
             self.actionWebEng = QAction(icon, title + " (WebEngine)", self.actionGroup)
             self.actionWebEng.setObjectName(objName + "WebEng")
             self.actionWebEng.triggered.connect(self.openExporterWebEng)
@@ -59,11 +59,13 @@ class Qgis2threejs:
 
             self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebKit)
 
-        if WEBENGINE_AVAILABLE and WEBKIT_AVAILABLE:
-            self.actionWebEng.setCheckable(True)
+        if Qgis.QGIS_VERSION_INT >= 33600 and WEBKIT_AVAILABLE:
+            if WEBENGINE_AVAILABLE:
+                self.actionWebEng.setCheckable(True)
+
             self.actionWebKit.setCheckable(True)
 
-            if QSettings().value("/Qgis2threejs/preferWebKit", False):
+            if QSettings().value("/Qgis2threejs/preferWebKit", False) or not WEBENGINE_AVAILABLE:
                 self.actionWebKit.setChecked(True)
             else:
                 self.actionWebEng.setChecked(True)
@@ -82,7 +84,7 @@ class Qgis2threejs:
         self.action.triggered.disconnect(self.openExporter)
         self.iface.removeWebToolBarIcon(self.action)
 
-        if WEBENGINE_AVAILABLE:
+        if Qgis.QGIS_VERSION_INT >= 33600:
             self.actionWebEng.triggered.disconnect(self.openExporterWebEng)
             self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionWebEng)
 
@@ -131,18 +133,26 @@ class Qgis2threejs:
         self.currentProjectPath = proj_path
 
     def openExporterWebEng(self):
-        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
+        if WEBENGINE_AVAILABLE:
+            self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
 
-        QSettings().remove("/Qgis2threejs/preferWebKit")
-        self.actionWebEng.setChecked(True)
+            QSettings().remove("/Qgis2threejs/preferWebKit")
+            return
+
+        url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
+
+        msgBox = QMessageBox()
+        msgBox.setTextFormat(Qt.RichText)
+        msgBox.setText("PyQt-WebEngine is not installed. See <a href='{}'>wiki page</a> for details.".format(url))
+        msgBox.setWindowTitle("Qgis2threejs")
+
+        msgBox.exec_()
 
     def openExporterWebKit(self):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
 
         if WEBENGINE_AVAILABLE:
             QSettings().setValue("/Qgis2threejs/preferWebKit", True)
-
-        self.actionWebKit.setChecked(True)
 
     def exporterDestroyed(self, obj):
         if currentWebViewType != WEBVIEWTYPE_NONE:
