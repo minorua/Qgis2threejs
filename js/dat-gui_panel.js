@@ -17,7 +17,10 @@ Q3D.gui.dat = {
 			c: "#ffffff",
 			d: 0,
 			o: 1,
-			l: false
+			l: false,
+			tx: 0,
+			ty: 0,
+			tz: 0
 		},
 		cmd: {         // commands for touch screen devices
 			rot: false,  // auto rotation
@@ -148,6 +151,33 @@ Q3D.gui.dat = {
 			_this.customPlane.updateMatrixWorld();
 			app.render();
 		});
+
+		var updatePlaneRotation = function () {
+            if (_this.customPlane === undefined) addPlane(params.cp.c);
+            let quaternion = new THREE.Quaternion();
+          
+            let tiltX = new THREE.Quaternion();
+            let tiltY = new THREE.Quaternion();
+            let tiltZ = new THREE.Quaternion();
+          
+            tiltX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 180 * params.cp.tx);
+            tiltY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 180 * params.cp.ty);
+            tiltZ.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 180 * params.cp.tz);
+          
+            quaternion.multiply(tiltZ).multiply(tiltY).multiply(tiltX);
+          
+            _this.customPlane.quaternion.copy(quaternion);
+          
+            _this.customPlane.updateMatrixWorld();
+            app.render();
+		};
+		// Translate plane x
+		this.customPlaneFolder.add(params.cp, 'tx').min(-90).max(90).name('Pitch').onChange(updatePlaneRotation);
+		// Translate plane y
+		this.customPlaneFolder.add(params.cp, 'ty').min(-90).max(90).name('Roll').onChange(updatePlaneRotation);
+		// Translate plane z
+		this.customPlaneFolder.add(params.cp, 'tz').min(-90).max(90).name('Yaw').onChange(updatePlaneRotation);
+	  
 	};
 
 	_this.addAnimationFolder = function () {
