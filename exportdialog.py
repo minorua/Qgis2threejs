@@ -6,8 +6,8 @@
 import os
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QDir, QEventLoop, QUrl
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
+from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QUrl
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsApplication, QgsProject
 
 from .conf import PLUGIN_NAME

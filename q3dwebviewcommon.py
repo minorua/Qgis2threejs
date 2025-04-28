@@ -6,8 +6,8 @@
 from datetime import datetime
 import os
 
-from PyQt5.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from qgis.PyQt.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from qgis.core import Qgis, QgsProject
 
 from .conf import DEBUG_MODE

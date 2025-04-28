@@ -2,7 +2,7 @@
 # (C) 2018 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 
 
 class LayerType:

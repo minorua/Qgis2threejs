@@ -6,7 +6,7 @@
 import importlib
 import sys
 
-from PyQt5.QtCore import QDir, QSettings
+from qgis.PyQt.QtCore import QDir, QSettings
 from .utils import logMessage, pluginDir
 
 

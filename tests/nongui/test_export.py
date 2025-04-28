@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-27
 
-from PyQt5.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
-from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtWebKitWidgets import QWebPage
+from qgis.PyQt.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
+from qgis.PyQt.QtGui import QImage, QPainter
+from qgis.PyQt.QtWebKitWidgets import QWebPage
 from qgis.testing import unittest
 
 from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter

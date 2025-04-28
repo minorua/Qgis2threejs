@@ -5,11 +5,11 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QEventLoop, QTimer, QUrl, pyqtSignal
-from PyQt5.QtGui import QDesktopServices, QImage, QPainter
-from PyQt5.QtWidgets import QDialog, QVBoxLayout
-from PyQt5.QtWebChannel import QWebChannel
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
+from qgis.PyQt.QtCore import Qt, QEventLoop, QTimer, QUrl, pyqtSignal
+from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
+from qgis.PyQt.QtWebChannel import QWebChannel
+from qgis.PyQt.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 

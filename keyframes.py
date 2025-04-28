@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2021-11-10
 
-from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QButtonGroup, QDialog, QInputDialog, QMenu,
+from qgis.PyQt.QtCore import Qt, QSize, QUrl
+from qgis.PyQt.QtGui import QCursor, QIcon
+from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QButtonGroup, QDialog, QInputDialog, QMenu,
                              QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
 from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 

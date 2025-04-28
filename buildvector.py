@@ -5,8 +5,8 @@
 
 import json
 import random
-from PyQt5.QtCore import QVariant
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtGui import QColor
 from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
 
 from .conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE

@@ -4,10 +4,10 @@
 # begin: 2023-10-16
 
 import os
-from PyQt5.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox, QWidget
-from PyQt5.QtTest import QTest
+from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
+from qgis.PyQt.QtGui import QMouseEvent
+from qgis.PyQt.QtWidgets import QDialogButtonBox, QMessageBox, QWidget
+from qgis.PyQt.QtTest import QTest
 from qgis.core import QgsApplication, QgsProject, QgsRectangle
 from qgis.testing import unittest
 

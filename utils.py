@@ -9,9 +9,9 @@ import configparser
 import re
 import shutil
 
-from PyQt5.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
-from PyQt5.QtGui import QDesktopServices, QImage
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
+from qgis.PyQt.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
+from qgis.PyQt.QtGui import QDesktopServices, QImage
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
 
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 from qgis.gui import QgsCompoundColorWidget

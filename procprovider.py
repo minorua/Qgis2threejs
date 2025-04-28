@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-06
 
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProcessingProvider
 
 from processing.core.ProcessingConfig import ProcessingConfig, Setting

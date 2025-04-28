@@ -5,8 +5,8 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QColor, QImage, QPainter
+from qgis.PyQt.QtCore import Qt, QSize, QUrl
+from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
 from . import utils

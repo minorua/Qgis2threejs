@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-29
 
-from PyQt5.QtCore import QDir
-from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog
+from qgis.PyQt.QtCore import QDir
+from qgis.PyQt.QtWidgets import QApplication, QDialog, QFileDialog
 
 # from .export import ImageExporter
 from .ui.imagesavedialog import Ui_ImageSaveDialog

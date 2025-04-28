@@ -33,8 +33,8 @@ def runTest(debug_mode=None):
 
 if __name__ == "__main__":
     import argparse
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtNetwork import QNetworkDiskCache
+    from qgis.PyQt.QtCore import Qt
+    from qgis.PyQt.QtNetwork import QNetworkDiskCache
     from qgis.core import QgsApplication, QgsNetworkAccessManager
     from qgis.testing import start_app
 

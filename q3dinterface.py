@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-09
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from .utils import logMessage
 

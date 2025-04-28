@@ -14,7 +14,7 @@ import numpy
 import struct
 
 from osgeo import gdal
-from PyQt5.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsRectangle, QgsProject
 
 from .downloader import Downloader

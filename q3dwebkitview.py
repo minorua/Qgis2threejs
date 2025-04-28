@@ -5,12 +5,12 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QDesktopServices, QImage, QPainter
-from PyQt5.QtWidgets import QDialog, QVBoxLayout
+from qgis.PyQt.QtCore import Qt, QSize, QUrl
+from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 
-from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
-from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
+from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
+from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .conf import DEBUG_MODE
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon

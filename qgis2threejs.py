@@ -5,9 +5,9 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QSettings
-from PyQt5.QtWidgets import QAction, QActionGroup, QMessageBox
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt, QSettings
+from qgis.PyQt.QtWidgets import QAction, QActionGroup, QMessageBox
+from qgis.PyQt.QtGui import QIcon
 from qgis.core import Qgis, QgsApplication, QgsProject
 
 from .conf import DEBUG_MODE, PLUGIN_NAME

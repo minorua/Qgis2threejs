@@ -9,7 +9,7 @@ import struct
 from copy import deepcopy
 from math import floor
 from osgeo import gdal
-from PyQt5.QtCore import QSize, QUrl
+from qgis.PyQt.QtCore import QSize, QUrl
 
 from qgis.core import Qgis, QgsMapLayer, QgsProject, QgsWkbTypes
 

@@ -5,7 +5,7 @@
 
 import json
 import struct
-from PyQt5.QtCore import QByteArray, QSize
+from qgis.PyQt.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
 from .conf import DEBUG_MODE, DEF_SETS

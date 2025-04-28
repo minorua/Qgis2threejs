@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-11-10
 
-from PyQt5.QtCore import QObject
-from PyQt5.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView
-from PyQt5.QtGui import QColorConstants, QPixmap
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView
+from qgis.PyQt.QtGui import QColorConstants, QPixmap
 
 from .conf import DEBUG_MODE
 from .utils import logMessage, pluginDir

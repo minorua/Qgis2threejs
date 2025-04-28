@@ -4,8 +4,8 @@
 # begin: 2016-02-10
 
 from functools import wraps
-from PyQt5.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QImage
+from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtGui import QImage
 
 from .conf import DEBUG_MODE
 

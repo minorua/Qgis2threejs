@@ -6,9 +6,9 @@
 import os
 import shutil
 
-from PyQt5.QtCore import qDebug
-from PyQt5.QtGui import QColor
-from PyQt5.QtXml import QDomDocument
+from qgis.PyQt.QtCore import qDebug
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
 from Qgis2threejs.utils import getLayersByLayerIds, logMessage, pluginDir

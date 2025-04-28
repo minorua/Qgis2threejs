@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2015-09-16
 
-from PyQt5.QtCore import QSize
+from qgis.PyQt.QtCore import QSize
 from qgis.testing import unittest
 
 from Qgis2threejs.export import ThreeJSExporter

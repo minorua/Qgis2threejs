@@ -4,7 +4,7 @@
 # begin: 2016-02-10
 
 import time
-from PyQt5.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
+from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
 from .conf import DEBUG_MODE

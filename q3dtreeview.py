@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2017-05-30
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
+from qgis.PyQt.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
 from .conf import PLUGIN_NAME

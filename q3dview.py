@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-from PyQt5.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
 from .utils import logMessage
 
@@ -16,14 +16,14 @@ WEBKIT_AVAILABLE = False
 
 if Qgis.QGIS_VERSION_INT >= 33600:
     try:
-        from PyQt5.QtWebEngineWidgets import QWebEngineView
+        from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
         WEBENGINE_AVAILABLE = True
 
     except:
         pass
 
 try:
-    from PyQt5.QtWebKitWidgets import QWebView
+    from qgis.PyQt.QtWebKitWidgets import QWebView
     WEBKIT_AVAILABLE = True
 
 except:     # ModuleNotFoundError

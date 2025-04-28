@@ -6,9 +6,9 @@
 import os
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
-from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
+from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
+from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                              QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 

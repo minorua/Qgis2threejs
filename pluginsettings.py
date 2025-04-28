@@ -5,8 +5,8 @@
 
 from configparser import ConfigParser
 import os
-from PyQt5.QtCore import Qt, QDir, QSettings
-from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
+from qgis.PyQt.QtCore import Qt, QDir, QSettings
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .utils import logMessage, pluginDir
 from .ui.settingsdialog import Ui_SettingsDialog

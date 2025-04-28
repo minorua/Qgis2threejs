@@ -6,8 +6,8 @@
 import json
 import os
 
-from PyQt5.QtCore import QDir, QEventLoop, QFileInfo, QSize
-from PyQt5.QtGui import QImage, QPainter
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize
+from qgis.PyQt.QtGui import QImage, QPainter
 
 from .conf import DEBUG_MODE, PLUGIN_VERSION
 from .build import ThreeJSBuilder

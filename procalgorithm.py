@@ -5,8 +5,8 @@
 
 import os
 import qgis
-from PyQt5.QtCore import QDir, QSize
-from PyQt5.QtXml import QDomDocument
+from qgis.PyQt.QtCore import QDir, QSize
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import (QgsCoordinateTransform,
                        QgsExpression,
                        QgsGeometry,

@@ -5,9 +5,9 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QDir, QEvent, QObject, QVariant
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QComboBox, QFileDialog, QWidget
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QVariant
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget

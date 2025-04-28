@@ -8,7 +8,7 @@ import json
 import os
 import re
 
-from PyQt5.QtCore import QSettings, QSize, QUrl
+from qgis.PyQt.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst

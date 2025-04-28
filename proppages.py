@@ -7,10 +7,10 @@ import os
 import json
 import re
 
-from PyQt5.QtCore import Qt, QPoint, QSize, QUrl
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
+from qgis.PyQt.QtCore import Qt, QPoint, QSize, QUrl
+from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
                              QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
-from PyQt5.QtGui import QColor, QCursor, QIcon, QPixmap
+from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QPixmap
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 

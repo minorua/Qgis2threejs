@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2015-04-22
 
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 from qgis.core import Qgis, QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
 from qgis.gui import QgsMapLayerComboBox
 
