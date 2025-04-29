@@ -203,7 +203,7 @@ def openDirectory(dir_path):
 def image2dataUri(image, fmt="PNG"):
     ba = QByteArray()
     buffer = QBuffer(ba)
-    buffer.open(QIODevice.WriteOnly)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
     image.save(buffer, fmt.upper())
     return "data:image/{};base64,".format(fmt.lower()) + ba.toBase64().data().decode("ascii")
 
@@ -225,7 +225,7 @@ def imageFile2dataUri(file_path):
 def jpegCompressedImage(image):
     ba = QByteArray()
     buffer = QBuffer(ba)
-    buffer.open(QIODevice.WriteOnly)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
     image.save(buffer, "JPEG")
 
     return QImage.fromData(ba, "JPEG")
@@ -319,7 +319,7 @@ def copyFiles(filesToCopy, out_dir):
                 QDir().mkpath(dest)
 
                 # copy files in the source directory
-                filenames = QDir(source).entryList(QDir.Files)
+                filenames = QDir(source).entryList(QDir.Filter.Files)
                 for filename in filenames:
                     copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
@@ -336,7 +336,7 @@ def removeTemporaryOutputDir():
 def removeDir(dirName):
     d = QDir(dirName)
     if d.exists():
-        for info in d.entryInfoList(QDir.Dirs | QDir.Files | QDir.NoDotAndDotDot):
+        for info in d.entryInfoList(QDir.Filter.Dirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot):
             if info.isDir():
                 removeDir(info.absoluteFilePath())
             else:
@@ -373,7 +373,7 @@ def selectColor(parent=None):
     widget.setAllowOpacity(False)
     dlg.layout().addWidget(widget)
 
-    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
     buttonBox.accepted.connect(dlg.accept)
     buttonBox.rejected.connect(dlg.reject)
     dlg.layout().addWidget(buttonBox)

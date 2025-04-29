@@ -44,7 +44,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # start QGIS application
-    QgsApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+    QgsApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     QGISAPP = start_app()
 
     # make sure that application startup log has been written

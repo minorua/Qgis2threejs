@@ -169,7 +169,7 @@ class AnimationPanel(QWidget):
         view = self.webPage.cameraState(flat=True)
 
         msg = "Are you sure you want to update the camera position and focal point of this keyframe?"
-        if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.StandardButton.Yes:
             item = self.tree.currentItem()
             item.setData(0, ATConst.DATA_CAMERA, view)
 
@@ -193,11 +193,11 @@ class AnimationTreeWidget(QTreeWidget):
         self.dialog = None
 
         root = self.invisibleRootItem()
-        root.setFlags(root.flags() & ~Qt.ItemIsDropEnabled)
+        root.setFlags(root.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
 
         self.header().setVisible(False)
-        self.setDragDropMode(QAbstractItemView.InternalMove)
-        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setExpandsOnDoubleClick(False)
 
     def setup(self, wnd, settings):
@@ -211,7 +211,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenu)
         self.currentItemChanged.connect(self.currentTreeItemChanged)
         self.itemDoubleClicked.connect(self.onItemDoubleClicked)
@@ -299,7 +299,7 @@ class AnimationTreeWidget(QTreeWidget):
             accept = False
 
         if not accept:
-            event.setDropAction(Qt.IgnoreAction)
+            event.setDropAction(Qt.DropAction.IgnoreAction)
             self.wnd.ui.statusbar.showMessage("Cannot move item(s) there.", 3000)
 
         return QTreeWidget.dropEvent(self, event)
@@ -319,7 +319,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         item = QTreeWidgetItem(self, [layer.name], ATConst.ITEM_TL_LAYER)
         item.setData(0, ATConst.DATA_LAYER_ID, layerId)
-        item.setFlags(Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         item.setIcon(0, self.icons[layer.type])
         item.setExpanded(True)
 
@@ -409,7 +409,7 @@ class AnimationTreeWidget(QTreeWidget):
         else:
             msg = "Are you sure you want to remove {} items?".format(len(items))
 
-        if QMessageBox.question(self, PLUGIN_NAME, msg) != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, msg) != QMessageBox.StandardButton.Yes:
             return
 
         for item in items:
@@ -432,8 +432,8 @@ class AnimationTreeWidget(QTreeWidget):
 
         item = QTreeWidgetItem(typ)
         item.setText(0, name)
-        item.setFlags(Qt.ItemIsDropEnabled | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
-        item.setCheckState(0, Qt.Checked if enabled else Qt.Unchecked)
+        item.setFlags(Qt.ItemFlag.ItemIsDropEnabled | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
+        item.setCheckState(0, Qt.CheckState.Checked if enabled else Qt.CheckState.Unchecked)
 
         parent.addChild(item)
         item.setExpanded(True)
@@ -491,7 +491,7 @@ class AnimationTreeWidget(QTreeWidget):
             item.setData(0, ATConst.DATA_NARRATION, {"id": nar["id"], "text": nar["text"]})
             icon = self.panel.iconNarration
 
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsEnabled)
         item.setIcon(0, icon if icon else self.keyframeIcon)
 
         if iidx:
@@ -657,7 +657,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         # camera motion
         item = QTreeWidgetItem(self, ["Camera Motion"], ATConst.ITEM_TL_CAMERA)
-        item.setFlags(Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         item.setIcon(0, self.cameraIcon)
         item.setExpanded(True)
         self.cameraTLItem = item
@@ -859,7 +859,7 @@ class AnimationTreeWidget(QTreeWidget):
                 return
         else:
             # line growing doesn't work if group item is not checked
-            item.parent().setCheckState(0, Qt.Checked)
+            item.parent().setCheckState(0, Qt.CheckState.Checked)
 
         top_level = item.parent().parent()
         layer = None
@@ -917,7 +917,7 @@ class KeyframeDialog(QDialog):
 
     def __init__(self, parent):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.ui = Ui_KeyframeDialog()
         self.ui.setupUi(self)

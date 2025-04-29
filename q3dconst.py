@@ -143,29 +143,29 @@ class ATConst:
     ITEM_GROWING_LINE = 131         # EFFECT
 
     # ITEM_TL_LAYER
-    DATA_LAYER_ID = Qt.UserRole
+    DATA_LAYER_ID = Qt.ItemDataRole.UserRole
 
     # KEYFRAME GROUP
-    DATA_NEXT_INDEX = Qt.UserRole
+    DATA_NEXT_INDEX = Qt.ItemDataRole.UserRole
 
     # COMMON FOR KEYFRAME
-    DATA_EASING = Qt.UserRole + 1
-    DATA_DURATION = Qt.UserRole + 2
-    DATA_DELAY = Qt.UserRole + 3
-    DATA_NARRATION = Qt.UserRole + 4
+    DATA_EASING = Qt.ItemDataRole.UserRole + 1
+    DATA_DURATION = Qt.ItemDataRole.UserRole + 2
+    DATA_DELAY = Qt.ItemDataRole.UserRole + 3
+    DATA_NARRATION = Qt.ItemDataRole.UserRole + 4
 
     # CAMERA KEYFRAME
-    DATA_CAMERA = Qt.UserRole
+    DATA_CAMERA = Qt.ItemDataRole.UserRole
 
     # OPACITY KEYFRAME
-    DATA_OPACITY = Qt.UserRole
+    DATA_OPACITY = Qt.ItemDataRole.UserRole
 
     # TEXTURE KEYFRAME
-    DATA_MTL_ID = Qt.UserRole
-    DATA_EFFECT = Qt.UserRole + 5
+    DATA_MTL_ID = Qt.ItemDataRole.UserRole
+    DATA_EFFECT = Qt.ItemDataRole.UserRole + 5
 
     # LINE GROWING EFFECT
-    DATA_SEQ = Qt.UserRole
+    DATA_SEQ = Qt.ItemDataRole.UserRole
 
     # EASING
     EASING_NONE = 0

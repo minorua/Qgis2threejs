@@ -30,14 +30,14 @@ class SettingsDialog(QDialog):
 
         # initialize plugin table widget
         plugin_dir = QDir(pluginDir("plugins"))
-        plugins = plugin_dir.entryList(QDir.Dirs | QDir.NoSymLinks | QDir.NoDotAndDotDot)
+        plugins = plugin_dir.entryList(QDir.Filter.Dirs | QDir.Filter.NoSymLinks | QDir.Filter.NoDotAndDotDot)
 
         tableWidget = ui.tableWidget_Plugins
         tableWidget.setColumnCount(1)
         tableWidget.setHorizontalHeaderLabels(["Name"])
-        tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        tableWidget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         headerView = tableWidget.horizontalHeader()
-        headerView.setSectionResizeMode(QHeaderView.Stretch)
+        headerView.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         self.plugin_metadata = []
         for i, name in enumerate(plugins):
@@ -57,7 +57,7 @@ class SettingsDialog(QDialog):
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):
             item = QTableWidgetItem(metadata.get("name", name))
-            item.setCheckState(Qt.Checked if name in enabled_plugins else Qt.Unchecked)
+            item.setCheckState(Qt.CheckState.Checked if name in enabled_plugins else Qt.CheckState.Unchecked)
             tableWidget.setItem(i, 0, item)
 
         tableWidget.selectionModel().currentRowChanged.connect(self.pluginSelectionChanged)
@@ -76,7 +76,7 @@ class SettingsDialog(QDialog):
         enabled_plugins = []
         for i, metadata in enumerate(self.plugin_metadata):
             item = self.ui.tableWidget_Plugins.item(i, 0)
-            if item.checkState() == Qt.Checked:
+            if item.checkState() == Qt.CheckState.Checked:
                 enabled_plugins.append(metadata["id"])
 
         settings.setValue("/Qgis2threejs/plugins", ",".join(enabled_plugins))

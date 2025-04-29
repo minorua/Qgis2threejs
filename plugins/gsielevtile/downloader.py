@@ -59,11 +59,11 @@ class Downloader(QObject):
         if url in self.requestingReplies:
             del self.requestingReplies[url]
 
-        httpStatusCode = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        httpStatusCode = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
         if reply.error() == QNetworkReply.NoError:
             self._successes += 1
 
-            if reply.attribute(QNetworkRequest.SourceIsFromCacheAttribute):
+            if reply.attribute(QNetworkRequest.Attribute.SourceIsFromCacheAttribute):
                 self._cacheHits += 1
 
             elif not reply.hasRawHeader(b"Cache-Control"):

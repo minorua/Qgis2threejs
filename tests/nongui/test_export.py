@@ -90,7 +90,7 @@ class TestExport(unittest.TestCase):
 
         timer.stop()
 
-        image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format_ARGB32_Premultiplied)
+        image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
         page.mainFrame().render(painter)
         painter.end()

@@ -76,7 +76,7 @@ class ImageManager(DataManager):
             settings.setLayers(utils.getLayersByLayerIds(layerids))
 
         if transp_background:
-            settings.setBackgroundColor(QColor(Qt.transparent))
+            settings.setBackgroundColor(QColor(Qt.GlobalColor.transparent))
 
         has_pluginlayer = False
         for layer in settings.layers():
@@ -85,11 +85,11 @@ class ImageManager(DataManager):
                 break
 
         # create an image
-        image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter()
         painter.begin(image)
         if antialias:
-            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         # rendering
         job = QgsMapRendererCustomPainterJob(settings, painter)
@@ -127,8 +127,8 @@ class ImageManager(DataManager):
 
             return image
 
-        image = QImage(1, 1, QImage.Format_RGB32)
-        image.fill(Qt.lightGray)
+        image = QImage(1, 1, QImage.Format.Format_RGB32)
+        image.fill(Qt.GlobalColor.lightGray)
         return image
 
     def dataUri(self, index):

@@ -65,13 +65,13 @@ class GUITestBase(unittest.TestCase):
 
         if w._page.isWebEnginePage:
             w = w.findChild(QWidget)
-            press = QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton, Qt.NoButton, Qt.NoModifier)
-            release = QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton, Qt.NoButton, Qt.NoModifier)
+            press = QMouseEvent(QEvent.Type.MouseButtonPress, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+            release = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
 
             QgsApplication.postEvent(w, press)
             QgsApplication.postEvent(w, release)
         else:
-            QTest.mouseClick(w, Qt.LeftButton, pos=pos)
+            QTest.mouseClick(w, Qt.MouseButton.LeftButton, pos=pos)
 
         self.sleep(100)
 
@@ -154,7 +154,7 @@ class VLayerTestBase(LayerTestBase):
         combo = self.DLG.page.comboBox_ObjectType
         for i in range(combo.count()):
             combo.setCurrentIndex(i)
-            self.DLG.ui.buttonBox.button(QDialogButtonBox.Apply).click()
+            self.DLG.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
             self.waitBC()
 
 
@@ -176,14 +176,14 @@ class PointLayerTest(VLayerTestBase):
         self.assertText("attribute", "cone 3", "qr_attrs_table")
 
     def test04_hideAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.Unchecked)    # hide pt4 layer
+        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Unchecked)    # hide pt4 layer
         self.waitBC()
 
         self.mouseClick(485, 160)   # sea
         self.assertText("hide layer", " 0.00", "qr_coords", partialMatch=True)
 
     def test05_restoreAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.Checked)      # show pt4 layer
+        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Checked)      # show pt4 layer
         self.waitBC()
 
         self.mouseClick(485, 160)   # third feature in pt4 layer
@@ -200,7 +200,7 @@ class LineLayerTest(VLayerTestBase):
     LINEV_LAYER_ID = "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509"
 
     def test01_verticalLine(self):
-        self.TREE.itemFromLayerId(self.LINEV_LAYER_ID).setCheckState(Qt.Checked)    # show lineV layer
+        self.TREE.itemFromLayerId(self.LINEV_LAYER_ID).setCheckState(Qt.CheckState.Checked)    # show lineV layer
         self.waitBC()
 
         self.assertZRange("scene z range", min=-4000, max=10000)    # min: flat plane, max: lineV

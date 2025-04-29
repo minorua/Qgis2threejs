@@ -20,7 +20,7 @@ class ExportToWebDialog(QDialog):
 
     def __init__(self, settings, page, parent=None):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.settings = settings
         self.page = page
@@ -53,7 +53,7 @@ class ExportToWebDialog(QDialog):
             # set tool tip text
             desc = config.get("description", "")
             if desc:
-                cbox.setItemData(i, desc, Qt.ToolTipRole)
+                cbox.setItemData(i, desc, Qt.ItemDataRole.ToolTipRole)
 
         index = cbox.findData(settings.template())
         if index != -1:
@@ -124,7 +124,7 @@ class ExportToWebDialog(QDialog):
 
         filepath = os.path.join(out_dir, filename)
         if not is_temporary and os.path.exists(filepath):
-            if QMessageBox.question(self, PLUGIN_NAME, "The HTML file already exists. Do you want to overwrite it?", QMessageBox.Ok | QMessageBox.Cancel) != QMessageBox.Ok:
+            if QMessageBox.question(self, PLUGIN_NAME, "The HTML file already exists. Do you want to overwrite it?", QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel) != QMessageBox.StandardButton.Ok:
                 return
 
         self.settings.setOutputFilename("" if is_temporary else filepath)
@@ -259,7 +259,7 @@ th {text-align:left;}
             self.logHtml += "<div class='progress'>{}</div>".format(msg)
             self.ui.textBrowser.setHtml(self.logHtml)
 
-        QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+        QgsApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
     def progressNumbered(self, percentage=None, msg=None):
         self.progress(percentage, msg, numbered=True)
@@ -273,7 +273,7 @@ th {text-align:left;}
         self.logHtml += "<div{}>{}</div>".format(" class='{}'".format(" ".join(classes)) if classes else "", msg)
         self.ui.textBrowser.setHtml(self.logHtml)
 
-        QgsApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+        QgsApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
     def logMessageIndented(self, msg, warning=False):
         self.log(msg, warning, indented=True)

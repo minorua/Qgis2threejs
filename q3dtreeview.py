@@ -89,7 +89,7 @@ class Q3DTreeView(QTreeView):
         self.contextMenuPCG = QMenu(self)
         self.contextMenuPCG.addAction(self.iface.wnd.ui.actionAddPointCloudLayer)
 
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
         self.setExpandsOnDoubleClick(False)
@@ -104,7 +104,7 @@ class Q3DTreeView(QTreeView):
         item.setEditable(False)
 
         if layer.visible:
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.CheckState.Checked)
 
             font = item.font()
             font.setBold(True)
@@ -131,7 +131,7 @@ class Q3DTreeView(QTreeView):
                 parent.removeRows(0, parent.rowCount())
 
     def layerFromIndex(self, index):
-        layerId = self.model().data(index, Qt.UserRole + 1)
+        layerId = self.model().data(index, Qt.ItemDataRole.UserRole + 1)
         return self.iface.settings.getLayer(layerId)
 
     def itemFromLayerId(self, layerId):
@@ -175,7 +175,7 @@ class Q3DTreeView(QTreeView):
     def uncheckAll(self):
         for parent in self.layerGroupItems.values():
             for idx in range(parent.rowCount()):
-                parent.child(idx).setCheckState(Qt.Unchecked)
+                parent.child(idx).setCheckState(Qt.CheckState.Unchecked)
 
     def currentChanged(self, current, previous):
         QTreeView.currentChanged(self, current, previous)
@@ -190,7 +190,7 @@ class Q3DTreeView(QTreeView):
             # DEM material
             layer = self.layerFromIndex(current.parent())
             if layer:
-                mtlId = self.model().data(current, Qt.UserRole + 1)  # set with item.setData()
+                mtlId = self.model().data(current, Qt.ItemDataRole.UserRole + 1)  # set with item.setData()
                 layer.properties["mtlId"] = mtlId
 
                 layer = layer.clone()
@@ -205,7 +205,7 @@ class Q3DTreeView(QTreeView):
                 parent.child(row).setFont(font)
 
     def treeDataChanged(self, topLeft, bottomRight, roles):
-        if Qt.CheckStateRole not in roles:
+        if Qt.ItemDataRole.CheckStateRole not in roles:
             return
 
         # checkbox toggled
@@ -214,7 +214,7 @@ class Q3DTreeView(QTreeView):
         if layer is None:
             return
 
-        checked = (item.checkState() == Qt.Checked)
+        checked = (item.checkState() == Qt.CheckState.Checked)
         layer.visible = checked
         if layer.visible and not layer.properties:
             layer.properties = self.iface.wnd.getDefaultProperties(layer)
@@ -242,7 +242,7 @@ class Q3DTreeView(QTreeView):
 
         m = None
         if depth == 1:
-            layerId = self.model().data(idx, Qt.UserRole + 1)
+            layerId = self.model().data(idx, Qt.ItemDataRole.UserRole + 1)
             if layerId:
                 if layerId.startswith("pc:"):
                     m = self.contextMenuPC
@@ -256,7 +256,7 @@ class Q3DTreeView(QTreeView):
 
         elif depth == 0:
             m = {LayerType.DEM: self.contextMenuDEM,
-                 LayerType.POINTCLOUD: self.contextMenuPCG}.get(self.model().data(idx, Qt.UserRole + 1))
+                 LayerType.POINTCLOUD: self.contextMenuPCG}.get(self.model().data(idx, Qt.ItemDataRole.UserRole + 1))
 
         if m:
             m.exec_(self.mapToGlobal(pos))
@@ -274,7 +274,7 @@ class Q3DTreeView(QTreeView):
         if layer is None:
             return
 
-        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.StandardButton.Yes:
             return
 
         self.iface.layerRemoved.emit(layer.layerId)

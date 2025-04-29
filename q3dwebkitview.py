@@ -44,9 +44,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         # if self.offScreen:
         #     # transparent background
         #     palette = self.palette()
-        #     palette.setBrush(QPalette.Base, Qt.transparent)
+        #     palette.setBrush(QPalette.Base, Qt.GlobalColor.transparent)
         #     self.setPalette(palette)
-        #     #webview: self.setAttribute(Qt.WA_OpaquePaintEvent, False)
+        #     #webview: self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
 
         url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "webkit.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
@@ -88,7 +88,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         old_size = self.viewportSize()
         self.setViewportSize(QSize(width, height))
 
-        image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
         self.mainFrame().render(painter)
         painter.end()
@@ -116,7 +116,7 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
     def showDevTools(self):
         dlg = QDialog(self)
-        dlg.setAttribute(Qt.WA_DeleteOnClose)
+        dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Web Inspector")
         dlg.rejected.connect(self.devToolsClosed)

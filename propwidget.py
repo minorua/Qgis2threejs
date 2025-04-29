@@ -534,7 +534,7 @@ class PropertyWidget(QWidget, Ui_ComboEditWidget):
 class EnterKeyEventFilter(QObject):
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.KeyPress and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
+        if event.type() == QEvent.Type.KeyPress and (event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter):
             event.ignore()
             return True
         return QObject.eventFilter(self, obj, event)

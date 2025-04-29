@@ -338,7 +338,7 @@ class ImageExporter(BridgeExporterBase):
 
         # render scene
         size = self.page.viewportSize()
-        image = QImage(size.width(), size.height(), QImage.Format_ARGB32_Premultiplied)
+        image = QImage(size.width(), size.height(), QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
         self.page.mainFrame().render(painter)
         painter.end()

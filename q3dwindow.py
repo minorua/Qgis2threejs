@@ -75,7 +75,7 @@ class Q3DWindow(QMainWindow):
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
         self.settings = settings
@@ -207,7 +207,7 @@ class Q3DWindow(QMainWindow):
         QMainWindow.closeEvent(self, event)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             self.iface.abort()
         QMainWindow.keyPressEvent(self, event)
 
@@ -288,7 +288,7 @@ class Q3DWindow(QMainWindow):
         w = ui.progressBar = QProgressBar(ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
-        w.setAlignment(Qt.AlignCenter)
+        w.setAlignment(Qt.AlignmentFlag.AlignCenter)
         w.hide()
         ui.statusbar.addPermanentWidget(w)
 
@@ -312,14 +312,14 @@ class Q3DWindow(QMainWindow):
 
     def showConsoleStatusIcon(self, is_error):
         style = QgsApplication.style()
-        icon = style.standardIcon(QStyle.SP_MessageBoxCritical if is_error else QStyle.SP_MessageBoxWarning)
+        icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical if is_error else QStyle.StandardPixmap.SP_MessageBoxWarning)
 
         self.ui.toolButtonConsoleStatus.setIcon(icon)
         self.ui.toolButtonConsoleStatus.show()
 
     def changeEvent(self, event):
-        if event.type() == QEvent.WindowStateChange:
-            if self.windowState() & Qt.WindowMinimized:
+        if event.type() == QEvent.Type.WindowStateChange:
+            if self.windowState() & Qt.WindowState.WindowMinimized:
                 self.runScript("app.pause()")
             else:
                 self.runScript("app.resume()")
@@ -484,7 +484,7 @@ class Q3DWindow(QMainWindow):
         self.lastDir = os.path.dirname(filename)
 
     def clearSettings(self):
-        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to clear export settings?") != QMessageBox.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to clear export settings?") != QMessageBox.StandardButton.Yes:
             return
 
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
@@ -588,9 +588,9 @@ class Q3DWindow(QMainWindow):
     # Window menu
     def alwaysOnTopToggled(self, checked):
         if checked:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint)
         self.show()
 
     # Help menu
@@ -621,7 +621,7 @@ class PropertiesDialog(QDialog):
 
     def __init__(self, settings, qgisIface, parent=None):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.settings = settings
         self.qgisIface = qgisIface
@@ -703,7 +703,7 @@ class PropertiesDialog(QDialog):
 class WheelEventFilter(QObject):
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Type.Wheel:
             return True
         return QObject.eventFilter(self, obj, event)
 
@@ -714,7 +714,7 @@ class NorthArrowDialog(QDialog):
 
     def __init__(self, properties, parent=None):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         from .ui.northarrowdialog import Ui_NorthArrowDialog
         self.ui = Ui_NorthArrowDialog()
@@ -739,7 +739,7 @@ class HFLabelDialog(QDialog):
 
     def __init__(self, properties, parent=None):
         QDialog.__init__(self, parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         from .ui.hflabeldialog import Ui_HFLabelDialog
         self.ui = Ui_HFLabelDialog()

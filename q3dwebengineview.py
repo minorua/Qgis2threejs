@@ -100,13 +100,13 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
-        if level in (QWebEnginePage.WarningMessageLevel, QWebEnginePage.ErrorMessageLevel):
-            self.jsErrorWarning.emit(bool(level == QWebEnginePage.ErrorMessageLevel))
+        if level in (QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel, QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel):
+            self.jsErrorWarning.emit(bool(level == QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel))
 
         Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
 
     def acceptNavigationRequest(self, url, type, isMainFrame):
-        if type == QWebEnginePage.NavigationTypeLinkClicked:
+        if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
             QDesktopServices.openUrl(url)
             return False
         return True
@@ -130,7 +130,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
             return
 
         dlg = self.dlg = QDialog(self)
-        dlg.setAttribute(Qt.WA_DeleteOnClose)
+        dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Developer Tools")
         dlg.rejected.connect(self.devToolsClosed)
@@ -154,7 +154,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
             geom = wnd.saveGeometry()
             wnd.setEnabled(False)
 
-        img = QImage(width, height, QImage.Format_ARGB32)
+        img = QImage(width, height, QImage.Format.Format_ARGB32)
         painter = QPainter(img)
 
         minSize = self.minimumSize()

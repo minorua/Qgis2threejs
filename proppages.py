@@ -222,8 +222,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.comboBox_xyShift.addItem("Center of base extent", True)
         self.comboBox_xyShift.addItem("Origin of map coordinate system", False)
 
-        self.comboBox_xyShift.setItemData(0, "Shifts the 3D world origin to center of base extent to preserve precision.", Qt.ToolTipRole)
-        self.comboBox_xyShift.setItemData(1, "Outputs map coordinates without transformation.", Qt.ToolTipRole)
+        self.comboBox_xyShift.setItemData(0, "Shifts the 3D world origin to center of base extent to preserve precision.", Qt.ItemDataRole.ToolTipRole)
+        self.comboBox_xyShift.setItemData(1, "Outputs map coordinates without transformation.", Qt.ItemDataRole.ToolTipRole)
 
         # 2D map extent
         self.radioButton_FixedExtent.toggled.connect(self.fixedExtentToggled)
@@ -248,7 +248,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         else:
             self.radioButton_UseCanvasExtent.setChecked(True)
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
-            self.colorButton_Fog.setColor(QColor(Qt.white))
+            self.colorButton_Fog.setColor(QColor(Qt.GlobalColor.white))
 
         # supported projections
         # https://github.com/proj4js/proj4js
@@ -382,8 +382,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
     # item data role for material list widget
-    DATA_ID = Qt.UserRole
-    DATA_PROPERTIES = Qt.UserRole + 1       # except for layer ids
+    DATA_ID = Qt.ItemDataRole.UserRole
+    DATA_PROPERTIES = Qt.ItemDataRole.UserRole + 1       # except for layer ids
 
     def __init__(self, parent, layer, settings, mapSettings):
         PropertyPage.__init__(self, parent, PAGE_DEM)
@@ -469,9 +469,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.toolButton_AddMtl.clicked.connect(lambda: self.contextMenuAddMtl.popup(QCursor.pos()))
         self.toolButton_RemoveMtl.clicked.connect(self.removeMaterial)
 
-        self.listWidget_Materials.setDragDropMode(QAbstractItemView.InternalMove)
-        self.listWidget_Materials.setDefaultDropAction(Qt.MoveAction)
-        self.listWidget_Materials.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listWidget_Materials.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.listWidget_Materials.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.listWidget_Materials.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.listWidget_Materials.setIconSize(QSize(16, 16))
         self.listWidget_Materials.customContextMenuRequested.connect(lambda: self.contextMenuMtl.popup(QCursor.pos()))
         self.listWidget_Materials.currentItemChanged.connect(self.materialItemChanged)
@@ -590,7 +590,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         p["materials"] = self.materials()
         mtlItem = self.listWidget_Materials.currentItem()
         if mtlItem:
-            p["mtlId"] = mtlItem.data(Qt.UserRole)
+            p["mtlId"] = mtlItem.data(Qt.ItemDataRole.UserRole)
         return p
 
     def setProperties(self, properties):
@@ -634,7 +634,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
         for mtl in materials:
             item = QListWidgetItem(mtl.get("name", ""), self.listWidget_Materials, mtl.get("type", DEMMtlType.MAPCANVAS))
-            item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+            item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsEnabled)
             item.setData(self.DATA_ID, mtl.get("id"))
             item.setData(self.DATA_PROPERTIES, mtl.get("properties"))
             item.setIcon(DEMPropertyPage.iconForMtl(mtl))
@@ -703,7 +703,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         name = self.uniqueMtlName(base_name)
 
         item = QListWidgetItem(name, self.listWidget_Materials, mtype)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsEnabled)
         item.setData(self.DATA_ID, createUid())
         item.setData(self.DATA_PROPERTIES, p)
         item.setIcon(DEMPropertyPage.iconForMtl({"type": mtype, "properties": p}))
@@ -718,7 +718,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if row >= 0:
             item = self.listWidget_Materials.item(row)
             msg = "Are you sure you want to remove material '{}'?".format(item.text())
-            if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.Yes:
+            if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.StandardButton.Yes:
                 self.listWidget_Materials.takeItem(row)
 
     def renameMtlItem(self):
@@ -728,7 +728,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def setCurrentMtlItem(self, id):
         for row in range(self.listWidget_Materials.count()):
-            if self.listWidget_Materials.item(row).data(Qt.UserRole) == id:
+            if self.listWidget_Materials.item(row).data(Qt.ItemDataRole.UserRole) == id:
                 self.listWidget_Materials.setCurrentRow(row)
                 return
 
