@@ -710,7 +710,7 @@ class AnimationTreeWidget(QTreeWidget):
                 self.actionUpdateView.setVisible(bool(typ == ATConst.ITEM_CAMERA))
 
         if m:
-            m.exec_(self.mapToGlobal(pos))
+            m.exec(self.mapToGlobal(pos))
 
     def currentTreeItemChanged(self, current, previous=None):
         if not current:
@@ -873,7 +873,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.dialog.setup(item, layer)
         self.dialog.finished.connect(self.dialogClosed)
         self.dialog.show()
-        self.dialog.exec_()
+        self.dialog.exec()
 
     def dialogClosed(self, result):
         self.panel.setEnabled(True)

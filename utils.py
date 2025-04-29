@@ -378,7 +378,7 @@ def selectColor(parent=None):
     buttonBox.rejected.connect(dlg.reject)
     dlg.layout().addWidget(buttonBox)
 
-    if dlg.exec_():
+    if dlg.exec():
         return widget.color()
 
 

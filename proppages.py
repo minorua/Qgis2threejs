@@ -342,7 +342,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         useLayerExtentAction.triggered.connect(self.useLayerExtent)
         popup.addAction(useLayerExtentAction)
 
-        popup.exec_(QCursor.pos())
+        popup.exec(QCursor.pos())
 
     def selectExtentOnCanvas(self):
         self.canvas.setMapTool(self.mapTool)
@@ -367,7 +367,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         from .layerselectdialog import SingleLayerSelectDialog
         dlg = SingleLayerSelectDialog(self, "Use extent from")
         dlg.setWindowTitle("Select Extent")
-        if dlg.exec_():
+        if dlg.exec():
             layer = dlg.selectedLayer()
 
             transform = QgsCoordinateTransform(layer.crs(), self.mapSettings.destinationCrs(), QgsProject.instance())
@@ -539,7 +539,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         dialog = LayerSelectDialog(self)
         dialog.initTree(ids)
         dialog.setMapSettings(self.mapSettings)
-        if not dialog.exec_():
+        if not dialog.exec():
             return None
 
         ids = dialog.visibleLayerIds()

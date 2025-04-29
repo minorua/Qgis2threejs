@@ -259,7 +259,7 @@ class Q3DTreeView(QTreeView):
                  LayerType.POINTCLOUD: self.contextMenuPCG}.get(self.model().data(idx, Qt.ItemDataRole.UserRole + 1))
 
         if m:
-            m.exec_(self.mapToGlobal(pos))
+            m.exec(self.mapToGlobal(pos))
 
     def onDoubleClicked(self, _=None):
         idx = self.currentIndex()

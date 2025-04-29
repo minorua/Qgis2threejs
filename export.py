@@ -310,7 +310,7 @@ class BridgeExporterBase:
         else:
             self.page.reload()
 
-        loop.exec_()
+        loop.exec()
 
     def mkdir(self, filename):
         dir = QFileInfo(filename).dir()

@@ -79,7 +79,7 @@ class GUITestBase(unittest.TestCase):
     def sleep(cls, msec=500):
         loop = QEventLoop()
         QTimer.singleShot(msec, loop.quit)
-        loop.exec_()
+        loop.exec()
 
     @classmethod
     def doEvents(cls):

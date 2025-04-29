@@ -172,8 +172,8 @@ class Downloader(QObject):
             self.timer.start()
 
         if sync:
-            self.logT("eventLoop.exec_(): " + str(self.eventLoop))
-            self.eventLoop.exec_()
+            self.logT("eventLoop.exec(): " + str(self.eventLoop))
+            self.eventLoop.exec()
 
             if timeoutSec > 0:
                 self.timer.stop()

@@ -86,7 +86,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.runJavaScript(string, runJavaScriptCallback)
 
-        loop.exec_()
+        loop.exec()
 
         if callback:
             callback(result)

@@ -106,7 +106,7 @@ class Q3DWindow(QMainWindow):
         self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
         self.iface.progressUpdated.connect(self.progress)
 
-        self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
+        self.thread = QThread(self) if self.webPage and RUN_CNTLR_IN_BKGND else None
 
         self.controller = Q3DController(settings, self.thread)
         self.controller.setObjectName("controller")
@@ -179,7 +179,7 @@ class Q3DWindow(QMainWindow):
             loop = QEventLoop()
             self.controller.iface.readyToQuit.connect(loop.quit)
             self.iface.quit(self.controller)
-            loop.exec_()
+            loop.exec()
 
             # stop worker thread event loop
             if self.thread:
@@ -399,7 +399,7 @@ class Q3DWindow(QMainWindow):
 
         dialog = ExportToWebDialog(self.settings, self.ui.webView.page(), self)
         dialog.show()
-        dialog.exec_()
+        dialog.exec()
 
     def saveAsImage(self):
         if not self.ui.checkBoxPreview.isChecked():
@@ -408,7 +408,7 @@ class Q3DWindow(QMainWindow):
 
         from .imagesavedialog import ImageSaveDialog
         dialog = ImageSaveDialog(self)
-        dialog.exec_()
+        dialog.exec()
 
     # @pyqtSlot(int, int, QImage)   # connected to bridge.imageReady signal
     def saveImage(self, width, height, image):
@@ -503,7 +503,7 @@ class Q3DWindow(QMainWindow):
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
         dialog = SettingsDialog(self)
-        if dialog.exec_():
+        if dialog.exec():
             pluginManager().reloadPlugins()
 
     # Scene menu
@@ -546,7 +546,7 @@ class Q3DWindow(QMainWindow):
 
     def showAddPointCloudLayerDialog(self):
         dialog = AddPointCloudLayerDialog(self)
-        if dialog.exec_():
+        if dialog.exec():
             url = dialog.ui.lineEdit_Source.text()
             self.addPointCloudLayer(url)
 
@@ -574,13 +574,13 @@ class Q3DWindow(QMainWindow):
         dialog = NorthArrowDialog(self.settings.widgetProperties("NorthArrow"), self)
         dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("NorthArrow", p))
         dialog.show()
-        dialog.exec_()
+        dialog.exec()
 
     def showHFLabelDialog(self):
         dialog = HFLabelDialog(self.settings.widgetProperties("Label"), self)
         dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("Label", p))
         dialog.show()
-        dialog.exec_()
+        dialog.exec()
 
     def resetCameraState(self):
         self.webPage.resetCameraState()

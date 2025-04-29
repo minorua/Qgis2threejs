@@ -169,7 +169,7 @@ class Q3DWebPageCommon:
             timer.timeout.connect(timeOut)
             timer.start(timeout)
 
-        err = loop.exec_()
+        err = loop.exec()
         if err:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False

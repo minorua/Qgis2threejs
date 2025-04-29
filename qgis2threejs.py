@@ -142,11 +142,11 @@ class Qgis2threejs:
         url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
 
         msgBox = QMessageBox()
-        msgBox.setTextFormat(Qt.RichText)
+        msgBox.setTextFormat(Qt.TextFormat.RichText)
         msgBox.setText("PyQt-WebEngine is not installed. See <a href='{}'>wiki page</a> for details.".format(url))
         msgBox.setWindowTitle("Qgis2threejs")
 
-        msgBox.exec_()
+        msgBox.exec()
 
     def openExporterWebKit(self):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)

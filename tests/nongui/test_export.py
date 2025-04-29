@@ -78,7 +78,7 @@ class TestExport(unittest.TestCase):
         page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
         page.loadFinished.connect(loop.quit)
         page.mainFrame().setUrl(url)
-        loop.exec_()
+        loop.exec()
 
         page.mainFrame().evaluateJavaScript('document.getElementById("progress").style.display = "none";')
 
@@ -86,7 +86,7 @@ class TestExport(unittest.TestCase):
         timer.timeout.connect(loop.quit)
         timer.start(100)
         while page.mainFrame().evaluateJavaScript("app.loadingManager.isLoading"):
-            loop.exec_()
+            loop.exec()
 
         timer.stop()
 
