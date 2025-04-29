@@ -5,11 +5,15 @@
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QEventLoop, QTimer, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
-from qgis.PyQt.QtWebChannel import QWebChannel
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
+
+if PYQT_VERSION_STR.split(".")[0] == "5":
+    from PyQt5.QtWebChannel import QWebChannel
+else:
+    from PyQt6.QtWebChannel import QWebChannel
 
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 
