@@ -51,7 +51,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.setWebChannel(self.channel)
 
         # security setting for billboard, model file and point cloud layer
-        self.settings().setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
         url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
