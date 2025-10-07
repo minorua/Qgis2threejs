@@ -11,11 +11,11 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import Qgis, QgsApplication, QgsProject
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
-from .exportsettings import ExportSettings
-from .procprovider import Qgis2threejsProvider
+from .core.exportsettings import ExportSettings
+from .core.processing.procprovider import Qgis2threejsProvider
+from .gui.q3dwindow import Q3DWindow
+from .gui.q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE, currentWebViewType
 from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
-from .q3dwindow import Q3DWindow
-from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE, currentWebViewType
 
 
 class Qgis2threejs:
@@ -159,7 +159,7 @@ class Qgis2threejs:
             self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
 
         if DEBUG_MODE:
-            from .debug_utils import logReferenceCount
+            from .utils.debug_utils import logReferenceCount
             logReferenceCount(self.liveExporter)
 
         self.liveExporter = None

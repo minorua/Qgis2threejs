@@ -5,6 +5,7 @@
 
 import sys
 import weakref
+
 from .utils import logMessage
 
 

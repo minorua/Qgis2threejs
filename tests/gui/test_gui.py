@@ -11,7 +11,7 @@ from qgis.PyQt.QtTest import QTest
 from qgis.core import QgsApplication, QgsProject, QgsRectangle
 from qgis.testing import unittest
 
-from Qgis2threejs.q3dconst import Script
+from Qgis2threejs.core.q3dconst import Script
 from Qgis2threejs.tests.utilities import dataPath, initOutputDir
 from Qgis2threejs.utils import js_bool, logMessage
 

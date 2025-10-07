@@ -18,6 +18,7 @@ else:
     from PyQt6.QtWebChannel import QWebChannel
 
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from ..utils import pluginDir
 
 
 def setChromiumFlags():
@@ -53,7 +54,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
-        url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "webengine.html").replace("\\", "/")
+        url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
         self.reload()
 

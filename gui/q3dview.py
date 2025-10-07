@@ -5,7 +5,8 @@
 
 from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
-from .utils import logMessage
+
+from ..utils import logMessage
 
 WEBVIEWTYPE_NONE = 0
 WEBVIEWTYPE_WEBKIT = 1

@@ -3,10 +3,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2012-12-16
 
+import threading
+
 from qgis.PyQt.QtCore import QDateTime, QEventLoop, QObject, QTimer, QUrl, qDebug, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 from qgis.core import QgsNetworkAccessManager
-import threading
 
 DEBUG_MODE = 0
 

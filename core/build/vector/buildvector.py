@@ -9,14 +9,14 @@ from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
 
-from .conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
-from .buildlayer import LayerBuilder
-from .datamanager import MaterialManager, ModelManager
-from .geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
-from .q3dconst import LayerType, PropertyID as PID
-from .utils import css_color, hex_color, int_color, logMessage, parseFloat, parseInt
-from .propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from .vectorobject import ObjectType
+from ..buildlayer import LayerBuilder
+from ..datamanager import MaterialManager, ModelManager
+from ...geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
+from ...q3dconst import LayerType, PropertyID as PID
+from ....conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
+from ....gui.propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
+from ....utils import css_color, hex_color, int_color, logMessage, parseFloat, parseInt
 
 
 LayerType2GeomClass = {

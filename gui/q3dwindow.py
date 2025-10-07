@@ -12,21 +12,21 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                              QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
-from .exportsettings import ExportSettings
-from .pluginmanager import pluginManager
-from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .q3dcore import Layer
-from .q3dconst import LayerType, Script
-from .q3dcontroller import Q3DController
-from .q3dinterface import Q3DInterface
 from . import q3dview
-from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from . import utils
-from .utils import createUid, hex_color, logMessage, pluginDir, Correspondent
-from .ui.propertiesdialog import Ui_PropertiesDialog
 from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
+from .ui.propertiesdialog import Ui_PropertiesDialog
+from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
+from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
+from .. import utils
+from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
+from ..core.q3dconst import LayerType, Script
+from ..core.q3dcore import Layer
+from ..core.controller.q3dcontroller import Q3DController
+from ..core.controller.q3dinterface import Q3DInterface
+from ..core.exportsettings import ExportSettings
+from ..core.plugin.pluginmanager import pluginManager
+from ..utils import createUid, hex_color, logMessage, pluginDir, Correspondent
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -151,7 +151,7 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
         if DEBUG_MODE:
-            from .debug_utils import watchGarbageCollection
+            from ..utils.debug_utils import watchGarbageCollection
             watchGarbageCollection(self)
 
     def closeEvent(self, event):
@@ -611,7 +611,7 @@ class Q3DWindow(QMainWindow):
 
     # Dev menu
     def runTest(self):
-        from Qgis2threejs.tests.gui.test_gui import runTest
+        from ..tests.gui.test_gui import runTest
         runTest(self)
 
 

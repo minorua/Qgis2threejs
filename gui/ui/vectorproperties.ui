@@ -630,7 +630,7 @@
   <customwidget>
    <class>PropertyWidget</class>
    <extends>QWidget</extends>
-   <header>Qgis2threejs.propwidget</header>
+   <header>Qgis2threejs.gui.propwidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

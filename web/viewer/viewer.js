@@ -206,13 +206,13 @@ function loadModel(url) {
 
 	var ext = url.split(".").pop();
 	if (ext == "dae") {
-		loadScriptFile("../js/threejs/loaders/ColladaLoader.js", function () {
+		loadScriptFile("../js/lib/threejs/loaders/ColladaLoader.js", function () {
 			var loader = new THREE.ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
 	}
 	else if (ext == "gltf" || ext == "glb") {
-		loadScriptFile("../js/threejs/loaders/GLTFLoader.js", function () {
+		loadScriptFile("../js/lib/threejs/loaders/GLTFLoader.js", function () {
 			var loader = new THREE.GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
@@ -354,7 +354,7 @@ function setPreviewEnabled(enabled) {
 function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
 		if (THREE.OutlineEffect === undefined) {
-			loadScriptFile("../js/threejs/effects/OutlineEffect.js", function () {
+			loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
 				app.effect = new THREE.OutlineEffect(app.renderer);
 			});
 		}
@@ -493,7 +493,7 @@ function startAnimation(groups, repeat) {
 	if (groups) loadKeyframeGroups(groups);
 	Q3D.Config.animation.repeat = Boolean(repeat);
 
-	loadScriptFile("../js/tweenjs/tween.js", function () {
+	loadScriptFile("../js/lib/tweenjs/tween.js", function () {
 		app.animation.keyframes.start();
 	});
 }

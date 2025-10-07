@@ -18,8 +18,8 @@ from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsRectangle, QgsProject
 
 from .downloader import Downloader
-from Qgis2threejs.geometry import GridGeometry
-from Qgis2threejs.utils import logMessage
+from ...core.geometry import GridGeometry
+from ...utils import logMessage
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244

@@ -8,13 +8,13 @@ import struct
 from qgis.PyQt.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
-from .conf import DEBUG_MODE, DEF_SETS
-from .datamanager import MaterialManager
-from .buildlayer import LayerBuilder
-from .geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
-from .mapextent import MapExtent
-from .q3dconst import DEMMtlType
-from .utils import hex_color, logMessage, parseFloat
+from ..datamanager import MaterialManager
+from ..buildlayer import LayerBuilder
+from ...geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
+from ...mapextent import MapExtent
+from ...q3dconst import DEMMtlType
+from ....conf import DEBUG_MODE, DEF_SETS
+from ....utils import hex_color, logMessage, parseFloat
 
 
 class DEMLayerBuilder(LayerBuilder):

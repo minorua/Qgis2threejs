@@ -8,9 +8,9 @@ from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from qgis.PyQt.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from qgis.core import QgsApplication
 
-from .conf import PLUGIN_NAME
 from .proppages import DEMPropertyPage
-from .q3dconst import LayerType
+from ..conf import PLUGIN_NAME
+from ..core.q3dconst import LayerType
 
 
 class Q3DTreeView(QTreeView):

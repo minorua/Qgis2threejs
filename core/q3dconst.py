@@ -43,17 +43,17 @@ class Script:
 
     # Script path (relative from js directory)
     PATH = {
-        PROJ4: "proj4js/proj4.js",
-        GLTFLOADER: "threejs/loaders/GLTFLoader.js",
-        COLLADALOADER: "threejs/loaders/ColladaLoader.js",
-        GLTFEXPORTER: "threejs/exporters/GLTFExporter.js",
-        POTREE: "potree-core/potree.min.js",
+        PROJ4: "lib/proj4js/proj4.js",
+        GLTFLOADER: "lib/threejs/loaders/GLTFLoader.js",
+        COLLADALOADER: "lib/threejs/loaders/ColladaLoader.js",
+        GLTFEXPORTER: "lib/threejs/exporters/GLTFExporter.js",
+        POTREE: "lib/potree-core/potree.min.js",
         PCLAYER: "pointcloudlayer.js",
-        OUTLINE: "threejs/effects/OutlineEffect.js",
-        VIEWHELPER: "threejs/editor/ViewHelper.js",
-        MESHLINE: "meshline/THREE.MeshLine.js",
-        FETCH: "unfetch/unfetch.js",
-        TEST: "../tests/gui/test.js"
+        OUTLINE: "lib/threejs/effects/OutlineEffect.js",
+        VIEWHELPER: "lib/threejs/editor/ViewHelper.js",
+        MESHLINE: "lib/meshline/THREE.MeshLine.js",
+        FETCH: "lib/unfetch/unfetch.js",
+        TEST: "../../tests/gui/test.js"
     }
 
 

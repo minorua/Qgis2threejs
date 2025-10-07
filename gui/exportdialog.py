@@ -10,10 +10,10 @@ from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsApplication, QgsProject
 
-from .conf import PLUGIN_NAME
-from .export import ThreeJSExporter
-from .utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
+from ..conf import PLUGIN_NAME
+from ..core.export.export import ThreeJSExporter
+from ..utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 
 
 class ExportToWebDialog(QDialog):

@@ -12,12 +12,12 @@ from qgis.PyQt.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst
-from .conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from .mapextent import MapExtent
-from .pluginmanager import pluginManager
+from .plugin.pluginmanager import pluginManager
 from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, layerTypeFromMapLayer, urlFromPCLayer
 from .q3dconst import ATConst, LayerType
-from .utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
+from ..conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
+from ..utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
 
 class ExportSettings:

@@ -9,8 +9,8 @@ from qgis.PyQt.QtCore import Qt, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
-from . import utils
-from .utils import logMessage
+from ... import utils
+from ...utils import logMessage
 
 
 class DataManager:
@@ -376,9 +376,9 @@ class ModelManager(DataManager):
         f = []
         if self._list:
             if self.hasColladaModel():
-                f.append({"files": ["js/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
+                f.append({"files": ["web/js/lib/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
             if self.hasGLTFModel():
-                f.append({"files": ["js/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
+                f.append({"files": ["web/js/lib/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
             f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
         return f
 

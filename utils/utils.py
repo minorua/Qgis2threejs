@@ -16,7 +16,7 @@ from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLay
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 
-from .conf import DEBUG_MODE, PLUGIN_NAME
+from ..conf import DEBUG_MODE, PLUGIN_NAME
 
 
 # message logging
@@ -345,14 +345,14 @@ def removeDir(dirName):
 
 
 def pluginDir(*subdirs):
-    p = os.path.dirname(__file__)
+    p = os.path.dirname(os.path.dirname(__file__))
     if subdirs:
         return os.path.join(p, *subdirs)
     return p
 
 
 def templateDir():
-    return pluginDir("html_templates")
+    return pluginDir("web/html_templates")
 
 
 def temporaryOutputDir():

@@ -8,9 +8,8 @@ from qgis.core import (
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
-from .earcut import earcut
-
-from .utils import logMessage
+from ..lib.earcut import earcut
+from ..utils import logMessage
 
 
 class VectorGeometry:

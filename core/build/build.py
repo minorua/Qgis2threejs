@@ -7,11 +7,11 @@ from qgis.core import Qgis, QgsApplication
 
 from .datamanager import ImageManager
 from .buildlayer import dummyProgress, dummyLogMessage
-from .builddem import DEMLayerBuilder
-from .buildvector import VectorLayerBuilder
-from .buildpointcloud import PointCloudLayerBuilder
-from .q3dconst import LayerType
-from .utils import int_color
+from .dem.builddem import DEMLayerBuilder
+from .vector.buildvector import VectorLayerBuilder
+from .pointcloud.buildpointcloud import PointCloudLayerBuilder
+from ..q3dconst import LayerType
+from ...utils import int_color
 
 
 class ThreeJSBuilder:

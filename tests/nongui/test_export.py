@@ -8,8 +8,8 @@ from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.PyQt.QtWebKitWidgets import QWebPage
 from qgis.testing import unittest
 
-from Qgis2threejs.export import ThreeJSExporter, ImageExporter, ModelExporter
-from Qgis2threejs.mapextent import MapExtent
+from Qgis2threejs.core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
+from Qgis2threejs.core.mapextent import MapExtent
 from Qgis2threejs.tests.utilities import dataPath, expectedDataPath, outputPath, loadProject
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)

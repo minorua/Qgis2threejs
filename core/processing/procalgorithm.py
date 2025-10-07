@@ -23,11 +23,11 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterVectorLayer,
                        QgsWkbTypes)
 
-from .conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
-from .export import ThreeJSExporter, ImageExporter, ModelExporter
-from .exportsettings import ExportSettings
-from .utils import logMessage, openDirectory
-from .mapextent import MapExtent
+from ..export.export import ThreeJSExporter, ImageExporter, ModelExporter
+from ..exportsettings import ExportSettings
+from ..mapextent import MapExtent
+from ...conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
+from ...utils import logMessage, openDirectory
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):

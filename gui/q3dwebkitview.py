@@ -12,8 +12,9 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
 from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
-from .conf import DEBUG_MODE
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from ..conf import DEBUG_MODE
+from ..utils import pluginDir
 
 
 class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
@@ -48,7 +49,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         #     self.setPalette(palette)
         #     #webview: self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
 
-        url = os.path.join(os.path.abspath(os.path.dirname(__file__)), "viewer", "webkit.html").replace("\\", "/")
+        url = pluginDir("web/viewer/webkit.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
         self.reload()
 

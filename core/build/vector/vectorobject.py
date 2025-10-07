@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-11
 
-from .q3dconst import LayerType, PropertyID as PID
-from .propwidget import PropertyWidget, WVT
+from ...q3dconst import LayerType, PropertyID as PID
+from ....gui.propwidget import PropertyWidget, WVT
 
 
 class ObjectTypeBase:

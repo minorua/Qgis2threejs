@@ -7,7 +7,7 @@ from functools import wraps
 from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QImage
 
-from .conf import DEBUG_MODE
+from ..conf import DEBUG_MODE
 
 
 def notify_slot_called(func):

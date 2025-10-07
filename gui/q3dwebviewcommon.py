@@ -10,11 +10,10 @@ from qgis.PyQt.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from qgis.core import Qgis, QgsProject
 
-from .conf import DEBUG_MODE
-
-from .utils import hex_color, js_bool, logMessage, pluginDir
-from .q3dconst import Script
 from .q3dwebbridge import Bridge
+from ..conf import DEBUG_MODE
+from ..core.q3dconst import Script
+from ..utils import hex_color, js_bool, logMessage, pluginDir
 
 
 class Q3DWebPageCommon:
@@ -115,7 +114,7 @@ class Q3DWebPageCommon:
         if id in self.loadedScripts and not force:
             return
 
-        filename = pluginDir("js", Script.PATH[id])
+        filename = pluginDir("web/js", Script.PATH[id])
 
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()

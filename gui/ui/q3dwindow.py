@@ -250,6 +250,6 @@ class Ui_Q3DWindow(object):
         self.actionUsage.setToolTip(_translate("Q3DWindow", "Show usage of 3D viewer"))
         self.actionDevTools.setText(_translate("Q3DWindow", "Developer Tools..."))
         self.actionDevTools.setShortcut(_translate("Q3DWindow", "Ctrl+Shift+I"))
-from Qgis2threejs.keyframes import AnimationPanel
-from Qgis2threejs.q3dtreeview import Q3DTreeView
-from Qgis2threejs.q3dview import Q3DView
+from Qgis2threejs.gui.keyframes import AnimationPanel
+from Qgis2threejs.gui.q3dtreeview import Q3DTreeView
+from Qgis2threejs.gui.q3dview import Q3DView

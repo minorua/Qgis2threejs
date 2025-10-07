@@ -8,7 +8,5 @@ tests/output
 *.qgs~
 *.qgs.qto3settings
 *.log
-viewer/debug.html
-viewer/debug.js
 .vscode
 .zip

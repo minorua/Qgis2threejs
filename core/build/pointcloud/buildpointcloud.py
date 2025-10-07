@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2020-05-15
 
-from .conf import DEBUG_MODE
-from .buildlayer import LayerBuilder
-from .utils import int_color
+from ..buildlayer import LayerBuilder
+from ....conf import DEBUG_MODE
+from ....utils import int_color
 
 
 class PointCloudLayerBuilder(LayerBuilder):

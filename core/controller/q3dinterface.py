@@ -5,7 +5,7 @@
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from .utils import logMessage
+from ...utils import logMessage
 
 
 class Q3DInterface(QObject):

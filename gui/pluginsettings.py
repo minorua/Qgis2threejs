@@ -8,8 +8,8 @@ import os
 from qgis.PyQt.QtCore import Qt, QDir, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from .utils import logMessage, pluginDir
 from .ui.settingsdialog import Ui_SettingsDialog
+from ..utils import logMessage, pluginDir
 
 
 class SettingsDialog(QDialog):

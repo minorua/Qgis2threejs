@@ -375,5 +375,5 @@ class Ui_VectorPropertiesWidget(object):
         self.checkBox_Visible.setText(_translate("VectorPropertiesWidget", "Visible on load"))
         self.checkBox_Clickable.setText(_translate("VectorPropertiesWidget", "Clickable"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOthers), _translate("VectorPropertiesWidget", "Others"))
-from Qgis2threejs.propwidget import PropertyWidget
+from Qgis2threejs.gui.propwidget import PropertyWidget
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget

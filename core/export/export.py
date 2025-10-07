@@ -9,18 +9,18 @@ import os
 from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from qgis.PyQt.QtGui import QImage, QPainter
 
-from .conf import DEBUG_MODE, PLUGIN_VERSION
-from .build import ThreeJSBuilder
-from .builddem import DEMLayerBuilder
-from .buildvector import VectorLayerBuilder
-from .buildpointcloud import PointCloudLayerBuilder
-from .exportsettings import ExportSettings
-from .q3dcontroller import Q3DController
-from .q3dconst import LayerType, Script
-from .q3dinterface import Q3DInterface
-from .q3dview import Q3DWebPage
-from .utils import hex_color
-from . import utils
+from ..build.build import ThreeJSBuilder
+from ..build.dem.builddem import DEMLayerBuilder
+from ..build.vector.buildvector import VectorLayerBuilder
+from ..build.pointcloud.buildpointcloud import PointCloudLayerBuilder
+from ..exportsettings import ExportSettings
+from ..controller.q3dcontroller import Q3DController
+from ..q3dconst import LayerType, Script
+from ..controller.q3dinterface import Q3DInterface
+from ...conf import DEBUG_MODE, PLUGIN_VERSION
+from ...gui.q3dview import Q3DWebPage
+from ...utils import hex_color
+from ... import utils
 
 
 class ThreeJSExporter(ThreeJSBuilder):
@@ -167,19 +167,19 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def filesToCopy(self):
         # three.js library
-        files = [{"dirs": ["js/threejs"]}]
+        files = [{"dirs": ["web/js/lib/threejs"]}]
 
         # controls
-        files.append({"files": ["js/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
+        files.append({"files": ["web/js/lib/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
 
         if self.settings.isNavigationEnabled():
-            files.append({"files": ["js/threejs/editor/ViewHelper.js"], "dest": "threejs"})
+            files.append({"files": ["web/js/lib/threejs/editor/ViewHelper.js"], "dest": "threejs"})
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append({"files": ["js/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
+            files.append({"files": ["web/js/lib/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
 
-        # template specific libraries (files)
+        # template specific files
         config = self.settings.templateConfig()
         for f in config.get("files", "").strip().split(","):
             p = f.split(">")
@@ -197,19 +197,19 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # proj4js
         if self.settings.isCoordLatLon():
-            files.append({"dirs": ["js/proj4js"]})
+            files.append({"dirs": ["web/js/lib/proj4js"]})
 
         # layer-specific dependencies
         wl = pc = True
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:  # HACK: lyr.export
             if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
-                    files.append({"dirs": ["js/meshline"]})
+                    files.append({"dirs": ["web/js/lib/meshline"]})
                     wl = False
 
             elif layer.type == LayerType.POINTCLOUD and pc:
-                files.append({"dirs": ["js/potree-core"], "subdirs": True})
-                files.append({"files": ["js/pointcloudlayer.js"]})
+                files.append({"dirs": ["web/js/lib/potree-core"], "subdirs": True})
+                files.append({"files": ["web/js/pointcloudlayer.js"]})
                 pc = False
 
         # model loades and model files
@@ -220,7 +220,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         # animation
         if self.settings.isAnimationEnabled():
-            files.append({"dirs": ["js/tweenjs"]})
+            files.append({"dirs": ["web/js/lib/tweenjs"]})
 
         return files
 

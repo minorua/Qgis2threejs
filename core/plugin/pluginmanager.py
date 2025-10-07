@@ -7,7 +7,7 @@ import importlib
 import sys
 
 from qgis.PyQt.QtCore import QDir, QSettings
-from .utils import logMessage, pluginDir
+from ...utils import logMessage, pluginDir
 
 
 _pluginManager = None

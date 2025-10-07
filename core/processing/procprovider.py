@@ -8,8 +8,8 @@ from qgis.core import QgsProcessingProvider
 
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
-from .conf import PLUGIN_NAME
-from .utils import pluginDir
+from ...conf import PLUGIN_NAME
+from ...utils import pluginDir
 
 QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
 

@@ -11,7 +11,7 @@ from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from .utils import selectColor, getDEMLayersInProject, shortTextFromSelectedLayerIds
+from ..utils import selectColor, getDEMLayersInProject, shortTextFromSelectedLayerIds
 
 
 class WVT:

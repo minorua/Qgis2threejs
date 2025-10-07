@@ -25,17 +25,17 @@ from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
 from .ui.pcproperties import Ui_PCPropertiesWidget
 
-from . import q3dconst
-from .conf import DEF_SETS, PLUGIN_NAME
-from .datamanager import MaterialManager
-from .mapextent import MapExtent
-from .pluginmanager import pluginManager
-from .q3dcore import calculateGridSegments
-from .q3dconst import LayerType, DEMMtlType
-from .utils import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
-                    logMessage, shortTextFromSelectedLayerIds)
 from .propwidget import PropertyWidget
-from .vectorobject import ObjectType
+from ..conf import DEF_SETS, PLUGIN_NAME
+from ..core import q3dconst
+from ..core.build.datamanager import MaterialManager
+from ..core.build.vector.vectorobject import ObjectType
+from ..core.mapextent import MapExtent
+from ..core.plugin.pluginmanager import pluginManager
+from ..core.q3dcore import calculateGridSegments
+from ..core.q3dconst import LayerType, DEMMtlType
+from ..utils import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
+                     logMessage, shortTextFromSelectedLayerIds)
 
 PAGE_NONE = 0
 PAGE_SCENE = 1
