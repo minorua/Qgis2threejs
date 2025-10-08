@@ -159,7 +159,7 @@ class Qgis2threejs:
             self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
 
         if DEBUG_MODE:
-            from .utils.debug_utils import logReferenceCount
+            from .utils.debug import logReferenceCount
             logReferenceCount(self.liveExporter)
 
         self.liveExporter = None

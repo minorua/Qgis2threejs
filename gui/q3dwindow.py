@@ -151,7 +151,7 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
         if DEBUG_MODE:
-            from ..utils.debug_utils import watchGarbageCollection
+            from ..utils.debug import watchGarbageCollection
             watchGarbageCollection(self)
 
     def closeEvent(self, event):
