@@ -12,7 +12,7 @@ from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
-from ..core.q3dconst import DEMMtlType, LayerType, ATConst
+from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
 from ..utils import createUid, js_bool, logMessage, parseInt, pluginDir
 from ..utils.gui import selectImageFile

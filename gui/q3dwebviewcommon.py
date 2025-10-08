@@ -12,7 +12,7 @@ from qgis.core import Qgis, QgsProject
 
 from .q3dwebbridge import Bridge
 from ..conf import DEBUG_MODE
-from ..core.q3dconst import Script
+from ..core.const import Script
 from ..utils import hex_color, js_bool, logMessage, pluginDir
 
 

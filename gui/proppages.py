@@ -27,13 +27,12 @@ from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from .propwidget import PropertyWidget
 from ..conf import DEF_SETS, PLUGIN_NAME
-from ..core import q3dconst
 from ..core.build.datamanager import MaterialManager
 from ..core.build.vector.vectorobject import ObjectType
+from ..core.const import LayerType, DEMMtlType, GEOM_WIDGET_MAX_COUNT, MTL_WIDGET_MAX_COUNT
+from ..core.exportsettings import calculateGridSegments
 from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
-from ..core.exportsettings import calculateGridSegments
-from ..core.q3dconst import LayerType, DEMMtlType
 from ..utils import (createUid, getDEMLayersInProject, getLayersInProject, hex_color,
                      logMessage, shortTextFromSelectedLayerIds)
 from ..utils.gui import selectColor, selectImageFile
@@ -762,7 +761,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         elif mtype == DEMMtlType.FILE:
             image_file = True
 
-        else:       # q3dconst.MTL_COLOR:
+        else:       # const.MTL_COLOR:
             color = True
 
         self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer, self.mtlLayerIds], layers)
@@ -853,7 +852,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # [geometry]
         self.geomWidgets = []
-        for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
+        for i in range(GEOM_WIDGET_MAX_COUNT):
             name = "geomWidget{}".format(i)
 
             w = PropertyWidget(self.groupBox_Geometry)
@@ -868,7 +867,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboEdit_Opacity.setup(PropertyWidget.OPACITY, mapLayer)
 
         self.mtlWidgets = []
-        for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
+        for i in range(MTL_WIDGET_MAX_COUNT):
             name = "mtlWidget{}".format(i)
 
             w = PropertyWidget(self.groupBox_Material)
@@ -981,7 +980,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             for i, opt in enumerate(geomItems):
                 self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
-            for i in range(q3dconst.GEOM_WIDGET_MAX_COUNT):
+            for i in range(GEOM_WIDGET_MAX_COUNT):
                 self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
 
         self.groupBox_Geometry.setVisible(bool(geomItems))
@@ -999,7 +998,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         for i, opt in enumerate(mtlItems):
             self.mtlWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
-        for i in range(q3dconst.MTL_WIDGET_MAX_COUNT):
+        for i in range(MTL_WIDGET_MAX_COUNT):
             self.mtlWidgets[i].setVisible(bool(i < len(mtlItems)))
 
     def altitudeModeChanged(self, index):

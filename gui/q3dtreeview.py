@@ -10,7 +10,7 @@ from qgis.core import QgsApplication
 
 from .proppages import DEMPropertyPage
 from ..conf import PLUGIN_NAME
-from ..core.q3dconst import LayerType
+from ..core.const import LayerType
 
 
 class Q3DTreeView(QTreeView):

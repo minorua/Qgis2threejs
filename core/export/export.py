@@ -13,9 +13,9 @@ from ..build.build import ThreeJSBuilder
 from ..build.dem.builddem import DEMLayerBuilder
 from ..build.vector.buildvector import VectorLayerBuilder
 from ..build.pointcloud.buildpointcloud import PointCloudLayerBuilder
+from ..const import LayerType, Script
 from ..exportsettings import ExportSettings
 from ..controller.q3dcontroller import Q3DController
-from ..q3dconst import LayerType, Script
 from ..controller.q3dinterface import Q3DInterface
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui.q3dview import Q3DWebPage

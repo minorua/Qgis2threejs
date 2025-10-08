@@ -12,8 +12,8 @@ from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsFeatureRequest,
 from .vectorobject import ObjectType
 from ..buildlayer import LayerBuilder
 from ..datamanager import MaterialManager, ModelManager
+from ...const import LayerType, PropertyID as PID
 from ...geometry import VectorGeometry, PointGeometry, LineGeometry, PolygonGeometry, TINGeometry
-from ...q3dconst import LayerType, PropertyID as PID
 from ....conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
 from ....gui.propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
 from ....utils import css_color, hex_color, int_color, logMessage, parseFloat, parseInt

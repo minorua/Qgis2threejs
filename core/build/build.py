@@ -5,12 +5,12 @@
 
 from qgis.core import Qgis, QgsApplication
 
-from .datamanager import ImageManager
+from ..const import LayerType
 from .buildlayer import dummyProgress, dummyLogMessage
+from .datamanager import ImageManager
 from .dem.builddem import DEMLayerBuilder
 from .vector.buildvector import VectorLayerBuilder
 from .pointcloud.buildpointcloud import PointCloudLayerBuilder
-from ..q3dconst import LayerType
 from ...utils import int_color
 
 

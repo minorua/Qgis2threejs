@@ -10,9 +10,9 @@ from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
 from ..datamanager import MaterialManager
 from ..buildlayer import LayerBuilder
+from ...const import DEMMtlType
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
-from ...q3dconst import DEMMtlType
 from ....conf import DEBUG_MODE, DEF_SETS
 from ....utils import hex_color, logMessage, parseFloat
 
@@ -481,7 +481,7 @@ class DEMMaterialBuilder:
             filepath = p.get("lineEdit_ImageFile", "")
             mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True, shading=shading)
 
-        else:  # q3dconst.MTL_COLOR
+        else:  # const.MTL_COLOR
             color = hex_color(p.get("colorButton_Color", 0), prefix="0x")
             if shading:
                 mi = self.materialManager.getMeshMaterialIndex(color, opacity, True)

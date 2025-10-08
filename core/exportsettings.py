@@ -11,12 +11,11 @@ import re
 from qgis.PyQt.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
-from . import q3dconst
+from .const import ATConst, GEOM_WIDGET_MAX_COUNT, LayerType, layerTypeFromMapLayer
 from .demprovider import GDALDEMProvider, FlatDEMProvider
 from .mapextent import MapExtent
 from .mapto3d import MapTo3D
 from .plugin.pluginmanager import pluginManager
-from .q3dconst import ATConst, LayerType, layerTypeFromMapLayer
 from ..conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from ..utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
 
@@ -33,7 +32,7 @@ class Layer:
     def __init__(self, layerId, name, layerType, properties=None, visible=True):
         self.layerId = layerId
         self.name = name
-        self.type = layerType           # q3dconst.LayerType
+        self.type = layerType           # const.LayerType
         self.properties = properties or {}
         self.visible = visible
 
@@ -761,7 +760,7 @@ class ExportSettings:
 
         self.loadSettings(settings)
 
-    def _style2geom(self, properties, offset=0, count=q3dconst.GEOM_WIDGET_MAX_COUNT):
+    def _style2geom(self, properties, offset=0, count=GEOM_WIDGET_MAX_COUNT):
         for i in range(count):
             v = properties.get("styleWidget" + str(i + offset))
             if v:
