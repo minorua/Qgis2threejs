@@ -14,8 +14,8 @@ from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from ..core.q3dconst import DEMMtlType, LayerType, ATConst
 from ..core.q3dcore import Layer
-from ..utils import createUid, selectImageFile, js_bool, logMessage, parseInt, pluginDir
-
+from ..utils import createUid, js_bool, logMessage, parseInt, pluginDir
+from ..utils.gui import selectImageFile
 
 class AnimationPanel(QWidget):
 

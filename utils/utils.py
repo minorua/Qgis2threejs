@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # (C) 2013 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
-# begin: 2013-12-29
 
 import os
 import base64
@@ -11,10 +10,8 @@ import shutil
 
 from qgis.PyQt.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QVBoxLayout
 
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
-from qgis.gui import QgsCompoundColorWidget
 
 from ..conf import DEBUG_MODE, PLUGIN_NAME
 
@@ -362,29 +359,3 @@ def temporaryOutputDir():
 def settingsFilePath():
     proj_path = QgsProject.instance().fileName()
     return proj_path + ".qto3settings" if proj_path else ""
-
-
-def selectColor(parent=None):
-    dlg = QDialog(parent)
-    dlg.setWindowTitle("Select a color")
-    dlg.setLayout(QVBoxLayout())
-
-    widget = QgsCompoundColorWidget()
-    widget.setAllowOpacity(False)
-    dlg.layout().addWidget(widget)
-
-    buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-    buttonBox.accepted.connect(dlg.accept)
-    buttonBox.rejected.connect(dlg.reject)
-    dlg.layout().addWidget(buttonBox)
-
-    if dlg.exec():
-        return widget.color()
-
-
-def selectImageFile(parent=None, directory=None):
-    if directory is None:
-        directory = QDir.homePath()
-    filterString = "Supported image files (*.png *.jpg *.jpeg *.gif *.bmp)"
-    filename, _ = QFileDialog.getOpenFileName(parent, "Select an image file", directory, filterString)
-    return filename

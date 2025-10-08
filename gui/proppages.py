@@ -34,8 +34,9 @@ from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
 from ..core.q3dcore import calculateGridSegments
 from ..core.q3dconst import LayerType, DEMMtlType
-from ..utils import (createUid, selectColor, getDEMLayersInProject, selectImageFile, getLayersInProject, hex_color,
+from ..utils import (createUid, getDEMLayersInProject, getLayersInProject, hex_color,
                      logMessage, shortTextFromSelectedLayerIds)
+from ..utils.gui import selectColor, selectImageFile
 
 PAGE_NONE = 0
 PAGE_SCENE = 1
