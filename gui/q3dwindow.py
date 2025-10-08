@@ -21,10 +21,9 @@ from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGIN
 from .. import utils
 from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
 from ..core.q3dconst import LayerType, Script
-from ..core.q3dcore import Layer
 from ..core.controller.q3dcontroller import Q3DController
 from ..core.controller.q3dinterface import Q3DInterface
-from ..core.exportsettings import ExportSettings
+from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, logMessage, pluginDir, Correspondent
 

@@ -32,7 +32,7 @@ from ..core.build.datamanager import MaterialManager
 from ..core.build.vector.vectorobject import ObjectType
 from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
-from ..core.q3dcore import calculateGridSegments
+from ..core.exportsettings import calculateGridSegments
 from ..core.q3dconst import LayerType, DEMMtlType
 from ..utils import (createUid, getDEMLayersInProject, getLayersInProject, hex_color,
                      logMessage, shortTextFromSelectedLayerIds)

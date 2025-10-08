@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from qgis.PyQt.QtCore import Qt
+from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
 
 
 class LayerType:
@@ -184,3 +185,21 @@ class ATConst:
             return "{} keyframe".format(name[typ - cls.ITEM_MBR])
 
         return "UNDEF"
+
+
+# utility functions
+def layerTypeFromMapLayer(mapLayer):
+    """mapLayer: QgsMapLayer sub-class object"""
+    layerType = mapLayer.type()
+    if layerType == QgsMapLayer.VectorLayer:
+        return {QgsWkbTypes.PointGeometry: LayerType.POINT,
+                QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
+                QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
+
+    elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
+        return LayerType.DEM
+
+    elif Qgis.QGIS_VERSION_INT >= 31800 and layerType == QgsMapLayer.PointCloudLayer:
+        return LayerType.POINTCLOUD
+
+    return None

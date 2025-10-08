@@ -12,12 +12,94 @@ from qgis.PyQt.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from . import q3dconst
+from .demprovider import GDALDEMProvider, FlatDEMProvider
 from .mapextent import MapExtent
+from .mapto3d import MapTo3D
 from .plugin.pluginmanager import pluginManager
-from .q3dcore import MapTo3D, Layer, GDALDEMProvider, FlatDEMProvider, calculateGridSegments, layerTypeFromMapLayer, urlFromPCLayer
-from .q3dconst import ATConst, LayerType
+from .q3dconst import ATConst, LayerType, layerTypeFromMapLayer
 from ..conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from ..utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
+
+
+class BuildOptions:
+
+    def __init__(self):
+        self.onlyMaterial = False
+        self.allMaterials = False
+
+
+class Layer:
+
+    def __init__(self, layerId, name, layerType, properties=None, visible=True):
+        self.layerId = layerId
+        self.name = name
+        self.type = layerType           # q3dconst.LayerType
+        self.properties = properties or {}
+        self.visible = visible
+
+        # internal use
+        self.jsLayerId = None
+        self.mapLayer = None
+        self.opt = BuildOptions()
+
+    def material(self, mtlId):
+        for mtl in self.properties.get("materials", []):
+            if mtl.get("id") == mtlId:
+                return mtl
+        return {}
+
+    def mtlIndex(self, mtlId):
+        for i, mtl in enumerate(self.properties.get("materials", [])):
+            if mtl.get("id") == mtlId:
+                return i
+        return None
+
+    def clone(self):
+        c = Layer(self.layerId, self.name, self.type, deepcopy(self.properties), self.visible)
+        c.jsLayerId = self.jsLayerId
+        c.mapLayer = self.mapLayer
+        return c
+
+    def copyTo(self, t):
+        t.layerId = self.layerId
+        t.name = self.name
+        t.type = self.type
+        t.properties = deepcopy(self.properties)
+        t.visible = self.visible
+
+        t.jsLayerId = self.jsLayerId
+        t.mapLayer = self.mapLayer
+
+    def toDict(self):
+        return {"layerId": self.layerId,
+                "name": self.name,
+                "geomType": self.type,      # TODO: rename geomType to type (low priority)
+                "properties": self.properties,
+                "visible": self.visible}
+
+    @classmethod
+    def fromDict(self, obj):
+        id = obj["layerId"]
+        t = obj["geomType"]
+
+        lyr = Layer(id, obj["name"], t, obj["properties"], obj["visible"])
+        lyr.mapLayer = QgsProject.instance().mapLayer(id)
+
+        return lyr
+
+    @classmethod
+    def fromQgsMapLayer(cls, mapLayer):
+        geomType = layerTypeFromMapLayer(mapLayer)
+        lyr = Layer(mapLayer.id(), mapLayer.name(), geomType, visible=False)
+        lyr.mapLayer = mapLayer
+
+        if geomType == LayerType.POINTCLOUD:
+            lyr.properties["url"] = urlFromPCLayer(mapLayer)
+
+        return lyr
+
+    def __deepcopy__(self, memo):
+        return self.clone()
 
 
 class ExportSettings:
@@ -686,9 +768,40 @@ class ExportSettings:
                 properties["geomWidget" + str(i)] = v
 
 
+def calculateGridSegments(extent, sizeLevel, roughness=0):
+    width, height = extent.width(), extent.height()
+    size = 100 * sizeLevel
+    s = (size * size / (width * height)) ** 0.5
+    width = round(width * s)
+    height = round(height * s)
+
+    if roughness:
+        if width % roughness != 0:
+            width = int(width / roughness + 0.9999) * roughness
+        if height % roughness != 0:
+            height = int(height / roughness + 0.9999) * roughness
+
+    return QSize(width, height)
+
+
 def deepcopyExcept(obj, keys_to_remove):
     if isinstance(obj, dict):
         return {k: deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for k, v in obj.items() if k not in keys_to_remove}
     elif isinstance(obj, list):
         return [deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
     return obj
+
+
+def urlFromPCLayer(mapLayer):
+    src = mapLayer.source()
+    if src.startswith("http"):
+        return ""       # not supported yet
+
+    if mapLayer.providerType() == "ept":
+        f = src
+    else:       # assume provider type is pdal
+        f = os.path.join(os.path.split(src)[0],
+                         "ept_" + os.path.splitext(os.path.basename(src))[0],
+                         "ept.json")
+
+    return QUrl.fromLocalFile(f).toString()

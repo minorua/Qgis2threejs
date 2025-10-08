@@ -8,8 +8,7 @@ from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
 from ..build.build import ThreeJSBuilder
-from ..exportsettings import ExportSettings
-from ..q3dcore import Layer
+from ..exportsettings import ExportSettings, Layer
 from ..q3dconst import LayerType, Script
 from ...conf import DEBUG_MODE
 from ...utils import hex_color, js_bool, logMessage
