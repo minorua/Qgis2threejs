@@ -11,7 +11,7 @@ from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.build import ThreeJSBuilder
 from ..build.dem.builddem import DEMLayerBuilder
-from ..build.vector.buildvector import VectorLayerBuilder
+from ..build.vector.builder import VectorLayerBuilder
 from ..build.pointcloud.buildpointcloud import PointCloudLayerBuilder
 from ..const import LayerType, Script
 from ..exportsettings import ExportSettings

@@ -28,7 +28,7 @@ from .ui.pcproperties import Ui_PCPropertiesWidget
 from .propwidget import PropertyWidget
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.build.datamanager import MaterialManager
-from ..core.build.vector.vectorobject import ObjectType
+from ..core.build.vector.object import ObjectType
 from ..core.const import LayerType, DEMMtlType, GEOM_WIDGET_MAX_COUNT, MTL_WIDGET_MAX_COUNT
 from ..core.exportsettings import calculateGridSegments
 from ..core.mapextent import MapExtent

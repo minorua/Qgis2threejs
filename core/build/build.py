@@ -9,7 +9,7 @@ from ..const import LayerType
 from .buildlayer import dummyProgress, dummyLogMessage
 from .datamanager import ImageManager
 from .dem.builddem import DEMLayerBuilder
-from .vector.buildvector import VectorLayerBuilder
+from .vector.builder import VectorLayerBuilder
 from .pointcloud.buildpointcloud import PointCloudLayerBuilder
 from ...utils import int_color
 
