@@ -16,7 +16,9 @@ from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 from ..conf import DEBUG_MODE, PLUGIN_NAME
 
 
-# message logging
+### Message logging ###
+
+# A object to send a signal to the JavaScript console in the web view when the web view is active
 correspondent = None
 
 
@@ -26,6 +28,13 @@ class Correspondent(QObject):
 
 
 def logMessage(message, warning=False, error=False):
+    """Log a message to the QGIS log message panel and also forward it to the web view if active.
+
+    Args:
+        message: The message to log.
+        warning: If True, log at warning level.
+        error: If True, log at error level.
+    """
     if correspondent:
         if warning:
             level = "warn"
@@ -40,11 +49,21 @@ def logMessage(message, warning=False, error=False):
 
 
 def qDebug(message):
+    """Send a message to Qt's debug output.
+
+    Args:
+        message: The message to send.
+    """
     qDebugA(message.encode("utf-8"))
 
 
-#
+### QGIS layer related functions ###
 def getLayersInProject():
+    """Return a list of layers available in the current QGIS project.
+
+    Returns:
+        list: A list of QgsMapLayer objects.
+    """
     layers = []
     for tl in QgsProject.instance().layerTreeRoot().findLayers():
         if tl.layer():
@@ -53,6 +72,11 @@ def getLayersInProject():
 
 
 def getDEMLayersInProject():
+    """Return single-band GDAL raster layers (e.g. DEMs) from the project.
+
+    Returns:
+        list: Raster layers that match the criteria.
+    """
     layers = []
     for layer in getLayersInProject():
         if layer.type() == QgsMapLayer.RasterLayer:
@@ -62,6 +86,14 @@ def getDEMLayersInProject():
 
 
 def getLayersByLayerIds(layerIds):
+    """Return QgsMapLayer objects for the given layer IDs.
+
+    Args:
+        layerIds: A list of layer IDs.
+
+    Returns:
+        list: QgsMapLayer objects.
+    """
     layers = []
     for id in layerIds:
         layer = QgsProject.instance().mapLayer(id)
@@ -70,6 +102,37 @@ def getLayersByLayerIds(layerIds):
     return layers
 
 
+def shortTextFromSelectedLayerIds(layerIds):
+    """Create a short textual description from selected layer IDs.
+
+    Examples: "1 layer selected", "2 layers selected".
+
+    Args:
+        layerIds: List of layer IDs.
+
+    Returns:
+        str: Short English description.
+    """
+    count = len(layerIds)
+    return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
+
+    #
+    if count == 0:
+        return "0 layer"
+
+    layer = QgsProject.instance().mapLayer(layerIds[0])
+    if layer is None:
+        return "Layer not found"
+
+    text = '"{0}"'.format(layer.name())
+    if count > 1:
+        text += " and {0} layer".format(count - 1)
+    if count > 2:
+        text += "s"
+    return text
+
+
+### JavaScript utility functions ###
 def js_bool(o):
     return "true" if o else "false"
 
@@ -105,6 +168,16 @@ def int_color(c):
 
 
 def pyobj2js(obj, escape=False, quoteHex=True):
+    """Convert a Python object to a JavaScript literal representation.
+
+    Args:
+        obj: dict/list/str/bool/number/bytes/qgis.core.NULL etc.
+        escape: Whether to escape strings and wrap them in double quotes.
+        quoteHex: Whether to quote strings in '0x...' hex format.
+
+    Returns:
+        str or number: a JS literal representation.
+    """
     if isinstance(obj, dict):
         items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
         return "{" + ",".join(items) + "}"
@@ -129,6 +202,14 @@ def pyobj2js(obj, escape=False, quoteHex=True):
 
 
 def abchex(number):
+    """Converts the number to hex and maps 0-9 to a-j and a-f to k-p.
+
+    Args:
+        number: Integer value.
+
+    Returns:
+        str: Converted string.
+    """
     h = ""
     for c in "{:x}".format(number):
         i = ord(c)
@@ -139,7 +220,6 @@ def abchex(number):
     return h
 
 
-# parse a string to a integer number. if failed, return def_val.
 def parseInt(string, def_val=None):
     try:
         return int(string)
@@ -147,54 +227,11 @@ def parseInt(string, def_val=None):
         return def_val
 
 
-# parse a string to a floating point number. if failed, return def_val.
 def parseFloat(string, def_val=None):
     try:
         return float(string)
     except (TypeError, ValueError):
         return def_val
-
-
-def createUid():
-    return QUuid.createUuid().toString()[1:9]
-
-
-def shortTextFromSelectedLayerIds(layerIds):
-    count = len(layerIds)
-    return "{0} layer{1} selected".format(count, "s" if count > 1 else "")
-
-    #
-    if count == 0:
-        return "0 layer"
-
-    layer = QgsProject.instance().mapLayer(layerIds[0])
-    if layer is None:
-        return "Layer not found"
-
-    text = '"{0}"'.format(layer.name())
-    if count > 1:
-        text += " and {0} layer".format(count - 1)
-    if count > 2:
-        text += "s"
-    return text
-
-
-def openUrl(url):
-    """url: QUrl object"""
-    if url.fileName().endswith((".html", ".htm")):
-        settings = QSettings()
-        browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
-        if browserPath:
-            if QProcess.startDetached(browserPath, [url.toString()]):
-                return
-            else:
-                logMessage("Incorrect web browser path. Open URL using default web browser.", warning=True)
-
-    QDesktopServices.openUrl(url)
-
-
-def openDirectory(dir_path):
-    QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
 
 
 def image2dataUri(image, fmt="PNG"):
@@ -220,6 +257,7 @@ def imageFile2dataUri(file_path):
 
 
 def jpegCompressedImage(image):
+    """Recreate a QImage compressed as JPEG."""
     ba = QByteArray()
     buffer = QBuffer(ba)
     buffer.open(QIODevice.OpenModeFlag.WriteOnly)
@@ -228,20 +266,43 @@ def jpegCompressedImage(image):
     return QImage.fromData(ba, "JPEG")
 
 
-def getTemplateConfig(template_path):
-    abspath = os.path.join(templateDir(), template_path)
-    meta_path = os.path.splitext(abspath)[0] + ".txt"
+### File and directory related functions ###
+def pluginDir(*subdirs):
+    p = os.path.dirname(os.path.dirname(__file__))
+    if subdirs:
+        return os.path.join(p, *subdirs)
+    return p
 
-    if not os.path.exists(meta_path):
-        return {}
-    parser = configparser.ConfigParser()
-    parser.read(meta_path)
-    config = {"path": abspath}
-    for item in parser.items("general"):
-        config[item[0]] = item[1]
-    if DEBUG_MODE:
-        qDebug("config: " + str(config))
-    return config
+
+def templateDir():
+    return pluginDir("web/html_templates")
+
+
+def temporaryOutputDir():
+    return QDir.tempPath() + "/Qgis2threejs"
+
+
+def openDirectory(dir_path):
+    """Open a directory in the OS default file manager."""
+    QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
+
+
+def openUrl(url):
+    """Open a URL using a configured browser if set, otherwise the default browser.
+
+    Args:
+        url: QUrl object.
+    """
+    if url.fileName().endswith((".html", ".htm")):
+        settings = QSettings()
+        browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
+        if browserPath:
+            if QProcess.startDetached(browserPath, [url.toString()]):
+                return
+            else:
+                logMessage("Incorrect web browser path. Open URL using default web browser.", warning=True)
+
+    QDesktopServices.openUrl(url)
 
 
 def copyFile(source, dest, overwrite=False):
@@ -321,15 +382,6 @@ def copyFiles(filesToCopy, out_dir):
                     copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
 
-def removeTemporaryFiles(filelist):
-    for file in filelist:
-        QFile.remove(file)
-
-
-def removeTemporaryOutputDir():
-    removeDir(temporaryOutputDir())
-
-
 def removeDir(dirName):
     d = QDir(dirName)
     if d.exists():
@@ -341,21 +393,49 @@ def removeDir(dirName):
         d.rmdir(dirName)
 
 
-def pluginDir(*subdirs):
-    p = os.path.dirname(os.path.dirname(__file__))
-    if subdirs:
-        return os.path.join(p, *subdirs)
-    return p
+def removeTemporaryFiles(filelist):
+    """Remove a list of temporary files."""
+    for file in filelist:
+        QFile.remove(file)
 
 
-def templateDir():
-    return pluginDir("web/html_templates")
+def removeTemporaryOutputDir():
+    removeDir(temporaryOutputDir())
 
 
-def temporaryOutputDir():
-    return QDir.tempPath() + "/Qgis2threejs"
+def getTemplateConfig(template_path):
+    """Read a template's .txt metadata file and return it as a dict.
+
+    Args:
+        template_path: Relative path to the template file.
+
+    Returns:
+        dict: Meta information (includes 'path' key with absolute template path).
+    """
+    abspath = os.path.join(templateDir(), template_path)
+    meta_path = os.path.splitext(abspath)[0] + ".txt"
+
+    if not os.path.exists(meta_path):
+        return {}
+    parser = configparser.ConfigParser()
+    parser.read(meta_path)
+    config = {"path": abspath}
+    for item in parser.items("general"):
+        config[item[0]] = item[1]
+    if DEBUG_MODE:
+        qDebug("config: " + str(config))
+    return config
 
 
 def settingsFilePath():
+    """Return the export settings file path associated with the current project.
+
+    Returns empty string if the project has not been saved yet.
+    """
     proj_path = QgsProject.instance().fileName()
     return proj_path + ".qto3settings" if proj_path else ""
+
+
+def createUid():
+    """Generate a short unique id."""
+    return QUuid.createUuid().toString()[1:9]
