@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import QByteArray, QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsProject
 
 from ..datamanager import MaterialManager
-from ..buildlayer import LayerBuilder
+from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry, dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
@@ -17,10 +17,10 @@ from ....conf import DEBUG_MODE, DEF_SETS
 from ....utils import hex_color, logMessage, parseFloat
 
 
-class DEMLayerBuilder(LayerBuilder):
+class DEMLayerBuilder(LayerBuilderBase):
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
-        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
@@ -62,7 +62,7 @@ class DEMLayerBuilder(LayerBuilder):
         return d
 
     def layerProperties(self):
-        p = LayerBuilder.layerProperties(self)
+        p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
         p["clipped"] = self.properties.get("checkBox_Clip", False)
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
@@ -531,7 +531,3 @@ class DEMPropertyReader:
             w = DEF_SETS.TEXTURE_SIZE
 
         return QSize(w, round(w * extent.height() / extent.width()))
-
-
-def dummyProgress(percentage=None, msg=None):
-    pass

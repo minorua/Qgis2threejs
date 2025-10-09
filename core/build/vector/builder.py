@@ -9,7 +9,7 @@ from qgis.core import QgsCoordinateTransform, QgsFeatureRequest
 
 from .layer import VectorLayer
 from .object import ObjectType
-from ..buildlayer import LayerBuilder
+from ..layerbuilderbase import LayerBuilderBase
 from ..datamanager import MaterialManager, ModelManager
 from ...const import LayerType, PropertyID as PID
 from ...geometry import VectorGeometry
@@ -103,7 +103,7 @@ class FeatureBlockBuilder:
             return data
 
 
-class VectorLayerBuilder(LayerBuilder):
+class VectorLayerBuilder(LayerBuilderBase):
 
     type2str = {
         LayerType.POINT: "point",
@@ -112,7 +112,7 @@ class VectorLayerBuilder(LayerBuilder):
     }
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
-        LayerBuilder.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -205,7 +205,7 @@ class VectorLayerBuilder(LayerBuilder):
         return d
 
     def layerProperties(self):
-        p = LayerBuilder.layerProperties(self)
+        p = LayerBuilderBase.layerProperties(self)
         p["type"] = self.type2str.get(self.layer.type)
         p["objType"] = self.vlayer.ot.name
 

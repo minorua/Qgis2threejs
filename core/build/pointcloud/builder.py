@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2020-05-15
 
-from ..buildlayer import LayerBuilder
+from ..layerbuilderbase import LayerBuilderBase
 from ....conf import DEBUG_MODE
 from ....utils import int_color
 
 
-class PointCloudLayerBuilder(LayerBuilder):
+class PointCloudLayerBuilder(LayerBuilderBase):
 
     def __init__(self, settings, layer, progress=None, log=None):
-        LayerBuilder.__init__(self, settings, layer, progress=progress, log=log)
+        LayerBuilderBase.__init__(self, settings, layer, progress=progress, log=log)
 
     def build(self, build_blocks=False, cancelSignal=None):
         d = {
@@ -36,7 +36,7 @@ with valid one that points to the {0} file on the web server.""".format(filename
         return d
 
     def layerProperties(self):
-        p = LayerBuilder.layerProperties(self)
+        p = LayerBuilderBase.layerProperties(self)
         p["type"] = "pc"
         p["url"] = self.properties.get("url")
         p["opacity"] = self.properties.get("spinBox_Opacity", 100) / 100

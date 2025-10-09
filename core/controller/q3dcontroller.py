@@ -7,7 +7,7 @@ import time
 from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
-from ..build.build import ThreeJSBuilder
+from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, Script
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE

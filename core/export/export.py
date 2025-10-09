@@ -9,10 +9,10 @@ import os
 from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from qgis.PyQt.QtGui import QImage, QPainter
 
-from ..build.build import ThreeJSBuilder
-from ..build.dem.builddem import DEMLayerBuilder
+from ..build.builder import ThreeJSBuilder
+from ..build.dem.builder import DEMLayerBuilder
 from ..build.vector.builder import VectorLayerBuilder
-from ..build.pointcloud.buildpointcloud import PointCloudLayerBuilder
+from ..build.pointcloud.builder import PointCloudLayerBuilder
 from ..const import LayerType, Script
 from ..exportsettings import ExportSettings
 from ..controller.q3dcontroller import Q3DController

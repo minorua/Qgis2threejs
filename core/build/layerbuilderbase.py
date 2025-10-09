@@ -6,7 +6,7 @@
 from qgis.core import QgsApplication
 
 
-class LayerBuilder:
+class LayerBuilderBase:
 
     def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None):
         self.settings = settings

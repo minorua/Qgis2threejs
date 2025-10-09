@@ -6,11 +6,10 @@
 from qgis.core import Qgis, QgsApplication
 
 from ..const import LayerType
-from .buildlayer import dummyProgress, dummyLogMessage
 from .datamanager import ImageManager
-from .dem.builddem import DEMLayerBuilder
+from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
-from .pointcloud.buildpointcloud import PointCloudLayerBuilder
+from .pointcloud.builder import PointCloudLayerBuilder
 from ...utils import int_color
 
 
@@ -126,3 +125,11 @@ class ThreeJSBuilder:
 
     def cancel(self):
         self._canceled = True
+
+
+def dummyProgress(percentage=None, msg=None):
+    pass
+
+
+def dummyLogMessage(msg, warning=False):
+    pass
