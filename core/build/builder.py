@@ -13,6 +13,15 @@ from .pointcloud.builder import PointCloudLayerBuilder
 from ...utils import int_color
 
 
+LayerBuilderFactory = {
+    LayerType.DEM: DEMLayerBuilder,
+    LayerType.POINT: VectorLayerBuilder,
+    LayerType.LINESTRING: VectorLayerBuilder,
+    LayerType.POLYGON: VectorLayerBuilder,
+    LayerType.POINTCLOUD: PointCloudLayerBuilder
+}
+
+
 class ThreeJSBuilder:
 
     def __init__(self, settings, progress=None, log=None):
@@ -93,21 +102,11 @@ class ThreeJSBuilder:
         return layers
 
     def buildLayer(self, layer, cancelSignal=None):
-        if layer.type == LayerType.DEM:
-            builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
-        elif layer.type == LayerType.POINTCLOUD:
-            builder = PointCloudLayerBuilder(self.settings, layer)
-        else:
-            builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
+        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager)
         return builder.build(cancelSignal=cancelSignal)
 
     def layerBuilders(self, layer):
-        if layer.type == LayerType.DEM:
-            builder = DEMLayerBuilder(self.settings, layer, self.imageManager)
-        elif layer.type == LayerType.POINTCLOUD:
-            builder = PointCloudLayerBuilder(self.settings, layer)
-        else:
-            builder = VectorLayerBuilder(self.settings, layer, self.imageManager)
+        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager)
         yield builder
 
         for builder in builder.subBuilders():

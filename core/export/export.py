@@ -9,7 +9,7 @@ import os
 from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize
 from qgis.PyQt.QtGui import QImage, QPainter
 
-from ..build.builder import ThreeJSBuilder
+from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
 from ..build.dem.builder import DEMLayerBuilder
 from ..build.vector.builder import VectorLayerBuilder
 from ..build.pointcloud.builder import PointCloudLayerBuilder
@@ -156,12 +156,9 @@ class ThreeJSExporter(ThreeJSBuilder):
         layer = layer.clone()
         layer.opt.allMaterials = True
 
-        if layer.type == LayerType.DEM:
-            builder = DEMLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
-        elif layer.type == LayerType.POINTCLOUD:
-            builder = PointCloudLayerBuilder(self.settings, layer, log=self.log)
-        else:
-            builder = VectorLayerBuilder(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
+        builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
+        builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
+        if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
         return builder.build(True, cancelSignal)
 
