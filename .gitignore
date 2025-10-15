@@ -8,6 +8,7 @@
 *.zip
 .vscode
 .env
+pyrightconfig.json
 docs/build
 tests/cache
 tests/output
