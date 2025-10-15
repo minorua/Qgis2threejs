@@ -12,6 +12,12 @@ from ..utils import logMessage, pluginDir
 
 
 class Q3DDummyView(QGraphicsView):
+    """Fallback QGraphicsView used when no web engine or webkit is available.
+
+    Presents a static image and provides no interactive 3D preview
+    functionality. Used to gracefully degrade the UI on systems lacking
+    supported web views.
+    """
 
     def __init__(self, parent=None):
         QGraphicsView.__init__(self, parent)
@@ -50,6 +56,12 @@ class Q3DDummyView(QGraphicsView):
 
 
 class Q3DDummyPage(QObject):
+    """Stub object exposing the same API as real web pages but with no-op
+    implementations.
+
+    Used by the rest of the plugin to avoid conditional checks when the
+    real web page is not available.
+    """
 
     def __bool__(self):
         return False

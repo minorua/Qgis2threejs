@@ -8,6 +8,13 @@ from qgis.core import QgsPointXY, QgsRectangle, QgsGeometry
 
 
 class MapExtent:
+    """Represents a geographic extent (bounding box) used for export and
+    3D scene generation.
+
+    Attributes:
+        minx, miny, maxx, maxy: Numeric bounds of the extent in map
+            coordinates.
+    """
 
     def __init__(self, center, width, height, rotation=0):
         """

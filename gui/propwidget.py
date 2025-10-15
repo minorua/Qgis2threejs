@@ -21,7 +21,20 @@ class WVT:
     OTHERS = 3
 
 
+"""Widget value type constants used by property widgets.
+
+These constants are passed to widget functions to indicate the expected
+type of numeric input (size, angle, etc.).
+"""
+
+
 class WidgetFuncBase:
+    """Base class for functions that control the behavior of property widgets.
+
+    Subclasses provide specific implementations for color selection,
+    file paths, expressions and other widget types. WidgetFunc classes
+    are instantiated by PropertyWidget based on the selected function type.
+    """
 
     def __init__(self, widget, mapLayer):
         self.widget = widget
@@ -451,6 +464,14 @@ class ComboBoxWidgetFunc(WidgetFuncBase):
 
 
 class PropertyWidget(QWidget, Ui_ComboEditWidget):
+    """Composite widget that encapsulates a combo box and edit control for
+    specifying property values.
+
+    This widget acts as a factory for specific WidgetFunc objects based on
+    the selected function type (expression, color, file path, etc.). It
+    centralizes value serialization and UI wiring used across property
+    pages.
+    """
     # function types
     EXPRESSION = 1
     COLOR = 2

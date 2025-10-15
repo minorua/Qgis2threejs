@@ -13,6 +13,11 @@ from ..utils import logMessage
 
 
 class VectorGeometry:
+    """Base class for vector geometries used by the exporter.
+
+    Provides a common interface and utility helpers for point, line and
+    polygon geometries extracted from QGIS vector layers.
+    """
 
     NotUseZM = 0
     UseZ = 1
@@ -54,6 +59,10 @@ class VectorGeometry:
 
 
 class PointGeometry(VectorGeometry):
+    """Represents a point geometry.
+
+    Encapsulates coordinates and attribute access for point features.
+    """
 
     def __init__(self):
         self.pts = []
@@ -125,6 +134,11 @@ class PointGeometry(VectorGeometry):
 
 
 class LineGeometry(VectorGeometry):
+    """Represents a line (multi-segment) geometry.
+
+    Provides methods for vertex iteration and length calculations used
+    when building 3D representations.
+    """
 
     def __init__(self):
         self.lines = []
@@ -208,6 +222,11 @@ class LineGeometry(VectorGeometry):
 
 
 class PolygonGeometry(VectorGeometry):
+    """Represents a polygonal geometry (may include holes).
+
+    Supplies polygon-specific helpers such as area, triangulation input
+    preparation and ring iteration.
+    """
 
     """Used with Extruded and Overlay (absolute)"""
 
@@ -321,6 +340,12 @@ class PolygonGeometry(VectorGeometry):
 
 
 class TINGeometry(PolygonGeometry):
+    """TIN (triangulated irregular network) geometry used for terrain
+    patches.
+
+    Extends polygon handling with structures optimized for triangle-based
+    surface processing.
+    """
 
     """Used with Polygon and Overlay (relative to DEM)"""
 
@@ -450,6 +475,11 @@ class TINGeometry(PolygonGeometry):
 
 
 class FunctionCacheXY:
+    """Simple cache for mapping (x, y) coordinate pairs to computed values.
+
+    Used to avoid repeated expensive computations when processing grids or
+    sampled surfaces.
+    """
 
     def __init__(self, func):
         self._func = func
@@ -469,6 +499,11 @@ class FunctionCacheXY:
 
 
 class GeometryUtils:
+    """Collection of static utility methods for geometry calculations.
+
+    Includes helpers for triangulation, coordinate transforms and other
+    numeric operations used across exporters and builders.
+    """
 
     @staticmethod
     def _signedArea(p):
@@ -496,6 +531,10 @@ class GeometryUtils:
 
 
 class GridGeometry:
+    """Represents a regular grid of sampled elevation or attribute values.
+
+    Used by DEM builders to convert raster data into mesh grids for export.
+    """
 
     """
     Triangular grid geometry
@@ -695,6 +734,10 @@ class GridGeometry:
 
 
 class IndexedTriangles2D:
+    """Stores 2D triangle indices and associated vertex coordinates.
+
+    Useful for planar triangulation results and 2D mesh operations.
+    """
 
     EMPDICT = {}
 
@@ -723,6 +766,10 @@ class IndexedTriangles2D:
 
 
 class IndexedTriangles3D:
+    """Stores 3D triangle indices and associated 3D vertex coordinates.
+
+    Used by builders that output 3D meshes for export or preview.
+    """
 
     EMPDICT = {}
 

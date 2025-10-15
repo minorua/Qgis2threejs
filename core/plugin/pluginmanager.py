@@ -22,6 +22,11 @@ def pluginManager(allPlugins=False):
 
 
 class PluginManager:
+    """Manages discovery, loading and lifecycle of bundled plugin extensions.
+
+    Responsible for enumerating available sub-plugins, exposing their
+    configuration and initializing them when requested.
+    """
 
     def __init__(self, allPlugins=False):
         self.allPlugins = allPlugins

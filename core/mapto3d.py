@@ -4,6 +4,11 @@
 
 
 class MapTo3D:
+    """Converts 2D map data into 3D scene representations.
+
+    Responsible for coordinating layer builders, map extent handling, and
+    overall scene setup prior to handing data to the ThreeJS builder.
+    """
 
     def __init__(self, mapExtent, origin, zScale=1):
         # map

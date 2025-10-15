@@ -15,6 +15,11 @@ from ....utils import hex_color, logMessage, parseFloat
 
 
 class VectorLayer:
+    """Adapter that prepares features from a QGIS vector layer for export.
+
+    Handles coordinate transforms, property evaluation, symbol rendering
+    and produces Feature objects consumed by layer builders.
+    """
 
     def __init__(self, settings, layer, materialManager, modelManager):
         """layer: Layer object"""

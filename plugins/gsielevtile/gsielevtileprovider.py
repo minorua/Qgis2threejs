@@ -29,6 +29,11 @@ ZMAX = 14
 
 
 class GSIElevTileProvider:
+    """DEM tile provider that downloads elevation tiles from GSI's XYZ service.
+
+    Converts requested extents into tile ranges, downloads elevation tiles
+    and composes them into in-memory GDAL datasets for sampling.
+    """
 
     def __init__(self, dest_wkt):
         self.dest_wkt = dest_wkt

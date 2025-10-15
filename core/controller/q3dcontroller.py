@@ -15,6 +15,11 @@ from ...utils import hex_color, js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
+    """Abstract interface defining signals and slots expected by Q3D views.
+
+    Implementations bridge between the GUI and underlying 3D rendering
+    or web-based views.
+    """
 
     # signals - controller iface to viewer iface
     dataSent = pyqtSignal(dict)                  # data
@@ -108,6 +113,12 @@ class Q3DControllerInterface(QObject):
 
 
 class Q3DController(QObject):
+    """Concrete controller handling communication between the plugin and
+    the 3D view.
+
+    Manages commands, user interactions and coordinates export or preview
+    requests.
+    """
 
     # requests
     BUILD_SCENE_ALL = 1   # build scene
@@ -495,6 +506,11 @@ class Q3DController(QObject):
 
 
 class Mock:
+    """Lightweight mock controller class used in tests.
+
+    Provides no-op implementations of the controller interface for unit
+    testing without a full QGIS UI or 3D view.
+    """
 
     def __init__(self, *args, **kwargs):
         pass

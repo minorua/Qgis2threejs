@@ -8,6 +8,11 @@ from ....gui.propwidget import PropertyWidget, WVT
 
 
 class ObjectTypeBase:
+    """Base class for object types used to generate geometry for features.
+
+    Subclasses implement material and geometry creation for different
+    visual representations (point, line, polygon, models, etc.).
+    """
 
     experimental = False
 
@@ -406,6 +411,11 @@ class ModelFileType(PointTypeBase):
 
 
 class ObjectType:
+    """Registry container for available object type classes.
+
+    Provides convenient references for available point/line/polygon
+    object types and lookup helpers used by builders.
+    """
 
     # point
     Sphere = SphereType

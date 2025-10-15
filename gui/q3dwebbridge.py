@@ -22,6 +22,12 @@ def notify_slot_called(func):
 
 
 class Bridge(QObject):
+    """Bidirectional bridge between Python and the JavaScript runtime in
+    the web view.
+
+    Exposes slots that JavaScript can call and emits signals to send data
+    or events back to the Python side (e.g., sceneLoaded, imageReady).
+    """
 
     # signals - Python to JS
     sendScriptData = pyqtSignal(str, QVariant)

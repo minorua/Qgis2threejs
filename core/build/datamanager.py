@@ -14,6 +14,10 @@ from ...utils import logMessage
 
 
 class DataManager:
+    """Base class for managing external data assets used by the builder.
+
+    Provides generic caching and lookup for images, models and materials.
+    """
     """ manages a list of unique items """
 
     def __init__(self):
@@ -32,6 +36,10 @@ class DataManager:
 
 
 class ImageManager(DataManager):
+    """Manager specialized for image assets.
+
+    Handles image caching, unique naming and export of image files.
+    """
 
     IMG_MAP = 1
     IMG_LAYER = 2
@@ -156,6 +164,11 @@ class ImageManager(DataManager):
 
 
 class MaterialManager(DataManager):
+    """Manager responsible for material definitions and reuse.
+
+    Tracks material instances and ensures consistent material output
+    across exported objects.
+    """
 
     # following six material types are defined also in JS
     # first three types are basic material types

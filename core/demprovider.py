@@ -12,6 +12,11 @@ from ..utils import logMessage
 
 
 class GDALDEMProvider:
+    """DEM provider that reads raster elevation data via GDAL.
+
+    Implements methods to query elevation samples for given geographic
+    coordinates and to prepare raster data for grid-based builders.
+    """
 
     def __init__(self, filename, dest_wkt, source_wkt=None):
         self.filename = filename
@@ -78,6 +83,10 @@ class GDALDEMProvider:
 
 
 class FlatDEMProvider:
+    """Simple DEM provider that returns a constant elevation (flat surface).
+
+    Useful for testing or when no elevation source is available.
+    """
 
     def __init__(self, value=0):
         self.value = value

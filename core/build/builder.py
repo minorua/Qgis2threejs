@@ -23,6 +23,11 @@ LayerBuilderFactory = {
 
 
 class ThreeJSBuilder:
+    """Responsible for constructing Three.js compatible scene data.
+
+    Accepts prepared geometry and materials from layer builders and
+    serializes them into the structures required by the exporter.
+    """
 
     def __init__(self, settings, progress=None, log=None):
         self.settings = settings

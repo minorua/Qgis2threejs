@@ -21,6 +21,11 @@ from ..utils import createUid, getLayersInProject, getTemplateConfig, logMessage
 
 
 class BuildOptions:
+    """Holds general build/export options selected by the user.
+
+    This includes options for resolution, output paths, simplification and
+    other parameters affecting the generated scene.
+    """
 
     def __init__(self):
         self.onlyMaterial = False
@@ -28,6 +33,11 @@ class BuildOptions:
 
 
 class Layer:
+    """Represents a layer's export configuration within BuildOptions.
+
+    Encapsulates layer-specific settings such as visibility, styling and
+    attribute mappings used during export.
+    """
 
     def __init__(self, layerId, name, layerType, properties=None, visible=True):
         self.layerId = layerId
@@ -102,6 +112,11 @@ class Layer:
 
 
 class ExportSettings:
+    """Top-level container for export configuration.
+
+    Aggregates BuildOptions and per-layer configurations. Provided to the
+    exporter to control the output generation.
+    """
 
     SCENE = "SCENE"
     CAMERA = "CAMERA"

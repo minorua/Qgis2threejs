@@ -19,6 +19,12 @@ from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFile
 
 
 class Qgis2threejs:
+    """Main plugin entry point class.
+
+    Provides plugin initialization and integration hooks with QGIS.
+    Responsible for setting up menus, actions, and top-level plugin
+    configuration.
+    """
 
     def __init__(self, iface):
         self.iface = iface

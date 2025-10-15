@@ -7,6 +7,11 @@ from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
 
 
 class LayerType:
+    """Enumerates supported layer geometry types used by the exporter.
+
+    Provides integer constants used throughout the codebase to identify
+    point, line and polygon layer handling.
+    """
     DEM = 0
     POINT = 1
     LINESTRING = 2
@@ -15,6 +20,8 @@ class LayerType:
 
 
 class DEMMtlType:
+    """Constants describing DEM material texture types used in DEM export.
+    """
     MAPCANVAS = 0
     LAYER = 1
     FILE = 2
@@ -28,6 +35,7 @@ class DEMMtlType:
 
 
 class Script:
+    """Holds script-related constants used when building HTML/JS assets."""
 
     # Script ID
     PROJ4 = 1
@@ -64,6 +72,10 @@ MTL_WIDGET_MAX_COUNT = 2        # excluding color, color2 and opacity
 
 
 class PropertyID:
+    """Namespace containing numeric identifiers for layer property fields.
+
+    Used to access and store evaluated widget/property values consistently.
+    """
 
     ALT = 1
     ALT2 = 2
@@ -119,6 +131,7 @@ PropertyID.init()
 
 
 class ATConst:
+    """Constants related to animation/tweening behaviour."""
 
     # ITEM TYPES
 

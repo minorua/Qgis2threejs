@@ -15,6 +15,12 @@ LayerType2GeomClass = {
 
 
 class Feature:
+    """Container representing a single vector feature for building.
+
+    Holds the original Qgs geometry, computed builder geometry, material and
+    attribute data. Provides helpers to produce the builder-specific
+    geometry representation (e.g., TIN, polygon, line) for export.
+    """
 
     def __init__(self, vlayer, geom, props, attrs=None):
 

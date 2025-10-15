@@ -15,6 +15,11 @@ QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
 
 
 class Qgis2threejsProvider(QgsProcessingProvider):
+    """Processing provider exposing Qgis2threejs export algorithms to QGIS.
+
+    Registers export/image/model algorithms so they show up in the
+    Processing toolbox and can be executed headlessly.
+    """
 
     def __init__(self):
         QgsProcessingProvider.__init__(self)

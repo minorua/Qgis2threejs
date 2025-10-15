@@ -29,6 +29,11 @@ from ..utils import createUid, hex_color, logMessage, pluginDir, Correspondent
 
 
 class Q3DViewerInterface(Q3DInterface):
+    """Interface that viewer implementations should provide.
+
+    Defines methods and signals used by the plugin to drive the 3D
+    visualization (e.g., load scene, run animation, export commands).
+    """
 
     abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
     buildSceneRequest = pyqtSignal(object, bool, bool)    # params: scene properties dict (None if properties do not changes), update all, reload
@@ -71,6 +76,11 @@ class Q3DViewerInterface(Q3DInterface):
 
 
 class Q3DWindow(QMainWindow):
+    """Main application window for the plugin's 3D preview.
+
+    Hosts the 3D view, controls and dialogs used to configure and inspect
+    the generated scene.
+    """
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
@@ -615,6 +625,9 @@ class Q3DWindow(QMainWindow):
 
 
 class PropertiesDialog(QDialog):
+    """Dialog to display and edit properties of the current scene or
+    selected objects.
+    """
 
     propertiesAccepted = pyqtSignal(object)     # dict if scene else Layer
 
@@ -700,6 +713,9 @@ class PropertiesDialog(QDialog):
 
 
 class WheelEventFilter(QObject):
+    """Event filter that intercepts wheel events for custom zooming
+    or scrolling behavior within the 3D preview.
+    """
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.Wheel:
@@ -708,6 +724,8 @@ class WheelEventFilter(QObject):
 
 
 class NorthArrowDialog(QDialog):
+    """Dialog for configuring the north arrow overlay shown in the view.
+    """
 
     propertiesAccepted = pyqtSignal(dict)
 
@@ -733,6 +751,9 @@ class NorthArrowDialog(QDialog):
 
 
 class HFLabelDialog(QDialog):
+    """Dialog to set heading/field labels for screen overlays used in
+    export or preview images.
+    """
 
     propertiesAccepted = pyqtSignal(dict)
 
@@ -756,6 +777,9 @@ class HFLabelDialog(QDialog):
 
 
 class AddPointCloudLayerDialog(QDialog):
+    """Dialog allowing users to add and configure point cloud layers for
+    export.
+    """
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
