@@ -7,6 +7,7 @@ import base64
 import configparser
 import re
 import shutil
+from datetime import datetime
 
 from qgis.PyQt.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage
@@ -14,17 +15,6 @@ from qgis.PyQt.QtGui import QDesktopServices, QImage
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
 from ..conf import DEBUG_MODE, PLUGIN_NAME
-
-
-### Message logging ###
-
-# A object to send a signal to the JavaScript console in the web view when the web view is active
-correspondent = None
-
-
-class Correspondent(QObject):
-
-    messageSent = pyqtSignal(str, str)      # message, level
 
 
 def logMessage(message, warning=False, error=False):
@@ -439,3 +429,60 @@ def settingsFilePath():
 def createUid():
     """Generate a short unique id."""
     return QUuid.createUuid().toString()[1:9]
+
+
+### Logging ###
+
+class Logger(QObject):
+    """Logs messages to the QGIS log message panel. Also emits a 'logged' signal when a message is
+       logged, allowing it to be printed in the web view console.
+    """
+
+    logged = pyqtSignal(str, str)      # message, level
+
+    def __init__(self, debug_mode=1, parent=None):
+        QObject.__init__(self, parent)
+
+        self.logfile = None
+        if debug_mode == 2:
+            self.logfile = open(pluginDir("qgis2threejs.log"), "w")
+
+        else:
+            self.log_to_file = self.do_nothing
+
+            if debug_mode == 0:
+                self.debug = self.do_nothing
+
+    def info(self, msg):
+        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
+        self.logged.emit(msg, "info")
+        self.log_to_file(msg, "info")
+
+    def warning(self, msg):
+        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
+        self.logged.emit(msg, "warn")
+        self.log_to_file(msg, "warn")
+
+    def error(self, msg):
+        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
+        self.logged.emit(msg, "error")
+        self.log_to_file(msg, "error")
+
+    def debug(self, msg):
+        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
+        self.logged.emit(msg, "debug")
+        self.log_to_file(msg, "debug")
+
+    def log_to_file(self, msg, level=""):
+        if not self.logfile:
+            return
+
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.logfile.write("[{} - {}] {}\n".format(now, level, msg))
+        self.logfile.flush()
+
+    def do_nothing(self, msg, _=""):
+        pass
+
+
+logger = Logger(DEBUG_MODE)

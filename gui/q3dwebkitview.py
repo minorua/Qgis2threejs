@@ -14,7 +14,7 @@ from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
-from ..utils import pluginDir
+from ..utils import pluginDir, logger
 
 
 class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
@@ -55,8 +55,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
     def addJSObject(self):
         self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-        if DEBUG_MODE:
-            self.logToConsole("pyObj added")
+        logger.debug("pyObj added")
 
     def reload(self):
         Q3DWebPageCommon.reload(self)
@@ -77,8 +76,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
     def sendData(self, data):
         string = "loadJSONObject(pyData())"
-        if DEBUG_MODE:
-            self.logToConsole(string)
+        logger.debug(string)
 
         self.runScript(string, data, message=None)
 

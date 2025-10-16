@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-from datetime import datetime
 import os
 
 from qgis.PyQt.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
@@ -13,7 +12,7 @@ from qgis.core import Qgis, QgsProject
 from .q3dwebbridge import Bridge
 from ..conf import DEBUG_MODE
 from ..core.const import Script
-from ..utils import hex_color, js_bool, logMessage, pluginDir
+from ..utils import hex_color, js_bool, logger, logMessage, pluginDir
 
 
 class Q3DWebPageCommon:
@@ -25,10 +24,6 @@ class Q3DWebPageCommon:
     def __init__(self, _=None):
 
         self.loadedScripts = {}
-
-        if DEBUG_MODE == 2:
-            # open log file
-            self.logfile = open(pluginDir("q3dview.log"), "w")
 
     def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
@@ -101,13 +96,7 @@ class Q3DWebPageCommon:
         else:
             text = message or string
 
-        self.logToConsole(text)
-        qDebug("runScript: {}".format(message if message else string).encode("utf-8"))
-
-        if DEBUG_MODE == 2:
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.logfile.write("{} runScript: {}\n".format(now, message if message else string))
-            self.logfile.flush()
+        logger.debug("(runScript) {}".format(text))
 
     def loadScriptFile(self, id, force=False):
         """evaluate a script file without using a script tag. script is loaded synchronously"""
@@ -174,10 +163,7 @@ class Q3DWebPageCommon:
         return False
 
     def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-        if DEBUG_MODE == 2:
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
-            self.logfile.flush()
+        pass
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)

@@ -25,7 +25,7 @@ from ..core.controller.q3dcontroller import Q3DController
 from ..core.controller.q3dinterface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import createUid, hex_color, logMessage, pluginDir, Correspondent
+from ..utils import createUid, hex_color, logMessage, pluginDir
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -126,9 +126,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
-            # to listen messages to be logged
-            utils.correspondent = Correspondent(self)
-            utils.correspondent.messageSent.connect(self.webPage.logToConsole)
+            utils.logger.logged.connect(self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
@@ -136,8 +134,6 @@ class Q3DWindow(QMainWindow):
             if self.webPage.isWebEnginePage:
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
         else:
-            utils.correspondent = None
-
             self.ui.webView.disableWidgetsAndMenus(self.ui)
 
         self.ui.animationPanel.setup(self, settings)
@@ -159,12 +155,11 @@ class Q3DWindow(QMainWindow):
             self.controller.iface.disconnectFromIface()
             self.controller.disconnectFromMapCanvas()
 
-            if utils.correspondent:
-                utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
-                utils.correspondent = None
+            if self.webPage:
+                utils.logger.logged.disconnect(self.webPage.logToConsole)
 
-            if self.webPage and self.webPage.isWebEnginePage:
-                self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
+                if self.webPage.isWebEnginePage:
+                    self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
