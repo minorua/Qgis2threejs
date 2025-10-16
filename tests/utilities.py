@@ -6,12 +6,11 @@
 import os
 import shutil
 
-from qgis.PyQt.QtCore import qDebug
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from Qgis2threejs.utils import getLayersByLayerIds, logMessage, pluginDir
+from Qgis2threejs.utils import getLayersByLayerIds, logger, pluginDir
 
 MY_TEST_TEMPDIR = "E:/dev/qgis2threejs_test"
 
@@ -32,7 +31,7 @@ def expectedDataPath(*subdirs):
         dataDir = MY_TEST_TEMPDIR + "/expected"
     else:
         dataDir = testDir("expected")
-        logMessage("Expected data not exist.")      # TODO
+        logger.warning("Expected data not exist.")      # TODO
 
     if subdirs:
         return os.path.join(dataDir, *subdirs)
@@ -96,6 +95,6 @@ def loadProject(filename):
 
 def log(msg):
     if isinstance(msg, str):
-        qDebug(msg.encode("utf-8"))
+        logger.info(msg.encode("utf-8"))
     else:
-        qDebug(str(msg))
+        logger.info(str(msg))

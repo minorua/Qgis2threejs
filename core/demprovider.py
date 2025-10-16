@@ -8,7 +8,7 @@ from math import floor
 from osgeo import gdal
 
 from .geometry import GridGeometry
-from ..utils import logMessage
+from ..utils import logger
 
 
 class GDALDEMProvider:
@@ -24,7 +24,7 @@ class GDALDEMProvider:
         self.ds = gdal.Open(filename_utf8, gdal.GA_ReadOnly)
 
         if self.ds is None:
-            logMessage("Cannot open file: " + filename, error=True)
+            logger.error("Cannot open file: " + filename)
             self.ds = self.mem_driver.Create("", 1, 1, 1, gdal.GDT_Float32)
 
         self.width = self.ds.RasterXSize

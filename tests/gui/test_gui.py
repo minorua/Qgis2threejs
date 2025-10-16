@@ -13,7 +13,7 @@ from qgis.testing import unittest
 
 from Qgis2threejs.core.const import Script
 from Qgis2threejs.tests.utilities import dataPath, initOutputDir
-from Qgis2threejs.utils import js_bool, logMessage
+from Qgis2threejs.utils import js_bool, logger
 
 
 WIDTH, HEIGHT = (800, 600)  # view size
@@ -276,7 +276,11 @@ class GUITestResult(unittest.TestResult):
             e = JSTestException(testName, msg)
             self.addFailure(self.DUMMY_TEST, (type(e), e, e.__traceback__))
 
-        logMessage("'{}' ({}) {}".format(testName, "success" if result else "err/fail", msg), warning=not result)
+        m = "'{}' ({}) {}".format(testName, "success" if result else "err/fail", msg)
+        if result:
+            logger.info(m)
+        else:
+            logger.warning(m)
 
     def printResult(self):
         rows = ["", "### Results ###"]
@@ -305,7 +309,10 @@ class GUITestResult(unittest.TestResult):
 
         rows.append("See web inspector for details.")
 
-        logMessage("\n".join(rows), warning=bool(self.errors or self.failures))
+        if self.errors or self.failures:
+            logger.error("\n".join(rows))
+        else:
+            logger.info("\n".join(rows))
 
     def startTest(self, test):
         super().startTest(test)
@@ -313,7 +320,7 @@ class GUITestResult(unittest.TestResult):
         desc = test.shortDescription() or ""
 
         if self.VERBOSE:
-            logMessage("'{}' {}".format(".".join(test.id().split(".")[-2:]), desc), warning=False)
+            logger.info("'{}' {}".format(".".join(test.id().split(".")[-2:]), desc))
 
 
 def runTest(wnd):
@@ -355,7 +362,7 @@ def runTest(wnd):
     wnd.logToConsole = logToConsole.__get__(wnd)
 
     # start testing
-    logMessage("Testing GUI...")
+    logger.info("Testing GUI...")
 
     try:
         suite(result)

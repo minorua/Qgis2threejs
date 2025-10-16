@@ -13,7 +13,7 @@ from ..datamanager import MaterialManager, ModelManager
 from ...const import LayerType
 from ...geometry import VectorGeometry
 from ....conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
-from ....utils import css_color, int_color, logMessage, parseInt
+from ....utils import css_color, int_color, logger
 
 
 class VectorLayerBuilder(LayerBuilderBase):
@@ -36,7 +36,7 @@ class VectorLayerBuilder(LayerBuilderBase):
         if vl.ot:
             self.log("Object type is {}.".format(vl.ot.name))
         else:
-            logMessage("Object type not found", error=True)
+            logger.error("Object type not found")
 
         self.vlayer = vl
 
@@ -197,7 +197,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             # skip if geometry is empty or null
             if f.geom.isEmpty() or f.geom.isNull():
                 if not self.clipExtent:
-                    logMessage("empty/null geometry skipped")
+                    logger.info("empty/null geometry skipped")
                 continue
 
             feats.append(f)

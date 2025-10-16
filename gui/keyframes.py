@@ -14,7 +14,7 @@ from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
-from ..utils import createUid, js_bool, logMessage, parseInt, pluginDir
+from ..utils import createUid, js_bool, logger, parseInt, pluginDir
 from ..utils.gui import selectImageFile
 
 
@@ -127,7 +127,7 @@ class AnimationPanel(QWidget):
 
         if len(dataList):
             if DEBUG_MODE:
-                logMessage("Play: " + str(dataList))
+                logger.debug("Play: " + str(dataList))
             self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
@@ -154,7 +154,7 @@ class AnimationPanel(QWidget):
 
     def _log(self, msg):
         self._warnings.append(msg)
-        logMessage("Animation: " + msg)
+        logger.info("Animation: " + msg)
 
     def stopAnimation(self):
         self.webPage.runScript("stopAnimation()")
@@ -570,7 +570,7 @@ class AnimationTreeWidget(QTreeWidget):
             if layer:
                 d["layerId"] = layer.jsLayerId
             else:
-                logMessage("[KeyframeGroup] Layer not found in export settings.", error=True)
+                logger.error("[KeyframeGroup] Layer not found in export settings.")
 
         return d
 
@@ -910,7 +910,7 @@ class AnimationTreeWidget(QTreeWidget):
                 if mtl:
                     item.setText(0, mtl["name"])
                 else:
-                    logMessage("The material '{}' was removed.".format(item.text(0)))
+                    logger.info("The material '{}' was removed.".format(item.text(0)))
                     group.removeChild(item)
 
 
@@ -1295,5 +1295,5 @@ class KeyframeDialog(QDialog):
     def tweenStarted(self, index):
         if self.isPlayingAll:
             if DEBUG_MODE:
-                logMessage("TWEENING {} ...".format(index))
+                logger.debug("TWEENING {} ...".format(index))
             self.ui.slider.setValue(index)

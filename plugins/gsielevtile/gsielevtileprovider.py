@@ -19,7 +19,7 @@ from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 
 from .downloader import Downloader
 from ...core.geometry import GridGeometry
-from ...utils import logMessage
+from ...utils import logger
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244
@@ -37,7 +37,7 @@ class GSIElevTileProvider:
         self.crs3857 = QgsCoordinateReferenceSystem("EPSG:3857")
         self.dest_crs = QgsCoordinateReferenceSystem()
         if not self.dest_crs.createFromWkt(dest_wkt):
-            logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt), error=True)
+            logger.error("Failed to create CRS from WKT: {0}".format(dest_wkt))
         self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857, QgsProject.instance())
 
         # approximate bbox of this data
@@ -134,7 +134,7 @@ class GSIElevTileProvider:
 
         # download count limit
         if cols * rows > 128:
-            logMessage("Number of tiles to fetch is too large!")
+            logger.warning("Number of tiles to fetch is too large!")
             width = height = 1
             return self.driver.Create("", width, height, 1, gdal.GDT_Float32, [])
 

@@ -27,7 +27,7 @@ from ..export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ..exportsettings import ExportSettings
 from ..mapextent import MapExtent
 from ...conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
-from ...utils import logMessage, openDirectory
+from ...utils import logger, openDirectory
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
@@ -51,7 +51,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     def createInstance(self):
         if DEBUG_MODE:
-            logMessage("createInstance(): {}".format(self.__class__.__name__))
+            logger.debug("createInstance(): {}".format(self.__class__.__name__))
         return self.__class__()
 
     def flags(self):
@@ -70,7 +70,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config, label=True):
         if DEBUG_MODE:
-            logMessage("initAlgorithm(): {}".format(self.__class__.__name__))
+            logger.debug("initAlgorithm(): {}".format(self.__class__.__name__))
 
         qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
         self.settings.loadSettingsFromFile()
@@ -191,7 +191,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         if DEBUG_MODE:
-            logMessage("processAlgorithm(): {}".format(self.__class__.__name__))
+            logger.debug("processAlgorithm(): {}".format(self.__class__.__name__))
 
         clayer = self.parameterAsLayer(parameters, self.INPUT, context)
         title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)
@@ -243,7 +243,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             title = feature.attribute(title_field)
             feedback.setProgressText("({}/{}) Exporting {}...".format(current + 1, total, title))
-            logMessage("Exporting {}...".format(title))
+            logger.info("Exporting {}...".format(title))
 
             # extent
             geometry = QgsGeometry(feature.geometry())

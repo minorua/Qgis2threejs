@@ -6,7 +6,7 @@
 from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
 
-from ..utils import logMessage
+from ..utils import logger
 
 WEBVIEWTYPE_NONE = 0
 WEBVIEWTYPE_WEBKIT = 1
@@ -32,7 +32,7 @@ except:     # ModuleNotFoundError
 
 
 if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
-    logMessage("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.", warning=True)
+    logger.warning("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.")
 
 
 Q3DView = None

@@ -34,7 +34,7 @@ from ..core.exportsettings import calculateGridSegments
 from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import (createUid, getDEMLayersInProject, getLayersInProject, hex_color,
-                     logMessage, shortTextFromSelectedLayerIds)
+                     logger, shortTextFromSelectedLayerIds)
 from ..utils.gui import selectColor, selectImageFile
 
 PAGE_NONE = 0
@@ -152,7 +152,7 @@ class PropertyPage(QWidget):
             elif isinstance(w, HiddenProperty):
                 v = w.value
             else:
-                logMessage("[proppages.py] Not recognized widget type: " + str(type(w)), warning=True)
+                logger.warning("[proppages.py] Not recognized widget type: " + str(type(w)))
 
             p[w.objectName()] = v
 

@@ -9,42 +9,12 @@ import re
 import shutil
 from datetime import datetime
 
-from qgis.PyQt.QtCore import qDebug as qDebugA, QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
+from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage
 
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
 from ..conf import DEBUG_MODE, PLUGIN_NAME
-
-
-def logMessage(message, warning=False, error=False):
-    """Log a message to the QGIS log message panel and also forward it to the web view if active.
-
-    Args:
-        message: The message to log.
-        warning: If True, log at warning level.
-        error: If True, log at error level.
-    """
-    if correspondent:
-        if warning:
-            level = "warn"
-        elif error:
-            level = "error"
-        else:
-            level = "debug"
-        correspondent.messageSent.emit(message, level)
-
-    level = Qgis.Critical if error else (Qgis.Warning if warning else Qgis.Info)
-    QgsMessageLog.logMessage(str(message), PLUGIN_NAME, level, warning or error)
-
-
-def qDebug(message):
-    """Send a message to Qt's debug output.
-
-    Args:
-        message: The message to send.
-    """
-    qDebugA(message.encode("utf-8"))
 
 
 ### QGIS layer related functions ###
@@ -237,7 +207,7 @@ def base64file(file_path):
         with open(file_path, "rb") as f:
             return base64.b64encode(f.read()).decode("ascii")
     except:
-        logMessage("Cannot read file: {}".format(file_path), warning=True)
+        logger.warning("Cannot read file: {}".format(file_path))
         return ""
 
 
@@ -290,7 +260,7 @@ def openUrl(url):
             if QProcess.startDetached(browserPath, [url.toString()]):
                 return
             else:
-                logMessage("Incorrect web browser path. Open URL using default web browser.", warning=True)
+                logger.warning("Incorrect web browser path. Open URL using default web browser.")
 
     QDesktopServices.openUrl(url)
 
@@ -299,19 +269,19 @@ def copyFile(source, dest, overwrite=False):
     if os.path.exists(dest):
         if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
             if DEBUG_MODE:
-                qDebug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
+                logger.debug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
             QFile.remove(dest)
         else:
             if DEBUG_MODE:
-                qDebug("File already exists: %s" % dest)
+                logger.debug("File already exists: %s" % dest)
             return False
 
     ret = QFile.copy(source, dest)
     if DEBUG_MODE:
         if ret:
-            qDebug("File copied: %s to %s" % (source, dest))
+            logger.debug("File copied: %s to %s" % (source, dest))
         else:
-            qDebug("Failed to copy file: %s to %s" % (source, dest))
+            logger.debug("Failed to copy file: %s to %s" % (source, dest))
     return ret
 
 
@@ -319,16 +289,16 @@ def copyDir(source, dest, overwrite=False):
     if os.path.exists(dest):
         if overwrite:
             if DEBUG_MODE:
-                qDebug("Existing dir removed: %s" % dest)
+                logger.debug("Existing dir removed: %s" % dest)
             shutil.rmtree(dest)
         else:
             if DEBUG_MODE:
-                qDebug("Dir already exists: %s" % dest)
+                logger.debug("Dir already exists: %s" % dest)
             return False
 
     shutil.copytree(source, dest)
     if DEBUG_MODE:
-        qDebug("Dir copied: %s to %s" % (source, dest))
+        logger.debug("Dir copied: %s to %s" % (source, dest))
     return True
 
 
@@ -340,8 +310,8 @@ def copyFiles(filesToCopy, out_dir):
         overwrite = item.get("overwrite", False)
 
         if DEBUG_MODE:
-            qDebug(str(item))
-            qDebug("dest dir: %s" % dest_dir)
+            logger.debug(str(item))
+            logger.debug("dest dir: %s" % dest_dir)
 
         # make destination directory
         QDir().mkpath(dest_dir)
@@ -413,7 +383,7 @@ def getTemplateConfig(template_path):
     for item in parser.items("general"):
         config[item[0]] = item[1]
     if DEBUG_MODE:
-        qDebug("config: " + str(config))
+        logger.debug("config: " + str(config))
     return config
 
 

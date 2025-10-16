@@ -10,7 +10,7 @@ from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer
 
 from ... import utils
-from ...utils import logMessage
+from ...utils import logger
 
 
 class DataManager:
@@ -117,7 +117,7 @@ class ImageManager(DataManager):
             if os.path.isfile(image_path):
                 return QImage(image_path)
             else:
-                logMessage("Image file not found: {0}".format(image_path), warning=True)
+                logger.warning("Image file not found: {0}".format(image_path))
 
         else:   # IMG_MAP or IMG_LAYER
             image = self.renderedImage(*args)

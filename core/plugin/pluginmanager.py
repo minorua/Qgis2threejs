@@ -7,7 +7,7 @@ import importlib
 import sys
 
 from qgis.PyQt.QtCore import QDir, QSettings
-from ...utils import logMessage, pluginDir
+from ...utils import logger, pluginDir
 
 
 _pluginManager = None
@@ -45,7 +45,7 @@ class PluginManager:
                 self.modules.append(module)
                 self.plugins.append(getattr(module, "plugin_class"))
             except ImportError:
-                logMessage("Failed to load plugin: " + str(name), error=True)
+                logger.error("Failed to load plugin: " + str(name))
 
     def demProviderPlugins(self):
         plugins = []

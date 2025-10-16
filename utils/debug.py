@@ -6,7 +6,7 @@
 import sys
 import weakref
 
-from .utils import logMessage
+from .utils import logger
 
 
 def objectsOfInterest(wnd):
@@ -24,14 +24,14 @@ def objectsOfInterest(wnd):
 def watchGarbageCollection(wnd):
     objs = objectsOfInterest(wnd)
     for i, (name, obj) in enumerate(objs):
-        weakref.finalize(obj, logMessage, "({}/{}) {} was garbage collected.".format(i + 1, len(objs), name))
+        weakref.finalize(obj, logger.debug, "({}/{}) {} was garbage collected.".format(i + 1, len(objs), name))
         obj.destroyed.connect(objectDestroyed)
 
 
 def objectDestroyed(obj):
-    logMessage("{} {} was destroyed.".format(obj.metaObject().className(), obj.objectName()))
+    logger.debug("{} {} was destroyed.".format(obj.metaObject().className(), obj.objectName()))
 
 
 def logReferenceCount(wnd):
     for name, obj in objectsOfInterest(wnd):
-        logMessage("Number of ref. to {} is {}.".format(name, sys.getrefcount(obj)))
+        logger.debug("Number of ref. to {} is {}.".format(name, sys.getrefcount(obj)))

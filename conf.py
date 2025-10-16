@@ -20,8 +20,8 @@ P_OPEN_DIRECTORY = True
 # debug
 DEBUG_MODE = 1
 # 0. no debug info
-# 1. JS console, qDebug
-# 2. JS console, qDebug, log file, "debug" element
+# 1. log panel + JS console
+# 2. log panel + JS console, log file, "debug" element
 
 
 class DEF_SETS:

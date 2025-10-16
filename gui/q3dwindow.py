@@ -25,7 +25,7 @@ from ..core.controller.q3dcontroller import Q3DController
 from ..core.controller.q3dinterface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import createUid, hex_color, logMessage, pluginDir
+from ..utils import createUid, hex_color, logger, pluginDir
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -194,7 +194,7 @@ class Q3DWindow(QMainWindow):
 
         except Exception as e:
             import traceback
-            logMessage(traceback.format_exc(), error=True)
+            logger.error(traceback.format_exc())
 
             self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
 

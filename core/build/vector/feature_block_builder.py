@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import QVariant
 from ...const import PropertyID as PID
 from ...geometry import VectorGeometry
 from ....conf import DEBUG_MODE
-from ....utils import logMessage, parseInt
+from ....utils import logger, parseInt
 
 
 def json_default(o):
@@ -73,7 +73,7 @@ class FeatureBlockBuilder:
                     "duration": parseInt(f.prop(PID.DUR))
                 }
                 if DEBUG_MODE:
-                    logMessage("dly: {}, dur: {}".format(d["anim"]["delay"], d["anim"]["duration"]))
+                    logger.debug("Animation: delay={}, duration={}".format(d["anim"]["delay"], d["anim"]["duration"]))
 
             feats.append(d)
 

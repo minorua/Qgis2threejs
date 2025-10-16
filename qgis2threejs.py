@@ -15,7 +15,7 @@ from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.q3dwindow import Q3DWindow
 from .gui.q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE, currentWebViewType
-from .utils import logMessage, pluginDir, removeTemporaryOutputDir, settingsFilePath
+from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
 
 
 class Qgis2threejs:
@@ -103,7 +103,7 @@ class Qgis2threejs:
         webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
         """
         if self.liveExporter:
-            logMessage("Qgis2threejs Exporter is already open.")
+            logger.info("Qgis2threejs Exporter is already open.")
             self.liveExporter.activateWindow()
             return
 

@@ -8,7 +8,7 @@ from qgis.PyQt.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QG
 from qgis.PyQt.QtGui import QColorConstants, QPixmap
 
 from ..conf import DEBUG_MODE
-from ..utils import logMessage, pluginDir
+from ..utils import logger, pluginDir
 
 
 class Q3DDummyView(QGraphicsView):
@@ -55,9 +55,7 @@ class Q3DDummyPage(QObject):
         return False
 
     def __getattr__(self, name):
-        if DEBUG_MODE:
-            logMessage("Q3DDummyPage.{} referenced".format(name))
-
+        logger.debug("Q3DDummyPage.{} referenced".format(name))
         return self._func
 
     def _func(self, *args1, **args2):

@@ -17,7 +17,7 @@ from .mapextent import MapExtent
 from .mapto3d import MapTo3D
 from .plugin.pluginmanager import pluginManager
 from ..conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
-from ..utils import createUid, getLayersInProject, getTemplateConfig, logMessage, parseFloat, settingsFilePath
+from ..utils import createUid, getLayersInProject, getTemplateConfig, logger, parseFloat, settingsFilePath
 
 
 class BuildOptions:
@@ -169,11 +169,11 @@ class ExportSettings:
             with open(filepath, "r", encoding="utf-8") as f:
                 settings = json.load(f)
         except Exception as e:
-            logMessage("Failed to load export settings from file. Error: " + str(e), error=True)
+            logger.error("Failed to load export settings from file. Error: " + str(e))
             self.updateLayers()
             return False
 
-        logMessage("Export settings loaded from file:" + filepath)
+        logger.info("Export settings loaded from file:" + filepath)
 
         # transform layer dict to Layer object
         settings[ExportSettings.LAYERS] = [Layer.fromDict(lyr) for lyr in settings.get(ExportSettings.LAYERS, [])]
@@ -182,7 +182,7 @@ class ExportSettings:
             try:
                 self.loadEarlierFormatData(settings)
             except Exception as e:
-                logMessage("ExportSettings: Failed to load some properties which were saved with an earlier plugin version.", warning=True)
+                logger.warning("ExportSettings: Failed to load some properties which were saved with an earlier plugin version.")
 
                 if DEBUG_MODE:
                     raise e
@@ -209,7 +209,7 @@ class ExportSettings:
                 json.dump(self.data, f, ensure_ascii=False, indent=2, default=default, sort_keys=True)
             return True
         except Exception as e:
-            logMessage("Failed to save export settings: " + str(e), warning=True)
+            logger.warning("Failed to save export settings: " + str(e))
             return False
 
     def setMapSettings(self, settings):
@@ -236,7 +236,7 @@ class ExportSettings:
                                              float(sp.get("lineEdit_Height", 0)),
                                              float(sp.get("lineEdit_Rotation", 0)))
             except ValueError:
-                logMessage("Invalid extent. Check out scene properties.", warning=True)
+                logger.warning("Invalid extent. Check out scene properties.")
 
         elif self.mapSettings:
             self._baseExtent = MapExtent.fromMapSettings(self.mapSettings, sp.get("checkBox_FixAspectRatio", True))
@@ -259,7 +259,7 @@ class ExportSettings:
         except ValueError:
             zScale = DEF_SETS.Z_EXAGGERATION
             zShift = DEF_SETS.Z_SHIFT
-            logMessage("Invalid z exaggeration. Check out scene properties.", warning=True)
+            logger.warning("Invalid z exaggeration. Check out scene properties.")
 
         if sp.get("comboBox_xyShift", True):
             origin = QgsPoint(be.center().x(), be.center().y(), -zShift)
@@ -483,7 +483,7 @@ class ExportSettings:
             if provider:
                 return provider(str(self.crs.toWkt()))
 
-            logMessage('Plugin "{0}" not found'.format(id), warning=True)
+            logger.warning('Plugin "{0}" not found'.format(id))
 
         else:
             layer = QgsProject.instance().mapLayer(id)
@@ -551,8 +551,7 @@ class ExportSettings:
 
     def enabledValidKeyframeGroups(self, layerId=None, warning_log=None):
         if warning_log is None:
-            def warning_log(msg):
-                logMessage(msg, warning=True)
+            warning_log = logger.warning
 
         def warn_one_keyframe(group):
             warning_log("'{}' group has only one keyframe. At least two keyframes are necessary for this group to work.".format(group["name"]))

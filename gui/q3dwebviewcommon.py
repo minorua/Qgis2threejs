@@ -5,14 +5,14 @@
 
 import os
 
-from qgis.PyQt.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
+from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import Qgis, QgsProject
 
 from .q3dwebbridge import Bridge
 from ..conf import DEBUG_MODE
 from ..core.const import Script
-from ..utils import hex_color, js_bool, logger, logMessage, pluginDir
+from ..utils import hex_color, js_bool, logger, pluginDir
 
 
 class Q3DWebPageCommon:
@@ -129,7 +129,7 @@ class Q3DWebPageCommon:
         loading = self.runScript("app.loadingManager.isLoading")
 
         if DEBUG_MODE:
-            logMessage("waitForSceneLoaded: loading={}".format(loading))
+            logger.debug("waitForSceneLoaded: loading={}".format(loading))
 
         if not loading:
             return False
@@ -205,7 +205,7 @@ class Q3DWebViewCommon:
         event.acceptProposedAction()
 
     def dropEvent(self, event):
-        # logMessage(event.mimeData().formats())
+        # logger.debug(event.mimeData().formats())
         self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
 

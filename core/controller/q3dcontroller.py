@@ -11,7 +11,7 @@ from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, Script
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE
-from ...utils import hex_color, js_bool, logMessage
+from ...utils import hex_color, js_bool, logger
 
 
 class Q3DControllerInterface(QObject):
@@ -124,7 +124,7 @@ class Q3DController(QObject):
 
             err_msg = settings.checkValidity()
             if err_msg:
-                logMessage("Invalid settings: " + err_msg, warning=True)
+                logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
         self.builder = ThreeJSBuilder(settings)
@@ -176,7 +176,7 @@ class Q3DController(QObject):
 
     def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True):
         if self.processingLayer:
-            logMessage("Previous processing is still in progress. Cannot start to build scene.")
+            logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
         self.aborted = False
@@ -234,7 +234,7 @@ class Q3DController(QObject):
             layer = Layer.fromDict(layer)
 
         if self.processingLayer:
-            logMessage('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
+            logger.info('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
             return False
 
         ret = self._buildLayer(layer)
@@ -271,7 +271,7 @@ class Q3DController(QObject):
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
-                logMessage("***** layer processing aborted *****")
+                logger.info("***** layer processing aborted *****")
                 self.processingLayer = None
                 return False
 
@@ -339,7 +339,7 @@ class Q3DController(QObject):
 
         except Exception as e:
             import traceback
-            logMessage(traceback.format_exc(), warning=True)
+            logger.warning(traceback.format_exc())
 
             self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
@@ -363,7 +363,7 @@ class Q3DController(QObject):
     @pyqtSlot(object, bool, bool)
     def requestBuildScene(self, properties=None, update_all=True, reload=False):
         if DEBUG_MODE:
-            logMessage("Scene update requested: {}".format(properties))
+            logger.debug("Scene update requested: {}".format(properties))
 
         if properties:
             self.settings.setSceneProperties(properties)
@@ -385,7 +385,7 @@ class Q3DController(QObject):
     @pyqtSlot(Layer)
     def requestBuildLayer(self, layer):
         if DEBUG_MODE:
-            logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"))
+            logger.debug("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"))
 
         # update layer properties and layer state in worker side export settings
         lyr = self.settings.getLayer(layer.layerId)
@@ -501,7 +501,7 @@ class Mock:
 
     def __getattr__(self, attr):
         if DEBUG_MODE:
-            logMessage("Mock: {}".format(attr))
+            logger.debug("Mock: {}".format(attr))
         return Mock
 
     def __bool__(self):

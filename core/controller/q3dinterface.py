@@ -5,7 +5,7 @@
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from ...utils import logMessage
+from ...utils import logger
 
 
 class Q3DInterface(QObject):
@@ -39,4 +39,4 @@ class Q3DInterface(QObject):
     # @pyqtSlot(str, int)
     def showStatusMessage(self, msg, _1=0):
         if self.enabled:
-            logMessage(msg)
+            logger.info(msg)

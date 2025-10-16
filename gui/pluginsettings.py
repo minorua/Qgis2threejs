@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import Qt, QDir, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .ui.settingsdialog import Ui_SettingsDialog
-from ..utils import logMessage, pluginDir
+from ..utils import logger, pluginDir
 
 
 class SettingsDialog(QDialog):
@@ -52,7 +52,7 @@ class SettingsDialog(QDialog):
                 metadata = dict(parser.items("general"))
                 self.plugin_metadata.append(metadata)
             except Exception as e:
-                logMessage("Unable to read metadata of plugin: {} ({})".format(name, e), error=True)
+                logger.error("Unable to read metadata of plugin: {} ({})".format(name, e))
 
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):

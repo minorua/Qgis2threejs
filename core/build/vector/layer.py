@@ -11,7 +11,7 @@ from .object import ObjectType
 from ...const import LayerType, PropertyID as PID
 from ....conf import DEF_SETS
 from ....gui.propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
-from ....utils import hex_color, logMessage, parseFloat
+from ....utils import hex_color, logger, parseFloat
 
 
 class VectorLayer:
@@ -35,7 +35,7 @@ class VectorLayer:
             self.ot = otc(settings, materialManager)
         else:
             self.ot = None
-            logMessage("Shape type not found: {} ({})".format(self.properties.get("comboBox_ObjectType"), self.name), error=True)
+            logger.error("Shape type not found: {} ({})".format(self.properties.get("comboBox_ObjectType"), self.name))
 
         self.materialManager = materialManager
         self.modelManager = modelManager
@@ -91,14 +91,14 @@ class VectorLayer:
             # geometry
             geom = f.geometry()
             if geom is None:
-                logMessage("[{}] Null geometry skipped.".format(self.name))
+                logger.info("[{}] Null geometry skipped.".format(self.name))
                 continue
 
             geom = QgsGeometry(geom)
 
             # coordinate transformation - layer crs to project crs
             if geom.transform(self.transform) != 0:
-                logMessage("[{}] Failed to transform a geometry.".format(self.name), warning=True)
+                logger.warning("[{}] Failed to transform a geometry.".format(self.name))
                 continue
 
             if rotation and self.onlyIntersecting:
@@ -173,12 +173,12 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
 
             if val is None:
-                logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr), warning=True)
+                logger.warning("[{}] Failed to evaluate expression: {}".format(self.name, expr))
 
             elif isinstance(val, str):
                 val = parseFloat(val)
                 if val is None:
-                    logMessage("[{}] Cannot parse '{}' as a float value.".format(self.name, expr), warning=True)
+                    logger.warning("[{}] Cannot parse '{}' as a float value.".format(self.name, expr))
 
             return val or 0
 
@@ -196,9 +196,9 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
             if val is None:
                 if expr:
-                    logMessage("[{}] Failed to evaluate expression: {}".format(self.name, expr), warning=True)
+                    logger.warning("[{}] Failed to evaluate expression: {}".format(self.name, expr))
                 else:
-                    logMessage("[{}] There is an empty file path.".format(self.name), warning=True)
+                    logger.warning("[{}] There is an empty file path.".format(self.name))
 
             return val or ""
 
@@ -212,7 +212,7 @@ class VectorLayer:
 
             return self.readFillColor(wv, feat)
 
-        logMessage("Widget type {} not found.".format(t), error=True)
+        logger.error("Widget type {} not found.".format(t))
         return None
 
     def readFillColor(self, vals, f):
@@ -239,7 +239,7 @@ class VectorLayer:
 
                 raise
             except:
-                logMessage("[{}] Wrong color value: {}".format(self.name, val), warning=True)
+                logger.warning("[{}] Wrong color value: {}".format(self.name, val))
                 return "0"
 
         if mode == ColorWidgetFunc.RANDOM or f is None:
@@ -251,7 +251,7 @@ class VectorLayer:
         # feature color
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name), warning=True)
+            logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
             return "0"
 
         symbol = symbols[0]
@@ -269,12 +269,12 @@ class VectorLayer:
                 val = self.evaluateExpression(wv["editText"], f)
                 return min(max(0, val), 100) / 100
             except:
-                logMessage("[{}] Wrong opacity value: {}".format(self.name, val), warning=True)
+                logger.warning("[{}] Wrong opacity value: {}".format(self.name, val))
                 return 1
 
         symbols = self.renderer.symbolsForFeature(f, self.renderContext)
         if not symbols:
-            logMessage("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name), warning=True)
+            logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
             return 1
 
         symbol = symbols[0]
@@ -285,7 +285,7 @@ class VectorLayer:
         try:
             return float(val)
         except Exception as e:
-            logMessage('{0} (value: {1})'.format(e.message, str(val)), warning=True)
+            logger.warning('{0} (value: {1})'.format(e.message, str(val)))
             return 0
 
     # functions to read values from height widget (z coordinate)

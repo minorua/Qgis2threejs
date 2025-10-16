@@ -9,7 +9,7 @@ from qgis.core import (
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
 from ..lib.earcut import earcut
-from ..utils import logMessage
+from ..utils import logger
 
 
 class VectorGeometry:
@@ -37,7 +37,7 @@ class VectorGeometry:
                 g.extend(cls.nestedPointList(geom.geometryN(i)))
             return g
 
-        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__), warning=True)
+        logger.warning("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
         return []
 
     @classmethod
@@ -49,7 +49,7 @@ class VectorGeometry:
                 g.extend(cls.singleGeometries(geom.geometryN(i)))
             return g
 
-        logMessage("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__), warning=True)
+        logger.warning("{}: {} type is not supported yet.".format(cls.__name__, type(geom).__name__))
         return []
 
 
@@ -766,13 +766,13 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
     for f in polygon_layer.getFeatures(request):
         geometry = f.geometry()
         if geometry is None:
-            logMessage("Null geometry skipped")
+            logger.info("Null geometry skipped")
             continue
 
         # transform geometry from the layer CRS to the project CRS
         geom = QgsGeometry(geometry)
         if geom.transform(transform) != 0:
-            logMessage("Failed to transform geometry to project CRS", warning=True)
+            logger.warning("Failed to transform geometry to project CRS")
             continue
 
         # check if geometry intersects with the base extent
@@ -795,7 +795,7 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
 
     # check if geometry is empty
     if geom.isEmpty():
-        logMessage("empty geometry")
+        logger.info("empty geometry")
         return None
 
     return geom
