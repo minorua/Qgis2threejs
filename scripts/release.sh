@@ -38,7 +38,7 @@ git rm -r .github
 git rm -r docs
 git rm -r scripts
 git rm -r tests
-git rm ui/*.ui
+git rm gui/ui/*.ui
 git commit -m "remove development files"
 
 git status
