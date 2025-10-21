@@ -7,6 +7,7 @@ from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
 
 
 class LayerType:
+    """Enum for layer type in this plugin"""
     DEM = 0
     POINT = 1
     LINESTRING = 2
@@ -15,11 +16,13 @@ class LayerType:
 
 
 class DEMMtlType:
+    """Enum for DEM material"""
     MAPCANVAS = 0
     LAYER = 1
     FILE = 2
     COLOR = 3
 
+    # path to icon file
     ICON_PATH = {
         MAPCANVAS: "mLayoutItemMap.svg",
         LAYER: "algorithms/mAlgorithmMergeLayers.svg",
@@ -28,8 +31,7 @@ class DEMMtlType:
 
 
 class Script:
-
-    # Script ID
+    """Enum for JavaScript files"""
     PROJ4 = 1
     GLTFLOADER = 2
     COLLADALOADER = 3
@@ -42,7 +44,7 @@ class Script:
     FETCH = 101
     TEST = 201
 
-    # Script path (relative from js directory)
+    # relative path to script file from js directory
     PATH = {
         PROJ4: "lib/proj4js/proj4.js",
         GLTFLOADER: "lib/threejs/loaders/GLTFLoader.js",
@@ -64,7 +66,7 @@ MTL_WIDGET_MAX_COUNT = 2        # excluding color, color2 and opacity
 
 
 class PropertyID:
-
+    """Enum for property widgets"""
     ALT = 1
     ALT2 = 2
 
@@ -86,6 +88,7 @@ class PropertyID:
     LBLH = 30
     LBLTXT = 31
 
+    # widget name
     PID_NAME_DICT = {
         ALT: "fieldExpressionWidget_altitude",
         ALT2: "comboEdit_altitude2",
@@ -97,14 +100,9 @@ class PropertyID:
         LBLTXT: "expression_Label"
     }
 
-    # animation
+    # enum for animation
     DLY = 80
     DUR = 81
-
-    ANIM_PID_NAME_DICT = {
-        DLY: "delay",
-        DUR: "duration"
-    }
 
     @classmethod
     def init(cls):
@@ -119,7 +117,7 @@ PropertyID.init()
 
 
 class ATConst:
-
+    """Enum for animation tree widget"""
     # ITEM TYPES
 
     # TOP LEVEL
@@ -187,14 +185,15 @@ class ATConst:
         return "UNDEF"
 
 
-# utility functions
+# utility function related to layer type
 def layerTypeFromMapLayer(mapLayer):
     """mapLayer: QgsMapLayer sub-class object"""
     layerType = mapLayer.type()
     if layerType == QgsMapLayer.VectorLayer:
-        return {QgsWkbTypes.PointGeometry: LayerType.POINT,
-                QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
-                QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
+        return {
+            QgsWkbTypes.PointGeometry: LayerType.POINT,
+            QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
+            QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
 
     elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
         return LayerType.DEM
