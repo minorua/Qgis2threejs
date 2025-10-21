@@ -20,6 +20,8 @@ from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
 
 class Qgis2threejs:
 
+    PREFER_WEBKIT_SETTING = "/Qgis2threejs/preferWebKit"
+
     def __init__(self, iface):
         self.iface = iface
         self.pprovider = Qgis2threejsProvider()
@@ -30,7 +32,7 @@ class Qgis2threejs:
         self.previewEnabled = True      # last preview state
 
     def initGui(self):
-        # add a toolbar button and web menu items
+        # add a toolbar button
         icon = QIcon(pluginDir("Qgis2threejs.png"))
         title = "Qgis2threejs Exporter"
         wnd = self.iface.mainWindow()
@@ -42,6 +44,7 @@ class Qgis2threejs:
 
         self.iface.addWebToolBarIcon(self.action)
 
+        # web menu items
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
@@ -65,7 +68,7 @@ class Qgis2threejs:
 
             self.actionWebKit.setCheckable(True)
 
-            if QSettings().value("/Qgis2threejs/preferWebKit", False) or not WEBENGINE_AVAILABLE:
+            if QSettings().value(self.PREFER_WEBKIT_SETTING, False) or not WEBENGINE_AVAILABLE:
                 self.actionWebKit.setChecked(True)
             else:
                 self.actionWebEng.setChecked(True)
@@ -95,7 +98,7 @@ class Qgis2threejs:
         # remove provider from processing registry
         QgsApplication.processingRegistry().removeProvider(self.pprovider)
 
-        # remove temporary output directory
+        # temporary output directory
         removeTemporaryOutputDir()
 
     def openExporter(self, _=False, webViewType=None):
@@ -136,7 +139,7 @@ class Qgis2threejs:
         if WEBENGINE_AVAILABLE:
             self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
 
-            QSettings().remove("/Qgis2threejs/preferWebKit")
+            QSettings().remove(self.PREFER_WEBKIT_SETTING)
             return
 
         url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
@@ -152,7 +155,7 @@ class Qgis2threejs:
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
 
         if WEBENGINE_AVAILABLE:
-            QSettings().setValue("/Qgis2threejs/preferWebKit", True)
+            QSettings().setValue(self.PREFER_WEBKIT_SETTING, True)
 
     def exporterDestroyed(self, obj):
         if currentWebViewType != WEBVIEWTYPE_NONE:
