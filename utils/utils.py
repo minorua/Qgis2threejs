@@ -303,6 +303,22 @@ def copyDir(source, dest, overwrite=False):
 
 
 def copyFiles(filesToCopy, out_dir):
+    """Copies the specified files and directories to the specified output directory.
+
+    Args:
+        filesToCopy (list): A list of dict objects that define the copy targets.
+            Each dict can contain the following keys:
+                - "files": A list of file paths to copy. If a relative path is given, it is relative to the plugin directory.
+                - "dirs": A list of directory paths to copy. If a relative path is given, it is relative to the plugin directory.
+                - "dest": The name of the subdirectory within the output directory to copy into.
+                           If omitted, files are copied directly under `out_dir`.
+                - "subdirs": If True, copy directories recursively.
+                              If False, copy only files directly under the directory.
+                              Optional. Default is False.
+                - "overwrite": If True, overwrite existing files or directories when copying.
+                                Optinal. Default is False.
+        out_dir (str): The root directory where files and directories are copied to.
+    """
     plugin_dir = pluginDir()
     for item in filesToCopy:
         dest_dir = os.path.join(out_dir, item.get("dest", ""))

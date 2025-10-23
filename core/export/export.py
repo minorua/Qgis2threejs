@@ -24,6 +24,9 @@ from ... import utils
 
 
 class ThreeJSExporter(ThreeJSBuilder):
+    """Exporter class for generating a set of files for a three.js-based 3D scene
+    viewable in external web browsers.
+    """
 
     def __init__(self, settings=None, progress=None, log=None):
         ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress, log)
@@ -279,6 +282,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
 
 class BridgeExporterBase:
+    """Base class for exporters that used by Processing algorithms."""
 
     def __init__(self, settings=None):
         self.settings = settings or ExportSettings()
@@ -316,6 +320,10 @@ class BridgeExporterBase:
 
 
 class ImageExporter(BridgeExporterBase):
+    """Exporter class for generating static image outputs of 3D scenes.
+
+    This exporter is used by a Processing algorithm.
+    """
 
     def render(self, cameraState=None, cancelSignal=None):
         if self.page is None:
@@ -351,6 +359,10 @@ class ImageExporter(BridgeExporterBase):
 
 
 class ModelExporter(BridgeExporterBase):
+    """Exporter class for generating 3D model files in glTF format.
+
+    This exporter is used by a Processing algorithm.
+    """
 
     def __init__(self, settings=None):
         super().__init__(settings)
