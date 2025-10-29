@@ -72,19 +72,19 @@ function _init(off_screen) {
 	}
 
 	app.addEventListener("sceneLoaded", function () {
-		pyObj.onSceneLoaded();
+		pyObj.emitSceneLoaded();
 	});
 
 	app.addEventListener("sceneLoadError", function () {
-		pyObj.onSceneLoadError();
+		pyObj.emitSceneLoadError();
 	});
 
 	app.addEventListener("tweenStarted", function (e) {
-		pyObj.onTweenStarted(e.index);
+		pyObj.emitTweenStarted(e.index);
 	});
 
 	app.addEventListener("animationStopped", function () {
-		pyObj.onAnimationStopped();
+		pyObj.emitAnimationStopped();
 	});
 
 	if (Q3D.Config.debugMode) {
@@ -118,7 +118,7 @@ function _init(off_screen) {
 		showMessageBar(msg, undefined, true);
 	}
 
-	pyObj.onInitialized();
+	pyObj.emitInitialized();
 }
 
 function logSignal(name, description, object) {
