@@ -22,8 +22,8 @@ class DEMMtlType:
     FILE = 2
     COLOR = 3
 
-    # path to icon file
-    ICON_PATH = {
+    # paths to icon files
+    ICON_PATHS = {
         MAPCANVAS: "mLayoutItemMap.svg",
         LAYER: "algorithms/mAlgorithmMergeLayers.svg",
         FILE: "mLayoutItemPicture.svg"
