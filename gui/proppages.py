@@ -778,7 +778,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             if color:
                 return DEMPropertyPage.iconForColor(color)
         else:
-            p = DEMMtlType.ICON_PATH.get(t)
+            p = DEMMtlType.ICON_PATHS.get(t)
             if p:
                 return QgsApplication.getThemeIcon(p)
 
