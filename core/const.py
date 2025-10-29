@@ -30,7 +30,7 @@ class DEMMtlType:
     }
 
 
-class Script:
+class ScriptFiles:
     """Enum for JavaScript files"""
     PROJ4 = 1
     GLTFLOADER = 2
