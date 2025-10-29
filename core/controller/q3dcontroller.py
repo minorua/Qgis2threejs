@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
 from qgis.core import QgsApplication
 
 from ..build.builder import ThreeJSBuilder
-from ..const import LayerType, Script
+from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE
 from ...utils import hex_color, js_bool, logger
@@ -100,8 +100,8 @@ class Q3DControllerInterface(QObject):
     def progress(self, percentage=100, msg=""):
         self.progressUpdated.emit(int(percentage), msg)
 
-    def loadScriptFile(self, id, force=False):
-        self.loadScriptsRequest.emit([id], force)
+    def loadScriptFile(self, scriptFileId, force=False):
+        self.loadScriptsRequest.emit([scriptFileId], force)
 
     def loadScriptFiles(self, ids, force=False):
         self.loadScriptsRequest.emit(ids, force)
@@ -204,7 +204,7 @@ class Q3DController(QObject):
             latlon = self.settings.isCoordLatLon()
             self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
             if latlon:
-                self.iface.loadScriptFile(Script.PROJ4)
+                self.iface.loadScriptFile(ScriptFile.PROJ4)
 
         if build_layers:
             self.buildLayers()
@@ -254,16 +254,16 @@ class Q3DController(QObject):
         self.iface.progress(0, pmsg)
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
-            self.iface.loadScriptFiles([Script.COLLADALOADER,
-                                        Script.GLTFLOADER])
+            self.iface.loadScriptFiles([ScriptFile.COLLADALOADER,
+                                        ScriptFile.GLTFLOADER])
 
         elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
-            self.iface.loadScriptFiles([Script.MESHLINE])
+            self.iface.loadScriptFiles([ScriptFile.MESHLINE])
 
         elif layer.type == LayerType.POINTCLOUD:
-            self.iface.loadScriptFiles([Script.FETCH,
-                                        Script.POTREE,
-                                        Script.PCLAYER])
+            self.iface.loadScriptFiles([ScriptFile.FETCH,
+                                        ScriptFile.POTREE,
+                                        ScriptFile.PCLAYER])
 
         t0 = t4 = time.time()
         dlist = []

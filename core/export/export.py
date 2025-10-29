@@ -13,7 +13,7 @@ from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
 from ..build.dem.builder import DEMLayerBuilder
 from ..build.vector.builder import VectorLayerBuilder
 from ..build.pointcloud.builder import PointCloudLayerBuilder
-from ..const import LayerType, Script
+from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
 from ..controller.q3dcontroller import Q3DController
 from ..controller.q3dinterface import Q3DInterface
@@ -370,7 +370,7 @@ class ModelExporter(BridgeExporterBase):
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
-        self.page.loadScriptFile(Script.GLTFEXPORTER)
+        self.page.loadScriptFile(ScriptFile.GLTFEXPORTER)
 
     def export(self, filename, cancelSignal=None):
         if self.page is None:

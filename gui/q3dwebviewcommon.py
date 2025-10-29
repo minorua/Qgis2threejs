@@ -11,7 +11,7 @@ from qgis.core import Qgis, QgsProject
 
 from .q3dwebbridge import WebBridge
 from ..conf import DEBUG_MODE
-from ..core.const import Script
+from ..core.const import ScriptFile
 from ..utils import hex_color, js_bool, logger, pluginDir
 
 
@@ -98,21 +98,21 @@ class Q3DWebPageCommon:
 
         logger.debug("(runScript) {}".format(text))
 
-    def loadScriptFile(self, id, force=False):
+    def loadScriptFile(self, scriptFileId, force=False):
         """evaluate a script file without using a script tag. script is loaded synchronously"""
-        if id in self.loadedScripts and not force:
+        if scriptFileId in self.loadedScripts and not force:
             return
 
-        filename = pluginDir("web/js", Script.PATH[id])
+        filename = pluginDir("web/js", ScriptFile.PATHS[scriptFileId])
 
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()
 
         self.runScript(script, message="{} loaded.".format(os.path.basename(filename)))
-        self.loadedScripts[id] = True
+        self.loadedScripts[scriptFileId] = True
 
-    def loadScriptFiles(self, ids, force=False):
-        for id in ids:
+    def loadScriptFiles(self, scriptFileIds, force=False):
+        for id in scriptFileIds:
             self.loadScriptFile(id, force)
 
     def cameraState(self, flat=False):
