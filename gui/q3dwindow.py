@@ -20,7 +20,7 @@ from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, P
 from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
 from .. import utils
 from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
-from ..core.const import LayerType, Script
+from ..core.const import LayerType, ScriptFile
 from ..core.controller.q3dcontroller import Q3DController
 from ..core.controller.q3dinterface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
@@ -421,7 +421,7 @@ class Q3DWindow(QMainWindow):
         if filename:
             self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
 
-            self.webPage.loadScriptFile(Script.GLTFEXPORTER)
+            self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER)
             self.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
 
             self.ui.statusbar.clearMessage()

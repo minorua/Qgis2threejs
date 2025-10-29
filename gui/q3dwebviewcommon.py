@@ -11,7 +11,7 @@ from qgis.core import Qgis, QgsProject
 
 from .q3dwebbridge import WebBridge
 from ..conf import DEBUG_MODE
-from ..core.const import Script
+from ..core.const import ScriptFile
 from ..utils import hex_color, js_bool, logger, pluginDir
 
 
@@ -103,7 +103,7 @@ class Q3DWebPageCommon:
         if id in self.loadedScripts and not force:
             return
 
-        filename = pluginDir("web/js", Script.PATH[id])
+        filename = pluginDir("web/js", ScriptFile.PATH[id])
 
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()

@@ -11,7 +11,7 @@ from qgis.PyQt.QtTest import QTest
 from qgis.core import QgsApplication, QgsProject, QgsRectangle
 from qgis.testing import unittest
 
-from Qgis2threejs.core.const import Script
+from Qgis2threejs.core.const import ScriptFile
 from Qgis2threejs.tests.utilities import dataPath, initOutputDir
 from Qgis2threejs.utils import js_bool, logger
 
@@ -54,7 +54,7 @@ class GUITestBase(unittest.TestCase):
     def loadSettings(self, filename):
         self.WND.loadSettings(filename)
         self.sleep(1000)
-        self.WND.webPage.loadScriptFile(Script.TEST)
+        self.WND.webPage.loadScriptFile(ScriptFile.TEST)
 
     def mouseClick(self, x, y):
         self.WND.runScript("showMarker({}, {}, 400)".format(x, y))
