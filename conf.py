@@ -17,11 +17,14 @@ RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
 # processing export
 P_OPEN_DIRECTORY = True
 
-# debug
+# debugging and testing
 DEBUG_MODE = 1
-# 0. no debug info
-# 1. log panel + JS console
-# 2. log panel + JS console, log file, "debug" element
+# DEBUG_MODE values:
+#  0. no debug info
+#  1. log panel + JS console
+#  2. log panel + JS console, log file, "debug" element
+
+TESTING = False
 
 
 class DEF_SETS:
