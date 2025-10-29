@@ -52,18 +52,28 @@ class WebBridge(QObject):
 
     @pyqtSlot()
     @notify_slot_called
-    def onInitialized(self):
+    def emitInitialized(self):
         self.initialized.emit()
 
     @pyqtSlot()
     @notify_slot_called
-    def onSceneLoaded(self):
+    def emitSceneLoaded(self):
         self.sceneLoaded.emit()
 
     @pyqtSlot()
     @notify_slot_called
-    def onSceneLoadError(self):
+    def emitSceneLoadError(self):
         self.sceneLoadError.emit()
+
+    @pyqtSlot(int)
+    @notify_slot_called
+    def emitTweenStarted(self, index):
+        self.tweenStarted.emit(index)
+
+    @pyqtSlot()
+    @notify_slot_called
+    def emitAnimationStopped(self):
+        self.animationStopped.emit()
 
     @pyqtSlot(str, int)
     @notify_slot_called
@@ -89,16 +99,6 @@ class WebBridge(QObject):
             image = QImage()
             image.loadFromData(ba)
         self.imageReady.emit(width, height, image)
-
-    @pyqtSlot(int)
-    @notify_slot_called
-    def onTweenStarted(self, index):
-        self.tweenStarted.emit(index)
-
-    @pyqtSlot()
-    @notify_slot_called
-    def onAnimationStopped(self):
-        self.animationStopped.emit()
 
     @pyqtSlot(str, bool, str)
     @notify_slot_called
