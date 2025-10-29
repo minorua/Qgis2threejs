@@ -2,6 +2,7 @@
 # (C) 2013 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import logging
 import os
 import base64
 import configparser
@@ -469,6 +470,5 @@ class Logger(QObject):
 
     def do_nothing(self, msg, _=""):
         pass
-
 
 logger = Logger(DEBUG_MODE)

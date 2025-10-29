@@ -5,12 +5,14 @@
 
 import os
 import shutil
+import logging
 
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from Qgis2threejs.utils import getLayersByLayerIds, logger, pluginDir
+from Qgis2threejs import utils
+from Qgis2threejs.utils import getLayersByLayerIds, pluginDir
 
 MY_TEST_TEMPDIR = "E:/dev/qgis2threejs_test"
 
@@ -98,3 +100,9 @@ def log(msg):
         logger.info(msg.encode("utf-8"))
     else:
         logger.info(str(msg))
+
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Qgis2threejs")
+# logger.setLevel(DEBUG)
+utils.logger = logger

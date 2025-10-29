@@ -1,3 +1,4 @@
+echo HELLO > D:\hello.txt
 if "%OSGEO4W_ROOT%" == "" set OSGEO4W_ROOT=C:\OSGeo4W
 if "%QGIS_PACKAGE%" == "" set QGIS_PACKAGE=qgis
 if "%PY_VERSION%" == "" set PY_VERSION=312

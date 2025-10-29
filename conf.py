@@ -18,7 +18,7 @@ RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
 P_OPEN_DIRECTORY = True
 
 # debug
-DEBUG_MODE = 1
+DEBUG_MODE = 2
 # 0. no debug info
 # 1. log panel + JS console
 # 2. log panel + JS console, log file, "debug" element
