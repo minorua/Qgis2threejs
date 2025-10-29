@@ -15,6 +15,7 @@ from ....utils import hex_color, logger, parseFloat
 
 
 class VectorLayer:
+    """Represents a vector layer with 3D object type."""
 
     def __init__(self, settings, layer, materialManager, modelManager):
         """layer: Layer object"""

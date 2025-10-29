@@ -14,6 +14,7 @@ from ....utils import hex_color, logger, parseFloat
 
 
 class DEMGridBuilder:
+    """Generates 3D geometry grids based on DEM data."""
 
     def __init__(self, settings, mtlManager, layer, provider, pathRoot=None, urlRoot=None):
 
