@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import Qgis, QgsProject
 
-from .q3dwebbridge import Bridge
+from .q3dwebbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import Script
 from ..utils import hex_color, js_bool, logger, pluginDir
@@ -31,7 +31,7 @@ class Q3DWebPageCommon:
         self.wnd = wnd
         self.offScreen = bool(wnd is None)
 
-        self.bridge = Bridge(self)
+        self.bridge = WebBridge(self)
         self.bridge.initialized.connect(self.initialized)
         self.bridge.initialized.connect(self.ready)
         self.bridge.sceneLoaded.connect(self.sceneLoaded)
