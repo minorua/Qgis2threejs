@@ -18,6 +18,8 @@ def json_default(o):
 
 
 class FeatureBlockBuilder:
+    """Generates blocks of 3D feature data from a vector layer. When the number of features is large,
+        the data is divided into multiple data blocks."""
 
     def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=VectorGeometry.NotUseZM, z_func=None, grid=None):
         self.settings = settings

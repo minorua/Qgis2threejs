@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
-# begin: 2014-01-16
 
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
@@ -17,6 +16,7 @@ from ....conf import DEBUG_MODE
 
 
 class DEMLayerBuilder(LayerBuilderBase):
+    """Generates 3D data from a DEM layer."""
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
