@@ -44,8 +44,8 @@ class ScriptFile:
     FETCH = 101
     TEST = 201
 
-    # relative path to script file from js directory
-    PATH = {
+    # relative paths to script files from js directory
+    PATHS = {
         PROJ4: "lib/proj4js/proj4.js",
         GLTFLOADER: "lib/threejs/loaders/GLTFLoader.js",
         COLLADALOADER: "lib/threejs/loaders/ColladaLoader.js",
