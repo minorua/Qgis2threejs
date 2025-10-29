@@ -103,7 +103,7 @@ class Q3DWebPageCommon:
         if id in self.loadedScripts and not force:
             return
 
-        filename = pluginDir("web/js", ScriptFiles.PATH[id])
+        filename = pluginDir("web/js", ScriptFiles.PATHS[id])
 
         with open(filename, "r", encoding="utf-8") as f:
             script = f.read()
