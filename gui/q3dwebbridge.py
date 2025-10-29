@@ -21,7 +21,7 @@ def notify_slot_called(func):
     return wrapper
 
 
-class Bridge(QObject):
+class WebBridge(QObject):
 
     # signals - Python to JS
     sendScriptData = pyqtSignal(str, QVariant)
