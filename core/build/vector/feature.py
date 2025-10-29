@@ -15,6 +15,7 @@ LayerType2GeomClass = {
 
 
 class Feature:
+    """A class that represents a feature with 3D geometry. Generated from a QgsFeature and passed to the builder."""
 
     def __init__(self, vlayer, geom, props, attrs=None):
 

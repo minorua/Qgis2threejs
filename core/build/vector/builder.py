@@ -17,6 +17,7 @@ from ....utils import css_color, int_color, logger
 
 
 class VectorLayerBuilder(LayerBuilderBase):
+    """A class that generates 3D data from a vector layer."""
 
     type2str = {
         LayerType.POINT: "point",

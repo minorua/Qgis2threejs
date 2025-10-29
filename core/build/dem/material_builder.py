@@ -9,6 +9,7 @@ from ....utils import hex_color
 
 
 class DEMMaterialBuilder:
+    """A class that generates materials for DEM layer."""
 
     def __init__(self, settings, layer, imageManager, pathRoot, urlRoot):
         self.settings = settings
