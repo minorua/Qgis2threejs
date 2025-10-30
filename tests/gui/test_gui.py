@@ -259,6 +259,9 @@ class GUITestResult(unittest.TestResult):
         self.consoleMessages = {}
 
     def addConsoleMessage(self, message, lineNumber, sourceID):
+        """Currently not used.
+            TODO: fetch console messages from web page."""
+
         if ".py" in sourceID:
             return
 
@@ -304,8 +307,8 @@ class GUITestResult(unittest.TestResult):
                 rows.append("* " + text.replace(to_remove, ""))
 
         rows.append("### Console Messages ###")
-        for msg, count in self.consoleMessages.items():
-            rows.append("* {} [x{}]".format(msg, count))
+        # for msg, count in self.consoleMessages.items():
+        #    rows.append("* {} [x{}]".format(msg, count))
 
         rows.append("See web inspector for details.")
 
@@ -350,17 +353,6 @@ def runTest(wnd):
     result = GUITestResult()
     wnd.webPage.bridge.testResultReceived.connect(result.addTestResult)
 
-    # a monkey patch to wnd
-    wnd._logToConsole = wnd.logToConsole
-
-    def logToConsole(self, message, lineNumber="", sourceID=""):
-
-        wnd._logToConsole(message, lineNumber, sourceID)
-
-        result.addConsoleMessage(message, lineNumber, sourceID)
-
-    wnd.logToConsole = logToConsole.__get__(wnd)
-
     # start testing
     logger.info("Testing GUI...")
 
@@ -371,5 +363,3 @@ def runTest(wnd):
         pass
 
     result.printResult()
-
-    wnd.logToConsole = wnd._logToConsole

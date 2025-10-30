@@ -368,15 +368,6 @@ class Q3DWindow(QMainWindow):
         dialog.setLayer(layer)
         return dialog.page.properties()
 
-    def logToConsole(self, message, lineNumber="", sourceID=""):
-        if sourceID:
-            source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
-            text = "{}: {}".format(source, message)
-        else:
-            text = message
-
-        self.webPage.logToConsole(text)
-
     def fileDropped(self, urls):
         for url in urls:
             filename = url.fileName()
