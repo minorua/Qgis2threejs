@@ -10,15 +10,17 @@ from qgis.PyQt.QtGui import QImage
 from ..conf import DEBUG_MODE
 
 
-def notify_slot_called(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if DEBUG_MODE:
+if DEBUG_MODE:
+    def emit_slotCalled(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             args[0].slotCalled.emit("↑ " + func.__name__)
-
-        return func(*args, **kwargs)
-
-    return wrapper
+            return func(*args, **kwargs)
+        return wrapper
+else:
+    def noop(func):
+        return func
+    emit_slotCalled = noop
 
 
 class WebBridge(QObject):
@@ -51,47 +53,47 @@ class WebBridge(QObject):
         self._storedData = QVariant(data)
 
     @pyqtSlot()
-    @notify_slot_called
+    @emit_slotCalled
     def emitInitialized(self):
         self.initialized.emit()
 
     @pyqtSlot()
-    @notify_slot_called
+    @emit_slotCalled
     def emitSceneLoaded(self):
         self.sceneLoaded.emit()
 
     @pyqtSlot()
-    @notify_slot_called
+    @emit_slotCalled
     def emitSceneLoadError(self):
         self.sceneLoadError.emit()
 
     @pyqtSlot(int)
-    @notify_slot_called
+    @emit_slotCalled
     def emitTweenStarted(self, index):
         self.tweenStarted.emit(index)
 
     @pyqtSlot()
-    @notify_slot_called
+    @emit_slotCalled
     def emitAnimationStopped(self):
         self.animationStopped.emit()
 
     @pyqtSlot(str, int)
-    @notify_slot_called
+    @emit_slotCalled
     def showStatusMessage(self, message, timeout_ms=0):
         self.statusMessage.emit(message, timeout_ms)
 
     @pyqtSlot("QByteArray", str)
-    @notify_slot_called
+    @emit_slotCalled
     def saveBytes(self, data, filename):
         self.modelDataReady.emit(data, filename)
 
     @pyqtSlot(str, str)
-    @notify_slot_called
+    @emit_slotCalled
     def saveString(self, text, filename):
         self.modelDataReady.emit(text.encode("UTF-8"), filename)
 
     @pyqtSlot(int, int, str)
-    @notify_slot_called
+    @emit_slotCalled
     def saveImage(self, width, height, dataUrl):
         image = None
         if dataUrl:
@@ -101,7 +103,7 @@ class WebBridge(QObject):
         self.imageReady.emit(width, height, image)
 
     @pyqtSlot(str, bool, str)
-    @notify_slot_called
+    @emit_slotCalled
     def sendTestResult(self, testName, result, msg):
         self.testResultReceived.emit(testName, result, msg)
 
