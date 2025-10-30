@@ -91,10 +91,3 @@ def loadProject(filename):
     mapSettings.setBackgroundColor(QColor(red, green, blue))
 
     return mapSettings
-
-
-def log(msg):
-    if isinstance(msg, str):
-        logger.info(msg.encode("utf-8"))
-    else:
-        logger.info(str(msg))

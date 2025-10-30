@@ -126,7 +126,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
-            utils.logger.logged.connect(self.webPage.logToConsole)
+            utils.addLogCallback(self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
@@ -156,7 +156,7 @@ class Q3DWindow(QMainWindow):
             self.controller.disconnectFromMapCanvas()
 
             if self.webPage:
-                utils.logger.logged.disconnect(self.webPage.logToConsole)
+                utils.removeLogCallback(self.webPage.logToConsole)
 
                 if self.webPage.isWebEnginePage:
                     self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)

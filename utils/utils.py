@@ -5,16 +5,15 @@
 import os
 import base64
 import configparser
+import logging
 import re
 import shutil
-from datetime import datetime
 
 from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage
-
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
-from ..conf import DEBUG_MODE, PLUGIN_NAME
+from ..conf import DEBUG_MODE, PLUGIN_NAME, TESTING
 
 
 ### QGIS layer related functions ###
@@ -418,57 +417,75 @@ def createUid():
 
 
 ### Logging ###
-
-class Logger(QObject):
-    """Logs messages to the QGIS log message panel. Also emits a 'logged' signal when a message is
-       logged, allowing it to be printed in the web view console.
-    """
-
-    logged = pyqtSignal(str, str)      # message, level
-
-    def __init__(self, debug_mode=1, parent=None):
-        QObject.__init__(self, parent)
-
-        self.logfile = None
-        if debug_mode == 2:
-            self.logfile = open(pluginDir("qgis2threejs.log"), "w")
-
+class QgisLogHandler(logging.Handler):
+    """A handler that logs messages to the QGIS log message panel."""
+    def emit(self, record):
+        msg = self.format(record)
+        if record.levelno >= logging.ERROR:
+            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
+        elif record.levelno >= logging.WARNING:
+            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
         else:
-            self.log_to_file = self.do_nothing
-
-            if debug_mode == 0:
-                self.debug = self.do_nothing
-
-    def info(self, msg):
-        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
-        self.logged.emit(msg, "info")
-        self.log_to_file(msg, "info")
-
-    def warning(self, msg):
-        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
-        self.logged.emit(msg, "warn")
-        self.log_to_file(msg, "warn")
-
-    def error(self, msg):
-        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
-        self.logged.emit(msg, "error")
-        self.log_to_file(msg, "error")
-
-    def debug(self, msg):
-        QgsMessageLog.logMessage(str(msg), tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
-        self.logged.emit(msg, "debug")
-        self.log_to_file(msg, "debug")
-
-    def log_to_file(self, msg, level=""):
-        if not self.logfile:
-            return
-
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.logfile.write("[{} - {}] {}\n".format(now, level, msg))
-        self.logfile.flush()
-
-    def do_nothing(self, msg, _=""):
-        pass
+            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
 
 
-logger = Logger(DEBUG_MODE)
+class CallbackHandler(logging.Handler):
+
+    ReplaceMap = {
+        "warning": "warn",
+        "critical": "error"
+    }
+
+    def __init__(self, callback):
+        super().__init__()
+        self.callback = callback
+
+    def emit(self, record):
+        level = record.levelname.lower()
+        level = self.ReplaceMap.get(level, level)
+        self.callback(self.format(record), level)
+
+
+def createLogger():
+    logger = logging.getLogger(PLUGIN_NAME)
+    logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
+
+    if TESTING:
+        formatter = logging.Formatter("[%(levelname)s] %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    else:
+        logger.addHandler(QgisLogHandler())
+
+    if DEBUG_MODE == 2:
+        formatter = logging.Formatter("[%(asctime)s - %(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        fileHandler = logging.FileHandler(pluginDir("qgis2threejs.log"), mode="w")
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
+
+    return logger
+
+# the Logger
+logger = createLogger()
+
+
+def addLogCallback(callback):
+    """Add a callback function that will be called when a message is logged.
+
+    Args:
+        callback: A function that takes message and level as arguments.
+    """
+    logger.addHandler(CallbackHandler(callback))
+
+
+def removeLogCallback(callback):
+    """Remove a previously added log callback function.
+
+    Args:
+        callback: The callback function to remove.
+    """
+    for handler in logger.handlers:
+        if isinstance(handler, CallbackHandler) and handler.callback == callback:
+            logger.removeHandler(handler)
+            break

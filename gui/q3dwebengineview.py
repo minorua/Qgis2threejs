@@ -104,6 +104,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
 
     def logToConsole(self, message, level="debug"):
+        if level not in ["debug", "info", "warn", "error"]:
+            level = "log"
         self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):

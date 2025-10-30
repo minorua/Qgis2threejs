@@ -81,6 +81,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         self.runScript(string, data, message=None)
 
     def logToConsole(self, message, level="debug"):
+        if level not in ["debug", "info", "warn", "error"]:
+            level = "log"
         self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def renderImage(self, width, height, callback):
