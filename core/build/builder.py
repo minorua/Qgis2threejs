@@ -10,7 +10,7 @@ from .datamanager import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
 from .pointcloud.builder import PointCloudLayerBuilder
-from ...utils import int_color
+from ...utils import int_color, noop
 
 
 LayerBuilderFactory = {
@@ -26,8 +26,8 @@ class ThreeJSBuilder:
 
     def __init__(self, settings, progress=None, log=None):
         self.settings = settings
-        self.progress = progress or dummyProgress
-        self.log = log or dummyLogMessage
+        self.progress = progress or noop
+        self.log = log or noop
         self.imageManager = ImageManager(settings)
 
         self._canceled = False
@@ -124,11 +124,3 @@ class ThreeJSBuilder:
 
     def cancel(self):
         self._canceled = True
-
-
-def dummyProgress(percentage=None, msg=None):
-    pass
-
-
-def dummyLogMessage(msg, warning=False):
-    pass

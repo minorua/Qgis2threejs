@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
-# begin: 2014-01-16
 
 from qgis.core import QgsApplication
+
+from ...utils import noop
 
 
 class LayerBuilderBase:
@@ -16,8 +17,8 @@ class LayerBuilderBase:
         self.imageManager = imageManager
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
-        self.progress = progress or dummyProgress
-        self.log = log or dummyLogMessage
+        self.progress = progress or noop
+        self.log = log or noop
 
         self._canceled = False
 
@@ -51,11 +52,3 @@ class LayerBuilderBase:
             "clickable": self.properties.get("checkBox_Clickable", True),
             "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview    # always visible in preview
         }
-
-
-def dummyProgress(percentage=None, msg=None):
-    pass
-
-
-def dummyLogMessage(msg, warning=False):
-    pass

@@ -411,12 +411,7 @@ def settingsFilePath():
     return proj_path + ".qto3settings" if proj_path else ""
 
 
-def createUid():
-    """Generate a short unique id."""
-    return QUuid.createUuid().toString()[1:9]
-
-
-### Logging ###
+### Classes and functions for logging ###
 class QgisLogHandler(logging.Handler):
     """A handler that logs messages to the QGIS log message panel."""
     def emit(self, record):
@@ -489,3 +484,14 @@ def removeLogCallback(callback):
         if isinstance(handler, CallbackHandler) and handler.callback == callback:
             logger.removeHandler(handler)
             break
+
+
+### Miscellaneous functions ###
+def createUid():
+    """Generate a short unique id."""
+    return QUuid.createUuid().toString()[1:9]
+
+
+def noop(*args, **kwargs):
+    """A no-operation function that does nothing."""
+    pass
