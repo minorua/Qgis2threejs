@@ -12,16 +12,16 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                              QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from . import q3dview
+from . import webview
 from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
+from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
 from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
 from ..core.const import LayerType, ScriptFile
-from ..core.controller.q3dcontroller import Q3DController
-from ..core.controller.q3dinterface import Q3DInterface
+from ..core.controller.controller import Q3DController
+from ..core.controller.interface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, logger, pluginDir
@@ -87,7 +87,7 @@ class Q3DWindow(QMainWindow):
         if webViewType is not None:
             setCurrentWebView(webViewType)
 
-        ui_wnd.Q3DView = q3dview.Q3DView
+        ui_wnd.Q3DView = webview.Q3DView
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 

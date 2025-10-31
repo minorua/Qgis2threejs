@@ -29,7 +29,7 @@ class Q3DInterface(QObject):
     @pyqtSlot(str, object, str)
     def runScript(self, string, data=None, message=""):
         if self.enabled:
-            self.webPage.runScript(string, data, message, sourceID="q3dwindow.py")
+            self.webPage.runScript(string, data, message, sourceID="interface.py")
 
     @pyqtSlot(list, bool)
     def loadScriptFiles(self, ids, force):

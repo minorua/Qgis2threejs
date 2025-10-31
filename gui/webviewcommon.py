@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import Qgis, QgsProject
 
-from .q3dwebbridge import WebBridge
+from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
 from ..utils import hex_color, js_bool, logger, pluginDir
@@ -216,7 +216,7 @@ class Q3DWebViewCommon:
     def sendData(self, data):
         self._page.sendData(data)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
+    def runScript(self, string, data=None, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, data, message, sourceID, callback, wait)
 
     def showJSInfo(self):
