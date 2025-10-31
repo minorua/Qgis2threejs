@@ -42,7 +42,7 @@ if __name__ == "__main__":
     from qgis.testing import start_app
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2],
+    parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2], default=2,
                         help="Debug mode (0: OFF, 1 or 2: ON)")
     args = parser.parse_args()
 
