@@ -9,7 +9,7 @@ from qgis.testing import unittest
 from Qgis2threejs.core.export.export import ThreeJSExporter
 from Qgis2threejs.core.mapextent import MapExtent
 from Qgis2threejs.core.plugin.pluginmanager import pluginManager
-from Qgis2threejs.tests.utilities import dataPath, outputPath, loadProject
+from Qgis2threejs.tests.utils import dataPath, outputPath, loadProject
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
