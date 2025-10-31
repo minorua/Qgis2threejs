@@ -47,17 +47,17 @@ def setCurrentWebView(webViewType):
         return
 
     if webViewType == WEBVIEWTYPE_WEBKIT:
-        from .q3dwebkitview import Q3DWebKitView, Q3DWebKitPage
+        from .webkitview import Q3DWebKitView, Q3DWebKitPage
         Q3DView = Q3DWebKitView
         Q3DWebPage = Q3DWebKitPage
 
     elif webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .q3dwebengineview import Q3DWebEngineView, Q3DWebEnginePage
+        from .webengineview import Q3DWebEngineView, Q3DWebEnginePage
         Q3DView = Q3DWebEngineView
         Q3DWebPage = Q3DWebEnginePage
 
     else:
-        from .q3ddummyview import Q3DDummyView, Q3DDummyPage
+        from .dummyview import Q3DDummyView, Q3DDummyPage
         Q3DView = Q3DDummyView
         Q3DWebPage = Q3DDummyPage
 

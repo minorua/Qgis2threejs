@@ -15,10 +15,10 @@ from ..build.vector.builder import VectorLayerBuilder
 from ..build.pointcloud.builder import PointCloudLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
-from ..controller.q3dcontroller import Q3DController
-from ..controller.q3dinterface import Q3DInterface
+from ..controller.controller import Q3DController
+from ..controller.interface import Q3DInterface
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
-from ...gui.q3dview import Q3DWebPage
+from ...gui.webview import Q3DWebPage
 from ...utils import hex_color
 from ... import utils
 

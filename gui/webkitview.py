@@ -12,7 +12,7 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
 from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
-from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
 from ..utils import pluginDir, logger
 
@@ -62,7 +62,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         self.mainFrame().setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dwebkitview.py", callback=None, wait=False):
+    def runScript(self, string, data=None, message="", sourceID="webkitview.py", callback=None, wait=False):
         """
         Run a JavaScript script in the web view with optional data and callback.
         Args:

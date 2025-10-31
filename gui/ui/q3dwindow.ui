@@ -405,13 +405,13 @@
   <customwidget>
    <class>Q3DView</class>
    <extends>QWidget</extends>
-   <header>Qgis2threejs.gui.q3dview</header>
+   <header>Qgis2threejs.gui.webview</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>Q3DTreeView</class>
    <extends>QTreeView</extends>
-   <header>Qgis2threejs.gui.q3dtreeview</header>
+   <header>Qgis2threejs.gui.treeview</header>
   </customwidget>
   <customwidget>
    <class>AnimationPanel</class>

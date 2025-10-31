@@ -17,7 +17,7 @@ else:
     from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
     from PyQt6.QtWebChannel import QWebChannel
 
-from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..utils import pluginDir
 
 
@@ -63,7 +63,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dwebengineview.py", callback=None, wait=False):
+    def runScript(self, string, data=None, message="", sourceID="webengineview.py", callback=None, wait=False):
         """
         Run a JavaScript script in the web view with optional data and callback.
         Args:
