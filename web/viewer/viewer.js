@@ -36,7 +36,9 @@ function init(off_screen, debug_mode, qgis_version, is_webengine) {
 
 				eval(script);
 
-				if (Q3D.Config.debugMode) logSignal("sendScriptData", script, data);
+				if (Q3D.Config.debugMode) {
+					console.debug("↓", script, "# sendScriptData", (data === undefined) ? "" : data);
+				}
 			});
 
 			_init(off_screen);
@@ -119,12 +121,6 @@ function _init(off_screen) {
 	}
 
 	pyObj.emitInitialized();
-}
-
-function logSignal(name, description, object) {
-
-	console.debug("↓", name, (description || ""), (object === undefined) ? "" : object);
-
 }
 
 //// load functions
