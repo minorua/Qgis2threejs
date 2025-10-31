@@ -13,6 +13,7 @@ from .q3dwebbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
 from ..utils import hex_color, js_bool, logger, pluginDir
+from ..utils.logging import web_logger
 
 
 class Q3DWebPageCommon:
@@ -162,8 +163,12 @@ class Q3DWebPageCommon:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
 
-    def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-        pass
+    def javaScriptConsoleMessage(self, message, lineNumber, sourceID, level="debug"):
+        if DEBUG_MODE:
+            text = message
+            if sourceID:
+                text += f"\t({sourceID.split('/')[-1]}:{lineNumber})"
+            web_logger.debug(text)
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)

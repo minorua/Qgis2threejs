@@ -6,7 +6,7 @@
 import sys
 import weakref
 
-from .utils import logger
+from .logging import python_logger as logger
 
 
 def objectsOfInterest(wnd):

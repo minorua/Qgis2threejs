@@ -47,31 +47,39 @@ class CallbackHandler(logging.Handler):
         self.callback(self.format(record), level)
 
 
-def createLogger():
-    logger = logging.getLogger(PLUGIN_NAME)
+def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath=""):
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
+    # logger.propagate = False
 
-    if TESTING:
+    if stream:
         formatter = logging.Formatter("[%(levelname)s] %(message)s")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-    else:
+
+    if qgis_log:
         logger.addHandler(QgisLogHandler())
 
-    if DEBUG_MODE == 2:
+    if filepath:
         formatter = logging.Formatter("[%(asctime)s - %(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-        fileHandler = logging.FileHandler(pluginDir("qgis2threejs.log"), mode="w")
+        fileHandler = logging.FileHandler(filepath, mode="w")
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
 
     return logger
 
 # the Logger
-logger = createLogger()
+python_logger = getLogger(name=PLUGIN_NAME,
+                          stream=TESTING,
+                          qgis_log=not TESTING,
+                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "")
+
+web_logger = getLogger(name=PLUGIN_NAME + "Web",
+                       filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "")
 
 
-def addLogCallback(callback):
+def addLogCallback(logger, callback):
     """Add a callback function that will be called when a message is logged.
 
     Args:
@@ -80,7 +88,7 @@ def addLogCallback(callback):
     logger.addHandler(CallbackHandler(callback))
 
 
-def removeLogCallback(callback):
+def removeLogCallback(logger, callback):
     """Remove a previously added log callback function.
 
     Args:

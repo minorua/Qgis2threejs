@@ -14,6 +14,7 @@ from qgis.PyQt.QtGui import QDesktopServices, QImage
 from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
 
 from ..conf import DEBUG_MODE, PLUGIN_NAME, TESTING
+from .logging import python_logger as logger
 
 
 ### QGIS layer related functions ###
