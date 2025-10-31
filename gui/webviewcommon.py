@@ -128,8 +128,7 @@ class Q3DWebPageCommon:
     def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
         loading = self.runScript("app.loadingManager.isLoading")
 
-        if DEBUG_MODE:
-            logger.debug("waitForSceneLoaded: loading={}".format(loading))
+        logger.debug("waitForSceneLoaded: loading=%s", loading)
 
         if not loading:
             return False

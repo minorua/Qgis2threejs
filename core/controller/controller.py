@@ -362,8 +362,7 @@ class Q3DController(QObject):
 
     @pyqtSlot(object, bool, bool)
     def requestBuildScene(self, properties=None, update_all=True, reload=False):
-        if DEBUG_MODE:
-            logger.debug("Scene update requested: {}".format(properties))
+        logger.debug("Scene update requested: %s", properties)
 
         if properties:
             self.settings.setSceneProperties(properties)
@@ -384,8 +383,7 @@ class Q3DController(QObject):
 
     @pyqtSlot(Layer)
     def requestBuildLayer(self, layer):
-        if DEBUG_MODE:
-            logger.debug("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"))
+        logger.debug("Layer update for %s requested (visible: %s).", layer.layerId, layer.visible)
 
         # update layer properties and layer state in worker side export settings
         lyr = self.settings.getLayer(layer.layerId)

@@ -13,7 +13,6 @@ from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
 from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
-from ..conf import DEBUG_MODE
 from ..utils import pluginDir, logger
 
 

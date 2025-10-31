@@ -11,7 +11,7 @@ from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
-from ..conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
+from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
 from ..utils import createUid, js_bool, logger, parseInt, pluginDir
@@ -126,8 +126,7 @@ class AnimationPanel(QWidget):
             timeout_ms = 0
 
         if len(dataList):
-            if DEBUG_MODE:
-                logger.debug("Play: " + str(dataList))
+            logger.debug("Play: %s", dataList)
             self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
@@ -1294,6 +1293,5 @@ class KeyframeDialog(QDialog):
     # @pyqtSlot(int)
     def tweenStarted(self, index):
         if self.isPlayingAll:
-            if DEBUG_MODE:
-                logger.debug("TWEENING {} ...".format(index))
+            logger.debug("TWEENING %d ...", index)
             self.ui.slider.setValue(index)

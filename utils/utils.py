@@ -5,15 +5,13 @@
 import os
 import base64
 import configparser
-import logging
 import re
 import shutil
 
-from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QObject, QProcess, QSettings, QUrl, QUuid, pyqtSignal
+from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
 from qgis.PyQt.QtGui import QDesktopServices, QImage
-from qgis.core import NULL, Qgis, QgsMapLayer, QgsMessageLog, QgsProject
+from qgis.core import NULL, QgsMapLayer, QgsProject
 
-from ..conf import DEBUG_MODE, PLUGIN_NAME, TESTING
 from .logging import python_logger as logger
 
 
@@ -268,37 +266,31 @@ def openUrl(url):
 def copyFile(source, dest, overwrite=False):
     if os.path.exists(dest):
         if overwrite or abs(QFileInfo(source).lastModified().secsTo(QFileInfo(dest).lastModified())) > 5:   # use secsTo for different file systems
-            if DEBUG_MODE:
-                logger.debug("Existing file removed: %s (%s, %s)" % (dest, str(QFileInfo(source).lastModified()), str(QFileInfo(dest).lastModified())))
             QFile.remove(dest)
+            logger.debug("Existing file removed: %s", dest)
         else:
-            if DEBUG_MODE:
-                logger.debug("File already exists: %s" % dest)
+            logger.info("File already exists: %s", dest)
             return False
 
     ret = QFile.copy(source, dest)
-    if DEBUG_MODE:
-        if ret:
-            logger.debug("File copied: %s to %s" % (source, dest))
-        else:
-            logger.debug("Failed to copy file: %s to %s" % (source, dest))
+    if ret:
+        logger.debug("File copied: %s to %s", source, dest)
+    else:
+        logger.warning("Failed to copy file: %s to %s", source, dest)
     return ret
 
 
 def copyDir(source, dest, overwrite=False):
     if os.path.exists(dest):
         if overwrite:
-            if DEBUG_MODE:
-                logger.debug("Existing dir removed: %s" % dest)
             shutil.rmtree(dest)
+            logger.debug("Existing dir removed: %s", dest)
         else:
-            if DEBUG_MODE:
-                logger.debug("Dir already exists: %s" % dest)
+            logger.info("Dir already exists: %s", dest)
             return False
 
     shutil.copytree(source, dest)
-    if DEBUG_MODE:
-        logger.debug("Dir copied: %s to %s" % (source, dest))
+    logger.debug("Dir copied: %s to %s", source, dest)
     return True
 
 
@@ -325,9 +317,7 @@ def copyFiles(filesToCopy, out_dir):
         subdirs = item.get("subdirs", False)
         overwrite = item.get("overwrite", False)
 
-        if DEBUG_MODE:
-            logger.debug(str(item))
-            logger.debug("dest dir: %s" % dest_dir)
+        logger.debug("copying %s to %s", item, dest_dir)
 
         # make destination directory
         QDir().mkpath(dest_dir)
@@ -398,8 +388,8 @@ def getTemplateConfig(template_path):
     config = {"path": abspath}
     for item in parser.items("general"):
         config[item[0]] = item[1]
-    if DEBUG_MODE:
-        logger.debug("config: " + str(config))
+
+    logger.debug("template config: %s", config)
     return config
 
 
