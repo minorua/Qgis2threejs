@@ -18,7 +18,6 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from .. import utils
 from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.q3dcontroller import Q3DController
@@ -26,6 +25,7 @@ from ..core.controller.q3dinterface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, logger, pluginDir
+from ..utils.logging import addLogCallback, removeLogCallback
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -126,7 +126,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
-            utils.addLogCallback(self.webPage.logToConsole)
+            addLogCallback(logger, self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
@@ -156,7 +156,7 @@ class Q3DWindow(QMainWindow):
             self.controller.disconnectFromMapCanvas()
 
             if self.webPage:
-                utils.removeLogCallback(self.webPage.logToConsole)
+                removeLogCallback(logger, self.webPage.logToConsole)
 
                 if self.webPage.isWebEnginePage:
                     self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
