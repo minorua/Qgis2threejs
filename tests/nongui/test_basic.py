@@ -8,8 +8,8 @@ import os
 import sys
 from qgis.testing import unittest
 
-from Qgis2threejs.tests.utilities import pluginDir
-from Qgis2threejs.utils import logger
+from Qgis2threejs.utils import logger, pluginDir
+
 
 class TestBasic(unittest.TestCase):
 

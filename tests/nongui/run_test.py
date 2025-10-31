@@ -62,7 +62,7 @@ def runTest(debug_mode=None):
             break
 
     # initialize output directory
-    from Qgis2threejs.tests.utilities import initOutputDir, outputPath
+    from Qgis2threejs.tests.utils import initOutputDir, outputPath
     initOutputDir()
 
     logger.info(f"Plugin Dir.: {plugin_dir}")
