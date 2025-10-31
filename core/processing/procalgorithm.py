@@ -50,8 +50,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.settings = ExportSettings()
 
     def createInstance(self):
-        if DEBUG_MODE:
-            logger.debug("createInstance(): {}".format(self.__class__.__name__))
+        logger.debug("createInstance(): %s", self.__class__.__name__)
         return self.__class__()
 
     def flags(self):
@@ -68,9 +67,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         param.setFlags(param.flags() | param.FlagAdvanced)
         self.addParameter(param)
 
-    def initAlgorithm(self, config, label=True):
-        if DEBUG_MODE:
-            logger.debug("initAlgorithm(): {}".format(self.__class__.__name__))
+    def initAlgorithm(self, configuration={}, label=True):
+        logger.debug("initAlgorithm(): %s", self.__class__.__name__)
 
         qgis_iface = qgis.utils.plugins["Qgis2threejs"].iface
         self.settings.loadSettingsFromFile()
@@ -190,8 +188,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         return True
 
     def processAlgorithm(self, parameters, context, feedback):
-        if DEBUG_MODE:
-            logger.debug("processAlgorithm(): {}".format(self.__class__.__name__))
+        logger.debug("processAlgorithm(): %s", self.__class__.__name__)
 
         clayer = self.parameterAsLayer(parameters, self.INPUT, context)
         title_field = self.parameterAsString(parameters, self.TITLE_FIELD, context)

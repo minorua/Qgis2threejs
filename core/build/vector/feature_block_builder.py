@@ -70,12 +70,13 @@ class FeatureBlockBuilder:
                 d["lh"] = f.prop(PID.LBLH)
 
             if f.hasProp(PID.DLY):
+                delay = parseInt(f.prop(PID.DLY))
+                duration = parseInt(f.prop(PID.DUR))
                 d["anim"] = {
-                    "delay": parseInt(f.prop(PID.DLY)),
-                    "duration": parseInt(f.prop(PID.DUR))
+                    "delay": delay,
+                    "duration": duration
                 }
-                if DEBUG_MODE:
-                    logger.debug("Animation: delay={}, duration={}".format(d["anim"]["delay"], d["anim"]["duration"]))
+                logger.debug("Animation: delay=%d, duration=%d", delay, duration)
 
             feats.append(d)
 

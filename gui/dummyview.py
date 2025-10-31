@@ -7,7 +7,6 @@ from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView
 from qgis.PyQt.QtGui import QColorConstants, QPixmap
 
-from ..conf import DEBUG_MODE
 from ..utils import logger, pluginDir
 
 
