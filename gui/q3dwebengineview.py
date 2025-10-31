@@ -63,9 +63,18 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
-        """wait: whether to wait until script execution has completed"""
-        Q3DWebPageCommon.runScript(self, string, data, message, sourceID, callback, wait)
+    def runScript(self, string, data=None, message="", sourceID="q3dwebengineview.py", callback=None, wait=False):
+        """
+        Run a JavaScript script in the web view with optional data and callback.
+        Args:
+            string (str): The JavaScript code string to execute.
+            data (optional): Data to be passed along with the script execution.
+            message (str, optional): A descriptive message for logging purposes.
+            sourceID (str, optional): Identifier for the source of the script.
+            callback (optional): Callback function to be executed after script runs.
+            wait (bool, optional): Whether to wait for script execution to complete.
+        """
+        self.logScriptExecution(string, data, message, sourceID, callback, wait)
 
         if data is not None:
             assert callback is None, "cannot callback when data is set"

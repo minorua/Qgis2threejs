@@ -88,16 +88,15 @@ class Q3DWebPageCommon:
 
         self.showStatusMessage("")
 
-    def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
+    def logScriptExecution(self, string, data=None, message="", sourceID="", callback=None, wait=False):
         if not DEBUG_MODE or message is None:
             return
 
+        text = message or string
         if sourceID:
-            text = "{}: {}".format(sourceID, message or string)
-        else:
-            text = message or string
+            text += f"\t({sourceID})"
 
-        logger.debug("(runScript) {}".format(text))
+        logger.debug(f"> {text}")
 
     def loadScriptFile(self, scriptFileId, force=False):
         """evaluate a script file without using a script tag. script is loaded synchronously"""
