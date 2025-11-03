@@ -8,12 +8,20 @@ import os
 import sys
 from qgis.testing import unittest
 
-from Qgis2threejs.utils import logger, pluginDir
+from .utils import start_app, stop_app
+from ...utils import logger, pluginDir
 
 
 class TestBasic(unittest.TestCase):
 
-    def test01_import_all_modules(self):
+    def test01_start_qgis(self):
+        """Test starting QGIS application."""
+
+        app = start_app()
+        self.assertIsNotNone(app, "Failed to start QGIS application.")
+        stop_app()
+
+    def test02_import_all_modules(self):
         """Test importing all modules in the plugin."""
 
         logger.info("Imported module list:")

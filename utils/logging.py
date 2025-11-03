@@ -101,8 +101,7 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
 # the Loggers
 python_logger = getLogger(name=PLUGIN_NAME,
                           qgis_log=not TESTING,
-                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "",
-                          list_handler=TESTING)
+                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "")
 
 web_logger = getLogger(name=PLUGIN_NAME + "Web",
                        filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "")

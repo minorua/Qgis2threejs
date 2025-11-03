@@ -3,19 +3,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2015-09-06
 
-import os
-import sys
 import traceback
 from qgis.testing import unittest
 
-# Python path setting
-plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-plugins_dir = os.path.dirname(plugin_dir)
-sys.path.append(plugins_dir)
-
-# configuration for testing
 from Qgis2threejs import conf
-conf.TESTING = True
+from Qgis2threejs.utils import pluginDir
+from Qgis2threejs.utils.logging import getLogger
+from Qgis2threejs.tests.utils import initOutputDir, outputPath
+
 
 logger = None
 
@@ -47,19 +42,21 @@ def runTest(debug_mode=None):
     if debug_mode is not None:
         conf.DEBUG_MODE = debug_mode
 
-    # import logger after setting DEBUG_MODE
-    from Qgis2threejs.utils import logger as _logger
+    from Qgis2threejs.tests.nongui import utils     # need to import the utils module before setting up logger handlers
 
-    logger = _logger
-    logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
+    # set up logger handlers for tests
+    logger = getLogger(conf.PLUGIN_NAME,
+                       stream=False,
+                       filepath=pluginDir("qgis2threejs.log") if conf.DEBUG_MODE == 2 else "",
+                       list_handler=True)
     logger.info("Starting tests...")
+    logger.info(f"TESTING: {conf.TESTING}")
+    logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
+    logger.info(f"Plugin Dir: {pluginDir()}")
+    logger.info(f"Output Dir: {outputPath()}")
 
     # initialize output directory
-    from Qgis2threejs.tests.utils import initOutputDir, outputPath
     initOutputDir()
-
-    logger.info(f"Plugin Dir.: {plugin_dir}")
-    logger.info(f"Output Dir.: {outputPath()}")
 
     # run tests
     suite = unittest.TestLoader().discover("Qgis2threejs.tests.nongui")
@@ -75,35 +72,15 @@ def runTest(debug_mode=None):
 ===================
 """)
 
-    if conf.DEBUG_MODE == 2:
-        print("\nSee Qgis2threejs/qgis2threejs.log for details.")
+    print("\nSee Qgis2threejs/qgis2threejs.log for details.")
 
 
 if __name__ == "__main__":
     import argparse
-    from qgis.PyQt.QtCore import Qt
-    from qgis.PyQt.QtNetwork import QNetworkDiskCache
-    from qgis.core import QgsApplication, QgsNetworkAccessManager
-    from qgis.testing import start_app
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", type=int, choices=[0, 1, 2], default=2,
                         help="Debug mode (0: OFF, 1 or 2: ON)")
     args = parser.parse_args()
-
-    # start QGIS application
-    QgsApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
-    QGISAPP = start_app()
-
-    # make sure that application startup log has been written
-    sys.stdout.flush()
-
-    # set up network disk cache
-    manager = QgsNetworkAccessManager.instance()
-    cache = QNetworkDiskCache(manager)
-    cache.setCacheDirectory(os.path.join(plugin_dir, "tests", "cache"))
-    cache.setMaximumCacheSize(50 * 1024 * 1024)
-    manager.setCache(cache)
 
     # run test!
     runTest(args.debug)

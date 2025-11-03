@@ -8,4 +8,4 @@ set PATH=%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\bin;%OSGEO4W_ROOT%\apps\Qt5\bin;%PAT
 set QT_PLUGIN_PATH=%OSGEO4W_ROOT%\apps\Qt5\plugins
 set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\=/%/apps/%QGIS_PACKAGE%
 set PYTHONHOME=%OSGEO4W_ROOT%\apps\Python%PY_VERSION%
-set PYTHONPATH=%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\python;%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\python\plugins
+set PYTHONPATH=%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\python;%OSGEO4W_ROOT%\apps\%QGIS_PACKAGE%\python\plugins;%~dp0..\..\..\
