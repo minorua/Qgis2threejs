@@ -2,6 +2,7 @@
 *.qm
 *.orig
 *.aux.xml
+*.db
 *.qgs~
 *.qgs.qto3settings
 *.log
