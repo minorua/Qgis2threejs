@@ -42,7 +42,7 @@ def runTest(debug_mode=None):
     if debug_mode is not None:
         conf.DEBUG_MODE = debug_mode
 
-    from Qgis2threejs.tests.nongui import utils     # need to import the utils module before setting up logger handlers
+    from Qgis2threejs.tests.unit import utils     # need to import the utils module before setting up logger handlers
 
     # set up logger handlers for tests
     logger = getLogger(conf.PLUGIN_NAME,
@@ -59,7 +59,7 @@ def runTest(debug_mode=None):
     initOutputDir()
 
     # run tests
-    suite = unittest.TestLoader().discover("Qgis2threejs.tests.nongui")
+    suite = unittest.TestLoader().discover("Qgis2threejs.tests.unit")
     result = unittest.TextTestRunner(resultclass=LoggingTestResult, verbosity=2).run(suite)
 
     logger.info(f"""
