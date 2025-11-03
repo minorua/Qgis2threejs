@@ -47,10 +47,35 @@ class CallbackHandler(logging.Handler):
         self.callback(self.format(record), level)
 
 
-def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath=""):
+class ListHandler(logging.Handler):
+    """A handler that stores log records in a list."""
+
+    def __init__(self):
+        super().__init__()
+        self.records = []
+
+    def emit(self, record):
+        self.records.append(record)
+
+    def clear(self):
+        self.records.clear()
+
+    def get_records(self):
+        return self.records
+
+    def get_messages(self):
+        """Return a list of formatted messages."""
+        return [self.format(record) for record in self.records]
+
+
+def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_handler=False):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
-    # logger.propagate = False
+    logger.propagate = False
+
+    for handler in logger.handlers[:]:      # copy the list
+        logger.removeHandler(handler)
+        handler.close()
 
     if stream:
         formatter = logging.Formatter("[%(levelname)s] %(message)s")
@@ -67,13 +92,17 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath=""):
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
 
+    if list_handler:
+        logger.addHandler(ListHandler())
+
     return logger
 
-# the Logger
+
+# the Loggers
 python_logger = getLogger(name=PLUGIN_NAME,
-                          stream=TESTING,
                           qgis_log=not TESTING,
-                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "")
+                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "",
+                          list_handler=TESTING)
 
 web_logger = getLogger(name=PLUGIN_NAME + "Web",
                        filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "")
@@ -98,3 +127,29 @@ def removeLogCallback(logger, callback):
         if isinstance(handler, CallbackHandler) and handler.callback == callback:
             logger.removeHandler(handler)
             break
+
+
+def getLogListHandler(logger):
+    """Get the ListHandler from the logger.
+
+    Args:
+        logger: The logger from which the ListHandler will be retrieved.
+
+    Returns:
+        The ListHandler instance if found, None otherwise.
+    """
+    for handler in logger.handlers:
+        if isinstance(handler, ListHandler):
+            return handler
+    return None
+
+
+def clearListHandlerLogs(logger):
+    """Clear logs stored in the ListHandler of the logger.
+
+    Args:
+        logger: The logger whose ListHandler logs will be cleared.
+    """
+    list_handler = getLogListHandler(logger)
+    if list_handler:
+        list_handler.clear()
