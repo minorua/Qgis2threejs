@@ -12,19 +12,23 @@ conf.TESTING = True
 from ...utils import pluginDir
 from ...utils.logging import getLogger
 
+# run_test.py results are written to log files by default, so suppress console output
+log_to_stream = not sys.argv[0].endswith("run_test.py")
+
 # set up logger handlers for tests
 logger = getLogger(conf.PLUGIN_NAME,
-                   stream=True,
+                   stream=log_to_stream,
                    filepath=pluginDir("qgis2threejs.log") if conf.DEBUG_MODE == 2 else "",
                    list_handler=True)
 
 web_logger = getLogger(name=conf.PLUGIN_NAME + "Web",
-                       stream=True,
+                       stream=log_to_stream,
                        filepath=pluginDir("qgis2threejs_web.log") if conf.DEBUG_MODE == 2 else "",
                        list_handler=True)
 
 logger.info(f"TESTING: {conf.TESTING}")
 logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
+logger.info(f"sys.argv: {sys.argv}")
 
 # python path setting
 plugin_dir = pluginDir()
