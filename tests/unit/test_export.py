@@ -8,7 +8,7 @@ from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.testing import unittest
 
 from .utils import start_app, stop_app
-from ..utils import dataPath, expectedDataPath, outputPath, loadProject as _loadProject
+from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject, logger
 from ...core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ...core.mapextent import MapExtent
 from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
@@ -33,10 +33,22 @@ def loadProject(filename):
     return mapSettings
 
 
-class TestExportWeb(unittest.TestCase):
+class ExportTestBase:
+
+    @classmethod
+    def initOutputDir(cls):
+        initOutputDir(cls.__name__[4:])
+
+    @classmethod
+    def outputPath(cls, *subdirs):
+        return outputPath(cls.__name__[4:], *subdirs)
+
+
+class TestExportWeb(unittest.TestCase, ExportTestBase):
 
     @classmethod
     def setUpClass(cls):
+        cls.initOutputDir()
         start_app()
 
     @classmethod
@@ -48,70 +60,81 @@ class TestExportWeb(unittest.TestCase):
 
         mapSettings = loadProject(dataPath("testproject1.qgs"))
 
-        out_path = outputPath("scene1.html")
+        out_path = self.outputPath("scene1.html")
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(dataPath("scene1.qto3settings"))
         exporter.setMapSettings(mapSettings)
-        err = exporter.export(out_path)
 
+        err = exporter.export(out_path)
         assert err, "export failed"
+
+        logger.info(f"exported web page: {out_path}")
 
     def test02_export_scene1_webpage_localmode(self):
         """test web page export in local mode"""
 
         mapSettings = loadProject(dataPath("testproject1.qgs"))
 
-        out_path = outputPath("scene1LC.html")
+        out_path = self.outputPath("scene1LC.html")
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(dataPath("scene1.qto3settings"))
         exporter.settings.localMode = exporter.settings.jsonSerializable = True
-
         exporter.setMapSettings(mapSettings)
-        err = exporter.export(out_path)
 
+        err = exporter.export(out_path)
         assert err, "export failed"
+
+        logger.info(f"exported web page in local mode: {out_path}")
 
     def test03_check_scene1_webpage(self):
         """render exported web page and check page capture"""
 
-        html_path = outputPath("scene1.html")
-
-        url = QUrl.fromLocalFile(html_path)
+        url = QUrl.fromLocalFile(self.outputPath("scene1.html"))
         url = QUrl(url.toString() + "#cx=-20&cy=34&cz=16&tx=-2&ty=-8&tz=0")
 
-        loop = QEventLoop()
+        # set up web page
         page = Q3DWebKitPage()
         page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
+
+        # wait until page loading is finished
+        loop = QEventLoop()
         page.loadFinished.connect(loop.quit)
         page.mainFrame().setUrl(url)
         loop.exec()
 
+        # hide progress bar
         page.mainFrame().evaluateJavaScript('document.getElementById("progress").style.display = "none";')
 
+        # wait until data loading is finished
         timer = QTimer()
         timer.timeout.connect(loop.quit)
         timer.start(100)
         while page.mainFrame().evaluateJavaScript("app.loadingManager.isLoading"):
             loop.exec()
-
         timer.stop()
 
+        # capture page
         image = QImage(OUT_WIDTH, OUT_HEIGHT, QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
         page.mainFrame().render(painter)
         painter.end()
 
         filename = "scene1_qwebpage.png"
-        image.save(outputPath(filename))
-        assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
+        image_path = self.outputPath(filename)
+        image.save(image_path)
+
+        logger.info(f"captured image: {image_path}")
+
+        assert QImage(image_path) == QImage(expectedDataPath(filename)), "captured image is different from expected."
 
 
-class WebEngineTestBase:
+class WebEngineTestBase(ExportTestBase):
 
     @classmethod
     def setUpClass(cls):
+        cls.initOutputDir()
         start_app()
         setCurrentWebView(WEBVIEWTYPE_WEBENGINE)
 
@@ -120,10 +143,11 @@ class WebEngineTestBase:
         stop_app()
 
 
-class WebKitTestBase:
+class WebKitTestBase(ExportTestBase):
 
     @classmethod
     def setUpClass(cls):
+        cls.initOutputDir()
         start_app()
         setCurrentWebView(WEBVIEWTYPE_WEBKIT)
 

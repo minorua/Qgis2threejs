@@ -49,12 +49,12 @@ def outputPath(*subdirs):
     return dataDir
 
 
-def initOutputDir():
+def initOutputDir(*subdirs):
     """initialize output directory"""
-    out_dir = outputPath()
+    out_dir = outputPath(*subdirs)
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
-    os.mkdir(out_dir)
+    os.makedirs(out_dir)
 
 
 def loadProject(filename):
