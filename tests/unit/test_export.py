@@ -5,19 +5,35 @@
 
 from qgis.PyQt.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
-from qgis.PyQt.QtWebKitWidgets import QWebPage
 from qgis.testing import unittest
 
 from .utils import start_app, stop_app
-from ..utils import dataPath, expectedDataPath, outputPath, loadProject
+from ..utils import dataPath, expectedDataPath, outputPath, loadProject as _loadProject
 from ...core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ...core.mapextent import MapExtent
+from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
+from ...gui.webkitview import Q3DWebKitPage
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 
 
-class TestExport(unittest.TestCase):
+def loadProject(filename):
+    """load a project"""
+    mapSettings = _loadProject(filename)
+
+    # extent
+    MapExtent(mapSettings.extent().center(),
+                mapSettings.extent().height(),
+                mapSettings.extent().height(), 0).toMapSettings(mapSettings)
+
+    # texture base size
+    mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
+
+    return mapSettings
+
+
+class TestExportWeb(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -27,24 +43,10 @@ class TestExport(unittest.TestCase):
     def tearDownClass(cls):
         stop_app()
 
-    def loadProject(self, filename):
-        """load a project"""
-        mapSettings = loadProject(filename)
-
-        # extent
-        MapExtent(mapSettings.extent().center(),
-                  mapSettings.extent().height(),
-                  mapSettings.extent().height(), 0).toMapSettings(mapSettings)
-
-        # texture base size
-        mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
-
-        return mapSettings
-
     def test01_export_scene1_webpage(self):
         """test web page export"""
 
-        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = loadProject(dataPath("testproject1.qgs"))
 
         out_path = outputPath("scene1.html")
 
@@ -58,7 +60,7 @@ class TestExport(unittest.TestCase):
     def test02_export_scene1_webpage_localmode(self):
         """test web page export in local mode"""
 
-        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = loadProject(dataPath("testproject1.qgs"))
 
         out_path = outputPath("scene1LC.html")
 
@@ -80,7 +82,7 @@ class TestExport(unittest.TestCase):
         url = QUrl(url.toString() + "#cx=-20&cy=34&cz=16&tx=-2&ty=-8&tz=0")
 
         loop = QEventLoop()
-        page = QWebPage()
+        page = Q3DWebKitPage()
         page.setViewportSize(QSize(OUT_WIDTH, OUT_HEIGHT))
         page.loadFinished.connect(loop.quit)
         page.mainFrame().setUrl(url)
@@ -105,10 +107,37 @@ class TestExport(unittest.TestCase):
         image.save(outputPath(filename))
         assert QImage(outputPath(filename)) == QImage(expectedDataPath(filename)), "captured image is different from expected."
 
-    def test11_export_scene1_image(self):
+
+class WebEngineTestBase:
+
+    @classmethod
+    def setUpClass(cls):
+        start_app()
+        setCurrentWebView(WEBVIEWTYPE_WEBENGINE)
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_app()
+
+
+class WebKitTestBase:
+
+    @classmethod
+    def setUpClass(cls):
+        start_app()
+        setCurrentWebView(WEBVIEWTYPE_WEBKIT)
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_app()
+
+
+class ExportImageTestBase:
+
+    def test01_export_scene1_image(self):
         """test image export with testproject1.qgs and scene1.qto3settings"""
 
-        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = loadProject(dataPath("testproject1.qgs"))
 
         filename = "scene1.png"
         out_path = outputPath(filename)
@@ -123,10 +152,13 @@ class TestExport(unittest.TestCase):
         assert not err, err
         assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
 
-    def test21_export_scene1_glTF(self):
+
+class ExportModelTestBase:
+
+    def test01_export_scene1_glTF(self):
         """test glTF export with testproject1.qgs and scene1.qto3settings"""
 
-        mapSettings = self.loadProject(dataPath("testproject1.qgs"))
+        mapSettings = loadProject(dataPath("testproject1.qgs"))
 
         filename = "scene1.gltf"
         out_path = outputPath(filename)
@@ -140,6 +172,26 @@ class TestExport(unittest.TestCase):
 
         assert not err, err
         assert QFileInfo(out_path).size(), "Empty output file"
+
+
+class TestExportImageWebEngine(unittest.TestCase, WebEngineTestBase, ExportImageTestBase):
+    setUpClass = WebEngineTestBase.setUpClass
+    tearDownClass = WebEngineTestBase.tearDownClass
+
+
+class TestExportModelWebEngine(unittest.TestCase, WebEngineTestBase, ExportModelTestBase):
+    setUpClass = WebEngineTestBase.setUpClass
+    tearDownClass = WebEngineTestBase.tearDownClass
+
+
+class TestExportImageWebKit(unittest.TestCase, WebKitTestBase, ExportImageTestBase):
+    setUpClass = WebKitTestBase.setUpClass
+    tearDownClass = WebKitTestBase.tearDownClass
+
+
+class TestExportModelWebKit(unittest.TestCase, WebKitTestBase, ExportModelTestBase):
+    setUpClass = WebKitTestBase.setUpClass
+    tearDownClass = WebKitTestBase.tearDownClass
 
 
 if __name__ == "__main__":
