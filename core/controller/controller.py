@@ -4,7 +4,7 @@
 # begin: 2016-02-10
 
 import time
-from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot, qDebug
+from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 from qgis.core import QgsApplication
 
 from ..build.builder import ThreeJSBuilder
@@ -266,7 +266,7 @@ class Q3DController(QObject):
                                         ScriptFile.PCLAYER])
 
         t0 = t4 = time.time()
-        dlist = []
+        # dlist = []
         i = 0
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
@@ -275,9 +275,9 @@ class Q3DController(QObject):
                 self.processingLayer = None
                 return False
 
-            t1 = time.time()
+            # t1 = time.time()
             obj = builder.build()
-            t2 = time.time()
+            # t2 = time.time()
 
             if obj:
                 self.iface.sendJSONObject(obj)
@@ -285,15 +285,13 @@ class Q3DController(QObject):
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1
 
-            t3 = time.time()
-            dlist.append([t1 - t4, t2 - t1, t3 - t2])
-            t4 = t3
+            # t3 = time.time()
+            # dlist.append([t1 - t4, t2 - t1, t3 - t2])
+            # t4 = t3
 
-        if DEBUG_MODE:
-            dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
-            qDebug("{0} layer updated: {1:.3f}s\n{2}\n".format(layer.name,
-                                                               time.time() - t0,
-                                                               dlist).encode("utf-8"))
+        # dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
+        logger.debug(f"{layer.name} layer built in {time.time() - t0:.3f}s")
+
         self.processingLayer = None
         return True
 
