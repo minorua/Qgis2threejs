@@ -7,8 +7,13 @@
 *.qgs.qto3settings
 *.log
 *.zip
+.venv
+.venv-pyqt5
+.venv-pyqt6
 .vscode
 .env
+.env-pyqt5
+.env-pyqt6
 pyrightconfig.json
 docs/build
 tests/cache
