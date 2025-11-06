@@ -12,7 +12,7 @@ from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODev
 from qgis.PyQt.QtGui import QDesktopServices, QImage
 from qgis.core import NULL, QgsMapLayer, QgsProject
 
-from .logging import python_logger as logger
+from .logging import logger
 
 
 ### QGIS layer related functions ###

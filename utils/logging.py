@@ -98,13 +98,23 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
     return logger
 
 
-# the Loggers
-python_logger = getLogger(name=PLUGIN_NAME,
-                          qgis_log=not TESTING,
-                          filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "")
+logger = web_logger = None
 
-web_logger = getLogger(name=PLUGIN_NAME + "Web",
-                       filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "")
+def configureLoggers(is_test=False, log_to_stream=False):
+    """Configure the loggers. The loggers are created if not created yet."""
+    global logger, web_logger
+    logger = getLogger(name=PLUGIN_NAME,
+                       stream=log_to_stream,
+                       qgis_log=not TESTING,
+                       filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "",
+                       list_handler=is_test)
+
+    web_logger = getLogger(name=PLUGIN_NAME + "Web",
+                           stream=log_to_stream,
+                           filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "",
+                           list_handler=is_test)
+
+configureLoggers()
 
 
 def addLogCallback(logger, callback):
