@@ -6,10 +6,20 @@
 import importlib
 import os
 import sys
-from qgis.testing import unittest
 
-from .utils import start_app, stop_app
-from ...utils import logger, pluginDir
+try:
+    from qgis.testing import unittest
+except ImportError:
+    import unittest
+
+try:
+    from .utils import logger
+    logger.info("Using the logger configured for Qgis2threejs testing.")
+except ImportError:
+    import logging
+    logger = logging.getLogger("Qgis2threejs")
+    logger.setLevel(logging.DEBUG)
+    logger.info("Using a logger not configured for Qgis2threejs testing.")
 
 
 class TestBasic(unittest.TestCase):
@@ -17,12 +27,27 @@ class TestBasic(unittest.TestCase):
     def test01_start_qgis(self):
         """Test starting QGIS application."""
 
+        logger.info(f"Python Executable: {sys.executable}")
+        logger.info(f"Python Version: {sys.version}")
+        logger.info(f"Python Path: {sys.path}")
+
+        from qgis.PyQt.QtCore import PYQT_VERSION_STR, QT_VERSION_STR
+        from qgis.core import Qgis
+
+        logger.info(f"PYQT_VERSION: {PYQT_VERSION_STR}")
+        logger.info(f"QT_VERSION: {QT_VERSION_STR}")
+        logger.info(f"QGIS_VERSION: {Qgis.QGIS_VERSION}")
+
+        from .utils import start_app, stop_app
+
         app = start_app()
         self.assertIsNotNone(app, "Failed to start QGIS application.")
         stop_app()
 
     def test02_import_all_modules(self):
         """Test importing all modules in the plugin."""
+
+        from ...utils import pluginDir
 
         logger.info("Imported module list:")
 

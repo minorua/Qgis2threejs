@@ -7,8 +7,8 @@ from qgis.PyQt.QtCore import QEventLoop, QFileInfo, QSize, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.testing import unittest
 
-from .utils import start_app, stop_app
-from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject, logger
+from .utils import start_app, stop_app, logger
+from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject
 from ...core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ...core.mapextent import MapExtent
 from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
