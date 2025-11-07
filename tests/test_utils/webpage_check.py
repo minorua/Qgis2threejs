@@ -7,7 +7,7 @@ from qgis.PyQt.QtCore import QEventLoop, QSize, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.PyQt.QtWebKitWidgets import QWebPage
 
-from .utils import logger
+from .unit import logger
 
 
 @dataclass

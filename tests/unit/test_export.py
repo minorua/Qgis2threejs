@@ -7,9 +7,9 @@ from qgis.PyQt.QtCore import QFileInfo, QSize, QUrl
 from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
-from .utils import start_app, stop_app, logger
-from .webpage_utils import WebPageCapturer, WebPageErrorChecker
-from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject
+from ..test_utils.unit import start_app, stop_app, logger
+from ..test_utils.utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject
+from ..test_utils.webpage_check import WebPageCapturer, WebPageErrorChecker
 from ...core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ...core.mapextent import MapExtent
 from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT

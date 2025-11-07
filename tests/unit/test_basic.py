@@ -13,7 +13,7 @@ except ImportError:
     import unittest
 
 try:
-    from .utils import logger
+    from ..test_utils.unit import logger
     logger.info("Using the logger configured for Qgis2threejs testing.")
 except ImportError:
     import logging
@@ -38,7 +38,7 @@ class TestBasic(unittest.TestCase):
         logger.info(f"QT_VERSION: {QT_VERSION_STR}")
         logger.info(f"QGIS_VERSION: {Qgis.QGIS_VERSION}")
 
-        from .utils import start_app, stop_app
+        from ..test_utils.unit import start_app, stop_app
 
         app = start_app()
         self.assertIsNotNone(app, "Failed to start QGIS application.")

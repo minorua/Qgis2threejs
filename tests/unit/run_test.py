@@ -8,7 +8,7 @@ from qgis.testing import unittest
 
 from Qgis2threejs import conf
 from Qgis2threejs.utils import pluginDir
-from Qgis2threejs.tests.utils import initOutputDir, outputPath
+from Qgis2threejs.tests.test_utils.utils import initOutputDir, outputPath
 
 
 logger = None
@@ -41,7 +41,7 @@ def runTest(debug_mode=None):
     if debug_mode is not None:
         conf.DEBUG_MODE = debug_mode
 
-    from Qgis2threejs.tests.unit.utils import logger     # need to import the logger after setting debug mode
+    from Qgis2threejs.tests.test_utils.unit import logger     # need to import the logger after setting debug mode
 
     logger.info("Starting tests...")
     logger.info(f"TESTING: {conf.TESTING}")

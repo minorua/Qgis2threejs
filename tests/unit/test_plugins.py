@@ -6,8 +6,8 @@
 from qgis.PyQt.QtCore import QSize
 from qgis.testing import unittest
 
-from .utils import start_app, stop_app, logger
-from ..utils import dataPath, outputPath, loadProject
+from ..test_utils.unit import start_app, stop_app, logger
+from ..test_utils.utils import dataPath, outputPath, loadProject
 from ...core.export.export import ThreeJSExporter
 from ...core.mapextent import MapExtent
 from ...core.plugin.pluginmanager import pluginManager
