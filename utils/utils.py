@@ -238,6 +238,11 @@ def openDirectory(dir_path):
     QDesktopServices.openUrl(QUrl.fromLocalFile(dir_path))
 
 
+def openFile(file_path):
+    """Open a file using the default application associated with the file type."""
+    QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+
+
 def openUrl(url):
     """Open a URL using a configured browser if set, otherwise the default browser.
 

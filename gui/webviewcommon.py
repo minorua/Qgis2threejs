@@ -51,6 +51,7 @@ class Q3DWebPageCommon:
         self.showStatusMessage("Initializing preview...")
 
     def pageLoaded(self, ok):
+        logger.debug("Page load finished.")
         if self.url().scheme() != "file":
             return
 
