@@ -8,13 +8,14 @@ from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QImage
 
 from ..conf import DEBUG_MODE
+from ..utils import logger
 
 
 if DEBUG_MODE:
     def emit_slotCalled(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            args[0].slotCalled.emit("↑ " + func.__name__)
+            logger.debug("↑ " + func.__name__)
             return func(*args, **kwargs)
         return wrapper
 else:
@@ -29,7 +30,6 @@ class WebBridge(QObject):
     sendScriptData = pyqtSignal(str, QVariant)
 
     # signals - Bridge to Python (window, web page, etc.)
-    slotCalled = pyqtSignal(str)
     initialized = pyqtSignal()
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
@@ -111,7 +111,6 @@ class WebBridge(QObject):
     @pyqtSlot(int, int, result=str)
     @notify_slot_called
     def mouseUpMessage(self, x, y):
-        self.logToConsole.emit("↑ mouseUpMessage")
-        return "Clicked at ({0}, {1})".format(x, y)
+        logger.debug(f"↑ Clicked at ({x}, {y})")
         # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
     """

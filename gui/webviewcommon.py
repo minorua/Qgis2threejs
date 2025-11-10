@@ -42,9 +42,6 @@ class Q3DWebPageCommon:
             self.bridge.imageReady.connect(wnd.saveImage)
             self.bridge.statusMessage.connect(wnd.showStatusMessage)
 
-        if DEBUG_MODE:
-            self.bridge.slotCalled.connect(self.logToConsole)
-
         self.loadFinished.connect(self.pageLoaded)
 
     def reload(self):
