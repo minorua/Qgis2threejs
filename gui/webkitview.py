@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-import os
+import logging
 
 from qgis.PyQt.QtCore import Qt, QSize, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
@@ -13,7 +13,8 @@ from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
 from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
-from ..utils import pluginDir, logger
+from ..conf import DEBUG_MODE
+from ..utils import pluginDir, logger, web_logger
 
 
 class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
@@ -88,6 +89,23 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         logger.debug(string)
 
         self.runScript(string, data, message=None)
+
+    def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
+        if DEBUG_MODE:
+            msg = message.lower()
+
+            if "error" in msg:
+                level = logging.ERROR
+            elif "warning" in msg:
+                level = logging.WARNING
+            else:
+                level = logging.INFO
+
+            text = message
+            if sourceID:
+                text += f"\t({sourceID.split('/')[-1]}:{lineNumber})"
+
+            web_logger.log(level, text)
 
     def logToConsole(self, message, level="debug"):
         if level not in ["debug", "info", "warn", "error"]:

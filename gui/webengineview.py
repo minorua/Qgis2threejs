@@ -4,6 +4,7 @@
 # begin: 2023-10-03
 
 import os
+import logging
 
 from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
@@ -18,7 +19,9 @@ else:
     from PyQt6.QtWebChannel import QWebChannel
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from ..conf import DEBUG_MODE
 from ..utils import pluginDir
+from ..utils.logging import web_logger
 
 
 def setChromiumFlags():
@@ -118,10 +121,22 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
-        if level in (QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel, QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel):
-            self.jsErrorWarning.emit(bool(level == QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel))
+        CML = QWebEnginePage.JavaScriptConsoleMessageLevel
+        if level in (CML.WarningMessageLevel, CML.ErrorMessageLevel):
+            self.jsErrorWarning.emit(bool(level == CML.ErrorMessageLevel))
 
-        Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
+        if DEBUG_MODE:
+            logging_level = {
+                CML.InfoMessageLevel: logging.INFO,
+                CML.WarningMessageLevel: logging.WARNING,
+                CML.ErrorMessageLevel: logging.ERROR
+            }.get(level, logging.DEBUG)
+
+            text = message
+            if sourceID:
+                text += f"\t({sourceID.split('/')[-1]}:{lineNumber})"
+
+            web_logger.log(logging_level, text)
 
     def acceptNavigationRequest(self, url, type, isMainFrame):
         if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
