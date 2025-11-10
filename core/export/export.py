@@ -6,20 +6,18 @@
 import json
 import os
 
-from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, QTimer
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
-from ..build.dem.builder import DEMLayerBuilder
 from ..build.vector.builder import VectorLayerBuilder
-from ..build.pointcloud.builder import PointCloudLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
 from ..controller.controller import Q3DController
 from ..controller.interface import Q3DInterface
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
-from ...gui.webview import Q3DWebPage
-from ...utils import hex_color
+from ...gui import webview
+from ...utils import hex_color, logger
 from ... import utils
 
 
@@ -285,10 +283,20 @@ class BridgeExporterBase:
     """Base class for exporters that used by Processing algorithms."""
 
     def __init__(self, settings=None):
+        self.isWebEngine = (webview.currentWebViewType == webview.WEBVIEWTYPE_WEBENGINE)
+
         self.settings = settings or ExportSettings()
         self.settings.isPreview = True
+        self.settings.jsonSerializable = self.isWebEngine
 
-        self.page = Q3DWebPage()
+        if self.isWebEngine:
+            self.view = webview.Q3DView()
+            self.page = webview.Q3DWebPage(self.view)
+            self.view.setPage(self.page)
+            self.view.show()
+        else:
+            self.page = webview.Q3DWebPage()
+
         self.iface = Q3DInterface(self.settings, self.page)
         self.iface.statusMessage.connect(self.iface.showStatusMessage)
 
@@ -302,16 +310,27 @@ class BridgeExporterBase:
         self.settings.setMapSettings(settings)
 
     def initWebPage(self, width, height):
+        logger.info(f"The view size is set to {width}x{height} px.")
+
         loop = QEventLoop()
         self.page.ready.connect(loop.quit)
-        self.page.setViewportSize(QSize(width, height))
 
-        if self.page.mainFrame().url().isEmpty():
+        if self.isWebEngine:
+            self.view.setFixedSize(width, height)
+            url = self.page.url()
+
+        else:
+            self.page.setViewportSize(QSize(width, height))
+            url = self.page.mainFrame().url()
+
+        if url.isEmpty():
             self.page.setup(self.settings)
         else:
             self.page.reload()
 
         loop.exec()
+
+        self.page.ready.disconnect(loop.quit)
 
     def mkdir(self, filename):
         dir = QFileInfo(filename).dir()
@@ -327,7 +346,7 @@ class ImageExporter(BridgeExporterBase):
 
     def render(self, cameraState=None, cancelSignal=None):
         if self.page is None:
-            return QImage(), "page not ready"
+            return QImage(), "Page not ready"
 
         # set camera position and camera target
         if cameraState:
@@ -342,10 +361,22 @@ class ImageExporter(BridgeExporterBase):
         self.page.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
 
         # render scene
-        size = self.page.viewportSize()
+        if self.isWebEngine:
+            size = self.view.size()
+        else:
+            size = self.page.viewportSize()
+
         image = QImage(size.width(), size.height(), QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
-        self.page.mainFrame().render(painter)
+
+        logger.info("Rendering image.")
+        self.page.runScript("app.render()", wait=True)
+
+        if self.isWebEngine:
+            self.view.render(painter)
+        else:
+            self.page.mainFrame().render(painter)
+
         painter.end()
         return image, err
 
@@ -355,6 +386,9 @@ class ImageExporter(BridgeExporterBase):
 
         image, err = self.render(cameraState, cancelSignal)
         image.save(filename)
+
+        logger.info(f"Image saved to {filename}.")
+
         return err
 
 

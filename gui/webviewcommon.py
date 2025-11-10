@@ -124,7 +124,7 @@ class Q3DWebPageCommon:
         self.runScript("app.controls.reset()")
 
     def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
-        loading = self.runScript("app.loadingManager.isLoading")
+        loading = self.runScript("app.loadingManager.isLoading", wait=True)
 
         logger.debug("waitForSceneLoaded: loading=%s", loading)
 

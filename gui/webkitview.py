@@ -14,7 +14,8 @@ from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
-from ..utils import pluginDir, logger, web_logger
+from ..utils import pluginDir
+from ..utils.logging import logger, web_logger
 
 
 class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
