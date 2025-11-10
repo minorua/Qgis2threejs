@@ -91,3 +91,14 @@ def loadProject(filename):
     mapSettings.setBackgroundColor(QColor(red, green, blue))
 
     return mapSettings
+
+
+def assertMessagesAppearInOrder(logs, expected):
+    """check if expected messages appear in logs in order"""
+    it = iter(logs)
+    for msg in expected:
+        for log in it:
+            if msg in log:
+                break
+        else:
+            assert False, f'"{msg}" not found in logs in order'

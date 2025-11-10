@@ -68,7 +68,7 @@ class ListHandler(logging.Handler):
         return [self.format(record) for record in self.records]
 
 
-def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_handler=False):
+def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_handler=None):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
     logger.propagate = False
@@ -93,7 +93,7 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
         logger.addHandler(fileHandler)
 
     if list_handler:
-        logger.addHandler(ListHandler())
+        logger.addHandler(list_handler)
 
     return logger
 
@@ -103,16 +103,19 @@ logger = web_logger = None
 def configureLoggers(is_test=False, log_to_stream=False):
     """Configure the loggers. The loggers are created if not created yet."""
     global logger, web_logger
+
+    list_handler = ListHandler() if is_test else None
+
     logger = getLogger(name=PLUGIN_NAME,
                        stream=log_to_stream,
                        qgis_log=not TESTING,
                        filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "",
-                       list_handler=is_test)
+                       list_handler=list_handler)
 
     web_logger = getLogger(name=PLUGIN_NAME + "Web",
                            stream=log_to_stream,
                            filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "",
-                           list_handler=is_test)
+                           list_handler=list_handler)
 
 configureLoggers()
 

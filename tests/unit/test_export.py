@@ -8,12 +8,13 @@ from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
 from ..test_utils.unit import start_app, stop_app, logger
-from ..test_utils.utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject
+from ..test_utils.utils import dataPath, expectedDataPath, initOutputDir, outputPath, loadProject as _loadProject, assertMessagesAppearInOrder
 from ..test_utils.webpage_check import WebPageCapturer, WebPageErrorChecker
 from ...core.export.export import ThreeJSExporter, ImageExporter, ModelExporter
 from ...core.mapextent import MapExtent
 from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
 from ...utils import openFile
+from ...utils.logging import clearListHandlerLogs, getLogListHandler
 
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
@@ -163,28 +164,61 @@ class WebKitTestBase(ExportTestBase):
 
 class ExportImageTestCases(ExportTestBase):
 
+    OUT_FILE = "scene1.png"
+    PROJ_FILE = "testproject1.qgs"
+    SETTING_FILE = "scene1.qto3settings"
+
+    def setUp(self):
+        clearListHandlerLogs(logger)
+
     def test01_export_scene1_image(self):
         """test image export with testproject1.qgs and scene1.qto3settings"""
 
-        mapSettings = loadProject(dataPath("testproject1.qgs"))
-
-        filename = "scene1.png"
-        out_path = self.outputPath(filename)
+        mapSettings = loadProject(dataPath(self.PROJ_FILE))
+        out_path = self.outputPath(self.OUT_FILE)
 
         exporter = ImageExporter()
-        exporter.loadSettings(dataPath("scene1.qto3settings"))
+        exporter.loadSettings(dataPath(self.SETTING_FILE))
         exporter.setMapSettings(mapSettings)
         exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
 
         err = exporter.export(out_path)
-
         assert not err, err
 
+    def test02_check_logs(self):
+        log_handler = getLogListHandler(logger)
+        assert log_handler, "ListHandler not found in logger"
+
+        log_messages = log_handler.get_messages()
+
+        for message in log_messages:
+            msg = message.lower()
+            if "error" in msg:
+                assert False, f"Error log found: {message}"
+
+            if "warning" in msg:
+                logger.warning(message)
+
+        assertMessagesAppearInOrder(log_messages, [
+            "Export settings loaded from",
+            "Page load finished",
+            "init(",
+            "emitInitialized",
+            'loadStart("LYRS", true)',
+            "loadJSONObject(",
+            'loadEnd("LYRS")',
+            "emitSceneLoaded",
+            "Image saved to"
+        ])
+
+    def test03_check_scene1_image(self):
+        """check exported image"""
+        out_path = self.outputPath(self.OUT_FILE)
         if MANUAL_IMAGE_CHECK:
             openFile(out_path)
             self.skipTest(f"Manual image check: {out_path}")
         else:
-            assert QImage(out_path) == QImage(expectedDataPath(filename)), "exported image is different from expected."
+            assert QImage(out_path) == QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected."
 
 
 class ExportModelTestCases(ExportTestBase):
