@@ -34,10 +34,12 @@ class WebBridge(QObject):
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
     statusMessage = pyqtSignal(str, int)
-    modelDataReady = pyqtSignal("QByteArray", str)
-    imageReady = pyqtSignal(int, int, "QImage")
+    modelDataReady = pyqtSignal("QByteArray", str)              # data, filename -> Window
+    imageReady = pyqtSignal(int, int, "QImage")                 # width, height, image -> Window
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
+    requestedRenderingFinished = pyqtSignal()                   # -> WebPage
+    requestedCaptureFinished = pyqtSignal("QImage")             # image -> WebPage
     testResultReceived = pyqtSignal(str, bool, str)
 
     def __init__(self, parent=None):
@@ -101,6 +103,21 @@ class WebBridge(QObject):
             image = QImage()
             image.loadFromData(ba)
         self.imageReady.emit(width, height, image)
+
+    @pyqtSlot()
+    @emit_slotCalled
+    def emitRequestedRenderingFinished(self):
+        self.requestedRenderingFinished.emit()
+
+    @pyqtSlot(str)
+    @emit_slotCalled
+    def emitRequestedCaptureFinished(self, dataUrl):
+        ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+        image = QImage()
+        image.loadFromData(ba)
+        # FIXME: empty image
+
+        self.requestedCaptureFinished.emit(image)
 
     @pyqtSlot(str, bool, str)
     @emit_slotCalled

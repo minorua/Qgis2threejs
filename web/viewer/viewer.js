@@ -298,6 +298,31 @@ function saveModelAsGLTF(filename) {
 	}, options);
 }
 
+function requestRendering() {
+	// wait for two frames to ensure rendering is done
+	requestAnimationFrame(function () {
+		requestAnimationFrame(function () {
+			app.render();
+			pyObj.emitRequestedRenderingFinished();
+		});
+	});
+}
+
+function renderAndCapture() {
+	// wait for two frames to ensure rendering is done
+	requestAnimationFrame(function () {
+		requestAnimationFrame(function () {
+			var old_val = app.renderer.preserveDrawingBuffer;
+			app.renderer.preserveDrawingBuffer = true;
+
+			app.render();
+			pyObj.emitRequestedCaptureFinished(app.renderer.domElement.toDataURL("image/png"));
+
+			app.renderer.preserveDrawingBuffer = old_val;
+		});
+	});
+}
+
 var barTimerId = null;
 function showMessageBar(message, timeout_ms, warning) {
 	if (barTimerId !== null) {

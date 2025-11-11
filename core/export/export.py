@@ -360,21 +360,21 @@ class ImageExporter(BridgeExporterBase):
         # header and footer labels
         self.page.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
 
-        # render scene
         if self.isWebEngine:
             size = self.view.size()
         else:
             size = self.page.viewportSize()
 
+        logger.info("Rendering scene.")
+
         image = QImage(size.width(), size.height(), QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
 
-        logger.info("Rendering image.")
-        self.page.runScript("app.render()", wait=True)
-
         if self.isWebEngine:
+            self.page.requestRendering(waitUntilFinished=True)
             self.view.render(painter)
         else:
+            self.page.runScript("app.render()", wait=True)
             self.page.mainFrame().render(painter)
 
         painter.end()
@@ -386,7 +386,6 @@ class ImageExporter(BridgeExporterBase):
 
         image, err = self.render(cameraState, cancelSignal)
         image.save(filename)
-
         logger.info(f"Image saved to {filename}.")
 
         return err
