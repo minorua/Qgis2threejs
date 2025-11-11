@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (C) 2015 Minoru Akagi
+# (C) 2025 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from dataclasses import dataclass
