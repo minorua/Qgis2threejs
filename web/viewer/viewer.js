@@ -100,13 +100,13 @@ function _init(off_screen) {
 
 		var viewName = (Q3D.Config.isWebEngine) ? "WebEngine" : "WebKit";
 
-		var msg = "Currently, this web view (Qt " + viewName + ") can't display 3D objects. ";
+		var msg = "The current web view (Qt " + viewName + ") cannot display 3D objects. ";
 
 		if (!Q3D.Config.isWebEngine) {
 
 			if (Q3D.Config.qgisVersion >= 33600) {
 
-				msg += "Please use the Qt WebEngine view instead. You can find a guide on how to do this in the plugin ";
+				msg += "Please use the Qt WebEngine view instead. You can find instructions on how to do this in the plugin ";
 				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
 
 			}
