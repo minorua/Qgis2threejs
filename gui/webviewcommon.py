@@ -155,6 +155,13 @@ class Q3DWebPageCommon:
             timer.start(timeout)
 
         err = loop.exec()
+
+        self.sceneLoaded.disconnect(loop.quit)
+        self.sceneLoadError.disconnect(error)
+
+        if cancelSignal:
+            cancelSignal.disconnect(userCancel)
+
         if err:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
