@@ -19,10 +19,11 @@ P_OPEN_DIRECTORY = True
 
 # debugging and testing
 DEBUG_MODE = 1
+
 # DEBUG_MODE values:
-#  0. no debug info
-#  1. log panel + JS console
-#  2. log panel + JS console, log file, "debug" element
+#  0: No debug output
+#  1: Output debug information to log panel and/or JS console
+#  2: Same as 1, plus write debug information to log files
 
 TESTING = False
 
