@@ -374,7 +374,7 @@ class ImageExporter(BridgeExporterBase):
             self.page.requestRendering(waitUntilFinished=True)
             self.view.render(painter)
         else:
-            self.page.runScript("app.render()", wait=True)
+            self.page.runScript("app.render()")
             self.page.mainFrame().render(painter)
 
         painter.end()

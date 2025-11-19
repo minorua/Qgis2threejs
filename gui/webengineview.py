@@ -77,7 +77,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             callback (optional): Callback function to be executed after script runs.
             wait (bool, optional): Whether to wait for script execution to complete.
         """
-        self.logScriptExecution(string, data, message, sourceID, callback, wait)
+        self.logScriptExecution(string, data, message, sourceID)
 
         if data is not None:
             assert callback is None, "cannot callback when data is set"

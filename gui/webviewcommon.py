@@ -86,7 +86,7 @@ class Q3DWebPageCommon:
 
         self.showStatusMessage("")
 
-    def logScriptExecution(self, string, data=None, message="", sourceID="", callback=None, wait=False):
+    def logScriptExecution(self, string, data=None, message="", sourceID=""):
         if not DEBUG_MODE or message is None:
             return
 
