@@ -2,14 +2,9 @@
 
 ## Concurrency
 
-For the plugin's threading model, see `docs/concurrency.md`.
+For details about the plugin's threading model, see `docs/concurrency.md`.
 
 ## Tests
 
-### non-gui tests
-
-Not well maintained for now.
-
 ### gui tests
-
-Unit tests under tests/gui directory can be run from Dev menu of exporter.
+Unit tests under the `tests/gui` directory can be run from the **Dev** menu of the Qgis2threejs exporter.
