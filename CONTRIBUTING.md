@@ -1,5 +1,9 @@
 # Contribution Guide
 
+## Concurrency
+
+For the plugin's threading model, see `docs/concurrency.md`.
+
 ## Tests
 
 ### non-gui tests
