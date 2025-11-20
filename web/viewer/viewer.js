@@ -89,6 +89,10 @@ function _init(off_screen) {
 		pyObj.emitAnimationStopped();
 	});
 
+	window.addEventListener("resize", function () {		// add this event listener after app.init call
+		pyObj.emitResized(app.width, app.height);
+	});
+
 	if (Q3D.Config.debugMode) {
 		displayFPS();
 	}

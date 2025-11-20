@@ -21,7 +21,7 @@ else:
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
 from ..utils import pluginDir
-from ..utils.logging import web_logger
+from ..utils.logging import logger, web_logger
 
 
 def setChromiumFlags():
@@ -181,42 +181,78 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
     def showGPUInfo(self):
         self.load(QUrl("chrome://gpu"))
 
-    # FIXME: unstable
+    # FIXME: Still unstable
     def renderImage(self, width, height, callback, wnd=None):
+        TIMEOUT_MS = 10000
+
+        logger.debug(f"renderImage: {width}x{height}")
+
         if wnd:
-            geom = wnd.saveGeometry()
+            orig_geom = wnd.saveGeometry()
             wnd.setEnabled(False)
 
-        img = QImage(width, height, QImage.Format.Format_ARGB32)
-        painter = QPainter(img)
+        orig_min = self.minimumSize()
+        orig_max = self.maximumSize()
+        orig_width = self.width()
+        orig_height = self.height()
+        needsToResize = (width != orig_width or height != orig_height)
 
-        minSize = self.minimumSize()
-        maxSize = self.maximumSize()
+        timer = QTimer()
+        timer.setSingleShot(True)
 
-        self.setMinimumSize(width, height)
-        self.setMaximumSize(width, height)
+        if needsToResize:
+            # resize and wait for resized signal emitted from JS side
+            loop = QEventLoop()
+            self._page.bridge.resized.connect(loop.quit)
+            timer.timeout.connect(loop.quit)
+
+            self.setMinimumSize(width, height)
+            self.setMaximumSize(width, height)
+
+            timer.start(TIMEOUT_MS)
+            loop.exec()
+            timer.stop()
+
+            logger.debug("Resized for rendering.")
 
         def restoreGeom():
-            wnd.restoreGeometry(geom)
+            if wnd:
+                wnd.restoreGeometry(orig_geom)
+                wnd.setEnabled(True)
+                logger.debug("Restored window size after rendering.")
 
-        def myCallback(_=None):
+        def render():
+            self._page.requestRendering(waitUntilFinished=True)
+
+            img = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
+            painter = QPainter(img)
             self.render(painter)
             painter.end()
 
-            callback(img)
+            logger.debug("Image rendered.")
 
-            self.setMinimumSize(minSize)
-            self.setMaximumSize(maxSize)
+            if needsToResize:
+                loop = QEventLoop()
 
-            if wnd:
-                wnd.setEnabled(True)
+                self._page.bridge.resized.connect(loop.quit)
+                timer.timeout.connect(loop.quit)
 
-                QTimer.singleShot(200, restoreGeom)
+                self.setMinimumSize(orig_min)
+                self.setMaximumSize(orig_max)
 
-        def preCallback(_=None):
-            QTimer.singleShot(200, myCallback)
+                timer.start(TIMEOUT_MS)
+                loop.exec()
+                timer.stop()
 
-        def requestRender():
-            self.runScript("app.render()", callback=preCallback)
+                logger.debug("Restored view size after rendering.")
 
-        QTimer.singleShot(1000, requestRender)
+            QTimer.singleShot(100, restoreGeom)
+
+            if callback:
+                callback(img)
+
+        QTimer.singleShot(100, render)
+
+    def resizeEvent(self, event):
+        QWebEngineView.resizeEvent(self, event)
+        logger.debug(f"resizeEvent called: {self.width()}x{self.height()}")
