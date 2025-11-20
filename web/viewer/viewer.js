@@ -544,6 +544,17 @@ function setLayerOpacity(layerId, opacity) {
 	app.scene.mapLayers[layerId].opacity = opacity;
 }
 
+function saveCanvasImage(width, height) {
+	app._saveCanvasImage(width, height, true, function (canvas) {
+		pyObj.saveImage(canvas.toDataURL("image/png"));
+	});
+}
+
+function copyCanvasToClipboard(width, height) {
+	app._saveCanvasImage(width, height, true, function (canvas) {
+		pyObj.copyToClipboard(canvas.toDataURL("image/png"));
+	});
+}
 
 //// overrides
 app._render = app.render;
@@ -558,7 +569,7 @@ app.render = function (updateControls) {
 
 app.saveCanvasImage = function (width, height, fill_background) {
 	var saveCanvasImage = function (canvas) {
-		pyObj.saveImage(width, height, canvas.toDataURL("image/png"));
+		pyObj.saveImage(canvas.toDataURL("image/png"));
 		gui.popup.hide();
 	};
 	app._saveCanvasImage(width, height, fill_background, saveCanvasImage);

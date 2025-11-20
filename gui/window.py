@@ -395,11 +395,20 @@ class Q3DWindow(QMainWindow):
         dialog = ImageSaveDialog(self)
         dialog.exec()
 
-    # @pyqtSlot(int, int, QImage)   # connected to bridge.imageReady signal
-    def saveImage(self, width, height, image):
+    # @pyqtSlot(QImage, str, bool)   # connected from bridge.imageReady signal
+    def saveImage(self, image, copy_to_clipboard=False):
+        if copy_to_clipboard:
+            QgsApplication.clipboard().setImage(image)
+            self.ui.statusbar.showMessage("Image has been rendered and copied to clipboard.", 5000)
+            return
+
         filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
         if filename:
+            if not filename.lower().endswith(".png"):       # fix for #278
+                filename += ".png"
+
             image.save(filename)
+            self.ui.statusbar.showMessage("Image has been saved to file.", 5000)
 
     def saveAsGLTF(self):
         if not self.ui.checkBoxPreview.isChecked():

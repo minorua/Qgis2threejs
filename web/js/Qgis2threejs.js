@@ -1263,14 +1263,12 @@ Q3D.E = function (id) {
 	app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
 		if (fill_background === undefined) fill_background = true;
 
-		// set canvas size
 		var old_size;
 		if (width && height) {
 			old_size = [app.width, app.height];
 			app.setCanvasSize(width, height);
 		}
 
-		// functions
 		var saveBlob = function (blob) {
 			var filename = "image.png";
 
@@ -1280,7 +1278,6 @@ Q3D.E = function (id) {
 				gui.popup.hide();
 			}
 			else {
-				// create object url
 				if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
 				app._canvasImageUrl = URL.createObjectURL(blob);
 
@@ -1313,7 +1310,6 @@ Q3D.E = function (id) {
 		};
 
 		var restoreCanvasSize = function () {
-			// restore canvas size
 			if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
 			app.render();
 		};
@@ -1321,7 +1317,7 @@ Q3D.E = function (id) {
 		// background option
 		if (!fill_background) app.renderer.setClearColor(0, 0);
 
-		// render
+		// rendering
 		app.renderer.preserveDrawingBuffer = true;
 
 		if (app.effect) {
@@ -1353,17 +1349,14 @@ Q3D.E = function (id) {
 
 			var image = new Image();
 			image.onload = function () {
-				// draw webgl canvas image
 				ctx.drawImage(image, 0, 0, width, height);
 
-				// save canvas image
 				saveCanvasImage(canvas);
 				restoreCanvasSize();
 			};
 			image.src = app.renderer.domElement.toDataURL("image/png");
 		}
 		else {
-			// save webgl canvas image
 			saveCanvasImage(app.renderer.domElement);
 			restoreCanvasSize();
 		}

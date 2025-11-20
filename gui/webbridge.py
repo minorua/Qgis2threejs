@@ -35,11 +35,11 @@ class WebBridge(QObject):
     sceneLoadError = pyqtSignal()
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
-    imageReady = pyqtSignal(int, int, "QImage")                 # width, height, image -> Window
-    modelDataReady = pyqtSignal("QByteArray", str)              # data, filename -> Window
-    requestedRenderingFinished = pyqtSignal()                   # -> WebPage
-    requestedCaptureFinished = pyqtSignal("QImage")             # image -> WebPage
-    resized = pyqtSignal(int, int)                              # width, height
+    imageReady = pyqtSignal("QImage", bool)         # image, copy_to_clipboard -> Window
+    modelDataReady = pyqtSignal("QByteArray", str)  # data, filename -> Window
+    requestedRenderingFinished = pyqtSignal()       # -> WebPage
+    requestedCaptureFinished = pyqtSignal("QImage") # image -> WebPage
+    resized = pyqtSignal(int, int)                  # width, height
     statusMessage = pyqtSignal(str, int)
     testResultReceived = pyqtSignal(str, bool, str)
 
@@ -95,15 +95,23 @@ class WebBridge(QObject):
     def saveString(self, text, filename):
         self.modelDataReady.emit(text.encode("UTF-8"), filename)
 
-    @pyqtSlot(int, int, str)
+    @pyqtSlot(str)
     @emit_slotCalled
-    def saveImage(self, width, height, dataUrl):
-        image = None
+    def saveImage(self, dataUrl):
+        image = QImage()
         if dataUrl:
             ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
-            image = QImage()
             image.loadFromData(ba)
-        self.imageReady.emit(width, height, image)
+        self.imageReady.emit(image, False)
+
+    @pyqtSlot(str)
+    @emit_slotCalled
+    def copyToClipboard(self, dataUrl):
+        image = QImage()
+        if dataUrl:
+            ba = QByteArray.fromBase64(dataUrl[22:].encode("ascii"))
+            image.loadFromData(ba)
+        self.imageReady.emit(image, True)
 
     @pyqtSlot()
     @emit_slotCalled
