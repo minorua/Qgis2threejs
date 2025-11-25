@@ -115,6 +115,21 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
     def sendData(self, data):
         self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
 
+    def requestRendering(self, waitUntilFinished=False):
+        def render():
+            self.runScript("requestRendering()")
+
+        if waitUntilFinished:
+            loop = QEventLoop()
+            self.bridge.requestedRenderingFinished.connect(loop.quit)
+
+            render()
+
+            loop.exec()
+            self.bridge.requestedRenderingFinished.disconnect(loop.quit)
+        else:
+            render()
+
     def logToConsole(self, message, level="debug"):
         if level not in ["debug", "info", "warn", "error"]:
             level = "log"

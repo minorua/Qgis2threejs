@@ -166,21 +166,6 @@ class Q3DWebPageCommon:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
 
-    def requestRendering(self, waitUntilFinished=False):
-        def render():
-            self.runScript("requestRendering()")
-
-        if waitUntilFinished:
-            loop = QEventLoop()
-            self.bridge.requestedRenderingFinished.connect(loop.quit)
-
-            render()
-
-            loop.exec()
-            self.bridge.requestedRenderingFinished.disconnect(loop.quit)
-        else:
-            render()
-
     def renderAndCapture(self):
         """render the scene and return the image as a QImage object."""
         loop = QEventLoop()
