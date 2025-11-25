@@ -118,7 +118,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         filename = filename.replace(".html", "_capture.png")
         image_path = self.outputPath(filename)
 
-        wpc = WebPageCapturer(url, OUT_WIDTH, OUT_HEIGHT)
+        wpc = WebPageCapturer(url, QSize(OUT_WIDTH, OUT_HEIGHT))
         # wpc.runScript('document.getElementById("progress").style.display = "none";')  # hide progress bar
         wpc.waitForDataLoadFinished()
         wpc.renderScene()
