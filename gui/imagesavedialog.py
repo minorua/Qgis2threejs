@@ -25,11 +25,6 @@ class ImageSaveDialog(QDialog):
         self.ui.spinBox_Width.setValue(size.width())
         self.ui.spinBox_Height.setValue(size.height())
 
-    def renderImage(self, callback):
-        width = self.ui.spinBox_Width.value()
-        height = self.ui.spinBox_Height.value()
-        self.wnd.ui.webView.renderImage(width, height, callback, self.wnd)
-
     def copyToClipboard(self):
         self.setEnabled(False)
 

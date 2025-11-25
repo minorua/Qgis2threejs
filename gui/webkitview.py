@@ -113,19 +113,6 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
             level = "log"
         self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
-    def renderImage(self, width, height, callback):
-        old_size = self.viewportSize()
-        self.setViewportSize(QSize(width, height))
-
-        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
-        painter = QPainter(image)
-        self.mainFrame().render(painter)
-        painter.end()
-
-        self.setViewportSize(old_size)
-
-        callback(image)
-
 
 class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
@@ -159,6 +146,3 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
         dlg.setLayout(v)
         dlg.show()
-
-    def renderImage(self, width, height, callback, wnd=None):
-        self._page.renderImage(width, height, callback)
