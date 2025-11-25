@@ -166,25 +166,6 @@ class Q3DWebPageCommon:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
 
-    def renderAndCapture(self):
-        """render the scene and return the image as a QImage object."""
-        loop = QEventLoop()
-        captured_image = None
-
-        def captureFinished(image):
-            nonlocal captured_image
-            captured_image = image
-            loop.quit()
-
-        self.bridge.requestedCaptureFinished.connect(captureFinished)
-
-        self.runScript("renderAndCapture()")
-
-        loop.exec()
-        self.bridge.requestedCaptureFinished.disconnect(captureFinished)
-
-        return captured_image
-
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)
 

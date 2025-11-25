@@ -89,10 +89,6 @@ function _init(off_screen) {
 		pyObj.emitAnimationStopped();
 	});
 
-	window.addEventListener("resize", function () {		// add this event listener after app.init call
-		pyObj.emitResized(app.width, app.height);
-	});
-
 	if (Q3D.Config.debugMode) {
 		displayFPS();
 	}
@@ -308,21 +304,6 @@ function requestRendering() {
 		requestAnimationFrame(function () {
 			app.render();
 			pyObj.emitRequestedRenderingFinished();
-		});
-	});
-}
-
-function renderAndCapture() {
-	// wait for two frames to ensure rendering is done
-	requestAnimationFrame(function () {
-		requestAnimationFrame(function () {
-			var old_val = app.renderer.preserveDrawingBuffer;
-			app.renderer.preserveDrawingBuffer = true;
-
-			app.render();
-			pyObj.emitRequestedCaptureFinished(app.renderer.domElement.toDataURL("image/png"));
-
-			app.renderer.preserveDrawingBuffer = old_val;
 		});
 	});
 }
