@@ -28,7 +28,7 @@ class Q3DTreeView(QTreeView):
         self.layers = []
         self._index = -1
 
-    def setup(self, iface, icons):
+    def setup(self, iface, icons, layers=None):
         self.iface = iface      # Q3DViewerInterface
         self.icons = icons
 
@@ -45,10 +45,16 @@ class Q3DTreeView(QTreeView):
 
         self.setModel(model)
         self.expandAll()
+        self.setExpandsOnDoubleClick(False)
+        self.doubleClicked.connect(self.onDoubleClicked)
 
         self.model().dataChanged.connect(self.treeDataChanged)
 
-        # context menu
+        # add layer items
+        if layers:
+            self.addLayers(layers)
+
+        ## context menu
         self.actionProperties = QAction("Properties...", self)
         self.actionProperties.triggered.connect(self.onDoubleClicked)
 
@@ -58,42 +64,39 @@ class Q3DTreeView(QTreeView):
         self.actionZoomToLayer = QAction("Zoom to layer objects", self)
         self.actionZoomToLayer.triggered.connect(self.zoomToLayer)
 
-        # context menu for map layer
+        # map layer
         self.contextMenuLyr = QMenu(self)
         self.contextMenuLyr.addAction(self.actionZoomToLayer)
         self.contextMenuLyr.addAction(self.actionProperties)
 
-        # context menu for flat plane
+        # flat plane
         self.contextMenuFP = QMenu(self)
         self.contextMenuFP.addAction(self.actionZoomToLayer)
         self.contextMenuFP.addAction(self.actionProperties)
         self.contextMenuFP.addSeparator()
         self.contextMenuFP.addAction(self.actionRemoveLayer)
 
-        # context menu for point cloud layer
+        # point cloud layer
         self.contextMenuPC = QMenu(self)
         self.contextMenuPC.addAction(self.actionZoomToLayer)
         self.contextMenuPC.addAction(self.actionProperties)
         self.contextMenuPC.addSeparator()
         self.contextMenuPC.addAction(self.actionRemoveLayer)
 
-        # context menu for DEM material
+        # DEM material
         self.contextMenuMtl = QMenu(self)
         self.contextMenuMtl.addAction(self.actionProperties)
 
-        # context menu for DEM group
+        # DEM group
         self.contextMenuDEM = QMenu(self)
         self.contextMenuDEM.addAction(self.iface.wnd.ui.actionAddPlane)
 
-        # context menu for point cloud group
+        # point cloud group
         self.contextMenuPCG = QMenu(self)
         self.contextMenuPCG.addAction(self.iface.wnd.ui.actionAddPointCloudLayer)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
-
-        self.setExpandsOnDoubleClick(False)
-        self.doubleClicked.connect(self.onDoubleClicked)
 
     def addLayer(self, layer):
         # add a layer item to tree view

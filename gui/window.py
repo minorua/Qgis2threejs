@@ -122,8 +122,7 @@ class Q3DWindow(QMainWindow):
 
         self.setupMenu(self.ui)
         self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)
-        self.ui.treeView.setup(self.iface, self.icons)
-        self.ui.treeView.addLayers(settings.layers())
+        self.ui.treeView.setup(self.iface, self.icons, settings.layers())
 
         if self.webPage:
             addLogCallback(logger, self.webPage.logToConsole)
