@@ -124,12 +124,15 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         wpc.renderScene()
         wpc.captureToFile(image_path)
 
+        image = QImage(image_path)
+        self.assertEqual(image.size(), QSize(OUT_WIDTH, OUT_HEIGHT), "captured image size is incorrect")
+
         if MANUAL_IMAGE_CHECK:
             openFile(image_path)
             self.skipTest(f"Manual image verification: {image_path}")
         else:
             # TODO: Visual Regression Testing and SSIM comparison
-            assert QImage(image_path) == QImage(expectedDataPath(filename)), "captured image is different from expected."
+            assert image == QImage(expectedDataPath(filename)), "captured image is different from expected."
 
 
 class TestExportWebLocalMode(TestExportWeb):
@@ -214,11 +217,15 @@ class ExportImageTestCases(ExportTestBase):
     def test03_check_scene1_image(self):
         """check exported image"""
         out_path = self.outputPath(self.OUT_FILE)
+
+        image = QImage(out_path)
+        self.assertEqual(image.size(), QSize(OUT_WIDTH, OUT_HEIGHT), "exported image size is incorrect")
+
         if MANUAL_IMAGE_CHECK:
             openFile(out_path)
             self.skipTest(f"Manual image check: {out_path}")
         else:
-            assert QImage(out_path) == QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected."
+            assert image == QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected."
 
 
 class ExportModelTestCases(ExportTestBase):
