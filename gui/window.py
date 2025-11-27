@@ -168,16 +168,20 @@ class Q3DWindow(QMainWindow):
             settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
             settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
-            # send quit request to the controller and wait until the controller gets ready to quit
-            loop = QEventLoop()
-            self.controller.iface.readyToQuit.connect(loop.quit)
-            self.iface.quit(self.controller)
-            loop.exec()
-
-            # stop worker thread event loop
             if self.thread:
+                # send quit request to the controller and wait until the controller gets ready to quit
+                loop = QEventLoop()
+                self.controller.iface.readyToQuit.connect(loop.quit)
+                self.iface.quit(self.controller)
+                loop.exec()
+
+                # stop worker thread event loop
                 self.thread.quit()
                 self.thread.wait()
+
+            else:
+                self.controller.quit()
+                self.controller.deleteLater()
 
             # close dialogs
             for dlg in self.findChildren(QDialog):
