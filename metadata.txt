@@ -11,7 +11,7 @@
 [general]
 name=Qgis2threejs
 qgisMinimumVersion=3.4
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 supportsQt6=True
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
