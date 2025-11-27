@@ -56,7 +56,7 @@ class TestPlugins(unittest.TestCase):
         exporter.setMapSettings(mapSettings)
         err = exporter.export(out_path)
 
-        assert err, "export failed"
+        self.assertFalse(err, "export failed")
 
 
 if __name__ == "__main__":

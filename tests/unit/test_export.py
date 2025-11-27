@@ -94,7 +94,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         exporter.setMapSettings(mapSettings)
 
         err = exporter.export(out_path)
-        assert err, "export failed"
+        self.assertFalse(err, "export failed")
 
     def check_webpage(self, filename):
         """check JavaScript errors and warnings in exported web page"""
@@ -106,8 +106,8 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         if MANUAL_PAGE_CHECK:
             openFile(self.outputPath(filename))
 
-        assert not result.errors, f"JavaScript errors found in {filename}"
-        assert not result.warnings, f"JavaScript warnings found in {filename}"
+        self.assertFalse(result.errors, f"JavaScript errors found in {filename}")
+        self.assertFalse(result.warnings, f"JavaScript warnings found in {filename}")
 
     def check_webpage_capture(self, filename):
         """render exported web page and check page capture"""
@@ -132,7 +132,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
             self.skipTest(f"Manual image verification: {image_path}")
         else:
             # TODO: Visual Regression Testing and SSIM comparison
-            assert image == QImage(expectedDataPath(filename)), "captured image is different from expected."
+            self.assertEqual(image, QImage(expectedDataPath(filename)), "captured image is different from expected.")
 
 
 class TestExportWebLocalMode(TestExportWeb):
@@ -186,18 +186,16 @@ class ExportImageTestCases(ExportTestBase):
         exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
 
         err = exporter.export(out_path)
-        assert not err, err
+        self.assertFalse(err, err)
 
     def test02_check_logs(self):
         log_handler = getLogListHandler(logger)
-        assert log_handler, "ListHandler not found in logger"
-
         log_messages = log_handler.get_messages()
 
         for message in log_messages:
             msg = message.lower()
             if "error" in msg:
-                assert False, f"Error log found: {message}"
+                self.fail(f"Error log found: {message}")
 
             if "warning" in msg:
                 logger.warning(message)
@@ -225,7 +223,7 @@ class ExportImageTestCases(ExportTestBase):
             openFile(out_path)
             self.skipTest(f"Manual image check: {out_path}")
         else:
-            assert image == QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected."
+            self.assertEqual(image, QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected.")
 
 
 class ExportModelTestCases(ExportTestBase):
@@ -245,8 +243,8 @@ class ExportModelTestCases(ExportTestBase):
 
         err = exporter.export(out_path)
 
-        assert not err, err
-        assert QFileInfo(out_path).size(), "Empty output file"
+        self.assertFalse(err, err)
+        self.assertTrue(QFileInfo(out_path).size(), "Empty output file")
 
 
 class TestExportImageWebEngine(unittest.TestCase, WebEngineTestBase, ExportImageTestCases):
