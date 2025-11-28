@@ -20,8 +20,8 @@ if Qgis.QGIS_VERSION_INT >= 33600:
         from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
         WEBENGINE_AVAILABLE = True
 
-    except:
-        pass
+    except Exception as e:
+        logger.warning(f"WebEngine widgets are unavailable: {e}")
 
 try:
     from qgis.PyQt.QtWebKitWidgets import QWebView
@@ -30,9 +30,8 @@ try:
 except:     # ModuleNotFoundError
     pass
 
-
 if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
-    logger.warning("Both webkit widgets and web engine widgets modules not found. The preview gets disabled.")
+    logger.warning("Neither WebKit nor WebEngine modules are available.")
 
 
 Q3DView = None
