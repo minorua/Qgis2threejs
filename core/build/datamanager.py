@@ -264,7 +264,7 @@ class MaterialManager(DataManager):
             if url is None:
                 if base64:
                     m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}
-                else:
+                else:       # for WebKit preview
                     m["image"] = {"object": self.imageManager.image(imgIndex)}
             else:
                 m["image"] = {"url": url}

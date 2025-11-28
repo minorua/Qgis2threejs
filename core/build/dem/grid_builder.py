@@ -83,7 +83,7 @@ class DEMGridBuilder:
 
             if self.settings.requiresJsonSerializable:
                 g["array"] = list(struct.unpack("f" * grid_width * grid_height, ba))
-            elif self.settings.isPreview:
+            elif self.settings.isPreview:       # for WebKit preview
                 g["binary"] = QByteArray(ba)
             else:
                 # write grid values to an binary file
