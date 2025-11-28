@@ -137,19 +137,10 @@ class Qgis2threejs:
 
     def openExporterWebEng(self):
         if WEBENGINE_AVAILABLE:
-            self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
-
             QSettings().remove(self.PREFER_WEBKIT_SETTING)
-            return
-
-        url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
-
-        msgBox = QMessageBox()
-        msgBox.setTextFormat(Qt.TextFormat.RichText)
-        msgBox.setText("PyQt-WebEngine is not installed. See <a href='{}'>wiki page</a> for details.".format(url))
-        msgBox.setWindowTitle("Qgis2threejs")
-
-        msgBox.exec()
+            self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
+        else:
+            self.openExporter(webViewType=WEBVIEWTYPE_NONE)
 
     def openExporterWebKit(self):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
