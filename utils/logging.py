@@ -6,6 +6,7 @@
 
 import os
 import logging
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.core import QgsMessageLog, Qgis
 
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
@@ -30,21 +31,33 @@ class QgisLogHandler(logging.Handler):
             QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
 
 
-class CallbackHandler(logging.Handler):
+class LogSignalEmitter(QObject):
+
+    logSignal = pyqtSignal(str, str)        # message, level
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def emit_log(self, message, level):
+        self.logSignal.emit(message, level)
+
+
+class EmitSignalHandler(logging.Handler):
+    """A handler that emits log messages via a Qt signal."""
 
     ReplaceMap = {
         "warning": "warn",
         "critical": "error"
     }
 
-    def __init__(self, callback):
+    def __init__(self):
         super().__init__()
-        self.callback = callback
+        self.emitter = LogSignalEmitter()
 
     def emit(self, record):
         level = record.levelname.lower()
         level = self.ReplaceMap.get(level, level)
-        self.callback(self.format(record), level)
+        self.emitter.emit_log(self.format(record), level)
 
 
 class ListHandler(logging.Handler):
@@ -120,23 +133,26 @@ def configureLoggers(is_test=False, log_to_stream=False):
 configureLoggers()
 
 
-def addLogCallback(logger, callback):
-    """Add a callback function that will be called when a message is logged.
+def addLogSignalEmitter(logger, slot):
+    """Add a log signal emitter to the logger.
 
     Args:
-        callback: A function that takes message and level as arguments.
+        slot: A function that takes message and level as arguments.
     """
-    logger.addHandler(CallbackHandler(callback))
+    handler = EmitSignalHandler()
+    handler.emitter.logSignal.connect(slot)
+    logger.addHandler(handler)
 
 
-def removeLogCallback(logger, callback):
-    """Remove a previously added log callback function.
+def removeLogSignalEmitter(logger, slot):
+    """Remove a previously added log signal emitter.
 
     Args:
-        callback: The callback function to remove.
+        slot: The slot function to disconnect.
     """
     for handler in logger.handlers:
-        if isinstance(handler, CallbackHandler) and handler.callback == callback:
+        if isinstance(handler, EmitSignalHandler):
+            handler.emitter.logSignal.disconnect(slot)
             logger.removeHandler(handler)
             break
 

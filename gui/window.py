@@ -25,7 +25,7 @@ from ..core.controller.interface import Q3DInterface
 from ..core.exportsettings import ExportSettings, Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, logger, pluginDir
-from ..utils.logging import addLogCallback, removeLogCallback
+from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 
 class Q3DViewerInterface(Q3DInterface):
@@ -125,7 +125,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self.iface, self.icons, settings.layers())
 
         if self.webPage:
-            addLogCallback(logger, self.webPage.logToConsole)
+            addLogSignalEmitter(logger, self.webPage.logToConsole)
 
             self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
@@ -155,7 +155,7 @@ class Q3DWindow(QMainWindow):
             self.controller.disconnectFromMapCanvas()
 
             if self.webPage:
-                removeLogCallback(logger, self.webPage.logToConsole)
+                removeLogSignalEmitter(logger, self.webPage.logToConsole)
 
                 if self.webPage.isWebEnginePage:
                     self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
