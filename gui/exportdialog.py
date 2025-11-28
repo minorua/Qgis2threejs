@@ -176,7 +176,7 @@ class ExportToWebDialog(QDialog):
         settings = self.settings.clone()
 
         settings.isPreview = False
-        settings.localMode = settings.jsonSerializable = local_mode
+        settings.localMode = settings.requiresJsonSerializable = local_mode
 
         err_msg = settings.checkValidity()
         if err_msg:

@@ -51,7 +51,7 @@ class TestPlugins(unittest.TestCase):
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(dataPath("gsielevtile.qto3settings"))
-        exporter.settings.localMode = exporter.settings.jsonSerializable = True
+        exporter.settings.localMode = exporter.settings.requiresJsonSerializable = True
 
         exporter.setMapSettings(mapSettings)
         err = exporter.export(out_path)

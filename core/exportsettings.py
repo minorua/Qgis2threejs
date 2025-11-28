@@ -120,7 +120,7 @@ class ExportSettings:
         self.crs = None
 
         self.isPreview = False
-        self.jsonSerializable = False
+        self.requiresJsonSerializable = False
         self.localMode = False
 
         self.nextJsLayerId = 0
@@ -143,7 +143,7 @@ class ExportSettings:
         t.mapSettings = QgsMapSettings(self.mapSettings) if self.mapSettings else None
         t.crs = self.crs
         t.isPreview = self.isPreview
-        t.jsonSerializable = self.jsonSerializable
+        t.requiresJsonSerializable = self.requiresJsonSerializable
         t.localMode = self.localMode
         t.nextJsLayerId = self.nextJsLayerId
 

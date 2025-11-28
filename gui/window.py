@@ -94,7 +94,7 @@ class Q3DWindow(QMainWindow):
         self.webPage = self.ui.webView.page()
 
         if self.webPage:
-            settings.jsonSerializable = self.webPage.isWebEnginePage
+            settings.requiresJsonSerializable = self.webPage.isWebEnginePage
             viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
         else:
             previewEnabled = False

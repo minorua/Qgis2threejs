@@ -69,7 +69,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                 self.features.append(feat)
 
             data["models"] = self.modelManager.build(self.pathRoot is not None,
-                                                     base64=self.settings.jsonSerializable)
+                                                     base64=self.settings.requiresJsonSerializable)
 
             self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.", warning=True)
         else:
@@ -78,7 +78,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                 self.features.append(feat)
 
             data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
-                                                              base64=self.settings.jsonSerializable)
+                                                              base64=self.settings.requiresJsonSerializable)
 
         if build_blocks:
             self._startBuildBlocks(cancelSignal)

@@ -78,7 +78,7 @@ class DEMMaterialBuilder:
         filepath = None if self.pathRoot is None else (self.pathRoot + suffix)
         url = None if self.urlRoot is None else (self.urlRoot + suffix)
 
-        d = self.materialManager.build(mi, filepath, url, self.settings.jsonSerializable)
+        d = self.materialManager.build(mi, filepath, url, self.settings.requiresJsonSerializable)
         d["mtlIndex"] = mtlIndex
         d["useNow"] = self.useNow
         if self.asBlock:

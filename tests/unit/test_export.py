@@ -90,7 +90,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         exporter = ThreeJSExporter()
         exporter.loadSettings(settings_path)
         exporter.settings.localMode = local_mode
-        exporter.settings.jsonSerializable = local_mode
+        exporter.settings.requiresJsonSerializable = local_mode
         exporter.setMapSettings(mapSettings)
 
         err = exporter.export(out_path)

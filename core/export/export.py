@@ -287,7 +287,7 @@ class BridgeExporterBase:
 
         self.settings = settings or ExportSettings()
         self.settings.isPreview = True
-        self.settings.jsonSerializable = self.isWebEngine
+        self.settings.requiresJsonSerializable = self.isWebEngine
 
         if self.isWebEngine:
             self.view = webview.Q3DView()
@@ -399,7 +399,7 @@ class ModelExporter(BridgeExporterBase):
 
     def __init__(self, settings=None):
         super().__init__(settings)
-        self.settings.jsonSerializable = True
+        self.settings.requiresJsonSerializable = True
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
