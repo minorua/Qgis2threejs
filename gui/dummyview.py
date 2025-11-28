@@ -3,30 +3,44 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-11-10
 
-from qgis.PyQt.QtCore import QObject
-from qgis.PyQt.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView
+from qgis.PyQt.QtCore import Qt, QObject
+from qgis.PyQt.QtWidgets import QLabel, QVBoxLayout, QWidget
 from qgis.PyQt.QtGui import QColorConstants, QPixmap
 
 from ..utils import logger, pluginDir
 
 
-class Q3DDummyView(QGraphicsView):
+class Q3DDummyView(QWidget):
+    """A view that shows a message when WebEngine is chosen even though it is not available."""
 
     def __init__(self, parent=None):
-        QGraphicsView.__init__(self, parent)
-        self._page = Q3DDummyPage()
-        self.setEnabled(False)
+        QWidget.__init__(self, parent)
+        self._page = Q3DDummyPage(self)
 
-        item = QGraphicsPixmapItem(QPixmap(pluginDir("Qgis2threejs.png")))
+        url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
 
-        effect = QGraphicsColorizeEffect()
-        effect.setColor(QColorConstants.Gray)
-        item.setGraphicsEffect(effect)
+        msg1 = QLabel(self)
+        msg1.setText("PyQt-WebEngine is not installed. See <a href='{}'>wiki page</a> for details.".format(url))
+        msg1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        msg1.setOpenExternalLinks(True)
 
-        scene = QGraphicsScene()
-        scene.addItem(item)
+        msg2 = QLabel(self)
+        msg2.setText("WebEngine modules are unavailable. The preview has been disabled.")
+        msg2.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.setScene(scene)
+        icon = QLabel(self)
+        icon.setPixmap(QPixmap(pluginDir("Qgis2threejs.png")))
+        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon.setDisabled(True)
+
+        layout = QVBoxLayout()
+        layout.addStretch(1)
+        layout.addWidget(msg1)
+        layout.addWidget(msg2)
+        layout.addStretch(1)
+        layout.addWidget(icon)
+        layout.addStretch(3)
+        self.setLayout(layout)
 
     def teardown(self):
         pass
