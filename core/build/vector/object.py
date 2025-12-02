@@ -8,34 +8,89 @@ from ....gui.propwidget import PropertyWidget, WVT
 
 
 class ObjectTypeBase:
+    """Base class for all 3D object types.
+
+    This is the abstract base class for various types of 3D objects.
+    Subclasses are expected to implement methods that provide material and geometry data for each feature.
+    """
 
     experimental = False
 
     def __init__(self, settings, mtlManager=None):
+        """
+        Args:
+            settings: ExportSettings object
+            mtlManager: MaterialManager object (optional)
+                Note: mtlManager needs to be set before calling .material()
+        """
         self.settings = settings
-        self.mtlManager = mtlManager        # material manager needs to be set before calling .material()
+        self.mtlManager = mtlManager
 
     def setupWidgets(self, ppage):
+        """Setup UI widgets for object type properties.
+
+        This method is called to configure the property widgets displayed in the UI
+        for this object type. Subclasses should override this to define custom properties.
+
+        Args:
+            ppage: VectorPropertyPage widget to setup
+        """
         pass
 
     def material(self, feat):
+        """Get material properties for a feature.
+
+        This method should return a dictionary containing material information for the given feature.
+        The material manager is used to avoid generating duplicate materials.
+
+        Args:
+            feat: Feature object
+
+        Returns:
+            A dictionary with material properties (e.g., {"idx": material_index}), where idx is
+            the unique material index obtained from MaterialManager
+        """
         pass
 
     def geometry(self, feat, geom):
+        """Get 3D geometry data for a feature.
+
+        This method should return a dictionary containing geometry data for the given feature.
+
+        Args:
+            feat: Feature object
+            geom: VectorGeometry subclass object
+
+        Returns:
+            A dictionary with geometry data (e.g., {"pts": [[0, 0, 0], [10, 10, 10]], "r": 5})
+        """
         pass
 
     def defaultValue(self):
+        """Get default size value.
+
+        Calculates a reasonable default value for geometry properties like radius or width.
+
+        Returns:
+            Float value as default size
+        """
         return float("{0:.3g}".format(self.settings.baseExtent().width() * 0.01))
 
     def defaultValueZ(self):
+        """Get default height value
+
+        Calculates a reasonable default value for height properties, taking into account
+        the z-scale factor and map extent.
+
+        Returns:
+            Float value as default height
+        """
         return float("{0:.3g}".format(self.settings.baseExtent().width() * self.settings.mapTo3d().zScale * 0.01))
 
     @classmethod
     def displayName(cls):
+        """Get the display name of the object type."""
         return tr(cls.name)
-
-    # def layerProperties(self, layer):
-    #     return {}
 
 
 class PointTypeBase(ObjectTypeBase):
