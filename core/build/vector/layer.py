@@ -15,10 +15,20 @@ from ....utils import hex_color, logger, parseFloat
 
 
 class VectorLayer:
-    """Represents a vector layer with 3D object type."""
+    """Represents a vector layer associated with a selected 3D object type.
+
+    This class wraps a QGIS vector layer together with exporter settings and the material/model managers,
+    and provides methods for iterating over its features.
+    """
 
     def __init__(self, settings, layer, materialManager, modelManager):
-        """layer: Layer object"""
+        """
+        Args:
+            settings: ExportSettings object.
+            layer: Layer object.
+            materialManager: Manager used to create/get material indices for features.
+            modelManager: Manager used to identify external 3D models.
+        """
         self.settings = settings
         self.renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
 
@@ -77,6 +87,20 @@ class VectorLayer:
                 }
 
     def features(self, request=None):
+        """Yield Feature objects for export.
+
+        Iterates over features from the underlying `mapLayer`, performs CRS
+        transformation, optional intersection filtering with the base extent,
+        evaluates property values, and yields `Feature` instances that the
+        exporter consumes.
+
+        Args:
+            request: Optional `QgsFeatureRequest` to filter which features to iterate.
+
+        Yields:
+            `Feature` instances containing geometry, evaluated properties and attributes.
+        """
+
         mapTo3d = self.settings.mapTo3d()
         be = self.settings.baseExtent()
         beGeom = be.geometry()
@@ -130,6 +154,19 @@ class VectorLayer:
         self.renderer.stopRender(self.renderContext)
 
     def evaluateProperties(self, feat, pids):
+        """Evaluate a set of property IDs for a feature.
+
+        This collects values for the requested property IDs (`pids`) by looking up
+        the corresponding property configuration in `self.properties`.
+
+        Args:
+            feat: `QgsFeature` being evaluated.
+            pids: List of `PropertyID` constants to evaluate.
+
+        Returns:
+            dict mapping property ID to evaluated value.
+        """
+
         d = {}
 
         for pid in pids:
@@ -150,14 +187,34 @@ class VectorLayer:
 
         return d
 
-    def evaluateExpression(self, expr_str, f):
+    def evaluateExpression(self, expr_str, feat):
+        """Evaluate a QGIS expression string in the context of feature `feat`.
+
+        Args:
+            expr_str: Expression string to evaluate.
+            feat: `QgsFeature` used as the expression context.
+
+        Returns:
+            The evaluated result.
+        """
+
         if expr_str not in self._exprs:
             self._exprs[expr_str] = QgsExpression(expr_str)
 
-        self.expressionContext.setFeature(f)
+        self.expressionContext.setFeature(feat)
         return self._exprs[expr_str].evaluate(self.expressionContext)
 
     def evaluatePropertyWidget(self, name, feat):
+        """Evaluate property widget values for a feature.
+
+        Args:
+            name: Property name.
+            feat: `QgsFeature` used for expression evaluation or symbol lookup.
+
+        Returns:
+            Evaluated value appropriate for the widget type.
+        """
+
         wv = self.properties.get(name)
         if not wv:
             return None
@@ -216,20 +273,39 @@ class VectorLayer:
         logger.error("Widget type {} not found.".format(t))
         return None
 
-    def readFillColor(self, vals, f):
-        return self._readColor(vals, f)
+    def readFillColor(self, vals, feat):
+        """Read a fill color value from color widget values.
 
-    def readBorderColor(self, vals, f):
-        return self._readColor(vals, f, isBorder=True)
+        Returns a hex color string prefixed with `0x`, or `None` when there is
+        no color selection.
+        """
+        return self._readColor(vals, feat)
 
-    # read color from COLOR or OPTIONAL_COLOR widget
-    def _readColor(self, wv, f, isBorder=False):
+    def readBorderColor(self, vals, feat):
+        """Read a border color value from optional color widget values.
+
+        Returns a hex color string prefixed with `0x`, or `None` when there is
+        no color selection."""
+        return self._readColor(vals, feat, isBorder=True)
+
+    def _readColor(self, wv, feat, isBorder=False):
+        """Internal helper to read color from widget values.
+
+        Args:
+            wv: Widget values dict
+            feat: `QgsFeature` used when reading feature-derived color
+            isBorder: If True, read stroke/border color from renderer
+
+        Returns:
+            Color string in `0xRRGGBB` format, `0` when wrong value specified or `None` when not available.
+        """
+
         mode = wv["comboData"]
         if mode is None:
             return None
 
         if mode == ColorWidgetFunc.EXPRESSION:
-            val = self.evaluateExpression(wv["editText"], f)
+            val = self.evaluateExpression(wv["editText"], feat)
             try:
                 if isinstance(val, str):
                     a = val.split(",")
@@ -243,14 +319,14 @@ class VectorLayer:
                 logger.warning("[{}] Wrong color value: {}".format(self.name, val))
                 return "0"
 
-        if mode == ColorWidgetFunc.RANDOM or f is None:
+        if mode == ColorWidgetFunc.RANDOM or feat is None:
             self.colorNames = self.colorNames or QColor.colorNames()
             color = random.choice(self.colorNames)
             self.colorNames.remove(color)
             return hex_color(QColor(color).name(), prefix="0x")
 
-        # feature color
-        symbols = self.renderer.symbolsForFeature(f, self.renderContext)
+        # feature color from renderer
+        symbols = self.renderer.symbolsForFeature(feat, self.renderContext)
         if not symbols:
             logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
             return "0"
@@ -263,17 +339,26 @@ class VectorLayer:
 
         return symbol.color().name().replace("#", "0x")
 
-    def readOpacity(self, wv, f):
+    def readOpacity(self, wv, feat):
+        """Read opacity value from opacity widget values.
+
+        Args:
+            wv: Widget values dict
+            feat: `QgsFeature` used when reading feature-derived opacity
+
+        Returns:
+            Float value between 0.0 and 1.0
+        """
 
         if wv["comboData"] == OpacityWidgetFunc.EXPRESSION:
             try:
-                val = self.evaluateExpression(wv["editText"], f)
+                val = self.evaluateExpression(wv["editText"], feat)
                 return min(max(0, val), 100) / 100
             except:
                 logger.warning("[{}] Wrong opacity value: {}".format(self.name, val))
                 return 1
 
-        symbols = self.renderer.symbolsForFeature(f, self.renderContext)
+        symbols = self.renderer.symbolsForFeature(feat, self.renderContext)
         if not symbols:
             logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
             return 1
@@ -283,6 +368,11 @@ class VectorLayer:
 
     @classmethod
     def toFloat(cls, val):
+        """Safely convert `val` to float.
+
+        Returns 0 and logs a warning on failure.
+        """
+
         try:
             return float(val)
         except Exception as e:
@@ -291,10 +381,13 @@ class VectorLayer:
 
     # functions to read values from height widget (z coordinate)
     def useZ(self):
+        """Return whether Z values should be used for height."""
         return self.properties.get("radioButton_zValue", False)
 
     def useM(self):
+        """Return whether M values should be used for height."""
         return self.properties.get("radioButton_mValue", False)
 
     def isHeightRelativeToDEM(self):
+        """Return True if altitude mode is set relative to DEM."""
         return self.properties.get("comboBox_altitudeMode") is not None
