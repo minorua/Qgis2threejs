@@ -17,7 +17,11 @@ from ....utils import css_color, int_color, logger
 
 
 class VectorLayerBuilder(LayerBuilderBase):
-    """Generates 3D data from a vector layer."""
+    """Generates the export data structure from a vector layer.
+
+    This builder coordinates per-layer material/model managers and
+    block builders to produce vector feature blocks.
+    """
 
     type2str = {
         LayerType.POINT: "point",
@@ -26,6 +30,7 @@ class VectorLayerBuilder(LayerBuilderBase):
     }
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+        """See `LayerBuilderBase.__init__()` for argument details."""
         LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
@@ -42,6 +47,16 @@ class VectorLayerBuilder(LayerBuilderBase):
         self.vlayer = vl
 
     def build(self, build_blocks=False, cancelSignal=None):
+        """Generate the export data structure for this vector layer.
+
+        Args:
+            build_blocks (bool): If True, construct and return feature blocks
+            under `data['blocks']`.
+            cancelSignal: Optional Qt signal used to request cancel.
+
+        Returns:
+            dict: Layer export data (or None if canceled/not available).
+        """
         if self.layer.mapLayer is None or self.vlayer.ot is None:
             return
 
@@ -119,6 +134,11 @@ class VectorLayerBuilder(LayerBuilderBase):
         return d
 
     def layerProperties(self):
+        """Return layer properties such as layer type and object type.
+
+        When attributes or labels are enabled, the corresponding configuration
+        is also included.
+        """
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = self.type2str.get(self.layer.type)
         p["objType"] = self.vlayer.ot.name
@@ -153,6 +173,10 @@ class VectorLayerBuilder(LayerBuilderBase):
         return p
 
     def subBuilders(self):
+        """Yield `FeatureBlockBuilder` instances for the current features.
+
+        This splits features into blocks of size `FEATURES_PER_BLOCK`.
+        """
         if self.vlayer.ot is None:
             return
 

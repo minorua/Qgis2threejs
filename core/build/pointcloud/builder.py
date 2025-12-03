@@ -9,11 +9,19 @@ from ....utils import int_color
 
 
 class PointCloudLayerBuilder(LayerBuilderBase):
+    """Builder for point cloud layers (currently limited to Potree format).
+
+    This builder creates a simple layer object that references an
+    externally hosted Potree dataset. It does not copy the large
+    point cloud files into the export.
+    """
 
     def __init__(self, settings, layer, progress=None, log=None):
+        """See `LayerBuilderBase.__init__()` for argument details."""
         LayerBuilderBase.__init__(self, settings, layer, progress=progress, log=log)
 
     def build(self, build_blocks=False, cancelSignal=None):
+        """Generate the export data structure for the point cloud."""
         d = {
             "type": "layer",
             "id": self.layer.jsLayerId,

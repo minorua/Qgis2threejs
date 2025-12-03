@@ -16,9 +16,15 @@ from ....conf import DEBUG_MODE
 
 
 class DEMLayerBuilder(LayerBuilderBase):
-    """Generates 3D data from a DEM layer."""
+    """Generates the export data structure for a DEM layer.
+
+    This builder coordinates grid builders and material builders to produce
+    a DEM block or tiled DEM blocks. It supports optional clipping to vector
+    polygons, tiled surrounding blocks, and multiple materials.
+    """
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+        """See `LayerBuilderBase.__init__()` for argument details."""
         LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
@@ -26,6 +32,15 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False, cancelSignal=None):
+        """Generate the export data structure for this DEM layer.
+
+        Args:
+            build_blocks (bool): If True, construct and return DEM blocks under `data['blocks']`.
+            cancelSignal: Optional Qt signal used to request cancel.
+
+        Returns:
+            dict: Layer export data (or None if canceled/not available).
+        """
         if self.provider is None:
             return None
 
@@ -61,6 +76,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         return d
 
     def layerProperties(self):
+        """Return layer properties specific to this DEM layer."""
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
         p["clipped"] = self.properties.get("checkBox_Clip", False)
@@ -69,6 +85,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         return p
 
     def subBuilders(self):
+        """Yield builders that produce DEM tiles and materials."""
         be = self.settings.baseExtent()
 
         materials = self.properties.get("materials", [])
