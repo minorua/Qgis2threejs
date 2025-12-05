@@ -4197,7 +4197,7 @@ class Q3DModel {
 		});
 	}
 
-	loadData(data, ext, resourcePath, callback) {
+	loadBytes(data, ext, resourcePath, callback) {
 		var _this = this;
 		Q3D.application.loadModelData(data, ext, resourcePath, function (model) {
 			_this.model = model;
@@ -4218,7 +4218,7 @@ class Q3DModel {
 				bytes[i] = b.charCodeAt(i);
 			}
 
-			this.loadData(bytes.buffer, jsonObject.ext, jsonObject.resourcePath, callback);
+			this.loadBytes(bytes.buffer, jsonObject.ext, jsonObject.resourcePath, callback);
 		}
 	}
 
