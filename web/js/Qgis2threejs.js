@@ -3591,14 +3591,24 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 	buildBillboards(features, startIndex) {
 
+		var errMtl = {
+			mtl: new THREE.SpriteMaterial({color: 0xffffff}),
+			callbackOnLoad: function () {}
+		};
+
 		features.forEach(function (f, fidx) {
 
-			var material = this.materials.get(f.mtl.idx);
+			var material = (f.mtl) ? this.materials.get(f.mtl.idx) : errMtl;
+
+			if (!f.mtl) {
+				console.warn("[" + this.properties.name + "] Billboard: There is a missing material.");
+			}
 
 			var sprite, sprites = [];
 			for (var i = 0; i < f.geom.pts.length; i++) {
 				sprite = new THREE.Sprite(material.mtl);
 				sprite.position.fromArray(f.geom.pts[i]);
+				sprite.scale.set(f.geom.size, f.geom.size, 1);
 				sprite.userData.properties = f.prop;
 
 				sprites.push(sprite);
@@ -3608,8 +3618,8 @@ class Q3DPointLayer extends Q3DVectorLayer {
 				var img = material.mtl.map.image;
 				for (var i = 0; i < sprites.length; i++) {
 					sprites[i].scale.set(f.geom.size,
-										f.geom.size * img.height / img.width,
-										1);
+										 f.geom.size * img.height / img.width,
+										 1);
 					sprites[i].updateMatrixWorld();
 				}
 			});
