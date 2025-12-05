@@ -35,7 +35,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         """Generate the export data structure for this DEM layer.
 
         Args:
-            build_blocks (bool): If True, construct and return DEM blocks under `data['blocks']`.
+            build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
             cancelSignal: Optional Qt signal used to request cancel.
 
         Returns:
@@ -54,18 +54,20 @@ class DEMLayerBuilder(LayerBuilderBase):
         }
 
         # DEM block
-        data = []
+        blocks = []
         if build_blocks:
             self._startBuildBlocks(cancelSignal)
 
             for builder in self.subBuilders():
                 if self.canceled:
                     break
-                data.append(builder.build())
+                blocks.append(builder.build())
 
             self._endBuildBlocks(cancelSignal)
 
-        d["data"] = data
+        d["body"] = {
+            "blocks": blocks
+        }
 
         if self.canceled:
             return None

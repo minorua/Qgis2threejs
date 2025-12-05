@@ -50,8 +50,7 @@ class VectorLayerBuilder(LayerBuilderBase):
         """Generate the export data structure for this vector layer.
 
         Args:
-            build_blocks (bool): If True, construct and return feature blocks
-            under `data['blocks']`.
+            build_blocks (bool): If True, construct and return feature blocks under `data['body']['blocks']`.
             cancelSignal: Optional Qt signal used to request cancel.
 
         Returns:
@@ -122,7 +121,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             "type": "layer",
             "id": self.layer.jsLayerId,
             "properties": self.layerProperties(),
-            "data": data
+            "body": data
         }
 
         if self.canceled:

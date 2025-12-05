@@ -2829,12 +2829,12 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 				this.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
 			}
 
-			if (data.data !== undefined) {
+			if (data.body !== undefined) {
 				this.clearObjects();
 
 				// materials
-				if (data.data.materials !== undefined) {
-					this.materials.loadData(data.data.materials);
+				if (data.body.materials !== undefined) {
+					this.materials.loadData(data.body.materials);
 				}
 			}
 
@@ -2930,9 +2930,9 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			}
 			this.objectGroup.updateMatrixWorld();
 
-			if (data.data !== undefined) {
-				data.data.forEach(function (obj) {
-					this.buildBlock(obj, scene, this);
+			if (data.body !== undefined && data.body.blocks !== undefined) {
+				data.body.blocks.forEach(function (block) {
+					this.buildBlock(block, scene, this);
 				}, this);
 			}
 		}
@@ -3386,7 +3386,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	loadData(data, scene) {
 		super.loadData(data, scene);
 		if (data.type == "layer") {
-			if (data.data !== undefined) {
+			if (data.body !== undefined) {
 				this.features = [];
 				this.clearLabels();
 
@@ -3408,7 +3408,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 					}
 				}
 
-				(data.data.blocks || []).forEach(function (block) {
+				(data.body.blocks || []).forEach(function (block) {
 					if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
 					else {
 						this.build(block.features, block.startIndex);
@@ -3448,7 +3448,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	loadData(data, scene) {
-		if (data.type == "layer" && data.properties.objType == "3D Model" && data.data !== undefined) {
+		if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
 			if (this.models === undefined) {
 				var _this = this;
 
@@ -3461,7 +3461,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			else {
 				this.models.clear();
 			}
-			this.models.loadData(data.data.models);
+			this.models.loadData(data.body.models);
 		}
 
 		super.loadData(data, scene);
