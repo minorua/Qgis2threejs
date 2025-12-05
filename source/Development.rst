@@ -1,14 +1,14 @@
 Development
 ===========
 
-This plugin is now being developed personally by `Minoru Akagi`__, and received many contributions.
+This plugin is currently developed and maintained by `Minoru Akagi`__ with many valuable contributions from the community.
 
 __ https://github.com/minorua/
 
-Many thanks to all the `contributors`__! Thanks also to bug reporters and everyone who gave me constructive suggestions!
+Many thanks to all the `contributors`__! I also appreciate everyone who reported bugs or provided constructive feedback!
 
 __ https://github.com/minorua/Qgis2threejs/blob/master/CONTRIBUTORS.md
 
-Source Code: https://github.com/minorua/Qgis2threejs/
+Repository: https://github.com/minorua/Qgis2threejs/
 
 Issue Tracker: https://github.com/minorua/Qgis2threejs/issues
