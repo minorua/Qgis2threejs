@@ -366,19 +366,6 @@ class VectorLayer:
         symbol = symbols[0]
         return self.mapLayer.opacity() * symbol.opacity()
 
-    @classmethod
-    def toFloat(cls, val):
-        """Safely convert `val` to float.
-
-        Returns 0 and logs a warning on failure.
-        """
-
-        try:
-            return float(val)
-        except Exception as e:
-            logger.warning('{0} (value: {1})'.format(e.message, str(val)))
-            return 0
-
     # functions to read values from height widget (z coordinate)
     def useZ(self):
         """Return whether Z values should be used for height."""
