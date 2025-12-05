@@ -51,23 +51,23 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        json_object = self.buildScene(cancelSignal=cancelSignal)
+        data = self.buildScene(cancelSignal=cancelSignal)
 
         if self.canceled:
             return False
 
         # animation
         if self.settings.isAnimationEnabled():
-            json_object["animation"] = self.settings.animationData(export=True, warning_log=self.warning_log)
+            data["animation"] = self.settings.animationData(export=True, warning_log=self.warning_log)
 
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
-                f.write("app.loadJSONObject(")
-                json.dump(json_object, f, indent=2)
+                f.write("app.loadData(")
+                json.dump(data, f, indent=2)
                 f.write('); window.setTimeout(function () { app.dispatchEvent({type: "sceneLoaded"}); }, 0);')
         else:
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
-                json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
+                json.dump(data, f, indent=2 if DEBUG_MODE else None)
 
         narration = self.settings.narrations(warning_log=self.warning_log)
 

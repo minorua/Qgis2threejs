@@ -113,7 +113,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         return result
 
     def sendData(self, data):
-        self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
+        self.bridge.sendScriptData.emit("loadData(pyData())", data)
 
     def requestRendering(self, waitUntilFinished=False):
         def render():

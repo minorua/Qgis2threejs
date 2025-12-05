@@ -206,7 +206,7 @@ class ExportImageTestCases(ExportTestBase):
             "init(",
             "emitInitialized",
             'loadStart("LYRS", true)',
-            "loadJSONObject(",
+            "loadData(",
             'loadEnd("LYRS")',
             "emitSceneLoaded",
             "Image saved to"

@@ -77,12 +77,12 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 		return o;
 	}
 
-	loadJSONObject(jsonObject, scene) {
+	loadData(data, scene) {
 
-		var p = jsonObject.properties;
+		var p = data.properties;
 		var need_reload = (this.properties.colorType !== p.colorType);
 
-		super.loadJSONObject(jsonObject, scene);
+		super.loadData(data, scene);
 
 		if (this.pcg !== undefined) {
 			if (!need_reload) {

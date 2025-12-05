@@ -124,11 +124,11 @@ function _init(off_screen) {
 }
 
 //// load functions
-function loadJSONObject(jsonObject) {
+function loadData(data) {
 
-	var p = jsonObject.properties;
+	var p = data.properties;
 
-	if (jsonObject.type == "scene" && p !== undefined) {
+	if (data.type == "scene" && p !== undefined) {
 		// update camera position - keep relative position to base extent
 		var lastP = app.scene.userData,
 			lastBE = lastP.baseExtent;
@@ -151,7 +151,7 @@ function loadJSONObject(jsonObject) {
 		}
 	}
 
-	app.loadJSONObject(jsonObject);
+	app.loadData(data);
 }
 
 function loadScriptFile(path, callback) {

@@ -86,7 +86,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         return result
 
     def sendData(self, data):
-        string = "loadJSONObject(pyData())"
+        string = "loadData(pyData())"
         logger.debug(string)
 
         self.runScript(string, data, message=None)
