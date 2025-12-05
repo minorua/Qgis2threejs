@@ -3641,24 +3641,22 @@ class Q3DPointLayer extends Q3DVectorLayer {
 				return;
 			}
 
-			var parents = [];
-			var pt, pts = f.geom.pts;
+			var groups = [];
+			var pts = f.geom.pts;
 			for (var i = 0; i < pts.length; i++) {
-				pt = pts[i];
+				var group = new Q3DGroup();
+				group.position.fromArray(pts[i]);
+				group.scale.set(1, 1, this.sceneData.zScale);
 
-				var parent = new Q3DGroup();
-				parent.position.fromArray(pt);
-				parent.scale.set(1, 1, this.sceneData.zScale);
+				group.userData.properties = f.prop;
 
-				parent.userData.properties = f.prop;
-
-				parents.push(parent);
+				groups.push(group);
 			}
 
 			model.callbackOnLoad(function (m) {
-				var parent, obj;
-				for (var i = 0; i < parents.length; i++) {
-					parent = parents[i];
+				var group, obj;
+				for (var i = 0; i < groups.length; i++) {
+					group = groups[i];
 
 					obj = m.scene.clone();
 					obj.scale.setScalar(f.geom.scale);
@@ -3679,11 +3677,11 @@ class Q3DPointLayer extends Q3DVectorLayer {
 																		f.geom.rotateO || "XYZ")));
 						obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
 					}
-					parent.add(obj);
+					group.add(obj);
 				}
 			});
 
-			this.addFeature(fidx + startIndex, f, parents);
+			this.addFeature(fidx + startIndex, f, groups);
 		}, this);
 	}
 
