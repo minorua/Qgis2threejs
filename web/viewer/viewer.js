@@ -596,3 +596,37 @@ if (!HTMLCanvasElement.prototype.toBlob) {
         }
     });
 }
+
+// Polyfill for AbortSignal.throwIfAborted if needed
+// https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/throwIfAborted
+if (window.AbortSignal && !AbortSignal.prototype.throwIfAborted) {
+	AbortSignal.prototype.throwIfAborted = function () {
+		if (this.aborted) {
+			if (this.reason instanceof Error) {
+				throw this.reason;
+			}
+
+			var msg = (typeof this.reason == 'string') ? this.reason : 'Aborted.';
+			throw new DOMException(msg, 'AbortError');
+		}
+	};
+}
+
+// Polyfills for Array.at and String.at if needed
+if (!Array.prototype.at) {
+	Array.prototype.at = function(n) {
+		n = Math.trunc(n) || 0;
+		if (n < 0) n += this.length;
+		if (n < 0 || n >= this.length) return undefined;
+		return this[n];
+	};
+}
+
+if (!String.prototype.at) {
+	String.prototype.at = function(n) {
+		n = Math.trunc(n) || 0;
+		if (n < 0) n += this.length;
+		if (n < 0 || n >= this.length) return undefined;
+		return this.charAt(n);
+	};
+}
