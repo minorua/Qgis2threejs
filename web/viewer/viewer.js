@@ -1,576 +1,598 @@
-// (C) 2017 Minoru Akagi
+// (C) 2024 MapLibre GL Viewer for Qgis2threejs
 // SPDX-License-Identifier: MIT
 
-//// configuration
-Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/potree-core";
-Q3D.Config.potree.maxNodesLoading = 1;
+"use strict";
 
-var app = Q3D.application,
-	gui = Q3D.gui;
+var maplibregl = window.maplibregl;
 
-var preview = {
-
-	renderEnabled: true,
-
-	timer: {
-		tickCount: 0
-	}
+var app = {
+    map: null,
+    container: null,
+    layers: {},
+    sources: {},
+    pyObj: null,
+    initialized: false,
+    debugMode: false,
+    isWebEngine: false
 };
 
-//// initialization
-
+// Initialize the map viewer
 function init(off_screen, debug_mode, qgis_version, is_webengine) {
+    app.debugMode = debug_mode;
+    app.isWebEngine = is_webengine;
 
-	Q3D.Config.debugMode = debug_mode;
-	Q3D.Config.qgisVersion = qgis_version;
-	Q3D.Config.isWebEngine = is_webengine;
+    if (is_webengine) {
+        // Web Channel
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            app.pyObj = channel.objects.bridge;
+            app.pyObj.sendScriptData.connect(function (script, data) {
+                var pyData = function () {
+                    return data;
+                };
 
-	if (is_webengine) {
-		// Web Channel
-		new QWebChannel(qt.webChannelTransport, function(channel) {
-			window.pyObj = channel.objects.bridge;
-			pyObj.sendScriptData.connect(function (script, data) {
-				var pyData = function () {
-					return data;
-				};
+                eval(script);
 
-				eval(script);
+                if (app.debugMode) {
+                    console.debug("↓", script, "# sendScriptData", (data === undefined) ? "" : data);
+                }
+            });
 
-				if (Q3D.Config.debugMode) {
-					console.debug("↓", script, "# sendScriptData", (data === undefined) ? "" : data);
-				}
-			});
+            _init(off_screen);
+        });
+    }
+    else {
+        // WebKit Bridge
+        window.pyData = function () {
+            return app.pyObj.data();
+        }
 
-			_init(off_screen);
-
-		});
-	}
-	else {
-		// WebKit Bridge
-		window.pyData = function () {
-			return pyObj.data();
-		}
-
-		_init(off_screen);
-
-	}
+        _init(off_screen);
+    }
 }
 
 function _init(off_screen) {
+    var mapContainer = document.getElementById('map');
 
-	var container = Q3D.E("view");
-	app.init(container);
+    app.map = new maplibregl.Map({
+        container: 'map',
+        zoom: 12,
+        center: [11.39085, 47.27574],
+        pitch: 70,
+        hash: true,
+        style: {
+            version: 8,
+            sources: {
+                osm: {
+                    type: 'raster',
+                    tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                    tileSize: 256,
+                    attribution: '&copy; OpenStreetMap Contributors',
+//                    maxzoom: 19
+                },
+                // Use a different source for terrain and hillshade layers, to improve render quality
+                terrainSource: {
+                    type: 'raster-dem',
+                    url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+                    tileSize: 256
+                },
+                hillshadeSource: {
+                    type: 'raster-dem',
+                    url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+                    tileSize: 256
+                }
+            },
+            layers: [
+                {
+                    id: 'osm',
+                    type: 'raster',
+                    source: 'osm'
+                },
+                {
+                    id: 'hills',
+                    type: 'hillshade',
+                    source: 'hillshadeSource',
+                    layout: {visibility: 'visible'},
+                    paint: {'hillshade-shadow-color': '#473B24'}
+                }
+            ],
+            terrain: {
+                source: 'terrainSource',
+                exaggeration: 1
+            },
+            sky: {}
+        },
+/*        maxZoom: 18,
+        maxPitch: 85*/
+    });
 
-	if (off_screen) {
-		Q3D.E("progress").style.display = "none";
-		app.osRender = app.render;
-		app.render = function () {};		// not necessary to render scene before scene has been completely loaded
-		app.addEventListener("sceneLoaded", function () {
-			app.osRender(); app.osRender(); // render scene twice for output stability
-		});
-	}
-	else {
-		Q3D.E("closemsgbar").onclick = closeMessageBar;
-	}
+    app.map.addControl(
+        new maplibregl.NavigationControl({
+            visualizePitch: true,
+            showZoom: true,
+            showCompass: true
+        })
+    );
 
-	app.addEventListener("sceneLoaded", function () {
-		pyObj.emitSceneLoaded();
-	});
+    app.map.addControl(
+        new maplibregl.TerrainControl({
+            source: 'terrainSource',
+            exaggeration: 1
+        })
+    );
 
-	app.addEventListener("sceneLoadError", function () {
-		pyObj.emitSceneLoadError();
-	});
 
-	app.addEventListener("tweenStarted", function (e) {
-		pyObj.emitTweenStarted(e.index);
-	});
+    app.container = mapContainer;
 
-	app.addEventListener("animationStopped", function () {
-		pyObj.emitAnimationStopped();
-	});
-
-	if (Q3D.Config.debugMode) {
-		displayFPS();
-	}
-
-	// check extension support of web view
-	// see https://github.com/minorua/Qgis2threejs/issues/147
-	var gl = app.renderer.getContext();		// WebGLRenderingContext
-	if (gl.getExtension("WEBGL_depth_texture") === null) {
-
-		var viewName = (Q3D.Config.isWebEngine) ? "WebEngine" : "WebKit";
-
-		var msg = "The current web view (Qt " + viewName + ") cannot display 3D objects. ";
-
-		if (!Q3D.Config.isWebEngine) {
-
-			if (Q3D.Config.qgisVersion >= 33600) {
-
-				msg += "Please use the Qt WebEngine view instead. You can find instructions on how to do this in the plugin ";
-				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
-
-			}
-			else {
-
-				msg += "Please consider using QGIS version 3.36 or a later version, which supports using Qt WebEngine view.";
-
-			}
+    // Handle map events
+    app.map.on('load', function() {
+        console.log('Map loaded');
+        app.initialized = true;
+        if (app.pyObj) {
+			// app.pyObj.emitMapLoaded();
 		}
+    });
 
-		showMessageBar(msg, undefined, true);
-	}
+    app.map.on('error', function(e) {
+        console.error('Map error:', e);
+        if (app.pyObj) {
+			// app.pyObj.emitError(e.error.message);
+		}
+    });
 
-	pyObj.emitInitialized();
+    // Handle clicks for feature queries
+    app.map.on('click', function(e) {
+        handleMapClick(e);
+    });
+
+    // Message bar
+    var closeMsgBar = document.getElementById('closemsgbar');
+    if (closeMsgBar) {
+        closeMsgBar.onclick = closeMessageBar;
+    }
+
+    if (app.pyObj) {
+        app.pyObj.emitSceneLoaded();
+    }
 }
 
-//// load functions
+// Load scene data
 function loadData(data) {
+    if (!app.initialized || !app.map) {
+        console.error('Map not initialized');
+        return;
+    }
 
-	var p = data.properties;
+    var p = data.properties;
 
-	if (data.type == "scene" && p !== undefined) {
-		// update camera position - keep relative position to base extent
-		var lastP = app.scene.userData,
-			lastBE = lastP.baseExtent;
+    if (data.type === "scene" && p !== undefined) {
+        // Initialize scene properties
+        var baseExtent = p.baseExtent;
 
-		if (lastBE !== undefined) {
-			var be = p.baseExtent,
-				v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin),
-				v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin),
-				s = be.width / lastBE.width;
+        if (baseExtent) {
+            // Set map center and zoom based on base extent
+            var center = [baseExtent.cx, baseExtent.cy];
+            var zoom = calculateZoomLevel(baseExtent.width);
 
-			var pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1),
-				focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
+            app.map.easeTo({
+                center: center,
+                zoom: zoom,
+                duration: 1000
+            });
+        }
 
-			var near, far;
-			if (s != 1) {
-				near = 0.001 * be.width;
-				far = 100 * be.width;
-			}
-			app.scene.requestCameraUpdate(pos, focal, near, far);
-		}
-	}
+        // Store scene data
+        app.sceneData = p;
+    }
 
-	app.loadData(data);
+    if (data.type === "layer" && data.layers) {
+        for (var i = 0; i < data.layers.length; i++) {
+            addLayer(data.layers[i]);
+        }
+    }
 }
 
-function loadScriptFile(path, callback) {
-	var url = new URL(path, document.baseURI);
+// Add a layer to the map
+function addLayer(layerData) {
+    if (!app.map || !layerData) return;
 
-	var elms = document.head.getElementsByTagName("script");
-	for (var i = 0; i < elms.length; i++) {
-		if (elms[i].src == url) {
-			if (callback) callback();
-			return false;
-		}
-	}
+    var layerId = layerData.id || createLayerId();
 
-	var s = document.createElement("script");
-	s.src = url;
-	if (callback) s.onload = callback;
-	document.head.appendChild(s);
-	return true;
+    // Parse geometry data
+    var features = [];
+    if (layerData.features) {
+        for (var i = 0; i < layerData.features.length; i++) {
+            features.push(layerData.features[i]);
+        }
+    }
+
+    // Create GeoJSON source
+    var sourceId = 'source-' + layerId;
+    var source = {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: features
+        }
+    };
+
+    app.sources[sourceId] = source;
+
+    // Add source to map
+    if (!app.map.getSource(sourceId)) {
+        app.map.addSource(sourceId, source);
+    }
+
+    // Create layers based on geometry type
+    var geomType = layerData.geomType || 'point';
+    var layers = createLayersFromData(layerId, sourceId, geomType, layerData.properties);
+
+    // Add layers to map
+    for (var i = 0; i < layers.length; i++) {
+        if (!app.map.getLayer(layers[i].id)) {
+            app.map.addLayer(layers[i]);
+        }
+    }
+
+    app.layers[layerId] = {
+        id: layerId,
+        sourceId: sourceId,
+        geomType: geomType,
+        properties: layerData.properties,
+        visible: layerData.visible !== false
+    };
 }
 
-function loadModel(url) {
+// Create MapLibre GL layers from data
+function createLayersFromData(layerId, sourceId, geomType, properties) {
+    var layers = [];
+    var layerProperties = properties || {};
 
-	var loadToScene = function (res) {
-		var boxsize = new THREE.Box3().setFromObject(res.scene).getSize(),
-				scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
+    if (geomType === 'point') {
+        layers.push({
+            id: layerId,
+            type: 'circle',
+            source: sourceId,
+            paint: {
+                'circle-radius': layerProperties.pointSize || 5,
+                'circle-color': layerProperties.color || '#088',
+                'circle-opacity': (layerProperties.opacity !== undefined) ? layerProperties.opacity : 0.8
+            }
+        });
+    }
+    else if (geomType === 'linestring') {
+        layers.push({
+            id: layerId,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': layerProperties.color || '#088',
+                'line-width': layerProperties.lineWidth || 2,
+                'line-opacity': (layerProperties.opacity !== undefined) ? layerProperties.opacity : 0.8
+            }
+        });
+    }
+    else if (geomType === 'polygon') {
+        // Add fill layer
+        layers.push({
+            id: layerId + '-fill',
+            type: 'fill',
+            source: sourceId,
+            paint: {
+                'fill-color': layerProperties.color || '#088',
+                'fill-opacity': (layerProperties.opacity !== undefined) ? layerProperties.opacity * 0.5 : 0.4
+            }
+        });
 
-		var parent = new THREE.Group();
-		parent.scale.set(scale, scale, scale);
-		parent.rotation.x = Math.PI / 2;
-		parent.add(res.scene);
-		app.scene.add(parent);
+        // Add outline layer
+        layers.push({
+            id: layerId + '-outline',
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': layerProperties.color || '#088',
+                'line-width': 2,
+                'line-opacity': (layerProperties.opacity !== undefined) ? layerProperties.opacity : 0.8
+            }
+        });
+    }
+    else if (geomType === 'dem' || geomType === 'raster') {
+        // For DEM/raster data, create a raster layer
+        // This would need raster source data
+        layers.push({
+            id: layerId,
+            type: 'raster',
+            source: sourceId,
+            paint: {
+                'raster-opacity': (layerProperties.opacity !== undefined) ? layerProperties.opacity : 1
+            }
+        });
+    }
 
-		app.render();
-
-		var sceneScale = app.scene.userData.scale,
-			objScale = scale / sceneScale;
-
-		console.log("Model " + url + " loaded.");
-		console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
-		console.log("To clear the added object, use scene reload (F5).");
-
-		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
-	};
-	var onError = function (e) {
-		console.warn(e.message);
-		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
-	};
-
-	var ext = url.split(".").pop();
-	if (ext == "dae") {
-		loadScriptFile("../js/lib/threejs/loaders/ColladaLoader.js", function () {
-			var loader = new THREE.ColladaLoader(app.loadingManager);
-			loader.load(url, loadToScene, undefined, onError);
-		});
-	}
-	else if (ext == "gltf" || ext == "glb") {
-		loadScriptFile("../js/lib/threejs/loaders/GLTFLoader.js", function () {
-			var loader = new THREE.GLTFLoader(app.loadingManager);
-			loader.load(url, loadToScene, undefined, onError);
-		});
-	}
+    return layers;
 }
 
+// Calculate zoom level from extent width
+function calculateZoomLevel(width) {
+    // Approximate zoom level calculation
+    // This is a simplified calculation
+    if (width > 1000000) return 4;
+    if (width > 100000) return 7;
+    if (width > 10000) return 10;
+    if (width > 1000) return 13;
+    return 16;
+}
+
+// Handle map click for feature queries
+function handleMapClick(e) {
+    var bbox = [[e.lngLat.lng - 0.001, e.lngLat.lat - 0.001],
+                [e.lngLat.lng + 0.001, e.lngLat.lat + 0.001]];
+
+    var features = app.map.querySourceFeatures({sourceId: undefined}, {layers: Object.keys(app.layers)});
+
+    if (features.length > 0) {
+        showQueryResult(e.lngLat, features[0]);
+    }
+}
+
+// Show query result in popup
+function showQueryResult(lngLat, feature) {
+    var html = '<div>';
+
+    if (feature.properties) {
+        for (var key in feature.properties) {
+            html += '<p><strong>' + key + ':</strong> ' + feature.properties[key] + '</p>';
+        }
+    }
+
+    html += '</div>';
+
+    var popupContent = document.getElementById('popupcontent');
+    if (popupContent) {
+        popupContent.innerHTML = html;
+    }
+
+    var popup = document.getElementById('popup');
+    if (popup) {
+        popup.style.display = 'block';
+    }
+}
+
+// Hide layer
 function hideLayer(layerId, remove_obj) {
-	var layer = app.scene.mapLayers[layerId];
-	if (layer !== undefined) {
-		layer.visible = false;
-		if (remove_obj) layer.clearObjects();
-	}
+    if (app.layers[layerId]) {
+        app.layers[layerId].visible = false;
+        var layer = app.layers[layerId];
+
+        if (app.map.getLayer(layerId)) {
+            app.map.setLayoutProperty(layerId, 'visibility', 'none');
+        }
+        if (app.map.getLayer(layerId + '-fill')) {
+            app.map.setLayoutProperty(layerId + '-fill', 'visibility', 'none');
+        }
+        if (app.map.getLayer(layerId + '-outline')) {
+            app.map.setLayoutProperty(layerId + '-outline', 'visibility', 'none');
+        }
+    }
 }
 
+// Show layer
+function showLayer(layerId) {
+    if (app.layers[layerId]) {
+        app.layers[layerId].visible = true;
+
+        if (app.map.getLayer(layerId)) {
+            app.map.setLayoutProperty(layerId, 'visibility', 'visible');
+        }
+        if (app.map.getLayer(layerId + '-fill')) {
+            app.map.setLayoutProperty(layerId + '-fill', 'visibility', 'visible');
+        }
+        if (app.map.getLayer(layerId + '-outline')) {
+            app.map.setLayoutProperty(layerId + '-outline', 'visibility', 'visible');
+        }
+    }
+}
+
+// Hide all layers
 function hideAllLayers(remove_obj) {
-	for (var id in app.scene.mapLayers) {
-		var layer = app.scene.mapLayers[id];
-		layer.visible = false;
-		if (remove_obj) layer.clearObjects();
-	}
+    for (var id in app.layers) {
+        hideLayer(id, remove_obj);
+    }
 }
 
-function loadStart(name, initialize) {
-	if (initialize) {
-		app.initLoadingManager();
-	}
+// Set layer opacity
+function setLayerOpacity(layerId, opacity) {
+    if (app.layers[layerId] && app.map) {
+        var layer = app.layers[layerId];
 
-	app.loadingManager.itemStart(name);
+        if (app.map.getLayer(layerId)) {
+            if (layer.geomType === 'polygon') {
+                app.map.setPaintProperty(layerId + '-fill', 'fill-opacity', opacity * 0.5);
+                app.map.setPaintProperty(layerId + '-outline', 'line-opacity', opacity);
+            } else {
+                var paintProperty = (layer.geomType === 'point') ? 'circle-opacity' : 'line-opacity';
+                app.map.setPaintProperty(layerId, paintProperty, opacity);
+            }
+        }
+    }
 }
 
-function loadEnd(name) {
-	app.loadingManager.itemEnd(name);
+// Load script file
+function loadScriptFile(path, callback) {
+    var url = new URL(path, document.baseURI);
+
+    var elms = document.head.getElementsByTagName("script");
+    for (var i = 0; i < elms.length; i++) {
+        if (elms[i].src == url) {
+            if (callback) callback();
+            return false;
+        }
+    }
+
+    var s = document.createElement("script");
+    s.src = url;
+    if (callback) s.onload = callback;
+    document.head.appendChild(s);
+    return true;
 }
 
-function displayFPS() {
-	preview.timer.last = Date.now();
-
-	window.setInterval(function () {
-		var now = Date.now(),
-			elapsed = now - preview.timer.last,
-			fps = preview.timer.tickCount / elapsed * 1000;
-
-		Q3D.E("fps").innerHTML = "FPS: " + Math.round(fps);
-
-		preview.timer.last = now;
-		preview.timer.tickCount = 0;
-	}, 1000);
-}
-
-function saveModelAsGLTF(filename) {
-	console.log("Saving model to " + filename);
-
-	var scene = new THREE.Scene(), layer, group;
-	for (var k in app.scene.mapLayers) {
-		layer = app.scene.mapLayers[k];
-		group = layer.objectGroup;
-		group.rotation.set(-Math.PI / 2, 0, 0);
-		group.name = layer.properties.name;
-		scene.add(group);
-	}
-	scene.updateMatrixWorld();
-
-	var options = {
-		binary: (filename.split(".").pop().toLowerCase() == "glb")
-	};
-
-	var gltfExporter = new THREE.GLTFExporter();
-	gltfExporter.parse(scene, function(result) {
-
-		if (result instanceof ArrayBuffer) {
-			pyObj.saveBytes(new Uint8Array(result), filename);
-		}
-		else {
-			pyObj.saveString(JSON.stringify(result, null, 2), filename);
-		}
-		showStatusMessage("Successfully saved the model.", 5000);
-
-		// restore preview
-		for (var k in app.scene.mapLayers) {
-			layer = app.scene.mapLayers[k];
-			group = layer.objectGroup;
-			group.rotation.set(0, 0, 0);
-			app.scene.add(group);
-		}
-		app.scene.updateMatrixWorld();
-		app.render();
-	}, options);
-}
-
+// Request rendering (callback for off-screen rendering)
 function requestRendering() {
-	// wait for two frames to ensure rendering is done
-	requestAnimationFrame(function () {
-		requestAnimationFrame(function () {
-			app.render();
-			pyObj.emitRequestedRenderingFinished();
-		});
-	});
+    // For MapLibre GL, rendering is continuous, but we need to notify Python when done
+    if (app.pyObj && app.pyObj.emitRequestedRenderingFinished) {
+        requestAnimationFrame(function() {
+            app.pyObj.emitRequestedRenderingFinished();
+        });
+    }
 }
 
+// Message bar functions
 var barTimerId = null;
 function showMessageBar(message, timeout_ms, warning) {
-	if (barTimerId !== null) {
-		clearTimeout(barTimerId);
-		barTimerId = null;
-	}
-	if (timeout_ms) {
-		barTimerId = setTimeout(closeMessageBar, timeout_ms);
-	}
+    if (barTimerId !== null) {
+        clearTimeout(barTimerId);
+        barTimerId = null;
+    }
+    if (timeout_ms) {
+        barTimerId = setTimeout(closeMessageBar, timeout_ms);
+    }
 
-	Q3D.E("msgcontent").innerHTML = message;
+    var msgContent = document.getElementById('msgcontent');
+    if (msgContent) {
+        msgContent.innerHTML = message;
+    }
 
-	var e = Q3D.E("msgbar");
-	e.style.display = "block";
-	if (warning) {
-		e.classList.add("warning");
-	}
-	else {
-		e.classList.remove("warning");
-	}
+    var e = document.getElementById('msgbar');
+    if (e) {
+        e.style.display = "block";
+        if (warning) {
+            e.classList.add("warning");
+        }
+        else {
+            e.classList.remove("warning");
+        }
+    }
 }
 
 function closeMessageBar() {
-	Q3D.E("msgbar").style.display = "none";
-	barTimerId = null;
+    var e = document.getElementById('msgbar');
+    if (e) {
+        e.style.display = "none";
+    }
+    barTimerId = null;
 }
 
 function showStatusMessage(message, timeout_ms) {
-	pyObj.showStatusMessage(message, timeout_ms || 0);
-	console.log(message);
+    if (app.pyObj && app.pyObj.showStatusMessage) {
+        app.pyObj.showStatusMessage(message, timeout_ms || 0);
+    }
+    console.log(message);
 }
 
 function clearStatusMessage() {
-	showStatusMessage("");
+    showStatusMessage("");
 }
 
-function setPreviewEnabled(enabled) {
-	var e = Q3D.E("cover");
-
-	if (enabled) {
-		app.resume();
-	}
-	else {
-		app.pause();
-		e.innerHTML = '<img src="../../Qgis2threejs.png">';
-	}
-	e.style.display = (enabled) ? "none" : "block";
-}
-
-function setOutlineEffectEnabled(enabled) {
-	if (enabled) {
-		if (THREE.OutlineEffect === undefined) {
-			loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
-				app.effect = new THREE.OutlineEffect(app.renderer);
-			});
-		}
-		else if (app.effect !== undefined) {
-			app.effect = new THREE.OutlineEffect(app.renderer);
-		}
-	}
-	else {
-		app.effect = undefined;
-	}
-}
-
-function setBackgroundColor(color, alpha) {
-	app.renderer.setClearColor(color, alpha);
-	app.render();
-}
-
-function verifySize(width, height) {
-	var vec2 = new THREE.Vector2();
-	app.renderer.getSize(vec2);
-	return (vec2.x == width && vec2.y == height);
-}
-
-//// camera
+// Camera/view functions (adapted for MapLibre GL)
 function switchCamera(is_ortho) {
-	app.buildCamera(is_ortho);
-	app.controls.object = app.camera;
-	app.controls.reset();
-
-	console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.");
-
-	// change parent of light
-	var p = app.scene.userData;
-	if (p.light) {
-		app.scene.dispatchEvent({type: "lightChanged", light: p.light});
-	}
-
-	// rebuild view helper
-	if (app.viewHelper !== undefined) {
-		app.buildViewHelper(Q3D.E("navigation"));
-	}
-
-	app.render(true);
+    // MapLibre GL doesn't have orthographic/perspective switching in the same way
+    // This is a no-op for MapLibre GL
+    console.log("Camera mode setting ignored for MapLibre GL");
 }
 
-// current camera position and its target
 function cameraState(flat) {
-	var p = app.scene.toMapCoordinates(app.camera.position),
-			t = app.scene.toMapCoordinates(app.controls.target);
-	if (flat) {
-		return {
-			x: p.x, y: p.y, z: p.z, fx: t.x, fy: t.y, fz: t.z
-		};
-	}
+    var center = app.map.getCenter();
+    var zoom = app.map.getZoom();
+    var pitch = app.map.getPitch();
+    var bearing = app.map.getBearing();
 
-	return {
-		pos: {x: p.x, y: p.y, z: p.z},
-		lookAt: {x: t.x, y: t.y, z: t.z}
-	};
+    if (flat) {
+        return {
+            lng: center.lng,
+            lat: center.lat,
+            zoom: zoom,
+            pitch: pitch,
+            bearing: bearing
+        };
+    }
+
+    return {
+        center: {lng: center.lng, lat: center.lat},
+        zoom: zoom,
+        pitch: pitch,
+        bearing: bearing
+    };
 }
 
 function setCameraState(s) {
-	if (s.pos !== undefined) {
-		app.camera.position.copy(app.scene.toWorldCoordinates(s.pos));
-		app.controls.target.copy(app.scene.toWorldCoordinates(s.lookAt));
-	}
-	else {
-		app.camera.position.copy(app.scene.toWorldCoordinates(s));
-		app.controls.target.copy(app.scene.toWorldCoordinates({x: s.fx, y: s.fy, z: s.fz}));
-	}
-	app.camera.lookAt(app.controls.target);
-	app.render();
+    var options = {
+        duration: 1000
+    };
+
+    if (s.center !== undefined) {
+        options.center = s.center;
+        options.zoom = s.zoom;
+        options.pitch = s.pitch;
+        options.bearing = s.bearing;
+    } else {
+        options.center = [s.lng, s.lat];
+        options.zoom = s.zoom;
+        options.pitch = s.pitch;
+        options.bearing = s.bearing;
+    }
+
+    app.map.easeTo(options);
 }
 
-function adjustCameraPos() {
-	if (Q3D.Config.autoAdjustCameraPos) {
-		app.adjustCameraPosition();
-	}
-	app.render();
+// Preview functions
+function setPreviewEnabled(enabled) {
+    var e = document.getElementById('cover');
+    if (e) {
+        e.style.display = (enabled) ? "none" : "block";
+        if (!enabled) {
+            e.innerHTML = '<img src="../../Qgis2threejs.png">';
+        }
+    }
 }
 
-//// lights
-function changeLight(type) {
-	app.scene.lightGroup.clear();
-	app.scene.buildLights(Q3D.Config.lights[type], app.scene.userData.baseExtent.rotation);
-	app.scene.dispatchEvent({type: "lightChanged", light: type});
-	app.render();
+function setBackgroundColor(color, alpha) {
+    // MapLibre GL doesn't have a direct background color property like three.js
+    // This would need to be handled differently, e.g., with a background layer
+    console.log("Background color setting: #" + color.toString(16) + ", alpha: " + alpha);
 }
 
-//// widgets
-function setNavigationEnabled(enabled) {
-	var elm = Q3D.E("navigation");
-	elm.style.display = (enabled) ? "block" : "none";
-
-	if (enabled) {
-		if (app.viewHelper === undefined) {
-			app.buildViewHelper(elm);
-			app.viewHelper.render(app.renderer3);
-		}
-	}
-	else {
-		app.viewHelper = undefined;
-	}
-}
-
-function setNorthArrowVisible(visible) {
-	Q3D.E("northarrow").style.display = (visible) ? "block" : "none";
-	if (visible && app.scene2 === undefined) {
-		app.buildNorthArrow(Q3D.E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
-		app.render();
-	}
-}
-
-function setNorthArrowColor(color) {
-	if (app.scene2 === undefined) {
-		Q3D.Config.northArrow.color = color;
-	}
-	else {
-		app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
-		app.render();
-	}
-}
-
-function setHFLabel(properties) {
-	Q3D.E("header").innerHTML = properties.Header || "";
-	Q3D.E("footer").innerHTML = properties.Footer || "";
-}
-
-//// animation
-function loadKeyframeGroups(groups) {
-	app.animation.keyframes.clear();
-	app.animation.keyframes.load(groups);
-}
-
-function startAnimation(groups, repeat) {
-	if (groups) loadKeyframeGroups(groups);
-	Q3D.Config.animation.repeat = Boolean(repeat);
-
-	loadScriptFile("../js/lib/tweenjs/tween.js", function () {
-		app.animation.keyframes.start();
-	});
-}
-
-function stopAnimation() {
-	app.animation.keyframes.stop();
-	closeNarrativeBox();
-}
-
-function showNarrativeBox(content) {
-	Q3D.E("narbody").innerHTML = content;
-	Q3D.E("narrativebox").classList.add("visible");
-	var e = Q3D.E("nextbtn");
-	e.className = "";
-	e.innerHTML = "Close";
-}
-
-function closeNarrativeBox() {
-	Q3D.E("narrativebox").classList.remove("visible");
-}
-
-function setLayerOpacity(layerId, opacity) {
-	app.scene.mapLayers[layerId].opacity = opacity;
-}
-
+// Canvas/image functions
 function saveCanvasImage(width, height) {
-	app._saveCanvasImage(width, height, true, function (canvas) {
-		pyObj.saveImage(canvas.toDataURL("image/png"));
-	});
+    var canvas = app.map.getCanvas();
+    if (canvas && app.pyObj) {
+        app.pyObj.saveImage(canvas.toDataURL("image/png"));
+    }
 }
 
 function copyCanvasToClipboard(width, height) {
-	app._saveCanvasImage(width, height, true, function (canvas) {
-		pyObj.copyToClipboard(canvas.toDataURL("image/png"));
-	});
+    var canvas = app.map.getCanvas();
+    if (canvas && app.pyObj) {
+        app.pyObj.copyToClipboard(canvas.toDataURL("image/png"));
+    }
 }
 
-//// overrides
-app._render = app.render;
-app._saveCanvasImage = app.saveCanvasImage;
+// Utility functions
+function createLayerId() {
+    return 'layer-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
 
-app.render = function (updateControls) {
-	if (!preview.renderEnabled) return;
-
-	app._render(updateControls);
-	preview.timer.tickCount++;
-};
-
-app.saveCanvasImage = function (width, height, fill_background) {
-	var saveCanvasImage = function (canvas) {
-		pyObj.saveImage(canvas.toDataURL("image/png"));
-		gui.popup.hide();
-	};
-	app._saveCanvasImage(width, height, fill_background, saveCanvasImage);
-};
-
-//// polyfills
-// for binary glTF export
-// https://developer.mozilla.org/ja/docs/Web/API/HTMLCanvasElement/toBlob
+// Polyfill for toBlob if needed
 if (!HTMLCanvasElement.prototype.toBlob) {
-	Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
-		value: function (callback, type, quality) {
-			var binStr = atob(this.toDataURL(type, quality).split(',')[1]),
-				len = binStr.length,
-				arr = new Uint8Array(len);
+    Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+        value: function (callback, type, quality) {
+            var binStr = atob(this.toDataURL(type, quality).split(',')[1]),
+                len = binStr.length,
+                arr = new Uint8Array(len);
 
-			for (var i = 0; i < len; i++) {
-				arr[i] = binStr.charCodeAt(i);
-			}
+            for (var i = 0; i < len; i++) {
+                arr[i] = binStr.charCodeAt(i);
+            }
 
-			callback(new Blob([arr], {type: type || 'image/png'}));
-		}
- 	});
+            callback(new Blob([arr], {type: type || 'image/png'}));
+        }
+    });
 }

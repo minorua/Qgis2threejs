@@ -8,6 +8,7 @@ from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 from qgis.core import QgsApplication
 
 from ..build.builder import ThreeJSBuilder
+from ..build.maplibregl_builder import MapLibreGLBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE
@@ -127,7 +128,8 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
-        self.builder = ThreeJSBuilder(settings)
+        # self.builder = ThreeJSBuilder(settings)
+        self.builder = MapLibreGLBuilder(settings)
 
         self.iface = Q3DControllerInterface(self)
         self.iface.setObjectName("controllerInterface")
