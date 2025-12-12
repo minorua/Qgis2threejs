@@ -24,9 +24,19 @@ from ..utils import pluginDir
 from ..utils.logging import logger, web_logger
 
 
+_original_chromium_flags = None
+_chromium_flags_saved = False
+
+
 def setChromiumFlags():
+    global _original_chromium_flags, _chromium_flags_saved
+
     KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
     OPTIONS = ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"]
+
+    if not _chromium_flags_saved:
+        _original_chromium_flags = os.environ.get(KEY)
+        _chromium_flags_saved = True
 
     if KEY in os.environ:
         for opt in OPTIONS:
@@ -34,6 +44,19 @@ def setChromiumFlags():
                 os.environ[KEY] += " " + opt
     else:
         os.environ[KEY] = " ".join(OPTIONS)
+
+
+def restoreChromiumFlags():
+    if not _chromium_flags_saved:
+        return
+
+    KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
+
+    if _original_chromium_flags is not None:
+        os.environ[KEY] = _original_chromium_flags
+    else:
+        if KEY in os.environ:
+            del os.environ[KEY]
 
 
 class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
@@ -171,6 +194,10 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         self._page = Q3DWebEnginePage(self)
         self._page.setObjectName("webEnginePage")
         self.setPage(self._page)
+
+    def closeEvent(self, event):
+        restoreChromiumFlags()
+        QWebEngineView.closeEvent(self, event)
 
     def showDevTools(self):
         if self._page.devToolsPage():
