@@ -6,7 +6,7 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                              QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
@@ -18,7 +18,7 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from ..conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
+from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.controller.interface import Q3DInterface
@@ -105,19 +105,9 @@ class Q3DWindow(QMainWindow):
         self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
         self.iface.progressUpdated.connect(self.progress)
 
-        self.thread = QThread(self) if self.webPage and RUN_CNTLR_IN_BKGND else None
-
-        self.controller = Q3DController(settings, self.thread)
+        self.controller = Q3DController(settings, self.webPage, parent=self)
         self.controller.setObjectName("controller")
         self.controller.enabled = previewEnabled
-
-        if self.thread:
-            self.thread.finished.connect(self.controller.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-
-            # start worker thread event loop
-            self.thread.start()
-
         self.controller.connectToIface(self.iface)
 
         self.setupMenu(self.ui)
@@ -137,7 +127,8 @@ class Q3DWindow(QMainWindow):
 
         self.ui.animationPanel.setup(self, settings)
 
-        self.controller.connectToMapCanvas(qgisIface.mapCanvas())
+        # map canvas signal
+        qgisIface.mapCanvas().renderComplete.connect(self.mapCanvasRendered)
 
         # restore window geometry and dockwidget layout
         settings = QSettings()
@@ -151,8 +142,8 @@ class Q3DWindow(QMainWindow):
     def closeEvent(self, event):
         try:
             self.iface.enabled = False
-            self.controller.iface.disconnectFromIface()
-            self.controller.disconnectFromMapCanvas()
+            self.controller.teardown()
+            self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.webPage:
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)
@@ -168,7 +159,7 @@ class Q3DWindow(QMainWindow):
             settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
             settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
-            if self.thread:
+            if self.controller.thread:
                 # send quit request to the controller and wait until the controller gets ready to quit
                 loop = QEventLoop()
                 self.controller.iface.readyToQuit.connect(loop.quit)
@@ -176,8 +167,8 @@ class Q3DWindow(QMainWindow):
                 loop.exec()
 
                 # stop worker thread event loop
-                self.thread.quit()
-                self.thread.wait()
+                self.controller.thread.quit()
+                self.controller.thread.wait()
 
             else:
                 self.controller.quit()
@@ -337,6 +328,13 @@ class Q3DWindow(QMainWindow):
             bar.setValue(percentage)
             if msg is not None:
                 bar.setFormat(msg)
+
+    # map canvas event
+    def mapCanvasRendered(self):
+        # update extent of export settings
+        self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
+        self.controller.updateExportSettings(self.settings)
+        self.controller.addBuildSceneTask()
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
@@ -530,7 +528,10 @@ class Q3DWindow(QMainWindow):
 
         w = "groupBox_Fog"
         reload = bool(sp.get(w) != properties.get(w))
-        self.iface.requestBuildScene(properties, reload=reload)
+
+        self.settings.setSceneProperties(properties)
+        self.controller.updateExportSettings(self.settings)
+        self.controller.addBuildSceneTask(reload=reload)
 
     def addPlane(self):
         layerId = "fp:" + createUid()

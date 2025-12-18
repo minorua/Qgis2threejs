@@ -205,9 +205,7 @@ class ExportImageTestCases(ExportTestBase):
             "Page load finished",
             "init(",
             "emitInitialized",
-            'loadStart("LYRS", true)',
             "loadData(",
-            'loadEnd("LYRS")',
             "emitSceneLoaded",
             "Image saved to"
         ])

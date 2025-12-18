@@ -11,8 +11,8 @@ PLUGIN_VERSION_INT = 20800
 # vector layer
 FEATURES_PER_BLOCK = 50   # max number of features in a data block
 
-# multi-threading
-RUN_CNTLR_IN_BKGND = True    # If True, controller runs in a worker thread
+# threading
+RUN_BLDR_IN_BKGND = True    # If True, builders run in a worker thread
 
 # processing export
 P_OPEN_DIRECTORY = True

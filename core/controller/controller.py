@@ -4,17 +4,21 @@
 # begin: 2016-02-10
 
 import time
-from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import QgsApplication
 
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
-from ...conf import DEBUG_MODE
+from ...conf import DEBUG_MODE, RUN_BLDR_IN_BKGND
 from ...utils import hex_color, js_bool, logger
 
 
 class Q3DControllerInterface(QObject):
+
+    # signals - controller iface to builder
+    buildSceneRequest = pyqtSignal()
+    buildLayerRequest = pyqtSignal(object)       # Layer
 
     # signals - controller iface to viewer iface
     dataSent = pyqtSignal(dict)                  # data
@@ -28,11 +32,49 @@ class Q3DControllerInterface(QObject):
         super().__init__(parent=controller)
 
         self.controller = controller
-        self.iface = None
+        self.builder = None
+        self.viewIface = None
 
+    def teardown(self):
+        self.disconnectFromBuilder()
+        self.disconnectFromIface()
+        self.controller = None
+
+    # controller interface <-> builder
+    def connectToBuilder(self, builder):
+        self.builder = builder
+
+        self.buildSceneRequest.connect(builder.buildSceneSlot)
+        self.buildLayerRequest.connect(builder.buildLayerSlot)
+
+        builder.dataReady.connect(self.dataSent)
+
+        if self.controller:
+            builder.taskCompleted.connect(self.controller.taskCompleted)
+
+    def disconnectFromBuilder(self):
+        builder = self.builder
+
+        self.buildSceneRequest.disconnect(builder.buildSceneSlot)
+        self.buildLayerRequest.disconnect(builder.buildLayerSlot)
+
+        builder.dataReady.disconnect(self.dataSent)
+
+        if self.controller:
+            builder.taskCompleted.disconnect(self.controller.taskCompleted)
+
+        self.builder = None
+
+    def requestBuildScene(self):
+        self.buildSceneRequest.emit()
+
+    def requestBuildLayer(self, layer):
+        self.buildLayerRequest.emit(layer)
+
+    # controller interface <-> viewer interface
     def connectToIface(self, iface):
         """iface: web view side interface (Q3DInterface or its subclass)"""
-        self.iface = iface
+        self.viewIface = iface
 
         self.dataSent.connect(iface.sendJSONObject)
         self.scriptSent.connect(iface.runScript)
@@ -42,10 +84,10 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
-            iface.buildSceneRequest.connect(self.controller.requestBuildScene)
-            iface.buildLayerRequest.connect(self.controller.requestBuildLayer)
+            iface.buildSceneRequest.connect(self.controller.addBuildSceneTask)
+            iface.buildLayerRequest.connect(self.controller.addBuildLayerTask)
             iface.updateWidgetRequest.connect(self.controller.requestUpdateWidget)
-            iface.runScriptRequest.connect(self.controller.requestRunScript)
+            iface.runScriptRequest.connect(self.controller.addRunScriptTask)
 
             iface.updateExportSettingsRequest.connect(self.controller.updateExportSettings)
             iface.cameraChanged.connect(self.controller.switchCamera)
@@ -55,7 +97,7 @@ class Q3DControllerInterface(QObject):
             iface.layerRemoved.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
-        iface = self.iface
+        iface = self.viewIface
 
         self.dataSent.disconnect(iface.sendJSONObject)
         self.scriptSent.disconnect(iface.runScript)
@@ -65,10 +107,10 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.disconnect(self.controller.abort)
-            iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
-            iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
+            iface.buildSceneRequest.disconnect(self.controller.addBuildSceneTask)
+            iface.buildLayerRequest.disconnect(self.controller.addBuildLayerTask)
             iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
-            iface.runScriptRequest.disconnect(self.controller.requestRunScript)
+            iface.runScriptRequest.disconnect(self.controller.addRunScriptTask)
 
             iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
             iface.cameraChanged.disconnect(self.controller.switchCamera)
@@ -77,7 +119,7 @@ class Q3DControllerInterface(QObject):
             iface.layerAdded.disconnect(self.controller.addLayer)
             iface.layerRemoved.disconnect(self.controller.removeLayer)
 
-        self.iface = None
+        self.viewIface = None
 
     def sendJSONObject(self, obj):
         self.dataSent.emit(obj)
@@ -110,11 +152,12 @@ class Q3DControllerInterface(QObject):
 class Q3DController(QObject):
 
     # requests
-    BUILD_SCENE_ALL = 1   # build scene
-    BUILD_SCENE = 2       # build scene, but do not update background color, coordinates display mode and so on
-    RELOAD_PAGE = 3
+    BUILD_SCENE_ALL = 1     # build scene
+    BUILD_SCENE = 2         # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
+    UPDATE_SCENE_OPTS = 3   # update scene options
+    RELOAD_PAGE = 4
 
-    def __init__(self, settings=None, thread=None, parent=None):
+    def __init__(self, settings=None, webPage=None, parent=None):
         super().__init__(parent)
 
         if settings is None:
@@ -127,10 +170,24 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
-        self.builder = ThreeJSBuilder(settings)
+        self.builder = ThreeJSBuilder(settings, parent=self)
+
+        self.thread = None
+        if webPage and RUN_BLDR_IN_BKGND:
+            self.thread = QThread(self)
+
+            # move builder to worker thread
+            self.builder.moveToThread(self.thread)
+
+            self.thread.finished.connect(self.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+
+            # start worker thread event loop
+            self.thread.start()
 
         self.iface = Q3DControllerInterface(self)
         self.iface.setObjectName("controllerInterface")
+        self.iface.connectToBuilder(self.builder)
 
         self.enabled = True
         self.aborted = False  # layer export aborted
@@ -142,39 +199,23 @@ class Q3DController(QObject):
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
 
-        # move to worker thread
-        if thread:
-            self.moveToThread(thread)
-
         self.timer.timeout.connect(self._processRequests)
+
+        # delegating methods
+        self.connectToIface = self.iface.connectToIface
+        self.disconnectFromIface = self.iface.disconnectFromIface
 
     def teardown(self):
         self.timer.stop()
         self.timer.timeout.disconnect(self._processRequests)
 
-        self.iface.deleteLater()
-        self.iface = None
+        self.iface.teardown()
 
-    def connectToIface(self, iface):
-        """iface: Q3DInterface or its subclass"""
-        self.iface.connectToIface(iface)
+    # @pyqtSlot(QPainter)
+    def _requestBuildScene(self, _=None):
+        self.addBuildSceneTask(update_all=False)
 
-    def disconnectFromIface(self):
-        self.iface.disconnectFromIface()
-        # self.iface = Mock()
-
-    def connectToMapCanvas(self, canvas):
-        self.mapCanvas = canvas
-        self.mapCanvas.renderComplete.connect(self._requestBuildScene)
-        # self.mapCanvas.extentsChanged.connect(self.updateExtent)
-
-    def disconnectFromMapCanvas(self):
-        if self.mapCanvas:
-            self.mapCanvas.renderComplete.disconnect(self._requestBuildScene)
-            # self.mapCanvas.extentsChanged.disconnect(self.updateExtent)
-            self.mapCanvas = None
-
-    def buildScene(self, update_scene_opts=True, build_layers=True, update_extent=True):
+    def buildScene(self):
         if self.processingLayer:
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
@@ -182,51 +223,25 @@ class Q3DController(QObject):
         self.aborted = False
 
         self.iface.progress(0, "Building scene")
+        self.iface.requestBuildScene()
 
-        if update_extent and self.mapCanvas:
-            self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
+    def updateSceneOptions(self):
+        sp = self.settings.sceneProperties()
 
-        self.iface.sendJSONObject(self.builder.buildScene(False))
+        # outline effect
+        self.iface.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
 
-        if update_scene_opts:
-            sp = self.settings.sceneProperties()
+        # update background color
+        params = "{0}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
+        self.iface.runScript("setBackgroundColor({0})".format(params))
 
-            # outline effect
-            self.iface.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
+        # coordinate display
+        self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
-            # update background color
-            params = "{0}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
-            self.iface.runScript("setBackgroundColor({0})".format(params))
-
-            # coordinate display
-            self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
-
-            latlon = self.settings.isCoordLatLon()
-            self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
-            if latlon:
-                self.iface.loadScriptFile(ScriptFile.PROJ4)
-
-        if build_layers:
-            self.buildLayers()
-
-        self.iface.progress()
-        self.iface.clearStatusMessage()
-        return not self.aborted
-
-    def buildLayers(self):
-        self.aborted = False
-        self.iface.runScript('loadStart("LYRS", true)')
-
-        ret = True
-        layers = self.settings.layers()
-        for layer in sorted(layers, key=lambda lyr: lyr.type):
-            if layer.visible:
-                if not self._buildLayer(layer) or self.aborted:
-                    ret = False
-                    break
-
-        self.iface.runScript('loadEnd("LYRS")')
-        return ret
+        latlon = self.settings.isCoordLatLon()
+        self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
+        if latlon:
+            self.iface.loadScriptFile(ScriptFile.PROJ4)
 
     def buildLayer(self, layer):
         self.aborted = False
@@ -237,15 +252,10 @@ class Q3DController(QObject):
             logger.info('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
             return False
 
-        ret = self._buildLayer(layer)
+        self._buildLayer(layer)
 
-        self.iface.progress()
-        self.iface.clearStatusMessage()
-
-        if ret and len(self.settings.layersToExport()) == 1:
-            self.iface.runScript("adjustCameraPos()")
-
-        return ret
+        if len(self.settings.layersToExport()) == 1:
+            self.addRunScriptTask("adjustCameraPos()")
 
     def _buildLayer(self, layer):
         self.processingLayer = layer
@@ -265,35 +275,7 @@ class Q3DController(QObject):
                                         ScriptFile.POTREE,
                                         ScriptFile.PCLAYER])
 
-        t0 = t4 = time.time()
-        # dlist = []
-        i = 0
-        for builder in self.builder.layerBuilders(layer):
-            self.iface.progress(i / (i + 4) * 100, pmsg)
-            if self.aborted:
-                logger.info("***** layer processing aborted *****")
-                self.processingLayer = None
-                return False
-
-            # t1 = time.time()
-            obj = builder.build()
-            # t2 = time.time()
-
-            if obj:
-                self.iface.sendJSONObject(obj)
-
-            QgsApplication.processEvents()      # NOTE: process events only for the calling thread
-            i += 1
-
-            # t3 = time.time()
-            # dlist.append([t1 - t4, t2 - t1, t3 - t2])
-            # t4 = t3
-
-        # dlist = "\n".join([" {:.3f} {:.3f} {:.3f}".format(d[0], d[1], d[2]) for d in dlist])
-        logger.debug(f"{layer.name} layer built in {time.time() - t0:.3f}s")
-
-        self.processingLayer = None
-        return True
+        self.iface.requestBuildLayer(layer)
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
@@ -302,6 +284,14 @@ class Q3DController(QObject):
     def hideAllLayers(self):
         """hide all layers and remove all objects from the layers"""
         self.iface.runScript("hideAllLayers(true)")
+
+    def taskCompleted(self):
+        self.processingLayer = None
+
+        self.iface.progress()
+        self.iface.clearStatusMessage()
+
+        self._processRequests()
 
     def processRequests(self):
         self.timer.stop()
@@ -313,27 +303,40 @@ class Q3DController(QObject):
             return
 
         try:
-            if self.BUILD_SCENE_ALL in self.requestQueue:
+            if self.RELOAD_PAGE in self.requestQueue:
                 self.requestQueue.clear()
+                self.iface.runScript("location.reload()")
+
+            elif self.BUILD_SCENE_ALL in self.requestQueue:
+                self.requestQueue.clear()
+                self.requestQueue.append(self.UPDATE_SCENE_OPTS)
+                self._addVisibleLayersToQueue()
+
                 self.buildScene()
 
             elif self.BUILD_SCENE in self.requestQueue:
                 self.requestQueue.clear()
-                self.buildScene(update_scene_opts=False)
+                self._addVisibleLayersToQueue()
 
-            elif self.RELOAD_PAGE in self.requestQueue:
-                self.requestQueue.clear()
-                self.iface.runScript("location.reload()")
+                self.buildScene()
 
             else:
                 item = self.requestQueue.pop(0)
                 if isinstance(item, Layer):
+                    # TODO: check if the map layer still exists
                     if item.visible:
                         self.buildLayer(item)
                     else:
                         self.hideLayer(item)
-                else:
+
+                elif isinstance(item, dict):
                     self.iface.runScript(item.get("string"), item.get("data"))
+
+                elif item == self.UPDATE_SCENE_OPTS:
+                    self.updateSceneOptions()
+
+                else:
+                    logger.warning(f"Unknown request: {item}")
 
         except Exception as e:
             import traceback
@@ -342,6 +345,11 @@ class Q3DController(QObject):
             self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
         self.processRequests()
+
+    def _addVisibleLayersToQueue(self):
+        for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
+            if layer.visible:
+                self.requestQueue.append(layer)
 
     @pyqtSlot(bool)
     def abort(self, clear_queue=True):
@@ -358,12 +366,9 @@ class Q3DController(QObject):
         self.iface.readyToQuit.emit()
         self.teardown()
 
-    @pyqtSlot(object, bool, bool)
-    def requestBuildScene(self, properties=None, update_all=True, reload=False):
-        logger.debug("Scene update requested: %s", properties)
-
-        if properties:
-            self.settings.setSceneProperties(properties)
+    @pyqtSlot(bool, bool)
+    def addBuildSceneTask(self, update_all=True, reload=False):
+        logger.debug("Scene update requested.")
 
         if reload:
             r = self.RELOAD_PAGE
@@ -380,7 +385,7 @@ class Q3DController(QObject):
             self.processRequests()
 
     @pyqtSlot(Layer)
-    def requestBuildLayer(self, layer):
+    def addBuildLayerTask(self, layer):
         logger.debug("Layer update for %s requested (visible: %s).", layer.layerId, layer.visible)
 
         # update layer properties and layer state in worker side export settings
@@ -425,10 +430,11 @@ class Q3DController(QObject):
         else:
             return
 
+        # TODO: do this in window.py
         self.settings.setWidgetProperties(name, properties)
 
     @pyqtSlot(str, object)
-    def requestRunScript(self, string, data=None):
+    def addRunScriptTask(self, string, data=None):
         self.requestQueue.append({"string": string, "data": data})
 
         if not self.processingLayer:
@@ -436,14 +442,15 @@ class Q3DController(QObject):
 
     @pyqtSlot(ExportSettings)
     def updateExportSettings(self, settings):
-        if self.processingLayer:
-            self.abort()
+        # TODO
+        # if self.processingLayer:
+        #    self.abort()
 
-        self.hideAllLayers()
+        # self.hideAllLayers()
         settings.copyTo(self.settings)
 
-        # reload page
-        self.iface.runScript("location.reload()")
+        # TODO: remove
+        # self.iface.runScript("location.reload()")
 
     @pyqtSlot(bool)
     def switchCamera(self, is_ortho=False):
@@ -476,10 +483,6 @@ class Q3DController(QObject):
         if layer:
             self.hideLayer(layer)
             self.settings.removeLayer(layerId)
-
-    # @pyqtSlot(QPainter)
-    def _requestBuildScene(self, _=None):
-        self.requestBuildScene(update_all=False)
 
     # @pyqtSlot()
     # def updateExtent(self):

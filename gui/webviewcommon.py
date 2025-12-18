@@ -182,6 +182,12 @@ class Q3DWebViewCommon:
         self.setAcceptDrops(True)
 
     def setup(self, iface, settings, wnd=None, enabled=True):
+        """
+        :param iface: Q3DViewerInterface / Q3DInterface
+        :param settings: ExportSettings
+        :param wnd: Q3DWindow or None (off-screen mode)
+        :param enabled: whether preview is enabled at start
+        """
         self.iface = iface
         self._enabled = enabled     # whether preview is enabled at start
 

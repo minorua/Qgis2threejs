@@ -4,13 +4,14 @@
 # begin: 2014-01-16
 
 from qgis.core import Qgis, QgsApplication
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
 from .datamanager import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
 from .pointcloud.builder import PointCloudLayerBuilder
-from ...utils import int_color, noop
+from ...utils import int_color, noop, logger
 
 
 LayerBuilderFactory = {
@@ -22,17 +23,50 @@ LayerBuilderFactory = {
 }
 
 
-class ThreeJSBuilder:
+class ThreeJSBuilder(QObject):
 
-    def __init__(self, settings, progress=None, log=None):
+    # signals - builder to controller interface
+    dataReady = pyqtSignal(dict)
+    taskCompleted = pyqtSignal()
+
+    def __init__(self, settings, progress=None, log=None, parent=None):
+        super().__init__(parent)
+
         self.settings = settings
+        self.imageManager = ImageManager(settings)
+
         self.progress = progress or noop
         self.log = log or noop
-        self.imageManager = ImageManager(settings)
 
         self._canceled = False
 
+    @pyqtSlot()
+    def buildSceneSlot(self):
+        logger.debug("ThreeJSBuilder: buildSceneSlot called")
+
+        data = self.buildScene(build_layers=False)
+        if data:
+            self.dataReady.emit(data)
+        self.taskCompleted.emit()
+
+    @pyqtSlot(object)
+    def buildLayerSlot(self, layer):
+        logger.debug("ThreeJSBuilder: buildLayerSlot called for layer {}".format(layer.name))
+
+        for builder in self.layerBuilders(layer):
+            data = builder.build()
+            if data:
+                self.dataReady.emit(data)
+
+        self.taskCompleted.emit()
+
     def buildScene(self, build_layers=True, cancelSignal=None):
+        obj = self._buildScene()
+        if build_layers:
+            obj["layers"] = self.buildLayers(cancelSignal)
+        return obj
+
+    def _buildScene(self):
         self.progress(5, "Building scene...")
         be = self.settings.baseExtent()
         mapTo3d = self.settings.mapTo3d()
@@ -73,10 +107,6 @@ class ThreeJSBuilder:
             "type": "scene",
             "properties": p
         }
-
-        if build_layers:
-            obj["layers"] = self.buildLayers(cancelSignal)
-
         return obj
 
     def buildLayers(self, cancelSignal=None):
@@ -112,6 +142,7 @@ class ThreeJSBuilder:
         for builder in builder.subBuilders():
             yield builder
 
+    # TODO: use threading.Lock
     @property
     def canceled(self):
         if not self._canceled:
