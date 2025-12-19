@@ -278,6 +278,11 @@ class Q3DController(QObject):
 
     def processRequests(self):
         self.timer.stop()
+
+        if DEBUG_MODE:
+            contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.requestQueue]
+            logger.debug(f"Request queue: {', '.join(contents)}")
+
         if self.requestQueue:
             self.timer.start()
 
