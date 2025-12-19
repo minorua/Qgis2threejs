@@ -37,7 +37,8 @@ function init(off_screen, debug_mode, qgis_version, is_webengine) {
 				eval(script);
 
 				if (Q3D.Config.debugMode) {
-					console.debug("↓", script, "# sendScriptData", (data === undefined) ? "" : data);
+					var dataType = (typeof data === "object") ? data.type : data;
+					console.debug("↓", script, "# sendScriptData", dataType, data);
 				}
 			});
 
