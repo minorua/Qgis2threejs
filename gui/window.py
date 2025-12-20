@@ -9,7 +9,7 @@ from datetime import datetime
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
+                                 QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import webview
@@ -22,24 +22,16 @@ from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.controller.interface import Q3DInterface
-from ..core.exportsettings import ExportSettings, Layer
+from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import createUid, hex_color, logger, pluginDir
+from ..utils import createUid, hex_color, js_bool, logger, pluginDir
 from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 
 class Q3DViewerInterface(Q3DInterface):
 
     abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
-    buildSceneRequest = pyqtSignal(object, bool, bool)    # params: scene properties dict (None if properties do not changes), update all, reload
-    buildLayerRequest = pyqtSignal(Layer)           # param: Layer object
-    updateWidgetRequest = pyqtSignal(str, dict)      # params: widget name (e.g. Navi, NorthArrow, Label), properties dict
-    runScriptRequest = pyqtSignal(str, object)       # params: script, data to send to web page
 
-    updateExportSettingsRequest = pyqtSignal(ExportSettings)    # param: export settings
-    cameraChanged = pyqtSignal(bool)                 # params: is ortho camera
-    navStateChanged = pyqtSignal(bool)               # param: enabled
-    previewStateChanged = pyqtSignal(bool)           # param: enabled
     layerAdded = pyqtSignal(Layer)                   # param: Layer object
     layerRemoved = pyqtSignal(str)                   # param: layerId
 
@@ -52,18 +44,6 @@ class Q3DViewerInterface(Q3DInterface):
 
     def abort(self):
         self.abortRequest.emit(True)
-
-    def requestBuildScene(self, properties=None, update_all=True, reload=False):
-        self.buildSceneRequest.emit(properties, update_all, reload)
-
-    def requestBuildLayer(self, layer):
-        self.buildLayerRequest.emit(layer)
-
-    def requestUpdateWidget(self, name, properties):
-        self.updateWidgetRequest.emit(name, properties)
-
-    def requestRunScript(self, string, data=None):
-        self.runScriptRequest.emit(string, data)
 
     def quit(self, controller):
         self.quitRequest.connect(controller.quit)
@@ -234,7 +214,7 @@ class Q3DWindow(QMainWindow):
         ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         ui.actionGroupCamera.triggered.connect(self.cameraChanged)
-        ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
+        ui.actionNavigationWidget.toggled.connect(self.navStateChanged)
         ui.actionAddPlane.triggered.connect(self.addPlane)
         ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
@@ -284,7 +264,7 @@ class Q3DWindow(QMainWindow):
         w.setObjectName("checkBoxPreview")
         w.setText("Preview" + (" ({})".format(viewName) if viewName else ""))  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
-        w.toggled.connect(iface.previewStateChanged)
+        w.toggled.connect(self.setPreviewEnabled)
         ui.statusbar.addPermanentWidget(w)
 
         if self.webPage and self.webPage.isWebEnginePage:
@@ -331,9 +311,7 @@ class Q3DWindow(QMainWindow):
 
     # map canvas event
     def mapCanvasRendered(self):
-        # update extent of export settings
-        self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
-        self.controller.updateExportSettings(self.settings)
+        self.updateSettings(mapSettings=self.qgisIface.mapCanvas().mapSettings())
         self.controller.addBuildSceneTask()
 
     # layer tree view
@@ -358,7 +336,7 @@ class Q3DWindow(QMainWindow):
         if layer.properties != orig_layer.properties:
             layer.visible = orig_layer.visible      # respect current visible state
 
-            self.iface.requestBuildLayer(layer)
+            self.controller.addBuildLayerTask(layer)
 
             if layer.properties.get("materials") != orig_layer.properties.get("materials"):
                 self.ui.treeView.updateLayerMaterials(item, layer)
@@ -448,6 +426,8 @@ class Q3DWindow(QMainWindow):
             if not filename:
                 return
 
+        self.lastDir = os.path.dirname(filename)
+
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
 
@@ -457,9 +437,8 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.setData(settings.animationData())
 
-        self.iface.updateExportSettingsRequest.emit(settings)
-
-        self.lastDir = os.path.dirname(filename)
+        self.controller.updateExportSettings(settings)
+        self.controller.reload()
 
     def saveSettings(self, filename=None):
         # open file dialog if filename is not specified
@@ -493,7 +472,22 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(settings.layers())
         self.ui.animationPanel.setData({})
 
-        self.iface.updateExportSettingsRequest.emit(settings)
+        self.controller.updateExportSettings(settings)
+        self.controller.reload()
+
+    def updateSettings(self, settings=None, mapSettings=None, layer=None):
+        if settings:
+            self.settings = settings.clone()
+
+        if mapSettings:
+            self.settings.setMapSettings(mapSettings)
+
+        if layer:
+            lyr = self.settings.getLayer(layer.layerId)
+            if lyr:
+                layer.copyTo(lyr)
+
+        self.controller.updateExportSettings(self.settings)
 
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
@@ -523,7 +517,7 @@ class Q3DWindow(QMainWindow):
                 sp.pop(w, 0)
 
             if sp == properties:
-                self.iface.requestRunScript("changeLight('{}')".format("point" if isPoint else "directional"))
+                self.runScript("changeLight('{}')".format("point" if isPoint else "directional"))
                 return
 
         w = "groupBox_Fog"
@@ -566,22 +560,33 @@ class Q3DWindow(QMainWindow):
 
     # View menu
     def cameraChanged(self, action):
-        self.iface.cameraChanged.emit(action == self.ui.actionOrthographic)
+        is_ortho = bool(action == self.ui.actionOrthographic)
+
+        self.settings.setCamera(is_ortho)
+        self.runScript("switchCamera({})".format(js_bool(is_ortho)))
+
+    def resetCameraState(self):
+        self.webPage.resetCameraState()
+
+    def navStateChanged(self, enabled):
+        self.settings.setNavigationEnabled(enabled)
+        self.runScript("setNavigationEnabled({})".format(js_bool(enabled)))
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self.settings.widgetProperties("NorthArrow"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("NorthArrow", p))
+        dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("NorthArrow", p))
         dialog.show()
         dialog.exec()
 
     def showHFLabelDialog(self):
         dialog = HFLabelDialog(self.settings.widgetProperties("Label"), self)
-        dialog.propertiesAccepted.connect(lambda p: self.iface.requestUpdateWidget("Label", p))
+        dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("Label", p))
         dialog.show()
         dialog.exec()
 
-    def resetCameraState(self):
-        self.webPage.resetCameraState()
+    def updateWidgetProperties(self, name, properties):
+        self.settings.setWidgetProperties(name, properties)
+        self.controller.updateWidget(name, properties)
 
     # Window menu
     def alwaysOnTopToggled(self, checked):
@@ -611,6 +616,10 @@ class Q3DWindow(QMainWindow):
     def runTest(self):
         from ..tests.gui.test_gui import runTest
         runTest(self)
+
+    # Statusbar
+    def setPreviewEnabled(self, enabled):
+        self.controller.enabled = enabled
 
 
 class PropertiesDialog(QDialog):

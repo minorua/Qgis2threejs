@@ -127,7 +127,7 @@ class AnimationPanel(QWidget):
 
         if len(dataList):
             logger.debug("Play: %s", dataList)
-            self.wnd.iface.requestRunScript("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
+            self.wnd.controller.addRunScriptTask("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
@@ -147,9 +147,9 @@ class AnimationPanel(QWidget):
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
 
-        self.wnd.iface.requestRunScript("preview.renderEnabled = false;")
-        self.wnd.iface.buildLayerRequest.emit(layer)
-        self.wnd.iface.requestRunScript("preview.renderEnabled = true;")
+        self.wnd.controller.addRunScriptTask("preview.renderEnabled = false;")
+        self.wnd.controller.addBuildLayerTask(layer)
+        self.wnd.controller.addRunScriptTask("preview.renderEnabled = true;")
 
     def _log(self, msg):
         self._warnings.append(msg)
@@ -740,7 +740,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = layer.clone()
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
-                self.wnd.iface.buildLayerRequest.emit(layer)
+                self.wnd.controller.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()

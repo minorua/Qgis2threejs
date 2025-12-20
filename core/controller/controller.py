@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-import time
 from qgis.PyQt.QtCore import QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import QgsApplication
 
@@ -84,15 +83,7 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
-            iface.buildSceneRequest.connect(self.controller.addBuildSceneTask)
-            iface.buildLayerRequest.connect(self.controller.addBuildLayerTask)
-            iface.updateWidgetRequest.connect(self.controller.requestUpdateWidget)
-            iface.runScriptRequest.connect(self.controller.addRunScriptTask)
 
-            iface.updateExportSettingsRequest.connect(self.controller.updateExportSettings)
-            iface.cameraChanged.connect(self.controller.switchCamera)
-            iface.navStateChanged.connect(self.controller.setNavigationEnabled)
-            iface.previewStateChanged.connect(self.controller.setPreviewEnabled)
             iface.layerAdded.connect(self.controller.addLayer)
             iface.layerRemoved.connect(self.controller.removeLayer)
 
@@ -107,15 +98,7 @@ class Q3DControllerInterface(QObject):
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.disconnect(self.controller.abort)
-            iface.buildSceneRequest.disconnect(self.controller.addBuildSceneTask)
-            iface.buildLayerRequest.disconnect(self.controller.addBuildLayerTask)
-            iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
-            iface.runScriptRequest.disconnect(self.controller.addRunScriptTask)
 
-            iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
-            iface.cameraChanged.disconnect(self.controller.switchCamera)
-            iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
-            iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
             iface.layerAdded.disconnect(self.controller.addLayer)
             iface.layerRemoved.disconnect(self.controller.removeLayer)
 
@@ -189,7 +172,7 @@ class Q3DController(QObject):
         self.iface.setObjectName("controllerInterface")
         self.iface.connectToBuilder(self.builder)
 
-        self.enabled = True
+        self._enabled = True
         self.aborted = False  # layer export aborted
         self.processingLayer = None
         self.mapCanvas = None
@@ -366,7 +349,6 @@ class Q3DController(QObject):
         self.iface.readyToQuit.emit()
         self.teardown()
 
-    @pyqtSlot(bool, bool)
     def addBuildSceneTask(self, update_all=True, reload=False):
         logger.debug("Scene update requested.")
 
@@ -384,7 +366,6 @@ class Q3DController(QObject):
         else:
             self.processRequests()
 
-    @pyqtSlot(Layer)
     def addBuildLayerTask(self, layer):
         logger.debug("Layer update for %s requested (visible: %s).", layer.layerId, layer.visible)
 
@@ -418,20 +399,16 @@ class Q3DController(QObject):
             # immediately hide layer without adding layer to queue
             self.hideLayer(layer)
 
-    @pyqtSlot(str, dict)
-    def requestUpdateWidget(self, name, properties):
+    def updateWidget(self, name, properties):
         if name == "NorthArrow":
-            self.iface.runScript("setNorthArrowColor({0})".format(properties.get("color", 0)))
-            self.iface.runScript("setNorthArrowVisible({0})".format(js_bool(properties.get("visible"))))
+            self.iface.runScript("setNorthArrowColor({})".format(properties.get("color", 0)))
+            self.iface.runScript("setNorthArrowVisible({})".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
             self.iface.runScript('setHFLabel(pyData());', data=properties)
 
         else:
             return
-
-        # TODO: do this in window.py
-        self.settings.setWidgetProperties(name, properties)
 
     @pyqtSlot(str, object)
     def addRunScriptTask(self, string, data=None):
@@ -440,34 +417,33 @@ class Q3DController(QObject):
         if not self.processingLayer:
             self.processRequests()
 
-    @pyqtSlot(ExportSettings)
-    def updateExportSettings(self, settings):
-        # TODO
-        # if self.processingLayer:
-        #    self.abort()
+    def updateExportSettings(self, settings=None, mapSettings=None, layer=None):
+        if settings:
+            self.settings = settings.clone()
 
-        # self.hideAllLayers()
-        settings.copyTo(self.settings)
+        # TODO: clone mapSettings?
+        if mapSettings:
+            self.settings.setMapSettings(mapSettings)
 
-        # TODO: remove
-        # self.iface.runScript("location.reload()")
+        if layer:
+            lyr = self.settings.getLayer(layer.layerId)
+            if lyr:
+                layer.copyTo(lyr)
 
-    @pyqtSlot(bool)
-    def switchCamera(self, is_ortho=False):
-        self.settings.setCamera(is_ortho)
-        self.iface.runScript("switchCamera({0})".format(js_bool(is_ortho)))
+    def reload(self):
+        self.iface.runScript("location.reload()")
 
-    @pyqtSlot(bool)
-    def setNavigationEnabled(self, enabled):
-        self.settings.setNavigationEnabled(enabled)
-        self.iface.runScript("setNavigationEnabled({0})".format(js_bool(enabled)))
+    @property
+    def enabled(self):
+        return self._enabled
 
-    @pyqtSlot(bool)
-    def setPreviewEnabled(self, enabled):
-        self.enabled = enabled
-        self.iface.runScript("setPreviewEnabled({})".format(js_bool(enabled)))
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
 
-        if enabled:
+        self.iface.runScript("setPreviewEnabled({})".format(js_bool(self._enabled)))
+
+        if self._enabled:
             self.buildScene()
         else:
             self.abort()

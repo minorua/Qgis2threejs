@@ -198,7 +198,7 @@ class Q3DTreeView(QTreeView):
 
                 layer = layer.clone()
                 layer.opt.onlyMaterial = True
-                self.iface.buildLayerRequest.emit(layer)
+                self.iface.wnd.controller.addBuildLayerTask(layer)
 
             item = self.model().itemFromIndex(current)
             parent = item.parent()
@@ -222,7 +222,7 @@ class Q3DTreeView(QTreeView):
         if layer.visible and not layer.properties:
             layer.properties = self.iface.wnd.getDefaultProperties(layer)
 
-        self.iface.requestBuildLayer(layer)
+        self.iface.wnd.controller.addBuildLayerTask(layer)
 
         font = item.font()
         font.setBold(checked)

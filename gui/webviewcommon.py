@@ -204,9 +204,9 @@ class Q3DWebViewCommon:
         self.runScript("app.start()")
 
         if self._enabled:
-            self.iface.requestBuildScene()
+            self._page.wnd.controller.addBuildSceneTask()       # TODO: this class should know controller
         else:
-            self.iface.previewStateChanged.emit(False)
+            self._page.wnd.setPreviewEnabled(False)     # TODO: do this in window
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
