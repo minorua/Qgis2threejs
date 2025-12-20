@@ -196,7 +196,6 @@ class Q3DWebViewCommon:
 
     def teardown(self):
         self._page.wnd = None
-        self._page.deleteLater()
         self._page = None
 
     def pageReady(self):

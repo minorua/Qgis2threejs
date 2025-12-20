@@ -29,6 +29,8 @@ class ThreeJSBuilder(QObject):
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
 
+    readyToQuit = pyqtSignal()
+
     def __init__(self, settings, progress=None, log=None, parent=None):
         super().__init__(parent)
 
@@ -39,6 +41,10 @@ class ThreeJSBuilder(QObject):
         self.log = log or noop
 
         self._canceled = False
+
+    @pyqtSlot()
+    def quit(self):
+        self.readyToQuit.emit()
 
     @pyqtSlot()
     def buildSceneSlot(self):

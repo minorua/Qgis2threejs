@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-from qgis.PyQt.QtCore import QObject, QTimer, QThread, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import QgsApplication
 
 from ..build.builder import ThreeJSBuilder
@@ -18,6 +18,7 @@ class Q3DControllerInterface(QObject):
     # signals - controller iface to builder
     buildSceneRequest = pyqtSignal()
     buildLayerRequest = pyqtSignal(object)       # Layer
+    quitRequest = pyqtSignal()
 
     # signals - controller iface to viewer iface
     dataSent = pyqtSignal(dict)                  # data
@@ -25,7 +26,6 @@ class Q3DControllerInterface(QObject):
     statusMessage = pyqtSignal(str, int)         # message, timeout_ms
     progressUpdated = pyqtSignal(int, str)       # percentage, msg
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
-    readyToQuit = pyqtSignal()
 
     def __init__(self, controller=None):
         super().__init__(parent=controller)
@@ -35,9 +35,11 @@ class Q3DControllerInterface(QObject):
         self.viewIface = None
 
     def teardown(self):
+        self.controller = None
+
+    def teardownConnections(self):
         self.disconnectFromBuilder()
         self.disconnectFromIface()
-        self.controller = None
 
     # controller interface <-> builder
     def connectToBuilder(self, builder):
@@ -159,13 +161,8 @@ class Q3DController(QObject):
         if webPage and RUN_BLDR_IN_BKGND:
             self.thread = QThread(self)
 
-            # move builder to worker thread
+            # move builder to worker thread and start event loop
             self.builder.moveToThread(self.thread)
-
-            self.thread.finished.connect(self.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-
-            # start worker thread event loop
             self.thread.start()
 
         self.iface = Q3DControllerInterface(self)
@@ -189,10 +186,42 @@ class Q3DController(QObject):
         self.disconnectFromIface = self.iface.disconnectFromIface
 
     def teardown(self):
+        self.abort()
+
+        if self.thread:
+            # TODO: remove this redundant code
+            # send quit request to the builder and wait until the builder gets ready to quit
+            # self.iface.quitRequest.connect(self.builder.quit)
+
+            # loop = QEventLoop()
+            # self.builder.readyToQuit.connect(loop.quit)
+            # QTimer.singleShot(0, self.iface.quitRequest.emit)
+            # loop.exec()
+
+            # stop worker thread event loop
+            self.thread.quit()
+            self.thread.wait()
+
+        self.iface.teardown()
+
+    def teardownConnections(self):
         self.timer.stop()
         self.timer.timeout.disconnect(self._processRequests)
 
-        self.iface.teardown()
+        self.iface.teardownConnections()
+
+    @pyqtSlot(bool)
+    def abort(self, clear_queue=True, show_msg=False):
+        if clear_queue:
+            self.requestQueue.clear()
+
+        if not self.aborted:
+            self.aborted = True
+
+            if show_msg:
+                self.iface.showStatusMessage("Aborting processing...")
+
+        # TODO: builder.abort()
 
     # @pyqtSlot(QPainter)
     def _requestBuildScene(self, _=None):
@@ -340,21 +369,6 @@ class Q3DController(QObject):
         for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
             if layer.visible:
                 self.requestQueue.append(layer)
-
-    @pyqtSlot(bool)
-    def abort(self, clear_queue=True):
-        if clear_queue:
-            self.requestQueue.clear()
-
-        if not self.aborted:
-            self.aborted = True
-            self.iface.showStatusMessage("Aborting processing...")
-
-    @pyqtSlot()
-    def quit(self):
-        self.abort()
-        self.iface.readyToQuit.emit()
-        self.teardown()
 
     def addBuildSceneTask(self, update_all=True, reload=False):
         logger.debug("Scene update requested.")

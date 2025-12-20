@@ -6,7 +6,7 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
@@ -35,8 +35,6 @@ class Q3DViewerInterface(Q3DInterface):
     layerAdded = pyqtSignal(Layer)                   # param: Layer object
     layerRemoved = pyqtSignal(str)                   # param: layerId
 
-    quitRequest = pyqtSignal()
-
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
@@ -44,10 +42,6 @@ class Q3DViewerInterface(Q3DInterface):
 
     def abort(self):
         self.abortRequest.emit(True)
-
-    def quit(self, controller):
-        self.quitRequest.connect(controller.quit)
-        self.quitRequest.emit()
 
 
 class Q3DWindow(QMainWindow):
@@ -122,7 +116,9 @@ class Q3DWindow(QMainWindow):
     def closeEvent(self, event):
         try:
             self.iface.enabled = False
-            self.controller.teardown()
+
+            # disconnect signals
+            self.controller.teardownConnections()
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.webPage:
@@ -139,32 +135,19 @@ class Q3DWindow(QMainWindow):
             settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
             settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
 
-            if self.controller.thread:
-                # send quit request to the controller and wait until the controller gets ready to quit
-                loop = QEventLoop()
-                self.controller.iface.readyToQuit.connect(loop.quit)
-                self.iface.quit(self.controller)
-                loop.exec()
-
-                # stop worker thread event loop
-                self.controller.thread.quit()
-                self.controller.thread.wait()
-
-            else:
-                self.controller.quit()
-                self.controller.deleteLater()
+            # safely stop worker thread
+            self.controller.teardown()
 
             # close dialogs
             for dlg in self.findChildren(QDialog):
                 dlg.close()
 
             # break circular references
+            self.ui.webView.teardown()
             self.iface.wnd = None
             self.ui.treeView.wnd = None
             self.ui.animationPanel.wnd = None
             self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
-
-            self.ui.webView.teardown()
 
         except Exception as e:
             import traceback
