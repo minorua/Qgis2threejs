@@ -311,11 +311,13 @@ class Q3DController(QObject):
             else:
                 item = self.requestQueue.pop(0)
                 if isinstance(item, Layer):
-                    # TODO: check if the map layer still exists
-                    if item.visible:
-                        self.buildLayer(item)
+                    if self.settings.getLayer(item.layerId):
+                        if item.visible:
+                            self.buildLayer(item)
+                        else:
+                            self.hideLayer(item)
                     else:
-                        self.hideLayer(item)
+                        logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
 
                 elif isinstance(item, dict):
                     self.iface.runScript(item.get("string"), item.get("data"))
@@ -373,12 +375,6 @@ class Q3DController(QObject):
 
     def addBuildLayerTask(self, layer):
         logger.debug("Layer update for %s requested (visible: %s).", layer.layerId, layer.visible)
-
-        # update layer properties and layer state in worker side export settings
-        lyr = self.settings.getLayer(layer.layerId)
-        if not lyr:
-            return
-        layer.copyTo(lyr)
 
         q = []
         for i in self.requestQueue:
