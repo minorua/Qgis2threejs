@@ -28,14 +28,6 @@ from ..utils import createUid, hex_color, js_bool, logger, pluginDir
 from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 
-class Q3DViewerInterface(Q3DInterface):
-
-    def __init__(self, settings, webPage, wnd, treeView, parent=None):
-        super().__init__(settings, webPage, parent=parent)
-        self.wnd = wnd
-        self.treeView = treeView
-
-
 class Q3DWindow(QMainWindow):
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
@@ -66,7 +58,7 @@ class Q3DWindow(QMainWindow):
             previewEnabled = False
             viewName = ""
 
-        self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
+        self.iface = Q3DInterface(settings, self.webPage, parent=self)
         self.iface.setObjectName("viewerInterface")
         self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
         self.iface.progressUpdated.connect(self.progress)
