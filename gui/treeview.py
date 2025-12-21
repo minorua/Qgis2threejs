@@ -28,8 +28,15 @@ class Q3DTreeView(QTreeView):
         self.layers = []
         self._index = -1
 
-    def setup(self, iface, icons, layers=None):
-        self.iface = iface      # Q3DViewerInterface
+    def setup(self, wnd, icons, layers=None):
+        """
+        Args:
+            wnd: Q3DWindow
+            icons: dict of QIcon
+            layers: list of Layer
+        """
+        self.wnd = wnd
+        self.controller = wnd.controller
         self.icons = icons
 
         model = QStandardItemModel(0, 1)
@@ -89,11 +96,11 @@ class Q3DTreeView(QTreeView):
 
         # DEM group
         self.contextMenuDEM = QMenu(self)
-        self.contextMenuDEM.addAction(self.iface.wnd.ui.actionAddPlane)
+        self.contextMenuDEM.addAction(self.wnd.ui.actionAddPlane)
 
         # point cloud group
         self.contextMenuPCG = QMenu(self)
-        self.contextMenuPCG.addAction(self.iface.wnd.ui.actionAddPointCloudLayer)
+        self.contextMenuPCG.addAction(self.wnd.ui.actionAddPointCloudLayer)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
@@ -135,7 +142,7 @@ class Q3DTreeView(QTreeView):
 
     def layerFromIndex(self, index):
         layerId = self.model().data(index, Qt.ItemDataRole.UserRole + 1)
-        return self.iface.settings.getLayer(layerId)
+        return self.wnd.settings.getLayer(layerId)
 
     def itemFromLayerId(self, layerId):
         for parent in self.layerGroupItems.values():
@@ -148,7 +155,7 @@ class Q3DTreeView(QTreeView):
     def updateLayerMaterials(self, layerItem, layer=None):
         layerItem.removeRows(0, layerItem.rowCount())
 
-        layer = layer or self.iface.settings.getLayer(layerItem.data())
+        layer = layer or self.wnd.settings.getLayer(layerItem.data())
         if layer is None or not layer.visible:
             return
 
@@ -198,7 +205,7 @@ class Q3DTreeView(QTreeView):
 
                 layer = layer.clone()
                 layer.opt.onlyMaterial = True
-                self.iface.wnd.controller.addBuildLayerTask(layer)
+                self.controller.addBuildLayerTask(layer)
 
             item = self.model().itemFromIndex(current)
             parent = item.parent()
@@ -213,16 +220,16 @@ class Q3DTreeView(QTreeView):
 
         # checkbox toggled
         item = self.model().itemFromIndex(topLeft)
-        layer = self.iface.settings.getLayer(item.data())
+        layer = self.wnd.settings.getLayer(item.data())
         if layer is None:
             return
 
         checked = (item.checkState() == Qt.CheckState.Checked)
         layer.visible = checked
         if layer.visible and not layer.properties:
-            layer.properties = self.iface.wnd.getDefaultProperties(layer)
+            layer.properties = self.wnd.getDefaultProperties(layer)
 
-        self.iface.wnd.controller.addBuildLayerTask(layer)
+        self.controller.addBuildLayerTask(layer)
 
         font = item.font()
         font.setBold(checked)
@@ -230,7 +237,7 @@ class Q3DTreeView(QTreeView):
 
         self.updateLayerMaterials(item, layer)
 
-        self.iface.wnd.ui.animationPanel.tree.setLayerHidden(layer.layerId, not checked)
+        self.wnd.ui.animationPanel.tree.setLayerHidden(layer.layerId, not checked)
 
     def indexDepth(self, idx):
         depth = 0
@@ -270,7 +277,7 @@ class Q3DTreeView(QTreeView):
 
         if depth > 0:
             layer = self.layerFromIndex(idx if depth == 1 else idx.parent())
-            self.iface.wnd.showLayerPropertiesDialog(layer)
+            self.wnd.showLayerPropertiesDialog(layer)
 
     def removeAdditionalLayer(self, _=None):
         layer = self.layerFromIndex(self.currentIndex())
@@ -281,15 +288,12 @@ class Q3DTreeView(QTreeView):
             return
 
         # remove layer from wnd.settings
-        wnd = self.iface.wnd
-        controller = wnd.controller
-        settings = wnd.settings
-
+        settings = self.wnd.settings
         layer = settings.getLayer(layer.layerId)
         if layer:
-            controller.hideLayer(layer)
+            self.controller.hideLayer(layer)
             settings.removeLayer(layer.layerId)
-            controller.updateExportSettings(settings)
+            self.controller.updateExportSettings(settings)
 
         # remove layer from tree view
         self.removeLayer(layer.layerId)
@@ -298,4 +302,4 @@ class Q3DTreeView(QTreeView):
         layer = self.layerFromIndex(self.currentIndex())
         if layer:
             s = "app.cameraAction.zoomToLayer(app.scene.mapLayers[{}])".format(layer.jsLayerId)
-            self.iface.wnd.runScript(s, message="zoom to layer '{}'".format(layer.name))
+            self.wnd.runScript(s, message="zoom to layer '{}'".format(layer.name))
