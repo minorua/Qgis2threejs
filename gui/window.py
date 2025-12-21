@@ -82,7 +82,7 @@ class Q3DWindow(QMainWindow):
         self.controller = Q3DController(settings, self.webPage, parent=self)
         self.controller.setObjectName("controller")
         self.controller.enabled = previewEnabled
-        self.controller.connectToIface(self.iface)
+        self.controller.setupConnections(self.iface)
 
         self.setupMenu(self.ui)
         self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)

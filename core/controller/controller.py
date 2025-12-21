@@ -27,54 +27,35 @@ class Q3DControllerInterface(QObject):
     progressUpdated = pyqtSignal(int, str)       # percentage, msg
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
 
-    def __init__(self, controller=None):
+    def __init__(self, controller):
         super().__init__(parent=controller)
 
         self.controller = controller
-        self.builder = None
+        self.builder = controller.builder
         self.viewIface = None
 
     def teardown(self):
         self.controller = None
-
-    def teardownConnections(self):
-        self.disconnectFromBuilder()
-        self.disconnectFromIface()
-
-    # controller interface <-> builder
-    def connectToBuilder(self, builder):
-        self.builder = builder
-
-        self.buildSceneRequest.connect(builder.buildSceneSlot)
-        self.buildLayerRequest.connect(builder.buildLayerSlot)
-
-        builder.dataReady.connect(self.dataSent)
-
-        if self.controller:
-            builder.taskCompleted.connect(self.controller.taskCompleted)
-
-    def disconnectFromBuilder(self):
-        builder = self.builder
-
-        self.buildSceneRequest.disconnect(builder.buildSceneSlot)
-        self.buildLayerRequest.disconnect(builder.buildLayerSlot)
-
-        builder.dataReady.disconnect(self.dataSent)
-
-        if self.controller:
-            builder.taskCompleted.disconnect(self.controller.taskCompleted)
-
         self.builder = None
+        self.viewIface = None
 
-    def requestBuildScene(self):
-        self.buildSceneRequest.emit()
+    def setupConnections(self, iface):
+        """Setup signal-slot connections between controller interface, builder, and viewer interface.
+        Args:
+            iface: web view side interface (Q3DInterface or its subclass)
+        """
+        # controller interface -> builder
+        self.buildSceneRequest.connect(self.builder.buildSceneSlot)
+        self.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
-    def requestBuildLayer(self, layer):
-        self.buildLayerRequest.emit(layer)
+        # builder -> viewer interface
+        # TODO:
+        self.builder.dataReady.connect(self.dataSent)
 
-    # controller interface <-> viewer interface
-    def connectToIface(self, iface):
-        """iface: web view side interface (Q3DInterface or its subclass)"""
+        # builder -> controller
+        self.builder.taskCompleted.connect(self.controller.taskCompleted)
+
+        # controller interface -> viewer interface
         self.viewIface = iface
 
         self.dataSent.connect(iface.sendJSONObject)
@@ -83,28 +64,43 @@ class Q3DControllerInterface(QObject):
         self.statusMessage.connect(iface.statusMessage)
         self.progressUpdated.connect(iface.progressUpdated)
 
+        # viewer interface -> controller
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
 
             iface.layerAdded.connect(self.controller.addLayer)
             iface.layerRemoved.connect(self.controller.removeLayer)
 
-    def disconnectFromIface(self):
-        iface = self.viewIface
+    def teardownConnections(self):
+        signals = [
+            # builder
+            self.buildSceneRequest,
+            self.buildLayerRequest,
+            self.builder.dataReady,
+            self.builder.taskCompleted,
+            # viewer interface
+            self.dataSent,
+            self.scriptSent,
+            self.loadScriptsRequest,
+            self.statusMessage,
+            self.progressUpdated
+        ]
 
-        self.dataSent.disconnect(iface.sendJSONObject)
-        self.scriptSent.disconnect(iface.runScript)
-        self.loadScriptsRequest.disconnect(iface.loadScriptFiles)
-        self.statusMessage.disconnect(iface.statusMessage)
-        self.progressUpdated.disconnect(iface.progressUpdated)
+        if hasattr(self.viewIface, "abortRequest"):
+            signals += [
+                self.viewIface.abortRequest,
+                self.viewIface.layerAdded,
+                self.viewIface.layerRemoved
+            ]
 
-        if hasattr(iface, "abortRequest"):
-            iface.abortRequest.disconnect(self.controller.abort)
+        for signal in signals:
+            signal.disconnect()
 
-            iface.layerAdded.disconnect(self.controller.addLayer)
-            iface.layerRemoved.disconnect(self.controller.removeLayer)
+    def requestBuildScene(self):
+        self.buildSceneRequest.emit()
 
-        self.viewIface = None
+    def requestBuildLayer(self, layer):
+        self.buildLayerRequest.emit(layer)
 
     def sendJSONObject(self, obj):
         self.dataSent.emit(obj)
@@ -167,7 +163,6 @@ class Q3DController(QObject):
 
         self.iface = Q3DControllerInterface(self)
         self.iface.setObjectName("controllerInterface")
-        self.iface.connectToBuilder(self.builder)
 
         self._enabled = True
         self.aborted = False  # layer export aborted
@@ -178,12 +173,10 @@ class Q3DController(QObject):
         self.timer = QTimer(self)
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
-
         self.timer.timeout.connect(self._processRequests)
 
-        # delegating methods
-        self.connectToIface = self.iface.connectToIface
-        self.disconnectFromIface = self.iface.disconnectFromIface
+        # delegating method
+        self.setupConnections = self.iface.setupConnections
 
     def teardown(self):
         self.abort()

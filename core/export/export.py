@@ -301,7 +301,7 @@ class BridgeExporterBase:
         self.iface.statusMessage.connect(self.iface.showStatusMessage)
 
         self.controller = Q3DController(self.settings)
-        self.controller.connectToIface(self.iface)
+        self.controller.setupConnections(self.iface)
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
