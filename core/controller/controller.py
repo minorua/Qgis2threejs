@@ -65,9 +65,7 @@ class Q3DControllerInterface(QObject):
         self.progressUpdated.connect(iface.progressUpdated)
 
         # viewer interface -> controller
-        if hasattr(iface, "abortRequest"):
-            iface.abortRequest.connect(self.controller.abort)
-
+        if hasattr(iface, "layerAdded"):
             iface.layerAdded.connect(self.controller.addLayer)
             iface.layerRemoved.connect(self.controller.removeLayer)
 
@@ -86,9 +84,8 @@ class Q3DControllerInterface(QObject):
             self.progressUpdated
         ]
 
-        if hasattr(self.viewIface, "abortRequest"):
+        if hasattr(self.viewIface, "layerAdded"):
             signals += [
-                self.viewIface.abortRequest,
                 self.viewIface.layerAdded,
                 self.viewIface.layerRemoved
             ]
@@ -165,7 +162,7 @@ class Q3DController(QObject):
         self.iface.setObjectName("controllerInterface")
 
         self._enabled = True
-        self.aborted = False  # layer export aborted
+        self.aborted = False  # processing aborted flag
         self.processingLayer = None
         self.mapCanvas = None
 
@@ -203,16 +200,14 @@ class Q3DController(QObject):
 
         self.iface.teardownConnections()
 
-    @pyqtSlot(bool)
     def abort(self, clear_queue=True, show_msg=False):
         if clear_queue:
             self.requestQueue.clear()
 
-        if not self.aborted:
-            self.aborted = True
+        if show_msg and not self.aborted:
+            self.iface.showStatusMessage("Aborting processing...")
 
-            if show_msg:
-                self.iface.showStatusMessage("Aborting processing...")
+        self.aborted = True
 
         # TODO: builder.abort()
 
@@ -224,8 +219,6 @@ class Q3DController(QObject):
         if self.processingLayer:
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
-
-        self.aborted = False
 
         self.iface.progress(0, "Building scene")
         self.iface.requestBuildScene()
@@ -249,7 +242,6 @@ class Q3DController(QObject):
             self.iface.loadScriptFile(ScriptFile.PROJ4)
 
     def buildLayer(self, layer):
-        self.aborted = False
         if isinstance(layer, dict):
             layer = Layer.fromDict(layer)
 
@@ -311,6 +303,8 @@ class Q3DController(QObject):
     def _processRequests(self):
         if not self.enabled or self.processingLayer or not self.requestQueue:
             return
+
+        self.aborted = False
 
         try:
             if self.RELOAD_PAGE in self.requestQueue:
@@ -447,19 +441,22 @@ class Q3DController(QObject):
 
     @enabled.setter
     def enabled(self, value):
+        if self._enabled == value:
+            return
+
         self._enabled = value
 
         self.iface.runScript("setPreviewEnabled({})".format(js_bool(self._enabled)))
 
         if self._enabled:
-            self.buildScene()
+            self.addBuildSceneTask()
         else:
             self.abort()
 
     @pyqtSlot(Layer)
     def addLayer(self, layer):
         layer = self.settings.addLayer(layer)
-        self.buildLayer(layer)
+        self.addBuildLayerTask(layer)
 
     @pyqtSlot(str)
     def removeLayer(self, layerId):

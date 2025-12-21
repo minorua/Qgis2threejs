@@ -30,8 +30,6 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 class Q3DViewerInterface(Q3DInterface):
 
-    abortRequest = pyqtSignal(bool)                  # param: cancel all requests in queue
-
     layerAdded = pyqtSignal(Layer)                   # param: Layer object
     layerRemoved = pyqtSignal(str)                   # param: layerId
 
@@ -39,9 +37,6 @@ class Q3DViewerInterface(Q3DInterface):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
         self.treeView = treeView
-
-    def abort(self):
-        self.abortRequest.emit(True)
 
 
 class Q3DWindow(QMainWindow):
@@ -159,7 +154,7 @@ class Q3DWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
-            self.iface.abort()
+            self.controller.abort()
         QMainWindow.keyPressEvent(self, event)
 
     def loadIcons(self):
