@@ -83,7 +83,7 @@ class Q3DWindow(QMainWindow):
         if self.webPage:
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
-            self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
+            self.ui.webView.setup(settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
 
             if self.webPage.isWebEnginePage:
