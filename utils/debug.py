@@ -24,14 +24,14 @@ def objectsOfInterest(wnd):
 def watchGarbageCollection(wnd):
     objs = objectsOfInterest(wnd)
     for i, (name, obj) in enumerate(objs):
-        weakref.finalize(obj, logger.debug, "({}/{}) {} was garbage collected.".format(i + 1, len(objs), name))
+        weakref.finalize(obj, logger.debug, f"({i + 1}/{len(objs)}) {name} was garbage collected.")
         obj.destroyed.connect(objectDestroyed)
 
 
 def objectDestroyed(obj):
-    logger.debug("{} {} was destroyed.".format(obj.metaObject().className(), obj.objectName()))
+    logger.debug(f"{obj.metaObject().className()} {obj.objectName()} was destroyed.")
 
 
 def logReferenceCount(wnd):
     for name, obj in objectsOfInterest(wnd):
-        logger.debug("Number of ref. to {} is {}.".format(name, sys.getrefcount(obj)))
+        logger.debug(f"Number of ref. to {name} is {sys.getrefcount(obj)}.")

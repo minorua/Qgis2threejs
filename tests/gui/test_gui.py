@@ -22,11 +22,11 @@ UNDEF = "undefined"
 
 def Box3(min, max):
     """min/max: a list containing three coordinate values (x, y, z)"""
-    return "new THREE.Box3({}, {})".format(Vec3(*min), Vec3(*max))
+    return f"new THREE.Box3({Vec3(*min)}, {Vec3(*max)})"
 
 
 def Vec3(x, y, z):
-    return "new THREE.Vector3({}, {}, {})".format(x, y, z)
+    return f"new THREE.Vector3({x}, {y}, {z})"
 
 
 class GUITestBase(unittest.TestCase):
@@ -35,10 +35,10 @@ class GUITestBase(unittest.TestCase):
     DLG = None
 
     def assertBox3(self, testName, box1, box2=UNDEF):
-        self.WND.runScript('assertBox3("{}", {}, {})'.format(testName, box1, box2))
+        self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2})')
 
     def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF):
-        self.WND.runScript('assertZRange("{}", {}, {}, {})'.format(testName, obj, min, max))
+        self.WND.runScript(f'assertZRange("{testName}", {obj}, {min}, {max})')
 
     def assertText(self, testName, text, startingElemId=None, partialMatch=False):
         args = '"{}", "{}", {}'.format(testName, text, '"{}"'.format(startingElemId) if startingElemId else UNDEF)
@@ -46,10 +46,10 @@ class GUITestBase(unittest.TestCase):
         if partialMatch:
             args += ", true"
 
-        self.WND.runScript('assertText({})'.format(args))
+        self.WND.runScript(f'assertText({args})')
 
     def assertVisibility(self, testName, elemId, expected=True):
-        self.WND.runScript('assertVisibility("{}", "{}", {})'.format(testName, elemId, js_bool(expected)))
+        self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
     def loadSettings(self, filename):
         self.WND.loadSettings(filename)
@@ -57,7 +57,7 @@ class GUITestBase(unittest.TestCase):
         self.WND.webPage.loadScriptFile(ScriptFile.TEST)
 
     def mouseClick(self, x, y):
-        self.WND.runScript("showMarker({}, {}, 400)".format(x, y))
+        self.WND.runScript(f"showMarker({x}, {y}, 400)")
         self.sleep(500)
 
         pos = QPoint(x, y)
@@ -128,9 +128,9 @@ class LayerTestBase(GUITestBase):
 
     @classmethod
     def setUpClass(cls):
-        layer = cls.WND.iface.settings.getLayer(cls.LAYER_ID)
+        layer = cls.WND.settings.getLayer(cls.LAYER_ID)
         if layer is None:
-            cls.skipTest("Layer '{}' not found. Skipping test.".format(cls.LAYER_ID))
+            cls.skipTest(f"Layer '{cls.LAYER_ID}' not found. Skipping test.")
 
         if cls.CAMERA_STATE:
             cls.WND.webPage.setCameraState(cls.CAMERA_STATE)
@@ -287,7 +287,7 @@ class GUITestResult(unittest.TestResult):
 
     def printResult(self):
         rows = ["", "### Results ###"]
-        rows.append("{} tests, {} skipped, {} errors, {} failures".format(self.testsRun, len(self.skipped), len(self.errors), len(self.failures)))
+        rows.append(f"{self.testsRun} tests, {len(self.skipped)} skipped, {len(self.errors)} errors, {len(self.failures)} failures")
 
         to_remove = "Qgis2threejs.tests.gui.test_gui."
 
