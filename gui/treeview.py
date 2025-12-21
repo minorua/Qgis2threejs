@@ -280,7 +280,18 @@ class Q3DTreeView(QTreeView):
         if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.StandardButton.Yes:
             return
 
-        self.iface.layerRemoved.emit(layer.layerId)
+        # remove layer from wnd.settings
+        wnd = self.iface.wnd
+        controller = wnd.controller
+        settings = wnd.settings
+
+        layer = settings.getLayer(layer.layerId)
+        if layer:
+            controller.hideLayer(layer)
+            settings.removeLayer(layer.layerId)
+            controller.updateExportSettings(settings)
+
+        # remove layer from tree view
         self.removeLayer(layer.layerId)
 
     def zoomToLayer(self):

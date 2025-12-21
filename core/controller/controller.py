@@ -64,11 +64,6 @@ class Q3DControllerInterface(QObject):
         self.statusMessage.connect(iface.statusMessage)
         self.progressUpdated.connect(iface.progressUpdated)
 
-        # viewer interface -> controller
-        if hasattr(iface, "layerAdded"):
-            iface.layerAdded.connect(self.controller.addLayer)
-            iface.layerRemoved.connect(self.controller.removeLayer)
-
     def teardownConnections(self):
         signals = [
             # builder
@@ -83,12 +78,6 @@ class Q3DControllerInterface(QObject):
             self.statusMessage,
             self.progressUpdated
         ]
-
-        if hasattr(self.viewIface, "layerAdded"):
-            signals += [
-                self.viewIface.layerAdded,
-                self.viewIface.layerRemoved
-            ]
 
         for signal in signals:
             signal.disconnect()
@@ -452,18 +441,6 @@ class Q3DController(QObject):
             self.addBuildSceneTask()
         else:
             self.abort()
-
-    @pyqtSlot(Layer)
-    def addLayer(self, layer):
-        layer = self.settings.addLayer(layer)
-        self.addBuildLayerTask(layer)
-
-    @pyqtSlot(str)
-    def removeLayer(self, layerId):
-        layer = self.settings.getLayer(layerId)
-        if layer:
-            self.hideLayer(layer)
-            self.settings.removeLayer(layerId)
 
     # @pyqtSlot()
     # def updateExtent(self):

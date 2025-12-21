@@ -30,9 +30,6 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 class Q3DViewerInterface(Q3DInterface):
 
-    layerAdded = pyqtSignal(Layer)                   # param: Layer object
-    layerRemoved = pyqtSignal(str)                   # param: layerId
-
     def __init__(self, settings, webPage, wnd, treeView, parent=None):
         super().__init__(settings, webPage, parent=parent)
         self.wnd = wnd
