@@ -99,10 +99,11 @@ class Q3DWindow(QMainWindow):
 
     def closeEvent(self, event):
         try:
-            self.iface.enabled = False
+            self.iface.enabled = False      # Q3DViewInterface
+            self.controller.closeRequestQueue()
 
             # disconnect signals
-            self.controller.teardownConnections()
+            self.controller.iface.teardownConnections()
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.webPage:

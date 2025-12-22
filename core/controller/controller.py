@@ -122,6 +122,14 @@ class Q3DController(QObject):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processRequests)
 
+    def closeRequestQueue(self):
+        self._enabled = False
+
+        self.timer.stop()
+        self.timer.timeout.disconnect(self._processRequests)
+
+        self.requestQueue.clear()
+
     def teardown(self):
         self.abort()
 
@@ -140,12 +148,6 @@ class Q3DController(QObject):
             self.thread.wait()
 
         self.iface.teardown()
-
-    def teardownConnections(self):
-        self.timer.stop()
-        self.timer.timeout.disconnect(self._processRequests)
-
-        self.iface.teardownConnections()
 
     def abort(self, clear_queue=True, show_msg=False):
         if clear_queue:
@@ -248,7 +250,7 @@ class Q3DController(QObject):
             self.timer.start()
 
     def _processRequests(self):
-        if not self.enabled or self.processingLayer or not self.requestQueue:
+        if not self._enabled or self.processingLayer or not self.requestQueue:
             return
 
         self.aborted = False
