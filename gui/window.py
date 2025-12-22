@@ -18,10 +18,10 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION
+from .webviewcommon import Q3DViewInterface
+from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
-from ..core.controller.interface import Q3DInterface
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, js_bool, logger, pluginDir
@@ -58,15 +58,15 @@ class Q3DWindow(QMainWindow):
             previewEnabled = False
             viewName = ""
 
-        self.iface = Q3DInterface(settings, self.webPage, parent=self)
+        self.iface = Q3DViewInterface(self.webPage, parent=self)
         self.iface.setObjectName("viewerInterface")
-        self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
-        self.iface.progressUpdated.connect(self.progress)
 
-        self.controller = Q3DController(settings, self.webPage, parent=self)
+        self.controller = Q3DController(settings, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND, parent=self)
         self.controller.setObjectName("controller")
         self.controller.enabled = previewEnabled
-        self.controller.setupConnections(self.iface)
+        self.controller.iface.setupConnections()
+        self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
+        self.controller.progressUpdated.connect(self.progress)
 
         self.setupMenu(self.ui)
         self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)

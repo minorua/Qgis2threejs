@@ -6,8 +6,8 @@
 import os
 import logging
 
-from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
-from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
+from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QUrl, pyqtSignal
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
 
@@ -21,7 +21,7 @@ else:
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
 from ..utils import pluginDir
-from ..utils.logging import logger, web_logger
+from ..utils.logging import web_logger
 
 
 _original_chromium_flags = None

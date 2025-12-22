@@ -3,14 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
-from qgis.core import QgsApplication
+from qgis.PyQt.QtCore import QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
-from ...conf import DEBUG_MODE, RUN_BLDR_IN_BKGND
-from ...utils import hex_color, js_bool, logger
+from ...conf import DEBUG_MODE
+from ...utils import hex_color, js_bool, logger, noop
 
 
 class Q3DControllerInterface(QObject):
@@ -20,49 +19,33 @@ class Q3DControllerInterface(QObject):
     buildLayerRequest = pyqtSignal(object)       # Layer
     quitRequest = pyqtSignal()
 
-    # signals - controller iface to viewer iface
-    dataSent = pyqtSignal(dict)                  # data
-    scriptSent = pyqtSignal(str, object, str)    # script, data, msg_shown_in_log_panel
-    statusMessage = pyqtSignal(str, int)         # message, timeout_ms
-    progressUpdated = pyqtSignal(int, str)       # percentage, msg
-    loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
-
-    def __init__(self, controller):
+    def __init__(self, controller, viewIface=None):
         super().__init__(parent=controller)
 
         self.controller = controller
         self.builder = controller.builder
-        self.viewIface = None
+        self.viewIface = viewIface
+
+        # delegating methods
+        self.runScript = viewIface.runScript if viewIface else noop
+        self.loadScriptFiles = viewIface.loadScriptFiles if viewIface else noop
 
     def teardown(self):
         self.controller = None
         self.builder = None
-        self.viewIface = None
 
-    def setupConnections(self, iface):
-        """Setup signal-slot connections between controller interface, builder, and viewer interface.
-        Args:
-            iface: web view side interface (Q3DInterface or its subclass)
-        """
+    def setupConnections(self):
+        """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
         # controller interface -> builder
         self.buildSceneRequest.connect(self.builder.buildSceneSlot)
         self.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
-        # builder -> viewer interface
-        # TODO:
-        self.builder.dataReady.connect(self.dataSent)
-
         # builder -> controller
         self.builder.taskCompleted.connect(self.controller.taskCompleted)
 
-        # controller interface -> viewer interface
-        self.viewIface = iface
-
-        self.dataSent.connect(iface.sendJSONObject)
-        self.scriptSent.connect(iface.runScript)
-        self.loadScriptsRequest.connect(iface.loadScriptFiles)
-        self.statusMessage.connect(iface.statusMessage)
-        self.progressUpdated.connect(iface.progressUpdated)
+        # builder -> 3D view interface
+        if self.viewIface:
+            self.builder.dataReady.connect(self.viewIface.sendData)
 
     def teardownConnections(self):
         signals = [
@@ -71,12 +54,6 @@ class Q3DControllerInterface(QObject):
             self.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
-            # viewer interface
-            self.dataSent,
-            self.scriptSent,
-            self.loadScriptsRequest,
-            self.statusMessage,
-            self.progressUpdated
         ]
 
         for signal in signals:
@@ -88,32 +65,12 @@ class Q3DControllerInterface(QObject):
     def requestBuildLayer(self, layer):
         self.buildLayerRequest.emit(layer)
 
-    def sendJSONObject(self, obj):
-        self.dataSent.emit(obj)
-
-    def runScript(self, string, data=None, msg=""):
-        self.scriptSent.emit(string, data, msg)
-
-    def showStatusMessage(self, msg, timeout_ms=0):
-        """show message in status bar"""
-        self.statusMessage.emit(msg, timeout_ms)
-
-    def clearStatusMessage(self):
-        """clear message in status bar"""
-        self.statusMessage.emit("", 0)
+    def loadScriptFile(self, scriptFileId, force=False):
+        self.loadScriptFiles([scriptFileId], force)
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """show message bar at top of web view"""
-        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), data=msg)
-
-    def progress(self, percentage=100, msg=""):
-        self.progressUpdated.emit(int(percentage), msg)
-
-    def loadScriptFile(self, scriptFileId, force=False):
-        self.loadScriptsRequest.emit([scriptFileId], force)
-
-    def loadScriptFiles(self, ids, force=False):
-        self.loadScriptsRequest.emit(ids, force)
+        self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", data=msg)
 
 
 class Q3DController(QObject):
@@ -124,7 +81,11 @@ class Q3DController(QObject):
     UPDATE_SCENE_OPTS = 3   # update scene options
     RELOAD_PAGE = 4
 
-    def __init__(self, settings=None, webPage=None, parent=None):
+    # signals
+    statusMessage = pyqtSignal(str, int)    # message, timeout_ms
+    progressUpdated = pyqtSignal(int, str)  # percentage, msg
+
+    def __init__(self, settings=None, viewIface=None, useThread=False, parent=None):
         super().__init__(parent)
 
         if settings is None:
@@ -140,14 +101,14 @@ class Q3DController(QObject):
         self.builder = ThreeJSBuilder(settings, parent=self)
 
         self.thread = None
-        if webPage and RUN_BLDR_IN_BKGND:
+        if useThread:
             self.thread = QThread(self)
 
             # move builder to worker thread and start event loop
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
-        self.iface = Q3DControllerInterface(self)
+        self.iface = Q3DControllerInterface(self, viewIface)
         self.iface.setObjectName("controllerInterface")
 
         self._enabled = True
@@ -160,9 +121,6 @@ class Q3DController(QObject):
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processRequests)
-
-        # delegating method
-        self.setupConnections = self.iface.setupConnections
 
     def teardown(self):
         self.abort()
@@ -194,7 +152,7 @@ class Q3DController(QObject):
             self.requestQueue.clear()
 
         if show_msg and not self.aborted:
-            self.iface.showStatusMessage("Aborting processing...")
+            self.showStatusMessage("Aborting processing...")
 
         self.aborted = True
 
@@ -209,7 +167,7 @@ class Q3DController(QObject):
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
-        self.iface.progress(0, "Building scene")
+        self.progress(0, "Building scene")
         self.iface.requestBuildScene()
 
     def updateSceneOptions(self):
@@ -247,7 +205,7 @@ class Q3DController(QObject):
         self.processingLayer = layer
 
         pmsg = "Building {0}...".format(layer.name)
-        self.iface.progress(0, pmsg)
+        self.progress(0, pmsg)
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
             self.iface.loadScriptFiles([ScriptFile.COLLADALOADER,
@@ -274,8 +232,8 @@ class Q3DController(QObject):
     def taskCompleted(self):
         self.processingLayer = None
 
-        self.iface.progress()
-        self.iface.clearStatusMessage()
+        self.progress()
+        self.clearStatusMessage()
 
         self._processRequests()
 
@@ -449,6 +407,15 @@ class Q3DController(QObject):
     #     self.requestQueue.clear()
     #     if self.processingLayer:
     #         self.abort(clear_queue=False)
+
+    def showStatusMessage(self, msg, timeout_ms=0):
+        self.statusMessage.emit(msg, timeout_ms)
+
+    def clearStatusMessage(self):
+        self.statusMessage.emit("", 0)
+
+    def progress(self, percentage=100, msg=""):
+        self.progressUpdated.emit(int(percentage), msg)
 
 
 class Mock:

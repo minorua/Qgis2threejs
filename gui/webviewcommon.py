@@ -5,7 +5,7 @@
 
 import os
 
-from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
+from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import Qgis, QgsProject
 
@@ -13,7 +13,35 @@ from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
 from ..utils import hex_color, js_bool, logger, pluginDir
-from ..utils.logging import web_logger
+
+
+class Q3DViewInterface(QObject):
+
+    def __init__(self, webPage, parent=None):
+        super().__init__(parent)
+
+        self.webPage = webPage
+        self.enabled = True
+
+    @pyqtSlot(dict)
+    def sendData(self, data):
+        if self.enabled:
+            self.webPage.sendData(data)
+
+    @pyqtSlot(str, object, str)
+    def runScript(self, string, data=None, message=""):
+        if self.enabled:
+            self.webPage.runScript(string, data, message, sourceID="interface.py")
+
+    @pyqtSlot(list, bool)
+    def loadScriptFiles(self, ids, force=False):
+        """
+        Args:
+            ids: list of script IDs
+            force: if False, do not load a script that is already loaded
+        """
+        if self.enabled:
+            self.webPage.loadScriptFiles(ids, force)
 
 
 class Q3DWebPageCommon:
@@ -167,7 +195,7 @@ class Q3DWebPageCommon:
         return False
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
-        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)
+        self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", msg)
 
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)

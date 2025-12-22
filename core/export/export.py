@@ -6,7 +6,7 @@
 import json
 import os
 
-from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, QTimer
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, pyqtSlot
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
@@ -14,7 +14,6 @@ from ..build.vector.builder import VectorLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
 from ..controller.controller import Q3DController
-from ..controller.interface import Q3DInterface
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui import webview
 from ...utils import hex_color, logger
@@ -297,11 +296,13 @@ class BridgeExporterBase:
         else:
             self.page = webview.Q3DWebPage()
 
-        self.iface = Q3DInterface(self.settings, self.page)
-        self.iface.statusMessage.connect(self.iface.showStatusMessage)
-
         self.controller = Q3DController(self.settings)
-        self.controller.setupConnections(self.iface)
+        self.controller.iface.setupConnections()
+        self.controller.statusMessage.connect(self.logStatusMessage)
+
+    @pyqtSlot(str, int)
+    def logStatusMessage(self, msg, _1=0):
+        logger.info(msg)
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
