@@ -13,8 +13,8 @@ from ..utils import logger, pluginDir
 class Q3DDummyView(QWidget):
     """A view that shows a message when WebEngine is chosen even though it is not available."""
 
-    def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
         self._page = Q3DDummyPage(self)
 
         url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"

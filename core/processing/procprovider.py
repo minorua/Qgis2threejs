@@ -17,7 +17,7 @@ QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
 class Qgis2threejsProvider(QgsProcessingProvider):
 
     def __init__(self):
-        QgsProcessingProvider.__init__(self)
+        super().__init__()
         self.algs = []
 
     def id(self):

@@ -31,7 +31,7 @@ class ThreeJSBuilder(QObject):
 
     readyToQuit = pyqtSignal()
 
-    def __init__(self, settings, progress=None, log=None, parent=None):
+    def __init__(self, parent, settings, progress=None, log=None):
         super().__init__(parent)
 
         self.settings = settings

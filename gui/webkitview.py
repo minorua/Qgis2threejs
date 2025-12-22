@@ -116,7 +116,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
 class Q3DWebKitView(Q3DWebViewCommon, QWebView):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         QWebView.__init__(self, parent)
         Q3DWebViewCommon.__init__(self)
 

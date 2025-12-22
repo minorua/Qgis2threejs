@@ -31,7 +31,7 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 class Q3DWindow(QMainWindow):
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
-        QMainWindow.__init__(self, parent=qgisIface.mainWindow())
+        super().__init__(parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
@@ -58,10 +58,10 @@ class Q3DWindow(QMainWindow):
             previewEnabled = False
             viewName = ""
 
-        self.iface = Q3DViewInterface(self.webPage, parent=self)
+        self.iface = Q3DViewInterface(self, self.webPage)
         self.iface.setObjectName("viewerInterface")
 
-        self.controller = Q3DController(settings, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND, parent=self)
+        self.controller = Q3DController(self, settings, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND)
         self.controller.setObjectName("controller")
         self.controller.enabled = previewEnabled
         self.controller.iface.setupConnections()
@@ -284,7 +284,7 @@ class Q3DWindow(QMainWindow):
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
-        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
+        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
 
         dialog.showLayerProperties(layer)
@@ -311,7 +311,7 @@ class Q3DWindow(QMainWindow):
                 self.ui.animationPanel.tree.materialChanged(layer)
 
     def getDefaultProperties(self, layer):
-        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
+        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.setLayer(layer)
         return dialog.page.properties()
 
@@ -329,7 +329,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setAnimationData(self.ui.animationPanel.data())
 
-        dialog = ExportToWebDialog(self.settings, self.ui.webView.page(), self)
+        dialog = ExportToWebDialog(self, self.settings, self.ui.webView.page())
         dialog.show()
         dialog.exec()
 
@@ -465,7 +465,7 @@ class Q3DWindow(QMainWindow):
 
     # Scene menu
     def showScenePropertiesDialog(self):
-        dialog = PropertiesDialog(self.settings, self.qgisIface, self)
+        dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
         dialog.showSceneProperties()
         return dialog
@@ -541,13 +541,13 @@ class Q3DWindow(QMainWindow):
         self.runScript("setNavigationEnabled({})".format(js_bool(enabled)))
 
     def showNorthArrowDialog(self):
-        dialog = NorthArrowDialog(self.settings.widgetProperties("NorthArrow"), self)
+        dialog = NorthArrowDialog(self, self.settings.widgetProperties("NorthArrow"))
         dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("NorthArrow", p))
         dialog.show()
         dialog.exec()
 
     def showHFLabelDialog(self):
-        dialog = HFLabelDialog(self.settings.widgetProperties("Label"), self)
+        dialog = HFLabelDialog(self, self.settings.widgetProperties("Label"))
         dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("Label", p))
         dialog.show()
         dialog.exec()
@@ -594,8 +594,8 @@ class PropertiesDialog(QDialog):
 
     propertiesAccepted = pyqtSignal(object)     # dict if scene else Layer
 
-    def __init__(self, settings, qgisIface, parent=None):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent, settings, qgisIface):
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.settings = settings
@@ -687,8 +687,8 @@ class NorthArrowDialog(QDialog):
 
     propertiesAccepted = pyqtSignal(dict)
 
-    def __init__(self, properties, parent=None):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent, properties):
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         from .ui.northarrowdialog import Ui_NorthArrowDialog
@@ -712,8 +712,8 @@ class HFLabelDialog(QDialog):
 
     propertiesAccepted = pyqtSignal(dict)
 
-    def __init__(self, properties, parent=None):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent, properties):
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         from .ui.hflabeldialog import Ui_HFLabelDialog
@@ -733,8 +733,8 @@ class HFLabelDialog(QDialog):
 
 class AddPointCloudLayerDialog(QDialog):
 
-    def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         from .ui.addpclayerdialog import Ui_AddPointCloudLayerDialog
         self.ui = Ui_AddPointCloudLayerDialog()

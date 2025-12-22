@@ -13,7 +13,7 @@ from .ui.layerselectdialog import Ui_LayerSelectDialog
 class LayerSelectDialog(QDialog):
 
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         self.mapSettings = None
         self.canvasReady = False    # whether map settings have been applied to map canvas
@@ -73,9 +73,8 @@ class LayerSelectDialog(QDialog):
 
 class SingleLayerSelectDialog(QDialog):
 
-    def __init__(self, parent=None, label=""):
-
-        QDialog.__init__(self, parent)
+    def __init__(self, parent, label=""):
+        super().__init__(parent)
 
         vl = QVBoxLayout()
         if label:

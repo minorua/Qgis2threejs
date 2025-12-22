@@ -73,7 +73,7 @@ class HiddenProperty:
 class PropertyPage(QWidget):
 
     def __init__(self, parent, pageType):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.dialog = parent
         self.pageType = pageType
         self.propertyWidgets = []

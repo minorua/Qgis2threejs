@@ -185,7 +185,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
 class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         setChromiumFlags()
 
         QWebEngineView.__init__(self, parent)

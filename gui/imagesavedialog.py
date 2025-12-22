@@ -13,7 +13,7 @@ from .ui.imagesavedialog import Ui_ImageSaveDialog
 class ImageSaveDialog(QDialog):
 
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         self.wnd = parent
 

@@ -22,8 +22,8 @@ class Q3DTreeView(QTreeView):
                          (LayerType.POLYGON, "Polygon"),
                          (LayerType.POINTCLOUD, "Point Cloud"))
 
-    def __init__(self, parent=None):
-        QTreeView.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         self.layers = []
         self._index = -1

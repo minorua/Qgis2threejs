@@ -17,7 +17,7 @@ from ..utils import hex_color, js_bool, logger, pluginDir
 
 class Q3DViewInterface(QObject):
 
-    def __init__(self, webPage, parent=None):
+    def __init__(self, parent, webPage):
         super().__init__(parent)
 
         self.webPage = webPage

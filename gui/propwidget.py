@@ -478,7 +478,7 @@ class PropertyWidget(QWidget, Ui_ComboEditWidget):
     FIELDTYPE_NUMBER = 1
     FIELDTYPE_STRING = 2
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.setupUi(self)
         self.comboBox.currentIndexChanged.connect(self.comboBoxSelectionChanged)

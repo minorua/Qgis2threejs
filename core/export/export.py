@@ -25,8 +25,8 @@ class ThreeJSExporter(ThreeJSBuilder):
     viewable in external web browsers.
     """
 
-    def __init__(self, settings=None, progress=None, log=None):
-        ThreeJSBuilder.__init__(self, settings or ExportSettings(), progress, log)
+    def __init__(self, parent=None, settings=None, progress=None, log=None):
+        super().__init__(parent, settings or ExportSettings(), progress, log)
 
         self._index = -1
 
@@ -296,7 +296,7 @@ class BridgeExporterBase:
         else:
             self.page = webview.Q3DWebPage()
 
-        self.controller = Q3DController(self.settings)
+        self.controller = Q3DController(settings=self.settings)
         self.controller.iface.setupConnections()
         self.controller.statusMessage.connect(self.logStatusMessage)
 

@@ -31,7 +31,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
     def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        LayerBuilderBase.__init__(self, settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)

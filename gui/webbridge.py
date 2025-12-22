@@ -42,8 +42,9 @@ class WebBridge(QObject):
     statusMessage = pyqtSignal(str, int)
     testResultReceived = pyqtSignal(str, bool, str)
 
-    def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
+
         self._parent = parent
         self._storedData = QVariant()
 

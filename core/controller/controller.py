@@ -85,7 +85,7 @@ class Q3DController(QObject):
     statusMessage = pyqtSignal(str, int)    # message, timeout_ms
     progressUpdated = pyqtSignal(int, str)  # percentage, msg
 
-    def __init__(self, settings=None, viewIface=None, useThread=False, parent=None):
+    def __init__(self, parent=None, settings=None, viewIface=None, useThread=False):
         super().__init__(parent)
 
         if settings is None:
@@ -98,7 +98,7 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
-        self.builder = ThreeJSBuilder(settings, parent=self)
+        self.builder = ThreeJSBuilder(self, settings)
 
         self.thread = None
         if useThread:

@@ -38,7 +38,7 @@ class ImageManager(DataManager):
     IMG_FILE = 3
 
     def __init__(self, exportSettings):
-        DataManager.__init__(self)
+        super().__init__()
         self.exportSettings = exportSettings
         self._renderer = None
 
@@ -181,8 +181,7 @@ class MaterialManager(DataManager):
     ERROR_COLOR = "0"
 
     def __init__(self, imageManager, basicType=MESH_LAMBERT):
-        DataManager.__init__(self)
-
+        super().__init__()
         self.imageManager = imageManager
         self.basicMaterialType = basicType
 
@@ -332,7 +331,7 @@ class MaterialManager(DataManager):
 class ModelManager(DataManager):
 
     def __init__(self, exportSettings):
-        DataManager.__init__(self)
+        super().__init__()
         self.exportSettings = exportSettings
 
     def modelIndex(self, path):

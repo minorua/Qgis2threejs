@@ -18,8 +18,8 @@ from ..utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 
 class ExportToWebDialog(QDialog):
 
-    def __init__(self, settings, page, parent=None):
-        QDialog.__init__(self, parent)
+    def __init__(self, parent, settings, page):
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.settings = settings

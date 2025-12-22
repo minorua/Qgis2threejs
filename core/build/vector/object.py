@@ -427,7 +427,7 @@ class ModelFileType(PointTypeBase):
     experimental = True
 
     def __init__(self, settings, modelManager=None):
-        PointTypeBase.__init__(self, settings)
+        super().__init__(settings)
         self.modelManager = modelManager
 
     def setupWidgets(self, ppage):

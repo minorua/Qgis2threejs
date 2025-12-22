@@ -24,7 +24,7 @@ class Downloader(QObject):
     allRepliesFinished = pyqtSignal()
 
     def __init__(self, parent=None, maxConnections=2, defaultCacheExpiration=24, userAgent=""):
-        QObject.__init__(self, parent)
+        super().__init__(parent)
 
         self.maxConnections = maxConnections
         self.defaultCacheExpiration = defaultCacheExpiration    # hours

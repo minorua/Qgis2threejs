@@ -21,7 +21,7 @@ from ..utils.gui import selectImageFile
 class AnimationPanel(QWidget):
 
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.isAnimating = False
 
@@ -187,7 +187,7 @@ class AnimationPanel(QWidget):
 class AnimationTreeWidget(QTreeWidget):
 
     def __init__(self, parent):
-        QTreeWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.panel = parent
         self.dialog = None
@@ -916,7 +916,7 @@ class AnimationTreeWidget(QTreeWidget):
 class KeyframeDialog(QDialog):
 
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.ui = Ui_KeyframeDialog()
