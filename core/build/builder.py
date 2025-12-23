@@ -169,12 +169,30 @@ class ThreeJSBuilder(QObject):
         return layers
 
     def _buildLayer(self, layer, abortSignal=None):
-        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)
-        return builder.build(abortSignal=abortSignal)
+        layerBuilder = self._layerBuilder(layer)
+
+        obj = layerBuilder.build(build_blocks=False, abortSignal=abortSignal)
+
+        blocks = []
+        for subBuilder in layerBuilder.subBuilders():
+            if self.aborted:
+                return None
+
+            blocks.append(subBuilder.build())
+
+        if blocks:
+            body = obj.get("body", {})
+            body["blocks"] = blocks
+            obj["body"] = body
+
+        return obj
 
     def layerBuilders(self, layer):
-        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)
+        builder = self._layerBuilder(layer)
         yield builder
 
         for builder in builder.subBuilders():
             yield builder
+
+    def _layerBuilder(self, layer):
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)

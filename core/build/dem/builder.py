@@ -53,29 +53,22 @@ class DEMLayerBuilder(LayerBuilderBase):
             "properties": self.layerProperties()
         }
 
-        # DEM block
-        blocks = []
         if build_blocks:
-            self._startBuildBlocks(abortSignal)
-
-            for builder in self.subBuilders():
-                if self.aborted:
-                    break
-                blocks.append(builder.build())
-
-            self._endBuildBlocks(abortSignal)
-
-        d["body"] = {
-            "blocks": blocks
-        }
-
-        if self.aborted:
-            return None
+            d["body"] = {
+                "blocks": self._buildBlocks()
+            }
 
         if DEBUG_MODE:
             d["PROPERTIES"] = self.properties
 
         return d
+
+    def _buildBlocks(self):
+        blocks = []
+        for builder in self.subBuilders():
+            blocks.append(builder.build())
+
+        return blocks
 
     def layerProperties(self):
         """Return layer properties specific to this DEM layer."""

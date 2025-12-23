@@ -48,6 +48,9 @@ class LayerBuilderBase:
         """
         pass
 
+    def subBuilders(self):
+        return []
+
     @property
     def aborted(self):
         """Property returning whether a cancel has been requested."""
@@ -71,16 +74,6 @@ class LayerBuilderBase:
     def abort(self):
         """Interrupts any ongoing work by setting the cancellation flag."""
         self.aborted = True
-
-    def _startBuildBlocks(self, abortSignal):
-        """Connect a Qt cancellation signal to this builder."""
-        if abortSignal:
-            abortSignal.connect(self.abort)
-
-    def _endBuildBlocks(self, abortSignal):
-        """Disconnect a previously-connected cancellation signal."""
-        if abortSignal:
-            abortSignal.disconnect(self.abort)
 
     def layerProperties(self):
         """Return a dictionary with common layer properties used in export."""

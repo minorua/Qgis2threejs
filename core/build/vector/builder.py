@@ -95,27 +95,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                                                               base64=self.settings.requiresJsonSerializable)
 
         if build_blocks:
-            self._startBuildBlocks(abortSignal)
-
-            nf = 0
-            blocks = []
-            for builder in self.subBuilders():
-                if self.aborted:
-                    break
-                b = builder.build()
-                nf += b["featureCount"]
-
-                blocks.append(b)
-
-            self._endBuildBlocks(abortSignal)
-
-            nb = len(blocks)
-            if nb > 1:
-                self.log("{} features were splitted into {} parts.".format(nf, nb))
-            else:
-                self.log("{} feature{}.".format(nf, "s" if nf > 1 else ""))
-
-            data["blocks"] = blocks
+            data["blocks"] = self._buildBlocks()
 
         d = {
             "type": "layer",
@@ -124,13 +104,27 @@ class VectorLayerBuilder(LayerBuilderBase):
             "body": data
         }
 
-        if self.aborted:
-            return None
-
         if DEBUG_MODE:
             d["PROPERTIES"] = p
 
         return d
+
+    def _buildBlocks(self):
+        nf = 0
+        blocks = []
+        for builder in self.subBuilders():
+            b = builder.build()
+            nf += b["featureCount"]
+
+            blocks.append(b)
+
+        nb = len(blocks)
+        if nb > 1:
+            self.log(f"{nf} features were splitted into {nb} parts.")
+        else:
+            self.log(f"{nf} feature(s).")
+
+        return blocks
 
     def layerProperties(self):
         """Return layer properties such as layer type and object type.
