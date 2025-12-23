@@ -113,6 +113,7 @@ class Q3DController(QObject):
 
         self._enabled = True
         self.aborted = False  # processing aborted flag
+        self.isBuilderBusy = False
         self.processingLayer = None
         self.mapCanvas = None
 
@@ -165,12 +166,14 @@ class Q3DController(QObject):
         self.addBuildSceneTask(update_all=False)
 
     def buildScene(self):
-        if self.processingLayer:
+        if self.isBuilderBusy:
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
         self.progress(0, "Building scene")
+        self.isBuilderBusy = True
         self.iface.requestBuildScene()
+        return True
 
     def updateSceneOptions(self):
         sp = self.settings.sceneProperties()
@@ -194,17 +197,9 @@ class Q3DController(QObject):
         if isinstance(layer, dict):
             layer = Layer.fromDict(layer)
 
-        if self.processingLayer:
+        if self.isBuilderBusy:
             logger.info('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
             return False
-
-        self._buildLayer(layer)
-
-        if len(self.settings.layersToExport()) == 1:
-            self.addRunScriptTask("adjustCameraPos()")
-
-    def _buildLayer(self, layer):
-        self.processingLayer = layer
 
         pmsg = "Building {0}...".format(layer.name)
         self.progress(0, pmsg)
@@ -221,7 +216,14 @@ class Q3DController(QObject):
                                         ScriptFile.POTREE,
                                         ScriptFile.PCLAYER])
 
+        self.processingLayer = layer
+        self.isBuilderBusy = True
         self.iface.requestBuildLayer(layer)
+
+        if len(self.settings.layersToExport()) == 1:
+            self.addRunScriptTask("adjustCameraPos()")
+
+        return True
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
@@ -232,6 +234,7 @@ class Q3DController(QObject):
         self.iface.runScript("hideAllLayers(true)")
 
     def taskCompleted(self):
+        self.isBuilderBusy = False
         self.processingLayer = None
 
         self.progress()
@@ -250,7 +253,7 @@ class Q3DController(QObject):
             self.timer.start()
 
     def _processRequests(self):
-        if not self._enabled or self.processingLayer or not self.requestQueue:
+        if not self._enabled or self.isBuilderBusy or not self.requestQueue:
             return
 
         self.aborted = False
@@ -318,7 +321,8 @@ class Q3DController(QObject):
 
         self.requestQueue.append(r)
 
-        if self.processingLayer:
+        if self.isBuilderBusy:
+            # TODO: clear queue and add a new task?
             self.abort(clear_queue=False)
         else:
             self.processRequests()
@@ -344,7 +348,7 @@ class Q3DController(QObject):
         if layer.visible:
             self.requestQueue.append(layer)
 
-            if not self.processingLayer:
+            if not self.isBuilderBusy:
                 self.processRequests()
         else:
             # immediately hide layer without adding layer to queue
@@ -365,7 +369,7 @@ class Q3DController(QObject):
     def addRunScriptTask(self, string, data=None):
         self.requestQueue.append({"string": string, "data": data})
 
-        if not self.processingLayer:
+        if not self.isBuilderBusy:
             self.processRequests()
 
     def updateExportSettings(self, settings=None, mapSettings=None, layer=None):
@@ -407,7 +411,7 @@ class Q3DController(QObject):
     #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):
     #         return
     #     self.requestQueue.clear()
-    #     if self.processingLayer:
+    #     if self.isBuilderBusy:
     #         self.abort(clear_queue=False)
 
     def showStatusMessage(self, msg, timeout_ms=0):
