@@ -75,7 +75,7 @@ class Q3DControllerInterface(QObject):
 
 class Q3DController(QObject):
 
-    # requests
+    # task types
     BUILD_SCENE_ALL = 1     # build scene
     BUILD_SCENE = 2         # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
     UPDATE_SCENE_OPTS = 3   # update scene options
@@ -115,21 +115,20 @@ class Q3DController(QObject):
         self.aborted = False  # processing aborted flag
         self.isBuilderBusy = False
         self.processingLayer = None
-        self.mapCanvas = None
 
-        self.requestQueue = []
+        self.taskQueue = []
         self.timer = QTimer(self)
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self._processRequests)
+        self.timer.timeout.connect(self._processNextTask)
 
-    def closeRequestQueue(self):
+    def closeTaskQueue(self):
         self._enabled = False
 
         self.timer.stop()
-        self.timer.timeout.disconnect(self._processRequests)
+        self.timer.timeout.disconnect(self._processNextTask)
 
-        self.requestQueue.clear()
+        self.taskQueue.clear()
 
     def teardown(self):
         self.abort()
@@ -152,7 +151,7 @@ class Q3DController(QObject):
 
     def abort(self, clear_queue=True, show_msg=False):
         if clear_queue:
-            self.requestQueue.clear()
+            self.taskQueue.clear()
 
         if show_msg and not self.aborted:
             self.showStatusMessage("Aborting processing...")
@@ -160,10 +159,6 @@ class Q3DController(QObject):
         self.aborted = True
 
         # TODO: builder.abort()
-
-    # @pyqtSlot(QPainter)
-    def _requestBuildScene(self, _=None):
-        self.addBuildSceneTask(update_all=False)
 
     def buildScene(self):
         if self.isBuilderBusy:
@@ -240,44 +235,44 @@ class Q3DController(QObject):
         self.progress()
         self.clearStatusMessage()
 
-        self._processRequests()
+        self._processNextTask()
 
-    def processRequests(self):
+    def processNextTask(self):
         self.timer.stop()
 
         if DEBUG_MODE:
-            contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.requestQueue]
-            logger.debug(f"Request queue: {', '.join(contents)}")
+            contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.taskQueue]
+            logger.debug(f"Task queue: {', '.join(contents)}")
 
-        if self.requestQueue:
+        if self.taskQueue:
             self.timer.start()
 
-    def _processRequests(self):
-        if not self._enabled or self.isBuilderBusy or not self.requestQueue:
+    def _processNextTask(self):
+        if not self._enabled or self.isBuilderBusy or not self.taskQueue:
             return
 
         self.aborted = False
 
         try:
-            if self.RELOAD_PAGE in self.requestQueue:
-                self.requestQueue.clear()
+            if self.RELOAD_PAGE in self.taskQueue:
+                self.taskQueue.clear()
                 self.iface.runScript("location.reload()")
 
-            elif self.BUILD_SCENE_ALL in self.requestQueue:
-                self.requestQueue.clear()
-                self.requestQueue.append(self.UPDATE_SCENE_OPTS)
+            elif self.BUILD_SCENE_ALL in self.taskQueue:
+                self.taskQueue.clear()
+                self.taskQueue.append(self.UPDATE_SCENE_OPTS)
                 self._addVisibleLayersToQueue()
 
                 self.buildScene()
 
-            elif self.BUILD_SCENE in self.requestQueue:
-                self.requestQueue.clear()
+            elif self.BUILD_SCENE in self.taskQueue:
+                self.taskQueue.clear()
                 self._addVisibleLayersToQueue()
 
                 self.buildScene()
 
             else:
-                item = self.requestQueue.pop(0)
+                item = self.taskQueue.pop(0)
                 if isinstance(item, Layer):
                     if self.settings.getLayer(item.layerId):
                         if item.visible:
@@ -294,7 +289,7 @@ class Q3DController(QObject):
                     self.updateSceneOptions()
 
                 else:
-                    logger.warning(f"Unknown request: {item}")
+                    logger.warning(f"Unknown task: {item}")
 
         except Exception as e:
             import traceback
@@ -302,15 +297,15 @@ class Q3DController(QObject):
 
             self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
-        self.processRequests()
+        self.processNextTask()
 
     def _addVisibleLayersToQueue(self):
         for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
             if layer.visible:
-                self.requestQueue.append(layer)
+                self.taskQueue.append(layer)
 
     def addBuildSceneTask(self, update_all=True, reload=False):
-        logger.debug("Scene update requested.")
+        logger.debug("Scene build task queued.")
 
         if reload:
             r = self.RELOAD_PAGE
@@ -319,26 +314,26 @@ class Q3DController(QObject):
         else:
             r = self.BUILD_SCENE
 
-        self.requestQueue.append(r)
+        self.taskQueue.append(r)
 
         if self.isBuilderBusy:
             # TODO: clear queue and add a new task?
             self.abort(clear_queue=False)
         else:
-            self.processRequests()
+            self.processNextTask()
 
     def addBuildLayerTask(self, layer):
-        logger.debug("Layer update for %s requested (visible: %s).", layer.layerId, layer.visible)
+        logger.debug(f"Layer build task queued for {layer.name} (visible: {layer.visible}).")
 
         q = []
-        for i in self.requestQueue:
+        for i in self.taskQueue:
             if isinstance(i, Layer) and i.layerId == layer.layerId:
                 if not i.opt.onlyMaterial:
                     layer.opt.onlyMaterial = False
             else:
                 q.append(i)
 
-        self.requestQueue = q
+        self.taskQueue = q
 
         if self.processingLayer and self.processingLayer.layerId == layer.layerId:
             self.abort(clear_queue=False)
@@ -346,10 +341,10 @@ class Q3DController(QObject):
                 layer.opt.onlyMaterial = False
 
         if layer.visible:
-            self.requestQueue.append(layer)
+            self.taskQueue.append(layer)
 
             if not self.isBuilderBusy:
-                self.processRequests()
+                self.processNextTask()
         else:
             # immediately hide layer without adding layer to queue
             self.hideLayer(layer)
@@ -367,10 +362,10 @@ class Q3DController(QObject):
 
     @pyqtSlot(str, object)
     def addRunScriptTask(self, string, data=None):
-        self.requestQueue.append({"string": string, "data": data})
+        self.taskQueue.append({"string": string, "data": data})
 
         if not self.isBuilderBusy:
-            self.processRequests()
+            self.processNextTask()
 
     def updateExportSettings(self, settings=None, mapSettings=None, layer=None):
         if settings:

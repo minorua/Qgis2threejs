@@ -100,7 +100,7 @@ class Q3DWindow(QMainWindow):
     def closeEvent(self, event):
         try:
             self.iface.enabled = False      # Q3DViewInterface
-            self.controller.closeRequestQueue()
+            self.controller.closeTaskQueue()
 
             # disconnect signals
             self.controller.iface.teardownConnections()
