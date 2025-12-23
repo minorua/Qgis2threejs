@@ -174,11 +174,11 @@ class ThreeJSBuilder(QObject):
         obj = layerBuilder.build(build_blocks=False, abortSignal=abortSignal)
 
         blocks = []
-        for subBuilder in layerBuilder.subBuilders():
+        for blockBuilder in layerBuilder.blockBuilders():
             if self.aborted:
                 return None
 
-            blocks.append(subBuilder.build())
+            blocks.append(blockBuilder.build())
 
         if blocks:
             body = obj.get("body", {})
@@ -188,11 +188,11 @@ class ThreeJSBuilder(QObject):
         return obj
 
     def layerBuilders(self, layer):
-        builder = self._layerBuilder(layer)
-        yield builder
+        layerBuilder = self._layerBuilder(layer)
+        yield layerBuilder
 
-        for builder in builder.subBuilders():
-            yield builder
+        for blockBuilder in layerBuilder.blockBuilders():
+            yield blockBuilder
 
     def _layerBuilder(self, layer):
         return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)

@@ -48,7 +48,7 @@ class LayerBuilderBase:
         """
         pass
 
-    def subBuilders(self):
+    def blockBuilders(self):
         return []
 
     @property

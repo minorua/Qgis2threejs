@@ -65,7 +65,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
     def _buildBlocks(self):
         blocks = []
-        for builder in self.subBuilders():
+        for builder in self.blockBuilders():
             blocks.append(builder.build())
 
         return blocks
@@ -79,7 +79,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
         return p
 
-    def subBuilders(self):
+    def blockBuilders(self):
         """Yield builders that produce DEM tiles and materials."""
         be = self.settings.baseExtent()
 
