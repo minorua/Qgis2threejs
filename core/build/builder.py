@@ -99,12 +99,12 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    def buildScene(self, build_layers=True, cancelSignal=None):
+    def buildScene(self, build_layers=True, abortSignal=None):
         self.aborted = False
 
         obj = self._buildScene()
         if build_layers:
-            obj["layers"] = self._buildLayers(cancelSignal=cancelSignal)
+            obj["layers"] = self._buildLayers(abortSignal=abortSignal)
         return obj
 
     def _buildScene(self):
@@ -150,7 +150,7 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    def _buildLayers(self, cancelSignal=None):
+    def _buildLayers(self, abortSignal=None):
         layers = []
         layer_list = [layer for layer in self.settings.layers() if layer.visible]
         total = len(layer_list)
@@ -159,7 +159,7 @@ class ThreeJSBuilder(QObject):
                 break
 
             self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
-            obj = self._buildLayer(layer, cancelSignal=cancelSignal)
+            obj = self._buildLayer(layer, abortSignal=abortSignal)
             if obj:
                 layers.append(obj)
 
@@ -168,9 +168,9 @@ class ThreeJSBuilder(QObject):
 
         return layers
 
-    def _buildLayer(self, layer, cancelSignal=None):
+    def _buildLayer(self, layer, abortSignal=None):
         builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)
-        return builder.build(cancelSignal=cancelSignal)
+        return builder.build(abortSignal=abortSignal)
 
     def layerBuilders(self, layer):
         builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)

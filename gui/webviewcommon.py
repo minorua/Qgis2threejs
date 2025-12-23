@@ -151,7 +151,7 @@ class Q3DWebPageCommon:
     def resetCameraState(self):
         self.runScript("app.controls.reset()")
 
-    def waitForSceneLoaded(self, cancelSignal=None, timeout=None):
+    def waitForSceneLoaded(self, abortSignal=None, timeout=None):
         loading = self.runScript("app.loadingManager.isLoading", wait=True)
 
         logger.debug("waitForSceneLoaded: loading=%s", loading)
@@ -173,8 +173,8 @@ class Q3DWebPageCommon:
         self.sceneLoaded.connect(loop.quit)
         self.sceneLoadError.connect(error)
 
-        if cancelSignal:
-            cancelSignal.connect(userCancel)
+        if abortSignal:
+            abortSignal.connect(userCancel)
 
         if timeout:
             timer = QTimer()
@@ -187,8 +187,8 @@ class Q3DWebPageCommon:
         self.sceneLoaded.disconnect(loop.quit)
         self.sceneLoadError.disconnect(error)
 
-        if cancelSignal:
-            cancelSignal.disconnect(userCancel)
+        if abortSignal:
+            abortSignal.disconnect(userCancel)
 
         if err:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]

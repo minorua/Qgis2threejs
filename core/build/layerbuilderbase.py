@@ -39,12 +39,12 @@ class LayerBuilderBase:
         self._isInUiThread = isInUiThread
         self._lock = Lock()
 
-    def build(self, build_blocks=False, cancelSignal=None):
+    def build(self, build_blocks=False, abortSignal=None):
         """Generate the export data structure for this layer.
 
         Subclasses must implement this and return a dictionary
         that represents the layer's exportable data structure
-        (or `None` if the build was canceled).
+        (or `None` if the build was aborted).
         """
         pass
 
@@ -72,15 +72,15 @@ class LayerBuilderBase:
         """Interrupts any ongoing work by setting the cancellation flag."""
         self.aborted = True
 
-    def _startBuildBlocks(self, cancelSignal):
+    def _startBuildBlocks(self, abortSignal):
         """Connect a Qt cancellation signal to this builder."""
-        if cancelSignal:
-            cancelSignal.connect(self.abort)
+        if abortSignal:
+            abortSignal.connect(self.abort)
 
-    def _endBuildBlocks(self, cancelSignal):
+    def _endBuildBlocks(self, abortSignal):
         """Disconnect a previously-connected cancellation signal."""
-        if cancelSignal:
-            cancelSignal.disconnect(self.abort)
+        if abortSignal:
+            abortSignal.disconnect(self.abort)
 
     def layerProperties(self):
         """Return a dictionary with common layer properties used in export."""

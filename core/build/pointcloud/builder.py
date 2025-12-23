@@ -20,7 +20,7 @@ class PointCloudLayerBuilder(LayerBuilderBase):
         """See `LayerBuilderBase.__init__()` for argument details."""
         super().__init__(settings, layer, progress=progress, log=log, isInUiThread=isInUiThread)
 
-    def build(self, build_blocks=False, cancelSignal=None):
+    def build(self, build_blocks=False, abortSignal=None):
         """Generate the export data structure for the point cloud."""
         d = {
             "type": "layer",

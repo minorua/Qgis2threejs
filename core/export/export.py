@@ -38,9 +38,9 @@ class ThreeJSExporter(ThreeJSBuilder):
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)
 
-    def export(self, filename=None, cancelSignal=None):
-        if cancelSignal:
-            cancelSignal.connect(self.abort)
+    def export(self, filename=None, abortSignal=None):
+        if abortSignal:
+            abortSignal.connect(self.abort)
 
         if filename:
             self.settings.setOutputFilename(filename)
@@ -53,10 +53,10 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        data = self.buildScene(build_layers=True, cancelSignal=cancelSignal)
+        data = self.buildScene(build_layers=True, abortSignal=abortSignal)
 
-        if cancelSignal:
-            cancelSignal.disconnect(self.abort)
+        if abortSignal:
+            abortSignal.disconnect(self.abort)
 
         if self.aborted:
             return False
@@ -150,7 +150,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         self._index += 1
         return self._index
 
-    def _buildLayer(self, layer, cancelSignal=None):
+    def _buildLayer(self, layer, abortSignal=None):
         title = utils.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
@@ -166,7 +166,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log, isInUiThread=self._isInUiThread)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
-        return builder.build(True, cancelSignal=cancelSignal)
+        return builder.build(True, abortSignal=abortSignal)
 
     def filesToCopy(self):
         # three.js library
@@ -351,7 +351,7 @@ class ImageExporter(BridgeExporterBase):
     This exporter is used by a Processing algorithm.
     """
 
-    def render(self, cameraState=None, cancelSignal=None):
+    def render(self, cameraState=None, abortSignal=None):
         if self.page is None:
             return QImage(), "Page not ready"
 
@@ -362,7 +362,7 @@ class ImageExporter(BridgeExporterBase):
         # build scene
         self.controller.buildScene(update_extent=False)
 
-        err = self.page.waitForSceneLoaded(cancelSignal)
+        err = self.page.waitForSceneLoaded(abortSignal)
 
         # header and footer labels
         self.page.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
@@ -387,11 +387,11 @@ class ImageExporter(BridgeExporterBase):
         painter.end()
         return image, err
 
-    def export(self, filename, cameraState=None, cancelSignal=None):
+    def export(self, filename, cameraState=None, abortSignal=None):
         # prepare output directory
         self.mkdir(filename)
 
-        image, err = self.render(cameraState, cancelSignal)
+        image, err = self.render(cameraState, abortSignal)
         image.save(filename)
         logger.info(f"Image saved to {filename}.")
 
@@ -412,7 +412,7 @@ class ModelExporter(BridgeExporterBase):
         super().initWebPage(width, height)
         self.page.loadScriptFile(ScriptFile.GLTFEXPORTER)
 
-    def export(self, filename, cancelSignal=None):
+    def export(self, filename, abortSignal=None):
         if self.page is None:
             return "page not ready"
 
@@ -422,7 +422,7 @@ class ModelExporter(BridgeExporterBase):
         # build scene
         self.controller.buildScene(update_extent=False)
 
-        err = self.page.waitForSceneLoaded(cancelSignal)
+        err = self.page.waitForSceneLoaded(abortSignal)
 
         # save model
         self.page.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))

@@ -204,7 +204,7 @@ th {text-align:left;}
 
         # export
         exporter = ThreeJSExporter(settings, self.progressNumbered, self.logMessageIndented)
-        completed = exporter.export(filepath, cancelSignal=self.ui.pushButton_Cancel.clicked)
+        completed = exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
 
         elapsed = datetime.now() - t0
 

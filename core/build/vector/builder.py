@@ -46,15 +46,15 @@ class VectorLayerBuilder(LayerBuilderBase):
 
         self.vlayer = vl
 
-    def build(self, build_blocks=False, cancelSignal=None):
+    def build(self, build_blocks=False, abortSignal=None):
         """Generate the export data structure for this vector layer.
 
         Args:
             build_blocks (bool): If True, construct and return feature blocks under `data['body']['blocks']`.
-            cancelSignal: Optional Qt signal used to request cancel.
+            abortSignal: Optional Qt signal used to request cancel.
 
         Returns:
-            dict: Layer export data (or None if canceled/not available).
+            dict: Layer export data (or None if aborted/not available).
         """
         if self.layer.mapLayer is None or self.vlayer.ot is None:
             return
@@ -95,7 +95,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                                                               base64=self.settings.requiresJsonSerializable)
 
         if build_blocks:
-            self._startBuildBlocks(cancelSignal)
+            self._startBuildBlocks(abortSignal)
 
             nf = 0
             blocks = []
@@ -107,7 +107,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
                 blocks.append(b)
 
-            self._endBuildBlocks(cancelSignal)
+            self._endBuildBlocks(abortSignal)
 
             nb = len(blocks)
             if nb > 1:

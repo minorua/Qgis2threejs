@@ -31,15 +31,15 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
         self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
 
-    def build(self, build_blocks=False, cancelSignal=None):
+    def build(self, build_blocks=False, abortSignal=None):
         """Generate the export data structure for this DEM layer.
 
         Args:
             build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
-            cancelSignal: Optional Qt signal used to request cancel.
+            abortSignal: Optional Qt signal used to request cancel.
 
         Returns:
-            dict: Layer export data (or None if canceled/not available).
+            dict: Layer export data (or None if aborted/not available).
         """
         if self.provider is None:
             return None
@@ -56,14 +56,14 @@ class DEMLayerBuilder(LayerBuilderBase):
         # DEM block
         blocks = []
         if build_blocks:
-            self._startBuildBlocks(cancelSignal)
+            self._startBuildBlocks(abortSignal)
 
             for builder in self.subBuilders():
                 if self.aborted:
                     break
                 blocks.append(builder.build())
 
-            self._endBuildBlocks(cancelSignal)
+            self._endBuildBlocks(abortSignal)
 
         d["body"] = {
             "blocks": blocks
