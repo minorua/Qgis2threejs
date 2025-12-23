@@ -202,16 +202,15 @@ th {text-align:left;}
         self.progress(0, "Export started.")
         t0 = datetime.now()
 
-        # export
-        exporter = ThreeJSExporter(settings, self.progressNumbered, self.logMessageIndented)
-        completed = exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
+        exporter = ThreeJSExporter(settings=settings, progress=self.progressNumbered, log=self.logMessageIndented)
+        success = exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
 
         elapsed = datetime.now() - t0
 
         for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
             w.setEnabled(True)
 
-        if not completed:
+        if not success:
             self.progress(100, "<br>Export has been canceled.")
             self.ui.progressBar.setValue(0)
             return

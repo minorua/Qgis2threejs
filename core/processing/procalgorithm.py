@@ -314,7 +314,7 @@ class ExportAlgorithm(AlgorithmBase):
 
     def prepareAlgorithm(self, parameters, context, feedback):
         super().prepareAlgorithm(parameters, context, feedback)
-        self.exporter = ThreeJSExporter(self.settings)
+        self.exporter = ThreeJSExporter(settings=self.settings)
         return True
 
     def export(self, title, out_dir, feedback):
