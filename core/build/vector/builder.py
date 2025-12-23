@@ -29,9 +29,9 @@ class VectorLayerBuilder(LayerBuilderBase):
         LayerType.POLYGON: "polygon"
     }
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None, isInUiThread=True):
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log, isInUiThread)
+        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -46,15 +46,14 @@ class VectorLayerBuilder(LayerBuilderBase):
 
         self.vlayer = vl
 
-    def build(self, build_blocks=False, abortSignal=None):
+    def build(self, build_blocks=False):
         """Generate the export data structure for this vector layer.
 
         Args:
             build_blocks (bool): If True, construct and return feature blocks under `data['body']['blocks']`.
-            abortSignal: Optional Qt signal used to request cancel.
 
         Returns:
-            dict: Layer export data (or None if aborted/not available).
+            dict: Layer export data.
         """
         if self.layer.mapLayer is None or self.vlayer.ot is None:
             return

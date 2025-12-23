@@ -16,11 +16,11 @@ class PointCloudLayerBuilder(LayerBuilderBase):
     point cloud files into the export.
     """
 
-    def __init__(self, settings, layer, progress=None, log=None, isInUiThread=True):
+    def __init__(self, settings, layer, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, progress=progress, log=log, isInUiThread=isInUiThread)
+        super().__init__(settings, layer, progress=progress, log=log)
 
-    def build(self, build_blocks=False, abortSignal=None):
+    def build(self, build_blocks=False):
         """Generate the export data structure for the point cloud."""
         d = {
             "type": "layer",

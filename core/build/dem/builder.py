@@ -23,23 +23,22 @@ class DEMLayerBuilder(LayerBuilderBase):
     polygons, tiled surrounding blocks, and multiple materials.
     """
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None, isInUiThread=True):
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log, isInUiThread)
+        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
         self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
 
-    def build(self, build_blocks=False, abortSignal=None):
+    def build(self, build_blocks=False):
         """Generate the export data structure for this DEM layer.
 
         Args:
             build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
-            abortSignal: Optional Qt signal used to request cancel.
 
         Returns:
-            dict: Layer export data (or None if aborted/not available).
+            dict: Layer export data.
         """
         if self.provider is None:
             return None

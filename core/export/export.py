@@ -53,7 +53,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        data = self.buildScene(build_layers=True, abortSignal=abortSignal)
+        data = self.buildScene(build_layers=True)
 
         if abortSignal:
             abortSignal.disconnect(self.abort)
@@ -150,7 +150,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         self._index += 1
         return self._index
 
-    def _buildLayer(self, layer, abortSignal=None):
+    def _buildLayer(self, layer):
         title = utils.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
@@ -166,7 +166,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log, isInUiThread=self._isInUiThread)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
-        return builder.build(True, abortSignal=abortSignal)
+        return builder.build(build_blocks=True)
 
     def filesToCopy(self):
         # three.js library
