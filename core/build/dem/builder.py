@@ -23,9 +23,9 @@ class DEMLayerBuilder(LayerBuilderBase):
     polygons, tiled surrounding blocks, and multiple materials.
     """
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None, isInUiThread=True):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log, isInUiThread)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
@@ -59,7 +59,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             self._startBuildBlocks(cancelSignal)
 
             for builder in self.subBuilders():
-                if self.canceled:
+                if self.aborted:
                     break
                 blocks.append(builder.build())
 
@@ -69,7 +69,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             "blocks": blocks
         }
 
-        if self.canceled:
+        if self.aborted:
             return None
 
         if DEBUG_MODE:

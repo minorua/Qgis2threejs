@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-16
 
+from threading import Lock
+
 from qgis.core import Qgis, QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -28,10 +30,11 @@ class ThreeJSBuilder(QObject):
     # signals - builder to controller interface
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
+    taskAborted = pyqtSignal()
 
     readyToQuit = pyqtSignal()
 
-    def __init__(self, parent, settings, progress=None, log=None):
+    def __init__(self, parent, settings, progress=None, log=None, isInUiThread=True):
         super().__init__(parent)
 
         self.settings = settings
@@ -40,7 +43,30 @@ class ThreeJSBuilder(QObject):
         self.progress = progress or noop
         self.log = log or noop
 
-        self._canceled = False
+        self._aborted = False
+        self._isInUiThread = isInUiThread
+        self._lock = Lock()
+
+    @property
+    def aborted(self):
+        if self._isInUiThread:
+            QgsApplication.processEvents()
+            return self._aborted
+
+        with self._lock:
+            return self._aborted
+
+    @aborted.setter
+    def aborted(self, value):
+        if self._isInUiThread:
+            self._aborted = value
+            return
+
+        with self._lock:
+            self._aborted = value
+
+    def abort(self):
+        self.aborted = True
 
     @pyqtSlot()
     def quit(self):
@@ -48,18 +74,25 @@ class ThreeJSBuilder(QObject):
 
     @pyqtSlot()
     def buildSceneSlot(self):
-        logger.debug("ThreeJSBuilder: buildSceneSlot called")
+        self.aborted = False
+        logger.debug("Start building scene.")
 
         data = self.buildScene(build_layers=False)
         if data:
             self.dataReady.emit(data)
+
         self.taskCompleted.emit()
 
     @pyqtSlot(object)
     def buildLayerSlot(self, layer):
-        logger.debug("ThreeJSBuilder: buildLayerSlot called for layer {}".format(layer.name))
+        self.aborted = False
+        logger.debug("Start building layer: " + layer.name)
 
         for builder in self.layerBuilders(layer):
+            if self.aborted:
+                self.taskAborted.emit()
+                return
+
             data = builder.build()
             if data:
                 self.dataReady.emit(data)
@@ -67,9 +100,11 @@ class ThreeJSBuilder(QObject):
         self.taskCompleted.emit()
 
     def buildScene(self, build_layers=True, cancelSignal=None):
+        self.aborted = False
+
         obj = self._buildScene()
         if build_layers:
-            obj["layers"] = self.buildLayers(cancelSignal)
+            obj["layers"] = self._buildLayers(cancelSignal=cancelSignal)
         return obj
 
     def _buildScene(self):
@@ -115,49 +150,31 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    def buildLayers(self, cancelSignal=None):
-        if cancelSignal:
-            cancelSignal.connect(self.cancel)
-
+    def _buildLayers(self, cancelSignal=None):
         layers = []
         layer_list = [layer for layer in self.settings.layers() if layer.visible]
         total = len(layer_list)
         for i, layer in enumerate(layer_list):
-            self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
-
-            if self.canceled:
+            if self.aborted:
                 break
 
-            obj = self.buildLayer(layer, cancelSignal)
+            self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
+            obj = self._buildLayer(layer, cancelSignal=cancelSignal)
             if obj:
                 layers.append(obj)
 
-        if cancelSignal:
-            cancelSignal.disconnect(self.cancel)
+        if self.aborted:
+            return None
 
         return layers
 
-    def buildLayer(self, layer, cancelSignal=None):
-        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager)
+    def _buildLayer(self, layer, cancelSignal=None):
+        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)
         return builder.build(cancelSignal=cancelSignal)
 
     def layerBuilders(self, layer):
-        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager)
+        builder = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager, isInUiThread=self._isInUiThread)
         yield builder
 
         for builder in builder.subBuilders():
             yield builder
-
-    # TODO: use threading.Lock
-    @property
-    def canceled(self):
-        if not self._canceled:
-            QgsApplication.processEvents()
-        return self._canceled
-
-    @canceled.setter
-    def canceled(self, value):
-        self._canceled = value
-
-    def cancel(self):
-        self._canceled = True

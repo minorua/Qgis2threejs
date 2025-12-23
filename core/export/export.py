@@ -25,8 +25,8 @@ class ThreeJSExporter(ThreeJSBuilder):
     viewable in external web browsers.
     """
 
-    def __init__(self, parent=None, settings=None, progress=None, log=None):
-        super().__init__(parent, settings or ExportSettings(), progress, log)
+    def __init__(self, parent=None, settings=None, progress=None, log=None, isInUiThread=True):
+        super().__init__(parent, settings or ExportSettings(), progress=progress, log=log, isInUiThread=isInUiThread)
 
         self._index = -1
 
@@ -39,6 +39,9 @@ class ThreeJSExporter(ThreeJSBuilder):
         self.settings.setMapSettings(settings)
 
     def export(self, filename=None, cancelSignal=None):
+        if cancelSignal:
+            cancelSignal.connect(self.abort)
+
         if filename:
             self.settings.setOutputFilename(filename)
 
@@ -50,9 +53,12 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        data = self.buildScene(cancelSignal=cancelSignal)
+        data = self.buildScene(build_layers=True, cancelSignal=cancelSignal)
 
-        if self.canceled:
+        if cancelSignal:
+            cancelSignal.disconnect(self.abort)
+
+        if self.aborted:
             return False
 
         # animation
@@ -144,7 +150,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         self._index += 1
         return self._index
 
-    def buildLayer(self, layer, cancelSignal=None):
+    def _buildLayer(self, layer, cancelSignal=None):
         title = utils.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
@@ -157,10 +163,10 @@ class ThreeJSExporter(ThreeJSBuilder):
         layer.opt.allMaterials = True
 
         builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
+        builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log, isInUiThread=self._isInUiThread)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
-        return builder.build(True, cancelSignal)
+        return builder.build(True, cancelSignal=cancelSignal)
 
     def filesToCopy(self):
         # three.js library

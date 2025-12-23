@@ -29,9 +29,9 @@ class VectorLayerBuilder(LayerBuilderBase):
         LayerType.POLYGON: "polygon"
     }
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None, isInUiThread=True):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log, isInUiThread)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -100,7 +100,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             nf = 0
             blocks = []
             for builder in self.subBuilders():
-                if self.canceled:
+                if self.aborted:
                     break
                 b = builder.build()
                 nf += b["featureCount"]
@@ -124,7 +124,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             "body": data
         }
 
-        if self.canceled:
+        if self.aborted:
             return None
 
         if DEBUG_MODE:

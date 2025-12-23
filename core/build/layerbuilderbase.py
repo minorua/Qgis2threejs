@@ -2,7 +2,10 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from threading import Lock
+
 from qgis.core import QgsApplication
+from qgis.PyQt.QtCore import pyqtSlot
 
 from ...utils import noop
 
@@ -10,7 +13,7 @@ from ...utils import noop
 class LayerBuilderBase:
     """Base class for layer builders that generate layer export data."""
 
-    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None, isInUiThread=True):
         """
         Args:
             settings: ExportSettings object.
@@ -20,6 +23,7 @@ class LayerBuilderBase:
             urlRoot: Optional URL base for exported assets.
             progress: Callable(percentage, msg) used to report progress.
             log: Callable(message, warning) for logging messages.
+            isInUiThread: Let me know whether three.js builder and this layer builder run in the UI thread or not.
         """
         self.settings = settings
         self.layer = layer
@@ -31,10 +35,11 @@ class LayerBuilderBase:
         self.progress = progress or noop
         self.log = log or noop
 
-        # internal cancellation flag
-        self._canceled = False
+        self._aborted = False
+        self._isInUiThread = isInUiThread
+        self._lock = Lock()
 
-    def build(self):
+    def build(self, build_blocks=False, cancelSignal=None):
         """Generate the export data structure for this layer.
 
         Subclasses must implement this and return a dictionary
@@ -44,29 +49,38 @@ class LayerBuilderBase:
         pass
 
     @property
-    def canceled(self):
+    def aborted(self):
         """Property returning whether a cancel has been requested."""
-        if not self._canceled:
+        if self._isInUiThread:
             QgsApplication.processEvents()
-        return self._canceled
+            return self._aborted
 
-    @canceled.setter
-    def canceled(self, value):
-        self._canceled = value
+        with self._lock:
+            return self._aborted
 
-    def cancel(self):
+    @aborted.setter
+    def aborted(self, value):
+        if self._isInUiThread:
+            self._aborted = value
+            return
+
+        with self._lock:
+            self._aborted = value
+
+    @pyqtSlot()
+    def abort(self):
         """Interrupts any ongoing work by setting the cancellation flag."""
-        self._canceled = True
+        self.aborted = True
 
     def _startBuildBlocks(self, cancelSignal):
         """Connect a Qt cancellation signal to this builder."""
         if cancelSignal:
-            cancelSignal.connect(self.cancel)
+            cancelSignal.connect(self.abort)
 
     def _endBuildBlocks(self, cancelSignal):
         """Disconnect a previously-connected cancellation signal."""
         if cancelSignal:
-            cancelSignal.disconnect(self.cancel)
+            cancelSignal.disconnect(self.abort)
 
     def layerProperties(self):
         """Return a dictionary with common layer properties used in export."""

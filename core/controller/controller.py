@@ -41,7 +41,8 @@ class Q3DControllerInterface(QObject):
         self.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
         # builder -> controller
-        self.builder.taskCompleted.connect(self.controller.taskCompleted)
+        self.builder.taskCompleted.connect(self.controller.taskFinalized)
+        self.builder.taskAborted.connect(self.controller.taskFinalized)
 
         # builder -> 3D view interface
         if self.viewIface:
@@ -54,6 +55,7 @@ class Q3DControllerInterface(QObject):
             self.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
+            self.builder.taskAborted,
         ]
 
         for signal in signals:
@@ -98,7 +100,7 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
-        self.builder = ThreeJSBuilder(self, settings)
+        self.builder = ThreeJSBuilder(self, settings, isInUiThread=not useThread)
 
         self.thread = None
         if useThread:
@@ -112,7 +114,7 @@ class Q3DController(QObject):
         self.iface.setObjectName("controllerInterface")
 
         self._enabled = True
-        self.aborted = False  # processing aborted flag
+        self.aborted = False
         self.isBuilderBusy = False
         self.processingLayer = None
 
@@ -157,8 +159,7 @@ class Q3DController(QObject):
             self.showStatusMessage("Aborting processing...")
 
         self.aborted = True
-
-        # TODO: builder.abort()
+        self.builder.abort()
 
     def buildScene(self):
         if self.isBuilderBusy:
@@ -228,7 +229,7 @@ class Q3DController(QObject):
         """hide all layers and remove all objects from the layers"""
         self.iface.runScript("hideAllLayers(true)")
 
-    def taskCompleted(self):
+    def taskFinalized(self):
         self.isBuilderBusy = False
         self.processingLayer = None
 
