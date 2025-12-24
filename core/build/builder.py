@@ -58,12 +58,10 @@ class ThreeJSBuilder(QObject):
 
     @aborted.setter
     def aborted(self, value):
-        if self._isInUiThread:
-            self._aborted = value
-            return
-
         with self._lock:
-            self._aborted = value
+            if self._aborted != value:
+                self._aborted = value
+                logger.debug(f"ThreeJSBuilder: aborted={self._aborted}.")
 
     def abort(self):
         self.aborted = True

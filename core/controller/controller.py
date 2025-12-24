@@ -121,7 +121,6 @@ class Q3DController(QObject):
         self.iface.setObjectName("controllerInterface")
 
         self._enabled = True
-        self.aborted = False
         self.isBuilderBusy = False
         self.processingLayer = None
 
@@ -160,15 +159,25 @@ class Q3DController(QObject):
 
         self.iface.teardown()
 
+    @property
+    def aborted(self):
+        return self.builder.aborted
+
+    @aborted.setter
+    def aborted(self, value):
+        self.builder.aborted = value
+
     def abort(self, clear_queue=True, show_msg=False):
+        logger.debug(f"Q3DController: aborting. clear queue({clear_queue})")
+
         if clear_queue:
             self.taskQueue.clear()
 
-        if show_msg and not self.aborted:
-            self.showStatusMessage("Aborting processing...")
+        if not self.aborted:
+            if show_msg:
+                self.showStatusMessage("Aborting processing...")
 
-        self.aborted = True
-        self.builder.abort()
+            self.builder.abort()
 
     def buildScene(self):
         if self.isBuilderBusy:
