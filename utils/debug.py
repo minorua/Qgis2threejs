@@ -10,14 +10,17 @@ from .logging import logger
 
 
 def objectsOfInterest(wnd):
-    objs = [("live exporter", wnd),
-            ("viewer interface", wnd.iface),
-            ("controller", wnd.controller),
-            ("web view", wnd.ui.webView),
-            ("web page", wnd.ui.webView.page()),
-            ("tree view", wnd.ui.treeView),
-            ("animation panel", wnd.ui.animationPanel),
-            ("animation tree", wnd.ui.animationPanel.ui.treeWidgetAnimation)]
+    objs = [
+        ("live exporter", wnd),
+        ("viewer interface", wnd.iface),
+        ("controller", wnd.controller),
+        ("builder", wnd.controller.builder),
+        ("thread", wnd.controller.thread),
+        ("web view", wnd.ui.webView),
+        ("web page", wnd.ui.webView.page()),
+        ("tree view", wnd.ui.treeView),
+        ("animation panel", wnd.ui.animationPanel)
+    ]
     return objs
 
 

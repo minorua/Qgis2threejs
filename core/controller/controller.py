@@ -100,13 +100,20 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
-        self.builder = ThreeJSBuilder(self, settings, isInUiThread=not useThread)
+        self.builder = ThreeJSBuilder(parent=None if useThread else self,
+                                      settings=settings,
+                                      isInUiThread=not useThread)
+        self.builder.setObjectName("threeJSBuilder")
 
         self.thread = None
         if useThread:
             self.thread = QThread(self)
+            self.thread.setObjectName("builderThread")
 
             # move builder to worker thread and start event loop
+            if DEBUG_MODE:
+                assert self.builder.parent() is None
+
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
@@ -144,6 +151,8 @@ class Q3DController(QObject):
             # self.builder.readyToQuit.connect(loop.quit)
             # QTimer.singleShot(0, self.iface.quitRequest.emit)
             # loop.exec()
+
+            self.thread.finished.connect(self.builder.deleteLater)
 
             # stop worker thread event loop
             self.thread.quit()
