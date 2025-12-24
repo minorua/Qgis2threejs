@@ -8,6 +8,8 @@ import weakref
 
 from .logging import logger
 
+num_finalized = 0
+
 
 def objectsOfInterest(wnd):
     objs = [
@@ -25,10 +27,19 @@ def objectsOfInterest(wnd):
 
 
 def watchGarbageCollection(wnd):
+    global num_finalized
+    num_finalized = 0
+
     objs = objectsOfInterest(wnd)
     for i, (name, obj) in enumerate(objs):
-        weakref.finalize(obj, logger.debug, f"({i + 1}/{len(objs)}) {name} was garbage collected.")
+        weakref.finalize(obj, objectFinalized, f"{len(objs)} {name} was garbage collected.")
         obj.destroyed.connect(objectDestroyed)
+
+
+def objectFinalized(msg):
+    global num_finalized
+    num_finalized += 1
+    logger.debug(f"{num_finalized}/{msg}")
 
 
 def objectDestroyed(obj):
