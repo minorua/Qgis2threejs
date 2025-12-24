@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-from qgis.PyQt.QtCore import QObject, QTimer, QThread, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
@@ -142,20 +142,19 @@ class Q3DController(QObject):
         self.abort()
 
         if self.thread:
-            # TODO: remove this redundant code
-            # send quit request to the builder and wait until the builder gets ready to quit
-            # self.iface.quitRequest.connect(self.builder.quit)
+            # Send a quit request to the builder so that it returns to the main thread.
+            self.iface.quitRequest.connect(self.builder.quit)
 
-            # loop = QEventLoop()
-            # self.builder.readyToQuit.connect(loop.quit)
-            # QTimer.singleShot(0, self.iface.quitRequest.emit)
-            # loop.exec()
-
-            self.thread.finished.connect(self.builder.deleteLater)
+            loop = QEventLoop()
+            self.builder.readyToQuit.connect(loop.quit)
+            QTimer.singleShot(0, self.iface.quitRequest.emit)   # emit quit request in next event loop
+            loop.exec()
 
             # stop worker thread event loop
             self.thread.quit()
             self.thread.wait()
+
+            self.builder.deleteLater()
 
         self.iface.teardown()
 

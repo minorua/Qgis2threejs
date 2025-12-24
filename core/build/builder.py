@@ -68,6 +68,8 @@ class ThreeJSBuilder(QObject):
 
     @pyqtSlot()
     def quit(self):
+        # move to the main thread
+        self.moveToThread(QgsApplication.instance().thread())
         self.readyToQuit.emit()
 
     @pyqtSlot()
