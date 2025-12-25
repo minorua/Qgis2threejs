@@ -131,8 +131,7 @@ class Q3DWindow(QMainWindow):
             self.ui.webView.teardown()
             self.iface.wnd = None
             self.ui.treeView.wnd = None
-            self.ui.animationPanel.wnd = None
-            self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
+            self.ui.animationPanel.teardown()
 
         except Exception as e:
             import traceback
