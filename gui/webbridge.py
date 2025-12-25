@@ -45,7 +45,6 @@ class WebBridge(QObject):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self._parent = parent
         self._storedData = QVariant()
 
     @pyqtSlot(result="QVariant")

@@ -105,6 +105,9 @@ class Q3DTreeView(QTreeView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
+    def teardown(self):
+        self.wnd = None
+
     def addLayer(self, layer):
         # add a layer item to tree view
         item = QStandardItem(layer.name)

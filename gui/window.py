@@ -94,8 +94,8 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
         if DEBUG_MODE:
-            from ..utils.debug import watchGarbageCollection
-            watchGarbageCollection(self)
+            from ..utils.debug import setupDestructionLogging
+            setupDestructionLogging(self)
 
     def closeEvent(self, event):
         try:
@@ -128,11 +128,9 @@ class Q3DWindow(QMainWindow):
                 dlg.close()
 
             # break circular references
+            self.ui.animationPanel.teardown()
+            self.ui.treeView.teardown()
             self.ui.webView.teardown()
-            self.iface.wnd = None
-            self.ui.treeView.wnd = None
-            self.ui.animationPanel.wnd = None
-            self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
 
         except Exception as e:
             import traceback

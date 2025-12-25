@@ -72,6 +72,9 @@ class Q3DWebPageCommon:
 
         self.loadFinished.connect(self.pageLoaded)
 
+    def teardown(self):
+        self.wnd = None
+
     def reload(self):
         self.showStatusMessage("Initializing preview...")
 

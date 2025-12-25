@@ -12,7 +12,7 @@ from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODev
 from qgis.PyQt.QtGui import QDesktopServices, QImage
 from qgis.core import NULL, QgsMapLayer, QgsProject
 
-from .logging import logger, pluginDir
+from .logging import logger, pluginDir, temporaryOutputDir
 
 
 ### QGIS layer related functions ###
@@ -227,10 +227,6 @@ def jpegCompressedImage(image):
 ### File and directory related functions ###
 def templateDir():
     return pluginDir("web/html_templates")
-
-
-def temporaryOutputDir():
-    return QDir.tempPath() + "/Qgis2threejs"
 
 
 def openDirectory(dir_path):

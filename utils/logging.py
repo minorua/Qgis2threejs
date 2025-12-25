@@ -6,7 +6,7 @@
 
 import os
 import logging
-from qgis.PyQt.QtCore import QObject, pyqtSignal
+from qgis.PyQt.QtCore import QDir, QObject, pyqtSignal
 from qgis.core import QgsMessageLog, Qgis
 
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
@@ -17,6 +17,13 @@ def pluginDir(*subdirs):
     if subdirs:
         return os.path.join(p, *subdirs)
     return p
+
+
+def temporaryOutputDir(*subdirs):
+    temp_dir = QDir.tempPath() + "/Qgis2threejs"
+    if subdirs:
+        return os.path.join(temp_dir, *subdirs)
+    return temp_dir
 
 
 class QgisLogHandler(logging.Handler):

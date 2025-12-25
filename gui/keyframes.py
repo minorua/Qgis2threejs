@@ -64,6 +64,11 @@ class AnimationPanel(QWidget):
         else:
             self.setEnabled(False)      # animation panel gets disabled when exporter has no preview.
 
+    def teardown(self):
+        self.wnd = None
+        self.webPage = None
+        self.tree.teardown()
+
     def data(self):
         d = self.tree.data()
         d["repeat"] = self.ui.checkBoxLoop.isChecked()
@@ -275,6 +280,11 @@ class AnimationTreeWidget(QTreeWidget):
         self.ctxMenuLayer.addMenu("Add").addActions(self.ctxMenuLayerAdd.actions())
         self.ctxMenuLayer.addSeparator()
         self.ctxMenuLayer.addAction(self.actionProperties)
+
+    def teardown(self):
+        self.panel = None
+        self.wnd = None
+        self.webPage = None
 
     def dropEvent(self, event):
         items = self.selectedItems()
