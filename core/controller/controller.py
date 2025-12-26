@@ -44,9 +44,12 @@ class Q3DControllerInterface(QObject):
         self.builder.taskCompleted.connect(self.controller.taskFinalized)
         self.builder.taskAborted.connect(self.controller.taskFinalized)
 
-        # builder -> 3D view interface
         if self.viewIface:
+            # builder -> 3D view interface
             self.builder.dataReady.connect(self.viewIface.sendData)
+
+            # 3D view interface -> controller
+            self.viewIface.webPage.ready.connect(self.controller.pageReady)
 
     def teardownConnections(self):
         signals = [
@@ -55,7 +58,7 @@ class Q3DControllerInterface(QObject):
             self.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
-            self.builder.taskAborted,
+            self.builder.taskAborted
         ]
 
         for signal in signals:
@@ -177,6 +180,13 @@ class Q3DController(QObject):
                 self.showStatusMessage("Aborting processing...")
 
             self.builder.abort()
+
+    def pageReady(self):
+        if self.enabled:
+            self.iface.runScript("app.start()")
+            self.addBuildSceneTask()
+        else:
+            self.iface.runScript(f"setPreviewEnabled(false)")
 
     def buildScene(self):
         if self.isBuilderBusy:
@@ -418,6 +428,10 @@ class Q3DController(QObject):
             self.addBuildSceneTask()
         else:
             self.abort()
+
+    @pyqtSlot(bool)
+    def setEnabled(self, enabled):
+        self.enabled = enabled
 
     # @pyqtSlot()
     # def updateExtent(self):

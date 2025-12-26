@@ -30,6 +30,8 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 class Q3DWindow(QMainWindow):
 
+    previewEnabledChanged = pyqtSignal(bool)
+
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         super().__init__(parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
@@ -68,8 +70,8 @@ class Q3DWindow(QMainWindow):
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
 
-        self.setupMenu(self.ui)
-        self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)
+        self._setupMenu(self.ui)
+        self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if self.webPage:
@@ -80,6 +82,9 @@ class Q3DWindow(QMainWindow):
 
             if self.webPage.isWebEnginePage:
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+
+            self.previewEnabledChanged.connect(self.controller.setEnabled)
+
         else:
             self.ui.webView.disableWidgetsAndMenus(self.ui)
 
@@ -154,7 +159,7 @@ class Q3DWindow(QMainWindow):
             LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("svg", "pointcloud.svg"))
         }
 
-    def setupMenu(self, ui):
+    def _setupMenu(self, ui):
         ui.menuPanels.addAction(ui.dockWidgetLayers.toggleViewAction())
         ui.menuPanels.addAction(ui.dockWidgetAnimation.toggleViewAction())
 
@@ -218,7 +223,7 @@ class Q3DWindow(QMainWindow):
             ui.menuTestDebug.addAction(ui.actionJSInfo)
             ui.actionJSInfo.triggered.connect(ui.webView.showJSInfo)
 
-    def setupStatusBar(self, ui, iface, previewEnabled=True, viewName=""):
+    def _setupStatusBar(self, ui, previewEnabled=True, viewName=""):
         w = ui.progressBar = QProgressBar(ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
@@ -230,7 +235,7 @@ class Q3DWindow(QMainWindow):
         w.setObjectName("checkBoxPreview")
         w.setText("Preview" + (" ({})".format(viewName) if viewName else ""))  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
-        w.toggled.connect(self.setPreviewEnabled)
+        w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
 
         if self.webPage and self.webPage.isWebEnginePage:
@@ -582,10 +587,6 @@ class Q3DWindow(QMainWindow):
     def runTest(self):
         from ..tests.gui.test_gui import runTest
         runTest(self)
-
-    # Statusbar
-    def setPreviewEnabled(self, enabled):
-        self.controller.enabled = enabled
 
 
 class PropertiesDialog(QDialog):

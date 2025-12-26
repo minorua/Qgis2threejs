@@ -220,21 +220,11 @@ class Q3DWebViewCommon:
         """
         self._enabled = enabled     # whether preview is enabled at start
 
-        self._page.ready.connect(self.pageReady)
         self._page.setup(settings, wnd)
 
     def teardown(self):
         self._page.wnd = None
         self._page = None
-
-    def pageReady(self):
-        # start app
-        self.runScript("app.start()")
-
-        if self._enabled:
-            self._page.wnd.controller.addBuildSceneTask()       # TODO: this class should know controller
-        else:
-            self._page.wnd.setPreviewEnabled(False)     # TODO: do this in window
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()

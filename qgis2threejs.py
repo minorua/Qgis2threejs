@@ -29,7 +29,7 @@ class Qgis2threejs:
         self.currentProjectPath = ""
         self.exportSettings = None
         self.liveExporter = None
-        self.previewEnabled = True      # last preview state
+        self.previewEnabled = True
 
     def initGui(self):
         # add a toolbar button
@@ -131,6 +131,7 @@ class Qgis2threejs:
                                       webViewType=webViewType,
                                       previewEnabled=self.previewEnabled)
         self.liveExporter.show()
+        self.liveExporter.previewEnabledChanged.connect(self.previewEnabledChanged)
         self.liveExporter.destroyed.connect(self.exporterDestroyed)
 
         self.currentProjectPath = proj_path
@@ -148,10 +149,10 @@ class Qgis2threejs:
         if WEBENGINE_AVAILABLE:
             QSettings().setValue(self.PREFER_WEBKIT_SETTING, True)
 
-    def exporterDestroyed(self, obj):
-        if currentWebViewType != WEBVIEWTYPE_NONE:
-            self.previewEnabled = self.liveExporter.controller.enabled      # remember preview state
+    def previewEnabledChanged(self, enabled):
+        self.previewEnabled = enabled
 
+    def exporterDestroyed(self, obj):
         if DEBUG_MODE:
             from .utils.debug import logReferenceCount
             logReferenceCount(self.liveExporter)
