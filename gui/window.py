@@ -89,7 +89,7 @@ class Q3DWindow(QMainWindow):
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
         else:
-            self.ui.webView.disableWidgetsAndMenus(self.ui)
+            self.ui.webView.disableWidgetsAndMenus(self.ui)     # Q3DDummyView
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -194,8 +194,9 @@ class Q3DWindow(QMainWindow):
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
-        ui.actionReload.triggered.connect(self.reloadPage)
-        ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
+        if self.webPage:
+            ui.actionReload.triggered.connect(self.webPage.reload)
+            ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
         ui.actionHelp.triggered.connect(self.help)
@@ -528,9 +529,6 @@ class Q3DWindow(QMainWindow):
         layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
         self.iface.layerAdded.emit(layer)
         self.ui.treeView.addLayer(layer)
-
-    def reloadPage(self):
-        self.webPage.reload()
 
     # View menu
     def cameraChanged(self, action):
