@@ -5,17 +5,17 @@
 
 from qgis.PyQt.QtCore import Qt, QObject
 from qgis.PyQt.QtWidgets import QLabel, QVBoxLayout, QWidget
-from qgis.PyQt.QtGui import QColorConstants, QPixmap
+from qgis.PyQt.QtGui import QPixmap
 
 from ..utils import logger, pluginDir
 
 
-class Q3DDummyView(QWidget):
-    """A view that shows a message when WebEngine is chosen even though it is not available."""
+class Q3DFallbackView(QWidget):
+    """A fallback view displayed when web view is unavailable."""
 
     def __init__(self, parent):
         super().__init__(parent)
-        self._page = Q3DDummyPage(self)
+        self._page = Q3DFallbackPage(self)
 
         url = "https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs"
 
@@ -48,6 +48,9 @@ class Q3DDummyView(QWidget):
     def page(self):
         return self._page
 
+    def reload(self):
+        pass
+
     def showDevTools(self):
         pass
 
@@ -59,16 +62,19 @@ class Q3DDummyView(QWidget):
             obj.setEnabled(False)
 
     def __bool__(self):
+        """Fallback view represents absence of a usable Web view."""
         return False
 
 
-class Q3DDummyPage(QObject):
+class Q3DFallbackPage(QObject):
+    """No-op fallback page used when the Web page is unavailable."""
 
     def __bool__(self):
+        """Fallback page represents absence of a usable Web page."""
         return False
 
     def __getattr__(self, name):
-        logger.debug("Q3DDummyPage.{} referenced".format(name))
+        logger.debug("Q3DFallbackPage.{} referenced".format(name))
         return self._func
 
     def _func(self, *args1, **args2):

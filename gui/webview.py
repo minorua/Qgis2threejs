@@ -56,9 +56,9 @@ def setCurrentWebView(webViewType):
         Q3DWebPage = Q3DWebEnginePage
 
     else:
-        from .dummyview import Q3DDummyView, Q3DDummyPage
-        Q3DView = Q3DDummyView
-        Q3DWebPage = Q3DDummyPage
+        from .fallbackview import Q3DFallbackView, Q3DFallbackPage
+        Q3DView = Q3DFallbackView
+        Q3DWebPage = Q3DFallbackPage
 
     currentWebViewType = webViewType
 

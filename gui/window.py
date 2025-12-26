@@ -56,7 +56,7 @@ class Q3DWindow(QMainWindow):
         if self.webPage:
             settings.requiresJsonSerializable = self.webPage.isWebEnginePage
             viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
-        else:
+        else:   # Q3DFallbackView
             previewEnabled = False
             viewName = ""
 
@@ -65,7 +65,6 @@ class Q3DWindow(QMainWindow):
 
         self.controller = Q3DController(self, settings, self.webPage, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
-        self.controller.iface.setupConnections()
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
 
@@ -74,6 +73,8 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if self.webPage:
+            self.controller.iface.setupConnections()
+
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
@@ -88,8 +89,8 @@ class Q3DWindow(QMainWindow):
 
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
-        else:
-            self.ui.webView.disableWidgetsAndMenus(self.ui)     # Q3DDummyView
+        else:   # Q3DFallbackView
+            self.ui.webView.disableWidgetsAndMenus(self.ui)
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -111,10 +112,11 @@ class Q3DWindow(QMainWindow):
             self.controller.closeTaskQueue()
 
             # disconnect signals
-            self.controller.iface.teardownConnections()
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.webPage:
+                self.controller.iface.teardownConnections()
+
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)
 
                 if self.webPage.isWebEnginePage:
