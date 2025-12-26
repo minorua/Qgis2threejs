@@ -41,6 +41,7 @@ class AnimationPanel(QWidget):
     def setup(self, wnd, settings):
         self.wnd = wnd
         self.webPage = wnd.webPage
+        self.controller = wnd.controller
 
         self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("symbologyEdit.svg"))
@@ -171,7 +172,7 @@ class AnimationPanel(QWidget):
         self.isAnimating = False
 
     def updateKeyframeView(self):
-        view = self.webPage.cameraState(flat=True)
+        view = self.controller.cameraState(flat=True)
 
         msg = "Are you sure you want to update the camera position and focal point of this keyframe?"
         if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.StandardButton.Yes:
@@ -483,7 +484,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         icon = None
         if typ == ATConst.ITEM_CAMERA:
-            item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.webPage.cameraState(flat=True))
+            item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.controller.cameraState(flat=True))
 
         elif typ == ATConst.ITEM_OPACITY:
             item.setData(0, ATConst.DATA_OPACITY, keyframe.get("opacity", 1))
@@ -734,7 +735,7 @@ class AnimationTreeWidget(QTreeWidget):
             # restore the view of current keyframe
             k = self.keyframe()
             if k:
-                self.webPage.setCameraState(k.get("camera") or {})
+                self.controller.setCameraState(k.get("camera") or {})
 
         elif typ == ATConst.ITEM_OPACITY:
             layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)

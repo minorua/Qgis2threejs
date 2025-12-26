@@ -100,16 +100,6 @@ class Q3DWebPageCommon:
         for id in scriptFileIds:
             self.loadScriptFile(id, force)
 
-    def cameraState(self, flat=False):
-        return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)
-
-    def setCameraState(self, state):
-        """set camera position and camera target"""
-        self.runScript("setCameraState(pyData())", data=state)
-
-    def resetCameraState(self):
-        self.runScript("app.controls.reset()")
-
     def waitForSceneLoaded(self, abortSignal=None, timeout=None):
         loading = self.runScript("app.loadingManager.isLoading", wait=True)
 

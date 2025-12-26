@@ -480,6 +480,16 @@ class Q3DController(QObject):
     def setEnabled(self, enabled):
         self.enabled = enabled
 
+    def cameraState(self, flat=False):
+        return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)
+
+    def setCameraState(self, state):
+        """set camera position and camera target"""
+        self.runScript("setCameraState(pyData())", data=state)
+
+    def resetCameraState(self):
+        self.runScript("app.controls.reset()")
+
     # @pyqtSlot()
     # def updateExtent(self):
     #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):

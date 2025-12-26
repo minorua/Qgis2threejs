@@ -357,10 +357,10 @@ class ImageExporter(BridgeExporterBase):
 
         # set camera position and camera target
         if cameraState:
-            self.page.setCameraState(cameraState)
+            self.controller.setCameraState(cameraState)
 
         # build scene
-        self.controller.buildScene(update_extent=False)
+        self.controller.buildScene()
 
         err = self.page.waitForSceneLoaded(abortSignal)
 

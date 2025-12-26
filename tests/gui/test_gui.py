@@ -133,7 +133,7 @@ class LayerTestBase(GUITestBase):
             cls.skipTest(f"Layer '{cls.LAYER_ID}' not found. Skipping test.")
 
         if cls.CAMERA_STATE:
-            cls.WND.webPage.setCameraState(cls.CAMERA_STATE)
+            cls.WND.controller.setCameraState(cls.CAMERA_STATE)
 
         cls.DLG = cls.WND.showLayerPropertiesDialog(layer)
 

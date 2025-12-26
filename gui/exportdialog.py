@@ -131,7 +131,7 @@ class ExportToWebDialog(QDialog):
         self.settings.setTitle(self.ui.lineEdit_Title.text())
 
         if self.ui.checkBox_PreserveViewpoint.isChecked():
-            self.settings.setOption("viewpoint", self.page.cameraState())
+            self.settings.setOption("viewpoint", self.controller.cameraState())
 
         local_mode = self.ui.checkBox_LocalMode.isChecked()
         if local_mode:
