@@ -302,7 +302,7 @@ class BridgeExporterBase:
         else:
             self.page = webview.Q3DWebPage()
 
-        self.controller = Q3DController(settings=self.settings)
+        self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page)
         self.controller.iface.setupConnections()
         self.controller.statusMessage.connect(self.logStatusMessage)
 

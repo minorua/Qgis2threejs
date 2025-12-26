@@ -7,7 +7,6 @@ import os
 
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import Qgis, QgsProject
 
 from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
@@ -46,13 +45,18 @@ class Q3DViewInterface(QObject):
 
 class Q3DWebPageCommon:
 
-    ready = pyqtSignal()
+    initialized = pyqtSignal()
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
 
     def __init__(self, _=None):
+        self.bridge = WebBridge(self)
+        self.bridge.initialized.connect(self.initialized)
+        self.bridge.sceneLoaded.connect(self.sceneLoaded)
+        self.bridge.sceneLoadError.connect(self.sceneLoadError)
 
         self.loadedScripts = {}
+        self.loadFinished.connect(self.pageLoaded)
 
     def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
@@ -60,62 +64,14 @@ class Q3DWebPageCommon:
         self.wnd = wnd
         self.offScreen = bool(wnd is None)
 
-        self.bridge = WebBridge(self)
-        self.bridge.initialized.connect(self.initialized)
-        self.bridge.initialized.connect(self.ready)
-        self.bridge.sceneLoaded.connect(self.sceneLoaded)
-        self.bridge.sceneLoadError.connect(self.sceneLoadError)
-        if wnd:
-            self.bridge.modelDataReady.connect(wnd.saveModelData)
-            self.bridge.imageReady.connect(wnd.saveImage)
-            self.bridge.statusMessage.connect(wnd.showStatusMessage)
-
-        self.loadFinished.connect(self.pageLoaded)
-
     def teardown(self):
         self.wnd = None
 
-    def reload(self):
-        self.showStatusMessage("Initializing preview...")
-
-    def pageLoaded(self, ok):
-        logger.debug("Page load finished.")
-        if self.url().scheme() != "file":
-            return
-
+    def pageLoaded(self):
         self.loadedScripts = {}
 
-        # configuration
-        if self.expSettings.isOrthoCamera():
-            self.runScript("Q3D.Config.orthoCamera = true;")
-
-        p = self.expSettings.widgetProperties("NorthArrow")
-        if p.get("visible"):
-            self.runScript("Q3D.Config.northArrow.enabled = true;")
-            self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
-
-        # navigation widget
-        if not self.expSettings.isNavigationEnabled():
-            self.runScript("Q3D.Config.navigation.enabled = false;")
-
-        # call init()
-        self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
-                                                     DEBUG_MODE,
-                                                     Qgis.QGIS_VERSION_INT,
-                                                     js_bool(self.isWebEnginePage)))
-
-    def initialized(self):
-        # labels
-        header = self.expSettings.headerLabel()
-        footer = self.expSettings.footerLabel()
-        if header or footer:
-            self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
-
-        # crs check
-        if QgsProject.instance().crs().isGeographic():
-            self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
-
-        self.showStatusMessage("")
+    def reload(self):
+        self.showStatusMessage("Initializing preview...")
 
     def logScriptExecution(self, string, data=None, message="", sourceID=""):
         if not DEBUG_MODE or message is None:

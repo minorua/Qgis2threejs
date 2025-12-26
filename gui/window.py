@@ -63,9 +63,8 @@ class Q3DWindow(QMainWindow):
         self.iface = Q3DViewInterface(self, self.webPage)
         self.iface.setObjectName("viewerInterface")
 
-        self.controller = Q3DController(self, settings, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND)
+        self.controller = Q3DController(self, settings, self.webPage, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
-        self.controller.enabled = previewEnabled
         self.controller.iface.setupConnections()
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
@@ -75,7 +74,9 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if self.webPage:
-            addLogSignalEmitter(logger, self.webPage.logToConsole)
+            self.webPage.bridge.modelDataReady.connect(self.saveModelData)
+            self.webPage.bridge.imageReady.connect(self.saveImage)
+            self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
             self.ui.webView.setup(settings, wnd=self, enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
@@ -84,6 +85,8 @@ class Q3DWindow(QMainWindow):
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
 
             self.previewEnabledChanged.connect(self.controller.setEnabled)
+
+            addLogSignalEmitter(logger, self.webPage.logToConsole)
 
         else:
             self.ui.webView.disableWidgetsAndMenus(self.ui)

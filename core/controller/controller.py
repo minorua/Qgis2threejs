@@ -4,6 +4,7 @@
 # begin: 2016-02-10
 
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
+from qgis.core import Qgis, QgsProject
 
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
@@ -19,11 +20,12 @@ class Q3DControllerInterface(QObject):
     buildLayerRequest = pyqtSignal(object)       # Layer
     quitRequest = pyqtSignal()
 
-    def __init__(self, controller, viewIface=None):
+    def __init__(self, controller, webPage, viewIface=None):
         super().__init__(parent=controller)
 
         self.controller = controller
         self.builder = controller.builder
+        self.webPage = webPage
         self.viewIface = viewIface
 
         # delegating methods
@@ -36,6 +38,10 @@ class Q3DControllerInterface(QObject):
 
     def setupConnections(self):
         """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
+        # web page -> controller
+        self.webPage.loadFinished.connect(self.controller.pageLoaded)
+        self.webPage.initialized.connect(self.controller.viewerInitialized)
+
         # controller interface -> builder
         self.buildSceneRequest.connect(self.builder.buildSceneSlot)
         self.buildLayerRequest.connect(self.builder.buildLayerSlot)
@@ -48,11 +54,11 @@ class Q3DControllerInterface(QObject):
             # builder -> 3D view interface
             self.builder.dataReady.connect(self.viewIface.sendData)
 
-            # 3D view interface -> controller
-            self.viewIface.webPage.ready.connect(self.controller.pageReady)
-
     def teardownConnections(self):
         signals = [
+            # web page
+            self.webPage.loadFinished,
+            self.webPage.initialized,
             # builder
             self.buildSceneRequest,
             self.buildLayerRequest,
@@ -90,7 +96,7 @@ class Q3DController(QObject):
     statusMessage = pyqtSignal(str, int)    # message, timeout_ms
     progressUpdated = pyqtSignal(int, str)  # percentage, msg
 
-    def __init__(self, parent=None, settings=None, viewIface=None, useThread=False):
+    def __init__(self, parent, settings, webPage, viewIface=None, useThread=False, enabledAtStart=True):
         super().__init__(parent)
 
         if settings is None:
@@ -103,6 +109,9 @@ class Q3DController(QObject):
                 logger.warning("Invalid settings: " + err_msg)
 
         self.settings = settings
+        self.webPage = webPage
+        self.offScreen = bool(viewIface is None)
+
         self.builder = ThreeJSBuilder(parent=None if useThread else self,
                                       settings=settings,
                                       isInUiThread=not useThread)
@@ -120,10 +129,10 @@ class Q3DController(QObject):
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
-        self.iface = Q3DControllerInterface(self, viewIface)
+        self.iface = Q3DControllerInterface(self, webPage, viewIface)
         self.iface.setObjectName("controllerInterface")
 
-        self._enabled = True
+        self._enabled = enabledAtStart
         self.isBuilderBusy = False
         self.processingLayer = None
 
@@ -132,6 +141,9 @@ class Q3DController(QObject):
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processNextTask)
+
+        # delegating method
+        self.runScript = webPage.runScript
 
     def closeTaskQueue(self):
         self._enabled = False
@@ -181,12 +193,47 @@ class Q3DController(QObject):
 
             self.builder.abort()
 
-    def pageReady(self):
+    def pageLoaded(self, ok):
+        logger.debug("Page load finished.")
+        if self.webPage.url().scheme() != "file":
+            return
+
+        # configuration
+        if self.settings.isOrthoCamera():
+            self.runScript("Q3D.Config.orthoCamera = true;")
+
+        p = self.settings.widgetProperties("NorthArrow")
+        if p.get("visible"):
+            self.runScript("Q3D.Config.northArrow.enabled = true;")
+            self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
+
+        if not self.settings.isNavigationEnabled():
+            self.runScript("Q3D.Config.navigation.enabled = false;")
+
+        self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
+                                                     DEBUG_MODE,
+                                                     Qgis.QGIS_VERSION_INT,
+                                                     js_bool(self.webPage.isWebEnginePage)))
+
+    def viewerInitialized(self):
+        if not self.enabled:
+            self.runScript("setPreviewEnabled(false)")
+
+        # labels
+        header = self.settings.headerLabel()
+        footer = self.settings.footerLabel()
+        if header or footer:
+            self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
+
+        # crs check
+        if QgsProject.instance().crs().isGeographic():
+            self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
+
+        self.clearStatusMessage()
+
         if self.enabled:
-            self.iface.runScript("app.start()")
+            self.runScript("app.start()")
             self.addBuildSceneTask()
-        else:
-            self.iface.runScript(f"setPreviewEnabled(false)")
 
     def buildScene(self):
         if self.isBuilderBusy:
