@@ -27,17 +27,20 @@ class Q3DTreeView(QTreeView):
 
         self.layers = []
         self._index = -1
+        self.animationTree = None
 
-    def setup(self, wnd, icons, layers=None):
+    def setup(self, wnd, icons, layers=None, animation_tree=None):  #TODO: animationTree
         """
         Args:
             wnd: Q3DWindow
             icons: dict of QIcon
             layers: list of Layer
+            animation_tree: AnimationTreeWidget or None
         """
         self.wnd = wnd
         self.controller = wnd.controller
         self.icons = icons
+        self.animationTree = animation_tree
 
         model = QStandardItemModel(0, 1)
         self.layerGroupItems = {}
@@ -107,6 +110,7 @@ class Q3DTreeView(QTreeView):
 
     def teardown(self):
         self.wnd = None
+        self.animationTree = None
 
     def addLayer(self, layer):
         # add a layer item to tree view
@@ -240,7 +244,8 @@ class Q3DTreeView(QTreeView):
 
         self.updateLayerMaterials(item, layer)
 
-        self.wnd.ui.animationPanel.tree.setLayerHidden(layer.layerId, not checked)
+        if self.animationTree:
+            self.animationTree.setLayerHidden(layer.layerId, not checked)
 
     def indexDepth(self, idx):
         depth = 0

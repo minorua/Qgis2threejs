@@ -16,6 +16,8 @@ class ImageSaveDialog(QDialog):
         super().__init__(parent)
 
         self.wnd = parent
+        wnd = parent
+        self.controller = wnd.controller     #TODO
 
         self.ui = Ui_ImageSaveDialog()
         self.ui.setupUi(self)

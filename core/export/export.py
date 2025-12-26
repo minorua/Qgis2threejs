@@ -330,9 +330,7 @@ class BridgeExporterBase:
             self.page.setViewportSize(QSize(width, height))
             url = self.page.mainFrame().url()
 
-        if url.isEmpty():
-            self.page.setup(self.settings)
-        else:
+        if not url.isEmpty():
             self.page.reload()
 
         loop.exec()

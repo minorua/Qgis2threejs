@@ -33,15 +33,19 @@ class AnimationPanel(QWidget):
 
         self.tree = self.ui.treeWidgetAnimation
 
+        self.webPage = None
+        self.controller = None
+        self.settings = None
+
         self.iconPlay = QIcon(pluginDir("svg", "play.svg"))    # QgsApplication.getThemeIcon("temporal_navigation/forward.svg")
         self.iconStop = QIcon(pluginDir("svg", "stop.svg"))    # QgsApplication.getThemeIcon("temporal_navigation/stop.svg")
         self.iconNarration = QgsApplication.getThemeIcon("mIconInfo.svg")
         self.iconEasing = {}
 
     def setup(self, wnd, settings):
-        self.wnd = wnd
         self.webPage = wnd.webPage
         self.controller = wnd.controller
+        self.settings = settings
 
         self.ui.toolButtonAdd.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.ui.toolButtonEdit.setIcon(QgsApplication.getThemeIcon("symbologyEdit.svg"))
@@ -53,7 +57,15 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.clicked.connect(self.tree.removeSelectedItems)
         self.ui.toolButtonPlay.clicked.connect(self.playButtonClicked)
 
-        self.tree.setup(wnd, settings)
+        status_bar = getattr(wnd.ui, "statusbar", None)
+        self.tree.setup(
+            settings=settings,
+            controller=self.controller,
+            web_page=self.webPage,
+            icons=wnd.icons,
+            status_bar=status_bar,
+            show_layer_properties=wnd.showLayerPropertiesDialog
+        )
 
         self.setData(settings.animationData())
 
@@ -66,8 +78,9 @@ class AnimationPanel(QWidget):
             self.setEnabled(False)      # animation panel gets disabled when exporter has no preview.
 
     def teardown(self):
-        self.wnd = None
         self.webPage = None
+        self.controller = None
+        self.settings = None
         self.tree.teardown()
 
     def data(self):
@@ -86,18 +99,18 @@ class AnimationPanel(QWidget):
             self.playAnimation(repeat=self.ui.checkBoxLoop.isChecked())
 
     def playAnimation(self, items=None, repeat=False):
-        self.wnd.settings.setAnimationData(self.data())
+        self.settings.setAnimationData(self.data())
 
         self._warnings = []
 
         dataList = []
         if items is None:
-            for group in self.wnd.settings.enabledValidKeyframeGroups(warning_log=self._log):
+            for group in self.settings.enabledValidKeyframeGroups(warning_log=self._log):
                 layerId = group.get("layerId")
                 if layerId is None:
                     dataList.append(group)
                 else:
-                    layer = self.wnd.settings.getLayerByJSLayerId(layerId)
+                    layer = self.settings.getLayerByJSLayerId(layerId)
                     if layer:
                         t = group.get("type")
                         if t in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_GRP_GROWING_LINE):
@@ -115,7 +128,7 @@ class AnimationPanel(QWidget):
                     mapLayerId = None
 
                 if mapLayerId:
-                    layer = self.wnd.settings.getLayer(mapLayerId)
+                    layer = self.settings.getLayer(mapLayerId)
                     self._updateLayer(layer, t)
 
                 data = self.tree.transitionData(item, exclude_narration=bool(t & ATConst.ITEM_MBR))
@@ -133,7 +146,7 @@ class AnimationPanel(QWidget):
 
         if len(dataList):
             logger.debug("Play: %s", dataList)
-            self.wnd.controller.addRunScriptTask("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
+            self.controller.addRunScriptTask("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
             self.isAnimating = True
@@ -145,7 +158,7 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
-            self.wnd.webPage.showMessageBar(msg, timeout_ms, warning=True)
+            self.webPage.showMessageBar(msg, timeout_ms, warning=True)
 
     def _updateLayer(self, layer, groupType):
         if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):
@@ -153,9 +166,9 @@ class AnimationPanel(QWidget):
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
 
-        self.wnd.controller.addRunScriptTask("preview.renderEnabled = false;")
-        self.wnd.controller.addBuildLayerTask(layer)
-        self.wnd.controller.addRunScriptTask("preview.renderEnabled = true;")
+        self.controller.addRunScriptTask("preview.renderEnabled = false;")
+        self.controller.addBuildLayerTask(layer)
+        self.controller.addRunScriptTask("preview.renderEnabled = true;")
 
     def _log(self, msg):
         self._warnings.append(msg)
@@ -197,6 +210,12 @@ class AnimationTreeWidget(QTreeWidget):
 
         self.panel = parent
         self.dialog = None
+        self.settings = None
+        self.controller = None
+        self.webPage = None
+        self.icons = {}
+        self.statusBar = None
+        self._showLayerPropertiesDialog = None
 
         root = self.invisibleRootItem()
         root.setFlags(root.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
@@ -206,13 +225,13 @@ class AnimationTreeWidget(QTreeWidget):
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setExpandsOnDoubleClick(False)
 
-    def setup(self, wnd, settings):
-        self.wnd = wnd
-        self.webPage = wnd.webPage
-
+    def setup(self, settings, controller, web_page, icons, status_bar=None, show_layer_properties=None):
         self.settings = settings
-
-        self.icons = wnd.icons
+        self.controller = controller
+        self.webPage = web_page
+        self.icons = icons
+        self.statusBar = status_bar
+        self._showLayerPropertiesDialog = show_layer_properties
         self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg") if Qgis.QGIS_VERSION_INT >= 31600 else QIcon(pluginDir("svg", "camera.svg"))
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
@@ -284,8 +303,12 @@ class AnimationTreeWidget(QTreeWidget):
 
     def teardown(self):
         self.panel = None
-        self.wnd = None
         self.webPage = None
+        self.controller = None
+        self.statusBar = None
+        self.settings = None
+        self.icons = {}
+        self._showLayerPropertiesDialog = None
 
     def dropEvent(self, event):
         items = self.selectedItems()
@@ -311,7 +334,8 @@ class AnimationTreeWidget(QTreeWidget):
 
         if not accept:
             event.setDropAction(Qt.DropAction.IgnoreAction)
-            self.wnd.ui.statusbar.showMessage("Cannot move item(s) there.", 3000)
+            if self.statusBar:
+                self.statusBar.showMessage("Cannot move item(s) there.", 3000)
 
         return QTreeWidget.dropEvent(self, event)
 
@@ -386,7 +410,8 @@ class AnimationTreeWidget(QTreeWidget):
                 parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA)
                 child = self.addKeyframeItem(parent)
                 self.setCurrentItem(child)
-                self.wnd.ui.statusbar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
+                if self.statusBar:
+                    self.statusBar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
             else:
                 layer = self.getLayerFromLayerItem(item)
                 self.actionTexture.setVisible(layer.type == LayerType.DEM)
@@ -751,7 +776,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = layer.clone()
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
-                self.wnd.controller.addBuildLayerTask(layer)
+                self.controller.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()
@@ -847,7 +872,8 @@ class AnimationTreeWidget(QTreeWidget):
         if t == ATConst.ITEM_TL_LAYER:
             layerId = item.data(0, ATConst.DATA_LAYER_ID)
             layer = self.settings.getLayer(layerId)
-            self.wnd.showLayerPropertiesDialog(layer)
+            if self._showLayerPropertiesDialog and layer:
+                self._showLayerPropertiesDialog(layer)
             return
 
         elif t == ATConst.ITEM_TL_CAMERA:

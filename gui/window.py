@@ -70,7 +70,7 @@ class Q3DWindow(QMainWindow):
 
         self._setupMenu(self.ui)
         self._setupStatusBar(self.ui, previewEnabled, viewName)
-        self.ui.treeView.setup(self, self.icons, settings.layers())
+        self.ui.treeView.setup(self, self.icons, settings.layers(), animation_tree=self.ui.animationPanel.tree)
 
         if self.webPage:
             self.controller.iface.setupConnections()
@@ -79,7 +79,7 @@ class Q3DWindow(QMainWindow):
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            self.ui.webView.setup(settings, wnd=self, enabled=previewEnabled)
+            self.ui.webView.setup(enabled=previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
 
             if self.webPage.isWebEnginePage:

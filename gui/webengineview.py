@@ -69,10 +69,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.isWebEnginePage = True
 
-    def setup(self, settings, wnd=None):
-        """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd)
-
+    def setup(self):
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)

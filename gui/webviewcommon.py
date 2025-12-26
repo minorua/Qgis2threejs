@@ -58,14 +58,9 @@ class Q3DWebPageCommon:
         self.loadedScripts = {}
         self.loadFinished.connect(self.pageLoaded)
 
-    def setup(self, settings, wnd=None):
-        """wnd: Q3DWindow or None (off-screen mode)"""
-        self.expSettings = settings
-        self.wnd = wnd
-        self.offScreen = bool(wnd is None)
-
+    # TODO: remove
     def teardown(self):
-        self.wnd = None
+        pass
 
     def pageLoaded(self):
         self.loadedScripts = {}
@@ -155,18 +150,15 @@ class Q3DWebViewCommon:
     def __init__(self, _=None):
         self.setAcceptDrops(True)
 
-    def setup(self, settings, wnd=None, enabled=True):
+    def setup(self, enabled=True):
         """
-        :param settings: ExportSettings
-        :param wnd: Q3DWindow or None (off-screen mode)
         :param enabled: whether preview is enabled at start
         """
         self._enabled = enabled     # whether preview is enabled at start
 
-        self._page.setup(settings, wnd)
+        self._page.setup()
 
     def teardown(self):
-        self._page.wnd = None
         self._page = None
 
     def dragEnterEvent(self, event):
