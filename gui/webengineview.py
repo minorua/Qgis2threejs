@@ -85,8 +85,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.reload()
 
     def reload(self):
-        Q3DWebPageCommon.reload(self)
-
+        self.showStatusMessage("Initializing preview...")
         self.setUrl(self.myUrl)
 
     def runScript(self, string, data=None, message="", sourceID="webengineview.py", callback=None, wait=False):

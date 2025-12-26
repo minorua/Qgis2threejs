@@ -70,9 +70,6 @@ class Q3DWebPageCommon:
     def pageLoaded(self):
         self.loadedScripts = {}
 
-    def reload(self):
-        self.showStatusMessage("Initializing preview...")
-
     def logScriptExecution(self, string, data=None, message="", sourceID=""):
         if not DEBUG_MODE or message is None:
             return

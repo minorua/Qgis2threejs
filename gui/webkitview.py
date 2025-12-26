@@ -59,8 +59,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         logger.debug("pyObj added")
 
     def reload(self):
-        Q3DWebPageCommon.reload(self)
-
+        self.showStatusMessage("Initializing preview...")
         self.mainFrame().setUrl(self.myUrl)
 
     def runScript(self, string, data=None, message="", sourceID="webkitview.py", callback=None, _wait=False):
