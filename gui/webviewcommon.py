@@ -141,6 +141,7 @@ class Q3DWebPageCommon:
         return False
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
+        """show message bar at top of web page"""
         self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", msg)
 
     def showStatusMessage(self, message, timeout_ms=0):

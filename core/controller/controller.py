@@ -79,10 +79,6 @@ class Q3DControllerInterface(QObject):
     def loadScriptFile(self, scriptFileId, force=False):
         self.loadScriptFiles([scriptFileId], force)
 
-    def showMessageBar(self, msg, timeout_ms=0, warning=False):
-        """show message bar at top of web view"""
-        self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", data=msg)
-
 
 class Q3DController(QObject):
 
@@ -227,7 +223,7 @@ class Q3DController(QObject):
 
         # crs check
         if QgsProject.instance().crs().isGeographic():
-            self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
+            self.webPage.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
 
         self.clearStatusMessage()
 
@@ -370,7 +366,7 @@ class Q3DController(QObject):
             import traceback
             logger.warning(traceback.format_exc())
 
-            self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
+            self.webPage.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
         self.processNextTask()
 
