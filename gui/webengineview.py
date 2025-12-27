@@ -194,9 +194,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         self._page.setObjectName("webEnginePage")
         self.setPage(self._page)
 
-    def closeEvent(self, event):
         restoreChromiumFlags()
-        QWebEngineView.closeEvent(self, event)
 
     def showDevTools(self):
         if self._page.devToolsPage():
