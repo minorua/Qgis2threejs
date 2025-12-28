@@ -288,7 +288,7 @@ class Q3DController(QObject):
         self.isBuilderBusy = True
         self.iface.requestBuildLayer(layer, self._settingsCopy)
 
-        if len(self.settings.layersToExport()) == 1:
+        if len(self.settings.layers(export_only=True)) == 1:
             self.addRunScriptTask("adjustCameraPos()")
 
         return True

@@ -365,17 +365,15 @@ class ExportSettings:
         self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
 
     # layer
-    def layers(self):
-        return self.data.get(ExportSettings.LAYERS, [])
+    def layers(self, export_only=False):
+        layers = self.data.get(ExportSettings.LAYERS, [])
+        if export_only:
+            return [lyr for lyr in layers if lyr.visible]
 
-    def layersToExport(self):
-        return [lyr for lyr in self.layers() if lyr.visible]
+        return layers
 
-    def mapLayerIdsToExport(self):
-        return [lyr.layerId for lyr in self.layers() if lyr.visible]
-
-    def jsLayerIdsToExport(self):
-        return [lyr.jsLayerId for lyr in self.layers() if lyr.visible]
+    def layerIdsToExport(self):
+        return [lyr.layerId for lyr in self.layers(export_only=True)]
 
     def updateLayers(self):
         """Updates layer objects in settings using current project layer structure.
@@ -580,7 +578,7 @@ class ExportSettings:
 
         # layer animation
         layers = d.get("layers", {})
-        idsToExport = self.mapLayerIdsToExport()
+        idsToExport = self.layerIdsToExport()
 
         if layerId is not None:
             layer = layers.get(layerId)
