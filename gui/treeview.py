@@ -296,7 +296,7 @@ class Q3DTreeView(QTreeView):
         if layer:
             self.controller.hideLayer(layer)
             settings.removeLayer(layer.layerId)
-            self.controller.updateExportSettings(settings)
+            self.controller.settingsUpdated = True
 
         # remove layer from tree view
         self.removeLayer(layer.layerId)

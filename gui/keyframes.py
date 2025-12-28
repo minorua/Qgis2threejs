@@ -751,6 +751,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = layer.clone()
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
+                # TODO: export settings need to be updated?
                 self.wnd.controller.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):

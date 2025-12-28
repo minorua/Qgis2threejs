@@ -37,7 +37,7 @@ class Q3DWindow(QMainWindow):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
-        self.settings = settings
+        self.settings = settings        # hold a reference to the original of ExportSettings object
         self.lastDir = None
         self.loadIcons()
 
@@ -126,6 +126,7 @@ class Q3DWindow(QMainWindow):
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
 
+            # save window geometry and dockwidget layout
             settings = QSettings()
             settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
             settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
@@ -288,7 +289,8 @@ class Q3DWindow(QMainWindow):
 
     # map canvas event
     def mapCanvasRendered(self):
-        self.updateSettings(mapSettings=self.qgisIface.mapCanvas().mapSettings())
+        self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
+        self.controller.settingsUpdated = True
         self.controller.addBuildSceneTask()
 
     # layer tree view
@@ -303,8 +305,12 @@ class Q3DWindow(QMainWindow):
     def updateLayerProperties(self, layer):
         orig_layer = self.settings.getLayer(layer.layerId)
 
+        self.settings.setLayer(layer)
+        self.controller.settingsUpdated = True
+
         item = self.ui.treeView.itemFromLayerId(layer.layerId)
         if not item:
+            logger.warning(f"Tree item for layer '{layer.layerId}' not found.")
             return
 
         if layer.name != orig_layer.name:
@@ -408,13 +414,13 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
 
-        settings = self.settings.clone()
-        settings.loadSettingsFromFile(filename)
+        self.settings.clear()
+        self.settings.loadSettingsFromFile(filename)
 
-        self.ui.treeView.addLayers(settings.layers())
-        self.ui.animationPanel.setData(settings.animationData())
+        self.ui.treeView.addLayers(self.settings.layers())
+        self.ui.animationPanel.setData(self.settings.animationData())
 
-        self.controller.updateExportSettings(settings)
+        self.controller.settingsUpdated = True
         self.controller.reload()
 
     def saveSettings(self, filename=None):
@@ -442,29 +448,14 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.clearLayers()
         self.ui.actionPerspective.setChecked(True)
 
-        settings = self.settings.clone()
-        settings.clear()
-        settings.updateLayers()
+        self.settings.clear()
+        self.settings.updateLayers()
 
-        self.ui.treeView.addLayers(settings.layers())
+        self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData({})
 
-        self.controller.updateExportSettings(settings)
+        self.controller.settingsUpdated = True
         self.controller.reload()
-
-    def updateSettings(self, settings=None, mapSettings=None, layer=None):
-        if settings:
-            self.settings = settings.clone()
-
-        if mapSettings:
-            self.settings.setMapSettings(mapSettings)
-
-        if layer:
-            lyr = self.settings.getLayer(layer.layerId)
-            if lyr:
-                layer.copyTo(lyr)
-
-        self.controller.updateExportSettings(self.settings)
 
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
@@ -501,7 +492,7 @@ class Q3DWindow(QMainWindow):
         reload = bool(sp.get(w) != properties.get(w))
 
         self.settings.setSceneProperties(properties)
-        self.controller.updateExportSettings(self.settings)
+        self.controller.settingsUpdated = True
         self.controller.addBuildSceneTask(reload=reload)
 
     def addPlane(self):

@@ -10,6 +10,7 @@ from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, pyqtSlot
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
+from ..build.datamanager import ImageManager
 from ..build.vector.builder import VectorLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
@@ -30,6 +31,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         self._index = -1
 
+        self.imageManager = ImageManager(settings)
         self.modelManagers = []
 
     def loadSettings(self, filename=None):
@@ -37,6 +39,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)
+        self.imageManager.setMapSettings(settings)
 
     def export(self, filename=None, abortSignal=None):
         if abortSignal:

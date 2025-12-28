@@ -16,8 +16,8 @@ from ...utils import hex_color, js_bool, logger, noop
 class Q3DControllerInterface(QObject):
 
     # signals - controller iface to builder
-    buildSceneRequest = pyqtSignal()
-    buildLayerRequest = pyqtSignal(object)       # Layer
+    buildSceneRequest = pyqtSignal(ExportSettings)
+    buildLayerRequest = pyqtSignal(Layer, ExportSettings)
     quitRequest = pyqtSignal()
 
     def __init__(self, controller, webPage, viewIface=None):
@@ -70,11 +70,11 @@ class Q3DControllerInterface(QObject):
         for signal in signals:
             signal.disconnect()
 
-    def requestBuildScene(self):
-        self.buildSceneRequest.emit()
+    def requestBuildScene(self, settings):
+        self.buildSceneRequest.emit(settings)
 
-    def requestBuildLayer(self, layer):
-        self.buildLayerRequest.emit(layer)
+    def requestBuildLayer(self, layer, settings):
+        self.buildLayerRequest.emit(layer, settings)
 
     def loadScriptFile(self, scriptFileId, force=False):
         self.loadScriptFiles([scriptFileId], force)
@@ -104,12 +104,14 @@ class Q3DController(QObject):
             if err_msg:
                 logger.warning("Invalid settings: " + err_msg)
 
-        self.settings = settings
+        self.settings = settings        # hold a reference to the original settings
+        self.settingsUpdated = True
+        self._settingsCopy = None
+
         self.webPage = webPage
         self.offScreen = bool(viewIface is None)
 
         self.builder = ThreeJSBuilder(parent=None if useThread else self,
-                                      settings=settings,
                                       isInUiThread=not useThread)
         self.builder.setObjectName("threeJSBuilder")
 
@@ -238,7 +240,7 @@ class Q3DController(QObject):
 
         self.progress(0, "Building scene")
         self.isBuilderBusy = True
-        self.iface.requestBuildScene()
+        self.iface.requestBuildScene(self._settingsCopy)
         return True
 
     def updateSceneOptions(self):
@@ -284,7 +286,7 @@ class Q3DController(QObject):
 
         self.processingLayer = layer
         self.isBuilderBusy = True
-        self.iface.requestBuildLayer(layer)
+        self.iface.requestBuildLayer(layer, self._settingsCopy)
 
         if len(self.settings.layersToExport()) == 1:
             self.addRunScriptTask("adjustCameraPos()")
@@ -323,6 +325,10 @@ class Q3DController(QObject):
             return
 
         self.aborted = False
+
+        if self.settingsUpdated:
+            self._settingsCopy = self.settings.clone()
+            self.settingsUpdated = False
 
         try:
             if self.RELOAD_PAGE in self.taskQueue:
@@ -437,19 +443,6 @@ class Q3DController(QObject):
 
         if not self.isBuilderBusy:
             self.processNextTask()
-
-    def updateExportSettings(self, settings=None, mapSettings=None, layer=None):
-        if settings:
-            self.settings = settings.clone()
-
-        # TODO: clone mapSettings?
-        if mapSettings:
-            self.settings.setMapSettings(mapSettings)
-
-        if layer:
-            lyr = self.settings.getLayer(layer.layerId)
-            if lyr:
-                layer.copyTo(lyr)
 
     def reload(self):
         self.iface.runScript("location.reload()")

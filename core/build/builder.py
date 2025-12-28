@@ -9,6 +9,7 @@ from qgis.core import Qgis, QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
+from ..exportsettings import ExportSettings, Layer
 from .datamanager import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
@@ -34,11 +35,8 @@ class ThreeJSBuilder(QObject):
 
     readyToQuit = pyqtSignal()
 
-    def __init__(self, parent, settings, progress=None, log=None, isInUiThread=True):
+    def __init__(self, parent, progress=None, log=None, isInUiThread=True):
         super().__init__(parent)
-
-        self.settings = settings
-        self.imageManager = ImageManager(settings)
 
         self.progress = progress or noop
         self.log = log or noop
@@ -72,23 +70,23 @@ class ThreeJSBuilder(QObject):
         self.moveToThread(QgsApplication.instance().thread())
         self.readyToQuit.emit()
 
-    @pyqtSlot()
-    def buildSceneSlot(self):
+    @pyqtSlot(ExportSettings)
+    def buildSceneSlot(self, settings):
         self.aborted = False
         logger.debug("Start building scene.")
 
-        data = self.buildScene(build_layers=False)
+        data = self.buildScene(settings, build_layers=False)
         if data:
             self.dataReady.emit(data)
 
         self.taskCompleted.emit()
 
-    @pyqtSlot(object)
-    def buildLayerSlot(self, layer):
+    @pyqtSlot(Layer, ExportSettings)
+    def buildLayerSlot(self, layer, settings):
         self.aborted = False
         logger.debug("Start building layer: " + layer.name)
 
-        for builder in self.layerBuilders(layer):
+        for builder in self.layerBuilders(layer, settings):
             if self.aborted:
                 self.taskAborted.emit()
                 return
@@ -99,18 +97,18 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    def buildScene(self, build_layers=True):
+    def buildScene(self, settings, build_layers=True):
         self.aborted = False
 
-        obj = self._buildScene()
+        obj = self._buildScene(settings)
         if build_layers:
-            obj["layers"] = self._buildLayers()
+            obj["layers"] = self._buildLayers(settings)
         return obj
 
-    def _buildScene(self):
+    def _buildScene(self, settings):
         self.progress(5, "Building scene...")
-        be = self.settings.baseExtent()
-        mapTo3d = self.settings.mapTo3d()
+        be = settings.baseExtent()
+        mapTo3d = settings.mapTo3d()
 
         p = {
             "baseExtent": {
@@ -128,7 +126,7 @@ class ThreeJSBuilder(QObject):
             "zScale": mapTo3d.zScale
         }
 
-        sp = self.settings.sceneProperties()
+        sp = settings.sceneProperties()
         p["light"] = "point" if sp.get("radioButton_PtLight") else "directional"
 
         if sp.get("groupBox_Fog"):
@@ -138,8 +136,8 @@ class ThreeJSBuilder(QObject):
                 "density": (d * d + 0.2) * 0.0002 / be.width()
             }
 
-        if self.settings.needsProjString():
-            crs = self.settings.crs
+        if settings.needsProjString():
+            crs = settings.crs
             p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
 
         self.log("Z scale: {}".format(mapTo3d.zScale))
@@ -150,16 +148,16 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    def _buildLayers(self):
+    def _buildLayers(self, settings):
         layers = []
-        layer_list = [layer for layer in self.settings.layers() if layer.visible]
+        layer_list = [layer for layer in settings.layers() if layer.visible]
         total = len(layer_list)
         for i, layer in enumerate(layer_list):
             if self.aborted:
                 break
 
             self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
-            obj = self._buildLayer(layer)
+            obj = self._buildLayer(layer, settings)
             if obj:
                 layers.append(obj)
 
@@ -168,8 +166,8 @@ class ThreeJSBuilder(QObject):
 
         return layers
 
-    def _buildLayer(self, layer):
-        layerBuilder = self._layerBuilder(layer)
+    def _buildLayer(self, layer, settings):
+        layerBuilder = self._layerBuilder(layer, settings)
 
         obj = layerBuilder.build(build_blocks=False)
 
@@ -187,12 +185,13 @@ class ThreeJSBuilder(QObject):
 
         return obj
 
-    def layerBuilders(self, layer):
-        layerBuilder = self._layerBuilder(layer)
+    def layerBuilders(self, layer, settings):
+        layerBuilder = self._layerBuilder(layer, settings)
         yield layerBuilder
 
         for blockBuilder in layerBuilder.blockBuilders():
             yield blockBuilder
 
-    def _layerBuilder(self, layer):
-        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(self.settings, layer, self.imageManager)
+    def _layerBuilder(self, layer, settings):
+        imageManager = ImageManager(settings.mapSettings)
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(settings, layer, imageManager)

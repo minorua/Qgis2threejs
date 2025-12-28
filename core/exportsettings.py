@@ -115,6 +115,9 @@ class ExportSettings:
     WIDGET_LIST = ["Navi", "NorthArrow", "Label"]
 
     def __init__(self):
+        self.clear()
+
+    def clear(self):
         self.data = {}
         self.mapSettings = None
         self.crs = None
@@ -129,9 +132,6 @@ class ExportSettings:
         self._baseExtent = None
         self._mapTo3d = None
         self._templateConfig = None
-
-    def clear(self):
-        self.data = {}
 
     def clone(self):
         s = ExportSettings()
@@ -444,6 +444,12 @@ class ExportSettings:
         for layer in self.layers():
             if layer.jsLayerId == jsLayerId:
                 return layer
+
+    def setLayer(self, layer):
+        """update layer in layer list"""
+        target = self.getLayer(layer.layerId)
+        if target:
+            layer.copyTo(target)
 
     def addLayer(self, layer):
         """append an additional layer to layer list"""

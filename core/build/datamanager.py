@@ -7,7 +7,7 @@ import os
 
 from qgis.PyQt.QtCore import Qt, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
-from qgis.core import QgsMapLayer
+from qgis.core import QgsMapLayer, QgsMapSettings
 
 from ... import utils
 from ...utils import logger
@@ -37,10 +37,13 @@ class ImageManager(DataManager):
     IMG_LAYER = 2
     IMG_FILE = 3
 
-    def __init__(self, exportSettings):
+    def __init__(self, baseMapSettings=None):
         super().__init__()
-        self.exportSettings = exportSettings
+        self.setBaseMapSettings(baseMapSettings)
         self._renderer = None
+
+    def setBaseMapSettings(self, mapSettings):
+        self.baseMapSettings = QgsMapSettings(mapSettings) if mapSettings else QgsMapSettings()
 
     def mapImageIndex(self, width, height, extent, transp_background, format):
         img = (self.IMG_MAP, (None, width, height, extent, transp_background), format)
@@ -54,20 +57,12 @@ class ImageManager(DataManager):
         img = (self.IMG_FILE, path, "")
         return self._index(img)
 
-    def renderedImage(self, layerids, width, height, extent, transp_background=False):
+    def _renderImage(self, layerids, width, height, extent, transp_background=False):
         # render layers with QgsMapRendererCustomPainterJob
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
-        settings = self.exportSettings.mapSettings
 
-        # store old map settings
-        old_outputSize = settings.outputSize()
-        old_extent = settings.extent()
-        old_rotation = settings.rotation()
-        old_layers = settings.layers()
-        old_backgroundColor = settings.backgroundColor()
-
-        # map settings
+        settings = self.baseMapSettings
         settings.setOutputSize(QSize(width, height))
         settings.setExtent(extent.unrotatedRect())
         settings.setRotation(extent.rotation())
@@ -100,13 +95,6 @@ class ImageManager(DataManager):
             job.waitForFinished()
         painter.end()
 
-        # restore map settings
-        settings.setOutputSize(old_outputSize)
-        settings.setExtent(old_extent)
-        settings.setRotation(old_rotation)
-        settings.setLayers(old_layers)
-        settings.setBackgroundColor(old_backgroundColor)
-
         return image
 
     def image(self, index):
@@ -120,7 +108,7 @@ class ImageManager(DataManager):
                 logger.warning("Image file not found: {0}".format(image_path))
 
         else:   # IMG_MAP or IMG_LAYER
-            image = self.renderedImage(*args)
+            image = self._renderImage(*args)
 
             if fmt == "JPEG":
                 return utils.jpegCompressedImage(image)
