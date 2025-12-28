@@ -8,11 +8,11 @@ from ...utils import noop
 class LayerBuilderBase:
     """Base class for layer builders that generate layer export data."""
 
-    def __init__(self, settings, layer, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager=None, pathRoot=None, urlRoot=None, progress=None, log=None):
         """
         Args:
-            settings: ExportSettings object.
             layer: Layer object.
+            settings: ExportSettings object.
             imageManager: Optional image manager used by material builders.
             pathRoot: Optional filesystem base path for exported assets.
             urlRoot: Optional URL base for exported assets.

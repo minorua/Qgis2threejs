@@ -166,7 +166,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         layer.opt.allMaterials = True
 
         builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(self.settings, layer, self.imageManager, pathRoot, urlRoot, log=self.log)
+        builder = builder_cls(layer, self.settings, self.imageManager, pathRoot, urlRoot, log=self.log)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
         return builder.build(build_blocks=True)

@@ -23,12 +23,12 @@ class DEMLayerBuilder(LayerBuilderBase):
     polygons, tiled surrounding blocks, and multiple materials.
     """
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(layer, settings, imageManager, pathRoot, urlRoot, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
-        self.mtlBuilder = DEMMaterialBuilder(settings, layer, imageManager, pathRoot, urlRoot)
+        self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, pathRoot, urlRoot)
         self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False):

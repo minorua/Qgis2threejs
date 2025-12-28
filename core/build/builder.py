@@ -194,4 +194,4 @@ class ThreeJSBuilder(QObject):
 
     def _layerBuilder(self, layer, settings):
         imageManager = ImageManager(settings.mapSettings)
-        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(settings, layer, imageManager)
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager)

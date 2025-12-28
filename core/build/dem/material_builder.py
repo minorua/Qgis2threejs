@@ -11,11 +11,10 @@ from ....utils import hex_color
 class DEMMaterialBuilder:
     """Generates materials for DEM layer."""
 
-    def __init__(self, settings, layer, imageManager, pathRoot, urlRoot):
+    def __init__(self, layer, settings, imageManager, pathRoot, urlRoot):
+        self.layer = layer
         self.settings = settings
         self.materialManager = MaterialManager(imageManager, settings.materialType())
-
-        self.layer = layer
 
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot

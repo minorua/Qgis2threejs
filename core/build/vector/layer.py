@@ -21,21 +21,22 @@ class VectorLayer:
     and provides methods for iterating over its features.
     """
 
-    def __init__(self, settings, layer, materialManager, modelManager):
+    # (Layer, ExportSettings, MaterialManager, ModelManager)
+    def __init__(self, layer, settings, materialManager, modelManager):
         """
         Args:
-            settings: ExportSettings object.
             layer: Layer object.
+            settings: ExportSettings object.
             materialManager: Manager used to create/get material indices for features.
             modelManager: Manager used to identify external 3D models.
         """
-        self.settings = settings
-        self.renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
-
         self.type = layer.type
         self.mapLayer = layer.mapLayer
         self.name = layer.name
         self.properties = layer.properties
+
+        self.settings = settings
+        self.renderContext = QgsRenderContext.fromMapSettings(settings.mapSettings)
 
         self.expressionContext = self.mapLayer.createExpressionContext()
 

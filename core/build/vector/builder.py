@@ -29,22 +29,20 @@ class VectorLayerBuilder(LayerBuilderBase):
         LayerType.POLYGON: "polygon"
     }
 
-    def __init__(self, settings, layer, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(settings, layer, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(layer, settings, imageManager, pathRoot, urlRoot, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
 
         self.clipExtent = None
 
-        vl = VectorLayer(settings, layer, self.materialManager, self.modelManager)
-        if vl.ot:
-            self.log("Object type is {}.".format(vl.ot.name))
+        self.vlayer = VectorLayer(layer, settings, self.materialManager, self.modelManager)
+        if self.vlayer.ot:
+            self.log("Object type is {}.".format(self.vlayer.ot.name))
         else:
             logger.error("Object type not found")
-
-        self.vlayer = vl
 
     def build(self, build_blocks=False):
         """Generate the export data structure for this vector layer.
