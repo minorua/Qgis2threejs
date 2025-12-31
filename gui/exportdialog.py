@@ -199,7 +199,7 @@ th {text-align:left;}
         self.logNextIndex = 1
         self.warnings = 0
 
-        self.progress(0, "Export started.")
+        self.progress(0, msg="Export started.")
         t0 = datetime.now()
 
         exporter = ThreeJSExporter(settings=settings, progress=self.progressNumbered, log=self.logMessageIndented)
@@ -211,14 +211,14 @@ th {text-align:left;}
             w.setEnabled(True)
 
         if not success:
-            self.progress(100, "<br>Export has been canceled.")
+            self.progress(100, msg="<br>Export has been canceled.")
             self.ui.progressBar.setValue(0)
             return
 
         msg = "<br><a name='complete'>Export has been completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds())
         if self.warnings:
             msg += "<br><b>There {} during the export. See above.</b>".format("was a warning" if self.warnings == 1 else "were {} warnings".format(self.warnings))
-        self.progress(100, msg)
+        self.progress(100, msg=msg)
 
         data_dir = settings.outputDataDirectory()
 
@@ -243,8 +243,9 @@ th {text-align:left;}
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
 
-    def progress(self, percentage=None, msg=None, numbered=False):
-        if percentage is not None:
+    def progress(self, current=None, total=100, msg="", numbered=False):
+        if current is not None:
+            percentage = int(current / total * 100)
             self.ui.progressBar.setValue(percentage)
 
             v = bool(percentage != 100)
@@ -260,8 +261,8 @@ th {text-align:left;}
 
         QgsApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
-    def progressNumbered(self, percentage=None, msg=None):
-        self.progress(percentage, msg, numbered=True)
+    def progressNumbered(self, current=None, total=100, msg=""):
+        self.progress(current, total, msg, numbered=True)
 
     def log(self, msg, warning=False, indented=False):
         if warning:

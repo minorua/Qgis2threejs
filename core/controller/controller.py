@@ -47,8 +47,9 @@ class Q3DControllerInterface(QObject):
         self.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
         # builder -> controller
-        self.builder.taskCompleted.connect(self.controller.taskFinalized)
-        self.builder.taskAborted.connect(self.controller.taskFinalized)
+        self.builder.taskCompleted.connect(self.controller.taskCompleted)
+        self.builder.taskAborted.connect(self.controller.taskAborted)
+        self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
 
         if self.viewIface:
             # builder -> 3D view interface
@@ -64,7 +65,8 @@ class Q3DControllerInterface(QObject):
             self.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
-            self.builder.taskAborted
+            self.builder.taskAborted,
+            self.builder.progressUpdated
         ]
 
         for signal in signals:
@@ -89,8 +91,9 @@ class Q3DController(QObject):
     RELOAD_PAGE = 4
 
     # signals
-    statusMessage = pyqtSignal(str, int)    # message, timeout_ms
-    progressUpdated = pyqtSignal(int, str)  # percentage, msg
+    statusMessage = pyqtSignal(str, int)         # message, timeout_ms
+    progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
+    allTasksFinished = pyqtSignal()
 
     def __init__(self, parent, settings, webPage, viewIface=None, useThread=False, enabledAtStart=True):
         super().__init__(parent)
@@ -133,6 +136,7 @@ class Q3DController(QObject):
         self._enabled = enabledAtStart
         self.isBuilderBusy = False
         self.processingLayer = None
+        self.currentProgress = -1
 
         self.taskQueue = []
         self.timer = QTimer(self)
@@ -238,7 +242,7 @@ class Q3DController(QObject):
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
-        self.progress(0, "Building scene")
+        self.progress(0, msg="Building scene")
         self.isBuilderBusy = True
         self.iface.requestBuildScene(self._settingsCopy)
         return True
@@ -266,11 +270,10 @@ class Q3DController(QObject):
             layer = Layer.fromDict(layer)
 
         if self.isBuilderBusy:
-            logger.info('Previous processing is still in progress. Cannot start to build layer "{}".'.format(layer.name))
+            logger.info(f'Previous processing is still in progress. Cannot start to build layer "{layer.name}".')
             return False
 
-        pmsg = "Building {0}...".format(layer.name)
-        self.progress(0, pmsg)
+        self.progress(0, msg=f"Building {layer.name}...")
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
             self.iface.loadScriptFiles([ScriptFile.COLLADALOADER,
@@ -301,14 +304,40 @@ class Q3DController(QObject):
         """hide all layers and remove all objects from the layers"""
         self.iface.runScript("hideAllLayers(true)")
 
+    @pyqtSlot()
+    def taskCompleted(self, _v=None):
+        logger.debug("Task completed.")
+
+        self.taskFinalized()
+
+    @pyqtSlot()
+    def taskAborted(self):
+        logger.debug("Task aborted.")
+
+        self.taskFinalized()
+
     def taskFinalized(self):
         self.isBuilderBusy = False
         self.processingLayer = None
 
-        self.progress()
         self.clearStatusMessage()
 
-        self._processNextTask()
+        if self.taskQueue:
+            self._processNextTask()
+
+        else:
+            # wait until data loading are done
+            self.runScript("allDataSent()", callback=self._hideProgress)
+
+    def _hideProgress(self, _v=None):
+        self.allTasksFinished.emit()
+
+    @pyqtSlot(int, int, str)
+    def builderProgressUpdated(self, current, total, msg):
+        p = int(current / total / (len(self.taskQueue) + 1) * 100)
+        if self.currentProgress != p or msg:
+            self.currentProgress = p
+            self.progressUpdated.emit(p, 100, msg)
 
     def processNextTask(self):
         self.timer.stop()
@@ -360,7 +389,7 @@ class Q3DController(QObject):
                         logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
 
                 elif isinstance(item, dict):
-                    self.iface.runScript(item.get("string"), item.get("data"))
+                    self.runScript(item.get("string"), data=item.get("data"), callback=self.taskCompleted)
 
                 elif item == self.UPDATE_SCENE_OPTS:
                     self.updateSceneOptions()
@@ -437,7 +466,6 @@ class Q3DController(QObject):
         else:
             return
 
-    @pyqtSlot(str, object)
     def addRunScriptTask(self, string, data=None):
         self.taskQueue.append({"string": string, "data": data})
 
@@ -493,8 +521,8 @@ class Q3DController(QObject):
     def clearStatusMessage(self):
         self.statusMessage.emit("", 0)
 
-    def progress(self, percentage=100, msg=""):
-        self.progressUpdated.emit(int(percentage), msg)
+    def progress(self, current=0, total=100, msg=""):
+        self.progressUpdated.emit(current, total, msg)
 
 
 class Mock:

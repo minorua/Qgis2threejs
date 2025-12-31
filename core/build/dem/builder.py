@@ -62,6 +62,11 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         return d
 
+    def blockCount(self):
+        tiles = self.properties.get("checkBox_Tiles", False)
+        size = self.properties.get("spinBox_Size", 1) if tiles else 1
+        return size * size
+
     def _buildBlocks(self):
         blocks = []
         for builder in self.blockBuilders():
@@ -120,8 +125,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             dist2 = sx * sx + sy * sy
             blks.append([dist2, -sy, sx, sy, i])
 
-        for dist2, _nsy, sx, sy, blockIndex in sorted(blks):
-            # self.progress(20 * i / size2 + 10)
+        for i, (dist2, _nsy, sx, sy, blockIndex) in enumerate(sorted(blks)):
             is_center = (sx == 0 and sy == 0)
             if is_center:
                 extent = be
@@ -161,7 +165,9 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             # set up material builder for remaininig materials
             if self.layer.opt.allMaterials:
-                for i in range(1, mtlCount):
-                    id = materials[i].get("id")
+                for idx in range(1, mtlCount):
+                    id = materials[idx].get("id")
                     self.mtlBuilder.setup(blockIndex, extent, id, useNow=bool(id == currentMtlId))
                     yield self.mtlBuilder
+
+            self.progress(i + 1, size2)

@@ -48,7 +48,7 @@ This guide explains how Qgis2threejs handles threading and concurrency under PyQ
   - `taskCompleted()` / `taskAborted()` → `Q3DController.taskFinalized()` (unblocks queue, clears status)
 - Controller → UI:
   - `statusMessage(str, int)` updates the status bar.
-  - `progressUpdated(int, str)` updates the progress bar/text.
+  - `progressUpdated(int, int, str)` updates the progress bar/text.
 
 All cross-thread deliveries use Qt’s queued connections automatically (QObject signal/slot across threads), ensuring UI updates occur on the main thread.
 

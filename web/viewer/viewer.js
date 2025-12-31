@@ -244,6 +244,8 @@ function loadEnd(name) {
 	app.loadingManager.itemEnd(name);
 }
 
+function allDataSent() {}		// no-op function
+
 function displayFPS() {
 	preview.timer.last = Date.now();
 

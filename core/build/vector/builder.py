@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-16
 
+import math
 from qgis.core import QgsCoordinateTransform, QgsFeatureRequest
 
 from .feature_block_builder import FeatureBlockBuilder
@@ -44,6 +45,13 @@ class VectorLayerBuilder(LayerBuilderBase):
         else:
             logger.error("Object type not found")
 
+        self.features = []
+
+        self._objTypeClass = type(self.vlayer.ot)
+        self._onePerBlock = (self._objTypeClass == ObjectType.Overlay
+                             and self.vlayer.isHeightRelativeToDEM()
+                             and self.settings.isPreview)
+
     def build(self, build_blocks=False):
         """Generate the export data structure for this vector layer.
 
@@ -57,7 +65,6 @@ class VectorLayerBuilder(LayerBuilderBase):
             return
 
         vlayer = self.vlayer
-        objType = type(vlayer.ot)
         be = self.settings.baseExtent()
         p = self.layer.properties
 
@@ -68,13 +75,13 @@ class VectorLayerBuilder(LayerBuilderBase):
                                                                         QgsCoordinateTransform.ReverseTransform))
 
             # geometry for clipping
-            if p.get("checkBox_Clip") and objType != ObjectType.Polygon:
+            if p.get("checkBox_Clip") and self._objTypeClass != ObjectType.Polygon:
                 self.clipExtent = be.clone().scale(0.9999)    # clip to slightly smaller extent than map canvas extent
         self.features = []
         data = {}
 
         # materials/models
-        if objType == ObjectType.ModelFile:
+        if self._objTypeClass == ObjectType.ModelFile:
             for feat in vlayer.features(request):
                 feat.model = vlayer.ot.model(feat)
                 self.features.append(feat)
@@ -105,6 +112,12 @@ class VectorLayerBuilder(LayerBuilderBase):
             d["PROPERTIES"] = p
 
         return d
+
+    def blockCount(self):
+        if self._onePerBlock:
+            return len(self.features)
+
+        return math.ceil(len(self.features) / FEATURES_PER_BLOCK)
 
     def _buildBlocks(self):
         nf = 0
@@ -170,7 +183,6 @@ class VectorLayerBuilder(LayerBuilderBase):
         if self.vlayer.ot is None:
             return
 
-        objType = type(self.vlayer.ot)
         z_func = lambda x, y: 0
         grid = None
 
@@ -186,7 +198,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             demLayerId = p.get("comboBox_altitudeMode")
             demProvider = self.settings.demProviderByLayerId(demLayerId)
 
-            if objType == ObjectType.Overlay:
+            if self._objTypeClass == ObjectType.Overlay:
                 # get the grid segments of the DEM layer which polygons overlay
                 dem_seg = self.settings.demGridSegments(demLayerId)
 
@@ -199,11 +211,10 @@ class VectorLayerBuilder(LayerBuilderBase):
         builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot,
                                       useZM, z_func, grid)
 
-        one_per_block = (objType == ObjectType.Overlay
-                         and self.vlayer.isHeightRelativeToDEM()
-                         and self.settings.isPreview)
-        bIndex = startFIdx = 0
         feats = []
+        bIndex = startFIdx = 0
+        blockCount = self.blockCount()
+
         for f in self.features or []:
             if self.clipExtent and self.layer.type != LayerType.POINT:
                 if f.clipGeometry(self.clipExtent) is None:
@@ -217,7 +228,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
             feats.append(f)
 
-            if len(feats) == FEATURES_PER_BLOCK or one_per_block:
+            if len(feats) == FEATURES_PER_BLOCK or self._onePerBlock:
                 b = builder.clone()
                 b.setBlockIndex(bIndex)
                 b.setFeatures(feats)
@@ -228,8 +239,12 @@ class VectorLayerBuilder(LayerBuilderBase):
                 startFIdx += len(feats)
                 feats = []
 
+                self.progress(bIndex, blockCount)
+
         if len(feats) or bIndex == 0:
             builder.setBlockIndex(bIndex)
             builder.setFeatures(feats)
             builder.startFIdx = startFIdx
             yield builder
+
+            self.progress(bIndex + 1, blockCount)

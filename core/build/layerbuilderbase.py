@@ -16,7 +16,7 @@ class LayerBuilderBase:
             imageManager: Optional image manager used by material builders.
             pathRoot: Optional filesystem base path for exported assets.
             urlRoot: Optional URL base for exported assets.
-            progress: Callable(percentage, msg) used to report progress.
+            progress: Callable(current, total, msg) used to report progress.
             log: Callable(message, warning) for logging messages.
         """
         self.settings = settings
@@ -36,6 +36,13 @@ class LayerBuilderBase:
         that represents the layer's exportable data structure.
         """
         pass
+
+    def blockCount(self):
+        """Return the number of blocks in this layer.
+
+        Used for progress reporting and may not be accurate.
+        """
+        return 1
 
     def blockBuilders(self):
         return []

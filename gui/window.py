@@ -6,7 +6,7 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
@@ -19,7 +19,7 @@ from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
 from .webviewcommon import Q3DViewInterface
-from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
+from ..conf import DEBUG_MODE, TEMP_DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
@@ -67,6 +67,7 @@ class Q3DWindow(QMainWindow):
         self.controller.setObjectName("controller")
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
+        self.controller.allTasksFinished.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
         self._setupStatusBar(self.ui, previewEnabled, viewName)
@@ -276,16 +277,23 @@ class Q3DWindow(QMainWindow):
     def showStatusMessage(self, msg, timeout_ms=0):
         self.ui.statusbar.showMessage(msg, timeout_ms)
 
-    def progress(self, percentage, msg=None):
-        bar = self.ui.progressBar
-        if percentage == 100:
-            bar.setVisible(False)
-            bar.setFormat("")
-        else:
-            bar.setVisible(True)
-            bar.setValue(percentage)
-            if msg is not None:
-                bar.setFormat(msg)
+    @pyqtSlot(int, int, str)
+    def progress(self, current=0, total=100, msg=""):
+        if TEMP_DEBUG_MODE:
+            logger.debug(f"Progress: {current} / {total} {msg}")
+
+        self.ui.progressBar.setVisible(True)
+        self.ui.progressBar.setValue(int(current / total * 100))
+        if msg:
+            self.ui.progressBar.setFormat(msg)
+
+    @pyqtSlot()
+    def hideProgress(self):
+        if TEMP_DEBUG_MODE:
+            logger.debug("Progress: complete")
+
+        self.ui.progressBar.setVisible(False)
+        self.ui.progressBar.setFormat("")
 
     # map canvas event
     def mapCanvasRendered(self):

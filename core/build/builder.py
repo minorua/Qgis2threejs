@@ -32,18 +32,22 @@ class ThreeJSBuilder(QObject):
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
     taskAborted = pyqtSignal()
+    progressUpdated = pyqtSignal(int, int, str)       # current, total, msg
 
     readyToQuit = pyqtSignal()
 
     def __init__(self, parent, progress=None, log=None, isInUiThread=True):
         super().__init__(parent)
 
-        self.progress = progress or noop
+        self.progress = progress or self._progress
         self.log = log or noop
 
         self._aborted = False
         self._isInUiThread = isInUiThread
         self._lock = Lock()
+
+    def _progress(self, current, total=100, msg=""):
+        self.progressUpdated.emit(current, total, msg)
 
     @property
     def aborted(self):
@@ -66,6 +70,9 @@ class ThreeJSBuilder(QObject):
 
     @pyqtSlot()
     def quit(self):
+        # break circular references
+        self.progress = noop
+
         # move to the main thread
         self.moveToThread(QgsApplication.instance().thread())
         self.readyToQuit.emit()
@@ -86,12 +93,17 @@ class ThreeJSBuilder(QObject):
         self.aborted = False
         logger.debug("Start building layer: " + layer.name)
 
-        for builder in self.layerBuilders(layer, settings):
+        layerBuilder = self._layerBuilder(layer, settings, progress=self._progress)
+        data = layerBuilder.build()
+        if data:
+            self.dataReady.emit(data)
+
+        for blockBuilder in layerBuilder.blockBuilders():
             if self.aborted:
                 self.taskAborted.emit()
                 return
 
-            data = builder.build()
+            data = blockBuilder.build()
             if data:
                 self.dataReady.emit(data)
 
@@ -106,7 +118,7 @@ class ThreeJSBuilder(QObject):
         return obj
 
     def _buildScene(self, settings):
-        self.progress(5, "Building scene...")
+        self.progress(0, msg="Building scene...")
         be = settings.baseExtent()
         mapTo3d = settings.mapTo3d()
 
@@ -156,7 +168,7 @@ class ThreeJSBuilder(QObject):
             if self.aborted:
                 break
 
-            self.progress(int(i / total * 80) + 10, "Building {} layer...".format(layer.name))
+            self.progress(i, total, f"Building {layer.name} layer...")
             obj = self._buildLayer(layer, settings)
             if obj:
                 layers.append(obj)
@@ -185,13 +197,6 @@ class ThreeJSBuilder(QObject):
 
         return obj
 
-    def layerBuilders(self, layer, settings):
-        layerBuilder = self._layerBuilder(layer, settings)
-        yield layerBuilder
-
-        for blockBuilder in layerBuilder.blockBuilders():
-            yield blockBuilder
-
-    def _layerBuilder(self, layer, settings):
+    def _layerBuilder(self, layer, settings, progress=None):
         imageManager = ImageManager(settings.mapSettings)
-        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager)
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)

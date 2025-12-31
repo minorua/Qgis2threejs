@@ -82,7 +82,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         # copy files
         files = narration["files"]
         if files:
-            self.progress(90, "Copying image files used in narrative content...")
+            self.progress(90, msg="Copying image files used in narrative content...")
 
             img_dir = os.path.join(self.settings.outputDataDirectory(), "img")
             QDir().mkpath(img_dir)
@@ -93,7 +93,7 @@ class ThreeJSExporter(ThreeJSBuilder):
                 else:
                     self.log("Failed to copy {}.".format(f), warning=True)
 
-        self.progress(95, "Copying library files...")
+        self.progress(95, msg="Copying library files...")
         utils.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
         # options in html file

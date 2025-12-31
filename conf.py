@@ -25,6 +25,7 @@ DEBUG_MODE = 1
 #  1: Output debug information to log panel and/or JS console
 #  2: Same as 1, plus write debug information to log files
 
+TEMP_DEBUG_MODE = DEBUG_MODE    # temporary code for debugging
 TESTING = False
 
 
