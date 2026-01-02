@@ -6,6 +6,7 @@
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
+from .taskqueue import Task, TaskQueue
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
@@ -84,12 +85,6 @@ class Q3DControllerInterface(QObject):
 
 class Q3DController(QObject):
 
-    # task types
-    BUILD_SCENE_ALL = 1     # build scene
-    BUILD_SCENE = 2         # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
-    UPDATE_SCENE_OPTS = 3   # update scene options
-    RELOAD_PAGE = 4
-
     # signals
     statusMessage = pyqtSignal(str, int)         # message, timeout_ms
     progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
@@ -138,7 +133,8 @@ class Q3DController(QObject):
         self.processingLayer = None
         self.currentProgress = -1
 
-        self.taskQueue = []
+        self.taskQueue = TaskQueue(settings)
+
         self.timer = QTimer(self)
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
@@ -340,11 +336,13 @@ class Q3DController(QObject):
             self.progressUpdated.emit(p, 100, msg)
 
     def processNextTask(self):
+        if self.isBuilderBusy:
+            return
+
         self.timer.stop()
 
         if DEBUG_MODE:
-            contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.taskQueue]
-            logger.debug(f"Task queue: {', '.join(contents)}")
+            logger.debug(self.taskQueue)
 
         if self.taskQueue:
             self.timer.start()
@@ -360,42 +358,30 @@ class Q3DController(QObject):
             self.settingsUpdated = False
 
         try:
-            if self.RELOAD_PAGE in self.taskQueue:
-                self.taskQueue.clear()
+            item = self.taskQueue.pop()
+            if item == Task.RELOAD_PAGE:
                 self.iface.runScript("location.reload()")
 
-            elif self.BUILD_SCENE_ALL in self.taskQueue:
-                self.taskQueue.clear()
-                self.taskQueue.append(self.UPDATE_SCENE_OPTS)
-                self._addVisibleLayersToQueue()
-
+            elif item == Task.BUILD_SCENE:
                 self.buildScene()
 
-            elif self.BUILD_SCENE in self.taskQueue:
-                self.taskQueue.clear()
-                self._addVisibleLayersToQueue()
+            elif item == Task.UPDATE_SCENE_OPTS:
+                self.updateSceneOptions()
 
-                self.buildScene()
+            elif isinstance(item, Layer):
+                if self.settings.getLayer(item.layerId):
+                    if item.visible:
+                        self.buildLayer(item)
+                    else:
+                        self.hideLayer(item)
+                else:
+                    logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
+
+            elif isinstance(item, dict):
+                self.runScript(item.get("string"), data=item.get("data"), callback=self.taskCompleted)
 
             else:
-                item = self.taskQueue.pop(0)
-                if isinstance(item, Layer):
-                    if self.settings.getLayer(item.layerId):
-                        if item.visible:
-                            self.buildLayer(item)
-                        else:
-                            self.hideLayer(item)
-                    else:
-                        logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
-
-                elif isinstance(item, dict):
-                    self.runScript(item.get("string"), data=item.get("data"), callback=self.taskCompleted)
-
-                elif item == self.UPDATE_SCENE_OPTS:
-                    self.updateSceneOptions()
-
-                else:
-                    logger.warning(f"Unknown task: {item}")
+                logger.warning(f"Unknown task: {item}")
 
         except Exception as e:
             import traceback
@@ -405,54 +391,30 @@ class Q3DController(QObject):
 
         self.processNextTask()
 
-    def _addVisibleLayersToQueue(self):
-        for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
-            if layer.visible:
-                self.taskQueue.append(layer)
-
     def addBuildSceneTask(self, update_all=True, reload=False):
-        logger.debug("Scene build task queued.")
-
-        if reload:
-            r = self.RELOAD_PAGE
-        elif update_all:
-            r = self.BUILD_SCENE_ALL
-        else:
-            r = self.BUILD_SCENE
-
-        self.taskQueue.append(r)
+        self.taskQueue.addBuildSceneTask(update_all=update_all, reload=reload)
 
         if self.isBuilderBusy:
-            # TODO: clear queue and add a new task?
             self.abort(clear_queue=False)
+            # scene-building task will run after aborting in taskFinalized()
         else:
             self.processNextTask()
 
     def addBuildLayerTask(self, layer):
-        logger.debug(f"Layer build task queued for {layer.name} (visible: {layer.visible}).")
-
-        q = []
-        for i in self.taskQueue:
-            if isinstance(i, Layer) and i.layerId == layer.layerId:
-                if not i.opt.onlyMaterial:
-                    layer.opt.onlyMaterial = False
-            else:
-                q.append(i)
-
-        self.taskQueue = q
-
+        # If the layer being processed is the same as the layer to be added, abort processing.
         if self.processingLayer and self.processingLayer.layerId == layer.layerId:
+            only_material = self.processingLayer.opt.onlyMaterial
             self.abort(clear_queue=False)
-            if not self.processingLayer.opt.onlyMaterial:
+
+            # Inherit onlyMaterial=False from the aborted layer
+            if not only_material:
                 layer.opt.onlyMaterial = False
 
         if layer.visible:
-            self.taskQueue.append(layer)
-
-            if not self.isBuilderBusy:
-                self.processNextTask()
+            self.taskQueue.addBuildLayerTask(layer)
+            self.processNextTask()
         else:
-            # immediately hide layer without adding layer to queue
+            self.taskQueue.removeBuildLayerTask(layer)
             self.hideLayer(layer)
 
     def updateWidget(self, name, properties):
@@ -467,10 +429,8 @@ class Q3DController(QObject):
             return
 
     def addRunScriptTask(self, string, data=None):
-        self.taskQueue.append({"string": string, "data": data})
-
-        if not self.isBuilderBusy:
-            self.processNextTask()
+        self.taskQueue.addRunScriptTask(string, data=data)
+        self.processNextTask()
 
     def reload(self):
         self.iface.runScript("location.reload()")
