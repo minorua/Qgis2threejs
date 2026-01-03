@@ -340,6 +340,8 @@ class Q3DController(QObject):
             self.currentProgress = p
             self.progressUpdated.emit(p, 100, msg)
 
+        self.runScript(f"updateProgressBar({current}, {total})")
+
     def processNextTask(self):
         if self.isBuilderBusy:
             return

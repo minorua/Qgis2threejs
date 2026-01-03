@@ -10,6 +10,10 @@ var app = Q3D.application,
 
 var preview = {
 
+	progress: {
+		fadeoutSet: false
+	},
+
 	renderEnabled: true,
 
 	timer: {
@@ -244,7 +248,19 @@ function loadEnd(name) {
 	app.loadingManager.itemEnd(name);
 }
 
-function allDataSent() {}		// no-op function
+function updateProgressBar(loaded, total) {
+	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
+	if (preview.progress.fadeoutSet) {
+		Q3D.E("progressbar").classList.remove("fadeout");
+		preview.progress.fadeoutSet = false;
+	}
+}
+
+function allDataSent() {
+	// hide progress bar
+	Q3D.E("progressbar").classList.add("fadeout");
+	preview.progress.fadeoutSet = true;
+}
 
 function displayFPS() {
 	preview.timer.last = Date.now();
