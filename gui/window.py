@@ -311,7 +311,7 @@ class Q3DWindow(QMainWindow):
 
     # @pyqtSlot(Layer)
     def updateLayerProperties(self, layer):
-        orig_layer = self.settings.getLayer(layer.layerId)
+        orig_layer = self.settings.getLayer(layer.layerId).clone()
 
         self.settings.setLayer(layer)
         self.controller.settingsUpdated = True
@@ -505,10 +505,13 @@ class Q3DWindow(QMainWindow):
 
     def addPlane(self):
         layerId = "fp:" + createUid()
-        layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=True)
+        layer = Layer(layerId, "Flat Plane", LayerType.DEM)
         layer.properties = self.getDefaultProperties(layer)
 
-        self.iface.layerAdded.emit(layer)
+        self.settings.addLayer(layer)
+        self.controller.settingsUpdated = True
+        self.controller.addBuildLayerTask(layer)
+
         item = self.ui.treeView.addLayer(layer)
         self.ui.treeView.updateLayerMaterials(item, layer)
 
@@ -528,7 +531,11 @@ class Q3DWindow(QMainWindow):
         properties = {"url": url}
 
         layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
-        self.iface.layerAdded.emit(layer)
+
+        self.settings.addLayer(layer)
+        self.controller.settingsUpdated = True
+        self.controller.addBuildLayerTask(layer)
+
         self.ui.treeView.addLayer(layer)
 
     # View menu
@@ -559,6 +566,7 @@ class Q3DWindow(QMainWindow):
 
     def updateWidgetProperties(self, name, properties):
         self.settings.setWidgetProperties(name, properties)
+        self.controller.settingsUpdated = True
         self.controller.updateWidget(name, properties)
 
     # Window menu
