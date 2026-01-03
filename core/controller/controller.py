@@ -247,17 +247,17 @@ class Q3DController(QObject):
         sp = self.settings.sceneProperties()
 
         # outline effect
-        self.iface.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
+        self.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
 
         # update background color
         params = "{0}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
-        self.iface.runScript("setBackgroundColor({0})".format(params))
+        self.runScript("setBackgroundColor({0})".format(params))
 
         # coordinate display
-        self.iface.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
+        self.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
         latlon = self.settings.isCoordLatLon()
-        self.iface.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
+        self.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
         if latlon:
             self.iface.loadScriptFile(ScriptFile.PROJ4)
 
@@ -294,7 +294,7 @@ class Q3DController(QObject):
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
-        self.iface.runScript(f'hideLayer("{layer.jsLayerId}", true)')
+        self.runScript(f'hideLayer("{layer.jsLayerId}", true)')
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
@@ -363,7 +363,7 @@ class Q3DController(QObject):
         try:
             item = self.taskQueue.pop()
             if item == Task.RELOAD_PAGE:
-                self.iface.runScript("location.reload()")
+                self.runScript("location.reload()")
 
             elif item == Task.BUILD_SCENE:
                 self.buildScene()
@@ -422,11 +422,11 @@ class Q3DController(QObject):
 
     def updateWidget(self, name, properties):
         if name == "NorthArrow":
-            self.iface.runScript("setNorthArrowColor({})".format(properties.get("color", 0)))
-            self.iface.runScript("setNorthArrowVisible({})".format(js_bool(properties.get("visible"))))
+            self.runScript("setNorthArrowColor({})".format(properties.get("color", 0)))
+            self.runScript("setNorthArrowVisible({})".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
-            self.iface.runScript('setHFLabel(pyData());', data=properties)
+            self.runScript('setHFLabel(pyData());', data=properties)
 
         else:
             return
@@ -436,7 +436,7 @@ class Q3DController(QObject):
         self.processNextTask()
 
     def reload(self):
-        self.iface.runScript("location.reload()")
+        self.runScript("location.reload()")
 
     @property
     def enabled(self):
@@ -449,7 +449,7 @@ class Q3DController(QObject):
 
         self._enabled = value
 
-        self.iface.runScript("setPreviewEnabled({})".format(js_bool(self._enabled)))
+        self.runScript("setPreviewEnabled({})".format(js_bool(self._enabled)))
 
         if self._enabled:
             self.addBuildSceneTask()
