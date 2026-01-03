@@ -330,7 +330,12 @@ class Q3DController(QObject):
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
-        p = int(current / total / (len(self.taskQueue) + 1) * 100)
+        if total * self.taskQueue.totalLayerCount == 0:
+            p = self.currentProgress
+        else:
+            p = int((total * (self.taskQueue.dequeuedLayerCount - 1) + current) / (total * self.taskQueue.totalLayerCount) * 100)
+
+        p = max(0, min(100, p))
         if self.currentProgress != p or msg:
             self.currentProgress = p
             self.progressUpdated.emit(p, 100, msg)
