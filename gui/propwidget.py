@@ -318,7 +318,7 @@ class ColorTextureWidgetFunc(ColorWidgetFunc):
     MAP_CANVAS = 10
     LAYER = 11
 
-    def __init__(self, widget):
+    def __init__(self, widget):             # TODO: mapLayer parameter missing
         ColorWidgetFunc.__init__(self, widget)
         self.layerIds = []
         self.mapSettings = None

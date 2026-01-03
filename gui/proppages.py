@@ -267,6 +267,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.radioButton_WGS84.setEnabled(proj_supported)
 
     def initMapTool(self, canvas):
+        global HAVE_PROCESSING
         try:
             self.canvas = canvas
             self.prevMapTool = canvas.mapTool()

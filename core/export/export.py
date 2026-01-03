@@ -27,12 +27,13 @@ class ThreeJSExporter(ThreeJSBuilder):
     """
 
     def __init__(self, parent=None, settings=None, progress=None, log=None, isInUiThread=True):
-        super().__init__(parent, settings or ExportSettings(), progress=progress, log=log, isInUiThread=isInUiThread)
+        super().__init__(parent, progress=progress, log=log, isInUiThread=isInUiThread)
 
-        self._index = -1
-
+        self.settings = settings or ExportSettings()
         self.imageManager = ImageManager(settings)
         self.modelManagers = []
+
+        self._index = -1
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
@@ -56,7 +57,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(dataDir)
 
         # export the scene and its layers
-        data = self.buildScene(build_layers=True)
+        data = self.buildScene(self.settings, build_layers=True)
 
         if abortSignal:
             abortSignal.disconnect(self.abort)
@@ -153,7 +154,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         self._index += 1
         return self._index
 
-    def _buildLayer(self, layer):
+    def _buildLayer(self, layer, settings):
         title = utils.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
@@ -298,7 +299,7 @@ class BridgeExporterBase:
         self.settings.requiresJsonSerializable = self.isWebEngine
 
         if self.isWebEngine:
-            self.view = webview.Q3DView()
+            self.view = webview.Q3DView(None)
             self.page = webview.Q3DWebPage(self.view)
             self.view.setPage(self.page)
             self.view.show()
@@ -423,7 +424,7 @@ class ModelExporter(BridgeExporterBase):
         self.mkdir(filename)
 
         # build scene
-        self.controller.buildScene(update_extent=False)
+        self.controller.buildScene()
 
         err = self.page.waitForSceneLoaded(abortSignal)
 

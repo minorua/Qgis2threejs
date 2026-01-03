@@ -77,7 +77,7 @@ class Layer:
                 "visible": self.visible}
 
     @classmethod
-    def fromDict(self, obj):
+    def fromDict(cls, obj):
         id = obj["layerId"]
         t = obj["geomType"]
 

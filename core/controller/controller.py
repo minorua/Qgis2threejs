@@ -294,11 +294,7 @@ class Q3DController(QObject):
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
-        self.iface.runScript('hideLayer("{}", true)'.format(layer.jsLayerId))
-
-    def hideAllLayers(self):
-        """hide all layers and remove all objects from the layers"""
-        self.iface.runScript("hideAllLayers(true)")
+        self.iface.runScript(f'hideLayer("{layer.jsLayerId}", true)')
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
@@ -390,7 +386,7 @@ class Q3DController(QObject):
             else:
                 logger.warning(f"Unknown task: {item}")
 
-        except Exception as e:
+        except Exception as _:
             import traceback
             logger.warning(traceback.format_exc())
 
@@ -473,14 +469,6 @@ class Q3DController(QObject):
 
     def resetCameraState(self):
         self.runScript("app.controls.reset()")
-
-    # @pyqtSlot()
-    # def updateExtent(self):
-    #     if self.settings.sceneProperties().get("radioButton_FixedExtent"):
-    #         return
-    #     self.requestQueue.clear()
-    #     if self.isBuilderBusy:
-    #         self.abort(clear_queue=False)
 
     def showStatusMessage(self, msg, timeout_ms=0):
         self.statusMessage.emit(msg, timeout_ms)

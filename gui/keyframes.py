@@ -464,7 +464,7 @@ class AnimationTreeWidget(QTreeWidget):
             elif t & ATConst.ITEM_GRP:
                 parent = item
                 iidx = 0
-            elif keyframe:
+            elif keyframe:          # TODO: iidx is possibly undefined
                 pass
             else:
                 return

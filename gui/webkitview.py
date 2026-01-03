@@ -5,8 +5,8 @@
 
 import logging
 
-from qgis.PyQt.QtCore import Qt, QSize, QUrl
-from qgis.PyQt.QtGui import QDesktopServices, QImage, QPainter
+from qgis.PyQt.QtCore import Qt, QUrl
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 
 from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin

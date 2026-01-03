@@ -6,7 +6,6 @@
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from qgis.PyQt.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
-from qgis.core import QgsApplication
 
 from .proppages import DEMPropertyPage
 from ..conf import PLUGIN_NAME

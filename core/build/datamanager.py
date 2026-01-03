@@ -132,7 +132,7 @@ class ImageManager(DataManager):
         return ""
 
     def write(self, index, path):
-        imageType, args, fmt = self._list[index]
+        imageType, args, _fmt = self._list[index]
 
         if imageType == self.IMG_FILE:
             image_path = args
@@ -250,7 +250,7 @@ class MaterialManager(DataManager):
 
             if url is None:
                 if base64:
-                    m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}
+                    m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}        # TODO: imgIndex is possibly undefined
                 else:       # for WebKit preview
                     m["image"] = {"object": self.imageManager.image(imgIndex)}
             else:
@@ -299,7 +299,7 @@ class MaterialManager(DataManager):
     def buildAll(self, pathRoot=None, urlRoot=None, base64=False):
         mList = []
         for i, item in enumerate(self._list):
-            mt, color, opacity, doubleSide, opts = item
+            mt, color, _opacity, _doubleSide, opts = item
             filepath = url = None
 
             if pathRoot and color is None:

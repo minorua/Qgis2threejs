@@ -356,7 +356,7 @@ class VectorLayer:
                 val = self.evaluateExpression(wv["editText"], feat)
                 return min(max(0, val), 100) / 100
             except:
-                logger.warning("[{}] Wrong opacity value: {}".format(self.name, val))
+                logger.warning("[{}] Wrong opacity value: {}".format(self.name, val))   # TODO: val is possibly undefined
                 return 1
 
         symbols = self.renderer.symbolsForFeature(feat, self.renderContext)

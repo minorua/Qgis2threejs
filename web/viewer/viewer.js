@@ -10,10 +10,6 @@ var app = Q3D.application,
 
 var preview = {
 
-	progress: {
-		fadeoutSet: false
-	},
-
 	renderEnabled: true,
 
 	timer: {
@@ -22,7 +18,6 @@ var preview = {
 };
 
 //// initialization
-
 function init(off_screen, debug_mode, qgis_version, is_webengine) {
 
 	Q3D.Config.debugMode = debug_mode;
@@ -228,38 +223,19 @@ function hideLayer(layerId, remove_obj) {
 	}
 }
 
-function hideAllLayers(remove_obj) {
-	for (var id in app.scene.mapLayers) {
-		var layer = app.scene.mapLayers[id];
-		layer.visible = false;
-		if (remove_obj) layer.clearObjects();
-	}
-}
-
-function loadStart(name, initialize) {
-	if (initialize) {
-		app.initLoadingManager();
-	}
-
-	app.loadingManager.itemStart(name);
-}
-
-function loadEnd(name) {
-	app.loadingManager.itemEnd(name);
-}
-
+var progressFadeoutSet = false;
 function updateProgressBar(loaded, total) {
 	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
-	if (preview.progress.fadeoutSet) {
+	if (progressFadeoutSet) {
 		Q3D.E("progressbar").classList.remove("fadeout");
-		preview.progress.fadeoutSet = false;
+		progressFadeoutSet = false;
 	}
 }
 
 function allDataSent() {
 	// hide progress bar
 	Q3D.E("progressbar").classList.add("fadeout");
-	preview.progress.fadeoutSet = true;
+	progressFadeoutSet = true;
 }
 
 function displayFPS() {

@@ -11,7 +11,7 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
-from ..utils import hex_color, js_bool, logger, pluginDir
+from ..utils import js_bool, logger, pluginDir
 
 
 class Q3DViewInterface(QObject):

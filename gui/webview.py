@@ -17,14 +17,14 @@ WEBKIT_AVAILABLE = False
 
 if Qgis.QGIS_VERSION_INT >= 33600:
     try:
-        from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
+        from qgis.PyQt.QtWebEngineWidgets import QWebEngineView     # type: ignore
         WEBENGINE_AVAILABLE = True
 
     except Exception as e:
         logger.warning(f"WebEngine widgets are unavailable: {e}")
 
 try:
-    from qgis.PyQt.QtWebKitWidgets import QWebView
+    from qgis.PyQt.QtWebKitWidgets import QWebView      # type: ignore
     WEBKIT_AVAILABLE = True
 
 except:     # ModuleNotFoundError

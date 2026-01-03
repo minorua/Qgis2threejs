@@ -57,7 +57,7 @@ class SettingsDialog(QDialog):
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):
             item = QTableWidgetItem(metadata.get("name", name))
-            item.setCheckState(Qt.CheckState.Checked if name in enabled_plugins else Qt.CheckState.Unchecked)
+            item.setCheckState(Qt.CheckState.Checked if name in enabled_plugins else Qt.CheckState.Unchecked)   # TODO: name is possibly undefined
             tableWidget.setItem(i, 0, item)
 
         tableWidget.selectionModel().currentRowChanged.connect(self.pluginSelectionChanged)
