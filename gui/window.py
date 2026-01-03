@@ -298,7 +298,6 @@ class Q3DWindow(QMainWindow):
     # map canvas event
     def mapCanvasRendered(self):
         self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
-        self.controller.settingsUpdated = True
         self.controller.addBuildSceneTask()
 
     # layer tree view
@@ -314,7 +313,6 @@ class Q3DWindow(QMainWindow):
         orig_layer = self.settings.getLayer(layer.layerId).clone()
 
         self.settings.setLayer(layer)
-        self.controller.settingsUpdated = True
 
         item = self.ui.treeView.itemFromLayerId(layer.layerId)
         if not item:
@@ -428,7 +426,6 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData(self.settings.animationData())
 
-        self.controller.settingsUpdated = True
         self.controller.reload()
 
     def saveSettings(self, filename=None):
@@ -462,7 +459,6 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData({})
 
-        self.controller.settingsUpdated = True
         self.controller.reload()
 
     def pluginSettings(self):
@@ -500,7 +496,6 @@ class Q3DWindow(QMainWindow):
         reload = bool(sp.get(w) != properties.get(w))
 
         self.settings.setSceneProperties(properties)
-        self.controller.settingsUpdated = True
         self.controller.addBuildSceneTask(reload=reload)
 
     def addPlane(self):
@@ -509,7 +504,6 @@ class Q3DWindow(QMainWindow):
         layer.properties = self.getDefaultProperties(layer)
 
         self.settings.addLayer(layer)
-        self.controller.settingsUpdated = True
         self.controller.addBuildLayerTask(layer)
 
         item = self.ui.treeView.addLayer(layer)
@@ -533,7 +527,6 @@ class Q3DWindow(QMainWindow):
         layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
 
         self.settings.addLayer(layer)
-        self.controller.settingsUpdated = True
         self.controller.addBuildLayerTask(layer)
 
         self.ui.treeView.addLayer(layer)
@@ -566,7 +559,6 @@ class Q3DWindow(QMainWindow):
 
     def updateWidgetProperties(self, name, properties):
         self.settings.setWidgetProperties(name, properties)
-        self.controller.settingsUpdated = True
         self.controller.updateWidget(name, properties)
 
     # Window menu

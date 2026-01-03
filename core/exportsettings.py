@@ -115,6 +115,9 @@ class ExportSettings:
     WIDGET_LIST = ["Navi", "NorthArrow", "Label"]
 
     def __init__(self):
+        # flag
+        self._updated = False   # set to True when data, mapSettings or crs is updated
+
         self.clear()
 
     def clear(self):
@@ -133,6 +136,14 @@ class ExportSettings:
         self._mapTo3d = None
         self._templateConfig = None
 
+        self._updated = True
+
+    def isUpdated(self):
+        return self._updated
+
+    def clearUpdatedFlag(self):
+        self._updated = False
+
     def clone(self):
         s = ExportSettings()
         self.copyTo(s)
@@ -150,10 +161,16 @@ class ExportSettings:
     def get(self, key, default=None):
         return self.data.get(key, default)
 
+    def set(self, key, value):
+        self.data[key] = value
+        self._updated = True
+
     def loadSettings(self, settings):
         self.data = settings
         self._baseExtent = None
         self._mapTo3d = None
+        self._updated = True
+
         self.updateLayers()
 
     def loadSettingsFromFile(self, filepath=None):
@@ -197,7 +214,7 @@ class ExportSettings:
             if not filepath:
                 return False
 
-        self.data["Version"] = PLUGIN_VERSION_INT
+        self.set("Version", PLUGIN_VERSION_INT)
 
         def default(obj):
             if isinstance(obj, Layer):
@@ -214,14 +231,16 @@ class ExportSettings:
 
     def setMapSettings(self, settings):
         """settings: QgsMapSettings"""
+        self.mapSettings = settings
         self._baseExtent = None
         self._mapTo3d = None
-        self.mapSettings = settings
+        self._updated = True
 
         self.setCrs(settings.destinationCrs())
 
     def setCrs(self, crs):
         self.crs = crs
+        self._updated = True
 
     def baseExtent(self):
         if self._baseExtent:
@@ -280,7 +299,7 @@ class ExportSettings:
 
     def setTemplate(self, filepath):
         """filepath: relative path from html_templates directory or absolute path to a template html file"""
-        self.data["Template"] = filepath
+        self.set("Template", filepath)
         self._templateConfig = None
 
     def templateConfig(self):
@@ -302,13 +321,13 @@ class ExportSettings:
         return os.path.join(self.outputDirectory(), "data", self.outputFileTitle())
 
     def setOutputFilename(self, filepath=""):
-        self.data["OutputFilename"] = filepath
+        self.set("OutputFilename", filepath)
 
     def title(self):
         return self.data.get("Title", "")
 
     def setTitle(self, title):
-        self.data["Title"] = title
+        self.set("Title", title)
 
     def options(self):
         return self.data.get(ExportSettings.OPTIONS, {})
@@ -317,18 +336,19 @@ class ExportSettings:
         return self.data.get(ExportSettings.OPTIONS, {}).get(key)
 
     def setOption(self, key, value):
-        self.data[ExportSettings.OPTIONS] = self.data.get(ExportSettings.OPTIONS, {})
-        self.data[ExportSettings.OPTIONS][key] = value
+        d = self.data.get(ExportSettings.OPTIONS, {})
+        d[key] = value
+        self.set(ExportSettings.OPTIONS, d)
 
     def clearOptions(self):
-        self.data[ExportSettings.OPTIONS] = {}
+        self.set(ExportSettings.OPTIONS, {})
 
     # scene
     def sceneProperties(self):
         return self.data.get(ExportSettings.SCENE, {})
 
     def setSceneProperties(self, properties):
-        self.data[ExportSettings.SCENE] = properties
+        self.set(ExportSettings.SCENE, properties)
         self._baseExtent = None
         self._mapTo3d = None
 
@@ -352,7 +372,7 @@ class ExportSettings:
         return (self.data.get(ExportSettings.CAMERA) == "ORTHO")
 
     def setCamera(self, is_ortho):
-        self.data[ExportSettings.CAMERA] = "ORTHO" if is_ortho else "PERSPECTIVE"
+        self.set(ExportSettings.CAMERA, "ORTHO" if is_ortho else "PERSPECTIVE")
 
     # controls
     def controls(self):
@@ -362,7 +382,7 @@ class ExportSettings:
         return QSettings().value("/Qgis2threejs/lastControls", DEF_SETS.CONTROLS, type=str)
 
     def setControls(self, name):
-        self.data[ExportSettings.CONTROLS] = {"comboBox_Controls": name}
+        self.set(ExportSettings.CONTROLS, {"comboBox_Controls": name})
 
     # layer
     def layers(self, export_only=False):
@@ -427,7 +447,7 @@ class ExportSettings:
             layer.jsLayerId = self.nextJsLayerId
             self.nextJsLayerId += 1
 
-        self.data[ExportSettings.LAYERS] = layers
+        self.set(ExportSettings.LAYERS, layers)
 
     def getLayer(self, layerId):
         if layerId:
@@ -448,6 +468,7 @@ class ExportSettings:
         target = self.getLayer(layer.layerId)
         if target:
             layer.copyTo(target)
+            self._updated = True
 
     def addLayer(self, layer):
         """append an additional layer to layer list"""
@@ -457,7 +478,7 @@ class ExportSettings:
 
         layers = self.layers()
         layers.append(layer)
-        self.data[ExportSettings.LAYERS] = layers
+        self.set(ExportSettings.LAYERS, layers)
         return layer
 
     def insertLayer(self, index, layer):
@@ -468,12 +489,12 @@ class ExportSettings:
 
         layers = self.layers()
         layers.insert(index, layer)
-        self.data[ExportSettings.LAYERS] = layers
+        self.set(ExportSettings.LAYERS, layers)
         return layer
 
     def removeLayer(self, layerId):
         """remove layer with given layer ID from layer list"""
-        self.data[ExportSettings.LAYERS] = [lyr for lyr in self.layers() if lyr.layerId != layerId]
+        self.set(ExportSettings.LAYERS, [lyr for lyr in self.layers() if lyr.layerId != layerId])
 
     # layer - DEM
     def demProviderByLayerId(self, id):
@@ -525,7 +546,7 @@ class ExportSettings:
     def setWidgetProperties(self, name, properties):
         widgets = self.data.get(ExportSettings.WIDGETS, self.data.get(ExportSettings.DECOR, {}))
         widgets[name] = properties
-        self.data[ExportSettings.WIDGETS] = widgets
+        self.set(ExportSettings.WIDGETS, widgets)
 
     def isNavigationEnabled(self):
         return self.widgetProperties("Navi").get("enabled", True)
@@ -635,7 +656,7 @@ class ExportSettings:
     def setAnimationData(self, data):
         d = self.data.get(ExportSettings.KEYFRAMES, {})
         d.update(data)
-        self.data[ExportSettings.KEYFRAMES] = d
+        self.set(ExportSettings.KEYFRAMES, d)
 
     def groupsWithExpressions(self, layerId=None):
         for group in self.enabledValidKeyframeGroups(layerId=layerId):

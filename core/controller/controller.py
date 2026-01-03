@@ -356,9 +356,9 @@ class Q3DController(QObject):
 
         self.aborted = False
 
-        if self.settingsUpdated:
+        if self.settings.isUpdated():
             self._settingsCopy = self.settings.clone()
-            self.settingsUpdated = False
+            self.settings.clearUpdatedFlag()
 
         try:
             item = self.taskQueue.pop()
