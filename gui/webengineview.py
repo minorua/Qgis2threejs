@@ -21,7 +21,7 @@ else:
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
 from ..utils import pluginDir
-from ..utils.logging import web_logger
+from ..utils.logging import logger, web_logger
 
 
 _original_chromium_flags = None
@@ -135,6 +135,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         return result
 
     def sendData(self, data):
+        logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
         self.bridge.sendScriptData.emit("loadData(pyData())", data)
 
     def requestRendering(self, waitUntilFinished=False):

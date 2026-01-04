@@ -2,6 +2,7 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import base64
 import json
 import struct
 from qgis.PyQt.QtCore import QByteArray
@@ -82,7 +83,7 @@ class DEMGridBuilder:
                  "height": grid_height}
 
             if self.settings.requiresJsonSerializable:
-                g["array"] = list(struct.unpack("f" * grid_width * grid_height, ba))
+                g["base64"] = base64.b64encode(ba).decode("ascii")
             elif self.settings.isPreview:       # for WebKit preview
                 g["binary"] = QByteArray(ba)
             else:

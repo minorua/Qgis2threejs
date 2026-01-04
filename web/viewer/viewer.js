@@ -125,6 +125,9 @@ function _init(off_screen) {
 
 //// load functions
 function loadData(data) {
+	if (Q3D.Config.debugMode) {
+		console.log("Loading " + (data.type || "unknown") + " data...");
+	}
 
 	var p = data.properties;
 
@@ -152,6 +155,10 @@ function loadData(data) {
 	}
 
 	app.loadData(data);
+
+	if (Q3D.Config.debugMode) {
+		console.log("Data loaded.");
+	}
 }
 
 function loadScriptFile(path, callback) {

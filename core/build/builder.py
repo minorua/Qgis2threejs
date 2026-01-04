@@ -99,6 +99,8 @@ class ThreeJSBuilder(QObject):
             self.dataReady.emit(data)
 
         for blockBuilder in layerBuilder.blockBuilders():
+            logger.debug("Building a block.")
+
             if self.aborted:
                 self.taskAborted.emit()
                 return

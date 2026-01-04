@@ -1297,14 +1297,7 @@ Q3D.E = function (id) {
 			}
 			else {    // !HTMLCanvasElement.prototype.toBlob
 				// https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
-				var binStr = atob(canvas.toDataURL("image/png").split(',')[1]),
-					len = binStr.length,
-					arr = new Uint8Array(len);
-
-				for (var i = 0; i < len; i++) {
-					arr[i] = binStr.charCodeAt(i);
-				}
-
+				var arr = Q3D.Utils.base64ToUint8Array(canvas.toDataURL("image/png").split(',')[1]);
 				saveBlob(new Blob([arr], {type: "image/png"}));
 			}
 		};
@@ -2451,7 +2444,12 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 			});
 		}
 		else {
-			if (grid.binary !== undefined) {
+			if (grid.base64 !== undefined) {
+				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
+				grid.array = new Float32Array(bytes.buffer);
+				delete grid.base64;
+			}
+			else if (grid.binary !== undefined) {
 				// WebKit Bridge
 				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
 			}
@@ -4210,14 +4208,7 @@ class Q3DModel {
 			this.load(data.url, callback);
 		}
 		else {
-			var b = atob(data.base64),
-				len = b.length,
-				bytes = new Uint8Array(len);
-
-			for (var i = 0; i < len; i++) {
-				bytes[i] = b.charCodeAt(i);
-			}
-
+			var bytes = Q3D.Utils.base64ToUint8Array(data.base64);
 			this.loadBytes(bytes.buffer, data.ext, data.resourcePath, callback);
 		}
 	}
@@ -4389,6 +4380,16 @@ Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
 		face = geom.faces[i];
 		geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
 	}
+};
+
+Q3D.Utils.base64ToUint8Array = function (base64) {
+	var bin = atob(base64);
+	var len = bin.length;
+	var bytes = new Uint8Array(len);
+	for (var i = 0; i < len; i++) {
+		bytes[i] = bin.charCodeAt(i);
+	}
+	return bytes;
 };
 
 
