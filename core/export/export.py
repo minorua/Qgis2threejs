@@ -30,7 +30,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         super().__init__(parent, progress=progress, log=log, isInUiThread=isInUiThread)
 
         self.settings = settings or ExportSettings()
-        self.imageManager = ImageManager(settings)
+        self.imageManager = ImageManager(settings.mapSettings)
         self.modelManagers = []
 
         self._index = -1
