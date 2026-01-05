@@ -2837,11 +2837,6 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 				this.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
 			}
 
-			// materials
-			if (data.body !== undefined && data.body.materials !== undefined) {
-				this.materials.loadData(data.body.materials);
-			}
-
 			this.sceneData = scene.userData;
 		}
 	}
@@ -3392,38 +3387,40 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	loadData(data, scene) {
 		if (data.type == "layer") {
 			this.clearObjects();
+			this.clearLabels();
 			super.loadData(data, scene);
 
-			if (data.body !== undefined) {
-				this.features = [];
-				this.clearLabels();
+			this.features = [];
 
-				// build labels
-				if (this.properties.label !== undefined) {
-					// create a label group and a label connector group
-					if (this.labelGroup === undefined) {
-						this.labelGroup = new Q3DGroup();
-						this.labelGroup.userData.layerId = this.id;
-						this.labelGroup.visible = this.visible;
-						scene.labelGroup.add(this.labelGroup);
-					}
-
-					if (this.labelConnectorGroup === undefined) {
-						this.labelConnectorGroup = new Q3DGroup();
-						this.labelConnectorGroup.userData.layerId = this.id;
-						this.labelConnectorGroup.visible = this.visible;
-						scene.labelConnectorGroup.add(this.labelConnectorGroup);
-					}
+			if (this.properties.label !== undefined) {
+				if (this.labelGroup === undefined) {
+					this.labelGroup = new Q3DGroup();
+					this.labelGroup.userData.layerId = this.id;
+					this.labelGroup.visible = this.visible;
+					scene.labelGroup.add(this.labelGroup);
 				}
 
-				(data.body.blocks || []).forEach(function (block) {
-					if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
-					else {
-						this.build(block.features, block.startIndex);
-						if (this.properties.label !== undefined) this.buildLabels(block.features);
-					}
-				}, this);
+				if (this.labelConnectorGroup === undefined) {
+					this.labelConnectorGroup = new Q3DGroup();
+					this.labelConnectorGroup.userData.layerId = this.id;
+					this.labelConnectorGroup.visible = this.visible;
+					scene.labelConnectorGroup.add(this.labelConnectorGroup);
+				}
 			}
+
+			if (data.body === undefined) return;
+
+			if (data.body.materials !== undefined) {
+				this.materials.loadData(data.body.materials);
+			}
+
+			(data.body.blocks || []).forEach(function (block) {
+				if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
+				else {
+					this.build(block.features, block.startIndex);
+					if (this.properties.label !== undefined) this.buildLabels(block.features);
+				}
+			}, this);
 		}
 		else if (data.type == "block") {
 			this.build(data.features, data.startIndex);
