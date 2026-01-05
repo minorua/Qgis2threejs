@@ -63,10 +63,11 @@ function _init(off_screen) {
 
 	if (off_screen) {
 		Q3D.E("progress").style.display = "none";
-		app.osRender = app.render;
+		var renderOffscreen = app.render;
 		app.render = function () {};		// not necessary to render scene before scene has been completely loaded
 		app.addEventListener("sceneLoaded", function () {
-			app.osRender(); app.osRender(); // render scene twice for output stability
+			app.render = renderOffscreen;
+			app.render(true); app.render(true); // render scene twice for output stability
 		});
 	}
 	else {
@@ -304,7 +305,7 @@ function requestRendering() {
 	// wait for two frames to ensure rendering is done
 	requestAnimationFrame(function () {
 		requestAnimationFrame(function () {
-			app.render();
+			app.render(true);
 			pyObj.emitRequestedRenderingFinished();
 		});
 	});
@@ -405,7 +406,7 @@ function switchCamera(is_ortho) {
 		app.buildViewHelper(Q3D.E("navigation"));
 	}
 
-	app.render(true);
+	app.updateControlsAndRender();
 }
 
 // current camera position and its target
@@ -543,10 +544,10 @@ function copyCanvasToClipboard(width, height) {
 app._render = app.render;
 app._saveCanvasImage = app.saveCanvasImage;
 
-app.render = function (updateControls) {
+app.render = function (immediate) {
 	if (!preview.renderEnabled) return;
 
-	app._render(updateControls);
+	app._render(immediate);
 	preview.timer.tickCount++;
 };
 

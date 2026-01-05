@@ -754,7 +754,7 @@ Q3D.E = function (id) {
 			app.viewHelper.update(clock.getDelta());
 		}
 
-		app.render();
+		app.render(true);
 	};
 
 	app.animation = {
@@ -1007,9 +1007,19 @@ Q3D.E = function (id) {
 		}
 	};
 
-	app.render = function (updateControls) {
-		if (updateControls) {
-			app.controls.update();
+	app.updateControlsAndRender = function () {
+		app.controls.update();
+		app.render();
+	};
+
+	var renderImmediately = function () {
+		app.render(true);
+	};
+
+	app.render = function (immediate) {
+		if (!immediate) {
+			requestAnimationFrame(renderImmediately);
+			return;
 		}
 
 		if (app.camera.parent) {
@@ -1112,7 +1122,7 @@ Q3D.E = function (id) {
 			if (x === undefined) app.camera.position.copy(app.queryTargetPosition);
 			else app.camera.position.set(x, y, z);
 
-			app.render(true);
+			app.updateControlsAndRender();
 			app.cleanView();
 		},
 
@@ -1127,7 +1137,7 @@ Q3D.E = function (id) {
 			app.camera.position.copy(app.cameraAction.vecZoom).multiplyScalar(dist).add(vec3);
 			app.camera.lookAt(vec3);
 			if (app.controls.target !== undefined) app.controls.target.copy(vec3);
-			app.render(true);
+			app.updateControlsAndRender();
 			app.cleanView();
 		},
 
