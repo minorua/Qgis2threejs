@@ -238,7 +238,6 @@ class Q3DController(QObject):
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
-        self.progress(0, msg="Building scene")
         self.isBuilderBusy = True
         self.iface.requestBuildScene(self._settingsCopy)
         return True
@@ -268,8 +267,6 @@ class Q3DController(QObject):
         if self.isBuilderBusy:
             logger.info(f'Previous processing is still in progress. Cannot start to build layer "{layer.name}".')
             return False
-
-        self.progress(0, msg=f"Building {layer.name}...")
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
             self.iface.loadScriptFiles([ScriptFile.COLLADALOADER,
@@ -344,9 +341,6 @@ class Q3DController(QObject):
 
         self.timer.stop()
 
-        if DEBUG_MODE:
-            logger.debug(self.taskQueue)
-
         if self.taskQueue:
             self.timer.start()
 
@@ -359,6 +353,9 @@ class Q3DController(QObject):
         if self.settings.isUpdated():
             self._settingsCopy = self.settings.clone()
             self.settings.clearUpdatedFlag()
+
+        if DEBUG_MODE:
+            logger.debug(self.taskQueue)
 
         try:
             item = self.taskQueue.pop()
