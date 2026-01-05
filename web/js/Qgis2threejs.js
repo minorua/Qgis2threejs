@@ -2837,13 +2837,9 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 				this.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
 			}
 
-			if (data.body !== undefined) {
-				this.clearObjects();
-
-				// materials
-				if (data.body.materials !== undefined) {
-					this.materials.loadData(data.body.materials);
-				}
+			// materials
+			if (data.body !== undefined && data.body.materials !== undefined) {
+				this.materials.loadData(data.body.materials);
 			}
 
 			this.sceneData = scene.userData;
@@ -2909,8 +2905,10 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	loadData(data, scene) {
 		var old_blockIsClipped = this.properties.clipped;
 
-		super.loadData(data, scene);
 		if (data.type == "layer") {
+			this.clearObjects();
+			super.loadData(data, scene);
+
 			if (old_blockIsClipped !== data.properties.clipped) {
 				// DEM type changed
 				this.blocks = [];
@@ -3392,8 +3390,10 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	}
 
 	loadData(data, scene) {
-		super.loadData(data, scene);
 		if (data.type == "layer") {
+			this.clearObjects();
+			super.loadData(data, scene);
+
 			if (data.body !== undefined) {
 				this.features = [];
 				this.clearLabels();
@@ -3456,23 +3456,25 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	loadData(data, scene) {
-		if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
-			if (this.models === undefined) {
-				var _this = this;
+		if (data.type == "layer") {
+			if (data.properties.objType == "3D Model" && data.body !== undefined) {
+				if (this.models === undefined) {
+					var _this = this;
 
-				this.models = new Q3DModels();
-				this.models.addEventListener("modelLoaded", function (event) {
-					_this.materials.addFromObject3D(event.model.scene);
-					_this.requestRender();
-				});
+					this.models = new Q3DModels();
+					this.models.addEventListener("modelLoaded", function (event) {
+						_this.materials.addFromObject3D(event.model.scene);
+						_this.requestRender();
+					});
+				}
+				else {
+					this.models.clear();
+				}
+				this.models.loadData(data.body.models);
 			}
-			else {
-				this.models.clear();
-			}
-			this.models.loadData(data.body.models);
+
+			super.loadData(data, scene);
 		}
-
-		super.loadData(data, scene);
 	}
 
 	build(features, startIndex) {
