@@ -4,6 +4,7 @@
 # begin: 2014-01-16
 
 from threading import Lock
+import traceback
 
 from qgis.core import Qgis, QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -31,6 +32,7 @@ class ThreeJSBuilder(QObject):
     # signals - builder to controller interface
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
+    taskFailed = pyqtSignal(str, str)                 # target ("scene" or layer name), traceback_str
     taskAborted = pyqtSignal()
     progressUpdated = pyqtSignal(int, int, str)       # current, total, msg
 
@@ -82,7 +84,13 @@ class ThreeJSBuilder(QObject):
         self.aborted = False
         self.progress(0, msg="Building scene...")
 
-        data = self.buildScene(settings, build_layers=False)
+        try:
+            data = self.buildScene(settings, build_layers=False)
+
+        except Exception as _:
+            self.taskFailed.emit("scene", traceback.format_exc())
+            return
+
         if data:
             self.dataReady.emit(data)
 
@@ -93,8 +101,14 @@ class ThreeJSBuilder(QObject):
         self.aborted = False
         self.progress(0, msg=f"Building {layer.name} layer...")
 
-        layerBuilder = self._layerBuilder(layer, settings, progress=self._progress)
-        data = layerBuilder.build()
+        try:
+            layerBuilder = self._layerBuilder(layer, settings, progress=self._progress)
+            data = layerBuilder.build()
+
+        except Exception as _:
+            self.taskFailed.emit(layer.name, traceback.format_exc())
+            return
+
         if data:
             self.dataReady.emit(data)
 
@@ -105,7 +119,13 @@ class ThreeJSBuilder(QObject):
                 self.taskAborted.emit()
                 return
 
-            data = blockBuilder.build()
+            try:
+                data = blockBuilder.build()
+
+            except Exception as _:
+                self.taskFailed.emit(layer.name, traceback.format_exc())
+                return
+
             if data:
                 self.dataReady.emit(data)
 

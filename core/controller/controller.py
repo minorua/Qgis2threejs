@@ -49,6 +49,7 @@ class Q3DControllerInterface(QObject):
 
         # builder -> controller
         self.builder.taskCompleted.connect(self.controller.taskCompleted)
+        self.builder.taskFailed.connect(self.controller.taskFailed)
         self.builder.taskAborted.connect(self.controller.taskAborted)
         self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
 
@@ -66,6 +67,7 @@ class Q3DControllerInterface(QObject):
             self.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
+            self.builder.taskFailed,
             self.builder.taskAborted,
             self.builder.progressUpdated
         ]
@@ -302,6 +304,14 @@ class Q3DController(QObject):
     def taskCompleted(self, _v=None):
         logger.debug("Task completed.")
 
+        self.taskFinalized()
+
+    @pyqtSlot(str, str)
+    def taskFailed(self, target, traceback_str):
+        msg = f"Failed to build {target}."
+        logger.error(f"{msg}:\n{traceback_str}")
+
+        self.showStatusMessage(msg, timeout_ms=5000)
         self.taskFinalized()
 
     @pyqtSlot()
