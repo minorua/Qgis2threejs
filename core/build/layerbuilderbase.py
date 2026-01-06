@@ -37,6 +37,10 @@ class LayerBuilderBase:
         """
         pass
 
+    def buildBlocks(self):
+        for builder in self.blockBuilders():
+            yield builder.build()
+
     def blockCount(self):
         """Return the number of blocks in this layer.
 

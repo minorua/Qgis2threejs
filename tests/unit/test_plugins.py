@@ -54,9 +54,7 @@ class TestPlugins(unittest.TestCase):
         exporter.settings.localMode = exporter.settings.requiresJsonSerializable = True
 
         exporter.setMapSettings(mapSettings)
-        err = exporter.export(out_path)
-
-        self.assertFalse(err, "export failed")
+        exporter.export(out_path)
 
 
 if __name__ == "__main__":

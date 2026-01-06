@@ -99,7 +99,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                                                               base64=self.settings.requiresJsonSerializable)
 
         if build_blocks:
-            data["blocks"] = self._buildBlocks()
+            data["blocks"] = list(self.buildBlocks())
 
         d = {
             "type": "layer",
@@ -113,28 +113,26 @@ class VectorLayerBuilder(LayerBuilderBase):
 
         return d
 
-    def blockCount(self):
-        if self._onePerBlock:
-            return len(self.features)
-
-        return math.ceil(len(self.features) / FEATURES_PER_BLOCK)
-
-    def _buildBlocks(self):
-        nf = 0
-        blocks = []
+    def buildBlocks(self):
+        nb = nf = 0
         for builder in self.blockBuilders():
             b = builder.build()
+
+            nb += 1
             nf += b["featureCount"]
 
-            blocks.append(b)
+            yield b
 
-        nb = len(blocks)
         if nb > 1:
             self.log(f"{nf} features were splitted into {nb} parts.")
         else:
             self.log(f"{nf} feature(s).")
 
-        return blocks
+    def blockCount(self):
+        if self._onePerBlock:
+            return len(self.features)
+
+        return math.ceil(len(self.features) / FEATURES_PER_BLOCK)
 
     def layerProperties(self):
         """Return layer properties such as layer type and object type.

@@ -6,13 +6,13 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEventLoop, QUrl
+from qgis.PyQt.QtCore import Qt, QDir, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsApplication, QgsProject
 
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 from ..conf import PLUGIN_NAME
-from ..core.export.export import ThreeJSExporter
+from ..core.export.export import ExportCancelled, ThreeJSExporter
 from ..utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
 
 
@@ -73,6 +73,7 @@ class ExportToWebDialog(QDialog):
         self.ui.groupBox_Animation.setChecked(anm.get("enabled", False))
         self.ui.checkBox_StartOnLoad.setChecked(anm.get("startOnLoad", False))
 
+        # connections
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
 
@@ -105,7 +106,6 @@ class ExportToWebDialog(QDialog):
 
     def accept(self):
         """export"""
-
         self.settings.clearOptions()
 
         # general settings
@@ -181,7 +181,8 @@ class ExportToWebDialog(QDialog):
             QMessageBox.warning(self, PLUGIN_NAME, err_msg or "Invalid settings")
             return
 
-        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
+        disabled_widgets = [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]
+        for w in disabled_widgets:
             w.setEnabled(False)
 
         self.ui.tabWidget.setCurrentIndex(1)
@@ -196,20 +197,29 @@ th {text-align:left;}
 """
         self.logNextIndex = 1
         self.warnings = 0
+        success = False
 
         self.progress(0, msg="Export started.")
         t0 = datetime.now()
 
+        # export
         exporter = ThreeJSExporter(settings=settings, progress=self.progressNumbered, log=self.logMessageIndented)
-        success = exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
+        try:
+            exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
+            success = True
+
+        except ExportCancelled:
+            self.progress(msg="<br>Export was canceled by the user.")
+
+        except Exception as e:
+            self.progress(msg=f"<br>Export failed: {e}")
 
         elapsed = datetime.now() - t0
 
-        for w in [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]:
+        for w in disabled_widgets:
             w.setEnabled(True)
 
         if not success:
-            self.progress(100, msg="<br>Export has been canceled.")
             self.ui.progressBar.setValue(0)
             return
 
@@ -257,7 +267,7 @@ th {text-align:left;}
             self.logHtml += "<div class='progress'>{}</div>".format(msg)
             self.ui.textBrowser.setHtml(self.logHtml)
 
-        QgsApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
+        QgsApplication.processEvents()
 
     def progressNumbered(self, current=None, total=100, msg=""):
         self.progress(current, total, msg, numbered=True)
@@ -271,7 +281,7 @@ th {text-align:left;}
         self.logHtml += "<div{}>{}</div>".format(" class='{}'".format(" ".join(classes)) if classes else "", msg)
         self.ui.textBrowser.setHtml(self.logHtml)
 
-        QgsApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
+        QgsApplication.processEvents()
 
     def logMessageIndented(self, msg, warning=False):
         self.log(msg, warning, indented=True)

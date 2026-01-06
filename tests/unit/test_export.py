@@ -92,9 +92,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
         exporter.settings.localMode = local_mode
         exporter.settings.requiresJsonSerializable = local_mode
         exporter.setMapSettings(mapSettings)
-
-        err = exporter.export(out_path)
-        self.assertFalse(err, "export failed")
+        exporter.export(out_path)
 
     def check_webpage(self, filename):
         """check JavaScript errors and warnings in exported web page"""
@@ -184,9 +182,7 @@ class ExportImageTestCases(ExportTestBase):
         exporter.loadSettings(dataPath(self.SETTING_FILE))
         exporter.setMapSettings(mapSettings)
         exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
-
-        err = exporter.export(out_path)
-        self.assertFalse(err, err)
+        exporter.export(out_path)
 
     def test02_check_logs(self):
         log_handler = getLogListHandler(logger)
@@ -238,10 +234,8 @@ class ExportModelTestCases(ExportTestBase):
         exporter.loadSettings(dataPath("scene1.qto3settings"))
         exporter.setMapSettings(mapSettings)
         exporter.initWebPage(100, 100)
+        exporter.export(out_path)
 
-        err = exporter.export(out_path)
-
-        self.assertFalse(err, err)
         self.assertTrue(QFileInfo(out_path).size(), "Empty output file")
 
 

@@ -23,7 +23,7 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterVectorLayer,
                        QgsWkbTypes)
 
-from ..export.export import ThreeJSExporter, ImageExporter, ModelExporter
+from ..export.export import ExportCancelled, ThreeJSExporter, ImageExporter, ModelExporter
 from ..exportsettings import ExportSettings
 from ..mapextent import MapExtent
 from ...conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
@@ -329,8 +329,17 @@ class ExportAlgorithm(AlgorithmBase):
             return False
 
         # export
-        err = self.exporter.export(abortSignal=feedback.canceled)
-        return True
+        try:
+            self.exporter.export(abortSignal=feedback.canceled)
+            return True
+
+        except ExportCancelled:
+            feedback.reportError("Export cancelled by user.")
+            return False
+
+        except Exception as e:
+            feedback.reportError("Export failed: " + str(e))
+            return False
 
 
 class ExportImageAlgorithm(AlgorithmBase):
@@ -387,9 +396,17 @@ class ExportImageAlgorithm(AlgorithmBase):
             return False
 
         # export
-        err = self.exporter.export(filepath, abortSignal=feedback.canceled)
+        try:
+            self.exporter.export(filepath, abortSignal=feedback.canceled)
+            return True
 
-        return True
+        except ExportCancelled:
+            feedback.reportError("Export cancelled by user.")
+            return False
+
+        except Exception as e:
+            feedback.reportError("Export failed: " + str(e))
+            return False
 
 
 class ExportModelAlgorithm(AlgorithmBase):
@@ -426,6 +443,14 @@ class ExportModelAlgorithm(AlgorithmBase):
             return False
 
         # export
-        err = self.exporter.export(filepath, abortSignal=feedback.canceled)
+        try:
+            self.exporter.export(filepath, abortSignal=feedback.canceled)
+            return True
 
-        return True
+        except ExportCancelled:
+            feedback.reportError("Export cancelled by user.")
+            return False
+
+        except Exception as e:
+            feedback.reportError("Export failed: " + str(e))
+            return False

@@ -70,6 +70,7 @@ class ThreeJSBuilder(QObject):
     def abort(self):
         self.aborted = True
 
+    # [preview]
     @pyqtSlot()
     def quit(self):
         # break circular references
@@ -79,13 +80,14 @@ class ThreeJSBuilder(QObject):
         self.moveToThread(QgsApplication.instance().thread())
         self.readyToQuit.emit()
 
+    # [preview]
     @pyqtSlot(ExportSettings)
     def buildSceneSlot(self, settings):
         self.aborted = False
         self.progress(0, msg="Building scene...")
 
         try:
-            data = self.buildScene(settings, build_layers=False)
+            data = self.buildScene(settings)
 
         except Exception as _:
             self.taskFailed.emit("scene", traceback.format_exc())
@@ -96,6 +98,7 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
+    # [preview]
     @pyqtSlot(Layer, ExportSettings)
     def buildLayerSlot(self, layer, settings):
         self.aborted = False
@@ -131,14 +134,14 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    def buildScene(self, settings, build_layers=True):
+    # [preview][export - override]
+    def buildScene(self, settings):
         self.aborted = False
 
         obj = self._buildScene(settings)
-        if build_layers:
-            obj["layers"] = self._buildLayers(settings)
         return obj
 
+    # [preview][export]
     def _buildScene(self, settings):
         self.progress(0, msg="Building scene...")
         be = settings.baseExtent()
@@ -182,25 +185,8 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    def _buildLayers(self, settings):
-        layers = []
-        layer_list = [layer for layer in settings.layers() if layer.visible]
-        total = len(layer_list)
-        for i, layer in enumerate(layer_list):
-            if self.aborted:
-                break
-
-            self.progress(i, total, f"Building {layer.name} layer...")
-            obj = self._buildLayer(layer, settings)
-            if obj:
-                layers.append(obj)
-
-        if self.aborted:
-            return None
-
-        return layers
-
-    def _buildLayer(self, layer, settings):
+    # [preview]
+    def buildLayer(self, layer, settings):
         layerBuilder = self._layerBuilder(layer, settings)
 
         obj = layerBuilder.build(build_blocks=False)
@@ -213,12 +199,11 @@ class ThreeJSBuilder(QObject):
             blocks.append(blockBuilder.build())
 
         if blocks:
-            body = obj.get("body", {})
-            body["blocks"] = blocks
-            obj["body"] = body
+            obj.setdefault("body", {})["blocks"] = blocks
 
         return obj
 
+    # [preview]
     def _layerBuilder(self, layer, settings, progress=None):
         imageManager = ImageManager(settings.mapSettings)
         return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)

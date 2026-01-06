@@ -54,7 +54,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         if build_blocks:
             d["body"] = {
-                "blocks": self._buildBlocks()
+                "blocks": list(self.buildBlocks())
             }
 
         if DEBUG_MODE:
@@ -66,13 +66,6 @@ class DEMLayerBuilder(LayerBuilderBase):
         tiles = self.properties.get("checkBox_Tiles", False)
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
         return size * size
-
-    def _buildBlocks(self):
-        blocks = []
-        for builder in self.blockBuilders():
-            blocks.append(builder.build())
-
-        return blocks
 
     def layerProperties(self):
         """Return layer properties specific to this DEM layer."""

@@ -21,6 +21,10 @@ from ...utils import hex_color, logger
 from ... import utils
 
 
+class ExportCancelled(Exception):
+    pass
+
+
 class ThreeJSExporter(ThreeJSBuilder):
     """Exporter class for generating a set of files for a three.js-based 3D scene
     viewable in external web browsers.
@@ -43,9 +47,6 @@ class ThreeJSExporter(ThreeJSBuilder):
         self.imageManager.setMapSettings(settings)
 
     def export(self, filename=None, abortSignal=None):
-        if abortSignal:
-            abortSignal.connect(self.abort)
-
         if filename:
             self.settings.setOutputFilename(filename)
 
@@ -56,14 +57,17 @@ class ThreeJSExporter(ThreeJSBuilder):
         if not QDir(dataDir).exists():
             QDir().mkpath(dataDir)
 
+        if abortSignal:
+            abortSignal.connect(self.abort)
+
         # export the scene and its layers
-        data = self.buildScene(self.settings, build_layers=True)
+        data = self.buildScene(self.settings)
 
         if abortSignal:
             abortSignal.disconnect(self.abort)
 
         if self.aborted:
-            return False
+            raise ExportCancelled()
 
         # animation
         if self.settings.isAnimationEnabled():
@@ -148,29 +152,9 @@ class ThreeJSExporter(ThreeJSBuilder):
         with open(self.settings.outputFileName(), "w", encoding="utf-8") as f:
             f.write(html)
 
-        return True
-
     def nextLayerIndex(self):
         self._index += 1
         return self._index
-
-    def _buildLayer(self, layer, settings):
-        title = utils.abchex(self.nextLayerIndex())
-
-        if self.settings.localMode:
-            pathRoot = urlRoot = None
-        else:
-            pathRoot = os.path.join(self.settings.outputDataDirectory(), title)
-            urlRoot = "./data/{0}/{1}".format(self.settings.outputFileTitle(), title)
-
-        layer = layer.clone()
-        layer.opt.allMaterials = True
-
-        builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(layer, self.settings, self.imageManager, pathRoot, urlRoot, log=self.log)
-        if builder_cls == VectorLayerBuilder:
-            self.modelManagers.append(builder.modelManager)
-        return builder.build(build_blocks=True)
 
     def filesToCopy(self):
         # three.js library
@@ -286,6 +270,56 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def warning_log(self, msg):
         self.log(msg, warning=True)
+
+    ## overrides
+    def buildScene(self, settings):
+        obj = super().buildScene(settings)
+        obj["layers"] = self._buildLayers(settings)
+        return obj
+
+    def _buildLayers(self, settings):
+        layers = []
+        layer_list = [layer for layer in settings.layers() if layer.visible]
+        total = len(layer_list)
+        for i, layer in enumerate(layer_list):
+            if self.aborted:
+                raise ExportCancelled()
+
+            self.progress(i, total, f"Building {layer.name} layer...")
+            obj = self.buildLayer(layer, settings)
+            if obj:
+                layers.append(obj)
+
+        return layers
+
+    def buildLayer(self, layer, settings):
+        title = utils.abchex(self.nextLayerIndex())
+
+        if settings.localMode:
+            pathRoot = urlRoot = None
+        else:
+            pathRoot = os.path.join(settings.outputDataDirectory(), title)
+            urlRoot = "./data/{0}/{1}".format(settings.outputFileTitle(), title)
+
+        layer = layer.clone()
+        layer.opt.allMaterials = True
+
+        builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
+        builder = builder_cls(layer, settings, self.imageManager, pathRoot, urlRoot, log=self.log)
+        if builder_cls == VectorLayerBuilder:
+            self.modelManagers.append(builder.modelManager)
+
+        obj = builder.build(build_blocks=False)
+
+        blocks = []
+        for block in builder.buildBlocks():
+            if self.aborted:
+                raise ExportCancelled()
+
+            blocks.append(block)
+
+        obj.setdefault("body", {})["blocks"] = blocks
+        return obj
 
 
 class BridgeExporterBase:
