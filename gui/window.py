@@ -282,7 +282,7 @@ class Q3DWindow(QMainWindow):
         if TEMP_DEBUG_MODE:
             logger.debug(f"Progress: {current} / {total} {msg}")
 
-        self.ui.progressBar.setVisible(True)
+        self.ui.progressBar.show()
         self.ui.progressBar.setValue(int(current / total * 100))
         if msg:
             self.ui.progressBar.setFormat(msg)
@@ -292,7 +292,7 @@ class Q3DWindow(QMainWindow):
         if TEMP_DEBUG_MODE:
             logger.debug("Progress: complete")
 
-        self.ui.progressBar.setVisible(False)
+        self.ui.progressBar.hide()
         self.ui.progressBar.setFormat("")
 
     # map canvas event

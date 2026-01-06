@@ -80,7 +80,7 @@ class ThreeJSBuilder(QObject):
     @pyqtSlot(ExportSettings)
     def buildSceneSlot(self, settings):
         self.aborted = False
-        logger.debug("Start building scene.")
+        self.progress(0, msg="Building scene...")
 
         data = self.buildScene(settings, build_layers=False)
         if data:
@@ -91,7 +91,7 @@ class ThreeJSBuilder(QObject):
     @pyqtSlot(Layer, ExportSettings)
     def buildLayerSlot(self, layer, settings):
         self.aborted = False
-        logger.debug("Start building layer: " + layer.name)
+        self.progress(0, msg=f"Building {layer.name} layer...")
 
         layerBuilder = self._layerBuilder(layer, settings, progress=self._progress)
         data = layerBuilder.build()

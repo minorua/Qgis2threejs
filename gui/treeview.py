@@ -228,10 +228,13 @@ class Q3DTreeView(QTreeView):
 
         checked = (item.checkState() == Qt.CheckState.Checked)
         layer.visible = checked
-        if layer.visible and not layer.properties:
-            layer.properties = self.wnd.getDefaultProperties(layer)
+        if layer.visible:
+            if not layer.properties:
+                layer.properties = self.wnd.getDefaultProperties(layer)
 
-        self.controller.addBuildLayerTask(layer)
+            self.controller.addBuildLayerTask(layer)
+        else:
+            self.controller.hideLayer(layer)
 
         font = item.font()
         font.setBold(checked)

@@ -10,7 +10,7 @@ from .taskqueue import Task, TaskQueue
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
-from ...conf import DEBUG_MODE
+from ...conf import DEBUG_MODE, TEMP_DEBUG_MODE
 from ...utils import hex_color, js_bool, logger, noop
 
 
@@ -291,6 +291,11 @@ class Q3DController(QObject):
 
     def hideLayer(self, layer):
         """hide layer and remove all objects from the layer"""
+        # If the layer is being processed, abort processing.
+        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
+            self.abort(clear_queue=False)
+
+        self.taskQueue.removeBuildLayerTask(layer)
         self.runScript(f'hideLayer("{layer.jsLayerId}", true)')
 
     @pyqtSlot()
@@ -315,6 +320,8 @@ class Q3DController(QObject):
             self._processNextTask()
 
         else:
+            self.taskQueue.resetCounts()
+
             # wait until data loading are done
             self.runScript("allDataSent()", callback=self._hideProgress)
 
@@ -323,6 +330,9 @@ class Q3DController(QObject):
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
+        if TEMP_DEBUG_MODE:
+            logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskQueue.dequeuedLayerCount}, Total: {self.taskQueue.totalLayerCount}")
+
         if total * self.taskQueue.totalLayerCount == 0:
             p = self.currentProgress
         else:
@@ -410,12 +420,8 @@ class Q3DController(QObject):
             if not only_material:
                 layer.opt.onlyMaterial = False
 
-        if layer.visible:
-            self.taskQueue.addBuildLayerTask(layer)
-            self.processNextTask()
-        else:
-            self.taskQueue.removeBuildLayerTask(layer)
-            self.hideLayer(layer)
+        self.taskQueue.addBuildLayerTask(layer)
+        self.processNextTask()
 
     def updateWidget(self, name, properties):
         if name == "NorthArrow":

@@ -22,18 +22,19 @@ class TaskQueue:
         self.settings = settings
 
         self._queue = []
-        self.totalLayerCount = 0
-        self.dequeuedLayerCount = 0
+        self.resetCounts()
 
     def clear(self):
         self._queue.clear()
+        self.resetCounts()
+
+    def resetCounts(self):
         self.totalLayerCount = 0
         self.dequeuedLayerCount = 0
 
     def append(self, item):
         if isinstance(item, Layer):
-            # Remove existing layer with the same layerId.
-            self._queue = [i for i in self._queue if not (isinstance(i, Layer) and i.layerId == item.layerId)]
+            self.removeBuildLayerTask(item)
             self.totalLayerCount += 1
 
         self._queue.append(item)
@@ -63,12 +64,12 @@ class TaskQueue:
 
         self.clear()
         if reload:
-            self._queue.append(Task.RELOAD_PAGE)
+            self.append(Task.RELOAD_PAGE)
             return
 
-        self._queue.append(Task.BUILD_SCENE)
+        self.append(Task.BUILD_SCENE)
         if update_all:
-            self._queue.append(Task.UPDATE_SCENE_OPTS)
+            self.append(Task.UPDATE_SCENE_OPTS)
 
         logger.debug("Scene build task queued.")
 
@@ -87,17 +88,22 @@ class TaskQueue:
             if isinstance(item, Layer) and item.layerId == layer.layerId:
                 if not item.opt.onlyMaterial:
                     layer.opt.onlyMaterial = False
+
+                self.totalLayerCount -= 1
                 continue
 
             new_queue.append(item)
 
         self._queue = new_queue
-        self._queue.append(layer)
+        self.append(layer)
 
         logger.debug(f"Layer build task queued for {layer.name}.")
 
     def removeBuildLayerTask(self, layer):
+        task_count = len(self._queue)
         self._queue = [i for i in self._queue if not (isinstance(i, Layer) and i.layerId == layer.layerId)]
+        if len(self._queue) < task_count:
+            self.totalLayerCount -= 1
 
     def addRunScriptTask(self, string, data=None):
-        self._queue.append({"string": string, "data": data})
+        self.append({"string": string, "data": data})
