@@ -160,5 +160,8 @@ class Qgis2threejs:
         self.liveExporter = None
 
     def allLayersRemoved(self):
+        if self.liveExporter:
+            return
+
         self.currentProjectPath = ""
         self.exportSettings = None
