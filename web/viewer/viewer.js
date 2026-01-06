@@ -544,12 +544,23 @@ function copyCanvasToClipboard(width, height) {
 app._render = app.render;
 app._saveCanvasImage = app.saveCanvasImage;
 
-app.render = function (immediate) {
-	if (!preview.renderEnabled) return;
+(function () {
+	var renderImmediately = function () {
+		if (!preview.renderEnabled) return;
 
-	app._render(immediate);
-	preview.timer.tickCount++;
-};
+		app._render(true);
+		preview.timer.tickCount++;
+	};
+
+	app.render = function (immediate) {
+		if (immediate) {
+			renderImmediately();
+		}
+		else {
+			requestAnimationFrame(renderImmediately);
+		}
+	};
+})();
 
 app.saveCanvasImage = function (width, height, fill_background) {
 	var saveCanvasImage = function (canvas) {
