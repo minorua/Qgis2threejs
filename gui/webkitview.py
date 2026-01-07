@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
+import json
 import logging
 
 from qgis.PyQt.QtCore import Qt, QUrl
@@ -110,7 +111,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
     def logToConsole(self, message, level="debug"):
         if level not in ["debug", "info", "warn", "error"]:
             level = "log"
-        self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
+
+        self.mainFrame().evaluateJavaScript(f"console.{level}({json.dumps(message)});")
 
 
 class Q3DWebKitView(Q3DWebViewCommon, QWebView):

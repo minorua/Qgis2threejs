@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
+import json
 import os
 import logging
 
@@ -160,7 +161,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         if level in ["warn", "error"]:
             self.jsErrorWarning.emit(bool(level == "error"))
 
-        self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
+        msg = json.dumps(message.replace('\n', '\\n'))      # new line causes issues in console
+
+        self.runJavaScript(f"console.{level}({msg});")
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
