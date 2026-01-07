@@ -17,15 +17,14 @@ from ....utils import hex_color, logger, parseFloat
 class DEMGridBuilder:
     """Generates 3D geometry grids based on DEM data."""
 
-    def __init__(self, settings, mtlManager, layer, provider, pathRoot=None, urlRoot=None):
-
-        self.settings = settings
-        self.mtlManager = mtlManager
+    def __init__(self, layer, settings, provider, mtlManager, pathRoot=None, urlRoot=None):
 
         self.layer = layer
         self.properties = layer.properties
 
+        self.settings = settings
         self.provider = provider
+        self.mtlManager = mtlManager
 
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot

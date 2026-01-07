@@ -29,7 +29,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, pathRoot, urlRoot)
-        self.grdBuilder = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
+        self.grdBuilder = DEMGridBuilder(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False):
         """Generate the export data structure for this DEM layer.
@@ -110,7 +110,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
         size2 = size * size
 
-        centerBlk = DEMGridBuilder(self.settings, self.mtlBuilder.materialManager, self.layer, self.provider, self.pathRoot, self.urlRoot)
+        centerBlk = DEMGridBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
         blks = []
         for i in range(size2):
             sx = i % size - (size - 1) // 2
