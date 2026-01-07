@@ -156,6 +156,10 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
     def logToConsole(self, message, level="debug"):
         if level not in ["debug", "info", "warn", "error"]:
             level = "log"
+
+        if level in ["warn", "error"]:
+            self.jsErrorWarning.emit(bool(level == "error"))
+
         self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):

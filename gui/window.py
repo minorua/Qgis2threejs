@@ -258,6 +258,10 @@ class Q3DWindow(QMainWindow):
             self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
 
     def showConsoleStatusIcon(self, is_error):
+        if self.ui.toolButtonConsoleStatus.isVisible() and not is_error:
+            # do not replace error icon with warning icon
+            return
+
         style = QgsApplication.style()
         icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical if is_error else QStyle.StandardPixmap.SP_MessageBoxWarning)
 
