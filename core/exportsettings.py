@@ -165,6 +165,15 @@ class ExportSettings:
         self.data[key] = value
         self._updated = True
 
+    def initialize(self, mapSettings=None, isPreview=False, requiresJsonSerializable=False):
+        self.clear()
+
+        if mapSettings:
+            self.setMapSettings(mapSettings)
+
+        self.isPreview = isPreview
+        self.requiresJsonSerializable = requiresJsonSerializable
+
     def loadSettings(self, settings):
         self.data = settings
         self._baseExtent = None

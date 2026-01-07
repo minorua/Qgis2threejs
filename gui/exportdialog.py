@@ -172,9 +172,7 @@ class ExportToWebDialog(QDialog):
             if keyframeData.get("repeat"):
                 self.settings.setOption("animation.repeat", True)
 
-        # make a copy of export settings
         settings = self.settings.clone()
-
         settings.isPreview = False
         settings.localMode = settings.requiresJsonSerializable = local_mode
 

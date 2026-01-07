@@ -424,7 +424,9 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
 
-        self.settings.clear()
+        self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
+                                 isPreview=True,
+                                 requiresJsonSerializable=self.webPage.isWebEnginePage if self.webPage else False)
         self.settings.loadSettingsFromFile(filename)
 
         self.ui.treeView.addLayers(self.settings.layers())
@@ -457,7 +459,9 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.clearLayers()
         self.ui.actionPerspective.setChecked(True)
 
-        self.settings.clear()
+        self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
+                                 isPreview=True,
+                                 requiresJsonSerializable=self.webPage.isWebEnginePage if self.webPage else False)
         self.settings.updateLayers()
 
         self.ui.treeView.addLayers(self.settings.layers())

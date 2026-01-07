@@ -294,7 +294,7 @@ class BridgeExporterBase:
     def __init__(self, settings=None):
         self.isWebEngine = (webview.currentWebViewType == webview.WEBVIEWTYPE_WEBENGINE)
 
-        self.settings = settings or ExportSettings()
+        self.settings = settings.clone() if settings else ExportSettings()
         self.settings.isPreview = True
         self.settings.requiresJsonSerializable = self.isWebEngine
 
