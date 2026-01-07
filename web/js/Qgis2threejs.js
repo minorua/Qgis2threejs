@@ -3453,25 +3453,22 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	loadData(data, scene) {
-		if (data.type == "layer") {
-			if (data.properties.objType == "3D Model" && data.body !== undefined) {
-				if (this.models === undefined) {
-					var _this = this;
+		if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
+			if (this.models === undefined) {
+				var _this = this;
 
-					this.models = new Q3DModels();
-					this.models.addEventListener("modelLoaded", function (event) {
-						_this.materials.addFromObject3D(event.model.scene);
-						_this.requestRender();
-					});
-				}
-				else {
-					this.models.clear();
-				}
-				this.models.loadData(data.body.models);
+				this.models = new Q3DModels();
+				this.models.addEventListener("modelLoaded", function (event) {
+					_this.materials.addFromObject3D(event.model.scene);
+					_this.requestRender();
+				});
 			}
-
-			super.loadData(data, scene);
+			else {
+				this.models.clear();
+			}
+			this.models.loadData(data.body.models);
 		}
+		super.loadData(data, scene);
 	}
 
 	build(features, startIndex) {
