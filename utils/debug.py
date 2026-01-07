@@ -39,8 +39,9 @@ def setupDestructionLogging(wnd):
     num_destroyed = num_finalized = 0
 
     for name, obj in objectsOfInterest(wnd):
-        obj.destroyed.connect(objectDestroyed)
-        weakref.finalize(obj, objectFinalized, f"{name} finalized (Python).")
+        if obj:
+            obj.destroyed.connect(objectDestroyed)
+            weakref.finalize(obj, objectFinalized, f"{name} finalized (Python).")
 
 
 def objectDestroyed(obj):
@@ -63,6 +64,10 @@ def logReferenceCount(wnd):
 
     objs = objectsOfInterest(wnd)
     for name, obj in objs:
+        if obj is None:
+            logger.debug(f"{name} is None.")
+            continue
+
         logger.debug(f"Number of ref. to {name} is {sys.getrefcount(obj)}.")
 
         if USE_OBJGRAPH:
