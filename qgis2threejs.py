@@ -110,21 +110,20 @@ class Qgis2threejs:
             self.liveExporter.activateWindow()
             return
 
-        layersUpdated = False
+        needsToUpdateLayers = True
         proj_path = QgsProject.instance().fileName()
         if proj_path and proj_path != self.currentProjectPath:
             filepath = settingsFilePath()   # get settings file path for current project
             if os.path.exists(filepath):
                 self.exportSettings = ExportSettings()
                 self.exportSettings.loadSettingsFromFile(filepath)
-                layersUpdated = True
+                needsToUpdateLayers = False
 
         self.exportSettings = self.exportSettings or ExportSettings()
-        if not layersUpdated:
-            self.exportSettings.updateLayers()
-
         self.exportSettings.isPreview = True
         self.exportSettings.setMapSettings(self.iface.mapCanvas().mapSettings())
+        if needsToUpdateLayers:
+            self.exportSettings.updateLayers()
 
         self.liveExporter = Q3DWindow(self.iface,
                                       self.exportSettings,
