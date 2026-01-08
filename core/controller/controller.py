@@ -282,8 +282,8 @@ class Q3DController(QObject):
 
     def sendQueuedData(self):
         if self.sendQueue and not self.isDataLoading:
-            self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
             self.isDataLoading = True
+            self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
 
     def buildScene(self):
         if self.isBuilderBusy:
