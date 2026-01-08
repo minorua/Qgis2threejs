@@ -135,9 +135,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         return result
 
-    def sendData(self, data):
+    def sendData(self, data, progress=100):
         logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
-        self.bridge.sendScriptData.emit("loadData(pyData())", data)
+        self.bridge.sendScriptData.emit(f"loadData(pyData(), {progress})", data)
 
     def requestRendering(self, waitUntilFinished=False):
         def render():

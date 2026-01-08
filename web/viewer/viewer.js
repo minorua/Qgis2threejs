@@ -125,7 +125,7 @@ function _init(off_screen) {
 }
 
 //// load functions
-function loadData(data) {
+function loadData(data, progress) {
 	if (Q3D.Config.debugMode) {
 		console.log("Loading " + (data.type || "unknown") + " data...");
 	}
@@ -156,6 +156,10 @@ function loadData(data) {
 	}
 
 	app.loadData(data);
+
+	if (progress !== undefined) {
+		updateProgressBar(progress);
+	}
 
 	pyObj.emitDataLoaded();
 }
@@ -231,7 +235,7 @@ function hideLayer(layerId, remove_obj) {
 
 var progressFadeoutSet = false;
 function updateProgressBar(loaded, total) {
-	total = total || 1;
+	total = total || 100;
 	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
 	if (progressFadeoutSet) {
 		Q3D.E("progressbar").classList.remove("fadeout");

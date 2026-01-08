@@ -22,10 +22,10 @@ class Q3DViewInterface(QObject):
         self.webPage = webPage
         self.enabled = True
 
-    @pyqtSlot(dict)
-    def sendData(self, data):
+    @pyqtSlot(dict, int)
+    def sendData(self, data, progress=100):
         if self.enabled:
-            self.webPage.sendData(data)
+            self.webPage.sendData(data, progress)
 
     @pyqtSlot(str, object, str)
     def runScript(self, string, data=None, message=""):
@@ -170,9 +170,6 @@ class Q3DWebViewCommon:
         # logger.debug(event.mimeData().formats())
         self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
-
-    def sendData(self, data):
-        self._page.sendData(data)
 
     def runScript(self, string, data=None, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, data, message, sourceID, callback, wait)

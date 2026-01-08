@@ -137,6 +137,7 @@ class Q3DController(QObject):
         self.isBuilderBusy = False
         self.processingLayer = None
         self.currentProgress = -1
+        self.currentBuilderProgress = 0
 
         self.taskQueue = TaskQueue(settings)
 
@@ -257,7 +258,7 @@ class Q3DController(QObject):
 
     def sendQueuedData(self):
         if self.sendQueue and not self.isDataLoading:
-            self.webPage.sendData(self.sendQueue.popleft())
+            self.webPage.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
             self.isDataLoading = True
 
     def buildScene(self):
@@ -368,17 +369,18 @@ class Q3DController(QObject):
         if TEMP_DEBUG_MODE:
             logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskQueue.dequeuedLayerCount}, Total: {self.taskQueue.totalLayerCount}")
 
-        if total * self.taskQueue.totalLayerCount == 0:
-            p = self.currentProgress
-        else:
+        total = total or 100
+        if self.taskQueue.totalLayerCount:
             p = int((total * (self.taskQueue.dequeuedLayerCount - 1) + current) / (total * self.taskQueue.totalLayerCount) * 100)
+        else:
+            p = self.currentProgress
 
         p = max(0, min(100, p))
         if self.currentProgress != p or msg:
             self.currentProgress = p
             self.progressUpdated.emit(p, 100, msg)
 
-        self.runScript(f"updateProgressBar({current}, {total})")
+        self.currentBuilderProgress = int(current / total * 100)
 
     def processNextTask(self):
         if self.isBuilderBusy:

@@ -85,8 +85,8 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         return result
 
-    def sendData(self, data):
-        string = "loadData(pyData())"
+    def sendData(self, data, progress=100):
+        string = f"loadData(pyData(), {progress})"
         logger.debug(string)
 
         self.runScript(string, data, message=None)
