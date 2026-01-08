@@ -37,7 +37,7 @@ function init(off_screen, debug_mode, qgis_version, is_webengine) {
 
 				if (Q3D.Config.debugMode) {
 					var dataType = (typeof data === "object") ? data.type : data;
-					console.debug("↓", script, "# sendScriptData", dataType, data);
+					console.debug("↓", script, "# " + dataType + " data loaded", data);
 				}
 			});
 
@@ -157,9 +157,7 @@ function loadData(data) {
 
 	app.loadData(data);
 
-	if (Q3D.Config.debugMode) {
-		console.log("Data loaded.");
-	}
+	pyObj.emitDataLoaded();
 }
 
 function loadScriptFile(path, callback) {
@@ -233,6 +231,7 @@ function hideLayer(layerId, remove_obj) {
 
 var progressFadeoutSet = false;
 function updateProgressBar(loaded, total) {
+	total = total || 1;
 	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
 	if (progressFadeoutSet) {
 		Q3D.E("progressbar").classList.remove("fadeout");

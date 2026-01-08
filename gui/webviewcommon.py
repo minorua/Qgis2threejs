@@ -45,15 +45,8 @@ class Q3DViewInterface(QObject):
 
 class Q3DWebPageCommon:
 
-    initialized = pyqtSignal()
-    sceneLoaded = pyqtSignal()
-    sceneLoadError = pyqtSignal()
-
     def __init__(self, _=None):
         self.bridge = WebBridge(self)
-        self.bridge.initialized.connect(self.initialized)
-        self.bridge.sceneLoaded.connect(self.sceneLoaded)
-        self.bridge.sceneLoadError.connect(self.sceneLoadError)
 
         self.loadedScripts = {}
         self.loadFinished.connect(self.pageLoaded)
@@ -116,8 +109,8 @@ class Q3DWebPageCommon:
         def timeOut():
             loop.exit(3)
 
-        self.sceneLoaded.connect(loop.quit)
-        self.sceneLoadError.connect(error)
+        self.bridge.sceneLoaded.connect(loop.quit)
+        self.bridge.sceneLoadError.connect(error)
 
         if abortSignal:
             abortSignal.connect(userCancel)
@@ -130,8 +123,8 @@ class Q3DWebPageCommon:
 
         err = loop.exec()
 
-        self.sceneLoaded.disconnect(loop.quit)
-        self.sceneLoadError.disconnect(error)
+        self.bridge.sceneLoaded.disconnect(loop.quit)
+        self.bridge.sceneLoadError.disconnect(error)
 
         if abortSignal:
             abortSignal.disconnect(userCancel)

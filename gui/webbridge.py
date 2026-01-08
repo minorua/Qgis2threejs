@@ -31,6 +31,7 @@ class WebBridge(QObject):
 
     # signals - Bridge to Python (window, web page, etc.)
     initialized = pyqtSignal()
+    dataLoaded = pyqtSignal()
     sceneLoaded = pyqtSignal()
     sceneLoadError = pyqtSignal()
     tweenStarted = pyqtSignal(int)
@@ -58,6 +59,11 @@ class WebBridge(QObject):
     @emit_slotCalled
     def emitInitialized(self):
         self.initialized.emit()
+
+    @pyqtSlot()
+    @emit_slotCalled
+    def emitDataLoaded(self):
+        self.dataLoaded.emit()
 
     @pyqtSlot()
     @emit_slotCalled

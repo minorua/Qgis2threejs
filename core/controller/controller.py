@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
+from collections import deque
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
@@ -41,27 +42,29 @@ class Q3DControllerInterface(QObject):
         """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
         # web page -> controller
         self.webPage.loadFinished.connect(self.controller.pageLoaded)
-        self.webPage.initialized.connect(self.controller.viewerInitialized)
+
+        # web bridge -> controller
+        self.webPage.bridge.initialized.connect(self.controller.viewerInitialized)
+        self.webPage.bridge.dataLoaded.connect(self.controller.dataLoaded)
 
         # controller interface -> builder
         self.buildSceneRequest.connect(self.builder.buildSceneSlot)
         self.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
         # builder -> controller
+        self.builder.dataReady.connect(self.controller.appendDataToSendQueue)
         self.builder.taskCompleted.connect(self.controller.taskCompleted)
         self.builder.taskFailed.connect(self.controller.taskFailed)
         self.builder.taskAborted.connect(self.controller.taskAborted)
         self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
 
-        if self.viewIface:
-            # builder -> 3D view interface
-            self.builder.dataReady.connect(self.viewIface.sendData)
-
     def teardownConnections(self):
         signals = [
             # web page
             self.webPage.loadFinished,
-            self.webPage.initialized,
+            # web bridge
+            self.webPage.bridge.initialized,
+            self.webPage.bridge.dataLoaded,
             # builder
             self.buildSceneRequest,
             self.buildLayerRequest,
@@ -141,6 +144,9 @@ class Q3DController(QObject):
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processNextTask)
+
+        self.sendQueue = deque()
+        self.isDataLoading = False
 
         # delegating method
         self.runScript = webPage.runScript
@@ -234,6 +240,25 @@ class Q3DController(QObject):
         if self.enabled:
             self.runScript("app.start()")
             self.addBuildSceneTask()
+
+    @pyqtSlot(dict)
+    def appendDataToSendQueue(self, data):
+        self.sendQueue.append(data)
+
+        if DEBUG_MODE and len(self.sendQueue) > 1:
+            logger.warning(f"Sending/loading data is busy. Queue length: {len(self.sendQueue)}")
+
+        self.sendQueuedData()
+
+    @pyqtSlot()
+    def dataLoaded(self):
+        self.isDataLoading = False
+        self.sendQueuedData()
+
+    def sendQueuedData(self):
+        if self.sendQueue and not self.isDataLoading:
+            self.webPage.sendData(self.sendQueue.popleft())
+            self.isDataLoading = True
 
     def buildScene(self):
         if self.isBuilderBusy:
