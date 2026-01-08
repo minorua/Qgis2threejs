@@ -23,7 +23,6 @@ num_finalized = 0   # number of Python objects that all references are gone
 def objectsOfInterest(wnd):
     return [
         ("live exporter", wnd),
-        ("viewer interface", wnd.iface),
         ("controller", wnd.controller),
         ("builder", wnd.controller.builder),
         ("thread", wnd.controller.thread),

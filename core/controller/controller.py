@@ -4,6 +4,7 @@
 # begin: 2016-02-10
 
 from collections import deque
+from functools import wraps
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
@@ -12,7 +13,16 @@ from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE, TEMP_DEBUG_MODE
-from ...utils import hex_color, js_bool, logger, noop
+from ...utils import hex_color, js_bool, logger
+
+
+def requires_enabled(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self.enabled:
+            return
+        return func(self, *args, **kwargs)
+    return wrapper
 
 
 class Q3DControllerInterface(QObject):
@@ -22,21 +32,17 @@ class Q3DControllerInterface(QObject):
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
     quitRequest = pyqtSignal()
 
-    def __init__(self, controller, webPage, viewIface=None):
+    def __init__(self, controller, webPage):
         super().__init__(parent=controller)
 
         self.controller = controller
         self.builder = controller.builder
         self.webPage = webPage
-        self.viewIface = viewIface
 
-        # delegating methods
-        self.runScript = viewIface.runScript if viewIface else noop
-        self.loadScriptFiles = viewIface.loadScriptFiles if viewIface else noop
+        self.enabled = True
 
     def teardown(self):
         self.controller = None
-        self.builder = None
 
     def setupConnections(self):
         """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
@@ -78,14 +84,30 @@ class Q3DControllerInterface(QObject):
         for signal in signals:
             signal.disconnect()
 
+    @requires_enabled
     def requestBuildScene(self, settings):
         self.buildSceneRequest.emit(settings)
 
+    @requires_enabled
     def requestBuildLayer(self, layer, settings):
         self.buildLayerRequest.emit(layer, settings)
 
-    def loadScriptFile(self, scriptFileId, force=False):
-        self.loadScriptFiles([scriptFileId], force)
+    @requires_enabled
+    def sendData(self, data, progress=100):
+        self.webPage.sendData(data, progress)
+
+    @requires_enabled
+    def runScript(self, string, data=None, message="", sourceID="controller.py", callback=None, wait=False):
+        self.webPage.runScript(string, data, message, sourceID, callback, wait)
+
+    @requires_enabled
+    def loadScriptFiles(self, ids, force=False):
+        """
+        Args:
+            ids: list of script IDs
+            force: if False, do not load a script that is already loaded
+        """
+        self.webPage.loadScriptFiles(ids, force)
 
 
 class Q3DController(QObject):
@@ -95,7 +117,7 @@ class Q3DController(QObject):
     progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
     allTasksFinished = pyqtSignal()
 
-    def __init__(self, parent, settings, webPage, viewIface=None, useThread=False, enabledAtStart=True):
+    def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
         super().__init__(parent)
 
         if settings is None:
@@ -112,7 +134,7 @@ class Q3DController(QObject):
         self._settingsCopy = None
 
         self.webPage = webPage
-        self.offScreen = bool(viewIface is None)
+        self.offScreen = offScreen
 
         self.builder = ThreeJSBuilder(parent=None if useThread else self,
                                       isInUiThread=not useThread)
@@ -130,7 +152,7 @@ class Q3DController(QObject):
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
-        self.iface = Q3DControllerInterface(self, webPage, viewIface)
+        self.iface = Q3DControllerInterface(self, webPage)
         self.iface.setObjectName("controllerInterface")
 
         self._enabled = enabledAtStart
@@ -149,8 +171,10 @@ class Q3DController(QObject):
         self.sendQueue = deque()
         self.isDataLoading = False
 
-        # delegating method
-        self.runScript = webPage.runScript
+        # delegating methods
+        self.runScript = self.iface.runScript
+        self.sendData = self.iface.sendData
+        self.loadScriptFiles = self.iface.loadScriptFiles
 
     def closeTaskQueue(self):
         self._enabled = False
@@ -258,7 +282,7 @@ class Q3DController(QObject):
 
     def sendQueuedData(self):
         if self.sendQueue and not self.isDataLoading:
-            self.webPage.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
+            self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
             self.isDataLoading = True
 
     def buildScene(self):
@@ -286,7 +310,7 @@ class Q3DController(QObject):
         latlon = self.settings.isCoordLatLon()
         self.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
         if latlon:
-            self.iface.loadScriptFile(ScriptFile.PROJ4)
+            self.loadScriptFiles([ScriptFile.PROJ4])
 
     def buildLayer(self, layer):
         if isinstance(layer, dict):
@@ -297,16 +321,16 @@ class Q3DController(QObject):
             return False
 
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
-            self.iface.loadScriptFiles([ScriptFile.COLLADALOADER,
-                                        ScriptFile.GLTFLOADER])
+            self.loadScriptFiles([ScriptFile.COLLADALOADER,
+                                  ScriptFile.GLTFLOADER])
 
         elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
-            self.iface.loadScriptFiles([ScriptFile.MESHLINE])
+            self.loadScriptFiles([ScriptFile.MESHLINE])
 
         elif layer.type == LayerType.POINTCLOUD:
-            self.iface.loadScriptFiles([ScriptFile.FETCH,
-                                        ScriptFile.POTREE,
-                                        ScriptFile.PCLAYER])
+            self.loadScriptFiles([ScriptFile.FETCH,
+                                  ScriptFile.POTREE,
+                                  ScriptFile.PCLAYER])
 
         self.processingLayer = layer
         self.isBuilderBusy = True

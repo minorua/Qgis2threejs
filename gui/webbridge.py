@@ -19,9 +19,9 @@ if DEBUG_MODE:
             return func(*args, **kwargs)
         return wrapper
 else:
-    def noop(func):
+    def noop_decorator(func):
         return func
-    emit_slotCalled = noop
+    emit_slotCalled = noop_decorator
 
 
 class WebBridge(QObject):

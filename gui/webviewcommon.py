@@ -5,42 +5,13 @@
 
 import os
 
-from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 
 from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
 from ..utils import js_bool, logger, pluginDir
-
-
-class Q3DViewInterface(QObject):
-
-    def __init__(self, parent, webPage):
-        super().__init__(parent)
-
-        self.webPage = webPage
-        self.enabled = True
-
-    @pyqtSlot(dict, int)
-    def sendData(self, data, progress=100):
-        if self.enabled:
-            self.webPage.sendData(data, progress)
-
-    @pyqtSlot(str, object, str)
-    def runScript(self, string, data=None, message=""):
-        if self.enabled:
-            self.webPage.runScript(string, data, message, sourceID="interface.py")
-
-    @pyqtSlot(list, bool)
-    def loadScriptFiles(self, ids, force=False):
-        """
-        Args:
-            ids: list of script IDs
-            force: if False, do not load a script that is already loaded
-        """
-        if self.enabled:
-            self.webPage.loadScriptFiles(ids, force)
 
 
 class Q3DWebPageCommon:
@@ -51,11 +22,10 @@ class Q3DWebPageCommon:
         self.loadedScripts = {}
         self.loadFinished.connect(self.pageLoaded)
 
-    def setup(self, settings, wnd=None):
-        """wnd: Q3DWindow or None (off-screen mode)"""
+    def setup(self, settings, wnd=None):        # TODO: needs wnd?
+        """wnd: Q3DWindow or None"""
         self.expSettings = settings
         self.wnd = wnd
-        self.offScreen = bool(wnd is None)
 
     def teardown(self):
         self.wnd = None

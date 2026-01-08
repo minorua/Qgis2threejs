@@ -340,7 +340,7 @@ class BridgeExporterBase:
         else:
             self.page = webview.Q3DWebPage()
 
-        self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page)
+        self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page, offScreen=True)
         self.controller.iface.setupConnections()
         self.controller.statusMessage.connect(self.logStatusMessage)
 
@@ -403,7 +403,7 @@ class ImageExporter(BridgeExporterBase):
         err = self.page.waitForSceneLoaded(abortSignal)
 
         # header and footer labels
-        self.page.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
+        self.controller.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
 
         if self.isWebEngine:
             size = self.view.size()
@@ -419,7 +419,7 @@ class ImageExporter(BridgeExporterBase):
             self.page.requestRendering(waitUntilFinished=True)
             self.view.render(painter)
         else:
-            self.page.runScript("app.render()")
+            self.controller.runScript("app.render()")
             self.page.mainFrame().render(painter)
 
         painter.end()
@@ -448,7 +448,7 @@ class ModelExporter(BridgeExporterBase):
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)
-        self.page.loadScriptFile(ScriptFile.GLTFEXPORTER)
+        self.controller.loadScriptFiles([ScriptFile.GLTFEXPORTER])
 
     def export(self, filename, abortSignal=None):
         if self.page is None:
@@ -463,6 +463,6 @@ class ModelExporter(BridgeExporterBase):
         err = self.page.waitForSceneLoaded(abortSignal)
 
         # save model
-        self.page.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
+        self.controller.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
 
         return err

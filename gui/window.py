@@ -18,7 +18,6 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from .webviewcommon import Q3DViewInterface
 from ..conf import DEBUG_MODE, TEMP_DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
@@ -60,10 +59,7 @@ class Q3DWindow(QMainWindow):
             previewEnabled = False
             viewName = ""
 
-        self.iface = Q3DViewInterface(self, self.webPage)
-        self.iface.setObjectName("viewerInterface")
-
-        self.controller = Q3DController(self, settings, self.webPage, viewIface=self.iface, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
+        self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
@@ -109,7 +105,7 @@ class Q3DWindow(QMainWindow):
 
     def closeEvent(self, event):
         try:
-            self.iface.enabled = False      # Q3DViewInterface
+            self.controller.iface.enabled = False        # Q3DControllerInterface
             self.controller.closeTaskQueue()
 
             # disconnect signals
