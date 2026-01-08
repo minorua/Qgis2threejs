@@ -70,10 +70,6 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.isWebEnginePage = True
 
-    def setup(self, settings, wnd=None):
-        """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd)
-
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)
@@ -81,6 +77,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
+    def setup(self):
         url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
         self.reload()

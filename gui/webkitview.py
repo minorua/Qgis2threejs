@@ -27,13 +27,6 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         self.isWebEnginePage = False
 
-    def url(self):
-        return self.mainFrame().url()
-
-    def setup(self, settings, wnd=None):
-        """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd)
-
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
 
         # security settings
@@ -44,6 +37,14 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         self.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.linkClicked.connect(QDesktopServices.openUrl)
 
+    def addJSObject(self):
+        self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
+        logger.debug("pyObj added")
+
+    def url(self):
+        return self.mainFrame().url()
+
+    def setup(self):
         # if self.offScreen:
         #     # transparent background
         #     palette = self.palette()
@@ -54,10 +55,6 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         url = pluginDir("web/viewer/webkit.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
         self.reload()
-
-    def addJSObject(self):
-        self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
-        logger.debug("pyObj added")
 
     def reload(self):
         self.showStatusMessage("Initializing preview...")

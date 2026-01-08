@@ -76,7 +76,7 @@ class Q3DWindow(QMainWindow):
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            self.ui.webView.setup(settings, wnd=self, enabled=previewEnabled)
+            self.ui.webView.setup(previewEnabled)
             self.ui.webView.fileDropped.connect(self.fileDropped)
 
             if self.webPage.isWebEnginePage:
