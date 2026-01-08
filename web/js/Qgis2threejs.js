@@ -1012,13 +1012,18 @@ Q3D.E = function (id) {
 		app.render();
 	};
 
+	var rafId = null;
+
 	var renderImmediately = function () {
 		app.render(true);
+		rafId = null;
 	};
 
 	app.render = function (immediate) {
 		if (!immediate) {
-			requestAnimationFrame(renderImmediately);
+			if (rafId === null) {
+				rafId = requestAnimationFrame(renderImmediately);
+			}
 			return;
 		}
 
