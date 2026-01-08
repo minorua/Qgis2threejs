@@ -105,32 +105,25 @@ class ThreeJSBuilder(QObject):
         self.progress(0, msg=f"Building {layer.name} layer...")
 
         try:
-            layerBuilder = self._layerBuilder(layer, settings, progress=self._progress)
+            layerBuilder = self._layerBuilder(layer, settings, progress=self.progress)
             data = layerBuilder.build()
+            if data:
+                self.dataReady.emit(data)
+
+            for blockBuilder in layerBuilder.blockBuilders():
+                logger.debug("Building a block.")
+
+                if self.aborted:
+                    self.taskAborted.emit()
+                    return
+
+                data = blockBuilder.build()
+                if data:
+                    self.dataReady.emit(data)
 
         except Exception as _:
             self.taskFailed.emit(layer.name, traceback.format_exc())
             return
-
-        if data:
-            self.dataReady.emit(data)
-
-        for blockBuilder in layerBuilder.blockBuilders():
-            logger.debug("Building a block.")
-
-            if self.aborted:
-                self.taskAborted.emit()
-                return
-
-            try:
-                data = blockBuilder.build()
-
-            except Exception as _:
-                self.taskFailed.emit(layer.name, traceback.format_exc())
-                return
-
-            if data:
-                self.dataReady.emit(data)
 
         self.taskCompleted.emit()
 
@@ -143,7 +136,6 @@ class ThreeJSBuilder(QObject):
 
     # [preview][export]
     def _buildScene(self, settings):
-        self.progress(0, msg="Building scene...")
         be = settings.baseExtent()
         mapTo3d = settings.mapTo3d()
 
