@@ -133,10 +133,10 @@ class AnimationPanel(QWidget):
 
         if len(dataList):
             logger.debug("Play: %s", dataList)
+            self.isAnimating = True
             self.wnd.controller.addRunScriptTask("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
-            self.isAnimating = True
         else:
             if not msg:
                 msg = "Animation: "
@@ -1259,6 +1259,7 @@ class KeyframeDialog(QDialog):
         self.panel.showNarrativeBox(self.ui.plainTextEdit.toPlainText())
 
     def playAnimation(self, items):
+        self.isPlaying = True
         self.panel.playAnimation(items)
 
         self.panel.tree.clearSelection()
@@ -1266,7 +1267,6 @@ class KeyframeDialog(QDialog):
         self.ui.toolButtonPlay.setIcon(self.panel.iconStop)
         self.ui.pushButtonPlayAll.setIcon(self.panel.iconStop)
         self.ui.pushButtonPlayAll.setText("")
-        self.isPlaying = True
 
     def stopAnimation(self):
         self.panel.stopAnimation()
@@ -1287,8 +1287,8 @@ class KeyframeDialog(QDialog):
             self.apply()
 
             if self.type & ATConst.ITEM_MBR:
-                self.playAnimation([self.item.parent()])
                 self.isPlayingAll = True
+                self.playAnimation([self.item.parent()])
         else:
             self.stopAnimation()
 
