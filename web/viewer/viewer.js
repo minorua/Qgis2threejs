@@ -127,7 +127,7 @@ function _init(off_screen) {
 //// load functions
 function loadData(data, progress) {
 	if (Q3D.Config.debugMode) {
-		console.log("Loading " + (data.type || "unknown") + " data...");
+		console.debug("Loading " + (data.type || "unknown") + " data...");
 	}
 
 	var p = data.properties;
