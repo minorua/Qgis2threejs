@@ -369,6 +369,8 @@ Q3D.E = function (id) {
 
 		// event listeners
 		app.addEventListener("sceneLoaded", function () {
+			E("progressbar").classList.add("fadeout");
+
 			if (conf.viewpoint.pos === undefined && conf.autoAdjustCameraPos) {
 				app.adjustCameraPosition();
 			}
@@ -406,15 +408,8 @@ Q3D.E = function (id) {
 	};
 
 	app.initLoadingManager = function () {
-		if (app.loadingManager) {
-			app.loadingManager.onLoad = app.loadingManager.onProgress = app.loadingManager.onError = undefined;
-		}
-
 		app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
 			app.loadingManager.isLoading = false;
-
-			E("progressbar").classList.add("fadeout");
-
 			app.dispatchEvent({type: "sceneLoaded"});
 		},
 		function (url, loaded, total) {   // onProgress
@@ -422,15 +417,14 @@ Q3D.E = function (id) {
 		},
 		function () {   // onError
 			app.loadingManager.isLoading = false;
-
-			app.dispatchEvent({type: "sceneLoadError"});
+			app.dispatchEvent({type: "loadError"});
 		});
+
+		app.loadingManager.isLoading = false;
 
 		app.loadingManager.onStart = function () {
 			app.loadingManager.isLoading = true;
 		};
-
-		app.loadingManager.isLoading = false;
 	};
 
 	app.loadFile = function (url, type, callback) {
@@ -637,7 +631,7 @@ Q3D.E = function (id) {
 	// move camera target to center of scene
 	app.adjustCameraPosition = function (force) {
 		if (!force) {
-			app.render();
+			app.render(true);
 
 			// stay at current position if rendered objects exist
 			var r = app.renderer.info.render;
@@ -2138,19 +2132,11 @@ class Q3DMaterial {
 			else if (m.image.object !== undefined) {    // WebKit Bridge
 				opt.map = new THREE.Texture(m.image.object.toImageData());
 				opt.map.needsUpdate = true;
-
 				delete m.image.object;
 			}
 			else {    // base64
-				var img = new Image();
-				img.onload = function () {
-					opt.map.needsUpdate = true;
-					_this._loadCompleted(callback);
-				};
-				img.src = m.image.base64;
-				opt.map = new THREE.Texture(img);
+				opt.map = new THREE.TextureLoader(Q3D.application.loadingManager).load(m.image.base64);
 				defer = true;
-
 				delete m.image.base64;
 			}
 			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
@@ -3340,7 +3326,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				ctx.fillText(text, x, y);
 
 				mtl = new THREE.SpriteMaterial({
-					map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),
+					map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),	// TODO: loadingManager
 					opacity: opacity,
 					transparent: true
 				});
