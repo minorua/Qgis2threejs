@@ -347,12 +347,14 @@ class Q3DController(QObject):
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
+        """Called when a scene or layer build task completes."""
         logger.debug("Task completed.")
 
         self.taskFinalized()
 
     @pyqtSlot(str, str)
     def taskFailed(self, target, traceback_str):
+        """Called when a layer build task fails."""
         msg = f"Failed to build {target}."
         logger.error(f"{msg}:\n{traceback_str}")
 
@@ -375,10 +377,12 @@ class Q3DController(QObject):
             self._processNextTask()
 
         else:
-            self.taskQueue.resetCounts()
+            # the last task was a layer build task
+            self._allTasksFinished()
 
-            # wait until data loading are done
-            self.runScript("allDataSent()", callback=self._hideProgress)
+    def _allTasksFinished(self):
+        self.taskQueue.resetCounts()
+        self.runScript("allTasksFinished()", callback=self._hideProgress)
 
     def _hideProgress(self, _v=None):
         self.allTasksFinished.emit()
@@ -433,6 +437,15 @@ class Q3DController(QObject):
 
             elif item == Task.UPDATE_SCENE_OPTS:
                 self.updateSceneOptions()
+
+            elif item == Task.DISPATCH_SCENE_LOADED:
+                if len(self.taskQueue) == 0:
+                    self.runScript("dispatchSceneLoaded()")
+
+                    # the last task was dispatching sceneLoaded event
+                    self._allTasksFinished()
+                else:
+                    self.taskQueue.append(item)     # defer this task
 
             elif isinstance(item, Layer):
                 if self.settings.getLayer(item.layerId):

@@ -6,10 +6,11 @@ from ..exportsettings import Layer
 from ...utils import logger
 
 class Task:
-    BUILD_SCENE_ALL = 1     # build scene
-    BUILD_SCENE = 2         # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
-    UPDATE_SCENE_OPTS = 3   # update scene options
-    RELOAD_PAGE = 4
+    BUILD_SCENE_ALL = 1        # build scene
+    BUILD_SCENE = 2            # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
+    UPDATE_SCENE_OPTS = 3      # update scene options
+    DISPATCH_SCENE_LOADED = 4
+    RELOAD_PAGE = 5
 
 
 class TaskQueue:
@@ -71,11 +72,12 @@ class TaskQueue:
         if update_all:
             self.append(Task.UPDATE_SCENE_OPTS)
 
+        self._addBuildAllLayerTasks()
+        self.append(Task.DISPATCH_SCENE_LOADED)
+
         logger.debug("Scene build task queued.")
 
-        self.addBuildAllLayerTasks()
-
-    def addBuildAllLayerTasks(self):
+    def _addBuildAllLayerTasks(self):
         for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
             if layer.visible:
                 self.append(layer)
