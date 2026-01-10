@@ -32,8 +32,8 @@ class WebBridge(QObject):
     # signals - Bridge to Python (window, web page, etc.)
     initialized = pyqtSignal()
     dataLoaded = pyqtSignal()
+    dataLoadError = pyqtSignal()
     sceneLoaded = pyqtSignal()
-    sceneLoadError = pyqtSignal()
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
     imageReady = pyqtSignal("QImage", bool)         # image, copy_to_clipboard -> Window
@@ -67,13 +67,13 @@ class WebBridge(QObject):
 
     @pyqtSlot()
     @emit_slotCalled
-    def emitSceneLoaded(self):
-        self.sceneLoaded.emit()
+    def emitDataLoadError(self):
+        self.dataLoadError.emit()
 
     @pyqtSlot()
     @emit_slotCalled
-    def emitSceneLoadError(self):
-        self.sceneLoadError.emit()
+    def emitSceneLoaded(self):
+        self.sceneLoaded.emit()
 
     @pyqtSlot(int)
     @emit_slotCalled

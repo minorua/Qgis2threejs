@@ -78,7 +78,7 @@ class Q3DWebPageCommon:
             loop.exit(3)
 
         self.bridge.sceneLoaded.connect(loop.quit)
-        self.bridge.sceneLoadError.connect(error)
+        self.bridge.dataLoadError.connect(error)
 
         if abortSignal:
             abortSignal.connect(userCancel)
@@ -92,7 +92,7 @@ class Q3DWebPageCommon:
         err = loop.exec()
 
         self.bridge.sceneLoaded.disconnect(loop.quit)
-        self.bridge.sceneLoadError.disconnect(error)
+        self.bridge.dataLoadError.disconnect(error)
 
         if abortSignal:
             abortSignal.disconnect(userCancel)

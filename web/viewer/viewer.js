@@ -12,6 +12,12 @@ var preview = {
 
 	renderEnabled: true,
 
+	noRenderDuringLoad: true,	// whether to suppress rendering while data is loading
+
+	isDataLoading: false,		// indicates whether scene/layer/block data sent from Python (such as scene/layer properties,
+								// DEM grids, feature geometries, and images) is being loaded; if block data includes image data,
+								// it remains true until the images have been loaded as textures.
+
 	timer: {
 		tickCount: 0
 	}
@@ -64,7 +70,7 @@ function _init(off_screen) {
 	if (off_screen) {
 		Q3D.E("progress").style.display = "none";
 		var renderOffscreen = app.render;
-		app.render = function () {};		// not necessary to render scene before scene has been completely loaded
+		app.render = function () {};		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", function () {
 			app.render = renderOffscreen;
 			app.render(true); app.render(true); // render scene twice for output stability
@@ -74,12 +80,21 @@ function _init(off_screen) {
 		Q3D.E("closemsgbar").onclick = closeMessageBar;
 	}
 
-	app.addEventListener("sceneLoaded", function () {
-		pyObj.emitSceneLoaded();
+	app.addEventListener("loadComplete", function () {
+		preview.isDataLoading = false;
+
+		setTimeout(function () {
+			app.render(true);
+			pyObj.emitDataLoaded();
+		}, 0);
 	});
 
-	app.addEventListener("sceneLoadError", function () {
-		pyObj.emitSceneLoadError();
+	app.addEventListener("loadError", function () {
+		pyObj.emitDataLoadError();
+	});
+
+	app.addEventListener("sceneLoaded", function () {
+		pyObj.emitSceneLoaded();
 	});
 
 	app.addEventListener("tweenStarted", function (e) {
@@ -126,9 +141,13 @@ function _init(off_screen) {
 
 //// load functions
 function loadData(data, progress) {
+	preview.isDataLoading = true;
+
 	if (Q3D.Config.debugMode) {
 		console.debug("Loading " + (data.type || "unknown") + " data...");
 	}
+
+	app.loadingManager.itemStart("data");
 
 	var p = data.properties;
 
@@ -157,11 +176,11 @@ function loadData(data, progress) {
 
 	app.loadData(data);
 
+	app.loadingManager.itemEnd("data");
+
 	if (progress !== undefined) {
 		updateProgressBar(progress);
 	}
-
-	pyObj.emitDataLoaded();
 }
 
 function loadScriptFile(path, callback) {
@@ -545,11 +564,24 @@ function copyCanvasToClipboard(width, height) {
 
 
 //// overrides
+app._initLoadingManager = app.initLoadingManager;
 app._render = app.render;
 app._saveCanvasImage = app.saveCanvasImage;
 
+app.initLoadingManager = function () {
+	app._initLoadingManager();
+
+	app.loadingManager.onLoad = function () {
+		app.loadingManager.isLoading = false;
+		app.dispatchEvent({type: "loadComplete"});	// dispath loadComplete instead of sceneLoaded
+	};
+
+	app.loadingManager.onProgress = undefined;
+};
+
 app.render = function (immediate) {
 	if (!preview.renderEnabled) return;
+	if (preview.noRenderDuringLoad && preview.isDataLoading) return;
 
 	app._render(immediate);
 
