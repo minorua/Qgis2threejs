@@ -41,22 +41,29 @@ class Q3DWebPageCommon:
 
         logger.debug(f"> {text}")
 
-    def loadScriptFile(self, scriptFileId, force=False):
-        """evaluate a script file without using a script tag. script is loaded synchronously"""
-        if scriptFileId in self.loadedScripts and not force:
+    def loadScriptFile(self, scriptFileId):
+        if scriptFileId in self.loadedScripts:
             return
 
-        filename = pluginDir("web/js", ScriptFile.PATHS[scriptFileId])
+        path = "../js/" + ScriptFile.PATHS[scriptFileId]
 
-        with open(filename, "r", encoding="utf-8") as f:
-            script = f.read()
+        loop = QEventLoop()
+        self.bridge.scriptFileLoaded.connect(loop.quit)
+        self.timer.timeout.connect(loop.quit)
 
-        self.runScript(script, message="{} loaded.".format(os.path.basename(filename)))
+        self.runScript(f"loadScriptFile('{path}', emitScriptReady)")
+
+        loop.exec()
+        self.timer.stop()
+
+        self.bridge.scriptFileLoaded.disconnect(loop.quit)
+        self.timer.timeout.disconnect(loop.quit)
+
         self.loadedScripts[scriptFileId] = True
 
-    def loadScriptFiles(self, scriptFileIds, force=False):
+    def loadScriptFiles(self, scriptFileIds):
         for id in scriptFileIds:
-            self.loadScriptFile(id, force)
+            self.loadScriptFile(id)
 
     def waitForSceneLoaded(self, abortSignal=None, timeout=None):
         loading = self.runScript("app.loadingManager.isLoading", wait=True)

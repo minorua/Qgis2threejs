@@ -101,13 +101,8 @@ class Q3DControllerInterface(QObject):
         self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
     @requires_enabled
-    def loadScriptFiles(self, ids, force=False):
-        """
-        Args:
-            ids: list of script IDs
-            force: if False, do not load a script that is already loaded
-        """
-        self.webPage.loadScriptFiles(ids, force)
+    def loadScriptFiles(self, script_ids):
+        self.webPage.loadScriptFiles(script_ids)
 
 
 class Q3DController(QObject):

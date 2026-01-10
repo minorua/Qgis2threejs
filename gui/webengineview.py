@@ -7,7 +7,7 @@ import json
 import os
 import logging
 
-from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
@@ -76,6 +76,10 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+
+        self.timer = QTimer(self)
+        self.timer.setInterval(10000)
+        self.timer.setSingleShot(True)
 
     def setup(self):
         url = pluginDir("web/viewer/webengine.html").replace("\\", "/")

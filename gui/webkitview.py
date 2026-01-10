@@ -60,7 +60,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         self.showStatusMessage("Initializing preview...")
         self.mainFrame().setUrl(self.myUrl)
 
-    def runScript(self, string, data=None, message="", sourceID="webkitview.py", callback=None, _wait=False):
+    def runScript(self, string, data=None, message="", sourceID="webkitview.py", callback=None, wait=False):
         """
         Run a JavaScript script in the web view with optional data and callback.
         Args:

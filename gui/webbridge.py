@@ -42,6 +42,12 @@ class WebBridge(QObject):
     resized = pyqtSignal(int, int)                  # width, height
     statusMessage = pyqtSignal(str, int)
     testResultReceived = pyqtSignal(str, bool, str)
+    scriptFileLoaded = pyqtSignal()
+
+    @pyqtSlot()
+    @emit_slotCalled
+    def emitScriptReady(self):
+        self.scriptFileLoaded.emit()
 
     def __init__(self, parent):
         super().__init__(parent)
