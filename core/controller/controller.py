@@ -444,7 +444,7 @@ class Q3DController(QObject):
                     logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
 
             elif isinstance(item, dict):
-                self.runScript(item.get("string"), data=item.get("data"), callback=self.taskCompleted)
+                self.runScript(item.get("string"), data=item.get("data"))
 
             else:
                 logger.warning(f"Unknown task: {item}")
