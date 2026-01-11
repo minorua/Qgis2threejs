@@ -258,6 +258,10 @@ class Q3DController(QObject):
 
     def pageLoaded(self, ok):
         logger.debug("Page load finished.")
+
+        self.taskQueue.clear()
+        self.clearSendQueue()
+
         if self.webPage.url().scheme() != "file":
             return
 
@@ -326,8 +330,7 @@ class Q3DController(QObject):
         try:
             item = self.taskQueue.pop()
             if item == Task.RELOAD_PAGE:
-                self.runScript("location.reload()")
-                self.taskFinalized()
+                self.webPage.reload()
 
             elif item == Task.BUILD_SCENE:
                 self.sceneLoadStatus.reset()
@@ -493,6 +496,10 @@ class Q3DController(QObject):
 
         self.sendQueuedData()
 
+    def clearSendQueue(self):
+        self.sendQueue.clear()
+        self.isDataLoading = False
+
     @pyqtSlot()
     def dataLoaded(self):
         self.isDataLoading = False
@@ -548,8 +555,8 @@ class Q3DController(QObject):
         self.taskQueue.addRunScriptTask(string, data=data)
         self.processNextTask()
 
-    def reload(self):
-        self.runScript("location.reload()")
+    def addReloadPageTask(self):
+        self.addBuildSceneTask(reload=True)
 
     def cameraState(self, flat=False):
         return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)

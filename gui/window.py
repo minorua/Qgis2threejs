@@ -195,7 +195,7 @@ class Q3DWindow(QMainWindow):
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
         if self.webPage:
-            ui.actionReload.triggered.connect(self.webPage.reload)
+            ui.actionReload.triggered.connect(self.controller.addReloadPageTask)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
@@ -428,7 +428,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData(self.settings.animationData())
 
-        self.controller.reload()
+        self.controller.addReloadPageTask()
 
     def saveSettings(self, filename=None):
         # open file dialog if filename is not specified
@@ -463,7 +463,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData({})
 
-        self.controller.reload()
+        self.controller.addReloadPageTask()
 
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
