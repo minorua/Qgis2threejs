@@ -1,7 +1,14 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-//// configuration
+Q3D.Config.preview = {
+
+	// showTriangleCount: debug_mode,
+
+	showFPS: false
+
+};
+
 Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/potree-core";
 Q3D.Config.potree.maxNodesLoading = 1;
 
@@ -106,7 +113,11 @@ function _init(off_screen) {
 	});
 
 	if (Q3D.Config.debugMode) {
-		displayFPS();
+		showTriangleCount();
+	}
+
+	if (Q3D.Config.preview.showFPS) {
+		showFPS();
 	}
 
 	// check extension support of web view
@@ -280,15 +291,28 @@ function updateProgressBar(loaded, total) {
 	}
 }
 
-function displayFPS() {
+function showTriangleCount() {
+	window.setInterval(function () {
+		var triangles = app.renderer.info.render.triangles;
+		if (triangles != preview.lastTriangleCount) {
+			Q3D.E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
+			preview.lastTriangleCount = triangles;
+		}
+	}, 1000);
+}
+
+function showFPS() {
 	preview.timer.last = Date.now();
 
 	window.setInterval(function () {
 		var now = Date.now(),
 			elapsed = now - preview.timer.last,
-			fps = preview.timer.tickCount / elapsed * 1000;
+			fps = Math.round(preview.timer.tickCount / elapsed * 1000);
 
-		Q3D.E("fps").innerHTML = "FPS: " + Math.round(fps);
+		if (fps != preview.lastFPS) {
+			Q3D.E("fps").innerHTML = "FPS: " + fps;
+			preview.lastFPS = fps;
+		}
 
 		preview.timer.last = now;
 		preview.timer.tickCount = 0;
