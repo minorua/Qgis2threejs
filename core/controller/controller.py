@@ -261,17 +261,20 @@ class Q3DController(QObject):
         if self.webPage.url().scheme() != "file":
             return
 
-        # configuration
+        configs = []
         if self.settings.isOrthoCamera():
-            self.runScript("Q3D.Config.orthoCamera = true;")
+            configs.append("Q3D.Config.orthoCamera = true;")
 
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            self.runScript("Q3D.Config.northArrow.enabled = true;")
-            self.runScript("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
+            configs.append("Q3D.Config.northArrow.enabled = true;")
+            configs.append("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         if not self.settings.isNavigationEnabled():
-            self.runScript("Q3D.Config.navigation.enabled = false;")
+            configs.append("Q3D.Config.navigation.enabled = false;")
+
+        if configs:
+            self.runScript("\n".join(configs))
 
         self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
                                                      DEBUG_MODE,
