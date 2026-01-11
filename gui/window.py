@@ -63,7 +63,7 @@ class Q3DWindow(QMainWindow):
         self.controller.setObjectName("controller")
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
-        self.controller.allTasksFinished.connect(self.hideProgress)
+        self.controller.allTasksFinalized.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
         self._setupStatusBar(self.ui, previewEnabled, viewName)

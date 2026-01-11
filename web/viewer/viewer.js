@@ -256,7 +256,21 @@ function hideLayer(layerId, remove_obj) {
 	}
 }
 
+function sceneLoadFinalized(complete) {
+	if (!complete) return;
+
+	setTimeout(function () {
+		app.dispatchEvent({type: "sceneLoaded"});
+	}, 0);
+}
+
 var progressFadeoutSet = false;
+function allTasksFinalized() {
+	// hide progress bar
+	Q3D.E("progressbar").classList.add("fadeout");
+	progressFadeoutSet = true;
+}
+
 function updateProgressBar(loaded, total) {
 	total = total || 100;
 	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
@@ -264,12 +278,6 @@ function updateProgressBar(loaded, total) {
 		Q3D.E("progressbar").classList.remove("fadeout");
 		progressFadeoutSet = false;
 	}
-}
-
-function allDataSent() {
-	// hide progress bar
-	Q3D.E("progressbar").classList.add("fadeout");
-	progressFadeoutSet = true;
 }
 
 function displayFPS() {

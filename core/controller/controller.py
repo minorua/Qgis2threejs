@@ -105,12 +105,23 @@ class Q3DControllerInterface(QObject):
         self.webPage.loadScriptFiles(script_ids)
 
 
+class SceneLoadStatus:
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.buildSceneStarted = False      # True if the BUILD_SCENE task has started
+        self.allTasksFinalized = False
+        self.taskFailed = False             # True if any task has failed
+
+
 class Q3DController(QObject):
 
     # signals
     statusMessage = pyqtSignal(str, int)         # message, timeout_ms
     progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
-    allTasksFinished = pyqtSignal()
+    allTasksFinalized = pyqtSignal()
 
     def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
         super().__init__(parent)
@@ -166,6 +177,8 @@ class Q3DController(QObject):
         self.sendQueue = deque()
         self.isDataLoading = False
 
+        self.sceneLoadStatus = SceneLoadStatus()
+
         # delegating methods
         self.runScript = self.iface.runScript
         self.sendData = self.iface.sendData
@@ -218,6 +231,8 @@ class Q3DController(QObject):
                 self.showStatusMessage("Aborting processing...")
 
             self.builder.abort()
+
+        self.sceneLoadStatus.reset()
 
     def pageLoaded(self, ok):
         logger.debug("Page load finished.")
@@ -273,12 +288,24 @@ class Q3DController(QObject):
     @pyqtSlot()
     def dataLoaded(self):
         self.isDataLoading = False
-        self.sendQueuedData()
+        if self.sendQueue:
+            self.sendQueuedData()
+            return
+
+        if self.sceneLoadStatus.buildSceneStarted and self.sceneLoadStatus.allTasksFinalized:
+            complete = not self.sceneLoadStatus.taskFailed
+            self._sceneLoadFinalized(complete)
 
     def sendQueuedData(self):
-        if self.sendQueue and not self.isDataLoading:
-            self.isDataLoading = True
-            self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
+        if self.isDataLoading or not self.sendQueue:
+            return
+
+        self.isDataLoading = True
+        self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
+
+    def _sceneLoadFinalized(self, complete):
+        self.sceneLoadStatus.reset()
+        self.runScript("sceneLoadFinalized({})".format(js_bool(complete)))
 
     def buildScene(self):
         if self.isBuilderBusy:
@@ -347,16 +374,20 @@ class Q3DController(QObject):
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
+        """Called when a scene or layer build task completes."""
         logger.debug("Task completed.")
 
         self.taskFinalized()
 
     @pyqtSlot(str, str)
     def taskFailed(self, target, traceback_str):
+        """Called when a layer build task fails."""
         msg = f"Failed to build {target}."
         logger.error(f"{msg}:\n{traceback_str}")
 
         self.showStatusMessage(msg, timeout_ms=5000)
+
+        self.sceneLoadStatus.taskFailed = True
         self.taskFinalized()
 
     @pyqtSlot()
@@ -373,15 +404,21 @@ class Q3DController(QObject):
 
         if self.taskQueue:
             self._processNextTask()
+            return
 
-        else:
-            self.taskQueue.resetCounts()
+        # assumes the last task is a scene or layer build task
+        self.sceneLoadStatus.allTasksFinalized = True
+        self.runScript("allTasksFinalized()")
+        self.allTasksFinalized.emit()
 
-            # wait until data loading are done
-            self.runScript("allDataSent()", callback=self._hideProgress)
+        self.taskQueue.resetCounts()
 
-    def _hideProgress(self, _v=None):
-        self.allTasksFinished.emit()
+        if self.sendQueue or self.isDataLoading:
+            return
+
+        if self.sceneLoadStatus.buildSceneStarted:
+            complete = not self.sceneLoadStatus.taskFailed
+            self._sceneLoadFinalized(complete)
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
@@ -429,6 +466,9 @@ class Q3DController(QObject):
                 self.runScript("location.reload()")
 
             elif item == Task.BUILD_SCENE:
+                self.sceneLoadStatus.reset()
+                self.sceneLoadStatus.buildSceneStarted = True
+
                 self.buildScene()
 
             elif item == Task.UPDATE_SCENE_OPTS:
