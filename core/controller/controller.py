@@ -324,6 +324,7 @@ class Q3DController(QObject):
             item = self.taskQueue.pop()
             if item == Task.RELOAD_PAGE:
                 self.runScript("location.reload()")
+                self.taskFinalized()
 
             elif item == Task.BUILD_SCENE:
                 self.sceneLoadStatus.reset()
@@ -333,6 +334,7 @@ class Q3DController(QObject):
 
             elif item == Task.UPDATE_SCENE_OPTS:
                 self.updateSceneOptions()
+                self.taskFinalized()
 
             elif isinstance(item, Layer):
                 if self.settings.getLayer(item.layerId):
@@ -340,11 +342,13 @@ class Q3DController(QObject):
                         self.buildLayer(item)
                     else:
                         self.hideLayer(item)
+                        self.taskFinalized()
                 else:
                     logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
 
             elif isinstance(item, dict):
-                self.runScript(item.get("string"), data=item.get("data"))
+                self.runScript(item.get("string"), data=item.get("data"), wait=True)
+                self.taskFinalized()
 
             else:
                 logger.warning(f"Unknown task: {item}")
@@ -388,10 +392,9 @@ class Q3DController(QObject):
         self.clearStatusMessage()
 
         if self.taskQueue:
-            self._processNextTask()
+            self.processNextTask()
             return
 
-        # assumes the last task is a scene or layer build task
         self.sceneLoadStatus.allTasksFinalized = True
         self.runScript("allTasksFinalized()")
         self.allTasksFinalized.emit()
@@ -420,21 +423,25 @@ class Q3DController(QObject):
 
     def updateSceneOptions(self):
         sp = self.settings.sceneProperties()
+        lines = []
 
         # outline effect
-        self.runScript("setOutlineEffectEnabled({})".format(js_bool(sp.get("checkBox_Outline"))))
+        lines.append("setOutlineEffectEnabled({});".format(js_bool(sp.get("checkBox_Outline"))))
 
         # update background color
-        params = "{0}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
-        self.runScript("setBackgroundColor({0})".format(params))
+        params = "{}, 1".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")) if sp.get("radioButton_Color") else "0, 0"
+        lines.append("setBackgroundColor({});".format(params))
 
         # coordinate display
-        self.runScript("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
+        lines.append("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
         latlon = self.settings.isCoordLatLon()
-        self.runScript("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
+        lines.append("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
+
         if latlon:
             self.loadScriptFiles([ScriptFile.PROJ4])
+
+        self.runScript("\n".join(lines), wait=True)
 
     def buildLayer(self, layer):
         if isinstance(layer, dict):
