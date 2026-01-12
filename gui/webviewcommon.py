@@ -3,15 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-import os
-
 from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 
 from .webbridge import WebBridge
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
-from ..utils import js_bool, logger, pluginDir
+from ..utils import js_bool, logger
+
+
+TIMEOUT_MS = 30000      # timeout (ms) for script loading
 
 
 class Q3DWebPageCommon:
@@ -49,15 +50,17 @@ class Q3DWebPageCommon:
 
         loop = QEventLoop()
         self.bridge.scriptFileLoaded.connect(loop.quit)
-        self.timer.timeout.connect(loop.quit)
+
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
 
         self.runScript(f"loadScriptFile('{path}', emitScriptReady)")
-
+        timer.start(TIMEOUT_MS)
         loop.exec()
-        self.timer.stop()
 
-        self.bridge.scriptFileLoaded.disconnect(loop.quit)
-        self.timer.timeout.disconnect(loop.quit)
+        if not timer.isActive():
+            logger.warning(f"Loading script file timed out: {path}")
 
         self.loadedScripts[scriptFileId] = True
 
@@ -65,7 +68,7 @@ class Q3DWebPageCommon:
         for id in scriptFileIds:
             self.loadScriptFile(id)
 
-    def waitForSceneLoaded(self, abortSignal=None, timeout=None):
+    def waitForSceneLoaded(self, abortSignal=None, timeout=TIMEOUT_MS):
         loading = self.runScript("app.loadingManager.isLoading", wait=True)
 
         logger.debug("waitForSceneLoaded: loading=%s", loading)
@@ -74,6 +77,9 @@ class Q3DWebPageCommon:
             return False
 
         loop = QEventLoop()
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
 
         def error():
             loop.exit(1)
@@ -81,24 +87,17 @@ class Q3DWebPageCommon:
         def userCancel():
             loop.exit(2)
 
-        def timeOut():
-            loop.exit(3)
-
         self.bridge.sceneLoaded.connect(loop.quit)
         self.bridge.dataLoadError.connect(error)
 
         if abortSignal:
             abortSignal.connect(userCancel)
 
-        if timeout:
-            timer = QTimer()
-            timer.setSingleShot(True)
-            timer.timeout.connect(timeOut)
-            timer.start(timeout)
-
+        timer.start(timeout)
         err = loop.exec()
+        if not timer.isActive():
+            err = 3
 
-        self.bridge.sceneLoaded.disconnect(loop.quit)
         self.bridge.dataLoadError.disconnect(error)
 
         if abortSignal:

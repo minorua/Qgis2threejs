@@ -25,6 +25,9 @@ from ..utils import pluginDir
 from ..utils.logging import logger, web_logger
 
 
+TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
+
+
 _original_chromium_flags = None
 _chromium_flags_saved = False
 
@@ -77,10 +80,6 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
-        self.timer = QTimer(self)
-        self.timer.setInterval(10000)
-        self.timer.setSingleShot(True)
-
     def setup(self):
         url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
@@ -120,8 +119,11 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             return
 
         loop = QEventLoop()
-        result = None
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
 
+        result = None
         def runJavaScriptCallback(res):
             nonlocal result
             result = res
@@ -129,7 +131,11 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
         self.runJavaScript(string, runJavaScriptCallback)
 
+        timer.start(TIMEOUT_MS)
         loop.exec()
+
+        if not timer.isActive():
+            logger.warning(f"JavaScript execution timed out: {string}")
 
         if callback:
             callback(result)
@@ -148,10 +154,14 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             loop = QEventLoop()
             self.bridge.requestedRenderingFinished.connect(loop.quit)
 
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(loop.quit)
+
             render()
 
+            timer.start(TIMEOUT_MS)
             loop.exec()
-            self.bridge.requestedRenderingFinished.disconnect(loop.quit)
         else:
             render()
 

@@ -6,7 +6,7 @@
 import json
 import os
 
-from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, pyqtSlot
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, QTimer, pyqtSlot
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
@@ -19,6 +19,9 @@ from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui import webview
 from ...utils import hex_color, logger
 from ... import utils
+
+
+TIMEOUT_MS = 30000      # timeout (ms) for page initialization
 
 
 class ExportCancelled(Exception):
@@ -358,7 +361,11 @@ class BridgeExporterBase:
         logger.info(f"The view size is set to {width}x{height} px.")
 
         loop = QEventLoop()
-        self.page.ready.connect(loop.quit)
+        self.page.bridge.initialized.connect(loop.quit)
+
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
 
         if self.isWebEngine:
             self.view.setFixedSize(width, height)
@@ -373,9 +380,11 @@ class BridgeExporterBase:
         else:
             self.page.reload()
 
+        timer.start(TIMEOUT_MS)
         loop.exec()
 
-        self.page.ready.disconnect(loop.quit)
+        if not timer.isActive():
+            logger.warning("Web page initialization timed out.")
 
     def mkdir(self, filename):
         dir = QFileInfo(filename).dir()
