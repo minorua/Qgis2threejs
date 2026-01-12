@@ -289,9 +289,6 @@ class Q3DWindow(QMainWindow):
 
     @pyqtSlot()
     def hideProgress(self):
-        if TEMP_DEBUG_MODE:
-            logger.debug("Progress: complete")
-
         self.ui.progressBar.hide()
         self.ui.progressBar.setFormat("")
 

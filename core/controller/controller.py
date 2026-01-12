@@ -402,7 +402,6 @@ class Q3DController(QObject):
             return
 
         self.sceneLoadStatus.allTasksFinalized = True
-        self.runScript("allTasksFinalized()")
         self.allTasksFinalized.emit()
 
         self.taskQueue.resetCounts()
@@ -410,13 +409,12 @@ class Q3DController(QObject):
         if self.sendQueue or self.isDataLoading:
             return
 
-        if self.sceneLoadStatus.buildSceneStarted:
-            complete = not self.sceneLoadStatus.taskFailed
-            self._sceneLoadFinalized(complete)
+        self._tasksAndLoadingFinalized(complete=not self.sceneLoadStatus.taskFailed,
+                                       is_scene=self.sceneLoadStatus.buildSceneStarted)
 
-    def _sceneLoadFinalized(self, complete):
+    def _tasksAndLoadingFinalized(self, complete, is_scene):
         self.sceneLoadStatus.reset()
-        self.runScript("sceneLoadFinalized({})".format(js_bool(complete)))
+        self.runScript(f"tasksAndLoadingFinalized({js_bool(complete)}, {js_bool(is_scene)})")
 
     def buildScene(self):
         if self.isBuilderBusy:
@@ -507,9 +505,9 @@ class Q3DController(QObject):
             self.sendQueuedData()
             return
 
-        if self.sceneLoadStatus.buildSceneStarted and self.sceneLoadStatus.allTasksFinalized:
-            complete = not self.sceneLoadStatus.taskFailed
-            self._sceneLoadFinalized(complete)
+        if self.sceneLoadStatus.allTasksFinalized:
+            self._tasksAndLoadingFinalized(complete=not self.sceneLoadStatus.taskFailed,
+                                           is_scene=self.sceneLoadStatus.buildSceneStarted)
 
     def sendQueuedData(self):
         if self.isDataLoading or not self.sendQueue:

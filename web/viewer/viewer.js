@@ -267,19 +267,17 @@ function hideLayer(layerId, remove_obj) {
 	}
 }
 
-function sceneLoadFinalized(complete) {
-	if (!complete) return;
-
-	setTimeout(function () {
-		app.dispatchEvent({type: "sceneLoaded"});
-	}, 0);
-}
-
 var progressFadeoutSet = false;
-function allTasksFinalized() {
+function tasksAndLoadingFinalized(complete, is_scene) {
 	// hide progress bar
 	Q3D.E("progressbar").classList.add("fadeout");
 	progressFadeoutSet = true;
+
+	if (complete && is_scene) {
+		setTimeout(function () {
+			app.dispatchEvent({type: "sceneLoaded"});
+		}, 0);
+	}
 }
 
 function updateProgressBar(loaded, total) {
