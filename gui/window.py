@@ -646,7 +646,7 @@ class PropertiesDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
             if isinstance(self.page, ScenePropertyPage):
                 self.propertiesAccepted.emit(self.page.properties())
             else:
@@ -655,7 +655,7 @@ class PropertiesDialog(QDialog):
                 self.layer.properties = self.page.properties()
                 self.propertiesAccepted.emit(self.layer)
 
-                if role == QDialogButtonBox.ApplyRole:
+                if role == QDialogButtonBox.ButtonRole.ApplyRole:
                     self.setLayerDialogTitle(self.layer)
 
     def showLayerProperties(self, layer):
@@ -706,7 +706,7 @@ class NorthArrowDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
             self.propertiesAccepted.emit({
                 "visible": self.ui.groupBox.isChecked(),
                 "color": hex_color(self.ui.colorButton.color().name(), prefix="0x")
@@ -731,7 +731,7 @@ class HFLabelDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.AcceptRole, QDialogButtonBox.ApplyRole]:
+        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
             self.propertiesAccepted.emit({"Header": self.ui.textEdit_Header.toPlainText(),
                                           "Footer": self.ui.textEdit_Footer.toPlainText()})
 
