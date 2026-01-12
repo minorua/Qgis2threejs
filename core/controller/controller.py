@@ -242,18 +242,19 @@ class Q3DController(QObject):
     def aborted(self, value):
         self.builder.aborted = value
 
-    def abort(self, clear_queue=True, show_msg=False):
-        logger.debug(f"Q3DController: aborting. clear queue({clear_queue})")
+    def abort(self, clear_tasks=True, show_msg=False):
+        logger.debug(f"Controller: aborting. clear queue({clear_tasks})")
 
-        if clear_queue:
+        if clear_tasks:
             self.taskQueue.clear()
 
         if not self.aborted:
             if show_msg:
-                self.showStatusMessage("Aborting processing...")
+                self.showStatusMessage("Aborting processing...", timeout_ms=2000)
 
             self.builder.abort()
 
+        self.clearSendQueue()
         self.sceneLoadStatus.reset()
 
     def pageLoaded(self, ok):
@@ -480,7 +481,7 @@ class Q3DController(QObject):
         """hide layer and remove all objects from the layer"""
         # If the layer is being processed, abort processing.
         if self.processingLayer and self.processingLayer.layerId == layer.layerId:
-            self.abort(clear_queue=False)
+            self.abort(clear_tasks=False)
 
         self.taskQueue.removeBuildLayerTask(layer)
         self.runScript(f'hideLayer("{layer.jsLayerId}", true)')
@@ -520,7 +521,7 @@ class Q3DController(QObject):
         self.taskQueue.addBuildSceneTask(update_all=update_all, reload=reload)
 
         if self.isBuilderBusy:
-            self.abort(clear_queue=False)
+            self.abort(clear_tasks=False)
             # scene-building task will run after aborting in taskFinalized()
         else:
             self.processNextTask()
@@ -529,7 +530,7 @@ class Q3DController(QObject):
         # If the layer being processed is the same as the layer to be added, abort processing.
         if self.processingLayer and self.processingLayer.layerId == layer.layerId:
             only_material = self.processingLayer.opt.onlyMaterial
-            self.abort(clear_queue=False)
+            self.abort(clear_tasks=False)
 
             # Inherit onlyMaterial=False from the aborted layer
             if not only_material:
