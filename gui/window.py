@@ -82,7 +82,7 @@ class Q3DWindow(QMainWindow):
             if self.webPage.isWebEnginePage:
                 self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
 
-            self.previewEnabledChanged.connect(self.controller.setEnabled)
+            self.previewEnabledChanged.connect(self.setPreviewEnabled)
 
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
@@ -264,6 +264,14 @@ class Q3DWindow(QMainWindow):
         self.ui.toolButtonConsoleStatus.setIcon(icon)
         self.ui.toolButtonConsoleStatus.show()
 
+    def setPreviewEnabled(self, enabled):
+        self.controller.enabled = enabled
+
+        self.runScript("setPreviewEnabled({})".format(js_bool(enabled)))
+
+        if enabled:
+            self.addBuildSceneTask()
+
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:
             if self.windowState() & Qt.WindowState.WindowMinimized:
@@ -279,9 +287,6 @@ class Q3DWindow(QMainWindow):
 
     @pyqtSlot(int, int, str)
     def progress(self, current=0, total=100, msg=""):
-        if TEMP_DEBUG_MODE:
-            logger.debug(f"Progress: {current} / {total} {msg}")
-
         self.ui.progressBar.show()
         self.ui.progressBar.setValue(int(current / total * 100))
         if msg:

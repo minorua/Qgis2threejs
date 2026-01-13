@@ -155,7 +155,8 @@ class Q3DController(QObject):
         self.isDataLoading = False
 
     def teardown(self):
-        self.abort()
+        if not self.aborted:
+            self.abort()
 
         if self.thread:
             # Send a quit request to the builder so that it returns to the main thread.
@@ -173,8 +174,6 @@ class Q3DController(QObject):
             self.builder.deleteLater()
 
     def closeTaskQueue(self):
-        self._enabled = False
-
         self.timer.stop()
         self.timer.timeout.disconnect(self._processNextTask)
 
@@ -191,16 +190,8 @@ class Q3DController(QObject):
 
         self._enabled = value
 
-        self.runScript("setPreviewEnabled({})".format(js_bool(self._enabled)))
-
-        if self._enabled:
-            self.addBuildSceneTask()
-        else:
+        if not value:
             self.abort()
-
-    @pyqtSlot(bool)
-    def setEnabled(self, enabled):
-        self.enabled = enabled
 
     @property
     def aborted(self):
