@@ -6,10 +6,12 @@ from ..exportsettings import Layer
 from ...utils import logger
 
 class Task:
-    BUILD_SCENE_ALL = 1     # build scene
-    BUILD_SCENE = 2         # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
-    UPDATE_SCENE_OPTS = 3   # update scene options
+    BUILD_SCENE_ALL = 1             # build scene
+    BUILD_SCENE = 2                 # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
+    UPDATE_SCENE_OPTS = 3           # update scene options
     RELOAD_PAGE = 4
+    # Layer object                  # build layer
+    # {"string": str, "data": any}  # run script
 
 
 class TaskQueue:

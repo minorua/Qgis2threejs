@@ -126,6 +126,11 @@ class Q3DController(QObject):
     def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
         super().__init__(parent)
 
+        self.webPage = webPage
+        self.offScreen = offScreen
+        self._enabled = enabledAtStart
+
+        # settings
         if settings is None:
             defaultSettings = {}
             settings = ExportSettings()
@@ -139,9 +144,7 @@ class Q3DController(QObject):
         self.settingsUpdated = True
         self._settingsCopy = None
 
-        self.webPage = webPage
-        self.offScreen = offScreen
-
+        # builder and thread management
         self.builder = ThreeJSBuilder(parent=None if useThread else self,
                                       isInUiThread=not useThread)
         self.builder.setObjectName("threeJSBuilder")
@@ -158,22 +161,23 @@ class Q3DController(QObject):
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
+        # connections
         self.iface = Q3DControllerInterface(self, webPage)
         self.iface.setObjectName("controllerInterface")
 
-        self._enabled = enabledAtStart
-        self.isBuilderBusy = False
+        # task management
+        self.taskQueue = TaskQueue(settings)
+        self.isTaskRunning = False
         self.processingLayer = None
         self.currentProgress = -1
         self.currentBuilderProgress = 0
-
-        self.taskQueue = TaskQueue(settings)
 
         self.timer = QTimer(self)
         self.timer.setInterval(1)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processNextTask)
 
+        # data dispatching
         self.sendQueue = deque()
         self.isDataLoading = False
 
@@ -307,7 +311,7 @@ class Q3DController(QObject):
             self.addBuildSceneTask()
 
     def processNextTask(self):
-        if self.isBuilderBusy:
+        if not self._enabled or self.isTaskRunning:
             return
 
         self.timer.stop()
@@ -316,7 +320,7 @@ class Q3DController(QObject):
             self.timer.start()
 
     def _processNextTask(self):
-        if not self._enabled or self.isBuilderBusy or not self.taskQueue:
+        if not self._enabled or self.isTaskRunning or not self.taskQueue:
             return
 
         self.aborted = False
@@ -340,22 +344,22 @@ class Q3DController(QObject):
                 self.buildScene()
 
             elif item == Task.UPDATE_SCENE_OPTS:
-                self.updateSceneOptions()
-                self.taskFinalized()
+                self.isTaskRunning = True
+                self.updateSceneOptions(callback=self.taskFinalized)
 
-            elif isinstance(item, Layer):
+            elif isinstance(item, Layer):   # BUILD_LAYER
                 if self.settings.getLayer(item.layerId):
                     if item.visible:
                         self.buildLayer(item)
                     else:
-                        self.hideLayer(item)
-                        self.taskFinalized()
+                        self.isTaskRunning = True
+                        self.hideLayer(item, callback=self.taskFinalized)
                 else:
                     logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
 
-            elif isinstance(item, dict):
-                self.runScript(item.get("string"), data=item.get("data"), wait=True)
-                self.taskFinalized()
+            elif isinstance(item, dict):    # RUN_SCRIPT
+                self.isTaskRunning = True
+                self.runScript(item.get("string"), data=item.get("data"), callback=self.taskFinalized)
 
             else:
                 logger.warning(f"Unknown task: {item}")
@@ -392,8 +396,8 @@ class Q3DController(QObject):
 
         self.taskFinalized()
 
-    def taskFinalized(self):
-        self.isBuilderBusy = False
+    def taskFinalized(self, _=None):
+        self.isTaskRunning = False
         self.processingLayer = None
 
         self.clearStatusMessage()
@@ -418,15 +422,15 @@ class Q3DController(QObject):
         self.runScript(f"tasksAndLoadingFinalized({js_bool(complete)}, {js_bool(is_scene)})")
 
     def buildScene(self):
-        if self.isBuilderBusy:
+        if self.isTaskRunning:
             logger.info("Previous processing is still in progress. Cannot start to build scene.")
             return False
 
-        self.isBuilderBusy = True
+        self.isTaskRunning = True
         self.iface.requestBuildScene(self._settingsCopy)
         return True
 
-    def updateSceneOptions(self):
+    def updateSceneOptions(self, callback=None):
         sp = self.settings.sceneProperties()
         lines = []
 
@@ -446,13 +450,13 @@ class Q3DController(QObject):
         if latlon:
             self.loadScriptFiles([ScriptFile.PROJ4])
 
-        self.runScript("\n".join(lines), wait=True)
+        self.runScript("\n".join(lines), callback=callback)
 
     def buildLayer(self, layer):
         if isinstance(layer, dict):
             layer = Layer.fromDict(layer)
 
-        if self.isBuilderBusy:
+        if self.isTaskRunning:
             logger.info(f'Previous processing is still in progress. Cannot start to build layer "{layer.name}".')
             return False
 
@@ -469,7 +473,7 @@ class Q3DController(QObject):
                                   ScriptFile.PCLAYER])
 
         self.processingLayer = layer
-        self.isBuilderBusy = True
+        self.isTaskRunning = True
         self.iface.requestBuildLayer(layer, self._settingsCopy)
 
         if len(self.settings.layers(export_only=True)) == 1:
@@ -477,14 +481,14 @@ class Q3DController(QObject):
 
         return True
 
-    def hideLayer(self, layer):
+    def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
         # If the layer is being processed, abort processing.
         if self.processingLayer and self.processingLayer.layerId == layer.layerId:
             self.abort(clear_tasks=False)
 
         self.taskQueue.removeBuildLayerTask(layer)
-        self.runScript(f'hideLayer("{layer.jsLayerId}", true)')
+        self.runScript(f'hideLayer("{layer.jsLayerId}", true)', callback=callback)
 
     @pyqtSlot(dict)
     def appendDataToSendQueue(self, data):
@@ -520,7 +524,7 @@ class Q3DController(QObject):
     def addBuildSceneTask(self, update_all=True, reload=False):
         self.taskQueue.addBuildSceneTask(update_all=update_all, reload=reload)
 
-        if self.isBuilderBusy:
+        if self.isTaskRunning:
             self.abort(clear_tasks=False)
             # scene-building task will run after aborting in taskFinalized()
         else:
