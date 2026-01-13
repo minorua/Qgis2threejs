@@ -70,7 +70,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if self.webPage:
-            self.controller.iface.setupConnections()
+            self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
             self.webPage.bridge.imageReady.connect(self.saveImage)
@@ -105,14 +105,14 @@ class Q3DWindow(QMainWindow):
 
     def closeEvent(self, event):
         try:
-            self.controller.iface.enabled = False        # Q3DControllerInterface
+            self.controller.enabled = False
             self.controller.closeTaskQueue()
 
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.webPage:
-                self.controller.iface.teardownConnections()
+                self.controller.conn.teardown()
 
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)
 

@@ -16,35 +16,24 @@ from ...conf import DEBUG_MODE, TEMP_DEBUG_MODE
 from ...utils import hex_color, js_bool, logger
 
 
+# decorator to skip method execution when controller is disabled
 def requires_enabled(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if not self.enabled:
+        if not self._enabled:
             return
         return func(self, *args, **kwargs)
     return wrapper
 
 
-class Q3DControllerInterface(QObject):
-
-    # signals - controller iface to builder
-    buildSceneRequest = pyqtSignal(ExportSettings)
-    buildLayerRequest = pyqtSignal(Layer, ExportSettings)
-    quitRequest = pyqtSignal()
+class ConnectionManager:
 
     def __init__(self, controller, webPage):
-        super().__init__(parent=controller)
-
         self.controller = controller
         self.builder = controller.builder
         self.webPage = webPage
 
-        self.enabled = True
-
-    def teardown(self):
-        self.controller = None
-
-    def setupConnections(self):
+    def setup(self):
         """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
         # web page -> controller
         self.webPage.loadFinished.connect(self.controller.pageLoaded)
@@ -54,8 +43,8 @@ class Q3DControllerInterface(QObject):
         self.webPage.bridge.dataLoaded.connect(self.controller.dataLoaded)
 
         # controller interface -> builder
-        self.buildSceneRequest.connect(self.builder.buildSceneSlot)
-        self.buildLayerRequest.connect(self.builder.buildLayerSlot)
+        self.controller.buildSceneRequest.connect(self.builder.buildSceneSlot)
+        self.controller.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
         # builder -> controller
         self.builder.dataReady.connect(self.controller.appendDataToSendQueue)
@@ -64,16 +53,13 @@ class Q3DControllerInterface(QObject):
         self.builder.taskAborted.connect(self.controller.taskAborted)
         self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
 
-    def teardownConnections(self):
+    def teardown(self):
         signals = [
-            # web page
             self.webPage.loadFinished,
-            # web bridge
             self.webPage.bridge.initialized,
             self.webPage.bridge.dataLoaded,
-            # builder
-            self.buildSceneRequest,
-            self.buildLayerRequest,
+            self.controller.buildSceneRequest,
+            self.controller.buildLayerRequest,
             self.builder.dataReady,
             self.builder.taskCompleted,
             self.builder.taskFailed,
@@ -84,25 +70,7 @@ class Q3DControllerInterface(QObject):
         for signal in signals:
             signal.disconnect()
 
-    @requires_enabled
-    def requestBuildScene(self, settings):
-        self.buildSceneRequest.emit(settings)
-
-    @requires_enabled
-    def requestBuildLayer(self, layer, settings):
-        self.buildLayerRequest.emit(layer, settings)
-
-    @requires_enabled
-    def sendData(self, data, progress=100):
-        self.webPage.sendData(data, progress)
-
-    @requires_enabled
-    def runScript(self, string, data=None, message="", sourceID="controller.py", callback=None, wait=False):
-        self.webPage.runScript(string, data, message, sourceID, callback, wait)
-
-    @requires_enabled
-    def loadScriptFiles(self, script_ids):
-        self.webPage.loadScriptFiles(script_ids)
+        self.controller = None
 
 
 class SceneLoadStatus:
@@ -122,6 +90,11 @@ class Q3DController(QObject):
     statusMessage = pyqtSignal(str, int)         # message, timeout_ms
     progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
     allTasksFinalized = pyqtSignal()
+
+    # signals - controller to builder
+    buildSceneRequest = pyqtSignal(ExportSettings)
+    buildLayerRequest = pyqtSignal(Layer, ExportSettings)
+    quitRequest = pyqtSignal()
 
     def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
         super().__init__(parent)
@@ -162,8 +135,7 @@ class Q3DController(QObject):
             self.thread.start()
 
         # connections
-        self.iface = Q3DControllerInterface(self, webPage)
-        self.iface.setObjectName("controllerInterface")
+        self.conn = ConnectionManager(self, webPage)
 
         # task management
         self.taskQueue = TaskQueue(settings)
@@ -171,6 +143,7 @@ class Q3DController(QObject):
         self.processingLayer = None
         self.currentProgress = -1
         self.currentBuilderProgress = 0
+        self.sceneLoadStatus = SceneLoadStatus()
 
         self.timer = QTimer(self)
         self.timer.setInterval(1)
@@ -181,23 +154,16 @@ class Q3DController(QObject):
         self.sendQueue = deque()
         self.isDataLoading = False
 
-        self.sceneLoadStatus = SceneLoadStatus()
-
-        # delegating methods
-        self.runScript = self.iface.runScript
-        self.sendData = self.iface.sendData
-        self.loadScriptFiles = self.iface.loadScriptFiles
-
     def teardown(self):
         self.abort()
 
         if self.thread:
             # Send a quit request to the builder so that it returns to the main thread.
-            self.iface.quitRequest.connect(self.builder.quit)
+            self.quitRequest.connect(self.builder.quit)
 
             loop = QEventLoop()
             self.builder.readyToQuit.connect(loop.quit)
-            QTimer.singleShot(0, self.iface.quitRequest.emit)   # emit quit request in next event loop
+            QTimer.singleShot(0, self.quitRequest.emit)   # emit quit request in next event loop
             loop.exec()
 
             # stop worker thread event loop
@@ -205,8 +171,6 @@ class Q3DController(QObject):
             self.thread.wait()
 
             self.builder.deleteLater()
-
-        self.iface.teardown()
 
     def closeTaskQueue(self):
         self._enabled = False
@@ -427,7 +391,7 @@ class Q3DController(QObject):
             return False
 
         self.isTaskRunning = True
-        self.iface.requestBuildScene(self._settingsCopy)
+        self.requestBuildScene(self._settingsCopy)
         return True
 
     def updateSceneOptions(self, callback=None):
@@ -474,7 +438,7 @@ class Q3DController(QObject):
 
         self.processingLayer = layer
         self.isTaskRunning = True
-        self.iface.requestBuildLayer(layer, self._settingsCopy)
+        self.requestBuildLayer(layer, self._settingsCopy)
 
         if len(self.settings.layers(export_only=True)) == 1:
             self.addRunScriptTask("adjustCameraPos()")
@@ -597,6 +561,26 @@ class Q3DController(QObject):
             self.progressUpdated.emit(p, 100, msg)
 
         self.currentBuilderProgress = int(current / total * 100)
+
+    @requires_enabled
+    def requestBuildScene(self, settings):
+        self.buildSceneRequest.emit(settings)
+
+    @requires_enabled
+    def requestBuildLayer(self, layer, settings):
+        self.buildLayerRequest.emit(layer, settings)
+
+    @requires_enabled
+    def sendData(self, data, progress=100):
+        self.webPage.sendData(data, progress)
+
+    @requires_enabled
+    def runScript(self, string, data=None, message="", sourceID="controller.py", callback=None, wait=False):
+        self.webPage.runScript(string, data, message, sourceID, callback, wait)
+
+    @requires_enabled
+    def loadScriptFiles(self, script_ids):
+        self.webPage.loadScriptFiles(script_ids)
 
 
 class Mock:

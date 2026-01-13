@@ -344,7 +344,7 @@ class BridgeExporterBase:
             self.page = webview.Q3DWebPage()
 
         self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page, offScreen=True)
-        self.controller.iface.setupConnections()
+        self.controller.conn.setupConnections()
         self.controller.statusMessage.connect(self.logStatusMessage)
 
     @pyqtSlot(str, int)
