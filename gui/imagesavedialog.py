@@ -31,9 +31,11 @@ class ImageSaveDialog(QDialog):
         height = self.ui.spinBox_Height.value()
 
         self.wnd.ui.statusbar.showMessage(self.tr("Rendering..."))
-        self.wnd.runScript(f"copyCanvasToClipboard({width}, {height})", wait=True)
 
-        self.setEnabled(True)
+        def finalized(_):
+            self.setEnabled(True)
+
+        self.wnd.runScript(f"copyCanvasToClipboard({width}, {height})", callback=finalized)
 
     def accept(self):
         # filename, _ = QFileDialog.getSaveFileName(self, self.tr("Choose a file name to save current view as"), QDir.homePath(), "PNG files (*.png)")
@@ -46,6 +48,8 @@ class ImageSaveDialog(QDialog):
         height = self.ui.spinBox_Height.value()
 
         self.wnd.ui.statusbar.showMessage(self.tr("Rendering..."))
-        self.wnd.runScript(f"saveCanvasImage({width}, {height})", wait=True)
 
-        QDialog.accept(self)
+        def finalized(_):
+            QDialog.accept(self)
+
+        self.wnd.runScript(f"saveCanvasImage({width}, {height})", callback=finalized)

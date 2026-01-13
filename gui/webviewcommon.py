@@ -146,5 +146,7 @@ class Q3DWebViewCommon:
         return self._page.runScript(string, data, message, sourceID, callback, wait)
 
     def showJSInfo(self):
-        info = self.runScript("app.renderer.info", wait=True)
-        QMessageBox.information(self, "three.js Renderer Info", str(info))
+        def showInfo(info):
+            QMessageBox.information(self, "three.js Renderer Info", str(info))
+
+        self.runScript("app.renderer.info", callback=showInfo)
