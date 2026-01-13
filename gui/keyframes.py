@@ -153,9 +153,10 @@ class AnimationPanel(QWidget):
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
 
-        self.wnd.controller.addRunScriptTask("preview.renderEnabled = false;")
-        self.wnd.controller.addBuildLayerTask(layer)
-        self.wnd.controller.addRunScriptTask("preview.renderEnabled = true;")
+        tm = self.wnd.controller.taskManager                # TODO: support synchronous task execution
+        tm.addRunScriptTask("preview.renderEnabled = false;")
+        tm.addBuildLayerTask(layer)
+        tm.addRunScriptTask("preview.renderEnabled = true;")
 
     def _log(self, msg):
         self._warnings.append(msg)
@@ -752,7 +753,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
                 # TODO: export settings need to be updated?
-                self.wnd.controller.addBuildLayerTask(layer)
+                self.wnd.controller.taskManager.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()

@@ -207,7 +207,7 @@ class Q3DTreeView(QTreeView):
 
                 layer = layer.clone()
                 layer.opt.onlyMaterial = True
-                self.controller.addBuildLayerTask(layer)
+                self.controller.taskManager.addBuildLayerTask(layer)
 
             item = self.model().itemFromIndex(current)
             parent = item.parent()
@@ -232,7 +232,7 @@ class Q3DTreeView(QTreeView):
             if not layer.properties:
                 layer.properties = self.wnd.getDefaultProperties(layer)
 
-            self.controller.addBuildLayerTask(layer)
+            self.controller.taskManager.addBuildLayerTask(layer)
         else:
             self.controller.hideLayer(layer)
 

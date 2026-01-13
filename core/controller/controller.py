@@ -8,7 +8,7 @@ from functools import wraps
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
-from .taskqueue import Task, TaskQueue
+from .taskmanager import Task, TaskManager
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
@@ -16,7 +16,7 @@ from ...conf import DEBUG_MODE, TEMP_DEBUG_MODE
 from ...utils import hex_color, js_bool, logger
 
 
-# decorator to skip method execution when controller is disabled
+# decorator to skip method execution when the object the method belongs to is disabled
 def requires_enabled(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -42,16 +42,23 @@ class ConnectionManager:
         self.webPage.bridge.initialized.connect(self.controller.viewerInitialized)
         self.webPage.bridge.dataLoaded.connect(self.controller.dataLoaded)
 
-        # controller interface -> builder
+        # controller -> builder
         self.controller.buildSceneRequest.connect(self.builder.buildSceneSlot)
         self.controller.buildLayerRequest.connect(self.builder.buildLayerSlot)
 
+        # task manager -> controller
+        self.controller.taskManager.executeTask.connect(self.controller.executeTask)
+        self.controller.taskManager.abortCurrentTask.connect(self.controller.abortCurrentTask)
+        self.controller.taskManager.allTasksFinalized.connect(self.controller.allTasksFinalized)
+
         # builder -> controller
         self.builder.dataReady.connect(self.controller.appendDataToSendQueue)
-        self.builder.taskCompleted.connect(self.controller.taskCompleted)
-        self.builder.taskFailed.connect(self.controller.taskFailed)
-        self.builder.taskAborted.connect(self.controller.taskAborted)
         self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
+
+        # builder -> task manager
+        self.builder.taskCompleted.connect(self.controller.taskManager.taskCompleted)
+        self.builder.taskFailed.connect(self.controller.taskManager.taskFailed)
+        self.builder.taskAborted.connect(self.controller.taskManager.taskAborted)
 
     def teardown(self):
         signals = [
@@ -60,11 +67,14 @@ class ConnectionManager:
             self.webPage.bridge.dataLoaded,
             self.controller.buildSceneRequest,
             self.controller.buildLayerRequest,
+            self.controller.taskManager.executeTask,
+            self.controller.taskManager.abortCurrentTask,
+            self.controller.taskManager.allTasksFinalized,
             self.builder.dataReady,
+            self.builder.progressUpdated,
             self.builder.taskCompleted,
             self.builder.taskFailed,
-            self.builder.taskAborted,
-            self.builder.progressUpdated
+            self.builder.taskAborted
         ]
 
         for signal in signals:
@@ -73,28 +83,16 @@ class ConnectionManager:
         self.controller = None
 
 
-class SceneLoadStatus:
-
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.buildSceneStarted = False      # True if the BUILD_SCENE task has started
-        self.allTasksFinalized = False
-        self.taskFailed = False             # True if any task has failed
-
-
 class Q3DController(QObject):
 
     # signals
     statusMessage = pyqtSignal(str, int)         # message, timeout_ms
     progressUpdated = pyqtSignal(int, int, str)  # current, total, msg
-    allTasksFinalized = pyqtSignal()
 
     # signals - controller to builder
     buildSceneRequest = pyqtSignal(ExportSettings)
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
-    quitRequest = pyqtSignal()
+    quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
 
     def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
         super().__init__(parent)
@@ -138,21 +136,16 @@ class Q3DController(QObject):
         self.conn = ConnectionManager(self, webPage)
 
         # task management
-        self.taskQueue = TaskQueue(settings)
-        self.isTaskRunning = False
-        self.processingLayer = None
-        self.currentProgress = -1
-        self.currentBuilderProgress = 0
-        self.sceneLoadStatus = SceneLoadStatus()
-
-        self.timer = QTimer(self)
-        self.timer.setInterval(1)
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self._processNextTask)
+        self.taskManager = TaskManager(self, settings)
+        self.taskManager.setObjectName("taskManager")
 
         # data dispatching
         self.sendQueue = deque()
         self.isDataLoading = False
+
+        # progress
+        self.currentProgress = -1
+        self.currentBuilderProgress = 0
 
     def teardown(self):
         if not self.aborted:
@@ -173,12 +166,6 @@ class Q3DController(QObject):
 
             self.builder.deleteLater()
 
-    def closeTaskQueue(self):
-        self.timer.stop()
-        self.timer.timeout.disconnect(self._processNextTask)
-
-        self.taskQueue.clear()
-
     @property
     def enabled(self):
         return self._enabled
@@ -189,9 +176,7 @@ class Q3DController(QObject):
             return
 
         self._enabled = value
-
-        if not value:
-            self.abort()
+        self.taskManager._enabled = value
 
     @property
     def aborted(self):
@@ -201,11 +186,13 @@ class Q3DController(QObject):
     def aborted(self, value):
         self.builder.aborted = value
 
+    @pyqtSlot(bool)
     def abort(self, clear_tasks=True, show_msg=False):
         logger.debug(f"Controller: aborting. clear queue({clear_tasks})")
 
         if clear_tasks:
-            self.taskQueue.clear()
+            self.taskManager.clearTaskQueue()
+            self.taskManager.sceneLoadStatus.reset()
 
         if not self.aborted:
             if show_msg:
@@ -214,12 +201,16 @@ class Q3DController(QObject):
             self.builder.abort()
 
         self.clearSendQueue()
-        self.sceneLoadStatus.reset()
+
+    def close(self):
+        self.enabled = False
+        self.abort()
+        self.taskManager.closeTaskQueue()
 
     def pageLoaded(self, ok):
         logger.debug("Page load finished.")
 
-        self.taskQueue.clear()
+        self.taskManager.initialize()
         self.clearSendQueue()
 
         if self.webPage.url().scheme() != "file":
@@ -263,126 +254,69 @@ class Q3DController(QObject):
 
         if self.enabled:
             self.runScript("app.start()")
-            self.addBuildSceneTask()
+            self.taskManager.addBuildSceneTask()
 
-    def processNextTask(self):
-        if not self._enabled or self.isTaskRunning:
-            return
+    def updateSettingsCopyIfNeeded(self):
+        if self.settings.isUpdated() or self._settingsCopy is None:
+            self._settingsCopy = self.settings.clone()
+            self.settings.clearUpdatedFlag()
 
-        self.timer.stop()
-
-        if self.taskQueue:
-            self.timer.start()
-
-    def _processNextTask(self):
-        if not self._enabled or self.isTaskRunning or not self.taskQueue:
+    @pyqtSlot(object)
+    def executeTask(self, task):
+        if not self._enabled:
             return
 
         self.aborted = False
 
-        if self.settings.isUpdated():
-            self._settingsCopy = self.settings.clone()
-            self.settings.clearUpdatedFlag()
-
-        if DEBUG_MODE:
-            logger.debug(self.taskQueue)
-
         try:
-            item = self.taskQueue.pop()
-            if item == Task.RELOAD_PAGE:
+            if task == Task.RELOAD_PAGE:
                 self.webPage.reload()
 
-            elif item == Task.BUILD_SCENE:
-                self.sceneLoadStatus.reset()
-                self.sceneLoadStatus.buildSceneStarted = True
-
+            elif task == Task.BUILD_SCENE:
                 self.buildScene()
 
-            elif item == Task.UPDATE_SCENE_OPTS:
-                self.isTaskRunning = True
-                self.updateSceneOptions(callback=self.taskFinalized)
+            elif task == Task.UPDATE_SCENE_OPTS:
+                self.updateSceneOptions(callback=self.taskManager.taskFinalized)
 
-            elif isinstance(item, Layer):   # BUILD_LAYER
-                if self.settings.getLayer(item.layerId):
-                    if item.visible:
-                        self.buildLayer(item)
+            elif isinstance(task, Layer):   # BUILD_LAYER
+                if self.settings.getLayer(task.layerId):
+                    if task.visible:
+                        self.buildLayer(task)
                     else:
-                        self.isTaskRunning = True
-                        self.hideLayer(item, callback=self.taskFinalized)
+                        self.hideLayer(task, callback=self.taskManager.taskFinalized)
                 else:
-                    logger.info(f"Layer {item.layerId} not found in settings. Ignored.")
+                    logger.info(f"Layer {task.layerId} not found in settings. Ignored.")
 
-            elif isinstance(item, dict):    # RUN_SCRIPT
-                self.isTaskRunning = True
-                self.runScript(item.get("string"), data=item.get("data"), callback=self.taskFinalized)
+            elif isinstance(task, dict):    # RUN_SCRIPT
+                self.runScript(task.get("string"), data=task.get("data"), callback=self.taskManager.taskFinalized)
 
             else:
-                logger.warning(f"Unknown task: {item}")
+                logger.warning(f"Unknown task: {task}")
 
         except Exception as _:
             import traceback
-            logger.warning(traceback.format_exc())
-
-            self.webPage.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
-
-        self.processNextTask()
+            logger.error(f"Error while processing task {task}:\n{traceback.format_exc()}")
 
     @pyqtSlot()
-    def taskCompleted(self, _v=None):
-        """Called when a scene or layer build task completes."""
-        logger.debug("Task completed.")
-
-        self.taskFinalized()
-
-    @pyqtSlot(str, str)
-    def taskFailed(self, target, traceback_str):
-        """Called when a layer build task fails."""
-        msg = f"Failed to build {target}."
-        logger.error(f"{msg}:\n{traceback_str}")
-
-        self.showStatusMessage(msg, timeout_ms=5000)
-
-        self.sceneLoadStatus.taskFailed = True
-        self.taskFinalized()
+    def abortCurrentTask(self):
+        self.abort(clear_tasks=False)
 
     @pyqtSlot()
-    def taskAborted(self):
-        logger.debug("Task aborted.")
-
-        self.taskFinalized()
-
-    def taskFinalized(self, _=None):
-        self.isTaskRunning = False
-        self.processingLayer = None
-
-        self.clearStatusMessage()
-
-        if self.taskQueue:
-            self.processNextTask()
+    def allTasksFinalized(self):
+        logger.debug("All tasks finalized.")
+        if self.isDataLoading or self.sendQueue:
             return
 
-        self.sceneLoadStatus.allTasksFinalized = True
-        self.allTasksFinalized.emit()
-
-        self.taskQueue.resetCounts()
-
-        if self.sendQueue or self.isDataLoading:
-            return
-
-        self._tasksAndLoadingFinalized(complete=not self.sceneLoadStatus.taskFailed,
-                                       is_scene=self.sceneLoadStatus.buildSceneStarted)
+        self._tasksAndLoadingFinalized(complete=not self.taskManager.sceneLoadStatus.taskFailed,
+                                       is_scene=self.taskManager.sceneLoadStatus.buildSceneStarted)
 
     def _tasksAndLoadingFinalized(self, complete, is_scene):
-        self.sceneLoadStatus.reset()
         self.runScript(f"tasksAndLoadingFinalized({js_bool(complete)}, {js_bool(is_scene)})")
+        self.taskManager.sceneLoadStatus.reset()
 
     def buildScene(self):
-        if self.isTaskRunning:
-            logger.info("Previous processing is still in progress. Cannot start to build scene.")
-            return False
-
-        self.isTaskRunning = True
-        self.requestBuildScene(self._settingsCopy)
+        self.updateSettingsCopyIfNeeded()
+        self.buildSceneRequest.emit(self._settingsCopy)
         return True
 
     def updateSceneOptions(self, callback=None):
@@ -408,13 +342,6 @@ class Q3DController(QObject):
         self.runScript("\n".join(lines), callback=callback)
 
     def buildLayer(self, layer):
-        if isinstance(layer, dict):
-            layer = Layer.fromDict(layer)
-
-        if self.isTaskRunning:
-            logger.info(f'Previous processing is still in progress. Cannot start to build layer "{layer.name}".')
-            return False
-
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
             self.loadScriptFiles([ScriptFile.COLLADALOADER,
                                   ScriptFile.GLTFLOADER])
@@ -427,24 +354,20 @@ class Q3DController(QObject):
                                   ScriptFile.POTREE,
                                   ScriptFile.PCLAYER])
 
-        self.processingLayer = layer
-        self.isTaskRunning = True
-        self.requestBuildLayer(layer, self._settingsCopy)
+        self.updateSettingsCopyIfNeeded()
+        self.taskManager.processingLayer = layer
+        self.buildLayerRequest.emit(layer, self._settingsCopy)
 
         if len(self.settings.layers(export_only=True)) == 1:
-            self.addRunScriptTask("adjustCameraPos()")
-
+            self.taskManager.addRunScriptTask("adjustCameraPos()")
         return True
 
     def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
-        # If the layer is being processed, abort processing.
-        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
-            self.abort(clear_tasks=False)
-
-        self.taskQueue.removeBuildLayerTask(layer)
+        self.taskManager.removeBuildLayerTask(layer)        # abort if being processed and remove pending task for the layer
         self.runScript(f'hideLayer("{layer.jsLayerId}", true)', callback=callback)
 
+    # send queue management
     @pyqtSlot(dict)
     def appendDataToSendQueue(self, data):
         self.sendQueue.append(data)
@@ -465,9 +388,9 @@ class Q3DController(QObject):
             self.sendQueuedData()
             return
 
-        if self.sceneLoadStatus.allTasksFinalized:
-            self._tasksAndLoadingFinalized(complete=not self.sceneLoadStatus.taskFailed,
-                                           is_scene=self.sceneLoadStatus.buildSceneStarted)
+        if self.taskManager.sceneLoadStatus.allTasksFinalized:
+            self._tasksAndLoadingFinalized(complete=not self.taskManager.sceneLoadStatus.taskFailed,
+                                           is_scene=self.taskManager.sceneLoadStatus.buildSceneStarted)
 
     def sendQueuedData(self):
         if self.isDataLoading or not self.sendQueue:
@@ -476,28 +399,7 @@ class Q3DController(QObject):
         self.isDataLoading = True
         self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
 
-    def addBuildSceneTask(self, update_all=True, reload=False):
-        self.taskQueue.addBuildSceneTask(update_all=update_all, reload=reload)
-
-        if self.isTaskRunning:
-            self.abort(clear_tasks=False)
-            # scene-building task will run after aborting in taskFinalized()
-        else:
-            self.processNextTask()
-
-    def addBuildLayerTask(self, layer):
-        # If the layer being processed is the same as the layer to be added, abort processing.
-        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
-            only_material = self.processingLayer.opt.onlyMaterial
-            self.abort(clear_tasks=False)
-
-            # Inherit onlyMaterial=False from the aborted layer
-            if not only_material:
-                layer.opt.onlyMaterial = False
-
-        self.taskQueue.addBuildLayerTask(layer)
-        self.processNextTask()
-
+    # web page access methods
     def updateWidget(self, name, properties):
         if name == "NorthArrow":
             self.runScript("setNorthArrowColor({})".format(properties.get("color", 0)))
@@ -509,13 +411,6 @@ class Q3DController(QObject):
         else:
             return
 
-    def addRunScriptTask(self, string, data=None):
-        self.taskQueue.addRunScriptTask(string, data=data)
-        self.processNextTask()
-
-    def addReloadPageTask(self):
-        self.addBuildSceneTask(reload=True)
-
     def cameraState(self, flat=False):
         return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)
 
@@ -526,6 +421,7 @@ class Q3DController(QObject):
     def resetCameraState(self):
         self.runScript("app.controls.reset()")
 
+    # status and progress
     def showStatusMessage(self, msg, timeout_ms=0):
         self.statusMessage.emit(msg, timeout_ms)
 
@@ -538,11 +434,11 @@ class Q3DController(QObject):
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
         if TEMP_DEBUG_MODE:
-            logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskQueue.dequeuedLayerCount}, Total: {self.taskQueue.totalLayerCount}")
+            logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
 
         total = total or 100
-        if self.taskQueue.totalLayerCount:
-            p = int((total * (self.taskQueue.dequeuedLayerCount - 1) + current) / (total * self.taskQueue.totalLayerCount) * 100)
+        if self.taskManager.totalLayerCount:
+            p = int((total * (self.taskManager.dequeuedLayerCount - 1) + current) / (total * self.taskManager.totalLayerCount) * 100)
         else:
             p = self.currentProgress
 
@@ -552,14 +448,6 @@ class Q3DController(QObject):
             self.progressUpdated.emit(p, 100, msg)
 
         self.currentBuilderProgress = int(current / total * 100)
-
-    @requires_enabled
-    def requestBuildScene(self, settings):
-        self.buildSceneRequest.emit(settings)
-
-    @requires_enabled
-    def requestBuildLayer(self, layer, settings):
-        self.buildLayerRequest.emit(layer, settings)
 
     @requires_enabled
     def sendData(self, data, progress=100):

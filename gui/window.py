@@ -18,7 +18,7 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
-from ..conf import DEBUG_MODE, TEMP_DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
+from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
@@ -63,7 +63,7 @@ class Q3DWindow(QMainWindow):
         self.controller.setObjectName("controller")
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
         self.controller.progressUpdated.connect(self.progress)
-        self.controller.allTasksFinalized.connect(self.hideProgress)
+        self.controller.taskManager.allTasksFinalized.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
         self._setupStatusBar(self.ui, previewEnabled, viewName)
@@ -105,8 +105,7 @@ class Q3DWindow(QMainWindow):
 
     def closeEvent(self, event):
         try:
-            self.controller.enabled = False
-            self.controller.closeTaskQueue()
+            self.controller.close()
 
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
@@ -195,7 +194,7 @@ class Q3DWindow(QMainWindow):
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
         ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
         if self.webPage:
-            ui.actionReload.triggered.connect(self.controller.addReloadPageTask)
+            ui.actionReload.triggered.connect(self.controller.taskManager.addReloadPageTask)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
@@ -300,7 +299,7 @@ class Q3DWindow(QMainWindow):
     # map canvas event
     def mapCanvasRendered(self):
         self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
-        self.controller.addBuildSceneTask()
+        self.controller.taskManager.addBuildSceneTask()
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
@@ -327,7 +326,7 @@ class Q3DWindow(QMainWindow):
         if layer.properties != orig_layer.properties:
             layer.visible = orig_layer.visible      # respect current visible state
 
-            self.controller.addBuildLayerTask(layer)
+            self.controller.taskManager.addBuildLayerTask(layer)
 
             if layer.properties.get("materials") != orig_layer.properties.get("materials"):
                 self.ui.treeView.updateLayerMaterials(item, layer)
@@ -430,7 +429,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData(self.settings.animationData())
 
-        self.controller.addReloadPageTask()
+        self.controller.taskManager.addReloadPageTask()
 
     def saveSettings(self, filename=None):
         # open file dialog if filename is not specified
@@ -465,7 +464,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayers(self.settings.layers())
         self.ui.animationPanel.setData({})
 
-        self.controller.addReloadPageTask()
+        self.controller.taskManager.addReloadPageTask()
 
     def pluginSettings(self):
         from .pluginsettings import SettingsDialog
@@ -502,7 +501,7 @@ class Q3DWindow(QMainWindow):
         reload = bool(sp.get(w) != properties.get(w))
 
         self.settings.setSceneProperties(properties)
-        self.controller.addBuildSceneTask(reload=reload)
+        self.controller.taskManager.addBuildSceneTask(reload=reload)
 
     def addPlane(self):
         layerId = "fp:" + createUid()
@@ -510,7 +509,7 @@ class Q3DWindow(QMainWindow):
         layer.properties = self.getDefaultProperties(layer)
 
         self.settings.addLayer(layer)
-        self.controller.addBuildLayerTask(layer)
+        self.controller.taskManager.addBuildLayerTask(layer)
 
         item = self.ui.treeView.addLayer(layer)
         self.ui.treeView.updateLayerMaterials(item, layer)
@@ -533,7 +532,7 @@ class Q3DWindow(QMainWindow):
         layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
 
         self.settings.addLayer(layer)
-        self.controller.addBuildLayerTask(layer)
+        self.controller.taskManager.addBuildLayerTask(layer)
 
         self.ui.treeView.addLayer(layer)
 
