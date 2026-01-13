@@ -572,17 +572,3 @@ class Q3DController(QObject):
     @requires_enabled
     def loadScriptFiles(self, script_ids):
         self.webPage.loadScriptFiles(script_ids)
-
-
-class Mock:
-
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __getattr__(self, attr):
-        if DEBUG_MODE:
-            logger.debug("Mock: {}".format(attr))
-        return Mock
-
-    def __bool__(self):
-        return False
