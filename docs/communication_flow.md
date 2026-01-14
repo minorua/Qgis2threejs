@@ -152,6 +152,21 @@ This section describes the step-by-step sequence from initially loading the web 
 - **Progress computation** combines per-layer progress and overall layer counts to present a unified percentage.
 - **Script dependencies** are loaded before building layer types that require them (e.g., GLTF/Collada loaders, MeshLine, Potree).
 
+## Improvements: Data & Signal Communication
+
+Below are concrete areas to improve robustness, performance, and maintainability of the current communication design.
+
+- **Replace `eval`-based command dispatch with explicit RPC:** Instead of sending free-form `script` strings to `sendScriptData` and evaluating them, expose explicit methods on the JS side via QWebChannel (e.g., `bridge.loadSceneData(data, progress)`, `bridge.loadLayerData(data, progress)`, `bridge.loadBlockData(data, progress)`). Python would call these directly, avoiding `eval(script)` and improving safety and tooling support.
+- **Structured payload validation:** Define JSON Schemas (see `docs/schema/qgis2threejs.schema.json`) for `scene`, `layer`, and `block` payloads and validate on both Python and JS before applying. Early validation yields more actionable errors and reduces silent failures.
+- **Richer error reporting:** Extend `dataLoadError` to include `type`, `id`, and a message (e.g., `dataLoadError(type, id, msg)`). On Python, log and correlate with the originating task/layer; on JS, attach loader/texture/model errors to the appropriate item.
+- **Progress accounting from manifests:** Have `Builder` emit an initial lightweight manifest per task (e.g., total blocks, expected assets) so `Controller` can compute more accurate overall progress. `LayerBuilderBase.blockCount()` can be leveraged or made more accurate per layer type.
+- **Preload script dependencies in batch:** Instead of per-layer conditional loads, compute the union of all required script ids from the pending task queue and call `loadScriptFiles([...], wait=true)` once up-front. This removes interleaved pauses, reduces latency spikes, and simplifies timing.
+- **Adaptive send window (credit-based backpressure):** Current gating is strictly one payload at a time (`isDataLoading`). For asset-light blocks, allow a small window (e.g., 2–3 outstanding loads) governed by loading manager credits; fall back to single-flight when textures/models are involved or when GPU/CPU is saturated. Keep `preview.noRenderDuringLoad` guard to avoid excessive re-renders.
+- **Abort propagation into JS loaders:** When `Controller.abort()`/`TaskManager.abortCurrentTask()` is invoked, forward an `abortRequested` event to JS to cancel pending XHR/Texture loads (where supported) and clear queued operations (e.g., Potree workers). This makes aborts snappier and reduces wasted work.
+- **Status and console integration:** Standardize levels (`debug/info/warn/error`) already reflected by `jsErrorWarning`; add an option to relay selected JS console messages back to Python logs with source file/line, and a user-facing toggle to reduce noise.
+- **Security hardening for remote URLs:** `LocalContentCanAccessRemoteUrls` is necessary for remote assets; consider adding an allowlist or filtering to reduce risk when loading untrusted resources.
+- **Binary/asset handling:** For large assets, prefer URLs over embedding large base64 blobs. When binary transfer is required, use `QByteArray` consistently, consider compression, and stream in chunks for point clouds.
+
 ---
 
 ## References
