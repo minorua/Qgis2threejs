@@ -134,7 +134,10 @@ class AnimationPanel(QWidget):
         if len(dataList):
             logger.debug("Play: %s", dataList)
             self.isAnimating = True
-            self.wnd.controller.addRunScriptTask("startAnimation(pyData(), {})".format(js_bool(repeat)), data=dataList)
+            self.wnd.controller.sendData({"type": "animation",
+                                          "tracks": dataList,
+                                          "repeat": repeat})
+
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
         else:
@@ -188,7 +191,8 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.setEnabled(b)
 
     def showNarrativeBox(self, content):
-        self.webPage.runScript("showNarrativeBox(pyData())", data=content)
+        self.wnd.controller.sendData({"type": "narration",
+                                      "content": content})
 
 
 class AnimationTreeWidget(QTreeWidget):

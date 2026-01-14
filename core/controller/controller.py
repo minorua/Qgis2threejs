@@ -145,7 +145,6 @@ class Q3DController(QObject):
 
         # progress
         self.currentProgress = -1
-        self.currentBuilderProgress = 0
 
     def teardown(self):
         if not self.aborted:
@@ -244,8 +243,9 @@ class Q3DController(QObject):
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:
-            self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
-
+            self.sendData({"type": "labels",
+                           "Header": header,
+                           "Footer": footer})
         # crs check
         if QgsProject.instance().crs().isGeographic():
             self.webPage.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
@@ -287,9 +287,11 @@ class Q3DController(QObject):
                 else:
                     logger.info(f"Layer {task.layerId} not found in settings. Ignored.")
 
-            elif isinstance(task, dict):    # RUN_SCRIPT
-                self.runScript(task.get("string"), data=task.get("data"), callback=self.taskManager.taskFinalized)
-
+            elif isinstance(task, dict):    # RUN_SCRIPT or SEND_DATA
+                if task.get("type") == "script":
+                    self.runScript(task.get("script"), callback=self.taskManager.taskFinalized)
+                else:
+                    self.appendDataToSendQueue(data=task)
             else:
                 logger.warning(f"Unknown task: {task}")
 
@@ -397,7 +399,7 @@ class Q3DController(QObject):
             return
 
         self.isDataLoading = True
-        self.sendData(self.sendQueue.popleft(), self.currentBuilderProgress)
+        self.sendData(self.sendQueue.popleft())
 
     # web page access methods
     def updateWidget(self, name, properties):
@@ -406,8 +408,9 @@ class Q3DController(QObject):
             self.runScript("setNorthArrowVisible({})".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
-            self.runScript('setHFLabel(pyData());', data=properties)
-
+            self.sendData({"type": "labels",
+                           "Header": properties.get("Header", ""),
+                           "Footer": properties.get("Footer", "")})
         else:
             return
 
@@ -415,8 +418,9 @@ class Q3DController(QObject):
         return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)
 
     def setCameraState(self, state):
-        """set camera position and camera target"""
-        self.runScript("setCameraState(pyData())", data=state)
+        """set camera position and its target"""
+        self.sendData({"type": "cameraState",
+                       "state": state})
 
     def resetCameraState(self):
         self.runScript("app.controls.reset()")
@@ -447,15 +451,13 @@ class Q3DController(QObject):
             self.currentProgress = p
             self.progressUpdated.emit(p, 100, msg)
 
-        self.currentBuilderProgress = int(current / total * 100)
+    @requires_enabled
+    def sendData(self, data):
+        self.webPage.sendData(data)
 
     @requires_enabled
-    def sendData(self, data, progress=100):
-        self.webPage.sendData(data, progress)
-
-    @requires_enabled
-    def runScript(self, string, data=None, message="", sourceID="controller.py", callback=None, wait=False):
-        self.webPage.runScript(string, data, message, sourceID, callback, wait)
+    def runScript(self, string, message="", sourceID="controller.py", callback=None, wait=False):
+        self.webPage.runScript(string, message, sourceID, callback, wait)
 
     @requires_enabled
     def loadScriptFiles(self, script_ids):

@@ -278,8 +278,8 @@ class Q3DWindow(QMainWindow):
             else:
                 self.runScript("app.resume()")
 
-    def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
-        return self.webPage.runScript(string, data, message, sourceID, callback, wait)
+    def runScript(self, string, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
+        return self.webPage.runScript(string, message, sourceID, callback, wait)
 
     def showStatusMessage(self, msg, timeout_ms=0):
         self.ui.statusbar.showMessage(msg, timeout_ms)

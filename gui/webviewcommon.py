@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
+import json
 from qgis.PyQt.QtCore import QEventLoop, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 
@@ -42,7 +43,7 @@ class Q3DWebPageCommon:
         for cb in callbacks:
             cb()
 
-    def logScriptExecution(self, string, data=None, message="", sourceID=""):
+    def logScriptExecution(self, string, message="", sourceID=""):
         if not DEBUG_MODE or message is None:
             return
 
@@ -102,8 +103,13 @@ class Q3DWebPageCommon:
             self.loadScriptFile(id, wait, script_loaded)
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
-        """show message bar at top of web page"""
-        self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", msg)
+        """Show a message bar at the top of the web page.
+        Args:
+            msg: Message text or HTML string to display.
+            timeout_ms: Time in milliseconds before the message bar is hidden.
+            warning: If True, display the message bar in warning style.
+        """
+        self.runScript(f"showMessageBar({json.dumps(msg)}, {timeout_ms}, {js_bool(warning)})")
 
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)
@@ -136,8 +142,8 @@ class Q3DWebViewCommon:
         self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
 
-    def runScript(self, string, data=None, message="", sourceID="webviewcommon.py", callback=None, wait=False):
-        return self._page.runScript(string, data, message, sourceID, callback, wait)
+    def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
+        return self._page.runScript(string, message, sourceID, callback, wait)
 
     def showJSInfo(self):
         def showInfo(info):

@@ -14,8 +14,9 @@ class Task:
     BUILD_SCENE = 2                 # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
     UPDATE_SCENE_OPTS = 3           # update scene options
     RELOAD_PAGE = 4
-    # Layer object                  # build layer
-    # {"string": str, "data": any}  # run script
+    # Layer object                          # build layer
+    # {"type": "...", ...}                  # send data
+    # {"type": "script", "script": "..."}   # run script
 
 
 class SceneLoadStatus:
@@ -144,9 +145,13 @@ class TaskManager(QObject):
         if len(self.taskQueue) < task_count:
             self.totalLayerCount -= 1
 
-    def addRunScriptTask(self, string, data=None):
-        self.taskQueue.append({"string": string, "data": data})
+    def addSendDataTask(self, data):
+        assert(isinstance(data, dict) and "type" in data)
+        self.taskQueue.append(data)
+        self.processNextTask()
 
+    def addRunScriptTask(self, string):
+        self.taskQueue.append({"type": "script", "script": string})
         self.processNextTask()
 
     def addReloadPageTask(self):

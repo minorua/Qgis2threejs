@@ -48,7 +48,11 @@ class ThreeJSBuilder(QObject):
         self._isInUiThread = isInUiThread
         self._lock = Lock()
 
+        self.currentProgress = 0
+
     def _progress(self, current, total=100, msg=""):
+        total = total or 100
+        self.currentProgress = int(current / total * 100)
         self.progressUpdated.emit(current, total, msg)
 
     @property
@@ -119,6 +123,7 @@ class ThreeJSBuilder(QObject):
 
                 data = blockBuilder.build()
                 if data:
+                    data["progress"] = self.currentProgress
                     self.dataReady.emit(data)
 
         except Exception as _:

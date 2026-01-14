@@ -41,16 +41,12 @@ function init(off_screen, debug_mode, qgis_version, is_webengine) {
 		// Web Channel
 		new QWebChannel(qt.webChannelTransport, function(channel) {
 			window.pyObj = channel.objects.bridge;
-			pyObj.sendScriptData.connect(function (script, data) {
-				var pyData = function () {
-					return data;
-				};
-
-				eval(script);
+			pyObj.sendData.connect(function (data) {
+				loadData(data);
 
 				if (Q3D.Config.debugMode) {
-					var dataType = (typeof data === "object") ? data.type : data;
-					console.debug("↓", script, "# " + dataType + " data loaded", data);
+					var dataType = data.type || "unknown";
+					console.debug("↓" + dataType + " data loaded", data);
 				}
 			});
 
@@ -151,47 +147,62 @@ function _init(off_screen) {
 }
 
 //// load functions
-function loadData(data, progress) {
-	preview.isDataLoading = true;
+var appLoadDataTypes = ["scene", "layer", "block"];
 
+function loadData(data) {
 	if (Q3D.Config.debugMode) {
 		console.debug("Loading " + (data.type || "unknown") + " data...");
 	}
-
+	preview.isDataLoading = true;
 	app.loadingManager.itemStart("data");
 
-	var p = data.properties;
+	if (appLoadDataTypes.includes(data.type)) {
+		if (data.type == "scene" && data.properties !== undefined) {
+			_requestCameraUpdate(data.properties);
+		}
+		app.loadData(data);
 
-	if (data.type == "scene" && p !== undefined) {
-		// update camera position - keep relative position to base extent
-		var lastP = app.scene.userData,
-			lastBE = lastP.baseExtent;
-
-		if (lastBE !== undefined) {
-			var be = p.baseExtent,
-				v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin),
-				v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(p.origin),
-				s = be.width / lastBE.width;
-
-			var pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1),
-				focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
-
-			var near, far;
-			if (s != 1) {
-				near = 0.001 * be.width;
-				far = 100 * be.width;
-			}
-			app.scene.requestCameraUpdate(pos, focal, near, far);
+		if (data.progress !== undefined) {
+			updateProgressBar(data.progress);
 		}
 	}
-
-	app.loadData(data);
+	else if (data.type == "labels") {
+		Q3D.E("header").innerHTML = data.Header || "";
+		Q3D.E("footer").innerHTML = data.Footer || "";
+	}
+	else if (data.type == "cameraState") {
+		setCameraState(data.state);
+	}
+	else if (data.type == "animation") {
+		startAnimation(data.tracks, data.repeat);
+	}
+	else if (data.type == "narration") {
+		showNarrativeBox(data.content);
+	}
 
 	app.loadingManager.itemEnd("data");
+}
 
-	if (progress !== undefined) {
-		updateProgressBar(progress);
+function _requestCameraUpdate(sp) {
+	// update camera position - keep relative position to base extent
+	var lastP = app.scene.userData,
+		lastBE = lastP.baseExtent;
+	if (lastBE === undefined) return;
+
+	var be = sp.baseExtent,
+		v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin),
+		v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(sp.origin),
+		s = be.width / lastBE.width;
+
+	var pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1),
+		focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
+
+	var near, far;
+	if (s != 1) {
+		near = 0.001 * be.width;
+		far = 100 * be.width;
 	}
+	app.scene.requestCameraUpdate(pos, focal, near, far);
 }
 
 function loadScriptFile(path, callback) {
@@ -537,11 +548,6 @@ function setNorthArrowColor(color) {
 		app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
 		app.render();
 	}
-}
-
-function setHFLabel(properties) {
-	Q3D.E("header").innerHTML = properties.Header || "";
-	Q3D.E("footer").innerHTML = properties.Footer || "";
 }
 
 //// animation
