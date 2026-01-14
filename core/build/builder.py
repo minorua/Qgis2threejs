@@ -178,24 +178,6 @@ class ThreeJSBuilder(QObject):
         return obj
 
     # [preview]
-    def buildLayer(self, layer, settings):
-        layerBuilder = self._layerBuilder(layer, settings)
-
-        obj = layerBuilder.build(build_blocks=False)
-
-        blocks = []
-        for blockBuilder in layerBuilder.blockBuilders():
-            if self.aborted:
-                return None
-
-            blocks.append(blockBuilder.build())
-
-        if blocks:
-            obj.setdefault("body", {})["blocks"] = blocks
-
-        return obj
-
-    # [preview]
     def _layerBuilder(self, layer, settings, progress=None):
         imageManager = ImageManager(settings.mapSettings)
         return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)
