@@ -104,10 +104,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         if not wait:
             if callback:
                 self.runJavaScript(string, callback)
-
             else:
                 self.runJavaScript(string)
-
             return
 
         loop = QEventLoop()
@@ -115,9 +113,11 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         timer.setSingleShot(True)
         timer.timeout.connect(loop.quit)
 
+        finished = False
         result = None
         def runJavaScriptCallback(res):
-            nonlocal result
+            nonlocal finished, result
+            finished = True
             result = res
             loop.quit()
 
@@ -126,7 +126,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         timer.start(TIMEOUT_MS)
         loop.exec()
 
-        if not timer.isActive():
+        if not finished:
             logger.warning(f"JavaScript execution timed out: {string}")
 
         if callback:
