@@ -34,6 +34,7 @@ class WebBridge(QObject):
     dataLoaded = pyqtSignal()
     dataLoadError = pyqtSignal()
     sceneLoaded = pyqtSignal()
+    scriptFileLoaded = pyqtSignal(int)              # scriptFileId
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
     imageReady = pyqtSignal("QImage", bool)         # image, copy_to_clipboard -> Window
@@ -42,12 +43,6 @@ class WebBridge(QObject):
     resized = pyqtSignal(int, int)                  # width, height
     statusMessage = pyqtSignal(str, int)
     testResultReceived = pyqtSignal(str, bool, str)
-    scriptFileLoaded = pyqtSignal()
-
-    @pyqtSlot()
-    @emit_slotCalled
-    def emitScriptReady(self):
-        self.scriptFileLoaded.emit()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -80,6 +75,11 @@ class WebBridge(QObject):
     @emit_slotCalled
     def emitSceneLoaded(self):
         self.sceneLoaded.emit()
+
+    @pyqtSlot(int)
+    @emit_slotCalled
+    def emitScriptReady(self, scriptFileId):
+        self.scriptFileLoaded.emit(scriptFileId)
 
     @pyqtSlot(int)
     @emit_slotCalled

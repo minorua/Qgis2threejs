@@ -388,13 +388,16 @@ class Q3DWindow(QMainWindow):
                                                   self.lastDir or QDir.homePath(),
                                                   "glTF files (*.gltf);;Binary glTF files (*.glb)")
         if filename:
-            self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
+            return
 
-            self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER)
-            self.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
-
+        def saveModel():
+            self.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
             self.ui.statusbar.clearMessage()
-            self.lastDir = os.path.dirname(filename)
+
+        self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
+        self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER, callback=saveModel)
+
+        self.lastDir = os.path.dirname(filename)
 
     # @pyqtSlot(bytes, str)     # connected to bridge.modelDataReady signal
     def saveModelData(self, data, filename):

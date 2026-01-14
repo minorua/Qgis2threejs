@@ -212,10 +212,6 @@ function loadScriptFile(path, callback) {
 	return true;
 }
 
-function emitScriptReady() {
-	pyObj.emitScriptReady();
-}
-
 function loadModel(url) {
 
 	var loadToScene = function (res) {

@@ -21,7 +21,10 @@ class Q3DWebPageCommon:
         self.bridge = WebBridge(self)
 
         self.loadedScripts = {}
+        self.loadScriptCallbacks = {}
+
         self.loadFinished.connect(self.pageLoaded)
+        self.bridge.scriptFileLoaded.connect(self.scriptFileLoaded)
 
     def setup(self):
         pass
@@ -31,6 +34,13 @@ class Q3DWebPageCommon:
 
     def pageLoaded(self):
         self.loadedScripts = {}
+
+    def scriptFileLoaded(self, scriptFileId):
+        self.loadedScripts[scriptFileId] = True
+
+        callbacks = self.loadScriptCallbacks.pop(scriptFileId, [])
+        for cb in callbacks:
+            cb()
 
     def logScriptExecution(self, string, data=None, message="", sourceID=""):
         if not DEBUG_MODE or message is None:
@@ -42,31 +52,54 @@ class Q3DWebPageCommon:
 
         logger.debug(f"> {text}")
 
-    def loadScriptFile(self, scriptFileId):
+    def loadScriptFile(self, scriptFileId, wait=False, callback=None):
         if scriptFileId in self.loadedScripts:
+            if callback:
+                callback()
             return
 
+        if callback:
+            self.loadScriptCallbacks.setdefault(scriptFileId, []).append(callback)
+
         path = "../js/" + ScriptFile.PATHS[scriptFileId]
+        script = f"loadScriptFile('{path}', function () {{pyObj.emitScriptReady({scriptFileId})}})"
 
-        loop = QEventLoop()
-        self.bridge.scriptFileLoaded.connect(loop.quit)
+        if wait:
+            loop = QEventLoop()
+            self.bridge.scriptFileLoaded.connect(loop.quit)
 
-        timer = QTimer()
-        timer.setSingleShot(True)
-        timer.timeout.connect(loop.quit)
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(loop.quit)
 
-        self.runScript(f"loadScriptFile('{path}', emitScriptReady)")
-        timer.start(TIMEOUT_MS)
-        loop.exec()
+            self.runScript(script)
+            timer.start(TIMEOUT_MS)
+            loop.exec()
 
-        if not timer.isActive():
-            logger.warning(f"Loading script file timed out: {path}")
+            if not timer.isActive():
+                logger.warning(f"Loading script file timed out: {path}")
+        else:
+            self.runScript(script)
 
-        self.loadedScripts[scriptFileId] = True
+    def loadScriptFiles(self, scriptFileIds, wait=False, callback=None):
+        total = len(scriptFileIds)
+        if total == 0:
+            raise Exception("loadScriptFiles called with empty scriptFileIds")
 
-    def loadScriptFiles(self, scriptFileIds):
+        if total == 1:
+            self.loadScriptFile(scriptFileIds[0], wait, callback)
+            return
+
+        loaded = 0
+        def script_loaded():
+            nonlocal loaded
+            loaded += 1
+            if loaded >= total:
+                if callback:
+                    callback()
+
         for id in scriptFileIds:
-            self.loadScriptFile(id)
+            self.loadScriptFile(id, wait, script_loaded)
 
     def waitForSceneLoaded(self, abortSignal=None, timeout=TIMEOUT_MS):
         loading = self.runScript("app.loadingManager.isLoading", wait=True)
