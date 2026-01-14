@@ -99,8 +99,8 @@ class WebPageCheckerBase(QWebEngineView):
 
         logger.debug("Page load finished.")
 
-    def runScript(self, string):
-        return self._page.runScript(string)
+    def runScript(self, string, wait=False):
+        return self._page.runScript(string, wait=wait)
 
     def waitForDataLoadFinished(self):
         # wait until data loading is finished
@@ -110,7 +110,7 @@ class WebPageCheckerBase(QWebEngineView):
         timer.start(100)
 
         while True:
-            is_loading = self.runScript("app.loadingManager.isLoading")
+            is_loading = self.runScript("app.loadingManager.isLoading", wait=True)
             logger.debug(f"Data loading flag: {is_loading}")
             if not is_loading:
                 break
