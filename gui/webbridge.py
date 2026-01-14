@@ -27,7 +27,7 @@ else:
 class WebBridge(QObject):
 
     # signals - Python to JS
-    sendData = pyqtSignal(QVariant)
+    sendData = pyqtSignal(QVariant, bool)           # data, viaQueue
 
     # signals - Bridge to Python (window, web page, etc.)
     initialized = pyqtSignal()

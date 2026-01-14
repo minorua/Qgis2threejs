@@ -15,7 +15,7 @@ from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..conf import DEBUG_MODE
-from ..utils import pluginDir
+from ..utils import js_bool, pluginDir
 from ..utils.logging import logger, web_logger
 
 
@@ -79,9 +79,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         return result
 
-    def sendData(self, data):
+    def sendData(self, data, viaQueue=False):
         self.bridge.setData(data)
-        self.runScript("loadData(pyData())", message=None)
+        self.runScript(f"loadData(pyData(), {js_bool(viaQueue)})", message=None)
 
     def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
         if DEBUG_MODE:

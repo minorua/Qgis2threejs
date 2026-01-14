@@ -399,7 +399,7 @@ class Q3DController(QObject):
             return
 
         self.isDataLoading = True
-        self.sendData(self.sendQueue.popleft())
+        self.sendData(self.sendQueue.popleft(), viaQueue=True)
 
     # web page access methods
     def updateWidget(self, name, properties):
@@ -452,8 +452,8 @@ class Q3DController(QObject):
             self.progressUpdated.emit(p, 100, msg)
 
     @requires_enabled
-    def sendData(self, data):
-        self.webPage.sendData(data)
+    def sendData(self, data, viaQueue=False):
+        self.webPage.sendData(data, viaQueue)
 
     @requires_enabled
     def runScript(self, string, message="", sourceID="controller.py", callback=None, wait=False):
