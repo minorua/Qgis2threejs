@@ -101,45 +101,6 @@ class Q3DWebPageCommon:
         for id in scriptFileIds:
             self.loadScriptFile(id, wait, script_loaded)
 
-    def waitForSceneLoaded(self, abortSignal=None, timeout=TIMEOUT_MS):
-        loading = self.runScript("app.loadingManager.isLoading", wait=True)
-
-        logger.debug("waitForSceneLoaded: loading=%s", loading)
-
-        if not loading:
-            return False
-
-        loop = QEventLoop()
-        timer = QTimer()
-        timer.setSingleShot(True)
-        timer.timeout.connect(loop.quit)
-
-        def error():
-            loop.exit(1)
-
-        def userCancel():
-            loop.exit(2)
-
-        self.bridge.sceneLoaded.connect(loop.quit)
-        self.bridge.dataLoadError.connect(error)
-
-        if abortSignal:
-            abortSignal.connect(userCancel)
-
-        timer.start(timeout)
-        err = loop.exec()
-        if not timer.isActive():
-            err = 3
-
-        self.bridge.dataLoadError.disconnect(error)
-
-        if abortSignal:
-            abortSignal.disconnect(userCancel)
-
-        if err:
-            return {1: "error", 2: "canceled", 3: "timeout"}[err]
-        return False
-
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """show message bar at top of web page"""
         self.runScript(f"showMessageBar(pyData(), {timeout_ms}, {js_bool(warning)})", msg)
