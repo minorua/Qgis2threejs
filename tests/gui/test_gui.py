@@ -52,9 +52,15 @@ class GUITestBase(unittest.TestCase):
         self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
     def loadSettings(self, filename):
-        self.WND.loadSettings(filename)
-        self.sleep(1000)
-        self.WND.webPage.loadScriptFile(ScriptFile.TEST)
+        loop = QEventLoop()
+        self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
+
+        self.WND.loadSettings(filename)     # page will be reloaded
+
+        loop.exec()
+
+        # load test script after page is loaded
+        self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
 
     def mouseClick(self, x, y):
         self.WND.runScript(f"showMarker({x}, {y}, 400)")
