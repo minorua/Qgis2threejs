@@ -357,7 +357,7 @@ class BridgeExporterBase:
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)
 
-    def initWebPage(self, width, height):
+    def initWebPage(self, width, height, timeout=TIMEOUT_MS):
         logger.info(f"The view size is set to {width}x{height} px.")
 
         loop = QEventLoop()
@@ -380,11 +380,41 @@ class BridgeExporterBase:
         else:
             self.page.reload()
 
-        timer.start(TIMEOUT_MS)
+        timer.start(timeout)
         loop.exec()
 
         if not timer.isActive():
             logger.warning("Web page initialization timed out.")
+
+    def buildSceneAndWaitForLoaded(self, timeout=TIMEOUT_MS, abortSignal=None):
+        loop = QEventLoop()
+        timer = QTimer()
+        timer.setSingleShot(True)
+
+        self.page.bridge.sceneLoaded.connect(loop.quit)
+
+        aborted = False
+        def abort():
+            nonlocal aborted
+            aborted = True
+            self.abort()
+            logger.info("Scene building aborted.")
+            loop.quit()
+
+        timer.timeout.connect(abort)
+        if abortSignal:
+            abortSignal.connect(abort)
+
+        self.controller.taskManager.addBuildSceneTask()
+
+        timer.start(timeout)
+        loop.exec()
+        timer.stop()
+
+        if abortSignal:
+            abortSignal.disconnect(abort)
+
+        return "canceled or timeout" if aborted else None
 
     def mkdir(self, filename):
         dir = QFileInfo(filename).dir()
@@ -402,17 +432,10 @@ class ImageExporter(BridgeExporterBase):
         if self.page is None:
             return QImage(), "Page not ready"
 
-        # set camera position and camera target
+        err = self.buildSceneAndWaitForLoaded(abortSignal=abortSignal)
+
         if cameraState:
             self.controller.setCameraState(cameraState)
-
-        # build scene
-        self.controller.buildScene()
-
-        err = self.page.waitForSceneLoaded(abortSignal)
-
-        # header and footer labels
-        self.controller.runScript('setHFLabel(pyData())', data=self.settings.widgetProperties("Label"))
 
         if self.isWebEngine:
             size = self.view.size()
@@ -466,10 +489,7 @@ class ModelExporter(BridgeExporterBase):
         # prepare output directory
         self.mkdir(filename)
 
-        # build scene
-        self.controller.buildScene()
-
-        err = self.page.waitForSceneLoaded(abortSignal)
+        err = self.buildSceneAndWaitForLoaded(abortSignal=abortSignal)
 
         # save model
         self.controller.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
