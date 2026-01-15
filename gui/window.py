@@ -264,8 +264,13 @@ class Q3DWindow(QMainWindow):
             # do not replace error icon with warning icon
             return
 
-        style = QgsApplication.style()
-        icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical if is_error else QStyle.StandardPixmap.SP_MessageBoxWarning)
+        if is_error:
+            icon = QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical)
+        else:
+            if os.name == "nt":
+                icon = QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
+            else:
+                icon = QgsApplication.getThemeIcon("mIconWarning.svg")
 
         self.ui.toolButtonConsoleStatus.setIcon(icon)
         self.ui.toolButtonConsoleStatus.show()
