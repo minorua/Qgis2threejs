@@ -91,8 +91,15 @@ class Q3DWindow(QMainWindow):
 
         self.ui.animationPanel.setup(self, settings)
 
-        # map canvas signal
-        qgisIface.mapCanvas().renderComplete.connect(self.mapCanvasRendered)
+        self.isDirty = False        # flag to indicate whether map canvas extent or project has been changed
+
+        canvas = qgisIface.mapCanvas()
+        canvas.renderComplete.connect(self.mapCanvasRendered)
+        canvas.extentsChanged.connect(self.setDirty)
+
+        project = QgsProject.instance()
+        if hasattr(project, "dirtySet"):     # QGIS 3.20+
+            project.dirtySet.connect(self.setDirty)
 
         # restore window geometry and dockwidget layout
         settings = QSettings()
@@ -296,10 +303,17 @@ class Q3DWindow(QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar.setFormat("")
 
-    # map canvas event
+    # map canvas and project events
+    @pyqtSlot()
     def mapCanvasRendered(self):
-        self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
-        self.controller.taskManager.addBuildSceneTask()
+        if self.isDirty:
+            self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
+            self.controller.taskManager.addBuildSceneTask()
+            self.isDirty = False
+
+    @pyqtSlot()
+    def setDirty(self):
+        self.isDirty = True
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
