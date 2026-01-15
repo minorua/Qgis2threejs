@@ -150,6 +150,8 @@ class Q3DController(QObject):
         if not self.aborted:
             self.abort()
 
+        self.taskManager.teardown()
+
         if self.thread:
             # Send a quit request to the builder so that it returns to the main thread.
             self.quitRequest.connect(self.builder.quit)
