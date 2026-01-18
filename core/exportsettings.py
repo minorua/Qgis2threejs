@@ -105,6 +105,7 @@ class ExportSettings:
 
     SCENE = "SCENE"
     CAMERA = "CAMERA"
+    CAMERA_POSE = "POSE"
     CONTROLS = "CTRL"
     LAYERS = "LAYERS"
     WIDGETS = "WIDGETS"
@@ -382,6 +383,22 @@ class ExportSettings:
 
     def setCamera(self, is_ortho):
         self.set(ExportSettings.CAMERA, "ORTHO" if is_ortho else "PERSPECTIVE")
+
+    # camera pose
+    def cameraPose(self):
+        """return (position, target): QgsPoint"""
+        p = self.data.get(ExportSettings.CAMERA_POSE, {})
+        pos = p.get("position")
+        tgt = p.get("target")
+        return (QgsPoint(pos[0], pos[1], pos[2]) if pos else None,
+                QgsPoint(tgt[0], tgt[1], tgt[2]) if tgt else None)
+
+    def setCameraPose(self, position, target):
+        """position, target: dict with x, y, z keys"""
+        p = self.data.get(ExportSettings.CAMERA_POSE, {})
+        p["position"] = [position["x"], position["y"], position["z"]]
+        p["target"] = [target["x"], target["y"], target["z"]]
+        self.set(ExportSettings.CAMERA_POSE, p)
 
     # controls
     def controls(self):
