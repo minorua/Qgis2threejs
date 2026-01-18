@@ -321,7 +321,6 @@ class Q3DController(QObject):
     def buildScene(self):
         self.updateSettingsCopyIfNeeded()
         self.buildSceneRequest.emit(self._settingsCopy)
-        return True
 
     def updateSceneOptions(self, callback=None):
         sp = self.settings.sceneProperties()
@@ -346,25 +345,32 @@ class Q3DController(QObject):
         self.runScript("\n".join(lines), callback=callback)
 
     def buildLayer(self, layer):
+        self.taskManager.processingLayer = layer
+
+        files = []
         if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
-            self.loadScriptFiles([ScriptFile.COLLADALOADER,
-                                  ScriptFile.GLTFLOADER])
+            files = [ScriptFile.COLLADALOADER,
+                     ScriptFile.GLTFLOADER]
 
         elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
-            self.loadScriptFiles([ScriptFile.MESHLINE])
+            files = [ScriptFile.MESHLINE]
 
         elif layer.type == LayerType.POINTCLOUD:
-            self.loadScriptFiles([ScriptFile.FETCH,
-                                  ScriptFile.POTREE,
-                                  ScriptFile.PCLAYER])
+            files = [ScriptFile.FETCH,
+                     ScriptFile.POTREE,
+                     ScriptFile.PCLAYER]
 
+        if files:
+            self.loadScriptFiles(files, callback=lambda: self._buildLayer(layer))
+        else:
+            self._buildLayer(layer)
+
+    def _buildLayer(self, layer):
         self.updateSettingsCopyIfNeeded()
-        self.taskManager.processingLayer = layer
         self.buildLayerRequest.emit(layer, self._settingsCopy)
 
         if len(self.settings.layers(export_only=True)) == 1:
             self.taskManager.addRunScriptTask("adjustCameraPos()")
-        return True
 
     def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
@@ -462,5 +468,5 @@ class Q3DController(QObject):
         self.webPage.runScript(string, message, sourceID, callback, wait)
 
     @requires_enabled
-    def loadScriptFiles(self, script_ids):
-        self.webPage.loadScriptFiles(script_ids)
+    def loadScriptFiles(self, script_ids, callback=None):
+        self.webPage.loadScriptFiles(script_ids, callback=callback)
