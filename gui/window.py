@@ -406,7 +406,7 @@ class Q3DWindow(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Current Scene as glTF"),
                                                   self.lastDir or QDir.homePath(),
                                                   "glTF files (*.gltf);;Binary glTF files (*.glb)")
-        if filename:
+        if not filename:
             return
 
         def saveModel():
