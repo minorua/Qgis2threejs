@@ -281,7 +281,7 @@ class Q3DWindow(QMainWindow):
         self.runScript("setPreviewEnabled({})".format(js_bool(enabled)))
 
         if enabled:
-            self.addBuildSceneTask()
+            self.controller.taskManager.addBuildSceneTask()
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:
