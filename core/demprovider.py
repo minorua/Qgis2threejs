@@ -6,8 +6,10 @@ import struct
 
 from math import floor
 from osgeo import gdal
+from qgis.core import QgsPointXY
 
 from .geometry import GridGeometry
+from .mapextent import MapExtent
 from ..utils import logger
 
 
@@ -30,6 +32,21 @@ class GDALDEMProvider:
         self.width = self.ds.RasterXSize
         self.height = self.ds.RasterYSize
 
+        self.resampleAlg = gdal.GRA_Bilinear
+        self.canUseOriginalValues = True
+
+    def setResampleAlg(self, alg):
+        self.resampleAlg = alg
+
+    def extent(self):
+        gt = self.ds.GetGeoTransform()
+        width = gt[1] * self.width
+        height = -gt[5] * self.height
+        return MapExtent(QgsPointXY(gt[0] + width / 2, gt[3] - height / 2), width, height)
+
+    def geotransform(self):
+        return self.ds.GetGeoTransform()
+
     def _read(self, width, height, geotransform):
         # create a memory dataset
         warped_ds = self.mem_driver.Create("", width, height, 1, gdal.GDT_Float32)
@@ -37,7 +54,7 @@ class GDALDEMProvider:
         warped_ds.SetGeoTransform(geotransform)
 
         # reproject image
-        gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, gdal.GRA_Bilinear)
+        gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, self.resampleAlg)
 
         band = warped_ds.GetRasterBand(1)
         return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
@@ -82,6 +99,9 @@ class FlatDEMProvider:
     def __init__(self, value=0):
         self.value = value
 
+        self.resampleAlg = None
+        self.canUseOriginalValues = False
+
     def name(self):
         return "Flat Plane"
 
@@ -98,3 +118,6 @@ class FlatDEMProvider:
 
     def readValue(self, x, y):
         return self.value
+
+    def setResampleAlg(self, _alg):
+        pass

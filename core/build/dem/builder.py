@@ -2,10 +2,12 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import math
+from osgeo import gdal
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
 
-from .grid_builder import DEMGridBuilder
+from .grid_builder import DEMGridBuilder, DEMTileGridBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
 from ..layerbuilderbase import LayerBuilderBase
@@ -13,6 +15,7 @@ from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
 from ....conf import DEBUG_MODE
+from ....utils import logger
 
 
 class DEMLayerBuilder(LayerBuilderBase):
@@ -29,7 +32,9 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, pathRoot, urlRoot)
-        self.grdBuilder = DEMGridBuilder(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
+
+        gridBldClass = DEMTileGridBuilder if self.properties.get("radioButton_OriginalValues") else DEMGridBuilder
+        self.grdBuilder = gridBldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False):
         """Generate the export data structure for this DEM layer.
@@ -62,22 +67,92 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         return d
 
-    def blockCount(self):
-        tiles = self.properties.get("checkBox_Tiles", False)
-        size = self.properties.get("spinBox_Size", 1) if tiles else 1
-        return size * size
-
     def layerProperties(self):
         """Return layer properties specific to this DEM layer."""
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
-        p["clipped"] = self.properties.get("checkBox_Clip", False)
+        p["clipped"] = self.properties.get("radioButton_ClipPolygon", False)
+        p["tiled"] = self.properties.get("radioButton_OriginalValues", False)
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
         return p
 
     def blockBuilders(self):
         """Yield builders that produce DEM tiles and materials."""
+        orig = self.properties.get("radioButton_OriginalValues")
+
+        if orig and self.provider.canUseOriginalValues:
+            self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
+            yield from self._originalBuilders()
+        else:
+            self.provider.setResampleAlg(gdal.GRA_Bilinear)
+            yield from self._resamplingBuilders()
+
+    def _originalBuilders(self):
+        beCenter = self.settings.baseExtent().center()
+
+        materials = self.properties.get("materials", [])
+        mtlCount = len(materials)
+        currentMtlId = self.properties.get("mtlId")
+
+        # clipping
+        # TODO:
+
+        layer_extent = self.provider.extent()
+
+        gt = self.provider.geotransform()
+        ulx, uly = gt[0], gt[3]
+        xres, yres = gt[1], -gt[5]
+
+        if xres != yres:
+            logger.warning(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
+
+        segments = self.properties.get("spinBox_TileSize", 512)
+        tile_size = xres * segments
+        tile_cols = math.ceil(self.provider.width / segments)
+        tile_rows = math.ceil(self.provider.height / segments)
+
+        tiles = []
+        for row in range(tile_rows):
+            for col in range(tile_cols):
+                blockIndex = row * tile_cols + col
+
+                cx = ulx + (col + 0.5) * tile_size
+                cy = uly - (row + 0.5) * tile_size
+                tile_extent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
+
+                tiles.append((blockIndex, tile_extent, (cx, cy)))
+
+        for blockIndex, tile_extent, tile_center in tiles:
+                # set up material builder for first/current material
+                if self.layer.opt.allMaterials and len(materials):
+                    id = materials[0].get("id")
+                    self.mtlBuilder.setup(blockIndex, tile_extent, id, useNow=bool(id == currentMtlId))
+                else:
+                    self.mtlBuilder.setup(blockIndex, tile_extent, useNow=True)
+                yield self.mtlBuilder
+
+                # set up grid builder
+                if not self.layer.opt.onlyMaterial:
+                    # DEMTileGridBuilder
+                    self.grdBuilder.setup(blockIndex,
+                                          segments=segments,
+                                          tileExtent=tile_extent,
+                                          offsetX=tile_center[0] - beCenter.x(),
+                                          offsetY=tile_center[1] - beCenter.y(),
+                                          layerExtent=layer_extent)
+                    yield self.grdBuilder
+
+                # set up material builder for remaininig materials
+                if self.layer.opt.allMaterials:
+                    for idx in range(1, mtlCount):
+                        id = materials[idx].get("id")
+                        self.mtlBuilder.setup(blockIndex, tile_extent, id, useNow=bool(id == currentMtlId))
+                        yield self.mtlBuilder
+
+                self.progress(blockIndex + 1, tile_cols * tile_rows)
+
+    def _resamplingBuilders(self):
         be = self.settings.baseExtent()
 
         materials = self.properties.get("materials", [])
@@ -97,14 +172,14 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         # clipping
         clip_geometry = None
-        clip_option = self.properties.get("checkBox_Clip", False)
-        if clip_option:
+        clipping = self.properties.get("radioButton_ClipPolygon")
+        if clipping:
             clip_layerId = self.properties.get("comboBox_ClipLayer")
             clip_layer = QgsProject.instance().mapLayer(clip_layerId) if clip_layerId else None
             if clip_layer:
                 clip_geometry = dissolvePolygonsWithinExtent(clip_layer, be, self.settings.crs)
 
-        # tiles (old name: surrounding blocks)
+        # surrounding tiles
         tiles = self.properties.get("checkBox_Tiles", False)
         roughness = self.properties.get("spinBox_Roughening", 1) if tiles else 1
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
@@ -147,6 +222,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
+                # DEMGridBuilder
                 grdBuilder.setup(blockIndex, grid_seg, extent, planeWidth, planeHeight,
                                  offsetX=planeWidth * sx,
                                  offsetY=planeHeight * sy,

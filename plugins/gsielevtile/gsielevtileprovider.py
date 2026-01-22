@@ -50,6 +50,9 @@ class GSIElevTileProvider:
         self.driver = gdal.GetDriverByName("MEM")
         self.last_dataset = None
 
+        self.resampleAlg = gdal.GRA_Bilinear
+        self.canUseOriginalValues = False
+
     def name(self):
         return "GSI Elevation Tile"
 
@@ -109,7 +112,7 @@ class GSIElevTileProvider:
         warped_ds.SetGeoTransform(geotransform)
 
         # reproject image
-        gdal.ReprojectImage(ds, warped_ds, None, None, gdal.GRA_Bilinear)
+        gdal.ReprojectImage(ds, warped_ds, None, None, self.resampleAlg)
 
         # load values into an array
         band = warped_ds.GetRasterBand(1)
@@ -188,3 +191,6 @@ class GSIElevTileProvider:
                 array.fill(NODATA_VALUE)
 
             yield array.tobytes()
+
+    def setResampleAlg(self, _alg):
+        pass

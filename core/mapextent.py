@@ -233,7 +233,7 @@ class MapExtent:
         return pts
 
     def __repr__(self):
-        return "MapExtent(c:{0}, w:{1}, h:{2}, r:{3})".format(self._center.toString(), self._width, self._height, self._rotation)
+        return f"MapExtent(c:{self._center}, w:{self._width}, h:{self._height}, r:{self._rotation})"
 
         # print coordinates of vertices
         pts = self.verticies()

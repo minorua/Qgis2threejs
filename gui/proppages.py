@@ -82,11 +82,11 @@ class PropertyPage(QWidget):
         for i in range(layout.count()):
             item = layout.itemAt(i)
             w = item.widget()
-            if w:
+            if w is not None:
                 w.setVisible(visible)
                 continue
             lyt = item.layout()
-            if lyt:
+            if lyt is not None:
                 self.setLayoutVisible(lyt, visible)
 
     def setLayoutsVisible(self, layouts, visible):
@@ -400,8 +400,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
+            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSize]
             widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
-            widgets += [self.checkBox_Clip, self.comboBox_ClipLayer]
+            widgets += [self.radioButton_ClipBaseExtent, self.radioButton_ClipPolygon, self.comboBox_ClipLayer]
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
         widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom,
@@ -412,24 +413,29 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         # geometry group
         if self.isPlane:
-            self.setLayoutVisible(self.horizontalLayout_Resampling, False)
-            self.setLayoutVisible(self.verticalLayout_Clip, False)
-            self.setWidgetsEnabled([self.label_Roughness, self.spinBox_Roughening], False)
-
+            self.setWidgetsVisible([self.groupBoxResampMethod, self.groupBoxClip], False)
+            self.setWidgetsVisible([self.labelRoughness, self.spinBox_Roughening], False)
             self.lineEdit_Altitude.textChanged.connect(self.altitudeChanged)
 
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name() if layer.mapLayer else layer.name)
+            if not self.canUseOriginalValues():
+                self.radioButton_OriginalValues.hide()
+                self.setLayoutVisible(self.formLayoutOriginalValues, False)
+                self.radioButton_Resampling.setChecked(True)
+                self.radioButton_NoClip.hide()
 
             self.initLayerComboBox()
 
             self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
             self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
 
+            self.radioButton_Resampling.toggled.connect(self.resamplingMethodChanged)
             self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
-            self.checkBox_Clip.toggled.connect(self.clipToggled)
+
+            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name() if layer.mapLayer else layer.name)
+
 
         self.checkBox_Tiles.toggled.connect(self.tilesToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
@@ -494,24 +500,61 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.altitudeChanged(self.lineEdit_Altitude.text())
 
         # set enable and visible properties of widgets
+        self.resamplingMethodChanged()
         self.tilesToggled(self.checkBox_Tiles.isChecked())
-        self.comboBox_ClipLayer.setVisible(self.checkBox_Clip.isChecked())
         if not self.checkBox_Sides.isChecked():
             self.label_Bottom.setVisible(False)
             self.lineEdit_Bottom.setVisible(False)
 
+    def canUseOriginalValues(self):
+        mapLayer = self.layer.mapLayer
+        if not mapLayer:
+            return False
+
+        if mapLayer.rasterUnitsPerPixelX() != mapLayer.rasterUnitsPerPixelY():
+            return False
+
+        crs1 = mapLayer.dataProvider().crs()
+        crs2 = self.mapSettings.destinationCrs()
+
+        if crs1 == crs2:
+            return True
+
+        try:
+            proj1 = crs1.toProj()
+            proj2 = crs2.toProj()
+        except AttributeError:      # Qgis.QGIS_VERSION_INT < 31003
+            proj1 = crs1.toProj4()
+            proj2 = crs2.toProj4()
+
+        if proj1 == proj2:
+            return True
+
+        return False
+
     def initLayerComboBox(self):
-        # list of polygon layers
-        self.comboBox_ClipLayer.blockSignals(True)
+        # polygon layers
         self.comboBox_ClipLayer.clear()
+        no_layers = True
         for mapLayer in getLayersInProject():
             if mapLayer.type() == QgsMapLayer.VectorLayer and mapLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
+                no_layers = False
 
-        self.comboBox_ClipLayer.blockSignals(False)
+        if no_layers:
+            self.comboBox_ClipLayer.addItem("(no polygon layer)")
+            self.radioButton_ClipPolygon.setEnabled(False)
 
     def altitudeChanged(self, alt):
-        self.lineEdit_Name.setPlaceholderText("Flat Plane" + ("" if alt == "0" or alt == "" else " ({})".format(alt)))
+        self.lineEdit_Name.setPlaceholderText("Flat Plane" + ("" if alt == "0" or alt == "" else f" ({alt})"))
+
+    def resamplingMethodChanged(self, _checked=None):
+        resamp = self.radioButton_Resampling.isChecked()
+        self.setLayoutEnabled(self.formLayoutOriginalValues, not resamp)
+        self.setLayoutEnabled(self.horizontalLayoutResamp, resamp)
+        self.setWidgetsEnabled([self.radioButton_NoClip], not resamp)
+        if resamp and self.radioButton_NoClip.isChecked():
+            self.radioButton_ClipBaseExtent.setChecked(True)
 
     def resolutionSliderChanged(self, v):
         resolutionLevel = self.horizontalSlider_DEMSize.value()
@@ -528,6 +571,26 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                          self.extent.height() / gridSegments.height(),
                          "" if self.extent.width() == self.extent.height() else " (Approx.)")
         QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
+
+    # TODO
+    def clipToggled(self, checked):
+        if checked:
+            self.checkBox_Frame.setChecked(False)
+            self.checkBox_Wireframe.setChecked(False)
+
+    # TODO
+    def tilesToggled(self, checked):
+        self.setLayoutEnabled(self.gridLayoutTiles, checked)
+        # self.setWidgetsEnabled([self.groupBoxClip], not checked)
+
+        if checked:
+            pass
+            # self.checkBox_Clip.setChecked(False)
+
+    def rougheningChanged(self, v):
+        # possible value is a power of 2
+        self.spinBox_Roughening.setSingleStep(v)
+        self.spinBox_Roughening.setMinimum(max(v // 2, 1))
 
     def selectLayer(self, _checked=False, update=True):
         from .layerselectdialog import LayerSelectDialog
@@ -568,23 +631,6 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         item = self.listWidget_Materials.currentItem()
         if item and item.type() == DEMMtlType.COLOR:
             item.setIcon(DEMPropertyPage.iconForColor(color))
-
-    def tilesToggled(self, checked):
-        self.setLayoutVisible(self.gridLayout_Tiles, checked)
-        self.setLayoutEnabled(self.verticalLayout_Clip, not checked)
-
-        if checked:
-            self.checkBox_Clip.setChecked(False)
-
-    def clipToggled(self, checked):
-        if checked:
-            self.checkBox_Frame.setChecked(False)
-            self.checkBox_Wireframe.setChecked(False)
-
-    def rougheningChanged(self, v):
-        # possible value is a power of 2
-        self.spinBox_Roughening.setSingleStep(v)
-        self.spinBox_Roughening.setMinimum(max(v // 2, 1))
 
     def properties(self, only_visible=False):
         p = PropertyPage.properties(self, only_visible=only_visible)

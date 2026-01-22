@@ -2362,6 +2362,106 @@ class Q3DMaterials extends THREE.EventDispatcher {
 }
 
 
+/*
+ TileGeometry is a custom geometry class designed for DEM tiles.
+
+ It is essentially a square PlaneGeometry that takes into account margin areas
+ where no actual data exists, which are located on the right and bottom sides
+ of the tile. Geometry data for these empty margin regions is omitted, allowing
+ the overall geometry size and memory usage to be reduced.
+
+ A texture image representing the entire tile area is applied to this geometry.
+ Therefore, UV coordinates are calculated based on the full tile extent, not just
+ the data-containing region.
+*/
+class TileGeometry extends THREE.BufferGeometry {
+
+	/**
+	 * Constructs a new tile geometry.
+	 * @param {number} [tileSize=1] - The size of a tile.
+	 * @param {number} [segments=1] - The number of segments along one side of the tile.
+	 * @param {number} [columns=1] - The number of columns of actual grid data.
+	 * @param {number} [rows=1] - The number of rows of actual grid data.
+	 */
+	constructor(tileSize=1, segments=1, columns=1, rows=1) {
+
+		super();
+
+		this.type = 'TileGeometry';
+		this.parameters = {
+			tileSize: tileSize,
+			segments: segments,
+			columns: columns,
+			rows: rows
+		};
+
+		const half_size = tileSize / 2;
+		const segment_size = tileSize / segments;
+
+		const indices = [];
+		const vertices = [];
+		const normals = [];
+		const uvs = [];
+
+		for ( let iy = 0; iy < rows; iy ++ ) {
+
+			const y = iy * segment_size - half_size;
+			const v = 1 - ( iy / segments );
+
+			for ( let ix = 0; ix < columns; ix ++ ) {
+
+				const x = ix * segment_size - half_size;
+
+				vertices.push( x, - y, 0 );
+
+				normals.push( 0, 0, 1 );
+
+				uvs.push( ix / segments );
+				uvs.push( v );
+
+			}
+
+		}
+
+		const bottom = rows - 1;
+		const right = columns - 1;
+
+		for ( let iy = 0; iy < bottom; iy ++ ) {
+
+			for ( let ix = 0; ix < right; ix ++ ) {
+
+				const a = ix + columns * iy;
+				const b = ix + columns * ( iy + 1 );
+				const c = ( ix + 1 ) + columns * ( iy + 1 );
+				const d = ( ix + 1 ) + columns * iy;
+
+				indices.push( a, b, d );
+				indices.push( b, c, d );
+
+			}
+
+		}
+
+		this.setIndex( indices );
+		this.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+		this.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
+		this.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
+
+	}
+
+	copy( source ) {
+
+		super.copy( source );
+
+		this.parameters = Object.assign( {}, source.parameters );
+
+		return this;
+
+	}
+
+}
+
+
 class Q3DDEMBlockBase {
 
 	constructor() {
@@ -2455,6 +2555,17 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
 			}
 			buildGeometry(grid.array);
+		}
+
+		if (Q3D.Config.debugMode) {
+			var params = geom.parameters;
+			console.log("DEM Block Geometry Info:");
+			console.log("block id: " + data.block)
+			console.log("cols: " + grid.width + ", rows: " + grid.height);
+			console.log("width: " + params.width + ", height: " + params.height);
+			console.log("widthSegments: " + params.widthSegments + ", heightSegments: " + params.heightSegments);
+			console.log("segment width: " + (params.width / params.widthSegments) + ", segment height: " + (params.height / params.heightSegments));
+			console.log("translate x: " + mesh.position.x + ", y: " + mesh.position.y);
 		}
 
 		this.obj = mesh;
@@ -2659,6 +2770,83 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 			ymax = translate[1] + this.data.height / 2;
 		if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
 		return false;
+	}
+}
+
+
+class Q3DDEMTileBlock extends Q3DDEMBlock {
+
+	loadData(data, layer, callback) {
+		var grid = data.grid;
+		delete data.grid;
+
+		super.loadData(data, layer, callback);
+
+		if (grid === undefined) return;
+
+		// create a plane geometry
+		var geom;
+		if (layer.geometryCache) {
+			var params = layer.geometryCache.parameters || {};
+			if (params.width === data.tileSize && params.height === data.tileSize &&
+				params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
+
+				geom = layer.geometryCache.clone();
+				geom.parameters = layer.geometryCache.parameters;
+			}
+		}
+		geom = geom || new TileGeometry(data.tileSize, data.segments, grid.width, grid.height);
+		layer.geometryCache = geom;
+
+		// create a mesh
+		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		mesh.position.fromArray(data.translate);
+		mesh.scale.z = data.zScale;
+		layer.addObject(mesh);
+
+		// set z values
+		var buildGeometry = function (grid_values) {
+			var vertices = geom.attributes.position.array;
+			for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+				vertices[j + 2] = grid_values[i];
+			}
+			geom.attributes.position.needsUpdate = true;
+			geom.computeVertexNormals();
+
+			if (callback) callback(mesh);
+		};
+
+		if (grid.url !== undefined) {
+			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+				grid.array = new Float32Array(buf);
+				buildGeometry(grid.array);
+			});
+		}
+		else {
+			if (grid.base64 !== undefined) {
+				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
+				grid.array = new Float32Array(bytes.buffer);
+				delete grid.base64;
+			}
+			else if (grid.binary !== undefined) {
+				// WebKit Bridge
+				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+			}
+			buildGeometry(grid.array);
+		}
+
+		if (Q3D.Config.debugMode) {
+			var params = geom.parameters;
+			console.log("DEM Tile Block Geometry Info:");
+			console.log("block id: " + data.block)
+			console.log("tile size: " + params.tileSize);
+			console.log("segments: " + (params.segments));
+			console.log("cols: " + params.columns + ", rows: " + params.rows);
+			console.log("translate x: " + mesh.position.x + ", y: " + mesh.position.y);
+		}
+
+		this.obj = mesh;
+		return mesh;
 	}
 }
 
@@ -2938,7 +3126,15 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			block = this.blocks[data.block];
 
 		if (block === undefined) {
-			block = (layer.properties.clipped) ? (new Q3DClippedDEMBlock()) : (new Q3DDEMBlock());
+			if (layer.properties.tiled) {
+				block = new Q3DDEMTileBlock();
+			}
+			else if (layer.properties.clipped) {
+				block = new Q3DClippedDEMBlock();
+			}
+			else {
+				block = new Q3DDEMBlock();
+			}
 			this.blocks[data.block] = block;
 		}
 
@@ -4280,6 +4476,7 @@ Q3D.Scene = Q3DScene;
 Q3D.Material = Q3DMaterial;
 Q3D.Materials = Q3DMaterials;
 Q3D.DEMBlock = Q3DDEMBlock;
+Q3D.DEMTileBlock = Q3DDEMTileBlock;
 Q3D.ClippedDEMBlock = Q3DClippedDEMBlock;
 Q3D.MapLayer = Q3DMapLayer;
 Q3D.DEMLayer = Q3DDEMLayer;

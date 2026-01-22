@@ -6,10 +6,11 @@ import base64
 import json
 import struct
 from qgis.PyQt.QtCore import QByteArray
-from qgis.core import QgsGeometry
+from qgis.core import QgsGeometry, QgsPointXY
 
 from .property_reader import DEMPropertyReader
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry
+from ...mapextent import MapExtent
 from ....conf import DEBUG_MODE, DEF_SETS
 from ....utils import hex_color, logger, parseFloat
 
@@ -18,7 +19,6 @@ class DEMGridBuilder:
     """Generates 3D geometry grids based on DEM data."""
 
     def __init__(self, layer, settings, provider, mtlManager, pathRoot=None, urlRoot=None):
-
         self.layer = layer
         self.properties = layer.properties
 
@@ -45,55 +45,41 @@ class DEMGridBuilder:
         self.edges = None
 
     def build(self):
-        mapTo3d = self.settings.mapTo3d()
+        b = {
+            "type": "block",
+            "layer": self.layer.jsLayerId,
+            "block": self.blockIndex,
+            "width": self.planeWidth,
+            "height": self.planeHeight,
+            "translate": [self.offsetX, self.offsetY, 0],
+            "zScale": self.settings.mapTo3d().zScale
+        }
 
-        b = {"type": "block",
-             "layer": self.layer.jsLayerId,
-             "block": self.blockIndex,
-             "width": self.planeWidth,
-             "height": self.planeHeight,
-             "translate": [self.offsetX, self.offsetY, 0],
-             "zScale": mapTo3d.zScale
-             }
-
-        # geometry
         if self.clip_geometry:
             geom = self.clipped(self.clip_geometry)
 
             if self.settings.localMode or self.settings.isPreview:
                 b["geom"] = geom
             else:
-                tail = "{0}.json".format(self.blockIndex)
+                tail = f"{self.blockIndex}.json"
+
                 with open(self.pathRoot + tail, "w", encoding="utf-8") as f:
                     json.dump(geom, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None)
 
                 b["geom"] = {"url": self.urlRoot + tail}
         else:
-            grid_width, grid_height = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
+            columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
 
             if self.edgeRoughness == 1 and len(self.neighbors) == 0:
-                ba = self.provider.read(grid_width, grid_height, self.extent)
+                ba = self.provider.read(columns, rows, self.extent)
             else:
-                grid_values = list(self.provider.readValues(grid_width, grid_height, self.extent))
+                grid_values = list(self.provider.readValues(columns, rows, self.extent))
                 self.processEdges(grid_values, self.edgeRoughness)
-                ba = struct.pack("{0}f".format(grid_width * grid_height), *grid_values)
+                ba = struct.pack(f"{columns * rows}f", *grid_values)
 
-            g = {"width": grid_width,
-                 "height": grid_height}
+            b["grid"] = self._gridData(columns, rows, ba)
 
-            if self.settings.requiresJsonSerializable:
-                g["base64"] = base64.b64encode(ba).decode("ascii")
-            elif self.settings.isPreview:       # for WebKit preview
-                g["binary"] = QByteArray(ba)
-            else:
-                # write grid values to an binary file
-                tail = "{0}.bin".format(self.blockIndex)
-                with open(self.pathRoot + tail, "wb") as f:
-                    f.write(ba)
-                g["url"] = self.urlRoot + tail
-
-            b["grid"] = g
-
+        # TODO: move to layer property
         opacity = DEMPropertyReader.opacity(self.properties)
 
         # sides and bottom
@@ -103,7 +89,7 @@ class DEMGridBuilder:
                           "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)}
 
         # edges
-        if self.properties.get("checkBox_Frame") and not self.properties.get("checkBox_Clip"):
+        if self.properties.get("checkBox_Frame") and not self.properties.get("radioButton_ClipPolygon"):
             mi = self.mtlManager.getLineIndex(hex_color(self.properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR), prefix="0x"), opacity)
             b["edges"] = {"mtl": self.mtlManager.build(mi)}
 
@@ -113,6 +99,26 @@ class DEMGridBuilder:
             b["wireframe"] = {"mtl": self.mtlManager.build(mi)}
 
         return b
+
+    def _gridData(self, columns, rows, bytearray):
+        g = {
+            "width": columns,
+            "height": rows
+        }
+
+        if self.settings.requiresJsonSerializable:
+            g["base64"] = base64.b64encode(bytearray).decode("ascii")
+        elif self.settings.isPreview:       # for WebKit preview
+            g["binary"] = QByteArray(bytearray)
+        else:
+            # write grid values to an binary file
+            tail = f"{self.blockIndex}.bin"
+            g["url"] = self.urlRoot + tail
+
+            with open(self.pathRoot + tail, "wb") as f:
+                f.write(bytearray)
+
+        return g
 
     def clipped(self, clip_geometry):
         transform_func = self.settings.mapTo3d().transformXY
@@ -271,12 +277,59 @@ class DEMGridBuilder:
 
         return 0    # as safe null value
 
-    def gridPointToPoint(self, x, y):
-        x = self.rect.xMinimum() + self.rect.width() / (self.grid_width - 1) * x
-        y = self.rect.yMaximum() - self.rect.height() / (self.grid_height - 1) * y
-        return x, y
 
-    def pointToGridPoint(self, x, y):
-        x = (x - self.rect.xMinimum()) / self.rect.width() * (self.grid_width - 1)
-        y = (self.rect.yMaximum() - y) / self.rect.height() * (self.grid_height - 1)
-        return x, y
+class DEMTileGridBuilder(DEMGridBuilder):
+
+    def setup(self, blockIndex, segments, tileExtent, offsetX, offsetY, layerExtent, clip_geometry=None):
+        self.blockIndex = blockIndex
+        self.segments = segments
+        self.tileExtent = tileExtent
+        self.tileSize = tileExtent.width()
+        self.offsetX = offsetX
+        self.offsetY = offsetY
+        self.layerExtent = layerExtent
+        self.clip_geometry = clip_geometry
+
+    def build(self):
+        b = {
+            "type": "block",
+            "layer": self.layer.jsLayerId,
+            "block": self.blockIndex,
+            "segments": self.segments,
+            "tileSize": self.tileSize,
+            "translate": [self.offsetX, self.offsetY, 0],
+            "zScale": self.settings.mapTo3d().zScale,
+        }
+
+        if self.clip_geometry:
+            # TODO: implement clipped tile
+            pass
+
+        else:
+            segment_size = self.tileSize / self.segments
+            half_segment_size = segment_size / 2
+
+            ulx, uly = self.tileExtent.point(0, 1)              # A' (px is pt)
+            tile_lrx, tile_lry = self.tileExtent.point(1, 0)    # B' (px is pt)
+
+            _lrx, _lry = self.layerExtent.point(1, 0)           # C  (px is area)
+            layer_lrx, layer_lry = _lrx - half_segment_size, _lry + half_segment_size # C' (px is pt)
+
+            lrx, lry = min(layer_lrx, tile_lrx), max(layer_lry, tile_lry)
+
+            valid_width = lrx - ulx
+            valid_height = uly - lry
+            center = QgsPointXY(ulx + valid_width / 2, uly - valid_height / 2)
+
+            valid_extent = MapExtent(center, valid_width, valid_height)   # extent in the tile that contains actual data
+
+            columns = int(valid_width / segment_size + 1)
+            rows = int(valid_height / segment_size + 1)
+            ba = self.provider.read(columns, rows, valid_extent)
+
+            b["grid"] = self._gridData(columns, rows, ba)
+
+        # TODO:
+        # sides, bottom, edges and wireframe
+
+        return b
