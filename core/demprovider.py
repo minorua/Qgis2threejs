@@ -3,10 +3,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import struct
-
 from math import floor
 from osgeo import gdal
 from qgis.core import QgsPointXY
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from .geometry import GridGeometry
 from .mapextent import MapExtent
@@ -31,12 +35,26 @@ class GDALDEMProvider:
 
         self.width = self.ds.RasterXSize
         self.height = self.ds.RasterYSize
+        self.nodata = self.ds.GetRasterBand(1).GetNoDataValue()
 
-        self.resampleAlg = gdal.GRA_Bilinear
         self.canUseOriginalValues = True
 
+        self._opts = {
+            "format": "MEM",
+            "dstSRS": self.dest_wkt,
+            "outputType": gdal.GDT_Float32,
+            "resampleAlg": gdal.GRA_Bilinear
+        }
+
+        if source_wkt:
+            self._opts["srcSRS"] = self.source_wkt
+
+        if self.nodata is not None:
+            self._opts["srcNodata"] = self.nodata
+            self._opts["dstNodata"] = self.nodata
+
     def setResampleAlg(self, alg):
-        self.resampleAlg = alg
+        self._opts["resampleAlg"] = alg
 
     def extent(self):
         gt = self.ds.GetGeoTransform()
@@ -47,17 +65,27 @@ class GDALDEMProvider:
     def geotransform(self):
         return self.ds.GetGeoTransform()
 
-    def _read(self, width, height, geotransform):
-        # create a memory dataset
-        warped_ds = self.mem_driver.Create("", width, height, 1, gdal.GDT_Float32)
-        warped_ds.SetProjection(self.dest_wkt)
-        warped_ds.SetGeoTransform(geotransform)
+    def _read(self, width, height, gt, asList=False):
+        self._opts["width"] = width
+        self._opts["height"] = height
+        self._opts["outputBounds"] = [gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]]
 
-        # reproject image
-        gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, self.resampleAlg)
-
+        warped_ds = gdal.Warp("", self.ds, **self._opts)
         band = warped_ds.GetRasterBand(1)
-        return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
+
+        if numpy is None:
+            ba = band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
+            if asList:
+                return struct.unpack("f" * width * height, ba)
+            return ba
+
+        arr = band.ReadAsArray()
+        if self.nodata is not None:
+            arr[arr == self.nodata] = numpy.nan
+
+        if asList:
+            return arr.flatten().tolist()
+        return arr.tobytes()
 
     def read(self, width, height, extent):
         """read data into a byte array"""
@@ -65,7 +93,7 @@ class GDALDEMProvider:
 
     def readValues(self, width, height, extent):
         """read data into a list"""
-        return struct.unpack("f" * width * height, self.read(width, height, extent))
+        return self._read(width, height, extent.geotransform(width, height), asList=True)
 
     def readAsGridGeometry(self, width, height, extent):
         return GridGeometry(extent,
@@ -76,7 +104,7 @@ class GDALDEMProvider:
         """get value at specified position using 1px * 1px memory raster"""
         res = 0.1
         geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-        return struct.unpack("f", self._read(1, 1, geotransform))[0]
+        return self._read(1, 1, geotransform, asList=True)[0]
 
     def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
         mx0 = floor((x - xmin) / xres)
@@ -84,7 +112,7 @@ class GDALDEMProvider:
         px0 = xmin + xres * mx0
         py0 = ymin + yres * my0
         geotransform = [px0, xres, 0, py0 + yres, 0, -yres]
-        z = struct.unpack("f" * 4, self._read(2, 2, geotransform))
+        z = self._read(2, 2, geotransform, asList=True)
 
         sdx = (x - px0) / xres
         sdy = (y - py0) / yres
@@ -98,8 +126,6 @@ class FlatDEMProvider:
 
     def __init__(self, value=0):
         self.value = value
-
-        self.resampleAlg = None
         self.canUseOriginalValues = False
 
     def name(self):

@@ -2383,11 +2383,24 @@ class TileGeometry extends THREE.BufferGeometry {
 	 * @param {number} [columns=1] - The number of columns of actual grid data.
 	 * @param {number} [rows=1] - The number of rows of actual grid data.
 	 */
-	constructor(tileSize=1, segments=1, columns=1, rows=1) {
+	constructor() {
 
 		super();
 
 		this.type = 'TileGeometry';
+	}
+
+	copy( source ) {
+
+		super.copy( source );
+
+		this.parameters = Object.assign( {}, source.parameters );
+
+		return this;
+	}
+
+	loadData(grid_values, tileSize, segments, columns, rows) {
+
 		this.parameters = {
 			tileSize: tileSize,
 			segments: segments,
@@ -2400,65 +2413,44 @@ class TileGeometry extends THREE.BufferGeometry {
 
 		const indices = [];
 		const vertices = [];
-		const normals = [];
 		const uvs = [];
 
-		for ( let iy = 0; iy < rows; iy ++ ) {
+		for (let iy = 0; iy < rows; iy++) {
 
 			const y = iy * segment_size - half_size;
-			const v = 1 - ( iy / segments );
+			const v = 1 - (iy / segments);
 
-			for ( let ix = 0; ix < columns; ix ++ ) {
+			for (let ix = 0; ix < columns; ix++) {
 
 				const x = ix * segment_size - half_size;
+				const i = ix + iy * columns;
+				const z = grid_values[i];
 
-				vertices.push( x, - y, 0 );
+				vertices.push(x, -y, (isNaN(z)) ? 0 : z);
 
-				normals.push( 0, 0, 1 );
+				uvs.push(ix / segments);
+				uvs.push(v);
 
-				uvs.push( ix / segments );
-				uvs.push( v );
+				if (ix === 0 || iy === 0) continue;
 
+				const a = i - columns - 1;
+				const b = i - 1;
+				const c = i;
+				const d = i - columns;
+
+				if (isNaN(grid_values[b]) || isNaN(grid_values[d])) continue;
+				if (!isNaN(grid_values[a])) indices.push(a, b, d);
+				if (!isNaN(z)) indices.push(b, c, d);
 			}
-
 		}
 
-		const bottom = rows - 1;
-		const right = columns - 1;
-
-		for ( let iy = 0; iy < bottom; iy ++ ) {
-
-			for ( let ix = 0; ix < right; ix ++ ) {
-
-				const a = ix + columns * iy;
-				const b = ix + columns * ( iy + 1 );
-				const c = ( ix + 1 ) + columns * ( iy + 1 );
-				const d = ( ix + 1 ) + columns * iy;
-
-				indices.push( a, b, d );
-				indices.push( b, c, d );
-
-			}
-
-		}
-
-		this.setIndex( indices );
-		this.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		this.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
-		this.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
-
+		this.setIndex(indices);
+		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+		this.computeBoundingSphere();
+		this.computeBoundingBox();
+		this.computeVertexNormals();
 	}
-
-	copy( source ) {
-
-		super.copy( source );
-
-		this.parameters = Object.assign( {}, source.parameters );
-
-		return this;
-
-	}
-
 }
 
 
@@ -2784,34 +2776,15 @@ class Q3DDEMTileBlock extends Q3DDEMBlock {
 
 		if (grid === undefined) return;
 
-		// create a plane geometry
-		var geom;
-		if (layer.geometryCache) {
-			var params = layer.geometryCache.parameters || {};
-			if (params.width === data.tileSize && params.height === data.tileSize &&
-				params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
+		var geom = new TileGeometry(data.tileSize, data.segments, grid.width, grid.height);
 
-				geom = layer.geometryCache.clone();
-				geom.parameters = layer.geometryCache.parameters;
-			}
-		}
-		geom = geom || new TileGeometry(data.tileSize, data.segments, grid.width, grid.height);
-		layer.geometryCache = geom;
-
-		// create a mesh
 		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		// set z values
 		var buildGeometry = function (grid_values) {
-			var vertices = geom.attributes.position.array;
-			for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-				vertices[j + 2] = grid_values[i];
-			}
-			geom.attributes.position.needsUpdate = true;
-			geom.computeVertexNormals();
+			geom.loadData(grid_values, data.tileSize, data.segments, grid.width, grid.height);
 
 			if (callback) callback(mesh);
 		};
