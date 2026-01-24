@@ -2383,11 +2383,24 @@ class TileGeometry extends THREE.BufferGeometry {
 	 * @param {number} [columns=1] - The number of columns of actual grid data.
 	 * @param {number} [rows=1] - The number of rows of actual grid data.
 	 */
-	constructor(tileSize=1, segments=1, columns=1, rows=1) {
+	constructor() {
 
 		super();
 
 		this.type = 'TileGeometry';
+	}
+
+	copy( source ) {
+
+		super.copy( source );
+
+		this.parameters = Object.assign( {}, source.parameters );
+
+		return this;
+	}
+
+	loadData(grid_values, tileSize, segments, columns, rows) {
+
 		this.parameters = {
 			tileSize: tileSize,
 			segments: segments,
@@ -2410,36 +2423,33 @@ class TileGeometry extends THREE.BufferGeometry {
 
 			for ( let ix = 0; ix < columns; ix ++ ) {
 
+				const i = ix + iy * columns;
 				const x = ix * segment_size - half_size;
+				const z = grid_values[i];
 
-				vertices.push( x, - y, 0 );
+				vertices.push( x, - y, (isNaN(z)) ? 0 : z );
 
 				normals.push( 0, 0, 1 );
 
 				uvs.push( ix / segments );
 				uvs.push( v );
 
+				if (ix === 0 || iy === 0) continue;
+
+				const a = i - columns - 1;
+				const b = i - 1;
+				const c = i;
+				const d = i - columns;
+
+				const za = grid_values[a];
+				const zb = grid_values[b];
+				const zc = z;
+				const zd = grid_values[d];
+
+				if (isNaN(zb) || isNaN(zd)) continue;
+				if (!isNaN(za)) indices.push(a, b, d);
+				if (!isNaN(zc)) indices.push(b, c, d);
 			}
-
-		}
-
-		const bottom = rows - 1;
-		const right = columns - 1;
-
-		for ( let iy = 0; iy < bottom; iy ++ ) {
-
-			for ( let ix = 0; ix < right; ix ++ ) {
-
-				const a = ix + columns * iy;
-				const b = ix + columns * ( iy + 1 );
-				const c = ( ix + 1 ) + columns * ( iy + 1 );
-				const d = ( ix + 1 ) + columns * iy;
-
-				indices.push( a, b, d );
-				indices.push( b, c, d );
-
-			}
-
 		}
 
 		this.setIndex( indices );
@@ -2447,18 +2457,8 @@ class TileGeometry extends THREE.BufferGeometry {
 		this.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
 		this.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
 
+		this.computeVertexNormals();		// TODO
 	}
-
-	copy( source ) {
-
-		super.copy( source );
-
-		this.parameters = Object.assign( {}, source.parameters );
-
-		return this;
-
-	}
-
 }
 
 
@@ -2806,12 +2806,7 @@ class Q3DDEMTileBlock extends Q3DDEMBlock {
 
 		// set z values
 		var buildGeometry = function (grid_values) {
-			var vertices = geom.attributes.position.array;
-			for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-				vertices[j + 2] = grid_values[i];
-			}
-			geom.attributes.position.needsUpdate = true;
-			geom.computeVertexNormals();
+			geom.loadData(grid_values, data.tileSize, data.segments, grid.width, grid.height);
 
 			if (callback) callback(mesh);
 		};

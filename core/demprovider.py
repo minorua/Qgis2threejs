@@ -5,6 +5,7 @@
 import struct
 
 from math import floor
+import numpy as np
 from osgeo import gdal
 from qgis.core import QgsPointXY
 
@@ -48,16 +49,32 @@ class GDALDEMProvider:
         return self.ds.GetGeoTransform()
 
     def _read(self, width, height, geotransform):
-        # create a memory dataset
-        warped_ds = self.mem_driver.Create("", width, height, 1, gdal.GDT_Float32)
-        warped_ds.SetProjection(self.dest_wkt)
-        warped_ds.SetGeoTransform(geotransform)
+        # TODO: this should work without numpy
+        nodata = self.ds.GetRasterBand(1).GetNoDataValue()
+        logger.error("nodata: {}".format(nodata))
 
-        # reproject image
-        gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, self.resampleAlg)
+        gt = geotransform
+        bounds = [gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]]
+        options = gdal.WarpOptions(format="MEM",
+                                   width=width,
+                                   height=height,
+                                   dstSRS=self.dest_wkt,
+                                   outputBounds=bounds,
+                                   outputType=gdal.GDT_Float32,     # gdalconst.GDT_Float32
+                                   resampleAlg=self.resampleAlg,
+                                   srcNodata=nodata, dstNodata=nodata)
+        warped_ds = gdal.Warp("", self.ds, options=options)
 
         band = warped_ds.GetRasterBand(1)
-        return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
+        band.SetNoDataValue(nodata)
+        array = band.ReadAsArray()
+
+        if nodata is not None:
+            array[array == nodata] = np.nan
+
+        logger.error("first value: {}".format(array.flat[0]))
+
+        return array.tobytes()
 
     def read(self, width, height, extent):
         """read data into a byte array"""
