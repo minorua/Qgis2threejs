@@ -19,6 +19,8 @@ from ..utils import logger
 
 class GDALDEMProvider:
 
+    CanUseOriginalValues = True
+
     def __init__(self, filename, dest_wkt, source_wkt=None):
         self.filename = filename
         self.dest_wkt = dest_wkt
@@ -36,8 +38,6 @@ class GDALDEMProvider:
         self.width = self.ds.RasterXSize
         self.height = self.ds.RasterYSize
         self.nodata = self.ds.GetRasterBand(1).GetNoDataValue()
-
-        self.canUseOriginalValues = True
 
         self._opts = {
             "format": "MEM",
@@ -127,9 +127,10 @@ class GDALDEMProvider:
 
 class FlatDEMProvider:
 
+    CanUseOriginalValues = False
+
     def __init__(self, value=0):
         self.value = value
-        self.canUseOriginalValues = False
 
     def name(self):
         return "Flat Plane"

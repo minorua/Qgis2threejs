@@ -81,7 +81,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         """Yield builders that produce DEM tiles and materials."""
         orig = self.properties.get("radioButton_OriginalValues")
 
-        if orig and self.provider.canUseOriginalValues:
+        if orig and self.provider.CanUseOriginalValues:
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
             yield from self._originalBuilders()
         else:

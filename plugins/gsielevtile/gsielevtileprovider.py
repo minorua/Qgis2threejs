@@ -30,6 +30,8 @@ ZMAX = 14
 
 class GSIElevTileProvider:
 
+    CanUseOriginalValues = False
+
     def __init__(self, dest_wkt):
         self.dest_wkt = dest_wkt
 
@@ -51,7 +53,6 @@ class GSIElevTileProvider:
         self.last_dataset = None
 
         self.resampleAlg = gdal.GRA_Bilinear
-        self.canUseOriginalValues = False
 
     def name(self):
         return "GSI Elevation Tile"
