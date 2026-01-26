@@ -89,29 +89,51 @@ class DEMLayerBuilder(LayerBuilderBase):
             yield from self._resamplingBuilders()
 
     def _originalBuilders(self):
-        beCenter = self.settings.baseExtent().center()
-
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
 
-        # clipping
-        # TODO:
-
-        layer_extent = self.provider.extent()
-
-        gt = self.provider.geotransform()
-        ulx, uly = gt[0], gt[3]
-        xres, yres = gt[1], -gt[5]
-
-        if xres != yres:
-            logger.warning(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
+        be = self.settings.baseExtent()
+        if be.rotation():
+            logger.error(f'{self.layer.name}: Map rotation is not supported when using the "Use original values" option.')
+            return
 
         segments = self.properties.get("spinBox_TileSize", 512)
-        tile_size = xres * segments
-        tile_cols = math.ceil(self.provider.width / segments)
-        tile_rows = math.ceil(self.provider.height / segments)
+        clipToBE = self.properties.get("radioButton_ClipBaseExtent")
+        clipToPolygon = self.properties.get("radioButton_ClipPolygon")
 
+        # DEM provider is assumed to be GDALDEMProvider.
+        layer_extent = self.provider.extent()
+
+        if clipToBE:
+            layer_grect = self.provider.gridRectangle()
+            grect = layer_grect.intersect(be.unrotatedRect())
+            if grect is None:
+                return
+
+            ulx, uly = grect.rect.xMinimum(), grect.rect.yMaximum()
+            xres, yres = grect.grid.xres, grect.grid.yres
+
+            tile_cols = math.ceil(grect.columns() / segments)
+            tile_rows = math.ceil(grect.rows() / segments)
+
+            data_extent_lr = grect.rect.xMaximum(), grect.rect.yMinimum()
+        # TODO: elif clipToPolygon:
+        else:
+            gt = self.provider.geotransform()
+            ulx, uly = gt[0], gt[3]
+            xres, yres = gt[1], -gt[5]
+
+            tile_cols = math.ceil(self.provider.width / segments)
+            tile_rows = math.ceil(self.provider.height / segments)
+
+            data_extent_lr = layer_extent.point(1, 0)
+
+        if xres != yres:
+            logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
+            return
+
+        tile_size = xres * segments
         tiles = []
         for row in range(tile_rows):
             for col in range(tile_cols):
@@ -123,6 +145,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
                 tiles.append((blockIndex, tile_extent, (cx, cy)))
 
+        beCenterX, beCenterY = be.center().x(), be.center().y()
         for blockIndex, tile_extent, tile_center in tiles:
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
@@ -138,9 +161,9 @@ class DEMLayerBuilder(LayerBuilderBase):
                     self.grdBuilder.setup(blockIndex,
                                           segments=segments,
                                           tileExtent=tile_extent,
-                                          offsetX=tile_center[0] - beCenter.x(),
-                                          offsetY=tile_center[1] - beCenter.y(),
-                                          layerExtent=layer_extent)
+                                          offsetX=tile_center[0] - beCenterX,
+                                          offsetY=tile_center[1] - beCenterY,
+                                          dataExtentLowerRight=data_extent_lr)
                     yield self.grdBuilder
 
                 # set up material builder for remaininig materials

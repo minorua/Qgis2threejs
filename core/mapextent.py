@@ -238,3 +238,69 @@ class MapExtent:
         # print coordinates of vertices
         pts = self.verticies()
         return "MapExtent:" + ",".join(["P{0}({1})".format(x_y[0], x_y[1].toString()) for x_y in enumerate(pts)])
+
+
+class Grid:
+
+    def __init__(self, origin_x, origin_y, xres, yres):
+        self.origin_x = origin_x
+        self.origin_y = origin_y
+        self.xres = xres
+        self.yres = yres
+
+    def snapExtentInside(self, rect):
+        xmin = self.origin_x + math.ceil((rect.xMinimum() - self.origin_x) / self.xres) * self.xres
+        ymin = self.origin_y + math.ceil((rect.yMinimum() - self.origin_y) / self.yres) * self.yres
+        xmax = self.origin_x + math.floor((rect.xMaximum() - self.origin_x) / self.xres) * self.xres
+        ymax = self.origin_y + math.floor((rect.yMaximum() - self.origin_y) / self.yres) * self.yres
+
+        if xmin >= xmax or ymin >= ymax:
+            return None
+
+        return QgsRectangle(xmin, ymin, xmax, ymax)
+
+    def __repr__(self):
+        return f"Grid(origin: {self.origin_x}, {self.origin_y} res: {self.xres}, {self.yres})"
+
+
+class GridRectangle:
+
+    def __init__(self, grid, rect):
+        self.grid = grid
+        self.rect = rect
+
+    @classmethod
+    def fromQgsRasterLayer(cls, layer):
+        rect = layer.dataProvider().extent()
+        x0 = rect.xMinimum()
+        y0 = rect.yMaximum()
+
+        dx = layer.rasterUnitsPerPixelX()
+        dy = layer.rasterUnitsPerPixelY()
+
+        return cls(Grid(x0, y0, dx, dy), rect)
+
+    @classmethod
+    def fromGeotransform(cls, gt, width, height):
+        return cls(Grid(gt[0], gt[3], gt[1], -gt[5]),
+                   QgsRectangle(gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]))
+
+    def intersect(self, rect):
+        r = self.rect.intersect(rect)
+        if r.isEmpty():
+            return None
+
+        snapped = self.grid.snapExtentInside(r)
+        if snapped is None:
+            return None
+
+        return GridRectangle(self.grid, snapped)
+
+    def columns(self):
+        return self.rect.width() / self.grid.xres
+
+    def rows(self):
+        return self.rect.height() / self.grid.yres
+
+    def __repr__(self):
+        return f"GridRectangle(rect: {self.rect}, grid: {self.grid}, columns: {self.columns()}, rows: {self.rows()})"

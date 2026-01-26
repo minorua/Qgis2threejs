@@ -5,7 +5,7 @@
 import struct
 from math import floor
 from osgeo import gdal
-from qgis.core import QgsPointXY
+from qgis.core import QgsPointXY, QgsRectangle
 
 try:
     import numpy
@@ -13,7 +13,7 @@ except ImportError:
     numpy = None
 
 from .geometry import GridGeometry
-from .mapextent import MapExtent
+from .mapextent import MapExtent, GridRectangle
 from ..utils import logger
 
 
@@ -64,6 +64,9 @@ class GDALDEMProvider:
 
     def geotransform(self):
         return self.ds.GetGeoTransform()
+
+    def gridRectangle(self):
+        return GridRectangle.fromGeotransform(self.ds.GetGeoTransform(), self.width, self.height)
 
     def _read(self, width, height, gt, asList=False):
         self._opts["width"] = width

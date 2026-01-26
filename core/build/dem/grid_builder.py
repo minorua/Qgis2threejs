@@ -280,14 +280,14 @@ class DEMGridBuilder:
 
 class DEMTileGridBuilder(DEMGridBuilder):
 
-    def setup(self, blockIndex, segments, tileExtent, offsetX, offsetY, layerExtent, clip_geometry=None):
+    def setup(self, blockIndex, segments, tileExtent, offsetX, offsetY, dataExtentLowerRight, clip_geometry=None):
         self.blockIndex = blockIndex
         self.segments = segments
         self.tileExtent = tileExtent
         self.tileSize = tileExtent.width()
         self.offsetX = offsetX
         self.offsetY = offsetY
-        self.layerExtent = layerExtent
+        self.dataExtentLowerRight = dataExtentLowerRight
         self.clip_geometry = clip_geometry
 
     def build(self):
@@ -312,7 +312,7 @@ class DEMTileGridBuilder(DEMGridBuilder):
             ulx, uly = self.tileExtent.point(0, 1)              # A' (px is pt)
             tile_lrx, tile_lry = self.tileExtent.point(1, 0)    # B' (px is pt)
 
-            _lrx, _lry = self.layerExtent.point(1, 0)           # C  (px is area)
+            _lrx, _lry = self.dataExtentLowerRight              # C  (px is area)
             layer_lrx, layer_lry = _lrx - half_segment_size, _lry + half_segment_size # C' (px is pt)
 
             lrx, lry = min(layer_lrx, tile_lrx), max(layer_lry, tile_lry)
