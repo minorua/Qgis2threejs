@@ -70,55 +70,12 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QRadioButton" name="radioButton_OriginalValues">
-            <property name="text">
-             <string>Use original DEM values</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QFormLayout" name="formLayoutOriginalValues">
-            <property name="leftMargin">
-             <number>20</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="labelTileSize">
-              <property name="minimumSize">
-               <size>
-                <width>110</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Tile size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QSpinBox" name="spinBox_TileSize">
-              <property name="minimum">
-               <number>100</number>
-              </property>
-              <property name="maximum">
-               <number>3000</number>
-              </property>
-              <property name="singleStep">
-               <number>100</number>
-              </property>
-              <property name="value">
-               <number>500</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
            <widget class="QRadioButton" name="radioButton_Resampling">
             <property name="text">
              <string>Bilinear resampling</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -183,6 +140,49 @@
             </item>
            </layout>
           </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_OriginalValues">
+            <property name="text">
+             <string>Use original DEM values</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayoutOriginalValues">
+            <property name="leftMargin">
+             <number>20</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="labelTileSize">
+              <property name="minimumSize">
+               <size>
+                <width>110</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Tile size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="spinBox_TileSize">
+              <property name="minimum">
+               <number>100</number>
+              </property>
+              <property name="maximum">
+               <number>3000</number>
+              </property>
+              <property name="singleStep">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>500</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -199,6 +199,16 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButton_ClipBaseExtent">
+            <property name="text">
+             <string>Clip DEM to scene base extent</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="1">
            <widget class="QComboBox" name="comboBox_ClipLayer">
             <property name="enabled">
@@ -206,20 +216,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QRadioButton" name="radioButton_ClipBaseExtent">
-            <property name="text">
-             <string>Clip DEM to current scene extent</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
+          <item row="3" column="0">
            <widget class="QRadioButton" name="radioButton_NoClip">
             <property name="text">
              <string>Do not clip DEM</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -228,9 +228,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBoxTiles">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
          <property name="title">
           <string>Surrounding Tiles</string>
          </property>
@@ -728,14 +725,14 @@
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>lineEdit_Altitude</tabstop>
-  <tabstop>radioButton_OriginalValues</tabstop>
-  <tabstop>spinBox_TileSize</tabstop>
   <tabstop>radioButton_Resampling</tabstop>
   <tabstop>horizontalSlider_DEMSize</tabstop>
-  <tabstop>radioButton_NoClip</tabstop>
+  <tabstop>radioButton_OriginalValues</tabstop>
+  <tabstop>spinBox_TileSize</tabstop>
   <tabstop>radioButton_ClipBaseExtent</tabstop>
   <tabstop>radioButton_ClipPolygon</tabstop>
   <tabstop>comboBox_ClipLayer</tabstop>
+  <tabstop>radioButton_NoClip</tabstop>
   <tabstop>checkBox_Tiles</tabstop>
   <tabstop>spinBox_Size</tabstop>
   <tabstop>spinBox_Roughening</tabstop>

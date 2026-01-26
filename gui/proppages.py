@@ -423,7 +423,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             if not self.canUseOriginalValues():
                 self.radioButton_OriginalValues.hide()
                 self.setLayoutVisible(self.formLayoutOriginalValues, False)
-                self.radioButton_Resampling.setChecked(True)
                 self.radioButton_NoClip.hide()
 
             self.initLayerComboBox()
