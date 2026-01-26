@@ -23,7 +23,7 @@ from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import createUid, hex_color, js_bool, logger, pluginDir
+from ..utils import createUid, hex_color, js_bool, logger, openHelp, pluginDir
 from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 
@@ -205,7 +205,7 @@ class Q3DWindow(QMainWindow):
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
-        ui.actionHelp.triggered.connect(self.help)
+        ui.actionHelp.triggered.connect(openHelp)
         ui.actionHomePage.triggered.connect(self.homePage)
         ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         ui.actionVersion.triggered.connect(self.about)
@@ -600,9 +600,6 @@ class Q3DWindow(QMainWindow):
     def usage(self):
         self.runScript("gui.showInfo()")
 
-    def help(self):
-        QDesktopServices.openUrl(QUrl("https://minorua.github.io/Qgis2threejs/docs/"))
-
     def homePage(self):
         QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs"))
 
@@ -680,6 +677,11 @@ class PropertiesDialog(QDialog):
 
                 if role == QDialogButtonBox.ButtonRole.ApplyRole:
                     self.setLayerDialogTitle(self.layer)
+
+        elif role == QDialogButtonBox.ButtonRole.HelpRole:
+            pageName = type(self.page).__name__.replace("PropertyPage", "").lower()
+            tab = self.page.tabWidget.currentIndex() if hasattr(self.page, "tabWidget") else ""
+            openHelp(f"dlg={pageName}&tab={tab}")
 
     def showLayerProperties(self, layer):
         self.setLayerDialogTitle(layer)

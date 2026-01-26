@@ -12,6 +12,7 @@ from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODev
 from qgis.PyQt.QtGui import QDesktopServices, QImage
 from qgis.core import NULL, QgsMapLayer, QgsProject
 
+from ..conf import HELP_URL_BASE, PLUGIN_VERSION
 from .logging import logger, pluginDir, temporaryOutputDir
 
 
@@ -255,6 +256,14 @@ def openUrl(url):
                 logger.warning("Incorrect web browser path. Open URL using default web browser.")
 
     QDesktopServices.openUrl(url)
+
+
+def openHelp(queryString=""):
+    url = HELP_URL_BASE + "?version=" + PLUGIN_VERSION
+    if queryString:
+        url += "&" + queryString
+
+    openUrl(QUrl(url))
 
 
 def copyFile(source, dest, overwrite=False):

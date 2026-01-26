@@ -28,10 +28,12 @@ DEBUG_MODE = 1
 TEMP_DEBUG_MODE = DEBUG_MODE    # temporary code for debugging
 TESTING = False
 
+# help
+HELP_URL_BASE = "https://minorua.github.io/Qgis2threejs/help/"
 
+
+# default export settings
 class DEF_SETS:
-
-    # default export settings
 
     TEMPLATE = "3DViewer.html"
 
