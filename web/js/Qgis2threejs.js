@@ -3050,16 +3050,11 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	}
 
 	loadData(data, scene) {
-		var old_blockIsClipped = this.properties.clipped;
-
 		if (data.type == "layer") {
 			this.clearObjects();
 			super.loadData(data, scene);
 
-			if (old_blockIsClipped !== data.properties.clipped) {
-				// DEM type changed
-				this.blocks = [];
-			}
+			this.blocks = [];
 
 			var p = scene.userData,
 				rotation = p.baseExtent.rotation;
