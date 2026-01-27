@@ -2,3 +2,4 @@
 .venv
 .doctrees
 *.bak
+*.buildinfo
