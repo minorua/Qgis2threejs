@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Qgis2threejs Help</title>
+    <meta name="robots" content="noindex">
+    <script>
+        (function () {
+            const docVersions = ["2.8", "2.9"];
+
+            const params = new URLSearchParams(window.location.search);
+            const version = params.get("version").split(".").slice(0, 2).join(".");
+
+            if (docVersions.includes(version)) {
+
+                const dlg = params.get("dlg") || "";
+                const tag = params.get("tag") || "";
+                const anchor = {
+                    scene: "scene-settings",
+                    dem: "dem-layer-settings",
+                    vector: "vector-layer-settings"
+                }[dlg] || "";
+
+                const targetUrl = `../docs/${version}/Exporter.html#${anchor}`;
+                window.location.replace(targetUrl);
+            }
+            else {
+                window.location.replace("../docs/");
+            }
+        })();
+    </script>
+</head>
+<body>
+</body>
+</html>
