@@ -1,0 +1,43 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-21 16:56+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\PluginSettings.rst:2
+msgid "Plugin Settings"
+msgstr "プラグイン設定"
+
+#: ..\..\source\PluginSettings.rst:4
+msgid "Browser path"
+msgstr "ブラウザパス"
+
+#: ..\..\source\PluginSettings.rst:9
+msgid "Optional Features"
+msgstr "オプションの機能"
+
+#: ..\..\source\PluginSettings.rst:11
+msgid ""
+"There is list of optional features. You can enable optional feature you want "
+"to use."
+msgstr "オプションの機能の一覧です。使用したいオプション機能を有効化することができます。"
+
+#: ..\..\source\PluginSettings.rst:14
+msgid "For details, see :doc:`Plugins`."
+msgstr "詳細は :doc:`Plugins` を参照して下さい。"
+
+#: ..\..\source\PluginSettings.rst:6
+msgid ""
+"If you want to open exported page with a web browser other than default "
+"browser, use this option."
+msgstr "デフォルトのWebブラウザではないブラウザでエクスポートされたページを開きたい場合はこのオプションを使用します。"

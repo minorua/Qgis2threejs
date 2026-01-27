@@ -1,0 +1,16 @@
+.. replace_local_images.txt: Replacements for images.
+
+.. |plugin_icon| image:: ./images/Qgis2threejs24.png
+.. |crs_icon| image:: ./images/tutorial/crsicon.png
+
+
+.. Examples
+
+.. |Kibiji| image:: ./images/examples/kibiji.png
+   :target: /Qgis2threejs/examples/27/kibiji/
+
+.. |Mt_Fuji| image:: ./images/examples/mt_fuji.png
+   :target: /Qgis2threejs/examples/24/mt_fuji.html
+
+.. |ForestBasins| image:: ./images/examples/forest_basins.png
+   :target: /Qgis2threejs/examples/24/forest_basins.html
