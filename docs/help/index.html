@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Qgis2threejs Help</title>
+    <meta name="robots" content="noindex">
+    <script>
+        (function () {
+            const docVersions = ["2.8", "2.9"];
+
+            const params = new URLSearchParams(window.location.search);
+            const version = params.get("version").split(".").slice(0, 2).join(".");
+
+            if (docVersions.includes(version)) {
+                const dlg = params.get("dlg") || "";
+                const anchor = {
+                    scene: "scene-settings",
+                    dem: "dem-layer",
+                    vector: "vector-layer",
+                    pointcloud: "point-cloud-layer",
+                    keyframe: "animation",
+                    export: "export-to-web-dialog",
+                    settings: "plugin-settings",
+                    addpc: "add-point-cloud-layer",
+                    hflabel: "header-footer-labels",
+                    northarrow: "north-arrow-dialog",
+                    imagesave: "save-image-dialog"
+                }[dlg] || "";
+
+                const args = [];
+                const tab = params.get("tab") || "";
+                const type = params.get("type") || "";
+                if (tab) args.push(`tab=${tab}`);
+                if (type) args.push(`type=${type}`);
+
+                let targetUrl = `../docs/${version}/Exporter.html`;
+                if (args.length) {
+                    targetUrl += "?" + args.join("&");
+                }
+                if (anchor) {
+                    targetUrl += `#${anchor}`;
+                }
+                window.location.replace(targetUrl);
+            }
+            else {
+                window.location.replace("../docs/");
+            }
+        })();
+    </script>
+</head>
+<body>
+</body>
+</html>
