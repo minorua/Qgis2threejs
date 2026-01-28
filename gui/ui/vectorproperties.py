@@ -352,7 +352,7 @@ class Ui_VectorPropertiesWidget(object):
         self.checkBox_Clip.setText(_translate("VectorPropertiesWidget", "Clip geometries"))
         self.groupBox_Attribute.setTitle(_translate("VectorPropertiesWidget", "Attributes"))
         self.checkBox_ExportAttrs.setText(_translate("VectorPropertiesWidget", "Export attributes"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("VectorPropertiesWidget", "Main"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("VectorPropertiesWidget", "Features"))
         self.checkBox_Label.setText(_translate("VectorPropertiesWidget", "Show labels"))
         self.groupBox_Position.setTitle(_translate("VectorPropertiesWidget", "&Position"))
         self.groupBox_LabelText.setTitle(_translate("VectorPropertiesWidget", "&Text"))
