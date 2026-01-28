@@ -539,20 +539,20 @@
          </item>
          <item row="3" column="1" colspan="2">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
+           <item row="0" column="1">
             <widget class="QRadioButton" name="radioButton_PNG">
              <property name="text">
               <string>PNG</string>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="0" column="0">
             <widget class="QRadioButton" name="radioButton_JPEG">
              <property name="text">
               <string>JPEG</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -741,8 +741,8 @@
   <tabstop>listWidget_Materials</tabstop>
   <tabstop>toolButton_SelectLayer</tabstop>
   <tabstop>comboBox_TextureSize</tabstop>
-  <tabstop>radioButton_PNG</tabstop>
   <tabstop>radioButton_JPEG</tabstop>
+  <tabstop>radioButton_PNG</tabstop>
   <tabstop>lineEdit_ImageFile</tabstop>
   <tabstop>toolButton_ImageFile</tabstop>
   <tabstop>colorButton_Color</tabstop>
