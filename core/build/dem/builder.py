@@ -14,8 +14,9 @@ from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
-from ....conf import DEBUG_MODE
-from ....utils import logger
+from ....conf import DEBUG_MODE, DEF_SETS
+from ....utils import hex_color, logger, parseFloat
+
 
 
 class DEMLayerBuilder(LayerBuilderBase):
@@ -75,6 +76,24 @@ class DEMLayerBuilder(LayerBuilderBase):
         p["tiled"] = self.properties.get("radioButton_OriginalValues", False)
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
+
+        # auxiliary objects
+        opacity = DEMPropertyReader.opacity(self.properties)
+        mtlMan = self.mtlBuilder.materialManager
+
+        if self.properties.get("checkBox_Sides"):
+            mi = mtlMan.getMeshMaterialIndex(hex_color(self.properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR), prefix="0x"), opacity)
+            p["sides"] = {"mtl": mtlMan.build(mi),
+                          "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)}
+
+        if self.properties.get("checkBox_Frame") and not self.properties.get("radioButton_ClipPolygon"):
+            mi = mtlMan.getLineIndex(hex_color(self.properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR), prefix="0x"), opacity)
+            p["edges"] = {"mtl": mtlMan.build(mi)}
+
+        if self.properties.get("checkBox_Wireframe"):
+            mi = mtlMan.getLineIndex(hex_color(self.properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR), prefix="0x"), opacity)
+            p["wireframe"] = {"mtl": mtlMan.build(mi)}
+
         return p
 
     def blockBuilders(self):

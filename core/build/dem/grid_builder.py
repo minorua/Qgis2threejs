@@ -8,11 +8,10 @@ import struct
 from qgis.PyQt.QtCore import QByteArray
 from qgis.core import QgsGeometry, QgsPointXY
 
-from .property_reader import DEMPropertyReader
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry
 from ...mapextent import MapExtent
-from ....conf import DEBUG_MODE, DEF_SETS
-from ....utils import hex_color, logger, parseFloat
+from ....conf import DEBUG_MODE
+from ....utils import logger
 
 
 class DEMGridBuilder:
@@ -79,25 +78,6 @@ class DEMGridBuilder:
                 ba = struct.pack(f"{columns * rows}f", *grid_values)
 
             b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
-
-        # TODO: move to layer property
-        opacity = DEMPropertyReader.opacity(self.properties)
-
-        # sides and bottom
-        if self.properties.get("checkBox_Sides"):
-            mi = self.mtlManager.getMeshMaterialIndex(hex_color(self.properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR), prefix="0x"), opacity)
-            b["sides"] = {"mtl": self.mtlManager.build(mi),
-                          "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)}
-
-        # edges
-        if self.properties.get("checkBox_Frame") and not self.properties.get("radioButton_ClipPolygon"):
-            mi = self.mtlManager.getLineIndex(hex_color(self.properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR), prefix="0x"), opacity)
-            b["edges"] = {"mtl": self.mtlManager.build(mi)}
-
-        # wireframe
-        if self.properties.get("checkBox_Wireframe"):
-            mi = self.mtlManager.getLineIndex(hex_color(self.properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR), prefix="0x"), opacity)
-            b["wireframe"] = {"mtl": self.mtlManager.build(mi)}
 
         return b
 

@@ -2541,7 +2541,6 @@ class Q3DDEMBlockBase {
 			}
 		}
 	}
-
 }
 
 
@@ -3063,6 +3062,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		super();
 		this.type = Q3D.LayerType.DEM;
 		this.blocks = [];
+		this.auxiliaryMtl = {};
 	}
 
 	loadData(data, scene) {
@@ -3094,6 +3094,8 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			}
 			this.objectGroup.updateMatrixWorld();
 
+			this._loadAuxiliaryMaterials(data.properties);
+
 			if (data.body !== undefined && data.body.blocks !== undefined) {
 				data.body.blocks.forEach(function (block) {
 					this.buildBlock(block, scene, this);
@@ -3105,10 +3107,21 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		}
 	}
 
-	buildBlock(data, scene, layer) {
-		var _this = this,
-			block = this.blocks[data.block];
+	_loadAuxiliaryMaterials(p) {
+		["sides", "edges", "wireframe"].forEach(function (a) {
+			if (!p[a]) return;
 
+			const m = new Q3DMaterial();
+			m.loadData(p[a].mtl);
+			this.materials.add(m);
+			this.auxiliaryMtl[a] = m;
+		}, this);
+	}
+
+	buildBlock(data, scene, layer) {
+		const _this = this;
+
+		let block = this.blocks[data.block];
 		if (block === undefined) {
 			if (layer.properties.tiled) {
 				block = new Q3DDEMTileBlock();
@@ -3123,37 +3136,22 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		}
 
 		block.loadData(data, this, function (mesh) {
-
-			var material;
-			if (data.wireframe) {
-				material = new Q3DMaterial();
-				material.loadData(data.wireframe.mtl);
-				_this.materials.add(material);
-
-				block.addWireframe(_this, mesh, material.mtl);
-
-				var mtl = block.material.mtl;
-				mtl.polygonOffset = true;
-				mtl.polygonOffsetFactor = 1;
-				mtl.polygonOffsetUnits = 1;
-			}
-
-			if (data.sides) {
-				// sides and bottom
-				material = new Q3DMaterial();
-				material.loadData(data.sides.mtl);
-				_this.materials.add(material);
-
-				block.buildSides(_this, mesh, material.mtl, data.sides.bottom);
+			// add auxiliary objects
+			if (layer.properties.sides) {	// sides and bottom
+				block.buildSides(_this, mesh, layer.auxiliaryMtl.sides.mtl, layer.properties.sides.bottom);
 				_this.sideVisible = true;
 			}
 
-			if (data.edges) {
-				material = new Q3DMaterial();
-				material.loadData(data.edges.mtl);
-				_this.materials.add(material);
+			if (layer.properties.edges) {
+				block.addEdges(_this, mesh, layer.auxiliaryMtl.edges.mtl, (layer.properties.sides) ? layer.properties.sides.bottom : undefined);
+			}
 
-				block.addEdges(_this, mesh, material.mtl, (data.sides) ? data.sides.bottom : undefined);
+			if (layer.properties.wireframe) {
+				block.addWireframe(_this, mesh, layer.auxiliaryMtl.wireframe.mtl);
+
+				mesh.material.polygonOffset = true;
+				mesh.material.polygonOffsetFactor = 1;
+				mesh.material.polygonOffsetUnits = 1;
 			}
 
 			_this.requestRender();
