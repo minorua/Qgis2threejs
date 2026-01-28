@@ -308,15 +308,15 @@ class Q3DController(QObject):
     @pyqtSlot()
     def allTasksFinalized(self):
         logger.debug("All tasks finalized.")
-        if self.isDataLoading or self.sendQueue:
-            return
 
-        self._tasksAndLoadingFinalized(complete=not self.taskManager.sceneLoadStatus.taskFailed,
-                                       is_scene=self.taskManager.sceneLoadStatus.buildSceneStarted)
-
-    def _tasksAndLoadingFinalized(self, complete, is_scene):
-        self.runScript(f"tasksAndLoadingFinalized({js_bool(complete)}, {js_bool(is_scene)})")
-        self.taskManager.sceneLoadStatus.reset()
+        # send a special data item that represents the final item in a sequence of tasks.
+        signal = {
+            "type": "signal",
+            "name": "queueCompleted",
+            "success": not self.taskManager.sceneLoadStatus.taskFailed,
+            "is_scene": self.taskManager.sceneLoadStatus.buildSceneStarted
+        }
+        self.appendDataToSendQueue(data=signal)
 
     def buildScene(self):
         self.updateSettingsCopyIfNeeded()
@@ -396,18 +396,17 @@ class Q3DController(QObject):
         self.isDataLoading = False
         if self.sendQueue:
             self.sendQueuedData()
-            return
-
-        if self.taskManager.sceneLoadStatus.allTasksFinalized:
-            self._tasksAndLoadingFinalized(complete=not self.taskManager.sceneLoadStatus.taskFailed,
-                                           is_scene=self.taskManager.sceneLoadStatus.buildSceneStarted)
 
     def sendQueuedData(self):
         if self.isDataLoading or not self.sendQueue:
             return
 
+        data = self.sendQueue.popleft()
+        if data.get("type") == "signal" and data.get("name") == "queueCompleted":
+            self.taskManager.sceneLoadStatus.reset()
+
         self.isDataLoading = True
-        self.sendData(self.sendQueue.popleft(), viaQueue=True)
+        self.sendData(data, viaQueue=True)
 
     # web page access methods
     def updateWidget(self, name, properties):

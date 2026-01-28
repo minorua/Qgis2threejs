@@ -169,6 +169,11 @@ function loadData(data, viaQueue) {
 			updateProgressBar(data.progress);
 		}
 	}
+	else if (data.type == "signal") {
+		if (data.name = "queueCompleted") {
+			tasksAndLoadingFinalized(data.success, data.is_scene);
+		}
+	}
 	else if (data.type == "labels") {
 		Q3D.E("header").innerHTML = data.Header || "";
 		Q3D.E("footer").innerHTML = data.Footer || "";
@@ -280,12 +285,12 @@ function hideLayer(layerId, remove_obj) {
 }
 
 var progressFadeoutSet = false;
-function tasksAndLoadingFinalized(complete, is_scene) {
+function tasksAndLoadingFinalized(success, is_scene) {
 	// hide progress bar
 	Q3D.E("progressbar").classList.add("fadeout");
 	progressFadeoutSet = true;
 
-	if (complete && is_scene) {
+	if (success && is_scene) {
 		setTimeout(function () {
 			app.dispatchEvent({type: "sceneLoaded"});
 		}, 0);
