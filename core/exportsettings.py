@@ -12,9 +12,9 @@ from qgis.PyQt.QtCore import QSettings, QSize, QUrl
 from qgis.core import QgsMapSettings, QgsPoint, QgsPointXY, QgsProject
 
 from .const import ATConst, GEOM_WIDGET_MAX_COUNT, LayerType, layerTypeFromMapLayer
-from .demprovider import GDALDEMProvider, FlatDEMProvider
 from .mapextent import MapExtent
 from .mapto3d import MapTo3D
+from .build.dem.demprovider import GDALDEMProvider, FlatDEMProvider
 from .plugin.pluginmanager import pluginManager
 from ..conf import DEF_SETS, DEBUG_MODE, PLUGIN_VERSION_INT
 from ..utils import createUid, getLayersInProject, getTemplateConfig, logger, parseFloat, settingsFilePath

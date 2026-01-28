@@ -12,9 +12,9 @@ try:
 except ImportError:
     numpy = None
 
-from .geometry import GridGeometry
-from .mapextent import MapExtent, GridRectangle
-from ..utils import logger
+from ...geometry import GridGeometry
+from ...mapextent import MapExtent, GridRectangle
+from ....utils import logger
 
 
 class GDALDEMProvider:
