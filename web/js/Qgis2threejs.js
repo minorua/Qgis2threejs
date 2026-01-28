@@ -2363,12 +2363,92 @@ class Q3DMaterials extends THREE.EventDispatcher {
 
 
 /*
- TileGeometry is a custom geometry class designed for DEM tiles.
+ The GridGeometry class is almost the same as PlaneGeometry, but it does not
+ generate triangles that include vertices with no-data values.
+*/
+class GridGeometry extends THREE.BufferGeometry {
 
- It is essentially a square PlaneGeometry that takes into account margin areas
- where no actual data exists, which are located on the right and bottom sides
- of the tile. Geometry data for these empty margin regions is omitted, allowing
- the overall geometry size and memory usage to be reduced.
+	constructor() {
+		super();
+		this.type = 'GridGeometry';
+	}
+
+	copy(source) {
+		super.copy(source);
+		this.parameters = Object.assign({}, source.parameters);
+		return this;
+	}
+
+	/**
+	 * @param {array}  [grid_values]
+	 * @param {number} [width] - Plane width.
+	 * @param {number} [height] - Plane height.
+	 * @param {number} [columns] - The number of columns of grid data.
+	 * @param {number} [rows] - The number of rows of grid data.
+	 */
+	loadData(grid_values, width, height, columns, rows) {
+		this.parameters = {
+			width: width,
+			height: height,
+			columns: columns,
+			rows: rows
+		};
+
+		const width_half = width / 2;
+		const height_half = height / 2;
+
+		const segmentsX = columns - 1;
+		const segmentsY = rows - 1;
+
+		const segment_width = width / segmentsX;
+		const segment_height = height / segmentsY;
+
+		const indices = [];
+		const vertices = [];
+		const uvs = [];
+
+		for (let iy = 0; iy < rows; iy++) {
+
+			const y = iy * segment_height - height_half;
+			const v = 1 - (iy / segmentsY);
+
+			for (let ix = 0; ix < columns; ix++) {
+
+				const x = ix * segment_width - width_half;
+				const i = ix + iy * columns;
+				const z = grid_values[i];
+
+				vertices.push(x, -y, (isNaN(z)) ? 0 : z);
+
+				uvs.push(ix / segmentsX);
+				uvs.push(v);
+
+				if (ix === 0 || iy === 0) continue;
+
+				const a = i - columns - 1;
+				const b = i - 1;
+				const c = i;
+				const d = i - columns;
+
+				if (isNaN(grid_values[b]) || isNaN(grid_values[d])) continue;
+				if (!isNaN(grid_values[a])) indices.push(a, b, d);
+				if (!isNaN(z)) indices.push(b, c, d);
+			}
+		}
+
+		this.setIndex(indices);
+		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+		this.computeBoundingSphere();
+		this.computeBoundingBox();
+		this.computeVertexNormals();
+	}
+}
+
+/*
+ TileGeometry is essentially a square GridGeometry that takes into account margin
+ areas where no actual data exists, which are located on the right and bottom
+ sides of the tile. Geometry data for these empty margin regions is omitted.
 
  A texture image representing the entire tile area is applied to this geometry.
  Therefore, UV coordinates are calculated based on the full tile extent, not just
@@ -2376,31 +2456,25 @@ class Q3DMaterials extends THREE.EventDispatcher {
 */
 class TileGeometry extends THREE.BufferGeometry {
 
+	constructor() {
+		super();
+		this.type = 'TileGeometry';
+	}
+
+	copy(source) {
+		super.copy(source);
+		this.parameters = Object.assign({}, source.parameters);
+		return this;
+	}
+
 	/**
-	 * Constructs a new tile geometry.
+	 * @param {array}  [grid_values]
 	 * @param {number} [tileSize=1] - The size of a tile.
 	 * @param {number} [segments=1] - The number of segments along one side of the tile.
 	 * @param {number} [columns=1] - The number of columns of actual grid data.
 	 * @param {number} [rows=1] - The number of rows of actual grid data.
 	 */
-	constructor() {
-
-		super();
-
-		this.type = 'TileGeometry';
-	}
-
-	copy( source ) {
-
-		super.copy( source );
-
-		this.parameters = Object.assign( {}, source.parameters );
-
-		return this;
-	}
-
 	loadData(grid_values, tileSize, segments, columns, rows) {
-
 		this.parameters = {
 			tileSize: tileSize,
 			segments: segments,
@@ -2498,19 +2572,8 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		if (data.grid === undefined) return;
 
-		// create a plane geometry
-		var geom, grid = data.grid;
-		if (layer.geometryCache) {
-			var params = layer.geometryCache.parameters || {};
-			if (params.width === data.width && params.height === data.height &&
-				params.widthSegments === grid.width - 1 && params.heightSegments === grid.height - 1) {
-
-				geom = layer.geometryCache.clone();
-				geom.parameters = layer.geometryCache.parameters;
-			}
-		}
-		geom = geom || new THREE.PlaneBufferGeometry(data.width, data.height, grid.width - 1, grid.height - 1);
-		layer.geometryCache = geom;
+		var grid = data.grid;
+		var geom = new GridGeometry();
 
 		// create a mesh
 		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
@@ -2520,13 +2583,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		// set z values
 		var buildGeometry = function (grid_values) {
-			var vertices = geom.attributes.position.array;
-			for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-				vertices[j + 2] = grid_values[i];
-			}
-			geom.attributes.position.needsUpdate = true;
-			geom.computeVertexNormals();
-
+			geom.loadData(grid_values, data.width, data.height, grid.width, grid.height);
 			if (callback) callback(mesh);
 		};
 
