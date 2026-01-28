@@ -19,7 +19,7 @@ class Task:
     # {"type": "script", "script": "..."}   # run script
 
 
-class SceneLoadStatus:
+class TaskSequenceStatus:
 
     def __init__(self):
         self.reset()
@@ -56,7 +56,7 @@ class TaskManager(QObject):
 
         self.isTaskRunning = False
         self.processingLayer = None
-        self.sceneLoadStatus = SceneLoadStatus()
+        self.taskSequenceStatus = TaskSequenceStatus()
 
     def teardown(self):
         self.controller = None
@@ -176,8 +176,8 @@ class TaskManager(QObject):
 
         item = self.taskQueue.pop(0)
         if item == Task.BUILD_SCENE:
-            self.sceneLoadStatus.reset()
-            self.sceneLoadStatus.buildSceneStarted = True
+            self.taskSequenceStatus.reset()
+            self.taskSequenceStatus.buildSceneStarted = True
 
         elif isinstance(item, Layer):
             self.dequeuedLayerCount += 1
@@ -200,7 +200,7 @@ class TaskManager(QObject):
         msg = f"Failed to build {target}."
         logger.error(f"{msg}:\n{traceback_str}")
 
-        self.sceneLoadStatus.taskFailed = True
+        self.taskSequenceStatus.taskFailed = True
         self.taskFinalized()
 
     @pyqtSlot()
@@ -219,5 +219,5 @@ class TaskManager(QObject):
 
         self.resetTaskQueueCounts()
 
-        self.sceneLoadStatus.allTasksFinalized = True
+        self.taskSequenceStatus.allTasksFinalized = True
         self.allTasksFinalized.emit()

@@ -145,7 +145,7 @@ Layer Builders:
 
 ### 6) Finalization and UI Feedback
 
-- Controller ensures `TaskManager.sceneLoadStatus.allTasksFinalized` and no pending send work.
+- Controller ensures `TaskManager.taskSequenceStatus.allTasksFinalized` and no pending send work.
 - Runs `tasksAndLoadingFinalized(complete,isScene)` via `runScript()`.
 - In JS `tasksAndLoadingFinalized()`:
   - Hides the progress bar.

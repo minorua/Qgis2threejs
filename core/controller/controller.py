@@ -193,7 +193,7 @@ class Q3DController(QObject):
 
         if clear_tasks:
             self.taskManager.clearTaskQueue()
-            self.taskManager.sceneLoadStatus.reset()
+            self.taskManager.taskSequenceStatus.reset()
 
         if not self.aborted:
             if show_msg:
@@ -313,8 +313,8 @@ class Q3DController(QObject):
         signal = {
             "type": "signal",
             "name": "queueCompleted",
-            "success": not self.taskManager.sceneLoadStatus.taskFailed,
-            "is_scene": self.taskManager.sceneLoadStatus.buildSceneStarted
+            "success": not self.taskManager.taskSequenceStatus.taskFailed,
+            "is_scene": self.taskManager.taskSequenceStatus.buildSceneStarted
         }
         self.appendDataToSendQueue(data=signal)
 
@@ -403,7 +403,7 @@ class Q3DController(QObject):
 
         data = self.sendQueue.popleft()
         if data.get("type") == "signal" and data.get("name") == "queueCompleted":
-            self.taskManager.sceneLoadStatus.reset()
+            self.taskManager.taskSequenceStatus.reset()
 
         self.isDataLoading = True
         self.sendData(data, viaQueue=True)
