@@ -2373,26 +2373,16 @@ class GridGeometry extends THREE.BufferGeometry {
 		this.type = 'GridGeometry';
 	}
 
-	copy(source) {
-		super.copy(source);
-		this.parameters = Object.assign({}, source.parameters);
-		return this;
-	}
-
 	/**
-	 * @param {array}  [grid_values]
+	 * @param {object} [grid]
 	 * @param {number} [width] - Plane width.
 	 * @param {number} [height] - Plane height.
-	 * @param {number} [columns] - The number of columns of grid data.
-	 * @param {number} [rows] - The number of rows of grid data.
 	 */
-	loadData(grid_values, width, height, columns, rows) {
-		this.parameters = {
-			width: width,
-			height: height,
-			columns: columns,
-			rows: rows
-		};
+	loadData(grid, width, height) {
+		const grid_values = grid.values;
+		const nodata = grid.nodata;
+		const columns = grid.width;		// number of grid columns
+		const rows = grid.height;		// number of grid rows
 
 		const width_half = width / 2;
 		const height_half = height / 2;
@@ -2418,7 +2408,7 @@ class GridGeometry extends THREE.BufferGeometry {
 				const i = ix + iy * columns;
 				const z = grid_values[i];
 
-				vertices.push(x, -y, (isNaN(z)) ? 0 : z);
+				vertices.push(x, -y, (z === nodata) ? 0 : z);
 
 				uvs.push(ix / segmentsX);
 				uvs.push(v);
@@ -2430,9 +2420,9 @@ class GridGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (isNaN(grid_values[b]) || isNaN(grid_values[d])) continue;
-				if (!isNaN(grid_values[a])) indices.push(a, b, d);
-				if (!isNaN(z)) indices.push(b, c, d);
+				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
+				if (grid_values[a] !== nodata) indices.push(a, b, d);
+				if (z !== nodata) indices.push(b, c, d);
 			}
 		}
 
@@ -2461,26 +2451,16 @@ class TileGeometry extends THREE.BufferGeometry {
 		this.type = 'TileGeometry';
 	}
 
-	copy(source) {
-		super.copy(source);
-		this.parameters = Object.assign({}, source.parameters);
-		return this;
-	}
-
 	/**
-	 * @param {array}  [grid_values]
+	 * @param {object} [grid]
 	 * @param {number} [tileSize=1] - The size of a tile.
 	 * @param {number} [segments=1] - The number of segments along one side of the tile.
-	 * @param {number} [columns=1] - The number of columns of actual grid data.
-	 * @param {number} [rows=1] - The number of rows of actual grid data.
 	 */
-	loadData(grid_values, tileSize, segments, columns, rows) {
-		this.parameters = {
-			tileSize: tileSize,
-			segments: segments,
-			columns: columns,
-			rows: rows
-		};
+	loadData(grid, tileSize, segments) {
+		const grid_values = grid.values;
+		const nodata = grid.nodata;
+		const columns = grid.width;		// number of columns of actual grid data
+		const rows = grid.height;		// number of rows of actual grid data
 
 		const half_size = tileSize / 2;
 		const segment_size = tileSize / segments;
@@ -2500,7 +2480,7 @@ class TileGeometry extends THREE.BufferGeometry {
 				const i = ix + iy * columns;
 				const z = grid_values[i];
 
-				vertices.push(x, -y, (isNaN(z)) ? 0 : z);
+				vertices.push(x, -y, (z === nodata) ? 0 : z);
 
 				uvs.push(ix / segments);
 				uvs.push(v);
@@ -2512,9 +2492,9 @@ class TileGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (isNaN(grid_values[b]) || isNaN(grid_values[d])) continue;
-				if (!isNaN(grid_values[a])) indices.push(a, b, d);
-				if (!isNaN(z)) indices.push(b, c, d);
+				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
+				if (grid_values[a] !== nodata) indices.push(a, b, d);
+				if (z !== nodata) indices.push(b, c, d);
 			}
 		}
 
@@ -2582,39 +2562,28 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		layer.addObject(mesh);
 
 		// set z values
-		var buildGeometry = function (grid_values) {
-			geom.loadData(grid_values, data.width, data.height, grid.width, grid.height);
+		var buildGeometry = function (grid) {
+			geom.loadData(grid, data.width, data.height);
 			if (callback) callback(mesh);
 		};
 
 		if (grid.url !== undefined) {
 			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
-				grid.array = new Float32Array(buf);
-				buildGeometry(grid.array);
+				grid.values = new Float32Array(buf);
+				buildGeometry(grid);
 			});
 		}
 		else {
 			if (grid.base64 !== undefined) {
 				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
-				grid.array = new Float32Array(bytes.buffer);
+				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
 			}
 			else if (grid.binary !== undefined) {
 				// WebKit Bridge
-				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+				grid.values = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
 			}
-			buildGeometry(grid.array);
-		}
-
-		if (Q3D.Config.debugMode) {
-			var params = geom.parameters;
-			console.log("DEM Block Geometry Info:");
-			console.log("block id: " + data.block)
-			console.log("cols: " + grid.width + ", rows: " + grid.height);
-			console.log("width: " + params.width + ", height: " + params.height);
-			console.log("widthSegments: " + params.widthSegments + ", heightSegments: " + params.heightSegments);
-			console.log("segment width: " + (params.width / params.widthSegments) + ", segment height: " + (params.height / params.heightSegments));
-			console.log("translate x: " + mesh.position.x + ", y: " + mesh.position.y);
+			buildGeometry(grid);
 		}
 
 		this.obj = mesh;
@@ -2625,7 +2594,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		var planeWidth = this.data.width,
 			planeHeight = this.data.height,
 			grid = this.data.grid,
-			grid_values = grid.array,
+			grid_values = grid.values,
 			w = grid.width,
 			h = grid.height,
 			k = w * (h - 1);
@@ -2695,7 +2664,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		var i, x, y,
 			grid = this.data.grid,
-			grid_values = grid.array,
+			grid_values = grid.values,
 			w = grid.width,
 			h = grid.height,
 			k = w * (h - 1),
@@ -2763,7 +2732,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 	addWireframe(layer, parent, material) {
 
 		var grid = this.data.grid,
-			grid_values = grid.array,
+			grid_values = grid.values,
 			w = grid.width,
 			h = grid.height,
 			planeWidth = this.data.width,
@@ -2807,7 +2776,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 	getValue(x, y) {
 		var grid = this.data.grid;
-		if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.array[x + grid.width * y];
+		if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.values[x + grid.width * y];
 		return null;
 	}
 
@@ -2840,39 +2809,29 @@ class Q3DDEMTileBlock extends Q3DDEMBlock {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		var buildGeometry = function (grid_values) {
-			geom.loadData(grid_values, data.tileSize, data.segments, grid.width, grid.height);
+		var buildGeometry = function (grid) {
+			geom.loadData(grid, data.tileSize, data.segments);
 
 			if (callback) callback(mesh);
 		};
 
 		if (grid.url !== undefined) {
 			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
-				grid.array = new Float32Array(buf);
-				buildGeometry(grid.array);
+				grid.values = new Float32Array(buf);
+				buildGeometry(grid);
 			});
 		}
 		else {
 			if (grid.base64 !== undefined) {
 				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
-				grid.array = new Float32Array(bytes.buffer);
+				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
 			}
 			else if (grid.binary !== undefined) {
 				// WebKit Bridge
-				grid.array = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
+				grid.values = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
 			}
-			buildGeometry(grid.array);
-		}
-
-		if (Q3D.Config.debugMode) {
-			var params = geom.parameters;
-			console.log("DEM Tile Block Geometry Info:");
-			console.log("block id: " + data.block)
-			console.log("tile size: " + params.tileSize);
-			console.log("segments: " + (params.segments));
-			console.log("cols: " + params.columns + ", rows: " + params.rows);
-			console.log("translate x: " + mesh.position.x + ", y: " + mesh.position.y);
+			buildGeometry(grid);
 		}
 
 		this.obj = mesh;

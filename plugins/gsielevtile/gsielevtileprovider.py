@@ -53,6 +53,7 @@ class GSIElevTileProvider:
         self.last_dataset = None
 
         self.resampleAlg = gdal.GRA_Bilinear
+        self.nodata = None
 
     def name(self):
         return "GSI Elevation Tile"

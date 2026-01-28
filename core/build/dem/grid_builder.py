@@ -56,6 +56,7 @@ class DEMGridBuilder:
         }
 
         if self.clip_geometry:
+            # TODO: no data handling
             geom = self.clipped(self.clip_geometry)
 
             if self.settings.localMode or self.settings.isPreview:
@@ -77,7 +78,7 @@ class DEMGridBuilder:
                 self.processEdges(grid_values, self.edgeRoughness)
                 ba = struct.pack(f"{columns * rows}f", *grid_values)
 
-            b["grid"] = self._gridData(columns, rows, ba)
+            b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
 
         # TODO: move to layer property
         opacity = DEMPropertyReader.opacity(self.properties)
@@ -100,11 +101,14 @@ class DEMGridBuilder:
 
         return b
 
-    def _gridData(self, columns, rows, bytearray):
+    def _gridData(self, columns, rows, bytearray, nodata=None):
         g = {
             "width": columns,
             "height": rows
         }
+
+        if nodata is not None:
+            g["nodata"] = nodata
 
         if self.settings.requiresJsonSerializable:
             g["base64"] = base64.b64encode(bytearray).decode("ascii")
@@ -327,7 +331,7 @@ class DEMTileGridBuilder(DEMGridBuilder):
             rows = int(valid_height / segment_size + 1)
             ba = self.provider.read(columns, rows, valid_extent)
 
-            b["grid"] = self._gridData(columns, rows, ba)
+            b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
 
         # TODO:
         # sides, bottom, edges and wireframe

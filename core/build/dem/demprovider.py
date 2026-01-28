@@ -5,7 +5,7 @@
 import struct
 from math import floor
 from osgeo import gdal
-from qgis.core import QgsPointXY, QgsRectangle
+from qgis.core import QgsPointXY
 
 try:
     import numpy
@@ -83,9 +83,6 @@ class GDALDEMProvider:
             return ba
 
         arr = band.ReadAsArray()
-        if self.nodata is not None:
-            arr[arr == self.nodata] = numpy.nan
-
         if asList:
             return arr.flatten().tolist()
         return arr.tobytes()
@@ -131,6 +128,7 @@ class FlatDEMProvider:
 
     def __init__(self, value=0):
         self.value = value
+        self.nodata = None
 
     def name(self):
         return "Flat Plane"
