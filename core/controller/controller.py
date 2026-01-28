@@ -383,7 +383,7 @@ class Q3DController(QObject):
         self.sendQueue.append(data)
 
         if DEBUG_MODE and len(self.sendQueue) > 1:
-            logger.warning(f"Sending/loading data is busy. Queue length: {len(self.sendQueue)}")
+            logger.debug(f"Sending/loading data is busy. Queue length: {len(self.sendQueue)}")
 
         self.sendQueuedData()
 
