@@ -335,7 +335,7 @@ function showFPS() {
 }
 
 function saveModelAsGLTF(filename) {
-	console.log("Saving model to " + filename);
+	showStatusMessage('Saving the model to "' + filename + '"...');
 
 	var scene = new THREE.Scene(), layer, group;
 	for (var k in app.scene.mapLayers) {
@@ -353,14 +353,16 @@ function saveModelAsGLTF(filename) {
 
 	var gltfExporter = new THREE.GLTFExporter();
 	gltfExporter.parse(scene, function(result) {
+		var showStatus = function () {
+			showStatusMessage("Successfully saved the model.", 5000);
+		};
 
 		if (result instanceof ArrayBuffer) {
-			pyObj.saveBytes(new Uint8Array(result), filename);
+			sendBytes(new Uint8Array(result), filename, showStatus);
 		}
 		else {
-			pyObj.saveString(JSON.stringify(result, null, 2), filename);
+			sendText(JSON.stringify(result, null, 2), filename, showStatus);
 		}
-		showStatusMessage("Successfully saved the model.", 5000);
 
 		// restore preview
 		for (var k in app.scene.mapLayers) {
@@ -372,6 +374,50 @@ function saveModelAsGLTF(filename) {
 		app.scene.updateMatrixWorld();
 		app.render();
 	}, options);
+}
+
+function sendBytes(bytes, filename, callback) {
+	sendData(true, bytes, filename, callback);
+}
+
+function sendText(text, filename, callback) {
+	sendData(false, text, filename, callback);
+}
+
+function uint8ToBase64(u8) {
+    let binary = "";
+    for (let i = 0; i < u8.length; i++) {
+        binary += String.fromCharCode(u8[i]);
+    }
+    return btoa(binary);
+}
+
+function sendData(is_base64, data, filename, callback) {
+    const CHUNK_SIZE = 100000;
+    let offset = 0;
+
+	function sendNext() {
+        if (offset >= data.length) {
+			if (callback) callback();
+            return;
+        }
+
+        const chunk = data.slice(offset, offset + CHUNK_SIZE);
+        const isFirst = (offset === 0);
+        const isLast = (offset + CHUNK_SIZE >= data.length);
+
+		if (is_base64) {
+			pyObj.saveBase64(uint8ToBase64(chunk), filename, isFirst, isLast);
+		}
+		else {
+			pyObj.saveText(chunk, filename, isFirst, isLast);
+		}
+
+        offset += CHUNK_SIZE;
+
+        setTimeout(sendNext, 0);
+    }
+    sendNext();
 }
 
 function requestRendering() {

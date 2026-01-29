@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
+import base64
 from functools import wraps
 from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QImage
@@ -38,7 +39,7 @@ class WebBridge(QObject):
     tweenStarted = pyqtSignal(int)
     animationStopped = pyqtSignal()
     imageReady = pyqtSignal("QImage", bool)         # image, copy_to_clipboard -> Window
-    modelDataReady = pyqtSignal("QByteArray", str)  # data, filename -> Window
+    modelDataReady = pyqtSignal("QByteArray", str, bool, bool)  # data, filename, is_first, is_last -> Window
     requestedRenderingFinished = pyqtSignal()       # -> WebPage
     resized = pyqtSignal(int, int)                  # width, height
     statusMessage = pyqtSignal(str, int)
@@ -96,15 +97,15 @@ class WebBridge(QObject):
     def showStatusMessage(self, message, timeout_ms=0):
         self.statusMessage.emit(message, timeout_ms)
 
-    @pyqtSlot("QByteArray", str)
+    @pyqtSlot(str, str, bool, bool)
     @emit_slotCalled
-    def saveBytes(self, data, filename):
-        self.modelDataReady.emit(data, filename)
+    def saveBase64(self, b64str, filename, is_first, is_last):
+        self.modelDataReady.emit(base64.b64decode(b64str), filename, is_first, is_last)
 
-    @pyqtSlot(str, str)
+    @pyqtSlot(str, str, bool, bool)
     @emit_slotCalled
-    def saveString(self, text, filename):
-        self.modelDataReady.emit(text.encode("UTF-8"), filename)
+    def saveText(self, text, filename, is_first, is_last):
+        self.modelDataReady.emit(text.encode("UTF-8"), filename, is_first, is_last)
 
     @pyqtSlot(str)
     @emit_slotCalled

@@ -110,6 +110,9 @@ class Q3DWindow(QMainWindow):
             from ..utils.debug import setupDestructionLogging
             setupDestructionLogging(self)
 
+        self._modelFile = None
+        self._saveModelState = None
+
     def closeEvent(self, event):
         try:
             self.controller.close()
@@ -413,21 +416,40 @@ class Q3DWindow(QMainWindow):
             self.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
             self.ui.statusbar.clearMessage()
 
-        self.ui.statusbar.showMessage("Exporting current scene to a glTF file...")
+        _, ext = os.path.splitext(filename)
+        self.ui.statusbar.showMessage(f"Exporting current scene to a {ext} file...")
         self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER, callback=saveModel)
 
         self.lastDir = os.path.dirname(filename)
 
-    # @pyqtSlot(bytes, str)     # connected to bridge.modelDataReady signal
-    def saveModelData(self, data, filename):
-        try:
-            with open(filename, "wb") as f:
-                f.write(data)
+    # @pyqtSlot(bytes, str, bool, bool)     # connected to bridge.modelDataReady signal
+    def saveModelData(self, data, filename, is_first, is_last):
+        SAVING = 1
+        ERR = 2
 
-            QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+        try:
+            if is_first:
+                if self._modelFile:
+                    self._modelFile.close()
+
+                self._modelFile = open(filename, "wb")
+                self._saveModelState = SAVING
+
+            self._modelFile.write(data)
+
+            if is_last:
+                self._modelFile.close()
+                self._modelFile = None
+
+                if self._saveModelState == SAVING:
+                    QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+                self._saveModelState = None
+                return
 
         except Exception as e:
-            QMessageBox.warning(self, "Failed to save model data.", str(e))
+            if self._saveModelState == SAVING:
+                QMessageBox.warning(self, "Failed to save model data.", str(e))
+                self._saveModelState = ERR
 
     def loadSettings(self, filename=None):
         # open file dialog if filename is not specified
