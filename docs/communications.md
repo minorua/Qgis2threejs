@@ -119,7 +119,7 @@ See [docs/data_structure.md](docs/data_structure.md) for full JSON shapes.
 - `ThreeJSBuilder.buildSceneSlot()` builds the scene JSON and emits `dataReady(scene)` then `taskCompleted()`.
 - `ThreeJSBuilder.buildLayerSlot()`:
   - Emits `dataReady(layer)` with layer envelope.
-  - Iterates `layerBuilder.blockBuilders()`:
+  - Iterates `layerBuilder.buildTasks()`:
     - Checks `aborted`; if set, emits `taskAborted()` and returns.
     - Builds a block; sets `data["progress"]`; emits `dataReady(block)`.
   - Emits `taskCompleted()`.
@@ -190,7 +190,7 @@ Layer Builders:
 - Finalization: [allTasksFinalized](core/controller/controller.py#L230-L242), [tasksAndLoadingFinalized](core/controller/controller.py#L262-L273), JS [viewer.js:tasksAndLoadingFinalized](web/viewer/viewer.js#L287-L307)
 - Task sequencing: [TaskManager.processNextTask](core/controller/taskmanager.py#L88-L111), [TaskManager.taskFinalized](core/controller/taskmanager.py#L156-L179)
 - Builder streaming: [ThreeJSBuilder.buildLayerSlot](core/build/builder.py#L67-L116)
-- Layer builders: Vector [blockBuilders](core/build/vector/builder.py#L176-L251), DEM [blockBuilders](core/build/dem/builder.py#L80-L116)
+- Layer builders: Vector [buildTasks](core/build/vector/builder.py#L176-L251), DEM [buildTasks](core/build/dem/builder.py#L80-L116)
 - JS data path: [viewer.js:init/loadData](web/viewer/viewer.js#L12-L93), [loadData](web/viewer/viewer.js#L100-L146), [progress](web/viewer/viewer.js#L309-L321)
 
 ---

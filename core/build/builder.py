@@ -111,14 +111,14 @@ class ThreeJSBuilder(QObject):
             if data:
                 self.dataReady.emit(data)
 
-            for blockBuilder in layerBuilder.blockBuilders():
+            for buildTask in layerBuilder.buildTasks():
                 logger.debug("Building a block.")
 
                 if self.aborted:
                     self.taskAborted.emit()
                     return
 
-                data = blockBuilder.build()
+                data = buildTask.build()
                 if data:
                     data["progress"] = self.currentProgress
                     self.dataReady.emit(data)

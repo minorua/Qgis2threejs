@@ -115,8 +115,8 @@ class VectorLayerBuilder(LayerBuilderBase):
 
     def buildBlocks(self):
         nb = nf = 0
-        for builder in self.blockBuilders():
-            b = builder.build()
+        for buildTask in self.buildTasks():
+            b = buildTask.build()
 
             nb += 1
             nf += b["featureCount"]
@@ -173,8 +173,8 @@ class VectorLayerBuilder(LayerBuilderBase):
         # p.update(self.vlayer.ot.layerProperties(self.settings, self))
         return p
 
-    def blockBuilders(self):
-        """Yield `FeatureBlockBuilder` instances for the current features.
+    def buildTasks(self):
+        """Yield a FeatureBlockBuilder instance set up for the current features.
 
         This splits features into blocks of size `FEATURES_PER_BLOCK`.
         """

@@ -96,18 +96,18 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         return p
 
-    def blockBuilders(self):
-        """Yield builders that produce DEM tiles and materials."""
+    def buildTasks(self):
+        """Yield build tasks that produce DEM tiles and materials."""
         orig = self.properties.get("radioButton_OriginalValues")
 
         if orig and self.provider.CanUseOriginalValues:
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
-            yield from self._originalBuilders()
+            yield from self._buildTasks_Orig()
         else:
             self.provider.setResampleAlg(gdal.GRA_Bilinear)
-            yield from self._resamplingBuilders()
+            yield from self._buildTasks_Resamp()
 
-    def _originalBuilders(self):
+    def _buildTasks_Orig(self):
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
@@ -194,7 +194,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
                 self.progress(blockIndex + 1, tile_cols * tile_rows)
 
-    def _resamplingBuilders(self):
+    def _buildTasks_Resamp(self):
         be = self.settings.baseExtent()
 
         materials = self.properties.get("materials", [])

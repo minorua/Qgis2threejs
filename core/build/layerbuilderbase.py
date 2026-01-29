@@ -38,8 +38,8 @@ class LayerBuilderBase:
         pass
 
     def buildBlocks(self):
-        for builder in self.blockBuilders():
-            yield builder.build()
+        for buildTask in self.buildTasks():
+            yield buildTask.build()
 
     def blockCount(self):
         """Return the number of blocks in this layer.
@@ -48,7 +48,7 @@ class LayerBuilderBase:
         """
         return 1
 
-    def blockBuilders(self):
+    def buildTasks(self):
         return []
 
     def layerProperties(self):
