@@ -225,6 +225,7 @@ Q3D.E = function (id) {
 	app.init = function (container) {
 
 		app.container = container;
+		app.sceneLoaded = false;
 
 		app.selectedObject = null;
 		app.highlightObject = null;
@@ -410,6 +411,7 @@ Q3D.E = function (id) {
 	app.initLoadingManager = function () {
 		app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
 			app.loadingManager.isLoading = false;
+			app.sceneLoaded = true;
 			app.dispatchEvent({type: "sceneLoaded"});
 		},
 		function (url, loaded, total) {   // onProgress

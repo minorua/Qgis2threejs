@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-27
 
+from osgeo import gdal
+gdal.UseExceptions()
+
 from qgis.PyQt.QtCore import QFileInfo, QSize, QUrl
 from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
@@ -118,7 +121,7 @@ class TestExportWeb(unittest.TestCase, ExportTestBase):
 
         wpc = WebPageCapturer(url, QSize(OUT_WIDTH, OUT_HEIGHT))
         # wpc.runScript('document.getElementById("progress").style.display = "none";')  # hide progress bar
-        wpc.waitForDataLoadFinished()
+        wpc.waitForSceneLoadFinished()
         wpc.renderScene()
         wpc.captureToFile(image_path)
 

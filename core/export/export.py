@@ -37,7 +37,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         super().__init__(parent, progress=progress, log=log, isInUiThread=isInUiThread)
 
         self.settings = settings or ExportSettings()
-        self.imageManager = ImageManager(settings.mapSettings)
+        self.imageManager = ImageManager(settings.mapSettings if settings else None)
         self.modelManagers = []
 
         self._index = -1
@@ -47,7 +47,7 @@ class ThreeJSExporter(ThreeJSBuilder):
 
     def setMapSettings(self, settings):
         self.settings.setMapSettings(settings)
-        self.imageManager.setMapSettings(settings)
+        self.imageManager.setBaseMapSettings(settings)
 
     def export(self, filename=None, abortSignal=None):
         if filename:

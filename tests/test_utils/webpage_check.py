@@ -55,7 +55,11 @@ class WebEnginePage(QWebEnginePage):
 
         logger.log(logging_level, text + " (Web)")
 
-    def runScript(self, string):
+    def runScript(self, string, wait=True):
+        if not wait:
+            self.runJavaScript(string)
+            return
+
         loop = QEventLoop()
         result = None
 
@@ -99,28 +103,27 @@ class WebPageCheckerBase(QWebEngineView):
 
         logger.debug("Page load finished.")
 
-    def runScript(self, string, wait=False):
+    def runScript(self, string, wait=True):
         return self._page.runScript(string, wait=wait)
 
-    def waitForDataLoadFinished(self):
-        # wait until data loading is finished
+    def waitForSceneLoadFinished(self):
+        # wait until scene has finished loading.
         loop = QEventLoop()
         timer = QTimer()
         timer.timeout.connect(loop.quit)
         timer.start(100)
 
         while True:
-            is_loading = self.runScript("app.loadingManager.isLoading", wait=True)
-            logger.debug(f"Data loading flag: {is_loading}")
-            if not is_loading:
+            scene_loaded = self.runScript("Q3D.application.sceneLoaded")
+            if scene_loaded:
                 break
             loop.exec()
 
         timer.stop()
-        logger.debug("Data load finished.")
+        logger.debug("Scene finished loading.")
 
     def renderScene(self):
-        self.runScript("app.render();")
+        self.runScript("Q3D.application.render();")
         logger.debug("Scene rendered.")
 
         loop = QEventLoop()
@@ -133,13 +136,20 @@ class WebPageCheckerBase(QWebEngineView):
 class WebPageErrorChecker(WebPageCheckerBase):
 
     def check(self):
-        self.waitForDataLoadFinished()
+        self.waitForSceneLoadFinished()
         self.renderScene()
+
+        ignore_warnings = [
+            "THREE.FileLoader: HTTP Status 0 received.",
+            "RENDER WARNING: Render count or primcount is 0."
+        ]
+
+        warnings = [w for w in self._page.warnings if not any(i in w.message for i in ignore_warnings)]
 
         return ErrorCheckResult(
             ok=len(self._page.errors) == 0,
             errors=self._page.errors,
-            warnings=self._page.warnings,
+            warnings=warnings,
         )
 
 class WebPageCapturer(WebPageCheckerBase):
