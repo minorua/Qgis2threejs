@@ -447,9 +447,9 @@ class Q3DWindow(QMainWindow):
                 return
 
         except Exception as e:
-            if self._saveModelState == SAVING:
-                QMessageBox.warning(self, "Failed to save model data.", str(e))
-                self._saveModelState = ERR
+            if self._saveModelState != ERR:
+                QMessageBox.critical(self, "Failed to save model data.", str(e))
+            self._saveModelState = ERR
 
     def loadSettings(self, filename=None):
         # open file dialog if filename is not specified
