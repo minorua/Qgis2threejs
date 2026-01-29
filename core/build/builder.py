@@ -74,7 +74,6 @@ class ThreeJSBuilder(QObject):
     def abort(self):
         self.aborted = True
 
-    # [preview]
     @pyqtSlot()
     def quit(self):
         # break circular references
@@ -84,7 +83,6 @@ class ThreeJSBuilder(QObject):
         self.moveToThread(QgsApplication.instance().thread())
         self.readyToQuit.emit()
 
-    # [preview]
     @pyqtSlot(ExportSettings)
     def buildSceneSlot(self, settings):
         self.aborted = False
@@ -102,7 +100,6 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    # [preview]
     @pyqtSlot(Layer, ExportSettings)
     def buildLayerSlot(self, layer, settings):
         self.aborted = False
@@ -132,15 +129,7 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    # [preview][export - override]
     def buildScene(self, settings):
-        self.aborted = False
-
-        obj = self._buildScene(settings)
-        return obj
-
-    # [preview][export]
-    def _buildScene(self, settings):
         be = settings.baseExtent()
         mapTo3d = settings.mapTo3d()
 
@@ -182,7 +171,6 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    # [preview]
     def _layerBuilder(self, layer, settings, progress=None):
         imageManager = ImageManager(settings.mapSettings)
         return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)

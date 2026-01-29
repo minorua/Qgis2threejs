@@ -6,7 +6,8 @@
 import json
 import os
 
-from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QSize, QTimer, pyqtSlot
+from qgis.core import QgsApplication
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QObject, QSize, QTimer, pyqtSlot
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
@@ -28,19 +29,49 @@ class ExportCancelled(Exception):
     pass
 
 
-class ThreeJSExporter(ThreeJSBuilder):
+class ThreeJSExporter(QObject):
     """Exporter class for generating a set of files for a three.js-based 3D scene
     viewable in external web browsers.
     """
 
-    def __init__(self, parent=None, settings=None, progress=None, log=None, isInUiThread=True):
-        super().__init__(parent, progress=progress, log=log, isInUiThread=isInUiThread)
+    def __init__(self, parent=None, settings=None, progress=None, log=None):
+        super().__init__(parent)
 
         self.settings = settings or ExportSettings()
         self.imageManager = ImageManager(settings.mapSettings if settings else None)
         self.modelManagers = []
 
+        self.progress = progress or self._progress
+        self.log = log or self._log
+
         self._index = -1
+        self._aborted = False
+
+    def _progress(self, current=0, total=100, msg=""):
+        logger.info(f"[{current}/{total}] {msg}")
+
+    def _log(self, msg, warning=False):
+        if warning:
+            logger.warning(msg)
+        else:
+            logger.info(msg)
+
+    def warning_log(self, msg):
+        self.log(msg, warning=True)
+
+    @property
+    def aborted(self):
+        QgsApplication.processEvents()
+        return self._aborted
+
+    @aborted.setter
+    def aborted(self, value):
+        if self._aborted != value:
+            self._aborted = value
+            logger.debug(f"ThreeJSExporter: aborted={self._aborted}.")
+
+    def abort(self):
+        self.aborted = True
 
     def loadSettings(self, filename=None):
         self.settings.loadSettingsFromFile(filename)
@@ -63,7 +94,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         if abortSignal:
             abortSignal.connect(self.abort)
 
-        # export the scene and its layers
+        # build the scene and its layers
         data = self.buildScene(self.settings)
 
         if abortSignal:
@@ -110,7 +141,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         # scene
         sp = self.settings.sceneProperties()
         if sp.get("radioButton_Color"):
-            options.append("Q3D.Config.bgColor = {0};".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
+            options.append("Q3D.Config.bgColor = {};".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
 
         if not self.settings.coordDisplay():
             options.append("Q3D.Config.coord.visible = false;")
@@ -126,13 +157,13 @@ class ThreeJSExporter(ThreeJSBuilder):
         opts = self.settings.options()
         if opts:
             for key in opts:
-                options.append("Q3D.Config.{0} = {1};".format(key, utils.pyobj2js(self.settings.option(key))))
+                options.append("Q3D.Config.{} = {};".format(key, utils.pyobj2js(self.settings.option(key))))
 
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
             options.append("Q3D.Config.northArrow.enabled = true;")
-            options.append("Q3D.Config.northArrow.color = {0};".format(hex_color(p.get("color", 0), prefix="0x")))
+            options.append("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template
         with open(config["path"], "r", encoding="utf-8") as f:
@@ -142,7 +173,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             "title": self.settings.title(),
             "options": "\n".join(options),
             "scripts": "\n".join(self.scripts()),
-            "scenefile": "./data/{0}/scene.{1}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
+            "scenefile": "./data/{}/scene.{}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
             "narration": narration["html"],
@@ -271,16 +302,13 @@ class ThreeJSExporter(ThreeJSBuilder):
 
         return ['<script src="%s"></script>' % fn for fn in files]
 
-    def warning_log(self, msg):
-        self.log(msg, warning=True)
-
-    ## overrides
     def buildScene(self, settings):
-        obj = super().buildScene(settings)
-        obj["layers"] = self._buildLayers(settings)
+        builder = ThreeJSBuilder(self, self.progress, self.log, isInUiThread=False)
+        obj = builder.buildScene(settings)
+        obj["layers"] = self.buildLayers(settings)
         return obj
 
-    def _buildLayers(self, settings):
+    def buildLayers(self, settings):
         layers = []
         layer_list = [layer for layer in settings.layers() if layer.visible]
         total = len(layer_list)
@@ -302,7 +330,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             pathRoot = urlRoot = None
         else:
             pathRoot = os.path.join(settings.outputDataDirectory(), title)
-            urlRoot = "./data/{0}/{1}".format(settings.outputFileTitle(), title)
+            urlRoot = "./data/{}/{}".format(settings.outputFileTitle(), title)
 
         layer = layer.clone()
         layer.opt.allMaterials = True
@@ -397,7 +425,7 @@ class BridgeExporterBase:
         def abort():
             nonlocal aborted
             aborted = True
-            self.abort()
+            self.controller.builder.abort()
             logger.info("Scene building aborted.")
             loop.quit()
 
@@ -492,6 +520,6 @@ class ModelExporter(BridgeExporterBase):
         err = self.buildSceneAndWaitForLoaded(abortSignal=abortSignal)
 
         # save model
-        self.controller.runScript("saveModelAsGLTF('{0}')".format(filename.replace("\\", "\\\\")))
+        self.controller.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
 
         return err
