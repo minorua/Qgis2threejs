@@ -76,7 +76,7 @@ function _init(off_screen) {
 		app.render = function () {};		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", function () {
 			app.render = renderOffscreen;
-			app.render(true); app.render(true); // render scene twice for output stability
+			app.render(true);
 		});
 	}
 	else {
@@ -421,12 +421,9 @@ function sendData(is_base64, data, filename, callback) {
 }
 
 function requestRendering() {
-	// wait for two frames to ensure rendering is done
 	requestAnimationFrame(function () {
-		requestAnimationFrame(function () {
-			app.render(true);
-			pyObj.emitRequestedRenderingFinished();
-		});
+		app.render(true);
+		pyObj.emitRequestedRenderingFinished();
 	});
 }
 
