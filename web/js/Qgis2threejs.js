@@ -3003,7 +3003,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 			// properties
 			if (data.properties !== undefined) {
 				this.properties = data.properties;
-				this.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
+				this.objectGroup.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
 			}
 
 			this.sceneData = scene.userData;
