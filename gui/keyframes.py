@@ -68,6 +68,7 @@ class AnimationPanel(QWidget):
     def teardown(self):
         self.wnd = None
         self.webPage = None
+        self.controller = None
         self.tree.teardown()
 
     def data(self):
@@ -134,9 +135,9 @@ class AnimationPanel(QWidget):
         if len(dataList):
             logger.debug("Play: %s", dataList)
             self.isAnimating = True
-            self.wnd.controller.sendData({"type": "animation",
-                                          "tracks": dataList,
-                                          "repeat": repeat})
+            self.controller.sendData({"type": "animation",
+                                      "tracks": dataList,
+                                      "repeat": repeat})
 
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
@@ -148,7 +149,7 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
-            self.wnd.webPage.showMessageBar(msg, timeout_ms, warning=True)
+            self.webPage.showMessageBar(msg, timeout_ms, warning=True)
 
     def _updateLayer(self, layer, groupType):
         if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):
@@ -156,7 +157,7 @@ class AnimationPanel(QWidget):
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
 
-        tm = self.wnd.controller.taskManager                # TODO: support synchronous task execution
+        tm = self.controller.taskManager                # TODO: support synchronous task execution
         tm.addRunScriptTask("preview.renderEnabled = false;")
         tm.addBuildLayerTask(layer)
         tm.addRunScriptTask("preview.renderEnabled = true;")
@@ -191,8 +192,8 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.setEnabled(b)
 
     def showNarrativeBox(self, content):
-        self.wnd.controller.sendData({"type": "narration",
-                                      "content": content})
+        self.controller.sendData({"type": "narration",
+                                  "content": content})
 
 
 class AnimationTreeWidget(QTreeWidget):
@@ -214,6 +215,7 @@ class AnimationTreeWidget(QTreeWidget):
     def setup(self, wnd, settings):
         self.wnd = wnd
         self.webPage = wnd.webPage
+        self.controller = wnd.controller
 
         self.settings = settings
 
@@ -291,6 +293,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.panel = None
         self.wnd = None
         self.webPage = None
+        self.controller = None
 
     def dropEvent(self, event):
         items = self.selectedItems()
@@ -757,7 +760,7 @@ class AnimationTreeWidget(QTreeWidget):
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
                 # TODO: export settings need to be updated?
-                self.wnd.controller.taskManager.addBuildLayerTask(layer)
+                self.controller.taskManager.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()
