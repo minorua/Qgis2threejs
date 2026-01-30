@@ -1,0 +1,122 @@
+{
+  "KEYFRAMES": {
+    "camera": {
+      "groups": []
+    },
+    "layers": {
+      "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147": {
+        "enabled": true,
+        "groups": []
+      },
+      "fp:ffaae7a7": {
+        "enabled": true,
+        "groups": []
+      },
+      "plugin:gsielevtile": {
+        "enabled": true,
+        "groups": []
+      }
+    },
+    "repeat": false
+  },
+  "LAYERS": [
+    {
+      "geomType": 0,
+      "layerId": "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147",
+      "name": "ascii_dem",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Frame": false,
+        "checkBox_Sides": false,
+        "checkBox_Tiles": false,
+        "checkBox_Visible": true,
+        "checkBox_Wireframe": false,
+        "colorButton_Edge": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_Side": [
+          204,
+          187,
+          170,
+          255
+        ],
+        "colorButton_Wireframe": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "comboBox_ClipLayer": null,
+        "horizontalSlider_DEMSize": 2,
+        "lineEdit_Bottom": "0",
+        "lineEdit_Name": "",
+        "materials": [
+          {
+            "id": "d193e314",
+            "name": "map (canvas)",
+            "properties": {
+              "checkBox_Shading": true,
+              "checkBox_TransparentBackground": false,
+              "comboBox_TextureSize": "1024",
+              "radioButton_PNG": true,
+              "spinBox_Opacity": 100
+            },
+            "type": 0
+          }
+        ],
+        "mtlId": "d193e314",
+        "radioButton_ClipBaseExtent": true,
+        "radioButton_OriginalValues": true,
+        "spinBox_Roughening": 1,
+        "spinBox_Size": 3,
+        "spinBox_TileSize": 100
+      },
+      "visible": true
+    },
+    {
+      "geomType": 0,
+      "layerId": "plugin:gsielevtile",
+      "name": "GSI Elevation Tile",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "fp:ffaae7a7",
+      "name": "Flat Plane",
+      "properties": {},
+      "visible": false
+    }
+  ],
+  "SCENE": {
+    "checkBox_FixAspectRatio": true,
+    "checkBox_Outline": false,
+    "colorButton_Color": [
+      0,
+      0,
+      0,
+      255
+    ],
+    "colorButton_Fog": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "comboBox_MaterialType": 0,
+    "comboBox_xyShift": true,
+    "groupBox_Fog": false,
+    "lineEdit_CenterX": "450",
+    "lineEdit_CenterY": "350",
+    "lineEdit_Height": "200",
+    "lineEdit_Rotation": "0",
+    "lineEdit_Width": "200",
+    "lineEdit_zFactor": "1.0",
+    "radioButton_FixedExtent": true,
+    "slider_Fog": 41
+  },
+  "Version": 20800
+}
