@@ -12,7 +12,7 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 class Ui_DEMPropertiesWidget(object):
     def setupUi(self, DEMPropertiesWidget):
         DEMPropertiesWidget.setObjectName("DEMPropertiesWidget")
-        DEMPropertiesWidget.resize(332, 429)
+        DEMPropertiesWidget.resize(332, 420)
         self.verticalLayout = QtWidgets.QVBoxLayout(DEMPropertiesWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -82,6 +82,11 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_TileSize.setObjectName("spinBox_TileSize")
         self.formLayoutOriginalValues.setWidget(0, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spinBox_TileSize)
         self.verticalLayout_5.addLayout(self.formLayoutOriginalValues)
+        self.labelOriginalValues = QtWidgets.QLabel(parent=self.groupBoxResampMethod)
+        self.labelOriginalValues.setStyleSheet("font-style:italic;")
+        self.labelOriginalValues.setWordWrap(True)
+        self.labelOriginalValues.setObjectName("labelOriginalValues")
+        self.verticalLayout_5.addWidget(self.labelOriginalValues)
         self.verticalLayout_2.addWidget(self.groupBoxResampMethod)
         self.groupBoxClip = QtWidgets.QGroupBox(parent=self.tab)
         self.groupBoxClip.setObjectName("groupBoxClip")
@@ -381,6 +386,7 @@ class Ui_DEMPropertiesWidget(object):
         self.labelResampLevel.setText(_translate("DEMPropertiesWidget", "2"))
         self.radioButton_OriginalValues.setText(_translate("DEMPropertiesWidget", "Use original DEM values"))
         self.labelTileSize.setText(_translate("DEMPropertiesWidget", "Tile size"))
+        self.labelOriginalValues.setText(_translate("DEMPropertiesWidget", "\"Use original DEM values\" is unavailable because the layer CRS and project CRS do not match"))
         self.groupBoxClip.setTitle(_translate("DEMPropertiesWidget", "Clipping"))
         self.radioButton_ClipPolygon.setText(_translate("DEMPropertiesWidget", "Clip DEM to polygon layer"))
         self.radioButton_ClipBaseExtent.setText(_translate("DEMPropertiesWidget", "Clip DEM to scene base extent"))

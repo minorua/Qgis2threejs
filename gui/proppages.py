@@ -420,7 +420,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-            if not self.canUseOriginalValues():
+            if self.canUseOriginalValues():
+                self.labelOriginalValues.hide()
+            else:
                 self.radioButton_OriginalValues.hide()
                 self.setLayoutVisible(self.formLayoutOriginalValues, False)
                 self.radioButton_NoClip.hide()
@@ -513,7 +515,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if mapLayer.rasterUnitsPerPixelX() != mapLayer.rasterUnitsPerPixelY():
             return False
 
-        crs1 = mapLayer.dataProvider().crs()
+        crs1 = mapLayer.crs()
         crs2 = self.mapSettings.destinationCrs()
 
         if crs1 == crs2:
