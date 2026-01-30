@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
 
+function Box3ToString(box3) {
+	return "Box3: (" + box3.min.toArray() + ")-(" +  box3.max.toArray()+")";
+}
+
 function assertText(testName, text, startingElemId, partialMatch) {
 
 	var compareText = function (elem, text, partialMatch) {
@@ -86,6 +90,7 @@ function assertBox3(testName, box1, box2) {
 		msg += " are not same.";
 
 	}
+	msg += Box3ToString(box1) + ", " + Box3ToString(box2);
 
 	pyObj.sendTestResult(testName, result, msg);
 

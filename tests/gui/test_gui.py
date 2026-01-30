@@ -1,246 +1,16 @@
 # -*- coding: utf-8 -*-
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
-# begin: 2023-10-16
 
 import os
-from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
-from qgis.PyQt.QtGui import QMouseEvent
-from qgis.PyQt.QtWidgets import QDialogButtonBox, QMessageBox, QWidget
-from qgis.PyQt.QtTest import QTest
-from qgis.core import QgsApplication, QgsProject, QgsRectangle
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.core import QgsProject
 from qgis.testing import unittest
 
-from Qgis2threejs.core.const import ScriptFile
-from Qgis2threejs.tests.test_utils.utils import dataPath, initOutputDir
-from Qgis2threejs.utils import js_bool, logger
-
+from Qgis2threejs.tests.test_utils.utils import initOutputDir
+from Qgis2threejs.utils import logger
 
 WIDTH, HEIGHT = (800, 600)  # view size
-UNDEF = "undefined"
-
-
-def Box3(min, max):
-    """min/max: a list containing three coordinate values (x, y, z)"""
-    return f"new THREE.Box3({Vec3(*min)}, {Vec3(*max)})"
-
-
-def Vec3(x, y, z):
-    return f"new THREE.Vector3({x}, {y}, {z})"
-
-
-class GUITestBase(unittest.TestCase):
-
-    WND = TREE = None
-    DLG = None
-
-    def assertBox3(self, testName, box1, box2=UNDEF):
-        self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2})')
-
-    def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF):
-        self.WND.runScript(f'assertZRange("{testName}", {obj}, {min}, {max})')
-
-    def assertText(self, testName, text, startingElemId=None, partialMatch=False):
-        args = '"{}", "{}", {}'.format(testName, text, '"{}"'.format(startingElemId) if startingElemId else UNDEF)
-
-        if partialMatch:
-            args += ", true"
-
-        self.WND.runScript(f'assertText({args})')
-
-    def assertVisibility(self, testName, elemId, expected=True):
-        self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
-
-    def loadSettings(self, filename):
-        loop = QEventLoop()
-        self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
-
-        self.WND.loadSettings(filename)     # page will be reloaded
-
-        loop.exec()
-
-        # load test script after page is loaded
-        self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
-
-    def mouseClick(self, x, y):
-        self.WND.runScript(f"showMarker({x}, {y}, 400)")
-        self.sleep(500)
-
-        pos = QPoint(x, y)
-        w = self.WND.ui.webView
-
-        if w._page.isWebEnginePage:
-            w = w.findChild(QWidget)
-            press = QMouseEvent(QEvent.Type.MouseButtonPress, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-            release = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-
-            QgsApplication.postEvent(w, press)
-            QgsApplication.postEvent(w, release)
-        else:
-            QTest.mouseClick(w, Qt.MouseButton.LeftButton, pos=pos)
-
-        self.sleep(100)
-
-    @classmethod
-    def sleep(cls, msec=500):
-        loop = QEventLoop()
-        QTimer.singleShot(msec, loop.quit)
-        loop.exec()
-
-    @classmethod
-    def doEvents(cls):
-        cls.sleep(1)
-
-    @classmethod
-    def waitBC(cls):
-        """wait for build to complete"""
-        cls.sleep(400)
-
-    def tearDown(self):
-        self.sleep()
-
-
-class SceneTest(GUITestBase):
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.DLG.close()
-
-    def test01_loadScene1(self):
-        self.loadSettings(dataPath("scene1_1.qto3settings"))
-        self.assertText("Test scene 1", "Test Scene 1", "header", partialMatch=True)
-
-    def test02_ZRange(self):
-        # skip if map canvas extent and rotation are not expected status
-        mapSettings = self.WND.qgisIface.mapCanvas().mapSettings()
-        mapExtent = mapSettings.extent()
-        if not mapExtent.contains(QgsRectangle(-30000, -140000, 80000, -50000)) or mapSettings.rotation() != 0:
-            self.skipTest("Map canvas extent doesn't contain test area or map is rotated. map: " + mapExtent.toString())
-
-        self.assertZRange("scene z range", min=-4000, max=3776 + 600 * 5)    # min: flat plane, max: pt4 6th feature
-
-    def test10_openScenePDialog(self):
-        self.__class__.DLG = self.WND.showScenePropertiesDialog()
-
-
-class LayerTestBase(GUITestBase):
-
-    LAYER_ID = None
-    CAMERA_STATE = None
-
-    @classmethod
-    def setUpClass(cls):
-        layer = cls.WND.settings.getLayer(cls.LAYER_ID)
-        if layer is None:
-            cls.skipTest(f"Layer '{cls.LAYER_ID}' not found. Skipping test.")
-
-        if cls.CAMERA_STATE:
-            cls.WND.controller.setCameraState(cls.CAMERA_STATE)
-
-        cls.DLG = cls.WND.showLayerPropertiesDialog(layer)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.DLG.close()
-
-
-class DEMLayerTest(LayerTestBase):
-
-    LAYER_ID = "dem_srtm3020150914165149263"
-
-
-class VLayerTestBase(LayerTestBase):
-
-    def test01_objectTypes(self):
-        """PD: object type combo box test"""
-        combo = self.DLG.page.comboBox_ObjectType
-        for i in range(combo.count()):
-            combo.setCurrentIndex(i)
-            self.DLG.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
-            self.waitBC()
-
-
-class PointLayerTest(VLayerTestBase):
-
-    LAYER_ID = "pt120150915163204544"
-    CAMERA_STATE = {
-        'lookAt': {'x': -7420, 'y': -116966, 'z': 0},
-        'pos': {'x': -34781, 'y': -143760, 'z': 34119}
-    }
-    PT4_LAYER_ID = "pt420150915163206372"
-
-    def test02_clickObject(self):
-        self.mouseClick(525, 260)   # second feature in pt3 layer (Z=500, h=1000*2)
-        self.assertText("clicked coords", " 2500.00", "qr_coords", partialMatch=True)
-
-    def test03_clickObjectWithAttr(self):
-        self.mouseClick(485, 160)   # third feature in pt4 layer
-        self.assertText("attribute", "cone 3", "qr_attrs_table")
-
-    def test04_hideAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Unchecked)    # hide pt4 layer
-        self.waitBC()
-
-        self.mouseClick(485, 160)   # sea
-        self.assertText("hide layer", " 0.00", "qr_coords", partialMatch=True)
-
-    def test05_restoreAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Checked)      # show pt4 layer
-        self.waitBC()
-
-        self.mouseClick(485, 160)   # third feature in pt4 layer
-        self.assertText("show layer", "cone 3", "qr_attrs_table")
-
-
-class LineLayerTest(VLayerTestBase):
-
-    LAYER_ID = "line120150915163207575"
-    CAMERA_STATE = {
-        'lookAt': {'x': 40827, 'y': -106069, 'z': 0},
-        'pos': {'x': 9037, 'y': -142511, 'z': 24005}
-    }
-    LINEV_LAYER_ID = "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509"
-
-    def test01_verticalLine(self):
-        self.TREE.itemFromLayerId(self.LINEV_LAYER_ID).setCheckState(Qt.CheckState.Checked)    # show lineV layer
-        self.waitBC()
-
-        self.assertZRange("scene z range", min=-4000, max=10000)    # min: flat plane, max: lineV
-
-
-class PolygonLayerTest(VLayerTestBase):
-
-    LAYER_ID = "polygon120150915163203246"
-    CAMERA_STATE = {
-        'lookAt': {'x': 62558, 'y': -94145, 'z': 0},
-        'pos': {'x': 90735, 'y': -127135, 'z': 16134}
-    }
-
-    def test06_clickSpace(self):
-        self.mouseClick(600, 20)    # sky
-
-        self.assertVisibility("click space", "popup", False)
-
-
-class WidgetTest(GUITestBase):
-
-    def test01_naviZ(self):
-        self.mouseClick(735, 506)   # +Z
-        self.sleep(1000)
-
-        self.mouseClick(450, 150)   # sea (dem_srtm30)
-        self.assertText("clicked coords", " 0.00", "qr_coords", partialMatch=True)
-
-    def test02_naviX(self):
-        self.mouseClick(766, 535)   # +X
-        self.sleep(1000)
-
-        self.mouseClick(400, 400)   # flat plane
-        self.assertText("clicked coords", " -4000.00", "qr_coords", partialMatch=True)
 
 
 # Test result
@@ -299,17 +69,17 @@ class GUITestResult(unittest.TestResult):
 
         if self.skipped:
             rows.append("# Skipped")
-            for test, text in self.errors:
+            for _test, text in self.errors:
                 rows.append("* " + text.replace(to_remove, ""))
 
         if self.errors:
             rows.append("# Errors")
-            for test, text in self.errors:
+            for _test, text in self.errors:
                 rows.append("* " + text.replace(to_remove, ""))
 
         if self.failures:
             rows.append("# Failures")
-            for test, text in self.failures:
+            for _test, text in self.failures:
                 rows.append("* " + text.replace(to_remove, ""))
 
         rows.append("### Console Messages ###")
@@ -333,12 +103,10 @@ class GUITestResult(unittest.TestResult):
 
 
 def runTest(wnd):
+    filename = os.path.basename(QgsProject.instance().fileName())
 
-    project = QgsProject.instance()
-    filename = os.path.basename(project.fileName())
-
-    if filename != "testproject1.qgs":
-        QMessageBox.warning(wnd, "Test", "Load 'testproject1.qgs' and retry.")
+    if "testproject" not in filename:
+        QMessageBox.warning(wnd, "Test", 'Load one of "testproject?.qgs" and retry.')
         return
 
     initOutputDir()
@@ -348,9 +116,18 @@ def runTest(wnd):
                wnd.height() + HEIGHT - wnd.ui.webView.height())
 
     # test suite
-    testClasses = [SceneTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest]
-    suite = unittest.TestSuite()
+    if filename == "testproject1.qgs":
+        from .test_gui1 import SceneTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest
+        testClasses = [SceneTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest]
 
+    elif filename == "testproject2.qgs":
+        from .test_gui2 import SceneTest
+        testClasses = [SceneTest]
+
+    else:
+        testClasses = []
+
+    suite = unittest.TestSuite()
     for testClass in testClasses:
         testClass.WND = wnd
         testClass.TREE = wnd.ui.treeView
@@ -359,12 +136,9 @@ def runTest(wnd):
     result = GUITestResult()
     wnd.webPage.bridge.testResultReceived.connect(result.addTestResult)
 
-    # start testing
-    logger.info("Testing GUI...")
-
+    logger.info(f"Testing GUI using {filename}...")
     try:
         suite(result)
-
     finally:
         pass
 
