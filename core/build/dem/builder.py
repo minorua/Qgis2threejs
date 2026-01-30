@@ -124,14 +124,15 @@ class DEMLayerBuilder(LayerBuilderBase):
         # DEM provider is assumed to be GDALDEMProvider.
         layer_extent = self.provider.extent()
 
+        # ulx, uly: center of upper left cell
         if clipToBE:
             layer_grect = self.provider.gridRectangle()
             grect = layer_grect.intersect(be.unrotatedRect())
             if grect is None:
                 return
 
-            ulx, uly = grect.rect.xMinimum(), grect.rect.yMaximum()
             xres, yres = grect.grid.xres, grect.grid.yres
+            ulx, uly = grect.rect.xMinimum() + xres / 2, grect.rect.yMaximum() - yres / 2
 
             tile_cols = math.ceil(grect.columns() / segments)
             tile_rows = math.ceil(grect.rows() / segments)
@@ -140,8 +141,8 @@ class DEMLayerBuilder(LayerBuilderBase):
         # TODO: elif clipToPolygon:
         else:
             gt = self.provider.geotransform()
-            ulx, uly = gt[0], gt[3]
             xres, yres = gt[1], -gt[5]
+            ulx, uly = gt[0] + xres / 2, gt[3] - yres / 2
 
             tile_cols = math.ceil(self.provider.width / segments)
             tile_rows = math.ceil(self.provider.height / segments)
