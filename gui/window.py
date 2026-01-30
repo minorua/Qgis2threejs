@@ -324,11 +324,11 @@ class Q3DWindow(QMainWindow):
         self.isDirty = True
 
     # layer tree view
-    def showLayerPropertiesDialog(self, layer):
+    def showLayerPropertiesDialog(self, layer, tab=0):
         dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
 
-        dialog.showLayerProperties(layer)
+        dialog.showLayerProperties(layer, tab)
         return dialog
 
     # @pyqtSlot(Layer)
@@ -705,9 +705,12 @@ class PropertiesDialog(QDialog):
             tab = self.page.tabWidget.currentIndex() if hasattr(self.page, "tabWidget") else ""
             openHelp(f"dlg={pageName}&tab={tab}")
 
-    def showLayerProperties(self, layer):
+    def showLayerProperties(self, layer, tab=0):
         self.setLayerDialogTitle(layer)
         self.setLayer(layer)
+        if tab and hasattr(self.page, "tabWidget"):
+            self.page.tabWidget.setCurrentIndex(tab)
+
         self.show()
 
     def setLayerDialogTitle(self, layer):

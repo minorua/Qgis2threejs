@@ -282,7 +282,9 @@ class Q3DTreeView(QTreeView):
 
         if depth > 0:
             layer = self.layerFromIndex(idx if depth == 1 else idx.parent())
-            self.wnd.showLayerPropertiesDialog(layer)
+            tab = 1 if depth == 2 else 0        # open material tab when a DEM material is double-clicked
+
+            self.wnd.showLayerPropertiesDialog(layer, tab)
 
     def removeAdditionalLayer(self, _=None):
         layer = self.layerFromIndex(self.currentIndex())
