@@ -337,6 +337,8 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Sides.toggled['bool'].connect(self.lineEdit_Bottom.setVisible) # type: ignore
         self.radioButton_ClipPolygon.toggled['bool'].connect(self.comboBox_ClipLayer.setEnabled) # type: ignore
         self.radioButton_Resampling.toggled['bool'].connect(self.groupBoxTiles.setEnabled) # type: ignore
+        self.horizontalSlider_Opacity.valueChanged['int'].connect(self.spinBox_Opacity.setValue) # type: ignore
+        self.spinBox_Opacity.valueChanged['int'].connect(self.horizontalSlider_Opacity.setValue) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(DEMPropertiesWidget)
         DEMPropertiesWidget.setTabOrder(self.tabWidget, self.lineEdit_Altitude)
         DEMPropertiesWidget.setTabOrder(self.lineEdit_Altitude, self.radioButton_Resampling)

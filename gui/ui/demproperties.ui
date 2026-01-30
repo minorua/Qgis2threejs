@@ -904,5 +904,37 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>horizontalSlider_Opacity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinBox_Opacity</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>340</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox_Opacity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider_Opacity</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>288</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>340</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
