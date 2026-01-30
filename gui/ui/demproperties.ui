@@ -168,10 +168,10 @@
             <item row="0" column="1">
              <widget class="QSpinBox" name="spinBox_TileSize">
               <property name="minimum">
-               <number>100</number>
+               <number>1</number>
               </property>
               <property name="maximum">
-               <number>3000</number>
+               <number>10000</number>
               </property>
               <property name="singleStep">
                <number>100</number>
