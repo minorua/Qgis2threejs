@@ -397,6 +397,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.isPlane = bool(layer.layerId.startswith("fp:"))
 
         widgets = [self.lineEdit_Name]
+        # geometry
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
@@ -405,9 +406,14 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             widgets += [self.radioButton_ClipBaseExtent, self.radioButton_ClipPolygon, self.comboBox_ClipLayer]
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
+
+        # others
         widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom,
-                    self.checkBox_Frame, self.colorButton_Edge,
-                    self.checkBox_Wireframe, self.colorButton_Wireframe, self.checkBox_Visible, self.checkBox_Clickable]
+                    self.checkBox_Frame, self.colorButton_Edge]
+        if not self.isPlane:
+            widgets += [self.checkBox_Wireframe, self.colorButton_Wireframe]
+
+        widgets += [self.checkBox_Visible, self.checkBox_Clickable]
 
         self.registerPropertyWidgets(widgets)
 
@@ -415,6 +421,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             self.setWidgetsVisible([self.groupBoxResampMethod, self.groupBoxClip], False)
             self.setWidgetsVisible([self.labelRoughness, self.spinBox_Roughening], False)
+            self.setWidgetsVisible([self.checkBox_Wireframe, self.colorButton_Wireframe], False)
             self.lineEdit_Altitude.textChanged.connect(self.altitudeChanged)
 
         else:
