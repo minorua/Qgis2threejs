@@ -401,7 +401,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
-            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSize]
+            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSideSegments]
             widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
             widgets += [self.radioButton_ClipBaseExtent, self.radioButton_ClipPolygon, self.comboBox_ClipLayer]
 

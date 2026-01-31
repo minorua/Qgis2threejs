@@ -161,12 +161,12 @@
                </size>
               </property>
               <property name="text">
-               <string>Tile size</string>
+               <string>Tile side segments</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QSpinBox" name="spinBox_TileSize">
+             <widget class="QSpinBox" name="spinBox_TileSideSegments">
               <property name="minimum">
                <number>1</number>
               </property>
@@ -741,7 +741,7 @@
   <tabstop>radioButton_Resampling</tabstop>
   <tabstop>horizontalSlider_DEMSize</tabstop>
   <tabstop>radioButton_OriginalValues</tabstop>
-  <tabstop>spinBox_TileSize</tabstop>
+  <tabstop>spinBox_TileSideSegments</tabstop>
   <tabstop>radioButton_ClipBaseExtent</tabstop>
   <tabstop>radioButton_ClipPolygon</tabstop>
   <tabstop>comboBox_ClipLayer</tabstop>

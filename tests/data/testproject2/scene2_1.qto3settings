@@ -72,7 +72,7 @@
         "radioButton_OriginalValues": true,
         "spinBox_Roughening": 1,
         "spinBox_Size": 3,
-        "spinBox_TileSize": 100
+        "spinBox_TileSideSegments": 100
       },
       "visible": true
     },

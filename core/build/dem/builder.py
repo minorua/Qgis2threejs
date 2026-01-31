@@ -117,7 +117,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             logger.error(f'{self.layer.name}: Map rotation is not supported when using the "Use original values" option.')
             return
 
-        segments = self.properties.get("spinBox_TileSize", 512)
+        segments = self.properties.get("spinBox_TileSideSegments", 512)
         clipToBE = self.properties.get("radioButton_ClipBaseExtent")
         clipToPolygon = self.properties.get("radioButton_ClipPolygon")
 
