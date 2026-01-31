@@ -124,28 +124,27 @@ class DEMLayerBuilder(LayerBuilderBase):
         # DEM provider is assumed to be GDALDEMProvider.
         layer_extent = self.provider.extent()
 
-        # ulx, uly: center of upper left cell
         if clipToBE:
             layer_grect = self.provider.gridRectangle()
             grect = layer_grect.intersect(be.unrotatedRect())
             if grect is None:
                 return
 
+            ulx, uly = grect.rect.xMinimum(), grect.rect.yMaximum()
             xres, yres = grect.grid.xres, grect.grid.yres
-            ulx, uly = grect.rect.xMinimum() + xres / 2, grect.rect.yMaximum() - yres / 2
 
-            tile_cols = math.ceil(grect.columns() / segments)
-            tile_rows = math.ceil(grect.rows() / segments)
+            tile_cols = math.ceil((grect.columns() - 1) / segments)
+            tile_rows = math.ceil((grect.rows() - 1) / segments)
 
             data_extent_lr = grect.rect.xMaximum(), grect.rect.yMinimum()
         # TODO: elif clipToPolygon:
         else:
             gt = self.provider.geotransform()
+            ulx, uly = gt[0], gt[3]
             xres, yres = gt[1], -gt[5]
-            ulx, uly = gt[0] + xres / 2, gt[3] - yres / 2
 
-            tile_cols = math.ceil(self.provider.width / segments)
-            tile_rows = math.ceil(self.provider.height / segments)
+            tile_cols = math.ceil((self.provider.width - 1) / segments)
+            tile_rows = math.ceil((self.provider.height - 1) / segments)
 
             data_extent_lr = layer_extent.point(1, 0)
 
@@ -159,8 +158,8 @@ class DEMLayerBuilder(LayerBuilderBase):
             for col in range(tile_cols):
                 blockIndex = row * tile_cols + col
 
-                cx = ulx + (col + 0.5) * tile_size
-                cy = uly - (row + 0.5) * tile_size
+                cx = ulx + xres / 2 + (col + 0.5) * tile_size
+                cy = uly - yres / 2 - (row + 0.5) * tile_size
                 tile_extent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
 
                 tiles.append((blockIndex, tile_extent, (cx, cy)))

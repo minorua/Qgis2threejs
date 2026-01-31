@@ -243,7 +243,7 @@ class MapExtent:
 class Grid:
 
     def __init__(self, origin_x, origin_y, xres, yres):
-        self.origin_x = origin_x
+        self.origin_x = origin_x    # origin: upper-left corner of cells
         self.origin_y = origin_y
         self.xres = xres
         self.yres = yres
