@@ -118,13 +118,22 @@ class DEMLayerBuilder(LayerBuilderBase):
             return
 
         segments = self.properties.get("spinBox_TileSideSegments", 512)
-        clipToBE = self.properties.get("radioButton_ClipBaseExtent")
-        clipToPolygon = self.properties.get("radioButton_ClipPolygon")
+        noClip = self.properties.get("radioButton_NoClip")
 
         # DEM provider is assumed to be GDALDEMProvider.
         layer_extent = self.provider.extent()
 
-        if clipToBE:
+        if noClip:
+            gt = self.provider.geotransform()
+            ulx, uly = gt[0], gt[3]
+            xres, yres = gt[1], -gt[5]
+
+            tile_cols = math.ceil((self.provider.width - 1) / segments)
+            tile_rows = math.ceil((self.provider.height - 1) / segments)
+
+            data_extent_lr = layer_extent.point(1, 0)
+        else:
+            # clip to base extent
             layer_grect = self.provider.gridRectangle()
             grect = layer_grect.intersect(be.unrotatedRect())
             if grect is None:
@@ -137,16 +146,6 @@ class DEMLayerBuilder(LayerBuilderBase):
             tile_rows = math.ceil((grect.rows() - 1) / segments)
 
             data_extent_lr = grect.rect.xMaximum(), grect.rect.yMinimum()
-        # TODO: elif clipToPolygon:
-        else:
-            gt = self.provider.geotransform()
-            ulx, uly = gt[0], gt[3]
-            xres, yres = gt[1], -gt[5]
-
-            tile_cols = math.ceil((self.provider.width - 1) / segments)
-            tile_rows = math.ceil((self.provider.height - 1) / segments)
-
-            data_extent_lr = layer_extent.point(1, 0)
 
         if xres != yres:
             logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")

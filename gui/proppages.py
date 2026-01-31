@@ -403,7 +403,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         else:
             widgets += [self.radioButton_OriginalValues, self.spinBox_TileSideSegments]
             widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
-            widgets += [self.radioButton_ClipBaseExtent, self.radioButton_ClipPolygon, self.comboBox_ClipLayer]
+            widgets += [self.radioButton_ClipPolygon, self.comboBox_ClipLayer, self.radioButton_NoClip]
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
 
