@@ -120,14 +120,11 @@ class PropertyPage(QWidget):
         self.propertyWidgets = widgets
 
     # collect property widget values into a properties dictionary
-    def properties(self, widgets=None, only_visible=False):
+    def properties(self, widgets=None):
         widgets = widgets or self.propertyWidgets
 
         p = {}
         for w in widgets:
-            if only_visible and not w.isVisible():
-                continue
-
             v = None
             if isinstance(w, QComboBox):
                 v = w.currentData()
@@ -280,8 +277,8 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             HAVE_PROCESSING = False
             return False
 
-    def properties(self, only_visible=False):
-        p = PropertyPage.properties(self, only_visible=only_visible)
+    def properties(self):
+        p = PropertyPage.properties(self)
         # check validity
         if not is_number(self.lineEdit_zFactor.text()):
             p["lineEdit_zFactor"] = str(DEF_SETS.Z_EXAGGERATION)
@@ -642,8 +639,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         if item and item.type() == DEMMtlType.COLOR:
             item.setIcon(DEMPropertyPage.iconForColor(color))
 
-    def properties(self, only_visible=False):
-        p = PropertyPage.properties(self, only_visible=only_visible)
+    def properties(self):
+        p = PropertyPage.properties(self)
         p["materials"] = self.materials()
         mtlItem = self.listWidget_Materials.currentItem()
         if mtlItem:
