@@ -600,28 +600,28 @@ class ExportSettings:
     def isAnimationEnabled(self):
         return self.data.get(ExportSettings.KEYFRAMES, {}).get("enabled", False)
 
-    def enabledValidKeyframeGroups(self, layerId=None, warning_log=None):
+    def enabledValidTracks(self, layerId=None, warning_log=None):
         if warning_log is None:
             warning_log = logger.warning
 
-        def warn_one_keyframe(group):
-            warning_log("'{}' group has only one keyframe. At least two keyframes are necessary for this group to work.".format(group["name"]))
+        def warn_one_keyframe(trk):
+            warning_log(f'Track "{trk["name"]}" has only one keyframe. At least two keyframes are needed for this track to work.')
 
         d = self.data.get(ExportSettings.KEYFRAMES, {})
 
         if layerId is None:
             # camera motion
             count = 0
-            for group in d.get("camera", {}).get("groups", []):
-                if group["enabled"]:
-                    if len(group["keyframes"]) > 1:
+            for track in d.get("camera", {}).get("groups", []):
+                if track["enabled"]:
+                    if len(track["keyframes"]) > 1:
                         count += 1
-                        yield group
+                        yield track
                     else:
-                        warn_one_keyframe(group)
+                        warn_one_keyframe(track)
 
             if count > 1:
-                warning_log("There are {} enabled camera motion groups. They may not work properly due to conflicts.".format(count))
+                warning_log(f"There are {count} enabled camera motion tracks. They may not work properly due to conflicts.")
 
         # layer animation
         layers = d.get("layers", {})
@@ -638,31 +638,25 @@ class ExportSettings:
             if layerId not in idsToExport:
                 continue
 
-            for group in layer["groups"]:
-                if not group["enabled"]:
+            for track in layer.get("groups", []):
+                if not track["enabled"]:
                     continue
 
-                if group["type"] == ATConst.ITEM_GRP_GROWING_LINE:
+                if track["type"] == ATConst.ITEM_TRK_GROWING_LINE:
                     layer = self.getLayer(layerId)
                     if layer:
                         if layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
-                            yield group
+                            yield track
                         else:
-                            warning_log("Layer '{}': Growing line animation is available with 'Line' and 'Thick Line'.".format(layer.name))
+                            warning_log(f"Layer '{layer.name}': Growing line animation is available with 'Line' and 'Thick Line'.")
                     else:
-                        warning_log("Layer not found: {}".format(layerId))
+                        warning_log(f"Layer not found: {layerId}")
 
-                elif len(group["keyframes"]) > 1:
-                    yield group
+                elif len(track["keyframes"]) > 1:
+                    yield track
 
                 else:
-                    warn_one_keyframe(group)
-
-    def hasEnabledValidKeyframeGroup(self):
-        for _ in self.enabledValidKeyframeGroups():
-            return True
-
-        return False
+                    warn_one_keyframe(track)
 
     def animationData(self, layerId=None, export=False, warning_log=None):
         d = self.data.get(ExportSettings.KEYFRAMES, {})
@@ -676,7 +670,7 @@ class ExportSettings:
             return {}
 
         return {
-            "groups": deepcopyExcept(list(self.enabledValidKeyframeGroups(warning_log=warning_log)), ["name", "text"])
+            "groups": deepcopyExcept(list(self.enabledValidTracks(warning_log=warning_log)), ["name", "text"])
         }
 
     def setAnimationData(self, data):
@@ -684,12 +678,12 @@ class ExportSettings:
         d.update(data)
         self.set(ExportSettings.KEYFRAMES, d)
 
-    def groupsWithExpressions(self, layerId=None):
-        for group in self.enabledValidKeyframeGroups(layerId=layerId):
-            if group.get("type") == ATConst.ITEM_GRP_GROWING_LINE:
-                for k in group.get("keyframes", []):
+    def tracksWithExpressions(self, layerId=None):
+        for track in self.enabledValidTracks(layerId=layerId):
+            if track.get("type") == ATConst.ITEM_TRK_GROWING_LINE:
+                for k in track.get("keyframes", []):
                     if k.get("sequential"):
-                        yield group
+                        yield track
                         break
 
     def narrations(self, indent=2, indent_width=2, warning_log=None):
@@ -699,8 +693,8 @@ class ExportSettings:
 
         d = []
         files = set()
-        for g in self.enabledValidKeyframeGroups(warning_log=warning_log):
-            for k in g.get("keyframes", []):
+        for track in self.enabledValidTracks(warning_log=warning_log):
+            for k in track.get("keyframes", []):
                 nar = k.get("narration")
                 if not nar:
                     continue

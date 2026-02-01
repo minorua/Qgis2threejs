@@ -34,7 +34,7 @@
      <item row="0" column="2">
       <widget class="QToolButton" name="toolButtonRemove">
        <property name="toolTip">
-        <string>Remove selected keyframe item(s) or group.</string>
+        <string>Remove selected keyframe item(s) or track.</string>
        </property>
        <property name="text">
         <string>-</string>
@@ -57,7 +57,7 @@
      <item row="0" column="0">
       <widget class="QToolButton" name="toolButtonAdd">
        <property name="toolTip">
-        <string>Add a keyframe group and/or a keyframe item.</string>
+        <string>Add a track and/or a keyframe item.</string>
        </property>
        <property name="text">
         <string>+</string>

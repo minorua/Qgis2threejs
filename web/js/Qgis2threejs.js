@@ -784,16 +784,16 @@ Q3D.E = function (id) {
 				}
 			},
 
-			keyframeGroups: [],
+			tracks: [],
 
 			clear: function () {
-				this.keyframeGroups = [];
+				this.tracks = [];
 			},
 
-			load: function (group) {
-				if (!Array.isArray(group)) group = [group];
+			load: function (track) {
+				if (!Array.isArray(track)) track = [track];
 
-				this.keyframeGroups = this.keyframeGroups.concat(group);
+				this.tracks = this.tracks.concat(track);
 			},
 
 			start: function () {
@@ -803,29 +803,29 @@ Q3D.E = function (id) {
 					btn = E("nextbtn"),
 					currentNarElem;
 
-				this.keyframeGroups.forEach(function (group) {
+				this.tracks.forEach(function (track) {
 
 					var t;
 					for (var p in Q3D.Tweens) {
-						if (Q3D.Tweens[p].type == group.type) {
+						if (Q3D.Tweens[p].type == track.type) {
 							t = Q3D.Tweens[p];
 							break;
 						}
 					}
 					if (t === undefined) {
-						console.warn("unknown animation type: " + group.type);
+						console.warn("unknown animation type: " + track.type);
 						return;
 					}
 
-					var layer = (group.layerId !== undefined) ? app.scene.mapLayers[group.layerId] : undefined;
+					var layer = (track.layerId !== undefined) ? app.scene.mapLayers[track.layerId] : undefined;
 
-					group.completed = false;
-					group.currentIndex = 0;
-					group.prop_list = [];
+					track.completed = false;
+					track.currentIndex = 0;
+					track.prop_list = [];
 
-					t.init(group, layer);
+					t.init(track, layer);
 
-					var keyframes = group.keyframes;
+					var keyframes = track.keyframes;
 
 					var showNBox = function (idx) {
 						// narrative box
@@ -862,9 +862,9 @@ Q3D.E = function (id) {
 					};
 
 					var onStart = function () {
-						if (group.onStart) group.onStart();
+						if (track.onStart) track.onStart();
 
-						app.dispatchEvent({type: "tweenStarted", index: group.currentIndex});
+						app.dispatchEvent({type: "tweenStarted", index: track.currentIndex});
 
 						// pause if narrative box is shown
 						if (e && e.classList.contains("visible")) {
@@ -873,19 +873,19 @@ Q3D.E = function (id) {
 					};
 
 					var onComplete = function (obj) {
-						if (!keyframes[group.currentIndex].easing) {
-							group.onUpdate(obj, 1);
+						if (!keyframes[track.currentIndex].easing) {
+							track.onUpdate(obj, 1);
 						}
 
-						if (group.onComplete) group.onComplete(obj);
+						if (track.onComplete) track.onComplete(obj);
 
-						var index = ++group.currentIndex;
+						var index = ++track.currentIndex;
 						if (index == keyframes.length - 1) {
-							group.completed = true;
+							track.completed = true;
 
 							var completed = true;
-							for (var i = 0; i < _this.keyframeGroups.length; i++) {
-								if (!_this.keyframeGroups[i].completed) completed = false;
+							for (var i = 0; i < _this.tracks.length; i++) {
+								if (!_this.tracks[i].completed) completed = false;
 							}
 
 							if (completed) {
@@ -911,11 +911,11 @@ Q3D.E = function (id) {
 					var t0, t1, t2;
 					for (var i = 0; i < keyframes.length - 1; i++) {
 
-						t2 = new TWEEN.Tween(group.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
-										 .to(group.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
+						t2 = new TWEEN.Tween(track.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
+										 .to(track.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
 
 						if (keyframes[i].easing) {
-							t2.easing(_this.easingFunction(keyframes[i].easing)).onUpdate(group.onUpdate);
+							t2.easing(_this.easingFunction(keyframes[i].easing)).onUpdate(track.onUpdate);
 						}
 
 						if (i == 0) {
@@ -4580,11 +4580,11 @@ Q3D.Tweens.cameraMotion = {
 
 	curveFactor: 0,
 
-	init: function (group) {
+	init: function (track) {
 
 		var app = Q3D.application,
 			zScale = app.scene.userData.zScale,
-			keyframes = group.keyframes,
+			keyframes = track.keyframes,
 			prop_list = [];
 
 		var c = this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
@@ -4605,14 +4605,14 @@ Q3D.Tweens.cameraMotion = {
 			}
 			p0 = p;
 		}
-		group.prop_list = prop_list;
+		track.prop_list = prop_list;
 
 		var phi0, phi1, dz;
-		group.onUpdate = function (obj, elapsed, is_first) {
+		track.onUpdate = function (obj, elapsed, is_first) {
 
-			p = obj.p - group.currentIndex;
-			phi0 = keyframes[group.currentIndex].camera.phi;
-			phi1 = (is_first) ? phi0 : keyframes[group.currentIndex + 1].camera.phi;
+			p = obj.p - track.currentIndex;
+			phi0 = keyframes[track.currentIndex].camera.phi;
+			phi1 = (is_first) ? phi0 : keyframes[track.currentIndex + 1].camera.phi;
 
 			if (Math.abs(phi1 - phi0) > Math.PI) {  // take the shortest orbiting path
 				phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
@@ -4624,7 +4624,7 @@ Q3D.Tweens.cameraMotion = {
 					 Math.sin(phi) * Math.sin(obj.theta),
 					 Math.cos(obj.theta)).setLength(obj.d);
 
-			dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[group.currentIndex] * c : 0;
+			dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[track.currentIndex] * c : 0;
 
 			app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
 			app.camera.lookAt(obj.fx, obj.fy, obj.fz);
@@ -4632,7 +4632,7 @@ Q3D.Tweens.cameraMotion = {
 		};
 
 		// initial position
-		group.onUpdate(group.prop_list[0], 1, true);
+		track.onUpdate(track.prop_list[0], 1, true);
 	}
 
 };
@@ -4641,20 +4641,20 @@ Q3D.Tweens.opacity = {
 
 	type: Q3D.KeyframeType.Opacity,
 
-	init: function (group, layer) {
+	init: function (track, layer) {
 
-		var keyframes = group.keyframes;
+		var keyframes = track.keyframes;
 
 		for (var i = 0; i < keyframes.length; i++) {
-			group.prop_list.push({opacity: keyframes[i].opacity});
+			track.prop_list.push({opacity: keyframes[i].opacity});
 		}
 
-		group.onUpdate = function (obj, elapsed) {
+		track.onUpdate = function (obj, elapsed) {
 			layer.opacity = obj.opacity;
 		};
 
 		// initial opacity
-		group.onUpdate(group.prop_list[0]);
+		track.onUpdate(track.prop_list[0]);
 	}
 
 };
@@ -4663,14 +4663,14 @@ Q3D.Tweens.texture = {
 
 	type: Q3D.KeyframeType.Texture,
 
-	init: function (group, layer) {
+	init: function (track, layer) {
 
-		var keyframes = group.keyframes;
+		var keyframes = track.keyframes;
 
 		var idx_from, from, to, effect;
 
-		group.onStart = function () {
-			idx_from = group.currentIndex;
+		track.onStart = function () {
+			idx_from = track.currentIndex;
 			effect = keyframes[idx_from].effect;
 			from = keyframes[idx_from].mtlIndex;
 			to = keyframes[idx_from + 1].mtlIndex;
@@ -4679,12 +4679,12 @@ Q3D.Tweens.texture = {
 			layer.setTextureAt(null, effect);
 		};
 
-		group.onUpdate = function (obj, elapsed) {
-			layer.setTextureAt(obj.p - group.currentIndex, effect);
+		track.onUpdate = function (obj, elapsed) {
+			layer.setTextureAt(obj.p - track.currentIndex, effect);
 		};
 
 		for (var i = 0; i < keyframes.length; i++) {
-			group.prop_list.push({p: i});
+			track.prop_list.push({p: i});
 		}
 	}
 };
@@ -4693,32 +4693,32 @@ Q3D.Tweens.lineGrowing = {
 
 	type: Q3D.KeyframeType.GrowingLine,
 
-	init: function (group, layer) {
-		if (group._keyframes === undefined) group._keyframes = group.keyframes;
+	init: function (track, layer) {
+		if (track._keyframes === undefined) track._keyframes = track.keyframes;
 
-		var effectItem = group._keyframes[0];
+		var effectItem = track._keyframes[0];
 		if (effectItem.sequential) {
-			group.keyframes = [];
+			track.keyframes = [];
 
 			var item;
 			for (var i = 0; i < layer.features.length; i++) {
 				item = layer.features[i].anim;
 				item.easing = effectItem.easing;
-				group.keyframes.push(item);
-				group.prop_list.push({p: i});
+				track.keyframes.push(item);
+				track.prop_list.push({p: i});
 			}
-			group.keyframes.push({});
-			group.prop_list.push({p: i});
+			track.keyframes.push({});
+			track.prop_list.push({p: i});
 
-			group.onUpdate = function (obj, elapsed) {
-				layer.setLineLength(obj.p - group.currentIndex, group.currentIndex);
+			track.onUpdate = function (obj, elapsed) {
+				layer.setLineLength(obj.p - track.currentIndex, track.currentIndex);
 			};
 		}
 		else {
-			group.keyframes = [effectItem, {}];
-			group.prop_list = [{p: 0}, {p: 1}];
+			track.keyframes = [effectItem, {}];
+			track.prop_list = [{p: 0}, {p: 1}];
 
-			group.onUpdate = function (obj, elapsed) {
+			track.onUpdate = function (obj, elapsed) {
 				layer.setLineLength(obj.p);
 			};
 		}

@@ -14,7 +14,7 @@ from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
-from ..utils import createUid, js_bool, logger, parseInt, pluginDir
+from ..utils import createUid, logger, parseInt, pluginDir
 from ..utils.gui import selectImageFile
 
 
@@ -93,22 +93,22 @@ class AnimationPanel(QWidget):
 
         dataList = []
         if items is None:
-            for group in self.wnd.settings.enabledValidKeyframeGroups(warning_log=self._log):
-                layerId = group.get("layerId")
+            for track in self.wnd.settings.enabledValidTracks(warning_log=self._log):
+                layerId = track.get("layerId")
                 if layerId is None:
-                    dataList.append(group)
+                    dataList.append(track)
                 else:
                     layer = self.wnd.settings.getLayerByJSLayerId(layerId)
                     if layer:
-                        t = group.get("type")
-                        if t in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_GRP_GROWING_LINE):
+                        t = track.get("type")
+                        if t in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TRK_GROWING_LINE):
                             self._updateLayer(layer, t)
 
-                        dataList.append(group)
+                        dataList.append(track)
         else:
             for item in items:
                 t = item.type()
-                if t in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_GRP_GROWING_LINE):
+                if t in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TRK_GROWING_LINE):
                     mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
                 elif t in (ATConst.ITEM_TEXTURE, ATConst.ITEM_GROWING_LINE):
                     mapLayerId = item.parent().parent().data(0, ATConst.DATA_LAYER_ID)
@@ -144,15 +144,15 @@ class AnimationPanel(QWidget):
         else:
             if not msg:
                 msg = "Animation: "
-            msg += "There are no keyframe groups to play."
+            msg += "There are no tracks to play."
 
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
             self.webPage.showMessageBar(msg, timeout_ms, warning=True)
 
-    def _updateLayer(self, layer, groupType):
-        if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):
+    def _updateLayer(self, layer, trackType):
+        if trackType in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TEXTURE):
             layer = layer.clone()
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
@@ -240,7 +240,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionEdit.triggered.connect(self.onItemEdit)
 
         self.actionRename = QAction("Rename...", self)
-        self.actionRename.triggered.connect(self.renameGroup)
+        self.actionRename.triggered.connect(self.renameTrack)
 
         self.actionPlay = QAction("Play", self)
         self.actionPlay.triggered.connect(self.playAnimation)
@@ -263,14 +263,14 @@ class AnimationTreeWidget(QTreeWidget):
         self.actionProperties = QAction("Properties...", self)
         self.actionProperties.triggered.connect(self.showDialog)
 
-        self.ctxMenuKeyframeGroup = QMenu(self)
-        self.ctxMenuKeyframeGroup.addAction(self.actionPlay)
-        self.ctxMenuKeyframeGroup.addAction(self.actionRename)
-        self.ctxMenuKeyframeGroup.addSeparator()
-        self.ctxMenuKeyframeGroup.addAction(self.actionAdd)
-        self.ctxMenuKeyframeGroup.addAction(self.actionEdit)
-        self.ctxMenuKeyframeGroup.addSeparator()
-        self.ctxMenuKeyframeGroup.addAction(self.actionRemove)
+        self.ctxMenuTrack = QMenu(self)
+        self.ctxMenuTrack.addAction(self.actionPlay)
+        self.ctxMenuTrack.addAction(self.actionRename)
+        self.ctxMenuTrack.addSeparator()
+        self.ctxMenuTrack.addAction(self.actionAdd)
+        self.ctxMenuTrack.addAction(self.actionEdit)
+        self.ctxMenuTrack.addSeparator()
+        self.ctxMenuTrack.addAction(self.actionRemove)
 
         self.ctxMenuKeyframe = QMenu(self)
         self.ctxMenuKeyframe.addAction(self.actionShowNarBox)
@@ -344,20 +344,6 @@ class AnimationTreeWidget(QTreeWidget):
 
         return item
 
-    def checkedGroups(self):
-        groups = []
-        root = self.invisibleRootItem()
-        for i in range(root.childCount()):
-            top_level = root.child(i)
-            if top_level.isHidden():
-                continue
-
-            for j in range(top_level.childCount()):
-                g = top_level.child(j)
-                if g.checkState(0):
-                    groups.append(g)
-        return groups
-
     def currentLayer(self):
         item = self.currentItem()
         if item:
@@ -391,10 +377,10 @@ class AnimationTreeWidget(QTreeWidget):
         parent = None
         if typ & ATConst.ITEM_TOPLEVEL:
             if typ == ATConst.ITEM_TL_CAMERA:
-                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA)
+                parent = self.addTrackItem(item, ATConst.ITEM_TRK_CAMERA)
                 child = self.addKeyframeItem(parent)
                 self.setCurrentItem(child)
-                self.wnd.ui.statusbar.showMessage("A new keyframe group and a keyframe have been added.", 5000)
+                self.wnd.ui.statusbar.showMessage("A new track and a keyframe have been added.", 5000)
             else:
                 layer = self.getLayerFromLayerItem(item)
                 self.actionTexture.setVisible(layer.type == LayerType.DEM)
@@ -402,22 +388,22 @@ class AnimationTreeWidget(QTreeWidget):
                 self.ctxMenuLayerAdd.popup(QCursor.pos())
             return
 
-        gt = typ if typ & ATConst.ITEM_GRP else typ - ATConst.ITEM_MBR + ATConst.ITEM_GRP
-        if gt == ATConst.ITEM_GRP_CAMERA:
+        trk_type = typ if typ & ATConst.ITEM_TRK else typ - ATConst.ITEM_MBR + ATConst.ITEM_TRK
+        if trk_type == ATConst.ITEM_TRK_CAMERA:
             added = self.addKeyframeItem()
             self.setCurrentItem(added)
 
-        elif gt == ATConst.ITEM_GRP_OPACITY:
+        elif trk_type == ATConst.ITEM_TRK_OPACITY:
             self.addOpacityItem()
 
-        elif gt == ATConst.ITEM_GRP_TEXTURE:
+        elif trk_type == ATConst.ITEM_TRK_TEXTURE:
             self.addTextureItem()
 
-        elif gt == ATConst.ITEM_GRP_GROWING_LINE:
-            if typ == ATConst.ITEM_GRP_GROWING_LINE and item.childCount() == 0:
+        elif trk_type == ATConst.ITEM_TRK_GROWING_LINE:
+            if typ == ATConst.ITEM_TRK_GROWING_LINE and item.childCount() == 0:
                 self.addGrowLineItem()
             else:
-                QMessageBox.warning(self, PLUGIN_NAME, "This group can't have more than one item.")
+                QMessageBox.warning(self, PLUGIN_NAME, "This track can't have more than one item.")
 
     def removeSelectedItems(self):
         items = self.selectedItems() or [self.currentItem()]
@@ -445,7 +431,7 @@ class AnimationTreeWidget(QTreeWidget):
             if name not in names:
                 return name
 
-    def addKeyframeGroupItem(self, parent, typ, name=None, enabled=True):
+    def addTrackItem(self, parent, typ, name=None, enabled=True):
 
         name = name or self.uniqueChildName(parent, ATConst.defaultName(typ))
 
@@ -469,7 +455,7 @@ class AnimationTreeWidget(QTreeWidget):
             if t & ATConst.ITEM_MBR:
                 parent = item.parent()
                 iidx = parent.indexOfChild(item) + 1
-            elif t & ATConst.ITEM_GRP:
+            elif t & ATConst.ITEM_TRK:
                 parent = item
                 iidx = 0
             elif keyframe:          # TODO: iidx is possibly undefined
@@ -480,7 +466,7 @@ class AnimationTreeWidget(QTreeWidget):
             iidx = 0
 
         keyframe = keyframe or {}
-        typ = keyframe.get("type", parent.type() - ATConst.ITEM_GRP + ATConst.ITEM_MBR)
+        typ = keyframe.get("type", parent.type() - ATConst.ITEM_TRK + ATConst.ITEM_MBR)
         name = keyframe.get("name") or self.uniqueChildName(parent, "keyframe", omit_one=False)
 
         item = QTreeWidgetItem(typ)
@@ -562,37 +548,37 @@ class AnimationTreeWidget(QTreeWidget):
 
         return k
 
-    def keyframeGroupData(self, item):
+    def trackData(self, item):
         if not item:
             return {}
 
         typ = item.type()
-        if typ & ATConst.ITEM_GRP:
-            group = item
+        if typ & ATConst.ITEM_TRK:
+            track = item
         elif typ & ATConst.ITEM_MBR:
-            group = item.parent()
+            track = item.parent()
         else:
             return {}
 
-        items = [group.child(i) for i in range(group.childCount())]
+        items = [track.child(i) for i in range(track.childCount())]
 
         d = {
-            "type": group.type(),
-            "name": group.text(0),
-            "enabled": bool(group.checkState(0)),
+            "type": track.type(),
+            "name": track.text(0),
+            "enabled": bool(track.checkState(0)),
             "keyframes": [self.keyframe(item) for item in items]
         }
 
-        if group.parent().type() == ATConst.ITEM_TL_LAYER:
-            layer = self.settings.getLayer(group.parent().data(0, ATConst.DATA_LAYER_ID))
+        if track.parent().type() == ATConst.ITEM_TL_LAYER:
+            layer = self.settings.getLayer(track.parent().data(0, ATConst.DATA_LAYER_ID))
             if layer:
                 d["layerId"] = layer.jsLayerId
             else:
-                logger.error("[KeyframeGroup] Layer not found in export settings.")
+                logger.error("[Track] Layer not found in export settings.")
 
         return d
 
-    def layerData(self, layer=None):
+    def _layerData(self, layer=None):
         if not layer:
             return {}
 
@@ -604,10 +590,10 @@ class AnimationTreeWidget(QTreeWidget):
 
         return {
             "enabled": not layerItem.isDisabled(),
-            "groups": [self.keyframeGroupData(item) for item in items]
+            "groups": [self.trackData(item) for item in items]
         }
 
-    def setLayerData(self, layerId, data):
+    def _setLayerData(self, layerId, data):
         if layerId is None:
             return
 
@@ -618,9 +604,9 @@ class AnimationTreeWidget(QTreeWidget):
         for _ in range(layerItem.childCount()):
             layerItem.removeChild(layerItem.child(0))
 
-        for group in data.get("groups", []):
-            parent = self.addKeyframeGroupItem(layerItem, group.get("type"), group.get("name"), group.get("enabled", True))
-            for keyframe in group.get("keyframes", []):
+        for track in data.get("groups", []):
+            parent = self.addTrackItem(layerItem, track.get("type"), track.get("name"), track.get("enabled", True))
+            for keyframe in track.get("keyframes", []):
                 self.addKeyframeItem(parent, keyframe)
 
     def data(self):
@@ -629,13 +615,13 @@ class AnimationTreeWidget(QTreeWidget):
 
         d = {
             "camera": {
-                "groups": [self.keyframeGroupData(parent.child(i)) for i in range(parent.childCount())]
+                "groups": [self.trackData(parent.child(i)) for i in range(parent.childCount())]
             }
         }
 
         layers = {}
         for item in [root.child(i) for i in range(1, root.childCount())]:
-            layers[item.data(0, ATConst.DATA_LAYER_ID)] = self.layerData(item)
+            layers[item.data(0, ATConst.DATA_LAYER_ID)] = self._layerData(item)
 
         if layers:
             d["layers"] = layers
@@ -658,7 +644,7 @@ class AnimationTreeWidget(QTreeWidget):
             if isKF and iidx == p.childCount() - 1:
                 return
 
-            d = self.keyframeGroupData(p)
+            d = self.trackData(p)
             kfs = d["keyframes"][iidx:iidx + c]
             if exclude_narration:
                 kfs[0].pop("narration", None)
@@ -668,8 +654,8 @@ class AnimationTreeWidget(QTreeWidget):
             d["keyframes"] = kfs
             return d
 
-        elif typ & ATConst.ITEM_GRP:        # NOTE: exclude_narration is ignored
-            return self.keyframeGroupData(item)
+        elif typ & ATConst.ITEM_TRK:        # NOTE: exclude_narration is ignored
+            return self.trackData(item)
 
     def setData(self, data):
         self.initTree()
@@ -681,8 +667,9 @@ class AnimationTreeWidget(QTreeWidget):
         item.setExpanded(True)
         self.cameraTLItem = item
 
-        for s in data.get("camera", {}).get("groups", []):
-            parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_CAMERA, s.get("name"), s.get("enabled", True))
+        camera = data.get("camera", {})
+        for s in camera.get("groups", []):
+            parent = self.addTrackItem(item, ATConst.ITEM_TRK_CAMERA, s.get("name"), s.get("enabled", True))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)
 
@@ -694,7 +681,7 @@ class AnimationTreeWidget(QTreeWidget):
 
             d = dp.get(id)
             if d:
-                self.setLayerData(id, d)
+                self._setLayerData(id, d)
             self.setLayerHidden(id, not layer.visible)
 
     def currentItemView(self):
@@ -718,10 +705,10 @@ class AnimationTreeWidget(QTreeWidget):
                 self.actionTexture.setVisible(layer.type == LayerType.DEM)
                 self.actionGrowLine.setVisible(layer.type == LayerType.LINESTRING)
         else:
-            if typ & ATConst.ITEM_GRP:
-                m = self.ctxMenuKeyframeGroup
-                self.actionAdd.setText("Add" if typ == ATConst.ITEM_GRP_CAMERA else "Add...")
-                self.actionAdd.setVisible(bool(typ != ATConst.ITEM_GRP_GROWING_LINE))
+            if typ & ATConst.ITEM_TRK:
+                m = self.ctxMenuTrack
+                self.actionAdd.setText("Add" if typ == ATConst.ITEM_TRK_CAMERA else "Add...")
+                self.actionAdd.setVisible(bool(typ != ATConst.ITEM_TRK_GROWING_LINE))
 
             elif typ & ATConst.ITEM_MBR:
                 m = self.ctxMenuKeyframe
@@ -774,14 +761,14 @@ class AnimationTreeWidget(QTreeWidget):
             t = item.type()
             if t & ATConst.ITEM_MBR:
                 self.showDialog(item)
-            elif t & ATConst.ITEM_GRP:
+            elif t & ATConst.ITEM_TRK:
                 if item.childCount() > 0:
                     self.showDialog(item.child(0))
 
-    def renameGroup(self, item=None):
+    def renameTrack(self, item=None):
         item = item or self.currentItem()
         if item:
-            name, ok = QInputDialog.getText(self, "Rename group", "Group name", text=item.text(0))
+            name, ok = QInputDialog.getText(self, "Rename track", "Track name", text=item.text(0))
             if ok:
                 item.setText(0, name)
 
@@ -794,7 +781,7 @@ class AnimationTreeWidget(QTreeWidget):
         if ok:
             parent = None
             if item.type() == ATConst.ITEM_TL_LAYER:
-                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_OPACITY)
+                parent = self.addTrackItem(item, ATConst.ITEM_TRK_OPACITY)
 
             added = self.addKeyframeItem(parent, {
                 "type": ATConst.ITEM_OPACITY,
@@ -822,7 +809,7 @@ class AnimationTreeWidget(QTreeWidget):
 
             parent = None
             if item.type() == ATConst.ITEM_TL_LAYER:
-                parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_TEXTURE)
+                parent = self.addTrackItem(item, ATConst.ITEM_TRK_TEXTURE)
 
             added = self.addKeyframeItem(parent, {
                 "type": ATConst.ITEM_TEXTURE,
@@ -839,7 +826,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         parent = None
         if item.type() == ATConst.ITEM_TL_LAYER:
-            parent = self.addKeyframeGroupItem(item, ATConst.ITEM_GRP_GROWING_LINE)
+            parent = self.addTrackItem(item, ATConst.ITEM_TRK_GROWING_LINE)
 
         added = self.addKeyframeItem(parent, {
             "type": ATConst.ITEM_GROWING_LINE,
@@ -862,11 +849,11 @@ class AnimationTreeWidget(QTreeWidget):
         elif t == ATConst.ITEM_TL_CAMERA:
             return
 
-        if t & ATConst.ITEM_GRP:
+        if t & ATConst.ITEM_TRK:
             item = item.child(0)
             if item is None:
-                isKF = (t != ATConst.ITEM_GRP_GROWING_LINE)
-                msg = "This group has no items. Please add {}.".format("at least two keyframe items" if isKF else "an item")
+                isKF = (t != ATConst.ITEM_TRK_GROWING_LINE)
+                msg = "This track has no items. Please add {}.".format("at least two keyframe items" if isKF else "an item")
                 QMessageBox.warning(self, PLUGIN_NAME, msg)
                 return
 
@@ -875,10 +862,10 @@ class AnimationTreeWidget(QTreeWidget):
         isKF = (t != ATConst.ITEM_GROWING_LINE)
         if isKF:
             if item.parent().childCount() < 2:
-                QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are necessary for animation to work. Please add a keyframe.")
+                QMessageBox.warning(self, PLUGIN_NAME, "Two or more keyframes are needed for animation to work. Please add a keyframe.")
                 return
         else:
-            # line growing doesn't work if group item is not checked
+            # line growing doesn't work if track item is not checked
             item.parent().setCheckState(0, Qt.CheckState.Checked)
 
         top_level = item.parent().parent()
@@ -919,18 +906,18 @@ class AnimationTreeWidget(QTreeWidget):
         mtls = {mtl["id"]: mtl for mtl in layer.properties.get("materials", [])}
 
         for i in range(layerItem.childCount()):
-            group = layerItem.child(i)
-            if group.type() != ATConst.ITEM_GRP_TEXTURE:
+            track = layerItem.child(i)
+            if track.type() != ATConst.ITEM_TRK_TEXTURE:
                 continue
 
-            for idx in reversed(range(group.childCount())):
-                item = group.child(idx)
+            for idx in reversed(range(track.childCount())):
+                item = track.child(idx)
                 mtl = mtls.get(item.data(0, ATConst.DATA_MTL_ID))
                 if mtl:
                     item.setText(0, mtl["name"])
                 else:
                     logger.info("The material '{}' was removed.".format(item.text(0)))
-                    group.removeChild(item)
+                    track.removeChild(item)
 
 
 class KeyframeDialog(QDialog):
@@ -972,8 +959,8 @@ class KeyframeDialog(QDialog):
         self.isKF = (t != ATConst.ITEM_GROWING_LINE)
         self.layer = layer
 
-        group = item.parent()
-        self.kfCount = group.childCount()
+        track = item.parent()
+        self.kfCount = track.childCount()
 
         self.setWindowTitle("{} - {}".format(item.parent().text(0), layer.name if layer else "Camera Motion"))
 
@@ -1051,7 +1038,7 @@ class KeyframeDialog(QDialog):
 
         self.easingButtons[item.data(0, ATConst.DATA_EASING)].setChecked(True)
 
-        idxFrom = min(group.indexOfChild(item), self.kfCount - 1)
+        idxFrom = min(track.indexOfChild(item), self.kfCount - 1)
         self.ui.slider.setValue(idxFrom)
         self.currentKeyframeChanged(idxFrom)
 

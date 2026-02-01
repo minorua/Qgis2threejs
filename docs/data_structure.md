@@ -20,7 +20,7 @@ References:
 - Vector layers either inline features in a block or reference external block JSON by URL.
 - DEM layers send grid elevation data per block (raw bytes via URL, base64, or preview binary), or clipped triangle meshes.
 - Materials and models are pre-declared per layer body and referenced by index in features/blocks.
-- Optional `animation.groups` may be included at the scene level.
+- Optional `animation.tracks` may be included at the scene level.
 
 ## Scene JSON
 
@@ -266,7 +266,7 @@ Model entries:
 
 At the scene level, Python may include:
 ```json
-{ "animation": { "groups": [ /* keyframe groups */ ] } }
+{ "animation": { "groups": [ /* tracks */ ] } }
 ```
 The viewer applies supported tweens (camera motion, opacity, texture switching, growing line).
 

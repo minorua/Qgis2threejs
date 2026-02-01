@@ -499,7 +499,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Perform transitions of this keyframe group from the beginning.</string>
+        <string>Perform transitions of this track from the beginning.</string>
        </property>
        <property name="text">
         <string>Play all</string>
@@ -522,7 +522,7 @@
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="toolTip">
-        <string>time to complete transitions of this keyframe group</string>
+        <string>time to complete transitions of this track</string>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

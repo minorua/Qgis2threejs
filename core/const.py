@@ -125,15 +125,15 @@ class ATConst:
     ITEM_TL_CAMERA = 32
     ITEM_TL_LAYER = 33
 
-    # GROUP
-    ITEM_GRP = 64
+    # TRACK
+    ITEM_TRK = 64
 
-    ITEM_GRP_CAMERA = 64
-    ITEM_GRP_OPACITY = 65
-    ITEM_GRP_TEXTURE = 66
-    ITEM_GRP_GROWING_LINE = 67
+    ITEM_TRK_CAMERA = 64
+    ITEM_TRK_OPACITY = 65
+    ITEM_TRK_TEXTURE = 66
+    ITEM_TRK_GROWING_LINE = 67
 
-    # MEMBER OF GROUP (KEYFRAME OR EFFECT)
+    # ITEM TYPE (MEMBER OF TRACK. KEYFRAME OR EFFECT)
     ITEM_MBR = 128
 
     ITEM_CAMERA = 128
@@ -144,7 +144,7 @@ class ATConst:
     # ITEM_TL_LAYER
     DATA_LAYER_ID = Qt.ItemDataRole.UserRole
 
-    # KEYFRAME GROUP
+    # TRACK
     DATA_NEXT_INDEX = Qt.ItemDataRole.UserRole
 
     # COMMON FOR KEYFRAME
@@ -176,8 +176,8 @@ class ATConst:
     @classmethod
     def defaultName(cls, typ):
         name = ["Camera", "Opacity", "Texture", "Growing line"]
-        if typ & cls.ITEM_GRP:
-            return "Group" if typ == cls.ITEM_GRP_CAMERA else "{} group".format(name[typ - cls.ITEM_GRP])
+        if typ & cls.ITEM_TRK:
+            return "Track" if typ == cls.ITEM_TRK_CAMERA else "{} track".format(name[typ - cls.ITEM_TRK])
 
         if typ & cls.ITEM_MBR:
             return "{} keyframe".format(name[typ - cls.ITEM_MBR])

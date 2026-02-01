@@ -295,8 +295,8 @@ class Ui_KeyframeDialog(object):
         self.labelTimeBegin.setToolTip(_translate("KeyframeDialog", "time to begin this transition"))
         self.labelEnd.setText(_translate("KeyframeDialog", "End:"))
         self.labelTimeEnd.setToolTip(_translate("KeyframeDialog", "time to complete this transition"))
-        self.pushButtonPlayAll.setToolTip(_translate("KeyframeDialog", "Perform transitions of this keyframe group from the beginning."))
+        self.pushButtonPlayAll.setToolTip(_translate("KeyframeDialog", "Perform transitions of this track from the beginning."))
         self.pushButtonPlayAll.setText(_translate("KeyframeDialog", "Play all"))
         self.label.setText(_translate("KeyframeDialog", "Total time:"))
-        self.buttonBox.setToolTip(_translate("KeyframeDialog", "time to complete transitions of this keyframe group"))
+        self.buttonBox.setToolTip(_translate("KeyframeDialog", "time to complete transitions of this track"))
 from qgis.gui import QgsFieldExpressionWidget
