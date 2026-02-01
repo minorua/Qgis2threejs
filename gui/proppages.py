@@ -790,9 +790,9 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 return
 
     def materialItemChanged(self, current, previous):
-
         if previous:
-            previous.setData(self.DATA_PROPERTIES, PropertyPage.properties(self, self.mtlWidgets, only_visible=True))
+            p = PropertyPage.properties(self, self.mtlWidgets)
+            previous.setData(self.DATA_PROPERTIES, p)
 
         if not current:
             return
