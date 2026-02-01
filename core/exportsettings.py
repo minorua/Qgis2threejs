@@ -612,7 +612,8 @@ class ExportSettings:
         if layerId is None:
             # camera motion
             count = 0
-            for track in d.get("camera", {}).get("groups", []):
+            camera = d.get("camera", {})
+            for track in camera.get("tracks", camera.get("groups", [])):     # renamed since v2.9
                 if track["enabled"]:
                     if len(track["keyframes"]) > 1:
                         count += 1
@@ -638,7 +639,7 @@ class ExportSettings:
             if layerId not in idsToExport:
                 continue
 
-            for track in layer.get("groups", []):
+            for track in layer.get("tracks", layer.get("groups", [])):      # renamed since v2.9
                 if not track["enabled"]:
                     continue
 
@@ -670,7 +671,7 @@ class ExportSettings:
             return {}
 
         return {
-            "groups": deepcopyExcept(list(self.enabledValidTracks(warning_log=warning_log)), ["name", "text"])
+            "tracks": deepcopyExcept(list(self.enabledValidTracks(warning_log=warning_log)), ["name", "text"])
         }
 
     def setAnimationData(self, data):

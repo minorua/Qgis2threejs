@@ -590,7 +590,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         return {
             "enabled": not layerItem.isDisabled(),
-            "groups": [self.trackData(item) for item in items]
+            "tracks": [self.trackData(item) for item in items]
         }
 
     def _setLayerData(self, layerId, data):
@@ -604,7 +604,7 @@ class AnimationTreeWidget(QTreeWidget):
         for _ in range(layerItem.childCount()):
             layerItem.removeChild(layerItem.child(0))
 
-        for track in data.get("groups", []):
+        for track in data.get("tracks", data.get("groups", [])):        # renamed since v2.9
             parent = self.addTrackItem(layerItem, track.get("type"), track.get("name"), track.get("enabled", True))
             for keyframe in track.get("keyframes", []):
                 self.addKeyframeItem(parent, keyframe)
@@ -615,7 +615,7 @@ class AnimationTreeWidget(QTreeWidget):
 
         d = {
             "camera": {
-                "groups": [self.trackData(parent.child(i)) for i in range(parent.childCount())]
+                "tracks": [self.trackData(parent.child(i)) for i in range(parent.childCount())]
             }
         }
 
@@ -668,7 +668,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.cameraTLItem = item
 
         camera = data.get("camera", {})
-        for s in camera.get("groups", []):
+        for s in camera.get("tracks", camera.get("groups", [])):        # renamed since v2.9
             parent = self.addTrackItem(item, ATConst.ITEM_TRK_CAMERA, s.get("name"), s.get("enabled", True))
             for k in s.get("keyframes", []):
                 self.addKeyframeItem(parent, k)

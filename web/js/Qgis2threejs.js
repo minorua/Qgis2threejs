@@ -450,7 +450,7 @@ Q3D.E = function (id) {
 
 	app.loadData = function (data) {
 		app.scene.loadData(data);
-		if (data.animation !== undefined) app.animation.keyframes.load(data.animation.groups);
+		if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
 	};
 
 	app.loadJSONFile = function (url, callback) {

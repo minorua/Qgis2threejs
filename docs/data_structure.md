@@ -266,7 +266,7 @@ Model entries:
 
 At the scene level, Python may include:
 ```json
-{ "animation": { "groups": [ /* tracks */ ] } }
+{ "animation": { "tracks": [ /* tracks */ ] } }
 ```
 The viewer applies supported tweens (camera motion, opacity, texture switching, growing line).
 
@@ -300,7 +300,7 @@ The schema below captures the structure used by the viewer and builders. It focu
         "animation": {
           "type": "object",
           "properties": {
-            "groups": { "type": "array" }
+            "tracks": { "type": "array" }
           },
           "additionalProperties": true
         }
