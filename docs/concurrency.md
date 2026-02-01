@@ -86,7 +86,6 @@ Logs can be forwarded to the UI via a Qt signal-emitting handler so messages are
 - Coarse-grained cancellation: Abort checks occur primarily between feature blocks. Long operations in `build()` (e.g., feature iteration, material/model preparation) don’t observe the abort flag, delaying cancellation.
 - Unbounded send queue: `Q3DController.sendQueue` can grow without explicit limits if JS is slow to consume data, potentially increasing memory usage.
 - Tight task timer: `TaskManager` uses a 1 ms single-shot timer to pulse the queue, which can create rapid dispatch cycles. While cooperative, this may contribute to work being scheduled faster than results are consumed.
-- Minor API mismatch: Export code references `ConnectionManager.setupConnections()` while the controller defines `setup()`. Ensure consistency when modifying connection setup ([core/export/export.py](../core/export/export.py#L332-L356), [core/controller/controller.py](../core/controller/controller.py#L30-L70)).
 
 ## Suggested Improvements
 
@@ -95,7 +94,6 @@ Logs can be forwarded to the UI via a Qt signal-emitting handler so messages are
 - Back-pressure and pacing: Bound `sendQueue` or pause producers when queue grows beyond a threshold; consider flow-control signals from JS (e.g., “ready for next”) instead of optimistic streaming.
 - Safer QGIS API access: Audit builder operations for QGIS API calls; where thread-safety is questionable, marshal those specific calls to the UI thread via signals or `QMetaObject.invokeMethod` with `Qt.QueuedConnection`.
 - Replace ad-hoc task timer: Drive task sequencing from explicit builder completion events without the extra `QTimer` pulse, or use a small state machine to reduce edge-case timing races.
-- Standardize connection setup: Unify `ConnectionManager` API (`setup` vs `setupConnections`), and centralize all signal wiring to avoid drift.
 - Explicit queued connections: Where cross-thread signals are performance-critical, specify `Qt.QueuedConnection` to avoid implicit connection type ambiguity.
 - Unit tests for concurrency: Add tests that simulate aborts during long builds, measure queue growth under slow JS consumption, and validate correct finalization ordering.
 
