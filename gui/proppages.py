@@ -119,6 +119,7 @@ class PropertyPage(QWidget):
     def registerPropertyWidgets(self, widgets):
         self.propertyWidgets = widgets
 
+    # collect property widget values into a properties dictionary
     def properties(self, widgets=None, only_visible=False):
         widgets = widgets or self.propertyWidgets
 
@@ -158,7 +159,8 @@ class PropertyPage(QWidget):
 
         return p
 
-    def setProperties(self, properties, widgets=None):
+    # restore property widget values from properties dictionary
+    def restoreProperties(self, properties, widgets=None):
         widgets = widgets or self.propertyWidgets
 
         for w in widgets:
@@ -244,7 +246,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
         # restore properties
         if properties:
-            self.setProperties(properties)
+            self.restoreProperties(properties)
         else:
             self.radioButton_UseCanvasExtent.setChecked(True)
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
@@ -502,12 +504,12 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         properties["colorButton_Wireframe"] = properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
         properties["lineEdit_Bottom"] = properties.get("lineEdit_Bottom", str(DEF_SETS.Z_BOTTOM))                  # added in 2.7
 
-        self.setProperties(properties)
+        self.restoreProperties(properties)
 
         if self.isPlane:
             self.altitudeChanged(self.lineEdit_Altitude.text())
 
-        # set enable and visible properties of widgets
+        # set enabled and visible state of widgets
         self.resamplingMethodChanged()
         self.tilesToggled(self.checkBox_Tiles.isChecked())
         if not self.checkBox_Sides.isChecked():
@@ -648,10 +650,10 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             p["mtlId"] = mtlItem.data(Qt.ItemDataRole.UserRole)
         return p
 
-    def setProperties(self, properties):
-        PropertyPage.setProperties(self, properties)
+    def restoreProperties(self, properties):
+        PropertyPage.restoreProperties(self, properties)
 
-        self.setMaterials(properties.get("materials", []))
+        self.restoreMaterials(properties.get("materials", []))
 
         if not self.listWidget_Materials.count():
             self.addMaterial()
@@ -684,7 +686,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         self.addMaterial()
         return self.materials()
 
-    def setMaterials(self, materials):
+    def restoreMaterials(self, materials):
         self.listWidget_Materials.clear()
 
         for mtl in materials:
@@ -796,7 +798,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
             return
 
         p = current.data(self.DATA_PROPERTIES) or {}
-        PropertyPage.setProperties(self, p, self.mtlWidgets)
+        PropertyPage.restoreProperties(self, p, self.mtlWidgets)
 
         mtype = current.type()
         if mtype == DEMMtlType.LAYER:
@@ -989,11 +991,11 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.checkBox_Label.toggled.connect(self.labelToggled)
 
         # set up widgets for selected object type
-        # currentIndexChanged signal is not emitted in setProperties() if current item is first item
+        # currentIndexChanged signal is not emitted in restoreProperties() if current item is first item
         self.objectTypeChanged()
 
         # restore other properties for the layer
-        self.setProperties(properties or {})
+        self.restoreProperties(properties or {})
 
         # update z value expression label
         self.zValueRadioButtonToggled(True)
@@ -1104,7 +1106,7 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.comboBox_ColorType.currentIndexChanged.connect(self.colorTypeChanged)
         self.colorTypeChanged()
 
-        self.setProperties(layer.properties)
+        self.restoreProperties(layer.properties)
 
         wnd = self.parent().parent()
         loaded = wnd.runScript("app.scene.mapLayers[{}].loadedPointCount()".format(layer.jsLayerId), wait=True)
