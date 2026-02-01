@@ -44,7 +44,6 @@ class TaskManager(QObject):
         self.settings = settings
 
         self.timer = QTimer(self)
-        self.timer.setInterval(1)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._processNextTask)
 

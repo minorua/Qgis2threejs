@@ -85,7 +85,6 @@ Logs can be forwarded to the UI via a Qt signal-emitting handler so messages are
 - QGIS thread-safety: Many QGIS core APIs are not fully thread-safe. Builder code accesses QGIS objects (e.g., `QgsFeatureRequest`, `QgsCoordinateTransform`, map rendering jobs) off the UI thread in preview mode. This generally works but can be fragile across QGIS versions.
 - Coarse-grained cancellation: Abort checks occur primarily between feature blocks. Long operations in `build()` (e.g., feature iteration, material/model preparation) don’t observe the abort flag, delaying cancellation.
 - Unbounded send queue: `Q3DController.sendQueue` can grow without explicit limits if JS is slow to consume data, potentially increasing memory usage.
-- Tight task timer: `TaskManager` uses a 1 ms single-shot timer to pulse the queue, which can create rapid dispatch cycles. While cooperative, this may contribute to work being scheduled faster than results are consumed.
 
 ## Suggested Improvements
 
