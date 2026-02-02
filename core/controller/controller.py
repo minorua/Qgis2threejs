@@ -464,7 +464,7 @@ class Q3DController(QObject):
 
     @requires_enabled
     def runScript(self, string, message="", sourceID="controller.py", callback=None, wait=False):
-        self.webPage.runScript(string, message, sourceID, callback, wait)
+        return self.webPage.runScript(string, message, sourceID, callback, wait)
 
     @requires_enabled
     def loadScriptFiles(self, script_ids, callback=None):
