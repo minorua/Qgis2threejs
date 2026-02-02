@@ -57,39 +57,39 @@ Q3D.gui.dat = {
 	};
 
 	_this.initLayersFolder = function (scene) {
-		var mapLayers = scene.mapLayers;
-		var params = this.parameters;
-
-		var visibleChanged = function (value) {
-			mapLayers[this.object.i].visible = value;
-		};
-
-		var opacityChanged = function (o) {
-			mapLayers[this.object.i].opacity = o;
-		};
-
-		var mtlChanged = function (idx) {
-			mapLayers[this.object.i].setCurrentMaterial(idx);
-		};
-
-		var layer, folder, mtlNames, i, items;
-		for (var layerId in mapLayers) {
-			layer = mapLayers[layerId];
+		const params = this.parameters;
+		const layersFolder = this.layersFolder;
+		scene.forEachLayer(function (layer, layerId) {
 			params.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity, m: 0};
-			folder = this.layersFolder.addFolder(layer.properties.name);
-			folder.add(params.lyr[layerId], 'v').name('Visible').onChange(visibleChanged);
-			folder.add(params.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(opacityChanged);
 
-			mtlNames = layer.properties.mtlNames;
+			const folder = layersFolder.addFolder(layer.properties.name);
+			folder.add(params.lyr[layerId], 'v').name('Visible').onChange(function (value) {
+				layer.visible = value;
+			});
+
+			let mtls;
+			const mtlNames = layer.properties.mtlNames;
 			if (mtlNames && mtlNames.length > 1) {
-				items = {};
-				for (i = 0; i < mtlNames.length; i++) {
+				const items = {};
+				for (var i = 0; i < mtlNames.length; i++) {
 					items[mtlNames[i]] = i;
 				}
-				folder.add(params.lyr[layerId], 'm', items).name('Material').onChange(mtlChanged).setValue(layer.properties.mtlIdx);
+				mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(layer.properties.mtlIdx);
 			}
-		}
-		return this.layersFolder;
+
+			const op = folder.add(params.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(function (value) {
+				layer.opacity = value;
+			});
+
+			if (mtls) {
+				mtls.onChange(function (idx) {
+					layer.currentMtlIndex = idx;
+					params.lyr[layerId].o = layer.opacity;
+					op.updateDisplay();
+				});
+			}
+		});
+		return layersFolder;
 	};
 
 	_this.customPlaneMaterial = function (color) {

@@ -1792,48 +1792,54 @@ Q3D.E = function (id) {
 	gui.layerPanel = {
 
 		init: function () {
-			var panel = E("layerpanel");
-
-			var p, item, e, slider, o, select, i;
-			Object.keys(app.scene.mapLayers).forEach(function (layerId) {
-
-				var layer = app.scene.mapLayers[layerId];
-				p = layer.properties;
-				item = CE("div", panel);
+			const panel = E("layerpanel");
+			app.scene.forEachLayer(function (layer, layerId) {
+				const p = layer.properties;
+				const item = CE("div", panel);
 				item.className = "layer";
 
 				// visible
-				e = CE("div", item, "<input type='checkbox'" +  ((p.visible) ? " checked" : "") + ">" + p.name);
+				let e = CE("div", item, "<input type='checkbox'" +  ((p.visible) ? " checked" : "") + ">" + p.name);
 				e.querySelector("input[type=checkbox]").addEventListener("change", function () {
 					layer.visible = this.checked;
 				});
 
-				// opacity slider
-				e = CE("div", item, "Opacity: <input type='range'><output></output>");
-				slider = e.querySelector("input[type=range]");
-
-				var label = e.querySelector("output");
-
-				o = parseInt(layer.opacity * 100);
-				slider.value = o;
-				slider.addEventListener("input", function () {
-					label.innerHTML = this.value + " %";
-				});
-				slider.addEventListener("change", function () {
-					label.innerHTML = this.value + " %";
-					layer.opacity = this.value / 100;
-				});
-				label.innerHTML = o + " %";
-
 				// material dropdown
+				let select;
 				if (p.mtlNames && p.mtlNames.length > 1) {
 					select = CE("select", CE("div", item, "Material: "));
-					for (i = 0; i < p.mtlNames.length; i++) {
+					for (var i = 0; i < p.mtlNames.length; i++) {
 						CE("option", select, p.mtlNames[i]).setAttribute("value", i);
 					}
 					select.value = p.mtlIdx;
+				}
+
+				// opacity slider
+				e = CE("div", item, "Opacity: <input type='range'><output></output>");
+				const slider = e.querySelector("input[type=range]");
+				const label = e.querySelector("output");
+				const setLabel = function (opacity) {
+					label.innerHTML = opacity + " %";
+				};
+
+				const o = parseInt(layer.opacity * 100);
+				slider.value = o;
+				setLabel(o);
+
+				slider.addEventListener("input", function () {
+					setLabel(this.value);
+				});
+				slider.addEventListener("change", function () {
+					setLabel(this.value);
+					layer.opacity = this.value / 100;
+				});
+
+				if (select) {
 					select.addEventListener("change", function () {
-						layer.setCurrentMaterial(this.value);
+						layer.currentMtlIndex = this.value;
+						const o = parseInt(layer.opacity * 100);
+						slider.value = o;
+						setLabel(o);
 					});
 				}
 			});
@@ -1908,6 +1914,12 @@ class Q3DScene extends THREE.Scene {
 	add(object) {
 		super.add(object);
 		object.updateMatrixWorld();
+	}
+
+	forEachLayer(callback) {
+		for (var layerId in this.mapLayers) {
+			callback(this.mapLayers[layerId], layerId);
+		}
 	}
 
 	loadData(data) {
@@ -2353,7 +2365,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		if (dispose) material.dispose();
 	}
 
-	removeGroupItems(groupId) {
+	removeItemsByGroupId(groupId) {
 		for (var i = this.array.length - 1; i >= 0; i--) {
 			if (this.array[i].groupId === groupId) {
 				this.array.splice(i, 1);
@@ -3260,17 +3272,39 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		return pts;
 	}
 
-	setCurrentMaterial(mtlIndex) {
+	get opacity() {
+		const b = this.blocks[0];
+		if (b && b.materials[this.currentMtlIndex]) {
+			const m = b.materials[this.currentMtlIndex];
+			return (m.mtl) ? m.mtl.opacity : 1;
+		}
+		return this.materials.opacity();
+	}
 
-		this.materials.removeGroupItems(this.currentMtlIndex);
-
-		this.currentMtlIndex = mtlIndex;
-
-		var b, m;
+	set opacity(value) {
 		for (var i = 0, l = this.blocks.length; i < l; i++) {
-			b = this.blocks[i];
-			m = b.materials[mtlIndex];
-			if (m !== undefined) {
+			const m = this.blocks[i].materials[this.currentMtlIndex];
+			if (m && m.mtl) {
+				m.mtl.opacity = value;
+				if (value < 1) m.mtl.transparent = true;
+			}
+		}
+		this.requestRender();
+	}
+
+	get currentMtlIndex() {
+		const b = this.blocks[0];
+		return (b) ? b.currentMtlIndex : undefined;
+	}
+
+	set currentMtlIndex(mtlIndex) {
+		this.materials.removeItemsByGroupId(this.currentMtlIndex);
+
+		for (var i = 0, l = this.blocks.length; i < l; i++) {
+			const b = this.blocks[i];
+			const m = b.materials[mtlIndex];
+			if (m) {
+				b.currentMtlIndex = mtlIndex;
 				b.obj.material = m.mtl;
 				this.materials.add(m);
 			}
