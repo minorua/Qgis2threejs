@@ -2555,6 +2555,201 @@ class Q3DDEMBlockBase {
 			}
 		}
 	}
+
+	_auxArgs() {
+		// return {x0, y0, x1, y1, xres, yres};
+	}
+
+	buildSides(layer, parent, material, z0) {
+		const grid = this.data.grid,
+			  b = this._auxArgs(),
+  			  x0 = b.x0, y0 = b.y0, x1 = b.x1, y1 = b.y1,
+			  planeWidth = x1 - x0,
+			  planeHeight = y0 - y1,
+			  cx = x0 + (x1 - x0) / 2,
+			  cy = y0 + (y1 - y0) / 2,
+			  grid_values = grid.values,
+			  w = grid.width,
+			  h = grid.height,
+			  k = w * (h - 1),
+			  band_width = -2 * z0;
+
+		// front and back
+		const geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
+			  geom_ba = geom_fr.clone();
+
+		const vertices_fr = geom_fr.attributes.position.array,
+			  vertices_ba = geom_ba.attributes.position.array;
+
+		let i, mesh;
+		for (i = 0; i < w; i++) {
+			vertices_fr[i * 3 + 1] = grid_values[k + i];
+			vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
+		}
+		mesh = new THREE.Mesh(geom_fr, material);
+		mesh.rotation.x = Math.PI / 2;
+		mesh.position.x = cx;
+		mesh.position.y = y1;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		mesh = new THREE.Mesh(geom_ba, material);
+		mesh.rotation.x = Math.PI / 2;
+		mesh.rotation.y = Math.PI;
+		mesh.position.x = cx;
+		mesh.position.y = y0;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		// left and right
+		const geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
+			  geom_ri = geom_le.clone();
+
+		const vertices_le = geom_le.attributes.position.array,
+			  vertices_ri = geom_ri.attributes.position.array;
+
+		for (i = 0; i < h; i++) {
+			vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
+			vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
+		}
+		mesh = new THREE.Mesh(geom_le, material);
+		mesh.rotation.y = -Math.PI / 2;
+		mesh.position.x = x0;
+		mesh.position.y = cy;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		mesh = new THREE.Mesh(geom_ri, material);
+		mesh.rotation.y = Math.PI / 2;
+		mesh.position.x = x1;
+		mesh.position.y = cy;
+		mesh.name = "side";
+		parent.add(mesh);
+
+		// bottom
+		var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
+		mesh = new THREE.Mesh(geom, material);
+		mesh.rotation.x = Math.PI;
+		mesh.position.x = cx;
+		mesh.position.y = cy;
+		mesh.position.z = z0;
+		mesh.name = "bottom";
+		parent.add(mesh);
+
+		parent.updateMatrixWorld();
+	}
+
+	addEdges(layer, parent, material, z0) {
+		const grid = this.data.grid,
+			  b = this._auxArgs(),
+			  x0 = b.x0, y0 = b.y0, x1 = b.x1, y1 = b.y1, xres = b.xres, yres = b.yres,
+			  grid_values = grid.values,
+			  w = grid.width,
+			  h = grid.height,
+			  k = w * (h - 1);
+
+		var i, x, y;
+		var vl = [];
+
+		// terrain edges
+		var vl_fr = [],
+			vl_bk = [],
+			vl_le = [],
+			vl_ri = [];
+
+		for (i = 0; i < w; i++) {
+			x = x0 + xres * i;
+			vl_fr.push(x, y1, grid_values[k + i]);
+			vl_bk.push(x, y0, grid_values[i]);
+		}
+
+		for (i = 0; i < h; i++) {
+			y = y0 - yres * i;
+			vl_le.push(x0, y, grid_values[w * i]);
+			vl_ri.push(x1, y, grid_values[w * (i + 1) - 1]);
+		}
+
+		vl.push(vl_fr, vl_bk, vl_le, vl_ri);
+
+		if (z0 !== undefined) {
+			// horizontal rectangle at bottom
+			vl.push([x0, y0, z0,
+					 x1, y0, z0,
+					 x1, y1, z0,
+					 x0, y1, z0,
+					 x0, y0, z0]);
+
+			// vertical lines at corners
+			[[x0, y1, grid_values[grid_values.length - w]],
+			 [x1, y1, grid_values[grid_values.length - 1]],
+			 [x1, y0, grid_values[w - 1]],
+			 [x0, y0, grid_values[0]]].forEach(function (v) {
+
+				vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
+
+			});
+		}
+
+		vl.forEach(function (v) {
+
+			var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			var obj = new THREE.Line(geom, material);
+			obj.name = "frame";
+			parent.add(obj);
+
+		});
+
+		parent.updateMatrixWorld();
+	}
+
+	// add quad wireframe
+	addWireframe(layer, parent, material) {
+		const grid = this.data.grid,
+			  b = this._auxArgs(),
+			  x0 = b.x0, y0 = b.y0, xres = b.xres, yres = b.yres,
+			  grid_values = grid.values,
+			  w = grid.width,
+			  h = grid.height;
+
+		var v, geom, x, y, vx, vy, group = new THREE.Group();
+
+		for (x = w - 1; x >= 0; x--) {
+			v = [];
+			vx = x0 + xres * x;
+
+			for (y = h - 1; y >= 0; y--) {
+				v.push(vx, y0 - yres * y, grid_values[x + w * y]);
+			}
+
+			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+			group.add(new THREE.Line(geom, material));
+		}
+
+		for (y = h - 1; y >= 0; y--) {
+			v = [];
+			vy = y0 - yres * y;
+
+			for (x = w - 1; x >= 0; x--) {
+				v.push(x0 + xres * x, vy, grid_values[x + w * y]);
+			}
+
+			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+
+			group.add(new THREE.Line(geom, material));
+		}
+
+		parent.add(group);
+		parent.updateMatrixWorld();
+	}
+
+	getValue(x, y) {
+		return null;
+	}
+
+	contains(x, y) {
+		return false;
+	}
 }
 
 
@@ -2603,188 +2798,17 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		return mesh;
 	}
 
-	buildSides(layer, parent, material, z0) {
-		var planeWidth = this.data.width,
-			planeHeight = this.data.height,
-			grid = this.data.grid,
-			grid_values = grid.values,
-			w = grid.width,
-			h = grid.height,
-			k = w * (h - 1);
-
-		var band_width = -2 * z0;
-
-		// front and back
-		var geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
-			geom_ba = geom_fr.clone();
-
-		var vertices_fr = geom_fr.attributes.position.array,
-			vertices_ba = geom_ba.attributes.position.array;
-
-		var i, mesh;
-		for (i = 0; i < w; i++) {
-			vertices_fr[i * 3 + 1] = grid_values[k + i];
-			vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
+	_auxArgs() {
+		var pw = this.data.width,
+			ph = this.data.height;
+		return {
+			x0: -pw / 2,
+			y0: ph / 2,
+			x1: pw / 2,
+			y1: -ph / 2,
+			xres: pw / (this.data.grid.width - 1),
+			yres: ph / (this.data.grid.height - 1)
 		}
-		mesh = new THREE.Mesh(geom_fr, material);
-		mesh.rotation.x = Math.PI / 2;
-		mesh.position.y = -planeHeight / 2;
-		mesh.name = "side";
-		parent.add(mesh);
-
-		mesh = new THREE.Mesh(geom_ba, material);
-		mesh.rotation.x = Math.PI / 2;
-		mesh.rotation.y = Math.PI;
-		mesh.position.y = planeHeight / 2;
-		mesh.name = "side";
-		parent.add(mesh);
-
-		// left and right
-		var geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
-			geom_ri = geom_le.clone();
-
-		var vertices_le = geom_le.attributes.position.array,
-			vertices_ri = geom_ri.attributes.position.array;
-
-		for (i = 0; i < h; i++) {
-			vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
-			vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
-		}
-		mesh = new THREE.Mesh(geom_le, material);
-		mesh.rotation.y = -Math.PI / 2;
-		mesh.position.x = -planeWidth / 2;
-		mesh.name = "side";
-		parent.add(mesh);
-
-		mesh = new THREE.Mesh(geom_ri, material);
-		mesh.rotation.y = Math.PI / 2;
-		mesh.position.x = planeWidth / 2;
-		mesh.name = "side";
-		parent.add(mesh);
-
-		// bottom
-		var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
-		mesh = new THREE.Mesh(geom, material);
-		mesh.rotation.x = Math.PI;
-		mesh.position.z = z0;
-		mesh.name = "bottom";
-		parent.add(mesh);
-
-		parent.updateMatrixWorld();
-	}
-
-	addEdges(layer, parent, material, z0) {
-
-		var i, x, y,
-			grid = this.data.grid,
-			grid_values = grid.values,
-			w = grid.width,
-			h = grid.height,
-			k = w * (h - 1),
-			planeWidth = this.data.width,
-			planeHeight = this.data.height,
-			hpw = planeWidth / 2,
-			hph = planeHeight / 2,
-			psw = planeWidth / (w - 1),
-			psh = planeHeight / (h - 1);
-
-		var vl = [];
-
-		// terrain edges
-		var vl_fr = [],
-			vl_bk = [],
-			vl_le = [],
-			vl_ri = [];
-
-		for (i = 0; i < w; i++) {
-			x = -hpw + psw * i;
-			vl_fr.push(x, -hph, grid_values[k + i]);
-			vl_bk.push(x, hph, grid_values[i]);
-		}
-
-		for (i = 0; i < h; i++) {
-			y = hph - psh * i;
-			vl_le.push(-hpw, y, grid_values[w * i]);
-			vl_ri.push(hpw, y, grid_values[w * (i + 1) - 1]);
-		}
-
-		vl.push(vl_fr, vl_bk, vl_le, vl_ri);
-
-		if (z0 !== undefined) {
-			// horizontal rectangle at bottom
-			vl.push([-hpw, -hph, z0,
-						hpw, -hph, z0,
-						hpw,  hph, z0,
-					-hpw,  hph, z0,
-					-hpw, -hph, z0]);
-
-			// vertical lines at corners
-			[[-hpw, -hph, grid_values[grid_values.length - w]],
-				[ hpw, -hph, grid_values[grid_values.length - 1]],
-				[ hpw,  hph, grid_values[w - 1]],
-				[-hpw,  hph, grid_values[0]]].forEach(function (v) {
-
-				vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
-
-			});
-		}
-
-		vl.forEach(function (v) {
-
-			var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-			var obj = new THREE.Line(geom, material);
-			obj.name = "frame";
-			parent.add(obj);
-
-		});
-
-		parent.updateMatrixWorld();
-	}
-
-	// add quad wireframe
-	addWireframe(layer, parent, material) {
-
-		var grid = this.data.grid,
-			grid_values = grid.values,
-			w = grid.width,
-			h = grid.height,
-			planeWidth = this.data.width,
-			planeHeight = this.data.height,
-			hpw = planeWidth / 2,
-			hph = planeHeight / 2,
-			psw = planeWidth / (w - 1),
-			psh = planeHeight / (h - 1);
-
-		var v, geom, x, y, vx, vy, group = new THREE.Group();
-
-		for (x = w - 1; x >= 0; x--) {
-			v = [];
-			vx = -hpw + psw * x;
-
-			for (y = h - 1; y >= 0; y--) {
-				v.push(vx, hph - psh * y, grid_values[x + w * y]);
-			}
-
-			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-			group.add(new THREE.Line(geom, material));
-		}
-
-		for (y = h - 1; y >= 0; y--) {
-			v = [];
-			vy = hph - psh * y;
-
-			for (x = w - 1; x >= 0; x--) {
-				v.push(-hpw + psw * x, vy, grid_values[x + w * y]);
-			}
-
-			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-			group.add(new THREE.Line(geom, material));
-		}
-
-		parent.add(group);
-		parent.updateMatrixWorld();
 	}
 
 	getValue(x, y) {
@@ -2809,7 +2833,6 @@ class Q3DDEMTileBlock extends Q3DDEMBlock {
 
 	loadData(data, layer, callback) {
 		var grid = data.grid;
-		delete data.grid;
 
 		super.loadData(data, layer, callback);
 
@@ -2849,6 +2872,20 @@ class Q3DDEMTileBlock extends Q3DDEMBlock {
 
 		this.obj = mesh;
 		return mesh;
+	}
+
+	_auxArgs() {
+		var res = this.data.tileSize / this.data.segments,
+			pw = (this.data.grid.width - 1) * res,
+			ph = (this.data.grid.height - 1) * res;
+		return {
+			x0: -this.data.tileSize / 2,
+		    y0: this.data.tileSize / 2,
+			x1: pw - this.data.tileSize / 2,
+			y1: this.data.tileSize / 2 - ph,
+			xres: res,
+			yres: res
+		};
 	}
 }
 
@@ -2945,16 +2982,8 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 		parent.updateMatrixWorld();
 	}
 
-	// not implemented
-	getValue(x, y) {
-		return null;
-	}
-
-	// not implemented
-	contains(x, y) {
-		return false;
-	}
-
+	addEdges() {}
+	addWireframe() {}
 }
 
 
