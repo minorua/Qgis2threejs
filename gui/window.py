@@ -680,10 +680,10 @@ class PropertiesDialog(QDialog):
         else:
             self.page = VectorPropertyPage(self, self.layer, self.settings)
 
-        self.ui.scrollArea.setWidget(self.page)
+        self.ui.verticalLayout.insertWidget(0, self.page)
 
         # disable wheel event for ComboBox widgets
-        for w in self.ui.scrollArea.findChildren(QComboBox):
+        for w in self.page.findChildren(QComboBox):
             w.installEventFilter(self.wheelFilter)
 
     def buttonClicked(self, button):
@@ -726,7 +726,7 @@ class PropertiesDialog(QDialog):
     def showSceneProperties(self):
         self.setWindowTitle("Scene Settings")
         self.page = ScenePropertyPage(self, self.settings.sceneProperties(), self.qgisIface.mapCanvas())
-        self.ui.scrollArea.setWidget(self.page)
+        self.ui.verticalLayout.insertWidget(0, self.page)
         self.show()
 
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>455</width>
+    <width>379</width>
     <height>530</height>
    </rect>
   </property>
@@ -23,26 +23,6 @@
    <property name="rightMargin">
     <number>0</number>
    </property>
-   <item>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>455</width>
-        <height>492</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-   </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
