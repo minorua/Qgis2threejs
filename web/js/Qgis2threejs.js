@@ -2742,14 +2742,6 @@ class Q3DDEMBlockBase {
 		parent.add(group);
 		parent.updateMatrixWorld();
 	}
-
-	getValue(x, y) {
-		return null;
-	}
-
-	contains(x, y) {
-		return false;
-	}
 }
 
 
@@ -2809,22 +2801,6 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 			xres: pw / (this.data.grid.width - 1),
 			yres: ph / (this.data.grid.height - 1)
 		}
-	}
-
-	getValue(x, y) {
-		var grid = this.data.grid;
-		if (0 <= x && x < grid.width && 0 <= y && y < grid.height) return grid.values[x + grid.width * y];
-		return null;
-	}
-
-	contains(x, y) {
-		var translate = this.data.translate,
-			xmin = translate[0] - this.data.width / 2,
-			xmax = translate[0] + this.data.width / 2,
-			ymin = translate[1] - this.data.height / 2,
-			ymax = translate[1] + this.data.height / 2;
-		if (xmin <= x && x <= xmax && ymin <= y && y <= ymax) return true;
-		return false;
 	}
 }
 
@@ -3199,106 +3175,6 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 			_this.requestRender();
 		});
-	}
-
-	// calculate elevation at the coordinates (x, y) on triangle face
-	getZ(x, y) {
-		for (var i = 0, l = this.blocks.length; i < l; i++) {
-			var block = this.blocks[i],
-				data = block.data;
-
-			if (!block.contains(x, y)) continue;
-
-			var ix = data.width / (data.grid.width - 1),
-				iy = data.height / (data.grid.height - 1);
-
-			var xmin = data.translate[0] - data.width / 2,
-				ymax = data.translate[1] + data.height / 2;
-
-			var mx0 = Math.floor((x - xmin) / ix),
-				my0 = Math.floor((ymax - y) / iy);
-
-			var z = [block.getValue(mx0, my0),
-						block.getValue(mx0 + 1, my0),
-						block.getValue(mx0, my0 + 1),
-						block.getValue(mx0 + 1, my0 + 1)];
-
-			var px0 = xmin + ix * mx0,
-				py0 = ymax - iy * my0;
-
-			var sdx = (x - px0) / ix,
-				sdy = (py0 - y) / iy;
-
-			if (sdx <= 1 - sdy) return z[0] + (z[1] - z[0]) * sdx + (z[2] - z[0]) * sdy;
-			else return z[3] + (z[2] - z[3]) * (1 - sdx) + (z[1] - z[3]) * (1 - sdy);
-		}
-		return null;
-	}
-
-	segmentizeLineString(lineString, zFunc) {
-		// does not support multiple blocks
-		if (zFunc === undefined) zFunc = function () { return 0; };
-		var width = this.sceneData.width,
-			height = this.sceneData.height;
-		var xmin = -width / 2,
-			ymax = height / 2;
-		var grid = this.blocks[0].data.grid,
-			ix = width / (grid.width - 1),
-			iy = height / (grid.height - 1);
-		var sort_func = function (a, b) { return a - b; };
-
-		var pts = [];
-		for (var i = 1, l = lineString.length; i < l; i++) {
-			var pt1 = lineString[i - 1], pt2 = lineString[i];
-			var x1 = pt1[0], x2 = pt2[0], y1 = pt1[1], y2 = pt2[1], z1 = pt1[2], z2 = pt2[2];
-			var nx1 = (x1 - xmin) / ix,
-				nx2 = (x2 - xmin) / ix;
-			var ny1 = (ymax - y1) / iy,
-				ny2 = (ymax - y2) / iy;
-			var ns1 = Math.abs(ny1 + nx1),
-				ns2 = Math.abs(ny2 + nx2);
-
-			var p = [0], nvp = [[nx1, nx2], [ny1, ny2], [ns1, ns2]];
-			for (var j = 0; j < 3; j++) {
-				var v1 = nvp[j][0], v2 = nvp[j][1];
-				if (v1 == v2) continue;
-				var k = Math.ceil(Math.min(v1, v2));
-				var n = Math.floor(Math.max(v1, v2));
-				for (; k <= n; k++) {
-					p.push((k - v1) / (v2 - v1));
-				}
-			}
-
-			p.sort(sort_func);
-
-			var x, y, z, lp = null;
-			for (var j = 0, m = p.length; j < m; j++) {
-				if (lp === p[j]) continue;
-				if (p[j] == 1) break;
-
-				x = x1 + (x2 - x1) * p[j];
-				y = y1 + (y2 - y1) * p[j];
-
-				if (z1 === undefined || z2 === undefined) z = zFunc(x, y);
-				else z = z1 + (z2 - z1) * p[j];
-
-				pts.push(new THREE.Vector3(x, y, z));
-
-				// Q3D.Utils.putStick(x, y, zFunc);
-
-				lp = p[j];
-			}
-		}
-		// last point (= the first point)
-		var pt = lineString[lineString.length - 1];
-		pts.push(new THREE.Vector3(pt[0], pt[1], (pt[2] === undefined) ? zFunc(pt[0], pt[1]) : pt[2]));
-
-		/*
-		for (var i = 0, l = lineString.length - 1; i < l; i++) {
-			Q3D.Utils.putStick(lineString[i][0], lineString[i][1], zFunc, 0.8);
-		}
-		*/
-		return pts;
 	}
 
 	get opacity() {
@@ -4542,9 +4418,6 @@ Q3D.Utils = {};
 Q3D.Utils.putStick = function (x, y, zFunc, h) {
 	if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
 	if (h === undefined) h = 0.2;
-	if (zFunc === undefined) {
-		zFunc = function (x, y) { return Q3D.application.scene.mapLayers[0].getZ(x, y); };
-	}
 	var z = zFunc(x, y);
 	var geom = new THREE.Geometry();
 	geom.vertices.push(new THREE.Vector3(x, y, z + h), new THREE.Vector3(x, y, z));
