@@ -2829,7 +2829,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 }
 
 
-class Q3DDEMTileBlock extends Q3DDEMBlock {
+class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 
 	loadData(data, layer, callback) {
 		var grid = data.grid;
