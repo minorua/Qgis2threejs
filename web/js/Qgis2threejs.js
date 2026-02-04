@@ -3173,6 +3173,8 @@ class Q3DDEMLayer extends Q3DMapLayer {
 				mesh.material.polygonOffsetUnits = 1;
 			}
 
+			delete data.grid;	// no longer needed
+
 			_this.requestRender();
 		});
 	}
