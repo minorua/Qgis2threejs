@@ -236,7 +236,7 @@ class Ui_KeyframeDialog(object):
         self.horizontalLayout3.addWidget(self.labelTotal)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=KeyframeDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Help|QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.horizontalLayout3.addWidget(self.buttonBox)
         self.verticalLayout.addLayout(self.horizontalLayout3)

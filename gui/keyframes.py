@@ -14,7 +14,7 @@ from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
-from ..utils import createUid, logger, parseInt, pluginDir
+from ..utils import createUid, logger, openHelp, parseInt, pluginDir
 from ..utils.gui import selectImageFile
 
 
@@ -946,6 +946,8 @@ class KeyframeDialog(QDialog):
         self.narId = None
         self.isPlaying = self.isPlayingAll = False
 
+        self.ui.buttonBox.helpRequested.connect(self.helpClicked)
+
         parent.webPage.bridge.tweenStarted.connect(self.tweenStarted)
         parent.webPage.bridge.animationStopped.connect(self.animationStopped)
 
@@ -1241,8 +1243,15 @@ class KeyframeDialog(QDialog):
     def accept(self):
         if self.type & ATConst.ITEM_MBR:
             self.apply()
-
         QDialog.accept(self)
+
+    def helpClicked(self):
+        t = {ATConst.ITEM_CAMERA: "camera",
+             ATConst.ITEM_OPACITY: "opacity",
+             ATConst.ITEM_TEXTURE: "texture",
+             ATConst.ITEM_GROWING_LINE: "growingline"
+        }.get(self.type, "")
+        openHelp(f"dlg=keyframe&type={t}")
 
     def addImage(self):
         filename = selectImageFile(self)

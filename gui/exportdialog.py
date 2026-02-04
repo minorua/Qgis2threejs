@@ -13,7 +13,7 @@ from qgis.core import QgsApplication, QgsProject
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 from ..conf import PLUGIN_NAME
 from ..core.export.export import ExportCancelled, ThreeJSExporter
-from ..utils import getTemplateConfig, openUrl, templateDir, temporaryOutputDir
+from ..utils import getTemplateConfig, openHelp, openUrl, templateDir, temporaryOutputDir
 
 
 class ExportToWebDialog(QDialog):
@@ -76,6 +76,7 @@ class ExportToWebDialog(QDialog):
         # connections
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
+        self.ui.pushButtonHelp.clicked.connect(self.helpClicked)
 
         self.ui.textBrowser.setOpenLinks(False)
         self.ui.textBrowser.anchorClicked.connect(openUrl)
@@ -250,6 +251,9 @@ th {text-align:left;}
 
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
+
+    def helpClicked(self):
+        openHelp(f"dlg=export")
 
     def progress(self, current=None, total=100, msg="", numbered=False):
         if current is not None:

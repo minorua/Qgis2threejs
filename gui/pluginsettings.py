@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import Qt, QDir, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .ui.settingsdialog import Ui_SettingsDialog
-from ..utils import logger, pluginDir
+from ..utils import logger, openHelp, pluginDir
 
 
 class SettingsDialog(QDialog):
@@ -22,6 +22,7 @@ class SettingsDialog(QDialog):
         ui.setupUi(self)
         ui.lineEdit_BrowserPath.setPlaceholderText("Leave this empty to use your default browser")
         ui.pushButton_Browse.clicked.connect(self.browseClicked)
+        ui.buttonBox.helpRequested.connect(self.helpClicked)
 
         # load settings
         settings = QSettings()
@@ -87,3 +88,6 @@ class SettingsDialog(QDialog):
         filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select browser"))
         if filename != "":
             self.ui.lineEdit_BrowserPath.setText(filename)
+
+    def helpClicked(self):
+        openHelp(f"dlg=settings")

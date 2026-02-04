@@ -12,7 +12,7 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 class Ui_NorthArrowDialog(object):
     def setupUi(self, NorthArrowDialog):
         NorthArrowDialog.setObjectName("NorthArrowDialog")
-        NorthArrowDialog.resize(281, 101)
+        NorthArrowDialog.resize(336, 102)
         self.verticalLayout = QtWidgets.QVBoxLayout(NorthArrowDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(parent=NorthArrowDialog)
@@ -35,7 +35,7 @@ class Ui_NorthArrowDialog(object):
         self.verticalLayout.addWidget(self.groupBox)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=NorthArrowDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Apply|QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Apply|QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Help|QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -49,4 +49,4 @@ class Ui_NorthArrowDialog(object):
         NorthArrowDialog.setWindowTitle(_translate("NorthArrowDialog", "North Arrow"))
         self.groupBox.setTitle(_translate("NorthArrowDialog", "Enable North Arrow"))
         self.label.setText(_translate("NorthArrowDialog", "Color"))
-from qgis.gui import QgsColorButton
+from qgscolorbutton import QgsColorButton

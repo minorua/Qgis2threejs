@@ -41,6 +41,9 @@ class Ui_AddPointCloudLayerDialog(object):
         self.pushButton_Cancel = QtWidgets.QPushButton(parent=AddPointCloudLayerDialog)
         self.pushButton_Cancel.setObjectName("pushButton_Cancel")
         self.horizontalLayout.addWidget(self.pushButton_Cancel)
+        self.pushButtonHelp = QtWidgets.QPushButton(parent=AddPointCloudLayerDialog)
+        self.pushButtonHelp.setObjectName("pushButtonHelp")
+        self.horizontalLayout.addWidget(self.pushButtonHelp)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.retranslateUi(AddPointCloudLayerDialog)
@@ -57,3 +60,4 @@ class Ui_AddPointCloudLayerDialog(object):
         self.pushButton_Browse.setText(_translate("AddPointCloudLayerDialog", "Browse..."))
         self.pushButton_Add.setText(_translate("AddPointCloudLayerDialog", "Add"))
         self.pushButton_Cancel.setText(_translate("AddPointCloudLayerDialog", "Cancel"))
+        self.pushButtonHelp.setText(_translate("AddPointCloudLayerDialog", "Help"))

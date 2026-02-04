@@ -7,6 +7,7 @@ from qgis.PyQt.QtWidgets import QDialog
 
 # from .export import ImageExporter
 from .ui.imagesavedialog import Ui_ImageSaveDialog
+from ..utils import openHelp
 
 
 class ImageSaveDialog(QDialog):
@@ -19,6 +20,7 @@ class ImageSaveDialog(QDialog):
         self.ui = Ui_ImageSaveDialog()
         self.ui.setupUi(self)
         self.ui.pushButton_Copy.clicked.connect(self.copyToClipboard)
+        self.ui.buttonBox.helpRequested.connect(self.helpClicked)
 
         size = self.wnd.ui.webView.size()
         self.ui.spinBox_Width.setValue(size.width())
@@ -53,3 +55,6 @@ class ImageSaveDialog(QDialog):
             QDialog.accept(self)
 
         self.wnd.runScript(f"saveCanvasImage({width}, {height})", callback=finalized)
+
+    def helpClicked(self):
+        openHelp("dlg=imagesave")

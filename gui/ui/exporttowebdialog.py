@@ -135,6 +135,9 @@ class Ui_ExportToWebDialog(object):
         self.pushButton_Close = QtWidgets.QPushButton(parent=ExportToWebDialog)
         self.pushButton_Close.setObjectName("pushButton_Close")
         self.horizontalLayout_3.addWidget(self.pushButton_Close)
+        self.pushButtonHelp = QtWidgets.QPushButton(parent=ExportToWebDialog)
+        self.pushButtonHelp.setObjectName("pushButtonHelp")
+        self.horizontalLayout_3.addWidget(self.pushButtonHelp)
         self.gridLayout_4.addLayout(self.horizontalLayout_3, 2, 0, 1, 2)
 
         self.retranslateUi(ExportToWebDialog)
@@ -172,3 +175,4 @@ class Ui_ExportToWebDialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLog), _translate("ExportToWebDialog", "Log"))
         self.pushButton_Export.setText(_translate("ExportToWebDialog", "Export"))
         self.pushButton_Close.setText(_translate("ExportToWebDialog", "Close"))
+        self.pushButtonHelp.setText(_translate("ExportToWebDialog", "Help"))

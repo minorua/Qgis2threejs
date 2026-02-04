@@ -12,7 +12,7 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 class Ui_ImageSaveDialog(object):
     def setupUi(self, ImageSaveDialog):
         ImageSaveDialog.setObjectName("ImageSaveDialog")
-        ImageSaveDialog.resize(390, 106)
+        ImageSaveDialog.resize(385, 106)
         self.gridLayout = QtWidgets.QGridLayout(ImageSaveDialog)
         self.gridLayout.setObjectName("gridLayout")
         self.pushButton_Copy = QtWidgets.QPushButton(parent=ImageSaveDialog)
@@ -22,7 +22,7 @@ class Ui_ImageSaveDialog(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=ImageSaveDialog)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Save)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Help|QtWidgets.QDialogButtonBox.StandardButton.Save)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 2, 1, 1, 1)
         self.spinBox_Width = QtWidgets.QSpinBox(parent=ImageSaveDialog)

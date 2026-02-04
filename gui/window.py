@@ -761,6 +761,8 @@ class NorthArrowDialog(QDialog):
                 "visible": self.ui.groupBox.isChecked(),
                 "color": hex_color(self.ui.colorButton.color().name(), prefix="0x")
             })
+        elif role == QDialogButtonBox.ButtonRole.HelpRole:
+            openHelp("dlg=northarrow")
 
 
 class HFLabelDialog(QDialog):
@@ -784,6 +786,8 @@ class HFLabelDialog(QDialog):
         if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
             self.propertiesAccepted.emit({"Header": self.ui.textEdit_Header.toPlainText(),
                                           "Footer": self.ui.textEdit_Footer.toPlainText()})
+        elif role == QDialogButtonBox.ButtonRole.HelpRole:
+            openHelp("dlg=hflabel")
 
 
 class AddPointCloudLayerDialog(QDialog):
@@ -795,6 +799,7 @@ class AddPointCloudLayerDialog(QDialog):
         self.ui = Ui_AddPointCloudLayerDialog()
         self.ui.setupUi(self)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
+        self.ui.pushButtonHelp.clicked.connect(self.helpClicked)
 
     def browseClicked(self):
         url = self.ui.lineEdit_Source.text()
@@ -806,3 +811,6 @@ class AddPointCloudLayerDialog(QDialog):
         filename, _ = QFileDialog.getOpenFileName(self, "Select a Potree supported file", directory, filterString)
         if filename:
             self.ui.lineEdit_Source.setText(QUrl.fromLocalFile(filename).toString())
+
+    def helpClicked(self):
+        openHelp("dlg=addpc")
