@@ -14,7 +14,7 @@ class Ui_PropertiesDialog(object):
         PropertiesDialog.setObjectName("PropertiesDialog")
         PropertiesDialog.resize(379, 530)
         self.verticalLayout = QtWidgets.QVBoxLayout(PropertiesDialog)
-        self.verticalLayout.setContentsMargins(0, 0, 0, -1)
+        self.verticalLayout.setContentsMargins(0, 0, 6, -1)
         self.verticalLayout.setObjectName("verticalLayout")
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=PropertiesDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
