@@ -20,7 +20,7 @@ class SettingsDialog(QDialog):
         # Set up the user interface from Designer.
         self.ui = ui = Ui_SettingsDialog()
         ui.setupUi(self)
-        ui.lineEdit_BrowserPath.setPlaceholderText("Leave this empty to use your default browser")
+        ui.lineEdit_BrowserPath.setPlaceholderText("Leave this empty to use the default browser.")
         ui.pushButton_Browse.clicked.connect(self.browseClicked)
         ui.buttonBox.helpRequested.connect(self.helpClicked)
 
@@ -53,7 +53,7 @@ class SettingsDialog(QDialog):
                 metadata = dict(parser.items("general"))
                 self.plugin_metadata.append(metadata)
             except Exception as e:
-                logger.error("Unable to read metadata of plugin: {} ({})".format(name, e))
+                logger.error(f"Unable to read metadata of plugin: {name} ({e})")
 
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):

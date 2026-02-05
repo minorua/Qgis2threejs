@@ -246,7 +246,7 @@ class Q3DWindow(QMainWindow):
 
         w = ui.checkBoxPreview = QCheckBox(ui.statusbar)
         w.setObjectName("checkBoxPreview")
-        w.setText("Preview" + (" ({})".format(viewName) if viewName else ""))  # _translate("Q3DWindow", "Preview"))
+        w.setText("Preview" + (f" ({viewName})" if viewName else ""))  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
         w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
@@ -365,7 +365,7 @@ class Q3DWindow(QMainWindow):
             if filename in ("cloud.js", "ept.json"):
                 self.addPointCloudLayer(url.toString())
             else:
-                self.runScript("loadModel('{}')".format(url.toString()))
+                self.runScript(f"loadModel('{url.toString()}')")
 
     # File menu
     def exportToWeb(self):
@@ -585,14 +585,14 @@ class Q3DWindow(QMainWindow):
         is_ortho = bool(action == self.ui.actionOrthographic)
 
         self.settings.setCamera(is_ortho)
-        self.runScript("switchCamera({})".format(js_bool(is_ortho)))
+        self.runScript(f"switchCamera({js_bool(is_ortho)})")
 
     def resetCameraState(self):
         self.webPage.resetCameraState()
 
     def navStateChanged(self, enabled):
         self.settings.setNavigationEnabled(enabled)
-        self.runScript("setNavigationEnabled({})".format(js_bool(enabled)))
+        self.runScript(f"setNavigationEnabled({js_bool(enabled)})")
 
     def showNorthArrowDialog(self):
         dialog = NorthArrowDialog(self, self.settings.widgetProperties("NorthArrow"))
@@ -717,7 +717,7 @@ class PropertiesDialog(QDialog):
         if layer.mapLayer:
             name = layer.mapLayer.name()
             if name != layer.name:
-                name = "{} ({})".format(layer.name, name)
+                name = f"{layer.name} ({name})"
         else:
             name = layer.name
 

@@ -137,7 +137,7 @@
         </sizepolicy>
        </property>
        <property name="placeholderText">
-        <string>empty - will not stop at this keyframe</string>
+        <string>Empty - will not stop at this keyframe</string>
        </property>
       </widget>
      </item>
@@ -220,7 +220,7 @@
        <item>
         <widget class="QToolButton" name="toolButtonAddImage">
          <property name="toolTip">
-          <string>Add an image tag at the current cursor position. </string>
+          <string>Insert an image tag at the current cursor position.</string>
          </property>
         </widget>
        </item>

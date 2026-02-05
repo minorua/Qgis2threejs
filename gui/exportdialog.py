@@ -266,9 +266,9 @@ th {text-align:left;}
 
         if msg:
             if numbered:
-                msg = "{}. {}".format(self.logNextIndex, msg)
+                msg = f"{self.logNextIndex}. {msg}"
                 self.logNextIndex += 1
-            self.logHtml += "<div class='progress'>{}</div>".format(msg)
+            self.logHtml += f"<div class='progress'>{msg}</div>"
             self.ui.textBrowser.setHtml(self.logHtml)
 
         QgsApplication.processEvents()

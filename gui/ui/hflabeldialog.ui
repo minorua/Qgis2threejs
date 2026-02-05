@@ -24,7 +24,7 @@
    <item>
     <widget class="QTextEdit" name="textEdit_Header">
      <property name="placeholderText">
-      <string>Enter text that you want to display at page top. It can contain valid HTML tags.</string>
+      <string>Enter the text you want to display at the top of the page. It may contain valid HTML tags.</string>
      </property>
     </widget>
    </item>
@@ -38,7 +38,7 @@
    <item>
     <widget class="QTextEdit" name="textEdit_Footer">
      <property name="placeholderText">
-      <string>Enter text that you want to display at page bottom. It can contain valid HTML tags.</string>
+      <string>Enter the text you want to display at the bottom of the page. It may contain valid HTML tags.</string>
      </property>
     </widget>
    </item>

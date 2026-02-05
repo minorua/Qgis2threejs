@@ -80,5 +80,4 @@ class Ui_SettingsDialog(object):
         self.pushButton_Browse.setText(_translate("SettingsDialog", "Browse..."))
         self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features"))
         self.label_2.setText(_translate("SettingsDialog", "Description"))
-        self.label_3.setText(_translate("SettingsDialog", "The changes will take effect after the exporter is restarted.\n"
-""))
+        self.label_3.setText(_translate("SettingsDialog", "The changes will take effect after restarting the exporter."))

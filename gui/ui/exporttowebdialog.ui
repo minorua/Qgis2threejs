@@ -153,7 +153,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>clockwise from the upper direction of the map, in degrees</string>
+             <string>Clockwise from up direction of the map, in degrees</string>
             </property>
             <property name="inputMethodHints">
              <set>Qt::ImhPreferNumbers</set>

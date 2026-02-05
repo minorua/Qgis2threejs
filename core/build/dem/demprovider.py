@@ -134,7 +134,7 @@ class FlatDEMProvider:
         return "Flat Plane"
 
     def read(self, width, height, extent):
-        return struct.pack("{0}f".format(width * height), *([self.value] * width * height))
+        return struct.pack(f"{width * height}f", *([self.value] * width * height))
 
     def readValues(self, width, height, extent):
         return [self.value] * width * height

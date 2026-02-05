@@ -117,14 +117,14 @@ class VectorLayer:
             # geometry
             geom = f.geometry()
             if geom is None:
-                logger.info("[{}] Null geometry skipped.".format(self.name))
+                logger.info(f"[{self.name}] Null geometry skipped.")
                 continue
 
             geom = QgsGeometry(geom)
 
             # coordinate transformation - layer crs to project crs
             if geom.transform(self.transform) != 0:
-                logger.warning("[{}] Failed to transform a geometry.".format(self.name))
+                logger.warning(f"[{self.name}] Failed to transform a geometry.")
                 continue
 
             if rotation and self.onlyIntersecting:
@@ -232,12 +232,12 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
 
             if val is None:
-                logger.warning("[{}] Failed to evaluate expression: {}".format(self.name, expr))
+                logger.warning(f"[{self.name}] Failed to evaluate expression: {expr}")
 
             elif isinstance(val, str):
                 val = parseFloat(val)
                 if val is None:
-                    logger.warning("[{}] Cannot parse '{}' as a float value.".format(self.name, expr))
+                    logger.warning(f'[{self.name}] Cannot parse "{expr}" as a float value.')
 
             return val or 0
 
@@ -255,9 +255,9 @@ class VectorLayer:
             val = self.evaluateExpression(expr, feat)
             if val is None:
                 if expr:
-                    logger.warning("[{}] Failed to evaluate expression: {}".format(self.name, expr))
+                    logger.warning(f"[{self.name}] Failed to evaluate expression: {expr}")
                 else:
-                    logger.warning("[{}] There is an empty file path.".format(self.name))
+                    logger.warning(f"[{self.name}] There is an empty file path.")
 
             return val or ""
 
@@ -271,7 +271,7 @@ class VectorLayer:
 
             return self.readFillColor(wv, feat)
 
-        logger.error("Widget type {} not found.".format(t))
+        logger.error(f"Widget type {t} not found.")
         return None
 
     def readFillColor(self, vals, feat):
@@ -317,7 +317,7 @@ class VectorLayer:
 
                 raise
             except:
-                logger.warning("[{}] Wrong color value: {}".format(self.name, val))
+                logger.warning(f"[{self.name}] Wrong color value: {val}")
                 return "0"
 
         if mode == ColorWidgetFunc.RANDOM or feat is None:
@@ -329,7 +329,7 @@ class VectorLayer:
         # feature color from renderer
         symbols = self.renderer.symbolsForFeature(feat, self.renderContext)
         if not symbols:
-            logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
+            logger.warning(f"[{self.name}] Symbol for feature not found. Please use a simple renderer.")
             return "0"
 
         symbol = symbols[0]
@@ -351,17 +351,18 @@ class VectorLayer:
             Float value between 0.0 and 1.0
         """
 
+        val = None
         if wv["comboData"] == OpacityWidgetFunc.EXPRESSION:
             try:
                 val = self.evaluateExpression(wv["editText"], feat)
                 return min(max(0, val), 100) / 100
             except:
-                logger.warning("[{}] Wrong opacity value: {}".format(self.name, val))   # TODO: val is possibly undefined
+                logger.warning(f"[{self.name}] Wrong opacity value: {val}")
                 return 1
 
         symbols = self.renderer.symbolsForFeature(feat, self.renderContext)
         if not symbols:
-            logger.warning("[{}] Symbol for feature not found. Please use a simple renderer.".format(self.name))
+            logger.warning(f"[{self.name}] Symbol for feature not found. Please use a simple renderer.")
             return 1
 
         symbol = symbols[0]

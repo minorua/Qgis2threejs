@@ -42,6 +42,6 @@ class Ui_HFLabelDialog(object):
         _translate = QtCore.QCoreApplication.translate
         HFLabelDialog.setWindowTitle(_translate("HFLabelDialog", "Header Label and Footer Label"))
         self.label.setText(_translate("HFLabelDialog", "Header Label"))
-        self.textEdit_Header.setPlaceholderText(_translate("HFLabelDialog", "Enter text that you want to display at page top. It can contain valid HTML tags."))
+        self.textEdit_Header.setPlaceholderText(_translate("HFLabelDialog", "Enter the text you want to display at the top of the page. It may contain valid HTML tags."))
         self.label_2.setText(_translate("HFLabelDialog", "Footer Label"))
-        self.textEdit_Footer.setPlaceholderText(_translate("HFLabelDialog", "Enter text that you want to display at page bottom. It can contain valid HTML tags."))
+        self.textEdit_Footer.setPlaceholderText(_translate("HFLabelDialog", "Enter the text you want to display at the bottom of the page. It may contain valid HTML tags."))

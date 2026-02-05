@@ -90,10 +90,10 @@ class FeatureBlockBuilder:
         }
 
         if self.pathRoot is not None:
-            with open(self.pathRoot + "{0}.json".format(self.blockIndex), "w", encoding="utf-8") as f:
+            with open(self.pathRoot + f"{self.blockIndex}.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
 
-            url = self.urlRoot + "{0}.json".format(self.blockIndex)
+            url = self.urlRoot + f"{self.blockIndex}.json"
             return {"url": url, "featureCount": len(feats)}
 
         else:

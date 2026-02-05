@@ -163,7 +163,7 @@ class Ui_ExportToWebDialog(object):
         self.groupBox_Template.setTitle(_translate("ExportToWebDialog", "Template"))
         self.label_MND2.setText(_translate("ExportToWebDialog", "degrees"))
         self.label_MND.setText(_translate("ExportToWebDialog", "Magnetic North direction"))
-        self.lineEdit_MND.setToolTip(_translate("ExportToWebDialog", "clockwise from the upper direction of the map, in degrees"))
+        self.lineEdit_MND.setToolTip(_translate("ExportToWebDialog", "Clockwise from up direction of the map, in degrees"))
         self.lineEdit_MND.setText(_translate("ExportToWebDialog", "0"))
         self.label.setText(_translate("ExportToWebDialog", "Template"))
         self.label_Plane.setText(_translate("ExportToWebDialog", "Custom plane"))

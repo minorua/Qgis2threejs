@@ -34,7 +34,7 @@
      <item row="0" column="2">
       <widget class="QToolButton" name="toolButtonRemove">
        <property name="toolTip">
-        <string>Remove selected keyframe item(s) or track.</string>
+        <string>Remove selected keyframe(s) or track.</string>
        </property>
        <property name="text">
         <string>-</string>
@@ -44,7 +44,7 @@
      <item row="0" column="5">
       <widget class="QToolButton" name="toolButtonPlay">
        <property name="toolTip">
-        <string>Perform the checked animations in parallel.</string>
+        <string>Play the checked animation tracks in parallel.</string>
        </property>
        <property name="text">
         <string>Play</string>
@@ -57,7 +57,7 @@
      <item row="0" column="0">
       <widget class="QToolButton" name="toolButtonAdd">
        <property name="toolTip">
-        <string>Add a track and/or a keyframe item.</string>
+        <string>Add a track/keyframe.</string>
        </property>
        <property name="text">
         <string>+</string>

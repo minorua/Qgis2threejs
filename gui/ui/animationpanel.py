@@ -45,11 +45,11 @@ class Ui_AnimationPanel(object):
 
     def retranslateUi(self, AnimationPanel):
         _translate = QtCore.QCoreApplication.translate
-        self.toolButtonRemove.setToolTip(_translate("AnimationPanel", "Remove selected keyframe item(s) or track."))
+        self.toolButtonRemove.setToolTip(_translate("AnimationPanel", "Remove selected keyframe(s) or track."))
         self.toolButtonRemove.setText(_translate("AnimationPanel", "-"))
-        self.toolButtonPlay.setToolTip(_translate("AnimationPanel", "Perform the checked animations in parallel."))
+        self.toolButtonPlay.setToolTip(_translate("AnimationPanel", "Play the checked animation tracks in parallel."))
         self.toolButtonPlay.setText(_translate("AnimationPanel", "Play"))
-        self.toolButtonAdd.setToolTip(_translate("AnimationPanel", "Add a track and/or a keyframe item."))
+        self.toolButtonAdd.setToolTip(_translate("AnimationPanel", "Add a track/keyframe."))
         self.toolButtonAdd.setText(_translate("AnimationPanel", "+"))
         self.toolButtonEdit.setToolTip(_translate("AnimationPanel", "Open keyframe dialog for current item."))
         self.toolButtonEdit.setText(_translate("AnimationPanel", "Edit"))

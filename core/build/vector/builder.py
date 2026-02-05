@@ -41,7 +41,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
         self.vlayer = VectorLayer(layer, settings, self.materialManager, self.modelManager)
         if self.vlayer.ot:
-            self.log("Object type is {}.".format(self.vlayer.ot.name))
+            self.log(f"Object type is {self.vlayer.ot.name}.")
         else:
             logger.error("Object type not found")
 
@@ -89,7 +89,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             data["models"] = self.modelManager.build(self.pathRoot is not None,
                                                      base64=self.settings.requiresJsonSerializable)
 
-            self.log("This layer has reference to 3D model file(s). If there are relevant files, you need to copy them to data directory for this export.", warning=True)
+            self.log("This layer references 3D model file(s). If relevant files exist, you need to copy them to data directory for this export.", warning=True)
         else:
             for feat in vlayer.features(request):
                 feat.material = vlayer.ot.material(feat)

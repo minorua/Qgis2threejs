@@ -771,7 +771,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         row = self.listWidget_Materials.currentRow()
         if row >= 0:
             item = self.listWidget_Materials.item(row)
-            msg = "Are you sure you want to remove material '{}'?".format(item.text())
+            msg = 'Are you sure you want to remove material "{}"?'.format(item.text())
             if QMessageBox.question(self, PLUGIN_NAME, msg) == QMessageBox.StandardButton.Yes:
                 self.listWidget_Materials.takeItem(row)
 
@@ -880,10 +880,10 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         self.comboBox_altitudeMode.addItem("Absolute")
 
         for lyr in getDEMLayersInProject():
-            self.comboBox_altitudeMode.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
+            self.comboBox_altitudeMode.addItem('Relative to "{}" layer'.format(lyr.name()), lyr.id())
 
         for plugin in pluginManager().demProviderPlugins():
-            self.comboBox_altitudeMode.addItem('Relative to "{0}"'.format(plugin.providerName()), "plugin:" + plugin.providerId())
+            self.comboBox_altitudeMode.addItem('Relative to "{}"'.format(plugin.providerName()), "plugin:" + plugin.providerId())
 
         # z/m buttons
         wkbType = mapLayer.wkbType()
@@ -1106,8 +1106,8 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.restoreProperties(layer.properties)
 
         wnd = self.parent().parent()
-        loaded = wnd.runScript("app.scene.mapLayers[{}].loadedPointCount()".format(layer.jsLayerId), wait=True)
-        visible = wnd.runScript("app.scene.mapLayers[{}].pcg.children[0].numVisiblePoints".format(layer.jsLayerId), wait=True)
+        loaded = wnd.runScript(f"app.scene.mapLayers[{layer.jsLayerId}].loadedPointCount()", wait=True)
+        visible = wnd.runScript(f"app.scene.mapLayers[{layer.jsLayerId}].pcg.children[0].numVisiblePoints", wait=True)
 
         total = bbox = None
 

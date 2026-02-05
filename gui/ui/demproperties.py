@@ -443,7 +443,7 @@ class Ui_DEMPropertiesWidget(object):
         self.checkBox_Sides.setText(_translate("DEMPropertiesWidget", "Build sides"))
         self.checkBox_Wireframe.setText(_translate("DEMPropertiesWidget", "Add quad wireframe"))
         self.checkBox_Frame.setText(_translate("DEMPropertiesWidget", "Add edge lines"))
-        self.label_Bottom.setText(_translate("DEMPropertiesWidget", "Altitude of bottom"))
+        self.label_Bottom.setText(_translate("DEMPropertiesWidget", "Bottom altitude"))
         self.label.setText(_translate("DEMPropertiesWidget", "Name"))
         self.checkBox_Visible.setText(_translate("DEMPropertiesWidget", "Visible on load"))
         self.checkBox_Clickable.setText(_translate("DEMPropertiesWidget", "Clickable"))

@@ -291,7 +291,7 @@ class Q3DTreeView(QTreeView):
         if layer is None:
             return
 
-        if QMessageBox.question(self, PLUGIN_NAME, "Are you sure you want to remove the layer '{0}' from layer tree?".format(layer.name)) != QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, PLUGIN_NAME, 'Are you sure you want to remove the layer "{}" from layer tree?'.format(layer.name)) != QMessageBox.StandardButton.Yes:
             return
 
         # remove layer from wnd.settings
@@ -307,5 +307,5 @@ class Q3DTreeView(QTreeView):
     def zoomToLayer(self):
         layer = self.layerFromIndex(self.currentIndex())
         if layer:
-            s = "app.cameraAction.zoomToLayer(app.scene.mapLayers[{}])".format(layer.jsLayerId)
-            self.wnd.runScript(s, message="zoom to layer '{}'".format(layer.name))
+            s = f"app.cameraAction.zoomToLayer(app.scene.mapLayers[{layer.jsLayerId}])"
+            self.wnd.runScript(s, message=f'Zoom to layer "{layer.name}"')
