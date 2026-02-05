@@ -75,6 +75,8 @@ function _init(off_screen) {
 		var renderOffscreen = app.render;
 		app.render = function () {};		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", function () {
+			app.adjustCameraNearFar();
+
 			app.render = renderOffscreen;
 			app.render(true);
 		});
@@ -294,6 +296,9 @@ function tasksAndLoadingFinalized(success, is_scene) {
 		setTimeout(function () {
 			app.dispatchEvent({type: "sceneLoaded"});
 		}, 0);
+	}
+	else {
+		app.adjustCameraNearFar();
 	}
 }
 

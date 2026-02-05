@@ -372,6 +372,8 @@ Q3D.E = function (id) {
 		app.addEventListener("sceneLoaded", function () {
 			E("progressbar").classList.add("fadeout");
 
+			app.adjustCameraNearFar();
+
 			if (conf.viewpoint.pos === undefined && conf.autoAdjustCameraPos) {
 				app.adjustCameraPosition();
 			}
@@ -622,6 +624,7 @@ Q3D.E = function (id) {
 		// magic to change y-up world to z-up
 		app.camera.up.set(0, 0, 1);
 
+		// temporary near and far values from base extent
 		var be = app.scene.userData.baseExtent;
 		if (be) {
 			app.camera.near = (is_ortho) ? 0 : 0.001 * be.width;
@@ -630,7 +633,21 @@ Q3D.E = function (id) {
 		}
 	};
 
-	// move camera target to center of scene
+	// adjusts camera's near and far based on the scene's bounding box
+	app.adjustCameraNearFar = function () {
+		var bbox = app.scene.boundingBox();
+		if (!bbox.isEmpty()) {
+			var sphere = bbox.getBoundingSphere(new THREE.Sphere());
+
+			app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * sphere.radius;
+			app.camera.far = 50 * sphere.radius;
+			app.camera.updateProjectionMatrix();
+
+			console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
+		}
+	};
+
+	// moves camera target to center of scene
 	app.adjustCameraPosition = function (force) {
 		if (!force) {
 			app.render(true);
@@ -639,7 +656,7 @@ Q3D.E = function (id) {
 			var r = app.renderer.info.render;
 			if (r.triangles + r.points + r.lines) return;
 		}
-		var bbox = app.scene.boundingBox();
+		var bbox = app.scene.boundingBox(true);
 		if (bbox.isEmpty()) return;
 
 		bbox.getCenter(vec3);
@@ -2097,12 +2114,11 @@ class Q3DScene extends THREE.Scene {
 	}
 
 	// return bounding box in 3d world coordinates
-	boundingBox() {
+	boundingBox(only_visible) {
 		var box = new THREE.Box3();
 		for (var id in this.mapLayers) {
-			if (this.mapLayers[id].visible) {
-				box.union(this.mapLayers[id].boundingBox());
-			}
+			if (only_visible && !this.mapLayers[id].visible) continue;
+			box.union(this.mapLayers[id].boundingBox());
 		}
 		return box;
 	}
