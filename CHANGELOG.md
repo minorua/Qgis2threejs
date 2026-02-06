@@ -1,5 +1,24 @@
 ## CHANGELOG
 
+### Version 2.9
+#### Added
+- Qt6 support
+- TaskManager class for improved task management
+- A queue for sequential web transmission of generated data
+- An option to use original DEM values
+- An option to avoid creating triangles for faces consisting of vertices with no DEM value
+#### Extensive Refactoring
+- Reorganized directory structure and file layout
+- Added and improved code comments
+#### Improved Multithreading
+- Task management is now handled in the UI thread
+- Worker thread is now responsible only for data generation
+#### Others
+- Improved progress bar in window to show task status, and web-side progress bar to show data loading status
+- Renamed keyframe group to track
+- Implemented chunked transfer for saving glTF data
+- Fixed the "visible on load" option behavior when using the 3D Viewer template
+
 ### Version 2.8
 - Added option to select either WebEngine or WebKit for preview from the menu
 - WebEngine view is now preferred option when available
