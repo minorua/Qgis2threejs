@@ -1,12 +1,4 @@
-# This file contains metadata for your plugin. Beginning
-# with version 1.8 this is the preferred way to supply information about a
-# plugin. The current method of embedding metadata in __init__.py will
-# be supported until version 2.0
-
-# This file should be included when you package your plugin.
-
 # Mandatory items:
-
 
 [general]
 name=Qgis2threejs
@@ -14,17 +6,32 @@ qgisMinimumVersion=3.4
 qgisMaximumVersion=4.99
 supportsQt6=True
 description=3D map visualization and web export powered by three.js JavaScript library
-about=This plugin visualizes DEM and vector data in 3D on web browsers. You can build various kinds of 3D objects and generate files for web publishing in simple procedure. In addition, you can save the 3D model in glTF format for 3DCG or 3D printing.
-version=2.8
+about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
+version=2.9
 author=Minoru Akagi
 email=akaginch@gmail.com
 
-# end of mandatory metadata
-
 # Optional items:
-
-# Uncomment the following line and add your changelog entries:
 changelog=
+    Version 2.9
+    * Added
+     - Qt6 support
+     - TaskManager class for improved task management
+     - A queue for sequential web transmission of generated data
+     - An option to use original DEM values
+     - An option to avoid creating triangles for faces consisting of vertices with no DEM value
+    * Extensive Refactoring
+     - Reorganized directory structure and file layout
+     - Added and improved code comments
+    * Improved Multithreading
+     - Task management is now handled in the UI thread
+     - Worker thread is now responsible only for data generation
+    * Others
+     - Improved progress bar in window to show task status, and web-side progress bar to show data loading status
+     - Renamed keyframe group to track
+     - Implemented chunked transfer for saving glTF data
+     - Fixed the "visible on load" option behavior when using the 3D Viewer template
+
     Version 2.8
     - Added option to select either WebEngine or WebKit for preview from the menu
     - WebEngine view is now preferred option when available
@@ -35,57 +42,14 @@ changelog=
     - Fixed a bug where labels were not displayed on Extruded/Overlay polygons
     - Fixed a bug that prevented the plugin settings dialog from opening due to the deprecation of SafeConfigParser
 
-    Version 2.7.3
-    - Fixed a regression related to vertical line
-    - Fixed a popup layout issue
-
-    Version 2.7.2
-    - Fixed easing of sequential line growing
-    - Fixed URL of GSI elevation tile
-    - Fixed some other bugs
-    - Added some GUI tests
-    - Exporter can now work with Qt WebEngine view (Experimental. Needs some changes on QGIS code)
-    - Use JS class so that we can use a recent three.js version in the future
-    - Plugin document migrated to GitHub pages
-
-    Version 2.7.1
-    - Added option to export DEM texture in JPEG
-    - Bug fixes
-
-    Version 2.7
-    * Animation for Narratives
-     - Camera motion, growing line, opacity transition and texture change animations are now available
-    * 3D Viewer
-     - Added measure distance tool
-     - Added action to zoom to layer objects
-    * Exporter
-     - Added tabs to property dialogs and regrouped widgets in the dialogs
-     - Fixed cancellation of building 3D objects
-    * Scene
-     - Units of 3D world space are same as map units
-     - Added option to add fog
-     - Added option to use point light above camera
-    * DEM
-     - DEM can have multiple textures
-     - Added menu action to add a flat plane
-     - Renamed surrounding blocks to tiles
-    * Vector
-     - Put labels into 3D world
-     - Added some labeling settings (color, font size, background color, etc.)
-     - Added Thick Line type for line layer
-    * Others
-     - Fixed loading point cloud data
-     - Removed experimental ray tracing renderer template
-
 # tags are comma separated with spaces allowed
-tags=3D,terrain,web,glTF,AR,narrative,story,animation
+tags=3D,terrain,web,DEM,glTF,AR,narrative,story,animation
 
 category=Web
 homepage=https://github.com/minorua/Qgis2threejs
 tracker=https://github.com/minorua/Qgis2threejs/issues
 repository=https://github.com/minorua/Qgis2threejs
 icon=Qgis2threejs.png
-# experimental flag
 experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version
