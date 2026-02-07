@@ -12,7 +12,7 @@ from .taskmanager import Task, TaskManager
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
-from ...conf import DEBUG_MODE, TEMP_DEBUG_MODE
+from ...conf import DEBUG_MODE
 from ...utils import hex_color, js_bool, logger
 
 
@@ -444,8 +444,8 @@ class Q3DController(QObject):
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
-        if TEMP_DEBUG_MODE:
-            logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
+        # if DEBUG_MODE:
+        #    logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
 
         total = total or 100
         if self.taskManager.totalLayerCount:
