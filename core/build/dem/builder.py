@@ -147,7 +147,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             data_extent_lr = grect.rect.xMaximum(), grect.rect.yMinimum()
 
-        if xres != yres:
+        if not math.isclose(xres, yres):
             logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
             return
 

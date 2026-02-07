@@ -5,6 +5,7 @@
 
 import os
 import json
+import math
 import re
 
 from qgis.PyQt.QtCore import Qt, QPoint, QSize, QUrl
@@ -426,12 +427,13 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-            if self.canUseOriginalValues():
-                self.labelOriginalValues.hide()
+            err_msg = self.origValuesErrorMsg()
+            if err_msg:
+                self.labelOriginalValues.setText("This option is disabled because " + err_msg)
+                self.setWidgetsEnabled([self.radioButton_OriginalValues, self.radioButton_NoClip], False)
+                self.setWidgetsVisible([self.labelTileSize, self.spinBox_TileSideSegments], False)
             else:
-                self.radioButton_OriginalValues.hide()
-                self.setLayoutVisible(self.formLayoutOriginalValues, False)
-                self.radioButton_NoClip.hide()
+                self.labelOriginalValues.hide()
 
             self.initLayerComboBox()
 
@@ -513,19 +515,19 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.label_Bottom.setVisible(False)
             self.lineEdit_Bottom.setVisible(False)
 
-    def canUseOriginalValues(self):
+    def origValuesErrorMsg(self):
         mapLayer = self.layer.mapLayer
         if not mapLayer:
-            return False
+            return "the map layer doesn't exist."
 
-        if mapLayer.rasterUnitsPerPixelX() != mapLayer.rasterUnitsPerPixelY():
-            return False
+        if not math.isclose(mapLayer.rasterUnitsPerPixelX(), mapLayer.rasterUnitsPerPixelY()):
+            return "pixel size is different in X and Y directions."
 
         crs1 = mapLayer.crs()
         crs2 = self.mapSettings.destinationCrs()
 
         if crs1 == crs2:
-            return True
+            return None
 
         try:
             proj1 = crs1.toProj()
@@ -535,9 +537,9 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             proj2 = crs2.toProj4()
 
         if proj1 == proj2:
-            return True
+            return None
 
-        return False
+        return "layer CRS differs from project CRS."
 
     def initLayerComboBox(self):
         # polygon layers
