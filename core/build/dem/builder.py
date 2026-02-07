@@ -161,10 +161,10 @@ class DEMLayerBuilder(LayerBuilderBase):
                 cy = uly - yres / 2 - (row + 0.5) * tile_size
                 tile_extent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
 
-                tiles.append((blockIndex, tile_extent, (cx, cy)))
+                tiles.append((-row, blockIndex, tile_extent, (cx, cy)))
 
         beCenterX, beCenterY = be.center().x(), be.center().y()
-        for blockIndex, tile_extent, tile_center in tiles:
+        for i, (_r, blockIndex, tile_extent, tile_center) in enumerate(sorted(tiles)):
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
                     id = materials[0].get("id")
@@ -191,7 +191,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                         self.mtlBuilder.setup(blockIndex, tile_extent, id, useNow=bool(id == currentMtlId))
                         yield self.mtlBuilder
 
-                self.progress(blockIndex + 1, tile_cols * tile_rows)
+                self.progress(i + 1, tile_cols * tile_rows)
 
     def _buildTasks_Resamp(self):
         be = self.settings.baseExtent()
