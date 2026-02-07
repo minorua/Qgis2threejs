@@ -62,7 +62,7 @@ class ImageManager(DataManager):
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
 
-        settings = self.baseMapSettings
+        settings = QgsMapSettings(self.baseMapSettings)
         settings.setOutputSize(QSize(width, height))
         settings.setExtent(extent.unrotatedRect())
         settings.setRotation(extent.rotation())
