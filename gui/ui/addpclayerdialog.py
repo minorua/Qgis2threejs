@@ -12,7 +12,7 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 class Ui_AddPointCloudLayerDialog(object):
     def setupUi(self, AddPointCloudLayerDialog):
         AddPointCloudLayerDialog.setObjectName("AddPointCloudLayerDialog")
-        AddPointCloudLayerDialog.resize(497, 126)
+        AddPointCloudLayerDialog.resize(497, 102)
         self.verticalLayout = QtWidgets.QVBoxLayout(AddPointCloudLayerDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(parent=AddPointCloudLayerDialog)
@@ -30,25 +30,14 @@ class Ui_AddPointCloudLayerDialog(object):
         self.pushButton_Browse.setObjectName("pushButton_Browse")
         self.horizontalLayout_2.addWidget(self.pushButton_Browse)
         self.verticalLayout.addWidget(self.groupBox)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-        self.pushButton_Add = QtWidgets.QPushButton(parent=AddPointCloudLayerDialog)
-        self.pushButton_Add.setDefault(True)
-        self.pushButton_Add.setObjectName("pushButton_Add")
-        self.horizontalLayout.addWidget(self.pushButton_Add)
-        self.pushButton_Cancel = QtWidgets.QPushButton(parent=AddPointCloudLayerDialog)
-        self.pushButton_Cancel.setObjectName("pushButton_Cancel")
-        self.horizontalLayout.addWidget(self.pushButton_Cancel)
-        self.pushButtonHelp = QtWidgets.QPushButton(parent=AddPointCloudLayerDialog)
-        self.pushButtonHelp.setObjectName("pushButtonHelp")
-        self.horizontalLayout.addWidget(self.pushButtonHelp)
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.buttonBox = QtWidgets.QDialogButtonBox(parent=AddPointCloudLayerDialog)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Help|QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(AddPointCloudLayerDialog)
-        self.pushButton_Add.clicked.connect(AddPointCloudLayerDialog.accept) # type: ignore
-        self.pushButton_Cancel.clicked.connect(AddPointCloudLayerDialog.close) # type: ignore
+        self.buttonBox.accepted.connect(AddPointCloudLayerDialog.accept) # type: ignore
+        self.buttonBox.rejected.connect(AddPointCloudLayerDialog.reject) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(AddPointCloudLayerDialog)
 
     def retranslateUi(self, AddPointCloudLayerDialog):
@@ -58,6 +47,3 @@ class Ui_AddPointCloudLayerDialog(object):
         self.label.setText(_translate("AddPointCloudLayerDialog", "Potree supported file URL"))
         self.lineEdit_Source.setPlaceholderText(_translate("AddPointCloudLayerDialog", "http(s)://... or file://..."))
         self.pushButton_Browse.setText(_translate("AddPointCloudLayerDialog", "Browse..."))
-        self.pushButton_Add.setText(_translate("AddPointCloudLayerDialog", "Add"))
-        self.pushButton_Cancel.setText(_translate("AddPointCloudLayerDialog", "Cancel"))
-        self.pushButtonHelp.setText(_translate("AddPointCloudLayerDialog", "Help"))

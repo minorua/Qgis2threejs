@@ -796,7 +796,7 @@ class AddPointCloudLayerDialog(QDialog):
         self.ui = Ui_AddPointCloudLayerDialog()
         self.ui.setupUi(self)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
-        self.ui.pushButtonHelp.clicked.connect(self.helpClicked)
+        self.ui.buttonBox.helpRequested.connect(self.helpClicked)
 
     def browseClicked(self):
         url = self.ui.lineEdit_Source.text()

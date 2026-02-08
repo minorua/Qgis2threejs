@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 from qgis.PyQt.QtCore import Qt, QDir, QUrl
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QPushButton
 from qgis.core import QgsApplication, QgsProject
 
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
@@ -30,6 +30,9 @@ class ExportToWebDialog(QDialog):
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
+        self.ui.exportButton = QPushButton("Export")
+        self.ui.exportButton.setDefault(True)
+        self.ui.buttonBox.addButton(self.ui.exportButton, QDialogButtonBox.ButtonRole.ActionRole)
 
         # general settings
         fn = settings.outputFileName()
@@ -76,7 +79,7 @@ class ExportToWebDialog(QDialog):
         # connections
         self.ui.comboBox_Template.currentIndexChanged.connect(self.templateChanged)
         self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
-        self.ui.pushButtonHelp.clicked.connect(self.helpClicked)
+        self.ui.buttonBox.clicked.connect(self.buttonClicked)
 
         self.ui.textBrowser.setOpenLinks(False)
         self.ui.textBrowser.anchorClicked.connect(openUrl)
@@ -105,8 +108,14 @@ class ExportToWebDialog(QDialog):
         if d:
             self.ui.lineEdit_OutputDir.setText(d)
 
-    def accept(self):
-        """export"""
+    def buttonClicked(self, button):
+        role = self.ui.buttonBox.buttonRole(button)
+        if role == QDialogButtonBox.ButtonRole.ActionRole:
+            self.export()
+        elif role == QDialogButtonBox.ButtonRole.HelpRole:
+            openHelp(f"dlg=export")
+
+    def export(self):
         self.settings.clearOptions()
 
         # general settings
@@ -182,7 +191,7 @@ class ExportToWebDialog(QDialog):
             QMessageBox.warning(self, PLUGIN_NAME, err_msg or "Invalid settings")
             return
 
-        disabled_widgets = [self.ui.tabSettings, self.ui.pushButton_Export, self.ui.pushButton_Close]
+        disabled_widgets = [self.ui.tabSettings, self.ui.buttonBox]
         for w in disabled_widgets:
             w.setEnabled(False)
 
@@ -251,9 +260,6 @@ th {text-align:left;}
 
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
-
-    def helpClicked(self):
-        openHelp(f"dlg=export")
 
     def progress(self, current=None, total=100, msg="", numbered=False):
         if current is not None:
