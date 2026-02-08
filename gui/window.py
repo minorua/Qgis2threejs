@@ -202,7 +202,7 @@ class Q3DWindow(QMainWindow):
         ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
+        ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
         if self.webPage:
             ui.actionReload.triggered.connect(self.controller.taskManager.addReloadPageTask)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
@@ -586,9 +586,6 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setCamera(is_ortho)
         self.runScript(f"switchCamera({js_bool(is_ortho)})")
-
-    def resetCameraState(self):
-        self.webPage.resetCameraState()
 
     def navStateChanged(self, enabled):
         self.settings.setNavigationEnabled(enabled)
