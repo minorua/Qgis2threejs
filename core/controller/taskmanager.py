@@ -77,23 +77,17 @@ class TaskManager(QObject):
         contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.taskQueue]
         return f"TaskQueue({','.join(contents)})"
 
-    def addBuildSceneTask(self, update_all=True, reload=False):
+    def addBuildSceneTask(self, update_all=True):
         self.clearTaskQueue()
+        self.taskQueue.append(Task.BUILD_SCENE)
+        if update_all:
+            self.taskQueue.append(Task.UPDATE_SCENE_OPTS)
 
-        if reload:
-            self.taskQueue.append(Task.RELOAD_PAGE)
-
-        else:
-            self.taskQueue.append(Task.BUILD_SCENE)
-            if update_all:
-                self.taskQueue.append(Task.UPDATE_SCENE_OPTS)
-
-            logger.debug("Scene build task queued.")
-            self._addBuildAllLayerTasks()
+        logger.debug("Scene build task queued.")
+        self._addBuildAllLayerTasks()
 
         if self.isTaskRunning:
-            self.abortCurrentTask.emit()
-            # processNextTask is called in taskFinalized()
+            self.abortCurrentTask.emit()            # processNextTask is called in taskFinalized()
         else:
             self.processNextTask()
 
@@ -153,8 +147,18 @@ class TaskManager(QObject):
         self.taskQueue.append({"type": "script", "script": string})
         self.processNextTask()
 
-    def addReloadPageTask(self):
-        self.addBuildSceneTask(reload=True)
+    def addReloadPageTask(self, force_reload=False):
+        self.clearTaskQueue()
+
+        if self.isTaskRunning:
+            self.abortCurrentTask.emit()
+
+        self.taskQueue.append(Task.RELOAD_PAGE)
+
+        if force_reload:
+            self.isTaskRunning = False
+
+        self.processNextTask()
 
     # task processing
     def processNextTask(self):

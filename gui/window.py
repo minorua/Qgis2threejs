@@ -202,9 +202,9 @@ class Q3DWindow(QMainWindow):
         ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
         if self.webPage:
-            ui.actionReload.triggered.connect(self.controller.taskManager.addReloadPageTask)
+            ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
+            ui.actionReload.triggered.connect(self.reloadPage)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
@@ -545,7 +545,10 @@ class Q3DWindow(QMainWindow):
         reload = bool(sp.get(w) != properties.get(w))
 
         self.settings.setSceneProperties(properties)
-        self.controller.taskManager.addBuildSceneTask(reload=reload)
+        if reload:
+            self.controller.taskManager.addReloadPageTask()
+        else:
+            self.controller.taskManager.addBuildSceneTask()
 
     def addPlane(self):
         layerId = "fp:" + createUid()
@@ -606,6 +609,10 @@ class Q3DWindow(QMainWindow):
     def updateWidgetProperties(self, name, properties):
         self.settings.setWidgetProperties(name, properties)
         self.controller.updateWidget(name, properties)
+
+    def reloadPage(self):
+        self.controller.abort()
+        self.controller.taskManager.addReloadPageTask(force_reload=True)
 
     # Window menu
     def alwaysOnTopToggled(self, checked):
