@@ -133,11 +133,12 @@ class AnimationPanel(QWidget):
             timeout_ms = 0
 
         if len(dataList):
-            logger.debug("Play: %s", dataList)
             self.isAnimating = True
-            self.controller.sendData({"type": "animation",
-                                      "tracks": dataList,
-                                      "repeat": repeat})
+            self.controller.taskManager.addSendDataTask({
+                "type": "animation",
+                "tracks": dataList,
+                "repeat": repeat
+            })
 
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
@@ -157,7 +158,7 @@ class AnimationPanel(QWidget):
             layer.opt.onlyMaterial = True
             layer.opt.allMaterials = True
 
-        tm = self.controller.taskManager                # TODO: support synchronous task execution
+        tm = self.controller.taskManager
         tm.addRunScriptTask("preview.renderEnabled = false;")
         tm.addBuildLayerTask(layer)
         tm.addRunScriptTask("preview.renderEnabled = true;")

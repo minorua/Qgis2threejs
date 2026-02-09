@@ -76,7 +76,6 @@ class FeatureBlockBuilder:
                     "delay": delay,
                     "duration": duration
                 }
-                logger.debug("Animation: delay=%d, duration=%d", delay, duration)
 
             feats.append(d)
 

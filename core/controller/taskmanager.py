@@ -188,8 +188,6 @@ class TaskManager(QObject):
         self.isTaskRunning = True
         self.executeTask.emit(item)
 
-        self.processNextTask()
-
     @pyqtSlot()
     def taskCompleted(self, _v=None):
         """Called when a scene or layer build task completes."""

@@ -4092,7 +4092,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			this.objectGroup.traverse(function (obj) {
 
 				if (obj.userData.mtl !== undefined) {
-					obj.material = _this.materials.mtl(obj.userData.mtl);
+					obj.material = _this.materials.mtl(obj.userData.mtl.idx);
 					computeLineDistances(obj);
 				}
 
