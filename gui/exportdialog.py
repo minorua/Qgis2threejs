@@ -44,7 +44,7 @@ class ExportToWebDialog(QDialog):
         title = settings.title() or QgsProject.instance().title() or QgsProject.instance().baseName() or os.path.splitext(bn)[0]
         self.ui.lineEdit_Title.setText(title)
 
-        self.ui.checkBox_PreserveViewpoint.setChecked(bool(settings.option("viewpoint")))
+        self.ui.checkBox_UseCurrentView.setChecked(bool(settings.option("viewpoint")))
         self.ui.checkBox_LocalMode.setChecked(bool(settings.option("localMode")))
 
         # template settings
@@ -140,7 +140,7 @@ class ExportToWebDialog(QDialog):
         self.settings.setOutputFilename("" if is_temporary else filepath)
         self.settings.setTitle(self.ui.lineEdit_Title.text())
 
-        if self.ui.checkBox_PreserveViewpoint.isChecked():
+        if self.ui.checkBox_UseCurrentView.isChecked():
             self.settings.setOption("viewpoint", self.controller.cameraState())
 
         local_mode = self.ui.checkBox_LocalMode.isChecked()

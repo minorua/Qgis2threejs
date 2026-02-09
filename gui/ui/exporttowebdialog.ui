@@ -85,9 +85,9 @@
            <widget class="QLineEdit" name="lineEdit_Title"/>
           </item>
           <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_PreserveViewpoint">
+           <widget class="QCheckBox" name="checkBox_UseCurrentView">
             <property name="text">
-             <string>Preserve the current viewpoint</string>
+             <string>Use current view as initial view</string>
             </property>
            </widget>
           </item>
@@ -279,7 +279,7 @@
   <tabstop>pushButton_Browse</tabstop>
   <tabstop>lineEdit_Filename</tabstop>
   <tabstop>lineEdit_Title</tabstop>
-  <tabstop>checkBox_PreserveViewpoint</tabstop>
+  <tabstop>checkBox_UseCurrentView</tabstop>
   <tabstop>checkBox_LocalMode</tabstop>
   <tabstop>comboBox_Template</tabstop>
   <tabstop>checkBox_Plane</tabstop>
