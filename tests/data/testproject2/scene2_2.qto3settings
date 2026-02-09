@@ -1,25 +1,221 @@
 {
   "KEYFRAMES": {
     "camera": {
-      "groups": []
+      "tracks": []
     },
     "layers": {
       "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "fp:ffaae7a7": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "linestrings_83a9a52d_c879_42e9_b8cc_984ea053b5cf": {
+        "enabled": true,
+        "tracks": [
+          {
+            "enabled": true,
+            "keyframes": [
+              {
+                "delay": 0,
+                "duration": 2000,
+                "easing": 1,
+                "name": "Growing line",
+                "sequential": false,
+                "type": 131
+              }
+            ],
+            "layerId": 1,
+            "name": "Growing line track",
+            "type": 67
+          }
+        ]
       },
       "plugin:gsielevtile": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "points_230791f1_2e27_4a9d_b5e4_f137f118f216": {
+        "enabled": true,
+        "tracks": [
+          {
+            "enabled": true,
+            "keyframes": [
+              {
+                "delay": 0,
+                "duration": 2000,
+                "easing": 1,
+                "name": "opacity '1.0'",
+                "opacity": 1.0,
+                "type": 129
+              },
+              {
+                "delay": 0,
+                "duration": 2000,
+                "easing": 1,
+                "name": "opacity '0.0'",
+                "opacity": 0.0,
+                "type": 129
+              }
+            ],
+            "layerId": 0,
+            "name": "Opacity track",
+            "type": 65
+          }
+        ]
       }
     },
     "repeat": false
   },
   "LAYERS": [
+    {
+      "geomType": 1,
+      "layerId": "points_230791f1_2e27_4a9d_b5e4_f137f118f216",
+      "name": "points",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
+        "checkBox_Visible": true,
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "Cylinder",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"id\"",
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "0.5",
+          "type": 1
+        },
+        "geomWidget1": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"obj_height\"",
+          "type": 1
+        },
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "50",
+          "type": 6
+        },
+        "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true,
+        "slider_FontSize": 3
+      },
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "linestrings_83a9a52d_c879_42e9_b8cc_984ea053b5cf",
+      "name": "linestrings",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_ObjectType": "Thick Line",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {},
+        "geomWidget1": {},
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "lineEdit_Name": "",
+        "mtlWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "0.8",
+          "type": 1
+        },
+        "mtlWidget1": {
+          "checkBox": false,
+          "type": 9
+        },
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true
+      },
+      "visible": false
+    },
     {
       "geomType": 0,
       "layerId": "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147",

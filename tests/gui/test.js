@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
 
+function floatEquals(a, b) {
+	return Math.abs(a - b) < Number.EPSILON;
+}
+
 function Box3ToString(box3) {
 	return "Box3: (" + box3.min.toArray() + ")-(" +  box3.max.toArray()+")";
 }
@@ -101,14 +105,14 @@ function assertZRange(testName, obj, min, max) {
 	var box = new THREE.Box3().setFromObject(obj);
 	var result = true, msg = "";
 
-	if (min !== undefined && min != box.min.z) {
+	if (min !== undefined && !floatEquals(min, box.min.z)) {
 
 		result = false;
 		msg += "bottom z is different from expected. (" + box.min.z + ", exptected: " + min + ")"
 
 	}
 
-	if (max !== undefined && max != box.max.z) {
+	if (max !== undefined && !floatEquals(max, box.max.z)) {
 
 		result = false;
 		msg += "top z is different from expected. (" + box.max.z + ", exptected: " + max + ")";

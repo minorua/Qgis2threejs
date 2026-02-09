@@ -2,26 +2,19 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.core import QgsRectangle
 
-from Qgis2threejs.tests.gui.testbase import GUITestBase
-from Qgis2threejs.tests.test_utils.utils import dataPath
+from Qgis2threejs.tests.gui.testbase import GUITestBase, LayerTestBase
+
+
+TEST_DIR = "testproject1"
 
 
 class SceneTest(GUITestBase):
 
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.DLG.close()
-
     def test01_loadScene1(self):
-        self.loadSettings(dataPath("testproject1", "scene1_1.qto3settings"))
+        self.loadSettings(TEST_DIR, "scene1_1")
         self.assertText("Test scene 1", "Test Scene 1", "header", partialMatch=True)
 
     def test02_ZRange(self):
@@ -34,44 +27,45 @@ class SceneTest(GUITestBase):
         self.assertZRange("scene z range", min=-4000, max=3776 + 600 * 5)    # min: flat plane, max: pt4 6th feature
 
     def test10_openScenePDialog(self):
-        self.__class__.DLG = self.WND.showScenePropertiesDialog()
+        dlg = self.WND.showScenePropertiesDialog()
+        for i in range(dlg.page.tabWidget.count()):
+            dlg.page.tabWidget.setCurrentIndex(i)
+            self.sleep(1000)
+        dlg.close()
 
 
-class LayerTestBase(GUITestBase):
+class LayerDialogTestBase(LayerTestBase):
 
-    LAYER_ID = None
-    CAMERA_STATE = None
+    def test01_propertiesdialog(self):
+        dlg = self.showDialog()
+        for i in range(dlg.page.tabWidget.count()):
+            dlg.page.tabWidget.setCurrentIndex(i)
+            self.sleep(750)
 
-    @classmethod
-    def setUpClass(cls):
-        layer = cls.WND.settings.getLayer(cls.LAYER_ID)
-        if layer is None:
-            raise Exception(f'Layer "{cls.LAYER_ID}" not found.')
+        dlg.close()
 
-        if cls.CAMERA_STATE:
-            cls.WND.controller.setCameraState(cls.CAMERA_STATE)
-
-        cls.DLG = cls.WND.showLayerPropertiesDialog(layer)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.DLG.close()
+    def showDialog(self):
+        return self.WND.showLayerPropertiesDialog(self.LAYER)
 
 
-class DEMLayerTest(LayerTestBase):
+class DEMLayerTest(LayerDialogTestBase):
 
     LAYER_ID = "dem_srtm3020150914165149263"
 
 
-class VLayerTestBase(LayerTestBase):
+class VLayerTestBase(LayerDialogTestBase):
 
-    def test01_objectTypes(self):
-        """PD: object type combo box test"""
-        combo = self.DLG.page.comboBox_ObjectType
-        for i in range(combo.count()):
+    def test01_propertiesdialog(self):
+        super().test01_propertiesdialog()
+
+        dlg = self.showDialog()
+        combo = dlg.page.comboBox_ObjectType
+        for i in reversed(range(combo.count())):
             combo.setCurrentIndex(i)
-            self.DLG.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
+            dlg.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
             self.waitBC()
+
+        dlg.close()
 
 
 class PointLayerTest(VLayerTestBase):
@@ -92,15 +86,13 @@ class PointLayerTest(VLayerTestBase):
         self.assertText("attribute", "cone 3", "qr_attrs_table")
 
     def test04_hideAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Unchecked)    # hide pt4 layer
-        self.waitBC()
+        self.setVisible(False, self.PT4_LAYER_ID)
 
         self.mouseClick(485, 160)   # sea
         self.assertText("hide layer", " 0.00", "qr_coords", partialMatch=True)
 
     def test05_restoreAndClick(self):
-        self.TREE.itemFromLayerId(self.PT4_LAYER_ID).setCheckState(Qt.CheckState.Checked)      # show pt4 layer
-        self.waitBC()
+        self.setVisible(True, self.PT4_LAYER_ID)
 
         self.mouseClick(485, 160)   # third feature in pt4 layer
         self.assertText("show layer", "cone 3", "qr_attrs_table")
@@ -115,9 +107,8 @@ class LineLayerTest(VLayerTestBase):
     }
     LINEV_LAYER_ID = "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509"
 
-    def test01_verticalLine(self):
-        self.TREE.itemFromLayerId(self.LINEV_LAYER_ID).setCheckState(Qt.CheckState.Checked)    # show lineV layer
-        self.waitBC()
+    def test02_verticalLine(self):
+        self.setVisible(True, self.LINEV_LAYER_ID)
 
         self.assertZRange("scene z range", min=-4000, max=10000)    # min: flat plane, max: lineV
 
@@ -130,9 +121,8 @@ class PolygonLayerTest(VLayerTestBase):
         'pos': {'x': 90735, 'y': -127135, 'z': 16134}
     }
 
-    def test06_clickSpace(self):
+    def test02_clickSpace(self):
         self.mouseClick(600, 20)    # sky
-
         self.assertVisibility("click space", "popup", False)
 
 
@@ -151,3 +141,10 @@ class WidgetTest(GUITestBase):
 
         self.mouseClick(400, 400)   # flat plane
         self.assertText("clicked coords", " -4000.00", "qr_coords", partialMatch=True)
+
+
+class CameraAnimationTest(GUITestBase):
+
+    def test01_cameraAnimation(self):
+        self.playAnimation()
+        self.sleep(8000 + 500)

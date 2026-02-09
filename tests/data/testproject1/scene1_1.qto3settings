@@ -29,7 +29,7 @@
   },
   "KEYFRAMES": {
     "camera": {
-      "groups": [
+      "tracks": [
         {
           "enabled": true,
           "keyframes": [
@@ -43,7 +43,7 @@
                 "z": 216693.99273416965
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 1",
               "type": 128
@@ -58,7 +58,7 @@
                 "z": 180058.31079131685
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 2",
               "type": 128
@@ -73,7 +73,7 @@
                 "z": 140306.8423009977
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 3",
               "type": 128
@@ -88,7 +88,7 @@
                 "z": 70509.03327379294
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 4",
               "type": 128
@@ -103,7 +103,7 @@
                 "z": 26205.309420545913
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 5",
               "type": 128
@@ -118,7 +118,7 @@
                 "z": 18292.110468127124
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 6",
               "type": 128
@@ -133,7 +133,7 @@
                 "z": 18329.571571207533
               },
               "delay": 0,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 1,
               "name": "keyframe 7",
               "type": 128
@@ -148,7 +148,7 @@
                 "z": 12514.709934415194
               },
               "delay": 500,
-              "duration": 2000,
+              "duration": 1000,
               "easing": 4,
               "name": "keyframe 8",
               "type": 128
@@ -177,67 +177,71 @@
     "layers": {
       "dem_srtm3020150914165149263": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "fp:89c5f24c": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line120150915163207575": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line220150915163154251": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line320150915163201215": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line420150915163201918": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line520150915163202606": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "ne_10m_railroads20150916133408505": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "plugin:gsielevtile": {
+        "enabled": true,
+        "tracks": []
       },
       "polygon120150915163203246": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "polygon220150915163203903": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt120150915163204544": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt220150915163205153": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt320150915163205778": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt420150915163206372": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt520150915163206841": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       }
     },
     "repeat": false
@@ -1318,6 +1322,13 @@
     },
     {
       "geomType": 0,
+      "layerId": "plugin:gsielevtile",
+      "name": "GSI Elevation Tile",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
       "layerId": "fp:89c5f24c",
       "name": "Flat Plane (-4000)",
       "properties": {
@@ -1917,7 +1928,7 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20702,
+  "Version": 20800,
   "WIDGETS": {
     "Label": {
       "Footer": "",

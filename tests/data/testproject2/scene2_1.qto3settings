@@ -1,25 +1,105 @@
 {
   "KEYFRAMES": {
     "camera": {
-      "groups": []
+      "tracks": []
     },
     "layers": {
       "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "fp:ffaae7a7": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "linestrings_83a9a52d_c879_42e9_b8cc_984ea053b5cf": {
+        "enabled": true,
+        "tracks": [
+          {
+            "enabled": true,
+            "keyframes": [
+              {
+                "delay": 0,
+                "duration": "1000",
+                "easing": 1,
+                "name": "Growing line",
+                "sequential": true,
+                "type": 131
+              }
+            ],
+            "layerId": 1,
+            "name": "Growing line track",
+            "type": 67
+          }
+        ]
       },
       "plugin:gsielevtile": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "points_230791f1_2e27_4a9d_b5e4_f137f118f216": {
+        "enabled": true,
+        "tracks": []
       }
     },
     "repeat": false
   },
   "LAYERS": [
+    {
+      "geomType": 1,
+      "layerId": "points_230791f1_2e27_4a9d_b5e4_f137f118f216",
+      "name": "points",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 2,
+      "layerId": "linestrings_83a9a52d_c879_42e9_b8cc_984ea053b5cf",
+      "name": "linestrings",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Visible": true,
+        "comboBox_ObjectType": "Line",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {},
+        "geomWidget1": {},
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "lineEdit_Name": "",
+        "mtlWidget0": {
+          "checkBox": false,
+          "type": 9
+        },
+        "mtlWidget1": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true
+      },
+      "visible": false
+    },
     {
       "geomType": 0,
       "layerId": "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147",

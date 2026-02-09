@@ -11,6 +11,7 @@ from qgis.testing import unittest
 
 from Qgis2threejs.core.const import ScriptFile
 from Qgis2threejs.utils import js_bool
+from Qgis2threejs.tests.test_utils.utils import dataPath
 
 
 UNDEF = "undefined"
@@ -28,7 +29,18 @@ def Vec3(x, y, z):
 class GUITestBase(unittest.TestCase):
 
     WND = TREE = None
-    DLG = None
+    CAMERA_STATE = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        if cls.CAMERA_STATE:
+            cls.WND.controller.setCameraState(cls.CAMERA_STATE)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def assertBox3(self, testName, box1, box2=UNDEF):
         self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2})')
@@ -43,9 +55,13 @@ class GUITestBase(unittest.TestCase):
     def assertVisibility(self, testName, elemId, expected=True):
         self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
-    def loadSettings(self, filename):
+    def loadSettings(self, testDir, filename):
         loop = QEventLoop()
         self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
+
+        if not filename.endswith(".qto3settings"):
+            filename += ".qto3settings"
+        filename = dataPath(testDir, filename)
 
         self.WND.loadSettings(filename)     # page will be reloaded
 
@@ -83,10 +99,34 @@ class GUITestBase(unittest.TestCase):
     def doEvents(cls):
         cls.sleep(1)
 
+    def tearDown(self):
+        self.sleep()
+
+    def playAnimation(self):
+        self.WND.ui.animationPanel.playAnimation()
+
+
+class LayerTestBase(GUITestBase):
+
+    LAYER_ID = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.LAYER = cls.WND.settings.getLayer(cls.LAYER_ID)
+        if cls.LAYER is None:
+            raise Exception(f'Layer "{cls.LAYER_ID}" not found.')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     @classmethod
     def waitBC(cls):
         """wait for build to complete"""
         cls.sleep(400)
 
-    def tearDown(self):
-        self.sleep()
+    def setVisible(self, visible, layerId=None):
+        self.TREE.itemFromLayerId(layerId if layerId else self.LAYER_ID).setCheckState(Qt.CheckState.Checked if visible else Qt.CheckState.Unchecked)
+        self.waitBC()
