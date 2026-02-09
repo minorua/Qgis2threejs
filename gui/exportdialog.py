@@ -18,12 +18,12 @@ from ..utils import getTemplateConfig, openHelp, openUrl, templateDir, temporary
 
 class ExportToWebDialog(QDialog):
 
-    def __init__(self, parent, settings, page):
+    def __init__(self, parent, settings, controller):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.settings = settings
-        self.page = page
+        self.controller = controller
         self.logHtml = ""
         self.logNextIndex = 1
         self.warnings = 0
@@ -245,19 +245,19 @@ th {text-align:left;}
         url_scene = QUrl.fromLocalFile(os.path.join(data_dir, "scene.js" if local_mode else "scene.json"))
         url_page = QUrl.fromLocalFile(filepath)
 
-        self.logHtml += """
+        self.logHtml += f"""
 <br>
 <table>
-<tr><th>Output directory</th><td><a href="{}">{}</a></td></tr>
-<tr><th>Data directory</th><td><a href="{}">{}</a></td></tr>
-<tr><th>Scene file</th><td>{}</td></tr>
-<tr><th>Web page file</th><td><a href="{}">{}</a></td></tr>
+<tr><th>Output directory</th>
+<td><a href="{url_dir.toString()}">{url_dir.toLocalFile()}</a></td></tr>
+<tr><th>Data directory</th>
+<td><a href="{url_data.toString()}">{url_data.toLocalFile()}</a></td></tr>
+<tr><th>Scene file</th>
+<td>{url_scene.toLocalFile()}</td></tr>
+<tr><th>Web page file</th>
+<td><a href="{url_page.toString()}">{url_page.toLocalFile()}</a></td></tr>
 </table>
-""".format(url_dir.toString(), url_dir.toLocalFile(),
-           url_data.toString(), url_data.toLocalFile(),
-                                url_scene.toLocalFile(),
-           url_page.toString(), url_page.toLocalFile())
-
+"""
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
 

@@ -373,7 +373,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setAnimationData(self.ui.animationPanel.data())
 
-        dialog = ExportToWebDialog(self, self.settings, self.ui.webView.page())
+        dialog = ExportToWebDialog(self, self.settings, self.controller)
         dialog.show()
         dialog.exec()
 
