@@ -3463,7 +3463,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				ctx.fillText(text, x, y);
 
 				mtl = new THREE.SpriteMaterial({
-					map: new THREE.TextureLoader().load(canvas.toDataURL(), function () { _this.requestRender(); }),	// TODO: loadingManager
+					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), function () { _this.requestRender(); }),
 					opacity: opacity,
 					transparent: true
 				});
