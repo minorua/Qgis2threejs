@@ -30,9 +30,6 @@ class SettingsDialog(QDialog):
         enabled_plugins = QSettings().value("/Qgis2threejs/plugins", "", type=str).split(",")
 
         # initialize plugin table widget
-        plugin_dir = QDir(pluginDir("plugins"))
-        plugins = plugin_dir.entryList(QDir.Filter.Dirs | QDir.Filter.NoSymLinks | QDir.Filter.NoDotAndDotDot)
-
         tableWidget = ui.tableWidget_Plugins
         tableWidget.setColumnCount(1)
         tableWidget.setHorizontalHeaderLabels(["Name"])
@@ -40,9 +37,12 @@ class SettingsDialog(QDialog):
         headerView = tableWidget.horizontalHeader()
         headerView.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
+        plugin_dir = QDir(pluginDir("plugins"))
+        plugins = plugin_dir.entryList(QDir.Filter.Dirs | QDir.Filter.NoSymLinks | QDir.Filter.NoDotAndDotDot)
+
         self.plugin_metadata = []
         for i, name in enumerate(plugins):
-            if name[0] == "_":    # skip __pycache__ dir.
+            if name[0] == "_":    # skip __pycache__
                 continue
 
             parser = ConfigParser()
@@ -57,8 +57,8 @@ class SettingsDialog(QDialog):
 
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):
-            item = QTableWidgetItem(metadata.get("name", name))
-            item.setCheckState(Qt.CheckState.Checked if name in enabled_plugins else Qt.CheckState.Unchecked)   # TODO: name is possibly undefined
+            item = QTableWidgetItem(metadata.get("name", metadata["id"]))
+            item.setCheckState(Qt.CheckState.Checked if metadata["id"] in enabled_plugins else Qt.CheckState.Unchecked)
             tableWidget.setItem(i, 0, item)
 
         tableWidget.selectionModel().currentRowChanged.connect(self.pluginSelectionChanged)
