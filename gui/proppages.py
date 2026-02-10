@@ -395,6 +395,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.mapSettings = mapSettings
 
         self.isPlane = bool(layer.layerId.startswith("fp:"))
+        self.hasPolygonLayer = False
 
         widgets = [self.lineEdit_Name]
         # geometry
@@ -509,7 +510,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.altitudeChanged(self.lineEdit_Altitude.text())
 
         # set enabled and visible state of widgets
-        self.resamplingMethodChanged()
+        self.resamplingMethodChanged(self.radioButton_Resampling.isChecked())
         self.tilesToggled(self.checkBox_Tiles.isChecked())
         if not self.checkBox_Sides.isChecked():
             self.label_Bottom.setVisible(False)
@@ -544,24 +545,29 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     def initLayerComboBox(self):
         # polygon layers
         self.comboBox_ClipLayer.clear()
-        no_layers = True
+        self.hasPolygonLayer = False
         for mapLayer in getLayersInProject():
             if mapLayer.type() == QgsMapLayer.VectorLayer and mapLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
-                no_layers = False
+                self.hasPolygonLayer = True
 
-        if no_layers:
+        if not self.hasPolygonLayer:
             self.comboBox_ClipLayer.addItem("(no polygon layer)")
             self.radioButton_ClipPolygon.setEnabled(False)
 
     def altitudeChanged(self, alt):
         self.lineEdit_Name.setPlaceholderText("Flat Plane" + ("" if alt == "0" or alt == "" else f" ({alt})"))
 
-    def resamplingMethodChanged(self, _checked=None):
-        resamp = self.radioButton_Resampling.isChecked()
+    def resamplingMethodChanged(self, checked):
+        resamp = checked
         self.setLayoutEnabled(self.formLayoutOriginalValues, not resamp)
         self.setLayoutEnabled(self.horizontalLayoutResamp, resamp)
-        self.setWidgetsEnabled([self.radioButton_NoClip], not resamp)
+        self.radioButton_ClipPolygon.setEnabled(resamp)
+        self.radioButton_NoClip.setEnabled(not resamp)
+
+        if not resamp and self.radioButton_ClipPolygon.isChecked():
+            self.radioButton_ClipBaseExtent.setChecked(True)
+
         if resamp and self.radioButton_NoClip.isChecked():
             self.radioButton_ClipBaseExtent.setChecked(True)
 
@@ -581,20 +587,12 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                          "" if self.extent.width() == self.extent.height() else " (Approx.)")
         QToolTip.showText(self.horizontalSlider_DEMSize.mapToGlobal(QPoint(0, 0)), tip, self.horizontalSlider_DEMSize)
 
-    # TODO
-    def clipToggled(self, checked):
-        if checked:
-            self.checkBox_Frame.setChecked(False)
-            self.checkBox_Wireframe.setChecked(False)
-
-    # TODO
     def tilesToggled(self, checked):
         self.setLayoutEnabled(self.gridLayoutTiles, checked)
-        # self.setWidgetsEnabled([self.groupBoxClip], not checked)
+        self.radioButton_ClipPolygon.setEnabled(not checked and self.radioButton_Resampling.isChecked() and self.hasPolygonLayer)
 
-        if checked:
-            pass
-            # self.checkBox_Clip.setChecked(False)
+        if checked and self.radioButton_ClipPolygon.isChecked():
+            self.radioButton_ClipBaseExtent.setChecked(True)
 
     def rougheningChanged(self, v):
         # possible value is a power of 2
