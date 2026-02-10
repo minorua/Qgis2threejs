@@ -459,8 +459,6 @@ class AnimationTreeWidget(QTreeWidget):
             elif t & ATConst.ITEM_TRK:
                 parent = item
                 iidx = 0
-            elif keyframe:          # TODO: iidx is possibly undefined
-                pass
             else:
                 return
         else:
@@ -747,7 +745,6 @@ class AnimationTreeWidget(QTreeWidget):
                 layer = layer.clone()
                 layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
                 layer.opt.onlyMaterial = True
-                # TODO: export settings need to be updated?
                 self.controller.taskManager.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):

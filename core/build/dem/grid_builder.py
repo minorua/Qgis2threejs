@@ -313,7 +313,4 @@ class DEMTileGridBuilder(DEMGridBuilder):
 
             b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
 
-        # TODO:
-        # sides, bottom, edges and wireframe
-
         return b
