@@ -38,25 +38,20 @@ Menu
 
    * Save Scene As
 
+      .. _save-image-dialog:
+
       * Image (.png)...
-         Saves rendered scene image to a PNG file.
+         Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.
 
       * glTF (.gltf,.glb)...
          Saves 3D model of current scene in glTF format.
 
    * Export Settings
 
-      * Load...
-         ✏
+      * Load / Save / Clear settings
 
-      * Save...
-         ✏
-
-      * Clear...
-         Clears current export settings.
-
-   * Exporter Settings...
-      Opens Exporter Settings dialog. See `Exporter Settings Dialog <#exporter-settings>`__
+   * Plugin Settings...
+      Opens Plugin Settings dialog. See `Plugin Settings <#plugin-settings>`__
 
    * Close
       Closes Qgis2threejs Exporter.
@@ -71,8 +66,10 @@ Menu
       * Add Flat Plane
          ✏
 
+.. _add-point-cloud-layer-guide:
+
       * Add Point Cloud Layer...
-         ✏
+
 
    * Reload (F5)
       Reloads current scene.
@@ -254,9 +251,13 @@ Widgets
 
   ✏
 
+.. _north-arrow-dialog:
+
 * North arrow
 
    Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.
+
+.. _header-footer-labels:
 
 * Header/Footer label
 
@@ -264,8 +265,8 @@ Widgets
    Label text can contain valid HTML tags for styling.
 
 
-DEM Layer Settings
-------------------
+DEM Layer
+---------
 
 .. image:: ./images/dialogs/dem_layer.png
     :scale: 50%
@@ -273,16 +274,38 @@ DEM Layer Settings
 Geometry
 ^^^^^^^^
 
-* Resampling level
+* Resampling Method
 
-   Select a DEM resolution from several levels. This resolution is used to
-   resample the DEM, but is not for texture.
+  * Bilinear resampling
 
-* Clip DEM with polygon layer
+    * Resampling level
 
-   Clips the DEM with a polygon layer. If you have a polygon layer that
-   represents the area that elevation data exist or represents drainage basins,
-   you might want to use this option.
+      Select a DEM resolution from several levels. This resolution is used to
+      resample the DEM, but is not for texture.
+
+  * Use original DEM values
+
+    * Tile side segments
+
+* Clipping
+
+  * Clip DEM to scene base extent
+
+  * Clip DEM to polygon layer
+
+     Clips the DEM with a polygon layer. If you have a polygon layer that
+     represents the area that elevation data exist or represents drainage basins,
+     you might want to use this option.
+
+  * Do not clip DEM
+
+* Surrounding Tiles
+
+   This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
+   Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
+   (a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
+   the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
+   means that the number of grid points in the same area becomes 1/4.
 
 
 Material
@@ -332,26 +355,12 @@ You can add a material to the list by clicking + button, selecting one of ``Sele
 
    Adds a shading effect to DEM surface. Checked by default.
 
-Tiles
-^^^^^
-
-✏
-
-* Tiles
-
-   This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
-   Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
-   (a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
-   the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
-   means that the number of grid points in the same area becomes 1/4.
-
 
 .. image:: ./images/dialogs/dem_layer2.png
     :scale: 50%
 
 Other Options
 ^^^^^^^^^^^^^
-
 
 * Build sides
 
@@ -376,8 +385,8 @@ Other Options
 * Clickable
 
 
-Vector Layer Settings
----------------------
+Vector Layer
+------------
 
 .. image:: ./images/dialogs/vector_layer.png
     :scale: 50%
@@ -509,26 +518,26 @@ See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for eac
     :scale: 50%
 
 
-Point Cloud Layer Settings
---------------------------
-
-✏
+Point Cloud Layer
+-----------------
 
 * Information
+  - URL
+    - The source/URL of the point cloud.
+  - Description
+    - Metadata or additional information.
 
 * Material
-
   * Color type
-
   * Opacity
 
 * Other options
   * Name
   * Show bounding boxes
+    - Toggle display of point-cloud bounding boxes in the viewer.
   * Visible on load
   * Clickable
 
-.. _animation:
 
 Animation
 ---------
@@ -562,8 +571,6 @@ Keyframe dialog
 
 ✏
 
-
-.. _export_web_dialog:
 
 Export to Web Dialog
 --------------------
@@ -639,8 +646,8 @@ Export to Web Dialog
 
 
 
-Exporter Settings
------------------
+Plugin Settings
+---------------
 
 .. image:: ./images/dialogs/plugin_settings.png
    :width: 50%
