@@ -19,7 +19,6 @@ changelog=
      - TaskManager class for improved task management
      - A queue for sequential web transmission of generated data
      - An option to use original DEM values
-     - An option to avoid creating triangles for faces consisting of vertices with no DEM value
     * Extensive Refactoring
      - Reorganized directory structure and file layout
      - Added and improved code comments
@@ -27,6 +26,7 @@ changelog=
      - Task management is now handled in the UI thread
      - Worker thread is now responsible only for data generation
     * Others
+     - Updated DEM geometry generation to skip faces with no-data vertices
      - Improved progress bar in window to show task status, and web-side progress bar to show data loading status
      - Renamed keyframe group to track
      - Implemented chunked transfer for saving glTF data
