@@ -17,7 +17,7 @@ which consist of settings for scene, camera, every layer to export, animation, w
 You can configure them via `Scene <#scene>`__ menu, `Layers` panel, `Animation` panel, `View` menu and `Export to Web` dialog.
 
 In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
-To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
+To open layer properties dialog and configure properties for the layer, double-click on the layer item or click on
 `Properties...` from context menu (right click menu).
 
 Export settings are automatically saved to a ``.qto3settings`` file alongside the current QGIS project file if you are working
@@ -48,7 +48,7 @@ Menu
 
    * Export Settings
 
-      * Load / Save / Clear settings
+      * Load / Save / Clear export settings
 
    * Plugin Settings...
       Opens Plugin Settings dialog. See `Plugin Settings <#plugin-settings>`__
@@ -392,7 +392,7 @@ Vector Layer
     :scale: 50%
 
 Vector layers are grouped into three types: Point, Line and Polygon.
-Common settings for all types:
+Common properties for all types:
 
 * Type
 
@@ -430,7 +430,7 @@ Common settings for all types:
 * Geometry and Material
 
    Usually, there are options to set object color and transparency. Refer
-   to the links below for each object type specific settings. The unit of
+   to the links below for each object type specific properties. The unit of
    value for object size is that of the map CRS.
 
 * Feature
@@ -491,7 +491,7 @@ shape types are available:
 
    Sphere, Cylinder, Cone, Box, Disk, Plane, Model File
 
-See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
+See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for each object type specific properties.
 
 Line
 ^^^^
@@ -501,7 +501,7 @@ shape types are available:
 
    Line, Pipe, Cone, Box, Wall
 
-See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
+See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for each object type specific properties.
 
 Polygon
 ^^^^^^^
@@ -511,7 +511,7 @@ following shape types are available:
 
    Polygon, Extruded, Overlay
 
-See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific settings.
+See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for each object type specific properties.
 
 
 .. image:: ./images/dialogs/vector_layer3.png
@@ -642,7 +642,7 @@ Export to Web Dialog
    Exporting starts when you press the Export button. When the exporting has
    been done and `Open exported page in web browser` option is checked, the
    exported page is opened in default web browser (or a web browser specified
-   in `Exporter Settings <#exporter-settings>`__).
+   in `Plugin Settings <#plugin-settings>`__).
 
 
 
