@@ -38,33 +38,36 @@
 <nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#window" id="id2">Window</a></p></li>
-<li><p><a class="reference internal" href="#scene-settings" id="id3">Scene Settings</a></p></li>
-<li><p><a class="reference internal" href="#camera-settings" id="id4">Camera Settings</a></p></li>
-<li><p><a class="reference internal" href="#controls-settings" id="id5">Controls Settings</a></p></li>
-<li><p><a class="reference internal" href="#widgets" id="id6">Widgets</a></p></li>
-<li><p><a class="reference internal" href="#dem-layer-settings" id="id7">DEM Layer Settings</a></p></li>
-<li><p><a class="reference internal" href="#vector-layer-settings" id="id8">Vector Layer Settings</a></p></li>
-<li><p><a class="reference internal" href="#point-cloud-layer-settings" id="id9">Point Cloud Layer Settings</a></p></li>
-<li><p><a class="reference internal" href="#animation" id="id10">Animation</a></p></li>
-<li><p><a class="reference internal" href="#export-to-web-dialog" id="id11">Export to Web Dialog</a></p></li>
-<li><p><a class="reference internal" href="#exporter-settings" id="id12">Exporter Settings</a></p></li>
+<li><p><a class="reference internal" href="#window" id="id1">Window</a></p></li>
+<li><p><a class="reference internal" href="#scene-settings" id="id2">Scene Settings</a></p></li>
+<li><p><a class="reference internal" href="#camera-settings" id="id3">Camera Settings</a></p></li>
+<li><p><a class="reference internal" href="#controls-settings" id="id4">Controls Settings</a></p></li>
+<li><p><a class="reference internal" href="#widgets" id="id5">Widgets</a></p></li>
+<li><p><a class="reference internal" href="#dem-layer" id="id6">DEM Layer</a></p></li>
+<li><p><a class="reference internal" href="#vector-layer" id="id7">Vector Layer</a></p></li>
+<li><p><a class="reference internal" href="#point-cloud-layer" id="id8">Point Cloud Layer</a></p></li>
+<li><p><a class="reference internal" href="#animation" id="id9">Animation</a></p></li>
+<li><p><a class="reference internal" href="#export-to-web-dialog" id="id10">Export to Web Dialog</a></p></li>
+<li><p><a class="reference internal" href="#plugin-settings" id="id11">Plugin Settings</a></p></li>
 </ul>
 </nav>
 <section id="window">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Window</a><a class="headerlink" href="#window" title="Link to this heading">¶</a></h2>
-<p>Qgis2threejs exporter window has <cite>Layers</cite> panel and <cite>Animation</cite> panel on the left side, and preview on the right side.</p>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Window</a><a class="headerlink" href="#window" title="Link to this heading">¶</a></h2>
+<p>Qgis2threejs exporter window has <cite>Layers</cite> panel and <cite>Animation</cite> panel on the left side, and a preview on the right side
+when preview is available. Each panel can be moved to another position in the window or closed.</p>
 <img alt="_images/exporter1.png" src="_images/exporter1.png" />
-<p>In this plugin, the word “export settings” means all configuration settings for a 3D scene and its viewer application,
-which consist of settings for scene, camera, every layer to export, animation, widgets on web page and so on.
-You can configure them via <a class="reference external" href="#scene">Scene</a> menu, <cite>Layers</cite> panel, <cite>Animation</cite> panel, <cite>View</cite> menu and <cite>Export to Web</cite> dialog.</p>
-<p>In the <cite>Layers</cite> panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
-To open layer properties dialog and configure settings for the layer, double-click on the layer item or click on
-<cite>Properties…</cite> from context menu (right click menu).</p>
-<p>Export settings are automatically saved to a <code class="docutils literal notranslate"><span class="pre">.qto3settings</span></code> file alongside the current QGIS project file if you are working
-with a QGIS project file. When you open the exporter later, the export settings of the project will be restored.</p>
-<p>If you don’t want to use preview, uncheck <cite>Preview</cite> checkbox in the lower right corner of the window.
-You might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update.</p>
+<p>In this plugin, the word “export settings” means all configuration settings for a 3D scene and its viewer application.
+These include settings for the scene, camera, layers to be exported, animation, widgets on the web page, and more.
+You can configure these settings via the <a class="reference external" href="#scene">Scene</a> menu, the <cite>Layers</cite> panel, the <cite>Animation</cite> panel,
+the <cite>View</cite> menu and the <cite>Export to Web</cite> dialog.</p>
+<p>The <cite>Layers</cite> panel displays single-band raster and vector layers loaded in QGIS, as well as point cloud layers (partially supported) and flat planes.
+Unlike the QGIS layer tree, layers are organized into groups based on their type. Each layer item has a checkbox on its left.
+Click the checkbox to add the layer to the current scene. To open the layer properties dialog and configure the layer properties,
+double-click the layer item or click <cite>Properties…</cite> from the context menu (right-click menu).</p>
+<p>Export settings are automatically saved to a <code class="docutils literal notranslate"><span class="pre">.qto3settings</span></code> file alongside the current QGIS project file when you are working
+with a QGIS project. When the exporter is opened later, the project’s export settings are automatically restored.</p>
+<p>The preview is automatically updated whenever export settings are changed.
+You can disable the preview by unchecking the <cite>Preview</cite> checkbox in the lower-right corner of the window.</p>
 <section id="menu">
 <h3>Menu<a class="headerlink" href="#menu" title="Link to this heading">¶</a></h3>
 <ul>
@@ -72,21 +75,20 @@ You might want to uncheck it to avoid waiting for updating 3D objects in the sce
 <blockquote>
 <div><ul>
 <li><dl class="simple">
-<dt>Export to Web…</dt><dd><p>Exports files for publishing current scene to web. See <a class="reference external" href="#export-to-web-dialog">Export to Web Dialog</a>
-section.</p>
+<dt>Export to Web…</dt><dd><p>Exports files for publishing the current scene to the web. See <a class="reference external" href="#export-to-web-dialog">Export to Web Dialog</a>.</p>
 </dd>
 </dl>
 </li>
 <li><p>Save Scene As</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul class="simple" id="save-image-dialog">
 <li><dl class="simple">
-<dt>Image (.png)…</dt><dd><p>Saves rendered scene image to a PNG file.</p>
+<dt>Image (.png)…</dt><dd><p>Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves 3D model of current scene in glTF format.</p>
+<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves the 3D model of the current scene in glTF format.</p>
 </dd>
 </dl>
 </li>
@@ -96,42 +98,30 @@ section.</p>
 <li><p>Export Settings</p>
 <blockquote>
 <div><ul class="simple">
+<li><p>Load / Save / Clear export settings</p></li>
+</ul>
+</div></blockquote>
+</li>
 <li><dl class="simple">
-<dt>Load…</dt><dd><p>✏</p>
+<dt>Plugin Settings…</dt><dd><p>Opens the Plugin Settings dialog. See <a class="reference external" href="#plugin-settings">Plugin Settings</a>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Save…</dt><dd><p>✏</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Clear…</dt><dd><p>Clears current export settings.</p>
+<dt>Close</dt><dd><p>Closes the Qgis2threejs exporter.</p>
 </dd>
 </dl>
 </li>
 </ul>
 </div></blockquote>
 </li>
-<li><dl class="simple">
-<dt>Exporter Settings…</dt><dd><p>Opens Exporter Settings dialog. See <a class="reference external" href="#exporter-settings">Exporter Settings Dialog</a></p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Close</dt><dd><p>Closes Qgis2threejs Exporter.</p>
-</dd>
-</dl>
-</li>
 </ul>
-</div></blockquote>
-</li>
+<ul id="scene">
 <li><p>Scene</p>
 <blockquote>
 <div><ul>
 <li><dl class="simple">
-<dt>Scene Settings…</dt><dd><p>Opens Scene settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a> section.</p>
+<dt>Scene Settings…</dt><dd><p>Opens the Scene Settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a>.</p>
 </dd>
 </dl>
 </li>
@@ -139,12 +129,16 @@ section.</p>
 <blockquote>
 <div><ul class="simple">
 <li><dl class="simple">
-<dt>Add Flat Plane</dt><dd><p>✏</p>
+<dt>Add Flat Plane</dt><dd><p>Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.</p>
 </dd>
 </dl>
 </li>
+</ul>
+<ul class="simple" id="add-point-cloud-layer">
 <li><dl class="simple">
-<dt>Add Point Cloud Layer…</dt><dd><p>✏</p>
+<dt>Add Point Cloud Layer…</dt><dd><p>Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
+in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
+See also <a class="reference external" href="#point-cloud-layer">Point Cloud Layer</a>.</p>
 </dd>
 </dl>
 </li>
@@ -152,7 +146,7 @@ section.</p>
 </div></blockquote>
 </li>
 <li><dl class="simple">
-<dt>Reload (F5)</dt><dd><p>Reloads current scene.</p>
+<dt>Reload (F5)</dt><dd><p>Reloads the web page and rebuilds the current scene.</p>
 </dd>
 </dl>
 </li>
@@ -163,18 +157,18 @@ section.</p>
 <blockquote>
 <div><ul class="simple">
 <li><dl class="simple">
-<dt>Camera</dt><dd><p>Changes the camera. See <a class="reference external" href="#camera-settings">Camera Settings</a> section.</p>
+<dt>Camera</dt><dd><p>Changes the camera. See <a class="reference external" href="#camera-settings">Camera Settings</a>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Widgets</dt><dd><p>Configures widgets to be place on web page, such as Navigation widget, North arrow and footer label.
-See <a class="reference external" href="#widgets">Widgets</a> section.</p>
+<dt>Widgets</dt><dd><p>Configures widgets to be placed on the web page, such as the Navigation widget, the North arrow and the footer label.
+See <a class="reference external" href="#widgets">Widgets</a>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Reset Camera Position (Shift+R)</dt><dd><p>Returns to the initial camera position and resets its focal point to the initial point.</p>
+<dt>Reset Camera Position (Shift+R)</dt><dd><p>Returns the camera to its initial position and resets the focal point to its initial location.</p>
 </dd>
 </dl>
 </li>
@@ -197,36 +191,45 @@ See <a class="reference external" href="#widgets">Widgets</a> section.</p>
 </dd>
 </dl>
 </li>
+</ul>
+</div></blockquote>
+</li>
 <li><dl class="simple">
-<dt>Console</dt><dd><p>Toggles <cite>Console</cite> panel visibility.
-Console panel displays information for debugging, mainly JavaScript side information.
-Python side debug information is logged to log messages panel in QGIS window.
-You can enter JavaScript statements and execute them.</p>
+<dt>Always on Top</dt><dd><p>Brings the exporter window to the front of all other application windows.</p>
 </dd>
 </dl>
 </li>
 </ul>
 </div></blockquote>
 </li>
-<li><p>Always on Top
-Brings the exporter window to front of all other application windows.</p></li>
-</ul>
-</div></blockquote>
-</li>
 <li><p>Help</p>
 <blockquote>
-<div><ul>
-<li><p>Usage of 3D Viewer</p>
-<p>✏</p>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Usage of 3D Viewer</dt><dd><p>Displays the controls for the 3D viewer in the web view.</p>
+</dd>
+</dl>
 </li>
-<li><p>Help Contents
-Opens the plugin document in default browser. Internet connection is required.</p></li>
-<li><p>Plugin Homepage
-Opens the plugin homepage in default browser. Internet connection is required.</p></li>
-<li><p>Send Feedback
-Opens the plugin issue tracking system in default browser. Internet connection is required.</p></li>
-<li><p>About Qgis2threejs Plugin…
-Displays the plugin version you are using.</p></li>
+<li><dl class="simple">
+<dt>Help Contents</dt><dd><p>Opens the plugin documentation in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Plugin Homepage</dt><dd><p>Opens the plugin homepage in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Send Feedback</dt><dd><p>Opens the plugin issue tracker in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>About Qgis2threejs Plugin…</dt><dd><p>Displays the plugin version.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </div></blockquote>
 </li>
@@ -234,7 +237,7 @@ Displays the plugin version you are using.</p></li>
 </section>
 </section>
 <section id="scene-settings">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink">Scene Settings</a><a class="headerlink" href="#scene-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Scene Settings</a><a class="headerlink" href="#scene-settings" title="Link to this heading">¶</a></h2>
 <p>Scene settings dialog controls some basic configuration settings for current scene.
 Click on <code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Scene</span> <span class="pre">Settings...</span></code> menu entry to open the dialog.</p>
 <a class="reference internal image-reference" href="_images/scene_settings.png"><img alt="_images/scene_settings.png" class="align-right" src="_images/scene_settings.png" style="width: 232.0px; height: 345.5px;" />
@@ -328,7 +331,7 @@ Default is Lambert material.</p>
 </ul>
 </section>
 <section id="camera-settings">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Camera Settings</a><a class="headerlink" href="#camera-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Camera Settings</a><a class="headerlink" href="#camera-settings" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Perspective Camera</p>
 <blockquote>
@@ -353,7 +356,7 @@ Default is Lambert material.</p>
 </table>
 </section>
 <section id="controls-settings">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">Controls Settings</a><a class="headerlink" href="#controls-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Controls Settings</a><a class="headerlink" href="#controls-settings" title="Link to this heading">¶</a></h2>
 <p>OrbitControls is available.</p>
 <table class="docutils align-default">
 <thead>
@@ -379,16 +382,20 @@ Default is Lambert material.</p>
 </table>
 </section>
 <section id="widgets">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">Widgets</a><a class="headerlink" href="#widgets" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Widgets</a><a class="headerlink" href="#widgets" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Navigation widget</p>
 <p>✏</p>
 </li>
+</ul>
+<ul id="north-arrow-dialog">
 <li><p>North arrow</p>
 <blockquote>
 <div><p>Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.</p>
 </div></blockquote>
 </li>
+</ul>
+<ul id="header-footer-labels">
 <li><p>Header/Footer label</p>
 <blockquote>
 <div><p>Adds a header label to top-left corner of the web page and/or a footer label to lower-left corner.
@@ -397,24 +404,50 @@ Label text can contain valid HTML tags for styling.</p>
 </li>
 </ul>
 </section>
-<section id="dem-layer-settings">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">DEM Layer Settings</a><a class="headerlink" href="#dem-layer-settings" title="Link to this heading">¶</a></h2>
+<section id="dem-layer">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">DEM Layer</a><a class="headerlink" href="#dem-layer" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/dem_layer.png"><img alt="_images/dem_layer.png" src="_images/dem_layer.png" style="width: 232.0px; height: 335.5px;" />
 </a>
 <section id="geometry">
 <h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading">¶</a></h3>
 <ul>
+<li><p>Resampling Method</p>
+<ul>
+<li><p>Bilinear resampling</p>
+<ul>
 <li><p>Resampling level</p>
-<blockquote>
-<div><p>Select a DEM resolution from several levels. This resolution is used to
+<p>Select a DEM resolution from several levels. This resolution is used to
 resample the DEM, but is not for texture.</p>
-</div></blockquote>
 </li>
-<li><p>Clip DEM with polygon layer</p>
+</ul>
+</li>
+<li><p>Use original DEM values</p>
+<ul class="simple">
+<li><p>Tile side segments</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Clipping</p>
+<ul>
+<li><p>Clip DEM to scene base extent</p></li>
+<li><p>Clip DEM to polygon layer</p>
 <blockquote>
 <div><p>Clips the DEM with a polygon layer. If you have a polygon layer that
 represents the area that elevation data exist or represents drainage basins,
 you might want to use this option.</p>
+</div></blockquote>
+</li>
+<li><p>Do not clip DEM</p></li>
+</ul>
+</li>
+<li><p>Surrounding Tiles</p>
+<blockquote>
+<div><p>This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
+Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
+(a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
+the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
+means that the number of grid points in the same area becomes 1/4.</p>
 </div></blockquote>
 </li>
 </ul>
@@ -471,21 +504,6 @@ for details.</p>
 </div></blockquote>
 </li>
 </ul>
-</section>
-<section id="tiles">
-<h3>Tiles<a class="headerlink" href="#tiles" title="Link to this heading">¶</a></h3>
-<p>✏</p>
-<ul>
-<li><p>Tiles</p>
-<blockquote>
-<div><p>This option enlarges output DEM by placing DEM blocks around the main block of the map canvas extent.
-Size can be selected from odd numbers in the range of 3 to 9. If you select 3, total 9 (=3x3) blocks
-(a center block and 8 surrounding blocks) are output. Roughness can be selected from powers of 2 in
-the range of 1 to 64. If you select 2, grid point spacing of each surrounding block is doubled. It
-means that the number of grid points in the same area becomes 1/4.</p>
-</div></blockquote>
-</li>
-</ul>
 <a class="reference internal image-reference" href="_images/dem_layer2.png"><img alt="_images/dem_layer2.png" src="_images/dem_layer2.png" style="width: 232.0px; height: 335.5px;" />
 </a>
 </section>
@@ -517,12 +535,12 @@ JS file directly.</p>
 </ul>
 </section>
 </section>
-<section id="vector-layer-settings">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">Vector Layer Settings</a><a class="headerlink" href="#vector-layer-settings" title="Link to this heading">¶</a></h2>
+<section id="vector-layer">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Vector Layer</a><a class="headerlink" href="#vector-layer" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/vector_layer.png"><img alt="_images/vector_layer.png" src="_images/vector_layer.png" style="width: 232.0px; height: 359.0px;" />
 </a>
 <p>Vector layers are grouped into three types: Point, Line and Polygon.
-Common settings for all types:</p>
+Common properties for all types:</p>
 <ul>
 <li><p>Type</p>
 <p>Select a shape type.</p>
@@ -573,7 +591,7 @@ Cannot be chosen when the object type is Extruded or Overlay.</p>
 <li><p>Geometry and Material</p>
 <blockquote>
 <div><p>Usually, there are options to set object color and transparency. Refer
-to the links below for each object type specific settings. The unit of
+to the links below for each object type specific properties. The unit of
 value for object size is that of the map CRS.</p>
 </div></blockquote>
 </li>
@@ -646,7 +664,7 @@ shape types are available:</p>
 <blockquote>
 <div><p>Sphere, Cylinder, Cone, Box, Disk, Plane, Model File</p>
 </div></blockquote>
-<p>See <a class="reference internal" href="ObjectTypes.html#object-types-point-layer"><span class="std std-ref">Point Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-point-layer"><span class="std std-ref">Point Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific properties.</p>
 </section>
 <section id="line">
 <h3>Line<a class="headerlink" href="#line" title="Link to this heading">¶</a></h3>
@@ -655,7 +673,7 @@ shape types are available:</p>
 <blockquote>
 <div><p>Line, Pipe, Cone, Box, Wall</p>
 </div></blockquote>
-<p>See <a class="reference internal" href="ObjectTypes.html#object-types-line-layer"><span class="std std-ref">Line Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-line-layer"><span class="std std-ref">Line Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific properties.</p>
 </section>
 <section id="polygon">
 <h3>Polygon<a class="headerlink" href="#polygon" title="Link to this heading">¶</a></h3>
@@ -664,31 +682,47 @@ following shape types are available:</p>
 <blockquote>
 <div><p>Polygon, Extruded, Overlay</p>
 </div></blockquote>
-<p>See <a class="reference internal" href="ObjectTypes.html#object-types-polygon-layer"><span class="std std-ref">Polygon Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific settings.</p>
+<p>See <a class="reference internal" href="ObjectTypes.html#object-types-polygon-layer"><span class="std std-ref">Polygon Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific properties.</p>
 <a class="reference internal image-reference" href="_images/vector_layer3.png"><img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" style="width: 232.0px; height: 359.0px;" />
 </a>
 </section>
 </section>
-<section id="point-cloud-layer-settings">
-<h2><a class="toc-backref" href="#id9" role="doc-backlink">Point Cloud Layer Settings</a><a class="headerlink" href="#point-cloud-layer-settings" title="Link to this heading">¶</a></h2>
-<p>✏</p>
-<ul class="simple">
-<li><p>Information</p></li>
-<li><p>Material</p>
+<section id="point-cloud-layer">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Point Cloud Layer</a><a class="headerlink" href="#point-cloud-layer" title="Link to this heading">¶</a></h2>
 <ul>
-<li><p>Color type</p></li>
-<li><p>Opacity</p></li>
+<li><p>Information
+- URL</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The source/URL of the point cloud.</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>Description
+- Metadata or additional information.</p></li>
 </ul>
 </li>
+<li><p>Material
+* Color type
+* Opacity</p></li>
 <li><p>Other options
 * Name
-* Show bounding boxes
-* Visible on load
-* Clickable</p></li>
+* Show bounding boxes</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Toggle display of point-cloud bounding boxes in the viewer.</p></li>
 </ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>Visible on load</p></li>
+<li><p>Clickable</p></li>
+</ul>
+</li>
+</ul>
+<p>See also <a class="reference external" href="#add-point-cloud-layer">Add Point Cloud Layer…</a>.</p>
 </section>
 <section id="animation">
-<span id="id1"></span><h2><a class="toc-backref" href="#id10" role="doc-backlink">Animation</a><a class="headerlink" href="#animation" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Animation</a><a class="headerlink" href="#animation" title="Link to this heading">¶</a></h2>
 <section id="animation-panel">
 <h3>Animation panel<a class="headerlink" href="#animation-panel" title="Link to this heading">¶</a></h3>
 <p>✏</p>
@@ -716,7 +750,7 @@ following shape types are available:</p>
 </section>
 </section>
 <section id="export-to-web-dialog">
-<span id="export-web-dialog"></span><h2><a class="toc-backref" href="#id11" role="doc-backlink">Export to Web Dialog</a><a class="headerlink" href="#export-to-web-dialog" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Export to Web Dialog</a><a class="headerlink" href="#export-to-web-dialog" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/export_to_web.png"><img alt="_images/export_to_web.png" src="_images/export_to_web.png" style="width: 50%;" />
 </a>
 <ul>
@@ -792,13 +826,13 @@ Used to determine device camera direction.</p>
 <div><p>Exporting starts when you press the Export button. When the exporting has
 been done and <cite>Open exported page in web browser</cite> option is checked, the
 exported page is opened in default web browser (or a web browser specified
-in <a class="reference external" href="#exporter-settings">Exporter Settings</a>).</p>
+in <a class="reference external" href="#plugin-settings">Plugin Settings</a>).</p>
 </div></blockquote>
 </li>
 </ul>
 </section>
-<section id="exporter-settings">
-<h2><a class="toc-backref" href="#id12" role="doc-backlink">Exporter Settings</a><a class="headerlink" href="#exporter-settings" title="Link to this heading">¶</a></h2>
+<section id="plugin-settings">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Plugin Settings</a><a class="headerlink" href="#plugin-settings" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/plugin_settings.png"><img alt="_images/plugin_settings.png" src="_images/plugin_settings.png" style="width: 50%;" />
 </a>
 <ul>
