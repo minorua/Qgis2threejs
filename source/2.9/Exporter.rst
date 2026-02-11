@@ -8,23 +8,26 @@ Exporter
 Window
 ------
 
-Qgis2threejs exporter window has `Layers` panel and `Animation` panel on the left side, and preview on the right side.
+Qgis2threejs exporter window has `Layers` panel and `Animation` panel on the left side, and a preview on the right side
+when preview is available. Each panel can be moved to another position in the window or closed.
 
 .. image:: ./images/exporter1.png
 
-In this plugin, the word "export settings" means all configuration settings for a 3D scene and its viewer application,
-which consist of settings for scene, camera, every layer to export, animation, widgets on web page and so on.
-You can configure them via `Scene <#scene>`__ menu, `Layers` panel, `Animation` panel, `View` menu and `Export to Web` dialog.
+In this plugin, the word "export settings" means all configuration settings for a 3D scene and its viewer application.
+These include settings for the scene, camera, layers to be exported, animation, widgets on the web page, and more.
+You can configure these settings via the `Scene <#scene>`__ menu, the `Layers` panel, the `Animation` panel,
+the `View` menu and the `Export to Web` dialog.
 
-In the `Layers` panel, each layer item has a checkbox on its left. Check the checkbox to add the layer to current scene.
-To open layer properties dialog and configure properties for the layer, double-click on the layer item or click on
-`Properties...` from context menu (right click menu).
+The `Layers` panel displays single-band raster and vector layers loaded in QGIS, as well as point cloud layers (partially supported) and flat planes.
+Unlike the QGIS layer tree, layers are organized into groups based on their type. Each layer item has a checkbox on its left.
+Click the checkbox to add the layer to the current scene. To open the layer properties dialog and configure the layer properties,
+double-click the layer item or click `Properties...` from the context menu (right-click menu).
 
-Export settings are automatically saved to a ``.qto3settings`` file alongside the current QGIS project file if you are working
-with a QGIS project file. When you open the exporter later, the export settings of the project will be restored.
+Export settings are automatically saved to a ``.qto3settings`` file alongside the current QGIS project file when you are working
+with a QGIS project. When the exporter is opened later, the project's export settings are automatically restored.
 
-If you don't want to use preview, uncheck `Preview` checkbox in the lower right corner of the window.
-You might want to uncheck it to avoid waiting for updating 3D objects in the scene for each export settings update.
+The preview is automatically updated whenever export settings are changed.
+You can disable the preview by unchecking the `Preview` checkbox in the lower-right corner of the window.
 
 
 Menu
@@ -33,8 +36,7 @@ Menu
 * File
 
    * Export to Web...
-      Exports files for publishing current scene to web. See `Export to Web Dialog <#export-to-web-dialog>`__
-      section.
+      Exports files for publishing the current scene to the web. See `Export to Web Dialog <#export-to-web-dialog>`__.
 
    * Save Scene As
 
@@ -44,47 +46,50 @@ Menu
          Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.
 
       * glTF (.gltf,.glb)...
-         Saves 3D model of current scene in glTF format.
+         Saves the 3D model of the current scene in glTF format.
 
    * Export Settings
 
       * Load / Save / Clear export settings
 
    * Plugin Settings...
-      Opens Plugin Settings dialog. See `Plugin Settings <#plugin-settings>`__
+      Opens the Plugin Settings dialog. See `Plugin Settings <#plugin-settings>`__.
 
    * Close
-      Closes Qgis2threejs Exporter.
+      Closes the Qgis2threejs exporter.
+
+.. _scene:
 
 * Scene
 
    * Scene Settings...
-      Opens Scene settings dialog. See `Scene Settings <#scene-settings>`__ section.
+      Opens the Scene Settings dialog. See `Scene Settings <#scene-settings>`__.
 
    * Add Layer
 
       * Add Flat Plane
-         ✏
+         Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.
 
-.. _add-point-cloud-layer-guide:
+.. _add-point-cloud-layer:
 
       * Add Point Cloud Layer...
-
+         Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
+         in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
 
    * Reload (F5)
-      Reloads current scene.
+      Reloads the web page and rebuilds the current scene.
 
 * View
 
    * Camera
-      Changes the camera. See `Camera Settings <#camera-settings>`__ section.
+      Changes the camera. See `Camera Settings <#camera-settings>`__.
 
    * Widgets
-      Configures widgets to be place on web page, such as Navigation widget, North arrow and footer label.
-      See `Widgets <#widgets>`__ section.
+      Configures widgets to be placed on the web page, such as the Navigation widget, the North arrow and the footer label.
+      See `Widgets <#widgets>`__.
 
    * Reset Camera Position (Shift+R)
-      Returns to the initial camera position and resets its focal point to the initial point.
+      Returns the camera to its initial position and resets the focal point to its initial location.
 
 * Window
 
@@ -96,32 +101,25 @@ Menu
       * Animation
          Toggles `Animation` panel visibility.
 
-      * Console
-         Toggles `Console` panel visibility.
-         Console panel displays information for debugging, mainly JavaScript side information.
-         Python side debug information is logged to log messages panel in QGIS window.
-         You can enter JavaScript statements and execute them.
-
    * Always on Top
-     Brings the exporter window to front of all other application windows.
+      Brings the exporter window to the front of all other application windows.
 
 * Help
 
    * Usage of 3D Viewer
-
-     ✏
+      Displays the controls for the 3D viewer in the web view.
 
    * Help Contents
-     Opens the plugin document in default browser. Internet connection is required.
+     Opens the plugin documentation in the default browser. Requires an internet connection.
 
    * Plugin Homepage
-     Opens the plugin homepage in default browser. Internet connection is required.
+     Opens the plugin homepage in the default browser. Requires an internet connection.
 
    * Send Feedback
-     Opens the plugin issue tracking system in default browser. Internet connection is required.
+     Opens the plugin issue tracker in the default browser. Requires an internet connection.
 
    * About Qgis2threejs Plugin...
-     Displays the plugin version you are using.
+     Displays the plugin version.
 
 
 Scene Settings
