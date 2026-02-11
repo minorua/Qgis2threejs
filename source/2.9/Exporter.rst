@@ -70,11 +70,12 @@ Menu
       * Add Flat Plane
          Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.
 
-.. _add-point-cloud-layer:
+      .. _add-point-cloud-layer:
 
       * Add Point Cloud Layer...
          Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
          in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
+         See also `Point Cloud Layer <#point-cloud-layer>`__.
 
    * Reload (F5)
       Reloads the web page and rebuilds the current scene.
@@ -110,16 +111,16 @@ Menu
       Displays the controls for the 3D viewer in the web view.
 
    * Help Contents
-     Opens the plugin documentation in the default browser. Requires an internet connection.
+      Opens the plugin documentation in the default browser. Requires an internet connection.
 
    * Plugin Homepage
-     Opens the plugin homepage in the default browser. Requires an internet connection.
+      Opens the plugin homepage in the default browser. Requires an internet connection.
 
    * Send Feedback
-     Opens the plugin issue tracker in the default browser. Requires an internet connection.
+      Opens the plugin issue tracker in the default browser. Requires an internet connection.
 
    * About Qgis2threejs Plugin...
-     Displays the plugin version.
+      Displays the plugin version.
 
 
 Scene Settings
@@ -535,6 +536,9 @@ Point Cloud Layer
     - Toggle display of point-cloud bounding boxes in the viewer.
   * Visible on load
   * Clickable
+
+
+See also `Add Point Cloud Layer... <#add-point-cloud-layer>`__.
 
 
 Animation
