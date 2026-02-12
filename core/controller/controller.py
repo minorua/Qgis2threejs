@@ -211,11 +211,16 @@ class Q3DController(QObject):
     def pageLoaded(self, ok):
         logger.debug("Page load finished.")
 
-        self.taskManager.initialize()
-        self.clearSendQueue()
-
         if self.webPage.url().scheme() != "file":
             return
+
+        if not self.enabled:
+            self.webPage.runScript("setPreviewEnabled(false)")      # bypass controller enablement check
+            self.clearStatusMessage()
+            return
+
+        self.taskManager.initialize()
+        self.clearSendQueue()
 
         configs = []
         if self.settings.isOrthoCamera():
@@ -238,9 +243,6 @@ class Q3DController(QObject):
                                                      js_bool(self.webPage.isWebEnginePage)))
 
     def viewerInitialized(self):
-        if not self.enabled:
-            self.runScript("setPreviewEnabled(false)")
-
         # labels
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
