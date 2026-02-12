@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 2.9.1
+- Fixed a f-strings syntax error caused by nested quotes in Python versions earlier than 3.12
+
 ### Version 2.9
 #### Added
 - Qt6 support
