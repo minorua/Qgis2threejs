@@ -1,17 +1,20 @@
+********
 Exporter
-========
+********
 
 .. contents:: Contents
    :local:
-   :depth: 1
+   :depth: 2
 
 Window
-------
+======
 
-Qgis2threejs exporter window has `Layers` panel and `Animation` panel on the left side, and a preview on the right side
-when preview is available. Each panel can be moved to another position in the window or closed.
+In the initial state, Qgis2threejs exporter window has `Layers` panel and `Animation` panel on the left side, and a preview
+on the right side when preview is available. Each panel can be moved to another position in the window or closed.
 
-.. image:: ./images/exporter1.png
+.. figure:: ./images/exporter1.png
+
+   Qgis2threejs Exporter
 
 In this plugin, the word "export settings" means all configuration settings for a 3D scene and its viewer application.
 These include settings for the scene, camera, layers to be exported, animation, widgets on the web page, and more.
@@ -31,7 +34,7 @@ You can disable the preview by unchecking the `Preview` checkbox in the lower-ri
 
 
 Menu
-^^^^
+----
 
 * File
 
@@ -124,33 +127,42 @@ Menu
 
 
 Scene Settings
---------------
+==============
 
 Scene settings dialog controls some basic configuration settings for current scene.
 Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
-.. image:: ./images/dialogs/scene_settings.png
-    :scale: 50%
-    :align: right
+World Tab
+---------
+
+.. figure:: ./images/dialogs/scene_settings.png
+
+   Scene Settings Dialog - World tab
 
 * World Coordinates
 
    * Origin of xy-plane
 
-      ``Center of base extent``
-      ``Origin of map coordinate system``
+      Specifies where the origin point of the XY plane is located.
+
+      * Center of base extent
+         Sets the center of the base extent defined below as the origin of the XY plane.
+         Shifting the origin in this way helps maintain numerical precision when coordinate values are very large.
+
+      * Origin of map coordinate system
+         Uses the original origin defined in the map coordinate system as the XY plane origin.
 
    * Z exaggeration
 
-      Vertical exaggeration factor. This value affects terrain shape and z
-      positions of all vector 3D objects. This also affects 3D object height
-      of some object types with volume. Shape types to be affected:
+      Specifies the vertical exaggeration factor. This value affects terrain shape and the Z positions of all 3D vector objects.
+      It also affects the height of certain volumetric 3D object types.
+
+      The following shape types are affected:
 
        | Point : Cylinder, Cube, Cone
        | Polygon : Extruded
 
-      The following shape types have volume, but their heights aren't
-      affected by this factor:
+      The following shape types have volume, but their heights are not affected by this factor:
 
        | Point : Sphere
        | Line : Pipe, Cone, Box
@@ -159,62 +171,100 @@ Click on ``Scene - Scene Settings...`` menu entry to open the dialog.
 
 * Base Extent
 
+   Defines the spatial extent used as the base area for the scene.
+
+   Select how the base extent is determined:
+
    * Use map canvas extent
+
+      Uses the current visible extent of the map canvas as the base extent. The extent automatically
+      updates according to changes in the map view.
 
    * Fixed extent
 
+      Uses a manually specified extent as the base extent. This option allows you to maintain a constant area
+      regardless of changes in the map canvas view. The extent values can be set using the extent of a specific
+      layer or by interactively selecting an area on the map canvas.
+
+   Additional option:
+
    * Fix aspect ratio to 1:1
-     Checked by default since version 2.7.
+
+      Keeps the width and height of the base extent at a 1:1 ratio.
+      This option is checked by default since version 2.7.
 
 * Background
 
-   Select either sky-like gradient or a solid color for the scene background.
-   Default is Sky.
+   Selects either a sky-like gradient or a solid color for the scene background.
+   The default setting is Sky.
 
 * Display of coordinates
 
-   If the ``Latitude and longitude (WGS84)`` option is selected,
-   coordinates of clicked position on a 3D object are displayed in
-   longitude and latitude (WGS84). If
-   `Proj4js <https://github.com/proj4js/proj4js>`__ doesn't support current
-   map CRS, this option is disabled.
+   If the ``Latitude and longitude (WGS84)`` option is selected, the coordinates of
+   the clicked position on a 3D object are displayed as longitude and latitude (WGS84).
+   If `Proj4js <https://github.com/proj4js/proj4js>`__ does not support current the map CRS,
+   this option is disabled.
 
 
-.. image:: ./images/dialogs/scene_settings2.png
-    :scale: 50%
+Light & Effects Tab
+-------------------
+
+.. figure:: ./images/dialogs/scene_settings2.png
+
+   Scene Settings Dialog - Light & Effects Tab
 
 
 * Light
-  ``Directional light from the lower left of the 2D map``
-  ``Point light above the camera``
+
+   Selects the light source used to illuminate the scene.
+
+   * Directional light from the lower left of the 2D map
+
+      Simulates parallel light rays coming from the lower-left direction of the 2D map (the map displayed in the map canvas view).
+
+   * Point light above the camera
+
+      Simulates a point light source located above the camera position.
 
 * Fog
-  Color and density.
 
-* Material & Effect
+   Controls the fog effect applied to the scene.
+
+   * Color
+
+      Specifies the color of the fog.
+
+   * Density
+
+      Specifies the density of the fog. Higher values increase the fog effect and reduce the visibility of distant objects.
+
+
+* Material & Effects
 
    * Basic material type
 
-      Material type applied to most 3D objects, except for Point, Billboard, Model File and Line type objects.
+      Specifies the material type applied to most 3D objects, except for Point, Billboard, Model File and Line-type objects.
       Select a material type from
       `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
-      `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ and
+      `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ or
       `Toon material <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__.
-      Default is Lambert material.
+      The default is Lambert material.
 
    * Enable outline effect
 
+      Enables an outline effect around 3D objects, making object shapes more visually distinguishable.
+
 
 Camera Settings
----------------
+===============
 
 * Perspective Camera
 
-   Renders closer objects as bigger and farther objects as smaller.
+   Renders closer objects as larger and farther objects as smaller, creating a realistic sense of depth.
 
 * Orthographic Camera
 
-   Rendered object size doesn't depend on the distance from the camera.
+   The rendered object size does not depend on the distance from the camera.
 
 
 .. |persp| image:: ./images/camera/perspective.png
@@ -229,18 +279,43 @@ Perspective camera  Orthographic camera
 |persp|             |ortho|
 =================== ===================
 
-Controls Settings
------------------
 
-OrbitControls is available.
+3D Viewer Controls
+==================
 
-===== ======================================================== ===========================
-Ctrl  Mouse / Keys                                             Touch
-===== ======================================================== ===========================
-Orbit Left mouse                                               One-finger move
-Zoom  Middle mouse, or mousewheel                              Two-finger spread or squish
-Pan   Right mouse, or left mouse + ctrl/metaKey, or arrow keys Two-finger move
-===== ======================================================== ===========================
+Customized OrbitControls for Qgis2threejs are available.
+
+Basic Controls
+--------------
+
+======================= =====================================
+Mouse / Key             Control
+======================= =====================================
+Left button + drag      Orbit (rotate around the focal point)
+Scroll wheel            Zoom
+Right button + drag     Pan (move horizontally)
+Arrow keys              Pan (move horizontally)
+======================= =====================================
+
+Additional Controls
+-------------------
+
+========================== ==========================================
+Mouse / Key                Control
+========================== ==========================================
+Shift + Left button + drag Move perpendicular to the camera direction
+========================== ==========================================
+
+Keyboard Shortcuts
+------------------
+
+==== ============================
+Key  Control
+==== ============================
+I    Show 3D viewer controls
+R    Start / Stop orbit animation
+W    Toggle wireframe mode
+==== ============================
 
 
 Widgets
@@ -248,30 +323,35 @@ Widgets
 
 * Navigation widget
 
-  ✏
+   This widget is the `ViewHelper <https://threejs.org/docs/#ViewHelper>`__ provided by three.js. It displays the current
+   camera orientation and allows you to align the camera with the X, Y, or Z axis by clicking the corresponding axis button.
 
 .. _north-arrow-dialog:
 
 * North arrow
 
-   Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.
+   Adds an arrow at the lower-left corner of the 3D view indicating grid north, which corresponds to the north
+   direction of the map coordinate system.
 
 .. _header-footer-labels:
 
 * Header/Footer label
 
-   Adds a header label to top-left corner of the web page and/or a footer label to lower-left corner.
-   Label text can contain valid HTML tags for styling.
+   Adds a header label to the top of the view and/or a footer label to the bottom.
+   The label text can include valid HTML tags for styling.
 
 
 DEM Layer
----------
-
-.. image:: ./images/dialogs/dem_layer.png
-    :scale: 50%
+=========
 
 Geometry
-^^^^^^^^
+--------
+
+.. figure:: ./images/dialogs/dem_layer.png
+
+   DEM Layer Properties Dialog - Geometry Tab
+
+✏
 
 * Resampling Method
 
@@ -308,7 +388,11 @@ Geometry
 
 
 Material
-^^^^^^^^
+--------
+
+.. figure:: ./images/dialogs/dem_layer2.png
+
+   DEM Layer Properties Dialog - Material Tab
 
 ✏
 
@@ -355,11 +439,14 @@ You can add a material to the list by clicking + button, selecting one of ``Sele
    Adds a shading effect to DEM surface. Checked by default.
 
 
-.. image:: ./images/dialogs/dem_layer2.png
-    :scale: 50%
+Others
+------
 
-Other Options
-^^^^^^^^^^^^^
+.. figure:: ./images/dialogs/dem_layer3.png
+
+   DEM Layer Properties Dialog - Other Options Tab
+
+✏
 
 * Build sides
 
@@ -385,10 +472,14 @@ Other Options
 
 
 Vector Layer
-------------
+============
 
-.. image:: ./images/dialogs/vector_layer.png
-    :scale: 50%
+Features
+--------
+
+.. figure:: ./images/dialogs/vector_layer.png
+
+   Vector Layer Properties Dialog - Features Tab
 
 Vector layers are grouped into three types: Point, Line and Polygon.
 Common properties for all types:
@@ -454,32 +545,36 @@ Common properties for all types:
    feature geometries. Attributes are displayed when you click an object on
    web browser.
 
-.. image:: ./images/dialogs/vector_layer2.png
-    :scale: 50%
+Labels
+------
 
-* Labels
+.. figure:: ./images/dialogs/vector_layer2.png
 
-   This combo box is not available when layer type is line.
+   Vector Layer Properties Dialog - Labels Tab
 
-   * Show labels
-     a label is displayed above each object.
-   * Position
-   * Text
-   * Fill background
-   * Connector
+This combo box is not available when layer type is line.
 
-.. image:: ./images/dialogs/vector_layer3.png
-    :scale: 50%
+* Show labels
+   a label is displayed above each object.
+* Position
+* Text
+* Fill background
+* Connector
 
-* Others
+Others
+------
 
-  * Name
+.. figure:: ./images/dialogs/vector_layer3.png
 
-  * Visible on Load
+   Vector Layer Properties Dialog - Other Options Tab
 
-    Whether the layer is visible on page load or not.
+* Name
 
-  * Clickable
+* Visible on Load
+
+   Whether the layer is visible on page load or not.
+
+* Clickable
 
 
 Point
@@ -518,7 +613,7 @@ See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for eac
 
 
 Point Cloud Layer
------------------
+=================
 
 * Information
   - URL
@@ -542,10 +637,10 @@ See also `Add Point Cloud Layer... <#add-point-cloud-layer>`__.
 
 
 Animation
----------
+=========
 
-Animation panel
-^^^^^^^^^^^^^^^
+Animation Panel
+---------------
 
 ✏
 
@@ -565,8 +660,8 @@ Animation panel
    :width: 50%
 
 
-Keyframe dialog
-^^^^^^^^^^^^^^^
+Keyframe Dialog
+---------------
 
 .. image:: ./images/dialogs/keyframe_camera.png
    :width: 50%
@@ -575,7 +670,7 @@ Keyframe dialog
 
 
 Export to Web Dialog
---------------------
+====================
 
 .. image:: ./images/dialogs/export_to_web.png
    :width: 50%
@@ -649,7 +744,7 @@ Export to Web Dialog
 
 
 Plugin Settings
----------------
+===============
 
 .. image:: ./images/dialogs/plugin_settings.png
    :width: 50%

@@ -38,24 +38,61 @@
 <nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#window" id="id1">Window</a></p></li>
-<li><p><a class="reference internal" href="#scene-settings" id="id2">Scene Settings</a></p></li>
-<li><p><a class="reference internal" href="#camera-settings" id="id3">Camera Settings</a></p></li>
-<li><p><a class="reference internal" href="#controls-settings" id="id4">Controls Settings</a></p></li>
-<li><p><a class="reference internal" href="#widgets" id="id5">Widgets</a></p></li>
-<li><p><a class="reference internal" href="#dem-layer" id="id6">DEM Layer</a></p></li>
-<li><p><a class="reference internal" href="#vector-layer" id="id7">Vector Layer</a></p></li>
-<li><p><a class="reference internal" href="#point-cloud-layer" id="id8">Point Cloud Layer</a></p></li>
-<li><p><a class="reference internal" href="#animation" id="id9">Animation</a></p></li>
-<li><p><a class="reference internal" href="#export-to-web-dialog" id="id10">Export to Web Dialog</a></p></li>
-<li><p><a class="reference internal" href="#plugin-settings" id="id11">Plugin Settings</a></p></li>
+<li><p><a class="reference internal" href="#window" id="id11">Window</a></p>
+<ul>
+<li><p><a class="reference internal" href="#menu" id="id12">Menu</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#scene-settings" id="id13">Scene Settings</a></p>
+<ul>
+<li><p><a class="reference internal" href="#world-tab" id="id14">World Tab</a></p></li>
+<li><p><a class="reference internal" href="#light-effects-tab" id="id15">Light &amp; Effects Tab</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#camera-settings" id="id16">Camera Settings</a></p></li>
+<li><p><a class="reference internal" href="#d-viewer-controls" id="id17">3D Viewer Controls</a></p>
+<ul>
+<li><p><a class="reference internal" href="#basic-controls" id="id18">Basic Controls</a></p></li>
+<li><p><a class="reference internal" href="#additional-controls" id="id19">Additional Controls</a></p></li>
+<li><p><a class="reference internal" href="#keyboard-shortcuts" id="id20">Keyboard Shortcuts</a></p></li>
+<li><p><a class="reference internal" href="#widgets" id="id21">Widgets</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#dem-layer" id="id22">DEM Layer</a></p>
+<ul>
+<li><p><a class="reference internal" href="#geometry" id="id23">Geometry</a></p></li>
+<li><p><a class="reference internal" href="#material" id="id24">Material</a></p></li>
+<li><p><a class="reference internal" href="#others" id="id25">Others</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#vector-layer" id="id26">Vector Layer</a></p>
+<ul>
+<li><p><a class="reference internal" href="#features" id="id27">Features</a></p></li>
+<li><p><a class="reference internal" href="#labels" id="id28">Labels</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id29">Others</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#point-cloud-layer" id="id30">Point Cloud Layer</a></p></li>
+<li><p><a class="reference internal" href="#animation" id="id31">Animation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#animation-panel" id="id32">Animation Panel</a></p></li>
+<li><p><a class="reference internal" href="#keyframe-dialog" id="id33">Keyframe Dialog</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#export-to-web-dialog" id="id34">Export to Web Dialog</a></p></li>
+<li><p><a class="reference internal" href="#plugin-settings" id="id35">Plugin Settings</a></p></li>
 </ul>
 </nav>
 <section id="window">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Window</a><a class="headerlink" href="#window" title="Link to this heading">¶</a></h2>
-<p>Qgis2threejs exporter window has <cite>Layers</cite> panel and <cite>Animation</cite> panel on the left side, and a preview on the right side
-when preview is available. Each panel can be moved to another position in the window or closed.</p>
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Window</a><a class="headerlink" href="#window" title="Link to this heading">¶</a></h2>
+<p>In the initial state, Qgis2threejs exporter window has <cite>Layers</cite> panel and <cite>Animation</cite> panel on the left side, and a preview
+on the right side when preview is available. Each panel can be moved to another position in the window or closed.</p>
+<figure class="align-default" id="id2">
 <img alt="_images/exporter1.png" src="_images/exporter1.png" />
+<figcaption>
+<p><span class="caption-text">Qgis2threejs Exporter</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>In this plugin, the word “export settings” means all configuration settings for a 3D scene and its viewer application.
 These include settings for the scene, camera, layers to be exported, animation, widgets on the web page, and more.
 You can configure these settings via the <a class="reference external" href="#scene">Scene</a> menu, the <cite>Layers</cite> panel, the <cite>Animation</cite> panel,
@@ -69,7 +106,7 @@ with a QGIS project. When the exporter is opened later, the project’s export s
 <p>The preview is automatically updated whenever export settings are changed.
 You can disable the preview by unchecking the <cite>Preview</cite> checkbox in the lower-right corner of the window.</p>
 <section id="menu">
-<h3>Menu<a class="headerlink" href="#menu" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Menu</a><a class="headerlink" href="#menu" title="Link to this heading">¶</a></h3>
 <ul>
 <li><p>File</p>
 <blockquote>
@@ -237,34 +274,51 @@ See <a class="reference external" href="#widgets">Widgets</a>.</p>
 </section>
 </section>
 <section id="scene-settings">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Scene Settings</a><a class="headerlink" href="#scene-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Scene Settings</a><a class="headerlink" href="#scene-settings" title="Link to this heading">¶</a></h2>
 <p>Scene settings dialog controls some basic configuration settings for current scene.
 Click on <code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Scene</span> <span class="pre">Settings...</span></code> menu entry to open the dialog.</p>
-<a class="reference internal image-reference" href="_images/scene_settings.png"><img alt="_images/scene_settings.png" class="align-right" src="_images/scene_settings.png" style="width: 232.0px; height: 345.5px;" />
-</a>
+<section id="world-tab">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">World Tab</a><a class="headerlink" href="#world-tab" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id3">
+<img alt="_images/scene_settings.png" src="_images/scene_settings.png" />
+<figcaption>
+<p><span class="caption-text">Scene Settings Dialog - World tab</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <ul>
 <li><p>World Coordinates</p>
 <blockquote>
 <div><ul>
 <li><p>Origin of xy-plane</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">Center</span> <span class="pre">of</span> <span class="pre">base</span> <span class="pre">extent</span></code>
-<code class="docutils literal notranslate"><span class="pre">Origin</span> <span class="pre">of</span> <span class="pre">map</span> <span class="pre">coordinate</span> <span class="pre">system</span></code></p>
+<div><p>Specifies where the origin point of the XY plane is located.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Center of base extent</dt><dd><p>Sets the center of the base extent defined below as the origin of the XY plane.
+Shifting the origin in this way helps maintain numerical precision when coordinate values are very large.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Origin of map coordinate system</dt><dd><p>Uses the original origin defined in the map coordinate system as the XY plane origin.</p>
+</dd>
+</dl>
+</li>
+</ul>
 </div></blockquote>
 </li>
 <li><p>Z exaggeration</p>
 <blockquote>
-<div><p>Vertical exaggeration factor. This value affects terrain shape and z
-positions of all vector 3D objects. This also affects 3D object height
-of some object types with volume. Shape types to be affected:</p>
+<div><p>Specifies the vertical exaggeration factor. This value affects terrain shape and the Z positions of all 3D vector objects.
+It also affects the height of certain volumetric 3D object types.</p>
+<p>The following shape types are affected:</p>
 <blockquote>
 <div><div class="line-block">
 <div class="line">Point : Cylinder, Cube, Cone</div>
 <div class="line">Polygon : Extruded</div>
 </div>
 </div></blockquote>
-<p>The following shape types have volume, but their heights aren’t
-affected by this factor:</p>
+<p>The following shape types have volume, but their heights are not affected by this factor:</p>
 <blockquote>
 <div><div class="line-block">
 <div class="line">Point : Sphere</div>
@@ -279,68 +333,128 @@ affected by this factor:</p>
 </li>
 <li><p>Base Extent</p>
 <blockquote>
-<div><ul class="simple">
-<li><p>Use map canvas extent</p></li>
-<li><p>Fixed extent</p></li>
-<li><p>Fix aspect ratio to 1:1
-Checked by default since version 2.7.</p></li>
+<div><p>Defines the spatial extent used as the base area for the scene.</p>
+<p>Select how the base extent is determined:</p>
+<ul>
+<li><p>Use map canvas extent</p>
+<blockquote>
+<div><p>Uses the current visible extent of the map canvas as the base extent. The extent automatically
+updates according to changes in the map view.</p>
+</div></blockquote>
+</li>
+<li><p>Fixed extent</p>
+<blockquote>
+<div><p>Uses a manually specified extent as the base extent. This option allows you to maintain a constant area
+regardless of changes in the map canvas view. The extent values can be set using the extent of a specific
+layer or by interactively selecting an area on the map canvas.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Additional option:</p>
+<ul>
+<li><p>Fix aspect ratio to 1:1</p>
+<blockquote>
+<div><p>Keeps the width and height of the base extent at a 1:1 ratio.
+This option is checked by default since version 2.7.</p>
+</div></blockquote>
+</li>
 </ul>
 </div></blockquote>
 </li>
 <li><p>Background</p>
 <blockquote>
-<div><p>Select either sky-like gradient or a solid color for the scene background.
-Default is Sky.</p>
+<div><p>Selects either a sky-like gradient or a solid color for the scene background.
+The default setting is Sky.</p>
 </div></blockquote>
 </li>
 <li><p>Display of coordinates</p>
 <blockquote>
-<div><p>If the <code class="docutils literal notranslate"><span class="pre">Latitude</span> <span class="pre">and</span> <span class="pre">longitude</span> <span class="pre">(WGS84)</span></code> option is selected,
-coordinates of clicked position on a 3D object are displayed in
-longitude and latitude (WGS84). If
-<a class="reference external" href="https://github.com/proj4js/proj4js">Proj4js</a> doesn’t support current
-map CRS, this option is disabled.</p>
+<div><p>If the <code class="docutils literal notranslate"><span class="pre">Latitude</span> <span class="pre">and</span> <span class="pre">longitude</span> <span class="pre">(WGS84)</span></code> option is selected, the coordinates of
+the clicked position on a 3D object are displayed as longitude and latitude (WGS84).
+If <a class="reference external" href="https://github.com/proj4js/proj4js">Proj4js</a> does not support current the map CRS,
+this option is disabled.</p>
 </div></blockquote>
 </li>
 </ul>
-<a class="reference internal image-reference" href="_images/scene_settings2.png"><img alt="_images/scene_settings2.png" src="_images/scene_settings2.png" style="width: 232.0px; height: 345.5px;" />
-</a>
+</section>
+<section id="light-effects-tab">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Light &amp; Effects Tab</a><a class="headerlink" href="#light-effects-tab" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id4">
+<img alt="_images/scene_settings2.png" src="_images/scene_settings2.png" />
+<figcaption>
+<p><span class="caption-text">Scene Settings Dialog - Light &amp; Effects Tab</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <ul>
-<li><p>Light
-<code class="docutils literal notranslate"><span class="pre">Directional</span> <span class="pre">light</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">lower</span> <span class="pre">left</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">2D</span> <span class="pre">map</span></code>
-<code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">light</span> <span class="pre">above</span> <span class="pre">the</span> <span class="pre">camera</span></code></p></li>
-<li><p>Fog
-Color and density.</p></li>
-<li><p>Material &amp; Effect</p>
+<li><p>Light</p>
+<blockquote>
+<div><p>Selects the light source used to illuminate the scene.</p>
+<ul>
+<li><p>Directional light from the lower left of the 2D map</p>
+<blockquote>
+<div><p>Simulates parallel light rays coming from the lower-left direction of the 2D map (the map displayed in the map canvas view).</p>
+</div></blockquote>
+</li>
+<li><p>Point light above the camera</p>
+<blockquote>
+<div><p>Simulates a point light source located above the camera position.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Fog</p>
+<blockquote>
+<div><p>Controls the fog effect applied to the scene.</p>
+<ul>
+<li><p>Color</p>
+<blockquote>
+<div><p>Specifies the color of the fog.</p>
+</div></blockquote>
+</li>
+<li><p>Density</p>
+<blockquote>
+<div><p>Specifies the density of the fog. Higher values increase the fog effect and reduce the visibility of distant objects.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Material &amp; Effects</p>
 <blockquote>
 <div><ul>
 <li><p>Basic material type</p>
 <blockquote>
-<div><p>Material type applied to most 3D objects, except for Point, Billboard, Model File and Line type objects.
+<div><p>Specifies the material type applied to most 3D objects, except for Point, Billboard, Model File and Line-type objects.
 Select a material type from
 <a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshLambertMaterial">Lambert material</a>,
-<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">Phong material</a> and
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">Phong material</a> or
 <a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshToonMaterial">Toon material</a>.
-Default is Lambert material.</p>
+The default is Lambert material.</p>
 </div></blockquote>
 </li>
-<li><p>Enable outline effect</p></li>
+<li><p>Enable outline effect</p>
+<blockquote>
+<div><p>Enables an outline effect around 3D objects, making object shapes more visually distinguishable.</p>
+</div></blockquote>
+</li>
 </ul>
 </div></blockquote>
 </li>
 </ul>
 </section>
+</section>
 <section id="camera-settings">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink">Camera Settings</a><a class="headerlink" href="#camera-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Camera Settings</a><a class="headerlink" href="#camera-settings" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Perspective Camera</p>
 <blockquote>
-<div><p>Renders closer objects as bigger and farther objects as smaller.</p>
+<div><p>Renders closer objects as larger and farther objects as smaller, creating a realistic sense of depth.</p>
 </div></blockquote>
 </li>
 <li><p>Orthographic Camera</p>
 <blockquote>
-<div><p>Rendered object size doesn’t depend on the distance from the camera.</p>
+<div><p>The rendered object size does not depend on the distance from the camera.</p>
 </div></blockquote>
 </li>
 </ul>
@@ -355,61 +469,108 @@ Default is Lambert material.</p>
 </tbody>
 </table>
 </section>
-<section id="controls-settings">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Controls Settings</a><a class="headerlink" href="#controls-settings" title="Link to this heading">¶</a></h2>
-<p>OrbitControls is available.</p>
+<section id="d-viewer-controls">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">3D Viewer Controls</a><a class="headerlink" href="#d-viewer-controls" title="Link to this heading">¶</a></h2>
+<p>Customized OrbitControls for Qgis2threejs are available.</p>
+<section id="basic-controls">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Basic Controls</a><a class="headerlink" href="#basic-controls" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Ctrl</p></th>
-<th class="head"><p>Mouse / Keys</p></th>
-<th class="head"><p>Touch</p></th>
+<tr class="row-odd"><th class="head"><p>Mouse / Key</p></th>
+<th class="head"><p>Control</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Orbit</p></td>
-<td><p>Left mouse</p></td>
-<td><p>One-finger move</p></td>
+<tr class="row-even"><td><p>Left button + drag</p></td>
+<td><p>Orbit (rotate around the focal point)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Zoom</p></td>
-<td><p>Middle mouse, or mousewheel</p></td>
-<td><p>Two-finger spread or squish</p></td>
+<tr class="row-odd"><td><p>Scroll wheel</p></td>
+<td><p>Zoom</p></td>
 </tr>
-<tr class="row-even"><td><p>Pan</p></td>
-<td><p>Right mouse, or left mouse + ctrl/metaKey, or arrow keys</p></td>
-<td><p>Two-finger move</p></td>
+<tr class="row-even"><td><p>Right button + drag</p></td>
+<td><p>Pan (move horizontally)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Arrow keys</p></td>
+<td><p>Pan (move horizontally)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-controls">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Additional Controls</a><a class="headerlink" href="#additional-controls" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mouse / Key</p></th>
+<th class="head"><p>Control</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Shift + Left button + drag</p></td>
+<td><p>Move perpendicular to the camera direction</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="keyboard-shortcuts">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Keyboard Shortcuts</a><a class="headerlink" href="#keyboard-shortcuts" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Control</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>I</p></td>
+<td><p>Show 3D viewer controls</p></td>
+</tr>
+<tr class="row-odd"><td><p>R</p></td>
+<td><p>Start / Stop orbit animation</p></td>
+</tr>
+<tr class="row-even"><td><p>W</p></td>
+<td><p>Toggle wireframe mode</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="widgets">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">Widgets</a><a class="headerlink" href="#widgets" title="Link to this heading">¶</a></h2>
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Widgets</a><a class="headerlink" href="#widgets" title="Link to this heading">¶</a></h3>
 <ul>
 <li><p>Navigation widget</p>
-<p>✏</p>
+<blockquote>
+<div><p>This widget is the <a class="reference external" href="https://threejs.org/docs/#ViewHelper">ViewHelper</a> provided by three.js. It displays the current
+camera orientation and allows you to align the camera with the X, Y, or Z axis by clicking the corresponding axis button.</p>
+</div></blockquote>
 </li>
 </ul>
 <ul id="north-arrow-dialog">
 <li><p>North arrow</p>
 <blockquote>
-<div><p>Adds an arrow that indicates the direction of grid North at the lower-left corner of the web page.</p>
+<div><p>Adds an arrow at the lower-left corner of the 3D view indicating grid north, which corresponds to the north
+direction of the map coordinate system.</p>
 </div></blockquote>
 </li>
 </ul>
 <ul id="header-footer-labels">
 <li><p>Header/Footer label</p>
 <blockquote>
-<div><p>Adds a header label to top-left corner of the web page and/or a footer label to lower-left corner.
-Label text can contain valid HTML tags for styling.</p>
+<div><p>Adds a header label to the top of the view and/or a footer label to the bottom.
+The label text can include valid HTML tags for styling.</p>
 </div></blockquote>
 </li>
 </ul>
 </section>
+</section>
 <section id="dem-layer">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">DEM Layer</a><a class="headerlink" href="#dem-layer" title="Link to this heading">¶</a></h2>
-<a class="reference internal image-reference" href="_images/dem_layer.png"><img alt="_images/dem_layer.png" src="_images/dem_layer.png" style="width: 232.0px; height: 335.5px;" />
-</a>
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">DEM Layer</a><a class="headerlink" href="#dem-layer" title="Link to this heading">¶</a></h2>
 <section id="geometry">
-<h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Geometry</a><a class="headerlink" href="#geometry" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id5">
+<img alt="_images/dem_layer.png" src="_images/dem_layer.png" />
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Geometry Tab</span><a class="headerlink" href="#id5" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>✏</p>
 <ul>
 <li><p>Resampling Method</p>
 <ul>
@@ -453,7 +614,13 @@ means that the number of grid points in the same area becomes 1/4.</p>
 </ul>
 </section>
 <section id="material">
-<h3>Material<a class="headerlink" href="#material" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Material</a><a class="headerlink" href="#material" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id6">
+<img alt="_images/dem_layer2.png" src="_images/dem_layer2.png" />
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Material Tab</span><a class="headerlink" href="#id6" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>✏</p>
 <p>The material list has one item <code class="docutils literal notranslate"><span class="pre">map</span> <span class="pre">(canvas)</span></code> by default.
 You can add a material to the list by clicking + button, selecting one of <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">layer(s)</span></code>, <code class="docutils literal notranslate"><span class="pre">Image</span> <span class="pre">file</span></code>,
@@ -504,11 +671,16 @@ for details.</p>
 </div></blockquote>
 </li>
 </ul>
-<a class="reference internal image-reference" href="_images/dem_layer2.png"><img alt="_images/dem_layer2.png" src="_images/dem_layer2.png" style="width: 232.0px; height: 335.5px;" />
-</a>
 </section>
-<section id="other-options">
-<h3>Other Options<a class="headerlink" href="#other-options" title="Link to this heading">¶</a></h3>
+<section id="others">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Others</a><a class="headerlink" href="#others" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id7">
+<img alt="_images/dem_layer3.png" src="_images/dem_layer3.png" />
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id7" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>✏</p>
 <ul>
 <li><p>Build sides</p>
 <blockquote>
@@ -536,9 +708,15 @@ JS file directly.</p>
 </section>
 </section>
 <section id="vector-layer">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">Vector Layer</a><a class="headerlink" href="#vector-layer" title="Link to this heading">¶</a></h2>
-<a class="reference internal image-reference" href="_images/vector_layer.png"><img alt="_images/vector_layer.png" src="_images/vector_layer.png" style="width: 232.0px; height: 359.0px;" />
-</a>
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Vector Layer</a><a class="headerlink" href="#vector-layer" title="Link to this heading">¶</a></h2>
+<section id="features">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Features</a><a class="headerlink" href="#features" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id8">
+<img alt="_images/vector_layer.png" src="_images/vector_layer.png" />
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Features Tab</span><a class="headerlink" href="#id8" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>Vector layers are grouped into three types: Point, Line and Polygon.
 Common properties for all types:</p>
 <ul>
@@ -627,38 +805,47 @@ web browser.</p>
 </div></blockquote>
 </li>
 </ul>
-<a class="reference internal image-reference" href="_images/vector_layer2.png"><img alt="_images/vector_layer2.png" src="_images/vector_layer2.png" style="width: 232.0px; height: 359.0px;" />
-</a>
-<ul>
-<li><p>Labels</p>
-<blockquote>
-<div><p>This combo box is not available when layer type is line.</p>
+</section>
+<section id="labels">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Labels</a><a class="headerlink" href="#labels" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id9">
+<img alt="_images/vector_layer2.png" src="_images/vector_layer2.png" />
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Labels Tab</span><a class="headerlink" href="#id9" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>This combo box is not available when layer type is line.</p>
 <ul class="simple">
-<li><p>Show labels
-a label is displayed above each object.</p></li>
+<li><dl class="simple">
+<dt>Show labels</dt><dd><p>a label is displayed above each object.</p>
+</dd>
+</dl>
+</li>
 <li><p>Position</p></li>
 <li><p>Text</p></li>
 <li><p>Fill background</p></li>
 <li><p>Connector</p></li>
 </ul>
-</div></blockquote>
-</li>
-</ul>
-<a class="reference internal image-reference" href="_images/vector_layer3.png"><img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" style="width: 232.0px; height: 359.0px;" />
-</a>
-<ul>
-<li><p>Others</p>
+</section>
+<section id="id1">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Others</a><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<figure class="align-default" id="id10">
+<img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" />
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id10" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
 <ul>
 <li><p>Name</p></li>
 <li><p>Visible on Load</p>
-<p>Whether the layer is visible on page load or not.</p>
+<blockquote>
+<div><p>Whether the layer is visible on page load or not.</p>
+</div></blockquote>
 </li>
 <li><p>Clickable</p></li>
 </ul>
-</li>
-</ul>
 <section id="point">
-<h3>Point<a class="headerlink" href="#point" title="Link to this heading">¶</a></h3>
+<h4>Point<a class="headerlink" href="#point" title="Link to this heading">¶</a></h4>
 <p>Point layers in the project are listed as the child items. The following
 shape types are available:</p>
 <blockquote>
@@ -667,7 +854,7 @@ shape types are available:</p>
 <p>See <a class="reference internal" href="ObjectTypes.html#object-types-point-layer"><span class="std std-ref">Point Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific properties.</p>
 </section>
 <section id="line">
-<h3>Line<a class="headerlink" href="#line" title="Link to this heading">¶</a></h3>
+<h4>Line<a class="headerlink" href="#line" title="Link to this heading">¶</a></h4>
 <p>Line layers in the project are listed as the child items. The following
 shape types are available:</p>
 <blockquote>
@@ -676,7 +863,7 @@ shape types are available:</p>
 <p>See <a class="reference internal" href="ObjectTypes.html#object-types-line-layer"><span class="std std-ref">Line Layer</span></a> section in <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page for each object type specific properties.</p>
 </section>
 <section id="polygon">
-<h3>Polygon<a class="headerlink" href="#polygon" title="Link to this heading">¶</a></h3>
+<h4>Polygon<a class="headerlink" href="#polygon" title="Link to this heading">¶</a></h4>
 <p>Polygon layers in the project are listed as the child items. The
 following shape types are available:</p>
 <blockquote>
@@ -687,8 +874,9 @@ following shape types are available:</p>
 </a>
 </section>
 </section>
+</section>
 <section id="point-cloud-layer">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">Point Cloud Layer</a><a class="headerlink" href="#point-cloud-layer" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Point Cloud Layer</a><a class="headerlink" href="#point-cloud-layer" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Information
 - URL</p>
@@ -722,9 +910,9 @@ following shape types are available:</p>
 <p>See also <a class="reference external" href="#add-point-cloud-layer">Add Point Cloud Layer…</a>.</p>
 </section>
 <section id="animation">
-<h2><a class="toc-backref" href="#id9" role="doc-backlink">Animation</a><a class="headerlink" href="#animation" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id31" role="doc-backlink">Animation</a><a class="headerlink" href="#animation" title="Link to this heading">¶</a></h2>
 <section id="animation-panel">
-<h3>Animation panel<a class="headerlink" href="#animation-panel" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Animation Panel</a><a class="headerlink" href="#animation-panel" title="Link to this heading">¶</a></h3>
 <p>✏</p>
 <ul>
 <li><p>Camera Motion</p>
@@ -743,14 +931,14 @@ following shape types are available:</p>
 </a>
 </section>
 <section id="keyframe-dialog">
-<h3>Keyframe dialog<a class="headerlink" href="#keyframe-dialog" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Keyframe Dialog</a><a class="headerlink" href="#keyframe-dialog" title="Link to this heading">¶</a></h3>
 <a class="reference internal image-reference" href="_images/keyframe_camera.png"><img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png" style="width: 50%;" />
 </a>
 <p>✏</p>
 </section>
 </section>
 <section id="export-to-web-dialog">
-<h2><a class="toc-backref" href="#id10" role="doc-backlink">Export to Web Dialog</a><a class="headerlink" href="#export-to-web-dialog" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id34" role="doc-backlink">Export to Web Dialog</a><a class="headerlink" href="#export-to-web-dialog" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/export_to_web.png"><img alt="_images/export_to_web.png" src="_images/export_to_web.png" style="width: 50%;" />
 </a>
 <ul>
@@ -832,7 +1020,7 @@ in <a class="reference external" href="#plugin-settings">Plugin Settings</a>).</
 </ul>
 </section>
 <section id="plugin-settings">
-<h2><a class="toc-backref" href="#id11" role="doc-backlink">Plugin Settings</a><a class="headerlink" href="#plugin-settings" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id35" role="doc-backlink">Plugin Settings</a><a class="headerlink" href="#plugin-settings" title="Link to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/plugin_settings.png"><img alt="_images/plugin_settings.png" src="_images/plugin_settings.png" style="width: 50%;" />
 </a>
 <ul>
