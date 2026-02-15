@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 2.9.2
+- Fixed vector properties dialog layout
+
 ### Version 2.9.1
 - Fixed a f-strings syntax error caused by nested quotes in Python versions earlier than 3.12
 
