@@ -194,47 +194,47 @@
               <item>
                <widget class="PropertyWidget" name="comboEdit_altitude2" native="true"/>
               </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_FilePath">
+             <property name="title">
+              <string>File &amp;Path</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
-               <widget class="QGroupBox" name="groupBox_FilePath">
-                <property name="title">
-                 <string>File &amp;Path</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_6">
-                 <item>
-                  <widget class="PropertyWidget" name="comboEdit_FilePath" native="true"/>
-                 </item>
-                </layout>
-               </widget>
+               <widget class="PropertyWidget" name="comboEdit_FilePath" native="true"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_Material">
+             <property name="title">
+              <string>&amp;Material</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_Material">
+              <item>
+               <widget class="PropertyWidget" name="comboEdit_Color" native="true"/>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_Geometry">
-                <property name="title">
-                 <string>&amp;Geometry</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_7">
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_Geometry"/>
-                 </item>
-                </layout>
-               </widget>
+               <widget class="PropertyWidget" name="comboEdit_Color2" native="true"/>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_Material">
-                <property name="title">
-                 <string>&amp;Material</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_Material">
-                 <item>
-                  <widget class="PropertyWidget" name="comboEdit_Color" native="true"/>
-                 </item>
-                 <item>
-                  <widget class="PropertyWidget" name="comboEdit_Color2" native="true"/>
-                 </item>
-                 <item>
-                  <widget class="PropertyWidget" name="comboEdit_Opacity" native="true"/>
-                 </item>
-                </layout>
-               </widget>
+               <widget class="PropertyWidget" name="comboEdit_Opacity" native="true"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_Geometry">
+             <property name="title">
+              <string>&amp;Geometry</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_Geometry"/>
               </item>
              </layout>
             </widget>
