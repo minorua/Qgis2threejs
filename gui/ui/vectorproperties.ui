@@ -70,9 +70,9 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_10">
            <item>
-            <widget class="QGroupBox" name="groupBox_Geometry">
+            <widget class="QGroupBox" name="groupBox_Shape">
              <property name="title">
-              <string>&amp;Geometry</string>
+              <string>&amp;Shape</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
@@ -113,7 +113,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_zCoordinate">
              <property name="title">
-              <string>&amp;Z coordinate</string>
+              <string>&amp;Z Coordinate</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
@@ -300,7 +300,7 @@
               <item>
                <widget class="QRadioButton" name="radioButton_IntersectingFeatures">
                 <property name="text">
-                 <string>Features that intersect with base extent of the scene</string>
+                 <string>Features that intersect with the base extent of the scene</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -565,7 +565,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_Background">
              <property name="title">
-              <string>Fill &amp;background</string>
+              <string>Fill &amp;Background</string>
              </property>
              <property name="checkable">
               <bool>true</bool>

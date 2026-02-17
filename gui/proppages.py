@@ -915,7 +915,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         for i in range(GEOM_WIDGET_MAX_COUNT):
             name = "geomWidget{}".format(i)
 
-            w = PropertyWidget(self.groupBox_Geometry)
+            w = PropertyWidget(self.groupBox_Shape)
             w.setObjectName(name)
 
             self.geomWidgets.append(w)
