@@ -161,43 +161,49 @@ class PropertyPage(QWidget):
     def restoreProperties(self, properties, widgets=None):
         widgets = widgets or self.propertyWidgets
 
-        for w in widgets:
-            v = properties.get(w.objectName())
-            if v is None:
-                continue
+        try:
+            for w in widgets:
+                v = properties.get(w.objectName())
+                if v is None:
+                    continue
 
-            if isinstance(w, QComboBox):
-                index = w.findData(v)
-                if index != -1:
-                    w.setCurrentIndex(index)
-                elif w.isEditable():
-                    w.setEditText(str(v))
+                if isinstance(w, QComboBox):
+                    index = w.findData(v)
+                    if index != -1:
+                        w.setCurrentIndex(index)
+                    elif w.isEditable():
+                        w.setEditText(str(v))
 
-            elif isinstance(w, (QRadioButton, QCheckBox, QGroupBox)):
-                w.setChecked(v)
+                elif isinstance(w, (QRadioButton, QCheckBox, QGroupBox)):
+                    w.setChecked(v)
 
-            elif isinstance(w, (QSlider, QSpinBox)):
-                w.setValue(v)
+                elif isinstance(w, (QSlider, QSpinBox)):
+                    w.setValue(v)
 
-            elif isinstance(w, QLineEdit):
-                w.setText(v)
-                w.setCursorPosition(0)
+                elif isinstance(w, QLineEdit):
+                    w.setText(v)
+                    w.setCursorPosition(0)
 
-            elif isinstance(w, PropertyWidget):
-                if len(v):
-                    w.setValues(v)
+                elif isinstance(w, PropertyWidget):
+                    if len(v):
+                        w.setValues(v)
 
-            elif isinstance(w, QgsFieldExpressionWidget):
-                w.setExpression(v)
+                elif isinstance(w, QgsFieldExpressionWidget):
+                    w.setExpression(v)
 
-            elif isinstance(w, QgsColorButton):
-                if isinstance(v, list):
-                    w.setColor(QColor(*v))
-                else:
-                    w.setColor(QColor(v.replace("0x", "#")))
+                elif isinstance(w, QgsColorButton):
+                    if isinstance(v, list):
+                        w.setColor(QColor(*v))
+                    else:
+                        w.setColor(QColor(v.replace("0x", "#")))
 
-            elif isinstance(w, HiddenProperty):
-                w.value = v
+                elif isinstance(w, HiddenProperty):
+                    w.value = v
+
+        except KeyError as _:
+            logger.error("Property read error: Unable to fully read properties. The settings file may have been saved with a newer plugin version. If the dialog cannot be opened, please clear the export settings.")
+            import traceback
+            logger.error(traceback.format_exc())
 
 
 class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
