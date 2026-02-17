@@ -248,14 +248,14 @@ class LineType(LineTypeBase):
 class ThickLineType(LineTypeBase):
 
     name = "Thick Line"
-    pids = [PID.C, PID.OP, PID.M0, PID.M1]
+    pids = [PID.C, PID.OP, PID.G0, PID.M0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Thickness", "defVal": 1},
-                                     {"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
+        ppage.setupWidgets(geomItems=[{"name": "Thickness", "defVal": 1}],
+                           mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0), feat.prop(PID.M1))}
+        return {"idx": self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.G0), feat.prop(PID.M0))}
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(flat=True)}
