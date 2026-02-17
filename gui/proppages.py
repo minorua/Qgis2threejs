@@ -958,7 +958,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             properties["colorButton_ConnColor"] = properties.get("colorButton_ConnColor", DEF_SETS.CONN_COLOR)
 
         else:
-            self.tabWidget.removeTab(1)
+            self.tabWidget.removeTab(self.tabWidget.indexOf(self.tabLabel))
 
         # register widgets
         widgets = [self.lineEdit_Name, self.comboBox_ObjectType]
@@ -1001,7 +1001,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         objType = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)
 
         if self.layer.type == LayerType.LINESTRING:
-            self.checkBox_Clickable.setEnabled(objType != ObjectType.ThickLine)
+            self.checkBox_Clickable.setVisible(objType != ObjectType.ThickLine)
 
         elif self.layer.type == LayerType.POLYGON:
             supportZM = (objType == ObjectType.Polygon)
@@ -1024,20 +1024,17 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
         if alt2:
             self.comboEdit_altitude2.setup(PropertyWidget.EXPRESSION, self.layer.mapLayer, {"name": "Other side Z"})
 
-        self.groupBox_FilePath.setVisible(bool(filepath))
+        self.comboEdit_FilePath.setVisible(bool(filepath))
         if filepath:
             self.comboEdit_FilePath.setup(PropertyWidget.FILEPATH, self.layer.mapLayer, filepath)
 
         # geometry
         geomItems = geomItems or []
-        if geomItems:
-            for i, opt in enumerate(geomItems):
-                self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
+        for i, opt in enumerate(geomItems):
+            self.geomWidgets[i].setup(opt.get("type", PropertyWidget.EXPRESSION), self.layer.mapLayer, opt)
 
-            for i in range(GEOM_WIDGET_MAX_COUNT):
-                self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
-
-        self.groupBox_Geometry.setVisible(bool(geomItems))
+        for i in range(GEOM_WIDGET_MAX_COUNT):
+            self.geomWidgets[i].setVisible(bool(i < len(geomItems)))
 
         # material
         self.comboEdit_Color.setVisible(color)
@@ -1054,6 +1051,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         for i in range(MTL_WIDGET_MAX_COUNT):
             self.mtlWidgets[i].setVisible(bool(i < len(mtlItems)))
+
+        self.groupBox_Material.setVisible(bool(color or color2 or opacity or mtlItems))
 
     def altitudeModeChanged(self, index):
         name = self.comboBox_ObjectType.currentData()

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>526</height>
+    <height>478</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Features</string>
+       <string>Styling</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="leftMargin">
@@ -65,35 +65,50 @@
             <x>0</x>
             <y>0</y>
             <width>356</width>
-            <height>520</height>
+            <height>472</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_10">
            <item>
-            <layout class="QFormLayout" name="formLayout_Type">
-             <property name="leftMargin">
-              <number>13</number>
+            <widget class="QGroupBox" name="groupBox_Geometry">
+             <property name="title">
+              <string>&amp;Geometry</string>
              </property>
-             <property name="rightMargin">
-              <number>13</number>
-             </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_ObjectType">
-               <property name="minimumSize">
-                <size>
-                 <width>60</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Type</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QComboBox" name="comboBox_ObjectType"/>
-             </item>
-            </layout>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <layout class="QFormLayout" name="formLayout_Type">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_ObjectType">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Type</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="comboBox_ObjectType"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="PropertyWidget" name="comboEdit_FilePath" native="true"/>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_Geometry"/>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_zCoordinate">
@@ -198,18 +213,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_FilePath">
-             <property name="title">
-              <string>File &amp;Path</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <widget class="PropertyWidget" name="comboEdit_FilePath" native="true"/>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <widget class="QGroupBox" name="groupBox_Material">
              <property name="title">
               <string>&amp;Material</string>
@@ -228,23 +231,65 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_Geometry">
-             <property name="title">
-              <string>&amp;Geometry</string>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_Geometry"/>
-              </item>
-             </layout>
-            </widget>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabFeature">
+      <attribute name="title">
+       <string>Features</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QScrollArea" name="scrollArea2">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>356</width>
+            <height>472</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_13">
            <item>
             <widget class="QGroupBox" name="groupBox_Features">
              <property name="title">
               <string>&amp;Features</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
                <widget class="QRadioButton" name="radioButton_AllFeatures">
                 <property name="text">
@@ -287,7 +332,7 @@
              <property name="title">
               <string>Attributes</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_9">
+             <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
                <widget class="QCheckBox" name="checkBox_ExportAttrs">
                 <property name="text">
@@ -302,7 +347,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_3">
+            <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -338,20 +383,20 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QScrollArea" name="scrollArea_2">
+        <widget class="QScrollArea" name="scrollArea3">
          <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_2">
+         <widget class="QWidget" name="scrollAreaWidgetContents3">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>356</width>
-            <height>520</height>
+            <height>472</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -709,40 +754,30 @@
   <tabstop>radioButton_Expression</tabstop>
   <tabstop>radioButton_zValue</tabstop>
   <tabstop>radioButton_mValue</tabstop>
+  <tabstop>scrollArea2</tabstop>
   <tabstop>radioButton_AllFeatures</tabstop>
   <tabstop>radioButton_IntersectingFeatures</tabstop>
   <tabstop>checkBox_Clip</tabstop>
   <tabstop>checkBox_ExportAttrs</tabstop>
+  <tabstop>checkBox_Label</tabstop>
   <tabstop>comboBox_FontFamily</tabstop>
   <tabstop>slider_FontSize</tabstop>
   <tabstop>colorButton_Label</tabstop>
   <tabstop>checkBox_Outline</tabstop>
   <tabstop>colorButton_OtlColor</tabstop>
+  <tabstop>groupBox_Background</tabstop>
   <tabstop>colorButton_BgColor</tabstop>
+  <tabstop>groupBox_Conn</tabstop>
   <tabstop>colorButton_ConnColor</tabstop>
   <tabstop>checkBox_Underline</tabstop>
   <tabstop>lineEdit_Name</tabstop>
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>scrollArea3</tabstop>
  </tabstops>
  <resources/>
  <connections>
-  <connection>
-   <sender>radioButton_IntersectingFeatures</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>checkBox_Clip</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>205</x>
-     <y>449</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>235</x>
-     <y>476</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>checkBox_Outline</sender>
    <signal>toggled(bool)</signal>
