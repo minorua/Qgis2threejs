@@ -25,5 +25,9 @@ rst_epilog = '.. include:: replace_images.txt'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_permalinks_icon = '<span>#</span>'
+html_theme = 'sphinxawesome_theme'
+html_theme_options = {
+    "show_prev_next": True
+}
 html_static_path = ['_static']
