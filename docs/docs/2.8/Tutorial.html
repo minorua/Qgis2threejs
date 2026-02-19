@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial &#8212; Qgis2threejs Plugin 2.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=4348de45"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Exporter" href="Exporter.html" />
+    <link rel="prev" title="Examples" href="Examples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading">¶</a></h1>
+<p>Let’s start using Qgis2threejs plugin!</p>
+<section id="install-the-plugin">
+<h2>Install the plugin<a class="headerlink" href="#install-the-plugin" title="Link to this heading">¶</a></h2>
+<p>Open the Plugin Manager (<code class="docutils literal notranslate"><span class="pre">Plugins</span> <span class="pre">&gt;</span> <span class="pre">Manage</span> <span class="pre">and</span> <span class="pre">Install</span> <span class="pre">Plugins...</span></code>) and
+install Qgis2threejs plugin.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Need help? See the <a class="reference external" href="https://docs.qgis.org/3.22/en/docs/training_manual/qgis_plugins/fetching_plugins.html#ls-installing-and-managing-plugins">9.1. Installing and Managing Plugins</a> section of
+the QGIS training manual.</p>
+</div>
+</section>
+<section id="obtain-elevation-data">
+<h2>Obtain elevation data<a class="headerlink" href="#obtain-elevation-data" title="Link to this heading">¶</a></h2>
+<p>If you already have raster DEM data, you can skip this step.</p>
+<p>NASA published elevation data generated from NASA’s
+<a class="reference external" href="https://www2.jpl.nasa.gov/srtm/index.html">Shuttle Radar Topography Mission</a> digital topographic data.
+We can use the data freely. SRTM elevation data can be
+downloaded from the <a class="reference external" href="https://earthexplorer.usgs.gov/">EarthExplorer</a> (User registration required).</p>
+<p>✏</p>
+</section>
+<section id="load-dem-data">
+<h2>Load DEM data<a class="headerlink" href="#load-dem-data" title="Link to this heading">¶</a></h2>
+<p>✏</p>
+</section>
+<section id="crs-setting">
+<h2>CRS setting<a class="headerlink" href="#crs-setting" title="Link to this heading">¶</a></h2>
+<p>Horizontal unit of SRTM data is degree, whereas vertical unit is meter.
+For appropriate visualization, you need to transform the DEM data to
+a projected CRS. QGIS can perform the CRS transformation on the fly.</p>
+<p>So, let’s change the <em>current project CRS</em> to a <em>projected CRS</em>.</p>
+<p>Click the CRS status icon <img alt="crs_icon" src="_images/crsicon.png" /> in the bottom-right corner of the window to
+open the project properties dialog, and then select a suitable CRS for the DEM extent.
+If you don’t know which CRS is best suited, select the Spherical Mercator projection
+(<code class="docutils literal notranslate"><span class="pre">EPSG:3857</span></code>), which is adopted by many web maps.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the Spherical Mercator projection, every feature size is horizontally
+larger than actual size except those of features on the equator.
+At latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice.</p>
+</div>
+</section>
+<section id="layer-styling">
+<h2>Layer styling<a class="headerlink" href="#layer-styling" title="Link to this heading">¶</a></h2>
+<p>Open the Layer Properties dialog for the DEM layer and colorize the DEM layer richly.</p>
+<p>An example (<code class="docutils literal notranslate"><span class="pre">Singleband</span> <span class="pre">pseudocolor</span></code> render type and inverted <code class="docutils literal notranslate"><span class="pre">BrBG</span></code> color map):</p>
+<img alt="_images/qgis_styling.png" src="_images/qgis_styling.png" />
+</section>
+<section id="open-the-exporter">
+<h2>Open the Exporter<a class="headerlink" href="#open-the-exporter" title="Link to this heading">¶</a></h2>
+<p>Zoom to a part of the DEM layer extent as the map canvas is filled by the colorized DEM layer,
+and then click the plugin icon <img alt="plugin_icon" src="_images/Qgis2threejs24.png" /> in the web toolbar to open the Qgis2threejs exporter.</p>
+<p>There is <code class="docutils literal notranslate"><span class="pre">Layers</span></code> panel and <code class="docutils literal notranslate"><span class="pre">Animation</span></code> panel on the left side of the window.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Layers</span></code> panel shows the map layers in the current QGIS project that can be added to the 3D scene.
+Layer items are grouped by type. DEM layer group has 1-band raster layers in current QGIS project and
+a <cite>Flat Plane</cite> (a flat plane at an altitude). Multi-band raster layers and raster layers loaded using
+a provider other than GDAL provider are not available. Additional flat planes can be added from
+<code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Add</span> <span class="pre">Layer</span></code> menu.</p>
+<p>There is a preview on the right side. The scene doesn’t contain any 3D objects now.</p>
+<p>Let’s add the DEM layer into the scene. Just click the checkbox on the left of the DEM layer
+under the DEM layer group.</p>
+<img alt="_images/exporter11.png" src="_images/exporter11.png" />
+<p>A 3D terrain object with map canvas image draped on it shows up in the preview.</p>
+</section>
+<section id="add-another-texture-to-dem">
+<h2>Add another texture to DEM<a class="headerlink" href="#add-another-texture-to-dem" title="Link to this heading">¶</a></h2>
+<p>✏</p>
+</section>
+<section id="export-the-scene-to-web">
+<h2>Export the scene to Web<a class="headerlink" href="#export-the-scene-to-web" title="Link to this heading">¶</a></h2>
+<p>Click on the <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">-</span> <span class="pre">Export</span> <span class="pre">to</span> <span class="pre">Web...</span></code> menu entry to open this dialog.</p>
+<img alt="_images/export_to_web.png" src="_images/export_to_web.png" />
+<p>Select a directory to export the scene, check <code class="docutils literal notranslate"><span class="pre">Enable</span> <span class="pre">the</span> <span class="pre">Viewer</span> <span class="pre">to</span> <span class="pre">Run</span> <span class="pre">Locally</span></code> option and press <code class="docutils literal notranslate"><span class="pre">Export</span></code> button.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Most web browsers do not allow loading data files on local file system via Ajax.
+With <code class="docutils literal notranslate"><span class="pre">Enable</span> <span class="pre">the</span> <span class="pre">Viewer</span> <span class="pre">to</span> <span class="pre">Run</span> <span class="pre">Locally</span></code> option the plugin outputs geometry and image data into a js file.</p>
+</div>
+<img alt="_images/exported_directory.png" src="_images/exported_directory.png" />
+<p>Open the .html file with a web browser. You can see exported scene in web browser.</p>
+<img alt="_images/browser_edge1.png" src="_images/browser_edge1.png" />
+<p>You can publish the exported 3D viewer application and data just by uploading the output folder to
+a web hosting service such as Netlify and GitHub Pages.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please do not forget to ensure that you comply with
+the Terms and use for the data before publishing the data to the web.</p>
+</div>
+</section>
+<section id="animation-and-narratives">
+<h2>Animation and narratives<a class="headerlink" href="#animation-and-narratives" title="Link to this heading">¶</a></h2>
+<p>✏</p>
+</section>
+<section id="in-conclusion">
+<h2>In conclusion<a class="headerlink" href="#in-conclusion" title="Link to this heading">¶</a></h2>
+<p>Tutorial is over. Now you know 3D visualization with QGIS is very easy.
+If you can use high-quality data, you can create beautiful 3D scenes!</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Next, how about adding a background map layer to the map canvas.
+You can do it easily with <a class="reference external" href="https://plugins.qgis.org/plugins/quick_map_services/">QuickMapServices plugin</a>. Also, how about adding
+vector data to the scene. <a class="reference internal" href="ObjectTypes.html"><span class="doc">Object Types</span></a> page has images of various object
+types. See <a class="reference internal" href="Exporter.html"><span class="doc">Exporter</span></a> for the detail.</p>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Qgis2threejs Plugin</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exporter.html">Exporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ObjectTypes.html">Object Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WebViewerTemplates.html">Web Viewer Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingProcessingAlgorithm.html">Export Scenes using Processing Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingPython.html">Export Scenes Programmatically using Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Development.html">Development</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Examples.html" title="previous chapter">Examples</a></li>
+      <li>Next: <a href="Exporter.html" title="next chapter">Exporter</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2014, Minoru Akagi.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/Tutorial.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

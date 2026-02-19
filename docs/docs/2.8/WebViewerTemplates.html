@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Web Viewer Templates &#8212; Qgis2threejs Plugin 2.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=4348de45"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Export Scenes using Processing Algorithm" href="ExportUsingProcessingAlgorithm.html" />
+    <link rel="prev" title="Object Types" href="ObjectTypes.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="web-viewer-templates">
+<h1>Web Viewer Templates<a class="headerlink" href="#web-viewer-templates" title="Link to this heading">¶</a></h1>
+<p>In Export to Web dialog, you can choose one from following available
+web viewer templates:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#dviewer-template"><span class="std std-ref">3D Viewer Template</span></a></p></li>
+<li><p><a class="reference internal" href="#dviewer-dat-gui-template"><span class="std std-ref">3D Viewer(dat-gui) Template</span></a></p></li>
+<li><p><a class="reference internal" href="#mobile-template"><span class="std std-ref">Mobile Template</span></a></p></li>
+</ul>
+<section id="common-functions">
+<h2>Common Functions<a class="headerlink" href="#common-functions" title="Link to this heading">¶</a></h2>
+<p>There is a list of mouse/keyboard controls in about box.
+Press <code class="docutils literal notranslate"><span class="pre">I</span></code> key to show the box.</p>
+<section id="identifying-features">
+<h3>Identifying Features<a class="headerlink" href="#identifying-features" title="Link to this heading">¶</a></h3>
+<p>When you click on a 3D object, layer name that the object belongs to
+and the clicked coordinates (in order of x, y, z) are displayed.
+If <code class="docutils literal notranslate"><span class="pre">Latitude</span> <span class="pre">and</span> <span class="pre">longitude</span> <span class="pre">(WGS84)</span></code> option in World Settings is
+selected, longitude and latitude are in DMS format (degrees, minutes
+and seconds). If <code class="docutils literal notranslate"><span class="pre">Export</span> <span class="pre">attributes</span></code> option of each vector layer
+is selected, attribute values of the clicked feature follows them.</p>
+</section>
+<section id="rotate-animation-orbiting">
+<h3>Rotate Animation (Orbiting)<a class="headerlink" href="#rotate-animation-orbiting" title="Link to this heading">¶</a></h3>
+<p>Pressing <code class="docutils literal notranslate"><span class="pre">R</span></code> key starts/stops rotate animation. Camera rotates around
+the camera target clockwise.</p>
+</section>
+<section id="save-image">
+<h3>Save Image<a class="headerlink" href="#save-image" title="Link to this heading">¶</a></h3>
+<p>Press <code class="docutils literal notranslate"><span class="pre">Shift</span> <span class="pre">+</span> <span class="pre">S</span></code> to show save image dialog, then enter image size and
+click the OK button. In addition, with some web browsers, you need to
+click a link to save image. The image file format is PNG. To change label
+color and/or adjust label size, edit <code class="docutils literal notranslate"><span class="pre">Qgis2threejs.css</span></code> (<code class="docutils literal notranslate"><span class="pre">print-label</span></code> class).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A known issue: Wrong image output if the size is too large (<a class="reference external" href="https://github.com/minorua/Qgis2threejs/issues/42">issue #42</a>)</p>
+</div>
+</section>
+<section id="url-parameters">
+<h3>URL Parameters<a class="headerlink" href="#url-parameters" title="Link to this heading">¶</a></h3>
+<p>You can get current view URL in the about box, and later restore the
+view by entering the URL in the URL box of web browser.</p>
+<p>Parameters used in view URL:</p>
+<ul class="simple">
+<li><p>cx, cy, cz: camera position</p></li>
+<li><p>tx, ty, tz: camera target</p></li>
+</ul>
+<p>For example,
+<a class="reference external" href="file:///D:/example.html#cx=-64.8428840144039&amp;cy=-40.75234765087484&amp;cz=24.603200058346065">file:///D:/example.html#cx=-64.8428840144039&amp;cy=-40.75234765087484&amp;cz=24.603200058346065</a></p>
+<p>Other parameters:</p>
+<ul class="simple">
+<li><p>width: canvas width (pixels)</p></li>
+<li><p>height: canvas height (pixels)</p></li>
+<li><p>popup: pop up another window with specified width and height</p></li>
+</ul>
+</section>
+</section>
+<section id="d-viewer-template">
+<span id="dviewer-template"></span><h2>3D Viewer Template<a class="headerlink" href="#d-viewer-template" title="Link to this heading">¶</a></h2>
+<p>This template is a simple 3D viewer.
+Ragardless of “Visible on load” layer setting, all exported layers are displayed on page load.</p>
+</section>
+<section id="d-viewer-dat-gui-template">
+<span id="dviewer-dat-gui-template"></span><h2>3D Viewer(dat-gui) Template<a class="headerlink" href="#d-viewer-dat-gui-template" title="Link to this heading">¶</a></h2>
+<p>This template has a dat-gui panel, which allows changing layer visibility and opacity, and adding a horizontal plane.</p>
+<section id="controls-box">
+<h3>Controls Box<a class="headerlink" href="#controls-box" title="Link to this heading">¶</a></h3>
+<p>The controls box has:</p>
+<ul>
+<li><p>layer sub menus</p>
+<blockquote>
+<div><p>Each sub menu has:</p>
+<ul class="simple">
+<li><p>a check box to toggle layer visibility</p></li>
+<li><p>a slider to change layer opacity</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>sub menu to control a vertically movable plane</p></li>
+<li><p>help button to show the about box</p></li>
+</ul>
+</section>
+</section>
+<section id="mobile-template">
+<span id="id2"></span><h2>Mobile Template<a class="headerlink" href="#mobile-template" title="Link to this heading">¶</a></h2>
+<p>This is a template for mobile devices, which has mobile friendly GUI and experimental AR feature.
+In order to use the AR feature (Camera and GPS), you need to upload exported files to a web server supporting SSL.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Qgis2threejs Plugin</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exporter.html">Exporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ObjectTypes.html">Object Types</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Web Viewer Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingProcessingAlgorithm.html">Export Scenes using Processing Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExportUsingPython.html">Export Scenes Programmatically using Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Development.html">Development</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="ObjectTypes.html" title="previous chapter">Object Types</a></li>
+      <li>Next: <a href="ExportUsingProcessingAlgorithm.html" title="next chapter">Export Scenes using Processing Algorithm</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2014, Minoru Akagi.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/WebViewerTemplates.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
