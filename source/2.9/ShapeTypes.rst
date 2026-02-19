@@ -1,11 +1,11 @@
-Object Types
+Shape Types
 ============
 
-.. contents::
-   :depth: 1
-   :local:
+.. warning::
 
---------------
+   This page has not been updated for a while and may contain outdated information.
+   Please wait while we update it.
+
 
 .. _object-types-point-layer:
 

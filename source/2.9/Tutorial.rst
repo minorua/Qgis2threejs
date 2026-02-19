@@ -1,6 +1,12 @@
 Tutorial
 ========
 
+.. warning::
+
+   This page has not been updated for a while and may contain outdated information.
+   Please wait while we update it.
+
+
 Let's start using Qgis2threejs plugin!
 
 Install the plugin
@@ -152,7 +158,7 @@ If you can use high-quality data, you can create beautiful 3D scenes!
 
 .. tip:: Next, how about adding a background map layer to the map canvas.
    You can do it easily with `QuickMapServices plugin`__. Also, how about adding
-   vector data to the scene. :doc:`ObjectTypes` page has images of various object
+   vector data to the scene. :doc:`ShapeTypes` page has images of various shape
    types. See :doc:`Exporter` for the detail.
 
 __ https://plugins.qgis.org/plugins/quick_map_services/
