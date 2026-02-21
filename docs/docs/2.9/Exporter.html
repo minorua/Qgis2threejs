@@ -1,8 +1,10 @@
 <!DOCTYPE html>
+<html lang="en" data-content_root="./"
+  x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}"
+  :class="{ 'dark' : darkMode === true }">
 
-<html :class="{ 'dark' : darkMode === true }" data-content_root="./" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
 <head>
-<script>
+  <script>
     (function () {
       // Set initial color scheme
       if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
@@ -16,61 +18,95 @@
       });
     })();
   </script>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta charset="utf-8"/>
-<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
-<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Exporter | Qgis2threejs Plugin 2.9 documentation</title>
-<meta content="Exporter | Qgis2threejs Plugin 2.9 documentation" property="og:title"/>
-<meta content="Exporter | Qgis2threejs Plugin 2.9 documentation" name="twitter:title"/>
-<link href="_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
-<link href="_static/theme.css?v=73505e79" rel="stylesheet" type="text/css"/>
-<link href="search.html" rel="search" title="Search"/>
-<link href="genindex.html" rel="index" title="Index"/>
-<link href="ShapeTypes.html" rel="next" title="Shape Types"/>
-<link href="Tutorial.html" rel="prev" title="Tutorial"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#030711" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Exporter | Qgis2threejs Plugin 2.9 documentation</title>
+  <meta property="og:title" content="Exporter | Qgis2threejs Plugin 2.9 documentation" />
+  <meta name="twitter:title" content="Exporter | Qgis2threejs Plugin 2.9 documentation" />
+  <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e72c8e07" />
+  <link rel="stylesheet" type="text/css" href="_static/theme.css?v=73505e79" />
+  <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ac9e4c0d" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="next" title="Shape Types" href="ShapeTypes.html" />
+  <link rel="prev" title="Tutorial" href="Tutorial.html" />
 </head>
-<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
-<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+
+<body x-data="{ showSidebar: false, showScrollTop: false }"
+  class="min-h-screen font-sans antialiased bg-background text-foreground" :class="{ 'overflow-hidden': showSidebar }">
+  <div x-cloak x-show="showSidebar"
+    class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden"
+    @click.self="showSidebar = false"></div><div id="page" class="relative flex flex-col min-h-screen"><a href="#content"
+      class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100">
       Skip to content
     </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
-<div class="hidden mr-4 md:flex">
-<a class="flex items-center mr-6" href="index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
-</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
-<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
-<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
-</svg>
-<span class="sr-only">Toggle navigation menu</span>
-</button>
-<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
-<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="search.html" class="relative flex items-center group" id="searchbox" method="get">
-<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
-<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
-<span class="text-xs">⌘</span>
+    <div class="hidden mr-4 md:flex">
+      <a href="index.html" class="flex items-center mr-6"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
+      </a></div><button
+      class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden"
+      type="button" @click="showSidebar = true">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 96 960 960" aria-hidden="true"
+        fill="currentColor">
+        <path
+          d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z" />
+      </svg>
+      <span class="sr-only">Toggle navigation menu</span>
+    </button>
+    <div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+      <div class="flex-1 w-full md:w-auto md:flex-none"><form id="searchbox"
+      action="search.html"
+      method="get"
+      class="relative flex items-center group"
+      @keydown.k.window.meta="$refs.search.focus()">
+  <input x-ref="search"
+          name="q"
+          id="search-input"
+          type="search"
+          aria-label="Search the docs"
+          placeholder="Search ..."
+          class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" />
+  <kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+    <span class="text-xs">⌘</span>
     K
   </kbd>
 </form>
-</div>
-<nav class="flex items-center gap-1">
-<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
-<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
-<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
-</svg>
-<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
-<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
-</svg>
-</button>
-</nav>
-</div>
-</div>
+      </div>
+      <nav class="flex items-center gap-1">
+        <button @click="darkMode = !darkMode"
+          class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          type="button"
+          title="Toggle color scheme">
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 96 960 960" fill="currentColor"
+            class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0">
+            <path
+              d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 96 960 960" fill="currentColor"
+            class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100">
+            <path
+              d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z" />
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </div>
 </header>
-<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
-<a class="justify-start text-sm md:!hidden bg-background" href="index.html"><span class="font-bold text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
-</a>
-<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
-<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+
+    <div class="flex-1"><div
+        class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside id="left-sidebar"
+  class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky"
+  :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }">
+
+    <a href="index.html" class="justify-start text-sm md:!hidden bg-background"><span class="font-bold text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
+    </a>
+
+    <div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+      <div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Tutorial.html">Tutorial</a></li>
@@ -79,33 +115,49 @@
 <li class="toctree-l1"><a class="reference internal" href="3DViewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Development.html">Development</a></li>
 </ul>
+
 </nav>
-</div>
-</div>
-<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
-<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
-<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
-</svg>
-</button>
-</aside>
-<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      </div>
+    </div>
+    <button type="button" @click="showSidebar = false"
+      class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 96 960 960" fill="currentColor"
+        stroke="none" class="h-4 w-4">
+        <path
+          d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z" />
+      </svg>
+    </button>
+  </aside>
+          <main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
 <div class="w-full min-w-0 mx-auto">
-<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
-<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="index.html">
-<span class="hidden md:inline">Qgis2threejs Plugin 2.9 documentation</span>
-<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
-<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
-</svg>
-</a>
-<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Exporter</span>
+<nav aria-label="breadcrumbs"
+     class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+  <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground"
+     href="index.html">
+    <span class="hidden md:inline">Qgis2threejs Plugin 2.9 documentation</span>
+    <svg xmlns="http://www.w3.org/2000/svg"
+         height="18"
+         width="18"
+         viewBox="0 96 960 960"
+         aria-label="Home"
+         fill="currentColor"
+         stroke="none"
+         class="md:hidden">
+      <path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z" />
+    </svg>
+  </a>
+  
+<div class="mr-1">/</div><span aria-current="page"
+        class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Exporter</span>
 </nav>
-<div id="content" role="main">
-<section id="exporter">
+
+    <div id="content" role="main">
+      <section id="exporter">
 <h1>Exporter<a class="headerlink" href="#exporter" title="Link to this heading"><span>#</span></a></h1>
 <p>This page explains how to configure settings from the menus and panels, including related property dialogs, and how to create
 animations and export data. For information on preview controls, see the <a class="reference internal" href="3DViewer.html"><span class="doc">3D Viewer</span></a> page.</p>
 <figure class="align-default" id="id3">
-<img alt="_images/exporter1.png" src="_images/exporter1.png"/>
+<img alt="_images/exporter1.png" src="_images/exporter1.png" />
 <figcaption>
 <p><span class="caption-text">Qgis2threejs Exporter</span><a class="headerlink" href="#id3" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -121,9 +173,9 @@ with a QGIS project. When the exporter is opened later, the project’s export s
 <p>The preview is automatically updated whenever export settings are changed.
 You can disable the preview by unchecking the <cite>Preview</cite> checkbox in the lower-right corner of the window.</p>
 <section id="menu">
-<h2>Menu<a class="headerlink" href="#menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#menu'"><span>#</span></a></h2>
+<h2>Menu<a class="headerlink" href="#menu" title="Link to this heading"><span>#</span></a></h2>
 <section id="file-menu">
-<h3>File Menu<a class="headerlink" href="#file-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#file-menu'"><span>#</span></a></h3>
+<h3>File Menu<a class="headerlink" href="#file-menu" title="Link to this heading"><span>#</span></a></h3>
 <ul>
 <li><dl class="simple">
 <dt>Export to Web…</dt><dd><p>Exports files for publishing the current scene to the web. See <a class="reference external" href="#export-to-web-dialog">Export to Web Dialog</a>.</p>
@@ -166,7 +218,7 @@ You can disable the preview by unchecking the <cite>Preview</cite> checkbox in t
 </ul>
 </section>
 <section id="scene-menu">
-<h3>Scene Menu<a class="headerlink" href="#scene-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#scene-menu'"><span>#</span></a></h3>
+<h3>Scene Menu<a class="headerlink" href="#scene-menu" title="Link to this heading"><span>#</span></a></h3>
 <ul>
 <li><dl class="simple">
 <dt>Scene Settings…</dt><dd><p>Opens the Scene Settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a>.</p>
@@ -201,7 +253,7 @@ See also <a class="reference external" href="#point-cloud-layer">Point Cloud Lay
 </ul>
 </section>
 <section id="view-menu">
-<h3>View Menu<a class="headerlink" href="#view-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#view-menu'"><span>#</span></a></h3>
+<h3>View Menu<a class="headerlink" href="#view-menu" title="Link to this heading"><span>#</span></a></h3>
 <ul class="simple">
 <li><dl class="simple">
 <dt>Camera</dt><dd><p>Changes the camera. See <a class="reference external" href="#camera-settings">Camera Settings</a>.</p>
@@ -222,7 +274,7 @@ See <a class="reference external" href="#widgets">Widgets</a>.</p>
 </ul>
 </section>
 <section id="window-menu">
-<h3>Window Menu<a class="headerlink" href="#window-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#window-menu'"><span>#</span></a></h3>
+<h3>Window Menu<a class="headerlink" href="#window-menu" title="Link to this heading"><span>#</span></a></h3>
 <ul>
 <li><p>Panels</p>
 <blockquote>
@@ -248,7 +300,7 @@ See <a class="reference external" href="#widgets">Widgets</a>.</p>
 </ul>
 </section>
 <section id="help-menu">
-<h3>Help Menu<a class="headerlink" href="#help-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#help-menu'"><span>#</span></a></h3>
+<h3>Help Menu<a class="headerlink" href="#help-menu" title="Link to this heading"><span>#</span></a></h3>
 <ul class="simple">
 <li><dl class="simple">
 <dt>Usage of 3D Viewer</dt><dd><p>Displays the controls for the 3D viewer in the web view.</p>
@@ -279,13 +331,13 @@ See <a class="reference external" href="#widgets">Widgets</a>.</p>
 </section>
 </section>
 <section id="scene-settings">
-<h2>Scene Settings<a class="headerlink" href="#scene-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#scene-settings'"><span>#</span></a></h2>
+<h2>Scene Settings<a class="headerlink" href="#scene-settings" title="Link to this heading"><span>#</span></a></h2>
 <p>Scene settings dialog controls some basic configuration settings for current scene.
 Click on <code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Scene</span> <span class="pre">Settings...</span></code> menu entry to open the dialog.</p>
 <section id="world">
-<h3>World<a class="headerlink" href="#world" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#world'"><span>#</span></a></h3>
+<h3>World<a class="headerlink" href="#world" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id4">
-<img alt="_images/scene_settings.png" src="_images/scene_settings.png"/>
+<img alt="_images/scene_settings.png" src="_images/scene_settings.png" />
 <figcaption>
 <p><span class="caption-text">Scene Settings Dialog - World Tab</span><a class="headerlink" href="#id4" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -379,9 +431,9 @@ this option is disabled.</p>
 </section>
 </section>
 <section id="light-effects">
-<h3>Light &amp; Effects<a class="headerlink" href="#light-effects" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#light-effects'"><span>#</span></a></h3>
+<h3>Light &amp; Effects<a class="headerlink" href="#light-effects" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id5">
-<img alt="_images/scene_settings2.png" src="_images/scene_settings2.png"/>
+<img alt="_images/scene_settings2.png" src="_images/scene_settings2.png" />
 <figcaption>
 <p><span class="caption-text">Scene Settings Dialog - Light &amp; Effects Tab</span><a class="headerlink" href="#id5" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -441,7 +493,7 @@ The default is Lambert material.</p>
 </section>
 </section>
 <section id="camera-settings">
-<h2>Camera Settings<a class="headerlink" href="#camera-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#camera-settings'"><span>#</span></a></h2>
+<h2>Camera Settings<a class="headerlink" href="#camera-settings" title="Link to this heading"><span>#</span></a></h2>
 <ul>
 <li><p>Perspective Camera</p>
 <blockquote>
@@ -459,36 +511,36 @@ The default is Lambert material.</p>
 <tr class="row-odd"><td><p>Perspective camera</p></td>
 <td><p>Orthographic camera</p></td>
 </tr>
-<tr class="row-even"><td><p><img alt="Perspective Camera" src="_images/perspective.png"/></p></td>
-<td><p><img alt="Orthographic Camera" src="_images/orthographic.png"/></p></td>
+<tr class="row-even"><td><p><img alt="Perspective Camera" src="_images/perspective.png" /></p></td>
+<td><p><img alt="Orthographic Camera" src="_images/orthographic.png" /></p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="widgets">
-<h2>Widgets<a class="headerlink" href="#widgets" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#widgets'"><span>#</span></a></h2>
+<h2>Widgets<a class="headerlink" href="#widgets" title="Link to this heading"><span>#</span></a></h2>
 <section id="navigation-widget">
-<h3>Navigation Widget<a class="headerlink" href="#navigation-widget" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#navigation-widget'"><span>#</span></a></h3>
+<h3>Navigation Widget<a class="headerlink" href="#navigation-widget" title="Link to this heading"><span>#</span></a></h3>
 <p>This widget is the <a class="reference external" href="https://threejs.org/docs/#ViewHelper">ViewHelper</a> provided by three.js. It displays the current
 camera orientation and allows you to align the camera with the X, Y, or Z axis by clicking the corresponding axis button.</p>
 </section>
 <section id="north-arrow">
-<span id="north-arrow-dialog"></span><h3>North Arrow<a class="headerlink" href="#north-arrow" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#north-arrow'"><span>#</span></a></h3>
+<span id="north-arrow-dialog"></span><h3>North Arrow<a class="headerlink" href="#north-arrow" title="Link to this heading"><span>#</span></a></h3>
 <p>Adds an arrow at the lower-left corner of the 3D view indicating grid north, which corresponds to the north
 direction of the map coordinate system.</p>
 </section>
 <section id="header-footer-label">
-<span id="header-footer-labels"></span><h3>Header/Footer Label<a class="headerlink" href="#header-footer-label" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#header-footer-label'"><span>#</span></a></h3>
+<span id="header-footer-labels"></span><h3>Header/Footer Label<a class="headerlink" href="#header-footer-label" title="Link to this heading"><span>#</span></a></h3>
 <p>Adds a header label to the top of the view and/or a footer label to the bottom.
 The label text can include valid HTML tags for styling.</p>
 </section>
 </section>
 <section id="dem-layer">
-<h2>DEM Layer<a class="headerlink" href="#dem-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#dem-layer'"><span>#</span></a></h2>
+<h2>DEM Layer<a class="headerlink" href="#dem-layer" title="Link to this heading"><span>#</span></a></h2>
 <section id="geometry">
-<h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#geometry'"><span>#</span></a></h3>
+<h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id6">
-<img alt="_images/dem_layer.png" src="_images/dem_layer.png"/>
+<img alt="_images/dem_layer.png" src="_images/dem_layer.png" />
 <figcaption>
 <p><span class="caption-text">DEM Layer Properties Dialog - Geometry Tab</span><a class="headerlink" href="#id6" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -566,9 +618,9 @@ block is doubled. This means that the number of grid points within the same area
 </section>
 </section>
 <section id="material">
-<h3>Material<a class="headerlink" href="#material" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#material'"><span>#</span></a></h3>
+<h3>Material<a class="headerlink" href="#material" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id7">
-<img alt="_images/dem_layer2.png" src="_images/dem_layer2.png"/>
+<img alt="_images/dem_layer2.png" src="_images/dem_layer2.png" />
 <figcaption>
 <p><span class="caption-text">DEM Layer Properties Dialog - Material Tab</span><a class="headerlink" href="#id7" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -631,9 +683,9 @@ TIFF is not supported by some browsers. See <a class="reference external" href="
 </section>
 </section>
 <section id="others">
-<h3>Others<a class="headerlink" href="#others" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#others'"><span>#</span></a></h3>
+<h3>Others<a class="headerlink" href="#others" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id8">
-<img alt="_images/dem_layer3.png" src="_images/dem_layer3.png"/>
+<img alt="_images/dem_layer3.png" src="_images/dem_layer3.png" />
 <figcaption>
 <p><span class="caption-text">DEM Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id8" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -675,16 +727,16 @@ such as displaying information about the clicked position or triggering actions.
 </section>
 </section>
 <section id="vector-layer">
-<h2>Vector Layer<a class="headerlink" href="#vector-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#vector-layer'"><span>#</span></a></h2>
+<h2>Vector Layer<a class="headerlink" href="#vector-layer" title="Link to this heading"><span>#</span></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We are currently revising the layout of the vector layer properties dialog.
 The following explanation is based on the layout of the upcoming version 2.9.3.</p>
 </div>
 <section id="styling">
-<h3>Styling<a class="headerlink" href="#styling" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#styling'"><span>#</span></a></h3>
+<h3>Styling<a class="headerlink" href="#styling" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id9">
-<img alt="_images/vector_layer.png" src="_images/vector_layer.png"/>
+<img alt="_images/vector_layer.png" src="_images/vector_layer.png" />
 <figcaption>
 <p><span class="caption-text">Vector Layer Properties Dialog - Styling Tab</span><a class="headerlink" href="#id9" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -765,9 +817,9 @@ They are not available when the shape type is set to <strong>Extruded</strong> o
 </section>
 </section>
 <section id="features">
-<h3>Features<a class="headerlink" href="#features" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#features'"><span>#</span></a></h3>
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id10">
-<img alt="_images/vector_layer2.png" src="_images/vector_layer2.png"/>
+<img alt="_images/vector_layer2.png" src="_images/vector_layer2.png" />
 <figcaption>
 <p><span class="caption-text">Vector Layer Properties Dialog - Features Tab</span><a class="headerlink" href="#id10" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -806,9 +858,9 @@ Attributes are displayed when an object is clicked in a web browser.</p>
 </section>
 </section>
 <section id="labels">
-<h3>Labels<a class="headerlink" href="#labels" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#labels'"><span>#</span></a></h3>
+<h3>Labels<a class="headerlink" href="#labels" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id11">
-<img alt="_images/vector_layer3.png" src="_images/vector_layer3.png"/>
+<img alt="_images/vector_layer3.png" src="_images/vector_layer3.png" />
 <figcaption>
 <p><span class="caption-text">Vector Layer Properties Dialog - Labels Tab</span><a class="headerlink" href="#id11" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -897,9 +949,9 @@ determined relative to the corresponding objects.</p>
 </section>
 </section>
 <section id="id2">
-<h3>Others<a class="headerlink" href="#id2" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id2'"><span>#</span></a></h3>
+<h3>Others<a class="headerlink" href="#id2" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id12">
-<img alt="_images/vector_layer4.png" src="_images/vector_layer4.png"/>
+<img alt="_images/vector_layer4.png" src="_images/vector_layer4.png" />
 <figcaption>
 <p><span class="caption-text">Vector Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id12" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -925,7 +977,7 @@ determined relative to the corresponding objects.</p>
 </section>
 </section>
 <section id="point-cloud-layer">
-<h2>Point Cloud Layer<a class="headerlink" href="#point-cloud-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#point-cloud-layer'"><span>#</span></a></h2>
+<h2>Point Cloud Layer<a class="headerlink" href="#point-cloud-layer" title="Link to this heading"><span>#</span></a></h2>
 <ul>
 <li><p>URL</p>
 <blockquote>
@@ -975,11 +1027,11 @@ determined relative to the corresponding objects.</p>
 <p>See also <a class="reference external" href="#add-point-cloud-layer">Add Point Cloud Layer…</a>.</p>
 </section>
 <section id="animation">
-<h2>Animation<a class="headerlink" href="#animation" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation'"><span>#</span></a></h2>
+<h2>Animation<a class="headerlink" href="#animation" title="Link to this heading"><span>#</span></a></h2>
 <section id="animation-panel">
-<h3>Animation Panel<a class="headerlink" href="#animation-panel" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation-panel'"><span>#</span></a></h3>
+<h3>Animation Panel<a class="headerlink" href="#animation-panel" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id13">
-<img alt="_images/panel.png" src="_images/panel.png"/>
+<img alt="_images/panel.png" src="_images/panel.png" />
 <figcaption>
 <p><span class="caption-text">Animation Panel</span><a class="headerlink" href="#id13" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -1003,7 +1055,7 @@ layer must be checked in the Layer Panel.</p>
 and the duration of the transition. If text or HTML is entered in the Narrative text box, a popup will be displayed at the time of the
 corresponding keyframe during animation playback.</p>
 <figure class="align-default" id="id14">
-<img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png"/>
+<img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png" />
 <figcaption>
 <p><span class="caption-text">Keyframe Dialog</span><a class="headerlink" href="#id14" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -1011,9 +1063,9 @@ corresponding keyframe during animation playback.</p>
 </section>
 </section>
 <section id="animation-structure">
-<h3>Animation Structure<a class="headerlink" href="#animation-structure" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation-structure'"><span>#</span></a></h3>
+<h3>Animation Structure<a class="headerlink" href="#animation-structure" title="Link to this heading"><span>#</span></a></h3>
 <figure class="align-default" id="id15">
-<img alt="_images/tween.png" src="_images/tween.png"/>
+<img alt="_images/tween.png" src="_images/tween.png" />
 <figcaption>
 <p><span class="caption-text">The structure of an animation composed of multiple tracks</span><a class="headerlink" href="#id15" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -1049,9 +1101,9 @@ in sequence.</p>
 </section>
 </section>
 <section id="export-to-web-dialog">
-<h2>Export to Web Dialog<a class="headerlink" href="#export-to-web-dialog" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#export-to-web-dialog'"><span>#</span></a></h2>
+<h2>Export to Web Dialog<a class="headerlink" href="#export-to-web-dialog" title="Link to this heading"><span>#</span></a></h2>
 <figure class="align-default" id="id16">
-<img alt="_images/export_to_web.png" src="_images/export_to_web.png"/>
+<img alt="_images/export_to_web.png" src="_images/export_to_web.png" />
 <figcaption>
 <p><span class="caption-text">Export to Web Dialog</span><a class="headerlink" href="#id16" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -1140,9 +1192,9 @@ you can open the exported directory or page by clicking the hyperlink in the log
 </ul>
 </section>
 <section id="plugin-settings">
-<h2>Plugin Settings<a class="headerlink" href="#plugin-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plugin-settings'"><span>#</span></a></h2>
+<h2>Plugin Settings<a class="headerlink" href="#plugin-settings" title="Link to this heading"><span>#</span></a></h2>
 <figure class="align-default" id="id17">
-<img alt="_images/plugin_settings.png" src="_images/plugin_settings.png"/>
+<img alt="_images/plugin_settings.png" src="_images/plugin_settings.png" />
 <figcaption>
 <p><span class="caption-text">Exporter Settings Dialog</span><a class="headerlink" href="#id17" title="Link to this image"><span>#</span></a></p>
 </figcaption>
@@ -1163,125 +1215,151 @@ See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/
 </ul>
 </section>
 </section>
-</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
-<div class="mr-auto">
-<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="Tutorial.html">
-<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-<polyline points="15 18 9 12 15 6"></polyline>
-</svg>
+
+    </div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+    <div class="mr-auto">
+      <a href="Tutorial.html"
+         class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="mr-2 h-4 w-4">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
         Tutorial
       </a>
-</div>
-<div class="ml-auto">
-<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="ShapeTypes.html">
+    </div>
+    <div class="ml-auto">
+      <a href="ShapeTypes.html"
+         class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4">
         Shape Types
-        <svg class="ml-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-<polyline points="9 18 15 12 9 6"></polyline>
-</svg>
-</a>
-</div>
-</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
-<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
-<ul>
-<li><a :data-current="activeSection === '#menu'" class="reference internal" href="#menu">Menu</a><ul>
-<li><a :data-current="activeSection === '#file-menu'" class="reference internal" href="#file-menu">File Menu</a></li>
-<li><a :data-current="activeSection === '#scene-menu'" class="reference internal" href="#scene-menu">Scene Menu</a></li>
-<li><a :data-current="activeSection === '#view-menu'" class="reference internal" href="#view-menu">View Menu</a></li>
-<li><a :data-current="activeSection === '#window-menu'" class="reference internal" href="#window-menu">Window Menu</a></li>
-<li><a :data-current="activeSection === '#help-menu'" class="reference internal" href="#help-menu">Help Menu</a></li>
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="ml-2 h-4 w-4">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    </div>
+</div></div><aside id="right-sidebar" class="hidden text-sm xl:block">
+  <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+    <ul>
+<li><a class="reference internal" href="#menu">Menu</a><ul>
+<li><a class="reference internal" href="#file-menu">File Menu</a></li>
+<li><a class="reference internal" href="#scene-menu">Scene Menu</a></li>
+<li><a class="reference internal" href="#view-menu">View Menu</a></li>
+<li><a class="reference internal" href="#window-menu">Window Menu</a></li>
+<li><a class="reference internal" href="#help-menu">Help Menu</a></li>
 </ul>
 </li>
-<li><a :data-current="activeSection === '#scene-settings'" class="reference internal" href="#scene-settings">Scene Settings</a><ul>
-<li><a :data-current="activeSection === '#world'" class="reference internal" href="#world">World</a><ul>
-<li><a :data-current="activeSection === '#world-coordinates'" class="reference internal" href="#world-coordinates">World Coordinates</a></li>
-<li><a :data-current="activeSection === '#base-extent'" class="reference internal" href="#base-extent">Base Extent</a></li>
-<li><a :data-current="activeSection === '#background'" class="reference internal" href="#background">Background</a></li>
-<li><a :data-current="activeSection === '#display-of-coordinates'" class="reference internal" href="#display-of-coordinates">Display of coordinates</a></li>
+<li><a class="reference internal" href="#scene-settings">Scene Settings</a><ul>
+<li><a class="reference internal" href="#world">World</a><ul>
+<li><a class="reference internal" href="#world-coordinates">World Coordinates</a></li>
+<li><a class="reference internal" href="#base-extent">Base Extent</a></li>
+<li><a class="reference internal" href="#background">Background</a></li>
+<li><a class="reference internal" href="#display-of-coordinates">Display of coordinates</a></li>
 </ul>
 </li>
-<li><a :data-current="activeSection === '#light-effects'" class="reference internal" href="#light-effects">Light &amp; Effects</a><ul>
-<li><a :data-current="activeSection === '#light'" class="reference internal" href="#light">Light</a></li>
-<li><a :data-current="activeSection === '#fog'" class="reference internal" href="#fog">Fog</a></li>
-<li><a :data-current="activeSection === '#material-effects'" class="reference internal" href="#material-effects">Material &amp; Effects</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#camera-settings'" class="reference internal" href="#camera-settings">Camera Settings</a></li>
-<li><a :data-current="activeSection === '#widgets'" class="reference internal" href="#widgets">Widgets</a><ul>
-<li><a :data-current="activeSection === '#navigation-widget'" class="reference internal" href="#navigation-widget">Navigation Widget</a></li>
-<li><a :data-current="activeSection === '#north-arrow'" class="reference internal" href="#north-arrow">North Arrow</a></li>
-<li><a :data-current="activeSection === '#header-footer-label'" class="reference internal" href="#header-footer-label">Header/Footer Label</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#dem-layer'" class="reference internal" href="#dem-layer">DEM Layer</a><ul>
-<li><a :data-current="activeSection === '#geometry'" class="reference internal" href="#geometry">Geometry</a><ul>
-<li><a :data-current="activeSection === '#resampling-method'" class="reference internal" href="#resampling-method">Resampling Method</a></li>
-<li><a :data-current="activeSection === '#clipping'" class="reference internal" href="#clipping">Clipping</a></li>
-<li><a :data-current="activeSection === '#surrounding-tiles'" class="reference internal" href="#surrounding-tiles">Surrounding Tiles</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#material'" class="reference internal" href="#material">Material</a><ul>
-<li><a :data-current="activeSection === '#material-list'" class="reference internal" href="#material-list">Material List</a></li>
-<li><a :data-current="activeSection === '#settings-for-each-material-item'" class="reference internal" href="#settings-for-each-material-item">Settings for each material item</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#others'" class="reference internal" href="#others">Others</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#vector-layer'" class="reference internal" href="#vector-layer">Vector Layer</a><ul>
-<li><a :data-current="activeSection === '#styling'" class="reference internal" href="#styling">Styling</a><ul>
-<li><a :data-current="activeSection === '#shape'" class="reference internal" href="#shape">Shape</a></li>
-<li><a :data-current="activeSection === '#z-coordinate'" class="reference internal" href="#z-coordinate">Z Coordinate</a></li>
-<li><a :data-current="activeSection === '#id1'" class="reference internal" href="#id1">Material</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#features'" class="reference internal" href="#features">Features</a><ul>
-<li><a :data-current="activeSection === '#attributes'" class="reference internal" href="#attributes">Attributes</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#labels'" class="reference internal" href="#labels">Labels</a><ul>
-<li><a :data-current="activeSection === '#position'" class="reference internal" href="#position">Position</a></li>
-<li><a :data-current="activeSection === '#text'" class="reference internal" href="#text">Text</a></li>
-<li><a :data-current="activeSection === '#fill-background'" class="reference internal" href="#fill-background">Fill Background</a></li>
-<li><a :data-current="activeSection === '#connector'" class="reference internal" href="#connector">Connector</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#id2'" class="reference internal" href="#id2">Others</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#point-cloud-layer'" class="reference internal" href="#point-cloud-layer">Point Cloud Layer</a></li>
-<li><a :data-current="activeSection === '#animation'" class="reference internal" href="#animation">Animation</a><ul>
-<li><a :data-current="activeSection === '#animation-panel'" class="reference internal" href="#animation-panel">Animation Panel</a><ul>
-<li><a :data-current="activeSection === '#animation-basics'" class="reference internal" href="#animation-basics">Animation Basics</a></li>
-<li><a :data-current="activeSection === '#adding-tracks-and-keyframes'" class="reference internal" href="#adding-tracks-and-keyframes">Adding Tracks and Keyframes</a></li>
-<li><a :data-current="activeSection === '#editing-keyframes'" class="reference internal" href="#editing-keyframes">Editing Keyframes</a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#animation-structure'" class="reference internal" href="#animation-structure">Animation Structure</a><ul>
-<li><a :data-current="activeSection === '#types-of-animation-tracks'" class="reference internal" href="#types-of-animation-tracks">Types of Animation Tracks</a></li>
+<li><a class="reference internal" href="#light-effects">Light &amp; Effects</a><ul>
+<li><a class="reference internal" href="#light">Light</a></li>
+<li><a class="reference internal" href="#fog">Fog</a></li>
+<li><a class="reference internal" href="#material-effects">Material &amp; Effects</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a :data-current="activeSection === '#export-to-web-dialog'" class="reference internal" href="#export-to-web-dialog">Export to Web Dialog</a></li>
-<li><a :data-current="activeSection === '#plugin-settings'" class="reference internal" href="#plugin-settings">Plugin Settings</a></li>
+<li><a class="reference internal" href="#camera-settings">Camera Settings</a></li>
+<li><a class="reference internal" href="#widgets">Widgets</a><ul>
+<li><a class="reference internal" href="#navigation-widget">Navigation Widget</a></li>
+<li><a class="reference internal" href="#north-arrow">North Arrow</a></li>
+<li><a class="reference internal" href="#header-footer-label">Header/Footer Label</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dem-layer">DEM Layer</a><ul>
+<li><a class="reference internal" href="#geometry">Geometry</a><ul>
+<li><a class="reference internal" href="#resampling-method">Resampling Method</a></li>
+<li><a class="reference internal" href="#clipping">Clipping</a></li>
+<li><a class="reference internal" href="#surrounding-tiles">Surrounding Tiles</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#material">Material</a><ul>
+<li><a class="reference internal" href="#material-list">Material List</a></li>
+<li><a class="reference internal" href="#settings-for-each-material-item">Settings for each material item</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vector-layer">Vector Layer</a><ul>
+<li><a class="reference internal" href="#styling">Styling</a><ul>
+<li><a class="reference internal" href="#shape">Shape</a></li>
+<li><a class="reference internal" href="#z-coordinate">Z Coordinate</a></li>
+<li><a class="reference internal" href="#id1">Material</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#features">Features</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#labels">Labels</a><ul>
+<li><a class="reference internal" href="#position">Position</a></li>
+<li><a class="reference internal" href="#text">Text</a></li>
+<li><a class="reference internal" href="#fill-background">Fill Background</a></li>
+<li><a class="reference internal" href="#connector">Connector</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">Others</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#point-cloud-layer">Point Cloud Layer</a></li>
+<li><a class="reference internal" href="#animation">Animation</a><ul>
+<li><a class="reference internal" href="#animation-panel">Animation Panel</a><ul>
+<li><a class="reference internal" href="#animation-basics">Animation Basics</a></li>
+<li><a class="reference internal" href="#adding-tracks-and-keyframes">Adding Tracks and Keyframes</a></li>
+<li><a class="reference internal" href="#editing-keyframes">Editing Keyframes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#animation-structure">Animation Structure</a><ul>
+<li><a class="reference internal" href="#types-of-animation-tracks">Types of Animation Tracks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#export-to-web-dialog">Export to Web Dialog</a></li>
+<li><a class="reference internal" href="#plugin-settings">Plugin Settings</a></li>
 </ul>
 </div>
 </aside>
-</main>
-</div>
-</div><footer class="py-6 border-t border-border md:py-0">
-<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2014, Minoru Akagi Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+          </main>
+        </div>
+      </div><footer class="py-6 border-t border-border md:py-0">
+    <div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+      <div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+        <p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2014, Minoru Akagi&nbsp;Built with <a class="font-medium underline underline-offset-4"
+    href="https://www.sphinx-doc.org"
+    rel="noreferrer">Sphinx 9.1.0</a></p>
 </div>
 </div>
 </footer>
-</div>
-<script src="_static/documentation_options.js?v=e7305a5c"></script>
-<script src="_static/doctools.js?v=fd6eb6e6"></script>
-<script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-<script defer="defer" src="_static/theme.js?v=582b20c5"></script>
+    </div>
+    
+    <script src="_static/documentation_options.js?v=e7305a5c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="_static/theme.js?v=582b20c5"></script>
+    
 </body>
+
 </html>
