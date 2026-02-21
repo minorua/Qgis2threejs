@@ -211,10 +211,6 @@
         "enabled": true,
         "tracks": []
       },
-      "plugin:gsielevtile": {
-        "enabled": true,
-        "tracks": []
-      },
       "polygon120150915163203246": {
         "enabled": true,
         "tracks": []
@@ -240,6 +236,10 @@
         "tracks": []
       },
       "pt520150915163206841": {
+        "enabled": true,
+        "tracks": []
+      },
+      "pt6_09a906ce_807f_4ab3_9133_313a5b5decc6": {
         "enabled": true,
         "tracks": []
       }
@@ -585,7 +585,7 @@
           "type": 5
         },
         "comboEdit_altitude2": {},
-        "expression_Label": "\"pk\"",
+        "expression_Label": "\"label\"",
         "fieldExpressionWidget_altitude": "0",
         "geomWidget0": {
           "comboData": null,
@@ -607,7 +607,7 @@
         "labelHeightWidget": {
           "comboData": 1,
           "comboText": "Relative",
-          "editText": "50",
+          "editText": "6000",
           "type": 6
         },
         "lineEdit_Name": "",
@@ -706,6 +706,117 @@
           "comboData": 1,
           "comboText": "Relative",
           "editText": "50",
+          "type": 6
+        },
+        "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
+        "radioButton_Expression": true,
+        "radioButton_IntersectingFeatures": true,
+        "slider_FontSize": 3
+      },
+      "visible": true
+    },
+    {
+      "geomType": 1,
+      "layerId": "pt6_09a906ce_807f_4ab3_9133_313a5b5decc6",
+      "name": "pt6",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
+        "checkBox_Visible": true,
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "3D Model",
+        "comboBox_altitudeMode": "dem_srtm3020150914165149263",
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {
+          "comboData": 1,
+          "comboText": "File path or URL",
+          "editText": "\"url\"",
+          "type": 3
+        },
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"name\"",
+        "fieldExpressionWidget_altitude": "2000",
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"scale\"",
+          "type": 1
+        },
+        "geomWidget1": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "0",
+          "type": 1
+        },
+        "geomWidget2": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "0",
+          "type": 1
+        },
+        "geomWidget3": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "\"rz\"",
+          "type": 1
+        },
+        "geomWidget4": {
+          "comboData": "XYZ",
+          "type": 10
+        },
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "1000",
           "type": 6
         },
         "lineEdit_Name": "",
@@ -1322,13 +1433,6 @@
     },
     {
       "geomType": 0,
-      "layerId": "plugin:gsielevtile",
-      "name": "GSI Elevation Tile",
-      "properties": {},
-      "visible": false
-    },
-    {
-      "geomType": 0,
       "layerId": "fp:89c5f24c",
       "name": "Flat Plane (-4000)",
       "properties": {
@@ -1928,7 +2032,7 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20800,
+  "Version": 20902,
   "WIDGETS": {
     "Label": {
       "Footer": "",

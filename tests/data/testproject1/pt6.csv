@@ -1,0 +1,3 @@
+pk,name,url,scale,rz,WKT
+1,Engine,https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/2CylinderEngine/glTF-Binary/2CylinderEngine.glb,10,0,POINT (138.3 34.65)
+2,Engine,https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/2CylinderEngine/glTF-Binary/2CylinderEngine.glb,10,45,POINT (138.4 34.65)
