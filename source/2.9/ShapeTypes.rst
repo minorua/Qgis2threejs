@@ -1,13 +1,11 @@
 Shape Types
-============
+===========
 
 .. warning::
 
    This page has not been updated for a while and may contain outdated information.
    Please wait while we update it.
 
-
-.. _object-types-point-layer:
 
 Point Layer
 -----------
@@ -17,76 +15,57 @@ Point Layer
 `Billboard <#billboard>`__ \| `Model File <#model-file>`__
 
 
-.. index:: Sphere
+.. index:: Sphere (Point Layer)
 
 Sphere
 ~~~~~~
 
-Sphere with specified radius, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/point/Sphere.jpg
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Radius
+            Radius of sphere (numeric value).
 
-.. image:: ./images/point/Sphere.jpg
+       **Origin**
 
-.. raw:: html
+         Sphere center
 
-   </td><td>
+       **three.js geometry class**
 
-**Specific settings** :
-
-* Radius
-    Numerical value.
-
-**Origin** :
-
-    center of sphere
-
-**three.js geometry class:**
-
-    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+         `SphereGeometry <https://threejs.org/docs/#SphereGeometry>`__
 
 
-.. index:: Cylinder
+.. index:: Cylinder (Point Layer)
 
 Cylinder
 ~~~~~~~~
 
-Cylinder with specified radius, height, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/point/Cylinder.jpg
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Radius
+            Radius of cylinder (numeric value).
 
-.. image:: ./images/point/Cylinder.jpg
+         * Height
+            Height of cylinder (numeric value).
 
-.. raw:: html
+       **Origin**
 
-   </td><td>
+        Bottom center (when height > 0)
 
-**Specific settings** :
+       **three.js geometry class**
 
-* Radius
-    Numerical value.
-* Height
-    Numerical value.
-
-**Origin** :
-
-    center of bottom (if height > 0)
-
-**three.js geometry class:**
-
-    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+         `CylinderGeometry <https://threejs.org/docs/#CylinderGeometry>`__
 
 
 .. index:: Cone (Point Layer)
@@ -94,36 +73,28 @@ Cylinder with specified radius, height, color and opacity
 Cone
 ~~~~
 
-Cone with specified radius, height, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/point/Cone.jpg
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Radius
+            Radius of cone (numeric value).
 
-.. image:: ./images/point/Cone.jpg
+         * Height
+            Height of cone (numeric value).
 
-.. raw:: html
+       **Origin**
 
-   </td><td>
+         Bottom center (when height > 0)
 
-**Specific settings** :
+       **three.js geometry class**
 
-* Radius
-    Numerical value.
-* Height
-    Numerical value.
+         `CylinderGeometry <https://threejs.org/docs/#CylinderGeometry>`__
 
-**Origin** :
-
-    center of bottom (if height > 0)
-
-**three.js geometry class:**
-
-    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
 
 
 .. index:: Box (Point Layer)
@@ -131,155 +102,131 @@ Cone with specified radius, height, color and opacity
 Box
 ~~~
 
-Box with specified width, depth, height, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/point/Box.jpg
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Width
+            Width of box (size in X direction, numeric value).
 
-.. image:: ./images/point/Box.jpg
+         * Depth
+            Depth of box (size in Y direction, numeric value).
 
-.. raw:: html
+         * Height
+            Height of box (size in Z direction, numeric value).
 
-   </td><td>
+       **Origin**
 
-**Specific settings** :
+         Bottom center (when height > 0)
 
-* Width
-    Numerical value.
-* Depth
-    Numerical value.
-* Height
-    Numerical value.
+       **three.js geometry class**
 
-**Origin** :
+         `BoxGeometry <https://threejs.org/docs/#BoxGeometry>`__
 
-    center of bottom (if height > 0)
+       **Note**
 
-**three.js geometry class:**
-
-    `BoxBufferGeometry <https://threejs.org/docs/#api/en/geometries/BoxBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+         In three.js, height is along the Y axis.
+         Qgis2threejs uses the Z axis for height.
 
 
-.. index:: Disk
+.. index:: Disk (Point Layer)
 
 Disk
 ~~~~
 
-Disk with specified radius, orientation, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/point/Disk.jpg
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Radius
+            Radius of disk (numeric value).
 
-.. image:: ./images/point/Disk.jpg
+         * Dip
+            Dip angle in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
 
-.. raw:: html
+         * Dip direction
+            Azimuth of the maximum dip direction (clockwise from north, degrees).
 
-   </td><td>
+       **Origin**
 
-**Specific settings** :
+        Disk center
 
-* Radius
-    Numerical value.
-* Dip
-    Numerical value in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
-* Dip direction
-    Numerical value in degrees.
+       **three.js geometry class**
 
-**Origin** :
-
-    center of disk
-
-**three.js geometry class:**
-
-    `CircleBufferGeometry <https://threejs.org/docs/#api/en/geometries/CircleBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+        `CircleGeometry <https://threejs.org/docs/#CircleGeometry>`__
 
 
-.. index:: Plane
+.. index:: Plane (Point Layer)
 
 Plane
 ~~~~~
 
-Plane with specified length, width, orientation, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. image:: ./images/no_image.png
+     - **Specific settings**
 
-   <table><tr><td width="256">
+         * Width
+            Numerical value.
 
-.. image:: ./images/no_image.png
+         * Length
+            Numerical value.
 
-.. raw:: html
+         * Dip
+            Numerical value in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
 
-   </td><td>
+         * Dip direction
+            Numerical value in degrees.
 
-**Specific settings** :
+        ✏
 
-* Width
-    Numerical value.
-* Length
-    Numerical value.
-* Dip
-    Numerical value in degrees. See `Strike and dip - Wikipedia <https://en.wikipedia.org/wiki/Strike_and_dip>`__.
-* Dip direction
-    Numerical value in degrees.
+       **Origin**
 
-**Origin** :
+        Plane center
 
-    center of plane
+       **three.js geometry class**
 
-**three.js geometry class:**
-
-    `PlaneBufferGeometry <https://threejs.org/docs/#api/en/geometries/PlaneBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+        `PlaneGeometry <https://threejs.org/docs/#PlaneGeometry>`__
 
 
-.. index:: Point
+.. index:: Point (Point Layer)
 
 Point
 ~~~~~
 
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. image:: ./images/no_image.png
+     - **Specific settings**
 
-.. image:: ./images/no_image.png
+         * Size (in Material tab)
+            Numerical value.
 
-.. raw:: html
+       **Origin**
 
-   </td><td>
+         Sprite center
 
-**Specific settings** :
+       **three.js object class**
 
-* Radius
-    Numerical value.
-
-**Origin** :
-
-    center of sprite
-
-**three.js geometry class:**
-
-    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
+         `Sprite <https://threejs.org/docs/#Sprite>`__
 
 
-.. index:: Billboard
+.. index:: Billboard (Point Layer)
 
 Billboard
 ~~~~~~~~~
@@ -288,38 +235,30 @@ Image which always faces towards the camera. When an image file on local file sy
 the image file is copied to the export destination. When an image file on a web server is
 specified, the model file is not copied.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. image:: ./images/no_image.png
+     - **Specific settings**
 
-.. image:: ./images/no_image.png
+         * Image file
+            File path or URL. If you enter a file path or URL directly, enclose it in single quotation marks.
 
-.. raw:: html
+         * Scale
+            Numerical value.
 
-   </td><td>
+       **Origin**
 
-**Specific settings** :
+         Sprite center
 
-* Image file
-    File path or URL.
+       **three.js object class**
 
-* Scale
-    Numerical value.
-
-**Origin** :
-
-    center of sprite
-
-**three.js object class:**
-
-    `Sprite <https://threejs.org/docs/#api/en/objects/Sprite>`__
-
-.. raw:: html
-
-   </td></tr></table>
+         `Sprite <https://threejs.org/docs/#Sprite>`__
 
 
-.. index:: Model-File
+.. index:: Model-File (Point Layer)
 
 Model File
 ~~~~~~~~~~
@@ -329,48 +268,39 @@ When a model file on local file system is specified, the model file is copied to
 You need to copy the relevant files such as texture image after export. When a model file URL is
 specified, the model file is not copied.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. image:: ./images/no_image.png
+     - **Specific settings**
 
-.. image:: ./images/no_image.png
+         * Model file
+            File path or URL. If you enter a file path or URL directly, enclose it in single quotation marks.
 
-.. raw:: html
+         * Scale
+            Numerical value.
 
-   </td><td>
+         * Rotation (x)
+            Numerical value in degrees.
 
-**Specific settings** :
+         * Rotation (y)
+            Numerical value in degrees.
 
-* Model file
-    File path or URL.
+         * Rotation (z)
+            Numerical value in degrees.
 
-* Scale
-    Numerical value.
+         * Rotation Order
+            The options are XYZ, YZX, ZXY, XZY, YXZ and ZYX. See `Euler - three.js docs <https://threejs.org/docs/#Euler.order>`__.
 
-* Rotation (x)
-    Numerical value in degrees.
+       **Origin**
 
-* Rotation (y)
-    Numerical value in degrees.
-
-* Rotation (z)
-    Numerical value in degrees.
-
-* Rotation Order
-    The options are XYZ, YZX, ZXY, XZY, YXZ and ZYX. See `Euler - three.js docs <https://threejs.org/docs/#api/en/math/Euler.order>`__.
-
-**Origin** :
-
-    origin of model
-
-.. raw:: html
-
-   </td></tr></table>
+         Model origin
 
 
 --------------
 
-.. _object-types-line-layer:
 
 Line Layer
 ----------
@@ -379,72 +309,57 @@ Line Layer
 `Box <#box>`__ \| `Wall <#wall>`__
 
 
-.. index:: Line
+.. index:: Line (Line Layer)
 
 Line
 ~~~~
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/line/Line.png
 
-.. image:: ./images/line/Line.png
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem).
 
-.. raw:: html
+     - **Specific settings**
 
-   </td><td>
+         no specific settings
 
-**Specific settings** :
+       **three.js object class:**
 
-    no specific settings
-
-**three.js object class:**
-
-    `Line <https://threejs.org/docs/#api/en/objects/Line>`__
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem).
+         `Line <https://threejs.org/docs/#Line>`__
 
 
-.. index:: Pipe
+
+
+.. index:: Pipe (Line Layer)
 
 Pipe
 ~~~~
 
 Places a cylinder to each line segment and a sphere to each vertex.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/line/Pipe.jpg
 
-.. image:: ./images/line/Pipe.jpg
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto, dem).
 
-.. raw:: html
+     - **Specific settings**
 
-   </td><td>
+        * Radius
+            Radius of pipe (numeric value).
 
-**Specific settings** :
+       **three.js geometry classes:**
 
-* Radius
-    Numerical value.
-
-**three.js geometry classes:**
-
-    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
-    and
-    `SphereBufferGeoemtry <https://threejs.org/docs/#api/en/geometries/SphereBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto,
-dem).
+         `CylinderGeometry <https://threejs.org/docs/#CylinderGeometry>`__
+         and
+         `SphereGeoemtry <https://threejs.org/docs/#SphereGeometry>`__
 
 
 .. index:: Cone (Line Layer)
@@ -455,33 +370,28 @@ Cone
 Places a cone to each line segment. Heading of cone is forward
 direction.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/line/ConeL.jpg
 
-.. image:: ./images/line/ConeL.jpg
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
+         `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Rivers. MILT of Japan).
 
-.. raw:: html
+     - **Specific settings**
 
-   </td><td>
+        * Radius
+            Radius of cone (numeric value).
 
-**Specific settings** :
+       **Origin**
 
-* Radius
-    Numerical value.
+         Sphere center (point feature position)
 
-**three.js geometry class:**
+       **three.js geometry class**
 
-    `CylinderBufferGeometry <https://threejs.org/docs/#api/en/geometries/CylinderBufferGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
-`National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
-(Rivers. MILT of Japan).
+         `CylinderGeometry <https://threejs.org/docs/#CylinderGeometry>`__
 
 
 .. index:: Box (Line Layer)
@@ -491,67 +401,52 @@ Box
 
 Places a box to each line segment.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/line/Box.jpg
 
-.. image:: ./images/line/Box.jpg
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto, dem).
 
-.. raw:: html
-
-   </td><td>
-
-**Specific settings** :
-
-* Width
-    Numerical value.
-* Height
-    Numerical value.
-
-**three.js geometry class:**
-
-    `BoxGeometry <https://threejs.org/docs/#api/en/geometries/BoxGeometry>`__
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (airphoto,
-dem).
+     - **Specific settings**
 
 
-.. index:: Wall
+        * Width
+            Numerical value.
+
+        * Height
+            Numerical value.
+
+       **three.js geometry class**
+
+         `BoxGeometry <https://threejs.org/docs/#BoxGeometry>`__
+
+
+.. index:: Wall (Line Layer)
 
 Wall
 ~~~~
 
 Makes a vertical wall under each line segment.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/line/Wall.jpg
 
-.. image:: ./images/line/Wall.jpg
+         Image was created with SRTM3 elevation data.
 
-.. raw:: html
+     - **Specific settings**
 
-   </td><td>
-
-**Specific settings** :
-
-* Other side Z
-    Z coordinate of the other side edge.
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with SRTM3 elevation data.
+        * Other side Z
+            Z coordinate of the other side edge.
 
 --------------
 
-.. _object-types-polygon-layer:
 
 Polygon Layer
 -------------
@@ -559,61 +454,42 @@ Polygon Layer
 `Polygon <#polygon>`__ \| `Extruded <#extruded>`__ \| `Overlay <#overlay>`__
 
 
-.. index:: Polygon
+.. index:: Polygon (Polygon Layer)
 
 Polygon
 ~~~~~~~
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
-
-.. image:: ./images/no_image.png
-
-.. raw:: html
-
-   </td><td>
-
-**Specific settings** :
-
-.. raw:: html
-
-   </td></tr></table>
+   * - .. image:: ./images/no_image.png
+     - **Specific settings**
 
 
-.. index:: Extruded
+.. index:: Extruded (Polygon Layer)
 
 Extruded
 ~~~~~~~~
 
-Extruded polygon with specified height, color and opacity
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-.. raw:: html
+   * - .. figure:: ./images/polygon/Extruded.jpg
 
-   <table><tr><td width="256">
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
+         OpenStreetMap (© OpenStreetMap contributors, `License <https://www.openstreetmap.org/copyright>`__).
 
-.. image:: ./images/polygon/Extruded.jpg
+     - **Specific settings**
 
-.. raw:: html
-
-   </td><td>
-
-**Specific settings** :
-
-* Height
-    Numerical value.
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
-OpenStreetMap (© OpenStreetMap contributors,
-`License <https://www.openstreetmap.org/copyright>`__).
+        * Height
+            Numerical value.
 
 
-.. index:: Overlay
+.. index:: Overlay (Polygon Layer)
 
 Overlay
 ~~~~~~~
@@ -623,26 +499,17 @@ opacity. When the altitude mode is ``Relative to DEM layer``, each polygon is
 located at the relative height from the DEM surface. Otherwise, creates a flat
 polygon at specified altitude.
 
-.. raw:: html
+.. list-table::
+   :widths: 1 2
+   :align: left
+   :class: valign-top
 
-   <table><tr><td width="256">
+   * - .. figure:: ./images/polygon/Overlay.jpg
 
-.. image:: ./images/polygon/Overlay.jpg
+         Image was created with `GSI Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
+         `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
 
-.. raw:: html
+     - **Specific settings**
 
-   </td><td>
-
-**Specific settings** :
-
-* Border
-    No border, feature style, random color or expression.
-
-.. raw:: html
-
-   </td></tr></table>
-
-Image was created with `GSI
-Tiles <https://maps.gsi.go.jp/development/ichiran.html>`__ (ort, dem) and
-`National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__
-(Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
+        * Border
+            No border, feature style, random color or expression.
