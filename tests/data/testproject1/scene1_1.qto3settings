@@ -725,7 +725,7 @@
         "checkBox_Clickable": true,
         "checkBox_Clip": true,
         "checkBox_ExportAttrs": false,
-        "checkBox_Label": false,
+        "checkBox_Label": true,
         "checkBox_Outline": true,
         "checkBox_Underline": false,
         "checkBox_Visible": true,
@@ -816,7 +816,7 @@
         "labelHeightWidget": {
           "comboData": 1,
           "comboText": "Relative",
-          "editText": "1000",
+          "editText": "4000",
           "type": 6
         },
         "lineEdit_Name": "",
@@ -824,7 +824,7 @@
         "mtlWidget1": {},
         "radioButton_Expression": true,
         "radioButton_IntersectingFeatures": true,
-        "slider_FontSize": 3
+        "slider_FontSize": 1
       },
       "visible": true
     },

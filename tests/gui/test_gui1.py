@@ -2,6 +2,7 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.core import QgsRectangle
 
@@ -141,6 +142,22 @@ class WidgetTest(GUITestBase):
 
         self.mouseClick(400, 400)   # flat plane
         self.assertText("clicked coords", " -4000.00", "qr_coords", partialMatch=True)
+
+
+class KeyboardInteractionTest(GUITestBase):
+
+    CAMERA_STATE = {
+        'lookAt': {'x': -4534, 'y': -136988, 'z': 0},
+        'pos': {'x': -55233, 'y': -195106, 'z': 37283}
+    }
+
+    def test01_hideLabels(self):
+        self.sleep(500)
+        self.keyPress(Qt.Key_L)
+
+    def test02_showLabels(self):
+        self.sleep(500)
+        self.keyPress(Qt.Key_L)
 
 
 class CameraAnimationTest(GUITestBase):

@@ -117,8 +117,8 @@ def runTest(wnd):
 
     # test suite
     if filename == "testproject1.qgs":
-        from .test_gui1 import SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, CameraAnimationTest
-        testClasses = [SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, CameraAnimationTest]
+        from .test_gui1 import SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest
+        testClasses = [SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest]
 
     elif filename == "testproject2.qgs":
         from .test_gui2 import SceneTest, PointLayerTest, LineLayerTest

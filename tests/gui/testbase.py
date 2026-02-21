@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
-from qgis.PyQt.QtGui import QMouseEvent
+from qgis.PyQt.QtGui import QKeyEvent, QMouseEvent
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtTest import QTest
 from qgis.core import QgsApplication
@@ -86,6 +86,21 @@ class GUITestBase(unittest.TestCase):
             QgsApplication.postEvent(w, release)
         else:
             QTest.mouseClick(w, Qt.MouseButton.LeftButton, pos=pos)
+
+        self.sleep(100)
+
+    def keyPress(self, key):
+        w = self.WND.ui.webView
+
+        if w._page.isWebEnginePage:
+            w = w.findChild(QWidget)
+            press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
+            release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
+
+            QgsApplication.postEvent(w, press)
+            QgsApplication.postEvent(w, release)
+        else:
+            QTest.keyPress(w, key)
 
         self.sleep(100)
 
