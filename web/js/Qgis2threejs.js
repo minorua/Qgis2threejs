@@ -3424,7 +3424,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 			text = f.lbl;
 			if (!text) continue;
 
-			opacity = this.materials.mtl(f.mtl.idx).opacity;
+			opacity = (f.mtl !== undefined) ? this.materials.mtl(f.mtl.idx).opacity : 1;
 
 			partIdx = 0;
 			getPointsFunc(f).forEach(function (pt) {
