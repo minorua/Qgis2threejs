@@ -7,12 +7,16 @@ qgisMaximumVersion=4.99
 supportsQt6=True
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=2.9.2
+version=2.9.3
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 2.9.3
+    - Refined tab and group box layout in vector layer properties dialog
+    - Fixed an issue preventing 3D model labels from being displayed
+
     Version 2.9.2
     - Fixed vector properties dialog layout
 

@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.9.3
+- Refined tab and group box layout in vector layer properties dialog
+- Fixed an issue preventing 3D model labels from being displayed
+
 ### Version 2.9.2
 - Fixed vector properties dialog layout
 

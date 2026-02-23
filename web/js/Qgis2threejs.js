@@ -6,7 +6,7 @@
 
 var Q3D = {
 
-	VERSION: "2.9.2",
+	VERSION: "2.9.3",
 	application: {},
 	gui: {}
 
