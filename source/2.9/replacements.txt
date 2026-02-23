@@ -1,0 +1,22 @@
+.. links
+
+.. |GSI_TILES| replace:: `GSI Tiles`_
+.. _GSI Tiles: https://maps.gsi.go.jp/development/ichiran.html
+
+.. |WIKI_STRIKE_DIP| replace:: `Strike and dip`_
+.. _Strike and dip: https://en.wikipedia.org/wiki/Strike_and_dip
+
+
+.. urls
+
+.. _KIBAN_URL: https://www.gsi.go.jp/kiban/index.html
+.. _SRTM_URL: https://science.nasa.gov/mission/srtm/
+.. _SRTM_DATA_URL: https://cmr.earthdata.nasa.gov/search/concepts/C2763264762-LPCLOUD.html
+
+.. images
+
+.. |PLUGIN_ICON| image:: ./images/Qgis2threejs24.png
+   :class: inline-icon
+
+.. |CRS_ICON| image:: ./images/tutorial/crsicon.png
+   :class: inline-icon

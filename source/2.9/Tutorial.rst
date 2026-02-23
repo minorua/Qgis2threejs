@@ -1,18 +1,19 @@
 Tutorial
 ========
 
-Let's start using Qgis2threejs plugin!
+Let's start using the Qgis2threejs plugin!
+
 
 Install the plugin
 ------------------
 
 Open the Plugin Manager (``Plugins > Manage and Install Plugins...``) and
-install Qgis2threejs plugin.
+install the Qgis2threejs plugin.
 
 .. hint:: Need help? See the `9.1. Installing and Managing Plugins`__ section of
    the QGIS training manual.
 
-__ https://docs.qgis.org/3.22/en/docs/training_manual/qgis_plugins/fetching_plugins.html#ls-installing-and-managing-plugins
+__ https://docs.qgis.org/3.44/en/docs/training_manual/qgis_plugins/fetching_plugins.html#lesson-installing-and-managing-plugins
 
 
 Obtain elevation data
@@ -20,139 +21,105 @@ Obtain elevation data
 
 If you already have raster DEM data, you can skip this step.
 
-NASA published elevation data generated from NASA's
-`Shuttle Radar Topography Mission`__ digital topographic data.
-We can use the data freely. SRTM elevation data can be
-downloaded from the `EarthExplorer`__ (User registration required).
+NASA has published elevation data generated from the `Shuttle Radar Topography Mission <SRTM_URL_>`_.
+This digital topographic data is freely available. SRTM elevation data can be downloaded from
+the `EARTHDATA site <SRTM_DATA_URL_>`_ (user registration required).
 
-__ https://www2.jpl.nasa.gov/srtm/index.html
-__ https://earthexplorer.usgs.gov/
-
-
-✏
-
-..
-  Download a zip file that contains elevation data of the area you are
-  interested in from under the ``version2_1/SRTM3`` directory. The zip
-  file contains a ``.hgt`` file, which is readable by the GDAL.
-..
-
-..
-  .. tip:: If the area extends over two or more files, you might want to
-      create a virtual mosaic using `Build Virtual Raster`__
-      algorithm of Processing GDAL algorithms.
-  __ https://docs.qgis.org/3.10/en/docs/user_manual/processing_algs/gdal/rastermiscellaneous.html#build-virtual-raster
-..
+Download a zip file that contains elevation data for your area of interest from ``EARTHDATA SEARCH``.
+The zip file includes a ``.hgt`` file, which can be read by GDAL.
 
 
 Load DEM data
 -------------
 
-✏
-
-..
-  Unzip the downloaded zip file, and then drag & drop ``.hgt`` file
-  to QGIS window.
-..
+Unzip the downloaded file, then drag and drop the ``.hgt`` file into the QGIS window.
 
 
 CRS setting
 -----------
 
-Horizontal unit of SRTM data is degree, whereas vertical unit is meter.
-For appropriate visualization, you need to transform the DEM data to
-a projected CRS. QGIS can perform the CRS transformation on the fly.
+The horizontal unit of SRTM data is degrees, whereas the vertical unit is meters.
+For proper visualization, you should transform the DEM data to a projected CRS.
+QGIS can perform CRS transformation on the fly.
 
-So, let's change the *current project CRS* to a *projected CRS*.
+Change the *current project CRS* to a *projected CRS*.
 
-Click the CRS status icon |crs_icon| in the bottom-right corner of the window to
-open the project properties dialog, and then select a suitable CRS for the DEM extent.
-If you don't know which CRS is best suited, select the Spherical Mercator projection
-(``EPSG:3857``), which is adopted by many web maps.
+Click the CRS status icon |CRS_ICON| in the bottom-right corner of the window to
+open the project properties dialog, then select a suitable CRS for the DEM extent.
+If you are unsure which CRS to use, select the Spherical Mercator projection
+(``EPSG:3857``), which is used by many web maps.
 
-.. note:: In the Spherical Mercator projection, every feature size is horizontally
-   larger than actual size except those of features on the equator.
-   At latitude 40 degrees it is enlarged 1.3 times, at 60 degrees enlarged twice.
+.. note:: In the Spherical Mercator projection, feature sizes are horizontally
+   enlarged except at the equator.
+   At latitude 40° they are enlarged by about 1.3 times, and at 60°, about twice.
 
 
 Layer styling
 -------------
 
-Open the Layer Properties dialog for the DEM layer and colorize the DEM layer richly.
+Open the Layer properties dialog for the DEM layer and apply a color scheme.
 
-An example (``Singleband pseudocolor`` render type and inverted ``BrBG`` color map):
+.. figure:: ./images/tutorial/qgis_styling.png
 
-.. image:: ./images/tutorial/qgis_styling.png
+   Example: use the ``Singleband pseudocolor`` render type and an inverted ``BrBG`` color ramp.
 
 
 Open the Exporter
 -----------------
-Zoom to a part of the DEM layer extent as the map canvas is filled by the colorized DEM layer,
-and then click the plugin icon |plugin_icon| in the web toolbar to open the Qgis2threejs exporter.
 
-There is ``Layers`` panel and ``Animation`` panel on the left side of the window.
+Zoom to a portion of the DEM so that the map canvas is filled with the colorized DEM layer,
+then click the plugin icon |PLUGIN_ICON| in the Web toolbar to open the Qgis2threejs exporter.
 
 The ``Layers`` panel shows the map layers in the current QGIS project that can be added to the 3D scene.
-Layer items are grouped by type. DEM layer group has 1-band raster layers in current QGIS project and
-a `Flat Plane` (a flat plane at an altitude). Multi-band raster layers and raster layers loaded using
-a provider other than GDAL provider are not available. Additional flat planes can be added from
-``Scene - Add Layer`` menu.
+Layers are grouped by type. The DEM layer group includes single-band raster layers and a `Flat Plane`
+(a flat surface at a specified altitude).
 
-There is a preview on the right side. The scene doesn't contain any 3D objects now.
+Multi-band raster layers and raster layers loaded using providers other than GDAL provider are not supported.
+Additional flat planes can be added from the ``Scene - Add Layer`` menu.
 
-Let's add the DEM layer into the scene. Just click the checkbox on the left of the DEM layer
-under the DEM layer group.
+A preview is displayed on the right. The scene is currently empty.
+
+To add the DEM layer, click the checkbox on the left of the DEM layer in the DEM layer group.
 
 .. image:: ./images/tutorial/exporter1.png
 
-A 3D terrain object with map canvas image draped on it shows up in the preview.
-
-
-Add another texture to DEM
---------------------------
-
-✏
+A 3D terrain model with the map canvas image draped over it will appear in the preview.
 
 
 Export the scene to Web
 -----------------------
-Click on the ``File - Export to Web...`` menu entry to open this dialog.
+
+Select ``File - Export to Web...`` to open this dialog.
 
 .. image:: ./images/dialogs/export_to_web.png
 
-Select a directory to export the scene, check ``Enable the Viewer to Run Locally`` option and press ``Export`` button.
+Choose an output directory, enable the  ``Enable the Viewer to Run Locally`` option, and click
+the ``Export`` button.
 
-.. note:: Most web browsers do not allow loading data files on local file system via Ajax.
-   With ``Enable the Viewer to Run Locally`` option the plugin outputs geometry and image data into a js file.
+.. note:: Most web browsers do not allow data files on the local file system to be loaded via Ajax.
+   When ``Enable the Viewer to Run Locally`` is enabled, the plugin embeds geometry and image data
+   into a JavaScript file.
 
 .. image:: ./images/tutorial/exported_directory.png
 
-Open the .html file with a web browser. You can see exported scene in web browser.
+Open the exported HTML file in a web browser to view the scene.
 
 .. image:: ./images/tutorial/browser_edge1.png
 
-You can publish the exported 3D viewer application and data just by uploading the output folder to
-a web hosting service such as Netlify and GitHub Pages.
+You can publish the exported 3D viewer by uploading the output folder to a web hosting service
+such as Netlify and GitHub Pages.
 
-.. note:: Please do not forget to ensure that you comply with
-   the Terms and use for the data before publishing the data to the web.
-
-
-Animation and narratives
-------------------------
-
-✏
+.. note:: Before publishing, make sure you comply with the data usage terms.
 
 
 In conclusion
 -------------
 
-Tutorial is over. Now you know 3D visualization with QGIS is very easy.
-If you can use high-quality data, you can create beautiful 3D scenes!
+This tutorial is now complete. You have learned that creating 3D visualizations with QGIS is easy.
+With high-quality data, you can create beautiful 3D scenes!
 
-.. tip:: Next, how about adding a background map layer to the map canvas.
-   You can do it easily with `QuickMapServices plugin`__. Also, how about adding
-   vector data to the scene. :doc:`ObjectTypes` page has images of various object
-   types. See :doc:`Exporter` for the detail.
+.. tip:: Next, try adding a background map layer to the canvas. You can do this easily with
+   the `QuickMapServices plugin`__. You can also add vector data to the scene.
+   See :doc:`ShapeTypes` page for examples of available shape types, and :doc:`Exporter` for the detail.
 
 __ https://plugins.qgis.org/plugins/quick_map_services/
