@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+
+<html :class="{ 'dark' : darkMode === true }" data-content_root="./" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
+<head>
+<script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Exporter | Qgis2threejs Plugin 2.9 documentation</title>
+<meta content="Exporter | Qgis2threejs Plugin 2.9 documentation" property="og:title"/>
+<meta content="Exporter | Qgis2threejs Plugin 2.9 documentation" name="twitter:title"/>
+<link href="_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
+<link href="_static/theme.css?v=73505e79" rel="stylesheet" type="text/css"/>
+<link href="_static/custom.css?v=838ef657" rel="stylesheet" type="text/css"/>
+<link href="search.html" rel="search" title="Search"/>
+<link href="genindex.html" rel="index" title="Index"/>
+<link href="ShapeTypes.html" rel="next" title="Shape Types"/>
+<link href="Tutorial.html" rel="prev" title="Tutorial"/>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center gap-1">
+<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="justify-start text-sm md:!hidden bg-background" href="index.html"><span class="font-bold text-clip whitespace-nowrap">Qgis2threejs Plugin 2.9 documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ShapeTypes.html">Shape Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3DViewer.html">3D Viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Development.html">Development</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="index.html">
+<span class="hidden md:inline">Qgis2threejs Plugin 2.9 documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Exporter</span>
+</nav>
+<div id="content" role="main">
+<section id="exporter">
+<h1>Exporter<a class="headerlink" href="#exporter" title="Link to this heading"><span>#</span></a></h1>
+<p>This page explains how to configure settings from the menus and panels, including related property dialogs, and how to create
+animations and export data. For information on preview controls, see the <a class="reference internal" href="3DViewer.html"><span class="doc">3D Viewer</span></a> page.</p>
+<figure class="align-default" id="id5">
+<img alt="_images/exporter1.png" src="_images/exporter1.png"/>
+<figcaption>
+<p><span class="caption-text">Qgis2threejs Exporter</span><a class="headerlink" href="#id5" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>In this plugin, the word “export settings” refers to all configuration settings for a 3D scene and its viewer application.
+These include settings for the scene, camera, layers to be exported, animations, widgets on the web page, and more.</p>
+<p>Export settings are automatically saved to a <code class="docutils literal notranslate"><span class="pre">.qto3settings</span></code> file alongside the current QGIS project file when you are working
+with a QGIS project. When the exporter is opened later, the project’s export settings are automatically restored.</p>
+<p>The preview is automatically updated whenever export settings are changed.
+You can disable the preview by unchecking the <cite>Preview</cite> checkbox in the lower-right corner of the window.</p>
+<section id="layer-panel">
+<h2>Layer Panel<a class="headerlink" href="#layer-panel" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#layer-panel'"><span>#</span></a></h2>
+<p>The Layers panel displays single-band raster and vector layers loaded in QGIS, as well as point cloud layers (partially supported)
+and flat planes. Unlike the QGIS layer tree, layers are grouped by type. Each layer item has a checkbox on the left. Click the checkbox
+to add the layer to the current scene. To open the layer properties dialog, double-click the layer item or click <cite>Properties…</cite> from
+the context menu (right-click menu).</p>
+<p>You can also select <cite>Zoom to layer objects</cite> from the context menu. This action moves the camera to a position some distance away from
+the center of the layer’s bounding box and orients the camera to look toward that center.
+This action is useful when no objects are visible in the scene or when the camera position or orientation becomes difficult to control,
+as it resets the camera and its focal point to a reasonable location.</p>
+</section>
+<section id="menu">
+<h2>Menu<a class="headerlink" href="#menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#menu'"><span>#</span></a></h2>
+<section id="file-menu">
+<h3>File Menu<a class="headerlink" href="#file-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#file-menu'"><span>#</span></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Export to Web…</dt><dd><p>Exports files for publishing the current scene to the web. See <a class="reference external" href="#export-to-web-dialog">Export to Web Dialog</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Save Scene As</dt><dd><ul id="save-image-dialog">
+<li><dl class="simple">
+<dt>Image (.png)…</dt><dd><p>Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves the 3D model of the current scene in glTF format.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Export Settings</dt><dd><ul>
+<li><p>Load / Save / Clear export settings</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Plugin Settings…</dt><dd><p>Opens the Plugin Settings dialog. See <a class="reference external" href="#plugin-settings">Plugin Settings</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Close</dt><dd><p>Closes the Qgis2threejs exporter.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="scene-menu">
+<h3>Scene Menu<a class="headerlink" href="#scene-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#scene-menu'"><span>#</span></a></h3>
+<ul>
+<li><dl class="simple">
+<dt>Scene Settings…</dt><dd><p>Opens the Scene Settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Add Layer</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Add Flat Plane</dt><dd><p>Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<ul class="simple" id="add-point-cloud-layer">
+<li><dl class="simple">
+<dt>Add Point Cloud Layer…</dt><dd><p>Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
+in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
+See also <a class="reference external" href="#point-cloud-layer">Point Cloud Layer</a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Reload (F5)</dt><dd><p>Reloads the web page and rebuilds the current scene.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="view-menu">
+<h3>View Menu<a class="headerlink" href="#view-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#view-menu'"><span>#</span></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Camera</dt><dd><p>Changes the camera. See <a class="reference external" href="#camera-settings">Camera Settings</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Widgets</dt><dd><p>Configures widgets to be placed on the web page, such as the Navigation widget, the North arrow and the footer label.
+See <a class="reference external" href="#widgets">Widgets</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Reset Camera Position (Shift+R)</dt><dd><p>Returns the camera to its initial position and resets the focal point to its initial location.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="window-menu">
+<h3>Window Menu<a class="headerlink" href="#window-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#window-menu'"><span>#</span></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Panels</dt><dd><ul>
+<li><dl class="simple">
+<dt>Layers</dt><dd><p>Toggles <cite>Layers</cite> panel visibility.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Animation</dt><dd><p>Toggles <cite>Animation</cite> panel visibility.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Always on Top</dt><dd><p>Brings the exporter window to the front of all other application windows.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="help-menu">
+<h3>Help Menu<a class="headerlink" href="#help-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#help-menu'"><span>#</span></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Usage of 3D Viewer</dt><dd><p>Displays the controls for the 3D viewer in the web view.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Help Contents</dt><dd><p>Opens the plugin documentation in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Plugin Homepage</dt><dd><p>Opens the plugin homepage in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Send Feedback</dt><dd><p>Opens the plugin issue tracker in the default browser. Requires an internet connection.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>About Qgis2threejs Plugin…</dt><dd><p>Displays the plugin version.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="scene-settings">
+<h2>Scene Settings<a class="headerlink" href="#scene-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#scene-settings'"><span>#</span></a></h2>
+<p>Scene settings dialog controls some basic configuration settings for current scene.
+Click on <code class="docutils literal notranslate"><span class="pre">Scene</span> <span class="pre">-</span> <span class="pre">Scene</span> <span class="pre">Settings...</span></code> menu entry to open the dialog.</p>
+<section id="world">
+<h3>World<a class="headerlink" href="#world" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#world'"><span>#</span></a></h3>
+<figure class="align-default" id="id6">
+<img alt="_images/scene_settings.png" src="_images/scene_settings.png"/>
+<figcaption>
+<p><span class="caption-text">Scene Settings Dialog - World Tab</span><a class="headerlink" href="#id6" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<section id="world-coordinates">
+<h4>World Coordinates<a class="headerlink" href="#world-coordinates" title="Link to this heading"><span>#</span></a></h4>
+<ul>
+<li><dl class="simple">
+<dt>Origin of xy-plane</dt><dd><p>Specifies where the origin point of the XY plane is located.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Center of base extent</dt><dd><p>Sets the center of the base extent defined below as the origin of the XY plane.
+Shifting the origin in this way helps maintain numerical precision when coordinate values are very large.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Origin of map coordinate system</dt><dd><p>Uses the original origin defined in the map coordinate system as the XY plane origin.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Z exaggeration</dt><dd><p>Specifies the vertical exaggeration factor. This value affects terrain shape and the Z positions of all 3D vector objects.
+It also affects the height of certain volumetric 3D shape types.</p>
+<dl>
+<dt>The following shape types are affected:</dt><dd><div class="line-block">
+<div class="line">Point : Cylinder, Cube, Cone</div>
+<div class="line">Polygon : Extruded</div>
+</div>
+</dd>
+<dt>The following shape types have volume, but their heights are not affected by this factor:</dt><dd><div class="line-block">
+<div class="line">Point : Sphere</div>
+<div class="line">Line : Pipe, Cone, Box</div>
+</div>
+</dd>
+</dl>
+<p>The default value is 1.0.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="base-extent">
+<h4>Base Extent<a class="headerlink" href="#base-extent" title="Link to this heading"><span>#</span></a></h4>
+<p>Defines the spatial extent used as the base area for the scene.</p>
+<p>Select how the base extent is determined:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Use map canvas extent</dt><dd><p>Uses the current visible extent of the map canvas as the base extent. The extent automatically
+updates according to changes in the map view.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Fixed extent</dt><dd><p>Uses a manually specified extent as the base extent. This option allows you to maintain a constant area
+regardless of changes in the map canvas view. The extent values can be set using the extent of a specific
+layer or by interactively selecting an area on the map canvas.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Additional option:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Fix aspect ratio to 1:1</dt><dd><p>Keeps the width and height of the base extent at a 1:1 ratio.
+This option is checked by default since version 2.7.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="background">
+<h4>Background<a class="headerlink" href="#background" title="Link to this heading"><span>#</span></a></h4>
+<p>Selects either a sky-like gradient or a solid color for the scene background.
+The default setting is Sky.</p>
+</section>
+<section id="display-of-coordinates">
+<h4>Display of coordinates<a class="headerlink" href="#display-of-coordinates" title="Link to this heading"><span>#</span></a></h4>
+<p>If the <code class="docutils literal notranslate"><span class="pre">Latitude</span> <span class="pre">and</span> <span class="pre">longitude</span> <span class="pre">(WGS84)</span></code> option is selected, the coordinates of
+the clicked position on a 3D object are displayed as longitude and latitude (WGS84).
+If <a class="reference external" href="https://github.com/proj4js/proj4js">Proj4js</a> does not support current the map CRS,
+this option is disabled.</p>
+</section>
+</section>
+<section id="light-effects">
+<h3>Light &amp; Effects<a class="headerlink" href="#light-effects" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#light-effects'"><span>#</span></a></h3>
+<figure class="align-default" id="id7">
+<img alt="_images/scene_settings2.png" src="_images/scene_settings2.png"/>
+<figcaption>
+<p><span class="caption-text">Scene Settings Dialog - Light &amp; Effects Tab</span><a class="headerlink" href="#id7" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<section id="light">
+<h4>Light<a class="headerlink" href="#light" title="Link to this heading"><span>#</span></a></h4>
+<p>Selects the light source used to illuminate the scene.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Directional light from the lower left of the 2D map</dt><dd><p>Simulates parallel light rays coming from the lower-left direction of the 2D map (the map displayed in the map canvas view).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Point light above the camera</dt><dd><p>Simulates a point light source located above the camera position.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="fog">
+<h4>Fog<a class="headerlink" href="#fog" title="Link to this heading"><span>#</span></a></h4>
+<p>Controls the fog effect applied to the scene.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Color</dt><dd><p>Specifies the color of the fog.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Density</dt><dd><p>Specifies the density of the fog. Higher values increase the fog effect and reduce the visibility of distant objects.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="material-effects">
+<h4>Material &amp; Effects<a class="headerlink" href="#material-effects" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Basic material type</dt><dd><p>Specifies the material type applied to most 3D objects, except for Point, Billboard, Model File and Line-type objects.
+Select a material type from
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshLambertMaterial">Lambert material</a>,
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">Phong material</a> or
+<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshToonMaterial">Toon material</a>.
+The default is Lambert material.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Enable outline effect</dt><dd><p>Enables an outline effect around 3D objects, making object shapes more visually distinguishable.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="camera-settings">
+<h2>Camera Settings<a class="headerlink" href="#camera-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#camera-settings'"><span>#</span></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Perspective Camera</dt><dd><p>Renders closer objects as larger and farther objects as smaller, creating a realistic sense of depth.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Orthographic Camera</dt><dd><p>The rendered object size does not depend on the distance from the camera.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Perspective camera</p></td>
+<td><p>Orthographic camera</p></td>
+</tr>
+<tr class="row-even"><td><p><img alt="Perspective Camera" src="_images/perspective.png"/></p></td>
+<td><p><img alt="Orthographic Camera" src="_images/orthographic.png"/></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="widgets">
+<h2>Widgets<a class="headerlink" href="#widgets" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#widgets'"><span>#</span></a></h2>
+<section id="navigation-widget">
+<h3>Navigation Widget<a class="headerlink" href="#navigation-widget" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#navigation-widget'"><span>#</span></a></h3>
+<p>This widget is the <a class="reference external" href="https://threejs.org/docs/#ViewHelper">ViewHelper</a> provided by three.js. It displays the current
+camera orientation and allows you to align the camera with the X, Y, or Z axis by clicking the corresponding axis button.</p>
+</section>
+<section id="north-arrow">
+<span id="north-arrow-dialog"></span><h3>North Arrow<a class="headerlink" href="#north-arrow" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#north-arrow'"><span>#</span></a></h3>
+<p>Adds an arrow at the lower-left corner of the 3D view indicating grid north, which corresponds to the north
+direction of the map coordinate system.</p>
+</section>
+<section id="header-footer-label">
+<span id="header-footer-labels"></span><h3>Header/Footer Label<a class="headerlink" href="#header-footer-label" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#header-footer-label'"><span>#</span></a></h3>
+<p>Adds a header label to the top of the view and/or a footer label to the bottom.
+The label text can include valid HTML tags for styling.</p>
+</section>
+</section>
+<section id="dem-layer">
+<h2>DEM Layer<a class="headerlink" href="#dem-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#dem-layer'"><span>#</span></a></h2>
+<section id="geometry">
+<h3>Geometry<a class="headerlink" href="#geometry" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#geometry'"><span>#</span></a></h3>
+<figure class="align-default" id="id8">
+<img alt="_images/dem_layer.png" src="_images/dem_layer.png"/>
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Geometry Tab</span><a class="headerlink" href="#id8" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<section id="resampling-method">
+<h4>Resampling Method<a class="headerlink" href="#resampling-method" title="Link to this heading"><span>#</span></a></h4>
+<p>Specifies how DEM elevation values are sampled when generating the 3D terrain mesh. Bilinear resampling is selected by default.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Bilinear resampling</dt><dd><p>Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
+between neighboring pixel values. When this option is selected, a terrain mesh covering the scene base extent is generated
+at a resolution determined by the resampling level.</p>
+<ul>
+<li><dl class="simple">
+<dt>Resampling level</dt><dd><p>Selects the resolution level used when resampling the DEM. Lower resolution levels reduce the number of elevation samples
+and improve performance, while higher resolution levels preserve more terrain detail but may increase processing time
+and data size.
+This setting affects only the terrain geometry and does not affect texture resolution.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Use original DEM values</dt><dd><p>Uses the original DEM elevation values without interpolation. The DEM is divided into tiles.</p>
+<ul>
+<li><dl class="simple">
+<dt>Tile side segments</dt><dd><p>Specifies the number of segments along each side of a terrain tile.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="clipping">
+<h4>Clipping<a class="headerlink" href="#clipping" title="Link to this heading"><span>#</span></a></h4>
+<p>Specifies how the DEM is clipped before generating the 3D terrain.</p>
+<ul>
+<li><dl class="simple">
+<dt>Clip DEM to scene base extent</dt><dd><p>Clips the DEM to match the extent of the scene base. Only elevation data within the scene base area is used to generate
+the terrain.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Clip DEM to polygon layer</dt><dd><p>Clips the DEM using the selected polygon layer. Only elevation data inside the polygon features are used to generate the terrain.</p>
+<p>This option is useful when you have a polygon layer that represents the area where elevation data exists or defines specific regions
+such as drainage basins or administrative boundaries.</p>
+<p>This option is unavailable when <strong>Use original DEM values</strong> is selected.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Do not clip DEM</dt><dd><p>Uses the full extent of the DEM without clipping.</p>
+<p>This option may increase data size and memory usage if the DEM size is large. <strong>Please choose this option carefully.</strong></p>
+<p>This option is unavailable when <strong>Bilinear resampling</strong> is selected in <strong>Resampling Method</strong>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="surrounding-tiles">
+<h4>Surrounding Tiles<a class="headerlink" href="#surrounding-tiles" title="Link to this heading"><span>#</span></a></h4>
+<p>This option enlarges the output DEM by placing additional DEM blocks around the main block corresponding to the scene base extent.</p>
+<p>The size can be selected from odd numbers ranging from 3 to 9. For example, if you select 3, a total of 9 (3 × 3) blocks — one center
+block and eight surrounding blocks — are generated.</p>
+<p>Roughness can be selected from powers of two ranging from 1 to 64. For example, if you select 2, the grid point spacing of each surrounding
+block is doubled. This means that the number of grid points within the same area becomes one quarter.</p>
+<p>This option is unavailable when <strong>Use original DEM values</strong> is selected.</p>
+</section>
+</section>
+<section id="material">
+<h3>Material<a class="headerlink" href="#material" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#material'"><span>#</span></a></h3>
+<figure class="align-default" id="id9">
+<img alt="_images/dem_layer2.png" src="_images/dem_layer2.png"/>
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Material Tab</span><a class="headerlink" href="#id9" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>The material list contains one item, <strong>map (canvas)</strong>, by default.</p>
+<section id="material-list">
+<h4>Material List<a class="headerlink" href="#material-list" title="Link to this heading"><span>#</span></a></h4>
+<p>You can add a material to the list by clicking the <strong>+</strong> button and selecting one of the following items from the popup menu:
+<strong>Map Canvas Layers</strong>, <strong>Select Layer(s)</strong>, <strong>Image File</strong>, or <strong>Solid Color</strong>.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Map canvas layers - <strong>map (canvas)</strong></dt><dd><p>Renders the same layers that are drawn in the map canvas according to the current project settings and uses the rendered result as a texture image.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Select Layer(s) - Layer Image</dt><dd><p>Renders a texture image with the selected layer(s) for each DEM block.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Image file</dt><dd><p>Applies an existing image file, such as PNG or JPEG, as a texture to the main DEM block.
+TIFF is not supported by some browsers. See <a class="reference external" href="https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support">Image format support</a> for details.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Solid color</dt><dd><p>Uses a single color. Click the button on the right to choose a color.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="settings-for-each-material-item">
+<h4>Settings for each material item<a class="headerlink" href="#settings-for-each-material-item" title="Link to this heading"><span>#</span></a></h4>
+<ul>
+<li><dl>
+<dt>Image width (px)</dt><dd><p>Specifies the width of the image draped over each DEM block. The default value is 1024.</p>
+<p>Available when a map canvas layers or layer image item is selected.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Opacity</dt><dd><p>Sets the opacity of the DEM object. 100 is fully opaque, and 0 is fully transparent.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Transparent background</dt><dd><p>Makes the image background transparent.</p>
+<p>Available when a map canvas layers or layer image item is selected.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Enable shading</dt><dd><p>Adds a shading effect to DEM surface. Enabled by default.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="others">
+<h3>Others<a class="headerlink" href="#others" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#others'"><span>#</span></a></h3>
+<figure class="align-default" id="id10">
+<img alt="_images/dem_layer3.png" src="_images/dem_layer3.png"/>
+<figcaption>
+<p><span class="caption-text">DEM Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id10" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Build sides</dt><dd><p>Adds side faces and a bottom face to each DEM block using the selected color. The Z position of the bottom face is controlled
+by the <strong>Bottom altitude</strong> setting, which becomes available when this option is selected.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Add edge lines</dt><dd><p>Adds outline edges to the side and bottom faces of each DEM block using the selected color.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Add quad wireframe</dt><dd><p>Adds a regular grid wireframe that represents the terrain mesh structure using the selected color.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Name</dt><dd><p>Specifies the name of the DEM layer as displayed in the layer list on the exported page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Visible on Load</dt><dd><p>Specifies whether the layer is visible when the exported page is loaded.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Clickable</dt><dd><p>Enables user interaction with the layer. When enabled, the layer can respond to click events,
+such as displaying information about the clicked position or triggering actions.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="vector-layer">
+<h2>Vector Layer<a class="headerlink" href="#vector-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#vector-layer'"><span>#</span></a></h2>
+<section id="styling">
+<h3>Styling<a class="headerlink" href="#styling" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#styling'"><span>#</span></a></h3>
+<figure class="align-default" id="id11">
+<img alt="_images/vector_layer.png" src="_images/vector_layer.png"/>
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Styling Tab</span><a class="headerlink" href="#id11" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<section id="shape">
+<h4>Shape<a class="headerlink" href="#shape" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Type</dt><dd><p>Selects the shape type. The available shape types vary depending on the layer type (Point, Line, or Polygon).
+For details, refer to the <a class="reference internal" href="ShapeTypes.html"><span class="doc">Shape Types</span></a> page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Shape Type Specific Properties</dt><dd><p>Displays properties specific to the selected shape type, such as height, radius, and other related settings.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="z-coordinate">
+<h4>Z Coordinate<a class="headerlink" href="#z-coordinate" title="Link to this heading"><span>#</span></a></h4>
+<ul>
+<li><dl class="simple">
+<dt>Altitude Mode</dt><dd><p>Defines how the Z position of objects is calculated.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Absolute</dt><dd><p>The Z position is calculated as the vertical distance above the zero level.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Relative to (a DEM layer)</dt><dd><p>The Z position is calculated as the vertical distance above the surface of the selected DEM layer.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Altitude</dt><dd><p>Defines how the Z position is derived using geometry Z values, M values, expressions, or a combination of
+these methods.</p>
+<ul>
+<li><dl class="simple">
+<dt>Expression</dt><dd><p>Specifies a numeric value, an attribute field, or a more complex expression using QGIS expressions.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Z value / M value</dt><dd><p>Uses the Z value or M value from the geometry. The value evaluated from the expression is added to
+the existing value.</p>
+<p>These options are available only when the layer geometries contain Z values or M values.
+They are not available when the shape type is set to <strong>Extruded</strong> or <strong>Overlay</strong>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id1">
+<h4>Material<a class="headerlink" href="#id1" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Color</dt><dd><p>Specifies the color used to render the shapes.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Opacity</dt><dd><p>Sets the opacity of the rendered shapes. 100 is fully opaque, and 0 is fully transparent.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#features'"><span>#</span></a></h3>
+<figure class="align-default" id="id12">
+<img alt="_images/vector_layer2.png" src="_images/vector_layer2.png"/>
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Features Tab</span><a class="headerlink" href="#id12" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>Select the features to export.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>All features</dt><dd><p>Exports all features in the layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Features that intersect with the base extent of the scene</dt><dd><p>Exports features that intersect with the scene base extene defined in <a class="reference external" href="#scene-settings">Scene properties dialog</a>.</p>
+<ul>
+<li><dl class="simple">
+<dt>Clip geometries</dt><dd><p>This option is available with Line and Polygon layers. If checked,
+geometries are clipped to the base extent of the scene.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<section id="attributes">
+<h4>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Export attributes</dt><dd><p>If this option is checked, attributes are exported together with the features.
+Attributes are displayed when an object is clicked in a web browser.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="labels">
+<h3>Labels<a class="headerlink" href="#labels" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#labels'"><span>#</span></a></h3>
+<figure class="align-default" id="id13">
+<img alt="_images/vector_layer3.png" src="_images/vector_layer3.png"/>
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Labels Tab</span><a class="headerlink" href="#id13" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>This tab is not available when the layer type is <strong>Line</strong>.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Show labels</dt><dd><p>Displays a label above each object.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<section id="position">
+<h4>Position<a class="headerlink" href="#position" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Label height</dt><dd><p>Specifies the height at which labels are displayed. When <strong>Absolute</strong> is selected, labels are
+displayed at a fixed height above the zero level. When <strong>Relative</strong> is selected, label height is
+determined relative to the corresponding objects.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="text">
+<h4>Text<a class="headerlink" href="#text" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Text</dt><dd><p>Specifies the label text. An attribute field or a more complex expression can be used.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Font family</dt><dd><p>Specifies the font family used for labels.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Size</dt><dd><p>Specifies the font size of labels.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Color</dt><dd><p>Specifies the color of label text.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Outline</dt><dd><p>Enables an outline for label text.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Outline color</dt><dd><p>Specifies the color of the label text outline.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="fill-background">
+<h4>Fill Background<a class="headerlink" href="#fill-background" title="Link to this heading"><span>#</span></a></h4>
+<p>Enables filling the label background.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Fill color</dt><dd><p>Specifies the background color.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="connector">
+<h4>Connector<a class="headerlink" href="#connector" title="Link to this heading"><span>#</span></a></h4>
+<p>Adds connectors between objects and their labels.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Color</dt><dd><p>Specifies the color of the connector.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Underline</dt><dd><p>Enables an underline beneath the label.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h3>Others<a class="headerlink" href="#id2" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id2'"><span>#</span></a></h3>
+<figure class="align-default" id="id14">
+<img alt="_images/vector_layer4.png" src="_images/vector_layer4.png"/>
+<figcaption>
+<p><span class="caption-text">Vector Layer Properties Dialog - Other Options Tab</span><a class="headerlink" href="#id14" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<ul>
+<li><dl class="simple">
+<dt>Name</dt><dd><p>Specifies the name of the vector layer as displayed in the layer list on the exported page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Visible on Load</dt><dd><p>Specifies whether the layer is visible when the exported page is loaded.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Clickable</dt><dd><p>Enables user interaction with the layer. When enabled, the layer can respond to click events.</p>
+<p>This option is not available when <strong>ThickLine</strong> is selected.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="point-cloud-layer">
+<h2>Point Cloud Layer<a class="headerlink" href="#point-cloud-layer" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#point-cloud-layer'"><span>#</span></a></h2>
+<section id="properties">
+<h3>Properties<a class="headerlink" href="#properties" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#properties'"><span>#</span></a></h3>
+<section id="information">
+<h4>Information<a class="headerlink" href="#information" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>URL</dt><dd><p>The source URL of the point cloud.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Description</dt><dd><p>Metadata or additional information about the point cloud.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id3">
+<h4>Material<a class="headerlink" href="#id3" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Color type</dt><dd><p>Specifies the method used to color the points.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Opacity</dt><dd><p>Specifies the opacity of the points.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="other-options">
+<h4>Other Options<a class="headerlink" href="#other-options" title="Link to this heading"><span>#</span></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Name</dt><dd><p>Specifies the name of the point cloud layer as displayed in the layer list on the exported page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Show bounding boxes</dt><dd><p>Displays point-cloud bounding boxes in the viewer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Visible on load</dt><dd><p>Specifies whether the layer is visible when the exported page is loaded.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Clickable</dt><dd><p>Enables user interaction with the layer. When enabled, the layer can respond to click events.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>See also <a class="reference external" href="#add-point-cloud-layer">Add Point Cloud Layer…</a>.</p>
+</section>
+</section>
+</section>
+<section id="animation">
+<h2>Animation<a class="headerlink" href="#animation" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation'"><span>#</span></a></h2>
+<section id="animation-panel">
+<h3>Animation Panel<a class="headerlink" href="#animation-panel" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation-panel'"><span>#</span></a></h3>
+<figure class="align-default" id="id15">
+<img alt="_images/panel.png" src="_images/panel.png"/>
+<figcaption>
+<p><span class="caption-text">Animation Panel</span><a class="headerlink" href="#id15" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>The Animation Panel allows you to organize tracks, keyframes, and transition items that make up an animation using a tree widget.</p>
+<section id="animation-basics">
+<h4>Animation Basics<a class="headerlink" href="#animation-basics" title="Link to this heading"><span>#</span></a></h4>
+<p>Animations such as camera movement, opacity changes, and texture switching require at least two keyframes. A transition is defined
+by two keyframes that represent the starting and ending states. The growing line animation track is an exception; a transition item
+is stored under the track instead of keyframes. The types of animation tracks are described later in the <a class="reference external" href="#animation-structure">Animation Structure</a> section.</p>
+</section>
+<section id="adding-tracks-and-keyframes">
+<h4>Adding Tracks and Keyframes<a class="headerlink" href="#adding-tracks-and-keyframes" title="Link to this heading"><span>#</span></a></h4>
+<p>Select the track where you want to add a keyframe and press the + button to add a keyframe. If no track exists, select a top-level
+item and press the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
+layer must be checked in the Layer Panel.</p>
+</section>
+<section id="editing-keyframes">
+<h4>Editing Keyframes<a class="headerlink" href="#editing-keyframes" title="Link to this heading"><span>#</span></a></h4>
+<p>Double-clicking a keyframe item opens the Keyframe dialog, where you can modify the easing type, the delay before the transition starts,
+and the duration of the transition. If text or HTML is entered in the Narrative text box, a pop-up will be displayed at the corresponding
+keyframe during the animation.</p>
+<figure class="align-default" id="id16">
+<img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png"/>
+<figcaption>
+<p><span class="caption-text">Keyframe Dialog</span><a class="headerlink" href="#id16" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="animation-structure">
+<h3>Animation Structure<a class="headerlink" href="#animation-structure" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#animation-structure'"><span>#</span></a></h3>
+<figure class="align-default" id="id17">
+<img alt="_images/tween.png" src="_images/tween.png"/>
+<figcaption>
+<p><span class="caption-text">The structure of an animation composed of multiple tracks</span><a class="headerlink" href="#id17" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<p>The animation timeline progresses horizontally along the time axis. Each track contains track items
+that define how properties change over time using delay and transition duration.</p>
+<section id="types-of-animation-tracks">
+<h4>Types of Animation Tracks<a class="headerlink" href="#types-of-animation-tracks" title="Link to this heading"><span>#</span></a></h4>
+<p>This section describes the types of animation tracks available and how each track controls animation behavior.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Camera Motion Track</dt><dd><p>This track controls camera movement using multiple keyframes. Each keyframe represents a camera state,
+and transitions between keyframes define how the camera moves from one state to the next. The timing of each
+movement is controlled by an initial delay followed by a transition period. Keyframes are placed sequentially
+to create continuous camera motion throughout the animation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Opacity Track</dt><dd><p>This track controls the opacity of a layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Texture Track</dt><dd><p>This track manages texture switching for a layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Growing Line Track</dt><dd><p>This track creates an animation in which line strings progressively extend over time. You can choose between
+two modes: one in which all features grow simultaneously, or another in which each feature extends individually
+in sequence.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="export-to-web-dialog">
+<span id="id4"></span><h2>Export to Web Dialog<a class="headerlink" href="#export-to-web-dialog" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#export-to-web-dialog'"><span>#</span></a></h2>
+<figure class="align-default" id="id18">
+<img alt="_images/export_to_web.png" src="_images/export_to_web.png"/>
+<figcaption>
+<p><span class="caption-text">Export to Web Dialog</span><a class="headerlink" href="#id18" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<ul>
+<li><dl>
+<dt>Output directory and HTML filename</dt><dd><p>Select the output location and filename for the HTML file.</p>
+<p>Geometry data and texture image files are exported to a subdirectory with the same name as the HTML file,
+located under the <code class="docutils literal notranslate"><span class="pre">data</span></code> directory inside the output directory. Required JavaScript library files are copied
+into the directory.</p>
+<p>If this field is left empty, the output will be written to a temporary directory. Temporary files are
+automatically removed when you close the QGIS application.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Page title</dt><dd><p>Specify the title of the exported web page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Use current view as initial view</dt><dd><p>If enabled, the current view shown in the preview at the time of export is saved and used as the initial view
+when the exported scene is loaded in the viewer.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Enable the Viewer to Run Locally</dt><dd><p>If enabled, all scene data is exported into a single <code class="docutils literal notranslate"><span class="pre">.js</span></code> file to avoid web browser same-origin policy security
+restrictions.</p>
+<p>This allows the exported scene to be viewed locally without uploading files to a web server.
+However, this option increases the total file size.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Template</dt><dd><p>Select one of the available templates:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>3DViewer</dt><dd><p>This template provides a basic 3D viewer without any additional UI libraries.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>3DViewer(dat-gui)</dt><dd><p>This template includes a <a class="reference external" href="https://code.google.com/p/dat-gui/">dat-gui</a> control panel that allows you to
+toggle layer visibility, adjust layer opacity, and add a horizontally oriented plane that can be moved vertically.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Mobile</dt><dd><p>This template is optimized for mobile devices. It provides a mobile-friendly user interface,
+device orientation controls, and an AR feature. To use the AR feature, the exported files must be
+uploaded to a web server that supports SSL.</p>
+<ul>
+<li><dl class="simple">
+<dt>Magnetic North Direction</dt><dd><p>Specify the magnetic north direction as a clockwise angle (in degrees) measured from the upward direction of the map.
+This value is used to determine the orientation of the device camera in AR mode.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Animation and Narrative</dt><dd><p>Enables animations and narrative sequences configured in the animation panel.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Start animation once the scene has been loaded</dt><dd><p>If enabled, playback automatically begins after the scene finishes loading.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Export button</dt><dd><p>Exporting starts when you press the Export button. The view switches to the Log panel, and once the process is complete,
+you can open the exported directory or page by clicking the hyperlink in the log.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="plugin-settings">
+<h2>Plugin Settings<a class="headerlink" href="#plugin-settings" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plugin-settings'"><span>#</span></a></h2>
+<figure class="align-default" id="id19">
+<img alt="_images/plugin_settings.png" src="_images/plugin_settings.png"/>
+<figcaption>
+<p><span class="caption-text">Exporter Settings Dialog</span><a class="headerlink" href="#id19" title="Link to this image"><span>#</span></a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Web browser path</dt><dd><p>If you want to open the exported page in a web browser other than the default browser,
+enter the path to the web browser in this input box.
+See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/wiki/Browser-Support">Browser Support</a> wiki page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Optional Features</dt><dd><p>See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/wiki/Plugins">Plugins</a> wiki page.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+<div class="mr-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="Tutorial.html">
+<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+        Tutorial
+      </a>
+</div>
+<div class="ml-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="ShapeTypes.html">
+        Shape Types
+        <svg class="ml-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+</div>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#layer-panel'" class="reference internal" href="#layer-panel">Layer Panel</a></li>
+<li><a :data-current="activeSection === '#menu'" class="reference internal" href="#menu">Menu</a><ul>
+<li><a :data-current="activeSection === '#file-menu'" class="reference internal" href="#file-menu">File Menu</a></li>
+<li><a :data-current="activeSection === '#scene-menu'" class="reference internal" href="#scene-menu">Scene Menu</a></li>
+<li><a :data-current="activeSection === '#view-menu'" class="reference internal" href="#view-menu">View Menu</a></li>
+<li><a :data-current="activeSection === '#window-menu'" class="reference internal" href="#window-menu">Window Menu</a></li>
+<li><a :data-current="activeSection === '#help-menu'" class="reference internal" href="#help-menu">Help Menu</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#scene-settings'" class="reference internal" href="#scene-settings">Scene Settings</a><ul>
+<li><a :data-current="activeSection === '#world'" class="reference internal" href="#world">World</a><ul>
+<li><a :data-current="activeSection === '#world-coordinates'" class="reference internal" href="#world-coordinates">World Coordinates</a></li>
+<li><a :data-current="activeSection === '#base-extent'" class="reference internal" href="#base-extent">Base Extent</a></li>
+<li><a :data-current="activeSection === '#background'" class="reference internal" href="#background">Background</a></li>
+<li><a :data-current="activeSection === '#display-of-coordinates'" class="reference internal" href="#display-of-coordinates">Display of coordinates</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#light-effects'" class="reference internal" href="#light-effects">Light &amp; Effects</a><ul>
+<li><a :data-current="activeSection === '#light'" class="reference internal" href="#light">Light</a></li>
+<li><a :data-current="activeSection === '#fog'" class="reference internal" href="#fog">Fog</a></li>
+<li><a :data-current="activeSection === '#material-effects'" class="reference internal" href="#material-effects">Material &amp; Effects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#camera-settings'" class="reference internal" href="#camera-settings">Camera Settings</a></li>
+<li><a :data-current="activeSection === '#widgets'" class="reference internal" href="#widgets">Widgets</a><ul>
+<li><a :data-current="activeSection === '#navigation-widget'" class="reference internal" href="#navigation-widget">Navigation Widget</a></li>
+<li><a :data-current="activeSection === '#north-arrow'" class="reference internal" href="#north-arrow">North Arrow</a></li>
+<li><a :data-current="activeSection === '#header-footer-label'" class="reference internal" href="#header-footer-label">Header/Footer Label</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#dem-layer'" class="reference internal" href="#dem-layer">DEM Layer</a><ul>
+<li><a :data-current="activeSection === '#geometry'" class="reference internal" href="#geometry">Geometry</a><ul>
+<li><a :data-current="activeSection === '#resampling-method'" class="reference internal" href="#resampling-method">Resampling Method</a></li>
+<li><a :data-current="activeSection === '#clipping'" class="reference internal" href="#clipping">Clipping</a></li>
+<li><a :data-current="activeSection === '#surrounding-tiles'" class="reference internal" href="#surrounding-tiles">Surrounding Tiles</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#material'" class="reference internal" href="#material">Material</a><ul>
+<li><a :data-current="activeSection === '#material-list'" class="reference internal" href="#material-list">Material List</a></li>
+<li><a :data-current="activeSection === '#settings-for-each-material-item'" class="reference internal" href="#settings-for-each-material-item">Settings for each material item</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#others'" class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#vector-layer'" class="reference internal" href="#vector-layer">Vector Layer</a><ul>
+<li><a :data-current="activeSection === '#styling'" class="reference internal" href="#styling">Styling</a><ul>
+<li><a :data-current="activeSection === '#shape'" class="reference internal" href="#shape">Shape</a></li>
+<li><a :data-current="activeSection === '#z-coordinate'" class="reference internal" href="#z-coordinate">Z Coordinate</a></li>
+<li><a :data-current="activeSection === '#id1'" class="reference internal" href="#id1">Material</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#features'" class="reference internal" href="#features">Features</a><ul>
+<li><a :data-current="activeSection === '#attributes'" class="reference internal" href="#attributes">Attributes</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#labels'" class="reference internal" href="#labels">Labels</a><ul>
+<li><a :data-current="activeSection === '#position'" class="reference internal" href="#position">Position</a></li>
+<li><a :data-current="activeSection === '#text'" class="reference internal" href="#text">Text</a></li>
+<li><a :data-current="activeSection === '#fill-background'" class="reference internal" href="#fill-background">Fill Background</a></li>
+<li><a :data-current="activeSection === '#connector'" class="reference internal" href="#connector">Connector</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id2'" class="reference internal" href="#id2">Others</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#point-cloud-layer'" class="reference internal" href="#point-cloud-layer">Point Cloud Layer</a><ul>
+<li><a :data-current="activeSection === '#properties'" class="reference internal" href="#properties">Properties</a><ul>
+<li><a :data-current="activeSection === '#information'" class="reference internal" href="#information">Information</a></li>
+<li><a :data-current="activeSection === '#id3'" class="reference internal" href="#id3">Material</a></li>
+<li><a :data-current="activeSection === '#other-options'" class="reference internal" href="#other-options">Other Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#animation'" class="reference internal" href="#animation">Animation</a><ul>
+<li><a :data-current="activeSection === '#animation-panel'" class="reference internal" href="#animation-panel">Animation Panel</a><ul>
+<li><a :data-current="activeSection === '#animation-basics'" class="reference internal" href="#animation-basics">Animation Basics</a></li>
+<li><a :data-current="activeSection === '#adding-tracks-and-keyframes'" class="reference internal" href="#adding-tracks-and-keyframes">Adding Tracks and Keyframes</a></li>
+<li><a :data-current="activeSection === '#editing-keyframes'" class="reference internal" href="#editing-keyframes">Editing Keyframes</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#animation-structure'" class="reference internal" href="#animation-structure">Animation Structure</a><ul>
+<li><a :data-current="activeSection === '#types-of-animation-tracks'" class="reference internal" href="#types-of-animation-tracks">Types of Animation Tracks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#export-to-web-dialog'" class="reference internal" href="#export-to-web-dialog">Export to Web Dialog</a></li>
+<li><a :data-current="activeSection === '#plugin-settings'" class="reference internal" href="#plugin-settings">Plugin Settings</a></li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2014, Minoru Akagi Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="_static/documentation_options.js?v=e7305a5c"></script>
+<script src="_static/doctools.js?v=fd6eb6e6"></script>
+<script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+<script defer="defer" src="_static/theme.js?v=582b20c5"></script>
+</body>
+</html>
