@@ -287,7 +287,7 @@ Line
 
    * - .. figure:: ./images/line/Line.png
 
-         Image created using |GSI_TILES| (ort, dem).
+         Image created using |GSI_TILES| (ort, dem) provided by GSI (Japan).
 
      - **Specific settings**
          None
@@ -336,8 +336,8 @@ Places a cone along each line segment. The cone is oriented in the forward direc
 
    * - .. figure:: ./images/line/ConeL.jpg
 
-         Image created using |GSI_TILES| (ort, dem) and
-         `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Rivers. MILT of Japan).
+         Image created using |GSI_TILES| (ort, dem) provided by GSI (Japan), and
+         river data from |KSJ| provided by MLIT (Japan).
 
      - **Specific settings**
          * Radius
@@ -411,7 +411,11 @@ Polygon
    :align: left
    :class: valign-top
 
-   * - .. image:: ./images/no_image.png
+   * - .. figure:: ./images/polygon/Polygon.jpg
+
+         Image created using the 3D City Model data of Shinjuku from |PLATEAU| provided by MLIT (Japan) and
+         |GSI_TILES| (ort, dem) provided by GSI (Japan).
+
      - **Specific settings**
          None
 
@@ -455,7 +459,7 @@ Otherwise, a flat polygon is created at the specified altitude.
    * - .. figure:: ./images/polygon/Overlay.jpg
 
          Image created using |GSI_TILES| (ort, dem) and
-         `National Land Numerical Information <http://nlftp.mlit.go.jp/ksj/>`__ (Sediment Disaster Hazard Area. Provided by Okayama prefecture, Japan).
+         the Sediment Disaster Hazard Area data of Okayama from |KSJ|.
 
      - **Specific settings**
          * Border
