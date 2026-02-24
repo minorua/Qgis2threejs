@@ -3,6 +3,12 @@
 .. |GSI_TILES| replace:: `GSI Tiles`_
 .. _GSI Tiles: https://maps.gsi.go.jp/development/ichiran.html
 
+.. |KSJ| replace:: `National Land Numerical Information`_
+.. _National Land Numerical Information: http://nlftp.mlit.go.jp/ksj/
+
+.. |PLATEAU| replace:: `Project PLATEAU`_
+.. _Project PLATEAU: https://www.mlit.go.jp/plateau/
+
 .. |WIKI_STRIKE_DIP| replace:: `Strike and dip`_
 .. _Strike and dip: https://en.wikipedia.org/wiki/Strike_and_dip
 
