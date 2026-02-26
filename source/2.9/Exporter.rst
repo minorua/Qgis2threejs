@@ -18,6 +18,10 @@ with a QGIS project. When the exporter is opened later, the project's export set
 The preview is automatically updated whenever export settings are changed.
 You can disable the preview by unchecking the `Preview` checkbox in the lower-right corner of the window.
 
+.. warning::
+   If you open export settings saved with a newer version in an older version, an error may occur and the properties dialog may not open.
+   In this case, clear the export settings from the `File` menu.
+
 
 Layer Panel
 ===========
