@@ -500,12 +500,12 @@ The label text can include valid HTML tags for styling.</p>
 <section id="resampling-method">
 <h4>Resampling Method<a class="headerlink" href="#resampling-method" title="Link to this heading"><span>#</span></a></h4>
 <p>Specifies how DEM elevation values are sampled when generating the 3D terrain mesh. Bilinear resampling is selected by default.</p>
-<ul class="simple">
+<ul>
 <li><dl class="simple">
 <dt>Bilinear resampling</dt><dd><p>Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
 between neighboring pixel values. When this option is selected, a terrain mesh covering the scene base extent is generated
 at a resolution determined by the resampling level.</p>
-<ul>
+<ul class="simple">
 <li><dl class="simple">
 <dt>Resampling level</dt><dd><p>Selects the resolution level used when resampling the DEM. Lower resolution levels reduce the number of elevation samples
 and improve performance, while higher resolution levels preserve more terrain detail but may increase processing time
@@ -518,9 +518,11 @@ This setting affects only the terrain geometry and does not affect texture resol
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
+<li><dl>
 <dt>Use original DEM values</dt><dd><p>Uses the original DEM elevation values without interpolation. The DEM is divided into tiles.</p>
-<ul>
+<p>This option cannot be used if the CRS of the DEM layer differs from the project CRS, or if the DEM grid spacing differs
+between the x and y directions. In addition, terrain objects will not be displayed if the map in the map canvas is rotated.</p>
+<ul class="simple">
 <li><dl class="simple">
 <dt>Tile side segments</dt><dd><p>Specifies the number of segments along each side of a terrain tile.</p>
 </dd>
