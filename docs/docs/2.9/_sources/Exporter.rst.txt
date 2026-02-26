@@ -709,17 +709,22 @@ is stored under the track instead of keyframes. The types of animation tracks ar
 Adding Tracks and Keyframes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Select the track where you want to add a keyframe and press the + button to add a keyframe. If no track exists, select a top-level
-item and press the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
+Select the track where you want to add a keyframe and click the + button. If no track exists, select a top-level item and
+click the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
 layer must be checked in the Layer Panel.
 
+For Camera motion, a keyframe is created using the current camera position and orientation in the preview.
+For other track types, specify the key value in the dialog that appears (e.g. an opacity value).
 
-Editing Keyframes
-^^^^^^^^^^^^^^^^^
 
-Double-clicking a keyframe item opens the Keyframe dialog, where you can modify the easing type, the delay before the transition starts,
-and the duration of the transition. If text or HTML is entered in the Narrative text box, a pop-up will be displayed at the corresponding
-keyframe during the animation.
+Editing Keyframes and Transitions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Keyframes can be reordered by dragging and dropping them. Double-clicking a keyframe item opens the Keyframe dialog, where
+you can modify the easing type, the delay before the transition starts, and the transition duration. If text or HTML is entered
+in the Narrative text box, a pop-up will be displayed at the corresponding keyframe during the animation.
+
+For Camera motion, you can update the camera position and orientation of a keyframe from the context menu.
 
 .. figure:: ./images/dialogs/keyframe_camera.png
 

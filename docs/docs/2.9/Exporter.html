@@ -1004,15 +1004,18 @@ is stored under the track instead of keyframes. The types of animation tracks ar
 </section>
 <section id="adding-tracks-and-keyframes">
 <h4>Adding Tracks and Keyframes<a class="headerlink" href="#adding-tracks-and-keyframes" title="Link to this heading"><span>#</span></a></h4>
-<p>Select the track where you want to add a keyframe and press the + button to add a keyframe. If no track exists, select a top-level
-item and press the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
+<p>Select the track where you want to add a keyframe and click the + button. If no track exists, select a top-level item and
+click the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
 layer must be checked in the Layer Panel.</p>
+<p>For Camera motion, a keyframe is created using the current camera position and orientation in the preview.
+For other track types, specify the key value in the dialog that appears (e.g. an opacity value).</p>
 </section>
-<section id="editing-keyframes">
-<h4>Editing Keyframes<a class="headerlink" href="#editing-keyframes" title="Link to this heading"><span>#</span></a></h4>
-<p>Double-clicking a keyframe item opens the Keyframe dialog, where you can modify the easing type, the delay before the transition starts,
-and the duration of the transition. If text or HTML is entered in the Narrative text box, a pop-up will be displayed at the corresponding
-keyframe during the animation.</p>
+<section id="editing-keyframes-and-transitions">
+<h4>Editing Keyframes and Transitions<a class="headerlink" href="#editing-keyframes-and-transitions" title="Link to this heading"><span>#</span></a></h4>
+<p>Keyframes can be reordered by dragging and dropping them. Double-clicking a keyframe item opens the Keyframe dialog, where
+you can modify the easing type, the delay before the transition starts, and the transition duration. If text or HTML is entered
+in the Narrative text box, a pop-up will be displayed at the corresponding keyframe during the animation.</p>
+<p>For Camera motion, you can update the camera position and orientation of a keyframe from the context menu.</p>
 <figure class="align-default" id="id16">
 <img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png"/>
 <figcaption>
@@ -1280,7 +1283,7 @@ See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/
 <li><a :data-current="activeSection === '#animation-panel'" class="reference internal" href="#animation-panel">Animation Panel</a><ul>
 <li><a :data-current="activeSection === '#animation-basics'" class="reference internal" href="#animation-basics">Animation Basics</a></li>
 <li><a :data-current="activeSection === '#adding-tracks-and-keyframes'" class="reference internal" href="#adding-tracks-and-keyframes">Adding Tracks and Keyframes</a></li>
-<li><a :data-current="activeSection === '#editing-keyframes'" class="reference internal" href="#editing-keyframes">Editing Keyframes</a></li>
+<li><a :data-current="activeSection === '#editing-keyframes-and-transitions'" class="reference internal" href="#editing-keyframes-and-transitions">Editing Keyframes and Transitions</a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#animation-structure'" class="reference internal" href="#animation-structure">Animation Structure</a><ul>
