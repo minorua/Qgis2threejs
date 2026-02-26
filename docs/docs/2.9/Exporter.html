@@ -499,7 +499,7 @@ The label text can include valid HTML tags for styling.</p>
 </figure>
 <section id="resampling-method">
 <h4>Resampling Method<a class="headerlink" href="#resampling-method" title="Link to this heading"><span>#</span></a></h4>
-<p>Specifies how DEM elevation values are sampled when generating the 3D terrain mesh. Bilinear resampling is selected by default.</p>
+<p>Specifies how DEM elevation values are resampled when generating the 3D terrain mesh. Bilinear resampling is used by default.</p>
 <ul>
 <li><dl class="simple">
 <dt>Bilinear resampling</dt><dd><p>Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
@@ -1043,7 +1043,7 @@ that define how properties change over time using delay and transition duration.
 <li><dl class="simple">
 <dt>Camera Motion Track</dt><dd><p>This track controls camera movement using multiple keyframes. Each keyframe represents a camera state,
 and transitions between keyframes define how the camera moves from one state to the next. The timing of each
-movement is controlled by an initial delay followed by a transition period. Keyframes are placed sequentially
+movement is controlled by an initial delay followed by a transition duration. Keyframes are arranged sequentially
 to create continuous camera motion throughout the animation.</p>
 </dd>
 </dl>
