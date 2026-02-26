@@ -326,7 +326,7 @@ Geometry
 Resampling Method
 ^^^^^^^^^^^^^^^^^
 
-Specifies how DEM elevation values are sampled when generating the 3D terrain mesh. Bilinear resampling is selected by default.
+Specifies how DEM elevation values are resampled when generating the 3D terrain mesh. Bilinear resampling is used by default.
 
 * Bilinear resampling
    Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
@@ -754,7 +754,7 @@ This section describes the types of animation tracks available and how each trac
 * Camera Motion Track
    This track controls camera movement using multiple keyframes. Each keyframe represents a camera state,
    and transitions between keyframes define how the camera moves from one state to the next. The timing of each
-   movement is controlled by an initial delay followed by a transition period. Keyframes are placed sequentially
+   movement is controlled by an initial delay followed by a transition duration. Keyframes are arranged sequentially
    to create continuous camera motion throughout the animation.
 
 * Opacity Track
