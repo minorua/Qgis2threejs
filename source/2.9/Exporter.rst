@@ -342,6 +342,9 @@ Specifies how DEM elevation values are sampled when generating the 3D terrain me
 * Use original DEM values
    Uses the original DEM elevation values without interpolation. The DEM is divided into tiles.
 
+   This option cannot be used if the CRS of the DEM layer differs from the project CRS, or if the DEM grid spacing differs
+   between the x and y directions. In addition, terrain objects will not be displayed if the map in the map canvas is rotated.
+
    * Tile side segments
       Specifies the number of segments along each side of a terrain tile.
 
