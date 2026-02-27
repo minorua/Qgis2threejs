@@ -498,23 +498,11 @@ class ExportSettings:
 
     def addLayer(self, layer):
         """append an additional layer to layer list"""
-        layer = layer.clone()
         layer.jsLayerId = self.nextJsLayerId
         self.nextJsLayerId += 1
 
         layers = self.layers()
         layers.append(layer)
-        self.set(ExportSettings.LAYERS, layers)
-        return layer
-
-    def insertLayer(self, index, layer):
-        """insert an additional layer to layer list at given index"""
-        layer = layer.clone()
-        layer.jsLayerId = self.nextJsLayerId
-        self.nextJsLayerId += 1
-
-        layers = self.layers()
-        layers.insert(index, layer)
         self.set(ExportSettings.LAYERS, layers)
         return layer
 
