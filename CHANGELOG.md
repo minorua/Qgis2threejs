@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### Version 2.9.4
+- Fixed a regression in PointCloudLayerBuilder constructor and Potree base path
+- Fixed script loading order to ensure dependencies are loaded correctly
+
 ### Version 2.9.3
 - Refined tab and group box layout in vector layer properties dialog
 - Fixed an issue preventing 3D model labels from being displayed
