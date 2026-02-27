@@ -53,7 +53,7 @@ class Q3DWebPageCommon:
 
         logger.debug(f"> {text}")
 
-    def loadScriptFile(self, scriptFileId, wait=False, callback=None):
+    def loadScriptFile(self, scriptFileId, callback=None, wait=False):
         if scriptFileId in self.loadedScripts:
             if callback:
                 callback()
@@ -82,25 +82,22 @@ class Q3DWebPageCommon:
         else:
             self.runScript(script)
 
-    def loadScriptFiles(self, scriptFileIds, wait=False, callback=None):
-        total = len(scriptFileIds)
-        if total == 0:
+    def loadScriptFiles(self, scriptFileIds, callback=None):
+        if not scriptFileIds:
             raise Exception("loadScriptFiles called with empty scriptFileIds")
 
-        if total == 1:
-            self.loadScriptFile(scriptFileIds[0], wait, callback)
-            return
+        remaining = list(scriptFileIds)
 
-        loaded = 0
-        def script_loaded():
-            nonlocal loaded
-            loaded += 1
-            if loaded >= total:
+        def load_next():
+            if not remaining:
                 if callback:
                     callback()
+                return
 
-        for id in scriptFileIds:
-            self.loadScriptFile(id, wait, script_loaded)
+            id = remaining.pop(0)
+            self.loadScriptFile(id, callback=load_next)
+
+        load_next()
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """Show a message bar at the top of the web page.
