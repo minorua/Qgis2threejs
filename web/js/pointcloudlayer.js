@@ -86,6 +86,7 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 
 		if (this.pcg !== undefined) {
 			if (!need_reload) {
+				this.visible = p.visible;
 				this.updatePosition(scene);
 
 				if (this.pc !== undefined) {
