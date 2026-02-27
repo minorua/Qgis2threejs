@@ -9,7 +9,7 @@ Q3D.Config.preview = {
 
 };
 
-Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/potree-core";
+Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/lib/potree-core";
 Q3D.Config.potree.maxNodesLoading = 1;
 
 var app = Q3D.application,
