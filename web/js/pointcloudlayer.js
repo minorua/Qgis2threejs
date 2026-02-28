@@ -80,23 +80,10 @@ class Q3DPointCloudLayer extends Q3DMapLayer {
 	loadData(data, scene) {
 
 		var p = data.properties;
-		var need_reload = (this.properties.colorType !== p.colorType);
 
 		super.loadData(data, scene);
 
 		if (this.pcg !== undefined) {
-			if (!need_reload) {
-				this.visible = p.visible;
-				this.updatePosition(scene);
-
-				if (this.pc !== undefined) {
-					this.pc.showBoundingBox = p.boxVisible;
-				}
-
-				if (p.color !== undefined) this.materials.mtl(0).color = new THREE.Color(p.color);
-				return;
-			}
-
 			this.clearObjects();
 
 			var g = this.objectGroup;
