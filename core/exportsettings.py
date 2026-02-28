@@ -93,7 +93,11 @@ class Layer:
         lyr.mapLayer = mapLayer
 
         if geomType == LayerType.POINTCLOUD:
-            lyr.properties["url"] = urlFromPCLayer(mapLayer)
+            url = urlFromPCLayer(mapLayer)
+            if url:
+                lyr.properties["url"] = url
+            else:
+                return None
 
         return lyr
 
@@ -442,10 +446,16 @@ class ExportSettings:
                 layer.name = layer.properties.get("lineEdit_Name") or mapLayer.name()
 
                 if layerType == LayerType.POINTCLOUD:
-                    layer.properties["url"] = urlFromPCLayer(mapLayer)     # update url
+                    url = urlFromPCLayer(mapLayer)
+                    if url:
+                        layer.properties["url"] = url
+                    else:
+                        continue    # not supported format
             else:
                 layer = Layer.fromQgsMapLayer(mapLayer)
-            layers.append(layer)
+
+            if layer:
+                layers.append(layer)
 
         # DEM provider plugin layers
         for plugin in pluginManager().demProviderPlugins():
@@ -835,5 +845,7 @@ def urlFromPCLayer(mapLayer):
         f = os.path.join(os.path.split(src)[0],
                          "ept_" + os.path.splitext(os.path.basename(src))[0],
                          "ept.json")
+        if not os.path.exists(f):
+            return ""
 
     return QUrl.fromLocalFile(f).toString()
