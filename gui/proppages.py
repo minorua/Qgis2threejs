@@ -1110,11 +1110,7 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
 
         self.restoreProperties(layer.properties)
 
-        wnd = self.parent().parent()
-        loaded = wnd.runScript(f"app.scene.mapLayers[{layer.jsLayerId}].loadedPointCount()", wait=True)
-        visible = wnd.runScript(f"app.scene.mapLayers[{layer.jsLayerId}].pcg.children[0].numVisiblePoints", wait=True)
-
-        total = bbox = None
+        total_points = loaded_points = visible_points = bbox = None
 
         url = layer.properties.get("url", "")
         if url.startswith("file:") and url.endswith(("cloud.js", "ept.json")):
@@ -1122,7 +1118,7 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
                 with open(QUrl(url).toLocalFile(), "r") as f:
                     d = json.load(f)
 
-                total = d.get("points")
+                total_points = d.get("points")
                 bbox = d.get("tightBoundingBox")        # potree
                 if bbox:
                     bbox = [bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz")]
@@ -1131,18 +1127,36 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
             except:
                 pass
 
-        html = "<style>th {text-align:left;padding-right:10px;}</style><table>"
-        html += "<tr><th>Point count</th><td>{}</td></tr>".format("Unknown" if total is None else "{:,}".format(int(total)))
-        html += "<tr><th>Loaded point count</th><td>{}</td></tr>".format("Unknown" if loaded is None else "{:,}".format(int(loaded)))
-        html += "<tr><th>Visible point count</th><td>{}</td></tr>".format("Unknown" if visible is None else "{:,}".format(int(visible)))
+        def updateInfoBox():
+            html = "<style>th {text-align:left;padding-right:10px;}</style><table>"
+            for name, count in [("Point", total_points), ("Loaded point", loaded_points), ("Visible point", visible_points)]:
+                fmtCount = "Unknown" if count is None else "{:,}".format(int(count))
+                html += f"<tr><th>{name} count</th><td>{fmtCount}</td></tr>"
 
-        if bbox:
-            html += """
-<tr><th>Bounding box:</ht><td>{:.3f}, {:.3f}, {:.3f} :<br>{:.3f}, {:.3f}, {:.3f}</td></tr>
-""".format(*bbox)
+            if bbox:
+                html += """
+    <tr><th>Bounding box:</th><td>{:.3f}, {:.3f}, {:.3f} :<br>{:.3f}, {:.3f}, {:.3f}</td></tr>
+    """.format(*bbox)
 
-        html += "</table>"
-        self.textBrowser.setHtml(html)
+            html += "</table>"
+            self.textBrowser.setHtml(html)
+
+        def updateStat(name, value):
+            nonlocal loaded_points, visible_points
+
+            if name == "loaded":
+                loaded_points = value
+            elif name == "visible":
+                visible_points = value
+
+            updateInfoBox()
+
+        updateInfoBox()
+
+        wnd = self.parent().parent()
+        layer_js = f"app.scene.mapLayers[{layer.jsLayerId}]"
+        wnd.runScript(f"{layer_js}.loadedPointCount()", callback=lambda v: updateStat("loaded", v))
+        wnd.runScript(f"{layer_js}.pcg.children[0].numVisiblePoints", callback=lambda v: updateStat("visible", v))
 
     def colorTypeChanged(self, index=None):
         b = (self.comboBox_ColorType.currentData() == "COLOR")
