@@ -667,9 +667,6 @@ Material
 * Color type
    Specifies the method used to color the points.
 
-* Opacity
-   Specifies the opacity of the points.
-
 
 Other Options
 ^^^^^^^^^^^^^
