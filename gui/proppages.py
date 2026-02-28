@@ -1108,6 +1108,8 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
         self.comboBox_ColorType.currentIndexChanged.connect(self.colorTypeChanged)
         self.colorTypeChanged()
 
+        self.setWidgetsVisible([self.label_17, self.horizontalSlider_Opacity, self.spinBox_Opacity], False)     # point cloud layers do not support opacity changes for now
+
         self.restoreProperties(layer.properties)
 
         total_points = loaded_points = visible_points = bbox = None

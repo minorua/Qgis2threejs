@@ -1821,6 +1821,8 @@ Q3D.E = function (id) {
 					layer.visible = this.checked;
 				});
 
+				if (p.type == "pc") return;		// point cloud layers do not support opacity changes
+
 				// material dropdown
 				let select;
 				if (p.mtlNames && p.mtlNames.length > 1) {

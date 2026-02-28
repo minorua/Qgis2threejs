@@ -43,7 +43,7 @@ with valid one that points to the {0} file on the web server.""".format(filename
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "pc"
         p["url"] = self.properties.get("url")
-        p["opacity"] = self.properties.get("spinBox_Opacity", 100) / 100
+        p["opacity"] = 1    # self.properties.get("spinBox_Opacity", 100) / 100
         p["colorType"] = self.properties.get("comboBox_ColorType", "RGB")
         if p["colorType"] == "COLOR":
             p["color"] = int_color(self.properties.get("colorButton_Color"))

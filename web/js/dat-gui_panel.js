@@ -61,20 +61,23 @@ Q3D.gui.dat = {
 		const layersFolder = this.layersFolder;
 		scene.forEachLayer(function (layer, layerId) {
 			params.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity, m: 0};
+			const p = layer.properties;
 
-			const folder = layersFolder.addFolder(layer.properties.name);
+			const folder = layersFolder.addFolder(p.name);
 			folder.add(params.lyr[layerId], 'v').name('Visible').onChange(function (value) {
 				layer.visible = value;
 			});
 
+			if (p.type == "pc") return;		// point cloud layers do not support opacity changes
+
 			let mtls;
-			const mtlNames = layer.properties.mtlNames;
+			const mtlNames = p.mtlNames;
 			if (mtlNames && mtlNames.length > 1) {
 				const items = {};
 				for (var i = 0; i < mtlNames.length; i++) {
 					items[mtlNames[i]] = i;
 				}
-				mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(layer.properties.mtlIdx);
+				mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(p.mtlIdx);
 			}
 
 			const op = folder.add(params.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange(function (value) {
