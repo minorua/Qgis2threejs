@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import os
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QInputDialog, QMessageBox
 from qgis.core import QgsProject
 from qgis.testing import unittest
 
@@ -126,6 +126,32 @@ def runTest(wnd):
 
     else:
         testClasses = []
+
+    lines = ["Enter test numbers to run (comma-separated allowed):\n"]
+    lines.append("0: Run all tests\n")
+
+    for i, cls in enumerate(testClasses, start=1):
+        lines.append(f"{i}: {cls.__name__}")
+
+    message = "\n".join(lines)
+
+    text, ok = QInputDialog.getText(wnd, "Select tests", message, text="0")
+    text = text.strip()
+    if not ok or not text:
+        return
+
+    if text != "0":
+        try:
+            selected = []
+            for idx in [int(x) for x in text.split(",")]:
+                if 1 <= idx <= len(testClasses):
+                    selected.append(testClasses[idx - 1])
+
+            testClasses = selected
+
+        except ValueError:
+            QMessageBox.error(wnd, "Test", f"Invalid input: {text}")
+            return
 
     suite = unittest.TestSuite()
     for testClass in testClasses:
