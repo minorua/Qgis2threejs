@@ -195,22 +195,22 @@
         },
         "comboEdit_altitude2": {},
         "fieldExpressionWidget_altitude": "0",
-        "geomWidget0": {},
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "1",
+          "type": 1
+        },
         "geomWidget1": {},
         "geomWidget2": {},
         "geomWidget3": {},
         "geomWidget4": {},
         "lineEdit_Name": "",
         "mtlWidget0": {
-          "comboData": null,
-          "comboText": "Expression",
-          "editText": "0.8",
-          "type": 1
-        },
-        "mtlWidget1": {
           "checkBox": false,
           "type": 9
         },
+        "mtlWidget1": {},
         "radioButton_IntersectingFeatures": true,
         "radioButton_zValue": true
       },
