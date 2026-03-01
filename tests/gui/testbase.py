@@ -42,6 +42,13 @@ class GUITestBase(unittest.TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
 
+    def setUp(self):
+        self.updateLabels()
+
+    def updateLabels(self):
+        self.WND.controller.updateWidget("Label", {"Header": f"{self.__class__.__name__} - {self.id().split(".")[-1]}",
+                                                   "Footer": self.shortDescription()})
+
     def assertBox3(self, testName, box1, box2=UNDEF):
         self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2})')
 
@@ -66,6 +73,7 @@ class GUITestBase(unittest.TestCase):
         self.WND.loadSettings(filename)     # page will be reloaded
 
         loop.exec()
+        self.updateLabels()
 
         # load test script after page is loaded
         self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
