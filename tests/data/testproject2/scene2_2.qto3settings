@@ -37,6 +37,10 @@
         "enabled": true,
         "tracks": []
       },
+      "pointcloud_d87d4a8e_453c_4f82_8cf9_ef2a3d340be4": {
+        "enabled": true,
+        "tracks": []
+      },
       "points_230791f1_2e27_4a9d_b5e4_f137f118f216": {
         "enabled": true,
         "tracks": [
@@ -272,6 +276,15 @@
       "visible": true
     },
     {
+      "geomType": 4,
+      "layerId": "pointcloud_d87d4a8e_453c_4f82_8cf9_ef2a3d340be4",
+      "name": "pointcloud",
+      "properties": {
+        "url": "file:///D:/Users/minorua/QGIS/plugins/Qgis2threejs/tests/data/testproject2/ept_pointcloud/ept.json"
+      },
+      "visible": false
+    },
+    {
       "geomType": 0,
       "layerId": "plugin:gsielevtile",
       "name": "GSI Elevation Tile",
@@ -312,5 +325,5 @@
     "lineEdit_zFactor": "1.0",
     "slider_Fog": 41
   },
-  "Version": 20800
+  "Version": 20903
 }

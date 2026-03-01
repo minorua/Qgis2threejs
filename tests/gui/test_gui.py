@@ -121,8 +121,8 @@ def runTest(wnd):
         testClasses = [SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest]
 
     elif filename == "testproject2.qgs":
-        from .test_gui2 import SceneTest, PointLayerTest, LineLayerTest
-        testClasses = [SceneTest, PointLayerTest, LineLayerTest]
+        from .test_gui2 import SceneTest, PointLayerTest, LineLayerTest, PointCloudLayerTest
+        testClasses = [SceneTest, PointLayerTest, LineLayerTest, PointCloudLayerTest]
 
     else:
         testClasses = []
