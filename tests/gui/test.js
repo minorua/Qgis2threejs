@@ -2,8 +2,17 @@
 // SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
 
-function floatEquals(a, b) {
-	return Math.abs(a - b) < Number.EPSILON;
+function floatEquals(a, b, precision) {
+	if (typeof a === "object") {
+		if (a.isBox3) return floatEquals(a.min, b.min, precision) && floatEquals(a.max, b.max, precision);
+		if (a.isVector3) return floatEquals(a.x, b.x, precision) && floatEquals(a.y, b.y, precision) && floatEquals(a.z, b.z, precision);
+		return false;
+	}
+
+	if (precision === undefined) return Math.abs(a - b) < Number.EPSILON;
+
+	const factor = Math.pow(10, precision);
+	return Math.round(a * factor) === Math.round(b * factor);
 }
 
 function Box3ToString(box3) {
@@ -65,7 +74,7 @@ function assertVisibility(testName, elemId, expected) {
 
 }
 
-function assertBox3(testName, box1, box2) {
+function assertBox3(testName, box1, box2, precision) {
 
 	var msg;
 
@@ -81,7 +90,7 @@ function assertBox3(testName, box1, box2) {
 
 	}
 
-	var result = box1.equals(box2);
+	var result = floatEquals(box1, box2, precision);
 
 	if (result) {
 
@@ -94,28 +103,28 @@ function assertBox3(testName, box1, box2) {
 		msg += " are not same.";
 
 	}
-	msg += Box3ToString(box1) + ", " + Box3ToString(box2);
+	msg += Box3ToString(box1) + ", " + Box3ToString(box2) + " (" + precision + ")";
 
 	pyObj.sendTestResult(testName, result, msg);
 
 }
 
-function assertZRange(testName, obj, min, max) {
+function assertZRange(testName, obj, min, max, precision) {
 
 	var box = new THREE.Box3().setFromObject(obj);
 	var result = true, msg = "";
 
-	if (min !== undefined && !floatEquals(min, box.min.z)) {
+	if (min !== undefined && !floatEquals(min, box.min.z, precision)) {
 
 		result = false;
-		msg += "bottom z is different from expected. (" + box.min.z + ", exptected: " + min + ")"
+		msg += "bottom z is different from expected. (" + box.min.z + ", exptected: " + min + ", (" + precision + "))"
 
 	}
 
-	if (max !== undefined && !floatEquals(max, box.max.z)) {
+	if (max !== undefined && !floatEquals(max, box.max.z, precision)) {
 
 		result = false;
-		msg += "top z is different from expected. (" + box.max.z + ", exptected: " + max + ")";
+		msg += "top z is different from expected. (" + box.max.z + ", exptected: " + max + ", (" + precision + "))";
 
 	}
 

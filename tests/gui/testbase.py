@@ -49,11 +49,11 @@ class GUITestBase(unittest.TestCase):
         self.WND.controller.updateWidget("Label", {"Header": f"{self.__class__.__name__} - {self.id().split(".")[-1]}",
                                                    "Footer": self.shortDescription()})
 
-    def assertBox3(self, testName, box1, box2=UNDEF):
-        self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2})')
+    def assertBox3(self, testName, box1, box2=UNDEF, precision=UNDEF):
+        self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
 
-    def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF):
-        self.WND.runScript(f'assertZRange("{testName}", {obj}, {min}, {max})')
+    def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF, precision=UNDEF):
+        self.WND.runScript(f'assertZRange("{testName}", {obj}, {min}, {max}, {precision})')
 
     def assertText(self, testName, text, startingElemId=None, partialMatch=False):
         startingElemId = f'"{startingElemId}"' if startingElemId else UNDEF
