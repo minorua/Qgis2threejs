@@ -43,9 +43,9 @@ class GUITestBase(unittest.TestCase):
         super().tearDownClass()
 
     def setUp(self):
-        self.updateLabels()
+        self.updateTestLabels()
 
-    def updateLabels(self):
+    def updateTestLabels(self):
         self.WND.controller.updateWidget("Label", {"Header": f"{self.__class__.__name__} - {self.id().split(".")[-1]}",
                                                    "Footer": self.shortDescription()})
 
@@ -62,7 +62,7 @@ class GUITestBase(unittest.TestCase):
     def assertVisibility(self, testName, elemId, expected=True):
         self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
-    def loadSettings(self, testDir, filename):
+    def loadSettings(self, testDir, filename, updateTestLabels=True):
         loop = QEventLoop()
         self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
 
@@ -73,7 +73,9 @@ class GUITestBase(unittest.TestCase):
         self.WND.loadSettings(filename)     # page will be reloaded
 
         loop.exec()
-        self.updateLabels()
+
+        if updateTestLabels:
+            self.updateTestLabels()
 
         # load test script after page is loaded
         self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)

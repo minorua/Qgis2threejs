@@ -14,11 +14,7 @@ TEST_DIR = "testproject1"
 
 class SceneTest(GUITestBase):
 
-    def test01_loadScene1(self):
-        self.loadSettings(TEST_DIR, "scene1_1")
-        self.assertText("Test scene 1", "Test Scene 1", "header", partialMatch=True)
-
-    def test02_ZRange(self):
+    def test01_ZRange(self):
         # skip if map canvas extent and rotation are not expected status
         mapSettings = self.WND.qgisIface.mapCanvas().mapSettings()
         mapExtent = mapSettings.extent()
@@ -129,14 +125,24 @@ class PolygonLayerTest(VLayerTestBase):
 
 class WidgetTest(GUITestBase):
 
-    def test01_naviZ(self):
-        self.mouseClick(735, 506)   # +Z
+    def test01_testLabels1(self):
+        self.loadSettings(TEST_DIR, "scene1_1", updateTestLabels=False)
+        self.assertText("header label", "Test Scene 1", "header", partialMatch=True)
+
+    def test02_testLabels2(self):
+        """Woo-hoo!"""
+        self.assertText("header label", "WidgetTest", "header", partialMatch=True)
+        self.assertText("header label", "test02_testLabels2", "header", partialMatch=True)
+        self.assertText("footer label", "Woo-hoo!", "footer", partialMatch=True)
+
+    def test03_naviZ(self):
+        self.mouseClick(735, 513)   # +Z
         self.sleep(1000)
 
-        self.mouseClick(450, 150)   # sea (dem_srtm30)
+        self.mouseClick(600, 500)   # sea (dem_srtm30)
         self.assertText("clicked coords", " 0.00", "qr_coords", partialMatch=True)
 
-    def test02_naviX(self):
+    def test04_naviX(self):
         self.mouseClick(766, 535)   # +X
         self.sleep(1000)
 
