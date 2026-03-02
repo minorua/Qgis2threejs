@@ -2331,7 +2331,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 
 		object.traverse(function (obj) {
 			if (obj.material === undefined) return;
-			((obj.material instanceof Array) ? obj.material : [obj.material]).forEach(function (mtl) {
+			((Array.isArray(obj.material)) ? obj.material : [obj.material]).forEach(function (mtl) {
 				if (mtls.indexOf(mtl) == -1) {
 					mtls.push(mtl);
 				}
