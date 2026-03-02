@@ -40,6 +40,7 @@ class GUITestBase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.WND.runScript("gui.popup.hide()")
         super().tearDownClass()
 
     def setUp(self):

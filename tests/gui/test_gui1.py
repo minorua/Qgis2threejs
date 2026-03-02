@@ -118,10 +118,6 @@ class PolygonLayerTest(VLayerTestBase):
         'pos': {'x': 90735, 'y': -127135, 'z': 16134}
     }
 
-    def test02_clickSpace(self):
-        self.mouseClick(600, 20)    # sky
-        self.assertVisibility("click space", "popup", False)
-
 
 class WidgetTest(GUITestBase):
 
@@ -148,6 +144,10 @@ class WidgetTest(GUITestBase):
 
         self.mouseClick(400, 400)   # flat plane
         self.assertText("clicked coords", " -4000.00", "qr_coords", partialMatch=True)
+
+    def test05_clickSky(self):
+        self.mouseClick(600, 20)
+        self.assertVisibility("click sky", "popup", False)
 
 
 class KeyboardInteractionTest(GUITestBase):
