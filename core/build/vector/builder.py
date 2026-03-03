@@ -89,7 +89,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             data["models"] = self.modelManager.build(self.pathRoot is not None,
                                                      base64=self.settings.requiresJsonSerializable)
 
-            self.log("This layer references 3D model file(s). If relevant files exist, you need to copy them to data directory for this export.", warning=True)
+            self.log("This layer references 3D model files. If associated files exist, please copy them to the data directory.", warning=True)
         else:
             for feat in vlayer.features(request):
                 feat.material = vlayer.ot.material(feat)
