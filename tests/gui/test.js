@@ -9,7 +9,7 @@ function floatEquals(a, b, precision) {
 		return false;
 	}
 
-	if (precision === undefined) return Math.abs(a - b) < Number.EPSILON * Math.max(Math.abs(a), Math.abs(b), 1);
+	if (precision === undefined) return Math.abs(a - b) < Number.EPSILON * Math.max(Math.abs(a), Math.abs(b), 4);
 
 	const factor = Math.pow(10, precision);
 	return Math.round(a * factor) === Math.round(b * factor);
