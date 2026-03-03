@@ -103,10 +103,12 @@ class ThreeJSExporter(QObject):
         if self.aborted:
             raise ExportCancelled()
 
-        # animation
+        # animation and narration
         if self.settings.isAnimationEnabled():
+            self.progress(90, msg="Animation and Narration")
             data["animation"] = self.settings.animationData(export=True, warning_log=self.warning_log)
 
+        # write scene data
         if self.settings.localMode:
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
                 f.write("app.loadData(")
@@ -116,21 +118,22 @@ class ThreeJSExporter(QObject):
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2 if DEBUG_MODE else None)
 
-        narration = self.settings.narrations(warning_log=self.warning_log)
+        # copy image files referenced in narration
+        narration_html = ""
+        if self.settings.isAnimationEnabled():
+            narration = self.settings.narrations(warning_log=self.warning_log)
+            narration_html = narration["html"]
+            if narration["files"]:
+                self.progress(93, msg="Copying image files used in narrative content...")
 
-        # copy files
-        files = narration["files"]
-        if files:
-            self.progress(90, msg="Copying image files used in narrative content...")
+                img_dir = os.path.join(self.settings.outputDataDirectory(), "img")
+                QDir().mkpath(img_dir)
 
-            img_dir = os.path.join(self.settings.outputDataDirectory(), "img")
-            QDir().mkpath(img_dir)
-
-            for f in files:
-                if utils.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
-                    self.log("Copied {}.".format(f))
-                else:
-                    self.log("Failed to copy {}.".format(f), warning=True)
+                for f in narration["files"]:
+                    if utils.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
+                        self.log("Copied {}.".format(f))
+                    else:
+                        self.log("Failed to copy {}.".format(f), warning=True)
 
         self.progress(95, msg="Copying library files...")
         utils.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
@@ -176,7 +179,7 @@ class ThreeJSExporter(QObject):
             "scenefile": "./data/{}/scene.{}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
-            "narration": narration["html"],
+            "narration": narration_html,
             "version": PLUGIN_VERSION
         }
         for key, value in mapping.items():

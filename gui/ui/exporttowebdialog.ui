@@ -192,7 +192,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_Animation">
          <property name="title">
-          <string>Animation and Narrative</string>
+          <string>Animation and Narration</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
