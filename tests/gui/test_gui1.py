@@ -2,6 +2,7 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import os
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.core import QgsRectangle
@@ -10,11 +11,15 @@ from Qgis2threejs.tests.gui.testbase import GUITestBase, LayerTestBase
 
 
 TEST_DIR = "testproject1"
+SNAPSHOT_DIR = ""       # "D:/tmp"
 
 
 class SceneTest(GUITestBase):
 
-    def test01_ZRange(self):
+    def test01_loadScene1(self):
+        self.loadSettings(TEST_DIR, "scene1_g1")
+
+    def test02_ZRange(self):
         # skip if map canvas extent and rotation are not expected status
         mapSettings = self.WND.qgisIface.mapCanvas().mapSettings()
         mapExtent = mapSettings.extent()
@@ -23,23 +28,8 @@ class SceneTest(GUITestBase):
 
         self.assertZRange("scene z range", min=-4000, max=3776 + 600 * 5)    # min: flat plane, max: pt4 6th feature
 
-    def test10_openScenePDialog(self):
-        dlg = self.WND.showScenePropertiesDialog()
-        for i in range(dlg.page.tabWidget.count()):
-            dlg.page.tabWidget.setCurrentIndex(i)
-            self.sleep(1000)
-        dlg.close()
-
 
 class LayerDialogTestBase(LayerTestBase):
-
-    def test01_propertiesdialog(self):
-        dlg = self.showDialog()
-        for i in range(dlg.page.tabWidget.count()):
-            dlg.page.tabWidget.setCurrentIndex(i)
-            self.sleep(750)
-
-        dlg.close()
 
     def showDialog(self):
         return self.WND.showLayerPropertiesDialog(self.LAYER)
@@ -53,15 +43,12 @@ class DEMLayerTest(LayerDialogTestBase):
 class VLayerTestBase(LayerDialogTestBase):
 
     def test01_propertiesdialog(self):
-        super().test01_propertiesdialog()
-
         dlg = self.showDialog()
         combo = dlg.page.comboBox_ObjectType
         for i in reversed(range(combo.count())):
             combo.setCurrentIndex(i)
             dlg.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
             self.waitBC()
-
         dlg.close()
 
 
@@ -122,7 +109,7 @@ class PolygonLayerTest(VLayerTestBase):
 class WidgetTest(GUITestBase):
 
     def test01_testLabels1(self):
-        self.loadSettings(TEST_DIR, "scene1_1", updateTestLabels=False)
+        self.loadSettings(TEST_DIR, "scene1_g1", useTestLabels=False)
         self.assertText("header label", "Test Scene 1", "header", partialMatch=True)
 
     def test02_testLabels2(self):
@@ -171,3 +158,80 @@ class CameraAnimationTest(GUITestBase):
     def test01_cameraAnimation(self):
         self.playAnimation()
         self.sleep(8000 + 500)
+
+
+class DialogLayoutCheck(GUITestBase):
+
+    def test01_Scene(self):
+        self.loadSettings(TEST_DIR, "scene1_g2", useTestLabels=False)
+
+        self.checkDialog(self.WND.showScenePropertiesDialog())
+
+    def test02_Layer(self):
+        ids = [test.LAYER_ID for test in [DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest]]
+        ids += ["pc:potree16260303094523", "fp:e22b3153"]
+
+        for id in ids:
+            self.checkLayerDialog(self.WND.settings.getLayer(id))
+
+    def test03_Export(self):
+        from ...gui.exportdialog import ExportToWebDialog
+        dlg = ExportToWebDialog(self.WND, self.WND.settings, self.WND.controller)
+        self.checkDialog(dlg)
+
+    def test04_SaveAsImage(self):
+        from ...gui.imagesavedialog import ImageSaveDialog
+        dlg = ImageSaveDialog(self.WND)
+        self.checkDialog(dlg)
+
+    def test05_Settings(self):
+        from ...gui.pluginsettings import SettingsDialog
+        dlg = SettingsDialog(self.WND)
+        self.checkDialog(dlg)
+
+    def test06_AddPointCloud(self):
+        from ...gui.window import AddPointCloudLayerDialog
+        dlg = AddPointCloudLayerDialog(self.WND)
+        self.checkDialog(dlg)
+
+    def test07_AddPointCloud(self):
+        from ...gui.window import NorthArrowDialog
+        dlg = NorthArrowDialog(self.WND, self.WND.settings.widgetProperties("NorthArrow"))
+        self.checkDialog(dlg)
+
+    def test08_AddPointCloud(self):
+        from ...gui.window import HFLabelDialog
+        dlg = HFLabelDialog(self.WND, self.WND.settings.widgetProperties("Label"))
+        self.checkDialog(dlg)
+
+    def checkDialog(self, dlg):
+        dlg.show()
+        self.iterateTabs(dlg)
+        dlg.close()
+
+    def checkLayerDialog(self, layer):
+        self.checkDialog(self.WND.showLayerPropertiesDialog(layer))
+
+    def iterateTabs(self, dlg):
+        if hasattr(dlg, "page") and hasattr(dlg.page, "tabWidget"):
+            for i in range(dlg.page.tabWidget.count()):
+                dlg.page.tabWidget.setCurrentIndex(i)
+                self.saveSnapshot(dlg)
+                self.sleep(1000)
+        else:
+            self.saveSnapshot(dlg)
+            self.sleep(1000)
+
+    def captureSnapshot(self, dlg):
+        return dlg.grab().toImage()
+
+    def saveSnapshot(self, dlg, filepath=None):
+        if not filepath:
+            if not SNAPSHOT_DIR:
+                return
+
+            self._imgIndex = self._imgIndex + 1 if hasattr(self, "_imgIndex") else 0
+            filepath = os.path.join(SNAPSHOT_DIR, f"{self._testMethodName[3:6]}_{self._imgIndex:02}.png")
+
+        img = self.captureSnapshot(dlg)
+        img.save(filepath)

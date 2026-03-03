@@ -63,7 +63,7 @@ class GUITestBase(unittest.TestCase):
     def assertVisibility(self, testName, elemId, expected=True):
         self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
-    def loadSettings(self, testDir, filename, updateTestLabels=True):
+    def loadSettings(self, testDir, filename, useTestLabels=True):
         loop = QEventLoop()
         self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
 
@@ -75,7 +75,7 @@ class GUITestBase(unittest.TestCase):
 
         loop.exec()
 
-        if updateTestLabels:
+        if useTestLabels:
             self.updateTestLabels()
 
         # load test script after page is loaded

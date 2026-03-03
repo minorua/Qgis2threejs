@@ -115,10 +115,13 @@ def runTest(wnd):
     wnd.resize(wnd.width() + WIDTH - wnd.ui.webView.width(),
                wnd.height() + HEIGHT - wnd.ui.webView.height())
 
+    hasDialogCheck = False
+
     # test suite
     if filename == "testproject1.qgs":
         from .test_gui1 import SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest
         testClasses = [SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest]
+        hasDialogCheck = True
 
     elif filename == "testproject2.qgs":
         from .test_gui2 import SceneTest, PointLayerTest, LineLayerTest, PointCloudLayerTest
@@ -127,20 +130,24 @@ def runTest(wnd):
     else:
         testClasses = []
 
-    lines = ["Enter test numbers to run (comma-separated allowed):\n"]
-    lines.append("0: Run all tests\n")
+    lines = ["Enter test number to run:", "", "0: All tests" + (" (excluding dialog check)" if hasDialogCheck else ""), ""]
 
     for i, cls in enumerate(testClasses, start=1):
         lines.append(f"{i}: {cls.__name__}")
 
-    message = "\n".join(lines)
+    if hasDialogCheck:
+        lines += ["", "", "9999: Check dialog layout"]
 
-    text, ok = QInputDialog.getText(wnd, "Select tests", message, text="0")
+    text, ok = QInputDialog.getText(wnd, "Select tests", "\n".join(lines), text="0")
     text = text.strip()
     if not ok or not text:
         return
 
-    if text != "0":
+    if text.upper() == "9999":
+        from .test_gui1 import DialogLayoutCheck
+        testClasses = [DialogLayoutCheck]
+
+    elif text != "0":
         try:
             selected = []
             for idx in [int(x) for x in text.split(",")]:

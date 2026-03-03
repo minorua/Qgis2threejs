@@ -11,12 +11,12 @@ TEST_DIR = "testproject2"
 class SceneTest(GUITestBase):
 
     def test01_loadScene2_1(self):
-        self.loadSettings(TEST_DIR, "scene2_1")
+        self.loadSettings(TEST_DIR, "scene2_g1")
         # Center of Base Extent: (450, 350)
         self.assertBox3("Origin shift - On: center of base extent", Box3((-45, -45, 0), (45, 45, 9)))
 
     def test02_loadScene2_2(self):
-        self.loadSettings(TEST_DIR, "scene2_2")
+        self.loadSettings(TEST_DIR, "scene2_g2")
         self.assertBox3("Origin shift - Off: origin of map coordinates", Box3((405, 305, 0), (495, 395, 9)))
 
 
@@ -25,7 +25,7 @@ class PointLayerTest(LayerTestBase):
     LAYER_ID = "points_230791f1_2e27_4a9d_b5e4_f137f118f216"
 
     def test01_showLayer(self):
-        # current scene: scene2_2
+        # current scene: scene2_g2
         self.setVisible(True)
         self.assertZRange("points", min=0, max=30)
 
@@ -41,7 +41,7 @@ class LineLayerTest(LayerTestBase):
 
     def test01_loadScene2_1(self):
         """Line"""
-        self.loadSettings(TEST_DIR, "scene2_1")
+        self.loadSettings(TEST_DIR, "scene2_g1")
         self.setVisible(True)
         self.assertZRange("linestrings", min=0, max=50)
 
@@ -51,7 +51,7 @@ class LineLayerTest(LayerTestBase):
 
     def test03_loadScene2_2(self):
         """Thick line"""
-        self.loadSettings(TEST_DIR, "scene2_2")
+        self.loadSettings(TEST_DIR, "scene2_g2")
         self.setVisible(True)
         self.assertZRange("linestrings", min=0, max=50)
 
@@ -66,7 +66,7 @@ class PointCloudLayerTest(LayerTestBase):
     # BBOX: (300.46, 300.32, 0) - (399.97, 399.94, 49.89)
 
     def test01_loadScene2_1(self):
-        self.loadSettings(TEST_DIR, "scene2_1")
+        self.loadSettings(TEST_DIR, "scene2_g1")
         # Center of Base Extent: (450, 350)
         # BBOX: (-45, -45, 0) - (45, 45, 9)
         self.setVisible(True)
@@ -75,7 +75,7 @@ class PointCloudLayerTest(LayerTestBase):
         self.assertBox3("Point cloud with origin shift", Box3((-149.54, -49.68, 0), (45, 49.94, 49.89)), precision=4)
 
     def test02_loadScene2_2(self):
-        self.loadSettings(TEST_DIR, "scene2_2")
+        self.loadSettings(TEST_DIR, "scene2_g2")
         # BBOX: (405, 305, 0) - (495, 395, 9)
         self.setVisible(True)
         self.sleep(3000)
