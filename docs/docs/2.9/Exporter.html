@@ -117,6 +117,11 @@ These include settings for the scene, camera, layers to be exported, animations,
 with a QGIS project. When the exporter is opened later, the project’s export settings are automatically restored.</p>
 <p>The preview is automatically updated whenever export settings are changed.
 You can disable the preview by unchecking the <cite>Preview</cite> checkbox in the lower-right corner of the window.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you open export settings saved with a newer version in an older version, an error may occur and the properties dialog may not open.
+In this case, clear the export settings from the <cite>File</cite> menu.</p>
+</div>
 <section id="layer-panel">
 <h2>Layer Panel<a class="headerlink" href="#layer-panel" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#layer-panel'"><span>#</span></a></h2>
 <p>The Layers panel displays single-band raster and vector layers loaded in QGIS, as well as point cloud layers (partially supported)
@@ -499,13 +504,13 @@ The label text can include valid HTML tags for styling.</p>
 </figure>
 <section id="resampling-method">
 <h4>Resampling Method<a class="headerlink" href="#resampling-method" title="Link to this heading"><span>#</span></a></h4>
-<p>Specifies how DEM elevation values are sampled when generating the 3D terrain mesh. Bilinear resampling is selected by default.</p>
-<ul class="simple">
+<p>Specifies how DEM elevation values are resampled when generating the 3D terrain mesh. Bilinear resampling is used by default.</p>
+<ul>
 <li><dl class="simple">
 <dt>Bilinear resampling</dt><dd><p>Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
 between neighboring pixel values. When this option is selected, a terrain mesh covering the scene base extent is generated
 at a resolution determined by the resampling level.</p>
-<ul>
+<ul class="simple">
 <li><dl class="simple">
 <dt>Resampling level</dt><dd><p>Selects the resolution level used when resampling the DEM. Lower resolution levels reduce the number of elevation samples
 and improve performance, while higher resolution levels preserve more terrain detail but may increase processing time
@@ -518,9 +523,11 @@ This setting affects only the terrain geometry and does not affect texture resol
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
+<li><dl>
 <dt>Use original DEM values</dt><dd><p>Uses the original DEM elevation values without interpolation. The DEM is divided into tiles.</p>
-<ul>
+<p>This option cannot be used if the CRS of the DEM layer differs from the project CRS, or if the DEM grid spacing differs
+between the x and y directions. In addition, terrain objects will not be displayed if the map in the map canvas is rotated.</p>
+<ul class="simple">
 <li><dl class="simple">
 <dt>Tile side segments</dt><dd><p>Specifies the number of segments along each side of a terrain tile.</p>
 </dd>
@@ -950,11 +957,6 @@ determined relative to the corresponding objects.</p>
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
-<dt>Opacity</dt><dd><p>Specifies the opacity of the points.</p>
-</dd>
-</dl>
-</li>
 </ul>
 </section>
 <section id="other-options">
@@ -1004,15 +1006,18 @@ is stored under the track instead of keyframes. The types of animation tracks ar
 </section>
 <section id="adding-tracks-and-keyframes">
 <h4>Adding Tracks and Keyframes<a class="headerlink" href="#adding-tracks-and-keyframes" title="Link to this heading"><span>#</span></a></h4>
-<p>Select the track where you want to add a keyframe and press the + button to add a keyframe. If no track exists, select a top-level
-item and press the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
+<p>Select the track where you want to add a keyframe and click the + button. If no track exists, select a top-level item and
+click the + button to create a new track. To add animation tracks associated with a layer (e.g. opacity changes), the target
 layer must be checked in the Layer Panel.</p>
+<p>For Camera motion, a keyframe is created using the current camera position and orientation in the preview.
+For other track types, specify the key value in the dialog that appears (e.g. an opacity value).</p>
 </section>
-<section id="editing-keyframes">
-<h4>Editing Keyframes<a class="headerlink" href="#editing-keyframes" title="Link to this heading"><span>#</span></a></h4>
-<p>Double-clicking a keyframe item opens the Keyframe dialog, where you can modify the easing type, the delay before the transition starts,
-and the duration of the transition. If text or HTML is entered in the Narrative text box, a pop-up will be displayed at the corresponding
-keyframe during the animation.</p>
+<section id="editing-keyframes-and-transitions">
+<h4>Editing Keyframes and Transitions<a class="headerlink" href="#editing-keyframes-and-transitions" title="Link to this heading"><span>#</span></a></h4>
+<p>Keyframes can be reordered by dragging and dropping them. Double-clicking a keyframe item opens the Keyframe dialog, where
+you can modify the easing type, the delay before the transition starts, and the transition duration. If text or HTML is entered
+in the Narrative text box, a pop-up will be displayed at the corresponding keyframe during the animation.</p>
+<p>For Camera motion, you can update the camera position and orientation of a keyframe from the context menu.</p>
 <figure class="align-default" id="id16">
 <img alt="_images/keyframe_camera.png" src="_images/keyframe_camera.png"/>
 <figcaption>
@@ -1038,7 +1043,7 @@ that define how properties change over time using delay and transition duration.
 <li><dl class="simple">
 <dt>Camera Motion Track</dt><dd><p>This track controls camera movement using multiple keyframes. Each keyframe represents a camera state,
 and transitions between keyframes define how the camera moves from one state to the next. The timing of each
-movement is controlled by an initial delay followed by a transition period. Keyframes are placed sequentially
+movement is controlled by an initial delay followed by a transition duration. Keyframes are arranged sequentially
 to create continuous camera motion throughout the animation.</p>
 </dd>
 </dl>
@@ -1280,7 +1285,7 @@ See <a class="reference external" href="https://github.com/minorua/Qgis2threejs/
 <li><a :data-current="activeSection === '#animation-panel'" class="reference internal" href="#animation-panel">Animation Panel</a><ul>
 <li><a :data-current="activeSection === '#animation-basics'" class="reference internal" href="#animation-basics">Animation Basics</a></li>
 <li><a :data-current="activeSection === '#adding-tracks-and-keyframes'" class="reference internal" href="#adding-tracks-and-keyframes">Adding Tracks and Keyframes</a></li>
-<li><a :data-current="activeSection === '#editing-keyframes'" class="reference internal" href="#editing-keyframes">Editing Keyframes</a></li>
+<li><a :data-current="activeSection === '#editing-keyframes-and-transitions'" class="reference internal" href="#editing-keyframes-and-transitions">Editing Keyframes and Transitions</a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#animation-structure'" class="reference internal" href="#animation-structure">Animation Structure</a><ul>
