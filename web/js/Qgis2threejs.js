@@ -3141,7 +3141,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			const m = this.blocks[i].materials[this.currentMtlIndex];
 			if (m && m.mtl) {
 				m.mtl.opacity = value;
-				if (value < 1) m.mtl.transparent = true;
+				m.mtl.transparent = (value < 1);
 			}
 		}
 		this.requestRender();
