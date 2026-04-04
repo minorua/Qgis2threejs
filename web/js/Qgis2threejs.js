@@ -2397,6 +2397,11 @@ class Q3DMaterials extends THREE.EventDispatcher {
 /*
  The GridGeometry class is almost the same as PlaneGeometry, but it does not
  generate triangles that include vertices with no-data values.
+
+ It supports tile mode. When the grid has margin areas (right/bottom)
+ with no actual data, pass `segments` explicitly so that UV coordinates
+ are calculated based on the full tile extent rather than only the
+ data-containing region.
 */
 class GridGeometry extends THREE.BufferGeometry {
 
@@ -2406,24 +2411,28 @@ class GridGeometry extends THREE.BufferGeometry {
 	}
 
 	/**
-	 * @param {object} [grid]
-	 * @param {number} [width] - Plane width.
-	 * @param {number} [height] - Plane height.
+	 * @param {object} grid
+	 * @param {number} width      - Plane width (or tile size).
+	 * @param {number} height     - Plane height (ignored when `segments` is given).
+	 * @param {number} [segments] - When supplied, the grid is treated as a square tile.
 	 */
-	loadData(grid, width, height) {
+	loadData(grid, width, height, segments) {
 		const grid_values = grid.values;
+		const columns = grid.width;		// number of columns of actual grid data
+		const rows = grid.height;		// number of rows of actual grid data
 		const nodata = grid.nodata;
-		const columns = grid.width;		// number of grid columns
-		const rows = grid.height;		// number of grid rows
 
-		const width_half = width / 2;
-		const height_half = height / 2;
+		function isNoData(v) {
+			return Number.isNaN(v) || v === nodata;
+		}
 
-		const segmentsX = columns - 1;
-		const segmentsY = rows - 1;
-
+		const isTileMode = (segments !== undefined);
+		const segmentsX = (isTileMode) ? segments : columns - 1;
+		const segmentsY = (isTileMode) ? segments : rows - 1;
 		const segment_width = width / segmentsX;
-		const segment_height = height / segmentsY;
+		const segment_height = ((isTileMode) ? width : height) / segmentsY;
+		const half_w = width / 2;
+		const half_h = ((isTileMode) ? width : height) / 2;
 
 		const indices = [];
 		const vertices = [];
@@ -2431,19 +2440,17 @@ class GridGeometry extends THREE.BufferGeometry {
 
 		for (let iy = 0; iy < rows; iy++) {
 
-			const y = iy * segment_height - height_half;
+			const y = iy * segment_height - half_h;
 			const v = 1 - (iy / segmentsY);
 
 			for (let ix = 0; ix < columns; ix++) {
 
-				const x = ix * segment_width - width_half;
+				const x = ix * segment_width - half_w;
 				const i = ix + iy * columns;
 				const z = grid_values[i];
 
-				vertices.push(x, -y, (z === nodata) ? 0 : z);
-
-				uvs.push(ix / segmentsX);
-				uvs.push(v);
+				vertices.push(x, -y, (isNoData(z)) ? 0 : z);
+				uvs.push(ix / segmentsX, v);
 
 				if (ix === 0 || iy === 0) continue;
 
@@ -2452,81 +2459,9 @@ class GridGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
-				if (grid_values[a] !== nodata) indices.push(a, b, d);
-				if (z !== nodata) indices.push(b, c, d);
-			}
-		}
-
-		this.setIndex(indices);
-		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-		this.computeBoundingSphere();
-		this.computeBoundingBox();
-		this.computeVertexNormals();
-	}
-}
-
-/*
- TileGeometry is essentially a square GridGeometry that takes into account margin
- areas where no actual data exists, which are located on the right and bottom
- sides of the tile. Geometry data for these empty margin regions is omitted.
-
- A texture image representing the entire tile area is applied to this geometry.
- Therefore, UV coordinates are calculated based on the full tile extent, not just
- the data-containing region.
-*/
-class TileGeometry extends THREE.BufferGeometry {
-
-	constructor() {
-		super();
-		this.type = 'TileGeometry';
-	}
-
-	/**
-	 * @param {object} [grid]
-	 * @param {number} [tileSize=1] - The size of a tile.
-	 * @param {number} [segments=1] - The number of segments along one side of the tile.
-	 */
-	loadData(grid, tileSize, segments) {
-		const grid_values = grid.values;
-		const nodata = grid.nodata;
-		const columns = grid.width;		// number of columns of actual grid data
-		const rows = grid.height;		// number of rows of actual grid data
-
-		const half_size = tileSize / 2;
-		const segment_size = tileSize / segments;
-
-		const indices = [];
-		const vertices = [];
-		const uvs = [];
-
-		for (let iy = 0; iy < rows; iy++) {
-
-			const y = iy * segment_size - half_size;
-			const v = 1 - (iy / segments);
-
-			for (let ix = 0; ix < columns; ix++) {
-
-				const x = ix * segment_size - half_size;
-				const i = ix + iy * columns;
-				const z = grid_values[i];
-
-				vertices.push(x, -y, (z === nodata) ? 0 : z);
-
-				uvs.push(ix / segments);
-				uvs.push(v);
-
-				if (ix === 0 || iy === 0) continue;
-
-				const a = i - columns - 1;
-				const b = i - 1;
-				const c = i;
-				const d = i - columns;
-
-				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
-				if (grid_values[a] !== nodata) indices.push(a, b, d);
-				if (z !== nodata) indices.push(b, c, d);
+				if (isNoData(grid_values[b]) || isNoData(grid_values[d])) continue;
+				if (!isNoData(grid_values[a])) indices.push(a, b, d);
+				if (!isNoData(z)) indices.push(b, c, d);
 			}
 		}
 
@@ -2772,14 +2707,11 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		var grid = data.grid;
 		var geom = new GridGeometry();
-
-		// create a mesh
 		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		// set z values
 		var buildGeometry = function (grid) {
 			geom.loadData(grid, data.width, data.height);
 			if (callback) callback(mesh);
@@ -2832,16 +2764,14 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 
 		if (grid === undefined) return;
 
-		var geom = new TileGeometry(data.tileSize, data.segments, grid.width, grid.height);
-
+		var geom = new GridGeometry();
 		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
 		var buildGeometry = function (grid) {
-			geom.loadData(grid, data.tileSize, data.segments);
-
+			geom.loadData(grid, data.tileSize, data.tileSize, data.segments);
 			if (callback) callback(mesh);
 		};
 

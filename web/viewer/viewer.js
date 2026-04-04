@@ -691,6 +691,13 @@ app.saveCanvasImage = function (width, height, fill_background) {
 };
 
 //// polyfills
+
+if (!Number.isNaN) {
+	Number.isNaN = function (v) {
+		return v !== v;
+	};
+}
+
 // for binary glTF export
 // https://developer.mozilla.org/ja/docs/Web/API/HTMLCanvasElement/toBlob
 if (!HTMLCanvasElement.prototype.toBlob) {
