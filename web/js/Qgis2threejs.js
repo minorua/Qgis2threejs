@@ -300,11 +300,11 @@ Q3D.E = function (id) {
 			if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
 			if (app.controls.saveState !== undefined) app.controls.saveState();
 
-			if (event.far !== undefined) {
-				app.camera.near = (app.camera.isOrthographicCamera) ? 0 : event.near;
-				app.camera.far = event.far;
-				app.camera.updateProjectionMatrix();
-			}
+			if (Number.isNaN(event.near) || Number.isNaN(event.far)) return;
+
+			app.camera.near = (app.camera.isOrthographicCamera) ? 0 : event.near;
+			app.camera.far = event.far;
+			app.camera.updateProjectionMatrix();
 		});
 
 		app.scene.addEventListener("lightChanged", function (event) {
