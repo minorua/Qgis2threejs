@@ -466,6 +466,8 @@ Q3D.E = function (id) {
 
 		var onload = function () {
 			if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
+
+			app.loadingManager.itemEnd("scenefile");
 		};
 
 		if (sceneLoadedCallback) {
@@ -473,6 +475,8 @@ Q3D.E = function (id) {
 				sceneLoadedCallback(app.scene);
 			});
 		}
+
+		app.loadingManager.itemStart("scenefile");
 
 		var ext = url.split(".").pop();
 		if (ext == "json") app.loadJSONFile(url, onload);

@@ -113,7 +113,7 @@ class ThreeJSExporter(QObject):
             with open(os.path.join(dataDir, "scene.js"), "w", encoding="utf-8") as f:
                 f.write("app.loadData(")
                 json.dump(data, f, indent=2)
-                f.write('); window.setTimeout(function () { app.dispatchEvent({type: "sceneLoaded"}); }, 0);')
+                f.write(");")
         else:
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2 if DEBUG_MODE else None)
