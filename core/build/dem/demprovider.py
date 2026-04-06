@@ -16,6 +16,8 @@ from ...geometry import GridGeometry
 from ...mapextent import MapExtent, GridRectangle
 from ....utils import logger
 
+NODATA_VALUE = -3.4e38
+
 
 class GDALDEMProvider:
 
@@ -37,7 +39,6 @@ class GDALDEMProvider:
 
         self.width = self.ds.RasterXSize
         self.height = self.ds.RasterYSize
-        self.nodata = self.ds.GetRasterBand(1).GetNoDataValue()
 
         self._opts = {
             "format": "MEM",
@@ -49,9 +50,14 @@ class GDALDEMProvider:
         if source_wkt:
             self._opts["srcSRS"] = self.source_wkt
 
-        if self.nodata is not None:
-            self._opts["srcNodata"] = self.nodata
-            self._opts["dstNodata"] = self.nodata
+        src_nodata = self.ds.GetRasterBand(1).GetNoDataValue()
+        if src_nodata is None:
+            self.nodata = None
+            return
+
+        self._opts["srcNodata"] = src_nodata
+        self._opts["dstNodata"] = NODATA_VALUE
+        self.nodata = NODATA_VALUE
 
     def setResampleAlg(self, alg):
         self._opts["resampleAlg"] = alg

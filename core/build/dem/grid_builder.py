@@ -88,7 +88,7 @@ class DEMGridBuilder:
         }
 
         if nodata is not None:
-            g["nodata"] = nodata
+            g["nodata"] = base64.b64encode(struct.pack("f", nodata)).decode("ascii")
 
         if self.settings.requiresJsonSerializable:
             g["base64"] = base64.b64encode(bytearray).decode("ascii")

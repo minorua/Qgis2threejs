@@ -2424,11 +2424,7 @@ class GridGeometry extends THREE.BufferGeometry {
 		const grid_values = grid.values;
 		const columns = grid.width;		// number of columns of actual grid data
 		const rows = grid.height;		// number of rows of actual grid data
-		const nodata = grid.nodata;
-
-		function isNoData(v) {
-			return Number.isNaN(v) || v === nodata;
-		}
+		const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Q3D.Utils.base64ToUint8Array(grid.nodata).buffer)[0];
 
 		const isTileMode = (segments !== undefined);
 		const segmentsX = (isTileMode) ? segments : columns - 1;
@@ -2453,7 +2449,7 @@ class GridGeometry extends THREE.BufferGeometry {
 				const i = ix + iy * columns;
 				const z = grid_values[i];
 
-				vertices.push(x, -y, (isNoData(z)) ? 0 : z);
+				vertices.push(x, -y, (z === nodata) ? 0 : z);
 				uvs.push(ix / segmentsX, v);
 
 				if (ix === 0 || iy === 0) continue;
@@ -2463,9 +2459,9 @@ class GridGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (isNoData(grid_values[b]) || isNoData(grid_values[d])) continue;
-				if (!isNoData(grid_values[a])) indices.push(a, b, d);
-				if (!isNoData(z)) indices.push(b, c, d);
+				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
+				if (grid_values[a] !== nodata) indices.push(a, b, d);
+				if (z !== nodata) indices.push(b, c, d);
 			}
 		}
 
