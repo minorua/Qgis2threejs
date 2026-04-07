@@ -7,7 +7,7 @@ from qgis.PyQt.QtWidgets import QInputDialog, QMessageBox
 from qgis.core import QgsProject
 from qgis.testing import unittest
 
-from Qgis2threejs.tests.test_utils.utils import initOutputDir
+from Qgis2threejs.tests.utils import initOutputDir
 from Qgis2threejs.utils import logger
 
 WIDTH, HEIGHT = (800, 600)  # view size

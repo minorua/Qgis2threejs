@@ -8,8 +8,8 @@ from qgis.PyQt.QtCore import QEventLoop, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
 
-from .unit import logger
-from ...gui.webengineview import QWebEnginePage, setChromiumFlags
+from .cli.utils import logger
+from ..gui.webengineview import QWebEnginePage, setChromiumFlags
 
 
 @dataclass
