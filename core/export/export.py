@@ -378,8 +378,7 @@ class BridgeExporterBase:
         self.controller.conn.setup()
         self.controller.statusMessage.connect(self.logStatusMessage)
 
-    @pyqtSlot(str, int)
-    def logStatusMessage(self, msg, _1=0):
+    def logStatusMessage(self, msg, _timeout):
         logger.info(msg)
 
     def loadSettings(self, filename=None):
@@ -407,7 +406,7 @@ class BridgeExporterBase:
             url = self.page.mainFrame().url()
 
         if url.isEmpty():
-            self.page.setup(self.settings)
+            self.page.setup()
         else:
             self.page.reload()
 
