@@ -33,7 +33,8 @@ class PluginManager:
 
         if self.allPlugins:
             plugin_dir = QDir(pluginDir("plugins"))
-            plugins = plugin_dir.entryList(QDir.Filter.Dirs | QDir.Filter.NoSymLinks | QDir.Filter.NoDotAndDotDot)
+            dirs = plugin_dir.entryList(QDir.Filter.Dirs | QDir.Filter.NoSymLinks | QDir.Filter.NoDotAndDotDot)
+            plugins = [d for d in dirs if not d.startswith("_")]
         else:
             p = QSettings().value("/Qgis2threejs/plugins", "", type=str)
             plugins = p.split(",") if p else []
