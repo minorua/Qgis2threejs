@@ -102,6 +102,19 @@ class GUITestResult(unittest.TestResult):
             logger.info("'{}' {}".format(".".join(test.id().split(".")[-2:]), desc))
 
 
+def collectTestClasses(module):
+    results = []
+    for obj in module.__dict__.values():
+        if not isinstance(obj, type):
+            continue
+
+        if issubclass(obj, unittest.TestCase) and obj is not unittest.TestCase:
+            if obj.__name__.endswith("Test"):
+                results.append(obj)
+
+    return results
+
+
 def runTest(wnd):
     filename = os.path.basename(QgsProject.instance().fileName())
 
@@ -119,13 +132,13 @@ def runTest(wnd):
 
     # test suite
     if filename == "testproject1.qgs":
-        from .test_gui1 import SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest
-        testClasses = [SceneTest, DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest, WidgetTest, KeyboardInteractionTest, CameraAnimationTest]
+        from . import test_gui1
+        testClasses = collectTestClasses(test_gui1)
         hasDialogCheck = True
 
     elif filename == "testproject2.qgs":
-        from .test_gui2 import SceneTest, PointLayerTest, LineLayerTest, PointCloudLayerTest
-        testClasses = [SceneTest, PointLayerTest, LineLayerTest, PointCloudLayerTest]
+        from . import test_gui2
+        testClasses = collectTestClasses(test_gui2)
 
     else:
         testClasses = []
