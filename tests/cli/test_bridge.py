@@ -10,52 +10,38 @@ from qgis.PyQt.QtCore import QFileInfo, QSize
 from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
-from .testbase import CLITestBase, MANUAL_IMAGE_CHECK
-from .utils import start_app, stop_app, loadProject, logger
+from .testbase import CLITestBase, MANUAL_IMAGE_CHECK, OUT_WIDTH, OUT_HEIGHT
+from .utils import loadProject, logger
 from ..utils import dataPath, expectedDataPath, assertMessagesAppearInOrder
 from ...core.export.export import ImageExporter, ModelExporter
 from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
 from ...utils import openFile
 from ...utils.logging import clearListHandlerLogs, getLogListHandler
 
-OUT_WIDTH, OUT_HEIGHT = (1024, 768)
-
 
 class WebEngineTestBase(CLITestBase):
 
     @classmethod
     def setUpClass(cls):
-        cls.initOutputDir()
-        start_app()
+        super().setUpClass()
         setCurrentWebView(WEBVIEWTYPE_WEBENGINE)
-
-    @classmethod
-    def tearDownClass(cls):
-        stop_app()
 
 
 class WebKitTestBase(CLITestBase):
 
     @classmethod
     def setUpClass(cls):
-        cls.initOutputDir()
-        start_app()
+        super().setUpClass()
         setCurrentWebView(WEBVIEWTYPE_WEBKIT)
 
-    @classmethod
-    def tearDownClass(cls):
-        stop_app()
 
-
-class ExportImageTestCases(CLITestBase):
+class ExportImageTestCases:
 
     OUT_FILE = "scene1.png"
 
-    def setUp(self):
-        clearListHandlerLogs(logger)
-
     def test01_export_scene1_image(self):
         """test image export with testproject1.qgs and scene1.qto3settings"""
+        clearListHandlerLogs(logger)
 
         mapSettings = loadProject(dataPath(self.PROJ_FILE))
         out_path = self.outputPath(self.OUT_FILE)
@@ -66,7 +52,7 @@ class ExportImageTestCases(CLITestBase):
         exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
         exporter.export(out_path)
 
-    def test02_check_logs(self):
+        # check logs
         log_handler = getLogListHandler(logger)
         log_messages = log_handler.get_messages()
 
@@ -90,7 +76,7 @@ class ExportImageTestCases(CLITestBase):
             "Image saved to"
         ])
 
-    def test03_check_scene1_image(self):
+    def test02_check_scene1_image(self):
         """check exported image"""
         out_path = self.outputPath(self.OUT_FILE)
 
@@ -104,7 +90,7 @@ class ExportImageTestCases(CLITestBase):
             self.assertEqual(image, QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected.")
 
 
-class ExportModelTestCases(CLITestBase):
+class ExportModelTestCases:
 
     OUT_FILE = "scene1.gltf"
 
@@ -124,24 +110,20 @@ class ExportModelTestCases(CLITestBase):
         self.assertTrue(QFileInfo(out_path).size(), "Empty output file")
 
 
-class TestExportImageWebEngine(unittest.TestCase, WebEngineTestBase, ExportImageTestCases):
-    setUpClass = WebEngineTestBase.setUpClass
-    tearDownClass = WebEngineTestBase.tearDownClass
+class TestExportImageWebEngine(WebEngineTestBase, ExportImageTestCases):
+    pass
 
 
-class TestExportModelWebEngine(unittest.TestCase, WebEngineTestBase, ExportModelTestCases):
-    setUpClass = WebEngineTestBase.setUpClass
-    tearDownClass = WebEngineTestBase.tearDownClass
+class TestExportModelWebEngine(WebEngineTestBase, ExportModelTestCases):
+    pass
 
 
-class TestExportImageWebKit(unittest.TestCase, WebKitTestBase, ExportImageTestCases):
-    setUpClass = WebKitTestBase.setUpClass
-    tearDownClass = WebKitTestBase.tearDownClass
+class TestExportImageWebKit(WebKitTestBase, ExportImageTestCases):
+    pass
 
 
-class TestExportModelWebKit(unittest.TestCase, WebKitTestBase, ExportModelTestCases):
-    setUpClass = WebKitTestBase.setUpClass
-    tearDownClass = WebKitTestBase.tearDownClass
+class TestExportModelWebKit(WebKitTestBase, ExportModelTestCases):
+    pass
 
 
 if __name__ == "__main__":
