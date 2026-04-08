@@ -14,7 +14,7 @@ TEST_DIR = "testproject1"
 SNAPSHOT_DIR = ""       # "D:/tmp"
 
 
-class SceneTest(GUITestBase):
+class TestScene(GUITestBase):
 
     def test01_loadScene1(self):
         self.loadSettings(TEST_DIR, "scene1_g1")
@@ -35,7 +35,7 @@ class LayerDialogTestBase(LayerTestBase):
         return self.WND.showLayerPropertiesDialog(self.LAYER)
 
 
-class DEMLayerTest(LayerDialogTestBase):
+class TestDEMLayer(LayerDialogTestBase):
 
     LAYER_ID = "dem_srtm3020150914165149263"
 
@@ -52,7 +52,7 @@ class VLayerTestBase(LayerDialogTestBase):
         dlg.close()
 
 
-class PointLayerTest(VLayerTestBase):
+class TestPointLayer(VLayerTestBase):
 
     LAYER_ID = "pt120150915163204544"
     CAMERA_STATE = {
@@ -82,7 +82,7 @@ class PointLayerTest(VLayerTestBase):
         self.assertText("show layer", "cone 3", "qr_attrs_table")
 
 
-class LineLayerTest(VLayerTestBase):
+class TestLineLayer(VLayerTestBase):
 
     LAYER_ID = "line120150915163207575"
     CAMERA_STATE = {
@@ -97,7 +97,7 @@ class LineLayerTest(VLayerTestBase):
         self.assertZRange("scene z range", min=-4000, max=10000)    # min: flat plane, max: lineV
 
 
-class PolygonLayerTest(VLayerTestBase):
+class TestPolygonLayer(VLayerTestBase):
 
     LAYER_ID = "polygon120150915163203246"
     CAMERA_STATE = {
@@ -106,7 +106,7 @@ class PolygonLayerTest(VLayerTestBase):
     }
 
 
-class WidgetTest(GUITestBase):
+class TestWidget(GUITestBase):
 
     def test01_testLabels1(self):
         self.loadSettings(TEST_DIR, "scene1_g1", useTestLabels=False)
@@ -137,7 +137,7 @@ class WidgetTest(GUITestBase):
         self.assertVisibility("click sky", "popup", False)
 
 
-class KeyboardInteractionTest(GUITestBase):
+class TestKeyboardInteraction(GUITestBase):
 
     CAMERA_STATE = {
         'lookAt': {'x': -4534, 'y': -136988, 'z': 0},
@@ -153,7 +153,7 @@ class KeyboardInteractionTest(GUITestBase):
         self.keyPress(Qt.Key_L)
 
 
-class CameraAnimationTest(GUITestBase):
+class TestCameraAnimation(GUITestBase):
 
     def test01_cameraAnimation(self):
         self.playAnimation()
@@ -168,7 +168,7 @@ class DialogLayoutCheck(GUITestBase):
         self.checkDialog(self.WND.showScenePropertiesDialog())
 
     def test02_Layer(self):
-        ids = [test.LAYER_ID for test in [DEMLayerTest, PointLayerTest, LineLayerTest, PolygonLayerTest]]
+        ids = [test.LAYER_ID for test in [TestDEMLayer, TestPointLayer, TestLineLayer, TestPolygonLayer]]
         ids += ["pc:potree16260303094523", "fp:e22b3153"]
 
         for id in ids:

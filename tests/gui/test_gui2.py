@@ -8,7 +8,7 @@ from Qgis2threejs.tests.gui.testbase import GUITestBase, LayerTestBase, Box3
 TEST_DIR = "testproject2"
 
 
-class SceneTest(GUITestBase):
+class TestScene(GUITestBase):
 
     def test01_loadScene2_1(self):
         self.loadSettings(TEST_DIR, "scene2_g1")
@@ -20,7 +20,7 @@ class SceneTest(GUITestBase):
         self.assertBox3("Origin shift - Off: origin of map coordinates", Box3((405, 305, 0), (495, 395, 9)))
 
 
-class PointLayerTest(LayerTestBase):
+class TestPointLayer(LayerTestBase):
 
     LAYER_ID = "points_230791f1_2e27_4a9d_b5e4_f137f118f216"
 
@@ -35,7 +35,7 @@ class PointLayerTest(LayerTestBase):
         self.setVisible(False)
 
 
-class LineLayerTest(LayerTestBase):
+class TestLineLayer(LayerTestBase):
 
     LAYER_ID = "linestrings_83a9a52d_c879_42e9_b8cc_984ea053b5cf"
 
@@ -60,7 +60,7 @@ class LineLayerTest(LayerTestBase):
         self.sleep(2500)
 
 
-class PointCloudLayerTest(LayerTestBase):
+class TestPointCloudLayer(LayerTestBase):
 
     LAYER_ID = "pointcloud_d87d4a8e_453c_4f82_8cf9_ef2a3d340be4"
     # BBOX: (300.46, 300.32, 0) - (399.97, 399.94, 49.89)

@@ -109,7 +109,7 @@ def collectTestClasses(module):
             continue
 
         if issubclass(obj, unittest.TestCase) and obj is not unittest.TestCase:
-            if obj.__name__.endswith("Test"):
+            if obj.__name__.startswith("Test"):
                 results.append(obj)
 
     return results
