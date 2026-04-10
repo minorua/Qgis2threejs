@@ -26,6 +26,7 @@ class CLITestBase(unittest.TestCase):
 
     PROJ_FILE = "testproject1/testproject1.qgs"
     SETTING_FILE = "testproject1/scene1.qto3settings"
+    OUT_FILE = "scene1.html"
 
     @classmethod
     def setUpClass(cls):
@@ -44,13 +45,15 @@ class CLITestBase(unittest.TestCase):
     def outputPath(cls, *subdirs):
         return outputPath(cls.__name__[4:], *subdirs)
 
-    def export_webpage(self, project_path, settings_path, out_path, local_mode=False):
+    def export_webpage(self, project_path, settings_path, out_path, local_mode=False, template=None):
         mapSettings = loadProject(project_path)
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(settings_path)
         exporter.settings.localMode = local_mode
         exporter.settings.requiresJsonSerializable = local_mode
+        if template:
+            exporter.settings.setTemplate(template)
         exporter.setMapSettings(mapSettings)
         exporter.export(out_path)
 
@@ -66,6 +69,8 @@ class CLITestBase(unittest.TestCase):
 
         self.assertFalse(result.errors, f"JavaScript errors found in {filename}")
         self.assertFalse(result.warnings, f"JavaScript warnings found in {filename}")
+
+        return wpv
 
     def check_webpage_capture(self, filename):
         """render exported web page and check page capture"""
@@ -91,3 +96,5 @@ class CLITestBase(unittest.TestCase):
         else:
             # TODO: Visual Regression Testing and SSIM comparison
             self.assertEqual(image, QImage(expectedDataPath(filename)), "captured image is different from expected.")
+
+        return wpc

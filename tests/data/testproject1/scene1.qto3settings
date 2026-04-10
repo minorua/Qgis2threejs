@@ -29,7 +29,7 @@
   },
   "KEYFRAMES": {
     "camera": {
-      "groups": [
+      "tracks": [
         {
           "enabled": true,
           "keyframes": [
@@ -174,73 +174,79 @@
         }
       ]
     },
+    "enabled": false,
     "layers": {
       "dem_srtm3020150914165149263": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "fp:89c5f24c": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line120150915163207575": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line220150915163154251": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line320150915163201215": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line420150915163201918": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "line520150915163202606": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "lineV_b839a06f_71fd_4d0d_be1e_a6c9d9e32509": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "ne_10m_railroads20150916133408505": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "polygon120150915163203246": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "polygon220150915163203903": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt120150915163204544": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt220150915163205153": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt320150915163205778": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt420150915163206372": {
         "enabled": true,
-        "groups": []
+        "tracks": []
       },
       "pt520150915163206841": {
         "enabled": true,
-        "groups": []
+        "tracks": []
+      },
+      "pt6_09a906ce_807f_4ab3_9133_313a5b5decc6": {
+        "enabled": true,
+        "tracks": []
       }
     },
-    "repeat": false
+    "repeat": false,
+    "startOnLoad": false
   },
   "LAYERS": [
     {
@@ -553,6 +559,13 @@
         "slider_FontSize": 3
       },
       "visible": true
+    },
+    {
+      "geomType": 1,
+      "layerId": "pt6_09a906ce_807f_4ab3_9133_313a5b5decc6",
+      "name": "pt6",
+      "properties": {},
+      "visible": false
     },
     {
       "geomType": 2,
@@ -1394,6 +1407,9 @@
       "visible": true
     }
   },
+  "OPT": {
+    "gui.customPlane": true
+  },
   "OutputFilename": "",
   "POINT": {
     "pt120150915163204544": {
@@ -1758,7 +1774,8 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20702,
+  "Title": "testproject1",
+  "Version": 20904,
   "WIDGETS": {
     "Label": {
       "Footer": "",
