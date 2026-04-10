@@ -6,9 +6,10 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QUrl
+from qgis.PyQt.QtCore import Qt, QDir, QSettings, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QPushButton
 from qgis.core import QgsApplication, QgsProject
+import qgis
 
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 from ..conf import PLUGIN_NAME
@@ -27,6 +28,7 @@ class ExportToWebDialog(QDialog):
         self.logHtml = ""
         self.logNextIndex = 1
         self.warnings = 0
+        self.lastExportDir = ""
 
         self.ui = Ui_ExportToWebDialog()
         self.ui.setupUi(self)
@@ -83,6 +85,19 @@ class ExportToWebDialog(QDialog):
 
         self.ui.textBrowser.setOpenLinks(False)
         self.ui.textBrowser.anchorClicked.connect(openUrl)
+
+        # Qgis2OnlineMap plugin integration
+        self.q2om = qgis.utils.plugins.get("Qgis2OnlineMap")
+        if self.q2om:
+            self.ui.pushButton_Publish.clicked.connect(self.publish)
+            try:
+                self.ui.pushButton_Publish.setIcon(self.q2om.action.icon())
+            except:
+                pass
+        else:
+            self.ui.pushButton_Publish.setEnabled(False)
+
+        self.ui.pushButton_Publish.setVisible(False)
 
     def templateChanged(self, index=None):
         # update settings widget visibility
@@ -229,6 +244,8 @@ th {text-align:left;}
         for w in disabled_widgets:
             w.setEnabled(True)
 
+        self.ui.pushButton_Publish.setVisible(success)
+
         if not success:
             self.ui.progressBar.setValue(0)
             return
@@ -258,8 +275,12 @@ th {text-align:left;}
 <td><a href="{url_page.toString()}">{url_page.toLocalFile()}</a></td></tr>
 </table>
 """
+
         self.ui.textBrowser.setHtml(self.logHtml)
         self.ui.textBrowser.scrollToAnchor("complete")
+
+        self.lastExportDir = out_dir
+        QSettings().setValue("/Qgis2threejs/lastExportDir", out_dir)
 
     def progress(self, current=None, total=100, msg="", numbered=False):
         if current is not None:
@@ -295,3 +316,6 @@ th {text-align:left;}
 
     def logMessageIndented(self, msg, warning=False):
         self.log(msg, warning, indented=True)
+
+    def publish(self):
+        self.q2om.open_with_path(self.lastExportDir)
