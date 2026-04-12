@@ -2987,17 +2987,6 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 
 	set opacity(value) {
 		this.materials.setOpacity(value);
-
-		if (this.labelGroup) {
-			this.labelGroup.traverse(function (obj) {
-				if (obj.material) obj.material.opacity = value;
-			});
-		}
-
-		if (this.labelConnectorGroup && this.labelConnectorGroup.children.length) {
-			this.labelConnectorGroup.children[0].material.opacity = value;
-		}
-
 		this.requestRender();
 	}
 
@@ -3324,9 +3313,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 		if (hasConn) {
 			var line_mtl = new THREE.LineBasicMaterial({
-				color: label.cncolor,
-				opacity: this.materials.opacity(),
-				transparent: true
+				color: label.cncolor
 			});
 		}
 
@@ -3350,15 +3337,13 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 		canvas.height = ch;
 
-		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc, opacity;
+		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc;
 		var underline;
 
 		for (var i = 0, l = features.length; i < l; i++) {
 			f = features[i];
 			text = f.lbl;
 			if (!text) continue;
-
-			opacity = (f.mtl !== undefined) ? this.materials.mtl(f.mtl.idx).opacity : 1;
 
 			partIdx = 0;
 			getPointsFunc(f).forEach(function (pt) {
@@ -3398,7 +3383,6 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 				mtl = new THREE.SpriteMaterial({
 					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), function () { _this.requestRender(); }),
-					opacity: opacity,
 					transparent: true
 				});
 
