@@ -7,56 +7,19 @@ qgisMaximumVersion=4.99
 supportsQt6=True
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=2.9.4
+version=2.10
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
-    Version 2.9.4
-    - Fixed a regression in PointCloudLayerBuilder constructor and Potree base path
-    - Fixed script loading order to ensure dependencies are loaded correctly
-    - Fixed array type check for data received via Qt WebKit Bridge
-    - Prevent unsupported point cloud layers from being added to the layer tree
-
-    Version 2.9.3
-    - Refined tab and group box layout in vector layer properties dialog
-    - Fixed an issue preventing 3D model labels from being displayed
-
-    Version 2.9.2
-    - Fixed vector properties dialog layout
-
-    Version 2.9.1
-    - Fixed a f-strings syntax error caused by nested quotes in Python versions earlier than 3.12
-
-    Version 2.9
-    * Added
-     - Qt6 support
-     - TaskManager class for improved task management
-     - A queue for sequential web transmission of generated data
-     - An option to use original DEM values
-    * Extensive Refactoring
-     - Reorganized directory structure and file layout
-     - Added and improved code comments
-    * Improved Multithreading
-     - Task management is now handled in the UI thread
-     - Worker thread is now responsible only for data generation
-    * Others
-     - Updated DEM geometry generation to skip faces with no-data vertices
-     - Improved progress bar in window to show task status, and web-side progress bar to show data loading status
-     - Renamed keyframe group to track
-     - Implemented chunked transfer for saving glTF data
-     - Fixed the "visible on load" option behavior when using the 3D Viewer template
-
-    Version 2.8
-    - Added option to select either WebEngine or WebKit for preview from the menu
-    - WebEngine view is now preferred option when available
-    - Removed console panel
-    - Developer tools are now accessible even when not in debug mode
-    - Log python side warnings and errors also in the JavaScript console
-    - An icon will appear in the status bar to indicate warnings or errors
-    - Fixed a bug where labels were not displayed on Extruded/Overlay polygons
-    - Fixed a bug that prevented the plugin settings dialog from opening due to the deprecation of SafeConfigParser
+    Version 2.10
+    - Added a button to launch the Qgis2OnlineMap plugin from the export dialog
+    - Use timestamp-based subdirectories for the default export output directory
+    - Improved DEM NoData handling (#407)
+    - Set transparent to false when opacity is 1 to ensure opaque objects are rendered before transparent ones (#408)
+    - Fixed the sceneLoaded event being dispatched twice (#409)
+    - Fixed label opacity being affected by layer opacity (#411)
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,web,DEM,glTF,AR,narrative,story,animation
