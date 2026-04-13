@@ -18,7 +18,7 @@ RUN_BLDR_IN_BKGND = True    # If True, builders run in a worker thread
 P_OPEN_DIRECTORY = True
 
 # debugging and testing
-DEBUG_MODE = 1
+DEBUG_MODE = 0
 
 # DEBUG_MODE values:
 #  0: No debug output
