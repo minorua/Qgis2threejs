@@ -1,0 +1,734 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-21 16:56+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\ExportSettings.rst:2
+msgid "Export Settings"
+msgstr "エクスポート設定"
+
+#: ..\..\source\ExportSettings.rst:5
+msgid "Plugin Dialog"
+msgstr "プラグインダイアログ"
+
+#: ..\..\source\ExportSettings.rst:9
+msgid "In order from the top:"
+msgstr "上から順に:"
+
+#: ..\..\source\ExportSettings.rst:11
+msgid "Combo box to select a template"
+msgstr "テンプレート選択コンボボックス"
+
+#: ..\..\source\ExportSettings.rst:13
+msgid ""
+"Select one from templates with different functions. See `Template "
+"<#template>`__ section."
+msgstr "異なる機能をもつテンプレートから1つを選択します。 `テンプレート <#template>`__ セクションを参照して下さい。"
+
+#: ..\..\source\ExportSettings.rst:16
+msgid "Tree widget on the left side and panel with widgets on the right side"
+msgstr "左側にはツリーウィジェット、右側にはウィジェットのあるパネル"
+
+#: ..\..\source\ExportSettings.rst:18
+msgid ""
+"Items with check box in the tree widget are optional. When the current item "
+"is optional and not checked, widgets on the right side are grayed out."
+msgstr ""
+"ツリーウィジェットのチェックボックスがあるアイテムはオプションです。現在のアイテムがオプションで、チェックされていない場合、右側のウィジェットは無効化されます。"
+
+#: ..\..\source\ExportSettings.rst:22
+msgid "Output HTML file path edit box"
+msgstr "出力HTMLファイルパス編集ボックス"
+
+#: ..\..\source\ExportSettings.rst:24
+msgid ""
+"Select output HTML file path. Usually, a js file with the same file title "
+"that contains whole data of geometries and images is output into the same "
+"directory, and some JavaScript library files are copied to under the "
+"directory. Leave this empty to output into temporary directory. Temporary "
+"files are removed when you close the QGIS application."
+msgstr ""
+"出力HTMLファイルパスを指定して下さい。通常、同じファイルタイトルでジオメトリや画像の全てのデータを含むJavaScriptファイルが同じディレクトリに出力されます。いくつかのJavaScriptライブラリファイルがそのディレクトリにコピーされます。空白のままにすると一時ディレクトリに出力されます。一時ファイルはQGISアプリケーションを閉じた時に削除されます。"
+
+#: ..\..\source\ExportSettings.rst:31
+msgid "Settings button"
+msgstr "設定ボタン"
+
+#: ..\..\source\ExportSettings.rst:33
+msgid "Pop-up menu with the following menu items is shown:"
+msgstr "次のメニューアイテムを持つポップアップメニューが表示されます:"
+
+#: ..\..\source\ExportSettings.rst:35
+msgid "Load Settings"
+msgstr "Load Settings (設定の読み込み)"
+
+#: ..\..\source\ExportSettings.rst:37
+msgid "Loads export settings from a settings file."
+msgstr "設定ファイルからエクスポート設定を読み込みます。"
+
+#: ..\..\source\ExportSettings.rst:39
+msgid "Save Settings As"
+msgstr "Save Settings As (設定の保存)"
+
+#: ..\..\source\ExportSettings.rst:41
+msgid ""
+"Saves export settings to a settings file. Default file extension is "
+"``.qto3settings``."
+msgstr "エクスポート設定を設定ファイルに保存します。デフォルトのファイル拡張子は ``.qto3settings`` です。"
+
+#: ..\..\source\ExportSettings.rst:44
+msgid "Clear Settings"
+msgstr "Clear Settings (設定のクリア)"
+
+#: ..\..\source\ExportSettings.rst:46
+msgid "Clears current export settings."
+msgstr "現在のエクスポート設定をクリアします。"
+
+#: ..\..\source\ExportSettings.rst:48
+msgid "Plugin Settings"
+msgstr "Plugin Settings (プラグイン設定)"
+
+#: ..\..\source\ExportSettings.rst:52
+msgid "Run, Close and Help buttons"
+msgstr "Run (実行), Close (閉じる), Help (ヘルプ) ボタン"
+
+#: ..\..\source\ExportSettings.rst:54
+msgid ""
+"Exporting starts when you press the Run button. When the exporting has been "
+"done, the exported page will be opened in web browser. At this time, export "
+"settings are automatically saved to a file under the same directory as the "
+"project file if you are working with a project file. Later the export "
+"settings of the project will be automatically loaded into the plugin."
+msgstr ""
+"エクスポートはRunボタンを押すと始まります。エクスポートが完了するとエクスポートされたページがWebブラウザで開かれます。この時、プロジェクトファイルが開かれている場合にはエクスポート設定は自動的にプロジェクトファイルと同じディレクトリのファイルに保存されます。後にプロジェクトのエクスポート設定は自動的にプラグインに読み込まれます。"
+
+#: ..\..\source\ExportSettings.rst:61
+msgid ""
+"Pressing the Help button will open the local document with default web "
+"browser."
+msgstr "Helpボタンを押すとデフォルトのWebブラウザでローカルのドキュメントを開きます。"
+
+#: ..\..\source\ExportSettings.rst:65
+msgid "General Settings"
+msgstr "一般設定"
+
+#: ..\..\source\ExportSettings.rst:68
+msgid "Template"
+msgstr "Template (テンプレート)"
+
+#: ..\..\source\ExportSettings.rst:70
+msgid "Available templates:"
+msgstr "次のテンプレートが利用可能です:"
+
+#: ..\..\source\ExportSettings.rst:72
+msgid "3DViewer.html"
+msgstr "3DViewer.html"
+
+#: ..\..\source\ExportSettings.rst:74
+msgid "This template is a 3D viewer without any additional UI library."
+msgstr "このテンプレートは追加的なUIライブラリを使わない3Dビューアです。"
+
+#: ..\..\source\ExportSettings.rst:76
+msgid "3DViewer(dat-gui).html"
+msgstr "3DViewer(dat-gui).html"
+
+#: ..\..\source\ExportSettings.rst:78
+msgid ""
+"This template has a `dat-gui <https://code.google.com/p/dat-gui/>`__ panel, "
+"which makes it possible to toggle layer visibility, adjust layer opacity and"
+" add a horizontal plane movable in the vertical direction."
+msgstr ""
+"このテンプレートは `dat-gui <https://code.google.com/p/dat-gui/>`__ "
+"パネルを持ちます。そのパネルではレイヤの表示・非表示切り替えやレイヤ透過度の調整、鉛直方向に移動可能な水平面の追加が可能です。"
+
+#: ..\..\source\ExportSettings.rst:82
+msgid "FileExport.html"
+msgstr "FileExport.html"
+
+#: ..\..\source\ExportSettings.rst:84
+msgid ""
+"This template builds 3D models on the web browser, but doesn't render them. "
+"Instead, it has some buttons to save 3D models in `STL format "
+"<http://en.wikipedia.org/wiki/STL_%28file_format%29>`__, `Wavrefront OBJ "
+"format <http://en.wikipedia.org/wiki/Wavefront_.obj_file>`__ or `COLLADA "
+"format <http://en.wikipedia.org/wiki/COLLADA>`__. It also has ability to "
+"save the texture image(s)."
+msgstr ""
+"このテンプレートはWebブラウザ上で3Dモデルを構築しますが描画は行いません。その代わりに、 `STL format "
+"<http://en.wikipedia.org/wiki/STL_%28file_format%29>`__ や `Wavrefront OBJ "
+"format <http://en.wikipedia.org/wiki/Wavefront_.obj_file>`__ 、 `COLLADA "
+"format <http://en.wikipedia.org/wiki/COLLADA>`__ "
+"形式で保存するためのボタンを持ちます。テクスチャ画像を保存することもできます。"
+
+#: ..\..\source\ExportSettings.rst:96
+msgid "World"
+msgstr "World (ワールド)"
+
+#: ..\..\source\ExportSettings.rst:98
+msgid "Base size"
+msgstr "Base size (ベースサイズ)"
+
+#: ..\..\source\ExportSettings.rst:100
+msgid ""
+"Enter a size in 3D world that corresponds to the map canvas width. The "
+"default value is 100."
+msgstr "マップキャンバスの幅に対応する3Dワールドでのサイズを入力します。デフォルト値は100です。"
+
+#: ..\..\source\ExportSettings.rst:103
+msgid "Vertical exaggeration"
+msgstr "Vertical exaggeration (鉛直誇張)"
+
+#: ..\..\source\ExportSettings.rst:105
+msgid ""
+"Vertical exaggeration factor. This value affects terrain shape and z "
+"positions of all vector 3D objects. This also affects 3D object height of "
+"some object types with volume. Object types to be affected:"
+msgstr ""
+"鉛直誇張の係数。この値は地形の形状やすべてのベクトル3DオブジェクトのZ位置に影響します。また体積のあるいくつかのオブジェクトタイプの3Dオブジェクトの高さにも影響します。影響を受けるオブジェクトタイプ:"
+
+#: ..\..\source\ExportSettings.rst:0
+msgid "Point : Cylinder, Cube, Cone"
+msgstr "ポイント: Cylinder, Cube, Cone"
+
+#: ..\..\source\ExportSettings.rst:0
+msgid "Polygon : Extruded"
+msgstr "ポリゴン : Extruded"
+
+#: ..\..\source\ExportSettings.rst:112
+msgid ""
+"3D objects of the following types have volume, but their heights aren't "
+"affected by this factor:"
+msgstr "次のタイプの3Dオブジェクトは体積を持ちますが、その高さは係数の影響を受けません:"
+
+#: ..\..\source\ExportSettings.rst:0
+msgid "Point : Sphere, JSON model, COLLADA model"
+msgstr "ポイント : Sphere, JSON model, COLLADA model"
+
+#: ..\..\source\ExportSettings.rst:0
+msgid "Line : Pipe, Cone, Box"
+msgstr "ライン : Pipe, Cone, Box"
+
+#: ..\..\source\ExportSettings.rst:118
+msgid "The default value is 1.5."
+msgstr "デフォルト値は1.5です。"
+
+#: ..\..\source\ExportSettings.rst:120
+msgid "Vertical shift"
+msgstr "Vertical shift (鉛直シフト量)"
+
+#: ..\..\source\ExportSettings.rst:128
+msgid "Background"
+msgstr "Background (背景)"
+
+#: ..\..\source\ExportSettings.rst:130
+msgid ""
+"Select either sky-like gradient or a solid color for the background of "
+"scene. Default is Sky."
+msgstr "シーンの背景を空のようなグラデーションと単一色から選択します。デフォルトは空です。"
+
+#: ..\..\source\ExportSettings.rst:133
+msgid "Display of coordinates"
+msgstr "Display of coordinates (座標の表示)"
+
+#: ..\..\source\ExportSettings.rst:142
+msgid "Controls"
+msgstr "Controls (コントロール)"
+
+#: ..\..\source\ExportSettings.rst:144
+msgid ""
+"Two available controls: `OrbitControls "
+"<https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__,"
+" `TrackballControls "
+"<https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/TrackballControls.txt>`__."
+msgstr ""
+"2つのコントロールが利用可能です: `OrbitControls "
+"<https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/OrbitControls.txt>`__,"
+" `TrackballControls "
+"<https://raw.githubusercontent.com/minorua/Qgis2threejs/master/js/threejs/controls/TrackballControls.txt>`__."
+
+#: ..\..\source\ExportSettings.rst:148
+msgid "The usage of each control is displayed below the combo box."
+msgstr "それぞれのコントロールの使用方法はコンボボックスの下に表示されます。"
+
+#: ..\..\source\ExportSettings.rst:151
+msgid "Layer Settings"
+msgstr "レイヤ設定"
+
+#: ..\..\source\ExportSettings.rst:154
+msgid "DEM"
+msgstr "DEM (数値標高モデル)"
+
+#: ..\..\source\ExportSettings.rst:162
+msgid "Resampling"
+msgstr "Resampling (リサンプリング)"
+
+#: ..\..\source\ExportSettings.rst:164
+msgid "Simple"
+msgstr "Simple (シンプル)"
+
+#: ..\..\source\ExportSettings.rst:166
+msgid ""
+"Select a DEM resolution from several levels. This resolution is used to "
+"resample the DEM, but is not for texture."
+msgstr "いくつかのレベルからDEMの解像度を選択します。この解像度はDEMをリサンプルするために使われます。テクスチャに対しては使用されません。"
+
+#: ..\..\source\ExportSettings.rst:169
+msgid "Surroundings option"
+msgstr "Surrounding オプション"
+
+#: ..\..\source\ExportSettings.rst:171
+msgid ""
+"This option enlarges output DEM by placing DEM blocks around the main block "
+"of the map canvas extent. Size can be selected from odd numbers in the range"
+" of 3 to 9. If you select 3, total 9 (=3x3) blocks (a center block and 8 "
+"surrounding blocks) are output. Roughening can be selected from powers of 2 "
+"in the range of 1 to 64. If you select 2, grid point spacing is doubled. It "
+"means that the number of grid points in the same area becomes 1/4. If map "
+"canvas image is selected as the display type, texture image size for each "
+"block is maximum 256 x 256."
+msgstr ""
+"このオプションはマップキャンバス領域のメインのDEMブロックの周りにDEMブロックを配置することによって出力DEMを拡大します。サイズは3から9の範囲の奇数から選択できます。もし3を選択したら合計9(=3x3)のブロック"
+" (中央のブロックと周囲の8ブロック)が出力されます。Roughening "
+"(粗化)は1から64の2の累乗数から選択できます。2を選択したらグリッド間隔は2倍になります。これは同じ面積中のグリッド点の数が4分の1になることを意味します。マップキャンバス画像が表示タイプとして選択されている場合、各ブロックのテクスチャ画像サイズは最大"
+" 256 x 256となります(TODO: 過去のバージョンで変更されているので修正)。"
+
+#: ..\..\source\ExportSettings.rst:173
+msgid "Advanced (quad tree)"
+msgstr "Advanced (quad tree) (四分木)"
+
+#: ..\..\source\ExportSettings.rst:175
+msgid ""
+"Multiple resolution DEM export. Area you want to focus is output in high "
+"resolution and the surroundings are output in low resolution. Draw a "
+"rectangle on the map canvas to set focus area. Specifying a point is also "
+"possible. The higher QuadTree height, the higher resolution of the focus "
+"area. Grid size of each block is 64 x 64."
+msgstr ""
+"複数解像度のDEMエクスポート。フォーカスしたい地域は高解像度で、周辺は低解像度で出力されます。フォーカスエリアを設定するにはマップキャンバス上で長方形を描いて下さい。点の指定も可能です。QuadTree"
+" height (四分木の高さ)が高いほど、フォーカスエリアの解像度は高くなります。各ブロックのグリッドサイズは64 x 64です。"
+
+#: ..\..\source\ExportSettings.rst:182
+msgid "Display type"
+msgstr "Display type (表示タイプ)"
+
+#: ..\..\source\ExportSettings.rst:184
+msgid ""
+"You can choose from map canvas image, layer image, a image file or a solid "
+"color."
+msgstr "マップキャンバス画像、レイヤ画像、イメージファイル、単一色から選択できます。"
+
+#: ..\..\source\ExportSettings.rst:187
+msgid "Map canvas image"
+msgstr "Map canvas image (マップキャンバス画像)"
+
+#: ..\..\source\ExportSettings.rst:189
+msgid ""
+"Map canvas image is used to texture the main DEM block in simple resampling "
+"mode. Each block of surroundings (in simple resampling mode) and quads (in "
+"advanced resampling mode) is textured with image rendered with the current "
+"map settings."
+msgstr ""
+"シンプルリサンプリングモードでメインDEMブロックをテクスチャ付けするのにマップキャンバス画像が使用されます。周囲(シンプルリサンプリングモード)とクアッド(アドバンスドリサンプリングモード)の各ブロックは現在のマップ設定で描画された画像でテクスチャ付けされます。"
+
+#: ..\..\source\ExportSettings.rst:194
+msgid "Layer image"
+msgstr "Layer image (レイヤ画像)"
+
+#: ..\..\source\ExportSettings.rst:196
+msgid "Each block is textured with image rendered with the selected layer(s)."
+msgstr "各ブロックは選択されたレイヤで描画された画像でテクスチャ付けされます。"
+
+#: ..\..\source\ExportSettings.rst:198
+msgid "Image file"
+msgstr "Image file (画像ファイル)"
+
+#: ..\..\source\ExportSettings.rst:200
+msgid ""
+"Texture with existing image file such as PNG and JPEG file. TIFF is not "
+"supported by some browser. See `Image format support "
+"<http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__"
+" for details."
+msgstr ""
+"PNGやJPEGファイルといった既存の画像ファイルを用いたテクスチャ。TIFFはブラウザによってはサポートされていません。詳細は `Image "
+"format support "
+"<http://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support>`__"
+" を参照して下さい。"
+
+#: ..\..\source\ExportSettings.rst:205
+msgid "Solid color"
+msgstr "Solid color (単一色)"
+
+#: ..\..\source\ExportSettings.rst:207
+msgid "To select a color, press the button on the right side."
+msgstr "右側のボタンを押して色を選択します。"
+
+#: ..\..\source\ExportSettings.rst:209
+msgid "**Options**"
+msgstr "**オプション**"
+
+#: ..\..\source\ExportSettings.rst:211
+msgid "Resolution"
+msgstr "Resolution (解像度)"
+
+#: ..\..\source\ExportSettings.rst:217
+msgid "Transparency"
+msgstr "Transparency (透過度)"
+
+#: ..\..\source\ExportSettings.rst:229
+msgid "Enable shading"
+msgstr "Enable shading (陰影表現の有効化)"
+
+#: ..\..\source\ExportSettings.rst:231
+msgid "Adds a shading effect to the DEM."
+msgstr "DEMに陰影効果を付加します。"
+
+#: ..\..\source\ExportSettings.rst:234
+msgid "Clip"
+msgstr "Clip (切り抜き)"
+
+#: ..\..\source\ExportSettings.rst:241
+msgid "Sides and frame"
+msgstr "Sides and frame (側面とフレーム)"
+
+#: ..\..\source\ExportSettings.rst:243
+msgid "Build sides"
+msgstr "Build sides (側面を付ける)"
+
+#: ..\..\source\ExportSettings.rst:245
+msgid ""
+"This option adds sides and bottom to the DEM. The z position of bottom in "
+"the 3D world is fixed. You can adjust the height of sides by changing the "
+"value of vertical shift option in the World panel. If you want to change "
+"color, please edit the output JS file directly."
+msgstr ""
+"ポリゴンレイヤでDEMを切り抜きます。標高データが存在する地域や流域のポリゴンレイヤを用いてこのオプションを使用することがあるかもしれません。"
+
+#: ..\..\source\ExportSettings.rst:250
+msgid "Build frame"
+msgstr "Build frame (フレームを付ける)"
+
+#: ..\..\source\ExportSettings.rst:252
+msgid ""
+"This option adds frame to the DEM. If you want to change color, please edit "
+"the output JS file directly."
+msgstr "DEMにフレームを追加するオプションです。色を変えたい場合は出力JavaScriptファイルを直接編集して下さい。"
+
+#: ..\..\source\ExportSettings.rst:256
+msgid "Additional DEM"
+msgstr "Additional DEM (追加的DEM)"
+
+#: ..\..\source\ExportSettings.rst:258
+msgid ""
+"If you want to export more than one DEM, check the checkbox on the left of "
+"child item you want. For example of usage, it may be possible to cover the "
+"terrain with supposed terrain surface of a summit level map, or make a 3D "
+"heat map."
+msgstr ""
+"複数のDEMをエクスポートしたい場合は子アイテムの左側のチェックボックスをチェックします。例えば、接峰面で地形をカバーすることや3Dヒートマップを作成することが可能です。"
+
+#: ..\..\source\ExportSettings.rst:263
+msgid ""
+"Some options that are available in main DEM panel cannot be used. Resampling"
+" mode is limited to simple. Surroundings, sides and frame options are not "
+"available."
+msgstr ""
+"メインのDEMパネルにあるオプションの中には(追加的DEMでは)利用できないものがあります。リサンプリングモードはSimple "
+"(シンプル)のみに制限され、Surroundings (周辺ブロック)やSides (側面)、Frame (フレーム)オプションは利用できません。"
+
+#: ..\..\source\ExportSettings.rst:268
+msgid "Vector"
+msgstr "ベクタ"
+
+#: ..\..\source\ExportSettings.rst:270
+msgid ""
+"Vector layers are grouped into three types: Point, Line and Polygon. Common "
+"settings for all vector layers:"
+msgstr "ベクタレイヤはポイント、ライン、ポリゴンの3種類に分けられます。すべてのベクトルレイヤに共通の設定は次の通りです:"
+
+#: ..\..\source\ExportSettings.rst:273
+msgid "Z coordinate"
+msgstr "Z coordinate (Z座標)"
+
+#: ..\..\source\ExportSettings.rst:277
+msgid "Z value"
+msgstr "Z value (Z値)"
+
+#: ..\..\source\ExportSettings.rst:282
+msgid "Relative to DEM"
+msgstr "Relative to DEM (DEMに対する相対値)"
+
+#: ..\..\source\ExportSettings.rst:284
+msgid "`z = Elevation at vertex + addend`"
+msgstr "`z = 頂点での標高 + 加数`"
+
+#: ..\..\source\ExportSettings.rst:286
+msgid "+\"field name\""
+msgstr "+\"field name\" (+\"フィールド名\")"
+
+#: ..\..\source\ExportSettings.rst:288
+msgid "`z = Elevation at vertex + field value + addend`"
+msgstr "`z = 頂点での標高値 + フィールド値 + 加数`"
+
+#: ..\..\source\ExportSettings.rst:290 ..\..\source\ExportSettings.rst:300
+msgid "Only numeric fields are listed in the combo box."
+msgstr "数値フィールドのみがコンボボックスにリストされます。"
+
+#: ..\..\source\ExportSettings.rst:292
+msgid "Absolute value"
+msgstr "Absolute value (絶対値)"
+
+#: ..\..\source\ExportSettings.rst:294
+msgid "`z = value`"
+msgstr "`z = 値`"
+
+#: ..\..\source\ExportSettings.rst:296
+msgid "\"field name\""
+msgstr "\"field name\" (\"フィールド名\")"
+
+#: ..\..\source\ExportSettings.rst:298
+msgid "`z = field value + addend`"
+msgstr "`z = フィールド値 + 加数`"
+
+#: ..\..\source\ExportSettings.rst:304
+msgid "Style"
+msgstr "Style (スタイル)"
+
+#: ..\..\source\ExportSettings.rst:310
+msgid "Feature"
+msgstr "Feature (地物)"
+
+#: ..\..\source\ExportSettings.rst:312
+msgid "Select the features to be output."
+msgstr "出力される地物を選択します。"
+
+#: ..\..\source\ExportSettings.rst:314
+msgid "All features"
+msgstr "All features (すべての地物)"
+
+#: ..\..\source\ExportSettings.rst:316
+msgid "All features of the layer are exported."
+msgstr "レイヤのすべての地物がエクスポートされます。"
+
+#: ..\..\source\ExportSettings.rst:318
+msgid "Features that intersect with map canvas extent"
+msgstr "Features that intersect with map canvas extent (マップキャンバスの領域にある地物)"
+
+#: ..\..\source\ExportSettings.rst:322
+msgid "Clip geometries"
+msgstr "Clip geometries (ジオメトリを切り抜く)"
+
+#: ..\..\source\ExportSettings.rst:324
+msgid ""
+"This option is available with Line/Polygon layer. If checked, geometries are"
+" clipped by the extent of map canvas."
+msgstr "このオプションはラインレイヤとポリゴンレイヤで利用可能です。チェックされているとジオメトリはマップキャンバスの領域でクリップされます。"
+
+#: ..\..\source\ExportSettings.rst:326
+msgid "Attribute and label"
+msgstr "Attribute and label (属性とラベル)"
+
+#: ..\..\source\ExportSettings.rst:328
+msgid ""
+"If the export attributes option is checked, attributes are exported with "
+"feature geometries. Attributes are displayed when you click an object on web"
+" browser."
+msgstr ""
+"Export attributes "
+"(属性を出力)オプションがチェックされていると、ジオメトリと一緒に属性が出力されます。属性はWebブラウザでオブジェクトをクリックすると表示されます。"
+
+#: ..\..\source\ExportSettings.rst:337
+msgid "Point"
+msgstr "Point (ポイント)"
+
+#: ..\..\source\ExportSettings.rst:339
+msgid ""
+"Point layers in the project are listed as the child items. The following "
+"object types are available:"
+msgstr "プロジェクトに含まれるポイントレイヤが子アイテムとしてリストされます。次のオブジェクトタイプが利用可能です:"
+
+#: ..\..\source\ExportSettings.rst:342
+msgid "Sphere, Cylinder, Cone, Box, Disk, Icon, JSON model, COLLADA model"
+msgstr "Sphere, Cylinder, Cone, Box, Disk, Icon, JSON model, COLLADA model"
+
+#: ..\..\source\ExportSettings.rst:347
+msgid "Line"
+msgstr "Line (ライン)"
+
+#: ..\..\source\ExportSettings.rst:349
+msgid ""
+"Line layers in the project are listed as the child items. The following "
+"object types are available:"
+msgstr "プロジェクトに含まれるラインレイヤが子アイテムとしてリストされます。次のオブジェクトタイプが利用可能です:"
+
+#: ..\..\source\ExportSettings.rst:352
+msgid "Line, Pipe, Cone, Box, Profile"
+msgstr "Line, Pipe, Cone, Box, Profile"
+
+#: ..\..\source\ExportSettings.rst:357
+msgid "Polygon"
+msgstr "Polygon (ポリゴン)"
+
+#: ..\..\source\ExportSettings.rst:359
+msgid ""
+"Polygon layers in the project are listed as the child items. The following "
+"object types are available:"
+msgstr "プロジェクトに含まれるポリゴンレイヤが子アイテムとしてリストされます。次のオブジェクトタイプが利用可能です:"
+
+#: ..\..\source\ExportSettings.rst:362
+msgid "Extruded, Overlay"
+msgstr "Extruded, Overlay"
+
+#: ..\..\source\ExportSettings.rst:50
+msgid "Shows :doc:`PluginSettings` dialog."
+msgstr ":doc:`PluginSettings` ダイアログを表示します。"
+
+#: ..\..\source\ExportSettings.rst:344
+msgid ""
+"See :ref:`object-types-point-layer` section in :doc:`ObjectTypes` page for "
+"each object type specific settings."
+msgstr ""
+"各オブジェクトタイプ特有の設定については :doc:`ObjectTypes` ページの :ref:`object-types-point-layer`"
+" セクションを参照して下さい。"
+
+#: ..\..\source\ExportSettings.rst:354
+msgid ""
+"See :ref:`object-types-line-layer` section in :doc:`ObjectTypes` page for "
+"each object type specific settings."
+msgstr ""
+"各オブジェクトタイプ特有の設定については :doc:`ObjectTypes` ページの :ref:`object-types-line-layer` "
+"セクションを参照して下さい。"
+
+#: ..\..\source\ExportSettings.rst:364
+msgid ""
+"See :ref:`object-types-polygon-layer` section in :doc:`ObjectTypes` page for"
+" each object type specific settings."
+msgstr ""
+"各オブジェクトタイプ特有の設定については :doc:`ObjectTypes` ページの :ref:`object-types-polygon-"
+"layer` セクションを参照して下さい。"
+
+#: ..\..\source\ExportSettings.rst:7
+msgid "|dialog image|"
+msgstr "|dialog image|"
+
+#: ..\..\source\ExportSettings.rst:122
+msgid ""
+"Vertical shift for all objects. If you want to export high altitude and "
+"narrow area, you should adjust the object positions to be displayed at the "
+"center of browser by changing this value. If you set the value to -1000, all"
+" objects are shifted down by 1000 in the unit of map CRS."
+msgstr ""
+"すべてのオブジェクトの鉛直シフト量。高高度で小さな面積の地域をエクスポートする場合、ブラウザの中央に表示されるようにこの値を変更してオブジェクトの位置を調整した方がいいでしょう"
+"。値を-1000に設定した場合、すべてのオブジェクトはプロジェクトの単位で1000だけ下に移動されます。"
+
+#: ..\..\source\ExportSettings.rst:135
+msgid ""
+"If the ``Latitude and longitude (WGS84)`` option is selected, coordinates of"
+" clicked position on a 3D object are displayed in longitude and latitude "
+"(WGS84). If `Proj4js <https://github.com/proj4js/proj4js>`__ doesn't support"
+" current map CRS, this option is disabled."
+msgstr ""
+"``Latitude and longitude (WGS84)`` "
+"オプションが選択されている場合、3Dオブジェクト上でクリックされた位置の座標は経緯度(WGS84)で表示されます。 `Proj4js "
+"<https://github.com/proj4js/proj4js>`__ "
+"が現在のプロジェクトのCRSをサポートしない場合、このオプションは無効化されます。"
+
+#: ..\..\source\ExportSettings.rst:221
+msgid "Transparent background (With map canvas image or layer image)"
+msgstr "Transparent background (透明な背景。マップキャンバス画像またはレイヤ画像の場合)"
+
+#: ..\..\source\ExportSettings.rst:225
+msgid "Enable transparency (With image file)"
+msgstr "Enable transparency (透過の有効化。画像ファイルの場合)"
+
+#: ..\..\source\ExportSettings.rst:227
+msgid "Enables the image transparency."
+msgstr "画像の透過性を有効にします。"
+
+#: ..\..\source\ExportSettings.rst:236
+msgid ""
+"Clips the DEM with a polygon layer. If you have a polygon layer that "
+"represents the area that elevation data exist or represents drainage basins,"
+" you might want to use this option."
+msgstr ""
+"ポリゴンレイヤでDEMを切り抜きます。標高データが存在する地域や流域のポリゴンレイヤがある場合、このオプションを使用することがあるかもしれません。"
+
+#: ..\..\source\ExportSettings.rst:275
+msgid "``Mode`` combo box has these items:"
+msgstr "`Mode` コンボボックスのアイテム:"
+
+#: ..\..\source\ExportSettings.rst:302
+msgid "The unit of the value is that of the map CRS."
+msgstr "値の単位はプロジェクトのCRSの単位です。"
+
+#: ..\..\source\ExportSettings.rst:306
+msgid ""
+"Usually, there are options to set object color and transparency. Refer to "
+"the links below for each object type specific settings. The unit of value "
+"for object size is that of the map CRS."
+msgstr ""
+"通常、オブジェクトの色と透過度を設定するオプションがあります。各オブジェクトタイプ特有の設定については下記リンク(先)を参照して下さい。オブジェクトサイズの値の単位はプロジェクトのCRSの単位です。"
+
+#: ..\..\source\ExportSettings.rst:320
+msgid "Features on the map canvas are exported."
+msgstr "マップキャンバス上の地物がエクスポートされます。"
+
+#: ..\..\source\ExportSettings.rst:332
+msgid ""
+"If a field is selected in the label combobox, a label is displayed above "
+"each object and is connected to the object with a line. This combo box is "
+"not available when layer type is line."
+msgstr ""
+"ラベルコンボボックスでフィールドが選択された場合、各オブジェクトの上にラベルが表示されてオブジェクトと線で結ばれます。このコンボボックスはレイヤタイプがラインの場合は利用できません。"
+
+#: ..\..\source\ExportSettings.rst:213
+msgid ""
+"Increases the size of image applied to each DEM block. This option is "
+"enabled when either ``Map canvas image`` or ``Layer image`` is selected. You"
+" can select a ratio to map canvas size from 100, 200 and 400 (%). Image size"
+" in pixels follows the percent."
+msgstr ""
+"各DEMブロックに適用される画像のサイズを増加させます。このオプションは ``Map canvas image`` か ``Layer image`` "
+"が選択された時に有効化されます。マップキャンバスに対する比を100, 200. 400 "
+"(%)から選択します。パーセントの後に画像サイズ(ピクセル)が表示されます。"
+
+#: ..\..\source\ExportSettings.rst:279
+msgid ""
+"This item can be selected when the layer geometries have z coordinates and "
+"the layer type is point or line."
+msgstr "このアイテムはレイヤのジオメトリがZ座標を持ち、レイヤタイプがポイントかラインの場合に選択できます。"
+
+#: ..\..\source\ExportSettings.rst:92
+msgid ""
+"These formats are widely supported by 3DCG softwares such as `Blender "
+"<http://www.blender.org/>`__."
+msgstr ""
+"これらの形式は `Blender <http://www.blender.org/>`__ のような3DCGソフトウェアで広くサポートされています。"
+
+#: ..\..\source\ExportSettings.rst:156
+msgid ""
+"You can select a DEM layer from 1-band rasters loaded in QGIS using ``Add "
+"Raster Layer`` (GDAL provider). Selected DEM layer is used to calculate z "
+"positions of vector objects. You can also select a flat plane at zero "
+"altitude."
+msgstr ""
+"``ラスタレイヤの追加`` "
+"(GDALプロバイダ)を用いてQGISに読み込まれた1バンドラスタレイヤからDEMレイヤを選択します。選択されたDEMレイヤは(ベクトル)オブジェクトのZ位置を計算するために使用されます。標高0の平面を選択することもできます。"
+
+#: ..\..\source\ExportSettings.rst:219
+msgid "Sets transparency of the DEM. 0 is opaque, and 100 is transparent."
+msgstr "DEMの透過度を設定します。0が不透明、100が透明です。"
+
+#: ..\..\source\ExportSettings.rst:223
+msgid "Makes background of the image to be rendered transparent."
+msgstr "描画される画像の背景を透明にします。"

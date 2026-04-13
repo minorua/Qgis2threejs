@@ -1,0 +1,54 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-22 09:50+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../source/Development.rst:2
+msgid "Development"
+msgstr "開発"
+
+#: ../../source/Development.rst:4
+msgid ""
+"This plugin is now being developed personally by `Minoru Akagi`__, and "
+"received many contributions."
+msgstr "このプラグインは現在、 `赤木 実`__ によって個人的に開発されていますが、多くの貢献を受けています。"
+
+#: ../../source/Development.rst:8
+msgid ""
+"Many thanks to all the `contributors`__! Thanks also to bug reporters and"
+" everyone who gave me constructive suggestions!"
+msgstr "すべての `貢献者`__ に感謝します! またバグ報告をして下さった方や建設的な提案をして下さった方にも感謝します!"
+
+#: ../../source/Development.rst:12
+msgid "Source Code: https://github.com/minorua/Qgis2threejs/"
+msgstr "ソースコード: https://github.com/minorua/Qgis2threejs/"
+
+#: ../../source/Development.rst:14
+msgid "Issue Tracker: https://github.com/minorua/Qgis2threejs/issues"
+msgstr "課題管理: https://github.com/minorua/Qgis2threejs/issues"
+
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
+msgstr ""
+

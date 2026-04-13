@@ -1,0 +1,171 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-21 16:56+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language: ja_JP\n"
+"X-Source-Language: C\n"
+
+#: ..\..\source\3DViewer.rst:2
+msgid "3D Viewer"
+msgstr "3Dビューア"
+
+#: ..\..\source\3DViewer.rst:5
+msgid "Controls"
+msgstr "コントロール"
+
+#: ..\..\source\3DViewer.rst:12
+msgid "Identifying Features"
+msgstr "地物の特定"
+
+#: ..\..\source\3DViewer.rst:25
+msgid "This feature is available with **3DViewer(dat-gui) template**."
+msgstr "この機能は **3DViewer(dat-gui) テンプレート** で利用可能です。"
+
+#: ..\..\source\3DViewer.rst:29
+msgid "layer sub menus"
+msgstr "レイヤサブメニュー"
+
+#: ..\..\source\3DViewer.rst:31
+msgid "Each sub menu has:"
+msgstr "各サブメニューには:"
+
+#: ..\..\source\3DViewer.rst:33
+msgid "a check box to toggle layer visibility"
+msgstr "レイヤの表示・非表示を切り替えるためのチェックボックス"
+
+#: ..\..\source\3DViewer.rst:34
+msgid "a slider to adjust layer transparency"
+msgstr "レイヤの透過度を調節するためのスライダ"
+
+#: ..\..\source\3DViewer.rst:37
+msgid "help button to show the about box"
+msgstr "アバウトボックスを表示するためのヘルプボタン"
+
+#: ..\..\source\3DViewer.rst:40
+msgid "Rotate Animation"
+msgstr "回転アニメーション"
+
+#: ..\..\source\3DViewer.rst:42
+msgid "This feature is available with **OrbitControls**."
+msgstr "この機能は **OrbitControls** で利用可能です。"
+
+#: ..\..\source\3DViewer.rst:44
+msgid ""
+"Pressing ``R`` key starts/stops rotate animation. Camera rotates around the "
+"camera target clockwise."
+msgstr "``R`` キーを押すと回転アニメーションを開始・停止します。カメラターゲットを中心にして時計回りに回転します。"
+
+#: ..\..\source\3DViewer.rst:48
+msgid "Save Image"
+msgstr "画像の保存"
+
+#: ..\..\source\3DViewer.rst:61
+msgid "URL Parameters"
+msgstr "URLパラメータ"
+
+#: ..\..\source\3DViewer.rst:63
+msgid ""
+"You can get current view URL in the about box, and later restore the view by "
+"entering the URL in the URL box of web browser."
+msgstr ""
+"現在のビューURLはアバウトボックスから得ることができ、後でWebブラウザのURLボックスにURLを入力することによってビューを復元することができます。"
+
+#: ..\..\source\3DViewer.rst:66
+msgid "Parameters used in view URL:"
+msgstr "ビューURLで使われるパラメータ:"
+
+#: ..\..\source\3DViewer.rst:68
+msgid "cx, cy, cz: camera position"
+msgstr "cx, cy, cz: カメラ位置"
+
+#: ..\..\source\3DViewer.rst:69
+msgid "tx, ty, tz: camera target"
+msgstr "tx, ty, tz: カメラターゲット"
+
+#: ..\..\source\3DViewer.rst:70
+msgid "ux, uy, uz: camera up direction (TrackballControls)"
+msgstr "ux, uy, uz: カメラ上方向 (TrackballControls)"
+
+#: ..\..\source\3DViewer.rst:72
+msgid ""
+"e.g. "
+"file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.603200058346065"
+msgstr ""
+"たとえば. "
+"file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.603200058346065"
+
+#: ..\..\source\3DViewer.rst:75
+msgid "Other parameters:"
+msgstr "他のパラメータ:"
+
+#: ..\..\source\3DViewer.rst:79
+msgid "popup: pop up another window with specified width and height"
+msgstr "popup: 指定された幅と高さのウィンドウをポップアップします"
+
+#: ..\..\source\3DViewer.rst:14
+msgid ""
+"When you click on an object, layer name that the feature (object) belongs to "
+"and the clicked coordinates (in order of x, y, z) are shown. If ``Latitude "
+"and longitude (WGS84)`` option (in the ``Display of coordinates`` group of "
+"World page) is selected, longitude and latitude are shown in DMS format "
+"(degrees, minutes and seconds). If ``Export attributes`` option of each "
+"vector layer is selected, attribute list of the clicked feature follows them."
+msgstr ""
+"オブジェクトをクリックすると地物(オブジェクト)が属するレイヤ名とクリックされた座標(x, y, zの順)が表示されます。 ``Latitude and "
+"longitude (WGS84`` オプション(Worldページの ``Display of coordinates`` "
+"グループ)が選択されていると経緯度がDMS(度分秒)形式で表示されます。各ベクトルレイヤの ``Export attributes`` "
+"オプションが選択されていたらクリックされた地物の属性一覧も表示されます。"
+
+#: ..\..\source\3DViewer.rst:50
+msgid ""
+"Press ``Shift + S`` to show save image dialog, then enter image size and "
+"click the OK button. In addition, with some web browsers, you need to click "
+"a link to save image. The image file format is PNG. To change label color "
+"and/or adjust label size, edit ``Qgis2threejs.css`` (``print-label`` class)."
+msgstr ""
+"``Shift + S`` "
+"を押すと画像保存ダイアログが表示されます。画像を保存するには画像サイズを入力し、OKボタンをクリックします。Webブラウザによっては画像を保存するためのリンクをクリックする必要があります。画像ファイル形式はPNGです。ラベルの色を変えたりラベルサイズを調整するには "
+"``Qgis2threejs.css`` (``print-label`` クラス)を編集して下さい。"
+
+#: ..\..\source\3DViewer.rst:77
+msgid "width: canvas width (pixels)"
+msgstr "width: キャンバスの幅 (ピクセル)"
+
+#: ..\..\source\3DViewer.rst:78
+msgid "height: canvas height (pixels)"
+msgstr "height: キャンバスの高さ (ピクセル)"
+
+#: ..\..\source\3DViewer.rst:7
+msgid ""
+"Mouse and keyboard operation method depends on the control selected in the "
+"export settings. There is list of mouse buttons and keys in the about box. "
+"Press ``I`` key to show the box."
+msgstr ""
+"マウスとキーボードによる操作方法はエクスポート設定で選択されたコントロールによって異なります。アバウトボックスにマウスボタンとキーのリストがあります。ボックスを表示するには "
+"``I`` キーを押して下さい。"
+
+#: ..\..\source\3DViewer.rst:23
+msgid "Controls Box"
+msgstr "コントロールボックス"
+
+#: ..\..\source\3DViewer.rst:27
+msgid "The controls box has:"
+msgstr "コントロールボックスには:"
+
+#: ..\..\source\3DViewer.rst:36
+msgid "sub menu to control a vertically movable plane"
+msgstr "鉛直方向に移動可能な水平面を操作するためのサブメニュー"
+
+#: ..\..\source\3DViewer.rst:55
+msgid ""
+"A known issue: Wrong image output if the size is too large (`issue #42`__)"
+msgstr "既知の問題があります: サイズが大きすぎる時に出力される画像がおかしい (`issue #42`__)"

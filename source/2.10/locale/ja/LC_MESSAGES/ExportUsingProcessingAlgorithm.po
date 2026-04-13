@@ -1,0 +1,256 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2014, Minoru Akagi
+# This file is distributed under the same license as the Qgis2threejs Plugin
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs Plugin 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-22 09:50+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:2
+msgid "Export Scenes using Processing Algorithm"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:4
+msgid ""
+"Do you want to export many scenes as web pages, image files or 3D model "
+"files? You can do them using Qgis2threejs algorithms in Processing tool "
+"box. Qgis2threejs provides three algorithms - \"Export as Web Page\", "
+"\"Export as Image\" and \"Export as 3D Model\"."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:11
+msgid "Step 1"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:13
+msgid ""
+"Add a DEM layer that covers the whole area you are going to export, a "
+"vector layer to point out area of interest for each scene and any other "
+"layers to project. The vector layer is called as coverage layer and "
+"should have title field that contains string used as title of file to "
+"export."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:20
+msgid "Step 2"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:22
+msgid "Open Qgis2threejs exporter and set up a scene."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:26
+msgid "Step 3"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:28
+msgid "Open one of the Qgis2threejs algorithms from Processing toolbox."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:30
+msgid ""
+"Select the coverage layer and the title field, and configure other "
+"parameters. Coverage layer must be visible in QGIS project when \"Current"
+" Feature Filter\" option is checked."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:33
+msgid "Click on Run button."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:36
+msgid "|processing_export_web_dialog|"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:40
+msgid "Algorithm Parameters"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:43
+msgid "Common Parameters"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:45
+msgid "Coverage Layer"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:47
+msgid ""
+"A vector layer. Creates and exports scenes focused on each feature of "
+"this layer."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:49
+msgid "Title Field"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:51
+msgid "A field that contains string used as title of file to export."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:53
+msgid "Current Feature Filter"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:55
+msgid ""
+"Hides coverage layer features other than currently focused feature from "
+"texture image to be rendered."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:57
+msgid "Output Directory"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:59
+msgid "Path to output directory."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:61
+msgid "**Advanced Parameters**"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:63
+msgid "Scale Mode"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:65
+msgid "Fit to Geometry"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:67
+msgid "Zoom to current feature geometry."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:69
+msgid "Fixed scale (based on map canvas)"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:71
+msgid "Use current map canvas scale."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:73
+msgid "Buffer (%)"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:75
+msgid "Default value is 10."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:77
+msgid "Texture base width (px)"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:79
+msgid "Default value is 1024."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:81
+msgid "Texture base height (px)"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:83
+msgid ""
+"In \"Fit to Geometry\" scale mode, leave this zero to respect aspect "
+"ratio of buffered geometry bounding box. In \"Fixed scale\" scale mode, "
+"aspect ratio of map canvas size is respected when this is set to zero. "
+"Default value is 0."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:88
+msgid "Header Label"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:90
+msgid "An expression which represents header label in HTML."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:92
+msgid "Footer Label"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:94
+msgid "An expression which represents footer label in HTML."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:96
+msgid "Export Settings File (.qto3settings)"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:98
+msgid ""
+"Optional. Path to export settings file. Leave this empty to use current "
+"export settings."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:102
+msgid "Export as Web Page"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:104
+msgid "Template"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:106
+msgid ""
+"Select one of web page templates. See :ref:`export_web_dialog` in "
+":doc:`Exporter` page and :doc:`WebViewerTemplates`."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:111
+msgid "Export as Image"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:113
+msgid "Image width"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:115
+msgid "Output image width in pixel. Default value is 2480."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:117
+msgid "Image height"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:119
+msgid "Output image height in pixel. Default value is 1748."
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:123
+msgid "Export as 3D Model"
+msgstr ""
+
+#: ../../source/ExportUsingProcessingAlgorithm.rst:125
+msgid "No specific settings."
+msgstr ""
+
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
+msgstr ""
+
