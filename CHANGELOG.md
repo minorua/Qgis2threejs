@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### Version 2.10
+- Added a button to launch the Qgis2OnlineMap plugin from the export dialog
+- Use timestamp-based subdirectories for the default export output directory
+- Improved DEM NoData handling (#407)
+- Set transparent to false when opacity is 1 to ensure opaque objects are rendered before transparent ones (#408)
+- Fixed the sceneLoaded event being dispatched twice (#409)
+- Fixed label opacity being affected by layer opacity (#411)
+
 ### Version 2.9.4
 - Fixed a regression in PointCloudLayerBuilder constructor and Potree base path
 - Fixed script loading order to ensure dependencies are loaded correctly
@@ -103,11 +111,11 @@
 - Bug fixes
 
 ### Version 2.4.2
-- Fixed scene export with glTF/COLLADA model file (fix #193)
-- Fixed AR camera background in Mobile template (fix #196)
+- Fixed scene export with glTF/COLLADA model file (#193)
+- Fixed AR camera background in Mobile template (#196)
 
 ### Version 2.4.1
-- Fixed clipping self-crossing lines (fix #117)
+- Fixed clipping self-crossing lines (#117)
 - Fixed retrieving a symbol for a feature
 - Renamed DEM roughening option to roughness
 
@@ -128,14 +136,14 @@
 - Bumped QGIS minimum version to 3.4
 
 ### Version 2.3.1
-- Do not import Qt module from PyQt5.Qt (fix #162 and #134)
-- Fixed initial camera target position (fix #163)
+- Do not import Qt module from PyQt5.Qt (#162, #134)
+- Fixed initial camera target position (#163)
 
 ### Version 2.3
 - Added export algorithms for Processing
 - Added automatic z shift adjustment option
 - Added Point type for point layer
-- Fixed clipped DEM side (fix #159)
+- Fixed clipped DEM side (#159)
 - Fixed Overlay
 - Fixed model file load with Mobile template
 - Fixed crash when continuously zooming map canvas with the exporter window open
@@ -178,9 +186,9 @@
 
 ### Version 1.4.1
 - Rendering with antialias enabled (Thanks to @stefanocudini)
-- Improved height range of custom plane (dat-gui, refs #53)
-- Skip invalid polygons (fix #71)
-- Fixed feature attribute writing (fix #73)
+- Improved height range of custom plane (dat-gui, #53)
+- Skip invalid polygons (#71)
+- Fixed feature attribute writing (#73)
 
 ### Version 1.4
 - Documentation improved and moved to readthedocs.org
@@ -189,8 +197,8 @@
 - Turn off scene.autoUpdate to reduce matrix calculation cost
 - API for Python
 - Added some basic test cases
-- Fixed error while exporting with DEM's build frame option (fix #48)
-- Fixed cone type object for point layer (fix #50)
+- Fixed error while exporting with DEM's build frame option (#48)
+- Fixed cone type object for point layer (#50)
 
 ### Version 1.3.1
 - Fixed error on applying plugin settings
