@@ -833,6 +833,14 @@ Export to Web Dialog
    Exporting starts when you press the Export button. The view switches to the Log panel, and once the process is complete,
    you can open the exported directory or page by clicking the hyperlink in the log.
 
+* Publish with Qgis2OnlineMap
+   .. versionadded:: 2.10
+
+   This feature allows you to seamlessly share your 3D visualizations on the web using the `Qgis2OnlineMap <https://qgis2onlinemap.com/>`__ service.
+
+   The button appears only after the export process is complete.
+   If the `Qgis2OnlineMap plugin <https://plugins.qgis.org/plugins/Qgis2OnlineMap/>`__ is not installed, the button will be disabled.
+   To use this feature, please install the Qgis2OnlineMap plugin via the QGIS Plugin Manager.
 
 
 Plugin Settings
