@@ -35,7 +35,7 @@ class WebKitTestBase(CLITestBase):
         setCurrentWebView(WEBVIEWTYPE_WEBKIT)
 
 
-class ExportImageTestCases:
+class ExportImageTestCase:
 
     OUT_FILE = "scene1.png"
 
@@ -52,10 +52,7 @@ class ExportImageTestCases:
         exporter.initWebPage(OUT_WIDTH, OUT_HEIGHT)
         exporter.export(out_path)
 
-        # check logs
-        log_handler = getLogListHandler(logger)
-        log_messages = log_handler.get_messages()
-
+        log_messages = getLogListHandler(logger).get_messages()
         for message in log_messages:
             msg = message.lower()
             if "error" in msg:
@@ -90,7 +87,7 @@ class ExportImageTestCases:
             self.assertEqual(image, QImage(expectedDataPath(self.OUT_FILE)), "exported image is different from expected.")
 
 
-class ExportModelTestCases:
+class ExportModelTestCase:
 
     OUT_FILE = "scene1.gltf"
 
@@ -110,19 +107,19 @@ class ExportModelTestCases:
         self.assertTrue(QFileInfo(out_path).size(), "Empty output file")
 
 
-class TestExportImageWebEngine(WebEngineTestBase, ExportImageTestCases):
+class TestExportImageWebEngine(WebEngineTestBase, ExportImageTestCase):
     pass
 
 
-class TestExportModelWebEngine(WebEngineTestBase, ExportModelTestCases):
+class TestExportModelWebEngine(WebEngineTestBase, ExportModelTestCase):
     pass
 
 
-class TestExportImageWebKit(WebKitTestBase, ExportImageTestCases):
+class TestExportImageWebKit(WebKitTestBase, ExportImageTestCase):
     pass
 
 
-class TestExportModelWebKit(WebKitTestBase, ExportModelTestCases):
+class TestExportModelWebKit(WebKitTestBase, ExportModelTestCase):
     pass
 
 

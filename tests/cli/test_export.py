@@ -14,6 +14,7 @@ class TestExportWeb(CLITestBase):
 
     LOCAL_MODE = False
     TEMPLATE = "3DViewer.html"
+    OUT_FILE = "scene1.html"
 
     def test01_export_scene1_webpage(self):
         """test web page export"""
@@ -46,17 +47,17 @@ class TestExportWebLM_datgui(TestExportWebLocalMode):
     TEMPLATE = "3DViewer(dat-gui).html"
 
     def check_webpage(self, filename):
-        wpv =  super().check_webpage(filename)
+        checker =  super().check_webpage(filename)
 
         panel = "Q3D.gui.dat.gui"
         layers = f"{panel}.__folders['Layers']"
         cp = f"{panel}.__folders['Custom Plane']"
 
-        self.assertEqual(wpv.runScript(f"{panel}.__controllers.length"),            1, "top level item count not expected.")
-        self.assertEqual(wpv.runScript(f"Object.keys({panel}.__folders).length"),   2, "top level folder count not expected.")
-        self.assertEqual(wpv.runScript(f"Object.keys({layers}.__folders).length"), 15, "layer count not expected.")
-        self.assertEqual(wpv.runScript(f"{cp}.__controllers.length"),               6, "custom plane item count not expected.")   # A slider has two controllers.
-        return wpv
+        self.assertEqual(checker.runScript(f"{panel}.__controllers.length"),            1, "top level item count not expected.")
+        self.assertEqual(checker.runScript(f"Object.keys({panel}.__folders).length"),   2, "top level folder count not expected.")
+        self.assertEqual(checker.runScript(f"Object.keys({layers}.__folders).length"), 15, "layer count not expected.")
+        self.assertEqual(checker.runScript(f"{cp}.__controllers.length"),               6, "custom plane item count not expected.")   # A slider has two controllers.
+        return checker
 
 
 class TestExportWebLM_Mobile(TestExportWebLocalMode):

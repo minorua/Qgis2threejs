@@ -26,7 +26,6 @@ class CLITestBase(unittest.TestCase):
 
     PROJ_FILE = "testproject1/testproject1.qgs"
     SETTING_FILE = "testproject1/scene1.qto3settings"
-    OUT_FILE = "scene1.html"
 
     @classmethod
     def setUpClass(cls):
@@ -61,8 +60,8 @@ class CLITestBase(unittest.TestCase):
         """check JavaScript errors and warnings in exported web page"""
 
         url = QUrl.fromLocalFile(self.outputPath(filename))
-        wpv = WebPageErrorChecker(url)
-        result = wpv.check()
+        checker = WebPageErrorChecker(url)
+        result = checker.check()
 
         if MANUAL_PAGE_CHECK:
             openFile(self.outputPath(filename))
@@ -70,7 +69,7 @@ class CLITestBase(unittest.TestCase):
         self.assertFalse(result.errors, f"JavaScript errors found in {filename}")
         self.assertFalse(result.warnings, f"JavaScript warnings found in {filename}")
 
-        return wpv
+        return checker
 
     def check_webpage_capture(self, filename):
         """render exported web page and check page capture"""

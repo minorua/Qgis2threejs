@@ -114,7 +114,7 @@ class TestWidget(GUITestBase):
 
     def test02_testLabels2(self):
         """Woo-hoo!"""
-        self.assertText("header label", "WidgetTest", "header", partialMatch=True)
+        self.assertText("header label", "TestWidget", "header", partialMatch=True)
         self.assertText("header label", "test02_testLabels2", "header", partialMatch=True)
         self.assertText("footer label", "Woo-hoo!", "footer", partialMatch=True)
 
