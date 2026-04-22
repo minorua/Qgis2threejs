@@ -4,12 +4,16 @@
 # begin: 2016-02-10
 
 import os
+import time
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import (Qt, QCoreApplication, QDir, QEvent, QEventLoop, QObject, QSettings,
+                              QTimer, QUrl, pyqtSignal, pyqtSlot)
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                                 QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
+                                 QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                                 QMainWindow, QMenu, QMessageBox, QProgressBar, QPushButton,
+                                 QStyle, QToolButton, QVBoxLayout)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import webview
@@ -30,6 +34,7 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 class Q3DWindow(QMainWindow):
 
     previewEnabledChanged = pyqtSignal(bool)
+    modelSaved = pyqtSignal()       # emitted when a glTF export writes its last chunk
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         super().__init__(parent=qgisIface.mainWindow())
@@ -187,9 +192,15 @@ class Q3DWindow(QMainWindow):
         if WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE:
             ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
             ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+            ui.actionSaveSceneTest.triggered.connect(self.saveSceneTest)
+            ui.actionBuildSettingsFile.triggered.connect(self.build_settings_file)
+            ui.actionGenerateTiles.triggered.connect(self.generate_tiles)
         else:
             ui.actionSaveAsImage.setEnabled(False)
             ui.actionSaveAsGLTF.setEnabled(False)
+            ui.actionSaveSceneTest.setEnabled(False)
+            ui.actionBuildSettingsFile.setEnabled(False)
+            ui.actionGenerateTiles.setEnabled(False)
 
         ui.actionLoadSettings.triggered.connect(self.loadSettings)
         ui.actionSaveSettings.triggered.connect(self.saveSettings)
@@ -401,6 +412,379 @@ class Q3DWindow(QMainWindow):
             image.save(filename)
             self.ui.statusbar.showMessage("Image has been saved to file.", 5000)
 
+    # --- Automate menu -----------------------------------------------------
+    # Batch tile export workflow (issue #379):
+    #   1. User draws a polygon region in the 3D viewer, which calls
+    #      `handlePolygonSelection()` and stashes the coordinates on self.
+    #   2. `buildTileSettingsFiles()` divides that region into a tile grid
+    #      and writes one .qto3settings file per tile (re-using a template
+    #      .qto3settings file that defines layers, materials, DEM/texture
+    #      resolution, etc.).
+    #   3. `generateTiles()` loads each tile settings file in turn, waits
+    #      for the scene to rebuild, and exports the result as a .glb.
+    # -----------------------------------------------------------------------
+
+    def handlePolygonSelection(self, coordinates):
+        """Receive polygon coordinates drawn in the 3D viewer for batch export."""
+        try:
+            self.selectedPolygonCoordinates = coordinates
+            logger.info(f"Polygon coordinates received: {len(coordinates)} points")
+            QMessageBox.information(self, "Polygon Selected",
+                                    f"Polygon with {len(coordinates)} points selected. "
+                                    "You can now use these coordinates in the Build Settings dialog.")
+        except Exception as e:
+            logger.error(f"Error handling polygon selection: {e}")
+            QMessageBox.warning(self, "Error", f"Error handling polygon selection: {e}")
+
+    def build_settings_file(self):
+        """Generate per-tile .qto3settings files from a template and a polygon region."""
+        import json
+
+        dialog = BuildSettingsDialog(self, self.qgisIface)
+        if not dialog.exec():
+            return
+
+        config = dialog.getValues()
+        input_file = config["input_file"]
+        output_dir = config["output_dir"]
+        polygon_coordinates = config["polygon_coordinates"]
+        num_tiles_x = config["num_tiles_x"]
+        num_tiles_y = config["num_tiles_y"]
+        tile_width = config["tile_width"]
+        texture_size = config["texture_size"]
+        dem_size = config["dem_size"]
+
+        if not polygon_coordinates:
+            QMessageBox.warning(self, "Polygon Required",
+                                "Please select a polygon in the 3D viewer first, "
+                                "then set the polygon boundaries in Build Settings.")
+            return
+
+        if not input_file or not output_dir:
+            QMessageBox.warning(self, "Input Error",
+                                "Input file and output directory must be selected.")
+            return
+
+        def is_point_in_polygon(x, y, poly):
+            n = len(poly)
+            inside = False
+            p1x, p1y = poly[0]
+            for i in range(n + 1):
+                p2x, p2y = poly[i % n]
+                if y > min(p1y, p2y):
+                    if y <= max(p1y, p2y):
+                        if x <= max(p1x, p2x):
+                            if p1y != p2y:
+                                xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                                if p1x == p2x or x <= xinters:
+                                    inside = not inside
+                p1x, p1y = p2x, p2y
+            return inside
+
+        def do_segments_intersect(p1, p2, p3, p4):
+            def ccw(A, B, C):
+                return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+            return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
+
+        def tile_intersects_polygon(cx, cy, w, polygon):
+            half = w / 2
+            corners = [(cx - half, cy - half), (cx + half, cy - half),
+                       (cx + half, cy + half), (cx - half, cy + half)]
+            for cxy in corners:
+                if is_point_in_polygon(cxy[0], cxy[1], polygon):
+                    return True
+            tx_min, tx_max = cx - half, cx + half
+            ty_min, ty_max = cy - half, cy + half
+            for p in polygon:
+                if tx_min <= p[0] <= tx_max and ty_min <= p[1] <= ty_max:
+                    return True
+            edges = [(corners[i], corners[(i + 1) % 4]) for i in range(4)]
+            for i in range(len(polygon)):
+                pe = (polygon[i], polygon[(i + 1) % len(polygon)])
+                for te in edges:
+                    if do_segments_intersect(te[0], te[1], pe[0], pe[1]):
+                        return True
+            return False
+
+        try:
+            with open(input_file, "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error", f"Input file not found: {input_file}")
+            return
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error", f"Cannot parse JSON in {input_file}.")
+            return
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        poly_min_x = min(p[0] for p in polygon_coordinates)
+        poly_max_x = max(p[0] for p in polygon_coordinates)
+        poly_min_y = min(p[1] for p in polygon_coordinates)
+        poly_max_y = max(p[1] for p in polygon_coordinates)
+
+        half_w = tile_width / 2
+        start_x = poly_min_x - tile_width
+        start_y = poly_min_y - tile_width
+        grid_w = int((poly_max_x - poly_min_x + 3 * tile_width) / tile_width) + 2
+        grid_h = int((poly_max_y - poly_min_y + 3 * tile_width) / tile_width) + 2
+        actual_tiles_x = max(grid_w, num_tiles_x)
+        actual_tiles_y = max(grid_h, num_tiles_y)
+
+        tiles_generated = 0
+        for row in range(actual_tiles_y):
+            for col in range(actual_tiles_x):
+                new_x = start_x + col * tile_width + half_w
+                new_y = start_y + row * tile_width + half_w
+
+                if (new_x + half_w < poly_min_x or new_x - half_w > poly_max_x or
+                        new_y + half_w < poly_min_y or new_y - half_w > poly_max_y):
+                    continue
+
+                if not tile_intersects_polygon(new_x, new_y, tile_width, polygon_coordinates):
+                    continue
+
+                new_data = json.loads(json.dumps(data))
+                new_data["SCENE"]["lineEdit_CenterX"] = str(new_x)
+                new_data["SCENE"]["lineEdit_CenterY"] = str(new_y)
+                new_data["SCENE"]["lineEdit_Width"] = str(tile_width)
+                new_data["SCENE"]["lineEdit_Height"] = str(tile_width)
+
+                for layer in new_data.get("LAYERS", []):
+                    if layer.get("geomType") == 0 and "properties" in layer:
+                        layer["properties"]["horizontalSlider_DEMSize"] = dem_size
+                        for mat in layer["properties"].get("materials", []):
+                            mat.setdefault("properties", {})["comboBox_TextureSize"] = str(texture_size)
+                        break
+
+                filepath = os.path.join(output_dir, f"tile_{row}_{col}.qto3settings")
+                with open(filepath, "w") as out_f:
+                    json.dump(new_data, out_f, indent=2)
+                tiles_generated += 1
+
+        QMessageBox.information(self, "Tile Settings Generation Complete",
+                                f"{tiles_generated} tile settings files generated.\n"
+                                f"Output directory: {output_dir}")
+
+    def saveSceneTest(self):
+        """Save the current scene as glTF with every DEM material slot included."""
+        if not self.ui.checkBoxPreview.isChecked():
+            QMessageBox.warning(self, "Save Scene with All Materials",
+                                "You need to enable the preview to use this function.")
+            return
+
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Scene with All Materials as glTF"),
+                                                  self.lastDir or QDir.homePath(),
+                                                  "glTF files (*.gltf);;Binary glTF files (*.glb)")
+        if not filename:
+            return
+
+        self.ui.statusbar.showMessage("Loading all materials for export...")
+
+        has_dem = False
+        for layer in self.settings.layers():
+            if layer.visible and layer.type == LayerType.DEM:
+                clone = layer.clone()
+                clone.opt.allMaterials = True
+                self.controller.taskManager.addBuildLayerTask(clone)
+                has_dem = True
+
+        if has_dem:
+            loop = QEventLoop()
+
+            def checkDone():
+                tm = self.controller.taskManager
+                if not tm.processingLayer and not tm.taskQueue:
+                    loop.quit()
+
+            check_timer = QTimer()
+            check_timer.setInterval(200)
+            check_timer.timeout.connect(checkDone)
+
+            timeout_timer = QTimer()
+            timeout_timer.setSingleShot(True)
+            timeout_timer.timeout.connect(loop.quit)
+            timeout_timer.start(30000)
+
+            check_timer.start()
+            loop.exec()
+            check_timer.stop()
+            timeout_timer.stop()
+
+        self.ui.statusbar.showMessage("Exporting scene with all materials to glTF...")
+
+        def saveModel():
+            self.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
+            self.ui.statusbar.clearMessage()
+
+        self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER, callback=saveModel)
+        self.lastDir = os.path.dirname(filename)
+
+    def generate_tiles(self):
+        """Batch-export a directory of .qto3settings tile files to glTF (issue #379)."""
+        import json as _json
+
+        if not self.ui.checkBoxPreview.isChecked():
+            QMessageBox.warning(self, "Generate Tiles",
+                                "You need to enable the preview to use this function.")
+            return
+
+        settings_dir = QFileDialog.getExistingDirectory(
+            self, "Select Directory Containing Tile Settings Files")
+        if not settings_dir:
+            return
+
+        export_dir = QFileDialog.getExistingDirectory(
+            self, "Select Directory to Output Generated Tiles")
+        if not export_dir:
+            return
+
+        os.makedirs(export_dir, exist_ok=True)
+
+        settings_files = sorted(f for f in os.listdir(settings_dir) if f.endswith(".qto3settings"))
+        if not settings_files:
+            QMessageBox.warning(self, "No Settings Files",
+                                "No .qto3settings files found in the selected directory.")
+            return
+
+        logger.info(f"Starting tile generation for {len(settings_files)} files")
+
+        self.setEnabled(False)
+        self.ui.statusbar.showMessage("Processing tiles... Please wait.")
+
+        successful = 0
+        failed = 0
+        failed_files = []
+
+        try:
+            for i, settings_file in enumerate(settings_files):
+                settings_path = os.path.join(settings_dir, settings_file)
+                base_name = os.path.splitext(settings_file)[0]
+
+                has_multi_material = False
+                try:
+                    with open(settings_path, "r") as f:
+                        tile_data = _json.load(f)
+                    for ld in tile_data.get("LAYERS", []):
+                        if ld.get("geomType") == 0 and \
+                                len(ld.get("properties", {}).get("materials", [])) > 1:
+                            has_multi_material = True
+                            break
+                except Exception:
+                    pass
+
+                try:
+                    self.ui.statusbar.showMessage(
+                        f"Processing {i + 1}/{len(settings_files)}: {settings_file}")
+                    logger.info(f"Processing tile {i + 1}/{len(settings_files)}: {settings_file}")
+
+                    self.loadSettings(settings_path)
+
+                    # wait for scene rebuild to finish
+                    scene_loop = QEventLoop()
+                    self.controller.taskManager.allTasksFinalized.connect(scene_loop.quit)
+                    scene_timeout = QTimer()
+                    scene_timeout.setSingleShot(True)
+                    scene_timeout.timeout.connect(scene_loop.quit)
+                    scene_timeout.start(60000)
+                    scene_loop.exec()
+                    scene_timeout.stop()
+                    try:
+                        self.controller.taskManager.allTasksFinalized.disconnect(scene_loop.quit)
+                    except Exception:
+                        pass
+
+                    if has_multi_material:
+                        self.ui.statusbar.showMessage(
+                            f"Loading all materials for {settings_file}...")
+                        for layer in self.settings.layers():
+                            if layer.visible and layer.type == LayerType.DEM:
+                                clone = layer.clone()
+                                clone.opt.allMaterials = True
+                                self.controller.taskManager.addBuildLayerTask(clone)
+
+                        mtl_loop = QEventLoop()
+
+                        def checkMtlDone():
+                            tm = self.controller.taskManager
+                            if not tm.processingLayer and not tm.taskQueue:
+                                mtl_loop.quit()
+
+                        mtl_check = QTimer()
+                        mtl_check.setInterval(200)
+                        mtl_check.timeout.connect(checkMtlDone)
+                        mtl_timeout = QTimer()
+                        mtl_timeout.setSingleShot(True)
+                        mtl_timeout.timeout.connect(mtl_loop.quit)
+                        mtl_timeout.start(30000)
+                        mtl_check.start()
+                        mtl_loop.exec()
+                        mtl_check.stop()
+                        mtl_timeout.stop()
+
+                    gltf_name = base_name + ".glb"
+                    filename = os.path.join(export_dir, gltf_name)
+                    self.ui.statusbar.showMessage(f"Exporting {settings_file} to glTF...")
+
+                    saved_flag = {"ok": False}
+
+                    def on_model_saved():
+                        saved_flag["ok"] = True
+
+                    self.modelSaved.connect(on_model_saved)
+
+                    def do_export():
+                        self.runScript("saveModelAsGLTF('{}')".format(
+                            filename.replace("\\", "\\\\")))
+
+                    self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER, callback=do_export)
+
+                    TIMEOUT_SEC = 150
+                    POLL_SEC = 0.2
+                    elapsed = 0.0
+                    while not saved_flag["ok"] and elapsed < TIMEOUT_SEC:
+                        QCoreApplication.processEvents()
+                        time.sleep(POLL_SEC)
+                        elapsed += POLL_SEC
+
+                    try:
+                        self.modelSaved.disconnect(on_model_saved)
+                    except Exception:
+                        pass
+
+                    if saved_flag["ok"] and os.path.exists(filename) and os.path.getsize(filename) > 512:
+                        successful += 1
+                        logger.info(f"Exported: {gltf_name}")
+                    else:
+                        raise IOError("Export timed out or file invalid")
+
+                    QCoreApplication.processEvents()
+
+                except Exception as e:
+                    logger.error(f"Error processing {settings_file}: {e}")
+                    failed += 1
+                    failed_files.append(settings_file)
+                    continue
+
+        finally:
+            self.setEnabled(True)
+            self.ui.statusbar.clearMessage()
+
+        total = len(settings_files)
+        logger.info(f"Tile generation done - success: {successful}, failed: {failed}")
+
+        msg = (f"Tile Generation Complete!\n\n"
+               f"Total: {total}\n"
+               f"Successful: {successful}\n"
+               f"Failed: {failed}\n"
+               f"Success rate: {successful / max(total, 1) * 100:.1f}%")
+        if failed_files:
+            msg += "\n\nFailed files:\n" + "\n".join(failed_files[:10])
+            if len(failed_files) > 10:
+                msg += f"\n... and {len(failed_files) - 10} more"
+
+        QMessageBox.information(self, "Tile Generation Complete", msg)
+
     def saveAsGLTF(self):
         if not self.ui.checkBoxPreview.isChecked():
             QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
@@ -442,6 +826,10 @@ class Q3DWindow(QMainWindow):
                 self._modelFile = None
 
                 if self._saveModelState == SAVING:
+                    try:
+                        self.modelSaved.emit()
+                    except Exception:
+                        pass
                     QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
                 self._saveModelState = None
                 return
@@ -639,6 +1027,248 @@ class Q3DWindow(QMainWindow):
     def runTest(self):
         from ..tests.gui.test_gui import runTest
         runTest(self)
+
+
+class BuildSettingsDialog(QDialog):
+    """Dialog for configuring per-tile settings file generation from a polygon region."""
+
+    def __init__(self, parent=None, qgisIface=None):
+        super().__init__(parent)
+        self.qgisIface = qgisIface
+        self.setWindowTitle("Build Settings File Configuration")
+        self._layout = QVBoxLayout(self)
+
+        # Input file
+        inputFileGroup = QGroupBox("Input Settings File (template)")
+        inputFileLayout = QHBoxLayout()
+        self.inputFileEdit = QLineEdit()
+        inputFileBtn = QPushButton("Browse...")
+        inputFileBtn.clicked.connect(self._selectInputFile)
+        inputFileLayout.addWidget(self.inputFileEdit)
+        inputFileLayout.addWidget(inputFileBtn)
+        inputFileGroup.setLayout(inputFileLayout)
+        self._layout.addWidget(inputFileGroup)
+
+        # Output directory
+        outputDirGroup = QGroupBox("Output Directory")
+        outputDirLayout = QHBoxLayout()
+        self.outputDirEdit = QLineEdit()
+        outputDirBtn = QPushButton("Browse...")
+        outputDirBtn.clicked.connect(self._selectOutputDir)
+        outputDirLayout.addWidget(self.outputDirEdit)
+        outputDirLayout.addWidget(outputDirBtn)
+        outputDirGroup.setLayout(outputDirLayout)
+        self._layout.addWidget(outputDirGroup)
+
+        # Polygon region
+        polygonGroup = QGroupBox("Polygon Region")
+        polygonLayout = QVBoxLayout()
+        usePolygonBtn = QPushButton("Use Polygon from 3D Viewer")
+        usePolygonBtn.clicked.connect(self._usePolygonFromViewer)
+        clearPolygonBtn = QPushButton("Clear Saved Polygon")
+        clearPolygonBtn.clicked.connect(self._clearPolygon)
+        self.polygonStatusLabel = QLabel(
+            "No polygon selected. Select a polygon in the 3D viewer first.")
+        self.polygonStatusLabel.setWordWrap(True)
+        polygonLayout.addWidget(usePolygonBtn)
+        polygonLayout.addWidget(clearPolygonBtn)
+        polygonLayout.addWidget(self.polygonStatusLabel)
+        polygonGroup.setLayout(polygonLayout)
+        self._layout.addWidget(polygonGroup)
+
+        # Tiling settings
+        tilingGroup = QGroupBox("Tiling Settings")
+        tilingLayout = QFormLayout()
+        self.tileWidthEdit = QLineEdit("50")
+        tilingLayout.addRow("Tile Width:", self.tileWidthEdit)
+        importWidthBtn = QPushButton("Import from Settings File")
+        importWidthBtn.clicked.connect(self._importTileWidth)
+        tilingLayout.addRow(importWidthBtn)
+        self.textureSizeEdit = QLineEdit("2048")
+        tilingLayout.addRow("Texture Size:", self.textureSizeEdit)
+        importTexBtn = QPushButton("Import from Settings File")
+        importTexBtn.clicked.connect(self._importTextureSize)
+        tilingLayout.addRow(importTexBtn)
+        self.demSizeEdit = QLineEdit("1")
+        tilingLayout.addRow("DEM Size:", self.demSizeEdit)
+        importDemBtn = QPushButton("Import from Settings File")
+        importDemBtn.clicked.connect(self._importDemSize)
+        tilingLayout.addRow(importDemBtn)
+        self.numTilesXEdit = QLineEdit("200")
+        self.numTilesYEdit = QLineEdit("200")
+        tilingLayout.addRow("Max Tiles (X):", self.numTilesXEdit)
+        tilingLayout.addRow("Max Tiles (Y):", self.numTilesYEdit)
+        tilingGroup.setLayout(tilingLayout)
+        self._layout.addWidget(tilingGroup)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok |
+                                     QDialogButtonBox.StandardButton.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        self._layout.addWidget(buttonBox)
+
+        self._loadPersistedSettings()
+
+    # ---- persistence -----------------------------------------------------
+    def _loadPersistedSettings(self):
+        import json as _json
+        s = QSettings()
+        self.inputFileEdit.setText(s.value("/Qgis2threejs/build_settings/inputFile", "", type=str))
+        self.outputDirEdit.setText(s.value("/Qgis2threejs/build_settings/outputDir", "", type=str))
+        self.tileWidthEdit.setText(s.value("/Qgis2threejs/build_settings/tileWidth", "50", type=str))
+        self.textureSizeEdit.setText(s.value("/Qgis2threejs/build_settings/textureSize", "2048", type=str))
+        self.demSizeEdit.setText(s.value("/Qgis2threejs/build_settings/demSize", "1", type=str))
+        self.numTilesXEdit.setText(s.value("/Qgis2threejs/build_settings/numTilesX", "200", type=str))
+        self.numTilesYEdit.setText(s.value("/Qgis2threejs/build_settings/numTilesY", "200", type=str))
+
+        coords_json = s.value("/Qgis2threejs/build_settings/polygonCoordinates", "", type=str)
+        if coords_json:
+            try:
+                coords = _json.loads(coords_json)
+                if isinstance(coords, list) and len(coords) >= 3:
+                    self.selectedPolygonCoordinates = coords
+                    self._updatePolygonLabel(coords)
+                    return
+            except Exception:
+                pass
+        self.polygonStatusLabel.setText(
+            "No polygon selected. Select a polygon in the 3D viewer first.")
+
+    def _persistSettings(self):
+        import json as _json
+        s = QSettings()
+        s.setValue("/Qgis2threejs/build_settings/inputFile", self.inputFileEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/outputDir", self.outputDirEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/tileWidth", self.tileWidthEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/textureSize", self.textureSizeEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/demSize", self.demSizeEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/numTilesX", self.numTilesXEdit.text())
+        s.setValue("/Qgis2threejs/build_settings/numTilesY", self.numTilesYEdit.text())
+        coords = getattr(self, "selectedPolygonCoordinates", None)
+        if coords:
+            try:
+                s.setValue("/Qgis2threejs/build_settings/polygonCoordinates", _json.dumps(coords))
+            except Exception:
+                pass
+        else:
+            s.remove("/Qgis2threejs/build_settings/polygonCoordinates")
+
+    def accept(self):
+        self._persistSettings()
+        super().accept()
+
+    # ---- UI helpers ------------------------------------------------------
+    def _updatePolygonLabel(self, coords):
+        coord_text = "\n".join(f"Point {i + 1}: ({x:.6f}, {y:.6f})"
+                               for i, (x, y) in enumerate(coords))
+        self.polygonStatusLabel.setText(
+            f"Polygon with {len(coords)} points:\n{coord_text}")
+
+    def _selectInputFile(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Select Input Settings File", "",
+            "Settings files (*.qto3settings);;All files (*.*)")
+        if filename:
+            self.inputFileEdit.setText(filename)
+
+    def _selectOutputDir(self):
+        dirname = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        if dirname:
+            self.outputDirEdit.setText(dirname)
+
+    def _usePolygonFromViewer(self):
+        parent_wnd = self.parent()
+        coords = getattr(parent_wnd, "selectedPolygonCoordinates", None)
+        if coords and len(coords) >= 3:
+            self.selectedPolygonCoordinates = coords
+            self._updatePolygonLabel(coords)
+            self._persistSettings()
+            QMessageBox.information(self, "Success",
+                                    f"Polygon set with {len(coords)} points from 3D viewer.")
+        else:
+            QMessageBox.information(
+                self, "No Polygon Selected",
+                "Please first select a polygon in the 3D viewer:\n"
+                "1. Open the 3D viewer\n"
+                "2. Draw a polygon by clicking to add points\n"
+                "3. Finish selection\n"
+                "4. Then click this button again.")
+
+    def _clearPolygon(self):
+        if hasattr(self, "selectedPolygonCoordinates"):
+            del self.selectedPolygonCoordinates
+        self.polygonStatusLabel.setText(
+            "No polygon selected. Select a polygon in the 3D viewer first.")
+        self._persistSettings()
+        QMessageBox.information(self, "Polygon Cleared",
+                                "Saved polygon coordinates have been cleared.")
+
+    def _importFromFile(self, extractor, field_edit, field_name):
+        import json as _json
+        path = self.inputFileEdit.text()
+        if not path:
+            QMessageBox.warning(self, "No Input File",
+                                "Please select an input settings file first.")
+            return
+        try:
+            with open(path, "r") as f:
+                data = _json.load(f)
+            value = extractor(data)
+            if value is not None:
+                field_edit.setText(str(value))
+            else:
+                QMessageBox.information(self, "Not Found",
+                                        f"{field_name} not found in the settings file.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def _importTileWidth(self):
+        self._importFromFile(
+            lambda d: d.get("SCENE", d).get("lineEdit_Width"),
+            self.tileWidthEdit, "Tile width")
+
+    def _importTextureSize(self):
+        def extractor(d):
+            for layer in d.get("LAYERS", []):
+                if layer.get("geomType") == 0:
+                    mats = layer.get("properties", {}).get("materials", [])
+                    if mats:
+                        return mats[0].get("properties", {}).get("comboBox_TextureSize")
+            return None
+        self._importFromFile(extractor, self.textureSizeEdit, "Texture size")
+
+    def _importDemSize(self):
+        def extractor(d):
+            for layer in d.get("LAYERS", []):
+                if layer.get("geomType") == 0:
+                    return layer.get("properties", {}).get("horizontalSlider_DEMSize")
+            return None
+        self._importFromFile(extractor, self.demSizeEdit, "DEM size")
+
+    # ---- result ----------------------------------------------------------
+    def getValues(self):
+        polygon_coordinates = getattr(self, "selectedPolygonCoordinates", [])
+        center_x = center_y = 0.0
+        if polygon_coordinates:
+            min_x = min(p[0] for p in polygon_coordinates)
+            max_x = max(p[0] for p in polygon_coordinates)
+            min_y = min(p[1] for p in polygon_coordinates)
+            max_y = max(p[1] for p in polygon_coordinates)
+            center_x = (min_x + max_x) / 2.0
+            center_y = (min_y + max_y) / 2.0
+
+        return {
+            "input_file": self.inputFileEdit.text(),
+            "output_dir": self.outputDirEdit.text(),
+            "polygon_coordinates": polygon_coordinates,
+            "num_tiles_x": int(self.numTilesXEdit.text() or 200),
+            "num_tiles_y": int(self.numTilesYEdit.text() or 200),
+            "center_x": center_x,
+            "center_y": center_y,
+            "tile_width": float(self.tileWidthEdit.text() or 50),
+            "texture_size": int(self.textureSizeEdit.text() or 2048),
+            "dem_size": float(self.demSizeEdit.text() or 1),
+        }
 
 
 class PropertiesDialog(QDialog):
