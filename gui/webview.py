@@ -8,9 +8,15 @@ from qgis.core import Qgis
 
 from ..utils import logger
 
+# Web View Type
 WEBVIEWTYPE_NONE = 0
-WEBVIEWTYPE_WEBKIT = 1
+WEBVIEWTYPE_WEBKIT = 1      # TODO: remove
 WEBVIEWTYPE_WEBENGINE = 2
+
+# Web View Mode
+WVM_INPROCESS = 0
+WVM_EMBEDDED_EXTERNAL = 1
+WVM_EXTERNAL_WINDOW = 2
 
 WEBENGINE_AVAILABLE = False
 WEBKIT_AVAILABLE = False
