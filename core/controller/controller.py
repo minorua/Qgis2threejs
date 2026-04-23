@@ -5,6 +5,7 @@
 
 from collections import deque
 from functools import wraps
+
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
@@ -14,7 +15,6 @@ from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE
 from ...utils import hex_color, js_bool, logger
-
 
 # decorator to skip method execution when the object the method belongs to is disabled
 def requires_enabled(func):
@@ -94,7 +94,7 @@ class Q3DController(QObject):
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
     quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
 
-    def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
+    def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True, externalWebEngineMode=False):
         super().__init__(parent)
 
         self.webPage = webPage
@@ -114,6 +114,8 @@ class Q3DController(QObject):
         self.settings = settings        # hold a reference to the original settings
         self.settingsUpdated = True
         self._settingsCopy = None
+
+        self.externalWebEngineMode = externalWebEngineMode
 
         # builder and thread management
         self.builder = ThreeJSBuilder(parent=None if useThread else self,

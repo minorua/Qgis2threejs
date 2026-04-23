@@ -12,6 +12,10 @@ from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
 from ..utils import js_bool, logger
 
+# Web View Type
+WEBVIEWTYPE_NONE = 0
+WEBVIEWTYPE_WEBKIT = 1      # TODO: remove
+WEBVIEWTYPE_WEBENGINE = 2
 
 TIMEOUT_MS = 30000      # timeout (ms) for script loading
 
@@ -120,9 +124,10 @@ class Q3DWebViewCommon:
     def __init__(self, _=None):
         self.setAcceptDrops(True)
 
-    def setup(self, enabled=True):
+    def setup(self, enabled=True, webViewMode=None):
         """
         :param enabled: whether preview is enabled at start
+        :param webViewMode: # TODO
         """
         self._enabled = enabled     # whether preview is enabled at start
 

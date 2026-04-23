@@ -18,39 +18,51 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtNetwork import QLocalServer
+from PyQt6.QtNetwork import QLocalServer
 
 from .socketinterface import SocketInterface
+from ..utils import logger
 
 
 class SocketServer(SocketInterface):
 
-  def __init__(self, serverName, parent=None):
-    SocketInterface.__init__(self, serverName, parent=parent)
+    def __init__(self, serverName, parent=None):
+        SocketInterface.__init__(self, serverName, parent=parent)
 
-    self.server = QLocalServer(parent)
-    self.server.listen(serverName)
-    self.server.newConnection.connect(self.newConnection)
+        self.server = QLocalServer(parent)
+        self.server.listen(serverName)
+        self.server.newConnection.connect(self.newConnection)
 
-  def nextMemoryKey(self):
-    return SocketInterface.nextMemoryKey(self) + "S"
+        logger.info(f'Server is listening on "{serverName}".')
 
-  def newConnection(self):
-    conn = self.conn
-    if not conn:
-      conn = self.server.nextPendingConnection()
-      conn.disconnected.connect(conn.deleteLater)
+    def teardown(self):
+        self.server.close()
 
-    conn.waitForReadyRead()
-    data = conn.readAll().data()
-    if not self.conn and data == "Hello {0}!".format(self.serverName).encode("utf-8"):
-        self.conn = conn
-        self.conn.readyRead.connect(self.receiveMessage)
-        self.conn.disconnected.connect(self.connDisconnected)
-        self.log("Connection established.")
-    else:
-      conn.disconnectFromServer()
-      self.log("Connection refused.")
+    def nextMemoryKey(self):
+        return SocketInterface.nextMemoryKey(self) + "S"
 
-  def connDisconnected(self):
-    self.conn = None
+    def newConnection(self):
+        logger.debug("New connection.")
+        conn = self.conn
+        if not conn:
+            conn = self.server.nextPendingConnection()
+            conn.disconnected.connect(conn.deleteLater)
+
+        conn.waitForReadyRead()
+        data = conn.readAll().data()
+        logger.debug(f"data: {data}")
+
+        if not self.conn and data.startswith(f"Hello {self.serverName}!".encode("utf-8")):
+            self.conn = conn
+            self.conn.readyRead.connect(self.receiveMessage)
+            self.conn.disconnected.connect(self.connDisconnected)
+            self.connected.emit()
+            logger.info("Connection established.")
+        else:
+            conn.disconnectFromServer()
+            logger.error("Connection refused.")
+
+    def connDisconnected(self):
+        logger.info("Disconnected.")
+        self.conn = None
+        self.disconnected.emit()

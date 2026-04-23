@@ -13,7 +13,7 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
 from qgis.PyQt.QtWebKit import QWebSettings, QWebSecurityOrigin
 from qgis.PyQt.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
-from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, WEBVIEWTYPE_WEBKIT
 from ..conf import DEBUG_MODE
 from ..utils import js_bool, pluginDir
 from ..utils.logging import logger, web_logger
@@ -112,6 +112,7 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
     def __init__(self, parent):
         QWebView.__init__(self, parent)
         Q3DWebViewCommon.__init__(self)
+        self.webViewType = WEBVIEWTYPE_WEBKIT
 
         self._page = Q3DWebKitPage(self)
         self._page.setObjectName("webKitPage")

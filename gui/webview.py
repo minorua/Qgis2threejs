@@ -6,12 +6,9 @@
 from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
 
+from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from ..conf import DEBUG_MODE
 from ..utils import logger
-
-# Web View Type
-WEBVIEWTYPE_NONE = 0
-WEBVIEWTYPE_WEBKIT = 1      # TODO: remove
-WEBVIEWTYPE_WEBENGINE = 2
 
 # Web View Mode
 WVM_INPROCESS = 0
@@ -20,6 +17,8 @@ WVM_EXTERNAL_WINDOW = 2
 
 WEBENGINE_AVAILABLE = False
 WEBKIT_AVAILABLE = False
+WEBENGINE_INPROCESS_WEBGL_AVAILABLE = bool(DEBUG_MODE)
+
 
 if Qgis.QGIS_VERSION_INT >= 33600:
     try:
@@ -60,8 +59,12 @@ def getWebViewClass(webViewType=None, webViewMode=None):
         return Q3DWebKitView
 
     if webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEngineView
-        return Q3DWebEngineView
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEngineView
+            return Q3DWebEngineView
+
+        from .externalview import Q3DExternalWebView
+        return Q3DExternalWebView
 
     from .fallbackview import Q3DFallbackView
     return Q3DFallbackView
@@ -73,14 +76,18 @@ def getWebPageClass(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS
         return Q3DWebKitPage
 
     if webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEnginePage
-        return Q3DWebEnginePage
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEnginePage
+            return Q3DWebEnginePage
+
+        from .externalview import Q3DExternalWebPage
+        return Q3DExternalWebPage
 
     from .fallbackview import Q3DFallbackPage
     return Q3DFallbackPage
 
 
-def setDefaultWebView(webViewType):
+def setDefaultWebView(webViewType, webViewMode=WVM_INPROCESS):
     global Q3DView, Q3DWebPage, defaultWebViewType
 
     if webViewType is defaultWebViewType:
@@ -92,9 +99,14 @@ def setDefaultWebView(webViewType):
         Q3DWebPage = Q3DWebKitPage
 
     elif webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEngineView, Q3DWebEnginePage
-        Q3DView = Q3DWebEngineView
-        Q3DWebPage = Q3DWebEnginePage
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEngineView, Q3DWebEnginePage
+            Q3DView = Q3DWebEngineView
+            Q3DWebPage = Q3DWebEnginePage
+        else:
+            from.externalview import Q3DExternalWebView, Q3DExternalWebPage
+            Q3DView = Q3DExternalWebView
+            Q3DWebPage = Q3DExternalWebPage
 
     else:
         from .fallbackview import Q3DFallbackView, Q3DFallbackPage

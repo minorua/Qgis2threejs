@@ -7,7 +7,7 @@ import json
 import os
 
 from qgis.core import QgsApplication
-from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QObject, QSize, QTimer, pyqtSlot
+from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QObject, QSize, QTimer
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
@@ -18,6 +18,7 @@ from ..exportsettings import ExportSettings
 from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui import webview
+from ...gui.webviewcommon import WEBVIEWTYPE_WEBENGINE
 from ...utils import hex_color, logger
 from ... import utils
 
@@ -360,7 +361,7 @@ class BridgeExporterBase:
     """Base class for exporters that used by Processing algorithms."""
 
     def __init__(self, settings=None):
-        self.isWebEngine = (webview.currentWebViewType == webview.WEBVIEWTYPE_WEBENGINE)
+        self.isWebEngine = (webview.currentWebViewType == WEBVIEWTYPE_WEBENGINE)
 
         self.settings = settings.clone() if settings else ExportSettings()
         self.settings.isPreview = True

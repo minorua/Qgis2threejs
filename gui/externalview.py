@@ -6,87 +6,48 @@
 import json
 import os
 import logging
+import subprocess
 
-from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QEventLoop, QObject, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QDesktopServices
-from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
-from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QWidget
 
-if PYQT_VERSION_STR.split(".")[0] == "5":
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings
-    from PyQt5.QtWebChannel import QWebChannel
-else:
-    from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
-    from PyQt6.QtWebChannel import QWebChannel
-
+from .webbridge import WebBridge
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, WEBVIEWTYPE_WEBENGINE
 from ..conf import DEBUG_MODE
-from ..utils import pluginDir
+from ..preview.socketserver import SocketServer
+from ..utils import createUid, pluginDir
 from ..utils.logging import logger, web_logger
-
 
 TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
 
-_original_chromium_flags = None
-_chromium_flags_saved = False
+
+class WebEngineViewProcessBridge(WebBridge):
+    pass
 
 
-def setChromiumFlags():
-    global _original_chromium_flags, _chromium_flags_saved
-
-    KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
-    OPTIONS = ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"]
-
-    if not _chromium_flags_saved:
-        _original_chromium_flags = os.environ.get(KEY)
-        _chromium_flags_saved = True
-
-    if KEY in os.environ:
-        for opt in OPTIONS:
-            if opt not in os.environ[KEY]:
-                os.environ[KEY] += " " + opt
-    else:
-        os.environ[KEY] = " ".join(OPTIONS)
-
-
-def restoreChromiumFlags():
-    if not _chromium_flags_saved:
-        return
-
-    KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
-
-    if _original_chromium_flags is not None:
-        os.environ[KEY] = _original_chromium_flags
-    else:
-        if KEY in os.environ:
-            del os.environ[KEY]
-
-
-class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
+class Q3DExternalWebPage(QObject):       # (Q3DWebPageCommon):
 
     jsErrorWarning = pyqtSignal(bool)       # bool: is_error
 
+    # for compatibility
+    loadStarted = pyqtSignal()
+    loadFinished = pyqtSignal(bool)
+
     def __init__(self, parent=None):
-        QWebEnginePage.__init__(self, parent)
-        Q3DWebPageCommon.__init__(self)
+        super().__init__(parent)
+
+        self.bridge = WebEngineViewProcessBridge(self)
 
         self.isWebEnginePage = True
 
-        self.channel = QWebChannel(self)
-        self.channel.registerObject("bridge", self.bridge)
-        self.setWebChannel(self.channel)
-
-        # security setting for billboard, model file and point cloud layer
-        self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-
     def setup(self):
-        url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
-        self.myUrl = QUrl.fromLocalFile(url)
-        self.reload()
+        pass
 
     def reload(self):
         self.showStatusMessage("Initializing preview...")
-        self.setUrl(self.myUrl)
+        # TODO: IPC
+        # self.setUrl(self.myUrl)
 
     def runScript(self, string, message="", sourceID="webengineview.py", callback=None, wait=False):
         """
@@ -99,6 +60,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             wait (bool, optional): Whether to wait for script execution to complete.
         """
         self.logScriptExecution(string, message, sourceID)
+
+        # TODO: IPC
+        return
 
         if not wait:
             if callback:
@@ -135,9 +99,14 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
     def sendData(self, data, viaQueue=False):
         logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
+
+        # TODO: IPC
+        return
         self.bridge.sendData.emit(data, viaQueue)
 
     def requestRendering(self, waitUntilFinished=False):
+        # TODO: IPC
+        return
         def render():
             self.runScript("requestRendering()")
 
@@ -168,6 +137,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.runJavaScript(f"console.{level}({msg});")
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        # TODO: move to external view page and IPC
+        return
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
         if level in (CML.WarningMessageLevel, CML.ErrorMessageLevel):
             self.jsErrorWarning.emit(bool(level == CML.ErrorMessageLevel))
@@ -186,27 +157,80 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
             web_logger.log(logging_level, text)
 
     def acceptNavigationRequest(self, url, type, isMainFrame):
+        # TODO: move to external view page
+        return
         if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
             QDesktopServices.openUrl(url)
             return False
         return True
 
+    def runJavaScript(self, string, callback=None):
+        logger.info(f"[RUN] {string} callback={callback}")
 
-class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
+
+class Q3DExternalWebView(QWidget, Q3DWebViewCommon):
+
+    # TODO: fileDropped - IPC
 
     def __init__(self, parent):
-        setChromiumFlags()
-        QWebEngineView.__init__(self, parent)
+        QWidget.__init__(self, parent)
         Q3DWebViewCommon.__init__(self)
         self.webViewType = WEBVIEWTYPE_WEBENGINE
 
-        self._page = Q3DWebEnginePage(self)
-        self._page.setObjectName("webEnginePage")
-        self.setPage(self._page)
+        self._page = Q3DExternalWebPage(self)
 
-        restoreChromiumFlags()
+    def setup(self, enabled=True, webViewMode=None):
+        Q3DWebViewCommon.setup(self, enabled, webViewMode)
+
+        self.serverName = "Q3D" + createUid()
+        self.socketServer = SocketServer(self.serverName, self)
+        self.socketServer.notified.connect(self.notified)
+        self.socketServer.requestReceived.connect(self.requestReceived)
+        self.socketServer.responseReceived.connect(self.responseReceived)
+        self.socketServer.connected.connect(self.requestWinId)
+
+        logger.info("Launching preview...")
+        pid = os.getpid()
+        cwd = os.path.dirname(pluginDir())
+
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 6  # SW_MINIMIZE
+
+        subprocess.Popen([
+            "python",      # "pythonw"
+            "-m", "Qgis2threejs.preview.view",
+            "-s", self.serverName,
+            "-p", str(pid)
+        ], cwd=cwd, startupinfo=startupinfo)
+
+    def teardown(self):
+        self.socketServer.notify({"name": "quit"})
+        logger.info("Server closed.")
+
+    def requestWinId(self):
+        self.socketServer.request({"name": "winId"})
+
+    def notified(self, params):
+        logger.info(f"Notification received: {params}")
+
+        if params.get("name") == "winId":       # TODO: move to responseReceived (dataType = json or dict)
+            self.socketServer.responseReceived.emit(str(params.get("value")).encode("ascii"), {"type": "winId", "dataType": "json"})
+
+            # TODO: responseReceived (params, binary)
+
+        # code = params.get("code")
+        # if code == q3dconst.N_CANVAS_EXTENT_CHANGED:
+
+    def requestReceived(self, params):
+        pass
+
+    def responseReceived(self, data, meta):
+        pass
 
     def showDevTools(self):
+        # TODO: IPC
+        return
         if self._page.devToolsPage():
             self.dlg.activateWindow()
             return
@@ -228,4 +252,12 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         dlg.show()
 
     def showGPUInfo(self):
+        # TODO: IPC
+        return
         self.load(QUrl("chrome://gpu"))
+
+    def page(self):
+        return self._page
+
+    def setAcceptDrops(self, _b):
+        pass
