@@ -17,7 +17,7 @@ from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
+from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, WVM_INPROCESS, setDefaultWebView
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
@@ -42,11 +42,7 @@ class Q3DWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
-        # web view
-        if webViewType is not None:
-            setCurrentWebView(webViewType)
-
-        ui_wnd.Q3DView = webview.Q3DView
+        ui_wnd.Q3DView = webview.getWebViewClass(webViewType, webViewMode)
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 

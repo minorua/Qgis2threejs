@@ -14,7 +14,7 @@ from .testbase import CLITestBase, MANUAL_IMAGE_CHECK, OUT_WIDTH, OUT_HEIGHT
 from .utils import loadProject, logger
 from ..utils import dataPath, expectedDataPath, assertMessagesAppearInOrder
 from ...core.export.export import ImageExporter, ModelExporter
-from ...gui.webview import setCurrentWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
+from ...gui.webview import setDefaultWebView, WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT
 from ...utils import openFile
 from ...utils.logging import clearListHandlerLogs, getLogListHandler
 
@@ -24,7 +24,7 @@ class WebEngineTestBase(CLITestBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        setCurrentWebView(WEBVIEWTYPE_WEBENGINE)
+        setDefaultWebView(WEBVIEWTYPE_WEBENGINE)
 
 
 class WebKitTestBase(CLITestBase):
@@ -32,7 +32,7 @@ class WebKitTestBase(CLITestBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        setCurrentWebView(WEBVIEWTYPE_WEBKIT)
+        setDefaultWebView(WEBVIEWTYPE_WEBKIT)
 
 
 class ExportImageTestCase:
