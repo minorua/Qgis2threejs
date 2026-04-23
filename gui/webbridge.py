@@ -8,9 +8,8 @@ from functools import wraps
 from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QImage
 
-from ..conf import DEBUG_MODE
-from ..utils import logger
-
+from .webview_conf import DEBUG_MODE, WEBVIEW_IN_QGIS_PROCESS
+from .webview_utils import logger
 
 if DEBUG_MODE:
     def emit_slotCalled(func):
