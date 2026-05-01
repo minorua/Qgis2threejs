@@ -14,12 +14,14 @@ from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.window import Q3DWindow
-from .gui.webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from .gui.webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
+from .gui.webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
 from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
 
 
 class Qgis2threejs:
 
+    LAST_ACTION = "/Qgis2threejs/lastAction"
     PREFER_WEBKIT_SETTING = "/Qgis2threejs/preferWebKit"
 
     def __init__(self, iface):
@@ -40,7 +42,7 @@ class Qgis2threejs:
 
         self.action = QAction(icon, title, wnd)
         self.action.setObjectName(objName)
-        self.action.triggered.connect(self.openExporter)
+        self.action.triggered.connect(self.openExporterLastAction)
 
         self.iface.addWebToolBarIcon(self.action)
 
@@ -48,30 +50,33 @@ class Qgis2threejs:
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
-        if Qgis.QGIS_VERSION_INT >= 33600:
-            self.actionWebEng = QAction(icon, title + " (WebEngine)", self.actionGroup)
-            self.actionWebEng.setObjectName(objName + "WebEng")
-            self.actionWebEng.triggered.connect(self.openExporterWebEng)
+        # if Qgis.QGIS_VERSION_INT >= 33600:
+        if WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
+            action = QAction(icon, title + " (In Process)", self.actionGroup)
+            action.setObjectName(objName + "WebEng")
+            action.triggered.connect(lambda c, a=action: self.openExporterWebEngInProc(a))
 
-            self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebEng)
+        action = QAction(icon, title + " (Embedded)", self.actionGroup)
+        action.setObjectName(objName + "WebEngEE")
+        action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
+
+        action = QAction(icon, title + " (Floating)", self.actionGroup)
+        action.setObjectName(objName + "WebEngEW")
+        action.triggered.connect(lambda c, a=action: self.openExporerFloating(a))
 
         if WEBKIT_AVAILABLE:
-            self.actionWebKit = QAction(icon, title + " (WebKit)", self.actionGroup)
-            self.actionWebKit.setObjectName(objName + "WebKit")
-            self.actionWebKit.triggered.connect(self.openExporterWebKit)
+            action = QAction(icon, title + " (WebKit)", self.actionGroup)
+            action.setObjectName(objName + "WebKit")
+            action.triggered.connect(lambda c, a=action: self.openExporterWebKit(a))
 
-            self.iface.addPluginToWebMenu(PLUGIN_NAME, self.actionWebKit)
+        for action in self.actionGroup.actions():
+            action.setCheckable(True)
 
-        if Qgis.QGIS_VERSION_INT >= 33600 and WEBKIT_AVAILABLE:
-            if WEBENGINE_AVAILABLE:
-                self.actionWebEng.setCheckable(True)
+            lastAction = QSettings().value(self.LAST_ACTION)
+            if action.objectName() == lastAction:
+                action.setChecked(True)
 
-            self.actionWebKit.setCheckable(True)
-
-            if QSettings().value(self.PREFER_WEBKIT_SETTING, False) or not WEBENGINE_AVAILABLE:
-                self.actionWebKit.setChecked(True)
-            else:
-                self.actionWebEng.setChecked(True)
+            self.iface.addPluginToWebMenu(PLUGIN_NAME, action)
 
         # connect signal-slot
         QgsProject.instance().removeAll.connect(self.allLayersRemoved)
@@ -84,16 +89,12 @@ class Qgis2threejs:
         QgsProject.instance().removeAll.disconnect(self.allLayersRemoved)
 
         # remove the web menu items and icon
-        self.action.triggered.disconnect(self.openExporter)
+        self.action.triggered.disconnect(self.openExporterLastAction)
         self.iface.removeWebToolBarIcon(self.action)
 
-        if Qgis.QGIS_VERSION_INT >= 33600:
-            self.actionWebEng.triggered.disconnect(self.openExporterWebEng)
-            self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionWebEng)
-
-        if WEBKIT_AVAILABLE:
-            self.actionWebKit.triggered.disconnect(self.openExporterWebKit)
-            self.iface.removePluginWebMenu(PLUGIN_NAME, self.actionWebKit)
+        for action in self.actionGroup.actions():
+            action.triggered.disconnect()
+            self.iface.removePluginWebMenu(PLUGIN_NAME, action)
 
         # remove provider from processing registry
         QgsApplication.processingRegistry().removeProvider(self.pprovider)
@@ -101,7 +102,7 @@ class Qgis2threejs:
         # temporary output directory
         removeTemporaryOutputDir()
 
-    def openExporter(self, _=False, webViewType=None):
+    def openExporter(self, _=False, webViewType=None, webViewMode=None):
         """
         webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
         """
@@ -128,6 +129,7 @@ class Qgis2threejs:
         self.liveExporter = Q3DWindow(self.iface,
                                       self.exportSettings,
                                       webViewType=webViewType,
+                                      webViewMode=webViewMode,
                                       previewEnabled=self.previewEnabled)
         self.liveExporter.show()
         self.liveExporter.previewEnabledChanged.connect(self.previewEnabledChanged)
@@ -135,18 +137,42 @@ class Qgis2threejs:
 
         self.currentProjectPath = proj_path
 
-    def openExporterWebEng(self):
+    def openExporterLastAction(self):
+        lastAction = QSettings().value(self.LAST_ACTION)
+
+        for action in self.actionGroup.actions():
+            if action.objectName() == lastAction:
+                action.triggered.emit()
+                return
+
+        self.openExporter()
+
+    def openExporterWebEngInProc(self, action):
+        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS)
+        self.saveLastAction(action)
+
+    def openExporterEmbedded(self, action):
+        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_EMBEDDED_EXTERNAL)
+        self.saveLastAction(action)
+
+    def openExporerFloating(self, action):
+        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_EXTERNAL_WINDOW)
+        self.saveLastAction(action)
+
+    def openExporterWebEng(self, action):
         if WEBENGINE_AVAILABLE:
             QSettings().remove(self.PREFER_WEBKIT_SETTING)
             self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
         else:
             self.openExporter(webViewType=WEBVIEWTYPE_NONE)
+        self.saveLastAction(action)
 
-    def openExporterWebKit(self):
+    def openExporterWebKit(self, action):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
+        self.saveLastAction(action)
 
-        if WEBENGINE_AVAILABLE:
-            QSettings().setValue(self.PREFER_WEBKIT_SETTING, True)
+    def saveLastAction(self, action):
+        QSettings().setValue(self.LAST_ACTION, action.objectName())
 
     def previewEnabledChanged(self, enabled):
         self.previewEnabled = enabled

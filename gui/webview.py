@@ -7,7 +7,6 @@ from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
 
 from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
-from ..conf import DEBUG_MODE
 from ..utils import logger
 
 # Web View Mode
@@ -17,6 +16,8 @@ WVM_EXTERNAL_WINDOW = 2
 
 WEBENGINE_AVAILABLE = False
 WEBKIT_AVAILABLE = False
+WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
+
 
 if Qgis.QGIS_VERSION_INT >= 33600:
     try:
