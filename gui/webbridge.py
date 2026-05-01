@@ -17,17 +17,32 @@ except ImportError:
 from .webview_conf import DEBUG_MODE, WEBVIEW_IN_QGIS_PROCESS
 from .webview_utils import logger
 
-if DEBUG_MODE:
-    def emit_slotCalled(func):
+if WEBVIEW_IN_QGIS_PROCESS:
+    if DEBUG_MODE:
+        def deco(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                logger.debug("↑ " + func.__name__)
+                return func(*args, **kwargs)
+            return wrapper
+    else:
+        def noop_decorator(func):
+            return func
+
+        deco = noop_decorator
+else:
+    def deco(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            logger.debug("↑ " + func.__name__)
-            return func(*args, **kwargs)
+            params = {
+                "name": func.__name__,
+                "args": args[1:]
+            }
+
+            args[0].methodInvoked.emit(params)
+            logger.debug(f"[IPC] ↑ {func.__name__}: {args[1:]}")
+            return None
         return wrapper
-else:
-    def noop_decorator(func):
-        return func
-    emit_slotCalled = noop_decorator
 
 
 class WebBridge(QObject):
@@ -63,57 +78,57 @@ class WebBridge(QObject):
         self._storedData = QVariant(data)
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitInitialized(self):
         self.initialized.emit()
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitDataLoaded(self):
         self.dataLoaded.emit()
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitDataLoadError(self):
         self.dataLoadError.emit()
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitSceneLoaded(self):
         self.sceneLoaded.emit()
 
     @pyqtSlot(int)
-    @emit_slotCalled
+    @deco
     def emitScriptReady(self, scriptFileId):
         self.scriptFileLoaded.emit(scriptFileId)
 
     @pyqtSlot(int)
-    @emit_slotCalled
+    @deco
     def emitTweenStarted(self, index):
         self.tweenStarted.emit(index)
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitAnimationStopped(self):
         self.animationStopped.emit()
 
     @pyqtSlot(str, int)
-    @emit_slotCalled
+    @deco
     def showStatusMessage(self, message, timeout_ms=0):
         self.statusMessage.emit(message, timeout_ms)
 
     @pyqtSlot(str, str, bool, bool)
-    @emit_slotCalled
+    @deco
     def saveBase64(self, b64str, filename, is_first, is_last):
         self.modelDataReady.emit(base64.b64decode(b64str), filename, is_first, is_last)
 
     @pyqtSlot(str, str, bool, bool)
-    @emit_slotCalled
+    @deco
     def saveText(self, text, filename, is_first, is_last):
         self.modelDataReady.emit(text.encode("UTF-8"), filename, is_first, is_last)
 
     @pyqtSlot(str)
-    @emit_slotCalled
+    @deco
     def saveImage(self, dataUrl):
         image = QImage()
         if dataUrl:
@@ -122,7 +137,7 @@ class WebBridge(QObject):
         self.imageReady.emit(image, False)
 
     @pyqtSlot(str)
-    @emit_slotCalled
+    @deco
     def copyToClipboard(self, dataUrl):
         image = QImage()
         if dataUrl:
@@ -131,12 +146,12 @@ class WebBridge(QObject):
         self.imageReady.emit(image, True)
 
     @pyqtSlot()
-    @emit_slotCalled
+    @deco
     def emitRequestedRenderingFinished(self):
         self.requestedRenderingFinished.emit()
 
     @pyqtSlot(str, bool, str)
-    @emit_slotCalled
+    @deco
     def sendTestResult(self, testName, result, msg):
         self.testResultReceived.emit(testName, result, msg)
 
@@ -147,3 +162,8 @@ class WebBridge(QObject):
         logger.debug(f"↑ Clicked at ({x}, {y})")
         # JS side: console.log(pyObj.mouseUpMessage(e.clientX, e.clientY));
     """
+
+
+class WebIPCBridge(WebBridge):
+    # signal - Bridge to Bridge via IPC
+    methodInvoked = pyqtSignal(dict)    # {"name": "method name", "args": [args...]}

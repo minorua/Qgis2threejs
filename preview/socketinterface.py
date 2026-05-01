@@ -1,161 +1,234 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- SocketInterface
+# (C) 2016 Minoru Akagi
+# SPDX-License-Identifier: GPL-2.0-or-later
+# begin: 2016-02-10
 
-                              -------------------
-        begin                : 2016-02-10
-        copyright            : (C) 2016 Minoru Akagi
-        email                : akaginch@gmail.com
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 import ctypes
 import json
+import logging as logger
 
-from PyQt5.QtCore import QBuffer, QByteArray, QObject, QSharedMemory, QTextStream, pyqtSignal
+try:
+    from PyQt6.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
+except ImportError:
+    from PyQt5.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
+
+from ..conf import DEBUG_MODE
 
 
 class SocketInterface(QObject):
 
-  # message type
-  TYPE_NOTIFICATION = 1
-  TYPE_REQUEST = 2
-  TYPE_RESPONSE = 3
+    # message type
+    TYPE_NOTIFICATION = "NTF"
+    TYPE_REQUEST = "REQ"
+    TYPE_RESPONSE = "RES"
 
-  # internal notification
-  N_DATA_RECEIVED = -1
+    # notification for common use
+    DATA_RECEIVED = "_DR"       # params={"key": memory_key}
 
-  # signals
-  notified = pyqtSignal(dict)                         # params
-  requestReceived = pyqtSignal(dict)                  # params
-  responseReceived = pyqtSignal(bytes, dict)          # data, meta
+    # signals
+    connected = pyqtSignal()
+    disconnected = pyqtSignal()
 
-  def __init__(self, serverName, keyCount=5, parent=None):
-    QObject.__init__(self, parent)
+    notified = pyqtSignal(str, dict, bytes)                 # method, params
+    requestReceived = pyqtSignal(int, str, dict, bytes)     # id, method, params, payload
+    responseReceived = pyqtSignal(int, str, dict, bytes)    # id, reqMethod, params, payload
 
-    self.serverName = serverName
-    self.keyCount = keyCount
-    self.conn = None
+    def __init__(self, parent, serverName):
+        QObject.__init__(self, parent)
 
-    self._index = 0
-    self._mem = {}
+        self.conn = None
+        self.serverName = serverName
 
-  def log(self, msg):
-    pass
+        self._id_counter = 0
+        self._mem = {}
 
-  def nextMemoryKey(self):
-    self._index = 0 if self._index == self.keyCount - 1 else self._index + 1
-    return self.serverName + str(self._index)
+        self._buffer = QByteArray()
+        self._target_size = 0
 
-  def receiveMessage(self):
-    stream = QTextStream(self.conn)
-    if stream.atEnd():
-      return
-    data = stream.readAll()
+        self._callbacks = {}
 
-    for json_str in data.split("\n")[:-1]:
-      obj = json.loads(json_str)
-      msgType = obj["type"]
-      if msgType == self.TYPE_NOTIFICATION:
-        self.log("Notification Received. code: {0}".format(obj["params"].get("code")))
-        if obj["params"].get("code") == self.N_DATA_RECEIVED:
-          memKey = obj["params"]["memoryKey"]
-          mem = self._mem[memKey]
-          if mem.isAttached():
-            mem.detach()
-            self.log("Shared memory detached: key={0}".format(memKey))
-          del self._mem[memKey]
-        else:
-          self.notified.emit(obj["params"])
+    def _next_id(self):
+        self._id_counter += 1
+        return self._id_counter
 
-      elif msgType == self.TYPE_REQUEST:
-        self.log("Request Received. dataType: {0}, renderId: {1}".format(obj["params"].get("dataType"), obj["params"].get("renderId")))
-        self.requestReceived.emit(obj["params"])
+    def createMessageBytes(self, msg_dict):
+        json_bytes = json.dumps(msg_dict).encode("utf-8")
 
-      elif msgType == self.TYPE_RESPONSE:
-        self.log("Response Received. dataType: {0}, renderId: {1}".format(obj["meta"].get("dataType"), obj["meta"].get("renderId")))
-        mem = QSharedMemory(obj["memoryKey"])
-        if not mem.attach(QSharedMemory.ReadOnly):
-          self.log("Cannot attach this process to the shared memory segment: {0}".format(mem.errorString()))
-          return
+        buffer = QByteArray()
+        stream = QDataStream(buffer, QIODevice.OpenModeFlag.WriteOnly)
+        stream.writeInt32(len(json_bytes))
+        stream.writeRawData(json_bytes)
+        return buffer
 
-        size = mem.size()
-        self.log("Size of memory segment is {0} bytes.".format(size))
+    def handleIncomingMessage(self):
+        b = self.conn.readAll()
+        if DEBUG_MODE:
+            logger.debug(f"Incoming msg size: {len(b):,}")
+        self._buffer.append(b)
+
+        while True:
+            if self._target_size == 0:
+                if self._buffer.size() < 4:
+                    break
+
+                self._target_size = QDataStream(self._buffer.left(4)).readInt32()
+                self._buffer.remove(0, 4)
+
+            if self._buffer.size() < self._target_size:
+                break
+
+            raw_data = self._buffer.left(self._target_size)
+            self._buffer.remove(0, self._target_size)
+
+            self.processJsonData(raw_data)
+
+            self._target_size = 0
+
+            if self._buffer.isEmpty():
+                break
+
+    def processJsonData(self, raw_data):
+        try:
+            json_str = bytes(raw_data).decode("utf-8")
+            data = json.loads(json_str)
+
+            data_type = data.get("type")
+            id = data.get("id")
+            method = data.get("method")
+            params = data.get("params", {})
+
+            logger.debug(f"[-->][{data_type}:{id or ''}] {method} - {str(params)[:40]}")
+
+            payload = b""
+            payload_dict = data.get("payload", {})
+            if payload_dict:
+                key = payload_dict.get("key")
+                size = payload_dict.get("size", 0)
+                try:
+                    payload = self.readSharedMemory(key)[:size]
+                except Exception as e:
+                    logger.error(f"Error reading shared memory: {e}")
+
+                logger.debug(f"payload: {payload[:40]}")
+
+                self.notify(self.DATA_RECEIVED, {"key": key})
+
+            if data_type == self.TYPE_NOTIFICATION:
+                if method == self.DATA_RECEIVED:
+                    self.destroySharedMemory(params.get("key"))
+                else:
+                    self.notified.emit(method, params, payload)
+
+            elif data_type == self.TYPE_REQUEST:
+                self.requestReceived.emit(id, method, params, payload)
+
+            elif data_type == self.TYPE_RESPONSE:
+                self.responseReceived.emit(id, method, params, payload)
+                if id in self._callbacks:
+                    callback = self._callbacks.pop(id)
+
+                    try:
+                        callback(data)
+                    except Exception as e:
+                        logger.error(f"Callback error: {e}")
+
+        except json.JSONDecodeError as e:
+            print(f"Error parsing json: {e}")
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+    def createSharedMemory(self, data):
+        assert isinstance(data, bytes), f"Unexpected data type ({type(data).__name__})"
+
+        key = QUuid.createUuid().toString(QUuid.StringFormat.WithoutBraces)[:8]
+        mem = QSharedMemory(key)
+
+        if not mem.create(len(data)):
+            logger.error("Error creating shared memory: " + mem.errorString())
+            return False
 
         mem.lock()
+        try:
+            ctypes.memmove(int(mem.data()), data, len(data))
+        finally:
+            mem.unlock()
+
+        self._mem[key] = mem
+
+        logger.debug("Shared memory created: key=" + key)
+        return key
+
+    def destroySharedMemory(self, key):
+        self._mem[key].detach()
+        logger.debug("Shared memory detached: key=" + key)
+        del self._mem[key]
+
+    def readSharedMemory(self, key):
+        mem = QSharedMemory(key)
+        if not mem.attach(QSharedMemory.AccessMode.ReadOnly):
+            logger.error("Cannot attach this process to the shared memory segment: " + mem.errorString())
+            return
+
+        size = mem.size()
+        logger.debug(f"Payload size: {size:,}")
+
         ba = QByteArray()
         buffer = QBuffer(ba)
+
+        mem.lock()
         buffer.setData(mem.constData())
         mem.unlock()
         mem.detach()
+        return ba.data()
 
-        data = ba.data()
-        lines = data.split(b"\n")
-        for line in lines[:5]:
-          self.log(line[:76])
-        if len(lines) > 5:
-          self.log("--Total {0} Lines Received--".format(len(lines)))
+    def _send(self, msg_type, id, method, params=None, payload=None):
+        if not self.conn:
+            logger.error("No connection.")
+            return False
 
-        self.notify({"code": self.N_DATA_RECEIVED, "memoryKey": obj["memoryKey"]})
-        self.responseReceived.emit(data, obj["meta"])
+        logger.debug(f"[<--][{msg_type}:{id or ''}] {method} - {str(params)[:40]}")
+        msg = {
+            "type": msg_type,
+            "method": method
+        }
 
-  def notify(self, params):
-    if not self.conn:
-      return False
-    self.log("Sending Notification. code: {0}".format(params.get("code")))
-    obj = {"type": self.TYPE_NOTIFICATION, "params": params}
-    self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
-    self.conn.flush()
-    return True
+        if id is not None:
+            msg["id"] = id
 
-  def request(self, params):
-    if not self.conn:
-      return False
-    self.log("Sending Request. dataType: {0}, renderId: {1}".format(params.get("dataType"), params.get("renderId")))
-    obj = {"type": self.TYPE_REQUEST, "params": params}
-    self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
-    self.conn.flush()
-    return True
+        if params is not None:
+            assert isinstance(params, dict), "Unexpected params type."
+            msg["params"] = params
 
-  #TODO: support both str and bytes
-  #TODO: rename byteArray to data
-  def respond(self, byteArray, meta=None):
-    if not self.conn:
-      return False
-    self.log("Sending Response. dataType: {0}, renderId: {1}".format(meta.get("dataType"), meta.get("renderId")))
-    obj = {"type": self.TYPE_RESPONSE, "meta": meta or {}}
+        if payload is not None:
+            qDebug(f"payload: {payload[:20]}")
 
-    memKey = self.nextMemoryKey()
-    obj["memoryKey"] = memKey
-    # TODO: check that the memory segment is not used
+            if isinstance(payload, dict):
+                data = json.dumps(payload).encode("utf-8")
+            else:
+                data = payload
 
-    # store data in shared memory
-    mem = QSharedMemory(memKey)
-    if mem.isAttached():
-      mem.detach()
+            assert isinstance(payload, bytes), "Unexpected payload data type."
 
-    if not mem.create(len(byteArray)):
-      self.log(mem.errorString())
-      return False
-    self.log("Shared memory created: {0}, {1} bytes".format(memKey, len(byteArray)))
+            msg["payload"] = {
+                "key": self.createSharedMemory(data),
+                "size": len(data)
+            }
 
-    mem.lock()
-    try:
-      ctypes.memmove(int(mem.data()), byteArray, len(byteArray))
-    finally:
-      mem.unlock()
+        self.conn.write(self.createMessageBytes(msg))
+        self.conn.flush()
+        return True
 
-    self._mem[memKey] = mem
+    def notify(self, method, params=None, payload=None):
+        return self._send(self.TYPE_NOTIFICATION, id=None, method=method, params=params, payload=payload)
 
-    self.conn.write(json.dumps(obj).encode("utf-8") + b"\n")
-    self.conn.flush()
-    return True
+    def request(self, method, params=None, payload=None, callback=None):
+        id = self._next_id()
+
+        if callback:
+            self._callbacks[id] = callback
+
+        return self._send(self.TYPE_REQUEST, id=id, method=method, params=params, payload=payload)
+
+    def respond(self, id, method, params=None, payload=None):
+        return self._send(self.TYPE_RESPONSE, id=id, method=method, params=params, payload=payload)

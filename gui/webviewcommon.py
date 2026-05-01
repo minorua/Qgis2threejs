@@ -28,13 +28,15 @@ TIMEOUT_MS = 30000      # timeout (ms) for script loading
 
 class Q3DWebPageCommon:
 
-    def __init__(self, _=None):
-        self.bridge = WebBridge(self)
+    BridgeClass = WebBridge
 
+    def __init__(self, _=None):
         self.loadedScripts = {}
         self.loadScriptCallbacks = {}
 
         self.loadFinished.connect(self.pageLoaded)
+
+        self.bridge = self.BridgeClass(self)
         self.bridge.scriptFileLoaded.connect(self.scriptFileLoaded)
 
     def setup(self):
