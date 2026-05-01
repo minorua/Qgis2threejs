@@ -36,7 +36,7 @@ def setChromiumFlags():
     global _original_chromium_flags, _chromium_flags_saved
 
     KEY = "QTWEBENGINE_CHROMIUM_FLAGS"
-    OPTIONS = ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"]
+    OPTIONS = []        # "--remote-debugging-port=9222"
 
     if not _chromium_flags_saved:
         _original_chromium_flags = os.environ.get(KEY)
