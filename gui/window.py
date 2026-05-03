@@ -24,6 +24,7 @@ from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
+from ..preview.ipc_const import Request
 from ..utils import createUid, hex_color, js_bool, logger, openHelp, pluginDir
 from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
@@ -32,7 +33,7 @@ class Q3DWindow(QMainWindow):
 
     previewEnabledChanged = pyqtSignal(bool)
 
-    def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
+    def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=None, previewEnabled=True):
         super().__init__(parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
@@ -43,18 +44,23 @@ class Q3DWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
+        if webViewMode is None:
+            if webViewType == WEBVIEWTYPE_WEBENGINE:
+                webViewMode = WVM_EMBEDDED_EXTERNAL if os.name == "nt" else WVM_EXTERNAL_WINDOW
+            else:
+                webViewMode = WVM_INPROCESS
+
         ui_wnd.Q3DView = webview.getWebViewClass(webViewType, webViewMode)
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
+        webViewType = self.ui.webView.webViewType
         self.webPage = self.ui.webView.page()
 
-        if self.webPage:
-            settings.requiresJsonSerializable = self.webPage.isWebEnginePage
-            viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
-        else:   # Q3DFallbackView
+        settings.requiresJsonSerializable = webViewType == WEBVIEWTYPE_WEBENGINE
+
+        if webViewType == WEBVIEWTYPE_NONE:
             previewEnabled = False
-            viewName = ""
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
@@ -63,25 +69,40 @@ class Q3DWindow(QMainWindow):
         self.controller.taskManager.allTasksFinalized.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
+
+        viewName = {
+            WEBVIEWTYPE_WEBENGINE: "WebEngine",
+            WEBVIEWTYPE_WEBKIT: "WebKit"
+        }.get(webViewType, "")
+
         self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
-        if self.webPage:
+        if webViewType in (WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT):
             self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            self.ui.webView.setup(previewEnabled)
-            self.ui.webView.fileDropped.connect(self.fileDropped)
+            if webViewMode == WVM_INPROCESS:
+                self.ui.webView.setup(enabledAtStart=previewEnabled)
+                self.ui.webView.fileDropped.connect(self.fileDropped)
 
-            if self.webPage.isWebEnginePage:
-                self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+                if webViewType == WEBVIEWTYPE_WEBENGINE:
+                    self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+
+                addLogSignalEmitter(logger, self.webPage.logToConsole)
+
+            else:
+                if webViewType == WEBVIEWTYPE_WEBENGINE:
+                    self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
+                    # self.ui.webView.fileDropped.connect(self.fileDropped)     # TODO
+
+                    self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
+                    self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
 
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
-
-            addLogSignalEmitter(logger, self.webPage.logToConsole)
 
         else:   # Q3DFallbackView
             self.ui.webView.disableWidgetsAndMenus(self.ui)
@@ -110,6 +131,12 @@ class Q3DWindow(QMainWindow):
         self._modelFile = None
         self._saveModelState = None
 
+    def requestReceived(self, id, method, params, payload):
+        pass
+
+    def responseReceived(self, id, method, params, payload):
+        pass
+
     def closeEvent(self, event):
         try:
             self.controller.close()
@@ -117,12 +144,12 @@ class Q3DWindow(QMainWindow):
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
-            if self.webPage:
+            if self.ui.webView.webViewType in (WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE):
                 self.controller.conn.teardown()
 
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)
 
-                if self.webPage.isWebEnginePage:
+                if hasattr(self.webPage, "jsErrorWarning"):
                     self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file
@@ -276,12 +303,11 @@ class Q3DWindow(QMainWindow):
         self.ui.toolButtonConsoleStatus.show()
 
     def setPreviewEnabled(self, enabled):
+        if not enabled:
+            self.controller.abort()
         self.controller.enabled = enabled
 
-        self.runScript("setPreviewEnabled({})".format(js_bool(enabled)))
-
-        if enabled:
-            self.controller.taskManager.addReloadPageTask(force_reload=True)
+        self.ui.webView.setPreviewEnabled(enabled)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:

@@ -45,7 +45,7 @@ class Q3DWebPageCommon:
     def teardown(self):
         pass
 
-    def pageLoaded(self):
+    def pageLoaded(self, _ok):
         self.loadedScripts = {}
 
     def scriptFileLoaded(self, scriptFileId):
@@ -54,16 +54,6 @@ class Q3DWebPageCommon:
         callbacks = self.loadScriptCallbacks.pop(scriptFileId, [])
         for cb in callbacks:
             cb()
-
-    def logScriptExecution(self, string, message="", sourceID=""):
-        if not DEBUG_MODE or message is None:
-            return
-
-        text = message or string
-        if sourceID:
-            text += f"\t({sourceID})"
-
-        logger.debug(f"> {text}")
 
     def loadScriptFile(self, scriptFileId, callback=None, wait=False):
         if scriptFileId in self.loadedScripts:
@@ -95,9 +85,6 @@ class Q3DWebPageCommon:
             self.runScript(script)
 
     def loadScriptFiles(self, scriptFileIds, callback=None):
-        if not scriptFileIds:
-            raise Exception("loadScriptFiles called with empty scriptFileIds")
-
         remaining = list(scriptFileIds)
 
         def load_next():
@@ -110,6 +97,16 @@ class Q3DWebPageCommon:
             self.loadScriptFile(id, callback=load_next)
 
         load_next()
+
+    def logScriptExecution(self, string, message="", sourceID=""):
+        if not DEBUG_MODE or message is None:
+            return
+
+        text = message or string
+        if sourceID:
+            text += f"\t({sourceID})"
+
+        logger.debug(f"> {text}")
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """Show a message bar at the top of the web page.
@@ -132,12 +129,12 @@ class Q3DWebViewCommon:
     def __init__(self, _=None):
         self.setAcceptDrops(True)
 
-    def setup(self, enabled=True):
+    def setup(self, webViewMode=None, enabledAtStart=True):
         """
+        :param webViewMode: in-process, embedded external, external window
         :param enabled: whether preview is enabled at start
         """
-        self._enabled = enabled     # whether preview is enabled at start
-
+        self._enabled = enabledAtStart
         self._page.setup()
 
     def teardown(self):
@@ -159,3 +156,9 @@ class Q3DWebViewCommon:
             QMessageBox.information(self, "three.js Renderer Info", str(info))
 
         self.runScript("app.renderer.info", callback=showInfo)
+
+    def setPreviewEnabled(self, enabled):
+        if enabled:
+            self._page.reload()
+        else:
+            self.runScript("setPreviewEnabled(false)")

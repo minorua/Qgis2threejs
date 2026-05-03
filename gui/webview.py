@@ -58,8 +58,12 @@ def getWebViewClass(webViewType=None, webViewMode=None):
         return Q3DWebKitView
 
     if webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEngineView
-        return Q3DWebEngineView
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEngineView
+            return Q3DWebEngineView
+
+        from .webviewproxy import Q3DWebViewProxy
+        return Q3DWebViewProxy
 
     from .fallbackview import Q3DFallbackView
     return Q3DFallbackView
@@ -71,14 +75,18 @@ def getWebPageClass(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS
         return Q3DWebKitPage
 
     if webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEnginePage
-        return Q3DWebEnginePage
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEnginePage
+            return Q3DWebEnginePage
+
+        from .webviewproxy import Q3DWebPageProxy
+        return Q3DWebPageProxy
 
     from .fallbackview import Q3DFallbackPage
     return Q3DFallbackPage
 
 
-def setDefaultWebView(webViewType):
+def setDefaultWebView(webViewType, webViewMode=WVM_INPROCESS):
     global Q3DView, Q3DWebPage, defaultWebViewType
 
     if webViewType is defaultWebViewType:
@@ -90,9 +98,14 @@ def setDefaultWebView(webViewType):
         Q3DWebPage = Q3DWebKitPage
 
     elif webViewType == WEBVIEWTYPE_WEBENGINE:
-        from .webengineview import Q3DWebEngineView, Q3DWebEnginePage
-        Q3DView = Q3DWebEngineView
-        Q3DWebPage = Q3DWebEnginePage
+        if webViewMode == WVM_INPROCESS:
+            from .webengineview import Q3DWebEngineView, Q3DWebEnginePage
+            Q3DView = Q3DWebEngineView
+            Q3DWebPage = Q3DWebEnginePage
+        else:
+            from.webviewproxy import Q3DWebViewProxy, Q3DWebPageProxy
+            Q3DView = Q3DWebViewProxy
+            Q3DWebPage = Q3DWebPageProxy
 
     else:
         from .fallbackview import Q3DFallbackView, Q3DFallbackPage

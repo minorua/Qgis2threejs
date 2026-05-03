@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-import json
 import os
 import logging
 
@@ -24,7 +23,7 @@ except ImportError:
 
 from .webview_conf import DEBUG_MODE
 from .webview_utils import pluginDir, logger, web_logger
-from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, WEBVIEWTYPE_WEBENGINE
+from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
 
 
 TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
@@ -64,13 +63,13 @@ def restoreChromiumFlags():
             del os.environ[KEY]
 
 
-class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
+class Q3DWebEnginePage(Q3DWebEnginePageCommon, QWebEnginePage):
 
     jsErrorWarning = pyqtSignal(bool)       # bool: is_error
 
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
-        Q3DWebPageCommon.__init__(self)
+        Q3DWebEnginePageCommon.__init__(self)
 
         self.isWebEnginePage = True
 
@@ -90,84 +89,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.showStatusMessage("Initializing preview...")
         self.setUrl(self.myUrl)
 
-    def runScript(self, string, message="", sourceID="webengineview.py", callback=None, wait=False):
-        """
-        Run a JavaScript script in the web view with optional data and callback.
-        Args:
-            string (str): The JavaScript code string to execute.
-            message (str, optional): A descriptive message for logging purposes.
-            sourceID (str, optional): Identifier for the source of the script.
-            callback (optional): Callback function to be executed after script runs.
-            wait (bool, optional): Whether to wait for script execution to complete.
-        """
-        self.logScriptExecution(string, message, sourceID)
-
-        if not wait:
-            if callback:
-                self.runJavaScript(string, callback)
-            else:
-                self.runJavaScript(string)
-            return
-
-        loop = QEventLoop()
-        timer = QTimer()
-        timer.setSingleShot(True)
-        timer.timeout.connect(loop.quit)
-
-        finished = False
-        result = None
-        def runJavaScriptCallback(res):
-            nonlocal finished, result
-            finished = True
-            result = res
-            loop.quit()
-
-        self.runJavaScript(string, runJavaScriptCallback)
-
-        timer.start(TIMEOUT_MS)
-        loop.exec()
-
-        if not finished:
-            logger.warning(f"JavaScript execution timed out: {string}")
-
-        if callback:
-            callback(result)
-
-        return result
-
     def sendData(self, data, viaQueue=False):
         logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
         self.bridge.sendData.emit(data, viaQueue)
-
-    def requestRendering(self, waitUntilFinished=False):
-        def render():
-            self.runScript("requestRendering()")
-
-        if waitUntilFinished:
-            loop = QEventLoop()
-            self.bridge.requestedRenderingFinished.connect(loop.quit)
-
-            timer = QTimer()
-            timer.setSingleShot(True)
-            timer.timeout.connect(loop.quit)
-
-            render()
-
-            timer.start(TIMEOUT_MS)
-            loop.exec()
-        else:
-            render()
-
-    def logToConsole(self, message, level="debug"):
-        if level not in ["debug", "info", "warn", "error"]:
-            level = "log"
-
-        if level in ["warn", "error"]:
-            self.jsErrorWarning.emit(bool(level == "error"))
-
-        msg = json.dumps(message.replace('\n', '\\n'))      # new line causes issues in console
-
-        self.runJavaScript(f"console.{level}({msg});")
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
@@ -194,15 +118,17 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         return True
 
 
-class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
+class Q3DWebEngineView(Q3DWebEngineViewCommon, QWebEngineView):
+
+    WebPageClass = Q3DWebEnginePage
 
     def __init__(self, parent):
         setChromiumFlags()
 
         QWebEngineView.__init__(self, parent)
-        Q3DWebViewCommon.__init__(self)
+        Q3DWebEngineViewCommon.__init__(self)
 
-        self._page = Q3DWebEnginePage(self)
+        self._page = self.WebPageClass(self)
         self._page.setObjectName("webEnginePage")
         self.setPage(self._page)
 
