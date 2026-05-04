@@ -88,12 +88,6 @@ class Q3DWindow(QMainWindow):
             if webViewMode == WVM_INPROCESS:
                 self.ui.webView.setup(enabledAtStart=previewEnabled)
                 self.ui.webView.fileDropped.connect(self.fileDropped)
-
-                if webViewType == WEBVIEWTYPE_WEBENGINE:
-                    self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
-
-                addLogSignalEmitter(logger, self.webPage.logToConsole)
-
             else:
                 if webViewType == WEBVIEWTYPE_WEBENGINE:
                     self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
@@ -101,6 +95,11 @@ class Q3DWindow(QMainWindow):
 
                     self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
                     self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
+
+            addLogSignalEmitter(logger, self.webPage.logToConsole)
+
+            if webViewType == WEBVIEWTYPE_WEBENGINE:
+                self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
 
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
 

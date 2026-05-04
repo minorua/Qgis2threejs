@@ -10,6 +10,7 @@ class Event:
     JS_ERROR_WARNING = "js_error"       # JavaScript error or warning: params={"is_error": bool}
 
     # <- web view
+    DEV_TOOLS_CLOSED = "dev_closed"     # Developer tools closed
     PY_ERROR = "py_error"               # Python error: params={"msg": str}
 
     # <- IPC bridge

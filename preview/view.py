@@ -109,6 +109,8 @@ class WebView(Q3DWebEngineView):
 
         self._page.setSocketClient(self.socketClient)
 
+        self.devToolsClosed.connect(self.notifyDevToolsClosed)
+
     def setup(self, webViewMode=None, enabledAtStart=True):
         super().setup(enabledAtStart=enabledAtStart)
         self.socketClient.connect()
@@ -132,6 +134,9 @@ class WebView(Q3DWebEngineView):
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         msg = "[Python]" + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
         self.socketClient.notify(Event.PY_ERROR, params={"msg": msg})
+
+    def notifyDevToolsClosed(self):
+        self.socketClient.notify(Event.DEV_TOOLS_CLOSED)
 
 
 class Window(QWidget):

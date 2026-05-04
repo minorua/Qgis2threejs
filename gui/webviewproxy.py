@@ -239,6 +239,9 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
         if method == Event.PY_ERROR:
             logger.error(params["msg"])
 
+        elif method == Event.DEV_TOOLS_CLOSED:
+            self.devToolsClosed.emit()
+
     def requestReceived(self, id, method, params, payload):
         if method == Request.EMBED_WND:
             winId = int(params["winId"])
