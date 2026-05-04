@@ -8,9 +8,18 @@ import configparser
 import re
 import shutil
 
-from qgis.PyQt.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
-from qgis.PyQt.QtGui import QDesktopServices, QImage
-from qgis.core import NULL, QgsMapLayer, QgsProject
+# This module may be used in an external process rather than within the QGIS process.
+try:
+    from PyQt6.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
+    from PyQt6.QtGui import QDesktopServices, QImage
+except ImportError:
+    from PyQt5.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
+    from PyQt5.QtGui import QDesktopServices, QImage
+
+try:
+    from qgis.core import NULL, QgsMapLayer, QgsProject     # TODO: move to utils/qgis.py
+except ImportError:
+    pass
 
 from ..conf import HELP_URL_BASE, PLUGIN_VERSION
 from .logging import logger, pluginDir, temporaryOutputDir

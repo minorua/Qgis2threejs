@@ -7,26 +7,27 @@ import json
 import os
 import logging
 
-from qgis.PyQt.QtCore import PYQT_VERSION_STR, Qt, QEventLoop, QTimer, QUrl, pyqtSignal
-from qgis.PyQt.QtGui import QDesktopServices
-from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout
-from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
-
-if PYQT_VERSION_STR.split(".")[0] == "5":
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings
-    from PyQt5.QtWebChannel import QWebChannel
-else:
+# This module may be used in an external process rather than within the QGIS process.
+try:
+    from PyQt6.QtCore import Qt, QUrl, pyqtSignal
+    from PyQt6.QtGui import QDesktopServices
+    from PyQt6.QtWidgets import QDialog, QVBoxLayout
     from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
+    from PyQt6.QtWebEngineWidgets import QWebEngineView
     from PyQt6.QtWebChannel import QWebChannel
+except ImportError:
+    from PyQt5.QtCore import Qt, QUrl, pyqtSignal
+    from PyQt5.QtGui import QDesktopServices
+    from PyQt5.QtWidgets import QDialog, QVBoxLayout
+    from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
+    from PyQt5.QtWebChannel import QWebChannel
 
-from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
-from ..conf import DEBUG_MODE
-from ..utils import pluginDir
-from ..utils.logging import logger, web_logger
+from .webview_conf import DEBUG_MODE
+from .webview_utils import pluginDir, logger, web_logger
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, WEBVIEWTYPE_WEBENGINE
 
 
 TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
-
 
 _original_chromium_flags = None
 _chromium_flags_saved = False

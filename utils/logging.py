@@ -6,8 +6,12 @@
 
 import os
 import logging
-from qgis.PyQt.QtCore import QDir, QObject, pyqtSignal
-from qgis.core import QgsMessageLog, Qgis
+
+# This module may be used in an external process rather than within the QGIS process.
+try:
+    from PyQt6.QtCore import QDir, QObject, pyqtSignal
+except ImportError:
+    from PyQt5.QtCore import QDir, QObject, pyqtSignal
 
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
 
@@ -26,17 +30,25 @@ def temporaryOutputDir(*subdirs):
     return temp_dir
 
 
-class QgisLogHandler(logging.Handler):
-    """A handler that logs messages to the QGIS log message panel."""
-    def emit(self, record):
-        msg = self.format(record)
-        if record.levelno >= logging.ERROR:
-            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
-        elif record.levelno >= logging.WARNING:
-            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
-        else:
-            QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
+QGIS_AVAILABLE = False
+try:
+    from qgis.core import QgsMessageLog, Qgis
 
+    QGIS_AVAILABLE = True
+
+    class QgisLogHandler(logging.Handler):
+        """A handler that logs messages to the QGIS log message panel."""
+        def emit(self, record):
+            msg = self.format(record)
+            if record.levelno >= logging.ERROR:
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
+            elif record.levelno >= logging.WARNING:
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
+            else:
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
+
+except ImportError:
+    pass
 
 class LogSignalEmitter(QObject):
 
@@ -103,7 +115,7 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-    if qgis_log:
+    if QGIS_AVAILABLE and qgis_log:
         logger.addHandler(QgisLogHandler())
 
     if filepath:

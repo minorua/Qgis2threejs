@@ -2,9 +2,15 @@
 # (C) 2018 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import Qt
-from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes
+try:
+    from PyQt6.QtCore import Qt
+except ImportError:
+    from PyQt5.QtCore import Qt
 
+try:
+    from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes            # TODO: move to utils.py
+except ImportError:
+    pass
 
 class LayerType:
     """Enum for layer type in this plugin"""
@@ -185,6 +191,7 @@ class ATConst:
         return "UNDEF"
 
 
+# TODO: move to utils.py
 # utility function related to layer type
 def layerTypeFromMapLayer(mapLayer):
     """mapLayer: QgsMapLayer sub-class object"""

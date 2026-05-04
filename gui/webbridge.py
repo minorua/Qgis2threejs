@@ -5,8 +5,14 @@
 
 import base64
 from functools import wraps
-from qgis.PyQt.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
-from qgis.PyQt.QtGui import QImage
+
+# This module may be used in an external process rather than within the QGIS process.
+try:
+    from PyQt6.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
+    from PyQt6.QtGui import QImage
+except ImportError:
+    from PyQt5.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
+    from PyQt5.QtGui import QImage
 
 from .webview_conf import DEBUG_MODE, WEBVIEW_IN_QGIS_PROCESS
 from .webview_utils import logger
