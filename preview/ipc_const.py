@@ -9,6 +9,9 @@ class Event:
     PAGE_LOADED = "pageloaded"          # page loading finished
     JS_ERROR_WARNING = "js_error"       # JavaScript error or warning: params={"is_error": bool}
 
+    # <- web view
+    PY_ERROR = "py_error"               # Python error: params={"msg": str}
+
     # <- IPC bridge
     METHOD_INVOKED = "invoke"           # bridge method invoked
 

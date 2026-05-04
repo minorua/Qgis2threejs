@@ -129,6 +129,10 @@ class WebView(Q3DWebEngineView):
     def responseReceived(self, id, method, params, payload):
         pass
 
+    def handle_exception(self, exc_type, exc_value, exc_traceback):
+        msg = "[Python]" + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        self.socketClient.notify(Event.PY_ERROR, params={"msg": msg})
+
 
 class Window(QWidget):
 
@@ -213,8 +217,9 @@ def main():
     app.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
     window = Window(serverName=args.server, embedMode=not args.floating, pid=args.pid)
-    window.show()
+    sys.excepthook = window.webView.handle_exception
 
+    window.show()
     sys.exit(app.exec())
 
 if __name__ == "__main__":

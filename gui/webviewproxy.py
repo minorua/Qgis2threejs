@@ -117,6 +117,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
+        self.socketServer.notified.connect(self.notified)
         self.socketServer.requestReceived.connect(self.requestReceived)
         self.socketServer.disconnected.connect(self.disconnected)
 
@@ -234,9 +235,13 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
     def triggerTestClick(self, pos):
         self.socketServer.notify(Event.CLICK, params={"x": pos.x(), "y": pos.y()})
 
+    def notified(self, method, params, payload):
+        if method == Event.PY_ERROR:
+            logger.error(params["msg"])
+
     def requestReceived(self, id, method, params, payload):
         if method == Request.EMBED_WND:
-            winId = int(params.get("winId"))
+            winId = int(params["winId"])
             self.previewWnd = QWindow.fromWinId(winId)
             container = QWidget.createWindowContainer(self.previewWnd)
 
