@@ -8,16 +8,16 @@ import logging
 
 # This module may be used in an external process rather than within the QGIS process.
 try:
-    from PyQt6.QtCore import Qt, QUrl, pyqtSignal
-    from PyQt6.QtGui import QDesktopServices
-    from PyQt6.QtWidgets import QDialog, QVBoxLayout
+    from PyQt6.QtCore import Qt, QEvent, QUrl, pyqtSignal
+    from PyQt6.QtGui import QDesktopServices, QMouseEvent
+    from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
     from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
     from PyQt6.QtWebEngineWidgets import QWebEngineView
     from PyQt6.QtWebChannel import QWebChannel
 except ImportError:
-    from PyQt5.QtCore import Qt, QUrl, pyqtSignal
-    from PyQt5.QtGui import QDesktopServices
-    from PyQt5.QtWidgets import QDialog, QVBoxLayout
+    from PyQt5.QtCore import Qt, QEvent, QUrl, pyqtSignal
+    from PyQt5.QtGui import QDesktopServices, QMouseEvent
+    from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
     from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
     from PyQt5.QtWebChannel import QWebChannel
 
@@ -157,3 +157,11 @@ class Q3DWebEngineView(Q3DWebEngineViewCommon, QWebEngineView):
 
     def showGPUInfo(self):
         self.load(QUrl("chrome://gpu"))
+
+    def triggerTestClick(self, pos):
+        w = self.findChild(QWidget)
+        press = QMouseEvent(QEvent.Type.MouseButtonPress, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+        release = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+
+        QApplication.postEvent(w, press)
+        QApplication.postEvent(w, release)

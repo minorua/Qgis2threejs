@@ -231,6 +231,9 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
     def showGPUInfo(self):
         self.socketServer.notify(Event.GPU_INFO)
 
+    def triggerTestClick(self, pos):
+        self.socketServer.notify(Event.CLICK, params={"x": pos.x(), "y": pos.y()})
+
     def requestReceived(self, id, method, params, payload):
         if method == Request.EMBED_WND:
             winId = int(params.get("winId"))

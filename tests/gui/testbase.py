@@ -2,8 +2,8 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QTimer
-from qgis.PyQt.QtGui import QKeyEvent, QMouseEvent
+from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QPointF, QTimer
+from qgis.PyQt.QtGui import QKeyEvent
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtTest import QTest
 from qgis.core import QgsApplication
@@ -85,17 +85,12 @@ class GUITestBase(unittest.TestCase):
         self.WND.runScript(f"showMarker({x}, {y}, 400)")
         self.sleep(500)
 
-        pos = QPoint(x, y)
         w = self.WND.ui.webView
-
         if w._page.isWebEnginePage:
-            w = w.findChild(QWidget)
-            press = QMouseEvent(QEvent.Type.MouseButtonPress, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-            release = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-
-            QgsApplication.postEvent(w, press)
-            QgsApplication.postEvent(w, release)
+            pos = QPointF(x, y)
+            w.triggerTestClick(pos)
         else:
+            pos = QPoint(x, y)
             QTest.mouseClick(w, Qt.MouseButton.LeftButton, pos=pos)
 
         self.sleep(100)

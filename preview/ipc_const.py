@@ -2,7 +2,6 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-
 class Event:
 
     # <- web page
@@ -17,6 +16,7 @@ class Event:
     QUIT = "quit"                       # window is closing
     GPU_INFO = "gpuinfo"                # GPU Info menu item clicked
     DEV_TOOLS = "devtools"              # Developer tools menu item clicked
+    CLICK = "click"                     # simulate a click for testing
 
 
 class Request:

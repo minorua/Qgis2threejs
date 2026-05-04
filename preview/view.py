@@ -11,11 +11,11 @@ import sys
 import traceback
 
 try:
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import Qt, QPointF
     from PyQt6.QtGui import QIcon
     from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 except ImportError:
-    from PyQt5.QtCore import Qt
+    from PyQt5.QtCore import Qt, QPointF
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
 
@@ -119,6 +119,9 @@ class WebView(Q3DWebEngineView):
 
         elif method == Event.GPU_INFO:
             self.showGPUInfo()
+
+        elif method == Event.CLICK:
+            self.triggerTestClick(QPointF(params["x"], params["y"]))
 
     def requestReceived(self, id, method, params, payload):
         pass
