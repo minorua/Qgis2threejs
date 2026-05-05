@@ -96,6 +96,9 @@ class Q3DWindow(QMainWindow):
                     self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
                     self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
 
+                    if webViewMode == WVM_EXTERNAL_WINDOW:
+                        self.ui.webView.socketServer.disconnected.connect(self.previewClosed)
+
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
             if webViewType == WEBVIEWTYPE_WEBENGINE:
@@ -307,6 +310,9 @@ class Q3DWindow(QMainWindow):
         self.controller.enabled = enabled
 
         self.ui.webView.setPreviewEnabled(enabled)
+
+    def previewClosed(self):
+        self.ui.checkBoxPreview.setChecked(False)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:
