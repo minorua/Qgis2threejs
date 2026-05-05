@@ -146,11 +146,11 @@ class TestKeyboardInteraction(GUITestBase):
 
     def test01_hideLabels(self):
         self.sleep(500)
-        self.keyPress(Qt.Key_L)
+        self.keyPress(Qt.Key.Key_L)
 
     def test02_showLabels(self):
         self.sleep(500)
-        self.keyPress(Qt.Key_L)
+        self.keyPress(Qt.Key.Key_L)
 
 
 class TestCameraAnimation(GUITestBase):
