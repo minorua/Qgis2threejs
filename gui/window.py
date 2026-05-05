@@ -13,7 +13,6 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import webview
-from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
@@ -24,7 +23,6 @@ from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..preview.ipc_const import Request
 from ..utils import createUid, hex_color, js_bool, logger, openHelp, pluginDir
 from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
@@ -41,7 +39,6 @@ class Q3DWindow(QMainWindow):
         self.settings = settings        # hold a reference to the original of ExportSettings object
         self.lastDir = None
         self.loadIcons()
-
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
         if webViewMode is None:
@@ -50,9 +47,18 @@ class Q3DWindow(QMainWindow):
             else:
                 webViewMode = WVM_INPROCESS
 
-        ui_wnd.Q3DView = webview.getWebViewClass(webViewType, webViewMode)
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
+
+        Q3DView = webview.getWebViewClass(webViewType, webViewMode)
+        if webViewMode == WVM_EXTERNAL_WINDOW:
+            self.webView = self.ui.webView = Q3DView(parent=None)
+            self.setCentralWidget(None)
+        else:
+            self.webView = self.ui.webView = Q3DView(parent=self.ui.centralwidget)
+            self.ui.verticalLayout.addWidget(self.webView)
+
+        self.webView.setObjectName("webView")
 
         webViewType = self.ui.webView.webViewType
         self.webPage = self.ui.webView.page()

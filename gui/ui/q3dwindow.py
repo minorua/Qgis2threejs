@@ -19,9 +19,6 @@ class Ui_Q3DWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.webView = Q3DView(parent=self.centralwidget)
-        self.webView.setObjectName("webView")
-        self.verticalLayout.addWidget(self.webView)
         Q3DWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=Q3DWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 862, 21))
@@ -252,4 +249,3 @@ class Ui_Q3DWindow(object):
         self.actionDevTools.setShortcut(_translate("Q3DWindow", "Ctrl+Shift+I"))
 from Qgis2threejs.gui.keyframes import AnimationPanel
 from Qgis2threejs.gui.treeview import Q3DTreeView
-from Qgis2threejs.gui.webview import Q3DView

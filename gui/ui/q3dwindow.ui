@@ -30,9 +30,6 @@
     <property name="bottomMargin">
      <number>0</number>
     </property>
-    <item>
-     <widget class="Q3DView" name="webView" native="true"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -402,12 +399,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>Q3DView</class>
-   <extends>QWidget</extends>
-   <header>Qgis2threejs.gui.webview</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>Q3DTreeView</class>
    <extends>QTreeView</extends>

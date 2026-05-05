@@ -8,7 +8,7 @@ import subprocess
 
 from qgis.PyQt.QtCore import Qt, QObject, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QPalette, QPixmap, QWindow
-from qgis.PyQt.QtWidgets import QPushButton, QLabel, QStackedLayout, QVBoxLayout, QWidget
+from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedLayout, QVBoxLayout, QWidget
 
 from .webbridge import WebIPCBridge
 from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
@@ -152,11 +152,12 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
             self.stopPreview()
 
         logger.info("Launching preview...")
-        self.previewStateWidget.setState(PreviewStateWidget.State_Loading)
+        if self.embeddedMode:
+            self.previewStateWidget.setState(PreviewStateWidget.State_Loading)
 
         args = []
         if os.name == "nt":
-            if DEBUG_MODE:
+            if DEBUG_MODE and self.embeddedMode:
                 args += [
                     pluginDir("scripts", "pause_on_error.bat"),
                     "python"
@@ -265,6 +266,9 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
 
     def disconnected(self):
         logger.info("Disconnected from preview process.")
+        if not self.embeddedMode:
+            return
+
         if self.previewStateWidget.currentState != PreviewStateWidget.State_Disabled:
             self.previewStateWidget.setState(PreviewStateWidget.State_Error)
         self.stackedLayout.setCurrentIndex(0)
