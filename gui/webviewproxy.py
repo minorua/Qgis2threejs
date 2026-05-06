@@ -26,8 +26,6 @@ class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
 
     BridgeClass = WebIPCBridge
 
-    jsErrorWarning = pyqtSignal(bool)       # is_error
-
     # QWebEnginePage signals
     loadStarted = pyqtSignal()
     loadFinished = pyqtSignal(bool)

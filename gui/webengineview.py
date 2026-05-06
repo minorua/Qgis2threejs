@@ -58,8 +58,6 @@ def restoreChromiumFlags():
 
 class Q3DWebEnginePage(Q3DWebEnginePageCommon, QWebEnginePage):
 
-    jsErrorWarning = pyqtSignal(bool)       # bool: is_error
-
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
         Q3DWebEnginePageCommon.__init__(self)

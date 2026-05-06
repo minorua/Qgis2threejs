@@ -15,6 +15,8 @@ from ..utils import logger
 
 class Q3DWebEnginePageCommon(Q3DWebPageCommon):
 
+    jsErrorWarning = pyqtSignal(bool)       # is_error
+
     def runScript(self, string, message="", sourceID="webenginecommon.py", callback=None, wait=False):
         """
         Run a JavaScript script in the web view with optional data and callback.
