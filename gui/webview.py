@@ -6,7 +6,7 @@
 from qgis.PyQt.QtCore import QSettings
 from qgis.core import Qgis
 
-from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from ..utils import logger
 
 # Web View Mode
@@ -15,7 +15,6 @@ WVM_EMBEDDED_EXTERNAL = 1
 WVM_EXTERNAL_WINDOW = 2
 
 WEBENGINE_AVAILABLE = False
-WEBKIT_AVAILABLE = False
 WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
 
 
@@ -26,16 +25,6 @@ if Qgis.QGIS_VERSION_INT >= 33600:
 
     except Exception as e:
         logger.warning(f"WebEngine widgets are unavailable: {e}")
-
-try:
-    from qgis.PyQt.QtWebKitWidgets import QWebView      # type: ignore
-    WEBKIT_AVAILABLE = True
-
-except:     # ModuleNotFoundError
-    pass
-
-if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
-    logger.warning("Neither WebKit nor WebEngine modules are available.")
 
 
 defaultWebViewType = None
@@ -53,10 +42,6 @@ def getWebViewClass(webViewType=None, webViewMode=None):
     if webViewMode is None:
         webViewMode = WVM_INPROCESS
 
-    if webViewType == WEBVIEWTYPE_WEBKIT:
-        from .webkitview import Q3DWebKitView
-        return Q3DWebKitView
-
     if webViewType == WEBVIEWTYPE_WEBENGINE:
         if webViewMode == WVM_INPROCESS:
             from .webengineview import Q3DWebEngineView
@@ -70,10 +55,6 @@ def getWebViewClass(webViewType=None, webViewMode=None):
 
 
 def getWebPageClass(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS):
-    if webViewType == WEBVIEWTYPE_WEBKIT:
-        from .webkitview import Q3DWebKitPage
-        return Q3DWebKitPage
-
     if webViewType == WEBVIEWTYPE_WEBENGINE:
         if webViewMode == WVM_INPROCESS:
             from .webengineview import Q3DWebEnginePage
@@ -91,11 +72,6 @@ def setDefaultWebView(webViewType, webViewMode=WVM_INPROCESS):
 
     if webViewType is defaultWebViewType:
         return
-
-    if webViewType == WEBVIEWTYPE_WEBKIT:
-        from .webkitview import Q3DWebKitView, Q3DWebKitPage
-        Q3DView = Q3DWebKitView
-        Q3DWebPage = Q3DWebKitPage
 
     elif webViewType == WEBVIEWTYPE_WEBENGINE:
         if webViewMode == WVM_INPROCESS:
@@ -115,14 +91,8 @@ def setDefaultWebView(webViewType, webViewMode=WVM_INPROCESS):
     defaultWebViewType = webViewType
 
 
-if WEBKIT_AVAILABLE and QSettings().value("/Qgis2threejs/preferWebKit", False, type=bool):
-    setDefaultWebView(WEBVIEWTYPE_WEBKIT)
-
-elif WEBENGINE_AVAILABLE:
+if WEBENGINE_AVAILABLE:
     setDefaultWebView(WEBVIEWTYPE_WEBENGINE)
-
-elif WEBKIT_AVAILABLE:
-    setDefaultWebView(WEBVIEWTYPE_WEBKIT)
 
 else:
     setDefaultWebView(WEBVIEWTYPE_NONE)

@@ -16,8 +16,8 @@ from . import webview
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
-from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from .webview import WEBENGINE_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
+from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
@@ -76,15 +76,11 @@ class Q3DWindow(QMainWindow):
 
         self._setupMenu(self.ui)
 
-        viewName = {
-            WEBVIEWTYPE_WEBENGINE: "WebEngine",
-            WEBVIEWTYPE_WEBKIT: "WebKit"
-        }.get(webViewType, "")
-
+        viewName = "WebEngine" if webViewType == WEBVIEWTYPE_WEBENGINE else ""
         self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
-        if webViewType in (WEBVIEWTYPE_WEBENGINE, WEBVIEWTYPE_WEBKIT):
+        if webViewType == WEBVIEWTYPE_WEBENGINE:
             self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
@@ -95,15 +91,14 @@ class Q3DWindow(QMainWindow):
                 self.ui.webView.setup(enabledAtStart=previewEnabled)
                 self.ui.webView.fileDropped.connect(self.fileDropped)
             else:
-                if webViewType == WEBVIEWTYPE_WEBENGINE:
-                    self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
-                    # self.ui.webView.fileDropped.connect(self.fileDropped)     # TODO
+                self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
+                # self.ui.webView.fileDropped.connect(self.fileDropped)     # TODO
 
-                    self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
-                    self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
+                self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
+                self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
 
-                    if webViewMode == WVM_EXTERNAL_WINDOW:
-                        self.ui.webView.socketServer.disconnected.connect(self.previewClosed)
+                if webViewMode == WVM_EXTERNAL_WINDOW:
+                    self.ui.webView.socketServer.disconnected.connect(self.previewClosed)
 
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
@@ -152,13 +147,12 @@ class Q3DWindow(QMainWindow):
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
-            if self.ui.webView.webViewType in (WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE):
+            if self.ui.webView.webViewType == WEBVIEWTYPE_WEBENGINE:
                 self.controller.conn.teardown()
 
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)
 
-                if hasattr(self.webPage, "jsErrorWarning"):
-                    self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
+                self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
@@ -216,7 +210,7 @@ class Q3DWindow(QMainWindow):
         # signal-slot connections
         ui.actionExportToWeb.triggered.connect(self.exportToWeb)
 
-        if WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE:
+        if WEBENGINE_AVAILABLE:
             ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
             ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
         else:

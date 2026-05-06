@@ -14,15 +14,14 @@ from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.window import Q3DWindow
-from .gui.webview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
-from .gui.webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE
+from .gui.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
+from .gui.webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
 
 
 class Qgis2threejs:
 
     LAST_ACTION = "/Qgis2threejs/lastAction"
-    PREFER_WEBKIT_SETTING = "/Qgis2threejs/preferWebKit"
 
     def __init__(self, iface):
         self.iface = iface
@@ -64,11 +63,6 @@ class Qgis2threejs:
         action.setObjectName(objName + "WebEngEW")
         action.triggered.connect(lambda c, a=action: self.openExporerFloating(a))
 
-        if WEBKIT_AVAILABLE:
-            action = QAction(icon, title + " (WebKit)", self.actionGroup)
-            action.setObjectName(objName + "WebKit")
-            action.triggered.connect(lambda c, a=action: self.openExporterWebKit(a))
-
         for action in self.actionGroup.actions():
             action.setCheckable(True)
 
@@ -104,7 +98,7 @@ class Qgis2threejs:
 
     def openExporter(self, _=False, webViewType=None, webViewMode=None):
         """
-        webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBKIT, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
+        webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
         """
         if self.liveExporter:
             logger.info("Qgis2threejs Exporter is already open.")
@@ -161,14 +155,9 @@ class Qgis2threejs:
 
     def openExporterWebEng(self, action):
         if WEBENGINE_AVAILABLE:
-            QSettings().remove(self.PREFER_WEBKIT_SETTING)
             self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
         else:
             self.openExporter(webViewType=WEBVIEWTYPE_NONE)
-        self.saveLastAction(action)
-
-    def openExporterWebKit(self, action):
-        self.openExporter(webViewType=WEBVIEWTYPE_WEBKIT)
         self.saveLastAction(action)
 
     def saveLastAction(self, action):

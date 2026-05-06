@@ -20,7 +20,6 @@ from ..utils import js_bool, logger
 
 # Web View Type
 WEBVIEWTYPE_NONE = 0
-WEBVIEWTYPE_WEBKIT = 1      # TODO: remove
 WEBVIEWTYPE_WEBENGINE = 2
 
 TIMEOUT_MS = 30000      # timeout (ms) for script loading
