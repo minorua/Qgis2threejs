@@ -9,12 +9,8 @@ import re
 import shutil
 
 # This module may be used in an external process rather than within the QGIS process.
-try:
-    from PyQt6.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
-    from PyQt6.QtGui import QDesktopServices, QImage
-except ImportError:
-    from PyQt5.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
-    from PyQt5.QtGui import QDesktopServices, QImage
+from PyQt6.QtCore import QBuffer, QByteArray, QDir, QFile, QFileInfo, QIODevice, QProcess, QSettings, QUrl, QUuid
+from PyQt6.QtGui import QDesktopServices, QImage
 
 try:
     from qgis.core import NULL, QgsMapLayer, QgsProject     # TODO: move to utils/qgis.py

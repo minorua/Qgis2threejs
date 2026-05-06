@@ -7,10 +7,7 @@ import ctypes
 import json
 import logging as logger
 
-try:
-    from PyQt6.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
-except ImportError:
-    from PyQt5.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
+from PyQt6.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
 
 from ..conf import DEBUG_MODE
 

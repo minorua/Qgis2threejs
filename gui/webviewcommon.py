@@ -6,12 +6,8 @@
 import json
 
 # This module may be used in an external process rather than within the QGIS process.
-try:
-    from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
-    from PyQt6.QtWidgets import QMessageBox
-except:
-    from PyQt5.QtCore import QEventLoop, QTimer, pyqtSignal
-    from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
+from PyQt6.QtWidgets import QMessageBox
 
 from .webbridge import WebBridge
 from ..conf import DEBUG_MODE

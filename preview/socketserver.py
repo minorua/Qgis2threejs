@@ -3,10 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-try:
-    from PyQt6.QtNetwork import QLocalServer
-except ImportError:
-    from PyQt5.QtNetwork import QLocalServer
+from PyQt6.QtNetwork import QLocalServer
 
 from .socketinterface import SocketInterface
 from ..utils import logger

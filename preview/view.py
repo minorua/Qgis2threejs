@@ -10,14 +10,9 @@ import logging as logger
 import sys
 import traceback
 
-try:
-    from PyQt6.QtCore import Qt, QPointF
-    from PyQt6.QtGui import QIcon
-    from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
-except ImportError:
-    from PyQt5.QtCore import Qt, QPointF
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
+from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 from .ipc_const import Event, Request
 from .utils import pluginDir

@@ -7,19 +7,12 @@ import os
 import logging
 
 # This module may be used in an external process rather than within the QGIS process.
-try:
-    from PyQt6.QtCore import Qt, QEvent, QUrl, pyqtSignal
-    from PyQt6.QtGui import QDesktopServices, QMouseEvent
-    from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
-    from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
-    from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWebChannel import QWebChannel
-except ImportError:
-    from PyQt5.QtCore import Qt, QEvent, QUrl, pyqtSignal
-    from PyQt5.QtGui import QDesktopServices, QMouseEvent
-    from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
-    from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
-    from PyQt5.QtWebChannel import QWebChannel
+from PyQt6.QtCore import Qt, QEvent, QUrl
+from PyQt6.QtGui import QDesktopServices, QMouseEvent
+from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
+from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebChannel import QWebChannel
 
 from .webview_conf import DEBUG_MODE
 from .webview_utils import pluginDir, logger, web_logger

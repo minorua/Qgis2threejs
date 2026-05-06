@@ -5,10 +5,7 @@
 
 import logging as logger
 
-try:
-    from PyQt6.QtNetwork import QLocalSocket
-except ImportError:
-    from PyQt5.QtNetwork import QLocalSocket
+from PyQt6.QtNetwork import QLocalSocket
 
 from .socketinterface import SocketInterface
 

@@ -5,14 +5,9 @@
 import json
 
 # This module may be used in an external process rather than within the QGIS process.
-try:
-    from PyQt6.QtCore import QEventLoop, QTimer
-    from PyQt6.QtGui import QDesktopServices
-    from PyQt6.QtWebEngineCore import QWebEnginePage
-except ImportError:
-    from PyQt5.QtCore import QEventLoop, QTimer
-    from PyQt5.QtGui import QDesktopServices
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
+from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, TIMEOUT_MS, WEBVIEWTYPE_WEBENGINE
 from ..utils import logger

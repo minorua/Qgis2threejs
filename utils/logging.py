@@ -8,10 +8,7 @@ import os
 import logging
 
 # This module may be used in an external process rather than within the QGIS process.
-try:
-    from PyQt6.QtCore import QDir, QObject, pyqtSignal
-except ImportError:
-    from PyQt5.QtCore import QDir, QObject, pyqtSignal
+from PyQt6.QtCore import QDir, QObject, pyqtSignal
 
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
 
