@@ -81,10 +81,7 @@ class SingleLayerSelectDialog(QDialog):
             vl.addWidget(QLabel(label))
 
         self.comboBox = QgsMapLayerComboBox()
-        if Qgis.QGIS_VERSION_INT < 33400:
-            self.comboBox.setFilters(QgsMapLayerProxyModel.HasGeometry | QgsMapLayerProxyModel.RasterLayer | QgsMapLayerProxyModel.MeshLayer)
-        else:
-            self.comboBox.setFilters(Qgis.LayerFilters(Qgis.LayerFilter.HasGeometry | Qgis.LayerFilter.RasterLayer | Qgis.LayerFilter.MeshLayer))
+        self.comboBox.setFilters(Qgis.LayerFilters(Qgis.LayerFilter.HasGeometry | Qgis.LayerFilter.RasterLayer | Qgis.LayerFilter.MeshLayer))
 
         vl.addWidget(self.comboBox)
 

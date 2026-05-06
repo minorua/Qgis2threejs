@@ -263,7 +263,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
                   "nzmg", "omerc", "ortho", "poly", "qsc", "robin", "sinu", "somerc", "stere", "sterea", "tmerc", "tpers", "utm", "vandg"]
 
         crs = QgsProject.instance().crs()
-        proj = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
+        proj = crs.toProj()
         m = re.search(r"\+proj=(\w+)", proj)
         proj_supported = bool(m and m.group(1) in projs)
 
@@ -536,12 +536,8 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if crs1 == crs2:
             return None
 
-        try:
-            proj1 = crs1.toProj()
-            proj2 = crs2.toProj()
-        except AttributeError:      # Qgis.QGIS_VERSION_INT < 31003
-            proj1 = crs1.toProj4()
-            proj2 = crs2.toProj4()
+        proj1 = crs1.toProj()
+        proj2 = crs2.toProj()
 
         if proj1 == proj2:
             return None

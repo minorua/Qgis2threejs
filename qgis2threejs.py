@@ -49,7 +49,6 @@ class Qgis2threejs:
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
-        # if Qgis.QGIS_VERSION_INT >= 33600:
         if WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
             action = QAction(icon, title + " (In Process)", self.actionGroup)
             action.setObjectName(objName + "WebEng")

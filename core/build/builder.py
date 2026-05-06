@@ -161,7 +161,7 @@ class ThreeJSBuilder(QObject):
 
         if settings.needsProjString():
             crs = settings.crs
-            p["proj"] = crs.toProj4() if Qgis.QGIS_VERSION_INT < 31003 else crs.toProj()
+            p["proj"] = crs.toProj()
 
         self.log("Z scale: {}".format(mapTo3d.zScale))
 

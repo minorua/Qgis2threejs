@@ -3,28 +3,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-10-03
 
-from qgis.PyQt.QtCore import QSettings
-from qgis.core import Qgis
-
 from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from ..utils import logger
+
+WEBENGINE_AVAILABLE = False
+WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
+
+try:
+    from qgis.PyQt.QtWebEngineWidgets import QWebEngineView     # type: ignore
+    WEBENGINE_AVAILABLE = True
+
+except Exception as e:
+    logger.warning(f"WebEngine widgets are unavailable: {e}")
+
 
 # Web View Mode
 WVM_INPROCESS = 0
 WVM_EMBEDDED_EXTERNAL = 1
 WVM_EXTERNAL_WINDOW = 2
-
-WEBENGINE_AVAILABLE = False
-WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
-
-
-if Qgis.QGIS_VERSION_INT >= 33600:
-    try:
-        from qgis.PyQt.QtWebEngineWidgets import QWebEngineView     # type: ignore
-        WEBENGINE_AVAILABLE = True
-
-    except Exception as e:
-        logger.warning(f"WebEngine widgets are unavailable: {e}")
 
 
 defaultWebViewType = None

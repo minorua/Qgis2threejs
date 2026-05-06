@@ -221,7 +221,7 @@ class AnimationTreeWidget(QTreeWidget):
         self.settings = settings
 
         self.icons = wnd.icons
-        self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg") if Qgis.QGIS_VERSION_INT >= 31600 else QIcon(pluginDir("svg", "camera.svg"))
+        self.cameraIcon = QgsApplication.getThemeIcon("mIconCamera.svg")
         self.keyframeIcon = QIcon(pluginDir("svg", "keyframe.svg"))
         self.effectIcon = QgsApplication.getThemeIcon("mLayoutItemPolyline.svg")
 
