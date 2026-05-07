@@ -32,7 +32,13 @@ class Q3DWindow(QMainWindow):
     previewEnabledChanged = pyqtSignal(bool)
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=None, previewEnabled=True):
-        super().__init__(parent=qgisIface.mainWindow())
+        if webViewMode is None:
+            if webViewType == WEBVIEWTYPE_WEBENGINE:
+                webViewMode = WVM_EMBEDDED_EXTERNAL if os.name == "nt" else WVM_EXTERNAL_WINDOW
+            else:
+                webViewMode = WVM_INPROCESS
+
+        super().__init__(parent=qgisIface.mainWindow() if webViewMode != WVM_EXTERNAL_WINDOW else None)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
@@ -40,12 +46,6 @@ class Q3DWindow(QMainWindow):
         self.lastDir = None
         self.loadIcons()
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
-
-        if webViewMode is None:
-            if webViewType == WEBVIEWTYPE_WEBENGINE:
-                webViewMode = WVM_EMBEDDED_EXTERNAL if os.name == "nt" else WVM_EXTERNAL_WINDOW
-            else:
-                webViewMode = WVM_INPROCESS
 
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)

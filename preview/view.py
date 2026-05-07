@@ -143,7 +143,7 @@ class Window(QWidget):
             self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         else:
             self.setWindowTitle("Qgis2threejs Preview")
-            self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint)
+            self.setWindowFlags(Qt.WindowType.Window)
 
         self.embedMode = embedMode
 
