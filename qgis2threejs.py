@@ -185,7 +185,7 @@ class Qgis2threejs:
         ]
 
         args += [
-            "--pythonpath", QgsApplication.prefixPath() + "/python"
+            "--pythonpath", QgsApplication.pkgDataPath() + "/python"
         ]
 
         cwd = os.path.dirname(pluginDir())
