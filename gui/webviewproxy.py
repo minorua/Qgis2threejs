@@ -113,6 +113,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
         self.viewProcess = None
         self.previewWnd = None
 
+        # TODO: move socketServer to controller?
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
         self.socketServer.notified.connect(self.notified)

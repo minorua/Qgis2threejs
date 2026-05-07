@@ -21,6 +21,7 @@ except Exception as e:
 WVM_INPROCESS = 0
 WVM_EMBEDDED_EXTERNAL = 1
 WVM_EXTERNAL_WINDOW = 2
+WVM_EXTERNAL_EXPORTER = 3
 
 
 defaultWebViewType = None
@@ -52,7 +53,7 @@ def getWebViewClass(webViewType=None, webViewMode=None):
 
 def getWebPageClass(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS):
     if webViewType == WEBVIEWTYPE_WEBENGINE:
-        if webViewMode == WVM_INPROCESS:
+        if webViewMode in (WVM_INPROCESS, WVM_EXTERNAL_EXPORTER):
             from .webengineview import Q3DWebEnginePage
             return Q3DWebEnginePage
 

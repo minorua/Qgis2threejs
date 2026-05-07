@@ -16,7 +16,7 @@ from . import webview
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .webview import WEBENGINE_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
+from .webview import WEBENGINE_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW, WVM_EXTERNAL_EXPORTER
 from .webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
@@ -29,10 +29,13 @@ from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 class Q3DWindow(QMainWindow):
 
+    WebViewClass = None
+    InQGISProcess = True
+
     previewEnabledChanged = pyqtSignal(bool)
 
     def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=None, previewEnabled=True):
-        super().__init__(parent=qgisIface.mainWindow())
+        super().__init__(parent=qgisIface.mainWindow() if qgisIface else None)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
@@ -50,7 +53,7 @@ class Q3DWindow(QMainWindow):
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        Q3DView = webview.getWebViewClass(webViewType, webViewMode)
+        Q3DView = self.WebViewClass if self.WebViewClass else webview.getWebViewClass(webViewType, webViewMode)
         if webViewMode == WVM_EXTERNAL_WINDOW:
             self.webView = self.ui.webView = Q3DView(parent=None)
             self.setCentralWidget(None)
@@ -87,7 +90,7 @@ class Q3DWindow(QMainWindow):
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            if webViewMode == WVM_INPROCESS:
+            if webViewMode in (WVM_INPROCESS, WVM_EXTERNAL_EXPORTER):
                 self.ui.webView.setup(enabledAtStart=previewEnabled)
                 self.ui.webView.fileDropped.connect(self.fileDropped)
             else:
@@ -114,13 +117,15 @@ class Q3DWindow(QMainWindow):
 
         self.isDirty = False        # flag to indicate whether map canvas extent or project has been changed
 
-        canvas = qgisIface.mapCanvas()
-        canvas.renderComplete.connect(self.mapCanvasRendered)
-        canvas.extentsChanged.connect(self.setDirty)
+        if qgisIface:
+            canvas = qgisIface.mapCanvas()
+            canvas.renderComplete.connect(self.mapCanvasRendered)
+            canvas.extentsChanged.connect(self.setDirty)
 
-        project = QgsProject.instance()
-        if hasattr(project, "dirtySet"):     # QGIS 3.20+
-            project.dirtySet.connect(self.setDirty)
+        if self.InQGISProcess:
+            project = QgsProject.instance()
+            if hasattr(project, "dirtySet"):     # QGIS 3.20+
+                project.dirtySet.connect(self.setDirty)
 
         # restore window geometry and dockwidget layout
         settings = QSettings()
@@ -145,7 +150,8 @@ class Q3DWindow(QMainWindow):
             self.controller.close()
 
             # disconnect signals
-            self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
+            if self.qgisIface:
+                self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
             if self.ui.webView.webViewType == WEBVIEWTYPE_WEBENGINE:
                 self.controller.conn.teardown()
@@ -179,7 +185,8 @@ class Q3DWindow(QMainWindow):
             import traceback
             logger.error(traceback.format_exc())
 
-            self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
+            if self.qgisIface:
+                self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
 
         QMainWindow.closeEvent(self, event)
 

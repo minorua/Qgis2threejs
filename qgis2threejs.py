@@ -4,11 +4,12 @@
 # begin: 2013-12-21
 
 import os
+import subprocess
 
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAction, QActionGroup
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import Qgis, QgsApplication, QgsProject
+from qgis.core import QgsApplication, QgsProject
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
@@ -32,6 +33,9 @@ class Qgis2threejs:
         self.liveExporter = None
         self.previewEnabled = True
 
+        self.exporterProcess = None
+        self.serverName = None
+
     def initGui(self):
         # add a toolbar button
         icon = QIcon(pluginDir("Qgis2threejs.png"))
@@ -48,6 +52,10 @@ class Qgis2threejs:
         # web menu items
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
+
+        action = QAction(icon, title + " (External Exporter)", self.actionGroup)
+        action.setObjectName(objName + "Ex")
+        action.triggered.connect(lambda c, a=action: self.openExternalExporter(a))
 
         if WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
             action = QAction(icon, title + " (In Process)", self.actionGroup)
@@ -139,6 +147,62 @@ class Qgis2threejs:
                 return
 
         self.openExporter()
+
+    def openExternalExporter(self, action):
+        """
+        exporter = None
+        canvas = self.iface.mapCanvas()
+        canvas.renderComplete.connect(exporter.mapCanvasRendered)
+        canvas.extentsChanged.connect(exporter.setDirty)
+        """
+
+        from .gui.webviewproxy import Q3DWebViewProxy
+        self.webView = Q3DWebViewProxy(None)
+        self.serverName = self.webView.serverName
+
+        # if self.exporterProcess:
+        #     return
+
+        logger.info("Launching exporter...")
+
+        args = []
+        if os.name == "nt":
+            if DEBUG_MODE:
+                args += [
+                    pluginDir("scripts", "pause_on_error.bat"),
+                    "python"
+                ]
+            else:
+                args.append("pythonw")
+
+        if not args:
+            args.append("python3")
+
+        args += [
+            "-m", "Qgis2threejs.exporter.exporter",
+            "-s", self.serverName,
+            "-p", str(os.getpid())
+        ]
+
+        args += [
+            "--pythonpath", QgsApplication.prefixPath() + "/python"
+        ]
+
+        cwd = os.path.dirname(pluginDir())
+
+        # env = os.environ.copy()
+        # env["PYTHONPATH"] = os.pathsep.join(sys.path)
+        # del env["QT3D_RENDERER"]
+        # env["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --v=1"
+
+        if hasattr(subprocess, "STARTUPINFO"):
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 1  # SW_SHOWNORMAL
+        else:
+            startupinfo = None
+
+        self.exporterProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)        # env=env
 
     def openExporterWebEngInProc(self, action):
         self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS)
