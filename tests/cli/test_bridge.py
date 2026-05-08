@@ -14,17 +14,12 @@ from .testbase import CLITestBase, MANUAL_IMAGE_CHECK, OUT_WIDTH, OUT_HEIGHT
 from .utils import loadProject, logger
 from ..utils import dataPath, expectedDataPath, assertMessagesAppearInOrder
 from ...core.export.export import ImageExporter, ModelExporter
-from ...gui.webview import setDefaultWebView, WEBVIEWTYPE_WEBENGINE
 from ...utils import openFile
 from ...utils.logging import clearListHandlerLogs, getLogListHandler
 
 
 class WebEngineTestBase(CLITestBase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        setDefaultWebView(WEBVIEWTYPE_WEBENGINE)
+    pass
 
 
 class ExportImageTestCase:

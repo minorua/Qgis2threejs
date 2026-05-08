@@ -8,14 +8,14 @@ import os
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAction, QActionGroup
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import Qgis, QgsApplication, QgsProject
+from qgis.core import QgsApplication, QgsProject
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
+from .gui.const import WebViewType, WebViewMode
+from .gui.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, CAN_EMBED_WND
 from .gui.window import Q3DWindow
-from .gui.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, WVM_INPROCESS, WVM_EMBEDDED_EXTERNAL, WVM_EXTERNAL_WINDOW
-from .gui.webviewcommon import WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE
 from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
 
 
@@ -49,18 +49,23 @@ class Qgis2threejs:
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
-        if WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
-            action = QAction(icon, title + " (In Process)", self.actionGroup)
-            action.setObjectName(objName + "WebEng")
-            action.triggered.connect(lambda c, a=action: self.openExporterWebEngInProc(a))
+        if WEBENGINE_AVAILABLE and WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
+            action = QAction(icon, title + " (In-Process)", self.actionGroup)
+            action.setObjectName(objName + "WE")
+            action.triggered.connect(lambda c, a=action: self.openExporterInProc(a))
 
-        action = QAction(icon, title + " (Embedded)", self.actionGroup)
-        action.setObjectName(objName + "WebEngEE")
-        action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
+        if CAN_EMBED_WND:
+            action = QAction(icon, title + " (Embedded Preview)", self.actionGroup)
+            action.setObjectName(objName + "Emb")
+            action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
 
-        action = QAction(icon, title + " (Floating)", self.actionGroup)
-        action.setObjectName(objName + "WebEngEW")
-        action.triggered.connect(lambda c, a=action: self.openExporerFloating(a))
+        action = QAction(icon, title + " (Separate Preview)", self.actionGroup)
+        action.setObjectName(objName + "Sep")
+        action.triggered.connect(lambda c, a=action: self.openExporerSeparate(a))
+
+        action = QAction(icon, title + " (No Preview)", self.actionGroup)
+        action.setObjectName(objName + "WoP")
+        action.triggered.connect(lambda c, a=action: self.openExporerWithoutPreview(a))
 
         for action in self.actionGroup.actions():
             action.setCheckable(True)
@@ -95,9 +100,10 @@ class Qgis2threejs:
         # temporary output directory
         removeTemporaryOutputDir()
 
-    def openExporter(self, _=False, webViewType=None, webViewMode=None):
+    def openExporter(self, _=False, webViewType=WebViewType.WEBENGINE, webViewMode=None):
         """
-        webViewType: WEBVIEWTYPE_NONE, WEBVIEWTYPE_WEBENGINE or None. None means last used web view type.
+        webViewType: WebViewType.NONE or WebViewType.WEBENGINE.
+        webViewMode: If webViewMode is None, the mode depends on the OS.
         """
         if self.liveExporter:
             logger.info("Qgis2threejs Exporter is already open.")
@@ -140,23 +146,20 @@ class Qgis2threejs:
 
         self.openExporter()
 
-    def openExporterWebEngInProc(self, action):
-        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_INPROCESS)
+    def openExporterInProc(self, action):
+        self.openExporter(webViewMode=WebViewMode.INPROCESS)
         self.saveLastAction(action)
 
     def openExporterEmbedded(self, action):
-        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_EMBEDDED_EXTERNAL)
+        self.openExporter(webViewMode=WebViewMode.EMBEDDED)
         self.saveLastAction(action)
 
-    def openExporerFloating(self, action):
-        self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE, webViewMode=WVM_EXTERNAL_WINDOW)
+    def openExporerSeparate(self, action):
+        self.openExporter(webViewMode=WebViewMode.SEPARATE)
         self.saveLastAction(action)
 
-    def openExporterWebEng(self, action):
-        if WEBENGINE_AVAILABLE:
-            self.openExporter(webViewType=WEBVIEWTYPE_WEBENGINE)
-        else:
-            self.openExporter(webViewType=WEBVIEWTYPE_NONE)
+    def openExporerWithoutPreview(self, action):
+        self.openExporter(webViewType=WebViewType.NONE)
         self.saveLastAction(action)
 
     def saveLastAction(self, action):

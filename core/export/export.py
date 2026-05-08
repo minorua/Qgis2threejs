@@ -17,8 +17,8 @@ from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
 from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
+from ...gui.const import WebViewType, WebViewMode
 from ...gui import webview
-from ...gui.webviewcommon import WEBVIEWTYPE_WEBENGINE
 from ...utils import hex_color, logger
 from ... import utils
 
@@ -361,19 +361,16 @@ class BridgeExporterBase:
     """Base class for exporters that used by Processing algorithms."""
 
     def __init__(self, settings=None):
-        self.isWebEngine = (webview.defaultWebViewType == WEBVIEWTYPE_WEBENGINE)
+        self.isWebEngine = True
 
         self.settings = settings.clone() if settings else ExportSettings()
         self.settings.isPreview = True
         self.settings.requiresJsonSerializable = self.isWebEngine
 
-        if self.isWebEngine:
-            self.view = webview.Q3DView(None)
-            self.page = webview.Q3DWebPage(self.view)
-            self.view.setPage(self.page)
-            self.view.show()
-        else:
-            self.page = webview.Q3DWebPage()
+        self.view = webview.getWebViewClass(WebViewType.WEBENGINE, WebViewMode.SEPARATE)
+        self.page = webview.getWebPageClass(WebViewType.WEBENGINE, WebViewMode.SEPARATE)(self.view)
+        self.view.setPage(self.page)
+        self.view.show()
 
         self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page, offScreen=True)
         self.controller.conn.setup()

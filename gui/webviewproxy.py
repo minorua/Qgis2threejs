@@ -10,9 +10,9 @@ from qgis.PyQt.QtCore import Qt, QObject, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QPalette, QPixmap, QWindow
 from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedLayout, QVBoxLayout, QWidget
 
+from .const import WebViewMode
 from .webbridge import WebIPCBridge
 from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
-from .webview import WVM_EXTERNAL_WINDOW
 from ..conf import DEBUG_MODE
 from ..preview.ipc_const import Event, Request
 from ..preview.socketserver import SocketServer
@@ -134,7 +134,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
     def setup(self, webViewMode=None, enabledAtStart=True):
         Q3DWebEngineViewCommon.setup(self, webViewMode, enabledAtStart)
 
-        if webViewMode == WVM_EXTERNAL_WINDOW:
+        if webViewMode == WebViewMode.SEPARATE:
             self.embeddedMode = False
 
         self.setPreviewEnabled(enabledAtStart)

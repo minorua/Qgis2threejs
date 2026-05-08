@@ -9,7 +9,8 @@ from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWebEngineCore import QWebEnginePage
 
-from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, TIMEOUT_MS, WEBVIEWTYPE_WEBENGINE
+from .const import WebViewType
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, TIMEOUT_MS
 from ..utils import logger
 
 
@@ -104,4 +105,4 @@ class Q3DWebEngineViewCommon(Q3DWebViewCommon):
     def __init__(self, _=None):
         super().__init__()
 
-        self.webViewType = WEBVIEWTYPE_WEBENGINE
+        self.webViewType = WebViewType.WEBENGINE
