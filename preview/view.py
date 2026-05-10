@@ -76,7 +76,6 @@ class WebPage(Q3DWebEnginePage):
             self.reload()
 
         else:
-            logger.debug(f"Unknown request received: {method}")
             return
 
         self.socketClient.respond(id, method)
@@ -121,7 +120,9 @@ class WebView(Q3DWebEngineView):
             self.triggerTestClick(QPointF(params["x"], params["y"]))
 
     def requestReceived(self, id, method, params, payload):
-        pass
+        if method == Request.SIZE:
+            size = self.size()
+            self.socketClient.respond(id, method, {"width": size.width(), "height": size.height()})
 
     def responseReceived(self, id, method, params, payload):
         pass

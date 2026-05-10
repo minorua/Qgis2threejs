@@ -123,10 +123,10 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         return self._page
 
     def size(self):
-        if self.embeddedMode:
-            return self.parent().size()
+        return self.parent().size() if self.embeddedMode else QSize()
 
-        return QSize()      # TODO: size in separate preview mode
+    def getSizeAsync(self, callback):
+        self.socketServer.request(Request.SIZE, callback=callback)
 
     def setup(self, webViewMode=None, enabledAtStart=True):
         Q3DWebEngineViewCommon.setup(self, webViewMode, enabledAtStart)

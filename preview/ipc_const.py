@@ -32,3 +32,6 @@ class Request:
     LOAD_DATA = "data"
     RELOAD = "reload"                   # reload page
     RUN_SCRIPT = "run"
+
+    # view proxy ->
+    SIZE = "size"

@@ -22,9 +22,21 @@ class ImageSaveDialog(QDialog):
         self.ui.pushButton_Copy.clicked.connect(self.copyToClipboard)
         self.ui.buttonBox.helpRequested.connect(self.helpClicked)
 
-        size = self.wnd.ui.webView.size()
-        self.ui.spinBox_Width.setValue(size.width())
-        self.ui.spinBox_Height.setValue(size.height())
+        webView = self.wnd.ui.webView
+        size = webView.size()
+        if size:
+           self.setSizeFields(size.width(), size.height())
+
+        elif hasattr(webView, "getSizeAsync"):
+            def callback(msg):
+                params = msg["params"]
+                self.setSizeFields(params["width"], params["height"])
+
+            webView.getSizeAsync(callback)
+
+    def setSizeFields(self, width, height):
+        self.ui.spinBox_Width.setValue(width)
+        self.ui.spinBox_Height.setValue(height)
 
     def copyToClipboard(self):
         self.setEnabled(False)
