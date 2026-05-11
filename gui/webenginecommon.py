@@ -63,17 +63,6 @@ class Q3DWebEnginePageCommon(Q3DWebPageCommon):
 
         return result
 
-    def logToConsole(self, message, level="debug"):
-        if level not in ["debug", "info", "warn", "error"]:
-            level = "log"
-
-        if level in ["warn", "error"]:
-            self.jsErrorWarning.emit(bool(level == "error"))
-
-        msg = json.dumps(message.replace('\n', '\\n'))      # new line causes issues in console
-
-        self.runJavaScript(f"console.{level}({msg});")
-
     def acceptNavigationRequest(self, url, type, isMainFrame):
         if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
             QDesktopServices.openUrl(url)

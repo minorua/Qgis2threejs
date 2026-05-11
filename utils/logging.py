@@ -47,34 +47,6 @@ try:
 except ImportError:
     pass
 
-class LogSignalEmitter(QObject):
-
-    logSignal = pyqtSignal(str, str)        # message, level
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def emit_log(self, message, level):
-        self.logSignal.emit(message, level)
-
-
-class EmitSignalHandler(logging.Handler):
-    """A handler that emits log messages via a Qt signal."""
-
-    ReplaceMap = {
-        "warning": "warn",
-        "critical": "error"
-    }
-
-    def __init__(self):
-        super().__init__()
-        self.emitter = LogSignalEmitter()
-
-    def emit(self, record):
-        level = record.levelname.lower()
-        level = self.ReplaceMap.get(level, level)
-        self.emitter.emit_log(self.format(record), level)
-
 
 class ListHandler(logging.Handler):
     """A handler that stores log records in a list."""
@@ -147,30 +119,6 @@ def configureLoggers(is_test=False, log_to_stream=False):
                            list_handler=list_handler)
 
 configureLoggers()
-
-
-def addLogSignalEmitter(logger, slot):
-    """Add a log signal emitter to the logger.
-
-    Args:
-        slot: A function that takes message and level as arguments.
-    """
-    handler = EmitSignalHandler()
-    handler.emitter.logSignal.connect(slot)
-    logger.addHandler(handler)
-
-
-def removeLogSignalEmitter(logger, slot):
-    """Remove a previously added log signal emitter.
-
-    Args:
-        slot: The slot function to disconnect.
-    """
-    for handler in logger.handlers:
-        if isinstance(handler, EmitSignalHandler):
-            handler.emitter.logSignal.disconnect(slot)
-            logger.removeHandler(handler)
-            break
 
 
 def getLogListHandler(logger):

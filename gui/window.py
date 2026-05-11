@@ -25,7 +25,6 @@ from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils import createUid, hex_color, js_bool, logger, openHelp, pluginDir
-from ..utils.logging import addLogSignalEmitter, removeLogSignalEmitter
 
 
 class Q3DWindow(QMainWindow):
@@ -98,8 +97,6 @@ class Q3DWindow(QMainWindow):
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            addLogSignalEmitter(logger, self.webPage.logToConsole)
-
             webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
         else:   # Q3DDummyView
@@ -143,8 +140,6 @@ class Q3DWindow(QMainWindow):
 
             if self.ui.webView.webViewType == WebViewType.WEBENGINE:
                 self.controller.conn.teardown()
-
-                removeLogSignalEmitter(logger, self.webPage.logToConsole)
 
                 self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
