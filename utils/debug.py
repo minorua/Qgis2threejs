@@ -8,8 +8,9 @@ import weakref
 
 from qgis.PyQt.QtCore import QDir, QObject
 
+from .basic import temporaryOutputDir
 from .logging import logger
-from .utils import openDirectory, temporaryOutputDir
+from .gui import openDirectory
 
 USE_OBJGRAPH = False
 

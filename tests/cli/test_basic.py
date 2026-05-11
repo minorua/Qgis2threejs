@@ -21,6 +21,8 @@ except ImportError:
     logger.setLevel(logging.DEBUG)
     logger.info("Using a logger not configured for Qgis2threejs testing.")
 
+from ...utils.basic import pluginDir
+
 
 class TestBasic(unittest.TestCase):
 
@@ -46,9 +48,6 @@ class TestBasic(unittest.TestCase):
 
     def test02_import_all_modules(self):
         """Test importing all modules in the plugin."""
-
-        from ...utils import pluginDir
-
         logger.info("Imported module list:")
 
         imported = 0

@@ -4,27 +4,10 @@
 #
 # Classes and functions for logging
 
-import os
 import logging
 
-# This module may be used in an external process rather than within the QGIS process.
-from PyQt6.QtCore import QDir, QObject, pyqtSignal
-
+from .basic import NoopClass, pluginDir
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
-
-
-def pluginDir(*subdirs):
-    p = os.path.dirname(os.path.dirname(__file__))
-    if subdirs:
-        return os.path.join(p, *subdirs)
-    return p
-
-
-def temporaryOutputDir(*subdirs):
-    temp_dir = QDir.tempPath() + "/Qgis2threejs"
-    if subdirs:
-        return os.path.join(temp_dir, *subdirs)
-    return temp_dir
 
 
 QGIS_AVAILABLE = False
@@ -99,7 +82,7 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
     return logger
 
 
-logger = web_logger = None
+logger = web_logger = None          # NoopClass()
 
 def configureLoggers(is_test=False, log_to_stream=False):
     """Configure the loggers. The loggers are created if not created yet."""
@@ -117,8 +100,6 @@ def configureLoggers(is_test=False, log_to_stream=False):
                            stream=log_to_stream,
                            filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "",
                            list_handler=list_handler)
-
-configureLoggers()
 
 
 def getLogListHandler(logger):

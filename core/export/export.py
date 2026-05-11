@@ -19,8 +19,8 @@ from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui.const import WebViewType, WebViewMode
 from ...gui import webview
-from ...utils import hex_color, logger
-from ... import utils
+from ...utils import file as file_utils, js as js_utils
+from ...utils.logging import logger
 
 
 TIMEOUT_MS = 30000      # timeout (ms) for page initialization
@@ -131,13 +131,13 @@ class ThreeJSExporter(QObject):
                 QDir().mkpath(img_dir)
 
                 for f in narration["files"]:
-                    if utils.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
+                    if file_utils.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
                         self.log("Copied {}.".format(f))
                     else:
                         self.log("Failed to copy {}.".format(f), warning=True)
 
         self.progress(95, msg="Copying library files...")
-        utils.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
+        file_utils.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
         # options in html file
         options = []
@@ -145,7 +145,7 @@ class ThreeJSExporter(QObject):
         # scene
         sp = self.settings.sceneProperties()
         if sp.get("radioButton_Color"):
-            options.append("Q3D.Config.bgColor = {};".format(hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
+            options.append("Q3D.Config.bgColor = {};".format(js_utils.hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
 
         if not self.settings.coordDisplay():
             options.append("Q3D.Config.coord.visible = false;")
@@ -161,13 +161,13 @@ class ThreeJSExporter(QObject):
         opts = self.settings.options()
         if opts:
             for key in opts:
-                options.append("Q3D.Config.{} = {};".format(key, utils.pyobj2js(self.settings.option(key))))
+                options.append("Q3D.Config.{} = {};".format(key, js_utils.pyobj2js(self.settings.option(key))))
 
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
             options.append("Q3D.Config.northArrow.enabled = true;")
-            options.append("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
+            options.append("Q3D.Config.northArrow.color = {};".format(js_utils.hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template
         with open(config["path"], "r", encoding="utf-8") as f:
@@ -328,7 +328,7 @@ class ThreeJSExporter(QObject):
         return layers
 
     def buildLayer(self, layer, settings):
-        title = utils.abchex(self.nextLayerIndex())
+        title = js_utils.abchex(self.nextLayerIndex())
 
         if settings.localMode:
             pathRoot = urlRoot = None

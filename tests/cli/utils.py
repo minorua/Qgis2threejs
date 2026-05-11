@@ -14,8 +14,9 @@ from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
 from ...core.mapextent import MapExtent
-from ...utils import getLayersByLayerIds, pluginDir
+from ...utils.basic import pluginDir
 from ...utils.logging import configureLoggers, logger
+from ...utils.qgis import getLayersByLayerIds
 
 # constants
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)

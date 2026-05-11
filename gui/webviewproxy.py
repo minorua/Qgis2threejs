@@ -14,7 +14,7 @@ from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
 from ..conf import DEBUG_MODE
 from ..preview.ipc_const import Event, Request
 from ..preview.socketserver import SocketServer
-from ..utils import createUid, pluginDir
+from ..utils.basic import createUid, pluginDir, NoopClass
 from ..utils.logging import logger, web_logger
 
 
@@ -108,7 +108,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         self.embeddedMode = True
         self.previewEnabled = True
         self.viewProcess = None
-        self.viewContainer = Dummy()
+        self.viewContainer = NoopClass()
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
@@ -248,10 +248,3 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         logger.info("Disconnected from preview process.")
         if self.embeddedMode and self.previewEnabled:
             self.viewContainer.showPreviewState(PreviewState.State_Error)
-
-
-class Dummy:
-    def __getattr__(self, name):
-        def method(*args, **kwargs):
-            return None
-        return method

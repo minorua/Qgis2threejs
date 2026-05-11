@@ -2,8 +2,6 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import json
-
 # This module may be used in an external process rather than within the QGIS process.
 from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
 from PyQt6.QtGui import QDesktopServices
@@ -11,7 +9,7 @@ from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .const import WebViewType
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, TIMEOUT_MS
-from ..utils import logger
+from ..utils.logging import logger
 
 
 class Q3DWebEnginePageCommon(Q3DWebPageCommon):

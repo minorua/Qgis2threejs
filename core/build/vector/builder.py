@@ -14,7 +14,8 @@ from ..datamanager import MaterialManager, ModelManager
 from ...const import LayerType
 from ...geometry import VectorGeometry
 from ....conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
-from ....utils import css_color, int_color, logger
+from ....utils.js import css_color, int_color
+from ....utils.logging import logger
 
 
 class VectorLayerBuilder(LayerBuilderBase):

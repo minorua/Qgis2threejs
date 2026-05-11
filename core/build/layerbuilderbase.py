@@ -2,7 +2,7 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from ...utils import noop
+from ...utils.basic import noop
 
 
 class LayerBuilderBase:

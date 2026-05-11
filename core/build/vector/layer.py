@@ -11,7 +11,9 @@ from .object import ObjectType
 from ...const import LayerType, PropertyID as PID
 from ....conf import DEF_SETS
 from ....gui.propwidget import PropertyWidget, ColorWidgetFunc, OpacityWidgetFunc, ColorTextureWidgetFunc
-from ....utils import hex_color, logger, parseFloat
+from ....utils.basic import parseFloat
+from ....utils.js import hex_color
+from ....utils.logging import logger
 
 
 class VectorLayer:

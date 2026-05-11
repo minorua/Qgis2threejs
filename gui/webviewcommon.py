@@ -10,9 +10,10 @@ from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QMessageBox
 
 from .webbridge import WebBridge
+from .webview_utils import logger
 from ..conf import DEBUG_MODE
 from ..core.const import ScriptFile
-from ..utils import js_bool, logger
+from ..utils.js import js_bool
 
 
 TIMEOUT_MS = 30000      # timeout (ms) for script loading

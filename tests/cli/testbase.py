@@ -13,7 +13,7 @@ from .utils import start_app, stop_app, loadProject
 from ..utils import expectedDataPath, initOutputDir, outputPath
 from ..webpage_check import WebPageCapturer, WebPageErrorChecker
 from ...core.export.export import ThreeJSExporter
-from ...utils import openFile
+from ...utils.gui import openFile
 
 
 MANUAL_PAGE_CHECK = True

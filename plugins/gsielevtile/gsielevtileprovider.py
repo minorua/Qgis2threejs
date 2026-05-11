@@ -19,7 +19,7 @@ from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 
 from .downloader import Downloader
 from ...core.geometry import GridGeometry
-from ...utils import logger
+from ...utils.logging import logger
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244

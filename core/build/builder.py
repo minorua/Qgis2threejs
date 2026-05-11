@@ -6,7 +6,7 @@
 from threading import Lock
 import traceback
 
-from qgis.core import Qgis, QgsApplication
+from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
@@ -15,7 +15,9 @@ from .datamanager import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
 from .pointcloud.builder import PointCloudLayerBuilder
-from ...utils import int_color, noop, logger
+from ...utils.basic import noop
+from ...utils.js import int_color
+from ...utils.logging import logger
 
 
 LayerBuilderFactory = {

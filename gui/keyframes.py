@@ -6,16 +6,17 @@
 from qgis.PyQt.QtCore import Qt, QSize, QUrl
 from qgis.PyQt.QtGui import QCursor, QIcon
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QButtonGroup, QDialog, QInputDialog, QMenu,
-                             QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
-from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
+                                 QMessageBox, QTreeWidget, QTreeWidgetItem, QWidget)
+from qgis.core import QgsApplication, QgsFieldProxyModel
 
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
-from ..utils import createUid, logger, openHelp, parseInt, pluginDir
-from ..utils.gui import selectImageFile
+from ..utils.basic import createUid, parseInt, pluginDir
+from ..utils.gui import openHelp, selectImageFile
+from ..utils.logging import logger
 
 
 class AnimationPanel(QWidget):

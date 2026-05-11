@@ -4,10 +4,6 @@
 
 from PyQt6.QtCore import Qt
 
-try:
-    from qgis.core import Qgis, QgsMapLayer, QgsWkbTypes            # TODO: move to utils.py
-except ImportError:
-    pass
 
 class LayerType:
     """Enum for layer type in this plugin"""
@@ -186,23 +182,3 @@ class ATConst:
             return "{} keyframe".format(name[typ - cls.ITEM_MBR])
 
         return "UNDEF"
-
-
-# TODO: move to utils.py
-# utility function related to layer type
-def layerTypeFromMapLayer(mapLayer):
-    """mapLayer: QgsMapLayer sub-class object"""
-    layerType = mapLayer.type()
-    if layerType == QgsMapLayer.VectorLayer:
-        return {
-            QgsWkbTypes.PointGeometry: LayerType.POINT,
-            QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
-            QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
-
-    elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
-        return LayerType.DEM
-
-    elif layerType == QgsMapLayer.PointCloudLayer:
-        return LayerType.POINTCLOUD
-
-    return None

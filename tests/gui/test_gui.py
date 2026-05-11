@@ -8,7 +8,7 @@ from qgis.core import QgsProject
 from qgis.testing import unittest
 
 from Qgis2threejs.tests.utils import initOutputDir
-from Qgis2threejs.utils import logger
+from Qgis2threejs.utils.logging import logger
 
 WIDTH, HEIGHT = (800, 600)  # view size
 

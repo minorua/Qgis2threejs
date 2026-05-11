@@ -15,8 +15,9 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 
 from .webview_conf import DEBUG_MODE
-from .webview_utils import pluginDir, logger, web_logger
+from .webview_utils import logger, web_logger
 from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
+from ..utils.basic import pluginDir
 
 
 TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering

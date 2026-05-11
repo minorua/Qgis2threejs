@@ -10,9 +10,9 @@ import re
 
 from qgis.PyQt.QtCore import Qt, QPoint, QSize, QUrl
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
-                             QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
+                                 QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QPixmap
-from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 try:
@@ -34,9 +34,12 @@ from ..core.const import LayerType, DEMMtlType, GEOM_WIDGET_MAX_COUNT, MTL_WIDGE
 from ..core.exportsettings import calculateGridSegments
 from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import (createUid, getDEMLayersInProject, getLayersInProject, hex_color,
-                     logger, shortTextFromSelectedLayerIds)
-from ..utils.gui import selectColor, selectImageFile
+from ..utils.basic import createUid
+from ..utils.gui import selectImageFile
+from ..utils.js import hex_color
+from ..utils.logging import logger
+from ..utils.qgis import getDEMLayersInProject, getLayersInProject, selectColor, shortTextFromSelectedLayerIds
+
 
 PAGE_NONE = 0
 PAGE_SCENE = 1

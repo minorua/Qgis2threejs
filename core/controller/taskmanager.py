@@ -6,7 +6,7 @@ from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 
 from ..exportsettings import Layer
 from ...conf import DEBUG_MODE
-from ...utils import logger
+from ...utils.logging import logger
 
 
 class Task:

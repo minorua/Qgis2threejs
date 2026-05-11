@@ -13,7 +13,8 @@ from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ...conf import DEBUG_MODE
-from ...utils import hex_color, js_bool, logger
+from ...utils.js import hex_color, js_bool
+from ...utils.logging import logger
 
 
 # decorator to skip method execution when the object the method belongs to is disabled

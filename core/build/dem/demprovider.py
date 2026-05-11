@@ -14,7 +14,7 @@ except ImportError:
 
 from ...geometry import GridGeometry
 from ...mapextent import MapExtent, GridRectangle
-from ....utils import logger
+from ....utils.logging import logger
 
 NODATA_VALUE = -3.4e38
 

@@ -5,12 +5,14 @@
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QSize, QUrl
+from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer, QgsMapSettings
 
-from ... import utils
-from ...utils import logger
+from ...utils.file import copyFile
+from ...utils.js import base64file, image2dataUri, imageFile2dataUri
+from ...utils.logging import logger
+from ...utils.qgis import getLayersByLayerIds
 
 
 class DataManager:
@@ -68,7 +70,7 @@ class ImageManager(DataManager):
         settings.setRotation(extent.rotation())
 
         if layerids:
-            settings.setLayers(utils.getLayersByLayerIds(layerids))
+            settings.setLayers(getLayersByLayerIds(layerids))
 
         if transp_background:
             settings.setBackgroundColor(QColor(Qt.GlobalColor.transparent))
@@ -111,7 +113,7 @@ class ImageManager(DataManager):
             image = self._renderImage(*args)
 
             if fmt == "JPEG":
-                return utils.jpegCompressedImage(image)
+                return jpegCompressedImage(image)
 
             return image
 
@@ -123,11 +125,11 @@ class ImageManager(DataManager):
         imageType, args, fmt = self._list[index]
 
         if imageType == self.IMG_FILE:
-            return utils.imageFile2dataUri(args)
+            return imageFile2dataUri(args)
 
         image = self.image(index)
         if image:
-            return utils.image2dataUri(image, fmt=fmt)
+            return image2dataUri(image, fmt=fmt)
 
         return ""
 
@@ -137,7 +139,7 @@ class ImageManager(DataManager):
         if imageType == self.IMG_FILE:
             image_path = args
             if os.path.isfile(image_path):
-                utils.copyFile(image_path, path, overwrite=True)
+                copyFile(image_path, path, overwrite=True)
                 return
 
         self.image(index).save(path)
@@ -329,7 +331,7 @@ class ModelManager(DataManager):
                 a.append({"url": path_url})
             elif base64:
                 _, ext = os.path.splitext(path_url)
-                a.append({"base64": utils.base64file(path_url),
+                a.append({"base64": base64file(path_url),
                           "ext": ext[1:],
                           "resourcePath": "./data/{}/models/".format(self.exportSettings.outputFileTitle())})
             else:
@@ -374,3 +376,13 @@ class ModelManager(DataManager):
             if self.hasGLTFModel():
                 s.append("./threejs/loaders/GLTFLoader.js")
         return s
+
+
+def jpegCompressedImage(image):
+    """Recreate a QImage compressed as JPEG."""
+    ba = QByteArray()
+    buffer = QBuffer(ba)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+    image.save(buffer, "JPEG")
+
+    return QImage.fromData(ba, "JPEG")

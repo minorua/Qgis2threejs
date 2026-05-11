@@ -3,13 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-10
 
-from configparser import ConfigParser
 import os
+from configparser import ConfigParser
+
 from qgis.PyQt.QtCore import Qt, QDir, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .ui.settingsdialog import Ui_SettingsDialog
-from ..utils import logger, openHelp, pluginDir
+from ..utils.basic import pluginDir
+from ..utils.gui import openHelp
+from ..utils.logging import logger
 
 
 class SettingsDialog(QDialog):

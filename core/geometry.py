@@ -9,7 +9,7 @@ from qgis.core import (
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
 from ..lib.earcut import earcut
-from ..utils import logger
+from ..utils.logging import logger
 
 
 class VectorGeometry:

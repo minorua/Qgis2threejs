@@ -27,7 +27,8 @@ from ..export.export import ExportCancelled, ThreeJSExporter, ImageExporter, Mod
 from ..exportsettings import ExportSettings
 from ..mapextent import MapExtent
 from ...conf import DEBUG_MODE, DEF_SETS, P_OPEN_DIRECTORY
-from ...utils import logger, openDirectory
+from ...utils.gui import openDirectory
+from ...utils.logging import logger
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):

@@ -24,7 +24,10 @@ from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils import createUid, hex_color, js_bool, logger, openHelp, pluginDir
+from ..utils.basic import createUid, pluginDir
+from ..utils.gui import openHelp
+from ..utils.js import hex_color, js_bool
+from ..utils.logging import logger
 
 
 class Q3DWindow(QMainWindow):

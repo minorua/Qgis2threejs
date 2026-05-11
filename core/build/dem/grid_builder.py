@@ -5,13 +5,12 @@
 import base64
 import json
 import struct
-from qgis.PyQt.QtCore import QByteArray
 from qgis.core import QgsGeometry, QgsPointXY
 
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry
 from ...mapextent import MapExtent
 from ....conf import DEBUG_MODE
-from ....utils import logger
+from ....utils.logging import logger
 
 
 class DEMGridBuilder:

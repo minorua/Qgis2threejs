@@ -14,7 +14,8 @@ import qgis
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 from ..conf import PLUGIN_NAME
 from ..core.export.export import ExportCancelled, ThreeJSExporter
-from ..utils import getTemplateConfig, openHelp, openUrl, templateDir, temporaryOutputDir
+from ..utils.basic import getTemplateConfig, templateDir, temporaryOutputDir
+from ..utils.gui import openHelp, openUrl
 
 
 class ExportToWebDialog(QDialog):

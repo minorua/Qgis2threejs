@@ -10,7 +10,7 @@ from qgis.core import QgsApplication
 from qgis.testing import unittest
 
 from Qgis2threejs.core.const import ScriptFile
-from Qgis2threejs.utils import js_bool
+from Qgis2threejs.utils.js import js_bool
 from Qgis2threejs.tests.utils import dataPath
 
 

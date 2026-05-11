@@ -15,8 +15,9 @@ from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
 from ....conf import DEBUG_MODE, DEF_SETS
-from ....utils import hex_color, logger, parseFloat
-
+from ....utils.basic import  parseFloat
+from ....utils.js import hex_color
+from ....utils.logging import logger
 
 
 class DEMLayerBuilder(LayerBuilderBase):

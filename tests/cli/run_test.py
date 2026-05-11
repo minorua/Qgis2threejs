@@ -7,7 +7,7 @@ import traceback
 from qgis.testing import unittest
 
 from Qgis2threejs import conf
-from Qgis2threejs.utils import pluginDir
+from Qgis2threejs.utils.basic import pluginDir
 from Qgis2threejs.tests.utils import initOutputDir, outputPath
 
 

@@ -10,13 +10,18 @@ from qgis.PyQt.QtWidgets import QAction, QActionGroup
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
 
+from .utils.logging import configureLoggers, logger
+configureLoggers()
+
 from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.const import WebViewType, WebViewMode
 from .gui.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, CAN_EMBED_WND
 from .gui.window import Q3DWindow
-from .utils import logger, pluginDir, removeTemporaryOutputDir, settingsFilePath
+from .utils.basic import pluginDir
+from .utils.file import removeTemporaryOutputDir
+from .utils.qgis import settingsFilePath
 
 
 class Qgis2threejs:

@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import QVariant
 from ...const import PropertyID as PID
 from ...geometry import VectorGeometry
 from ....conf import DEBUG_MODE
-from ....utils import logger, parseInt
+from ....utils.basic import parseInt
 
 
 def json_default(o):

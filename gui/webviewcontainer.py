@@ -7,7 +7,7 @@ from qgis.PyQt.QtGui import QPalette, QPixmap, QWindow
 from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedWidget, QVBoxLayout, QWidget
 
 from .const import PreviewState
-from ..utils import pluginDir
+from ..utils.basic import pluginDir
 from ..utils.logging import logger
 
 

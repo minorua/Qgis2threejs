@@ -5,7 +5,7 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 
 from .const import WebViewType
-from ..utils import logger
+from ..utils.logging import logger
 
 
 class Q3DDummyView(QObject):

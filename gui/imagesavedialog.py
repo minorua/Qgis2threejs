@@ -7,7 +7,7 @@ from qgis.PyQt.QtWidgets import QDialog
 
 # from .export import ImageExporter
 from .ui.imagesavedialog import Ui_ImageSaveDialog
-from ..utils import openHelp
+from ..utils.gui import openHelp
 
 
 class ImageSaveDialog(QDialog):

@@ -6,7 +6,8 @@
 import os
 import shutil
 
-from Qgis2threejs.utils import logger, pluginDir
+from Qgis2threejs.utils.basic import pluginDir
+from Qgis2threejs.utils.logging import logger
 
 MY_TEST_TEMPDIR = "E:/dev/qgis2threejs_test"
 

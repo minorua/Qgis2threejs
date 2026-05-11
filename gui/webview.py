@@ -5,18 +5,18 @@
 
 import os
 from .const import WebViewType, WebViewMode
-from ..utils import logger
+from ..utils.logging import logger
 
 WEBENGINE_AVAILABLE = False
-WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
-CAN_EMBED_WND = (os.name == "nt")
-
 try:
     from qgis.PyQt.QtWebEngineWidgets import QWebEngineView     # type: ignore
     WEBENGINE_AVAILABLE = True
 
 except Exception as e:
     logger.warning(f"WebEngine widgets are unavailable: {e}")
+
+WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
+CAN_EMBED_WND = (os.name == "nt")
 
 
 def getWebViewClass(webViewType, webViewMode):

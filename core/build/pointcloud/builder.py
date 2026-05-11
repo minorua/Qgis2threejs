@@ -5,7 +5,7 @@
 
 from ..layerbuilderbase import LayerBuilderBase
 from ....conf import DEBUG_MODE
-from ....utils import int_color
+from ....utils.js import int_color
 
 
 class PointCloudLayerBuilder(LayerBuilderBase):

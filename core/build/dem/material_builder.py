@@ -5,7 +5,7 @@
 from .property_reader import DEMPropertyReader
 from ..datamanager import MaterialManager
 from ...const import DEMMtlType
-from ....utils import hex_color
+from ....utils.js import hex_color
 
 
 class DEMMaterialBuilder:

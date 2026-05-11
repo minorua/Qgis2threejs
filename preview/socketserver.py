@@ -6,7 +6,7 @@
 from PyQt6.QtNetwork import QLocalServer
 
 from .socketinterface import SocketInterface
-from ..utils import logger
+from ..utils.logging import logger
 
 
 class SocketServer(SocketInterface):
