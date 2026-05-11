@@ -141,6 +141,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
     def teardown(self):
         logger.info("Socket server is going to shut down.")
         self.stopPreview()
+        self.viewContainer = None
 
     def startPreview(self):
         self.viewContainer.showPreviewState(PreviewState.State_Loading)

@@ -77,6 +77,7 @@ class Q3DWindow(QMainWindow):
 
         self.ui.webView = webView
         self.webPage = webView.page()
+        self.webPage.setObjectName("webPage")
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
@@ -137,10 +138,9 @@ class Q3DWindow(QMainWindow):
 
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
+            self.controller.conn.teardown()
 
             if self.ui.webView.webViewType == WebViewType.WEBENGINE:
-                self.controller.conn.teardown()
-
                 self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file

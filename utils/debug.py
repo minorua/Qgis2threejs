@@ -6,7 +6,7 @@
 import sys
 import weakref
 
-from qgis.PyQt.QtCore import QDir
+from qgis.PyQt.QtCore import QDir, QObject
 
 from .logging import logger
 from .utils import openDirectory, temporaryOutputDir
@@ -39,7 +39,8 @@ def setupDestructionLogging(wnd):
 
     for name, obj in objectsOfInterest(wnd):
         if obj:
-            obj.destroyed.connect(objectDestroyed)
+            if isinstance(obj, QObject):
+                obj.destroyed.connect(objectDestroyed)
             weakref.finalize(obj, objectFinalized, f"{name} finalized (Python).")
 
 
@@ -47,7 +48,6 @@ def objectDestroyed(obj):
     global num_destroyed
     num_destroyed += 1
     logger.debug(f"[{num_destroyed}] {obj.metaObject().className()} {obj.objectName()} destroyed (C++).")
-
 
 
 def objectFinalized(msg):
@@ -62,6 +62,7 @@ def logReferenceCount(wnd):
         QDir().mkpath(temp_dir)
 
     objs = objectsOfInterest(wnd)
+    qobjs = []
     for name, obj in objs:
         if obj is None:
             logger.debug(f"{name} is None.")
@@ -72,7 +73,10 @@ def logReferenceCount(wnd):
         if USE_OBJGRAPH:
             objgraph.show_backrefs(obj, max_depth=3, too_many=10, filename=temporaryOutputDir(f"ref_{name}.dot"))
 
-    logger.debug(f"Total objects of interest: {len(objs)}")
+        if isinstance(obj, QObject):
+            qobjs.append(obj)
+
+    logger.debug(f"Total objects: {len(objs)}, QObject: {len(qobjs)}")
 
     if USE_OBJGRAPH:
         openDirectory(temp_dir)

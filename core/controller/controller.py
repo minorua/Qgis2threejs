@@ -32,6 +32,7 @@ class ConnectionManager:
         self.controller = controller
         self.builder = controller.builder
         self.webPage = webPage
+        self._isConnected = False
 
     def setup(self):
         """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
@@ -60,25 +61,28 @@ class ConnectionManager:
         self.builder.taskFailed.connect(self.controller.taskManager.taskFailed)
         self.builder.taskAborted.connect(self.controller.taskManager.taskAborted)
 
-    def teardown(self):
-        signals = [
-            self.webPage.loadFinished,
-            self.webPage.bridge.initialized,
-            self.webPage.bridge.dataLoaded,
-            self.controller.buildSceneRequest,
-            self.controller.buildLayerRequest,
-            self.controller.taskManager.executeTask,
-            self.controller.taskManager.abortCurrentTask,
-            self.controller.taskManager.allTasksFinalized,
-            self.builder.dataReady,
-            self.builder.progressUpdated,
-            self.builder.taskCompleted,
-            self.builder.taskFailed,
-            self.builder.taskAborted
-        ]
+        self._isConnected = True
 
-        for signal in signals:
-            signal.disconnect()
+    def teardown(self):
+        if self._isConnected:
+            signals = [
+                self.webPage.loadFinished,
+                self.webPage.bridge.initialized,
+                self.webPage.bridge.dataLoaded,
+                self.controller.buildSceneRequest,
+                self.controller.buildLayerRequest,
+                self.controller.taskManager.executeTask,
+                self.controller.taskManager.abortCurrentTask,
+                self.controller.taskManager.allTasksFinalized,
+                self.builder.dataReady,
+                self.builder.progressUpdated,
+                self.builder.taskCompleted,
+                self.builder.taskFailed,
+                self.builder.taskAborted
+            ]
+
+            for signal in signals:
+                signal.disconnect()
 
         self.controller = None
 

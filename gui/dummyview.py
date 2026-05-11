@@ -46,8 +46,11 @@ class Q3DDummyView(QObject):
         return False
 
 
-class Q3DDummyPage(QObject):
+class Q3DDummyPage:
     """No-op dummy page."""
+
+    def __init__(self, parent):
+        pass
 
     def __bool__(self):
         """Dummy page represents absence of a usable Web page."""
