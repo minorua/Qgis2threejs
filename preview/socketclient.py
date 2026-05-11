@@ -3,11 +3,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-import logging as logger
+import logging
 
 from PyQt6.QtNetwork import QLocalSocket
 
 from .socketinterface import SocketInterface
+from ..conf import PLUGIN_NAME
+
+logger = logging.getLogger(PLUGIN_NAME)
 
 
 class SocketClient(SocketInterface):

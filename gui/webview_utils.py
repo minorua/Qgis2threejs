@@ -9,6 +9,9 @@ if WEBVIEW_IN_QGIS_PROCESS:
     from ..utils.logging import logger, web_logger
 
 else:
-    import logging as logger
+    import logging
+    from ..conf import PLUGIN_NAME
     from ..preview.utils import pluginDir
+
+    logger = logging.getLogger(PLUGIN_NAME)
     web_logger = logger

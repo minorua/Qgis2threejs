@@ -6,7 +6,6 @@ import os
 import argparse
 import json
 import logging
-import logging as logger
 import sys
 import traceback
 
@@ -18,12 +17,15 @@ from .ipc_const import Event, Request
 from .utils import pluginDir
 from .socketclient import SocketClient
 
+from ..conf import DEBUG_MODE, PLUGIN_NAME
 from ..gui import webview_conf
-DEBUG_MODE = webview_conf.DEBUG_MODE
 webview_conf.WEBVIEW_IN_QGIS_PROCESS = False
 
 from ..gui.webbridge import WebIPCBridge
 from ..gui.webengineview import Q3DWebEnginePage, Q3DWebEngineView
+
+
+logger = logging.getLogger(PLUGIN_NAME)
 
 
 class WebPage(Q3DWebEnginePage):
