@@ -365,7 +365,7 @@ class BridgeExporterBase:
 
         self.settings = settings.clone() if settings else ExportSettings()
         self.settings.isPreview = True
-        self.settings.requiresJsonSerializable = self.isWebEngine
+        self.settings.requiresJsonSerializable = True
 
         self.view = webview.getWebViewClass(WebViewType.WEBENGINE, WebViewMode.SEPARATE)
         self.page = webview.getWebPageClass(WebViewType.WEBENGINE, WebViewMode.SEPARATE)(self.view)
@@ -504,7 +504,6 @@ class ModelExporter(BridgeExporterBase):
 
     def __init__(self, settings=None):
         super().__init__(settings)
-        self.settings.requiresJsonSerializable = True
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)

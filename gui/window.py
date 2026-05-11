@@ -79,8 +79,6 @@ class Q3DWindow(QMainWindow):
         self.ui.webView = webView
         self.webPage = webView.page()
 
-        settings.requiresJsonSerializable = webViewType == WebViewType.WEBENGINE
-
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
         self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
@@ -492,7 +490,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
                                  isPreview=True,
-                                 requiresJsonSerializable=self.webPage.isWebEnginePage if self.webPage else False)
+                                 requiresJsonSerializable=True)
         self.settings.loadSettingsFromFile(filename)
 
         self.ui.treeView.addLayers(self.settings.layers())
@@ -527,7 +525,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
                                  isPreview=True,
-                                 requiresJsonSerializable=self.webPage.isWebEnginePage if self.webPage else False)
+                                 requiresJsonSerializable=True)
         self.settings.updateLayers()
 
         self.ui.treeView.addLayers(self.settings.layers())

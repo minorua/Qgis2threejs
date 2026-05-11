@@ -92,8 +92,6 @@ class DEMGridBuilder:
 
         if self.settings.requiresJsonSerializable:
             g["base64"] = base64.b64encode(bytearray).decode("ascii")
-        elif self.settings.isPreview:       # for WebKit preview
-            g["binary"] = QByteArray(bytearray)
         else:
             # write grid values to an binary file
             tail = f"{self.blockIndex}.bin"
