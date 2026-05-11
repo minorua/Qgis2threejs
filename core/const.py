@@ -40,7 +40,6 @@ class ScriptFile:
     OUTLINE = 7
     VIEWHELPER = 8
     MESHLINE = 9
-    FETCH = 101
     TEST = 201
 
     # relative paths to script files from js directory
@@ -54,7 +53,6 @@ class ScriptFile:
         OUTLINE: "lib/threejs/effects/OutlineEffect.js",
         VIEWHELPER: "lib/threejs/editor/ViewHelper.js",
         MESHLINE: "lib/meshline/THREE.MeshLine.js",
-        FETCH: "lib/unfetch/unfetch.js",
         TEST: "../../tests/gui/test.js"
     }
 

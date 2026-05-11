@@ -364,8 +364,7 @@ class Q3DController(QObject):
             files = [ScriptFile.MESHLINE]
 
         elif layer.type == LayerType.POINTCLOUD:
-            files = [ScriptFile.FETCH,
-                     ScriptFile.POTREE,
+            files = [ScriptFile.POTREE,
                      ScriptFile.PCLAYER]
 
         if files:

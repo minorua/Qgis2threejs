@@ -36,5 +36,3 @@ This plugin is powered by the following JavaScript libraries and resources:
 * [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
 
 * Python ported version of [earcut](https://github.com/mapbox/earcut) for Overlay polygon triangulation
-
-* [unfetch](https://github.com/developit/unfetch) fetch polyfill
