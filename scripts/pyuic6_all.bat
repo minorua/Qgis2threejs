@@ -8,7 +8,6 @@ for %%f in (*.ui) do (
     @echo Processing %%f...
     pyuic6.exe -o %%~nf.py %%f
     sed -i "s/from PyQt6 import/from qgis.PyQt import/g" %%~nf.py
-    sed -i "s/QtGui.QAction/QtWidgets.QAction/g" %%~nf.py
 )
 
 pause
