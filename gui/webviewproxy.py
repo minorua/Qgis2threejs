@@ -6,11 +6,9 @@ import json
 import os
 import subprocess
 
-from qgis.PyQt.QtCore import Qt, QObject, QTimer, QUrl, pyqtSignal
-from qgis.PyQt.QtGui import QPalette, QPixmap, QWindow
-from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedLayout, QVBoxLayout, QWidget
+from qgis.PyQt.QtCore import QObject, QSize, QUrl, pyqtSignal
 
-from .const import WebViewMode
+from .const import PreviewState, WebViewMode
 from .webbridge import WebIPCBridge
 from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
 from ..conf import DEBUG_MODE
@@ -18,8 +16,6 @@ from ..preview.ipc_const import Event, Request
 from ..preview.socketserver import SocketServer
 from ..utils import createUid, pluginDir
 from ..utils.logging import logger, web_logger
-
-TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
 
 
 class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
@@ -101,17 +97,18 @@ class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
         self.socketServer.request(Request.LOAD_DATA, params=params, payload=payload)
 
 
-class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
+class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
 
-    # TODO: fileDropped - IPC
+    fileDropped = pyqtSignal(list)      # TODO: IPC
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
+        QObject.__init__(self, parent)
         Q3DWebEngineViewCommon.__init__(self, parent)
 
         self.embeddedMode = True
+        self.previewEnabled = True
         self.viewProcess = None
-        self.previewWnd = None
+        self.viewContainer = Dummy()
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
@@ -122,19 +119,21 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
         self._page = Q3DWebPageProxy(self)
         self._page.setSocketServer(self.socketServer)
 
-        self.previewStateWidget = PreviewStateWidget(self)
-        self.previewStateWidget.buttonRestart.clicked.connect(self.startPreview)
-
-        self.stackedLayout = QStackedLayout(self)
-        self.stackedLayout.addWidget(self.previewStateWidget)
-
     def page(self):
         return self._page
+
+    def size(self):
+        if self.embeddedMode:
+            return self.parent().size()
+
+        return QSize()      # TODO: size in separate preview mode
 
     def setup(self, webViewMode=None, enabledAtStart=True):
         Q3DWebEngineViewCommon.setup(self, webViewMode, enabledAtStart)
 
-        if webViewMode == WebViewMode.SEPARATE:
+        if webViewMode == WebViewMode.EMBEDDED:
+            self.viewContainer = self.parent()
+        else:   # webViewMode == WebViewMode.SEPARATE:
             self.embeddedMode = False
 
         self.setPreviewEnabled(enabledAtStart)
@@ -144,14 +143,12 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
         self.stopPreview()
 
     def startPreview(self):
-        self.stackedLayout.setCurrentIndex(0)
+        self.viewContainer.showPreviewState(PreviewState.State_Loading)
 
         if self.viewProcess:
             self.stopPreview()
 
         logger.info("Launching preview...")
-        if self.embeddedMode:
-            self.previewStateWidget.setState(PreviewStateWidget.State_Loading)
 
         args = []
         if os.name == "nt":
@@ -198,10 +195,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
     def stopPreview(self):
         self.socketServer.notify(Event.QUIT)
 
-        if self.previewWnd:
-            self.previewWnd.hide()
-            self.previewWnd.setParent(None)
-            self.previewWnd = None
+        self.viewContainer.removeEmbeddedWnd()
 
         if self.viewProcess:
             try:
@@ -214,11 +208,11 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
                 self.viewProcess = None
 
     def setPreviewEnabled(self, enabled):
+        self.previewEnabled = enabled
         if enabled:
             self.startPreview()
         else:
-            self.previewStateWidget.setState(PreviewStateWidget.State_Disabled)
-            self.stackedLayout.setCurrentIndex(0)
+            self.viewContainer.showPreviewState(PreviewState.State_Disabled)
             self.stopPreview()
 
     # TODO:
@@ -243,20 +237,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
 
     def requestReceived(self, id, method, params, payload):
         if method == Request.EMBED_WND:
-            winId = int(params["winId"])
-            self.previewWnd = QWindow.fromWinId(winId)
-            container = QWidget.createWindowContainer(self.previewWnd)
-
-            w = self.stackedLayout.widget(1)
-            if w:
-                w.hide()
-                self.stackedLayout.removeWidget(w)
-
-            self.stackedLayout.addWidget(container)
-            self.stackedLayout.setCurrentIndex(1)
-
-            logger.info(f"External window ({winId}) embedded.")
-            self.previewStateWidget.setState(PreviewStateWidget.State_Idle)
+            self.viewContainer.embedWnd(int(params["winId"]))
         else:
             return
 
@@ -264,101 +245,12 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QWidget):
 
     def disconnected(self):
         logger.info("Disconnected from preview process.")
-        if not self.embeddedMode:
-            return
-
-        if self.previewStateWidget.currentState != PreviewStateWidget.State_Disabled:
-            self.previewStateWidget.setState(PreviewStateWidget.State_Error)
-        self.stackedLayout.setCurrentIndex(0)
+        if self.embeddedMode and self.previewEnabled:
+            self.viewContainer.showPreviewState(PreviewState.State_Error)
 
 
-class PreviewStateWidget(QWidget):
-
-    State_Idle = 0
-    State_Loading = 1
-    State_Error = 2
-    State_Disabled = 3
-
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-
-        self.setAutoFillBackground(True)
-
-        self.msg1 = QLabel(self)
-        self.msg1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.msg2 = QLabel(self)
-        self.msg2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.buttonRestart = QPushButton(self)
-        self.buttonRestart.setText("RESTART PREVIEW")
-        self.buttonRestart.setStyleSheet("padding: 6px 12px;")
-        self.buttonRestart.hide()
-
-        self.icon = QLabel(self)
-        self.icon.setPixmap(QPixmap(pluginDir("Qgis2threejs.png")))
-        self.icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.icon.setDisabled(True)
-        self.icon.hide()
-
-        layout = QVBoxLayout()
-        layout.addStretch(1)
-        layout.addWidget(self.msg1)
-        layout.addWidget(self.msg2)
-        layout.addStretch(1)
-        layout.addWidget(self.buttonRestart, 0, Qt.AlignmentFlag.AlignHCenter)
-        layout.addWidget(self.icon)
-        layout.addStretch(3)
-
-        self.setLayout(layout)
-
-        self.timer = QTimer(self)
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.timeout)
-
-        self.currentMsg1 = self.currentMsg2 = ""
-        self.currentState = PreviewStateWidget.State_Idle
-        self.dots = 0
-
-    def setState(self, state):
-        self.timer.stop()
-        self.buttonRestart.hide()
-        self.icon.hide()
-
-        msg1 = msg2 = ""
-        bgcolor = None
-        if state == PreviewStateWidget.State_Loading:
-            msg1 = "PREPARING PREVIEW"
-            bgcolor = Qt.GlobalColor.white
-
-            self.dots = 0
-            self.timer.start()
-
-        elif state == PreviewStateWidget.State_Error:
-            msg1 = "PREVIEW STOPPED UNEXPECTEDLY.\nTHE CONNECTION WAS LOST."
-            self.buttonRestart.show()
-
-        elif state == PreviewStateWidget.State_Disabled:
-            self.icon.show()
-
-        if bgcolor is None:
-            bgcolor = self.palette().color(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button)
-
-        self.msg1.setText(msg1)
-        self.msg2.setText(msg2)
-        self.setBackgroundColor(bgcolor)
-
-        self.currentState = state
-        self.currentMsg1 = msg1
-        self.currentMsg2 = msg2
-
-    def timeout(self):
-        self.dots = (self.dots + 1) % 4
-
-        dots = "." * self.dots + " " * (3 - self.dots)
-        self.msg1.setText(self.currentMsg1 + " " + dots)
-
-    def setBackgroundColor(self, color):
-        pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, color)
-        self.setPalette(pal)
+class Dummy:
+    def __getattr__(self, name):
+        def method(*args, **kwargs):
+            return None
+        return method

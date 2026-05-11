@@ -13,6 +13,7 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from . import webview
+from .webviewcontainer import WebViewContainer
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
@@ -38,6 +39,9 @@ class Q3DWindow(QMainWindow):
             else:
                 webViewMode = WebViewMode.INPROCESS
 
+        if webViewType == WebViewType.NONE:
+            previewEnabled = False
+
         super().__init__(parent=qgisIface.mainWindow() if webViewMode != WebViewMode.SEPARATE else None)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
@@ -51,25 +55,31 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         Q3DView = webview.getWebViewClass(webViewType, webViewMode)
-        if webViewType == WebViewType.NONE:
-            self.webView = self.ui.webView = Q3DView(parent=self)
+        if webViewType == WebViewType.NONE or webViewMode == WebViewMode.SEPARATE:
+            webView = Q3DView(parent=self)
             self.setCentralWidget(None)
-        elif webViewMode == WebViewMode.SEPARATE:
-            self.webView = self.ui.webView = Q3DView(parent=None)   # TODO: parent
-            self.setCentralWidget(None)
-        else:
-            self.webView = self.ui.webView = Q3DView(parent=self.ui.centralwidget)
-            self.ui.verticalLayout.addWidget(self.webView)
+        else:       # webViewMode: INPROCESS or EMBEDDED
+            self.ui.webViewContainer = WebViewContainer(self.ui.centralwidget)
+            self.ui.verticalLayout.addWidget(self.ui.webViewContainer)
 
-        self.webView.setObjectName("webView")
+            webView = Q3DView(parent=self.ui.webViewContainer)
+            self.ui.webViewContainer.setWebView(webView)
 
-        webViewType = self.webView.webViewType
-        self.webPage = self.webView.page()
+        webView.setObjectName("webView")
+        webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
+        webView.fileDropped.connect(self.fileDropped)
+
+        if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE):
+            webView.socketServer.requestReceived.connect(self.requestReceived)
+            webView.socketServer.responseReceived.connect(self.responseReceived)
+
+            if webViewMode == WebViewMode.SEPARATE:
+                webView.socketServer.disconnected.connect(self.previewClosed)
+
+        self.ui.webView = webView
+        self.webPage = webView.page()
 
         settings.requiresJsonSerializable = webViewType == WebViewType.WEBENGINE
-
-        if webViewType == WebViewType.NONE:
-            previewEnabled = False
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
@@ -90,28 +100,12 @@ class Q3DWindow(QMainWindow):
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            if webViewMode == WebViewMode.INPROCESS:
-                self.ui.webView.setup(enabledAtStart=previewEnabled)
-                self.ui.webView.fileDropped.connect(self.fileDropped)
-            else:
-                self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
-                # self.ui.webView.fileDropped.connect(self.fileDropped)     # TODO
-
-                self.ui.webView.socketServer.requestReceived.connect(self.requestReceived)
-                self.ui.webView.socketServer.responseReceived.connect(self.responseReceived)
-
-                if webViewMode == WebViewMode.SEPARATE:
-                    self.ui.webView.socketServer.disconnected.connect(self.previewClosed)
-
             addLogSignalEmitter(logger, self.webPage.logToConsole)
 
-            if webViewType == WebViewType.WEBENGINE:
-                self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
-
+            webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
-
-        else:   # Q3DFallbackView
-            self.ui.webView.disableWidgetsAndMenus(self.ui)
+        else:   # Q3DDummyView
+            webView.disableWidgetsAndMenus(self.ui)
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -150,7 +144,7 @@ class Q3DWindow(QMainWindow):
             # disconnect signals
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
 
-            if self.webView.webViewType == WebViewType.WEBENGINE:
+            if self.ui.webView.webViewType == WebViewType.WEBENGINE:
                 self.controller.conn.teardown()
 
                 removeLogSignalEmitter(logger, self.webPage.logToConsole)

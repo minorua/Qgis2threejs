@@ -2,7 +2,7 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 
 from .const import WebViewType
 from ..utils import logger
@@ -11,17 +11,22 @@ from ..utils import logger
 class Q3DDummyView(QObject):
     """A dummy view."""
 
+    fileDropped = pyqtSignal(list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.webViewType = WebViewType.NONE
 
         self._page = Q3DDummyPage(self)
 
-    def teardown(self):
-        pass
-
     def page(self):
         return self._page
+
+    def setup(self, webViewMode=None, enabledAtStart=True):
+        pass
+
+    def teardown(self):
+        pass
 
     def reload(self):
         pass
