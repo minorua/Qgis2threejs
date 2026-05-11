@@ -114,8 +114,7 @@ class Q3DWindow(QMainWindow):
         canvas.extentsChanged.connect(self.setDirty)
 
         project = QgsProject.instance()
-        if hasattr(project, "dirtySet"):     # QGIS 3.20+
-            project.dirtySet.connect(self.setDirty)
+        project.dirtySet.connect(self.setDirty)
 
         # restore window geometry and dockwidget layout
         settings = QSettings()
