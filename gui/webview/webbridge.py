@@ -15,19 +15,21 @@ from .utils import logger
 
 if WEBVIEW_IN_QGIS_PROCESS:
     if DEBUG_MODE:
-        def deco(func):
+        def log_decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 logger.debug("↑ " + func.__name__)
                 return func(*args, **kwargs)
             return wrapper
+
+        deco = log_decorator
     else:
         def noop_decorator(func):
             return func
 
         deco = noop_decorator
 else:
-    def deco(func):
+    def log_emit_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             params = {
@@ -39,6 +41,8 @@ else:
             logger.debug(f"[IPC] ↑ {func.__name__}: {args[1:]}")
             return None
         return wrapper
+
+    deco = log_emit_decorator
 
 
 class WebBridge(QObject):
