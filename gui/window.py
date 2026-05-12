@@ -4,6 +4,7 @@
 # begin: 2016-02-10
 
 import os
+import base64
 from datetime import datetime
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal, pyqtSlot
@@ -12,6 +13,7 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
+from .ipc.ipc_const import Event, Request
 from .webview.const import WebViewType, WebViewMode
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
@@ -74,8 +76,8 @@ class Q3DWindow(QMainWindow):
         webView.fileDropped.connect(self.fileDropped)
 
         if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE):
+            webView.socketServer.notified.connect(self.notified)
             webView.socketServer.requestReceived.connect(self.requestReceived)
-            webView.socketServer.responseReceived.connect(self.responseReceived)
 
             if webViewMode == WebViewMode.SEPARATE:
                 webView.socketServer.disconnected.connect(self.previewClosed)
@@ -127,11 +129,13 @@ class Q3DWindow(QMainWindow):
         self._modelFile = None
         self._saveModelState = None
 
-    def requestReceived(self, id, method, params, payload):
-        pass
+    def notified(self, method, params, payload):
+        if method == Event.WND_STATE_CHANGED:
+            self._previewWndGeometry = base64.b64decode(params["geom"])
 
-    def responseReceived(self, id, method, params, payload):
-        pass
+    def requestReceived(self, id, method, params, payload):
+        if method == Request.WND_GEOM:
+            self.ui.webView.socketServer.respond(id, method, params={"geom": base64.b64encode(self._previewWndGeometry).decode("ascii")})
 
     def closeEvent(self, event):
         try:
@@ -276,17 +280,25 @@ class Q3DWindow(QMainWindow):
 
     def restoreWindowState(self):
         # restore window geometry and dockwidget layout
-        settings = QSettings()
         suffix = "" if self.centralWidget() else "P"
-        self.restoreGeometry(settings.value(f"/Qgis2threejs/wnd/geometry{suffix}", b""))
-        self.restoreState(settings.value(f"/Qgis2threejs/wnd/state{suffix}", b""))
+
+        settings = QSettings()
+        settings.beginGroup("Qgis2threejs/wnd")
+        self.restoreGeometry(settings.value(f"geometry{suffix}", b""))
+        self.restoreState(settings.value(f"state{suffix}", b""))
+        self._previewWndGeometry = settings.value("preview", b"")
+        settings.endGroup()
 
     def saveWindowState(self):
         # save window geometry and dockwidget layout
         suffix = "" if self.centralWidget() else "P"
+
         settings = QSettings()
-        settings.setValue(f"/Qgis2threejs/wnd/geometry{suffix}", self.saveGeometry())
-        settings.setValue(f"/Qgis2threejs/wnd/state{suffix}", self.saveState())
+        settings.beginGroup("Qgis2threejs/wnd")
+        settings.setValue(f"geometry{suffix}", self.saveGeometry())
+        settings.setValue(f"state{suffix}", self.saveState())
+        settings.setValue("preview", self._previewWndGeometry)
+        settings.endGroup()
 
     def showConsoleStatusIcon(self, is_error):
         if self.ui.toolButtonConsoleStatus.isVisible() and not is_error:

@@ -16,6 +16,9 @@ class Event:
     # <- IPC bridge
     METHOD_INVOKED = "invoke"           # bridge method invoked
 
+    # <- window
+    WND_STATE_CHANGED = "wnd_state_changed"     # window resized or moved
+
     # view proxy ->
     QUIT = "quit"                       # window is closing
     GPU_INFO = "gpuinfo"                # GPU Info menu item clicked
@@ -27,6 +30,7 @@ class Request:
 
     # <- window
     EMBED_WND = "embed"
+    WND_GEOM = "wnd_geom"
 
     # page proxy ->
     LOAD_DATA = "data"

@@ -4,12 +4,13 @@
 
 import os
 import argparse
+import base64
 import json
 import logging
 import sys
 import traceback
 
-from PyQt6.QtCore import Qt, QPointF, qDebug
+from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
@@ -141,11 +142,17 @@ class WebView(Q3DWebEngineView):
 class Window(QWidget):
 
     def __init__(self, serverName, embedMode=True, pid=None):
+        self.timer = None
         super().__init__()
 
         if embedMode:
             self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         else:
+            self.timer = QTimer(self)
+            self.timer.setSingleShot(True)
+            self.timer.setInterval(1000)
+            self.timer.timeout.connect(self.notifyWndGeometry)
+
             self.setWindowTitle("Qgis2threejs Preview")
             self.setWindowFlags(Qt.WindowType.Window)
 
@@ -157,20 +164,40 @@ class Window(QWidget):
         self.webView = WebView(self, serverName)
         self.webView.socketClient.connected.connect(self.connected)
         self.webView.socketClient.notified.connect(self.notified)
+        self.webView.socketClient.responseReceived.connect(self.responseReceived)
         self.webView.setup()
         layout.addWidget(self.webView)
 
-        screen = QApplication.primaryScreen().availableGeometry()
-        self.resize(int(screen.width() * 0.7), int(screen.height() * 0.7))
+    def moveEvent(self, event):
+        if self.timer:
+            self.timer.start()
+        QWidget.moveEvent(self, event)
+
+    def resizeEvent(self, event):
+        if self.timer:
+            self.timer.start()
+        QWidget.resizeEvent(self, event)
+
+    def notifyWndGeometry(self):
+        geom = base64.b64encode(self.saveGeometry()).decode("ascii")
+        self.webView.socketClient.notify(Event.WND_STATE_CHANGED, {"geom": geom})
 
     def connected(self):
         if self.embedMode:
             self.webView.socketClient.request(Request.EMBED_WND, {"winId": int(self.winId())})
+        else:
+            self.webView.socketClient.request(Request.WND_GEOM)
 
     def notified(self, method, params, payload):
         if method == Event.QUIT:
             logger.info("Closing...")
             self.close()
+
+    def responseReceived(self, id, method, params, payload):
+        if method == Request.WND_GEOM:
+            geom = base64.b64decode(params["geom"])
+            if geom:
+                self.restoreGeometry(geom)
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
