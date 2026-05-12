@@ -9,7 +9,7 @@ import logging
 import sys
 import traceback
 
-from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtCore import Qt, QPointF, qDebug
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
@@ -178,13 +178,18 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 
 class ConditionalPrefixFilter(logging.Filter):
-
     def filter(self, record):
         msg = record.getMessage()
         if not msg.startswith('['):
             record.msg = f"[ * ] {msg}"
             record.args = ()
         return True
+
+
+class QDebugHandler(logging.Handler):
+    def emit(self, record):
+        msg = self.format(record)
+        qDebug(msg.encode("utf-8"))
 
 
 def main():
@@ -197,15 +202,18 @@ def main():
     args = parser.parse_args()
 
     # logging
-    handler = logging.StreamHandler()
-    handler.addFilter(ConditionalPrefixFilter())
-
     formatter = logging.Formatter("[%(levelname)s]%(message)s")
-    handler.setFormatter(formatter)
+
+    handlers = []
+    if DEBUG_MODE:
+        handler = QDebugHandler()
+        handler.addFilter(ConditionalPrefixFilter())
+        handler.setFormatter(formatter)
+        handlers.append(handler)
 
     logging.basicConfig(
         level=logging.DEBUG if DEBUG_MODE else logging.INFO,
-        handlers=[handler]
+        handlers=handlers
     )
 
     logger.debug("PYTHONPATH: %s", os.environ.get("PYTHONPATH"))
