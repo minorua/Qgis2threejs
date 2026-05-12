@@ -79,7 +79,6 @@ class Q3DWindow(QMainWindow):
 
         self.ui.webView = webView
         self.webPage = webView.page()
-        self.webPage.setObjectName("webPage")
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
@@ -142,7 +141,7 @@ class Q3DWindow(QMainWindow):
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
             self.controller.conn.teardown()
 
-            if self.ui.webView.webViewType == WebViewType.WEBENGINE:
+            if self.ui.webView.WebViewType == WebViewType.WEBENGINE:
                 self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file
@@ -242,11 +241,10 @@ class Q3DWindow(QMainWindow):
             ui.menuTestDebug.addAction(ui.actionTest)
             ui.actionTest.triggered.connect(self.runTest)
 
-            if self.webPage.isWebEnginePage:
-                ui.actionGPUInfo = QAction(self)
-                ui.actionGPUInfo.setText("GPU Info")
-                ui.menuTestDebug.addAction(ui.actionGPUInfo)
-                ui.actionGPUInfo.triggered.connect(ui.webView.showGPUInfo)
+            ui.actionGPUInfo = QAction(self)
+            ui.actionGPUInfo.setText("GPU Info")
+            ui.menuTestDebug.addAction(ui.actionGPUInfo)
+            ui.actionGPUInfo.triggered.connect(ui.webView.showGPUInfo)
 
             ui.actionJSInfo = QAction(self)
             ui.actionJSInfo.setText("three.js Info...")
@@ -268,7 +266,7 @@ class Q3DWindow(QMainWindow):
         w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
 
-        if self.webPage and self.webPage.isWebEnginePage:
+        if self.webPage:
             w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")
@@ -658,6 +656,12 @@ class Q3DWindow(QMainWindow):
     def runTest(self):
         from ..tests.gui.test_gui import runTest
         runTest(self)
+
+    def showJSInfo(self):
+        def showInfo(info):
+            QMessageBox.information(self, "three.js Renderer Info", str(info))
+
+        self.runScript("app.renderer.info", callback=showInfo)
 
 
 class PropertiesDialog(QDialog):

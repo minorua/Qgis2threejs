@@ -15,12 +15,11 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 
 from .conf import DEBUG_MODE
+from .const import WebViewType
 from .utils import logger, web_logger
-from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ...utils.basic import pluginDir
 
-
-TIMEOUT_MS = 30000      # timeout (ms) for script execution and rendering
 
 _original_chromium_flags = None
 _chromium_flags_saved = False
@@ -57,11 +56,11 @@ def restoreChromiumFlags():
             del os.environ[KEY]
 
 
-class Q3DWebEnginePage(Q3DWebEnginePageCommon, QWebEnginePage):
+class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
-        Q3DWebEnginePageCommon.__init__(self)
+        Q3DWebPageCommon.__init__(self, parent)
 
         self.isWebEnginePage = True
 
@@ -110,21 +109,44 @@ class Q3DWebEnginePage(Q3DWebEnginePageCommon, QWebEnginePage):
         return True
 
 
-class Q3DWebEngineView(Q3DWebEngineViewCommon, QWebEngineView):
+class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
     WebPageClass = Q3DWebEnginePage
+    WebViewType = WebViewType.WEBENGINE
 
     def __init__(self, parent):
         setChromiumFlags()
 
         QWebEngineView.__init__(self, parent)
-        Q3DWebEngineViewCommon.__init__(self)
+        Q3DWebViewCommon.__init__(self)
+
+        self.setAcceptDrops(True)
 
         self._page = self.WebPageClass(self)
-        self._page.setObjectName("webEnginePage")
+        self._page.setObjectName("WebEnginePage")
         self.setPage(self._page)
 
         restoreChromiumFlags()
+
+    def setup(self, webViewMode=None, enabledAtStart=True):
+        self._page.setup()
+
+    def teardown(self):
+        self._page = None
+
+    def dragEnterEvent(self, event):
+        event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        # logger.debug(event.mimeData().formats())
+        self.fileDropped.emit(event.mimeData().urls())
+        event.acceptProposedAction()
+
+    def setPreviewEnabled(self, enabled):
+        if enabled:
+            self._page.reload()
+        else:
+            self.runScript("setPreviewEnabled(false)")
 
     def showDevTools(self):
         if self._page.devToolsPage():

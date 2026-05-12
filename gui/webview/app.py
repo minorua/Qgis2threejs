@@ -94,6 +94,8 @@ class WebView(Q3DWebEngineView):
 
     WebPageClass = WebPage
 
+    # TODO: fileDropped
+
     def __init__(self, parent, serverName):
         Q3DWebEngineView.__init__(self, parent)
 

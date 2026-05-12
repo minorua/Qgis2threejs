@@ -7,7 +7,9 @@ import json
 
 # This module may be used in an external process rather than within the QGIS process.
 from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .conf import DEBUG_MODE
 from .webbridge import WebBridge
@@ -22,6 +24,9 @@ TIMEOUT_MS = 30000      # timeout (ms) for script loading
 class Q3DWebPageCommon:
 
     BridgeClass = WebBridge
+
+    # signals
+    jsErrorWarning = pyqtSignal(bool)       # is_error
 
     def __init__(self, _=None):
         self.loadedScripts = {}
@@ -91,15 +96,55 @@ class Q3DWebPageCommon:
 
         load_next()
 
-    def logScriptExecution(self, string, message="", sourceID=""):
-        if not DEBUG_MODE or message is None:
+    def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
+        """
+        Run a JavaScript script in the web view with optional data and callback.
+        Args:
+            string (str): The JavaScript code string to execute.
+            message (str, optional): A descriptive message for logging purposes.
+            sourceID (str, optional): Identifier for the source of the script.
+            callback (optional): Callback function to be executed after script runs.
+            wait (bool, optional): Whether to wait for script execution to complete.
+        """
+
+        if DEBUG_MODE and message is not None:
+            text = message or string
+            if sourceID:
+                text += f"\t({sourceID})"
+            logger.debug(f"> {text}")
+
+        if not wait:
+            if callback:
+                self.runJavaScript(string, callback)
+            else:
+                self.runJavaScript(string)
             return
 
-        text = message or string
-        if sourceID:
-            text += f"\t({sourceID})"
+        loop = QEventLoop()
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
 
-        logger.debug(f"> {text}")
+        finished = False
+        result = None
+        def runJavaScriptCallback(res):
+            nonlocal finished, result
+            finished = True
+            result = res
+            loop.quit()
+
+        self.runJavaScript(string, runJavaScriptCallback)
+
+        timer.start(TIMEOUT_MS)
+        loop.exec()
+
+        if not finished:
+            logger.warning(f"JavaScript execution timed out: {string}")
+
+        if callback:
+            callback(result)
+
+        return result
 
     def showMessageBar(self, msg, timeout_ms=0, warning=False):
         """Show a message bar at the top of the web page.
@@ -113,33 +158,41 @@ class Q3DWebPageCommon:
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)
 
+    def acceptNavigationRequest(self, url, type, isMainFrame):
+        if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
+            QDesktopServices.openUrl(url)
+            return False
+        return True
+
+    def requestRendering(self, waitUntilFinished=False):
+        def render():
+            self.runScript("requestRendering()")
+
+        if waitUntilFinished:
+            loop = QEventLoop()
+            self.bridge.requestedRenderingFinished.connect(loop.quit)
+
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(loop.quit)
+
+            render()
+
+            timer.start(TIMEOUT_MS)
+            loop.exec()
+        else:
+            render()
+
 
 class Q3DWebViewCommon:
+
+    WebViewType = None
 
     devToolsClosed = pyqtSignal()
     fileDropped = pyqtSignal(list)
 
     def __init__(self, _=None):
-        self.setAcceptDrops(True)
-
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        """
-        :param webViewMode: in-process, embedded external, external window
-        :param enabled: whether preview is enabled at start
-        """
-        self._enabled = enabledAtStart
-        self._page.setup()
-
-    def teardown(self):
-        self._page = None
-
-    def dragEnterEvent(self, event):
-        event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        # logger.debug(event.mimeData().formats())
-        self.fileDropped.emit(event.mimeData().urls())
-        event.acceptProposedAction()
+        pass
 
     def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, message, sourceID, callback, wait)
@@ -150,8 +203,11 @@ class Q3DWebViewCommon:
 
         self.runScript("app.renderer.info", callback=showInfo)
 
-    def setPreviewEnabled(self, enabled):
-        if enabled:
-            self._page.reload()
-        else:
-            self.runScript("setPreviewEnabled(false)")
+    # <abstract methods>
+    # def page(self):
+    # def setup(self, webViewMode=None, enabledAtStart=True):
+    # def teardown(self):
+    # def setPreviewEnabled(self, enabled):
+    # def showDevTools(self):
+    # def showGPUInfo(self):
+    # def triggerTestClick(self, pos):

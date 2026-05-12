@@ -9,16 +9,16 @@ import subprocess
 from qgis.PyQt.QtCore import QObject, QSize, QUrl, pyqtSignal
 
 from .conf import DEBUG_MODE
-from .const import PreviewState, WebViewMode
+from .const import PreviewState, WebViewType, WebViewMode
 from .utils import logger, web_logger
 from .webbridge import WebIPCBridge
-from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
+from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..ipc.ipc_const import Event, Request
 from ..ipc.socketserver import SocketServer
 from ...utils.basic import createUid, pluginDir, NoopClass
 
 
-class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
+class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     BridgeClass = WebIPCBridge
 
@@ -28,7 +28,7 @@ class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
-        Q3DWebEnginePageCommon.__init__(self)
+        Q3DWebPageCommon.__init__(self, parent)
 
         self.isWebEnginePage = True
 
@@ -97,13 +97,13 @@ class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
         self.socketServer.request(Request.LOAD_DATA, params=params, payload=payload)
 
 
-class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
+class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
-    fileDropped = pyqtSignal(list)      # TODO: IPC
+    WebViewType = WebViewType.WEBENGINE
 
     def __init__(self, parent):
         QObject.__init__(self, parent)
-        Q3DWebEngineViewCommon.__init__(self, parent)
+        Q3DWebViewCommon.__init__(self, parent)
 
         self.embeddedMode = True
         self.previewEnabled = True
@@ -117,19 +117,11 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         self.socketServer.disconnected.connect(self.disconnected)
 
         self._page = Q3DWebPageProxy(self)
+        self._page.setObjectName("WebPageProxy")
         self._page.setSocketServer(self.socketServer)
 
-    def page(self):
-        return self._page
-
-    def size(self):
-        return self.parent().size() if self.embeddedMode else QSize()
-
-    def getSizeAsync(self, callback):
-        self.socketServer.request(Request.SIZE, callback=callback)
-
     def setup(self, webViewMode=None, enabledAtStart=True):
-        Q3DWebEngineViewCommon.setup(self, webViewMode, enabledAtStart)
+        self._page.setup()
 
         if webViewMode == WebViewMode.EMBEDDED:
             self.viewContainer = self.parent()
@@ -142,6 +134,16 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         logger.info("Socket server is going to shut down.")
         self.stopPreview()
         self.viewContainer = None
+        self._page = None
+
+    def page(self):
+        return self._page
+
+    def size(self):
+        return self.parent().size() if self.embeddedMode else QSize()
+
+    def getSizeAsync(self, callback):
+        self.socketServer.request(Request.SIZE, callback=callback)
 
     def startPreview(self):
         self.viewContainer.showPreviewState(PreviewState.State_Loading)
@@ -194,19 +196,21 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)        # env=env
 
     def stopPreview(self):
+        if not self.viewProcess:
+            return
+
         self.socketServer.notify(Event.QUIT)
 
         self.viewContainer.removeEmbeddedWnd()
 
-        if self.viewProcess:
-            try:
-                self.viewProcess.terminate()
-                self.viewProcess.wait(timeout=3)
+        try:
+            self.viewProcess.terminate()
+            self.viewProcess.wait(timeout=3)
 
-            # except ProcessLookupError:
-            # except subprocess.TimeoutExpired:
-            finally:
-                self.viewProcess = None
+        # except ProcessLookupError:
+        # except subprocess.TimeoutExpired:
+        finally:
+            self.viewProcess = None
 
     def setPreviewEnabled(self, enabled):
         self.previewEnabled = enabled
@@ -215,10 +219,6 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
         else:
             self.viewContainer.showPreviewState(PreviewState.State_Disabled)
             self.stopPreview()
-
-    # TODO:
-    def setAcceptDrops(self, _b):
-        pass
 
     def showDevTools(self):
         self.socketServer.notify(Event.DEV_TOOLS)
