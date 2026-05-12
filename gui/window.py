@@ -48,6 +48,9 @@ class Q3DWindow(QMainWindow):
 
         self.qgisIface = qgisIface
         self.settings = settings        # hold a reference to the original of ExportSettings object
+        self.webViewType = webViewType
+        self.webViewMode = webViewMode
+
         self.lastDir = None
         self.loadIcons()
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
@@ -115,10 +118,7 @@ class Q3DWindow(QMainWindow):
         project = QgsProject.instance()
         project.dirtySet.connect(self.setDirty)
 
-        # restore window geometry and dockwidget layout
-        settings = QSettings()
-        self.restoreGeometry(settings.value("/Qgis2threejs/wnd/geometry", b""))
-        self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
+        self.restoreWindowState()
 
         if DEBUG_MODE:
             from ..utils.debug import setupDestructionLogging
@@ -148,10 +148,7 @@ class Q3DWindow(QMainWindow):
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
 
-            # save window geometry and dockwidget layout
-            settings = QSettings()
-            settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
-            settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+            self.saveWindowState()
 
             # safely stop worker thread
             self.controller.teardown()
@@ -276,6 +273,20 @@ class Q3DWindow(QMainWindow):
 
             self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
             self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
+
+    def restoreWindowState(self):
+        # restore window geometry and dockwidget layout
+        settings = QSettings()
+        suffix = "" if self.centralWidget() else "P"
+        self.restoreGeometry(settings.value(f"/Qgis2threejs/wnd/geometry{suffix}", b""))
+        self.restoreState(settings.value(f"/Qgis2threejs/wnd/state{suffix}", b""))
+
+    def saveWindowState(self):
+        # save window geometry and dockwidget layout
+        suffix = "" if self.centralWidget() else "P"
+        settings = QSettings()
+        settings.setValue(f"/Qgis2threejs/wnd/geometry{suffix}", self.saveGeometry())
+        settings.setValue(f"/Qgis2threejs/wnd/state{suffix}", self.saveState())
 
     def showConsoleStatusIcon(self, is_error):
         if self.ui.toolButtonConsoleStatus.isVisible() and not is_error:
