@@ -13,16 +13,15 @@ from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
-from .ipc_const import Event, Request
-from .socketclient import SocketClient
+from . import conf
+conf.WEBVIEW_IN_QGIS_PROCESS = False
 
-from ..conf import DEBUG_MODE, PLUGIN_NAME
-from ..gui import webview_conf
-webview_conf.WEBVIEW_IN_QGIS_PROCESS = False
-
-from ..gui.webbridge import WebIPCBridge
-from ..gui.webengineview import Q3DWebEnginePage, Q3DWebEngineView
-from ..utils.basic import pluginDir
+from .webbridge import WebIPCBridge
+from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
+from ..ipc.ipc_const import Event, Request
+from ..ipc.socketclient import SocketClient
+from ...conf import DEBUG_MODE, PLUGIN_NAME
+from ...utils.basic import pluginDir
 
 
 logger = logging.getLogger(PLUGIN_NAME)

@@ -9,7 +9,7 @@ from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
 
 from .cli.utils import logger
-from ..gui.webengineview import QWebEnginePage, setChromiumFlags
+from ..gui.webview.webengineview import QWebEnginePage, setChromiumFlags
 
 
 @dataclass

@@ -17,7 +17,7 @@ from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
 from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
-from ...gui.const import WebViewType, WebViewMode
+from ...gui.webview.const import WebViewType, WebViewMode
 from ...gui import webview
 from ...utils import file as file_utils, js as js_utils
 from ...utils.logging import logger

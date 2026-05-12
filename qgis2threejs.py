@@ -16,8 +16,8 @@ configureLoggers()
 from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
-from .gui.const import WebViewType, WebViewMode
-from .gui.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, CAN_EMBED_WND
+from .gui.webview.const import WebViewType, WebViewMode
+from .gui.webview.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, CAN_EMBED_WND
 from .gui.window import Q3DWindow
 from .utils.basic import pluginDir
 from .utils.file import removeTemporaryOutputDir

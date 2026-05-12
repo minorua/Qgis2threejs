@@ -12,13 +12,12 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from . import webview
-from .webviewcontainer import WebViewContainer
+from .webview.const import WebViewType, WebViewMode
+from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
-from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
-from .const import WebViewType, WebViewMode
-from .webview import WEBENGINE_AVAILABLE
+from .webview.webview import getWebViewClass, WEBENGINE_AVAILABLE
+from .webview.webviewcontainer import WebViewContainer
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
 from ..core.controller.controller import Q3DController
@@ -56,7 +55,7 @@ class Q3DWindow(QMainWindow):
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        Q3DView = webview.getWebViewClass(webViewType, webViewMode)
+        Q3DView = getWebViewClass(webViewType, webViewMode)
         if webViewType == WebViewType.NONE or webViewMode == WebViewMode.SEPARATE:
             webView = Q3DView(parent=self)
             self.setCentralWidget(None)

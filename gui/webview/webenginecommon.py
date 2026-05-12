@@ -8,8 +8,8 @@ from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .const import WebViewType
+from .utils import logger
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon, TIMEOUT_MS
-from ..utils.logging import logger
 
 
 class Q3DWebEnginePageCommon(Q3DWebPageCommon):

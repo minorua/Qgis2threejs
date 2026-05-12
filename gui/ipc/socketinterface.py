@@ -9,7 +9,7 @@ import logging
 
 from PyQt6.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
 
-from ..conf import DEBUG_MODE, PLUGIN_NAME
+from ...conf import DEBUG_MODE, PLUGIN_NAME
 
 logger = logging.getLogger(PLUGIN_NAME)
 

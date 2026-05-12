@@ -7,8 +7,8 @@ from qgis.PyQt.QtGui import QPalette, QPixmap, QWindow
 from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedWidget, QVBoxLayout, QWidget
 
 from .const import PreviewState
-from ..utils.basic import pluginDir
-from ..utils.logging import logger
+from .utils import logger
+from ...utils.basic import pluginDir
 
 
 class WebViewContainer(QStackedWidget):

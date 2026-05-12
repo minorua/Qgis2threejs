@@ -8,7 +8,7 @@ import logging
 from PyQt6.QtNetwork import QLocalSocket
 
 from .socketinterface import SocketInterface
-from ..conf import PLUGIN_NAME
+from ...conf import PLUGIN_NAME
 
 logger = logging.getLogger(PLUGIN_NAME)
 

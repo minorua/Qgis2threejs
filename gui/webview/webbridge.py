@@ -10,8 +10,8 @@ from functools import wraps
 from PyQt6.QtCore import QByteArray, QObject, QVariant, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage
 
-from .webview_conf import DEBUG_MODE, WEBVIEW_IN_QGIS_PROCESS
-from .webview_utils import logger
+from .conf import DEBUG_MODE, WEBVIEW_IN_QGIS_PROCESS
+from .utils import logger
 
 if WEBVIEW_IN_QGIS_PROCESS:
     if DEBUG_MODE:

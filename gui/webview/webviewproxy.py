@@ -8,14 +8,14 @@ import subprocess
 
 from qgis.PyQt.QtCore import QObject, QSize, QUrl, pyqtSignal
 
+from .conf import DEBUG_MODE
 from .const import PreviewState, WebViewMode
+from .utils import logger, web_logger
 from .webbridge import WebIPCBridge
 from .webenginecommon import Q3DWebEnginePageCommon, Q3DWebEngineViewCommon
-from ..conf import DEBUG_MODE
-from ..preview.ipc_const import Event, Request
-from ..preview.socketserver import SocketServer
-from ..utils.basic import createUid, pluginDir, NoopClass
-from ..utils.logging import logger, web_logger
+from ..ipc.ipc_const import Event, Request
+from ..ipc.socketserver import SocketServer
+from ...utils.basic import createUid, pluginDir, NoopClass
 
 
 class Q3DWebPageProxy(Q3DWebEnginePageCommon, QObject):
@@ -165,7 +165,7 @@ class Q3DWebViewProxy(Q3DWebEngineViewCommon, QObject):
             args.append("python3")
 
         args += [
-            "-m", "Qgis2threejs.preview.view",
+            "-m", "Qgis2threejs.gui.webview.app",
             "-s", self.serverName,
             "-p", str(os.getpid())
         ]

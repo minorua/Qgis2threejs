@@ -5,7 +5,7 @@
 
 import os
 from .const import WebViewType, WebViewMode
-from ..utils.logging import logger
+from .utils import logger
 
 WEBENGINE_AVAILABLE = False
 try:
