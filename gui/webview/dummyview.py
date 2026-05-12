@@ -38,8 +38,8 @@ class Q3DDummyView(Q3DWebViewCommon, QObject):
     WebViewType = WebViewType.NONE
 
     def __init__(self, parent):
-        QObject.__init__(parent)
-        Q3DWebViewCommon.__init__(parent)
+        QObject.__init__(self, parent)
+        Q3DWebViewCommon.__init__(self, parent)
 
         self._page = Q3DDummyPage(self)
         self._page.setObjectName("DummyPage")
