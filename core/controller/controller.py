@@ -242,10 +242,9 @@ class Q3DController(QObject):
         if configs:
             self.runScript("\n".join(configs))
 
-        self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
-                                                     DEBUG_MODE,
-                                                     Qgis.QGIS_VERSION_INT,
-                                                     js_bool(self.webPage.isWebEnginePage)))
+        self.runScript("init({}, {}, {})".format(js_bool(self.offScreen),
+                                                 DEBUG_MODE,
+                                                 Qgis.QGIS_VERSION_INT))
 
     def viewerInitialized(self):
         # labels

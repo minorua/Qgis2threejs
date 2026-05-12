@@ -86,27 +86,20 @@ class GUITestBase(unittest.TestCase):
         self.sleep(500)
 
         w = self.WND.ui.webView
-        if w._page.isWebEnginePage:
-            pos = QPointF(x, y)
-            w.triggerTestClick(pos)
-        else:
-            pos = QPoint(x, y)
-            QTest.mouseClick(w, Qt.MouseButton.LeftButton, pos=pos)
+        pos = QPointF(x, y)
+        w.triggerTestClick(pos)
 
         self.sleep(100)
 
     def keyPress(self, key):
         w = self.WND.ui.webView
 
-        if w._page.isWebEnginePage:
-            w = w.findChild(QWidget)
-            press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
-            release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
+        w = w.findChild(QWidget)
+        press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
+        release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
 
-            QgsApplication.postEvent(w, press)
-            QgsApplication.postEvent(w, release)
-        else:
-            QTest.keyPress(w, key)
+        QgsApplication.postEvent(w, press)
+        QgsApplication.postEvent(w, release)
 
         self.sleep(100)
 

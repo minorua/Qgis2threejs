@@ -31,38 +31,25 @@ var preview = {
 };
 
 //// initialization
-function init(off_screen, debug_mode, qgis_version, is_webengine) {
+function init(off_screen, debug_mode, qgis_version) {
 
 	Q3D.Config.debugMode = debug_mode;
 	Q3D.Config.qgisVersion = qgis_version;
-	Q3D.Config.isWebEngine = is_webengine;
 
-	if (is_webengine) {
-		// Web Channel
-		new QWebChannel(qt.webChannelTransport, function(channel) {
-			window.pyObj = channel.objects.bridge;
-			pyObj.sendData.connect(function (data, viaQueue) {
-				loadData(data, viaQueue);
+	new QWebChannel(qt.webChannelTransport, function(channel) {
+		window.pyObj = channel.objects.bridge;
+		pyObj.sendData.connect(function (data, viaQueue) {
+			loadData(data, viaQueue);
 
-				if (Q3D.Config.debugMode) {
-					var dataType = data.type || "unknown";
-					console.debug("↓" + dataType + " data loaded", data);
-				}
-			});
-
-			_init(off_screen);
-
+			if (Q3D.Config.debugMode) {
+				var dataType = data.type || "unknown";
+				console.debug("↓" + dataType + " data loaded", data);
+			}
 		});
-	}
-	else {
-		// WebKit Bridge
-		window.pyData = function () {
-			return pyObj.data();
-		}
 
 		_init(off_screen);
 
-	}
+	});
 }
 
 function _init(off_screen) {
@@ -122,26 +109,7 @@ function _init(off_screen) {
 	// see https://github.com/minorua/Qgis2threejs/issues/147
 	var gl = app.renderer.getContext();		// WebGLRenderingContext
 	if (gl.getExtension("WEBGL_depth_texture") === null) {
-
-		var viewName = (Q3D.Config.isWebEngine) ? "WebEngine" : "WebKit";
-
-		var msg = "The current web view (Qt " + viewName + ") cannot display 3D objects. ";
-
-		if (!Q3D.Config.isWebEngine) {
-
-			if (Q3D.Config.qgisVersion >= 33600) {
-
-				msg += "Please use the Qt WebEngine view instead. You can find instructions on how to do this in the plugin ";
-				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
-
-			}
-			else {
-
-				msg += "Please consider using QGIS version 3.36 or a later version, which supports using Qt WebEngine view.";
-
-			}
-		}
-
+		var msg = "The current web view (Qt WebEngine) cannot display 3D objects.";
 		showMessageBar(msg, undefined, true);
 	}
 
