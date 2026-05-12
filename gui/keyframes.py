@@ -58,7 +58,7 @@ class AnimationPanel(QWidget):
 
         self.setData(settings.animationData())
 
-        if self.webPage:
+        if self.webPage.SupportsPreview:
             self.tree.currentItemChanged.connect(self.currentItemChanged)
             self.currentItemChanged(None, None)
 

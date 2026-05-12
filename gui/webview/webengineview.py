@@ -58,11 +58,11 @@ def restoreChromiumFlags():
 
 class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
+    SupportsPreview = True
+
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
         Q3DWebPageCommon.__init__(self, parent)
-
-        self.isWebEnginePage = True
 
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)

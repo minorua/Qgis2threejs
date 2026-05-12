@@ -32,10 +32,6 @@ class Q3DDummyPage(Q3DWebPageCommon, QObject):
     def _func(self, *args1, **args2):
         pass
 
-    def __bool__(self):
-        """Dummy page represents absence of a usable Web page."""
-        return False
-
 
 class Q3DDummyView(Q3DWebViewCommon, QObject):
 
@@ -76,7 +72,3 @@ class Q3DDummyView(Q3DWebViewCommon, QObject):
 
         for obj in objs:
             obj.setEnabled(False)
-
-    def __bool__(self):
-        """Dummy view represents absence of a usable Web view."""
-        return False

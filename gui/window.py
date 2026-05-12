@@ -218,7 +218,7 @@ class Q3DWindow(QMainWindow):
         ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        if self.webPage:
+        if self.webPage.SupportsPreview:
             ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
             ui.actionReload.triggered.connect(self.reloadPage)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
@@ -231,7 +231,7 @@ class Q3DWindow(QMainWindow):
 
         self.alwaysOnTopToggled(False)
 
-        if DEBUG_MODE and self.webPage:
+        if DEBUG_MODE and self.webPage.SupportsPreview:
             ui.menuTestDebug = QMenu(ui.menubar)
             ui.menuTestDebug.setTitle("Test&&&Debug")
             ui.menubar.addAction(ui.menuTestDebug.menuAction())
@@ -266,7 +266,7 @@ class Q3DWindow(QMainWindow):
         w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
 
-        if self.webPage:
+        if self.webPage.SupportsPreview:
             w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")

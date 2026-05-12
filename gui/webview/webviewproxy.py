@@ -21,6 +21,7 @@ from ...utils.basic import createUid, pluginDir, NoopClass
 class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     BridgeClass = WebIPCBridge
+    SupportsPreview = True
 
     # QWebEnginePage signals
     loadStarted = pyqtSignal()
@@ -29,8 +30,6 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
         Q3DWebPageCommon.__init__(self, parent)
-
-        self.isWebEnginePage = True
 
         url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)

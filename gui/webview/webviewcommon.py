@@ -24,6 +24,7 @@ TIMEOUT_MS = 30000      # timeout (ms) for script loading
 class Q3DWebPageCommon:
 
     BridgeClass = WebBridge
+    SupportsPreview = False
 
     # signals
     jsErrorWarning = pyqtSignal(bool)       # is_error
