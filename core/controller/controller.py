@@ -220,7 +220,7 @@ class Q3DController(QObject):
             return
 
         if not self.enabled:
-            self.webPage.setPreviewEnabled(False)
+            self.runScript("setPreviewEnabled(false)")
             self.clearStatusMessage()
             return
 
