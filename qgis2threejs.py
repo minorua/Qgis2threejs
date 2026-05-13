@@ -17,7 +17,7 @@ from .conf import DEBUG_MODE, PLUGIN_NAME
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.webview.const import WebViewType, WebViewMode
-from .gui.webview.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE, CAN_EMBED_WND
+from .gui.webview.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE
 from .gui.window import Q3DWindow
 from .utils.basic import pluginDir
 from .utils.file import removeTemporaryOutputDir
@@ -54,19 +54,20 @@ class Qgis2threejs:
         self.actionGroup = QActionGroup(wnd)
         self.actionGroup.setObjectName(objName + "Group")
 
-        if WEBENGINE_AVAILABLE and WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
-            action = QAction(icon, title + " (In-Process)", self.actionGroup)
-            action.setObjectName(objName + "WE")
-            action.triggered.connect(lambda c, a=action: self.openExporterInProc(a))
+        if WEBENGINE_AVAILABLE:
+            if WEBENGINE_INPROCESS_WEBGL_AVAILABLE:
+                action = QAction(icon, title + " (Native)", self.actionGroup)
+                action.setObjectName(objName + "WE")
+                action.triggered.connect(lambda c, a=action: self.openExporterInProc(a))
 
-        if CAN_EMBED_WND:
-            action = QAction(icon, title + " (Embedded Preview)", self.actionGroup)
-            action.setObjectName(objName + "Emb")
-            action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
+            if os.name == "nt":
+                action = QAction(icon, title + " (Embedded External)", self.actionGroup)
+                action.setObjectName(objName + "Emb")
+                action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
 
-        action = QAction(icon, title + " (Separate Preview)", self.actionGroup)
-        action.setObjectName(objName + "Sep")
-        action.triggered.connect(lambda c, a=action: self.openExporerSeparate(a))
+            action = QAction(icon, title + " (Separate External)", self.actionGroup)
+            action.setObjectName(objName + "Sep")
+            action.triggered.connect(lambda c, a=action: self.openExporerSeparate(a))
 
         action = QAction(icon, title + " (No Preview)", self.actionGroup)
         action.setObjectName(objName + "WoP")
@@ -105,11 +106,7 @@ class Qgis2threejs:
         # temporary output directory
         removeTemporaryOutputDir()
 
-    def openExporter(self, _=False, webViewType=WebViewType.WEBENGINE, webViewMode=None):
-        """
-        webViewType: WebViewType.NONE or WebViewType.WEBENGINE.
-        webViewMode: If webViewMode is None, the mode depends on the OS.
-        """
+    def openExporter(self, _=False, webViewType=WebViewType.WEBENGINE, webViewMode=WebViewMode.INPROCESS):
         if self.liveExporter:
             logger.info("Qgis2threejs Exporter is already open.")
             self.liveExporter.activateWindow()
@@ -150,7 +147,13 @@ class Qgis2threejs:
                 action.triggered.emit()
                 return
 
-        self.openExporter()
+        if WEBENGINE_AVAILABLE:
+            if os.name == "nt":
+                self.openExporter(webViewMode=WebViewMode.EMBEDDED)
+            else:
+                self.openExporter(webViewMode=WebViewMode.SEPARATE)
+        else:
+            self.openExporter(webViewType=WebViewType.NONE)
 
     def openExporterInProc(self, action):
         self.openExporter(webViewMode=WebViewMode.INPROCESS)

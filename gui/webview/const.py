@@ -8,9 +8,9 @@ class WebViewType:
 
 
 class WebViewMode:
-    INPROCESS = 0
-    EMBEDDED = 1
-    SEPARATE = 2
+    INPROCESS = 0       # In-process preview mode (native)
+    EMBEDDED = 1        # Embedded external-process preview mode
+    SEPARATE = 2        # Separate external-process preview mode
 
 
 class PreviewState:
