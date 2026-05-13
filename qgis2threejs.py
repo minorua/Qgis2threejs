@@ -10,7 +10,7 @@ from qgis.PyQt.QtWidgets import QAction, QActionGroup
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
 
-from .utils.logging import configureLoggers, logger
+from .utils.logging import configureLoggers
 configureLoggers()
 
 from .conf import DEBUG_MODE, PLUGIN_NAME
@@ -21,6 +21,7 @@ from .gui.webview.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_
 from .gui.window import Q3DWindow
 from .utils.basic import pluginDir
 from .utils.file import removeTemporaryOutputDir
+from .utils.logging import logger
 from .utils.qgis import settingsFilePath
 
 
