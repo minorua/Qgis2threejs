@@ -213,22 +213,24 @@ class Q3DWindow(QMainWindow):
         ui.actionClearSettings.triggered.connect(self.clearSettings)
         ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
-        ui.actionGroupCamera.triggered.connect(self.cameraChanged)
-        ui.actionNavigationWidget.toggled.connect(self.navStateChanged)
         ui.actionAddPlane.triggered.connect(self.addPlane)
         ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
+        ui.actionGroupCamera.triggered.connect(self.cameraChanged)
+        ui.actionNavigationWidget.toggled.connect(self.navStateChanged)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        if self.webPage.SupportsPreview:
-            ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
-            ui.actionReload.triggered.connect(self.reloadPage)
-            ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
         ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
         ui.actionUsage.triggered.connect(self.usage)
         ui.actionHelp.triggered.connect(openHelp)
         ui.actionHomePage.triggered.connect(self.homePage)
         ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         ui.actionVersion.triggered.connect(self.about)
+
+        if self.webPage.SupportsPreview:
+            ui.actionReload.triggered.connect(self.reloadPage)
+            ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
+            ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
+            ui.actionGraphicsInfo.triggered.connect(ui.webView.showGPUInfo)
 
         self.alwaysOnTopToggled(False)
 
@@ -241,11 +243,6 @@ class Q3DWindow(QMainWindow):
             ui.actionTest.setText("Run Test")
             ui.menuTestDebug.addAction(ui.actionTest)
             ui.actionTest.triggered.connect(self.runTest)
-
-            ui.actionGPUInfo = QAction(self)
-            ui.actionGPUInfo.setText("GPU Info")
-            ui.menuTestDebug.addAction(ui.actionGPUInfo)
-            ui.actionGPUInfo.triggered.connect(ui.webView.showGPUInfo)
 
             ui.actionJSInfo = QAction(self)
             ui.actionJSInfo.setText("three.js Info...")
