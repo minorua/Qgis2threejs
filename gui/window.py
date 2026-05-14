@@ -97,7 +97,7 @@ class Q3DWindow(QMainWindow):
         self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
-        if webViewType == WebViewType.WEBENGINE:
+        if self.webPage.SupportsPreview:
             self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
@@ -106,8 +106,9 @@ class Q3DWindow(QMainWindow):
 
             webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
-        else:   # Q3DDummyView
-            webView.disableWidgetsAndMenus(self.ui)
+        else:
+            self.ui.checkBoxPreview.setEnabled(False)
+            self.previewStateChanged(False)
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -200,14 +201,6 @@ class Q3DWindow(QMainWindow):
 
         # signal-slot connections
         ui.actionExportToWeb.triggered.connect(self.exportToWeb)
-
-        if WEBENGINE_AVAILABLE:
-            ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
-            ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
-        else:
-            ui.actionSaveAsImage.setEnabled(False)
-            ui.actionSaveAsGLTF.setEnabled(False)
-
         ui.actionLoadSettings.triggered.connect(self.loadSettings)
         ui.actionSaveSettings.triggered.connect(self.saveSettings)
         ui.actionClearSettings.triggered.connect(self.clearSettings)
@@ -227,6 +220,8 @@ class Q3DWindow(QMainWindow):
         ui.actionVersion.triggered.connect(self.about)
 
         if self.webPage.SupportsPreview:
+            ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+            ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
             ui.actionReload.triggered.connect(self.reloadPage)
             ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
@@ -319,9 +314,19 @@ class Q3DWindow(QMainWindow):
         self.controller.enabled = enabled
 
         self.ui.webView.setPreviewEnabled(enabled)
+        self.previewStateChanged(enabled)
 
     def previewClosed(self):
         self.ui.checkBoxPreview.setChecked(False)
+        self.previewStateChanged(False)
+
+    def previewStateChanged(self, enabled):
+        ui = self.ui
+        objs = [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition,
+                ui.actionDevTools, ui.actionUsage, ui.actionGraphicsInfo]
+
+        for obj in objs:
+            obj.setEnabled(enabled)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:

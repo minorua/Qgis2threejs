@@ -64,11 +64,3 @@ class Q3DDummyView(Q3DWebViewCommon, QObject):
 
     def triggerTestClick(self, pos):
         pass
-
-    # utility
-    def disableWidgetsAndMenus(self, ui):
-        objs = [ui.checkBoxPreview, ui.menuSaveAs, ui.actionReload,
-                ui.actionResetCameraPosition, ui.actionDevTools, ui.actionUsage]
-
-        for obj in objs:
-            obj.setEnabled(False)
