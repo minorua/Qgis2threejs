@@ -13,11 +13,11 @@ from qgis.core import QgsApplication, QgsProject
 from .utils.logging import configureLoggers
 configureLoggers()
 
-from .conf import DEBUG_MODE, PLUGIN_NAME
+from .conf import DEBUG_MODE, PLUGIN_NAME, WEBENGINE_INPROCESS_WEBGL_AVAILABLE
 from .core.exportsettings import ExportSettings
 from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.webview.const import WebViewType, WebViewMode
-from .gui.webview.webview import WEBENGINE_AVAILABLE, WEBENGINE_INPROCESS_WEBGL_AVAILABLE
+from .gui.webview.webview import WEBENGINE_AVAILABLE
 from .gui.window import Q3DWindow
 from .utils.basic import pluginDir
 from .utils.file import removeTemporaryOutputDir

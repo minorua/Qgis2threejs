@@ -14,8 +14,6 @@ try:
 except Exception as e:
     logger.warning(f"WebEngine widgets are unavailable: {e}")
 
-WEBENGINE_INPROCESS_WEBGL_AVAILABLE = True
-
 
 def getWebViewClass(webViewType, webViewMode):
     if webViewType == WebViewType.WEBENGINE:

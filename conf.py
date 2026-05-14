@@ -8,6 +8,9 @@ PLUGIN_NAME = "Qgis2threejs"
 PLUGIN_VERSION = "2.10"
 PLUGIN_VERSION_INT = 21000
 
+# web engine view
+WEBENGINE_INPROCESS_WEBGL_AVAILABLE = False
+
 # vector layer
 FEATURES_PER_BLOCK = 50   # max number of features in a data block
 
