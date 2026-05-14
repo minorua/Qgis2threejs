@@ -10,19 +10,28 @@ import logging
 import sys
 import traceback
 
-from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
-from . import conf
-conf.WEBVIEW_IN_QGIS_PROCESS = False
+def fatal_exception(exit_code=1):
+    traceback.print_exc(file=sys.stderr)
+    sys.exit(exit_code)
 
-from .webbridge import WebIPCBridge
-from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
-from ..ipc.ipc_const import Event, Request
-from ..ipc.socketclient import SocketClient
-from ...conf import DEBUG_MODE, PLUGIN_NAME
-from ...utils.basic import pluginDir
+
+try:
+    from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
+    from PyQt6.QtGui import QIcon
+    from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
+
+    from . import conf
+    conf.WEBVIEW_IN_QGIS_PROCESS = False
+
+    from .webbridge import WebIPCBridge
+    from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
+    from ..ipc.ipc_const import Event, Request
+    from ..ipc.socketclient import SocketClient
+    from ...conf import DEBUG_MODE, PLUGIN_NAME
+    from ...utils.basic import pluginDir
+except Exception:
+    fatal_exception()
 
 
 logger = logging.getLogger(PLUGIN_NAME)
@@ -132,7 +141,7 @@ class WebView(Q3DWebEngineView):
         pass
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
-        msg = "[Python]" + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        msg = "[Preview]" + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
         self.socketClient.notify(Event.PY_ERROR, params={"msg": msg})
 
     def notifyDevToolsClosed(self):

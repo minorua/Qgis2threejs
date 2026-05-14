@@ -6,16 +6,20 @@ import json
 import os
 import subprocess
 
-from qgis.PyQt.QtCore import QObject, QSize, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import QObject, QSize, QProcess, QUrl, pyqtSignal
+from qgis.PyQt.QtWidgets import QMessageBox
 
-from .conf import DEBUG_MODE
 from .const import PreviewState, WebViewType, WebViewMode
 from .utils import logger, web_logger
 from .webbridge import WebIPCBridge
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..ipc.ipc_const import Event, Request
 from ..ipc.socketserver import SocketServer
+from ...conf import DEBUG_MODE, PLUGIN_NAME
 from ...utils.basic import createUid, pluginDir
+
+
+USE_QPROCESS = True
 
 
 class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
@@ -149,7 +153,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
         args = []
         if os.name == "nt":
-            if DEBUG_MODE and self.embeddedMode:
+            if DEBUG_MODE and self.embeddedMode and not USE_QPROCESS:
                 args += [
                     pluginDir("scripts", "pause_on_error.bat"),
                     "python"
@@ -171,6 +175,15 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
         cwd = os.path.dirname(pluginDir())
 
+        if USE_QPROCESS:
+            self.viewProcess = QProcess(self)
+            self.viewProcess.finished.connect(self.viewProcessFinished)
+            self.viewProcess.errorOccurred.connect(self.viewProcessErrorOccurred)
+
+            self.viewProcess.setWorkingDirectory(cwd)
+            self.viewProcess.start(args[0], args[1:])
+            return
+
         # env = os.environ.copy()
         # env["PYTHONPATH"] = os.pathsep.join(sys.path)
         # del env["QT3D_RENDERER"]
@@ -189,6 +202,18 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
         self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)        # env=env
 
+    def viewProcessFinished(self, exitCode, exitStatus):
+        if exitCode:
+            msg = f"""Exit code: {exitCode}
+Exit status: {exitStatus}
+
+"""
+            msg += bytes(self.viewProcess.readAllStandardError()).decode("utf-8", "replace")
+            QMessageBox.critical(None, f"{PLUGIN_NAME} Preview Error", msg)
+
+    def viewProcessErrorOccurred(self, error):
+        QMessageBox.critical(None, f"{PLUGIN_NAME} Preview", str(error))
+
     def stopPreview(self):
         if not self.viewProcess:
             return
@@ -204,8 +229,15 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
             return
 
         try:
-            self.viewProcess.terminate()
-            self.viewProcess.wait(timeout=3)
+            if USE_QPROCESS:
+                self.viewProcess.terminate()
+                self.viewProcess.waitForFinished(3000)
+
+                self.viewProcess.finished.disconnect()
+                self.viewProcess.errorOccurred.disconnect()
+            else:
+                self.viewProcess.terminate()
+                self.viewProcess.wait(timeout=3)
 
         # except ProcessLookupError:
         # except subprocess.TimeoutExpired:
